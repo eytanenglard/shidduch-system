@@ -17,10 +17,10 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { Clock, CheckCircle, XCircle, Loader2, Users } from "lucide-react";
 import type { ExtendedInquiry } from "@/types/messages";
-import type { CustomSession } from "@/types/next-auth";
+import type { Session } from "@/types/next-auth";
 
 export default function MessagesPage() {
-  const { data: session } = useSession() as { data: CustomSession | null };
+  const { data: session } = useSession() as { data: Session | null };
   const { refreshNotifications } = useNotifications();
   const [inquiries, setInquiries] = useState<ExtendedInquiry[]>([]);
   const [loading, setLoading] = useState(true);
