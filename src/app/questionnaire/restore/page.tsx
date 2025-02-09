@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,10 +18,10 @@ export default function QuestionnaireRestore() {
     const restoreQuestionnaire = async () => {
       try {
         setIsProcessing(true);
-        const savedData = localStorage.getItem('tempQuestionnaire');
-        
+        const savedData = localStorage.getItem("tempQuestionnaire");
+
         if (!savedData || !session?.user?.id) {
-          router.push('/dashboard');
+          router.push("/dashboard");
           return;
         }
 
@@ -27,31 +29,30 @@ export default function QuestionnaireRestore() {
         // עדכון ה-userId לפי המשתמש שהתחבר
         questionnaireData.userId = session.user.id;
 
-        const response = await fetch('/api/questionnaire', {
-          method: 'POST',
+        const response = await fetch("/api/questionnaire", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify(questionnaireData),
         });
 
         if (!response.ok) {
-          throw new Error('Failed to save questionnaire');
+          throw new Error("Failed to save questionnaire");
         }
 
         // מחיקת הנתונים הזמניים מ-localStorage
-        localStorage.removeItem('tempQuestionnaire');
-        
+        localStorage.removeItem("tempQuestionnaire");
+
         // ניווט לדף המתאים בהתאם למצב השאלון
         if (questionnaireData.completed) {
-          router.push('/dashboard');
+          router.push("/dashboard");
         } else {
-          router.push('/questionnaire');
+          router.push("/questionnaire");
         }
-
       } catch (err) {
-        console.error('Error restoring questionnaire:', err);
-        setError('אירעה שגיאה בשחזור הנתונים. אנא נסה שוב.');
+        console.error("Error restoring questionnaire:", err);
+        setError("אירעה שגיאה בשחזור הנתונים. אנא נסה שוב.");
       } finally {
         setIsProcessing(false);
       }
@@ -69,7 +70,7 @@ export default function QuestionnaireRestore() {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
         <div className="mt-4 flex justify-center">
-          <Button onClick={() => router.push('/questionnaire')}>
+          <Button onClick={() => router.push("/questionnaire")}>
             חזור לשאלון
           </Button>
         </div>
