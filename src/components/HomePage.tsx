@@ -13,7 +13,7 @@ import {
   ArrowLeft,
   ClipboardList,
 } from "lucide-react";
-import { ClipboardCheck } from "lucide-react";
+
 // Type definitions
 interface FeatureCardProps {
   icon: React.ReactNode;
@@ -120,7 +120,7 @@ export default function HomePage() {
                   <ArrowLeft className="mr-2 h-5 w-5" />
                 </Button>
               </Link>
-             
+
               <Link href="/auth/signin">
                 <Button
                   variant="outline"
@@ -141,16 +141,14 @@ export default function HomePage() {
                 <ArrowLeft className="mr-2 h-5 w-5" />
               </Button>
             </Link>
-            
-            
           )}
-           <Link href="/questionnaire">
-                <FeatureCard
-                  icon={<ClipboardList className="w-8 h-8 text-blue-600" />}
-                  title="שאלון התאמה"
-                  description="מלא/י שאלון מקיף לקבלת הצעות שידוך מותאמות אישית"
-                />
-              </Link>
+          <Link href="/components/questionnaire">
+            <FeatureCard
+              icon={<ClipboardList className="w-8 h-8 text-blue-600" />}
+              title="שאלון התאמה"
+              description="מלא/י שאלון מקיף לקבלת הצעות שידוך מותאמות אישית"
+            />
+          </Link>
         </div>
       </section>
 
