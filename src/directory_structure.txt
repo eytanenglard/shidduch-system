@@ -1,4 +1,5 @@
 code.py
+directory_structure.txt
 middleware.ts
 .dist
 app
@@ -194,12 +195,6 @@ app
     messages
       AvailabilityRequestCard.tsx
       MessagesPage.tsx
-    questionnaire
-      page.tsx
-      complete
-        page.tsx
-      restore
-        page.tsx
     shared
       shared
         .dist
@@ -245,6 +240,12 @@ app
     auth.ts
     validation
       auth.ts
+  questionnaire
+    page.tsx
+    complete
+      page.tsx
+    restore
+      page.tsx
   types
     matchmaker.ts
     suggestions.ts
@@ -261,6 +262,9 @@ components
     AvailabilityInquiryResponse.tsx
   questionnaire
     MatchmakingQuestionnaire.tsx
+    QuestionnaireComplete.tsx
+    QuestionnairePage.tsx
+    QuestionnaireRestore.tsx
     utils.ts
     common
       AnswerInput.tsx
