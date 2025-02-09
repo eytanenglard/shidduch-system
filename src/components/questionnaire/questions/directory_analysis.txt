@@ -1,0 +1,3415 @@
+מבנה התיקייה:
+questions
+  partner
+    partnerBasicQuestions.tsx
+    partnerDepthQuestions.tsx
+  personality
+    personalityQuestionsPartOne.tsx
+    personalityQuestionsPartTwo.tsx
+  relationship
+    relationshipBasicsQuestions.tsx
+    relationshipDepthQuestions.tsx
+  religion
+    faithQuestions.tsx
+    practicalReligionQuestions.tsx
+  values
+    valuesQuestionsPartOne.tsx
+    valuesQuestionsPartTwo.tsx
+
+תוכן הקבצים:
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\components\questionnaire\questions\partner\partnerBasicQuestions.tsx:
+==================================================
+// partnerBasicQuestions.tsx
+import { Question } from "../../types/types";
+import {
+  Heart,
+  Home,
+  Users,
+  Brain,
+  Star,
+  Sun,
+  Moon,
+  Target,
+  MessageCircle,
+  Smile,
+  HandHeart,
+  Gift,
+  Globe,
+  Music,
+  Book,
+  Clock,
+  Map,
+  Baby,
+  Church,
+  Brush,
+  Coffee,
+  Laugh,
+} from "lucide-react";
+
+export const partnerBasicQuestions: Question[] = [
+  {
+    id: "initial_attraction",
+    category: "partner",
+    subcategory: "basics",
+    question: "מה הכי חשוב לך במבט ראשון אצל בת זוג?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Smile />,
+        text: "חום ונעימות",
+        value: "warmth",
+        description: "אישיות מקבלת ומאירת פנים",
+      },
+      {
+        icon: <Brain />,
+        text: "אינטליגנציה",
+        value: "intelligence",
+        description: "חוכמה וסקרנות אינטלקטואלית",
+      },
+      {
+        icon: <Heart />,
+        text: "רגישות",
+        value: "sensitivity",
+        description: "עדינות ואכפתיות",
+      },
+      {
+        icon: <Laugh />,
+        text: "חוש הומור",
+        value: "humor",
+        description: "קלילות ויכולת לצחוק",
+      },
+    ],
+  },
+  {
+    id: "partner_communication_style",
+    category: "partner",
+    subcategory: "basics",
+    question: "איזה סגנון תקשורת היית רוצה שיהיה לבת הזוג שלך?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <MessageCircle />,
+        text: "עמוקה ורגשית",
+        value: "deep",
+        description: "שיחות משמעותיות על רגשות וחיים",
+      },
+      {
+        icon: <Coffee />,
+        text: "קלילה ומשעשעת",
+        value: "light",
+        description: "תקשורת קלה וזורמת",
+      },
+      {
+        icon: <Target />,
+        text: "ישירה ועניינית",
+        value: "direct",
+        description: "תקשורת ברורה וממוקדת",
+      },
+      {
+        icon: <HandHeart />,
+        text: "תומכת ומכילה",
+        value: "supportive",
+        description: "הקשבה והכלה רגשית",
+      },
+    ],
+  },
+  {
+    id: "partner_leisure",
+    category: "partner",
+    subcategory: "basics",
+    question: "איך היית רוצה שבת הזוג תבלה את זמנה הפנוי?",
+    type: "multiSelect",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Book />,
+        text: "העשרה ולמידה",
+        value: "learning",
+      },
+      {
+        icon: <Users />,
+        text: "פעילות חברתית",
+        value: "social",
+      },
+      {
+        icon: <Brush />,
+        text: "יצירה ואומנות",
+        value: "creative",
+      },
+      {
+        icon: <Globe />,
+        text: "טיולים וחוויות",
+        value: "adventures",
+      },
+    ],
+    minSelections: 1,
+    maxSelections: 2,
+  },
+  {
+    id: "partner_family_approach",
+    category: "partner",
+    subcategory: "basics",
+    question: "איזו גישה למשפחה היית רוצה שתהיה לבת הזוג?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Heart />,
+        text: "משפחתית מאוד",
+        value: "very_family_oriented",
+        description: "מעורבות גבוהה בחיי המשפחה",
+      },
+      {
+        icon: <Home />,
+        text: "מאוזנת",
+        value: "balanced",
+        description: "שילוב בין משפחה לעצמאות",
+      },
+      {
+        icon: <Users />,
+        text: "חברתית",
+        value: "social",
+        description: "דגש על קשרים חברתיים",
+      },
+      {
+        icon: <Target />,
+        text: "עצמאית",
+        value: "independent",
+        description: "שומרת על עצמאות אישית",
+      },
+    ],
+  },
+  {
+    id: "partner_life_goals",
+    category: "partner",
+    subcategory: "basics",
+    question: "אילו שאיפות היית רוצה שיהיו לבת הזוג?",
+    type: "multiSelect",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Star />,
+        text: "הגשמה מקצועית",
+        value: "career",
+      },
+      {
+        icon: <Home />,
+        text: "בניית משפחה",
+        value: "family",
+      },
+      {
+        icon: <Book />,
+        text: "התפתחות אישית",
+        value: "growth",
+      },
+      {
+        icon: <Globe />,
+        text: "השפעה חברתית",
+        value: "impact",
+      },
+    ],
+    minSelections: 1,
+    maxSelections: 2,
+  },
+  {
+    id: "partner_emotional_expression",
+    category: "partner",
+    subcategory: "basics",
+    question: "איך היית רוצה שבת הזוג תביע רגשות?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Heart />,
+        text: "רגשית ופתוחה",
+        value: "expressive",
+        description: "ביטוי חופשי של רגשות",
+      },
+      {
+        icon: <HandHeart />,
+        text: "מאוזנת ויציבה",
+        value: "balanced",
+        description: "ביטוי רגשי מאוזן",
+      },
+      {
+        icon: <Brain />,
+        text: "מחושבת ושקולה",
+        value: "thoughtful",
+        description: "גישה רציונלית לרגשות",
+      },
+      {
+        icon: <Sun />,
+        text: "אופטימית ומעודדת",
+        value: "positive",
+        description: "דגש על חיוביות",
+      },
+    ],
+  },
+  {
+    id: "partner_lifestyle",
+    category: "partner",
+    subcategory: "basics",
+    question: "איזה סגנון חיים היית רוצה שיהיה לבת הזוג?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Globe />,
+        text: "הרפתקני ודינמי",
+        value: "adventurous",
+        description: "חיים מלאי אקשן והרפתקאות",
+      },
+      {
+        icon: <Home />,
+        text: "יציב ומסודר",
+        value: "stable",
+        description: "חיים מאורגנים ויציבים",
+      },
+      {
+        icon: <Music />,
+        text: "יצירתי ואמנותי",
+        value: "creative",
+        description: "חיים של יצירה והבעה",
+      },
+      {
+        icon: <Book />,
+        text: "אינטלקטואלי",
+        value: "intellectual",
+        description: "חיים של למידה והעשרה",
+      },
+    ],
+  },
+  {
+    id: "partner_social_style",
+    category: "partner",
+    subcategory: "basics",
+    question: "איזה סגנון חברתי היית רוצה שיהיה לבת הזוג?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Users />,
+        text: "חברותית מאוד",
+        value: "very_social",
+        description: "אוהבת להיות מוקפת באנשים",
+      },
+      {
+        icon: <Home />,
+        text: "מאוזנת חברתית",
+        value: "balanced",
+        description: "משלבת זמן חברתי ואישי",
+      },
+      {
+        icon: <Heart />,
+        text: "סלקטיבית",
+        value: "selective",
+        description: "מעדיפה חברויות קרובות ועמוקות",
+      },
+      {
+        icon: <Book />,
+        text: "שקטה ועצמאית",
+        value: "independent",
+        description: "מעדיפה זמן אישי",
+      },
+    ],
+  },
+  {
+    id: "partner_values",
+    category: "partner",
+    subcategory: "basics",
+    question: "אילו ערכים הכי חשוב לך שיהיו לבת הזוג?",
+    type: "multiSelect",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Heart />,
+        text: "אמפתיה וחמלה",
+        value: "empathy",
+      },
+      {
+        icon: <Target />,
+        text: "יושרה ואמינות",
+        value: "integrity",
+      },
+      {
+        icon: <Star />,
+        text: "שאפתנות",
+        value: "ambition",
+      },
+      {
+        icon: <HandHeart />,
+        text: "נתינה ועזרה",
+        value: "giving",
+      },
+    ],
+    minSelections: 1,
+    maxSelections: 2,
+  },
+  {
+    id: "partner_career_attitude",
+    category: "partner",
+    subcategory: "basics",
+    question: "איזו גישה לקריירה היית רוצה שתהיה לבת הזוג?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Star />,
+        text: "שאפתנית מאוד",
+        value: "ambitious",
+        description: "מוכוונת הצלחה והישגים",
+      },
+      {
+        icon: <Target />,
+        text: "מאוזנת",
+        value: "balanced",
+        description: "משלבת קריירה וחיים אישיים",
+      },
+      {
+        icon: <Heart />,
+        text: "מוכוונת משמעות",
+        value: "meaningful",
+        description: "מחפשת סיפוק והשפעה",
+      },
+      {
+        icon: <Home />,
+        text: "גמישה",
+        value: "flexible",
+        description: "מתאימה את העבודה לחיים",
+      },
+    ],
+  },
+  {
+    id: "partner_decision_making",
+    category: "partner",
+    subcategory: "basics",
+    question: "איך היית רוצה שבת הזוג תקבל החלטות?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Brain />,
+        text: "רציונלית",
+        value: "rational",
+        description: "מבוססת על ניתוח והיגיון",
+      },
+      {
+        icon: <Heart />,
+        text: "אינטואיטיבית",
+        value: "intuitive",
+        description: "מקשיבה לתחושות הבטן",
+      },
+      {
+        icon: <Users />,
+        text: "משתפת",
+        value: "collaborative",
+        description: "מתייעצת עם אחרים",
+      },
+      {
+        icon: <Target />,
+        text: "מאוזנת",
+        value: "balanced",
+        description: "משלבת רגש והיגיון",
+      },
+    ],
+  },
+  {
+    id: "partner_conflict_resolution",
+    category: "partner",
+    subcategory: "basics",
+    question: "איך היית רוצה שבת הזוג תתמודד עם קונפליקטים?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <MessageCircle />,
+        text: "דיון פתוח",
+        value: "open_discussion",
+        description: "מעדיפה לדבר על הכל",
+      },
+      {
+        icon: <HandHeart />,
+        text: "פשרה והבנה",
+        value: "compromise",
+        description: "מחפשת פתרון מאוזן",
+      },
+      {
+        icon: <Clock />,
+        text: "זמן לעיבוד",
+        value: "processing",
+        description: "לוקחת זמן לחשיבה",
+      },
+      {
+        icon: <Target />,
+        text: "פתרון מעשי",
+        value: "practical",
+        description: "מחפשת פתרונות מעשיים",
+      },
+    ],
+  },
+  {
+    id: "partner_religious_approach",
+    category: "partner",
+    subcategory: "basics",
+    question: "איזו גישה לדת ומסורת היית רוצה שתהיה לבת הזוג?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Church />,
+        text: "מסורתית מאוד",
+        value: "very_religious",
+        description: "שומרת על מסורת וערכי דת",
+      },
+      {
+        icon: <Star />,
+        text: "מסורתית גמישה",
+        value: "flexible_traditional",
+        description: "משלבת מסורת עם מודרניות",
+      },
+      {
+        icon: <Heart />,
+        text: "חיבור רוחני",
+        value: "spiritual",
+        description: "מחוברת לערכים רוחניים",
+      },
+      {
+        icon: <Sun />,
+        text: "חילונית",
+        value: "secular",
+        description: "מנהלת אורח חיים חילוני",
+      },
+    ],
+  },
+  {
+    id: "partner_personal_growth",
+    category: "partner",
+    subcategory: "basics",
+    question: "איזו גישה להתפתחות אישית היית רוצה שתהיה לבת הזוג?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Book />,
+        text: "לומדת תמיד",
+        value: "constant_learner",
+        description: "משקיעה בלמידה והתפתחות",
+      },
+      {
+        icon: <Target />,
+        text: "מכוונת מטרות",
+        value: "goal_oriented",
+        description: "מציבה ומשיגה יעדים",
+      },
+      {
+        icon: <Heart />,
+        text: "צמיחה רגשית",
+        value: "emotional_growth",
+        description: "מתפתחת מבחינה רגשית",
+      },
+      {
+        icon: <Globe />,
+        text: "פתוחה לחוויות",
+        value: "open_minded",
+        description: "פתוחה להתנסויות חדשות",
+      },
+    ],
+  },
+  {
+    id: "partner_support_style",
+    category: "partner",
+    subcategory: "basics",
+    question: "איך היית רוצה שבת הזוג תתמוך בך?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <HandHeart />,
+        text: "תמיכה רגשית",
+        value: "emotional_support",
+        description: "מקשיבה ומכילה רגשית",
+      },
+      {
+        icon: <Target />,
+        text: "תמיכה מעשית",
+        value: "practical_support",
+        description: "עוזרת במציאת פתרונות",
+      },
+      {
+        icon: <Star />,
+        text: "מעודדת צמיחה",
+        value: "growth_support",
+        description: "דוחפת להתפתח ולהתקדם",
+      },
+      {
+        icon: <Sun />,
+        text: "נוכחות תומכת",
+        value: "presence",
+        description: "פשוט נמצאת שם בשבילי",
+      },
+    ],
+  },
+  {
+    id: "partner_intimacy_approach",
+    category: "partner",
+    subcategory: "basics",
+    question: "איזו גישה לקרבה ואינטימיות היית רוצה שתהיה לבת הזוג?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Heart />,
+        text: "רומנטית",
+        value: "romantic",
+        description: "מחפשת רומנטיקה ואינטימיות",
+      },
+      {
+        icon: <MessageCircle />,
+        text: "רגשית",
+        value: "emotional",
+        description: "מעדיפה חיבור רגשי עמוק",
+      },
+      {
+        icon: <HandHeart />,
+        text: "פיזית",
+        value: "physical",
+        description: "מעריכה מגע וקרבה פיזית",
+      },
+      {
+        icon: <Target />,
+        text: "מאוזנת",
+        value: "balanced",
+        description: "משלבת בין כל סוגי הקרבה",
+      },
+    ],
+  },
+  {
+    id: "partner_future_vision",
+    category: "partner",
+    subcategory: "basics",
+    question: "איך היית רוצה שבת הזוג תראה את העתיד המשותף?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Map />,
+        text: "מתכננת",
+        value: "planner",
+        description: "אוהבת לתכנן את העתיד",
+      },
+      {
+        icon: <Globe />,
+        text: "הרפתקנית",
+        value: "adventurous",
+        description: "פתוחה להזדמנויות חדשות",
+      },
+      {
+        icon: <Home />,
+        text: "יציבה",
+        value: "stable",
+        description: "מחפשת יציבות וביטחון",
+      },
+      {
+        icon: <Star />,
+        text: "שאפתנית",
+        value: "ambitious",
+        description: "מציבה יעדים גבוהים",
+      },
+    ],
+  },
+  {
+    id: "partner_interests",
+    category: "partner",
+    subcategory: "basics",
+    question: "אילו תחומי עניין היית רוצה שיהיו לבת הזוג?",
+    type: "multiSelect",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Book />,
+        text: "אינטלקטואליים",
+        value: "intellectual",
+      },
+      {
+        icon: <Music />,
+        text: "אומנות ותרבות",
+        value: "arts",
+      },
+      {
+        icon: <Globe />,
+        text: "טיולים וטבע",
+        value: "nature",
+      },
+      {
+        icon: <Users />,
+        text: "חברה וקהילה",
+        value: "community",
+      },
+    ],
+    minSelections: 1,
+    maxSelections: 2,
+  },
+  {
+    id: "partner_independence",
+    category: "partner",
+    subcategory: "basics",
+    question: "איזו רמת עצמאות היית רוצה שתהיה לבת הזוג?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Star />,
+        text: "עצמאית מאוד",
+        value: "very_independent",
+        description: "אוהבת לעשות דברים לבד",
+      },
+      {
+        icon: <Users />,
+        text: "משלבת",
+        value: "balanced",
+        description: "משלבת עצמאות ושותפות",
+      },
+      {
+        icon: <Heart />,
+        text: "מחוברת",
+        value: "connected",
+        description: "מעדיפה לעשות דברים יחד",
+      },
+      {
+        icon: <Target />,
+        text: "גמישה",
+        value: "flexible",
+        description: "מתאימה את עצמה למצב",
+      },
+    ],
+  },
+  {
+    id: "partner_emotions_handling",
+    category: "partner",
+    subcategory: "basics",
+    question: "איך היית רוצה שבת הזוג תתמודד עם רגשות?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <MessageCircle />,
+        text: "משתפת",
+        value: "expressive",
+        description: "מדברת על רגשות בפתיחות",
+      },
+      {
+        icon: <Brain />,
+        text: "מעבדת",
+        value: "processing",
+        description: "מעבדת רגשות בפנים",
+      },
+      {
+        icon: <HandHeart />,
+        text: "מאוזנת",
+        value: "balanced",
+        description: "משלבת שיתוף ועיבוד",
+      },
+      {
+        icon: <Target />,
+        text: "פרקטית",
+        value: "practical",
+        description: "מתמקדת בפתרונות",
+      },
+    ],
+  },
+  {
+    id: "partner_home_management",
+    category: "partner",
+    subcategory: "basics",
+    question: "איזו גישה לניהול הבית היית רוצה שתהיה לבת הזוג?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Home />,
+        text: "מאורגנת",
+        value: "organized",
+        description: "אוהבת סדר וארגון",
+      },
+      {
+        icon: <Heart />,
+        text: "יוצרת אווירה",
+        value: "atmosphere",
+        description: "מתמקדת באווירה נעימה",
+      },
+      {
+        icon: <Users />,
+        text: "משתפת פעולה",
+        value: "collaborative",
+        description: "עובדת בשיתוף פעולה",
+      },
+      {
+        icon: <Sun />,
+        text: "גמישה",
+        value: "flexible",
+        description: "מסתגלת למצבים משתנים",
+      },
+    ],
+  },
+  {
+    id: "partner_stress_handling",
+    category: "partner",
+    subcategory: "basics",
+    question: "איך היית רוצה שבת הזוג תתמודד עם מצבי לחץ?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Target />,
+        text: "פותרת בעיות",
+        value: "problem_solver",
+        description: "מתמקדת במציאת פתרונות",
+      },
+      {
+        icon: <Heart />,
+        text: "מבקשת תמיכה",
+        value: "support_seeker",
+        description: "משתפת ומבקשת עזרה",
+      },
+      {
+        icon: <Sun />,
+        text: "אופטימית",
+        value: "optimistic",
+        description: "שומרת על גישה חיובית",
+      },
+      {
+        icon: <Brain />,
+        text: "מתכננת",
+        value: "planner",
+        description: "מתכננת ומתארגנת מראש",
+      },
+    ],
+  },
+];
+
+export default partnerBasicQuestions;
+
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\components\questionnaire\questions\partner\partnerDepthQuestions.tsx:
+==================================================
+// partnerDepthQuestions.tsx
+import { Question } from "../../types/types";
+import {
+  Heart,
+  Brain,
+  Star,
+  Sun,
+  Target,
+  MessageCircle,
+  HandHeart,
+  Book,
+  Globe,
+  Home,
+  Users,
+  Map,
+  Coffee,
+  Music,
+  Baby,
+  Church,
+} from "lucide-react";
+
+export const partnerDepthQuestions: Question[] = [
+  {
+    id: "emotional_support_style",
+    category: "partner",
+    subcategory: "depth",
+    question:
+      "איך היית רוצה שבת הזוג תתמוך בך ברגעים מאתגרים? תאר סיטואציה ספציפית ואיך היית רוצה שהיא תגיב",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "שתף על סוג התמיכה שאתה מחפש ואיך היית רוצה לחוות אותה...",
+  },
+  {
+    id: "values_expression",
+    category: "partner",
+    subcategory: "depth",
+    question:
+      "אילו ערכים חשובים לך שבת הזוג תייצג בחייה? תן דוגמאות ספציפיות לאיך היית רוצה לראות ערכים אלו באים לידי ביטוי ביומיום",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder:
+      "תאר את הערכים החשובים לך ואיך היית רוצה לראות אותם מתבטאים...",
+  },
+  {
+    id: "intellectual_connection",
+    category: "partner",
+    subcategory: "depth",
+    question:
+      "איזה סוג של חיבור אינטלקטואלי היית רוצה שיהיה ביניכם? על מה היית רוצה שתוכלו לדבר ולחשוב יחד?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "שתף על החיבור האינטלקטואלי שאתה מחפש...",
+  },
+  {
+    id: "future_challenges",
+    category: "partner",
+    subcategory: "depth",
+    question:
+      "איך היית רוצה שתתמודדו יחד עם אתגרים עתידיים? איזה סוג של שותפות היית רוצה ליצור בהתמודדות עם קשיים?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "תאר את סוג השותפות שהיית רוצה באתגרים...",
+  },
+  {
+    id: "emotional_growth",
+    category: "partner",
+    subcategory: "depth",
+    question:
+      "איך היית רוצה לראות את בת הזוג מתפתחת מבחינה רגשית? איך הייתם יכולים לצמוח רגשית יחד?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "שתף על הצמיחה הרגשית שהיית רוצה לראות...",
+  },
+  {
+    id: "life_goals_support",
+    category: "partner",
+    subcategory: "depth",
+    question:
+      "איך היית רוצה שבת הזוג תתמוך במטרות החיים שלך? איזה תפקיד היית רוצה שהיא תיקח בהגשמת החלומות שלך?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "תאר את התמיכה שהיית רוצה במטרות החיים שלך...",
+  },
+  {
+    id: "shared_spirituality",
+    category: "partner",
+    subcategory: "depth",
+    question:
+      "איזה חיבור רוחני היית רוצה שיהיה ביניכם? איך היית רוצה לחוות יחד את הצד הרוחני של החיים?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "שתף על החיבור הרוחני שהיית רוצה בזוגיות...",
+  },
+  {
+    id: "conflict_resolution",
+    category: "partner",
+    subcategory: "depth",
+    question:
+      "כשיש חילוקי דעות, איך היית רוצה שבת הזוג תנהל את השיחה? תאר את הדרך האידיאלית בעיניך לפתרון קונפליקטים",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "תאר את הדרך הרצויה בעיניך לפתרון מחלוקות...",
+  },
+  {
+    id: "quality_time",
+    category: "partner",
+    subcategory: "depth",
+    question:
+      "איך נראה בעיניך זמן איכות משמעותי עם בת זוג? אילו חוויות משותפות היית רוצה ליצור יחד?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "תאר את סוג הזמן המשותף שהיית רוצה...",
+  },
+  {
+    id: "personal_growth_support",
+    category: "partner",
+    subcategory: "depth",
+    question:
+      "איך היית רוצה שבת הזוג תתמוך בצמיחה האישית שלך? איזה מרחב היית רוצה לקבל להתפתחות עצמית בתוך הזוגיות?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "שתף על התמיכה שהיית רוצה בצמיחה האישית שלך...",
+  },
+  {
+    id: "shared_dreams",
+    category: "partner",
+    subcategory: "depth",
+    question:
+      "אילו חלומות משותפים היית רוצה להגשים יחד? איך היית רוצה שתעבדו יחד להגשמת החלומות האלה?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "תאר את החלומות המשותפים שהיית רוצה להגשים...",
+  },
+  {
+    id: "emotional_intimacy",
+    category: "partner",
+    subcategory: "depth",
+    question:
+      "מה יוצר אצלך תחושה של קרבה רגשית אמיתית? איך היית רוצה לבנות ולטפח אינטימיות רגשית עם בת הזוג?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "שתף על הקרבה הרגשית שאתה מחפש...",
+  },
+  {
+    id: "daily_partnership",
+    category: "partner",
+    subcategory: "depth",
+    question:
+      "איך היית רוצה שהשותפות היומיומית ביניכם תיראה? אילו ערכים היית רוצה שינחו את החיים המשותפים שלכם?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "תאר את השותפות היומיומית שהיית רוצה...",
+  },
+  {
+    id: "trust_building",
+    category: "partner",
+    subcategory: "depth",
+    question:
+      "מה בונה אצלך אמון בקשר? אילו התנהגויות או מאפיינים של בת הזוג יגרמו לך להרגיש שאתה יכול לתת בה אמון מלא?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "שתף על מה שבונה אצלך אמון בקשר...",
+  },
+  {
+    id: "family_relationships",
+    category: "partner",
+    subcategory: "depth",
+    question:
+      "איך היית רוצה שבת הזוג תתייחס למשפחה שלך? איזה סוג של קשר היית רוצה שייבנה בינה לבין המשפחה המורחבת?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "תאר את היחסים המשפחתיים שהיית רוצה לראות...",
+  },
+  {
+    id: "life_balance",
+    category: "partner",
+    subcategory: "depth",
+    question:
+      "איזה איזון היית רוצה למצוא בין הזוגיות לשאר תחומי החיים? איך היית רוצה שבת הזוג תתמוך באיזון הזה?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "שתף על האיזון שאתה מחפש בין תחומי החיים...",
+  },
+  {
+    id: "mutual_growth",
+    category: "partner",
+    subcategory: "depth",
+    question:
+      "איך היית רוצה לראות את עצמכם צומחים וצומחים יחד לאורך השנים? איזה סוג של התפתחות משותפת היית רוצה ליצור?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "תאר את הצמיחה המשותפת שהיית רוצה לחוות...",
+  },
+  {
+    id: "partner_independence",
+    category: "partner",
+    subcategory: "depth",
+    question:
+      "איזה מרחב אישי היית רוצה שיהיה לכל אחד מכם בתוך הזוגיות? איך לדעתך צריך לאזן בין עצמאות לקרבה?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "שתף על האיזון שאתה מחפש בין עצמאות וקרבה...",
+  },
+  {
+    id: "relationship_success",
+    category: "partner",
+    subcategory: "depth",
+    question:
+      "מה נחשב בעיניך לזוגיות מוצלחת? אילו מרכיבים הכרחיים בעיניך לקשר ארוך טווח ומספק?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "תאר את תפיסתך לגבי זוגיות מוצלחת...",
+  },
+  {
+    id: "life_philosophy",
+    category: "partner",
+    subcategory: "depth",
+    question:
+      "איזו השקפת עולם היית רוצה לחלוק עם בת הזוג? אילו ערכים ואמונות בסיסיות חשוב לך שיהיו משותפים?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "שתף על השקפת העולם המשותפת שאתה מחפש...",
+  },
+];
+
+export default partnerDepthQuestions;
+
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\components\questionnaire\questions\personality\personalityQuestionsPartOne.tsx:
+==================================================
+// personalityQuestionsPartOne.tsx
+import { Question } from "../../types/types";
+import {
+  Sun,
+  Moon,
+  Cloud,
+  Compass,
+  Flower,
+  Users,
+  Book,
+  Leaf,
+  Coffee,
+  Target,
+  MessageCircle,
+  HandHeart,
+  Lightbulb,
+  Brain,
+  Map,
+  Star,
+  Heart,
+  Music,
+  Home,
+  Edit,
+  PenTool,
+  Bike,
+  Pizza,
+  Camera,
+  Globe,
+  Gift,
+  Watch,
+  Phone,
+} from "lucide-react";
+
+export const personalityQuestionsPartOne: Question[] = [
+  {
+    id: "personality_description",
+    category: "personality",
+    subcategory: "depth",
+    question: "ספר על עצמך ב10 משפטים",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "נשמח לשמוע עליך בכתיבה חופשית, כנה וזורמת",
+  },
+  {
+    id: "personality_type",
+    category: "personality",
+    subcategory: "basics",
+    question: "איך היית מגדיר/ה את האישיות שלך בצורה הכי מדוייקת?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Sun />,
+        text: "אנרגטי/ת ופתוח/ה",
+        value: "energetic",
+        description: "אוהב/ת להיות במרכז העניינים ולהכיר אנשים חדשים",
+      },
+      {
+        icon: <Moon />,
+        text: "שקט/ה ומופנם/ת",
+        value: "quiet",
+        description: "מעדיף/ה מפגשים אינטימיים ושקט",
+      },
+      {
+        icon: <Cloud />,
+        text: "זורם/ת ומסתגל/ת",
+        value: "adaptable",
+        description: "גמיש/ה ומסתגל/ת בקלות למצבים חדשים",
+      },
+      {
+        icon: <Compass />,
+        text: "מוכוון/ת מטרה",
+        value: "focused",
+        description: "ממוקד/ת במטרות וביעדים",
+      },
+    ],
+  },
+  {
+    id: "life_mission",
+    category: "personality",
+    subcategory: "depth",
+    question: "מהי השליחות או המטרה שאת/ה מרגיש/ה שיש לך בחיים?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: false,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "שתף/י את החזון והשאיפות העמוקות שלך...",
+  },
+  {
+    id: "social_settings",
+    category: "personality",
+    subcategory: "basics",
+    question: "באיזו סביבה חברתית את/ה מרגיש/ה הכי בנוח?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Users />,
+        text: "מסיבות גדולות",
+        value: "parties",
+        description: "אירועים חברתיים גדולים ותוססים",
+      },
+      {
+        icon: <Coffee />,
+        text: "מפגשים קטנים",
+        value: "small_gatherings",
+        description: "מפגשים אינטימיים עם חברים קרובים",
+      },
+      {
+        icon: <Home />,
+        text: "בילוי ביתי",
+        value: "home",
+        description: "ערבים שקטים בבית עם משפחה",
+      },
+      {
+        icon: <Book />,
+        text: "לבד או בזוג",
+        value: "alone",
+        description: "זמן איכות לבד או עם אדם קרוב",
+      },
+    ],
+  },
+  {
+    id: "life_values",
+    category: "personality",
+    subcategory: "depth",
+    question:
+      "מהם שלושת הערכים החשובים ביותר בחייך ואיך הם באים לידי ביטוי ביומיום?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "תאר/י את הערכים שמנחים אותך והדוגמאות מחייך...",
+  },
+  {
+    id: "free_time_activities",
+    category: "personality",
+    subcategory: "basics",
+    question: "מה את/ה הכי אוהב/ת לעשות בזמן הפנוי?",
+    type: "multiSelectWithOther",
+    depth: "BASIC",
+    isRequired: false,
+    options: [
+      {
+        icon: <Book />,
+        text: "קריאה ולמידה",
+        value: "reading",
+      },
+      {
+        icon: <Bike />,
+        text: "ספורט ופעילות גופנית",
+        value: "sports",
+      },
+      {
+        icon: <PenTool />,
+        text: "יצירה ואומנות",
+        value: "art",
+      },
+      {
+        icon: <Music />,
+        text: "מוזיקה ובידור",
+        value: "music",
+      },
+      {
+        icon: <Flower />,
+        text: "טבע וגינון",
+        value: "nature",
+      },
+      {
+        icon: <Globe />,
+        text: "טיולים ונסיעות",
+        value: "travel",
+      },
+      {
+        icon: <Edit />,
+        text: "אחר",
+        value: "other",
+        allowFreeText: true,
+        placeholder: "ספר/י לנו מה את/ה אוהב/ת לעשות...",
+      },
+    ],
+    minSelections: 1,
+    maxSelections: 3,
+  },
+  {
+    id: "relationship_lessons",
+    category: "personality",
+    subcategory: "depth",
+    question: "מה למדת על עצמך ממערכות היחסים המשמעותיות בחייך?(לאו דווקא זוגיות)",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "שתף/י תובנות ולקחים ממערכות יחסים...",
+  },
+  {
+    id: "communication_style",
+    category: "personality",
+    subcategory: "basics",
+    question: " איזה סוג של שיח מועדף עליך ביום יום?",
+    type: "multiSelect",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <MessageCircle />,
+        text: "קליל וכיפי",
+        value: "fun",
+        description: "שיח קליל שמעורב בצחוקים ואווירה כיפית",
+      },
+      {
+        icon: <HandHeart />,
+        text: "עמוק ומשמעותי",
+        value: "sensitive",
+        description: "שיח פורה ומשמעותי סביב ערכים",
+      },
+      {
+        icon: <Lightbulb />,
+        text: "רציני וענייני",
+        value: "creative",
+        description: "מדבר לעניין בלי יותר מדי חפירות",
+      },
+      {
+        icon: <Brain />,
+        text: "לא מרבה לדבר",
+        value: "quiet",
+        description: "שקט זה הדבר המועדף עליי",
+      },
+    ],
+    minSelections: 1,
+    maxSelections: 2,
+  },
+  {
+    id: "perfect_morning_detail",
+    category: "personality",
+    subcategory: "depth",
+    question:
+      "תאר/י את הבוקר המושלם שלך - משעת הקימה ועד הצהריים. מה כולל בוקר כזה ולמה דווקא הפעילויות האלו משמחות אותך?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: false,
+    minLength: 50,
+    maxLength: 500,
+    placeholder: "תאר/י את סדר היום, הפעילויות והתחושות שעולות בך...",
+  },
+  {
+    id: "daily_routine",
+    category: "personality",
+    subcategory: "basics",
+    question: "איך את/ה מעדיף/ה לנהל את היום-יום?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Watch />,
+        text: "שגרה מתוכננת",
+        value: "structured",
+        description: "לוח זמנים קבוע ומאורגן",
+      },
+      {
+        icon: <Cloud />,
+        text: "זרימה גמישה",
+        value: "flexible",
+        description: "התאמה לפי הצורך והמצב",
+      },
+      {
+        icon: <Target />,
+        text: "מוכוון משימות",
+        value: "task_oriented",
+        description: "התקדמות לפי יעדים",
+      },
+      {
+        icon: <Sun />,
+        text: "ספונטני ומשתנה",
+        value: "spontaneous",
+        description: "כל יום שונה ומפתיע",
+      },
+    ],
+  },
+  {
+    id: "future_self",
+    category: "personality",
+    subcategory: "depth",
+    question: "איך את/ה רואה את עצמך בעוד עשר שנים? מה השתנה ומה נשאר דומה?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: false,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "תאר/י את החזון העתידי שלך...",
+  },
+];
+
+export default personalityQuestionsPartOne;
+
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\components\questionnaire\questions\personality\personalityQuestionsPartTwo.tsx:
+==================================================
+// personalityQuestionsPartTwo.tsx
+import { Question } from "../../types/types";
+import {
+  Brain,
+  Heart,
+  Star,
+  Users,
+  Book,
+  Coffee,
+  Target,
+  Smile,
+  Sun,
+  Moon,
+  Map,
+  Compass,
+  MessageCircle,
+  HandHeart,
+  Lightbulb,
+  Leaf,
+  Globe,
+  Gift,
+  Camera,
+  Music,
+  PenTool,
+  Home,
+  Cloud,
+  Bike,
+  Pizza,
+  Watch,
+  Phone,
+} from "lucide-react";
+
+export const personalityQuestionsPartTwo: Question[] = [
+  {
+    id: "life_challenges",
+    category: "personality",
+    subcategory: "depth",
+    question: "מהו האתגר המשמעותי ביותר שהתגברת עליו ומה למדת ממנו על עצמך?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 1000,
+    placeholder: "שתף/י את סיפור ההתמודדות והצמיחה...",
+  },
+  {
+    id: "home_environment",
+    category: "personality",
+    subcategory: "basics",
+    question: "איך את/ה אוהב/ת את סביבת המגורים שלך?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Leaf />,
+        text: "טבעי ומרגיע",
+        value: "natural",
+        description: "צמחים, אור טבעי ואווירה רגועה",
+      },
+      {
+        icon: <Target />,
+        text: "מינימליסטי ומסודר",
+        value: "minimal",
+        description: "נקי, מאורגן ופונקציונלי",
+      },
+      {
+        icon: <Heart />,
+        text: "חמים וביתי",
+        value: "cozy",
+        description: "נעים, מזמין ונוח",
+      },
+      {
+        icon: <Star />,
+        text: "מודרני ועיצובי",
+        value: "modern",
+        description: "סטייל עכשווי ואלמנטים עיצוביים",
+      },
+    ],
+  },
+  {
+    id: "dinner_with_historical_figures",
+    category: "personality",
+    subcategory: "depth",
+    question:
+      "אם היית יכול/ה לארח לארוחת ערב שלושה אנשים מכל התקופות (חיים או היסטוריים), את מי היית מזמין/ה ומה היית רוצה ללמוד מהם?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: false,
+    minLength: 100,
+    maxLength: 1000,
+    placeholder: "ספר/י על האורחים שבחרת ומה היית רוצה לשוחח איתם...",
+  },
+  {
+    id: "stress_relief",
+    category: "personality",
+    subcategory: "basics",
+    question: "מה עוזר לך להירגע במצבי לחץ?",
+    type: "multiSelect",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Music />,
+        text: "מוזיקה ואומנות",
+        value: "arts",
+      },
+      {
+        icon: <Users />,
+        text: "שיחה עם חברים",
+        value: "social",
+      },
+      {
+        icon: <Bike />,
+        text: "פעילות גופנית",
+        value: "exercise",
+      },
+      {
+        icon: <Book />,
+        text: "זמן שקט לבד",
+        value: "alone_time",
+      },
+    ],
+    minSelections: 1,
+    maxSelections: 2,
+  },
+  {
+    id: "happiness_definition",
+    category: "personality",
+    subcategory: "depth",
+    question: "מה משמעותו של אושר עבורך? מתי את/ה מרגיש/ה הכי מאושר/ת?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "שתף/י את תפיסתך לגבי משמעות האושר...",
+  },
+
+  {
+    id: "family_traditions",
+    category: "personality",
+    subcategory: "depth",
+    question: "אילו מסורות משפחתיות חשובות לך במיוחד ולמה?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "ספר/י על המסורות המשפחתיות המשמעותיות עבורך...",
+  },
+  {
+    id: "organization_approach",
+    category: "personality",
+    subcategory: "basics",
+    question: "איך את/ה מתייחס/ת לארגון וסדר?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: false,
+    options: [
+      {
+        icon: <Target />,
+        text: "מסודר/ת ומאורגן/ת",
+        value: "organized",
+        description: "הכל במקום ומתוכנן",
+      },
+      {
+        icon: <Cloud />,
+        text: "גמיש/ה ומסתגל/ת",
+        value: "flexible",
+        description: "סדר עם גמישות",
+      },
+      {
+        icon: <Star />,
+        text: "יצירתי/ת ומשתנה",
+        value: "creative",
+        description: "סדר בתוך הכאוס",
+      },
+      {
+        icon: <Heart />,
+        text: "זורם/ת עם מה שיש",
+        value: "flow",
+        description: "פחות מתעסק/ת בארגון",
+      },
+    ],
+  },
+  {
+    id: "conflict_resolution",
+    category: "personality",
+    subcategory: "depth",
+    question: "(איך את/ה מתמודד/ת עם מחלוקות או קונפליקטים במערכות יחסים (לא דווקא זוגיים?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "תאר/י את הגישה שלך להתמודדות עם מחלוקות...",
+  },
+ 
+];
+
+export default personalityQuestionsPartTwo;
+
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\components\questionnaire\questions\relationship\relationshipBasicsQuestions.tsx:
+==================================================
+// relationshipBasicsQuestions.tsx
+import { Question } from "../../types/types";
+import {
+  Heart,
+  Home,
+  Users,
+  Calendar,
+  Coffee,
+  Sun,
+  Moon,
+  Target,
+  MessageCircle,
+  Smile,
+  HandHeart,
+  Gift,
+  Globe,
+  Music,
+  Book,
+  Clock,
+  Star,
+  Map,
+  Baby,
+  Phone,
+  Wallet,
+  Church,
+  PenTool,
+} from "lucide-react";
+
+export const relationshipBasicsQuestions: Question[] = [
+  {
+    id: "relationship_type",
+    category: "relationship",
+    subcategory: "basics",
+    question: "איזה סוג של קשר זוגי את/ה מחפש/ת?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Heart />,
+        text: "רומנטי ורגשי",
+        value: "romantic",
+        description: "דגש על חיבור רגשי עמוק ורומנטיקה"
+      },
+      {
+        icon: <Home />,
+        text: "יציב ובטוח",
+        value: "stable",
+        description: "בניית בית יציב ובטוח יחד"
+      },
+      {
+        icon: <Globe />,
+        text: "הרפתקני ודינמי",
+        value: "adventurous",
+        description: "חיים מלאי הרפתקאות וחוויות משותפות"
+      },
+      {
+        icon: <Target />,
+        text: "צומח ומתפתח",
+        value: "growing",
+        description: "התפתחות אישית וזוגית משותפת"
+      }
+    ]
+  },
+  {
+    id: "daily_routine",
+    category: "relationship",
+    subcategory: "basics",
+    question: "איך את/ה מדמיין/ת את שגרת היום-יום הזוגית?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Sun />,
+        text: "פעיל ודינמי",
+        value: "active",
+        description: "שגרה מלאה בפעילויות משותפות"
+      },
+      {
+        icon: <Moon />,
+        text: "רגוע ושליו",
+        value: "calm",
+        description: "שגרה שקטה ונינוחה"
+      },
+      {
+        icon: <Coffee />,
+        text: "מאוזן וגמיש",
+        value: "balanced",
+        description: "שילוב של פעילות ומנוחה"
+      },
+      {
+        icon: <Clock />,
+        text: "מתוכנן ומאורגן",
+        value: "organized",
+        description: "שגרה מסודרת עם תכנון משותף"
+      }
+    ]
+  },
+  {
+    id: "communication_style",
+    category: "relationship",
+    subcategory: "basics",
+    question: "מהו סגנון התקשורת המועדף עליך בזוגיות?",
+    type: "multiSelect",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <MessageCircle />,
+        text: "שיחות עמוקות",
+        value: "deep_talks"
+      },
+      {
+        icon: <Smile />,
+        text: "הומור וקלילות",
+        value: "humor"
+      },
+      {
+        icon: <HandHeart />,
+        text: "מגע וחיבה",
+        value: "physical"
+      },
+      {
+        icon: <Target />,
+        text: "תקשורת ישירה",
+        value: "direct"
+      }
+    ],
+    minSelections: 1,
+    maxSelections: 2
+  },
+  {
+    id: "leisure_time",
+    category: "relationship",
+    subcategory: "basics",
+    question: "איך היית רוצה לבלות את זמן הפנאי המשותף?",
+    type: "multiSelect",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Home />,
+        text: "בילוי ביתי",
+        value: "home"
+      },
+      {
+        icon: <Globe />,
+        text: "טיולים והרפתקאות",
+        value: "adventures"
+      },
+      {
+        icon: <Users />,
+        text: "מפגשים חברתיים",
+        value: "social"
+      },
+      {
+        icon: <Book />,
+        text: "תחביבים משותפים",
+        value: "hobbies"
+      }
+    ],
+    minSelections: 1,
+    maxSelections: 2
+  },
+  {
+    id: "family_vision",
+    category: "relationship",
+    subcategory: "basics",
+    question: "איך את/ה רואה את המשפחה העתידית?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Baby />,
+        text: "משפחה גדולה",
+        value: "large",
+        description: "מספר ילדים ובית הומה"
+      },
+      {
+        icon: <Home />,
+        text: "משפחה קטנה",
+        value: "small",
+        description: "משפחה קטנה ואינטימית"
+      },
+      {
+        icon: <Target />,
+        text: "בשלבים",
+        value: "gradual",
+        description: "התפתחות הדרגתית לפי הזמן המתאים"
+      },
+      {
+        icon: <Heart />,
+        text: "פתוח לשינויים",
+        value: "flexible",
+        description: "גמישות בהתאם לנסיבות החיים"
+      }
+    ]
+  },
+  {
+    id: "religious_approach",
+    category: "relationship",
+    subcategory: "basics",
+    question: "מה היחס שלך לדת ומסורת בבית המשותף?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Church />,
+        text: "מסורתי מאוד",
+        value: "very_traditional",
+        description: "שמירה קפדנית על מסורת והלכה"
+      },
+      {
+        icon: <Star />,
+        text: "מסורתי גמיש",
+        value: "flexible_traditional",
+        description: "שילוב מסורת עם גמישות מודרנית"
+      },
+      {
+        icon: <Heart />,
+        text: "חיבור רוחני",
+        value: "spiritual",
+        description: "חיבור לערכים ומשמעות ללא הקפדה דתית"
+      },
+      {
+        icon: <Sun />,
+        text: "חילוני",
+        value: "secular",
+        description: "אורח חיים חילוני"
+      }
+    ]
+  },
+  {
+    id: "financial_approach",
+    category: "relationship",
+    subcategory: "basics",
+    question: "מהי הגישה המועדפת עליך לניהול כספים בזוגיות?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Wallet />,
+        text: "ניהול משותף מלא",
+        value: "shared",
+        description: "קופה משותפת לכל ההוצאות"
+      },
+      {
+        icon: <Target />,
+        text: "איזון מתוכנן",
+        value: "balanced",
+        description: "חלוקה מסודרת של הוצאות"
+      },
+      {
+        icon: <Map />,
+        text: "הפרדה עם שיתוף",
+        value: "separate_with_sharing",
+        description: "חשבונות נפרדים עם הוצאות משותפות"
+      },
+      {
+        icon: <Home />,
+        text: "גמישות לפי יכולת",
+        value: "flexible",
+        description: "התאמה לפי היכולות של כל אחד"
+      }
+    ]
+  },
+  {
+    id: "conflict_resolution",
+    category: "relationship",
+    subcategory: "basics",
+    question: "איך את/ה מעדיף/ה להתמודד עם מחלוקות בזוגיות?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <MessageCircle />,
+        text: "שיחה מיידית",
+        value: "immediate",
+        description: "פתרון מיידי דרך דיון"
+      },
+      {
+        icon: <Clock />,
+        text: "זמן לעיבוד",
+        value: "processing",
+        description: "לקיחת זמן לחשיבה ועיבוד"
+      },
+      {
+        icon: <HandHeart />,
+        text: "גישור ופשרה",
+        value: "compromise",
+        description: "חיפוש פתרון מאוזן"
+      },
+      {
+        icon: <Users />,
+        text: "עזרה חיצונית",
+        value: "external_help",
+        description: "פתיחות לייעוץ מקצועי"
+      }
+    ]
+  },
+  {
+    id: "shared_activities",
+    category: "relationship",
+    subcategory: "basics",
+    question: "אילו פעילויות היית רוצה לשתף עם בן/בת הזוג?",
+    type: "multiSelect",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Globe />,
+        text: "טיולים ונסיעות",
+        value: "travel"
+      },
+      {
+        icon: <Music />,
+        text: "תרבות ואומנות",
+        value: "culture"
+      },
+      {
+        icon: <Book />,
+        text: "למידה משותפת",
+        value: "learning"
+      },
+      {
+        icon: <Heart />,
+        text: "ספורט ופעילות גופנית",
+        value: "sports"
+      }
+    ],
+    minSelections: 1,
+    maxSelections: 3
+  },
+  {
+    id: "personal_space",
+    category: "relationship",
+    subcategory: "basics",
+    question: "איך את/ה רואה את האיזון בין זמן משותף לזמן אישי בזוגיות?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Users />,
+        text: "רוב הזמן ביחד",
+        value: "mostly_together",
+        description: "העדפה לבילוי משותף"
+      },
+      {
+        icon: <Target />,
+        text: "איזון מתוכנן",
+        value: "planned_balance",
+        description: "חלוקה מסודרת של זמן"
+      },
+      {
+        icon: <Home />,
+        text: "עצמאות גמישה",
+        value: "flexible_independence",
+        description: "גמישות לפי הצורך"
+      },
+      {
+        icon: <Map />,
+        text: "עצמאות גבוהה",
+        value: "high_independence",
+        description: "שמירה על מרחב אישי משמעותי"
+      }
+    ]
+  },
+  {
+    id: "relationship_progression",
+    category: "relationship",
+    subcategory: "basics",
+    question: "איך את/ה רואה את קצב התפתחות הקשר?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Heart />,
+        text: "התקדמות מהירה",
+        value: "fast",
+        description: "כשמרגישים - מתקדמים"
+      },
+      {
+        icon: <Clock />,
+        text: "התקדמות הדרגתית",
+        value: "gradual",
+        description: "צעד אחר צעד בקצב מתון"
+      },
+      {
+        icon: <Map />,
+        text: "לפי אבני דרך",
+        value: "milestone_based",
+        description: "התקדמות לפי יעדים מוגדרים"
+      },
+      {
+        icon: <Sun />,
+        text: "זרימה טבעית",
+        value: "natural",
+        description: "התקדמות אורגנית ללא תכנון"
+      }
+    ]
+  },
+  {
+    id: "family_boundaries",
+    category: "relationship",
+    subcategory: "basics",
+    question: "איך את/ה רואה את הקשר עם המשפחות המורחבות?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Users />,
+        text: "מעורבות גבוהה",
+        value: "high_involvement",
+        description: "קשר הדוק ומעורבות משמעותית"
+      },
+      {
+        icon: <Home />,
+        text: "איזון בריא",
+        value: "healthy_balance",
+       // relationshipBasicsQuestions.tsx המשך...
+       description: "קשר חם עם גבולות ברורים"
+    },
+    {
+      icon: <Globe />,
+      text: "קשר עצמאי",
+      value: "independent",
+      description: "שמירה על עצמאות הזוג"
+    },
+    {
+      icon: <Map />,
+      text: "גמישות מצבית",
+      value: "situational",
+      description: "התאמה לפי הצורך והמצב"
+    }
+  ]
+},
+{
+  id: "life_values_alignment",
+  category: "relationship",
+  subcategory: "basics",
+  question: "מה חשוב לך שיהיה משותף בין בני הזוג?",
+  type: "multiSelect",
+  depth: "BASIC",
+  isRequired: true,
+  options: [
+    {
+      icon: <Church />,
+      text: "ערכים ואמונות",
+      value: "values"
+    },
+    {
+      icon: <Target />,
+      text: "מטרות חיים",
+      value: "goals"
+    },
+    {
+      icon: <Heart />,
+      text: "תחומי עניין",
+      value: "interests"
+    },
+    {
+      icon: <Home />,
+      text: "סגנון חיים",
+      value: "lifestyle"
+    }
+  ],
+  minSelections: 1,
+  maxSelections: 3
+},
+{
+  id: "future_challenges",
+  category: "relationship",
+  subcategory: "basics",
+  question: "איך את/ה מצפה להתמודד עם אתגרים עתידיים בזוגיות?",
+  type: "iconChoice",
+  depth: "BASIC",
+  isRequired: true,
+  options: [
+    {
+      icon: <Users />,
+      text: "התמודדות משותפת",
+      value: "together",
+      description: "פתרון בעיות יחד כצוות"
+    },
+    {
+      icon: <MessageCircle />,
+      text: "תקשורת פתוחה",
+      value: "communication",
+      description: "דיון פתוח על כל אתגר"
+    },
+    {
+      icon: <Map />,
+      text: "תכנון מראש",
+      value: "planning",
+      description: "הכנה והיערכות לאתגרים"
+    },
+    {
+      icon: <HandHeart />,
+      text: "גמישות ותמיכה",
+      value: "support",
+      description: "גמישות והסתגלות הדדית"
+    }
+  ]
+},
+{
+  id: "career_balance",
+  category: "relationship",
+  subcategory: "basics",
+  question: "איך את/ה רואה את האיזון בין קריירה למשפחה?",
+  type: "iconChoice",
+  depth: "BASIC",
+  isRequired: true,
+  options: [
+    {
+      icon: <Target />,
+      text: "קריירה מרכזית",
+      value: "career_focused",
+      description: "דגש על התפתחות מקצועית"
+    },
+    {
+      icon: <Home />,
+      text: "משפחה במרכז",
+      value: "family_focused",
+      description: "עדיפות לחיי המשפחה"
+    },
+    {
+      icon: <Star />,
+      text: "איזון שווה",
+      value: "balanced",
+      description: "חלוקה מאוזנת בין השניים"
+    },
+    {
+      icon: <Map />,
+      text: "גמישות לפי תקופה",
+      value: "flexible",
+      description: "התאמה לפי שלבי החיים"
+    }
+  ]
+},
+{
+  id: "decision_making",
+  category: "relationship",
+  subcategory: "basics",
+  question: "איך את/ה מעדיף/ה לקבל החלטות משותפות?",
+  type: "iconChoice",
+  depth: "BASIC",
+  isRequired: true,
+  options: [
+    {
+      icon: <MessageCircle />,
+      text: "דיון משותף",
+      value: "discussion",
+      description: "החלטה משותפת אחרי דיון"
+    },
+    {
+      icon: <Target />,
+      text: "חלוקת תחומים",
+      value: "divided",
+      description: "כל אחד בתחומי האחריות שלו"
+    },
+    {
+      icon: <Users />,
+      text: "התייעצות חיצונית",
+      value: "external",
+      description: "פתיחות לעצות מאחרים"
+    },
+    {
+      icon: <HandHeart />,
+      text: "אינטואיציה וגמישות",
+      value: "intuitive",
+      description: "החלטה לפי תחושה והקשבה"
+    }
+  ]
+},
+{
+  id: "relationship_goals",
+  category: "relationship",
+  subcategory: "basics",
+  question: "מהם היעדים החשובים לך להשגה בחיי הזוגיות?",
+  type: "multiSelect",
+  depth: "BASIC",
+  isRequired: true,
+  options: [
+    {
+      icon: <Heart />,
+      text: "אינטימיות רגשית",
+      value: "emotional"
+    },
+    {
+      icon: <Home />,
+      text: "יציבות ובטחון",
+      value: "stability"
+    },
+    {
+      icon: <Star />,
+      text: "הגשמה עצמית",
+      value: "fulfillment"
+    },
+    {
+      icon: <Globe />,
+      text: "חוויות משותפות",
+      value: "experiences"
+    }
+  ],
+  minSelections: 1,
+  maxSelections: 3
+},
+{
+  id: "relationship_expectations",
+  category: "relationship",
+  subcategory: "basics",
+  question: "מהן הציפיות העיקריות שלך מבן/בת הזוג?",
+  type: "multiSelect",
+  depth: "BASIC",
+  isRequired: true,
+  options: [
+    {
+      icon: <HandHeart />,
+      text: "תמיכה רגשית",
+      value: "support"
+    },
+    {
+      icon: <Target />,
+      text: "שותפות מעשית",
+      value: "partnership"
+    },
+    {
+      icon: <MessageCircle />,
+      text: "תקשורת פתוחה",
+      value: "communication"
+    },
+    {
+      icon: <Map />,
+      text: "עצמאות והדדיות",
+      value: "independence"
+    }
+  ],
+  minSelections: 1,
+  maxSelections: 3
+},
+{
+  id: "lifestyle_preferences",
+  category: "relationship",
+  subcategory: "basics",
+  question: "איזה סגנון חיים היית רוצה לבנות יחד?",
+  type: "iconChoice",
+  depth: "BASIC",
+  isRequired: true,
+  options: [
+    {
+      icon: <Globe />,
+      text: "דינמי והרפתקני",
+      value: "dynamic",
+      description: "חיים מלאי שינויים וחוויות"
+    },
+    {
+      icon: <Home />,
+      text: "יציב ומסורתי",
+      value: "stable",
+      description: "חיים שקטים ויציבים"
+    },
+    {
+      icon: <Star />,
+      text: "יצירתי וייחודי",
+      value: "creative",
+      description: "חיים מחוץ לקופסה"
+    },
+    {
+      icon: <Target />,
+      text: "מתוכנן ומאורגן",
+      value: "organized",
+      description: "חיים מסודרים ומתוכננים"
+    }
+  ]
+},
+{
+  id: "quality_time",
+  category: "relationship",
+  subcategory: "basics",
+  question: "איך את/ה מעדיף/ה לבלות זמן איכות זוגי?",
+  type: "multiSelect",
+  depth: "BASIC",
+  isRequired: true,
+  options: [
+    {
+      icon: <Home />,
+      text: "רגעים שקטים בבית",
+      value: "quiet_home"
+    },
+    {
+      icon: <Globe />,
+      text: "פעילויות וחוויות",
+      value: "activities"
+    },
+    {
+      icon: <MessageCircle />,
+      text: "שיחות עמוקות",
+      value: "conversations"
+    },
+    {
+      icon: <Users />,
+      text: "בילוי חברתי",
+      value: "social"
+    }
+  ],
+  minSelections: 1,
+  maxSelections: 2
+},
+{
+  id: "social_life",
+  category: "relationship",
+  subcategory: "basics",
+  question: "איך את/ה רואה את החיים החברתיים בזוגיות?",
+  type: "iconChoice",
+  depth: "BASIC",
+  isRequired: true,
+  options: [
+    {
+      icon: <Users />,
+      text: "חיי חברה עשירים",
+      value: "very_social",
+      description: "מפגשים חברתיים תכופים"
+    },
+    {
+      icon: <Home />,
+      text: "מעגל מצומצם",
+      value: "close_circle",
+      description: "התמקדות בחברים קרובים"
+    },
+    {
+      icon: <Target />,
+      text: "איזון חברתי",
+      value: "balanced",
+      description: "שילוב של זוגיות וחברה"
+    },
+    {
+      icon: <Heart />,
+      text: "זוגיות במרכז",
+      value: "couple_focused",
+      description: "התמקדות בזמן זוגי"
+    }
+  ]
+}
+];
+
+export default relationshipBasicsQuestions;
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\components\questionnaire\questions\relationship\relationshipDepthQuestions.tsx:
+==================================================
+// relationshipDepthQuestions.tsx
+import { Question } from "../../types/types";
+import {
+  Heart,
+  Home,
+  Users,
+  Brain,
+  Star,
+  Sun,
+  Moon,
+  Target,
+  MessageCircle,
+  HandHeart,
+  Lightbulb,
+  Globe,
+  Gift,
+  Map,
+  Book,
+  Compass,
+  Calendar,
+  Coffee,
+  Baby,
+  Church,
+} from "lucide-react";
+
+export const relationshipDepthQuestions: Question[] = [
+  {
+    id: "perfect_relationship_day",
+    category: "relationship",
+    subcategory: "depth",
+    question:
+      "תאר/י את היום המושלם בעיניך עם בן/בת הזוג. מהבוקר ועד הלילה - אילו רגעים ופעילויות יהפכו אותו למיוחד ולמה דווקא אלו?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 1000,
+    placeholder:
+      "שתף/י את החזון שלך ליום משותף מושלם, כולל הפעילויות, האווירה והרגשות שהיית רוצה לחוות...",
+  },
+  {
+    id: "relationship_growth",
+    category: "relationship",
+    subcategory: "depth",
+    question:
+      "ספר/י על רגע משמעותי במערכת יחסים קודמת שלימד אותך משהו חשוב על עצמך ועל מה שאת/ה מחפש/ת בזוגיות. מה למדת מהחוויה הזו?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder:
+      "שתף/י את החוויה והתובנות שעלו ממנה לגבי עצמך ומה שחשוב לך בקשר...",
+  },
+  {
+    id: "family_values",
+    category: "relationship",
+    subcategory: "depth",
+    question:
+      "מהם שלושת הערכים המרכזיים שהיית רוצה שינחו את המשפחה העתידית שלך? איך היית רוצה שהם יבואו לידי ביטוי בחיי היומיום?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder:
+      "תאר/י את הערכים החשובים לך ואיך הם משתלבים בחזון המשפחתי שלך...",
+  },
+  {
+    id: "partnership_vision",
+    category: "relationship",
+    subcategory: "depth",
+    question:
+      "איך את/ה רואה שותפות אידיאלית בזוגיות? ספר/י על החלוקה הרצויה של אחריות, קבלת החלטות ותמיכה הדדית",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "שתף/י את תפיסתך לגבי שותפות זוגית ואיך היא באה לידי ביטוי...",
+  },
+  {
+    id: "conflict_handling",
+    category: "relationship",
+    subcategory: "depth",
+    question:
+      "תאר/י מצב של קונפליקט שהתמודדת איתו בעבר. מה למדת ממנו על הדרך שבה היית רוצה להתמודד עם מחלוקות בזוגיות?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "שתף/י את האתגר, דרך ההתמודדות והתובנות שלמדת ממנו...",
+  },
+  {
+    id: "childhood_influence",
+    category: "relationship",
+    subcategory: "depth",
+    question:
+      "איך הבית שבו גדלת השפיע על תפיסת הזוגיות שלך? מה היית רוצה לאמץ ומה היית רוצה לעשות אחרת?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 1000,
+    placeholder:
+      "שתף/י על ההשפעות מהבית, התובנות והשינויים שהיית רוצה ליצור...",
+  },
+  {
+    id: "emotional_needs",
+    category: "relationship",
+    subcategory: "depth",
+    question:
+      "מהם הצרכים הרגשיים החשובים ביותר שלך בזוגיות? איך היית רוצה שבן/בת הזוג יבינו ויענו על צרכים אלו?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder:
+      "תאר/י את הצרכים הרגשיים שלך ואיך היית רוצה שיבואו לידי ביטוי...",
+  },
+  {
+    id: "life_challenges",
+    category: "relationship",
+    subcategory: "depth",
+    question:
+      "איך היית רוצה שהזוגיות שלך תתמודד עם אתגרי החיים הגדולים (כמו משברים, שינויים או קשיים)? מה חשוב לך בהתמודדות משותפת?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "שתף/י את תפיסתך לגבי התמודדות זוגית עם אתגרים...",
+  },
+  {
+    id: "family_dynamics",
+    category: "relationship",
+    subcategory: "depth",
+    question:
+      "איך היית רוצה לבנות את הדינמיקה המשפחתית בבית שלך? ספר/י על האווירה, התקשורת והיחסים שהיית רוצה ליצור",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "תאר/י את החזון שלך לדינמיקה המשפחתית הרצויה...",
+  },
+  {
+    id: "personal_growth",
+    category: "relationship",
+    subcategory: "depth",
+    question:
+      "איך את/ה רואה את הקשר בין צמיחה אישית לזוגיות? איך היית רוצה שהקשר יתמוך בהתפתחות האישית של כל אחד?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "שתף/י את תפיסתך לגבי האיזון בין צמיחה אישית וזוגית...",
+  },
+  {
+    id: "life_dreams",
+    category: "relationship",
+    subcategory: "depth",
+    question:
+      "מהם החלומות הגדולים שהיית רוצה להגשים יחד עם בן/בת הזוג? איך את/ה רואה את החיים המשותפים תורמים להגשמת חלומות אלו?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 1000,
+    placeholder: "תאר/י את החלומות המשותפים והדרך להגשמתם...",
+  },
+  {
+    id: "intimacy_perspective",
+    category: "relationship",
+    subcategory: "depth",
+    question:
+      "מה משמעותה של אינטימיות עבורך בקשר זוגי? איך היית רוצה שהיא תבוא לידי ביטוי ברמה הרגשית והפיזית?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "שתף/י את תפיסתך לגבי אינטימיות בזוגיות...",
+  },
+  {
+    id: "support_system",
+    category: "relationship",
+    subcategory: "depth",
+    question:
+      "איך את/ה רואה את מערכת התמיכה הזוגית? ספר/י על הדרכים בהן היית רוצה לתמוך ולהיתמך בקשר",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "תאר/י את תפיסתך לגבי תמיכה הדדית בזוגיות...",
+  },
+  {
+    id: "cultural_traditions",
+    category: "relationship",
+    subcategory: "depth",
+    question:
+      "אילו מסורות תרבותיות או משפחתיות חשוב לך לשמר ולבנות בבית המשותף? מה המשמעות של מסורות אלו עבורך?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "שתף/י על המסורות החשובות לך והמשמעות שלהן...",
+  },
+  {
+    id: "relationship_fears",
+    category: "relationship",
+    subcategory: "depth",
+    question:
+      "מהם הפחדים או החששות שלך בהקשר של זוגיות? איך היית רוצה להתמודד איתם יחד עם בן/בת הזוג?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "שתף/י את החששות שלך ואיך היית רוצה להתמודד איתם...",
+  },
+  {
+    id: "future_vision",
+    category: "relationship",
+    subcategory: "depth",
+    question:
+      "איך את/ה מדמיין/ת את חייכם המשותפים בעוד 20 שנה? מה היית רוצה שיישאר דומה ומה היית רוצה שישתנה ויתפתח?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 1000,
+    placeholder: "תאר/י את החזון שלך לעתיד המשותף...",
+  },
+  {
+    id: "relationship_lessons",
+    category: "relationship",
+    subcategory: "depth",
+    question:
+      "מה הדבר המשמעותי ביותר שלמדת על עצמך ממערכות יחסים קודמות? איך זה משפיע על מה שאת/ה מחפש/ת היום?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "שתף/י את התובנות והלקחים שלמדת...",
+  },
+  {
+    id: "change_handling",
+    category: "relationship",
+    subcategory: "depth",
+    question:
+      "איך את/ה רואה את היכולת של זוגיות להתמודד עם שינויים משמעותיים בחיים? מה חשוב לך בהתמודדות כזו?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "תאר/י את תפיסתך לגבי התמודדות עם שינויים בזוגיות...",
+  },
+  {
+    id: "relationship_growth",
+    category: "relationship",
+    subcategory: "depth",
+    question:
+      "איך היית רוצה לראות את הזוגיות שלך מתפתחת וצומחת לאורך השנים? מה יעזור לה להישאר מרעננת ומתחדשת?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "שתף/י את חזונך לצמיחה והתפתחות בזוגיות...",
+  },
+  {
+    id: "success_definition",
+    category: "relationship",
+    subcategory: "depth",
+    question:
+      "מה מבחינתך מגדיר זוגיות מוצלחת? אילו איכויות או מאפיינים הכי חשובים לך בקשר ארוך טווח?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    minLength: 100,
+    maxLength: 800,
+    placeholder: "תאר/י את תפיסתך לגבי זוגיות מוצלחת...",
+  },
+];
+
+export default relationshipDepthQuestions;
+
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\components\questionnaire\questions\religion\faithQuestions.tsx:
+==================================================
+import { Question } from "../../types/types";
+
+export const faithQuestions: Question[] = [
+  // Spiritual and Religious Values
+  {
+    id: "spiritualMoment",
+    category: "values",
+    subcategory: "spiritual",
+    question: "מהו הרגע הכי רוחני שחווית בחייך?",
+    type: "openText",
+    depth: "BASIC",
+    isRequired: true,
+    placeholder: "ספר/י על חוויה משמעותית...",
+    minLength: 20,
+    maxLength: 500,
+  },
+  {
+    id: "favoriteHoliday",
+    category: "values",
+    subcategory: "spiritual",
+    question: "איזה חג יהודי הכי משמעותי עבורך?",
+    type: "singleChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      { value: "roshHashana", text: "ראש השנה" },
+      { value: "yomKippur", text: "יום כיפור" },
+      { value: "pesach", text: "פסח" },
+      { value: "shavuot", text: "שבועות" },
+    ],
+  },
+
+  // Personal Values
+  {
+    id: "coreValues",
+    category: "values",
+    subcategory: "personal",
+    question: "מהם שלושת הערכים החשובים ביותר בחייך?",
+    type: "multiSelect",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      { value: "honesty", text: "יושר ואמת" },
+      { value: "family", text: "משפחה" },
+      { value: "learning", text: "לימוד והתפתחות" },
+      { value: "kindness", text: "חסד" },
+      { value: "tradition", text: "מסורת" },
+      { value: "success", text: "הצלחה" },
+    ],
+    minSelections: 1,
+    maxSelections: 3,
+  },
+  {
+    id: "lifeGoals",
+    category: "values",
+    subcategory: "personal",
+    question: "מהי המטרה העיקרית שלך בחיים?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    placeholder: "שתף/י במטרות החיים שלך...",
+    minLength: 30,
+    maxLength: 500,
+  },
+
+  // Community Values
+  {
+    id: "communityRole",
+    category: "values",
+    subcategory: "community",
+    question: "איזה תפקיד אתה רואה לעצמך בקהילה?",
+    type: "multiSelect",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      { value: "leader", text: "מנהיג/מוביל" },
+      { value: "supporter", text: "תומך ומסייע" },
+      { value: "teacher", text: "מחנך/מלמד" },
+      { value: "participant", text: "משתתף פעיל" },
+    ],
+    minSelections: 1,
+    maxSelections: 2,
+  },
+  {
+    id: "givingPhilosophy",
+    category: "values",
+    subcategory: "community",
+    question: "מהי תפיסת עולמך בנושא נתינה וצדקה?",
+    type: "openText",
+    depth: "ADVANCED",
+    isRequired: true,
+    placeholder: "תאר/י את גישתך לנתינה...",
+    minLength: 30,
+    maxLength: 500,
+  },
+
+  // Future Values
+  {
+    id: "nextGeneration",
+    category: "values",
+    subcategory: "future",
+    question: "מה הערכים החשובים ביותר שתרצה להעביר לדור הבא?",
+    type: "multiSelect",
+    depth: "EXPERT",
+    isRequired: true,
+    options: [
+      { value: "torah", text: "תורה ומסורת" },
+      { value: "ethics", text: "מוסר וערכים" },
+      { value: "education", text: "חינוך והשכלה" },
+      { value: "independence", text: "עצמאות" },
+      { value: "community", text: "קהילתיות" },
+    ],
+    minSelections: 1,
+    maxSelections: 3,
+  },
+  {
+    id: "israelVision",
+    category: "values",
+    subcategory: "future",
+    question: "מהו החזון שלך למדינת ישראל?",
+    type: "openText",
+    depth: "EXPERT",
+    isRequired: true,
+    placeholder: "שתף/י את חזונך...",
+    minLength: 50,
+    maxLength: 1000,
+  }
+];
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\components\questionnaire\questions\religion\practicalReligionQuestions.tsx:
+==================================================
+import { Question } from "../../types/types";
+
+export const practicalQuestions: Question[] = [
+  // Basic Principles
+  {
+    id: "religiousWorldview",
+    category: "religiousLifestyle",
+    subcategory: "basicPrinciples",
+    question: "מהי השקפת עולמך הדתית?",
+    type: "openText",
+    depth: "BASIC",
+    isRequired: true,
+    placeholder: "תאר/י את תפיסת עולמך הדתית...",
+    minLength: 20,
+    maxLength: 500,
+  },
+  {
+    id: "religiousIdentity",
+    category: "religiousLifestyle",
+    subcategory: "basicPrinciples",
+    question: "איך אתה מגדיר את זהותך הדתית?",
+    type: "singleChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      { value: "charedi", text: "חרדי" },
+      { value: "datiLeumi", text: "דתי לאומי" },
+      { value: "masorti", text: "מסורתי" },
+      { value: "other", text: "אחר" },
+    ],
+  },
+  {
+    id: "halachaImportance",
+    category: "religiousLifestyle",
+    subcategory: "basicPrinciples",
+    question: "מה מקומה של ההלכה בחיי היומיום שלך?",
+    type: "openText",
+    depth: "BASIC",
+    isRequired: true,
+    placeholder: "תאר/י את מקום ההלכה בחייך...",
+    minLength: 20,
+    maxLength: 500,
+  },
+
+  // Prayer and Learning
+  {
+    id: "minyanImportance",
+    category: "religiousLifestyle",
+    subcategory: "prayerAndLearning",
+    question: "מהי חשיבות התפילה במניין בחייך?",
+    type: "singleChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      { value: "veryImportant", text: "חשוב מאוד - משתדל להתפלל כל תפילה במניין" },
+      { value: "important", text: "חשוב - משתדל לפחות פעם ביום" },
+      { value: "sometimes", text: "לעיתים - בעיקר בשבתות וחגים" },
+      { value: "notImportant", text: "פחות חשוב לי" },
+    ],
+  },
+  {
+    id: "dailyLearning",
+    category: "religiousLifestyle",
+    subcategory: "prayerAndLearning",
+    question: "איך נראה סדר הלימוד היומי שלך?",
+    type: "multiSelect",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      { value: "dafYomi", text: "דף יומי" },
+      { value: "halacha", text: "הלכה יומית" },
+      { value: "parasha", text: "פרשת שבוע" },
+      { value: "chassidut", text: "חסידות" },
+      { value: "mussar", text: "מוסר" },
+      { value: "other", text: "אחר" },
+    ],
+    minSelections: 1,
+    maxSelections: 4,
+  },
+  
+  // Shabbat and Holidays
+  {
+    id: "idealShabbat",
+    category: "religiousLifestyle",
+    subcategory: "shabbatAndHolidays",
+    question: "איך נראית השבת האידיאלית בעיניך?",
+    type: "openText",
+    depth: "BASIC",
+    isRequired: true,
+    placeholder: "תאר/י את השבת המושלמת עבורך...",
+    minLength: 20,
+    maxLength: 500,
+  },
+  {
+    id: "shabbatRestrictions",
+    category: "religiousLifestyle",
+    subcategory: "shabbatAndHolidays",
+    question: "מה יחסך לחומרות בהלכות שבת?",
+    type: "multiSelect",
+    depth: "ADVANCED",
+    isRequired: false,
+    options: [
+      { value: "strict", text: "מחמיר בהלכות שבת" },
+      { value: "basic", text: "שומר על ההלכות הבסיסיות" },
+      { value: "flexible", text: "גמיש יותר בפרשנות" },
+      { value: "situational", text: "תלוי במצב ובנסיבות" },
+    ],
+    minSelections: 1,
+    maxSelections: 2,
+  },
+
+  // Kashrut and Halacha
+  {
+    id: "kashrutLevel",
+    category: "religiousLifestyle",
+    subcategory: "kashrutAndHalacha",
+    question: "מה רמת ההקפדה שלך בכשרות?",
+    type: "singleChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      { value: "mehadrin", text: "מהדרין בלבד" },
+      { value: "regular", text: "כשרות רגילה" },
+      { value: "basic", text: "כשרות בסיסית" },
+      { value: "flexible", text: "גמיש יותר" },
+    ],
+  },
+  {
+    id: "eatingOut",
+    category: "religiousLifestyle",
+    subcategory: "kashrutAndHalacha",
+    question: "איך אתה מתייחס לאכילה מחוץ לבית?",
+    type: "multiSelect",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      { value: "onlyKosher", text: "רק במסעדות כשרות" },
+      { value: "familyHome", text: "אוכל בבתים של משפחה" },
+      { value: "friendsHome", text: "אוכל אצל חברים" },
+      { value: "flexible", text: "גמיש בהתאם לנסיבות" },
+    ],
+    minSelections: 1,
+    maxSelections: 3,
+  },
+
+  // Modesty and Public Space
+  {
+    id: "modestyView",
+    category: "religiousLifestyle",
+    subcategory: "modestyAndPublic",
+    question: "מהי השקפתך בענייני צניעות?",
+    type: "openText",
+    depth: "BASIC",
+    isRequired: true,
+    placeholder: "תאר/י את תפיסתך בנושא צניעות...",
+    minLength: 20,
+    maxLength: 500,
+  },
+  {
+    id: "genderSeparation",
+    category: "religiousLifestyle",
+    subcategory: "modestyAndPublic",
+    question: "איך אתה מתייחס להפרדה בין גברים לנשים?",
+    type: "singleChoice",
+    depth: "ADVANCED",
+    isRequired: true,
+    options: [
+      { value: "fullSeparation", text: "תומך בהפרדה מלאה" },
+      { value: "situational", text: "תלוי בנסיבות ובמקום" },
+      { value: "flexible", text: "גמיש יותר בנושא" },
+      { value: "against", text: "מתנגד להפרדה" },
+    ],
+  },
+];
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\components\questionnaire\questions\values\valuesQuestionsPartOne.tsx:
+==================================================
+import { Question } from "../../types/types";
+import {
+  Scale,
+  Heart,
+  Users,
+  Briefcase,
+  Book,
+  Globe,
+  Target,
+  Map,
+  Leaf,
+  Building,
+  Gem,
+  ScrollText,
+  Sparkles,
+  Construction,
+  ShieldCheck,
+  GraduationCap,
+  Sword,
+  Brain,
+  Laptop,
+  HandHeart,
+  School,
+  LibraryBig,
+} from "lucide-react";
+
+export const valuesQuestionsPartOne: Question[] = [
+  {
+    id: "military_service",
+    category: "values",
+    subcategory: "basics",
+    question: "מהי הגישה שלך לשירות צבאי?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Sword />,
+        text: "שירות קרבי מלא",
+        value: "combat",
+        description: "מאמין בתרומה משמעותית דרך שירות קרבי",
+      },
+      {
+        icon: <Book />,
+        text: " שילוב תורה עם צבא - הסדר",
+        value: "hesder",
+        description: "משלב בין לימוד תורה לשירות צבאי",
+      },
+      {
+        icon: <LibraryBig />,
+        text: "לימוד תורה",
+        value: "torah",
+        description: "מתמקד בלימוד תורה כדרך חיים",
+      },
+      {
+        icon: <Laptop />,
+        text: "תרומה משמעותית בכל דרך שהיא ",
+        value: "tech",
+        description: "תורם גם דרך יכולות טכנולוגיות ומקצועיות",
+      },
+    ],
+  },
+  {
+    id: "economic_worldview",
+    category: "values",
+    subcategory: "basics",
+    question: "מהי תפיסת העולם הכלכלית שלך?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Gem />,
+        text: "שאיפה להצלחה",
+        value: "success",
+        description: "מאמין בחשיבות ההצלחה הכלכלית",
+      },
+      {
+        icon: <Scale />,
+        text: "איזון והסתפקות",
+        value: "balance",
+        description: "מחפש איזון בין רווחה לערכים",
+      },
+      {
+        icon: <Leaf />,
+        text: "פשטות",
+        value: "simplicity",
+        description: "מעדיף חיים פשוטים וצנועים",
+      },
+      {
+        icon: <Target />,
+        text: "יעדים מדודים",
+        value: "goals",
+        description: " לפי צורך המשפחה - מציב ומשיג יעדים כלכליים מתוכננים",
+      },
+    ],
+  },
+  {
+    id: "education_approach",
+    category: "values",
+    subcategory: "basics",
+    question: "מהי גישתך ללימודי חול?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <School />,
+        text: "לימודי ליבה מלאים",
+        value: "full_core",
+        description: "תומך בשילוב מלא של לימודי ליבה",
+      },
+      {
+        icon: <Scale />,
+        text: "שילוב מאוזן",
+        value: "balanced",
+        description: "משלב לימודי קודש וחול באופן מאוזן",
+      },
+      {
+        icon: <Book />,
+        text: "התמקדות בקודש",
+        value: "torah_focus",
+        description: "מעדיף להתמקד בלימודי קודש",
+      },
+      {
+        icon: <Brain />,
+        text: "למידה לפי צורך",
+        value: "as_needed",
+        description: "רוכש השכלה בהתאם לצרכים המעשיים",
+      },
+    ],
+  },
+  {
+    id: "medical_approach",
+    category: "values",
+    subcategory: "basics",
+    question: "מהי גישתך לרפואה ובריאות?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: false,
+    options: [
+      {
+        icon: <Building />,
+        text: "רפואה קונבנציונלית",
+        value: "conventional",
+        description: "מאמין ברפואה המערבית המסורתית",
+      },
+      {
+        icon: <Leaf />,
+        text: "רפואה משלימה",
+        value: "alternative",
+        description: "פתוח לשיטות ריפוי טבעיות",
+      },
+      {
+        icon: <Scale />,
+        text: "גישה משולבת",
+        value: "integrated",
+        description: "משלב בין שיטות טיפול שונות",
+      },
+      {
+        icon: <Brain />,
+        text: "מחקר עצמאי",
+        value: "research",
+        description: "חוקר ולומד לפני קבלת החלטות",
+      },
+    ],
+  },
+  {
+    id: "career_priorities",
+    category: "values",
+    subcategory: "basics",
+    question: "מה חשוב לך בקריירה?",
+    type: "multiSelect",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <HandHeart />,
+        text: "תרומה לחברה",
+        value: "contribution",
+        description: "עבודה שמשפיעה על החברה",
+      },
+      {
+        icon: <Briefcase />,
+        text: "יציבות כלכלית",
+        value: "stability",
+        description: "ביטחון תעסוקתי והכנסה יציבה",
+      },
+      {
+        icon: <Target />,
+        text: "הישגיות",
+        value: "achievement",
+        description: "התפתחות מקצועית והצלחה",
+      },
+      {
+        icon: <Scale />,
+        text: "איזון",
+        value: "balance",
+        description: "איזון בין קריירה לחיים אישיים",
+      },
+    ],
+    minSelections: 1,
+    maxSelections: 2,
+  },
+];
+
+export default valuesQuestionsPartOne;
+
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\components\questionnaire\questions\values\valuesQuestionsPartTwo.tsx:
+==================================================
+import { Question } from "../../types/types";
+import {
+  Scale,
+  Heart,
+  Users,
+  Globe,
+  Target,
+  Map,
+  Leaf,
+  Building,
+  ScrollText,
+  Construction,
+  ShieldCheck,
+  GraduationCap,
+  Sword,
+  Brain,
+  Laptop,
+  HandHeart,
+  School,
+  LibraryBig,
+  Flag,
+  Star,
+  TreePine,
+  Church,
+  Briefcase,
+} from "lucide-react";
+
+export const valuesQuestionsPartTwo: Question[] = [
+  {
+    id: "state_religion",
+    category: "values",
+    subcategory: "depth",
+    question: "מהי תפיסתך לגבי היחס בין דת ומדינה?",
+    type: "iconChoice",
+    depth: "ADVANCED",
+    isRequired: true,
+    options: [
+      {
+        icon: <Flag />,
+        text: "הפרדה מלאה",
+        value: "separation",
+        description: "תומך בהפרדה בין דת ומדינה",
+      },
+      {
+        icon: <Scale />,
+        text: "איזון עדין",
+        value: "balance",
+        description: "מחפש איזון בין מסורת למודרנה",
+      },
+      {
+        icon: <Church />,
+        text: "זהות יהודית",
+        value: "jewish_identity",
+        description: "מעדיף שמירה על צביון יהודי מסורתי",
+      },
+      {
+        icon: <Star />,
+        text: "חופש בחירה",
+        value: "freedom",
+        description: "תומך בחופש בחירה אישי",
+      },
+    ],
+  },
+  {
+    id: "environmental_view",
+    category: "values",
+    subcategory: "basics",
+    question: "מהי גישתך לאיכות הסביבה?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: false,
+    options: [
+      {
+        icon: <TreePine />,
+        text: "אקטיביסט סביבתי",
+        value: "activist",
+        description: "פעיל בנושאי סביבה וקיימות",
+      },
+      {
+        icon: <Leaf />,
+        text: "מודעות בסיסית",
+        value: "aware",
+        description: "משתדל לשמור על הסביבה",
+      },
+      {
+        icon: <Scale />,
+        text: "איזון מעשי",
+        value: "practical",
+        description: "מאזן בין צרכים לסביבה",
+      },
+      {
+        icon: <Target />,
+        text: "מיקוד בהתפתחות",
+        value: "development",
+        description: "מעדיף פיתוח וקדמה",
+      },
+    ],
+  },
+  {
+    id: "social_responsibility",
+    category: "values",
+    subcategory: "depth",
+    question: "מהי תפיסתך לגבי אחריות חברתית?",
+    type: "multiSelect",
+    depth: "ADVANCED",
+    isRequired: false,
+    options: [
+      {
+        icon: <HandHeart />,
+        text: "עזרה לזולת",
+        value: "helping",
+        description: "מאמין בעזרה הדדית וצדקה",
+      },
+      {
+        icon: <Users />,
+        text: "מעורבות קהילתית",
+        value: "community",
+        description: "פעיל בקהילה ובחברה",
+      },
+      {
+        icon: <Globe />,
+        text: "אחריות גלובלית",
+        value: "global",
+        description: "רואה אחריות כלפי העולם כולו",
+      },
+      {
+        icon: <Construction />,
+        text: "פיתוח חברתי",
+        value: "development",
+        description: "מאמין בפיתוח וקידום החברה",
+      },
+    ],
+    minSelections: 1,
+    maxSelections: 2,
+  },
+  {
+    id: "shabbat_public",
+    category: "values",
+    subcategory: "depth",
+    question: "איך צריך להיראות המרחב הציבורי בשבת?",
+    type: "iconChoice",
+    depth: "ADVANCED",
+    isRequired: true,
+    options: [
+      {
+        icon: <ScrollText />,
+        text: "שמירה מסורתית",
+        value: "traditional",
+        description: "תומך בשמירת צביון השבת המסורתי",
+      },
+      {
+        icon: <Scale />,
+        text: "איזון מקומי",
+        value: "local_balance",
+        description: "תומך בהסדרה לפי אופי האזור",
+      },
+      {
+        icon: <Star />,
+        text: "חופש בחירה",
+        value: "freedom",
+        description: "תומך בחופש בחירה מלא",
+      },
+      {
+        icon: <Map />,
+        text: "הפרדה אזורית",
+        value: "separation",
+        description: "תומך בהפרדה בין אזורים שונים",
+      },
+    ],
+  },
+  {
+    id: "technology_integration",
+    category: "values",
+    subcategory: "basics",
+    question: "מהי גישתך לשילוב טכנולוגיה בחיים?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: false,
+    options: [
+      {
+        icon: <Laptop />,
+        text: "אימוץ מלא",
+        value: "full_adoption",
+        description: "מאמץ חידושים טכנולוגיים",
+      },
+      {
+        icon: <Scale />,
+        text: "שילוב מבוקר",
+        value: "controlled",
+        description: "משלב טכנולוגיה באופן מאוזן",
+      },
+      {
+        icon: <Brain />,
+        text: "גישה ביקורתית",
+        value: "critical",
+        description: "בוחן כל חידוש בקפידה",
+      },
+      {
+        icon: <Target />,
+        text: "שימוש מינימלי",
+        value: "minimal",
+        description: "מעדיף להגביל שימוש בטכנולוגיה",
+      },
+    ],
+  },
+];
+
+export default valuesQuestionsPartTwo;
+

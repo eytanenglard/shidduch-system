@@ -1,0 +1,782 @@
+// relationshipBasicsQuestions.tsx
+import { Question } from "../../types/types";
+import {
+  Heart,
+  Home,
+  Users,
+  Calendar,
+  Coffee,
+  Sun,
+  Moon,
+  Target,
+  MessageCircle,
+  Smile,
+  HandHeart,
+  Gift,
+  Globe,
+  Music,
+  Book,
+  Clock,
+  Star,
+  Map,
+  Baby,
+  Phone,
+  Wallet,
+  Church,
+  PenTool,
+} from "lucide-react";
+
+export const relationshipBasicsQuestions: Question[] = [
+  {
+    worldId: "RELATIONSHIP",
+
+    id: "relationship_type",
+    category: "relationship",
+    subcategory: "basics",
+    question: "איזה סוג של קשר זוגי את/ה מחפש/ת?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Heart />,
+        text: "רומנטי ורגשי",
+        value: "romantic",
+        description: "דגש על חיבור רגשי עמוק ורומנטיקה"
+      },
+      {
+        icon: <Home />,
+        text: "יציב ובטוח",
+        value: "stable",
+        description: "בניית בית יציב ובטוח יחד"
+      },
+      {
+        icon: <Globe />,
+        text: "הרפתקני ודינמי",
+        value: "adventurous",
+        description: "חיים מלאי הרפתקאות וחוויות משותפות"
+      },
+      {
+        icon: <Target />,
+        text: "צומח ומתפתח",
+        value: "growing",
+        description: "התפתחות אישית וזוגית משותפת"
+      }
+    ]
+  },
+  {
+
+    worldId: "RELATIONSHIP",
+
+    id: "daily_routine",
+    category: "relationship",
+    subcategory: "basics",
+    question: "איך את/ה מדמיין/ת את שגרת היום-יום הזוגית?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Sun />,
+        text: "פעיל ודינמי",
+        value: "active",
+        description: "שגרה מלאה בפעילויות משותפות"
+      },
+      {
+        icon: <Moon />,
+        text: "רגוע ושליו",
+        value: "calm",
+        description: "שגרה שקטה ונינוחה"
+      },
+      {
+        icon: <Coffee />,
+        text: "מאוזן וגמיש",
+        value: "balanced",
+        description: "שילוב של פעילות ומנוחה"
+      },
+      {
+        icon: <Clock />,
+        text: "מתוכנן ומאורגן",
+        value: "organized",
+        description: "שגרה מסודרת עם תכנון משותף"
+      }
+    ]
+  },
+  {
+    worldId: "RELATIONSHIP",
+
+    id: "communication_style",
+    category: "relationship",
+    subcategory: "basics",
+    question: "מהו סגנון התקשורת המועדף עליך בזוגיות?",
+    type: "multiSelect",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <MessageCircle />,
+        text: "שיחות עמוקות",
+        value: "deep_talks"
+      },
+      {
+        icon: <Smile />,
+        text: "הומור וקלילות",
+        value: "humor"
+      },
+      {
+        icon: <HandHeart />,
+        text: "מגע וחיבה",
+        value: "physical"
+      },
+      {
+        icon: <Target />,
+        text: "תקשורת ישירה",
+        value: "direct"
+      }
+    ],
+    minSelections: 1,
+    maxSelections: 2
+  },
+  {
+    worldId: "RELATIONSHIP",
+
+    id: "leisure_time",
+    category: "relationship",
+    subcategory: "basics",
+    question: "איך היית רוצה לבלות את זמן הפנאי המשותף?",
+    type: "multiSelect",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Home />,
+        text: "בילוי ביתי",
+        value: "home"
+      },
+      {
+        icon: <Globe />,
+        text: "טיולים והרפתקאות",
+        value: "adventures"
+      },
+      {
+        icon: <Users />,
+        text: "מפגשים חברתיים",
+        value: "social"
+      },
+      {
+        icon: <Book />,
+        text: "תחביבים משותפים",
+        value: "hobbies"
+      }
+    ],
+    minSelections: 1,
+    maxSelections: 2
+  },
+  {
+    worldId: "RELATIONSHIP",
+
+    id: "family_vision",
+    category: "relationship",
+    subcategory: "basics",
+    question: "איך את/ה רואה את המשפחה העתידית?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Baby />,
+        text: "משפחה גדולה",
+        value: "large",
+        description: "מספר ילדים ובית הומה"
+      },
+      {
+        icon: <Home />,
+        text: "משפחה קטנה",
+        value: "small",
+        description: "משפחה קטנה ואינטימית"
+      },
+      {
+        icon: <Target />,
+        text: "בשלבים",
+        value: "gradual",
+        description: "התפתחות הדרגתית לפי הזמן המתאים"
+      },
+      {
+        icon: <Heart />,
+        text: "פתוח לשינויים",
+        value: "flexible",
+        description: "גמישות בהתאם לנסיבות החיים"
+      }
+    ]
+  },
+  {
+    worldId: "RELATIONSHIP",
+
+    id: "religious_approach",
+    category: "relationship",
+    subcategory: "basics",
+    question: "מה היחס שלך לדת ומסורת בבית המשותף?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Church />,
+        text: "מסורתי מאוד",
+        value: "very_traditional",
+        description: "שמירה קפדנית על מסורת והלכה"
+      },
+      {
+        icon: <Star />,
+        text: "מסורתי גמיש",
+        value: "flexible_traditional",
+        description: "שילוב מסורת עם גמישות מודרנית"
+      },
+      {
+        icon: <Heart />,
+        text: "חיבור רוחני",
+        value: "spiritual",
+        description: "חיבור לערכים ומשמעות ללא הקפדה דתית"
+      },
+      {
+        icon: <Sun />,
+        text: "חילוני",
+        value: "secular",
+        description: "אורח חיים חילוני"
+      }
+    ]
+  },
+  {
+    worldId: "RELATIONSHIP",
+id: "financial_approach",
+    category: "relationship",
+    subcategory: "basics",
+    question: "מהי הגישה המועדפת עליך לניהול כספים בזוגיות?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Wallet />,
+        text: "ניהול משותף מלא",
+        value: "shared",
+        description: "קופה משותפת לכל ההוצאות"
+      },
+      {
+        icon: <Target />,
+        text: "איזון מתוכנן",
+        value: "balanced",
+        description: "חלוקה מסודרת של הוצאות"
+      },
+      {
+        icon: <Map />,
+        text: "הפרדה עם שיתוף",
+        value: "separate_with_sharing",
+        description: "חשבונות נפרדים עם הוצאות משותפות"
+      },
+      {
+        icon: <Home />,
+        text: "גמישות לפי יכולת",
+        value: "flexible",
+        description: "התאמה לפי היכולות של כל אחד"
+      }
+    ]
+  },
+  {
+    worldId: "RELATIONSHIP",
+id: "conflict_resolution",
+    category: "relationship",
+    subcategory: "basics",
+    question: "איך את/ה מעדיף/ה להתמודד עם מחלוקות בזוגיות?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <MessageCircle />,
+        text: "שיחה מיידית",
+        value: "immediate",
+        description: "פתרון מיידי דרך דיון"
+      },
+      {
+        icon: <Clock />,
+        text: "זמן לעיבוד",
+        value: "processing",
+        description: "לקיחת זמן לחשיבה ועיבוד"
+      },
+      {
+        icon: <HandHeart />,
+        text: "גישור ופשרה",
+        value: "compromise",
+        description: "חיפוש פתרון מאוזן"
+      },
+      {
+        icon: <Users />,
+        text: "עזרה חיצונית",
+        value: "external_help",
+        description: "פתיחות לייעוץ מקצועי"
+      }
+    ]
+  },
+  {
+    worldId: "RELATIONSHIP",
+id: "shared_activities",
+    category: "relationship",
+    subcategory: "basics",
+    question: "אילו פעילויות היית רוצה לשתף עם בן/בת הזוג?",
+    type: "multiSelect",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Globe />,
+        text: "טיולים ונסיעות",
+        value: "travel"
+      },
+      {
+        icon: <Music />,
+        text: "תרבות ואומנות",
+        value: "culture"
+      },
+      {
+        icon: <Book />,
+        text: "למידה משותפת",
+        value: "learning"
+      },
+      {
+        icon: <Heart />,
+        text: "ספורט ופעילות גופנית",
+        value: "sports"
+      }
+    ],
+    minSelections: 1,
+    maxSelections: 3
+  },
+  {
+    worldId: "RELATIONSHIP",
+    id: "personal_space",
+    category: "relationship",
+    subcategory: "basics",
+    question: "איך את/ה רואה את האיזון בין זמן משותף לזמן אישי בזוגיות?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Users />,
+        text: "רוב הזמן ביחד",
+        value: "mostly_together",
+        description: "העדפה לבילוי משותף"
+      },
+      {
+        icon: <Target />,
+        text: "איזון מתוכנן",
+        value: "planned_balance",
+        description: "חלוקה מסודרת של זמן"
+      },
+      {
+        icon: <Home />,
+        text: "עצמאות גמישה",
+        value: "flexible_independence",
+        description: "גמישות לפי הצורך"
+      },
+      {
+        icon: <Map />,
+        text: "עצמאות גבוהה",
+        value: "high_independence",
+        description: "שמירה על מרחב אישי משמעותי"
+      }
+    ]
+  },
+  {
+    worldId: "RELATIONSHIP",
+id: "relationship_progression",
+    category: "relationship",
+    subcategory: "basics",
+    question: "איך את/ה רואה את קצב התפתחות הקשר?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Heart />,
+        text: "התקדמות מהירה",
+        value: "fast",
+        description: "כשמרגישים - מתקדמים"
+      },
+      {
+        icon: <Clock />,
+        text: "התקדמות הדרגתית",
+        value: "gradual",
+        description: "צעד אחר צעד בקצב מתון"
+      },
+      {
+        icon: <Map />,
+        text: "לפי אבני דרך",
+        value: "milestone_based",
+        description: "התקדמות לפי יעדים מוגדרים"
+      },
+      {
+        icon: <Sun />,
+        text: "זרימה טבעית",
+        value: "natural",
+        description: "התקדמות אורגנית ללא תכנון"
+      }
+    ]
+  },
+  {
+    worldId: "RELATIONSHIP",
+    id: "family_boundaries",
+    category: "relationship",
+    subcategory: "basics",
+    question: "איך את/ה רואה את הקשר עם המשפחות המורחבות?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      {
+        icon: <Users />,
+        text: "מעורבות גבוהה",
+        value: "high_involvement",
+        description: "קשר הדוק ומעורבות משמעותית"
+      },
+      {
+        icon: <Home />,
+        text: "איזון בריא",
+        value: "healthy_balance",
+       // relationshipBasicsQuestions.tsx המשך...
+       description: "קשר חם עם גבולות ברורים"
+    },
+    {
+      icon: <Globe />,
+      text: "קשר עצמאי",
+      value: "independent",
+      description: "שמירה על עצמאות הזוג"
+    },
+    {
+      icon: <Map />,
+      text: "גמישות מצבית",
+      value: "situational",
+      description: "התאמה לפי הצורך והמצב"
+    }
+  ]
+},
+{
+  worldId: "RELATIONSHIP",
+  id: "life_values_alignment",
+  category: "relationship",
+  subcategory: "basics",
+  question: "מה חשוב לך שיהיה משותף בין בני הזוג?",
+  type: "multiSelect",
+  depth: "BASIC",
+  isRequired: true,
+  options: [
+    {
+      icon: <Church />,
+      text: "ערכים ואמונות",
+      value: "values"
+    },
+    {
+      icon: <Target />,
+      text: "מטרות חיים",
+      value: "goals"
+    },
+    {
+      icon: <Heart />,
+      text: "תחומי עניין",
+      value: "interests"
+    },
+    {
+      icon: <Home />,
+      text: "סגנון חיים",
+      value: "lifestyle"
+    }
+  ],
+  minSelections: 1,
+  maxSelections: 3
+},
+{
+  worldId: "RELATIONSHIP",
+  id: "future_challenges",
+  category: "relationship",
+  subcategory: "basics",
+  question: "איך את/ה מצפה להתמודד עם אתגרים עתידיים בזוגיות?",
+  type: "iconChoice",
+  depth: "BASIC",
+  isRequired: true,
+  options: [
+    {
+      icon: <Users />,
+      text: "התמודדות משותפת",
+      value: "together",
+      description: "פתרון בעיות יחד כצוות"
+    },
+    {
+      icon: <MessageCircle />,
+      text: "תקשורת פתוחה",
+      value: "communication",
+      description: "דיון פתוח על כל אתגר"
+    },
+    {
+      icon: <Map />,
+      text: "תכנון מראש",
+      value: "planning",
+      description: "הכנה והיערכות לאתגרים"
+    },
+    {
+      icon: <HandHeart />,
+      text: "גמישות ותמיכה",
+      value: "support",
+      description: "גמישות והסתגלות הדדית"
+    }
+  ]
+},
+{
+  worldId: "RELATIONSHIP",
+id: "career_balance",
+  category: "relationship",
+  subcategory: "basics",
+  question: "איך את/ה רואה את האיזון בין קריירה למשפחה?",
+  type: "iconChoice",
+  depth: "BASIC",
+  isRequired: true,
+  options: [
+    {
+      icon: <Target />,
+      text: "קריירה מרכזית",
+      value: "career_focused",
+      description: "דגש על התפתחות מקצועית"
+    },
+    {
+      icon: <Home />,
+      text: "משפחה במרכז",
+      value: "family_focused",
+      description: "עדיפות לחיי המשפחה"
+    },
+    {
+      icon: <Star />,
+      text: "איזון שווה",
+      value: "balanced",
+      description: "חלוקה מאוזנת בין השניים"
+    },
+    {
+      icon: <Map />,
+      text: "גמישות לפי תקופה",
+      value: "flexible",
+      description: "התאמה לפי שלבי החיים"
+    }
+  ]
+},
+{
+  worldId: "RELATIONSHIP",
+  id: "decision_making",
+  category: "relationship",
+  subcategory: "basics",
+  question: "איך את/ה מעדיף/ה לקבל החלטות משותפות?",
+  type: "iconChoice",
+  depth: "BASIC",
+  isRequired: true,
+  options: [
+    {
+      icon: <MessageCircle />,
+      text: "דיון משותף",
+      value: "discussion",
+      description: "החלטה משותפת אחרי דיון"
+    },
+    {
+      icon: <Target />,
+      text: "חלוקת תחומים",
+      value: "divided",
+      description: "כל אחד בתחומי האחריות שלו"
+    },
+    {
+      icon: <Users />,
+      text: "התייעצות חיצונית",
+      value: "external",
+      description: "פתיחות לעצות מאחרים"
+    },
+    {
+      icon: <HandHeart />,
+      text: "אינטואיציה וגמישות",
+      value: "intuitive",
+      description: "החלטה לפי תחושה והקשבה"
+    }
+  ]
+},
+{
+  worldId: "RELATIONSHIP",
+  id: "relationship_goals",
+  category: "relationship",
+  subcategory: "basics",
+  question: "מהם היעדים החשובים לך להשגה בחיי הזוגיות?",
+  type: "multiSelect",
+  depth: "BASIC",
+  isRequired: true,
+  options: [
+    {
+      icon: <Heart />,
+      text: "אינטימיות רגשית",
+      value: "emotional"
+    },
+    {
+      icon: <Home />,
+      text: "יציבות ובטחון",
+      value: "stability"
+    },
+    {
+      icon: <Star />,
+      text: "הגשמה עצמית",
+      value: "fulfillment"
+    },
+    {
+      icon: <Globe />,
+      text: "חוויות משותפות",
+      value: "experiences"
+    }
+  ],
+  minSelections: 1,
+  maxSelections: 3
+},
+{
+  worldId: "RELATIONSHIP",
+  id: "relationship_expectations",
+  category: "relationship",
+  subcategory: "basics",
+  question: "מהן הציפיות העיקריות שלך מבן/בת הזוג?",
+  type: "multiSelect",
+  depth: "BASIC",
+  isRequired: true,
+  options: [
+    {
+      icon: <HandHeart />,
+      text: "תמיכה רגשית",
+      value: "support"
+    },
+    {
+      icon: <Target />,
+      text: "שותפות מעשית",
+      value: "partnership"
+    },
+    {
+      icon: <MessageCircle />,
+      text: "תקשורת פתוחה",
+      value: "communication"
+    },
+    {
+      icon: <Map />,
+      text: "עצמאות והדדיות",
+      value: "independence"
+    }
+  ],
+  minSelections: 1,
+  maxSelections: 3
+},
+{
+  worldId: "RELATIONSHIP",
+id: "lifestyle_preferences",
+  category: "relationship",
+  subcategory: "basics",
+  question: "איזה סגנון חיים היית רוצה לבנות יחד?",
+  type: "iconChoice",
+  depth: "BASIC",
+  isRequired: true,
+  options: [
+    {
+      icon: <Globe />,
+      text: "דינמי והרפתקני",
+      value: "dynamic",
+      description: "חיים מלאי שינויים וחוויות"
+    },
+    {
+      icon: <Home />,
+      text: "יציב ומסורתי",
+      value: "stable",
+      description: "חיים שקטים ויציבים"
+    },
+    {
+      icon: <Star />,
+      text: "יצירתי וייחודי",
+      value: "creative",
+      description: "חיים מחוץ לקופסה"
+    },
+    {
+      icon: <Target />,
+      text: "מתוכנן ומאורגן",
+      value: "organized",
+      description: "חיים מסודרים ומתוכננים"
+    }
+  ]
+},
+{
+  worldId: "RELATIONSHIP",
+id: "quality_time",
+  category: "relationship",
+  subcategory: "basics",
+  question: "איך את/ה מעדיף/ה לבלות זמן איכות זוגי?",
+  type: "multiSelect",
+  depth: "BASIC",
+  isRequired: true,
+  options: [
+    {
+      icon: <Home />,
+      text: "רגעים שקטים בבית",
+      value: "quiet_home"
+    },
+    {
+      icon: <Globe />,
+      text: "פעילויות וחוויות",
+      value: "activities"
+    },
+    {
+      icon: <MessageCircle />,
+      text: "שיחות עמוקות",
+      value: "conversations"
+    },
+    {
+      icon: <Users />,
+      text: "בילוי חברתי",
+      value: "social"
+    }
+  ],
+  minSelections: 1,
+  maxSelections: 2
+},
+{
+  worldId: "RELATIONSHIP",
+  id: "social_life",
+  category: "relationship",
+  subcategory: "basics",
+  question: "איך את/ה רואה את החיים החברתיים בזוגיות?",
+  type: "iconChoice",
+  depth: "BASIC",
+  isRequired: true,
+  options: [
+    {
+      icon: <Users />,
+      text: "חיי חברה עשירים",
+      value: "very_social",
+      description: "מפגשים חברתיים תכופים"
+    },
+    {
+      icon: <Home />,
+      text: "מעגל מצומצם",
+      value: "close_circle",
+      description: "התמקדות בחברים קרובים"
+    },
+    {
+      icon: <Target />,
+      text: "איזון חברתי",
+      value: "balanced",
+      description: "שילוב של זוגיות וחברה"
+    },
+    {
+      icon: <Heart />,
+      text: "זוגיות במרכז",
+      value: "couple_focused",
+      description: "התמקדות בזמן זוגי"
+    }
+  ]
+}
+];
+
+export default relationshipBasicsQuestions;

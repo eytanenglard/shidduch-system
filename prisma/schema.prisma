@@ -1,0 +1,467 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                     String                  @id @default(cuid())
+  email                  String                  @unique
+  password               String
+  firstName              String
+  lastName               String
+  phone       String?  @unique  // הוספת שדה טלפון
+  images                 UserImage[] 
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  lastLogin              DateTime?
+  status                 UserStatus              @default(PENDING)
+  role                   UserRole                @default(CANDIDATE)
+  isVerified             Boolean                 @default(false)
+  questionnaireResponses QuestionnaireResponse[]
+  // Relations
+    givenFeedback  DateFeedback[] @relation("UserFeedback")  // הוספת שדה נגדי
+  sentInvitations        Invitation[]            @relation("MatchmakerInvitations")
+  receivedInvitation     Invitation?             @relation("ReceivedInvitation")
+  firstPartySuggestions  MatchSuggestion[]       @relation("FirstPartySuggestions")
+  createdSuggestions     MatchSuggestion[]       @relation("MatchmakerSuggestions")
+  secondPartySuggestions MatchSuggestion[]       @relation("SecondPartySuggestions")
+  profile                Profile?
+  verifiedUsers          Profile[]               @relation("VerifiedByMatchmaker")
+  videos                 Video[]
+  verifications          Verification[]
+  reviewedSuggestions    MatchSuggestion[]       @relation("ReviewedSuggestions")
+  approvedSuggestions    MatchSuggestion[]       @relation("ApprovedSuggestions")
+  matchmakerAvailabilityInquiries  AvailabilityInquiry[]   @relation("MatchmakerInquiries")
+  firstPartyInquiries    AvailabilityInquiry[]   @relation("FirstPartyInquiries")
+  secondPartyInquiries   AvailabilityInquiry[]   @relation("SecondPartyInquiries")
+  sentSuggestionInquiries     SuggestionInquiry[] @relation("SentSuggestionInquiries")
+  receivedSuggestionInquiries SuggestionInquiry[] @relation("ReceivedSuggestionInquiries")
+  @@index([email])
+  @@index([role])
+  @@index([status])
+}
+
+model Verification {
+  id          String             @id @default(cuid())
+  userId      String?            // Optional field
+  type        VerificationType
+  token       String             @unique
+  expiresAt   DateTime
+  status      VerificationStatus @default(PENDING)
+  attempts    Int                @default(0)
+  metadata    Json?
+  createdAt   DateTime           @default(now())
+  completedAt DateTime?
+  user        User?              @relation(fields: [userId], references: [id]) // Optional relation
+
+  @@index([userId, type])
+}
+
+
+model Profile {
+  id                        String             @id @default(cuid())
+  userId                    String             @unique
+   gender                 Gender
+  birthDate              DateTime
+    nativeLanguage        String?
+  additionalLanguages   String[]   
+  height                    Int?
+  maritalStatus             String?
+  occupation                String?
+  education                 String?
+  address                   String?
+  city                      String?
+  origin                    String?
+  religiousLevel            String?
+  about                     String?            @db.Text
+  hobbies                   String?            @db.Text
+  // מידע משפחתי
+  parentStatus              String?
+  siblings                  Int?
+  position                  Int?
+  
+  // העדפות התאמה
+  preferredAgeMin           Int?
+  preferredAgeMax          Int?
+  preferredHeightMin       Int?
+  preferredHeightMax       Int?
+  preferredReligiousLevels String[]           @default([])
+  preferredLocations       String[]           @default([])
+  preferredEducation       String[]           @default([])
+  preferredOccupations     String[]           @default([])
+  
+  // פרטי התקשרות ועדויות
+  contactPreference         String?
+  referenceName1            String?
+  referencePhone1           String?
+  referenceName2            String?
+  referencePhone2           String?
+  
+  // הגדרות פרופיל
+  isProfileVisible          Boolean            @default(true)
+  preferredMatchmakerGender Gender?
+  matchingNotes             String?            @db.Text
+  verifiedBy               String?
+  
+  // סטטוס זמינות
+  availabilityStatus        AvailabilityStatus @default(AVAILABLE)
+  availabilityNote          String?            @db.Text
+  availabilityUpdatedAt     DateTime?
+  
+  // שדות מערכת
+  createdAt                DateTime           @default(now())
+  updatedAt                DateTime           @updatedAt
+  lastActive               DateTime?
+  
+  // Relations
+  user                     User               @relation(fields: [userId], references: [id])
+  verifiedByMatchmaker     User?              @relation("VerifiedByMatchmaker", fields: [verifiedBy], references: [id])
+}
+
+model Meeting {
+  id            String        @id @default(cuid())
+  suggestionId  String
+  scheduledDate DateTime
+  status        MeetingStatus 
+  location      String?
+  notes         String?       @db.Text
+  feedback      DateFeedback[] @relation("MeetingFeedback")  // הוספת שם ליחס
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  suggestion    MatchSuggestion @relation(fields: [suggestionId], references: [id])
+
+  @@index([suggestionId])
+  @@index([status])
+}
+
+enum MeetingStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+  RESCHEDULED
+}
+
+model MatchSuggestion {
+  id            String                @id @default(cuid())
+  matchmakerId  String
+  firstPartyId  String
+  secondPartyId String
+  status        MatchSuggestionStatus @default(DRAFT)
+  priority      Priority              @default(MEDIUM)
+
+  // Notes & Documentation
+  internalNotes       String?
+  firstPartyNotes     String?
+  secondPartyNotes    String?
+  matchingReason      String?
+  followUpNotes       String?
+  inquiries     SuggestionInquiry[]
+
+  // Deadlines & Timing
+  responseDeadline DateTime?
+  decisionDeadline DateTime?
+  lastStatusChange DateTime?
+  previousStatus   MatchSuggestionStatus?
+ meetings Meeting[] 
+  feedback       DateFeedback[] @relation("SuggestionFeedback")  // הוספת שדה נגדי
+  // Activity Tracking
+  lastActivity          DateTime  @default(now())
+  firstPartySent        DateTime?
+  firstPartyResponded   DateTime?
+  secondPartySent       DateTime?
+  secondPartyResponded  DateTime?
+  firstMeetingScheduled DateTime?
+  closedAt              DateTime?
+category        SuggestionCategory @default(ACTIVE)
+  // History & References
+  statusHistory      SuggestionStatusHistory[]
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  matchmaker        User                           @relation("MatchmakerSuggestions", fields: [matchmakerId], references: [id], onDelete: Cascade)
+  firstParty        User                           @relation("FirstPartySuggestions", fields: [firstPartyId], references: [id], onDelete: Cascade)
+  secondParty       User                           @relation("SecondPartySuggestions", fields: [secondPartyId], references: [id], onDelete: Cascade)
+  reviewedBy        User[]                         @relation("ReviewedSuggestions")
+  approvedBy        User[]                         @relation("ApprovedSuggestions")
+
+  @@index([category])
+  @@index([matchmakerId])
+  @@index([firstPartyId])
+  @@index([secondPartyId])
+  @@index([status])
+  @@index([priority])
+  @@index([lastActivity])
+}
+
+model SuggestionStatusHistory {
+  id           String                @id @default(cuid())
+  suggestionId String
+  status       MatchSuggestionStatus
+  reason       String?
+  notes        String?
+  createdAt    DateTime              @default(now())
+  suggestion   MatchSuggestion       @relation(fields: [suggestionId], references: [id], onDelete: Cascade)
+
+  @@index([suggestionId])
+}
+
+
+model Invitation {
+  id           String           @id @default(cuid())
+  matchmakerId String
+  email        String
+  token        String           @unique
+  expires      DateTime
+  status       InvitationStatus @default(PENDING)
+  metadata     Json?
+  userId       String?          @unique
+  user         User?            @relation("ReceivedInvitation", fields: [userId], references: [id])
+  matchmaker   User             @relation("MatchmakerInvitations", fields: [matchmakerId], references: [id])
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@index([matchmakerId])
+  @@index([email])
+  @@index([status])
+}
+
+model Video {
+  id        String      @id @default(cuid())
+  userId    String
+  url       String
+  type      VideoType
+  status    VideoStatus @default(PENDING)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  user      User        @relation(fields: [userId], references: [id])
+}
+
+model AvailabilityInquiry {
+  id                  String   @id @default(cuid())
+  matchmakerId        String
+  firstPartyId        String
+  secondPartyId       String
+  firstPartyResponse  Boolean?
+  secondPartyResponse Boolean?
+  note                String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  expiresAt           DateTime
+
+  matchmaker  User @relation("MatchmakerInquiries", fields: [matchmakerId], references: [id])
+  firstParty  User @relation("FirstPartyInquiries", fields: [firstPartyId], references: [id])
+  secondParty User @relation("SecondPartyInquiries", fields: [secondPartyId], references: [id])
+
+  @@index([matchmakerId])
+  @@index([firstPartyId])
+  @@index([secondPartyId])
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum UserRole {
+  CANDIDATE
+  MATCHMAKER
+  ADMIN
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  INACTIVE
+  BLOCKED
+}
+
+enum VideoType {
+  INTRODUCTION
+  PERSONAL_STORY
+  OTHER
+}
+
+enum VideoStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ContactMethod {
+  EMAIL
+  WHATSAPP
+  PHONE
+}
+
+enum MatchSuggestionStatus {
+  DRAFT
+  PENDING_FIRST_PARTY
+  FIRST_PARTY_APPROVED
+  FIRST_PARTY_DECLINED
+  PENDING_SECOND_PARTY
+  SECOND_PARTY_APPROVED
+  SECOND_PARTY_DECLINED
+  AWAITING_MATCHMAKER_APPROVAL // חדש
+  CONTACT_DETAILS_SHARED // חדש
+  AWAITING_FIRST_DATE_FEEDBACK // חדש
+  THINKING_AFTER_DATE // חדש
+  PROCEEDING_TO_SECOND_DATE // חדש
+  ENDED_AFTER_FIRST_DATE // חדש
+  MEETING_PENDING
+  MEETING_SCHEDULED
+  MATCH_APPROVED
+  MATCH_DECLINED
+  DATING
+  ENGAGED
+  MARRIED
+  EXPIRED
+  CLOSED
+  CANCELLED
+}
+
+enum SuggestionCategory {
+  ACTIVE    // הצעות פעילות בתהליך
+  PENDING   // הצעות בהמתנה לאישור/טיפול
+  HISTORY   // הצעות שהסתיימו (חיובי או שלילי)
+}
+enum AvailabilityStatus {
+  AVAILABLE
+  UNAVAILABLE
+  DATING
+  ENGAGED
+  MARRIED
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  CANCELLED
+}
+
+enum VerificationType {
+  EMAIL
+  PHONE
+  DOCUMENT
+  REFERENCE
+  PASSWORD_RESET
+}
+
+enum VerificationStatus {
+  PENDING
+  COMPLETED
+  EXPIRED
+  FAILED
+}
+
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+
+model QuestionnaireResponse {
+  id              String    @id @default(cuid())
+  userId          String
+  
+  // תשובות לפי עולמות
+  valuesAnswers         Json?     
+  personalityAnswers    Json?     
+  relationshipAnswers   Json?     
+  partnerAnswers       Json?     
+  religionAnswers      Json?     
+  
+  // סטטוס השלמה לפי עולם
+  valuesCompleted      Boolean   @default(false)
+  personalityCompleted Boolean   @default(false)
+  relationshipCompleted Boolean   @default(false)
+  partnerCompleted    Boolean   @default(false)
+  religionCompleted   Boolean   @default(false)
+  
+  // מידע כללי
+  worldsCompleted      String[]  
+  completed           Boolean   @default(false)
+  startedAt           DateTime
+  completedAt         DateTime?
+  lastSaved           DateTime  @default(now())
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([completed])
+  @@index([valuesCompleted])
+  @@index([personalityCompleted])
+  @@index([relationshipCompleted])
+  @@index([partnerCompleted])
+  @@index([religionCompleted])
+}
+
+model UserImage {
+  id                 String   @id @default(cuid())
+  url                String
+  isMain             Boolean  @default(false)
+  cloudinaryPublicId String
+  userId             String
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model DateFeedback {
+  id            String   @id @default(cuid())
+  suggestionId  String
+  partyId       String   
+  meetingId     String   // הוספת שדה חדש
+  meetingNumber Int      
+  feedback      String   @db.Text
+  status        String   
+  nextSteps     String?
+  createdAt     DateTime @default(now())
+  
+  meeting       Meeting  @relation("MeetingFeedback", fields: [meetingId], references: [id])
+  suggestion    MatchSuggestion @relation("SuggestionFeedback", fields: [suggestionId], references: [id])
+  party         User    @relation("UserFeedback", fields: [partyId], references: [id])
+
+  @@index([suggestionId])
+  @@index([partyId])
+  @@index([meetingId])
+}
+model SuggestionInquiry {
+  id           String         @id @default(cuid())
+  suggestionId String
+  fromUserId   String
+  toUserId     String
+  question     String         @db.Text
+  answer       String?        @db.Text
+  status       InquiryStatus  @default(PENDING)
+  createdAt    DateTime       @default(now())
+  answeredAt   DateTime?
+  
+  suggestion   MatchSuggestion @relation(fields: [suggestionId], references: [id], onDelete: Cascade)
+  fromUser     User           @relation("SentSuggestionInquiries", fields: [fromUserId], references: [id])
+  toUser       User           @relation("ReceivedSuggestionInquiries", fields: [toUserId], references: [id])
+
+  @@index([suggestionId])
+  @@index([fromUserId])
+  @@index([toUserId])
+}
+
+enum InquiryStatus {
+  PENDING
+  ANSWERED
+  CLOSED
+}

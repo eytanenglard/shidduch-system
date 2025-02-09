@@ -1,0 +1,39 @@
+<!-- src/lib/email/templates/invitation.hbs -->
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4F46E5;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>שלום {{firstName}},</h2>
+        <p>הוזמנת להצטרף למערכת השידוכים על ידי השדכן/ית {{matchmakerName}}.</p>
+        <p>כדי להשלים את תהליך ההרשמה, אנא לחץ/י על הקישור הבא:</p>
+        <a href="{{baseUrl}}/auth/complete-registration?token={{token}}" class="button"></a>להשלמת ההרשמה</a>
+        <p>הקישור תקף ל-{{expiresIn}}.</p>
+        <p>אם לא ביקשת להצטרף למערכת, אנא התעלם/י מהודעה זו.</p>
+        <p>בברכה,<br>צוות מערכת השידוכים</p>
+    </div>
+</body>
+</html>

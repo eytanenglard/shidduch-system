@@ -1,0 +1,96 @@
+// src/lib/email/templates/share-contact-details.hbs
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            padding: 20px;
+            background-color: #4F46E5;
+            color: white;
+            border-radius: 8px 8px 0 0;
+            margin-bottom: 20px;
+        }
+        .content {
+            padding: 20px;
+        }
+        .contact-details {
+            background-color: #f8fafc;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+        .important-note {
+            background-color: #fef3c7;
+            border-right: 4px solid #f59e0b;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>פרטי קשר לפגישה ראשונה</h1>
+        </div>
+        
+        <div class="content">
+            <h2>שלום {{recipientName}}!</h2>
+            
+            <p>השדכן/ית {{matchmakerName}} אישר/ה את ההצעה ואתם יכולים ליצור קשר ראשוני!</p>
+
+        <div class="contact-details">
+  <h3>פרטי הקשר של {{otherPartyName}}:</h3>
+  {{#if otherPartyContact.email}}
+    <p>📧 אימייל: {{otherPartyContact.email}}</p>
+  {{/if}}
+  {{#if otherPartyContact.whatsapp}}
+    <p>💬 וואטסאפ: {{otherPartyContact.whatsapp}}</p>
+  {{/if}}
+</div>
+
+            <div class="important-note">
+                <h4>🔔 שימו לב:</h4>
+                <ul>
+                    <li>מומלץ ליצור קשר תוך 24 שעות</li>
+                    <li>אנא עדכנו את השדכן/ית על קביעת הפגישה</li>
+                    <li>לאחר הפגישה, תתבקשו למלא משוב קצר במערכת</li>
+                </ul>
+            </div>
+
+            <p>בהצלחה רבה! אנו מאחלים לכם פגישה טובה ומוצלחת.</p>
+        </div>
+
+        <div class="footer">
+            <p>בברכה,<br>צוות מערכת השידוכים</p>
+            <p>{{supportEmail}}</p>
+        </div>
+    </div>
+</body>
+</html>
