@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 import { Slider } from "@/components/ui/slider";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -163,7 +165,9 @@ export default function AnswerInput({
                     "bg-blue-50 border-blue-500"
                 )}
                 onClick={() => {
-                  const newValues = selectedWithOtherValues.includes(option.value)
+                  const newValues = selectedWithOtherValues.includes(
+                    option.value
+                  )
                     ? selectedWithOtherValues.filter((v) => v !== option.value)
                     : [...selectedWithOtherValues, option.value];
                   handleValueChange(newValues);
@@ -175,7 +179,7 @@ export default function AnswerInput({
                 </div>
               </div>
             ))}
-            
+
             {/* Custom input section */}
             <div className="space-y-2">
               <Label>אחר</Label>
@@ -191,7 +195,10 @@ export default function AnswerInput({
                   variant="outline"
                   onClick={() => {
                     if (customValue.trim()) {
-                      const newValues = [...selectedWithOtherValues, `custom:${customValue.trim()}`];
+                      const newValues = [
+                        ...selectedWithOtherValues,
+                        `custom:${customValue.trim()}`,
+                      ];
                       handleValueChange(newValues);
                       setCustomValue("");
                     }
@@ -206,17 +213,19 @@ export default function AnswerInput({
             {/* Custom values display */}
             <div className="space-y-2">
               {selectedWithOtherValues
-                .filter(v => v.startsWith('custom:'))
+                .filter((v) => v.startsWith("custom:"))
                 .map((customVal, index) => (
                   <div
                     key={index}
                     className="flex items-center justify-between p-2 bg-blue-50 rounded-lg"
                   >
-                    <span>{customVal.replace('custom:', '')}</span>
+                    <span>{customVal.replace("custom:", "")}</span>
                     <X
                       className="w-4 h-4 text-gray-500 hover:text-red-500 cursor-pointer"
                       onClick={() => {
-                        const newValues = selectedWithOtherValues.filter(v => v !== customVal);
+                        const newValues = selectedWithOtherValues.filter(
+                          (v) => v !== customVal
+                        );
                         handleValueChange(newValues);
                       }}
                     />

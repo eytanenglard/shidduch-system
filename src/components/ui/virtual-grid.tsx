@@ -1,6 +1,7 @@
 // components/ui/virtual-grid.tsx
-import React, { useEffect, useRef, useState } from 'react';
-import { cn } from '@/lib/utils';
+"use client";
+import React, { useEffect, useRef, useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface VirtualGridProps<T> {
   items: T[];
@@ -30,23 +31,26 @@ export function VirtualGrid<T>({
     const calculateVisibleItems = () => {
       const rect = container.getBoundingClientRect();
       setContainerWidth(rect.width);
-      
+
       const itemsPerRow = Math.max(1, Math.floor(rect.width / itemWidth));
       const rowHeight = itemHeight;
       const totalRows = Math.ceil(items.length / itemsPerRow);
-      
+
       const scrollTop = container.scrollTop;
       const viewportHeight = container.clientHeight;
-      
-      const startRow = Math.max(0, Math.floor(scrollTop / rowHeight) - overscan);
+
+      const startRow = Math.max(
+        0,
+        Math.floor(scrollTop / rowHeight) - overscan
+      );
       const endRow = Math.min(
         totalRows,
         Math.ceil((scrollTop + viewportHeight) / rowHeight) + overscan
       );
-      
+
       const start = startRow * itemsPerRow;
       const end = Math.min(items.length, (endRow + 1) * itemsPerRow);
-      
+
       setVisibleRange({ start, end });
     };
 
@@ -55,13 +59,13 @@ export function VirtualGrid<T>({
     observer.observe(container);
 
     // Set up scroll listener
-    container.addEventListener('scroll', calculateVisibleItems);
+    container.addEventListener("scroll", calculateVisibleItems);
     calculateVisibleItems();
 
     // Cleanup
     return () => {
       observer.disconnect();
-      container.removeEventListener('scroll', calculateVisibleItems);
+      container.removeEventListener("scroll", calculateVisibleItems);
     };
   }, [items.length, itemHeight, itemWidth, overscan]);
 
@@ -75,22 +79,22 @@ export function VirtualGrid<T>({
     <div
       ref={containerRef}
       className={cn("overflow-auto h-full relative", className)}
-      style={{ WebkitOverflowScrolling: 'touch' }}
+      style={{ WebkitOverflowScrolling: "touch" }}
     >
       <div
         style={{
           height: totalHeight,
-          position: 'relative',
+          position: "relative",
         }}
       >
         <div
           style={{
-            position: 'absolute',
+            position: "absolute",
             top: paddingTop,
-            display: 'grid',
+            display: "grid",
             gridTemplateColumns: `repeat(auto-fill, minmax(${itemWidth}px, 1fr))`,
-            gap: '1rem',
-            width: '100%',
+            gap: "1rem",
+            width: "100%",
           }}
         >
           {visibleItems.map(renderItem)}

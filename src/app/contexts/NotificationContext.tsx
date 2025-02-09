@@ -1,4 +1,5 @@
 // src/app/contexts/NotificationContext.tsx
+"use client";
 import React, {
   createContext,
   useContext,

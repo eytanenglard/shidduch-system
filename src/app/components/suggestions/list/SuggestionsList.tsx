@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect } from "react";
 import { User } from "lucide-react";
 import {
@@ -65,10 +66,13 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
   className,
   onStatusChange,
 }) => {
-  const [selectedSuggestion, setSelectedSuggestion] = useState<ExtendedMatchSuggestion | null>(null);
-  const [quickActionSuggestion, setQuickActionSuggestion] = useState<ExtendedMatchSuggestion | null>(null);
+  const [selectedSuggestion, setSelectedSuggestion] =
+    useState<ExtendedMatchSuggestion | null>(null);
+  const [quickActionSuggestion, setQuickActionSuggestion] =
+    useState<ExtendedMatchSuggestion | null>(null);
   const [showAskDialog, setShowAskDialog] = useState(false);
-  const [questionnaireResponse, setQuestionnaireResponse] = useState<QuestionnaireResponse | null>(null);
+  const [questionnaireResponse, setQuestionnaireResponse] =
+    useState<QuestionnaireResponse | null>(null);
 
   useEffect(() => {
     const loadQuestionnaire = async () => {
@@ -77,11 +81,15 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
         return;
       }
 
-      const targetParty = selectedSuggestion.firstPartyId === userId ? 
-        selectedSuggestion.secondParty : selectedSuggestion.firstParty;
+      const targetParty =
+        selectedSuggestion.firstPartyId === userId
+          ? selectedSuggestion.secondParty
+          : selectedSuggestion.firstParty;
 
       try {
-        const response = await fetch(`/api/profile/questionnaire?userId=${targetParty.id}`);
+        const response = await fetch(
+          `/api/profile/questionnaire?userId=${targetParty.id}`
+        );
         const data = await response.json();
 
         if (data.success && data.questionnaireResponse) {
@@ -89,10 +97,14 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
             ...data.questionnaireResponse,
             formattedAnswers: {
               values: data.questionnaireResponse.formattedAnswers.values || [],
-              personality: data.questionnaireResponse.formattedAnswers.personality || [],
-              relationship: data.questionnaireResponse.formattedAnswers.relationship || [],
-              partner: data.questionnaireResponse.formattedAnswers.partner || [],
-              religion: data.questionnaireResponse.formattedAnswers.religion || [],
+              personality:
+                data.questionnaireResponse.formattedAnswers.personality || [],
+              relationship:
+                data.questionnaireResponse.formattedAnswers.relationship || [],
+              partner:
+                data.questionnaireResponse.formattedAnswers.partner || [],
+              religion:
+                data.questionnaireResponse.formattedAnswers.religion || [],
             },
           };
           setQuestionnaireResponse(formattedQuestionnaire);
@@ -106,7 +118,10 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
     loadQuestionnaire();
   }, [selectedSuggestion, userId]);
 
-  const handleAction = async (action: "approve" | "reject" | "ask" | "view", suggestion: ExtendedMatchSuggestion) => {
+  const handleAction = async (
+    action: "approve" | "reject" | "ask" | "view",
+    suggestion: ExtendedMatchSuggestion
+  ) => {
     try {
       switch (action) {
         case "view":
@@ -121,7 +136,9 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
         case "approve":
           if (onStatusChange) {
             const isFirstParty = suggestion.firstPartyId === userId;
-            const newStatus = isFirstParty ? "FIRST_PARTY_APPROVED" : "SECOND_PARTY_APPROVED";
+            const newStatus = isFirstParty
+              ? "FIRST_PARTY_APPROVED"
+              : "SECOND_PARTY_APPROVED";
             await onStatusChange(suggestion.id, newStatus);
             toast.success("ההצעה אושרה בהצלחה");
           }
@@ -130,7 +147,9 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
         case "reject":
           if (onStatusChange) {
             const isFirstParty = suggestion.firstPartyId === userId;
-            const newStatus = isFirstParty ? "FIRST_PARTY_DECLINED" : "SECOND_PARTY_DECLINED";
+            const newStatus = isFirstParty
+              ? "FIRST_PARTY_DECLINED"
+              : "SECOND_PARTY_DECLINED";
             await onStatusChange(suggestion.id, newStatus);
             toast.success("ההצעה נדחתה");
           }
@@ -162,7 +181,13 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
 
   if (isLoading) {
     return (
-      <div className={`${viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 gap-4" : "space-y-4"} ${className}`}>
+      <div
+        className={`${
+          viewMode === "grid"
+            ? "grid grid-cols-1 md:grid-cols-2 gap-4"
+            : "space-y-4"
+        } ${className}`}
+      >
         {Array.from({ length: 6 }).map((_, i) => (
           <Skeleton key={i} className="h-48 w-full" />
         ))}
@@ -181,7 +206,13 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
 
   return (
     <>
-      <div className={`${viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 gap-4" : "space-y-4"} ${className}`}>
+      <div
+        className={`${
+          viewMode === "grid"
+            ? "grid grid-cols-1 md:grid-cols-2 gap-4"
+            : "space-y-4"
+        } ${className}`}
+      >
         {suggestions.map((suggestion) => (
           <div key={suggestion.id} className="relative">
             <MinimalSuggestionCard

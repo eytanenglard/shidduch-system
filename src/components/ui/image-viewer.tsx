@@ -1,4 +1,6 @@
 // src/components/ui/image-viewer.tsx
+"use client";
+
 import React from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";

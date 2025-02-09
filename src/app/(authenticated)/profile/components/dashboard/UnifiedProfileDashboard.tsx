@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Eye } from "lucide-react";
@@ -34,7 +36,12 @@ import {
 } from "@/app/components/shared/shared/profile";
 
 // Types
-import type { UserProfile, UserImage, QuestionnaireResponse, FormattedAnswer } from "@/types/next-auth";
+import type {
+  UserProfile,
+  UserImage,
+  QuestionnaireResponse,
+  FormattedAnswer,
+} from "@/types/next-auth";
 
 // Stats configuration
 import { User, MapPin, Scroll, Clock } from "lucide-react";

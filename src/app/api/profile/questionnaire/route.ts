@@ -193,7 +193,7 @@ export async function GET(req: Request) {
     });
 
     const formattedResponse = {
-      ...questionnaireResponse,
+      ...Response,
       formattedAnswers: formattedAnswers as FormattedAnswersType
     };
 

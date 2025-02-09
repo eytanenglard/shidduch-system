@@ -1,4 +1,5 @@
 // src/app/hooks/useMatchmaker.ts
+"use client";
 import { useState, useEffect } from 'react';
 import type { Client } from '@/app/types/matchmaker';
 import type { Suggestion } from '@/app/types/suggestions';

@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useCallback, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -38,9 +40,15 @@ export default function MatchmakerDashboard() {
       console.log("Total suggestions count:", data.length);
 
       // Log suggestions by status
-      const activeCount = data.filter((s: Suggestion) => s.category === 'ACTIVE').length;
-      const pendingCount = data.filter((s: Suggestion) => s.category === 'PENDING').length;
-      const historyCount = data.filter((s: Suggestion) => s.category === 'HISTORY').length;
+      const activeCount = data.filter(
+        (s: Suggestion) => s.category === "ACTIVE"
+      ).length;
+      const pendingCount = data.filter(
+        (s: Suggestion) => s.category === "PENDING"
+      ).length;
+      const historyCount = data.filter(
+        (s: Suggestion) => s.category === "HISTORY"
+      ).length;
       console.log("Suggestions by status:", {
         active: activeCount,
         pending: pendingCount,
@@ -74,7 +82,7 @@ export default function MatchmakerDashboard() {
 
       setShowNewSuggestion(false);
       toast.success("ההצעה נוצרה בהצלחה");
-      
+
       // Refresh suggestions list
       await fetchSuggestions();
     } catch (error) {
@@ -85,8 +93,8 @@ export default function MatchmakerDashboard() {
 
   // Handle suggestion deletion
   const handleSuggestionDeleted = useCallback((deletedId: string) => {
-    setSuggestions(prevSuggestions => 
-      prevSuggestions.filter(suggestion => suggestion.id !== deletedId)
+    setSuggestions((prevSuggestions) =>
+      prevSuggestions.filter((suggestion) => suggestion.id !== deletedId)
     );
   }, []);
 

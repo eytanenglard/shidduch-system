@@ -1,4 +1,6 @@
 // src/app/(authenticated)/profile/components/dashboard/PreferencesSection.tsx
+"use client";
+
 import React, { useState, useEffect } from "react";
 import {
   Card,

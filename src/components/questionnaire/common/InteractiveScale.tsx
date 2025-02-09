@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -123,8 +125,7 @@ export default function InteractiveScale({
         const width = rect.width;
         const percentage = Math.max(0, Math.min(1, x / width));
         const range = max - min;
-        const newValue =
-          Math.round((percentage * range) / step) * step + min;
+        const newValue = Math.round((percentage * range) / step) * step + min;
         handleValueChange(newValue);
         setHoveredValue(newValue);
       }
@@ -250,11 +251,7 @@ export default function InteractiveScale({
         </div>
       )}
 
-      {error && (
-        <div className="text-sm text-red-500 mt-1">
-          {error}
-        </div>
-      )}
+      {error && <div className="text-sm text-red-500 mt-1">{error}</div>}
 
       {required && (
         <input
