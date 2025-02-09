@@ -39,3 +39,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+"secrets/" 
+"# Security" 
+"secrets/" 
+"*.pem" 
+"*.key" 
+"service-account*.json" 
