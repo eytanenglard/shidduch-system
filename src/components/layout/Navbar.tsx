@@ -33,7 +33,7 @@ interface NotificationCount {
 const Navbar = () => {
  const { data: session } = useSession() as { data: Session | null };
  const pathname = usePathname();
- const { notifications } = useNotifications();
+/*  const { notifications } = useNotifications(); */
  const isActive = (path: string) => pathname === path;
  const isMatchmaker = session?.user?.role === "MATCHMAKER";
  const { language, setLanguage } = useLanguage();
@@ -116,11 +116,11 @@ const Navbar = () => {
                  <Button variant={isActive("/messages") ? "default" : "ghost"} className="relative">
                    <MessageCircle className="ml-2 h-4 w-4" />
                    הודעות
-                   {notifications.total > 0 && (
+                  {/*  {notifications.total > 0 && (
                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
                        {notifications.total}
                      </span>
-                   )}
+                   )} */}
                  </Button>
                </Link>
              </>
