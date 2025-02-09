@@ -142,7 +142,7 @@ export default function HomePage() {
               </Button>
             </Link>
           )}
-          <Link href="/components/questionnaire">
+          <Link href="/questionnaire">
             <FeatureCard
               icon={<ClipboardList className="w-8 h-8 text-blue-600" />}
               title="שאלון התאמה"
