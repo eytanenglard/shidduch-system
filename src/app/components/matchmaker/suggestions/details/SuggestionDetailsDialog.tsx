@@ -10,19 +10,10 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Card } from "@/components/ui/card";
 import { ProfileCard } from "@/app/components/shared/shared/profile";
 import { Timeline } from "@/components/ui/timeline";
-import {
-  MessageCircle,
-  AlertCircle,
-  CheckCircle,
-  XCircle,
-  Clock,
-  Calendar,
-} from "lucide-react";
+import { AlertCircle, CheckCircle, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import type { Suggestion } from "@/types/suggestions";
 import type { QuestionnaireResponse } from "@/types/next-auth";
@@ -38,7 +29,6 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
   suggestion,
   isOpen,
   onClose,
-  onAction,
 }) => {
   const [activeTab, setActiveTab] = useState("overview");
   const [firstPartyQuestionnaire, setFirstPartyQuestionnaire] =

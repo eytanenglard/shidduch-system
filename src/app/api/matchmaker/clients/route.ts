@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
-export async function GET(req: Request) {
+export async function GET() {  // Removed unused req parameter
   try {
     const session = await getServerSession(authOptions);
     
@@ -117,12 +117,14 @@ export async function GET(req: Request) {
       { status: 200 }
     );
 
-  } catch (error: any) {
-    console.error('Profile fetch error:', error.message || 'Unknown error');
+  } catch (error: Error | unknown) {  // Added proper type annotation
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Profile fetch error:', errorMessage);
+    
     return new NextResponse(
       JSON.stringify({ 
         success: false,
-        error: error.message || 'Internal server error' 
+        error: errorMessage 
       }),
       { status: 500 }
     );

@@ -9,15 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 // Icons
 import {
   User,
   Heart,
-  MapPin,
-  Clock,
-  Eye,
   FileText,
   Image as ImageIcon,
   Info,
@@ -30,10 +26,8 @@ import {
   Book,
   School,
   Lock,
-  CheckCircle,
   Languages,
   Calendar,
-  Home,
 } from "lucide-react";
 
 // Types
@@ -41,7 +35,6 @@ import type {
   UserProfile,
   UserImage,
   QuestionnaireResponse,
-  FormattedAnswer,
 } from "@/types/next-auth";
 
 // Interfaces
@@ -97,11 +90,10 @@ const WORLDS: Record<string, WorldConfig> = {
 
 const ProfileCard: React.FC<ProfileCardProps> = ({
   profile,
-  images =[],
+  images = [],
   questionnaire,
   viewMode = "candidate",
   className,
-  onAction,
 }) => {
   // State
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(

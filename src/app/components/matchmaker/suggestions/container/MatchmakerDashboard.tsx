@@ -2,12 +2,10 @@
 
 import React, { useState, useCallback, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Filter, Plus, Download } from "lucide-react";
+import { Plus, Download } from "lucide-react";
 import type { Suggestion } from "@/types/suggestions";
-import { MatchSuggestionStatus } from "@prisma/client";
 import NewSuggestionForm from "../../new/NewSuggestionForm";
 import SuggestionsStats from "./SuggestionsStats";
 import SuggestionActionBar from "./SuggestionActionBar";

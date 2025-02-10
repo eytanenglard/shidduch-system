@@ -5,7 +5,6 @@ import prisma from "@/lib/prisma";
 import { Session } from "next-auth";
 import { MatchSuggestionStatus } from "@prisma/client";
 import { suggestionService } from "@/app/components/matchmaker/new/services/suggestions/SuggestionService";
-import { emailService } from "@/lib/email/emailService";
 import type { CreateSuggestionData } from "@/app/types/suggestions";
 
 const getSuggestionCategory = (status: MatchSuggestionStatus) => {

@@ -1,8 +1,6 @@
 import { 
   MatchSuggestionStatus, 
   Priority,
-  Gender,
-  AvailabilityStatus,
   UserRole,
   DateFeedback,
   MeetingStatus,

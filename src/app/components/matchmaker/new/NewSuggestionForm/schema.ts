@@ -1,5 +1,4 @@
 import { z } from "zod";
-import type { Priority, MatchSuggestionStatus } from '@prisma/client';
 import { addDays, isBefore } from 'date-fns';
 
 // Validation rules

@@ -2,25 +2,21 @@
 
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React from "react";
 
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Users,
   UserSquare2,
-  HeartHandshake,
   Clock,
   MapPin,
-  Scroll,
   CheckCircle,
   Image as ImageIcon,
 } from "lucide-react";
 import { useStatistics } from "../hooks/useStatistics";
 import type { Candidate } from "../types/candidates";
 import {
-  LineChart,
-  Line,
   BarChart,
   Bar,
   XAxis,

@@ -36,9 +36,12 @@ const ManagerSuggestionsList: React.FC<ManagerSuggestionsListProps> = ({
   type,
   onSuggestionDeleted,
 }) => {
-  const [selectedSuggestion, setSelectedSuggestion] = useState<Suggestion | null>(null);
+  const [selectedSuggestion, setSelectedSuggestion] =
+    useState<Suggestion | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [suggestionToDelete, setSuggestionToDelete] = useState<string | null>(null);
+  const [suggestionToDelete, setSuggestionToDelete] = useState<string | null>(
+    null
+  );
 
   const filteredSuggestions = useMemo(() => {
     return suggestions.filter((suggestion) => {
@@ -120,21 +123,24 @@ const ManagerSuggestionsList: React.FC<ManagerSuggestionsListProps> = ({
     if (!suggestionToDelete) return;
 
     try {
-      const response = await fetch(`/api/suggestions/${suggestionToDelete}/delete`, {
-        method: 'DELETE',
-      });
+      const response = await fetch(
+        `/api/suggestions/${suggestionToDelete}/delete`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (!response.ok) {
-        throw new Error('Failed to delete suggestion');
+        throw new Error("Failed to delete suggestion");
       }
 
-      toast.success('ההצעה נמחקה בהצלחה');
+      toast.success("ההצעה נמחקה בהצלחה");
       if (onSuggestionDeleted) {
         onSuggestionDeleted(suggestionToDelete);
       }
     } catch (error) {
-      console.error('Error deleting suggestion:', error);
-      toast.error('שגיאה במחיקת ההצעה');
+      console.error("Error deleting suggestion:", error);
+      toast.error("שגיאה במחיקת ההצעה");
     } finally {
       setShowDeleteDialog(false);
       setSuggestionToDelete(null);

@@ -7,13 +7,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { 
-  Bookmark, 
-  AlertCircle, 
-  HelpCircle, 
-  SkipForward,
-  Star
-} from "lucide-react";
+import { Bookmark, AlertCircle, HelpCircle, SkipForward } from "lucide-react";
 import type {
   Question,
   Answer,
@@ -53,10 +47,8 @@ const depthLabels = {
 
 export default function QuestionCard({
   question,
-  answer,
   depth,
   isRequired = false,
-  onAnswer,
   onSkip,
   onBookmark,
   onHelp,
@@ -64,7 +56,6 @@ export default function QuestionCard({
   validationError,
   isDisabled = false,
   children,
-  language = "he",
 }: QuestionCardProps) {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
@@ -163,11 +154,9 @@ export default function QuestionCard({
 
           {/* Required Indicator */}
           {isRequired && (
-            <div className="text-sm text-red-500 mb-2">
-              * שאלת חובה
-            </div>
+            <div className="text-sm text-red-500 mb-2">* שאלת חובה</div>
           )}
-          
+
           {/* Answer Component */}
           <div className="mt-4">{children}</div>
         </div>
@@ -197,4 +186,4 @@ export default function QuestionCard({
       </CardFooter>
     </Card>
   );
-   }
+}

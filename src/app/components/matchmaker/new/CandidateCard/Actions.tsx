@@ -2,10 +2,10 @@
 
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React from "react";
 
 import { Button } from "@/components/ui/button";
-import { Heart, Mail, FileText, Eye, Clock, AlertCircle } from "lucide-react";
+import { Heart, Mail, FileText, Eye, Clock } from "lucide-react";
 import type { Candidate } from "../types/candidates";
 
 interface ActionsProps {

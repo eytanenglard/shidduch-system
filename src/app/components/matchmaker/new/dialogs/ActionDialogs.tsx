@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
   Dialog,
@@ -13,15 +12,9 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Send, Clock, Mail, Loader2, Calendar, Users } from "lucide-react";
+import { Clock, Mail, Loader2 } from "lucide-react";
 import type { Candidate } from "../types/candidates";
 
 interface ActionDialogsProps {
@@ -60,10 +53,6 @@ export const ActionDialogs: React.FC<ActionDialogsProps> = ({
   const [availabilityError, setAvailabilityError] = useState<string | null>(
     null
   );
-
-  // State for suggest dialog
-  const [isSuggesting, setIsSuggesting] = useState(false);
-  const [suggestError, setSuggestError] = useState<string | null>(null);
 
   // Handler for invite submission
   const handleInviteSubmit = async () => {

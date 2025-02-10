@@ -2,11 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Clock, CheckCircle, XCircle, Loader2, Users } from "lucide-react";
+import { Clock, CheckCircle, XCircle } from "lucide-react";
 import { useInterval } from "@/hooks/useInterval";
 
 interface ExtendedInquiry {
@@ -50,8 +48,8 @@ interface ExtendedInquiry {
 export default function InquiriesDashboard() {
   const { data: session } = useSession();
   const [inquiries, setInquiries] = useState<ExtendedInquiry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [, setLoading] = useState(true);
+  const [, setError] = useState("");
 
   // Auto-refresh inquiries every 30 seconds
   useInterval(() => {

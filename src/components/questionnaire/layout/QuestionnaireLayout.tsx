@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import type {
   WorldId,
-  UserTrack,
   QuestionnaireLayoutProps,
 } from "../types/types";
 import { cn } from "@/lib/utils";

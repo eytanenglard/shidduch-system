@@ -15,7 +15,7 @@ export default function QuestionnairePage() {
   const router = useRouter();
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading] = useState(false);
 
   const handleComplete = async () => {
     try {

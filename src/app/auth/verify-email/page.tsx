@@ -16,7 +16,7 @@ interface VerificationState {
 export default function VerifyEmailPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { data: session, update: updateSession } = useSession();
+  const { update: updateSession } = useSession();
 
   const token = searchParams.get("token");
   const email = searchParams.get("email");

@@ -1,5 +1,5 @@
 // src/components/shared/profile/constants.ts
-import { Heart, User, Users, Scroll, GraduationCap, Briefcase, MapPin, Globe, Languages, Home } from "lucide-react";
+import { Heart, User, Users, Scroll, GraduationCap, MapPin } from "lucide-react";
 
 export const WORLDS = {
   values: {

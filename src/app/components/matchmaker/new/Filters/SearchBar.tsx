@@ -3,7 +3,6 @@
 import React from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandDialog,
@@ -31,7 +30,6 @@ const SearchBar: React.FC<SearchBarProps> = ({
   onSelect,
   recentSearches = [],
   suggestions = [],
-  loading = false,
   className,
 }) => {
   const [open, setOpen] = React.useState(false);

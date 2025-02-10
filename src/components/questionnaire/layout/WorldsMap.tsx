@@ -1,13 +1,11 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
   Scroll,
   Heart,
   Users,
   User,
-  Briefcase,
   CheckCircle2,
   Lock,
   ArrowRight,
@@ -24,7 +22,6 @@ interface WorldsMapProps {
 }
 
 const worldsConfig = {
- 
   RELATIONSHIP: {
     icon: Users,
     color: "bg-purple-100 hover:bg-purple-200",
@@ -84,7 +81,6 @@ export default function WorldsMap({
   const [hoveredWorld, setHoveredWorld] = useState<WorldId | null>(null);
 
   const isWorldAccessible = (worldId: WorldId): boolean => {
-    const currentIndex = WORLD_ORDER.indexOf(currentWorld);
     const targetIndex = WORLD_ORDER.indexOf(worldId);
 
     // The first world is always accessible

@@ -41,21 +41,8 @@ const KEY_MAPPING: Record<WorldKey, DbWorldKey> = {
   religion: 'religionAnswers'
 };
 
-// Reverse key mapping utility
-const REVERSE_KEY_MAPPING: Record<DbWorldKey, WorldKey> = {
-  valuesAnswers: 'values',
-  personalityAnswers: 'personality',
-  relationshipAnswers: 'relationship',
-  partnerAnswers: 'partner',
-  religionAnswers: 'religion'
-};
-
 function getDbKey(worldKey: WorldKey): DbWorldKey {
   return KEY_MAPPING[worldKey];
-}
-
-function getWorldKey(dbKey: DbWorldKey): WorldKey {
-  return REVERSE_KEY_MAPPING[dbKey];
 }
 
 type JsonAnswerData = {

@@ -5,10 +5,7 @@ import type {
   FilterState,
   SavedFilter,
   FilterOption,
-  FilterSettings,
-  FilterChangeHandler,
-  FilterResults,
-  FilterCategory
+  FilterChangeHandler
 } from '../types/filters';
 import { DEFAULT_FILTER_STATE } from '../types/filters'; 
 

@@ -6,7 +6,6 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
-import { Card } from "@/components/ui/card";
 import CandidatesList from "./CandidatesList";
 import StatsCard from "./StatsCard";
 import { Users, UserCheck, Clock, Calendar } from "lucide-react";
@@ -18,7 +17,6 @@ interface SplitViewProps {
   onCandidateClick?: (candidate: Candidate) => void;
   onCandidateAction: (type: CandidateAction, candidate: Candidate) => void;
   viewMode: "grid" | "list";
-  cardSize?: "sm" | "md" | "lg";
   isLoading?: boolean;
   className?: string;
 }
@@ -37,11 +35,9 @@ const SplitView: React.FC<SplitViewProps> = ({
   onCandidateClick,
   onCandidateAction,
   viewMode,
-  cardSize = "md",
   isLoading = false,
   className,
 }) => {
-  
   // Panel configuration state
   const [panels] = useState({
     male: {
@@ -157,7 +153,7 @@ const SplitView: React.FC<SplitViewProps> = ({
             </div>
             <CandidatesList
               candidates={maleCandidates}
-              allCandidates={[...maleCandidates, ...femaleCandidates]}  // חדש!
+              allCandidates={[...maleCandidates, ...femaleCandidates]} // חדש!
               onCandidateClick={onCandidateClick}
               onCandidateAction={handleAction}
               viewMode={viewMode}
@@ -182,7 +178,7 @@ const SplitView: React.FC<SplitViewProps> = ({
             </div>
             <CandidatesList
               candidates={femaleCandidates}
-              allCandidates={[...maleCandidates, ...femaleCandidates]}  // חדש!
+              allCandidates={[...maleCandidates, ...femaleCandidates]} // חדש!
               onCandidateClick={onCandidateClick}
               onCandidateAction={handleAction}
               viewMode={viewMode}

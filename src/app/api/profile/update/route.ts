@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { AvailabilityStatus, Gender } from "@prisma/client";
-import { User, UserProfile } from "@/types/next-auth";
+
 
 export async function PUT(req: Request) {
   try {
@@ -17,9 +16,6 @@ export async function PUT(req: Request) {
       );
     }
 
-    // Get request data
-    const data = await req.json();
-    
     // Find the user
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
@@ -34,119 +30,6 @@ export async function PUT(req: Request) {
         { status: 404 }
       );
     }
-
-    // Update or create profile with new schema
-    const profile = await prisma.profile.upsert({
-      where: {
-        userId: user.id
-      },
-      create: {
-        userId: user.id,
-        // Personal Information
-        gender:data?.gender,
-        birthDate:data?.birthDate,
-        nativeLanguage: data.nativeLanguage,
-        additionalLanguages: data.additionalLanguages || [],
-        height: data.height ? parseInt(data.height) : null,
-        maritalStatus: data.maritalStatus,
-        occupation: data.occupation,
-        education: data.education,
-        address: data.address,
-        city: data.city,
-        origin: data.origin,
-        religiousLevel: data.religiousLevel,
-        about: data.about,
-        hobbies: data.hobbies,
-        
-        // Family Information
-        parentStatus: data.parentStatus,
-        siblings: data.siblings ? parseInt(data.siblings) : null,
-        position: data.position ? parseInt(data.position) : null,
-        
-        // Matching Preferences
-        preferredAgeMin: data.preferredAgeMin ? parseInt(data.preferredAgeMin) : null,
-        preferredAgeMax: data.preferredAgeMax ? parseInt(data.preferredAgeMax) : null,
-        preferredHeightMin: data.preferredHeightMin ? parseInt(data.preferredHeightMin) : null,
-        preferredHeightMax: data.preferredHeightMax ? parseInt(data.preferredHeightMax) : null,
-        preferredReligiousLevels: data.preferredReligiousLevels || [],
-        preferredLocations: data.preferredLocations || [],
-        preferredEducation: data.preferredEducation || [],
-        preferredOccupations: data.preferredOccupations || [],
-        
-        // Contact and References
-        contactPreference: data.contactPreference,
-        referenceName1: data.referenceName1,
-        referencePhone1: data.referencePhone1,
-        referenceName2: data.referenceName2,
-        referencePhone2: data.referencePhone2,
-        
-        // Profile Settings
-        isProfileVisible: data.isProfileVisible ?? true,
-        preferredMatchmakerGender: data.preferredMatchmakerGender as Gender | null,
-        matchingNotes: data.matchingNotes,
-        
-        // Availability Status
-        availabilityStatus: data.availabilityStatus as AvailabilityStatus ?? 'AVAILABLE',
-        availabilityNote: data.availabilityNote,
-        availabilityUpdatedAt: new Date(),
-        
-        // System Fields
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        lastActive: new Date(),
-      },
-      update: {
-        // Personal Information
-        nativeLanguage: data.nativeLanguage,
-        additionalLanguages: data.additionalLanguages,
-        height: data.height ? parseInt(data.height) : null,
-        maritalStatus: data.maritalStatus,
-        occupation: data.occupation,
-        education: data.education,
-        address: data.address,
-        city: data.city,
-        origin: data.origin,
-        religiousLevel: data.religiousLevel,
-        about: data.about,
-        hobbies: data.hobbies,
-        
-        // Family Information
-        parentStatus: data.parentStatus,
-        siblings: data.siblings ? parseInt(data.siblings) : null,
-        position: data.position ? parseInt(data.position) : null,
-        
-        // Matching Preferences
-        preferredAgeMin: data.preferredAgeMin ? parseInt(data.preferredAgeMin) : null,
-        preferredAgeMax: data.preferredAgeMax ? parseInt(data.preferredAgeMax) : null,
-        preferredHeightMin: data.preferredHeightMin ? parseInt(data.preferredHeightMin) : null,
-        preferredHeightMax: data.preferredHeightMax ? parseInt(data.preferredHeightMax) : null,
-        preferredReligiousLevels: data.preferredReligiousLevels,
-        preferredLocations: data.preferredLocations,
-        preferredEducation: data.preferredEducation,
-        preferredOccupations: data.preferredOccupations,
-        
-        // Contact and References
-        contactPreference: data.contactPreference,
-        referenceName1: data.referenceName1,
-        referencePhone1: data.referencePhone1,
-        referenceName2: data.referenceName2,
-        referencePhone2: data.referencePhone2,
-        
-        // Profile Settings
-        isProfileVisible: data.isProfileVisible,
-        preferredMatchmakerGender: data.preferredMatchmakerGender as Gender | null,
-        matchingNotes: data.matchingNotes,
-        
-        // Availability Status
-        availabilityStatus: data.availabilityStatus as AvailabilityStatus ?? 'AVAILABLE',
-        availabilityNote: data.availabilityNote,
-        availabilityUpdatedAt: new Date(),
-        
-        // System Fields
-        updatedAt: new Date(),
-        lastActive: new Date(),
-      }
-    });
 
     // Fetch updated user with all required information
     const updatedUser = await prisma.user.findUnique({

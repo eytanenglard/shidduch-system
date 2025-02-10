@@ -1,8 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useEffect, useMemo } from "react";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import React, { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Download, Filter, LayoutGrid, List, Plus } from "lucide-react";
@@ -11,13 +9,11 @@ import { toast } from "sonner";
 // Custom Hooks
 import { useCandidates } from "../hooks/useCandidates";
 import { useFilterLogic } from "../hooks/useFilterLogic";
-import useStatistics from "../hooks/useStatistics";
 
 // Components
 import SplitView from "./SplitView";
 import FilterPanel from "../Filters/FilterPanel";
 import ActiveFilters from "../Filters/ActiveFilters";
-import SavedFilters from "../Filters/SavedFilters";
 import SearchBar from "../Filters/SearchBar";
 import CandidatesStats from "./CandidatesStats";
 import { LoadingContainer, LoadingError } from "../shared/LoadingStates";
@@ -32,12 +28,11 @@ import type {
 } from "../types/candidates";
 
 // Constants
-import { VIEW_OPTIONS, CARD_SIZES } from "../constants/filterOptions";
+import { VIEW_OPTIONS } from "../constants/filterOptions";
 
 const CandidatesManager: React.FC = () => {
   // Local State
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
-  const [cardSize, setCardSize] = useState<CardSize>("md");
   const [showFilters, setShowFilters] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const [localFilters, setLocalFilters] = useState<CandidatesFilter>({});
@@ -51,39 +46,18 @@ const CandidatesManager: React.FC = () => {
     femaleCandidates,
     refresh,
     exportCandidates,
-    updateCandidate,
   } = useCandidates();
 
-  const {
-    filters,
-    setFilters,
-    savedFilters,
-    saveFilter,
-    deleteFilter,
-    setDefaultFilter,
-    loadSavedFilter,
-    resetFilters,
-  } = useFilterLogic({
+  const { filters, saveFilter, resetFilters } = useFilterLogic({
     onFilterChange: (newFilters) => {
       setLocalFilters(newFilters);
     },
   });
 
-  const statistics = useStatistics([...maleCandidates, ...femaleCandidates]);
-
   // Initialize local filters
   useEffect(() => {
     setLocalFilters(filters);
   }, [filters]);
-
-  // Handlers
-  const handleFiltersChange = useCallback(
-    (newFilters: CandidatesFilter) => {
-      setLocalFilters(newFilters);
-      setFilters(newFilters);
-    },
-    [setFilters]
-  );
 
   const handleSearch = useCallback((value: string) => {
     setLocalFilters((prev) => ({ ...prev, searchQuery: value }));
@@ -337,7 +311,6 @@ const CandidatesManager: React.FC = () => {
                 femaleCandidates={femaleCandidates}
                 onCandidateAction={handleCandidateAction}
                 viewMode={viewMode}
-                cardSize={cardSize}
               />
             )}
           </div>

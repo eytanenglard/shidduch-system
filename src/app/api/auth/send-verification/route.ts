@@ -50,6 +50,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true }, { status: 200 });
 
   } catch (error) {
+    console.error('Error sending verification:', error);
     return NextResponse.json({ error: "שגיאה בשליחת קוד האימות" }, { status: 500 });
   } finally {
     await prisma.$disconnect();

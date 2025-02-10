@@ -23,19 +23,15 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Pencil, Save, X } from "lucide-react";
-import {
-  ExtendedUserProfile,
-  PersonalityTraits,
-  SpiritualProfile,
-  FamilyBackground,
-} from "@/types/profile-extended";
 
 interface ExtendedProfileSectionProps {
-  profile: UserProfile | null;
+  profile: (UserProfile & { extendedData?: ExtendedProfileData }) | null;
   isEditing: boolean;
   viewOnly?: boolean;
   setIsEditing: (value: boolean) => void;
-  onSave: (data: Partial<UserProfile>) => void;
+  onSave: (
+    data: Partial<UserProfile & { extendedData: ExtendedProfileData }>
+  ) => void;
 }
 
 const ExtendedProfileSection: React.FC<ExtendedProfileSectionProps> = ({
@@ -49,9 +45,9 @@ const ExtendedProfileSection: React.FC<ExtendedProfileSectionProps> = ({
   const [initialData, setInitialData] = useState<ExtendedProfileData>({});
 
   useEffect(() => {
-    if (profile) {
-      setFormData(profile);
-      setInitialData(profile);
+    if (profile?.extendedData) {
+      setFormData(profile.extendedData);
+      setInitialData(profile.extendedData);
     }
   }, [profile]);
 
@@ -77,11 +73,12 @@ const ExtendedProfileSection: React.FC<ExtendedProfileSectionProps> = ({
   };
 
   const handleSave = () => {
-    // שמירת הנתונים המורחבים לשרת
-    onSave({
-      ...profile,
-      extendedData: formData,
-    });
+    if (profile) {
+      onSave({
+        ...profile,
+        extendedData: formData,
+      });
+    }
     setIsEditing(false);
     setInitialData(formData);
   };

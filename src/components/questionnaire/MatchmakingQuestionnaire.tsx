@@ -1,4 +1,3 @@
-// src/components/questionnaire/MatchmakingQuestionnaire.tsx
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
@@ -15,23 +14,21 @@ import QuestionnaireCompletion from "./common/QuestionnaireCompletion";
 import { useLanguage } from "@/app/contexts/LanguageContext";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
-import { storageService } from "@/services/storageService";
 import type {
   WorldId,
   UserTrack,
   QuestionnaireSubmission,
   MatchmakingQuestionnaireProps,
   QuestionnaireAnswer,
+  AnswerValue,
 } from "./types/types";
 
-const ONBOARDING_STEPS = {
-  WELCOME: "WELCOME",
-  TRACK_SELECTION: "TRACK_SELECTION",
-  WORLDS: "WORLDS",
-  COMPLETED: "COMPLETED",
-} as const;
-
-type OnboardingStep = keyof typeof ONBOARDING_STEPS;
+enum OnboardingStep {
+  WELCOME = "WELCOME",
+  TRACK_SELECTION = "TRACK_SELECTION",
+  WORLDS = "WORLDS",
+  COMPLETED = "COMPLETED",
+}
 
 const WORLD_ORDER: WorldId[] = [
   "PERSONALITY",
@@ -50,7 +47,9 @@ export default function MatchmakingQuestionnaire({
   const sessionId = useMemo(() => `session_${Date.now()}`, []);
 
   // Basic State
-  const [currentStep, setCurrentStep] = useState<OnboardingStep>("WELCOME");
+  const [currentStep, setCurrentStep] = useState<OnboardingStep>(
+    OnboardingStep.WELCOME
+  );
   const [currentWorld, setCurrentWorld] = useState<WorldId>("VALUES");
   const [userTrack, setUserTrack] = useState<UserTrack>("SECULAR");
   const [answers, setAnswers] = useState<QuestionnaireAnswer[]>([]);
@@ -60,8 +59,7 @@ export default function MatchmakingQuestionnaire({
   // Submission state
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [lastSaveAttempt, setLastSaveAttempt] = useState(Date.now());
-  const [toast, setToast] = useState<{
+  const [toastState, setToastState] = useState<{
     message: string;
     type: "success" | "error" | "info";
     isVisible: boolean;
@@ -75,11 +73,12 @@ export default function MatchmakingQuestionnaire({
     message: string,
     type: "success" | "error" | "info" = "info"
   ) => {
-    setToast({ message, type, isVisible: true });
+    setToastState({ message, type, isVisible: true });
     setTimeout(() => {
-      setToast((prev) => ({ ...prev, isVisible: false }));
+      setToastState((prev) => ({ ...prev, isVisible: false }));
     }, 3000);
   };
+
   // Load existing answers when component mounts
   useEffect(() => {
     const loadExistingAnswers = async () => {
@@ -100,7 +99,11 @@ export default function MatchmakingQuestionnaire({
           // Update states
           setAnswers(allAnswers);
           setCompletedWorlds(data.data.worldsCompleted || []);
-          setCurrentStep(data.data.completed ? "COMPLETED" : "WORLDS");
+          setCurrentStep(
+            data.data.completed
+              ? OnboardingStep.COMPLETED
+              : OnboardingStep.WORLDS
+          );
         }
       } catch (err) {
         console.error("Failed to load existing answers:", err);
@@ -113,7 +116,7 @@ export default function MatchmakingQuestionnaire({
     }
   }, [userId]);
 
-  const handleAnswer = (questionId: string, value: any) => {
+  const handleAnswer = (questionId: string, value: AnswerValue) => {
     setError(null);
     const newAnswer: QuestionnaireAnswer = {
       questionId,
@@ -171,7 +174,7 @@ export default function MatchmakingQuestionnaire({
 
       const nextWorld = getNextWorld(worldId);
       if (!nextWorld) {
-        setCurrentStep("COMPLETED");
+        setCurrentStep(OnboardingStep.COMPLETED);
       } else {
         setCurrentWorld(nextWorld);
       }
@@ -262,28 +265,28 @@ export default function MatchmakingQuestionnaire({
 
   function renderCurrentStep() {
     switch (currentStep) {
-      case "WELCOME":
+      case OnboardingStep.WELCOME:
         return (
           <Welcome
-            onStart={() => setCurrentStep("TRACK_SELECTION")}
+            onStart={() => setCurrentStep(OnboardingStep.TRACK_SELECTION)}
             onLearnMore={() => router.push("/about")}
             isLoggedIn={!!userId}
           />
         );
 
-      case "TRACK_SELECTION":
+      case OnboardingStep.TRACK_SELECTION:
         return (
           <TrackSelection
             onSelect={(track: UserTrack) => {
               setUserTrack(track);
-              setCurrentStep("WORLDS");
+              setCurrentStep(OnboardingStep.WORLDS);
             }}
-            onBack={() => setCurrentStep("WELCOME")}
+            onBack={() => setCurrentStep(OnboardingStep.WELCOME)}
             selectedTrack={userTrack}
           />
         );
 
-      case "WORLDS":
+      case OnboardingStep.WORLDS:
         return (
           <QuestionnaireLayout
             currentWorld={currentWorld}
@@ -297,7 +300,7 @@ export default function MatchmakingQuestionnaire({
           </QuestionnaireLayout>
         );
 
-      case "COMPLETED":
+      case OnboardingStep.COMPLETED:
         return (
           <QuestionnaireCompletion
             onSendToMatching={handleQuestionnaireComplete}
@@ -318,6 +321,14 @@ export default function MatchmakingQuestionnaire({
       {error && (
         <Alert variant="destructive" className="m-4">
           <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      {toastState.isVisible && (
+        <Alert
+          variant={toastState.type === "error" ? "destructive" : "default"}
+          className="m-4"
+        >
+          <AlertDescription>{toastState.message}</AlertDescription>
         </Alert>
       )}
 

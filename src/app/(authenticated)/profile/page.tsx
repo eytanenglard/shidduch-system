@@ -2,7 +2,6 @@
 "use client";
 
 import React from "react";
-import { useLanguage } from "@/app/contexts/LanguageContext";
 import UnifiedProfileDashboard from "./components/dashboard/UnifiedProfileDashboard";
 
 interface ProfilePageProps {
@@ -14,8 +13,6 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
   viewOnly = false,
   userId,
 }) => {
-  const { language } = useLanguage();
-
   return (
     // הוספת direction="rtl" לאלמנט השורש של הדף
     <div className="min-h-screen bg-background" dir="rtl">

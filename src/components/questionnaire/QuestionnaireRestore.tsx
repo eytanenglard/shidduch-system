@@ -11,7 +11,7 @@ import { Loader2 } from "lucide-react";
 export default function QuestionnaireRestore() {
   const router = useRouter();
   const { data: session } = useSession();
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {

@@ -1,23 +1,5 @@
 // partnerDepthQuestions.tsx
 import { Question } from "../../types/types";
-import {
-  Heart,
-  Brain,
-  Star,
-  Sun,
-  Target,
-  MessageCircle,
-  HandHeart,
-  Book,
-  Globe,
-  Home,
-  Users,
-  Map,
-  Coffee,
-  Music,
-  Baby,
-  Church,
-} from "lucide-react";
 
 export const partnerDepthQuestions: Question[] = [
   {

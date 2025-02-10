@@ -1,28 +1,20 @@
 import { Question } from "../../types/types";
 import {
   Scale,
-  Heart,
   Users,
   Globe,
   Target,
   Map,
   Leaf,
-  Building,
   ScrollText,
   Construction,
-  ShieldCheck,
-  GraduationCap,
-  Sword,
   Brain,
   Laptop,
   HandHeart,
-  School,
-  LibraryBig,
   Flag,
   Star,
   TreePine,
   Church,
-  Briefcase,
 } from "lucide-react";
 
 export const valuesQuestionsPartTwo: Question[] = [

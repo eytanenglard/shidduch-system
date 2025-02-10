@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { Clock, History, AlertCircle } from "lucide-react";
-import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { MatchSuggestion } from "@prisma/client";
 import type { UserProfile, UserImage } from "@/types/next-auth";
@@ -50,9 +49,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   const [activeSuggestions, setActiveSuggestions] = useState<
     ExtendedMatchSuggestion[]
   >([]);
-  const [historySuggestions, setHistorySuggestions] = useState<
-    ExtendedMatchSuggestion[]
-  >([]);
+  const [, setHistorySuggestions] = useState<ExtendedMatchSuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("active");

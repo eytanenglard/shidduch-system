@@ -1,6 +1,6 @@
 // src/components/shared/profile/types/profile.ts
 import type { UserProfile, UserImage, QuestionnaireResponse } from "@/types/next-auth";
-import type { Gender, AvailabilityStatus } from "@prisma/client";
+
 
 // Interfaces for the main sections
 export interface PhotosSectionProps {

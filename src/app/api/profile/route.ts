@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { User, UserProfile } from "@/types/next-auth";
+import { UserProfile } from "@/types/next-auth";
 
 export async function GET(req: Request) {
   try {

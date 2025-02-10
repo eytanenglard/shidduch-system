@@ -1,7 +1,6 @@
 // src/app/components/matchmaker/new/types/filters.ts
 
 import { Gender, AvailabilityStatus, UserStatus } from '@prisma/client';
-import type { CandidatesFilter } from './candidates';
 
 // הגדרת טווח ערכים מספריים
 export interface RangeFilter {
@@ -30,7 +29,7 @@ export interface FilterState {
   religiousLevel?: string;
   educationLevel?: string;
   maritalStatus?: string;
-  availabilityStatus?: AvailabilityStatus;
+  availabilityStatus?: AvailabilityStatus | string;
   userStatus?: UserStatus;
   isVerified?: boolean;
   hasReferences?: boolean;

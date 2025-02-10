@@ -1,35 +1,6 @@
 "use client";
 import React from "react";
-import type { ReactNode } from "react";
-import {
-  Users,
-  Heart,
-  Coffee,
-  HandHeart,
-  Smile,
-  Star,
-  User,
-  Phone,
-  MessageCircle,
-  Home,
-  Globe,
-  CalendarDays,
-  Clock,
-  Music,
-  PartyPopper,
-  Book,
-  HeartHandshake,
-  Laugh,
-  Lightbulb,
-  Bird,
-  Sparkles,
-  Crown,
-  Sun,
-  Moon,
-  Cloud,
-  Gift,
-  Calendar,
-} from "lucide-react";
+import { Star, Sun, Moon, Cloud } from "lucide-react";
 
 const socialRelationsQuestions = [
   // שאלות פתיחה - Ice Breakers (20%)

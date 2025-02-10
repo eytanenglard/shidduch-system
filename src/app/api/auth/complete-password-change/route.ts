@@ -1,7 +1,7 @@
 // src/app/api/auth/complete-password-change/route.ts
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { VerificationType, VerificationStatus } from "@prisma/client";
+import { VerificationType } from "@prisma/client";
 
 export async function POST(req: Request) {
   try {

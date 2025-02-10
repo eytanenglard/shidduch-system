@@ -4,6 +4,30 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import type { FormattedAnswer } from "@/types/next-auth";
 
+// Define the structure for answer values
+type AnswerValue = string | number | boolean | {
+  text: string;
+  [key: string]: unknown;
+};
+
+// Define the structure for raw answers in each world
+interface WorldAnswers {
+  [question: string]: AnswerValue;
+}
+
+// Define the structure for the questionnaire response from the database
+interface QuestionnaireResponse {
+  id: string;
+  userId: string;
+  createdAt: Date;
+  updatedAt: Date;
+  valuesAnswers: WorldAnswers | null;
+  personalityAnswers: WorldAnswers | null;
+  relationshipAnswers: WorldAnswers | null;
+  partnerAnswers: WorldAnswers | null;
+  religionAnswers: WorldAnswers | null;
+}
+
 interface AnswersByWorld {
   values: FormattedAnswer[];
   personality: FormattedAnswer[];
@@ -13,7 +37,12 @@ interface AnswersByWorld {
 }
 
 // Helper function to format a single answer
-const formatAnswer = (question: string, value: any, answeredAt: Date, isVisible = true): FormattedAnswer => {
+const formatAnswer = (
+  question: string, 
+  value: AnswerValue, 
+  answeredAt: Date, 
+  isVisible = true
+): FormattedAnswer => {
   return {
     questionId: question,
     question,
@@ -25,7 +54,10 @@ const formatAnswer = (question: string, value: any, answeredAt: Date, isVisible 
 };
 
 // Helper function to format answers for a specific world
-const formatWorldAnswers = (worldAnswers: Record<string, any> | null, answeredAt: Date): FormattedAnswer[] => {
+const formatWorldAnswers = (
+  worldAnswers: WorldAnswers | null, 
+  answeredAt: Date
+): FormattedAnswer[] => {
   if (!worldAnswers) return [];
   
   return Object.entries(worldAnswers).map(([question, value]) => 
@@ -34,7 +66,9 @@ const formatWorldAnswers = (worldAnswers: Record<string, any> | null, answeredAt
 };
 
 // Main function to format all answers
-const formatQuestionnaireAnswers = (questionnaireResponse: any): AnswersByWorld => {
+const formatQuestionnaireAnswers = (
+  questionnaireResponse: QuestionnaireResponse
+): AnswersByWorld => {
   const answeredAt = questionnaireResponse.updatedAt || questionnaireResponse.createdAt;
   
   return {
@@ -62,7 +96,6 @@ export async function GET(
       );
     }
 
-    // בדיקה שהמשתמש הוא שדכן (אופציונלי)
     if (session.user.role !== 'MATCHMAKER' && session.user.id !== userId) {
       return NextResponse.json(
         { success: false, error: "Forbidden" },
@@ -77,7 +110,7 @@ export async function GET(
       orderBy: {
         createdAt: 'desc'
       }
-    });
+    }) as QuestionnaireResponse | null;
 
     if (!questionnaireResponse) {
       return NextResponse.json({

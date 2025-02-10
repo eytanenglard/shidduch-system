@@ -23,7 +23,6 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Pencil, Save, X } from "lucide-react";
 import { UserProfile } from "@/types/next-auth";
-import { MultiSelect } from "@/components/ui/multi-select";
 const languageOptions = [
   // שפות נפוצות
   { value: "hebrew", label: "עברית" },
@@ -180,7 +179,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
   };
 
   const handleCancel = () => {
-    setFormData((prev) => ({
+    setFormData(() => ({
       ...initialData,
       ...profile,
     }));

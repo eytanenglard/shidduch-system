@@ -3,15 +3,12 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { Star, Heart, ThumbsUp } from "lucide-react";
 
 interface ScaleOption {
@@ -67,7 +64,6 @@ export default function InteractiveScale({
   onChange,
   onComplete,
   labels,
-  descriptions,
   options,
   mode = "numeric",
   size = "md",

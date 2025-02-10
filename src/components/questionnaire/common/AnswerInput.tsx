@@ -2,13 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import { Slider } from "@/components/ui/slider";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input"; // Added for multiSelectWithOther
-import { Progress } from "@/components/ui/progress";
 import { Card } from "@/components/ui/card";
 import {
   Tooltip,
@@ -16,21 +13,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Trash2, X, Plus } from "lucide-react";
-import type {
-  Question,
-  Option,
-  AnswerValue,
-  AnswerInputProps,
-} from "../types/types";
+import { X, Plus } from "lucide-react";
+import type { AnswerValue, AnswerInputProps } from "../types/types";
 import { cn } from "@/lib/utils";
 
 export default function AnswerInput({
   question,
   value,
   onChange,
-  onClear,
-  language = "he",
   showValidation = false,
   className = "",
 }: AnswerInputProps) {

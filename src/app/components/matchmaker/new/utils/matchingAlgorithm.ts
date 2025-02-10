@@ -1,4 +1,4 @@
-import { Gender, AvailabilityStatus } from '@prisma/client';
+import { AvailabilityStatus } from '@prisma/client';
 import type { UserProfile } from '@/types/next-auth';
 
 export interface MatchScore {
@@ -16,11 +16,6 @@ export interface MatchCriteria {
 }
 
 interface AgePreference {
-  min: number;
-  max: number;
-}
-
-interface HeightPreference {
   min: number;
   max: number;
 }

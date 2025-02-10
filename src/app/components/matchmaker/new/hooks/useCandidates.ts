@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import Papa from 'papaparse';
-import _ from 'lodash';
 import type { Candidate, CandidatesFilter } from '../types/candidates';
 import type { CandidateProfile } from '../types/candidates';
 import { Dispatch, SetStateAction } from 'react';

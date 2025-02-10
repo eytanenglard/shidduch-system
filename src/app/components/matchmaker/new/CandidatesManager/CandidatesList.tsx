@@ -61,8 +61,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   const [dialogCandidate, setDialogCandidate] = useState<Candidate | null>(
     null
   );
-  const [error, setError] = useState<string | null>(null);
-
+  
   // Load questionnaire when candidate is selected
   useEffect(() => {
     const loadQuestionnaire = async () => {

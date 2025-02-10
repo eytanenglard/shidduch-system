@@ -1,20 +1,19 @@
 // /hooks/useMatchmaking.ts
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import type { Candidate } from '../types/candidates';
-import { Gender, AvailabilityStatus } from '@prisma/client';
+import { AvailabilityStatus } from '@prisma/client';
 import { calculateMatchScore, MatchScore } from '../utils/matchingAlgorithm';
-import { MATCH_THRESHOLDS, MATCH_CATEGORIES } from '../constants/matchingCriteria';
-
+import { MATCH_THRESHOLDS } from '../constants/matchingCriteria';
+import type { User } from '@/types/next-auth';
 // Define types and interfaces
 interface UseMatchmakingProps {
-  candidates?: Candidate[];
+  candidates?: User[];
   onMatchFound?: (match: PotentialMatch) => void;
   onMatchScoreUpdate?: (scores: MatchScoreMap) => void;
 }
 
 export interface PotentialMatch {
-  candidateA: Candidate;
-  candidateB: Candidate;
+  candidateA: User;
+  candidateB: User;
   score: MatchScore;
   matchDate?: Date;
   status: 'new' | 'suggested' | 'rejected';
@@ -24,14 +23,13 @@ export interface PotentialMatch {
 type MatchScoreMap = Map<string, Map<string, MatchScore>>;
 
 interface MatchSuggestion {
-  candidate: Candidate;
+  candidate: User;
   score: MatchScore;
   matchDate: Date;
 }
 
 export const useMatchmaking = ({
   candidates = [],
-  onMatchFound,
   onMatchScoreUpdate
 }: UseMatchmakingProps = {}) => {
   // State declarations
@@ -39,18 +37,6 @@ export const useMatchmaking = ({
   const [suggestedMatches, setSuggestedMatches] = useState<PotentialMatch[]>([]);
   const [isCalculating, setIsCalculating] = useState(false);
   const [lastCalculation, setLastCalculation] = useState<Date | null>(null);
-
-  // Age normalization helper function
-  const normalizeAge = (birthDate: string): number => {
-    const today = new Date();
-    const birth = new Date(birthDate);
-    let age = today.getFullYear() - birth.getFullYear();
-    const monthDiff = today.getMonth() - birth.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-      age--;
-    }
-    return age;
-  };
 
   // Calculate all possible matches
   const calculateAllMatches = useCallback(() => {
@@ -65,15 +51,15 @@ export const useMatchmaking = ({
       candidates.slice(indexA + 1).forEach(candidateB => {
         // Check basic compatibility conditions
         if (
-          candidateA.profile.gender === candidateB.profile.gender ||
-          candidateA.profile.availabilityStatus !== AvailabilityStatus.AVAILABLE ||
-          candidateB.profile.availabilityStatus !== AvailabilityStatus.AVAILABLE
+          candidateA.profile?.gender === candidateB.profile?.gender ||
+          candidateA.profile?.availabilityStatus !== AvailabilityStatus.AVAILABLE ||
+          candidateB.profile?.availabilityStatus !== AvailabilityStatus.AVAILABLE
         ) {
           return;
         }
 
         // Calculate match score
-        const matchScore = calculateMatchScore(candidateA, candidateB);
+        const matchScore = calculateMatchScore(candidateA.profile, candidateB.profile);
         
         if (matchScore) {
           candidateAScores.set(candidateB.id, matchScore);

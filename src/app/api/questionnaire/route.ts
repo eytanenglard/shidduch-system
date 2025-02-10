@@ -23,6 +23,7 @@ type WorldId = z.infer<typeof WorldId>;
 
 const QuestionAnswer = z.object({
   questionId: z.string().min(1),
+  worldId: WorldId,
   value: z.union([
     z.string(),
     z.number(),
@@ -33,15 +34,7 @@ const QuestionAnswer = z.object({
   answeredAt: z.string().datetime()
 });
 
-const WorldAnswers = z.array(QuestionAnswer);
-
-const AnswersByWorld = z.object({
-  valuesAnswers: WorldAnswers.optional(),
-  personalityAnswers: WorldAnswers.optional(),
-  relationshipAnswers: WorldAnswers.optional(),
-  partnerAnswers: WorldAnswers.optional(),
-  religionAnswers: WorldAnswers.optional()
-});
+type QuestionAnswerType = z.infer<typeof QuestionAnswer>;
 
 const QuestionnaireAnswer = z.object({
   questionId: z.string(),
@@ -71,13 +64,13 @@ type QuestionnaireSubmission = z.infer<typeof QuestionnaireSubmission>;
  * Groups answers by world ID and formats them for database storage
  */
 function groupAnswersByWorld(answers: QuestionnaireSubmission["answers"]) {
-  return answers.reduce<Record<string, any>>((acc, answer) => {
+  return answers.reduce<Record<string, QuestionAnswerType[]>>((acc, answer) => {
     const worldKey = `${answer.worldId.toLowerCase()}Answers`;
-    const formattedAnswer = {
+    const formattedAnswer: QuestionAnswerType = {
       questionId: answer.questionId,
+      worldId: answer.worldId,
       value: answer.value,
-      answeredAt: answer.answeredAt,
-      worldId: answer.worldId
+      answeredAt: answer.answeredAt
     };
 
     if (!acc[worldKey]) {
@@ -105,7 +98,7 @@ function validateSubmissionData(data: unknown): z.infer<typeof QuestionnaireSubm
 /**
  * Handles API GET request to retrieve latest questionnaire response
  */
-export async function GET(req: Request) {
+export async function GET() {
   try {
     // 1. Verify authentication
     const session = await getServerSession(authOptions);
@@ -156,6 +149,21 @@ export async function GET(req: Request) {
   }
 }
 
+type Answer = {
+  questionId: string;
+  worldId: WorldId;
+  value: string | number | string[] | number[] | Record<string, number>;
+  answeredAt: string;
+};
+
+type MergedAnswers = {
+  valuesAnswers: Answer[];
+  personalityAnswers: Answer[];
+  relationshipAnswers: Answer[];
+  partnerAnswers: Answer[];
+  religionAnswers: Answer[];
+};
+
 /**
  * Handles API PUT request to save questionnaire responses
  */
@@ -191,7 +199,7 @@ export async function PUT(req: Request) {
     const submissionData = {
       ...rawBody,
       userId: session.user.id,
-      answers: rawBody.answers?.filter((answer: any) => 
+      answers: rawBody.answers?.filter((answer: Answer) => 
         answer && 
         answer.questionId && 
         answer.worldId && 
@@ -223,19 +231,19 @@ export async function PUT(req: Request) {
       });
 
       // Merge existing and new answers
-      const mergedAnswers = {
-        valuesAnswers: [...(existingResponse?.valuesAnswers as any[] || []), ...(answersGroupedByWorld.valuesAnswers || [])],
-        personalityAnswers: [...(existingResponse?.personalityAnswers as any[] || []), ...(answersGroupedByWorld.personalityAnswers || [])],
-        relationshipAnswers: [...(existingResponse?.relationshipAnswers as any[] || []), ...(answersGroupedByWorld.relationshipAnswers || [])],
-        partnerAnswers: [...(existingResponse?.partnerAnswers as any[] || []), ...(answersGroupedByWorld.partnerAnswers || [])],
-        religionAnswers: [...(existingResponse?.religionAnswers as any[] || []), ...(answersGroupedByWorld.religionAnswers || [])]
+      const mergedAnswers: MergedAnswers = {
+        valuesAnswers: [...(existingResponse?.valuesAnswers as Answer[] || []), ...(answersGroupedByWorld.valuesAnswers || [])],
+        personalityAnswers: [...(existingResponse?.personalityAnswers as Answer[] || []), ...(answersGroupedByWorld.personalityAnswers || [])],
+        relationshipAnswers: [...(existingResponse?.relationshipAnswers as Answer[] || []), ...(answersGroupedByWorld.relationshipAnswers || [])],
+        partnerAnswers: [...(existingResponse?.partnerAnswers as Answer[] || []), ...(answersGroupedByWorld.partnerAnswers || [])],
+        religionAnswers: [...(existingResponse?.religionAnswers as Answer[] || []), ...(answersGroupedByWorld.religionAnswers || [])]
       };
 
       // Remove duplicate answers (keep latest version of each answer)
       for (const worldKey in mergedAnswers) {
-        const answers = mergedAnswers[worldKey as keyof typeof mergedAnswers];
+        const answers = mergedAnswers[worldKey as keyof MergedAnswers];
         if (Array.isArray(answers)) {
-          const uniqueAnswers = answers.reduce((acc: any[], curr: any) => {
+          const uniqueAnswers = answers.reduce((acc: Answer[], curr: Answer) => {
             const existingIndex = acc.findIndex(a => a.questionId === curr.questionId);
             if (existingIndex >= 0) {
               // Replace existing answer if new one is more recent
@@ -247,7 +255,7 @@ export async function PUT(req: Request) {
             }
             return acc;
           }, []);
-          mergedAnswers[worldKey as keyof typeof mergedAnswers] = uniqueAnswers;
+          mergedAnswers[worldKey as keyof MergedAnswers] = uniqueAnswers;
         }
       }
 

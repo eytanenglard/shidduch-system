@@ -1,6 +1,6 @@
 // candidates.ts
 import { Gender, AvailabilityStatus, UserStatus } from '@prisma/client';
-import type { UserProfile, UserImage, QuestionnaireResponse, ContactPreference } from '@/types/next-auth';
+import type { UserProfile, UserImage, QuestionnaireResponse} from '@/types/next-auth';
 
 // Base API Response Type
 export interface APIResponse<T> {
@@ -41,7 +41,7 @@ export interface CandidatesFilter {
   occupations?: string[];
   educationLevel?: string;
   maritalStatus?: string;
-  availabilityStatus?: AvailabilityStatus;
+  availabilityStatus?: AvailabilityStatus | string;
   isVerified?: boolean;
   hasReferences?: boolean;
   lastActiveDays?: number;

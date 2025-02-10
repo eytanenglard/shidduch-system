@@ -31,12 +31,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type {
-  UserProfile,
-  UserImage,
-  QuestionnaireResponse,
-  FormattedAnswer,
-} from "@/types/next-auth";
+import type { QuestionnaireResponse, FormattedAnswer } from "@/types/next-auth";
 
 interface QuestionnaireResponsesSectionProps {
   questionnaire: QuestionnaireResponse | null;
@@ -291,12 +286,7 @@ const WorldSection = ({
 
 const QuestionnaireResponsesSection: React.FC<
   QuestionnaireResponsesSectionProps
-> = ({
-  questionnaire,
-  onUpdate,
-  isEditable = false,
-  viewMode = "candidate",
-}) => {
+> = ({ questionnaire, onUpdate, isEditable = false }) => {
   const [isEditing, setIsEditing] = useState(false);
 
   if (!questionnaire) {

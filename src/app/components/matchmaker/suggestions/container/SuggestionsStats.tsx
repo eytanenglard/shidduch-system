@@ -1,6 +1,5 @@
 import React, { useMemo } from "react";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Users, CheckCircle, Clock, Calendar } from "lucide-react";
 import {
   BarChart,

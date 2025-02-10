@@ -2,10 +2,6 @@ import {
   MatchSuggestionStatus, 
   Priority, 
   MeetingStatus,
-  UserRole,
-  Gender,
-  AvailabilityStatus,
-  Profile as PrismaProfile,
   User,
   Meeting,
 } from '@prisma/client';
@@ -13,8 +9,6 @@ import {
 import type {
   UserProfile,
   UserImage,
-  QuestionnaireResponse,
-  FormattedAnswer,
 } from "@/types/next-auth";
 
 
@@ -102,12 +96,11 @@ export interface Suggestion {
   closedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
-
+  statusHistory: SuggestionStatusHistory[];
   matchmaker?: User;
   firstParty: SuggestionParty;
   secondParty: SuggestionParty;
   meetings?: Meeting[];
-  statusHistory: SuggestionStatusHistory[];
   feedback?: DateFeedback[];
   reviewedBy?: User[];
   approvedBy?: User[];

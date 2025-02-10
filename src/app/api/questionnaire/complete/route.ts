@@ -27,8 +27,9 @@ export async function PUT(req: Request) {
     const validatedData = completionSchema.parse(body);
 
     // Verify all required worlds are completed
-    const allWorldsCompleted = ["VALUES", "RELATIONSHIP", "PERSONALITY", "PARTNER", "RELIGION"].every(
-      world => validatedData.worldsCompleted.includes(world as any)
+    const requiredWorlds = ["VALUES", "RELATIONSHIP", "PERSONALITY", "PARTNER", "RELIGION"] as const;
+    const allWorldsCompleted = requiredWorlds.every(
+      world => validatedData.worldsCompleted.includes(world)
     );
 
     if (!allWorldsCompleted) {

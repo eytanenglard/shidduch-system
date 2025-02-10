@@ -191,7 +191,7 @@ export const calculateAvailabilityStats = (candidates: Candidate[]) => {
 
 export const calculateCompletionStats = (candidates: Candidate[]) => {
   const total = candidates.length;
-  let stats = {
+  const  stats = {
     hasPhotos: 0,
     hasAbout: 0,
     hasReferences: 0,

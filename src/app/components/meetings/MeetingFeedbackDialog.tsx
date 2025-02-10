@@ -24,7 +24,6 @@ export default function MeetingFeedbackDialog({
   isOpen,
   onClose,
   onSubmit,
-  meetingId,
 }: MeetingFeedbackDialogProps) {
   const [feedback, setFeedback] = useState("");
   const [continueInterest, setContinueInterest] = useState<boolean | null>(null);

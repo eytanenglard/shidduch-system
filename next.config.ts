@@ -1,3 +1,4 @@
+// בקובץ next.config.ts
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
@@ -52,10 +53,17 @@ const nextConfig: NextConfig = {
             lib: {
               test: /[\\/]node_modules[\\/]/,
               name(module: any) {
-                const packageName = module.context.match(
+                // בדיקה שה-module.context קיים
+                if (!module.context) return 'vendor';
+                
+                // הוספת בדיקת null
+                const match = module.context.match(
                   /[\\/]node_modules[\\/](.*?)([\\/]|$)/
-                )[1];
-                return `npm.${packageName.replace('@', '')}`;
+                );
+                
+                if (!match || !match[1]) return 'vendor';
+                
+                return `npm.${match[1].replace('@', '')}`;
               },
               chunks: 'all',
               priority: 1
@@ -70,7 +78,7 @@ const nextConfig: NextConfig = {
 
     return config;
   },
-  // ... rest of your config
+  // שאר הקונפיגורציה נשארת זהה
   poweredByHeader: false,
   async headers() {
     return [

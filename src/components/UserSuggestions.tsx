@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import type { Session } from "next-auth";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -40,12 +40,36 @@ import type { Suggestion } from "@/app/types/suggestions";
 import type { MeetingFeedback } from "@/types/meetings";
 import MeetingFeedbackDialog from "@/app/components/meetings/MeetingFeedbackDialog";
 
+// Utility function to calculate age from birthdate
+const calculateAge = (birthdate: Date | undefined): string => {
+  if (!birthdate) return "לא צוין";
+
+  const today = new Date();
+
+  // Check if the date is valid
+  if (isNaN(birthdate.getTime())) return "לא צוין";
+
+  let age = today.getFullYear() - birthdate.getFullYear();
+  const monthDiff = today.getMonth() - birthdate.getMonth();
+
+  // Adjust age if birthday hasn't occurred this year
+  if (
+    monthDiff < 0 ||
+    (monthDiff === 0 && today.getDate() < birthdate.getDate())
+  ) {
+    age--;
+  }
+
+  return age.toString();
+};
+
 export default function UserSuggestions() {
   const { data: session } = useSession() as { data: Session | null };
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedSuggestion, setSelectedSuggestion] = useState<Suggestion | null>(null);
+  const [selectedSuggestion, setSelectedSuggestion] =
+    useState<Suggestion | null>(null);
   const [showResponseDialog, setShowResponseDialog] = useState(false);
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
   const [response, setResponse] = useState("");
@@ -74,7 +98,9 @@ export default function UserSuggestions() {
       setSuggestions(filteredSuggestions);
     } catch (err) {
       console.error("Error loading suggestions:", err);
-      setError(err instanceof Error ? err.message : "Failed to load suggestions");
+      setError(
+        err instanceof Error ? err.message : "Failed to load suggestions"
+      );
     } finally {
       setLoading(false);
     }
@@ -85,7 +111,8 @@ export default function UserSuggestions() {
 
     try {
       setIsSubmitting(true);
-      const isFirstParty = selectedSuggestion.firstPartyId === session?.user?.id;
+      const isFirstParty =
+        selectedSuggestion.firstPartyId === session?.user?.id;
 
       const newStatus = isFirstParty
         ? approved
@@ -95,14 +122,17 @@ export default function UserSuggestions() {
         ? "SECOND_PARTY_APPROVED"
         : "SECOND_PARTY_DECLINED";
 
-      const res = await fetch(`/api/matchmaker/suggestions/${selectedSuggestion.id}/status`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          status: newStatus,
-          note: response,
-        }),
-      });
+      const res = await fetch(
+        `/api/matchmaker/suggestions/${selectedSuggestion.id}/status`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            status: newStatus,
+            note: response,
+          }),
+        }
+      );
 
       if (!res.ok) {
         throw new Error("Failed to update suggestion");
@@ -124,7 +154,8 @@ export default function UserSuggestions() {
 
     try {
       setIsSubmitting(true);
-      const lastMeeting = selectedSuggestion.meetings[selectedSuggestion.meetings.length - 1];
+      const lastMeeting =
+        selectedSuggestion.meetings[selectedSuggestion.meetings.length - 1];
 
       const res = await fetch(
         `/api/matchmaker/suggestions/${selectedSuggestion.id}/meetings/${lastMeeting.id}/feedback`,
@@ -143,7 +174,9 @@ export default function UserSuggestions() {
       setShowFeedbackDialog(false);
       setSelectedSuggestion(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to submit feedback");
+      setError(
+        err instanceof Error ? err.message : "Failed to submit feedback"
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -195,14 +228,18 @@ export default function UserSuggestions() {
       },
     };
 
-    const config = statusConfig[suggestion.status as keyof typeof statusConfig] || {
+    const config = statusConfig[
+      suggestion.status as keyof typeof statusConfig
+    ] || {
       text: suggestion.status,
       color: "bg-gray-100 text-gray-800",
       icon: <AlertCircle className="w-4 w-4" />,
     };
 
     return (
-      <div className={`flex items-center gap-2 px-3 py-1 rounded-full ${config.color}`}>
+      <div
+        className={`flex items-center gap-2 px-3 py-1 rounded-full ${config.color}`}
+      >
         {config.icon}
         <span className="text-sm">{config.text}</span>
       </div>
@@ -355,7 +392,9 @@ export default function UserSuggestions() {
         <Card>
           <CardContent className="p-6 text-center">
             <Users className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-            <h3 className="text-lg font-medium text-gray-900">אין הצעות שידוכים</h3>
+            <h3 className="text-lg font-medium text-gray-900">
+              אין הצעות שידוכים
+            </h3>
             <p className="mt-2 text-sm text-gray-500">
               עדיין אין הצעות שידוכים פעילות עבורך
             </p>
@@ -364,7 +403,10 @@ export default function UserSuggestions() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {suggestions.map((suggestion) => (
-            <Card key={suggestion.id} className="hover:shadow-lg transition-shadow">
+            <Card
+              key={suggestion.id}
+              className="hover:shadow-lg transition-shadow"
+            >
               <CardContent className="p-6">
                 {/* Status */}
                 <div className="flex justify-between items-center mb-4">
@@ -375,13 +417,16 @@ export default function UserSuggestions() {
                 {/* Suggestion Details */}
                 <div className="space-y-4">
                   <div>
-                  <h3 className="font-medium">
-                      הצעה מאת {suggestion.matchmaker.firstName} {suggestion.matchmaker.lastName}
+                    <h3 className="font-medium">
+                      הצעה מאת {suggestion.matchmaker.firstName}{" "}
+                      {suggestion.matchmaker.lastName}
                     </h3>
 
                     {/* מידע על הצד השני */}
                     <div className="mt-4 space-y-2 bg-gray-50 p-4 rounded-lg">
-                      <h4 className="font-medium text-lg mb-3">פרטי המועמד/ת:</h4>
+                      <h4 className="font-medium text-lg mb-3">
+                        פרטי המועמד/ת:
+                      </h4>
 
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div className="flex items-center">
@@ -399,8 +444,12 @@ export default function UserSuggestions() {
                           <span className="text-gray-600">גיל:</span>
                           <span className="font-medium mr-1">
                             {session?.user?.id === suggestion.firstPartyId
-                              ? suggestion.secondParty.profile?.age ?? "לא צוין"
-                              : suggestion.firstParty.profile?.age ?? "לא צוין"}
+                              ? calculateAge(
+                                  suggestion.secondParty.profile?.birthDate
+                                )
+                              : calculateAge(
+                                  suggestion.firstParty.profile?.birthDate
+                                )}
                           </span>
                         </div>
 
@@ -444,18 +493,6 @@ export default function UserSuggestions() {
                           </span>
                         </div>
                       </div>
-
-                      {/* הערות מהשדכן */}
-                      {suggestion.notes && (
-                        <div className="mt-4 p-3 bg-blue-50 rounded-md">
-                          <h5 className="font-medium mb-2">הערות מהשדכן/ית:</h5>
-                          <p className="text-gray-700">
-                            {session?.user?.id === suggestion.firstPartyId
-                              ? suggestion.notes.forFirstParty
-                              : suggestion.notes.forSecondParty}
-                          </p>
-                        </div>
-                      )}
                     </div>
                   </div>
 
@@ -464,11 +501,16 @@ export default function UserSuggestions() {
                     <div className="border-t pt-4">
                       <h4 className="text-sm font-medium mb-2">פגישות</h4>
                       {suggestion.meetings.map((meeting) => (
-                        <div key={meeting.id} className="flex items-center justify-between text-sm">
+                        <div
+                          key={meeting.id}
+                          className="flex items-center justify-between text-sm"
+                        >
                           <div className="flex items-center gap-2">
                             <Calendar className="h-4 w-4 text-gray-400" />
                             <span>
-                              {new Date(meeting.scheduledDate).toLocaleDateString("he-IL")}
+                              {new Date(
+                                meeting.scheduledDate
+                              ).toLocaleDateString("he-IL")}
                             </span>
                           </div>
                           <span
@@ -501,7 +543,10 @@ export default function UserSuggestions() {
       )}
 
       {/* Response Dialog */}
-      <AlertDialog open={showResponseDialog} onOpenChange={setShowResponseDialog}>
+      <AlertDialog
+        open={showResponseDialog}
+        onOpenChange={setShowResponseDialog}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>תגובה להצעת השידוך</AlertDialogTitle>
@@ -554,7 +599,8 @@ export default function UserSuggestions() {
         }}
         onSubmit={handleMeetingFeedback}
         meetingId={
-          selectedSuggestion?.meetings[selectedSuggestion.meetings.length - 1]?.id || ""
+          selectedSuggestion?.meetings[selectedSuggestion.meetings.length - 1]
+            ?.id || ""
         }
       />
 

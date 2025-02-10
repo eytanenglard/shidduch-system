@@ -143,7 +143,7 @@ export async function POST(req: Request) {
         firstName: result.user.firstName,
         expiresIn: '24 שעות'
       });
-    } catch (emailError) {
+    } catch (error ) {
       return NextResponse.json(
         {
           success: true,

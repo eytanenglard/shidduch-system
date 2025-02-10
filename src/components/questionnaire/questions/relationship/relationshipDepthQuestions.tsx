@@ -1,27 +1,5 @@
 // relationshipDepthQuestions.tsx
 import { Question } from "../../types/types";
-import {
-  Heart,
-  Home,
-  Users,
-  Brain,
-  Star,
-  Sun,
-  Moon,
-  Target,
-  MessageCircle,
-  HandHeart,
-  Lightbulb,
-  Globe,
-  Gift,
-  Map,
-  Book,
-  Compass,
-  Calendar,
-  Coffee,
-  Baby,
-  Church,
-} from "lucide-react";
 
 export const relationshipDepthQuestions: Question[] = [
   {
@@ -57,7 +35,7 @@ export const relationshipDepthQuestions: Question[] = [
   },
   {
     worldId: "RELATIONSHIP",
-id: "family_values",
+    id: "family_values",
     category: "relationship",
     subcategory: "depth",
     question:
@@ -242,7 +220,7 @@ id: "family_values",
   },
   {
     worldId: "RELATIONSHIP",
-id: "future_vision",
+    id: "future_vision",
     category: "relationship",
     subcategory: "depth",
     question:
@@ -298,7 +276,7 @@ id: "future_vision",
   },
   {
     worldId: "RELATIONSHIP",
-id: "success_definition",
+    id: "success_definition",
     category: "relationship",
     subcategory: "depth",
     question:

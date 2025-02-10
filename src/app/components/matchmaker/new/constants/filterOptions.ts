@@ -1,5 +1,5 @@
 // /constants/filterOptions.ts
-import { Gender, AvailabilityStatus } from '@prisma/client';
+import { AvailabilityStatus } from '@prisma/client';
 
 export const AGE_RANGE = {
   min: 18,

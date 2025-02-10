@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import type { UpdateAvailabilityRequest, ApiResponse } from "@/types/profile";
+import type { UpdateAvailabilityRequest } from "@/types/profile";
 
 export async function PUT(req: Request) {
   try {

@@ -14,7 +14,7 @@ import {
   Info,
   Star,
 } from "lucide-react";
-import type { UserTrack } from "../types/worlds";
+import type { UserTrack } from "../types/types";
 
 interface TrackSelectionProps {
   onSelect: (track: UserTrack) => void;
@@ -112,7 +112,7 @@ export default function TrackSelection({
   onBack,
   selectedTrack,
 }: TrackSelectionProps) {
-  const [hoveredTrack, setHoveredTrack] = useState<UserTrack | null>(null);
+  const [, setHoveredTrack] = useState<UserTrack | null>(null);
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
 
   const containerVariants = {

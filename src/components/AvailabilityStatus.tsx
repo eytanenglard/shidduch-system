@@ -32,7 +32,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { Session } from "next-auth";
 
 export default function AvailabilityStatus() {
-  const { data: sessionData, update: updateSession } = useSession();
+  const { update: updateSession } = useSession();
   const { data: session } = useSession() as { data: Session | null };
 
   const [showDialog, setShowDialog] = useState(false);

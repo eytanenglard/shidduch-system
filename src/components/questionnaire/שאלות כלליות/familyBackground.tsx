@@ -1,37 +1,6 @@
 "use client";
 import React from "react";
-import type { ReactNode } from "react";
-import {
-  Users,
-  Home,
-  Heart,
-  Trees,
-  Globe,
-  Map,
-  Book,
-  Crown,
-  Star,
-  Scroll,
-  Cake,
-  Gift,
-  Coffee,
-  Utensils,
-  Music,
-  Camera,
-  Bird,
-  Sun,
-  Moon,
-  Calendar,
-  Clock,
-  Flower,
-  HandHeart,
-  Building,
-  CircleDot,
-  Sparkles,
-  Laugh,
-  Mountain,
-  Phone,
-} from "lucide-react";
+import { Scroll, Cake, Utensils, Music } from "lucide-react";
 
 const familyBackgroundQuestions = [
   // שאלות פתיחה - Ice Breakers (20%)

@@ -26,6 +26,24 @@ const worldAnswersSchema = z.object({
   }))
 });
 
+// Define the type for a single answer
+type Answer = z.infer<typeof worldAnswersSchema>["answers"][number];
+
+// Define the type for the update data
+type QuestionnaireUpdate = {
+  lastSaved: Date;
+  valuesAnswers?: Answer[];
+  personalityAnswers?: Answer[];
+  relationshipAnswers?: Answer[];
+  partnerAnswers?: Answer[];
+  religionAnswers?: Answer[];
+  valuesCompleted?: boolean;
+  personalityCompleted?: boolean;
+  relationshipCompleted?: boolean;
+  partnerCompleted?: boolean;
+  religionCompleted?: boolean;
+};
+
 export async function PUT(req: Request) {
   try {
     // Authenticate user
@@ -46,7 +64,7 @@ export async function PUT(req: Request) {
       where: { userId: session.user.id }
     });
 
-    const updateData: any = {
+    const updateData: QuestionnaireUpdate = {
       lastSaved: new Date()
     };
 

@@ -23,8 +23,8 @@ const formatUserDetails = (user: UserWithProfile) => {
     `אימייל: ${user.email}`,
   ];
 
-  if (user.profile?.phone) {
-    details.push(`טלפון: ${user.profile.phone}`);
+  if (user?.phone) {
+    details.push(`טלפון: ${user?.phone}`);
   }
 
   return details.join('\n');
@@ -267,8 +267,8 @@ const emailTemplates: Record<MatchSuggestionStatus, EmailTemplate | null> = {
     subject: 'מזל טוב! - אירוסין',
     body: (data) => createHtmlTemplate(`
       <div>
-        <h2>מזל טוב!</h2>
-        <p>אנו שמחים לשמוע על האירוסין ומאחלים המון הצלחה בהמשך הדרך.</p>
+        <h2>מזל טוב ${data.firstParty.firstName} ו${data.secondParty.firstName}!</h2>
+        <p>אנו שמחים לשמוע על האירוסין ומאחלים לכם המון הצלחה בהמשך הדרך.</p>
         <p>בברכה,<br>צוות המערכת</p>
       </div>
     `)
@@ -277,7 +277,8 @@ const emailTemplates: Record<MatchSuggestionStatus, EmailTemplate | null> = {
   MARRIED: {
     subject: 'מזל טוב! - חתונה',
     body: (data) => createHtmlTemplate(`
-      <div><h2>מזל טוב!</h2>
+      <div>
+        <h2>מזל טוב ${data.firstParty.firstName} ו${data.secondParty.firstName}!</h2>
         <p>אנו שמחים לשמוע על החתונה ומאחלים לכם חיים מאושרים יחד.</p>
         <p>בברכה,<br>צוות המערכת</p>
       </div>
@@ -358,7 +359,7 @@ export class EmailService {
 
   async handleSuggestionStatusChange(
     suggestion: SuggestionWithParties,
-    previousStatus: MatchSuggestionStatus
+  
   ): Promise<void> {
     try {
       console.log('email222:------------');

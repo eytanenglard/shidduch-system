@@ -1,33 +1,15 @@
 // personalityQuestionsPartTwo.tsx
 import { Question } from "../../types/types";
 import {
-  Brain,
   Heart,
   Star,
   Users,
   Book,
-  Coffee,
   Target,
-  Smile,
-  Sun,
-  Moon,
-  Map,
-  Compass,
-  MessageCircle,
-  HandHeart,
-  Lightbulb,
   Leaf,
-  Globe,
-  Gift,
-  Camera,
   Music,
-  PenTool,
-  Home,
   Cloud,
   Bike,
-  Pizza,
-  Watch,
-  Phone,
 } from "lucide-react";
 
 export const personalityQuestionsPartTwo: Question[] = [
@@ -198,7 +180,8 @@ export const personalityQuestionsPartTwo: Question[] = [
     id: "conflict_resolution",
     category: "personality",
     subcategory: "depth",
-    question: "(איך את/ה מתמודד/ת עם מחלוקות או קונפליקטים במערכות יחסים (לא דווקא זוגיים?",
+    question:
+      "(איך את/ה מתמודד/ת עם מחלוקות או קונפליקטים במערכות יחסים (לא דווקא זוגיים?",
     type: "openText",
     depth: "ADVANCED",
     isRequired: true,
@@ -206,7 +189,6 @@ export const personalityQuestionsPartTwo: Question[] = [
     maxLength: 800,
     placeholder: "תאר/י את הגישה שלך להתמודדות עם מחלוקות...",
   },
- 
 ];
 
 export default personalityQuestionsPartTwo;

@@ -4,16 +4,12 @@ import { Button } from "@/components/ui/button";
 import {
   Heart,
   Mail,
-  Phone,
   Clock,
   Eye,
   Scroll,
   GraduationCap,
   Briefcase,
   MapPin,
-  Globe,
-  Languages,
-  Home,
   User,
   FileText,
 } from "lucide-react";
@@ -22,7 +18,9 @@ import type { Candidate } from "../types/candidates";
 
 interface QuickViewProps {
   candidate: Candidate;
-  onAction: (action: "view" | "invite" | "suggest" | "contact" | "favorite") => void;
+  onAction: (
+    action: "view" | "invite" | "suggest" | "contact" | "favorite"
+  ) => void;
 }
 
 const QuickView: React.FC<QuickViewProps> = ({ candidate, onAction }) => {

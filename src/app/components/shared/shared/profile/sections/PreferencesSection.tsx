@@ -21,8 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Settings, MapPin, Users, Book, Pencil, Save, X } from "lucide-react";
+import { Pencil, Save, X } from "lucide-react";
 import { UserProfile, ContactPreference } from "@/types/next-auth";
 
 interface PreferencesSectionProps {

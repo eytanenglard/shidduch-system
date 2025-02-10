@@ -24,7 +24,6 @@ interface SuggestionDetailsProps {
 }
 
 const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({
-  className,
   firstParty,
   secondParty,
 }) => {

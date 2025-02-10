@@ -76,8 +76,6 @@ export default function RegisterForm() {
         throw new Error(error.message || "אירעה שגיאה בהרשמה");
       }
 
-      const result = await response.json();
-
       // העברה לדף אימות המייל
       router.push(`/auth/verify-email?email=${encodeURIComponent(data.email)}`);
     } catch (error) {

@@ -1,16 +1,11 @@
-import { MatchSuggestionStatus, Priority, User, UserRole, Profile } from "@prisma/client";
+import { MatchSuggestionStatus, Priority, UserRole, MatchSuggestion } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { statusTransitionService, type SuggestionWithParties } from "./StatusTransitionService";
 import { emailService } from "../email/EmailService";
 import type { 
   CreateSuggestionData,
   UpdateSuggestionData,
-  Suggestion
 } from "@/types/suggestions";
-
-type UserWithProfile = User & {
-  profile: Profile | null;
-};
 
 export class SuggestionService {
   private static instance: SuggestionService;
@@ -121,7 +116,6 @@ console.log('Decision deadline type:', typeof data.decisionDeadline);
     console.log('email:------------');
     await emailService.handleSuggestionStatusChange(
       suggestion,
-      MatchSuggestionStatus.DRAFT
     );
 
     return suggestion;
@@ -309,7 +303,7 @@ console.log('Decision deadline type:', typeof data.decisionDeadline);
    * אימות הרשאות לשינוי סטטוס
    */
   private validateStatusChangePermission(
-    suggestion: Suggestion,
+    suggestion: MatchSuggestion,
     userId: string,
     newStatus: MatchSuggestionStatus
   ): void {
@@ -345,7 +339,7 @@ console.log('Decision deadline type:', typeof data.decisionDeadline);
   private async checkExistingSuggestion(
     firstPartyId: string,
     secondPartyId: string
-  ): Promise<Suggestion | null> {
+  ): Promise<MatchSuggestion | null> {
     return await prisma.matchSuggestion.findFirst({
       where: {
         AND: [

@@ -14,14 +14,12 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Dialog,
   DialogContent,
   DialogTitle,
   DialogDescription,
   DialogHeader,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -39,13 +37,11 @@ import { toast } from "sonner";
 import {
   Camera,
   Star,
-  X,
   Loader2,
   ChevronLeft,
   ChevronRight,
   Upload,
   Trash2,
-  AlertCircle,
 } from "lucide-react";
 
 // Types
@@ -74,7 +70,6 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // State
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [showImageViewer, setShowImageViewer] = useState(false);
   const [selectedViewerIndex, setSelectedViewerIndex] = useState<number | null>(
     null

@@ -1,35 +1,17 @@
 "use client";
 import React from "react";
-import type { ReactNode } from "react";
 import {
   Heart,
-  User,
   Users,
-  Home,
   Book,
-  Music,
-  Coffee,
-  Mountain,
   Target,
   Briefcase,
-  Globe,
-  Map,
   Brain,
-  HeartHandshake,
   Smile,
   Star,
   Sun,
-  Moon,
   Hand,
-  Flower,
-  Trees,
-  Bird,
   Cloud,
-  Compass,
-  Crown,
-  Gift,
-  Gem,
-  Key,
 } from "lucide-react";
 
 const partnerPreferences = [

@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Shared Profile Components
@@ -40,7 +40,6 @@ import type {
   UserProfile,
   UserImage,
   QuestionnaireResponse,
-  FormattedAnswer,
 } from "@/types/next-auth";
 
 // Stats configuration
@@ -90,11 +89,11 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+
   const [isMatchmaker, setIsMatchmaker] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
 
-  const { data: session, update: updateSession } = useSession();
+  const { update: updateSession } = useSession();
 
   // Load initial data
   useEffect(() => {
@@ -126,8 +125,8 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         ) {
           setQuestionnaireResponse(questionnaireData.questionnaireResponse);
         }
-      } catch (error) {
-        console.error("Failed to load profile data:", error);
+      } catch (err) {
+        console.error("Failed to load profile data:", err);
         toast.error("שגיאה בטעינת הנתונים");
       } finally {
         setIsLoading(false);
@@ -154,7 +153,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         setIsEditing(false);
         toast.success("הפרופיל עודכן בהצלחה");
       }
-    } catch (error) {
+    } catch (err) {
       toast.error("שגיאה בעדכון הפרופיל");
     } finally {
       setIsLoading(false);
@@ -177,7 +176,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         await updateSession();
         toast.success("התמונה הועלתה בהצלחה");
       }
-    } catch (error) {
+    } catch (err) {
       toast.error("שגיאה בהעלאת התמונה");
     }
   };
@@ -196,7 +195,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         await updateSession();
         toast.success("התמונה הראשית עודכנה בהצלחה");
       }
-    } catch (error) {
+    } catch (err) {
       toast.error("שגיאה בעדכון התמונה הראשית");
     }
   };
@@ -213,7 +212,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         await updateSession();
         toast.success("התמונה נמחקה בהצלחה");
       }
-    } catch (error) {
+    } catch (err) {
       toast.error("שגיאה במחיקת התמונה");
     }
   };
@@ -235,8 +234,8 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         setQuestionnaireResponse(data.data);
         toast.success("השאלון עודכן בהצלחה");
       }
-    } catch (error) {
-      console.error("Failed to update questionnaire:", error);
+    } catch (err) {
+      console.error("Failed to update questionnaire:", err);
       toast.error("שגיאה בעדכון השאלון");
     }
   };
@@ -252,12 +251,6 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   return (
     <div className="w-full max-w-7xl mx-auto py-8 px-4" dir="rtl">
       <div className="space-y-6">
-        {error && (
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
         {/* Quick Stats */}
         {profileData && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

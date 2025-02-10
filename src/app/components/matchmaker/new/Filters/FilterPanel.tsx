@@ -1,49 +1,47 @@
 // /Filters/FilterPanel.tsx
-import React, { useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Slider } from '@/components/ui/slider';
-import { Switch } from '@/components/ui/switch';
+import React, { useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+} from "@/components/ui/collapsible";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { ScrollArea } from '@/components/ui/scroll-area';
+} from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Save,
   User,
   GraduationCap,
   MapPin,
   Scroll,
-  Heart,
   Calendar,
   ChevronDown,
   ChevronUp,
   Clock,
-  CheckCircle,
-  Ruler
-} from 'lucide-react';
+  Ruler,
+} from "lucide-react";
 
-import type { CandidatesFilter } from '../types/candidates';
-import { 
+import type { CandidatesFilter } from "../types/candidates";
+import {
   AGE_RANGE,
   HEIGHT_RANGE,
   RELIGIOUS_LEVELS,
   EDUCATION_LEVELS,
   OCCUPATION_CATEGORIES,
   POPULAR_CITIES,
-  AVAILABILITY_STATUS_OPTIONS
-} from '../constants/filterOptions';
+  AVAILABILITY_STATUS_OPTIONS,
+} from "../constants/filterOptions";
 
 interface FilterPanelProps {
   filters: CandidatesFilter;
@@ -64,7 +62,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({
   title,
   icon,
   children,
-  defaultOpen = false
+  defaultOpen = false,
 }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
@@ -83,9 +81,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({
           {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </div>
       </CollapsibleTrigger>
-      <CollapsibleContent className="pt-4">
-        {children}
-      </CollapsibleContent>
+      <CollapsibleContent className="pt-4">{children}</CollapsibleContent>
     </Collapsible>
   );
 };
@@ -95,15 +91,15 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   onFiltersChange,
   onSavePreset,
   onReset,
-  className
+  className,
 }) => {
   const [showSavePreset, setShowSavePreset] = useState(false);
-  const [presetName, setPresetName] = useState('');
+  const [presetName, setPresetName] = useState("");
 
   const handleSavePreset = () => {
     if (presetName && onSavePreset) {
       onSavePreset(presetName);
-      setPresetName('');
+      setPresetName("");
       setShowSavePreset(false);
     }
   };
@@ -111,14 +107,14 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   const handleAgeRangeChange = (value: number[]) => {
     onFiltersChange({
       ...filters,
-      ageRange: { min: value[0], max: value[1] }
+      ageRange: { min: value[0], max: value[1] },
     });
   };
 
   const handleHeightRangeChange = (value: number[]) => {
     onFiltersChange({
       ...filters,
-      heightRange: { min: value[0], max: value[1] }
+      heightRange: { min: value[0], max: value[1] },
     });
   };
 
@@ -128,11 +124,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
       <div className="flex items-center justify-between">
         <h3 className="font-semibold text-lg">סינון מועמדים</h3>
         <div className="flex gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onReset}
-          >
+          <Button variant="ghost" size="sm" onClick={onReset}>
             איפוס
           </Button>
           <Button
@@ -154,7 +146,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
               value={presetName}
               onChange={(e) => setPresetName(e.target.value)}
               placeholder="פילטר מותאם אישית"
-              size="sm"
+              className="h-9" // או כל class אחר שמתאים לגודל הרצוי
             />
             <Button size="sm" onClick={handleSavePreset}>
               שמור
@@ -184,7 +176,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                 step={1}
                 value={[
                   filters.ageRange?.min || AGE_RANGE.default.min,
-                  filters.ageRange?.max || AGE_RANGE.default.max
+                  filters.ageRange?.max || AGE_RANGE.default.max,
                 ]}
                 onValueChange={handleAgeRangeChange}
               />
@@ -201,19 +193,26 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                 גובה (ס"מ)
               </Label>
               <Slider
-                defaultValue={[HEIGHT_RANGE.default.min, HEIGHT_RANGE.default.max]}
+                defaultValue={[
+                  HEIGHT_RANGE.default.min,
+                  HEIGHT_RANGE.default.max,
+                ]}
                 min={HEIGHT_RANGE.min}
                 max={HEIGHT_RANGE.max}
                 step={1}
                 value={[
                   filters.heightRange?.min || HEIGHT_RANGE.default.min,
-                  filters.heightRange?.max || HEIGHT_RANGE.default.max
+                  filters.heightRange?.max || HEIGHT_RANGE.default.max,
                 ]}
                 onValueChange={handleHeightRangeChange}
               />
               <div className="flex justify-between text-sm text-gray-500">
-                <span>{filters.heightRange?.min || HEIGHT_RANGE.default.min} ס"מ</span>
-                <span>{filters.heightRange?.max || HEIGHT_RANGE.default.max} ס"מ</span>
+                <span>
+                  {filters.heightRange?.min || HEIGHT_RANGE.default.min} ס"מ
+                </span>
+                <span>
+                  {filters.heightRange?.max || HEIGHT_RANGE.default.max} ס"מ
+                </span>
               </div>
             </div>
           </div>
@@ -296,14 +295,22 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
 
             <ScrollArea className="h-48 rounded-md border p-2">
               {OCCUPATION_CATEGORIES.map((occupation) => (
-                <div key={occupation.value} className="flex items-center space-x-2 py-1">
+                <div
+                  key={occupation.value}
+                  className="flex items-center space-x-2 py-1"
+                >
                   <Switch
                     checked={filters.occupations?.includes(occupation.value)}
                     onCheckedChange={(checked) => {
                       const newOccupations = checked
                         ? [...(filters.occupations || []), occupation.value]
-                        : filters.occupations?.filter((o) => o !== occupation.value);
-                      onFiltersChange({ ...filters, occupations: newOccupations });
+                        : filters.occupations?.filter(
+                            (o) => o !== occupation.value
+                          );
+                      onFiltersChange({
+                        ...filters,
+                        occupations: newOccupations,
+                      });
                     }}
                   />
                   <Label>{occupation.label}</Label>
