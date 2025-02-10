@@ -40,7 +40,6 @@ const CandidatesManager: React.FC = () => {
   // Custom Hooks
   const {
     loading,
-    error,
     maleCandidates,
     femaleCandidates,
     refresh,
@@ -165,10 +164,6 @@ const CandidatesManager: React.FC = () => {
     exportCandidates,
     isProcessing,
   ]);
-
-  if (error) {
-    return <LoadingError message={error} onRetry={refresh} className="m-8" />;
-  }
 
   const totalCandidates = maleCandidates.length + femaleCandidates.length;
 
