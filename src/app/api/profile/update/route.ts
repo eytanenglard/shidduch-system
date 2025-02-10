@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
 
-export async function PUT(req: Request) {
+export async function PUT() {
   try {
     // Verify authentication
     const session = await getServerSession(authOptions);

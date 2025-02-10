@@ -9,10 +9,10 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Search, Filter, SortDesc } from "lucide-react";
-import type { MatchSuggestion, MatchSuggestionStatus } from "@prisma/client";
+import type { MatchSuggestion } from "@prisma/client";
 import type { UserProfile, UserImage } from "@/types/next-auth";
 import SuggestionCard from "../cards/SuggestionCard";
-import { LoadingContainer } from "../../shared/LoadingStates";
+import { LoadingContainer } from "../../new/shared/LoadingStates";
 
 interface PartyInfo {
   id: string;

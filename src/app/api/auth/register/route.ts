@@ -143,7 +143,8 @@ export async function POST(req: Request) {
         firstName: result.user.firstName,
         expiresIn: '24 שעות'
       });
-    } catch (error ) {
+    } catch (error) {
+      console.error('Failed to send welcome/verification emails:', error);
       return NextResponse.json(
         {
           success: true,

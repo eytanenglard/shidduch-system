@@ -114,14 +114,31 @@ function formatValue(value: Prisma.JsonValue): string {
   return valueTranslations[stringValue] || stringValue;
 }
 
-function safeParseJson(value: any): JsonAnswerData[] {
+// Type guard to check if a value is a valid answer object
+function isValidAnswerObject(item: Prisma.JsonValue): item is Prisma.JsonObject & {
+  questionId: string | number;
+  value: Prisma.JsonValue;
+  answeredAt: string | number;
+  isVisible?: boolean;
+} {
+  return typeof item === 'object' && 
+         item !== null && 
+         'questionId' in item && 
+         'value' in item &&
+         item.value !== undefined &&
+         'answeredAt' in item;
+}
+
+function safeParseJson(value: Prisma.JsonValue | null): JsonAnswerData[] {
   if (Array.isArray(value)) {
-    return value.map(item => ({
-      questionId: item.questionId,
-      value: item.value,
-      answeredAt: item.answeredAt,
-      isVisible: item.isVisible ?? true
-    }));
+    return value
+      .filter(isValidAnswerObject)
+      .map(item => ({
+        questionId: String(item.questionId),
+        value: item.value,
+        answeredAt: String(item.answeredAt),
+        isVisible: Boolean(item.isVisible ?? true)
+      }));
   }
   return [];
 }
@@ -180,7 +197,7 @@ export async function GET(req: Request) {
     });
 
     const formattedResponse = {
-      ...Response,
+      ...questionnaireResponse,
       formattedAnswers: formattedAnswers as FormattedAnswersType
     };
 
@@ -229,7 +246,7 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ success: false, error: "שאלון לא נמצא" }, { status: 404 });
     }
 
-    const currentAnswers = (questionnaire[dbKey] as JsonAnswerData[]) || [];
+    const currentAnswers = safeParseJson(questionnaire[dbKey]);
     const existingAnswer = currentAnswers.find((a) => a.questionId === questionId);
 
     let updatedAnswer: JsonAnswerData;

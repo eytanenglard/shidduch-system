@@ -9,6 +9,9 @@ import type {
 } from '../types/filters';
 import { DEFAULT_FILTER_STATE } from '../types/filters'; 
 
+type SavedFilterFromStorage = Omit<SavedFilter, 'createdAt'> & {
+  createdAt: string;
+};
 interface UseFilterLogicProps {
   onFilterChange?: FilterChangeHandler;
   defaultFilters?: Partial<FilterState>;
@@ -36,7 +39,7 @@ export const useFilterLogic = ({
       const savedPrefs = localStorage.getItem(localStorageKey);
       if (savedPrefs) {
         const parsed = JSON.parse(savedPrefs);
-        setSavedFilters(parsed.map((filter: any) => ({
+        setSavedFilters(parsed.map((filter: SavedFilterFromStorage) => ({
           ...filter,
           createdAt: new Date(filter.createdAt)
         })));
@@ -346,24 +349,22 @@ export const useFilterLogic = ({
     return active;
   }, [filters]);
 // Remove single filter
-const removeFilter = useCallback((key: keyof FilterState, value?: any) => {
-    setFilters(prev => {
-      const updated = { ...prev };
-  
-      if (Array.isArray(updated[key]) && value !== undefined) {
-        // הגדרת טיפוס ספציפי למערכים
-        if (key === 'cities' || key === 'occupations') {
-          updated[key] = (updated[key] as string[]).filter(v => v !== value);
-        }
-      } else {
-        // Otherwise, remove the field entirely
-        delete updated[key];
+const removeFilter = useCallback((key: keyof FilterState, value?: string) => {
+  setFilters(prev => {
+    const updated = { ...prev };
+
+    if (Array.isArray(updated[key]) && value !== undefined) {
+      if (key === 'cities' || key === 'occupations') {
+        updated[key] = (updated[key] as string[]).filter(v => v !== value);
       }
-  
-      onFilterChange?.(updated);
-      return updated;
-    });
-  }, [onFilterChange]);
+    } else {
+      delete updated[key];
+    }
+
+    onFilterChange?.(updated);
+    return updated;
+  });
+}, [onFilterChange]);
 
   return {
     // Current state

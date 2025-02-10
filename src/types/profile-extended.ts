@@ -1,7 +1,5 @@
 // types/profile-extended.ts
 
-import { Gender, AvailabilityStatus } from '@prisma/client';
-
 import { UserProfile } from '@/types/next-auth';
 
 

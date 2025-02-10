@@ -55,7 +55,7 @@ export default function SignInForm() {
         router.push("/dashboard");
         router.refresh();
       }
-    } catch (err) {
+    } catch {
       setError("אירעה שגיאה בהתחברות");
     } finally {
       setIsLoading(false);

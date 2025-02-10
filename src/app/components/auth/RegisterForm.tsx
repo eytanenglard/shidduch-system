@@ -242,7 +242,7 @@ export default function RegisterForm() {
           htmlFor="height"
           className="block text-sm font-medium text-gray-700"
         >
-          גובה (בס"מ)
+          גובה (בס&quot;מ)
         </label>
         <input
           type="number"

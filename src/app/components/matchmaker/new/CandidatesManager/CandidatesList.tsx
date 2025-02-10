@@ -24,6 +24,19 @@ import { toast } from "sonner";
 import { ActionDialogs } from "../dialogs/ActionDialogs";
 import NewSuggestionForm from "../NewSuggestionForm";
 
+interface CreateSuggestionData {
+  priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+  firstPartyId: string;
+  secondPartyId: string;
+  status:
+    | "DRAFT"
+    | "PENDING_FIRST_PARTY"
+    | "FIRST_PARTY_APPROVED"
+    | "FIRST_PARTY_DECLINED"
+    | string;
+  firstPartyNotes?: string;
+  secondPartyNotes?: string;
+}
 interface CandidatesListProps {
   candidates: Candidate[];
   allCandidates: Candidate[];
@@ -61,7 +74,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   const [dialogCandidate, setDialogCandidate] = useState<Candidate | null>(
     null
   );
-  
+
   // Load questionnaire when candidate is selected
   useEffect(() => {
     const loadQuestionnaire = async () => {
@@ -142,7 +155,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     }
   };
 
-  const handleCreateSuggestion = async (data: any) => {
+  const handleCreateSuggestion = async (data: CreateSuggestionData) => {
     try {
       const response = await fetch("/api/matchmaker/suggestions", {
         method: "POST",

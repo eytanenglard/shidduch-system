@@ -21,7 +21,6 @@ import { LoadingContainer, LoadingError } from "../shared/LoadingStates";
 // Types
 import type {
   Candidate,
-  CardSize,
   ViewMode,
   CandidatesFilter,
   CandidateAction,
@@ -122,9 +121,8 @@ const CandidatesManager: React.FC = () => {
             toast.success("המועמד/ת נוספ/ה למועדפים");
             break;
         }
-      } catch (error) {
+      } catch {
         toast.error("אירעה שגיאה בביצוע הפעולה");
-        console.error("Error processing action:", error);
       } finally {
         setIsProcessing(false);
       }

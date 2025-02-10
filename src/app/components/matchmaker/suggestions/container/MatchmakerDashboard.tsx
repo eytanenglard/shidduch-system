@@ -5,19 +5,23 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Download } from "lucide-react";
-import type { Suggestion } from "@/types/suggestions";
+import type {
+  Suggestion,
+  SuggestionFilters,
+  CreateSuggestionData,
+} from "@/types/suggestions";
 import NewSuggestionForm from "../../new/NewSuggestionForm";
 import SuggestionsStats from "./SuggestionsStats";
 import SuggestionActionBar from "./SuggestionActionBar";
 import ManagerSuggestionsList from "../list/ManagerSuggestionsList";
 import { toast } from "sonner";
-
+import type { NewSuggestionFormData } from "@/app/components/matchmaker/new/NewSuggestionForm/schema";
 export default function MatchmakerDashboard() {
   // State management
   const [activeTab, setActiveTab] = useState("active");
   const [showNewSuggestion, setShowNewSuggestion] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filters, setFilters] = useState<Record<string, any>>({});
+  const [filters, setFilters] = useState<SuggestionFilters>({});
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -66,7 +70,7 @@ export default function MatchmakerDashboard() {
   }, []);
 
   // Handle new suggestion creation
-  const handleNewSuggestion = async (data: any) => {
+  const handleNewSuggestion = async (data: NewSuggestionFormData) => {
     try {
       const response = await fetch("/api/suggestions", {
         method: "POST",
@@ -74,14 +78,10 @@ export default function MatchmakerDashboard() {
         body: JSON.stringify(data),
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to create suggestion");
-      }
+      if (!response.ok) throw new Error("Failed to create suggestion");
 
       setShowNewSuggestion(false);
       toast.success("ההצעה נוצרה בהצלחה");
-
-      // Refresh suggestions list
       await fetchSuggestions();
     } catch (error) {
       console.error("Error creating suggestion:", error);

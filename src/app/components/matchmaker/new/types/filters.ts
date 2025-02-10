@@ -40,7 +40,7 @@ export interface FilterState {
 // הגדרת אפשרות פילטר
 export interface FilterOption {
   key: keyof (FilterState & { education: string });
-  value: any;
+  value: Gender | AvailabilityStatus | UserStatus | RangeFilter | string[] | string | number | boolean | undefined;
   label: string;
   category?: string;
 }
@@ -161,7 +161,9 @@ export interface GroupOption {
   label: string;
 }
 
-export default {
+export const filterConstants = {
   DEFAULT_FILTER_STATE,
   FILTER_CATEGORIES
 };
+
+export default filterConstants;

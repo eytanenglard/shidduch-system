@@ -1,4 +1,4 @@
-import { AvailabilityInquiry, User, Profile } from '@prisma/client';
+import { AvailabilityInquiry, Profile } from '@prisma/client';
 
 export interface ExtendedInquiry extends AvailabilityInquiry {
     matchmaker: {

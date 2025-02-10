@@ -190,7 +190,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 <Ruler className="w-4 h-4" />
-                גובה (ס"מ)
+                גובה (ס&quot;מ)
               </Label>
               <Slider
                 defaultValue={[
@@ -208,10 +208,12 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
               />
               <div className="flex justify-between text-sm text-gray-500">
                 <span>
-                  {filters.heightRange?.min || HEIGHT_RANGE.default.min} ס"מ
+                  {filters.heightRange?.min || HEIGHT_RANGE.default.min}{" "}
+                  ס&quot;מ
                 </span>
                 <span>
-                  {filters.heightRange?.max || HEIGHT_RANGE.default.max} ס"מ
+                  {filters.heightRange?.max || HEIGHT_RANGE.default.max}{" "}
+                  ס&quot;מ
                 </span>
               </div>
             </div>

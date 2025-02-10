@@ -184,7 +184,6 @@ export const useCandidates = (): UseCandidatesReturn => {
   // Export candidates to CSV
   const exportCandidates = async (
     candidates: Candidate[], 
-    filters: CandidatesFilter
   ): Promise<void> => {
     try {
       // Prepare data for export

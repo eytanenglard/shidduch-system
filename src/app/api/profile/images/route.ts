@@ -5,6 +5,10 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { v2 as cloudinary } from "cloudinary";
 
+type CloudinaryUploadResult = {
+  secure_url: string;
+  public_id: string;
+};
 // Configure Cloudinary
 if (!process.env.CLOUDINARY_CLOUD_NAME || 
     !process.env.CLOUDINARY_API_KEY || 
@@ -120,7 +124,7 @@ export async function POST(req: Request) {
         uploadStream.end(buffer);
       });
 
-      const result = await uploadPromise as any;
+      const result = await uploadPromise as CloudinaryUploadResult;
 
       const image = await prisma.userImage.create({
         data: {

@@ -125,8 +125,8 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         ) {
           setQuestionnaireResponse(questionnaireData.questionnaireResponse);
         }
-      } catch (err) {
-        console.error("Failed to load profile data:", err);
+      } catch (error) {
+        console.error("Failed to load profile data:", error);
         toast.error("שגיאה בטעינת הנתונים");
       } finally {
         setIsLoading(false);
@@ -153,7 +153,8 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         setIsEditing(false);
         toast.success("הפרופיל עודכן בהצלחה");
       }
-    } catch (err) {
+    } catch (error) {
+      console.error("Failed to update profile:", error);
       toast.error("שגיאה בעדכון הפרופיל");
     } finally {
       setIsLoading(false);
@@ -176,7 +177,8 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         await updateSession();
         toast.success("התמונה הועלתה בהצלחה");
       }
-    } catch (err) {
+    } catch (error) {
+      console.error("Failed to upload image:", error);
       toast.error("שגיאה בהעלאת התמונה");
     }
   };
@@ -195,7 +197,8 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         await updateSession();
         toast.success("התמונה הראשית עודכנה בהצלחה");
       }
-    } catch (err) {
+    } catch (error) {
+      console.error("Failed to set main image:", error);
       toast.error("שגיאה בעדכון התמונה הראשית");
     }
   };
@@ -212,7 +215,8 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         await updateSession();
         toast.success("התמונה נמחקה בהצלחה");
       }
-    } catch (err) {
+    } catch (error) {
+      console.error("Failed to delete image:", error);
       toast.error("שגיאה במחיקת התמונה");
     }
   };
@@ -220,7 +224,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   const handleQuestionnaireUpdate = async (
     world: string,
     questionId: string,
-    value: any
+    value: string | number | boolean
   ) => {
     try {
       const response = await fetch("/api/profile/questionnaire", {
@@ -234,8 +238,8 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         setQuestionnaireResponse(data.data);
         toast.success("השאלון עודכן בהצלחה");
       }
-    } catch (err) {
-      console.error("Failed to update questionnaire:", err);
+    } catch (error) {
+      console.error("Failed to update questionnaire:", error);
       toast.error("שגיאה בעדכון השאלון");
     }
   };

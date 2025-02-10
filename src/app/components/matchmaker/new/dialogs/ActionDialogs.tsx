@@ -12,16 +12,22 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
-
+import { Priority, MatchSuggestionStatus } from "@prisma/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Clock, Mail, Loader2 } from "lucide-react";
 import type { Candidate } from "../types/candidates";
 
+interface NewSuggestionFormData {
+  firstPartyId: string;
+  secondPartyId: string;
+  priority: Priority;
+  status: MatchSuggestionStatus;
+}
 interface ActionDialogsProps {
   suggestDialog: {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit: (data: any) => Promise<void>;
+    onSubmit: (data: NewSuggestionFormData) => Promise<void>;
     selectedCandidate: Candidate | null;
   };
   availabilityDialog: {
