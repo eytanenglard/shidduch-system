@@ -1,0 +1,50 @@
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { CustomSession } from "@/types/next-auth";
+
+export async function GET(req: Request) {
+  try {
+    const session = await getServerSession(authOptions) as CustomSession | null;
+    
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // בדיקת התראות זמינות
+    const pendingInquiries = await prisma.availabilityInquiry.count({
+      where: {
+        OR: [
+          { 
+            firstPartyId: session.user.id,
+            firstPartyResponse: null,
+            expiresAt: { gt: new Date() }
+          },
+          { 
+            secondPartyId: session.user.id,
+            secondPartyResponse: null,
+            expiresAt: { gt: new Date() }
+          }
+        ]
+      },
+    });
+
+    // בעתיד נוסיף ספירה של הודעות שלא נקראו
+    const unreadMessages = 0;
+    const total = pendingInquiries + unreadMessages;
+
+    return NextResponse.json({
+      availabilityRequests: pendingInquiries,
+      messages: unreadMessages,
+      total: total
+    });
+
+  } catch (error) {
+    console.error("Error fetching notifications:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch notifications" },
+      { status: 500 }
+    );
+  }
+}
