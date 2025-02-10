@@ -1,35 +1,35 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Check, X } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import * as React from "react";
+import { Check, X } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
-} from "@/components/ui/command"
+} from "@/components/ui/command";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
+} from "@/components/ui/popover";
 
 export type Option = {
-  value: string
-  label: string
-}
+  value: string;
+  label: string;
+};
 
 interface MultiSelectProps {
-  options: Option[]
-  selected: string[]
-  onChange: (values: string[]) => void
-  placeholder?: string
-  className?: string
-  disabled?: boolean
+  options: Option[];
+  selected: string[];
+  onChange: (values: string[]) => void;
+  placeholder?: string;
+  className?: string;
+  disabled?: boolean;
 }
 
 export function MultiSelect({
@@ -39,13 +39,12 @@ export function MultiSelect({
   placeholder = "בחר פריטים...",
   className,
   disabled = false,
-  ...props
 }: MultiSelectProps) {
-  const [open, setOpen] = React.useState(false)
+  const [open, setOpen] = React.useState(false);
 
   const handleUnselect = (value: string) => {
-    onChange(selected.filter((item) => item !== value))
-  }
+    onChange(selected.filter((item) => item !== value));
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen} modal={true}>
@@ -66,8 +65,8 @@ export function MultiSelect({
                   variant="secondary"
                   className="ml-1"
                   onClick={(e) => {
-                    e.stopPropagation()
-                    handleUnselect(value)
+                    e.stopPropagation();
+                    handleUnselect(value);
                   }}
                 >
                   {options.find((opt) => opt.value === value)?.label || value}
@@ -75,17 +74,17 @@ export function MultiSelect({
                     className="ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
-                        handleUnselect(value)
+                        handleUnselect(value);
                       }
                     }}
                     onMouseDown={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
+                      e.preventDefault();
+                      e.stopPropagation();
                     }}
                     onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      handleUnselect(value)
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleUnselect(value);
                     }}
                   >
                     <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
@@ -111,7 +110,7 @@ export function MultiSelect({
                     selected.includes(option.value)
                       ? selected.filter((item) => item !== option.value)
                       : [...selected, option.value]
-                  )
+                  );
                 }}
               >
                 <Check
@@ -129,5 +128,5 @@ export function MultiSelect({
         </Command>
       </PopoverContent>
     </Popover>
-  )
+  );
 }

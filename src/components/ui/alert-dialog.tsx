@@ -6,14 +6,12 @@ import { buttonVariants } from "@/components/ui/button";
 const AlertDialog = AlertDialogPrimitive.Root;
 const AlertDialogTrigger = AlertDialogPrimitive.Trigger;
 
-const AlertDialogPortal = ({
-  children,
-  ...props
-}: AlertDialogPrimitive.AlertDialogPortalProps) => (
-  <AlertDialogPrimitive.Portal {...props}>
-    <div>{children}</div>
-  </AlertDialogPrimitive.Portal>
+type AlertDialogPortalProps = AlertDialogPrimitive.AlertDialogPortalProps;
+
+const AlertDialogPortal: React.FC<AlertDialogPortalProps> = (props) => (
+  <AlertDialogPrimitive.Portal {...props} />
 );
+
 AlertDialogPortal.displayName = AlertDialogPrimitive.Portal.displayName;
 
 const AlertDialogOverlay = React.forwardRef<
@@ -29,6 +27,7 @@ const AlertDialogOverlay = React.forwardRef<
     ref={ref}
   />
 ));
+
 AlertDialogOverlay.displayName = AlertDialogPrimitive.Overlay.displayName;
 
 const AlertDialogContent = React.forwardRef<
@@ -49,6 +48,7 @@ const AlertDialogContent = React.forwardRef<
     </AlertDialogPrimitive.Content>
   </AlertDialogPortal>
 ));
+
 AlertDialogContent.displayName = AlertDialogPrimitive.Content.displayName;
 
 const AlertDialogHeader = ({
@@ -66,6 +66,7 @@ const AlertDialogHeader = ({
     {children}
   </div>
 );
+
 AlertDialogHeader.displayName = "AlertDialogHeader";
 
 const AlertDialogFooter = ({
@@ -83,6 +84,7 @@ const AlertDialogFooter = ({
     {children}
   </div>
 );
+
 AlertDialogFooter.displayName = "AlertDialogFooter";
 
 const AlertDialogTitle = React.forwardRef<
@@ -97,6 +99,7 @@ const AlertDialogTitle = React.forwardRef<
     {children}
   </AlertDialogPrimitive.Title>
 ));
+
 AlertDialogTitle.displayName = AlertDialogPrimitive.Title.displayName;
 
 const AlertDialogDescription = React.forwardRef<
@@ -111,6 +114,7 @@ const AlertDialogDescription = React.forwardRef<
     {children}
   </AlertDialogPrimitive.Description>
 ));
+
 AlertDialogDescription.displayName =
   AlertDialogPrimitive.Description.displayName;
 
@@ -122,6 +126,7 @@ const AlertDialogAction = React.forwardRef<
     {children}
   </button>
 ));
+
 AlertDialogAction.displayName = AlertDialogPrimitive.Action.displayName;
 
 const AlertDialogCancel = React.forwardRef<
@@ -140,6 +145,7 @@ const AlertDialogCancel = React.forwardRef<
     {children}
   </button>
 ));
+
 AlertDialogCancel.displayName = AlertDialogPrimitive.Cancel.displayName;
 
 export {

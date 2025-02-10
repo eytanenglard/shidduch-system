@@ -10,7 +10,8 @@ interface EmailConfig {
   to: string;
   subject: string;
   template: string;
-  context: Record<string, any>;
+  context: Record<string, unknown>;
+
 }
 
 interface AvailabilityCheckEmailParams {

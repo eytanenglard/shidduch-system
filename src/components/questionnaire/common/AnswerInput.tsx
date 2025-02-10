@@ -5,7 +5,7 @@ import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input"; // Added for multiSelectWithOther
+import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import {
   Tooltip,
@@ -24,16 +24,15 @@ export default function AnswerInput({
   showValidation = false,
   className = "",
 }: AnswerInputProps) {
-  const [internalValue, setInternalValue] = useState<any>(value);
+  const [internalValue, setInternalValue] = useState<AnswerValue>(value);
   const [error, setError] = useState<string | null>(null);
-  const [customValue, setCustomValue] = useState<string>(""); // Added for multiSelectWithOther
+  const [customValue, setCustomValue] = useState<string>("");
 
   useEffect(() => {
     setInternalValue(value);
   }, [value]);
 
-  const handleValueChange = (newValue: any) => {
-    // אם לוחצים על אותו ערך שכבר נבחר, מנקים את הבחירה
+  const handleValueChange = (newValue: AnswerValue) => {
     if (newValue === internalValue) {
       handleClear();
       return;
@@ -45,7 +44,6 @@ export default function AnswerInput({
   };
 
   const handleClear = () => {
-    // Set type-appropriate empty value
     let emptyValue: AnswerValue;
     switch (question.type) {
       case "multiChoice":
@@ -68,7 +66,7 @@ export default function AnswerInput({
     }
 
     setInternalValue(emptyValue);
-    setCustomValue(""); // Clear custom value for multiSelectWithOther
+    setCustomValue("");
     setError(null);
     onChange?.(emptyValue);
   };
@@ -109,7 +107,7 @@ export default function AnswerInput({
       case "multiChoice":
       case "multiSelect":
         const selectedValues = Array.isArray(internalValue)
-          ? internalValue
+          ? (internalValue as string[])
           : [];
         return (
           <div className="space-y-2">
@@ -123,7 +121,9 @@ export default function AnswerInput({
                     "bg-blue-50 border-blue-500"
                 )}
                 onClick={() => {
-                  const newValues = selectedValues.includes(option.value)
+                  const newValues: string[] = selectedValues.includes(
+                    option.value
+                  )
                     ? selectedValues.filter((v) => v !== option.value)
                     : [...selectedValues, option.value];
                   handleValueChange(newValues);
@@ -140,11 +140,10 @@ export default function AnswerInput({
 
       case "multiSelectWithOther":
         const selectedWithOtherValues = Array.isArray(internalValue)
-          ? internalValue
+          ? (internalValue as string[])
           : [];
         return (
           <div className="space-y-4">
-            {/* Regular options */}
             {question.options?.map((option) => (
               <div
                 key={option.value}
@@ -155,7 +154,7 @@ export default function AnswerInput({
                     "bg-blue-50 border-blue-500"
                 )}
                 onClick={() => {
-                  const newValues = selectedWithOtherValues.includes(
+                  const newValues: string[] = selectedWithOtherValues.includes(
                     option.value
                   )
                     ? selectedWithOtherValues.filter((v) => v !== option.value)
@@ -170,7 +169,6 @@ export default function AnswerInput({
               </div>
             ))}
 
-            {/* Custom input section */}
             <div className="space-y-2">
               <Label>אחר</Label>
               <div className="flex gap-2">
@@ -185,7 +183,7 @@ export default function AnswerInput({
                   variant="outline"
                   onClick={() => {
                     if (customValue.trim()) {
-                      const newValues = [
+                      const newValues: string[] = [
                         ...selectedWithOtherValues,
                         `custom:${customValue.trim()}`,
                       ];
@@ -200,7 +198,6 @@ export default function AnswerInput({
               </div>
             </div>
 
-            {/* Custom values display */}
             <div className="space-y-2">
               {selectedWithOtherValues
                 .filter((v) => v.startsWith("custom:"))
@@ -213,9 +210,10 @@ export default function AnswerInput({
                     <X
                       className="w-4 h-4 text-gray-500 hover:text-red-500 cursor-pointer"
                       onClick={() => {
-                        const newValues = selectedWithOtherValues.filter(
-                          (v) => v !== customVal
-                        );
+                        const newValues: string[] =
+                          selectedWithOtherValues.filter(
+                            (v) => v !== customVal
+                          );
                         handleValueChange(newValues);
                       }}
                     />
@@ -355,7 +353,7 @@ export default function AnswerInput({
                   min={category.min}
                   max={category.max}
                   step={1}
-                  onValueChange={(newValues) => {
+                  onValueChange={(newValues: number[]) => {
                     handleValueChange({
                       ...values,
                       [category.label]: newValues[0],
@@ -366,7 +364,7 @@ export default function AnswerInput({
             ))}
             <div className="flex justify-between items-center">
               <div className="text-sm text-gray-500">
-                סה"כ:{" "}
+                סה&quot;כ:{" "}
                 {Object.values(values).reduce(
                   (sum, val) => sum + (val || 0),
                   0

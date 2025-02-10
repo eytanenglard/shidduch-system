@@ -87,9 +87,9 @@ const CommandItem = React.forwardRef<
   />
 ));
 CommandItem.displayName = CommandPrimitive.Item.displayName;
-interface CommandDialogProps extends DialogProps {}
 
-const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
+// Removed the empty interface and directly used DialogProps
+const CommandDialog = ({ children, ...props }: DialogProps) => {
   return (
     <Dialog {...props}>
       <DialogContent className="overflow-hidden p-0 shadow-lg">
@@ -100,6 +100,7 @@ const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
     </Dialog>
   );
 };
+
 export {
   Command,
   CommandInput,

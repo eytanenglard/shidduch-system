@@ -6,7 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { WorldComponentProps, AnswerValue } from "../types/types";
+import type {
+  WorldComponentProps,
+  AnswerValue,
+  Question,
+} from "../types/types";
 import { relationshipBasicsQuestions } from "../questions/relationship/relationshipBasicsQuestions";
 import { relationshipDepthQuestions } from "../questions/relationship/relationshipDepthQuestions";
 
@@ -34,7 +38,10 @@ export default function RelationshipWorld({
     return answers.find((a) => a.questionId === questionId)?.value;
   };
 
-  const validateAnswer = (question: any, value: any): string | null => {
+  const validateAnswer = (
+    question: Question,
+    value: AnswerValue
+  ): string | null => {
     if (question.isRequired && !value) {
       return "נדרשת תשובה לשאלה זו";
     }

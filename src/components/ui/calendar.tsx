@@ -13,7 +13,7 @@ function Calendar({
   className,
   classNames,
   showOutsideDays = true,
-  ...props
+  ...otherProps
 }: CalendarProps) {
   return (
     <DayPicker
@@ -55,7 +55,7 @@ function Calendar({
         day_hidden: "invisible",
         ...classNames,
       }}
-      {...props}
+      {...otherProps}
     />
   );
 }

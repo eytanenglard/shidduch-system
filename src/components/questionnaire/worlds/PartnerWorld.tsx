@@ -5,7 +5,7 @@ import AnswerInput from "../common/AnswerInput";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import type { WorldComponentProps } from "../types/types";
+import type { WorldComponentProps, AnswerValue } from "../types/types";
 import type { Question } from "../types/types";
 import { partnerBasicQuestions } from "../questions/partner/partnerBasicQuestions";
 import { partnerDepthQuestions } from "../questions/partner/partnerDepthQuestions";
@@ -31,7 +31,10 @@ export default function PartnerWorld({
     return answers.find((a) => a.questionId === questionId)?.value;
   };
 
-  const validateAnswer = (question: Question, value: any): string | null => {
+  const validateAnswer = (
+    question: Question,
+    value: AnswerValue
+  ): string | null => {
     if (question.isRequired && !value) {
       return "נדרשת תשובה לשאלה זו";
     }

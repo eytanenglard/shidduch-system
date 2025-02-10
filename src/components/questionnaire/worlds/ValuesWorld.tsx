@@ -5,7 +5,11 @@ import AnswerInput from "../common/AnswerInput";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import type { WorldComponentProps, AnswerValue } from "../types/types";
+import type {
+  WorldComponentProps,
+  AnswerValue,
+  Question,
+} from "../types/types";
 import { valuesQuestionsPartOne } from "../questions/values/valuesQuestionsPartOne";
 import { valuesQuestionsPartTwo } from "../questions/values/valuesQuestionsPartTwo";
 import { cn } from "@/lib/utils";
@@ -31,7 +35,10 @@ export default function ValuesWorld({
     return answers.find((a) => a.questionId === questionId)?.value;
   };
 
-  const validateAnswer = (question: any, value: any): string | null => {
+  const validateAnswer = (
+    question: Question,
+    value: AnswerValue
+  ): string | null => {
     if (question.isRequired && !value) {
       return "נדרשת תשובה לשאלה זו";
     }

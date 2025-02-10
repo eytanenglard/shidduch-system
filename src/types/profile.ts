@@ -1,13 +1,13 @@
 // src/types/profile.ts
-import { AvailabilityStatus } from "@prisma/client";
+import { AvailabilityStatus, Profile } from "@prisma/client";
 
 export interface UpdateAvailabilityRequest {
-  availabilityStatus: AvailabilityStatus;
-  availabilityNote?: string | null;
+ availabilityStatus: AvailabilityStatus;
+ availabilityNote?: string | null;
 }
 
-export interface ApiResponse<T = any> {
-  success: boolean;
-  profile?: T;
-  error?: string;
+export interface ApiResponse<T = Profile> {
+ success: boolean;
+ profile?: T;
+ error?: string;
 }

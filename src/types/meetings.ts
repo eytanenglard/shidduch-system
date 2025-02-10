@@ -1,4 +1,4 @@
-import { SuggestionMeeting, MeetingStatus, MeetingType, Prisma } from '@prisma/client';
+import { Meeting,  Prisma } from '@prisma/client';
 
 // טיפוס בסיסי למשוב שתואם את המבנה ב-Prisma
 export type MeetingFeedback = Prisma.JsonObject & {
@@ -10,7 +10,7 @@ export type MeetingFeedback = Prisma.JsonObject & {
 };
 
 // הרחבת טיפוס הפגישה
-export interface ExtendedMeeting extends SuggestionMeeting {
+export interface ExtendedMeeting extends Meeting {
   firstPartyFeedback: MeetingFeedback | null;
   secondPartyFeedback: MeetingFeedback | null;
 }
