@@ -20,7 +20,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Pencil, Save, X } from "lucide-react";
 
@@ -33,6 +32,14 @@ interface ExtendedProfileSectionProps {
     data: Partial<UserProfile & { extendedData: ExtendedProfileData }>
   ) => void;
 }
+
+type NestedChangeValue =
+  | string
+  | number
+  | boolean
+  | string[]
+  | { [key: string]: string }
+  | { location: string; proximity: "קרוב למשפחה" | "קרוב לקהילה" | "גמיש" };
 
 const ExtendedProfileSection: React.FC<ExtendedProfileSectionProps> = ({
   profile,
@@ -51,7 +58,10 @@ const ExtendedProfileSection: React.FC<ExtendedProfileSectionProps> = ({
     }
   }, [profile]);
 
-  const handleChange = (field: keyof ExtendedProfileData, value: any) => {
+  const handleChange = (
+    field: keyof ExtendedProfileData,
+    value: string | string[] | number
+  ) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -61,7 +71,7 @@ const ExtendedProfileSection: React.FC<ExtendedProfileSectionProps> = ({
   const handleNestedChange = (
     category: keyof ExtendedProfileData,
     field: string,
-    value: any
+    value: NestedChangeValue
   ) => {
     setFormData((prev) => ({
       ...prev,

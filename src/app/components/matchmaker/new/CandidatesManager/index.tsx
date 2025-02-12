@@ -16,7 +16,7 @@ import FilterPanel from "../Filters/FilterPanel";
 import ActiveFilters from "../Filters/ActiveFilters";
 import SearchBar from "../Filters/SearchBar";
 import CandidatesStats from "./CandidatesStats";
-import { LoadingContainer, LoadingError } from "../shared/LoadingStates";
+import { LoadingContainer } from "../shared/LoadingStates";
 
 // Types
 import type {
@@ -38,13 +38,8 @@ const CandidatesManager: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Custom Hooks
-  const {
-    loading,
-    maleCandidates,
-    femaleCandidates,
-    refresh,
-    exportCandidates,
-  } = useCandidates();
+  const { loading, maleCandidates, femaleCandidates, exportCandidates } =
+    useCandidates();
 
   const { filters, saveFilter, resetFilters } = useFilterLogic({
     onFilterChange: (newFilters) => {
@@ -134,7 +129,7 @@ const CandidatesManager: React.FC = () => {
       try {
         await saveFilter(name, localFilters);
         toast.success("הפילטר נשמר בהצלחה");
-      } catch (error) {
+      } catch {
         toast.error("שגיאה בשמירת הפילטר");
       }
     },

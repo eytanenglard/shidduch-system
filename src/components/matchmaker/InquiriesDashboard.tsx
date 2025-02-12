@@ -51,7 +51,6 @@ export default function InquiriesDashboard() {
   const [, setLoading] = useState(true);
   const [, setError] = useState("");
 
-  // Auto-refresh inquiries every 30 seconds
   useInterval(() => {
     if (session?.user?.id) {
       loadInquiries();
@@ -93,7 +92,6 @@ export default function InquiriesDashboard() {
         </div>
         <Progress value={progress} className="w-full" />
 
-        {/* Display last update time if available */}
         {(inquiry.firstParty.profile?.availabilityUpdatedAt ||
           inquiry.secondParty.profile?.availabilityUpdatedAt) && (
           <div className="text-sm text-gray-500 mt-2">
@@ -114,7 +112,6 @@ export default function InquiriesDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Rest of the component... */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {inquiries.map((inquiry) => (
           <Card key={inquiry.id} className="hover:shadow-lg transition-shadow">
@@ -147,9 +144,11 @@ export default function InquiriesDashboard() {
                         {inquiry.firstParty.lastName}
                       </span>
                     </div>
+                    {/* Availability note section */}
                     {inquiry.firstParty.profile?.availabilityNote && (
                       <p className="text-sm text-gray-600 mt-1">
-                        "{inquiry.firstParty.profile.availabilityNote}"
+                        &quot;{inquiry.firstParty.profile.availabilityNote}
+                        &quot;
                       </p>
                     )}
                   </div>

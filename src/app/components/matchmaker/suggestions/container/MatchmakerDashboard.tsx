@@ -5,11 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Download } from "lucide-react";
-import type {
-  Suggestion,
-  SuggestionFilters,
-  CreateSuggestionData,
-} from "@/types/suggestions";
+import type { Suggestion, SuggestionFilters } from "@/types/suggestions";
 import NewSuggestionForm from "../../new/NewSuggestionForm";
 import SuggestionsStats from "./SuggestionsStats";
 import SuggestionActionBar from "./SuggestionActionBar";

@@ -33,9 +33,16 @@ import {
 } from "@/components/ui/tooltip";
 import type { QuestionnaireResponse, FormattedAnswer } from "@/types/next-auth";
 
+type UpdateValue =
+  | { type: "answer"; value: string }
+  | { type: "visibility"; isVisible: boolean };
 interface QuestionnaireResponsesSectionProps {
   questionnaire: QuestionnaireResponse | null;
-  onUpdate?: (world: string, questionId: string, value: any) => Promise<void>;
+  onUpdate?: (
+    world: string,
+    questionId: string,
+    value: UpdateValue
+  ) => Promise<void>;
   isEditable?: boolean;
   viewMode?: "matchmaker" | "candidate";
 }

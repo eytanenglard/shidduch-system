@@ -248,7 +248,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
             <CardTitle className="text-xl font-bold">
               העדפות גיל וגובה
             </CardTitle>
-            <CardDescription>הגדר/י טווחי גיל וגובה מועדפים</CardDescription>
+            <CardDescription>הגדר/י טווחי גיל וגובה מועדפים</CardDescription>{" "}
           </CardHeader>
           <CardContent>
             <div
@@ -344,7 +344,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
             <CardTitle className="text-xl font-bold">
               העדפות מיקום ודת
             </CardTitle>
-            <CardDescription>הגדר/י העדפות מיקום ורמת דתיות</CardDescription>
+            <CardDescription>העדפות מיקום ורמת דתיות</CardDescription>
           </CardHeader>
           <CardContent>
             <div

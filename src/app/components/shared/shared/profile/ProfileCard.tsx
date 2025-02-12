@@ -35,8 +35,37 @@ import type {
   UserProfile,
   UserImage,
   QuestionnaireResponse,
+  ContactPreference,
+  AvailabilityStatus,
 } from "@/types/next-auth";
+// Types
+type ProfileActionType =
+  | "contact"
+  | "suggest"
+  | "hide"
+  | "report"
+  | "save"
+  | "verify"
+  | "update_status"
+  | "update_notes"
+  | "update_visibility";
 
+type ProfileActionData = {
+  profileId?: string;
+  userId?: string;
+  status?: AvailabilityStatus;
+  statusNote?: string;
+  matchingNotes?: string;
+  visibility?: boolean;
+  reportReason?: string;
+  reportDetails?: string;
+  contactPreference?: ContactPreference;
+  verificationDetails?: {
+    verifiedBy: string;
+    verificationDate: Date;
+    notes?: string;
+  };
+};
 // Interfaces
 interface WorldConfig {
   key: string;
@@ -51,7 +80,7 @@ interface ProfileCardProps {
   questionnaire?: QuestionnaireResponse | null;
   viewMode?: "matchmaker" | "candidate";
   className?: string;
-  onAction?: (type: string, data?: any) => void;
+  onAction?: (type: ProfileActionType, data?: ProfileActionData) => void;
 }
 
 // Constants

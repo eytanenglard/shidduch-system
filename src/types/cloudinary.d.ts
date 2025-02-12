@@ -11,9 +11,9 @@ interface CloudinaryDestroyResult {
   };
 }
 
-// Define the type for the writable stream returned by upload_stream
 interface CloudinaryUploadStream extends NodeJS.WritableStream {
-  // Add any specific methods or properties of the upload stream if needed
+  end(buffer: Buffer): void;
+  write(buffer: Buffer): boolean;
 }
 
 declare module 'cloudinary' {

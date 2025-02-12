@@ -1,8 +1,17 @@
 // src/components/shared/profile/types/questionnaire.ts
+
+export type QuestionnaireAnswerValue = {
+  type: 'answer';
+  value: string;
+} | {
+  type: 'visibility';
+  isVisible: boolean;
+} | string | number | boolean;
+
 export interface FormattedAnswer {
   questionId: string;
   question: string;
-  value: any;
+  value: QuestionnaireAnswerValue;
   displayText: string;
   answeredAt: string;
   category?: string;
@@ -32,29 +41,29 @@ export interface QuestionnaireResponse {
 }
 
 export interface QuestionnaireWorld {
-    key: string;
-    title: string;
-    icon: React.ElementType;
-    color: string;
-    bgColor: string;
-    borderColor: string;
-  }
-  
-  export interface QuestionCardProps {
-    question: string;
-    answer: FormattedAnswer;
-    isEditing: boolean;
-    onEdit: (value: string) => void;
-    onVisibilityChange: (isVisible: boolean) => void;
-  }
-  
-  export interface WorldSectionProps {
-    title: string;
-    icon: React.ElementType;
-    answers: FormattedAnswer[];
-    isEditing: boolean;
-    onEdit: (questionId: string, value: string) => void;
-    onVisibilityChange: (questionId: string, isVisible: boolean) => void;
-    isCompleted: boolean;
-    className?: string;
-  }
+  key: string;
+  title: string;
+  icon: React.ElementType;
+  color: string;
+  bgColor: string;
+  borderColor: string;
+}
+
+export interface QuestionCardProps {
+  question: string;
+  answer: FormattedAnswer;
+  isEditing: boolean;
+  onEdit: (value: string) => void;
+  onVisibilityChange: (isVisible: boolean) => void;
+}
+
+export interface WorldSectionProps {
+  title: string;
+  icon: React.ElementType;
+  answers: FormattedAnswer[];
+  isEditing: boolean;
+  onEdit: (questionId: string, value: string) => void;
+  onVisibilityChange: (questionId: string, isVisible: boolean) => void;
+  isCompleted: boolean;
+  className?: string;
+}

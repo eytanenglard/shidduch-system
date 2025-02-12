@@ -1,5 +1,5 @@
 "use client";
-import React, { useState} from "react";
+import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -161,13 +161,13 @@ const MatchingSystem = () => {
                   <SelectContent>
                     <SelectItem value="charedi">חרדי</SelectItem>
                     <SelectItem value="dati">דתי</SelectItem>
-                    <SelectItem value="chardal">חרד"ל</SelectItem>
+                    <SelectItem value="chardal">חרד&quot;ל</SelectItem>{" "}
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <Label>גובה (בס"מ)</Label>
+                <Label>גובה (בס&quot;מ)</Label>{" "}
                 <div className="flex gap-2 mt-2">
                   <Input
                     type="number"

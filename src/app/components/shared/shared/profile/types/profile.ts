@@ -1,6 +1,11 @@
-// src/components/shared/profile/types/profile.ts
 import type { UserProfile, UserImage, QuestionnaireResponse } from "@/types/next-auth";
 
+// Define specific types for questionnaire updates
+export interface QuestionnaireUpdateValue {
+  type: 'answer' | 'visibility';
+  value?: string;
+  isVisible?: boolean;
+}
 
 // Interfaces for the main sections
 export interface PhotosSectionProps {
@@ -30,7 +35,7 @@ export interface PreferencesSectionProps {
 
 export interface QuestionnaireResponsesSectionProps {
   questionnaire: QuestionnaireResponse | null;
-  onUpdate?: (world: string, questionId: string, value: any) => Promise<void>;
+  onUpdate?: (world: string, questionId: string, value: QuestionnaireUpdateValue) => Promise<void>;
   isEditable?: boolean;
   viewMode?: "matchmaker" | "candidate";
 }
@@ -77,7 +82,7 @@ export interface ExtendedProfileData {
     financialManagement?: string;
   };
   futureGoals?: string[];
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // Additional utility types

@@ -1,16 +1,11 @@
 import React, { useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Button } from "@/components/ui/button";
-import { Eye, MessageCircle, Clock, Users, Trash2 } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-import { he } from "date-fns/locale";
+import { Users } from "lucide-react";
+
 import type { Suggestion, SuggestionFilters } from "@/types/suggestions";
-import StatusBadge from "../../new/shared/StatusBadge";
 import SuggestionDetailsDialog from "../details/SuggestionDetailsDialog";
 import { toast } from "sonner";
-import { Priority } from "@prisma/client";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,9 +24,6 @@ interface ManagerSuggestionsListProps {
   type: "active" | "pending" | "history";
   onSuggestionDeleted?: (id: string) => void;
 }
-
-// Custom type for timeframe values
-type TimeframeFilter = "today" | "week" | "month";
 
 const ManagerSuggestionsList: React.FC<ManagerSuggestionsListProps> = ({
   suggestions,
@@ -104,19 +96,6 @@ const ManagerSuggestionsList: React.FC<ManagerSuggestionsListProps> = ({
       return true;
     });
   }, [suggestions, filters, searchQuery, type]);
-
-  const handleViewClick = (suggestion: Suggestion) => {
-    if (!suggestion.firstParty?.profile || !suggestion.secondParty?.profile) {
-      toast.error("חסרים פרטי פרופיל למועמדים");
-      return;
-    }
-    setSelectedSuggestion(suggestion);
-  };
-
-  const handleDelete = (id: string) => {
-    setSuggestionToDelete(id);
-    setShowDeleteDialog(true);
-  };
 
   const confirmDelete = async () => {
     if (!suggestionToDelete) return;

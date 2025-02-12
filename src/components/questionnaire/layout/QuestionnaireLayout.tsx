@@ -14,10 +14,7 @@ import {
   Scroll,
   Loader2,
 } from "lucide-react";
-import type {
-  WorldId,
-  QuestionnaireLayoutProps,
-} from "../types/types";
+import type { WorldId, QuestionnaireLayoutProps } from "../types/types";
 import { cn } from "@/lib/utils";
 
 interface SimpleToastProps {
@@ -79,7 +76,7 @@ const worldLabels = {
 export default function QuestionnaireLayout({
   children,
   currentWorld,
-  userTrack,
+  // Remove unused userTrack prop
   completedWorlds,
   onWorldChange,
   onExit,
@@ -123,7 +120,8 @@ export default function QuestionnaireLayout({
     try {
       await onSaveProgress();
       showToast("השאלון נשמר בהצלחה", "success");
-    } catch (err) {
+    } catch {
+      // Remove unused err parameter
       setError("אירעה שגיאה בשמירת השאלון");
       showToast("אירעה שגיאה בשמירת השאלון", "error");
     } finally {

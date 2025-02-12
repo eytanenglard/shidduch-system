@@ -47,6 +47,9 @@ type ArrayFields =
   | "occupations"
   | "educationLevels";
 
+type PreferenceField = keyof Preference;
+type PreferenceValue = Preference[PreferenceField];
+
 export default function MatchPreferencesForm() {
   const { data: session } = useSession();
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
@@ -95,8 +98,8 @@ export default function MatchPreferencesForm() {
 
   const handlePreferenceChange = (
     index: number,
-    field: keyof Preference,
-    value: any
+    field: PreferenceField,
+    value: PreferenceValue
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -106,14 +109,13 @@ export default function MatchPreferencesForm() {
     }));
   };
 
-  // בטופס ההעדפות
   useEffect(() => {
     const loadPreferences = async () => {
       try {
         const response = await fetch("/api/preferences");
         if (response.ok) {
           const data = await response.json();
-          console.log("Loaded preferences:", data); // לדיבוג
+          console.log("Loaded preferences:", data);
           if (data && Object.keys(data).length > 0) {
             setFormData(data);
           }
@@ -153,6 +155,7 @@ export default function MatchPreferencesForm() {
       setLoading(false);
     }
   };
+
   return (
     <div className="container mx-auto py-8 px-4">
       <Card>
@@ -195,7 +198,7 @@ export default function MatchPreferencesForm() {
 
           {/* טווח גבהים */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">טווח גבהים (בס"מ)</h3>
+            <h3 className="text-lg font-semibold">טווח גבהים (בס&quot;מ)</h3>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>מגובה</Label>

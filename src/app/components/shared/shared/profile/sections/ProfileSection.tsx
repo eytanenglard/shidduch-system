@@ -163,9 +163,12 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
       setFormData(mergedData);
       setInitialData(mergedData);
     }
-  }, [profile]);
+  }, [profile, formData]);
 
-  const handleChange = (field: keyof UserProfile, value: any) => {
+  const handleChange = (
+    field: keyof UserProfile,
+    value: UserProfile[keyof UserProfile]
+  ) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
