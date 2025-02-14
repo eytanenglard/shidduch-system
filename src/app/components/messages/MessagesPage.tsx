@@ -1,6 +1,6 @@
 "use client";
 import { useNotifications } from "@/app/contexts/NotificationContext";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,13 +29,7 @@ export default function MessagesPage() {
   });
   const [note, setNote] = useState("");
 
-  useEffect(() => {
-    if (session?.user) {
-      loadInquiries();
-    }
-  }, [session, filters]);
-
-  const loadInquiries = async () => {
+  const loadInquiries = useCallback(async () => {
     try {
       const queryParams = new URLSearchParams({
         status: filters.status,
@@ -51,7 +45,13 @@ export default function MessagesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
+
+  useEffect(() => {
+    if (session?.user) {
+      loadInquiries();
+    }
+  }, [session, loadInquiries]);
 
   const handleResponse = async (inquiryId: string, isAvailable: boolean) => {
     try {
@@ -202,49 +202,56 @@ export default function MessagesPage() {
                   </>
                 )}
 
-{inquiry.firstPartyResponse !== null && (
-  <div className="space-y-4">
-    <div className={`flex items-center gap-2 p-2 rounded-md ${
-      inquiry.firstPartyResponse
-        ? "bg-green-50 text-green-700"
-        : "bg-red-50 text-red-700"
-    }`}>
-      {inquiry.firstPartyResponse ? (
-        <CheckCircle className="h-5 w-5" />
-      ) : (
-        <XCircle className="h-5 w-5" />
-      )}
-      <span>
-        {inquiry.firstPartyResponse
-          ? "אישרת זמינות"
-          : "ציינת שאינך זמין/ה"}
-      </span>
-    </div>
+                {inquiry.firstPartyResponse !== null && (
+                  <div className="space-y-4">
+                    <div
+                      className={`flex items-center gap-2 p-2 rounded-md ${
+                        inquiry.firstPartyResponse
+                          ? "bg-green-50 text-green-700"
+                          : "bg-red-50 text-red-700"
+                      }`}
+                    >
+                      {inquiry.firstPartyResponse ? (
+                        <CheckCircle className="h-5 w-5" />
+                      ) : (
+                        <XCircle className="h-5 w-5" />
+                      )}
+                      <span>
+                        {inquiry.firstPartyResponse
+                          ? "אישרת זמינות"
+                          : "ציינת שאינך זמין/ה"}
+                      </span>
+                    </div>
 
-    <div>
-      <Button
-        onClick={() => handleResponse(inquiry.id, !inquiry.firstPartyResponse)}
-        className={`w-full ${
-          inquiry.firstPartyResponse 
-            ? "bg-red-600 hover:bg-red-700"
-            : "bg-green-600 hover:bg-green-700"
-        }`}
-      >
-        {inquiry.firstPartyResponse ? (
-          <>
-            <XCircle className="mr-2 h-4 w-4" />
-            שינוי תשובה - אינני זמין/ה
-          </>
-        ) : (
-          <>
-            <CheckCircle className="mr-2 h-4 w-4" />
-            שינוי תשובה - אני זמין/ה
-          </>
-        )}
-      </Button>
-    </div>
-  </div>
-)}
+                    <div>
+                      <Button
+                        onClick={() =>
+                          handleResponse(
+                            inquiry.id,
+                            !inquiry.firstPartyResponse
+                          )
+                        }
+                        className={`w-full ${
+                          inquiry.firstPartyResponse
+                            ? "bg-red-600 hover:bg-red-700"
+                            : "bg-green-600 hover:bg-green-700"
+                        }`}
+                      >
+                        {inquiry.firstPartyResponse ? (
+                          <>
+                            <XCircle className="mr-2 h-4 w-4" />
+                            שינוי תשובה - אינני זמין/ה
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="mr-2 h-4 w-4" />
+                            שינוי תשובה - אני זמין/ה
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

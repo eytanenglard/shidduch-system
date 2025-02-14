@@ -332,8 +332,8 @@ export default function MatchPreferencesForm() {
           )}
         </CardContent>
       </Card>
-
-      <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+      
+      <AlertDialog>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>העדפות נשמרו בהצלחה</AlertDialogTitle>

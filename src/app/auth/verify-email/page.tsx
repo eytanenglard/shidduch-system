@@ -27,7 +27,6 @@ export default function VerifyEmailPage() {
   });
   const [isResending, setIsResending] = useState(false);
 
-  // טיפול בשליחה מחדש של מייל אימות
   const handleResendVerification = async () => {
     if (!email) return;
 
@@ -60,12 +59,8 @@ export default function VerifyEmailPage() {
     }
   };
 
-  // אימות הטוקן
-  // למחוק את ה-useEffect הקיים ולהחליף אותו בזה:
-
   useEffect(() => {
     const verifyToken = async () => {
-      // אם אין טוקן או שכבר ביצענו אימות, נצא מהפונקציה
       if (
         !token ||
         verification.status === "success" ||
@@ -106,12 +101,12 @@ export default function VerifyEmailPage() {
     };
 
     verifyToken();
-  }, [token]); // שינוי התלויות - רק token
+  }, [token, router, updateSession, verification.status]); // Added missing dependencies
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardContent className="p-6 space-y-4">
-          {/* תצוגת המתנה לאימות מייל */}
           {verification.status === "pending" && (
             <div className="text-center space-y-4">
               <h2 className="text-xl font-semibold">אימות חשבון</h2>
@@ -136,7 +131,6 @@ export default function VerifyEmailPage() {
             </div>
           )}
 
-          {/* תצוגת תהליך האימות */}
           {verification.status === "verifying" && (
             <div className="flex flex-col items-center space-y-4">
               <Loader2 className="h-8 w-8 animate-spin" />
@@ -144,7 +138,6 @@ export default function VerifyEmailPage() {
             </div>
           )}
 
-          {/* תצוגת הצלחה */}
           {verification.status === "success" && (
             <div className="text-center space-y-4">
               <h2 className="text-xl font-semibold text-green-600">
@@ -154,7 +147,6 @@ export default function VerifyEmailPage() {
             </div>
           )}
 
-          {/* תצוגת שגיאה */}
           {verification.status === "error" && (
             <div className="space-y-4">
               <Alert variant="destructive">

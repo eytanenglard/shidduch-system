@@ -224,13 +224,21 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   const handleQuestionnaireUpdate = async (
     world: string,
     questionId: string,
-    value: string | number | boolean
+    update:
+      | { type: "answer"; value: string }
+      | { type: "visibility"; isVisible: boolean }
   ) => {
     try {
       const response = await fetch("/api/profile/questionnaire", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ worldKey: world, questionId, value }),
+        body: JSON.stringify({
+          worldKey: world,
+          questionId,
+          value: update.type === "answer" ? update.value : undefined,
+          isVisible:
+            update.type === "visibility" ? update.isVisible : undefined,
+        }),
       });
 
       const data = await response.json();

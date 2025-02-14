@@ -12,6 +12,7 @@ import type { AvailabilityInquiry } from "@prisma/client";
 interface Props {
   inquiryId: string;
 }
+
 interface ExtendedInquiry extends AvailabilityInquiry {
   matchmaker: {
     firstName: string;
@@ -26,6 +27,7 @@ interface ExtendedInquiry extends AvailabilityInquiry {
     lastName: string;
   };
 }
+
 export default function AvailabilityInquiryResponse({ inquiryId }: Props) {
   const [inquiry, setInquiry] = useState<ExtendedInquiry | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -34,21 +36,21 @@ export default function AvailabilityInquiryResponse({ inquiryId }: Props) {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    const loadInquiry = async () => {
+      try {
+        const response = await fetch(`/api/matchmaker/inquiries/${inquiryId}`);
+        if (!response.ok) throw new Error("Failed to load inquiry");
+        const data = await response.json();
+        setInquiry(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load inquiry");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     loadInquiry();
   }, [inquiryId]);
-
-  const loadInquiry = async () => {
-    try {
-      const response = await fetch(`/api/matchmaker/inquiries/${inquiryId}`);
-      if (!response.ok) throw new Error("Failed to load inquiry");
-      const data = await response.json();
-      setInquiry(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load inquiry");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleResponse = async (isAvailable: boolean) => {
     try {

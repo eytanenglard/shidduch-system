@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-
+import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { User, MapPin, Briefcase, Calendar, Clock } from "lucide-react";
@@ -42,10 +42,13 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
       {/* Background Image or Avatar */}
       <div className="relative h-48 bg-gradient-to-b from-blue-50 to-blue-100">
         {mainImage ? (
-          <img
+          <Image
             src={mainImage.url}
             alt={`${candidate.firstName} ${candidate.lastName}`}
-            className="w-full h-full object-cover"
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            priority={false}
+            className="object-cover"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
@@ -54,7 +57,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
         )}
 
         {/* Status Badge */}
-        <div className="absolute top-3 right-3">
+        <div className="absolute top-3 right-3 z-10">
           <Badge
             className={
               candidate.profile.availabilityStatus === "AVAILABLE"

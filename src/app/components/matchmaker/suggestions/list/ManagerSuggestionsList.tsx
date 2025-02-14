@@ -166,7 +166,8 @@ const ManagerSuggestionsList: React.FC<ManagerSuggestionsListProps> = ({
         onAction={handleAction}
       />
 
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+      <AlertDialog>
+        {" "}
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>האם את/ה בטוח/ה?</AlertDialogTitle>

@@ -244,7 +244,9 @@ export const findBestMatches = (
   return matches.slice(0, limit);
 };
 
-export default {
+const matchingAlgorithm = {
   calculateMatchScore,
   findBestMatches
 };
+
+export default matchingAlgorithm;

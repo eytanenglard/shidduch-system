@@ -88,7 +88,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
       setShowImageViewer(true);
       setLastUploadedIndex(null);
     }
-  }, [lastUploadedIndex, images]);
+  }, [lastUploadedIndex]);
   // File handling functions
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -357,10 +357,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
         </div>
 
         {/* Delete Confirmation Dialog */}
-        <AlertDialog
-          open={deleteConfirmOpen}
-          onOpenChange={setDeleteConfirmOpen}
-        >
+        <AlertDialog>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>מחיקת תמונה</AlertDialogTitle>

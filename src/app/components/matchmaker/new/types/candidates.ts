@@ -99,8 +99,10 @@ export const isProfileComplete = (profile: CandidateProfile): boolean => {
   return requiredFields.every(field => Boolean(profile[field]));
 };
 
-export default {
+const candidateUtils = {
   mapCandidateToProfileCard,
   separateCandidatesByGender,
   isProfileComplete
 };
+
+export default candidateUtils;

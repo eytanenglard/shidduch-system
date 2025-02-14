@@ -2,6 +2,7 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 import {
   Clock,
   User,
@@ -104,10 +105,12 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
       <div className="flex-1">
         <div className="relative h-32 bg-gradient-to-b from-blue-50 to-blue-100">
           {mainImage ? (
-            <img
+            <Image
               src={mainImage.url}
               alt={`${party.firstName} ${party.lastName}`}
               className="w-full h-full object-cover rounded-t-lg"
+              fill
+              sizes="(max-width: 768px) 100vw, 33vw"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">

@@ -172,7 +172,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
           <CardHeader>
             <CardTitle className="text-xl font-bold">תיאור כללי</CardTitle>
             <CardDescription>
-              כתיבה זורמת על הבן זוג/בת זוג הרצוי/ה
+              כתיבה חופשית על הבן זוג או הבת זוג
             </CardDescription>
           </CardHeader>
           <CardContent>

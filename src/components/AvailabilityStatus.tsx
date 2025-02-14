@@ -239,8 +239,7 @@ export default function AvailabilityStatus() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-        <AlertDialogContent>
+      <AlertDialog>        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>הסטטוס עודכן בהצלחה</AlertDialogTitle>
             <AlertDialogDescription>

@@ -8,24 +8,27 @@ import {
 } from '@prisma/client';
 
 // Base suggestion data for creation
-export interface CreateSuggestionData {
+interface CreateSuggestionData {
   matchmakerId: string;
   firstPartyId: string;
   secondPartyId: string;
   status?: MatchSuggestionStatus;
   priority?: Priority;
   decisionDeadline: Date;
-  notes?: {
-    internal?: string;
-    forFirstParty?: string;
-    forSecondParty?: string;
-    matchingReason?: string;
-    followUpNotes?: string;
-  };
+  notes?: SuggestionNotes;
+}
+
+// Shared notes interface to avoid repetition
+interface SuggestionNotes {
+  internal?: string;
+  forFirstParty?: string;
+  forSecondParty?: string;
+  matchingReason?: string;
+  followUpNotes?: string;
 }
 
 // Main suggestion type
-export interface Suggestion {
+interface Suggestion {
   id: string;
   matchmakerId: string;
   firstPartyId: string;
@@ -33,7 +36,7 @@ export interface Suggestion {
   status: MatchSuggestionStatus;
   priority: Priority;
   
-  // Notes
+  // Notes (using shared interface)
   internalNotes?: string;
   firstPartyNotes?: string;
   secondPartyNotes?: string;
@@ -58,12 +61,7 @@ export interface Suggestion {
   updatedAt: Date;
 
   // Relations
-  matchmaker: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    role: UserRole;
-  };
+  matchmaker: MatchmakerProfile;
   firstParty: PartyProfile;
   secondParty: PartyProfile;
   meetings: SuggestionMeeting[];
@@ -73,8 +71,16 @@ export interface Suggestion {
   approvedBy: PartyProfile[];
 }
 
+// Matchmaker profile type
+interface MatchmakerProfile {
+  id: string;
+  firstName: string;
+  lastName: string;
+  role: UserRole;
+}
+
 // Meeting type
-export interface SuggestionMeeting {
+interface SuggestionMeeting {
   id: string;
   suggestionId: string;
   scheduledDate: Date;
@@ -87,7 +93,7 @@ export interface SuggestionMeeting {
 }
 
 // Status history
-export interface SuggestionStatusHistory {
+interface SuggestionStatusHistory {
   id: string;
   suggestionId: string;
   status: MatchSuggestionStatus;
@@ -97,7 +103,7 @@ export interface SuggestionStatusHistory {
 }
 
 // Profile type
-export interface PartyProfile {
+interface PartyProfile {
   id: string;
   firstName: string;
   lastName: string;
@@ -106,29 +112,23 @@ export interface PartyProfile {
 }
 
 // Update type
-export interface UpdateSuggestionData {
+interface UpdateSuggestionData {
   id: string;
   status?: MatchSuggestionStatus;
   priority?: Priority;
   responseDeadline?: Date;
   decisionDeadline?: Date;
-  notes?: {
-    internal?: string;
-    forFirstParty?: string;
-    forSecondParty?: string;
-    matchingReason?: string;
-    followUpNotes?: string;
-  };
+  notes?: SuggestionNotes;
 }
 
 // Response types
-export interface SuggestionResponse {
+interface SuggestionResponse {
   success: boolean;
   data?: Suggestion;
   error?: string;
 }
 
-export interface SuggestionsListResponse {
+interface SuggestionsListResponse {
   success: boolean;
   data?: {
     suggestions: Suggestion[];
@@ -138,3 +138,16 @@ export interface SuggestionsListResponse {
   };
   error?: string;
 }
+
+export type {
+  CreateSuggestionData,
+  SuggestionNotes,
+  Suggestion,
+  MatchmakerProfile,
+  SuggestionMeeting,
+  SuggestionStatusHistory,
+  PartyProfile,
+  UpdateSuggestionData,
+  SuggestionResponse,
+  SuggestionsListResponse,
+};

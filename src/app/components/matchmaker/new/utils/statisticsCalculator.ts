@@ -234,7 +234,7 @@ export const calculateCompletionStats = (candidates: Candidate[]) => {
   };
 };
 
-export default {
+const statisticsCalculator = {
   calculateAgeDistribution,
   calculateLocationDistribution,
   calculateReligiousDistribution,
@@ -243,3 +243,5 @@ export default {
   calculateAvailabilityStats,
   calculateCompletionStats
 };
+
+export default statisticsCalculator;
