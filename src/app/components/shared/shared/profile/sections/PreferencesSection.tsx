@@ -435,7 +435,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
         <Card>
           <CardHeader>
             <CardTitle className="text-xl font-bold">השכלה ותעסוקה</CardTitle>
-            <CardDescription>העדפות בתחום ההשכלה והתעסוקה</CardDescription>
+            <CardDescription>{"העדפות בתחום ההשכלה והתעסוקה"}</CardDescription>
           </CardHeader>
           <CardContent>
             <div
