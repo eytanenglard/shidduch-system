@@ -36,7 +36,7 @@ export default function AvailabilityStatus() {
   const { data: session } = useSession() as { data: Session | null };
 
   const [showDialog, setShowDialog] = useState(false);
-  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [, setShowSuccessDialog] = useState(false);
   const [status, setStatus] = useState<AvailabilityStatusEnum>(
     session?.user?.profile?.availabilityStatus ||
       AvailabilityStatusEnum.AVAILABLE
@@ -239,7 +239,9 @@ export default function AvailabilityStatus() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog>        <AlertDialogContent>
+      <AlertDialog>
+        {" "}
+        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>הסטטוס עודכן בהצלחה</AlertDialogTitle>
             <AlertDialogDescription>

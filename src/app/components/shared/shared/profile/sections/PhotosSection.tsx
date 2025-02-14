@@ -75,7 +75,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
     null
   );
   const [isProcessing, setIsProcessing] = useState(false);
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [, setDeleteConfirmOpen] = useState(false);
   const [imageToDelete, setImageToDelete] = useState<string | null>(null);
   const [lastUploadedIndex, setLastUploadedIndex] = useState<number | null>(
     null
@@ -89,6 +89,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
       setLastUploadedIndex(null);
     }
   }, [lastUploadedIndex]);
+
   // File handling functions
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -290,7 +291,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
                       )}
                       onClick={(e) => {
                         e.stopPropagation();
-                        !image.isMain && handleSetMainImage(image.id);
+                        if (!image.isMain) handleSetMainImage(image.id);
                       }}
                       disabled={image.isMain}
                       title={image.isMain ? "תמונה ראשית" : "הפוך לתמונה ראשית"}

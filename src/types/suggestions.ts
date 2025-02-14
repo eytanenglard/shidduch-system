@@ -169,11 +169,13 @@ export interface SuggestionStats {
   successRate: number;
 }
 
-export default {
+const suggestionEnums = {
   MatchSuggestionStatus,
   Priority,
   MeetingStatus
 };
+
+export default suggestionEnums;
 
 export const getSuggestionCategory = (status: MatchSuggestionStatus) => {
   switch (status) {

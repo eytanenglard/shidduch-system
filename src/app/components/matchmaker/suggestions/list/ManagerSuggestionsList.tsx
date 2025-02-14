@@ -34,7 +34,7 @@ const ManagerSuggestionsList: React.FC<ManagerSuggestionsListProps> = ({
 }) => {
   const [selectedSuggestion, setSelectedSuggestion] =
     useState<Suggestion | null>(null);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [, setShowDeleteDialog] = useState(false);
   const [suggestionToDelete, setSuggestionToDelete] = useState<string | null>(
     null
   );

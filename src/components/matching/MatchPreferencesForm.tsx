@@ -52,7 +52,7 @@ type PreferenceValue = Preference[PreferenceField];
 
 export default function MatchPreferencesForm() {
   const { data: session } = useSession();
-  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [, setShowSuccessDialog] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -332,7 +332,7 @@ export default function MatchPreferencesForm() {
           )}
         </CardContent>
       </Card>
-      
+
       <AlertDialog>
         <AlertDialogContent>
           <AlertDialogHeader>

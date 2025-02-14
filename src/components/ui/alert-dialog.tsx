@@ -1,32 +1,32 @@
 import React, { createContext, useContext, useCallback, useState } from "react";
 
-// Create context for the alert dialog
-const AlertDialogContext = createContext({
+type AlertDialogContextType = {
+  open: boolean;
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+};
+
+const AlertDialogContext = createContext<AlertDialogContextType>({
   open: false,
-  setOpen: (value: boolean) => {},
+  setOpen: () => {}, // Remove the unused parameter
 });
 
 // Root component
-const AlertDialog = ({ children }: { children: React.ReactNode }) => {
+const AlertDialog = ({
+  children,
+}: {
+  children: React.ReactNode;
+}): JSX.Element => {
   const [open, setOpen] = useState(false);
+
+  const contextValue = {
+    open,
+    setOpen,
+  };
+
   return (
-    <AlertDialogContext.Provider value={{ open, setOpen }}>
+    <AlertDialogContext.Provider value={contextValue}>
       {children}
     </AlertDialogContext.Provider>
-  );
-};
-
-// Trigger component
-const AlertDialogTrigger = ({
-  children,
-  className,
-  ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement>) => {
-  const { setOpen } = useContext(AlertDialogContext);
-  return (
-    <button className={className} onClick={() => setOpen(true)} {...props}>
-      {children}
-    </button>
   );
 };
 
@@ -159,7 +159,6 @@ const AlertDialogCancel = ({
 
 export {
   AlertDialog,
-  AlertDialogTrigger,
   AlertDialogContent,
   AlertDialogHeader,
   AlertDialogFooter,
