@@ -10,18 +10,40 @@ import { Loader2 } from "lucide-react";
 
 export default function QuestionnaireRestore() {
   const router = useRouter();
-  const { data: session } = useSession();
-  const [, setIsProcessing] = useState(false);
+  const { data: session, status } = useSession();
+  const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Add loading state for session
+  if (status === "loading") {
+    return (
+      <div className="container mx-auto p-4 max-w-md">
+        <Card>
+          <CardContent className="p-6 text-center">
+            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+            <p className="text-lg">טוען...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Redirect if not authenticated
+  if (status === "unauthenticated") {
+    router.push("/login");
+    return null;
+  }
 
   useEffect(() => {
     const restoreQuestionnaire = async () => {
+      if (isProcessing) return; // Prevent multiple executions
+
       try {
         setIsProcessing(true);
-        const savedData =
-          typeof window !== "undefined"
-            ? localStorage.getItem("tempQuestionnaire")
-            : null;
+        setError(null);
+
+        // Check for saved data
+        const savedData = localStorage.getItem("tempQuestionnaire");
 
         if (!savedData || !session?.user?.id) {
           router.push("/dashboard");
@@ -31,6 +53,7 @@ export default function QuestionnaireRestore() {
         const questionnaireData = JSON.parse(savedData);
         questionnaireData.userId = session.user.id;
 
+        // Submit questionnaire
         const response = await fetch("/api/questionnaire", {
           method: "POST",
           headers: {
@@ -40,16 +63,17 @@ export default function QuestionnaireRestore() {
         });
 
         if (!response.ok) {
-          throw new Error("Failed to save questionnaire");
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to save questionnaire");
         }
 
+        // Clear saved data
         localStorage.removeItem("tempQuestionnaire");
 
-        if (questionnaireData.completed) {
-          router.push("/dashboard");
-        } else {
-          router.push("/questionnaire");
-        }
+        // Redirect based on completion status
+        router.push(
+          questionnaireData.completed ? "/dashboard" : "/questionnaire"
+        );
       } catch (err) {
         console.error("Error restoring questionnaire:", err);
         setError("אירעה שגיאה בשחזור הנתונים. אנא נסה שוב.");
@@ -58,10 +82,10 @@ export default function QuestionnaireRestore() {
       }
     };
 
-    if (session?.user) {
+    if (session?.user && !isProcessing) {
       restoreQuestionnaire();
     }
-  }, [session, router]);
+  }, [session, router, isProcessing]);
 
   if (error) {
     return (

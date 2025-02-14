@@ -1,30 +1,10 @@
 import { Inter } from "next/font/google";
-import dynamic from "next/dynamic";
-import { cookies } from "next/headers";
 import "./globals.css";
 import { metadata as siteMetadata } from "./metadata";
-
-interface ProvidersProps {
-  children: React.ReactNode;
-}
-
-type NavbarProps = Record<string, never>;
-
-interface LanguageProviderProps {
-  children: React.ReactNode;
-}
-
-const Providers = dynamic<ProvidersProps>(() =>
-  import("@/components/Providers").then((mod) => mod.default)
-);
-
-const Navbar = dynamic<NavbarProps>(() =>
-  import("@/components/layout/Navbar").then((mod) => mod.default)
-);
-
-const LanguageProvider = dynamic<LanguageProviderProps>(() =>
-  import("@/app/contexts/LanguageContext").then((mod) => mod.LanguageProvider)
-);
+import { cookies } from "next/headers";
+import Providers from "@/components/Providers";
+import Navbar from "@/components/layout/Navbar";
+import { LanguageProvider } from "@/app/contexts/LanguageContext";
 
 const inter = Inter({
   subsets: ["latin"],
