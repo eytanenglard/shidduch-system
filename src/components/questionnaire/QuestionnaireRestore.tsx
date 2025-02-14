@@ -14,35 +14,14 @@ export default function QuestionnaireRestore() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Add loading state for session
-  if (status === "loading") {
-    return (
-      <div className="container mx-auto p-4 max-w-md">
-        <Card>
-          <CardContent className="p-6 text-center">
-            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-            <p className="text-lg">טוען...</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // Redirect if not authenticated
-  if (status === "unauthenticated") {
-    router.push("/login");
-    return null;
-  }
-
   useEffect(() => {
     const restoreQuestionnaire = async () => {
-      if (isProcessing) return; // Prevent multiple executions
+      if (isProcessing) return;
 
       try {
         setIsProcessing(true);
         setError(null);
 
-        // Check for saved data
         const savedData = localStorage.getItem("tempQuestionnaire");
 
         if (!savedData || !session?.user?.id) {
@@ -53,7 +32,6 @@ export default function QuestionnaireRestore() {
         const questionnaireData = JSON.parse(savedData);
         questionnaireData.userId = session.user.id;
 
-        // Submit questionnaire
         const response = await fetch("/api/questionnaire", {
           method: "POST",
           headers: {
@@ -67,10 +45,7 @@ export default function QuestionnaireRestore() {
           throw new Error(errorData.message || "Failed to save questionnaire");
         }
 
-        // Clear saved data
         localStorage.removeItem("tempQuestionnaire");
-
-        // Redirect based on completion status
         router.push(
           questionnaireData.completed ? "/dashboard" : "/questionnaire"
         );
@@ -82,28 +57,44 @@ export default function QuestionnaireRestore() {
       }
     };
 
-    if (session?.user && !isProcessing) {
+    if (session?.user && !isProcessing && status === "authenticated") {
       restoreQuestionnaire();
     }
-  }, [session, router, isProcessing]);
+  }, [session, router, isProcessing, status]);
 
-  if (error) {
+  const renderContent = () => {
+    if (status === "loading") {
+      return (
+        <Card>
+          <CardContent className="p-6 text-center">
+            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+            <p className="text-lg">טוען...</p>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    if (status === "unauthenticated") {
+      router.push("/login");
+      return null;
+    }
+
+    if (error) {
+      return (
+        <>
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+          <div className="mt-4 flex justify-center">
+            <Button onClick={() => router.push("/questionnaire")}>
+              חזור לשאלון
+            </Button>
+          </div>
+        </>
+      );
+    }
+
     return (
-      <div className="container mx-auto p-4 max-w-md">
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-        <div className="mt-4 flex justify-center">
-          <Button onClick={() => router.push("/questionnaire")}>
-            חזור לשאלון
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="container mx-auto p-4 max-w-md">
       <Card>
         <CardContent className="p-6 text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
@@ -111,6 +102,10 @@ export default function QuestionnaireRestore() {
           <p className="text-sm text-gray-500 mt-2">אנא המתן</p>
         </CardContent>
       </Card>
-    </div>
+    );
+  };
+
+  return (
+    <div className="container mx-auto p-4 max-w-md">{renderContent()}</div>
   );
 }
