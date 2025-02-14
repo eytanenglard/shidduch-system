@@ -6,7 +6,6 @@ import {
   User,
   MapPin,
   Briefcase,
-  Calendar,
   Clock,
   UserCircle,
   Eye,
@@ -193,7 +192,6 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
           {age && (
             <div className="flex items-center justify-end gap-2">
               <span>{age}</span>
-              <Calendar className="w-4 h-4" />
             </div>
           )}
 
