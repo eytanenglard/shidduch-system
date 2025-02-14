@@ -18,7 +18,10 @@ export default function QuestionnaireRestore() {
     const restoreQuestionnaire = async () => {
       try {
         setIsProcessing(true);
-        const savedData = localStorage.getItem("tempQuestionnaire");
+        const savedData =
+          typeof window !== "undefined"
+            ? localStorage.getItem("tempQuestionnaire")
+            : null;
 
         if (!savedData || !session?.user?.id) {
           router.push("/dashboard");

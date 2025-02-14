@@ -1,5 +1,7 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+// בקובץ next.config.ts
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
       allowedOrigins: ["localhost:3000"],
@@ -50,9 +52,11 @@ const nextConfig = {
             },
             lib: {
               test: /[\\/]node_modules[\\/]/,
-              name(module) {
+              name(module: any) {
+                // בדיקה שה-module.context קיים
                 if (!module.context) return 'vendor';
                 
+                // הוספת בדיקת null
                 const match = module.context.match(
                   /[\\/]node_modules[\\/](.*?)([\\/]|$)/
                 );
@@ -74,6 +78,7 @@ const nextConfig = {
 
     return config;
   },
+  // שאר הקונפיגורציה נשארת זהה
   poweredByHeader: false,
   async headers() {
     return [
@@ -97,4 +102,4 @@ const nextConfig = {
   }
 };
 
-module.exports = nextConfig;
+export default nextConfig;
