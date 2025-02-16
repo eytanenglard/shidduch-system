@@ -132,7 +132,7 @@ export default function HomePage() {
               </Link>
             </div>
           ) : (
-            <Link href="/dashboard">
+            <Link href="/profile">
               <Button
                 size="lg"
                 className="text-lg px-8 py-6 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-xl"
@@ -271,63 +271,13 @@ export default function HomePage() {
               <h3 className="font-bold text-xl mb-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
                 ניווט מהיר
               </h3>
-              <ul className="space-y-4">
-                <li>
-                  <Link
-                    href="/about"
-                    className="hover:text-blue-400 transition-colors"
-                  >
-                    אודות
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/contact"
-                    className="hover:text-blue-400 transition-colors"
-                  >
-                    צור קשר
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/faq"
-                    className="hover:text-blue-400 transition-colors"
-                  >
-                    שאלות נפוצות
-                  </Link>
-                </li>
-              </ul>
+              <ul className="space-y-4"></ul>
             </div>
             <div>
               <h3 className="font-bold text-xl mb-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
                 מידע שימושי
               </h3>
-              <ul className="space-y-4">
-                <li>
-                  <Link
-                    href="/privacy"
-                    className="hover:text-blue-400 transition-colors"
-                  >
-                    מדיניות פרטיות
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/terms"
-                    className="hover:text-blue-400 transition-colors"
-                  >
-                    תנאי שימוש
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/accessibility"
-                    className="hover:text-blue-400 transition-colors"
-                  >
-                    נגישות
-                  </Link>
-                </li>
-              </ul>
+              <ul className="space-y-4"></ul>
             </div>
             <div>
               <h3 className="font-bold text-xl mb-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">

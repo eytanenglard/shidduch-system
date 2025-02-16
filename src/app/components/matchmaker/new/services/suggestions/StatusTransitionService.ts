@@ -84,7 +84,6 @@ export class StatusTransitionService {
     try {
       await EmailService.getInstance().handleSuggestionStatusChange(
         updatedSuggestion,
-        previousStatus
       );
     } catch (error) {
       // Log error but don't fail the transition

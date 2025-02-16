@@ -52,7 +52,7 @@ export default function SignInForm() {
         }
 
         // אם אין שאלון או שהשמירה נכשלה, נווט לדשבורד
-        router.push("/dashboard");
+        router.push("/profile");
         router.refresh();
       }
     } catch {

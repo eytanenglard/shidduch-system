@@ -22,8 +22,13 @@ export async function POST(req: Request) {
       );
     }
 
-    // אימות הטוקן ועדכון סטטוס המשתמש
+    // אימות הטוקן 
     const verification = await VerificationService.verifyToken(token, type);
+
+    // בדיקה שקיים מזהה משתמש
+    if (!verification.userId) {
+      throw new Error("מזהה משתמש לא נמצא");
+    }
 
     // עדכון סטטוס המשתמש ל-ACTIVE
     await prisma.user.update({

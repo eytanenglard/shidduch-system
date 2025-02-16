@@ -269,7 +269,7 @@ export default function MatchmakingQuestionnaire({
         return (
           <Welcome
             onStart={() => setCurrentStep(OnboardingStep.TRACK_SELECTION)}
-            onLearnMore={() => router.push("/about")}
+            onLearnMore={() => router.push("/profile")}
             isLoggedIn={!!userId}
           />
         );
@@ -293,7 +293,7 @@ export default function MatchmakingQuestionnaire({
             userTrack={userTrack}
             completedWorlds={completedWorlds}
             onWorldChange={handleWorldChange}
-            onExit={() => router.push("/dashboard")}
+            onExit={() => router.push("/profile")}
             onSaveProgress={handleQuestionnaireComplete}
           >
             {renderCurrentWorld()}

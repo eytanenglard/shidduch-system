@@ -12,14 +12,17 @@ import {
 } from "@/components/ui/dialog";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import type { Client } from "@/app/types/matchmaker";
+import type { User } from "@/types/next-auth";
 
 interface Props {
-  client: Client;
+  client: User;
   onCheckAvailability: (clientId: string) => Promise<void>;
 }
 
-export default function AvailabilityCheckButton({ client, onCheckAvailability }: Props) {
+export default function AvailabilityCheckButton({
+  client,
+  onCheckAvailability,
+}: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -31,7 +34,9 @@ export default function AvailabilityCheckButton({ client, onCheckAvailability }:
       await onCheckAvailability(client.id);
       setIsOpen(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to check availability");
+      setError(
+        err instanceof Error ? err.message : "Failed to check availability"
+      );
     } finally {
       setIsLoading(false);
     }

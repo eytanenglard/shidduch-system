@@ -126,10 +126,7 @@ const ActiveFilters: React.FC<ActiveFiltersProps> = ({
             <button
               className="ml-2 hover:text-red-500 focus:outline-none"
               onClick={() =>
-                onRemoveFilter(
-                  filter.key as keyof CandidatesFilter,
-                  filter.value
-                )
+                onRemoveFilter(filter.key as keyof CandidatesFilter)
               }
               aria-label={`הסר פילטר ${filter.label}`}
             >

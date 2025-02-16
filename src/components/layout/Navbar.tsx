@@ -18,7 +18,6 @@ import {
   MessageCircle,
   Settings,
   Heart,
-  ClipboardList,
 } from "lucide-react";
 import type { Session } from "next-auth";
 
@@ -74,18 +73,6 @@ const Navbar = () => {
               <>
                 {isMatchmaker ? (
                   <>
-                    <Link href="/matchmaker/dashboard">
-                      <Button
-                        variant={
-                          isActive("/matchmaker/dashboard")
-                            ? "default"
-                            : "ghost"
-                        }
-                      >
-                        <ClipboardList className="ml-2 h-4 w-4" />
-                        לוח בקרה
-                      </Button>
-                    </Link>
                     <Link href="/matchmaker/suggestions">
                       <Button
                         variant={
