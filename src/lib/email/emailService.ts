@@ -2,8 +2,6 @@
 
 import nodemailer from 'nodemailer';
 import Handlebars from 'handlebars';
-import { readFileSync } from 'fs';
-import path from 'path';
 
 // הגדרת טיפוסים
 interface EmailConfig {
@@ -11,7 +9,6 @@ interface EmailConfig {
   subject: string;
   template: string;
   context: Record<string, unknown>;
-
 }
 
 interface AvailabilityCheckEmailParams {
@@ -20,6 +17,7 @@ interface AvailabilityCheckEmailParams {
   matchmakerName: string;
   inquiryId: string;
 }
+
 interface WelcomeEmailParams {
   email: string;
   firstName: string;
@@ -57,6 +55,7 @@ interface SuggestionEmailParams {
     additionalInfo?: string | null;
   };
 }
+
 interface ContactDetailsEmailParams {
   email: string;
   recipientName: string;
@@ -69,10 +68,12 @@ interface ContactDetailsEmailParams {
   matchmakerName: string;
   supportEmail?: string;
 }
+
 // טיפוס להקשר של התבנית
 interface TemplateContext {
   [key: string]: unknown;
 }
+
 interface AvailabilityCheckEmailParams {
   email: string;
   recipientName: string;
@@ -80,7 +81,6 @@ interface AvailabilityCheckEmailParams {
   inquiryId: string;
   baseUrl?: string;
 }
-
 
 class EmailService {
   private transporter: nodemailer.Transporter;
@@ -124,11 +124,10 @@ class EmailService {
     }
 
     try {
-      const templatePath = path.join(process.cwd(), 'src/lib/email/templates', `${templateName}.hbs`);
-      const templateContent = readFileSync(templatePath, 'utf-8');
-      const template = Handlebars.compile<TemplateContext>(templateContent);
-      this.templateCache.set(templateName, template);
-      return template;
+      const template = await import(`./templates/${templateName}.hbs`);
+      const compiledTemplate = Handlebars.compile<TemplateContext>(template.default);
+      this.templateCache.set(templateName, compiledTemplate);
+      return compiledTemplate;
     } catch (error) {
       console.error(`Error loading template ${templateName}:`, error);
       throw new Error(`Failed to load email template: ${templateName}`);
@@ -154,6 +153,7 @@ class EmailService {
       }
     });
   }
+
   async sendEmail({ to, subject, template, context }: EmailConfig): Promise<void> {
     try {
       const compiledTemplate = await this.loadTemplate(template);
@@ -215,7 +215,6 @@ class EmailService {
     firstName,
     expiresIn = '24 שעות'
   }: VerificationEmailParams): Promise<void> {
-    // Construct the full verification URL
     const fullVerificationLink = `${process.env.NEXT_PUBLIC_BASE_URL}/auth/verify-email?token=${verificationLink}`;
 
     await this.sendEmail({
@@ -236,42 +235,43 @@ class EmailService {
     invitationLink,
     matchmakerName,
     expiresIn = '7 ימים'
-}: InvitationEmailParams): Promise<void> {
+  }: InvitationEmailParams): Promise<void> {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
     
     await this.sendEmail({
-        to: email,
-        subject: 'הזמנה להצטרף למערכת השידוכים',
-        template: 'invitation',
-        context: {
-            matchmakerName,
-            baseUrl,
-            token: invitationLink, // שולחים רק את הטוקן עצמו
-            expiresIn
-        }
+      to: email,
+      subject: 'הזמנה להצטרף למערכת השידוכים',
+      template: 'invitation',
+      context: {
+        matchmakerName,
+        baseUrl,
+        token: invitationLink,
+        expiresIn
+      }
     });
-}
-async sendContactDetailsEmail({
-  email,
-  recipientName,
-  otherPartyName,
-  otherPartyContact,
-  matchmakerName,
-  supportEmail = process.env.SUPPORT_EMAIL
-}: ContactDetailsEmailParams): Promise<void> {
-  await this.sendEmail({
-    to: email,
-    subject: 'פרטי קשר להצעת השידוך',
-    template: 'share-contact-details',
-    context: {
-      recipientName,
-      otherPartyName,
-      otherPartyContact,
-      matchmakerName,
-      supportEmail
-    }
-  });
-}
+  }
+
+  async sendContactDetailsEmail({
+    email,
+    recipientName,
+    otherPartyName,
+    otherPartyContact,
+    matchmakerName,
+    supportEmail = process.env.SUPPORT_EMAIL
+  }: ContactDetailsEmailParams): Promise<void> {
+    await this.sendEmail({
+      to: email,
+      subject: 'פרטי קשר להצעת השידוך',
+      template: 'share-contact-details',
+      context: {
+        recipientName,
+        otherPartyName,
+        otherPartyContact,
+        matchmakerName,
+        supportEmail
+      }
+    });
+  }
 
   async sendSuggestionNotification({
     email,

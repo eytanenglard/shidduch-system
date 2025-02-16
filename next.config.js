@@ -1,3 +1,5 @@
+
+// next.config.js
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
@@ -15,8 +17,8 @@ const nextConfig = {
           loader: 'handlebars-loader',
           options: {
             knownHelpersOnly: false,
-            runtime: false,
-            precompiled: false
+            runtime: 'handlebars',
+            precompiled: true
           }
         }
       ]
@@ -28,8 +30,7 @@ const nextConfig = {
       fallback: {
         ...config.resolve?.fallback,
         fs: false,
-        path: false,
-        handlebars: false
+        path: false
       }
     };
 
