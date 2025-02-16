@@ -59,16 +59,19 @@ export class VerificationService {
         });
 
         // עדכון סטטוס המשתמש
+        if (!verification.userId) {
+          throw new Error('משתמש לא נמצא');
+        }
+        
         await tx.user.update({
           where: { 
-            id: verification.userId 
+            id: verification.userId  // עכשיו TypeScript יודע שזה בטוח string
           },
           data: {
             isVerified: true,
             status: UserStatus.ACTIVE
           }
         });
-
         return updatedVerification;
       });
 

@@ -1,6 +1,5 @@
-// /components/matchmaker/Filters/ActiveFilters.tsx
-
 "use client";
+
 import React from "react";
 import { X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -13,13 +12,19 @@ interface ActiveFiltersProps {
   onResetAll: () => void;
 }
 
+interface ActiveFilter {
+  key: keyof CandidatesFilter;
+  label: string;
+  value?: string;
+}
+
 const ActiveFilters: React.FC<ActiveFiltersProps> = ({
   filters,
   onRemoveFilter,
   onResetAll,
 }) => {
-  const getActiveFilters = () => {
-    const activeFilters = [];
+  const getActiveFilters = (): ActiveFilter[] => {
+    const activeFilters: ActiveFilter[] = [];
 
     // Age Range
     if (filters.ageRange) {
@@ -125,9 +130,7 @@ const ActiveFilters: React.FC<ActiveFiltersProps> = ({
             <span>{filter.label}</span>
             <button
               className="ml-2 hover:text-red-500 focus:outline-none"
-              onClick={() =>
-                onRemoveFilter(filter.key as keyof CandidatesFilter)
-              }
+              onClick={() => onRemoveFilter(filter.key, filter.value)}
               aria-label={`הסר פילטר ${filter.label}`}
             >
               <X className="w-3 h-3" />

@@ -1,20 +1,26 @@
-// src/app/api/matchmaker/inquiries/[id]/respond/route.ts
-import { NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { AvailabilityService } from "@/lib/services/availabilityService";
 
-export async function POST(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
+// הגדרת טיפוס גנרי עבור הפרמטרים
+type RouteSegment<T> = (
+  request: NextRequest,
+  params: { params: T }
+) => Promise<NextResponse> | NextResponse;
+
+// יצירת פונקציית הטיפול בבקשה
+const handler: RouteSegment<{ id: string }> = async (request, { params }) => {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { isAvailable, note } = await req.json();
+    const { isAvailable, note } = await request.json();
 
     const updatedInquiry = await AvailabilityService.updateInquiryResponse({
       inquiryId: params.id,
@@ -33,4 +39,7 @@ export async function POST(
       { status: 500 }
     );
   }
-}
+};
+
+// יצוא הפונקציה כ-POST handler
+export const POST = handler;

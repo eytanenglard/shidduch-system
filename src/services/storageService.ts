@@ -210,7 +210,7 @@ export const storageService = {
    */
   clearProgress(): void {
     try {
-      const keys = [];
+      const keys: string[] = [];
       // Find all questionnaire-related keys
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);

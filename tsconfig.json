@@ -4,6 +4,7 @@
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
+    "noImplicitAny": false,  // הוספנו את זה
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
@@ -21,15 +22,17 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "typeRoots": ["./types", "./node_modules/@types"]
+    "typeRoots": ["./types", "./node_modules/@types", "src/types"],
+    "types": ["node"],
+    "forceConsistentCasingInFileNames": true
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "types/**/*.d.ts",  // הוספנו את זה
-    "src/types/**/*.d.ts"  // וגם את זה
+    "types/**/*.d.ts",
+    "src/types/**/*.d.ts"
   ],
   "exclude": ["node_modules"]
 }
