@@ -1,21 +1,14 @@
 // src/lib/email/emailService.ts
 
 import nodemailer from 'nodemailer';
-import Handlebars from 'handlebars';
+import { emailTemplates } from './templates/emailTemplates';
 
-// הגדרת טיפוסים
+// Types
 interface EmailConfig {
   to: string;
   subject: string;
-  template: string;
+  templateName: string;
   context: Record<string, unknown>;
-}
-
-interface AvailabilityCheckEmailParams {
-  email: string;
-  recipientName: string;
-  matchmakerName: string;
-  inquiryId: string;
 }
 
 interface WelcomeEmailParams {
@@ -69,11 +62,6 @@ interface ContactDetailsEmailParams {
   supportEmail?: string;
 }
 
-// טיפוס להקשר של התבנית
-interface TemplateContext {
-  [key: string]: unknown;
-}
-
 interface AvailabilityCheckEmailParams {
   email: string;
   recipientName: string;
@@ -83,11 +71,10 @@ interface AvailabilityCheckEmailParams {
 }
 
 class EmailService {
+  private static instance: EmailService;
   private transporter: nodemailer.Transporter;
-  private templateCache: Map<string, Handlebars.TemplateDelegate<TemplateContext>>;
-
-  constructor() {
-    // יצירת טרנספורטר nodemailer
+  
+  private constructor() {
     this.transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -98,66 +85,22 @@ class EmailService {
         rejectUnauthorized: false
       }
     });
-
-    // אתחול מטמון התבניות
-    this.templateCache = new Map();
-
-    // הגדרת הלפרים של Handlebars
-    Handlebars.registerHelper('formatDate', function(this: unknown, date: Date) {
-      return new Date(date).toLocaleDateString('he-IL');
-    });
-
-    Handlebars.registerHelper('ifeq', function(
-      this: unknown,
-      a: unknown,
-      b: unknown,
-      options: Handlebars.HelperOptions
-    ) {
-      return (a === b) ? options.fn(this) : options.inverse(this);
-    });
   }
 
-  private async loadTemplate(templateName: string): Promise<Handlebars.TemplateDelegate<TemplateContext>> {
-    const cached = this.templateCache.get(templateName);
-    if (cached) {
-      return cached;
+  public static getInstance(): EmailService {
+    if (!EmailService.instance) {
+      EmailService.instance = new EmailService();
     }
+    return EmailService.instance;
+  }
 
+  async sendEmail({ to, subject, templateName, context }: EmailConfig): Promise<void> {
     try {
-      const template = await import(`./templates/${templateName}.hbs`);
-      const compiledTemplate = Handlebars.compile<TemplateContext>(template.default);
-      this.templateCache.set(templateName, compiledTemplate);
-      return compiledTemplate;
-    } catch (error) {
-      console.error(`Error loading template ${templateName}:`, error);
-      throw new Error(`Failed to load email template: ${templateName}`);
-    }
-  }
- 
-  async sendAvailabilityCheck({
-    email,
-    recipientName,
-    matchmakerName,
-    inquiryId,
-    baseUrl = process.env.NEXT_PUBLIC_BASE_URL
-  }: AvailabilityCheckEmailParams): Promise<void> {
-    await this.sendEmail({
-      to: email,
-      subject: 'בקשת בדיקת זמינות לשידוך',
-      template: 'availability-check',
-      context: {
-        recipientName,
-        matchmakerName,
-        inquiryId,
-        baseUrl
+      if (!emailTemplates[templateName]) {
+        throw new Error(`Template ${templateName} not found`);
       }
-    });
-  }
 
-  async sendEmail({ to, subject, template, context }: EmailConfig): Promise<void> {
-    try {
-      const compiledTemplate = await this.loadTemplate(template);
-      const html = compiledTemplate(context);
+      const html = emailTemplates[templateName](context);
 
       const mailOptions: nodemailer.SendMailOptions = {
         from: `${process.env.EMAIL_FROM_NAME} <${process.env.GMAIL_USER}>`,
@@ -194,7 +137,7 @@ class EmailService {
     await this.sendEmail({
       to: email,
       subject: 'ברוכים הבאים למערכת השידוכים',
-      template: 'welcome',
+      templateName: 'welcome',
       context: {
         firstName,
         requiresVerification,
@@ -220,7 +163,7 @@ class EmailService {
     await this.sendEmail({
       to: email,
       subject: 'אימות כתובת האימייל שלך',
-      template: 'email-verification',
+      templateName: 'email-verification',
       context: {
         firstName,
         verificationLink: fullVerificationLink,
@@ -241,7 +184,7 @@ class EmailService {
     await this.sendEmail({
       to: email,
       subject: 'הזמנה להצטרף למערכת השידוכים',
-      template: 'invitation',
+      templateName: 'invitation',
       context: {
         matchmakerName,
         baseUrl,
@@ -262,7 +205,7 @@ class EmailService {
     await this.sendEmail({
       to: email,
       subject: 'פרטי קשר להצעת השידוך',
-      template: 'share-contact-details',
+      templateName: 'share-contact-details',
       context: {
         recipientName,
         otherPartyName,
@@ -282,7 +225,7 @@ class EmailService {
     await this.sendEmail({
       to: email,
       subject: 'הצעת שידוך חדשה ממתינה לך',
-      template: 'suggestion',
+      templateName: 'suggestion',
       context: {
         recipientName,
         matchmakerName,
@@ -299,11 +242,31 @@ class EmailService {
     await this.sendEmail({
       to: email,
       subject: 'איפוס סיסמה',
-      template: 'password-reset',
+      templateName: 'password-reset',
       context: {
         resetLink: fullResetLink,
         expiresIn: '1 שעה',
         supportEmail: process.env.SUPPORT_EMAIL
+      }
+    });
+  }
+
+  async sendAvailabilityCheck({
+    email,
+    recipientName,
+    matchmakerName,
+    inquiryId,
+    baseUrl = process.env.NEXT_PUBLIC_BASE_URL
+  }: AvailabilityCheckEmailParams): Promise<void> {
+    await this.sendEmail({
+      to: email,
+      subject: 'בקשת בדיקת זמינות לשידוך',
+      templateName: 'availability-check',
+      context: {
+        recipientName,
+        matchmakerName,
+        inquiryId,
+        baseUrl
       }
     });
   }
@@ -319,16 +282,16 @@ class EmailService {
   }
 }
 
-// יצוא singleton instance
-export const emailService = new EmailService();
+// Export singleton instance
+export const emailService = EmailService.getInstance();
 
-// טיפוסי ייצוא
+// Export types
 export type {
   EmailConfig,
   WelcomeEmailParams,
   VerificationEmailParams,
   InvitationEmailParams,
   SuggestionEmailParams,
-  TemplateContext,
-  ContactDetailsEmailParams 
+  ContactDetailsEmailParams,
+  AvailabilityCheckEmailParams
 };
