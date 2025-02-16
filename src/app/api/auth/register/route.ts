@@ -41,6 +41,9 @@ export async function POST(req: Request) {
   console.log('Starting registration process...');
   
   try {
+    console.log('Checking database connection...');
+    await prisma.$connect();
+    console.log('Database connection successful');
     const body: RegistrationData = await req.json();
     console.log('Registration data received:', {
       ...body,
