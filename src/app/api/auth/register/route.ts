@@ -6,9 +6,30 @@ import { emailService } from '@/lib/email/emailService';
 
 const prisma = new PrismaClient();
 
+// Define types for logging metadata
+type LogMetadata = {
+  userId?: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  hasInvitation?: boolean;
+  token?: string;
+  expiry?: Date;
+  status?: string;
+  age?: number;
+  error?: unknown;
+  timestamp?: string;
+  hasEmail?: boolean;
+  hasPassword?: boolean;
+  hasFirstName?: boolean;
+  hasLastName?: boolean;
+  hasGender?: boolean;
+  hasBirthDate?: boolean;
+};
+
 // Custom logger for structured logging
 const logger = {
-  info: (message: string, meta?: Record<string, any>) => {
+  info: (message: string, meta?: LogMetadata) => {
     console.log(JSON.stringify({
       timestamp: new Date().toISOString(),
       level: 'info',
@@ -16,7 +37,7 @@ const logger = {
       ...meta
     }));
   },
-  error: (message: string, meta?: Record<string, any>) => {
+  error: (message: string, meta?: LogMetadata) => {
     console.error(JSON.stringify({
       timestamp: new Date().toISOString(),
       level: 'error',
