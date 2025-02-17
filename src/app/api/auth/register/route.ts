@@ -6,6 +6,26 @@ import { emailService } from '@/lib/email/emailService';
 
 const prisma = new PrismaClient();
 
+// Custom logger for structured logging
+const logger = {
+  info: (message: string, meta?: Record<string, any>) => {
+    console.log(JSON.stringify({
+      timestamp: new Date().toISOString(),
+      level: 'info',
+      message,
+      ...meta
+    }));
+  },
+  error: (message: string, meta?: Record<string, any>) => {
+    console.error(JSON.stringify({
+      timestamp: new Date().toISOString(),
+      level: 'error',
+      message,
+      ...meta
+    }));
+  }
+};
+
 interface RegistrationData {
   email: string;
   password: string;
@@ -38,50 +58,79 @@ function handleError(error: unknown): { message: string; status: number } {
 }
 
 export async function POST(req: Request) {
-  console.log('Starting registration process...');
+  logger.info('Registration process initiated');
   
   try {
-    console.log('Checking database connection...');
+    logger.info('Attempting database connection');
     await prisma.$connect();
-    console.log('Database connection successful');
+    logger.info('Database connection established');
+    
     const body: RegistrationData = await req.json();
-    console.log('Registration data received:', {
-      ...body,
-      password: '[REDACTED]'
+    logger.info('Registration data received', {
+      email: body.email,
+      firstName: body.firstName,
+      lastName: body.lastName,
+      hasInvitation: !!body.invitationToken
     });
 
     if (body.invitationToken) {
+      logger.info('Validating invitation token', { token: body.invitationToken });
       const invitation = await prisma.invitation.findUnique({
         where: { token: body.invitationToken }
       });
 
-      if (!invitation) throw new Error("קישור ההזמנה אינו תקין");
-      if (invitation.expires < new Date()) throw new Error("קישור ההזמנה פג תוקף");
-      if (invitation.status !== "PENDING") throw new Error("ההזמנה כבר נוצלה או בוטלה");
+      if (!invitation) {
+        logger.error('Invalid invitation token', { token: body.invitationToken });
+        throw new Error("קישור ההזמנה אינו תקין");
+      }
+      if (invitation.expires < new Date()) {
+        logger.error('Expired invitation token', { token: body.invitationToken, expiry: invitation.expires });
+        throw new Error("קישור ההזמנה פג תוקף");
+      }
+      if (invitation.status !== "PENDING") {
+        logger.error('Invalid invitation status', { token: body.invitationToken, status: invitation.status });
+        throw new Error("ההזמנה כבר נוצלה או בוטלה");
+      }
+      
+      logger.info('Invitation token validated successfully');
     }
 
     if (!body.email || !body.password || !body.firstName || !body.lastName || !body.gender || !body.birthDate) {
+      logger.error('Missing required fields', {
+        hasEmail: !!body.email,
+        hasPassword: !!body.password,
+        hasFirstName: !!body.firstName,
+        hasLastName: !!body.lastName,
+        hasGender: !!body.gender,
+        hasBirthDate: !!body.birthDate
+      });
       throw new Error('חסרים פרטים חובה');
     }
 
     const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
     if (!emailRegex.test(body.email)) {
+      logger.error('Invalid email format', { email: body.email });
       throw new Error('כתובת אימייל לא תקינה');
     }
 
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
     if (!passwordRegex.test(body.password)) {
+      logger.error('Invalid password format');
       throw new Error('הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר');
     }
 
     const birthDateObj = new Date(body.birthDate);
     const age = Math.floor((new Date().getTime() - birthDateObj.getTime()) / 31557600000);
     if (age < 18) {
+      logger.error('User age below minimum', { age });
       throw new Error('גיל מינימלי להרשמה הוא 18');
     }
 
+    logger.info('Starting password hashing');
     const hashedPassword = await hash(body.password, 12);
+    logger.info('Password hashed successfully');
     
+    logger.info('Starting database transaction');
     const result = await prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
         data: {
@@ -106,7 +155,10 @@ export async function POST(req: Request) {
         }
       });
 
+      logger.info('User created successfully', { userId: user.id });
+
       if (body.invitationToken) {
+        logger.info('Updating invitation status', { token: body.invitationToken, userId: user.id });
         await tx.invitation.update({
           where: { token: body.invitationToken },
           data: {
@@ -116,6 +168,7 @@ export async function POST(req: Request) {
         });
       }
 
+      logger.info('Creating email verification token', { userId: user.id });
       const verification = await tx.verification.create({
         data: {
           userId: user.id,
@@ -130,7 +183,10 @@ export async function POST(req: Request) {
       return { user, verification };
     });
 
+    logger.info('Database transaction completed successfully', { userId: result.user.id });
+
     try {
+      logger.info('Sending welcome email', { userId: result.user.id });
       await emailService.sendWelcomeEmail({
         email: result.user.email,
         firstName: result.user.firstName,
@@ -140,14 +196,21 @@ export async function POST(req: Request) {
         privacyNote: true
       });
 
+      logger.info('Sending verification email', { userId: result.user.id });
       await emailService.sendVerificationEmail({
         email: result.user.email,
         verificationLink: result.verification.token,
         firstName: result.user.firstName,
         expiresIn: '24 שעות'
       });
+
+      logger.info('All emails sent successfully', { userId: result.user.id });
     } catch (error) {
-      console.error('Failed to send welcome/verification emails:', error);
+      logger.error('Failed to send welcome/verification emails', {
+        error: error instanceof Error ? error.message : String(error),
+        userId: result.user.id
+      });
+      
       return NextResponse.json(
         {
           success: true,
@@ -159,6 +222,7 @@ export async function POST(req: Request) {
       );
     }
 
+    logger.info('Registration completed successfully', { userId: result.user.id });
     return NextResponse.json(
       {
         success: true,
@@ -176,7 +240,10 @@ export async function POST(req: Request) {
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     } : { message: String(error) };
 
-    console.error('Registration error:', errorDetails);
+    logger.error('Registration failed', {
+      error: errorDetails,
+      timestamp: new Date().toISOString()
+    });
     
     const { message, status } = handleError(error);
     
@@ -190,5 +257,6 @@ export async function POST(req: Request) {
     );
   } finally {
     await prisma.$disconnect();
+    logger.info('Database connection closed');
   }
 }
