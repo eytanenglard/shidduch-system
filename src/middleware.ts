@@ -54,6 +54,7 @@ export default withAuth(
 
 export const config = {
   matcher: [
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
     '/dashboard/:path*',
     '/matches/:path*',
     '/preferences/:path*',
@@ -67,6 +68,5 @@ export const config = {
     '/api/auth/complete-registration',
     '/availability-response',
     '/api/matchmaker/inquiries/:path*',
-
   ]
 };

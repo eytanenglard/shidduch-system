@@ -7,6 +7,7 @@ interface ProvidersProps {
   children: React.ReactNode;
 }
 
+// components/Providers.tsx
 const Providers: React.FC<ProvidersProps> = ({ children }) => {
   return (
     <SessionProvider>
@@ -14,5 +15,4 @@ const Providers: React.FC<ProvidersProps> = ({ children }) => {
     </SessionProvider>
   );
 };
-
 export default Providers;

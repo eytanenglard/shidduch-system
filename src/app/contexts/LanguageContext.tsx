@@ -22,12 +22,13 @@ export function useLanguage() {
   return context;
 }
 
+// app/contexts/LanguageContext.tsx
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguage] = useState<Language>("he");
-  const [isClient, setIsClient] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setIsClient(true);
+    setMounted(true);
     const savedLanguage = localStorage.getItem("language") as Language;
     if (savedLanguage) {
       setLanguage(savedLanguage);
@@ -36,13 +37,12 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   const handleSetLanguage = (lang: Language) => {
     setLanguage(lang);
-    localStorage.setItem("language", lang);
+    if (mounted) {
+      localStorage.setItem("language", lang);
+    }
   };
 
-  if (!isClient) {
-    return null;
-  }
-
+  // החזרת הקונטקסט תמיד, עם ערכי ברירת מחדל
   return (
     <LanguageContext.Provider
       value={{ language, setLanguage: handleSetLanguage }}

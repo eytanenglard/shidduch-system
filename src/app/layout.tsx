@@ -23,15 +23,23 @@ export default async function RootLayout({
   const defaultLanguage = cookieStore.get("language")?.value || "he";
 
   return (
-    <html lang={defaultLanguage} dir={defaultLanguage === "he" ? "rtl" : "ltr"}>
-      <body className={`${inter.variable} antialiased`}>
+    <html
+      lang={defaultLanguage}
+      dir={defaultLanguage === "he" ? "rtl" : "ltr"}
+      suppressHydrationWarning
+    >
+      <body
+        className={`${inter.variable} antialiased`}
+        suppressHydrationWarning
+      >
         <Providers>
-          <LanguageProvider>
-            <div className="min-h-screen flex flex-col">
-              <Navbar />
-              <main className="flex-1">{children}</main>
-            </div>
-          </LanguageProvider>
+          <div
+            className="min-h-screen flex flex-col"
+            dir={defaultLanguage === "he" ? "rtl" : "ltr"}
+          >
+            <Navbar />
+            <main className="flex-1">{children}</main>
+          </div>
         </Providers>
       </body>
     </html>
