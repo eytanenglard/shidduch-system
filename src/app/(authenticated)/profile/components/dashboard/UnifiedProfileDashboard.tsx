@@ -83,9 +83,6 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
 }) => {
   // State
   const [profileData, setProfileData] = useState<UserProfile | null>(null);
-
-  const [isMatchmaker, setIsMatchmaker] = useState(false);
-
   const [images, setImages] = useState<UserImage[]>([]);
   const [questionnaireResponse, setQuestionnaireResponse] =
     useState<QuestionnaireResponse | null>(null);
@@ -93,6 +90,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  const [isMatchmaker, setIsMatchmaker] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
 
   const { update: updateSession } = useSession();
@@ -266,7 +264,6 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
     <div className="w-full max-w-7xl mx-auto py-8 px-4" dir="rtl">
       <div className="space-y-6">
         {/* Quick Stats */}
-
         {profileData && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {QUICK_STATS.map((stat) => (
@@ -295,34 +292,29 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
             >
               <DialogHeader>
                 <DialogTitle>תצוגה מקדימה של הפרופיל</DialogTitle>
-              </DialogHeader>
-
-              {/* הוספנו div עוטף לעיצוב נכון */}
-              <div className="space-y-4">
                 <Select
                   value={isMatchmaker ? "matchmaker" : "candidate"}
                   onValueChange={(value) =>
                     setIsMatchmaker(value === "matchmaker")
                   }
                 >
-                  <SelectTrigger className="w-[200px]">
-                    <SelectValue placeholder="בחר מצב תצוגה" />
+                  <SelectTrigger>
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="candidate">תצוגת מועמד</SelectItem>
                     <SelectItem value="matchmaker">תצוגת שדכן</SelectItem>
                   </SelectContent>
                 </Select>
-
-                {profileData && (
-                  <ProfileCard
-                    profile={profileData}
-                    images={images}
-                    questionnaire={questionnaireResponse}
-                    viewMode={isMatchmaker ? "matchmaker" : "candidate"}
-                  />
-                )}
-              </div>
+              </DialogHeader>
+              {profileData && (
+                <ProfileCard
+                  profile={profileData}
+                  images={images}
+                  questionnaire={questionnaireResponse}
+                  viewMode={isMatchmaker ? "matchmaker" : "candidate"}
+                />
+              )}
             </DialogContent>
           </Dialog>
         </div>
