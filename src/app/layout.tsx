@@ -4,7 +4,6 @@ import { metadata as siteMetadata } from "./metadata";
 import { cookies } from "next/headers";
 import Providers from "@/components/Providers";
 import Navbar from "@/components/layout/Navbar";
-import { LanguageProvider } from "@/app/contexts/LanguageContext";
 
 const inter = Inter({
   subsets: ["latin"],
