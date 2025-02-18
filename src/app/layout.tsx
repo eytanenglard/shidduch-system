@@ -4,6 +4,7 @@ import { metadata as siteMetadata } from "./metadata";
 import { cookies } from "next/headers";
 import Providers from "@/components/Providers";
 import Navbar from "@/components/layout/Navbar";
+import { LanguageProvider } from "@/app/contexts/LanguageContext";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -32,13 +33,15 @@ export default async function RootLayout({
         suppressHydrationWarning
       >
         <Providers>
-          <div
-            className="min-h-screen flex flex-col"
-            dir={defaultLanguage === "he" ? "rtl" : "ltr"}
-          >
-            <Navbar />
-            <main className="flex-1">{children}</main>
-          </div>
+          <LanguageProvider>
+            <div
+              className="min-h-screen flex flex-col"
+              dir={defaultLanguage === "he" ? "rtl" : "ltr"}
+            >
+              <Navbar />
+              <main className="flex-1">{children}</main>
+            </div>
+          </LanguageProvider>
         </Providers>
       </body>
     </html>
