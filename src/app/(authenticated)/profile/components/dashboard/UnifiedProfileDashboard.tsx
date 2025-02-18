@@ -2,18 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { Eye } from "lucide-react";
+import { Eye, User, MapPin, Scroll, Clock } from "lucide-react";
 import { toast } from "sonner";
-
-// UI Components
+import dynamic from 'next/dynamic';
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -22,7 +14,69 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+// Dynamic Imports
+const DynamicTabs = dynamic(
+  () => import('@/components/ui/tabs').then((mod) => ({
+    default: mod.Tabs,
+  })),
+  { ssr: false }
+);
+
+const DynamicTabsContent = dynamic(
+  () => import('@/components/ui/tabs').then((mod) => ({
+    default: mod.TabsContent,
+  })),
+  { ssr: false }
+);
+
+const DynamicTabsList = dynamic(
+  () => import('@/components/ui/tabs').then((mod) => ({
+    default: mod.TabsList,
+  })),
+  { ssr: false }
+);
+
+const DynamicTabsTrigger = dynamic(
+  () => import('@/components/ui/tabs').then((mod) => ({
+    default: mod.TabsTrigger,
+  })),
+  { ssr: false }
+);
+
+const DynamicDialog = dynamic(
+  () => import('@/components/ui/dialog').then((mod) => ({
+    default: mod.Dialog,
+  })),
+  { ssr: false }
+);
+
+const DynamicDialogContent = dynamic(
+  () => import('@/components/ui/dialog').then((mod) => ({
+    default: mod.DialogContent,
+  })),
+  { ssr: false }
+);
+
+const DynamicDialogHeader = dynamic(
+  () => import('@/components/ui/dialog').then((mod) => ({
+    default: mod.DialogHeader,
+  })),
+  { ssr: false }
+);
+
+const DynamicDialogTrigger = dynamic(
+  () => import('@/components/ui/dialog').then((mod) => ({
+    default: mod.DialogTrigger,
+  })),
+  { ssr: false }
+);
+
+const DynamicDialogTitle = dynamic(
+  () => import('@/components/ui/dialog').then((mod) => ({
+    default: mod.DialogTitle,
+  })),
+  { ssr: false }
+);
 
 // Shared Profile Components
 import {
@@ -34,16 +88,13 @@ import {
   QuestionnaireResponsesSection,
   StatsCard,
 } from "@/app/components/shared/shared/profile";
-import { DialogProvider } from "@/components/ui/dialog-provider";
+
 // Types
 import type {
   UserProfile,
   UserImage,
   QuestionnaireResponse,
 } from "@/types/next-auth";
-
-// Stats configuration
-import { User, MapPin, Scroll, Clock } from "lucide-react";
 
 const QUICK_STATS = [
   {
@@ -76,7 +127,6 @@ interface UnifiedProfileDashboardProps {
   viewOnly?: boolean;
   userId?: string;
 }
-
 const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   viewOnly = false,
   userId,
@@ -89,7 +139,6 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
   const [isMatchmaker, setIsMatchmaker] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
 
@@ -262,138 +311,136 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
 
   return (
     <div className="w-full max-w-7xl mx-auto py-8 px-4" dir="rtl">
-      <DialogProvider>
-        <div className="space-y-6">
-          {/* Quick Stats */}
-          {profileData && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              {QUICK_STATS.map((stat) => (
-                <StatsCard
-                  key={stat.key}
-                  icon={stat.icon}
-                  title={stat.title}
-                  value={stat.getValue(profileData)}
-                />
-              ))}
-            </div>
-          )}
-
-          {/* Preview Dialog */}
-          <div className="flex justify-center my-6">
-            <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="px-6 py-2 text-lg gap-2">
-                  <Eye className="w-5 h-5" />
-                  תצוגה מקדימה
-                </Button>
-              </DialogTrigger>
-              <DialogContent
-                className="w-[90vw] max-w-7xl max-h-[85vh] overflow-y-auto p-6"
-                dir="rtl"
-              >
-                <DialogHeader>
-                  <DialogTitle>תצוגה מקדימה של הפרופיל</DialogTitle>
-                  <Select
-                    value={isMatchmaker ? "matchmaker" : "candidate"}
-                    onValueChange={(value) =>
-                      setIsMatchmaker(value === "matchmaker")
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="candidate">תצוגת מועמד</SelectItem>
-                      <SelectItem value="matchmaker">תצוגת שדכן</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </DialogHeader>
-                {profileData && (
-                  <ProfileCard
-                    profile={profileData}
-                    images={images}
-                    questionnaire={questionnaireResponse}
-                    viewMode={isMatchmaker ? "matchmaker" : "candidate"}
-                  />
-                )}
-              </DialogContent>
-            </Dialog>
+      <div className="space-y-6">
+        {/* Quick Stats */}
+        {profileData && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            {QUICK_STATS.map((stat) => (
+              <StatsCard
+                key={stat.key}
+                icon={stat.icon}
+                title={stat.title}
+                value={stat.getValue(profileData)}
+              />
+            ))}
           </div>
+        )}
 
-          {/* Main Tabs */}
-          <Tabs
-            value={activeTab}
-            onValueChange={setActiveTab}
-            className="space-y-4"
-          >
-            <TabsList className="w-full justify-center gap-2" dir="rtl">
-              <TabsTrigger value="overview">סקירה כללית</TabsTrigger>
-              <TabsTrigger value="extended">פרופיל מורחב</TabsTrigger>
-              <TabsTrigger value="photos">תמונות</TabsTrigger>
-              <TabsTrigger value="preferences">העדפות</TabsTrigger>
-              <TabsTrigger value="questionnaire">תשובות לשאלון</TabsTrigger>
-            </TabsList>
-
-            <div className="mt-6">
-              <TabsContent value="overview">
-                <ProfileSection
+        {/* Preview Dialog */}
+        <div className="flex justify-center my-6">
+          <DynamicDialog open={previewOpen} onOpenChange={setPreviewOpen}>
+            <DynamicDialogTrigger asChild>
+              <Button variant="outline" className="px-6 py-2 text-lg gap-2">
+                <Eye className="w-5 h-5" />
+                תצוגה מקדימה
+              </Button>
+            </DynamicDialogTrigger>
+            <DynamicDialogContent
+              className="w-[90vw] max-w-7xl max-h-[85vh] overflow-y-auto p-6"
+              dir="rtl"
+            >
+              <DynamicDialogHeader>
+                <DynamicDialogTitle>תצוגה מקדימה של הפרופיל</DynamicDialogTitle>
+                <Select
+                  value={isMatchmaker ? "matchmaker" : "candidate"}
+                  onValueChange={(value) =>
+                    setIsMatchmaker(value === "matchmaker")
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="candidate">תצוגת מועמד</SelectItem>
+                    <SelectItem value="matchmaker">תצוגת שדכן</SelectItem>
+                  </SelectContent>
+                </Select>
+              </DynamicDialogHeader>
+              {profileData && (
+                <ProfileCard
                   profile={profileData}
-                  isEditing={isEditing}
-                  setIsEditing={setIsEditing}
-                  onSave={handleSave}
-                  viewOnly={viewOnly}
-                />
-              </TabsContent>
-
-              <TabsContent value="extended">
-                <ExtendedProfileSection
-                  profile={profileData}
-                  isEditing={isEditing}
-                  setIsEditing={setIsEditing}
-                  onSave={handleSave}
-                  viewOnly={viewOnly}
-                />
-              </TabsContent>
-
-              <TabsContent value="photos">
-                <PhotosSection
                   images={images}
-                  isUploading={isLoading}
-                  disabled={viewOnly}
-                  onUpload={handleImageUpload}
-                  onSetMain={handleSetMainImage}
-                  onDelete={handleDeleteImage}
+                  questionnaire={questionnaireResponse}
+                  viewMode={isMatchmaker ? "matchmaker" : "candidate"}
                 />
-              </TabsContent>
-
-              <TabsContent value="preferences">
-                <PreferencesSection
-                  profile={profileData}
-                  isEditing={isEditing}
-                  setIsEditing={setIsEditing}
-                  onChange={handleSave}
-                  viewOnly={viewOnly}
-                />
-              </TabsContent>
-
-              <TabsContent value="questionnaire">
-                {questionnaireResponse ? (
-                  <QuestionnaireResponsesSection
-                    questionnaire={questionnaireResponse}
-                    onUpdate={handleQuestionnaireUpdate}
-                    isEditable={!viewOnly}
-                    viewMode={isMatchmaker ? "matchmaker" : "candidate"}
-                  />
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    לא נמצאו תשובות לשאלון
-                  </div>
-                )}
-              </TabsContent>
-            </div>
-          </Tabs>
+              )}
+            </DynamicDialogContent>
+          </DynamicDialog>
         </div>
-      </DialogProvider>
+
+        {/* Main Tabs */}
+        <DynamicTabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="space-y-4"
+        >
+          <DynamicTabsList className="w-full justify-center gap-2" dir="rtl">
+            <DynamicTabsTrigger value="overview">סקירה כללית</DynamicTabsTrigger>
+            <DynamicTabsTrigger value="extended">פרופיל מורחב</DynamicTabsTrigger>
+            <DynamicTabsTrigger value="photos">תמונות</DynamicTabsTrigger>
+            <DynamicTabsTrigger value="preferences">העדפות</DynamicTabsTrigger>
+            <DynamicTabsTrigger value="questionnaire">תשובות לשאלון</DynamicTabsTrigger>
+          </DynamicTabsList>
+
+          <div className="mt-6">
+            <DynamicTabsContent value="overview">
+              <ProfileSection
+                profile={profileData}
+                isEditing={isEditing}
+                setIsEditing={setIsEditing}
+                onSave={handleSave}
+                viewOnly={viewOnly}
+              />
+            </DynamicTabsContent>
+
+            <DynamicTabsContent value="extended">
+              <ExtendedProfileSection
+                profile={profileData}
+                isEditing={isEditing}
+                setIsEditing={setIsEditing}
+                onSave={handleSave}
+                viewOnly={viewOnly}
+              />
+            </DynamicTabsContent>
+
+            <DynamicTabsContent value="photos">
+              <PhotosSection
+                images={images}
+                isUploading={isLoading}
+                disabled={viewOnly}
+                onUpload={handleImageUpload}
+                onSetMain={handleSetMainImage}
+                onDelete={handleDeleteImage}
+              />
+            </DynamicTabsContent>
+
+            <DynamicTabsContent value="preferences">
+              <PreferencesSection
+                profile={profileData}
+                isEditing={isEditing}
+                setIsEditing={setIsEditing}
+                onChange={handleSave}
+                viewOnly={viewOnly}
+              />
+            </DynamicTabsContent>
+
+            <DynamicTabsContent value="questionnaire">
+              {questionnaireResponse ? (
+                <QuestionnaireResponsesSection
+                  questionnaire={questionnaireResponse}
+                  onUpdate={handleQuestionnaireUpdate}
+                  isEditable={!viewOnly}
+                  viewMode={isMatchmaker ? "matchmaker" : "candidate"}
+                />
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  לא נמצאו תשובות לשאלון
+                </div>
+              )}
+            </DynamicTabsContent>
+          </div>
+        </DynamicTabs>
+      </div>
     </div>
   );
 };
