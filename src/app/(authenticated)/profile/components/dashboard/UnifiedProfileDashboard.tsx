@@ -97,8 +97,6 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
 
   const { update: updateSession } = useSession();
 
-  if (!profileData) return <div>טוען נתוני פרופיל...</div>;
-
   // Load initial data
   useEffect(() => {
     const loadData = async () => {
