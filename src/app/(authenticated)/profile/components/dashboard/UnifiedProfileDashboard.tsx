@@ -134,7 +134,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
     };
 
     loadData();
-  }, [userId]);
+  });
 
   // Handlers
   const handleSave = async (formData: Partial<UserProfile>) => {
