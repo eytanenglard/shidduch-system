@@ -2,10 +2,18 @@
 
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { Eye, User, MapPin, Scroll, Clock } from "lucide-react";
+import { Eye } from "lucide-react";
 import { toast } from "sonner";
-import dynamic from 'next/dynamic';
+
+// UI Components
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -14,56 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-// Dynamic Imports for Radix UI Components
-const TabsRoot = dynamic(
-  () => import('@radix-ui/react-tabs').then((mod) => mod.Root),
-  { ssr: false }
-);
-
-const TabsList = dynamic(
-  () => import('@radix-ui/react-tabs').then((mod) => mod.List),
-  { ssr: false }
-);
-
-const TabsTrigger = dynamic(
-  () => import('@radix-ui/react-tabs').then((mod) => mod.Trigger),
-  { ssr: false }
-);
-
-const TabsContent = dynamic(
-  () => import('@radix-ui/react-tabs').then((mod) => mod.Content),
-  { ssr: false }
-);
-
-const DialogRoot = dynamic(
-  () => import('@radix-ui/react-dialog').then((mod) => mod.Root),
-  { ssr: false }
-);
-
-const DialogTrigger = dynamic(
-  () => import('@radix-ui/react-dialog').then((mod) => mod.Trigger),
-  { ssr: false }
-);
-
-const DialogContent = dynamic(
-  () => import('@radix-ui/react-dialog').then((mod) => mod.Content),
-  { ssr: false }
-);
-
-const DialogOverlay = dynamic(
-  () => import('@radix-ui/react-dialog').then((mod) => mod.Overlay),
-  { ssr: false }
-);
-
-const DialogPortal = dynamic(
-  () => import('@radix-ui/react-dialog').then((mod) => mod.Portal),
-  { ssr: false }
-);
-
-const DialogTitle = dynamic(
-  () => import('@radix-ui/react-dialog').then((mod) => mod.Title),
-  { ssr: false }
-);
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Shared Profile Components
 import {
@@ -82,6 +41,15 @@ import type {
   UserImage,
   QuestionnaireResponse,
 } from "@/types/next-auth";
+
+// Stats configuration
+import { User, MapPin, Scroll, Clock } from "lucide-react";
+type TabValue =
+  | "overview"
+  | "extended"
+  | "photos"
+  | "preferences"
+  | "questionnaire";
 
 const QUICK_STATS = [
   {
@@ -114,6 +82,7 @@ interface UnifiedProfileDashboardProps {
   viewOnly?: boolean;
   userId?: string;
 }
+
 const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   viewOnly = false,
   userId,
@@ -123,14 +92,19 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   const [images, setImages] = useState<UserImage[]>([]);
   const [questionnaireResponse, setQuestionnaireResponse] =
     useState<QuestionnaireResponse | null>(null);
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState<TabValue>("overview");
+
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
   const [isMatchmaker, setIsMatchmaker] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
 
   const { update: updateSession } = useSession();
 
+  const handleTabChange = (value: string) => {
+    setActiveTab(value as TabValue);
+  };
   // Load initial data
   useEffect(() => {
     const loadData = async () => {
@@ -172,21 +146,89 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
     loadData();
   }, [userId]);
 
-  // Handlers (כל ה-handlers נשארים זהים)
+  // Handlers
   const handleSave = async (formData: Partial<UserProfile>) => {
-    // ... (זהה לקוד הקודם)
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/profile/update", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        await updateSession();
+        setProfileData((prev) => ({ ...prev, ...formData } as UserProfile));
+        setIsEditing(false);
+        toast.success("הפרופיל עודכן בהצלחה");
+      }
+    } catch (error) {
+      console.error("Failed to update profile:", error);
+      toast.error("שגיאה בעדכון הפרופיל");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleImageUpload = async (file: File) => {
-    // ... (זהה לקוד הקודם)
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch("/api/profile/images", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setImages((prev) => [...prev, data.image]);
+        await updateSession();
+        toast.success("התמונה הועלתה בהצלחה");
+      }
+    } catch (error) {
+      console.error("Failed to upload image:", error);
+      toast.error("שגיאה בהעלאת התמונה");
+    }
   };
 
   const handleSetMainImage = async (imageId: string) => {
-    // ... (זהה לקוד הקודם)
+    try {
+      const response = await fetch(`/api/profile/images/${imageId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageId }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setImages(data.images);
+        await updateSession();
+        toast.success("התמונה הראשית עודכנה בהצלחה");
+      }
+    } catch (error) {
+      console.error("Failed to set main image:", error);
+      toast.error("שגיאה בעדכון התמונה הראשית");
+    }
   };
 
   const handleDeleteImage = async (imageId: string) => {
-    // ... (זהה לקוד הקודם)
+    try {
+      const response = await fetch(`/api/profile/images/${imageId}`, {
+        method: "DELETE",
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setImages((prev) => prev.filter((img) => img.id !== imageId));
+        await updateSession();
+        toast.success("התמונה נמחקה בהצלחה");
+      }
+    } catch (error) {
+      console.error("Failed to delete image:", error);
+      toast.error("שגיאה במחיקת התמונה");
+    }
   };
 
   const handleQuestionnaireUpdate = async (
@@ -196,10 +238,31 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
       | { type: "answer"; value: string }
       | { type: "visibility"; isVisible: boolean }
   ) => {
-    // ... (זהה לקוד הקודם)
+    try {
+      const response = await fetch("/api/profile/questionnaire", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          worldKey: world,
+          questionId,
+          value: update.type === "answer" ? update.value : undefined,
+          isVisible:
+            update.type === "visibility" ? update.isVisible : undefined,
+        }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setQuestionnaireResponse(data.data);
+        toast.success("השאלון עודכן בהצלחה");
+      }
+    } catch (error) {
+      console.error("Failed to update questionnaire:", error);
+      toast.error("שגיאה בעדכון השאלון");
+    }
   };
 
-  if (isLoading) {
+  if (!profileData || isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen" dir="rtl">
         <p className="text-lg text-muted-foreground">טוען...</p>
@@ -226,16 +289,18 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
 
         {/* Preview Dialog */}
         <div className="flex justify-center my-6">
-          <DialogRoot open={previewOpen} onOpenChange={setPreviewOpen}>
+          <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" className="px-6 py-2 text-lg gap-2">
                 <Eye className="w-5 h-5" />
                 תצוגה מקדימה
               </Button>
             </DialogTrigger>
-            <DialogPortal>
-              <DialogOverlay className="bg-black/50 fixed inset-0" />
-              <DialogContent className="fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] bg-white rounded-lg p-6 w-[90vw] max-w-7xl max-h-[85vh] overflow-y-auto">
+            <DialogContent
+              className="w-[90vw] max-w-7xl max-h-[85vh] overflow-y-auto p-6"
+              dir="rtl"
+            >
+              <DialogHeader>
                 <DialogTitle>תצוגה מקדימה של הפרופיל</DialogTitle>
                 <Select
                   value={isMatchmaker ? "matchmaker" : "candidate"}
@@ -251,21 +316,26 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                     <SelectItem value="matchmaker">תצוגת שדכן</SelectItem>
                   </SelectContent>
                 </Select>
-                {profileData && (
-                  <ProfileCard
-                    profile={profileData}
-                    images={images}
-                    questionnaire={questionnaireResponse}
-                    viewMode={isMatchmaker ? "matchmaker" : "candidate"}
-                  />
-                )}
-              </DialogContent>
-            </DialogPortal>
-          </DialogRoot>
+              </DialogHeader>
+              {profileData && (
+                <ProfileCard
+                  profile={profileData}
+                  images={images}
+                  questionnaire={questionnaireResponse}
+                  viewMode={isMatchmaker ? "matchmaker" : "candidate"}
+                />
+              )}
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Main Tabs */}
-        <TabsRoot value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <Tabs
+          defaultValue="overview"
+          value={activeTab}
+          onValueChange={handleTabChange} // השתמש בפונקציה החדשה
+          className="space-y-4"
+        >
           <TabsList className="w-full justify-center gap-2" dir="rtl">
             <TabsTrigger value="overview">סקירה כללית</TabsTrigger>
             <TabsTrigger value="extended">פרופיל מורחב</TabsTrigger>
@@ -331,7 +401,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
               )}
             </TabsContent>
           </div>
-        </TabsRoot>
+        </Tabs>
       </div>
     </div>
   );
