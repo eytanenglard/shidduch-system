@@ -44,12 +44,6 @@ import type {
 
 // Stats configuration
 import { User, MapPin, Scroll, Clock } from "lucide-react";
-type TabValue =
-  | "overview"
-  | "extended"
-  | "photos"
-  | "preferences"
-  | "questionnaire";
 
 const QUICK_STATS = [
   {
@@ -92,8 +86,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   const [images, setImages] = useState<UserImage[]>([]);
   const [questionnaireResponse, setQuestionnaireResponse] =
     useState<QuestionnaireResponse | null>(null);
-  const [activeTab, setActiveTab] = useState<TabValue>("overview");
-
+  const [activeTab, setActiveTab] = useState("overview");
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -102,9 +95,6 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
 
   const { update: updateSession } = useSession();
 
-  const handleTabChange = (value: string) => {
-    setActiveTab(value as TabValue);
-  };
   // Load initial data
   useEffect(() => {
     const loadData = async () => {
@@ -262,7 +252,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
     }
   };
 
-  if (!profileData || isLoading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen" dir="rtl">
         <p className="text-lg text-muted-foreground">טוען...</p>
@@ -302,21 +292,23 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
             >
               <DialogHeader>
                 <DialogTitle>תצוגה מקדימה של הפרופיל</DialogTitle>
-                <Select
-                  value={isMatchmaker ? "matchmaker" : "candidate"}
-                  onValueChange={(value) =>
-                    setIsMatchmaker(value === "matchmaker")
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="candidate">תצוגת מועמד</SelectItem>
-                    <SelectItem value="matchmaker">תצוגת שדכן</SelectItem>
-                  </SelectContent>
-                </Select>
               </DialogHeader>
+
+              <Select
+                value={isMatchmaker ? "matchmaker" : "candidate"}
+                onValueChange={(value) =>
+                  setIsMatchmaker(value === "matchmaker")
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="candidate">תצוגת מועמד</SelectItem>
+                  <SelectItem value="matchmaker">תצוגת שדכן</SelectItem>
+                </SelectContent>
+              </Select>
+
               {profileData && (
                 <ProfileCard
                   profile={profileData}
@@ -331,9 +323,8 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
 
         {/* Main Tabs */}
         <Tabs
-          defaultValue="overview"
           value={activeTab}
-          onValueChange={handleTabChange} // השתמש בפונקציה החדשה
+          onValueChange={setActiveTab}
           className="space-y-4"
         >
           <TabsList className="w-full justify-center gap-2" dir="rtl">
