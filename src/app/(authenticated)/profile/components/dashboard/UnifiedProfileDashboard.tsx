@@ -260,20 +260,24 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
     );
   }
 
+  const statsCards =
+    profileData &&
+    QUICK_STATS.map((stat) => (
+      <StatsCard
+        key={stat.key}
+        icon={stat.icon}
+        title={stat.title}
+        value={stat.getValue(profileData)}
+      />
+    ));
+
   return (
     <div className="w-full max-w-7xl mx-auto py-8 px-4" dir="rtl">
       <div className="space-y-6">
         {/* Quick Stats */}
         {profileData && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            {QUICK_STATS.map((stat) => (
-              <StatsCard
-                key={stat.key}
-                icon={stat.icon}
-                title={stat.title}
-                value={stat.getValue(profileData)}
-              />
-            ))}
+            {statsCards}
           </div>
         )}
 
