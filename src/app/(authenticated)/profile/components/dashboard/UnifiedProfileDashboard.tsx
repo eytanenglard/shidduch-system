@@ -21,7 +21,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Shared Profile Components
@@ -88,8 +87,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
     useState<QuestionnaireResponse | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditing, setIsEditing] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-
+  const [isLoading, setIsLoading] = useState(true);
   const [isMatchmaker, setIsMatchmaker] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
 
@@ -110,6 +108,8 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         if (profileData.success) {
           setProfileData(profileData.profile);
           setImages(profileData.images || []);
+        } else {
+          throw new Error("Failed to load profile data");
         }
 
         // Load questionnaire data
@@ -152,6 +152,8 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         setProfileData((prev) => ({ ...prev, ...formData } as UserProfile));
         setIsEditing(false);
         toast.success("הפרופיל עודכן בהצלחה");
+      } else {
+        throw new Error("Failed to update profile");
       }
     } catch (error) {
       console.error("Failed to update profile:", error);
@@ -176,6 +178,8 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         setImages((prev) => [...prev, data.image]);
         await updateSession();
         toast.success("התמונה הועלתה בהצלחה");
+      } else {
+        throw new Error("Failed to upload image");
       }
     } catch (error) {
       console.error("Failed to upload image:", error);
@@ -196,6 +200,8 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         setImages(data.images);
         await updateSession();
         toast.success("התמונה הראשית עודכנה בהצלחה");
+      } else {
+        throw new Error("Failed to set main image");
       }
     } catch (error) {
       console.error("Failed to set main image:", error);
@@ -214,6 +220,8 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         setImages((prev) => prev.filter((img) => img.id !== imageId));
         await updateSession();
         toast.success("התמונה נמחקה בהצלחה");
+      } else {
+        throw new Error("Failed to delete image");
       }
     } catch (error) {
       console.error("Failed to delete image:", error);
@@ -245,6 +253,8 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
       if (data.success) {
         setQuestionnaireResponse(data.data);
         toast.success("השאלון עודכן בהצלחה");
+      } else {
+        throw new Error("Failed to update questionnaire");
       }
     } catch (error) {
       console.error("Failed to update questionnaire:", error);
@@ -252,6 +262,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
     }
   };
 
+  // Loading state
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen" dir="rtl">
@@ -260,22 +271,30 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
     );
   }
 
+  // Error state - no profile data
+  if (!profileData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen" dir="rtl">
+        <p className="text-lg text-muted-foreground">לא נמצאו נתוני פרופיל</p>
+      </div>
+    );
+  }
+
+  // Main render
   return (
     <div className="w-full max-w-7xl mx-auto py-8 px-4" dir="rtl">
       <div className="space-y-6">
         {/* Quick Stats */}
-        {profileData && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            {QUICK_STATS.map((stat) => (
-              <StatsCard
-                key={stat.key}
-                icon={stat.icon}
-                title={stat.title}
-                value={stat.getValue(profileData)}
-              />
-            ))}
-          </div>
-        )}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          {QUICK_STATS.map((stat) => (
+            <StatsCard
+              key={stat.key}
+              icon={stat.icon}
+              title={stat.title}
+              value={stat.getValue(profileData)}
+            />
+          ))}
+        </div>
 
         {/* Preview Dialog */}
         <div className="flex justify-center my-6">
@@ -292,37 +311,34 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
             >
               <DialogHeader>
                 <DialogTitle>תצוגה מקדימה של הפרופיל</DialogTitle>
+                <Select
+                  value={isMatchmaker ? "matchmaker" : "candidate"}
+                  onValueChange={(value) =>
+                    setIsMatchmaker(value === "matchmaker")
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="candidate">תצוגת מועמד</SelectItem>
+                    <SelectItem value="matchmaker">תצוגת שדכן</SelectItem>
+                  </SelectContent>
+                </Select>
               </DialogHeader>
-
-              <Select
-                value={isMatchmaker ? "matchmaker" : "candidate"}
-                onValueChange={(value) =>
-                  setIsMatchmaker(value === "matchmaker")
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="candidate">תצוגת מועמד</SelectItem>
-                  <SelectItem value="matchmaker">תצוגת שדכן</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {profileData && (
-                <ProfileCard
-                  profile={profileData}
-                  images={images}
-                  questionnaire={questionnaireResponse}
-                  viewMode={isMatchmaker ? "matchmaker" : "candidate"}
-                />
-              )}
+              <ProfileCard
+                profile={profileData}
+                images={images}
+                questionnaire={questionnaireResponse}
+                viewMode={isMatchmaker ? "matchmaker" : "candidate"}
+              />
             </DialogContent>
           </Dialog>
         </div>
 
         {/* Main Tabs */}
         <Tabs
+          defaultValue="overview"
           value={activeTab}
           onValueChange={setActiveTab}
           className="space-y-4"
