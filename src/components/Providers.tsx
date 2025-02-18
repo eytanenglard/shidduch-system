@@ -2,17 +2,16 @@
 
 import { SessionProvider } from "next-auth/react";
 import { NotificationProvider } from "@/app/contexts/NotificationContext";
+import { TooltipProvider } from "@/components/ui/tooltip"; // הוסף את זה
 
-interface ProvidersProps {
-  children: React.ReactNode;
-}
-
-// components/Providers.tsx
-const Providers: React.FC<ProvidersProps> = ({ children }) => {
+const Providers = ({ children }: { children: React.ReactNode }) => {
   return (
     <SessionProvider>
-      <NotificationProvider>{children}</NotificationProvider>
+      <NotificationProvider>
+        <TooltipProvider>{children}</TooltipProvider>
+      </NotificationProvider>
     </SessionProvider>
   );
 };
+
 export default Providers;
