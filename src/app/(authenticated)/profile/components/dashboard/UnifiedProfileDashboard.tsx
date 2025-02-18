@@ -83,6 +83,9 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
 }) => {
   // State
   const [profileData, setProfileData] = useState<UserProfile | null>(null);
+
+  const [isMatchmaker, setIsMatchmaker] = useState(false);
+
   const [images, setImages] = useState<UserImage[]>([]);
   const [questionnaireResponse, setQuestionnaireResponse] =
     useState<QuestionnaireResponse | null>(null);
@@ -90,10 +93,11 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const [isMatchmaker, setIsMatchmaker] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
 
   const { update: updateSession } = useSession();
+
+  if (!profileData) return <div>טוען נתוני פרופיל...</div>;
 
   // Load initial data
   useEffect(() => {
@@ -260,24 +264,21 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
     );
   }
 
-  const statsCards =
-    profileData &&
-    QUICK_STATS.map((stat) => (
-      <StatsCard
-        key={stat.key}
-        icon={stat.icon}
-        title={stat.title}
-        value={stat.getValue(profileData)}
-      />
-    ));
-
   return (
     <div className="w-full max-w-7xl mx-auto py-8 px-4" dir="rtl">
       <div className="space-y-6">
         {/* Quick Stats */}
+
         {profileData && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            {statsCards}
+            {QUICK_STATS.map((stat) => (
+              <StatsCard
+                key={stat.key}
+                icon={stat.icon}
+                title={stat.title}
+                value={stat.getValue(profileData)}
+              />
+            ))}
           </div>
         )}
 
@@ -296,29 +297,34 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
             >
               <DialogHeader>
                 <DialogTitle>תצוגה מקדימה של הפרופיל</DialogTitle>
+              </DialogHeader>
+
+              {/* הוספנו div עוטף לעיצוב נכון */}
+              <div className="space-y-4">
                 <Select
                   value={isMatchmaker ? "matchmaker" : "candidate"}
                   onValueChange={(value) =>
                     setIsMatchmaker(value === "matchmaker")
                   }
                 >
-                  <SelectTrigger>
-                    <SelectValue />
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="בחר מצב תצוגה" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="candidate">תצוגת מועמד</SelectItem>
                     <SelectItem value="matchmaker">תצוגת שדכן</SelectItem>
                   </SelectContent>
                 </Select>
-              </DialogHeader>
-              {profileData && (
-                <ProfileCard
-                  profile={profileData}
-                  images={images}
-                  questionnaire={questionnaireResponse}
-                  viewMode={isMatchmaker ? "matchmaker" : "candidate"}
-                />
-              )}
+
+                {profileData && (
+                  <ProfileCard
+                    profile={profileData}
+                    images={images}
+                    questionnaire={questionnaireResponse}
+                    viewMode={isMatchmaker ? "matchmaker" : "candidate"}
+                  />
+                )}
+              </div>
             </DialogContent>
           </Dialog>
         </div>
