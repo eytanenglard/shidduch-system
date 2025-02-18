@@ -59,7 +59,7 @@ interface RegistrationData {
   occupation?: string;
   education?: string;
   invitationToken?: string;
-  phone?: string;
+  phone: string;
 }
 
 function handleError(error: unknown): { message: string; status: number } {
@@ -157,6 +157,7 @@ export async function POST(req: Request) {
         data: {
           email: body.email,
           password: hashedPassword,
+          phone: body.phone || null,
           firstName: body.firstName,
           lastName: body.lastName,
           role: UserRole.CANDIDATE,
@@ -263,6 +264,7 @@ export async function POST(req: Request) {
 
     logger.error('Registration failed', {
       error: errorDetails,
+      
       timestamp: new Date().toISOString()
     });
     
