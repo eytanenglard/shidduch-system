@@ -4,7 +4,8 @@ import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Eye } from "lucide-react";
 import { toast } from "sonner";
-
+import { TabsProvider } from "@radix-ui/react-tabs";
+import { DialogProvider } from "@radix-ui/react-dialog";
 // UI Components
 import { Button } from "@/components/ui/button";
 import {
@@ -261,138 +262,142 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   }
 
   return (
-    <div className="w-full max-w-7xl mx-auto py-8 px-4" dir="rtl">
-      <div className="space-y-6">
-        {/* Quick Stats */}
-        {profileData && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            {QUICK_STATS.map((stat) => (
-              <StatsCard
-                key={stat.key}
-                icon={stat.icon}
-                title={stat.title}
-                value={stat.getValue(profileData)}
-              />
-            ))}
-          </div>
-        )}
+    <DialogProvider>
+      <TabsProvider>
+        <div className="w-full max-w-7xl mx-auto py-8 px-4" dir="rtl">
+          <div className="space-y-6">
+            {/* Quick Stats */}
+            {profileData && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                {QUICK_STATS.map((stat) => (
+                  <StatsCard
+                    key={stat.key}
+                    icon={stat.icon}
+                    title={stat.title}
+                    value={stat.getValue(profileData)}
+                  />
+                ))}
+              </div>
+            )}
 
-        {/* Preview Dialog */}
-        <div className="flex justify-center my-6">
-          <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="px-6 py-2 text-lg gap-2">
-                <Eye className="w-5 h-5" />
-                תצוגה מקדימה
-              </Button>
-            </DialogTrigger>
-            <DialogContent
-              className="w-[90vw] max-w-7xl max-h-[85vh] overflow-y-auto p-6"
-              dir="rtl"
-            >
-              <DialogHeader>
-                <DialogTitle>תצוגה מקדימה של הפרופיל</DialogTitle>
-                <Select
-                  value={isMatchmaker ? "matchmaker" : "candidate"}
-                  onValueChange={(value) =>
-                    setIsMatchmaker(value === "matchmaker")
-                  }
+            {/* Preview Dialog */}
+            <div className="flex justify-center my-6">
+              <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="px-6 py-2 text-lg gap-2">
+                    <Eye className="w-5 h-5" />
+                    תצוגה מקדימה
+                  </Button>
+                </DialogTrigger>
+                <DialogContent
+                  className="w-[90vw] max-w-7xl max-h-[85vh] overflow-y-auto p-6"
+                  dir="rtl"
                 >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="candidate">תצוגת מועמד</SelectItem>
-                    <SelectItem value="matchmaker">תצוגת שדכן</SelectItem>
-                  </SelectContent>
-                </Select>
-              </DialogHeader>
-              {profileData && (
-                <ProfileCard
-                  profile={profileData}
-                  images={images}
-                  questionnaire={questionnaireResponse}
-                  viewMode={isMatchmaker ? "matchmaker" : "candidate"}
-                />
-              )}
-            </DialogContent>
-          </Dialog>
-        </div>
+                  <DialogHeader>
+                    <DialogTitle>תצוגה מקדימה של הפרופיל</DialogTitle>
+                    <Select
+                      value={isMatchmaker ? "matchmaker" : "candidate"}
+                      onValueChange={(value) =>
+                        setIsMatchmaker(value === "matchmaker")
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="candidate">תצוגת מועמד</SelectItem>
+                        <SelectItem value="matchmaker">תצוגת שדכן</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </DialogHeader>
+                  {profileData && (
+                    <ProfileCard
+                      profile={profileData}
+                      images={images}
+                      questionnaire={questionnaireResponse}
+                      viewMode={isMatchmaker ? "matchmaker" : "candidate"}
+                    />
+                  )}
+                </DialogContent>
+              </Dialog>
+            </div>
 
-        {/* Main Tabs */}
-        <Tabs
-          value={activeTab}
-          onValueChange={setActiveTab}
-          className="space-y-4"
-        >
-          <TabsList className="w-full justify-center gap-2" dir="rtl">
-            <TabsTrigger value="overview">סקירה כללית</TabsTrigger>
-            <TabsTrigger value="extended">פרופיל מורחב</TabsTrigger>
-            <TabsTrigger value="photos">תמונות</TabsTrigger>
-            <TabsTrigger value="preferences">העדפות</TabsTrigger>
-            <TabsTrigger value="questionnaire">תשובות לשאלון</TabsTrigger>
-          </TabsList>
+            {/* Main Tabs */}
+            <Tabs
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="space-y-4"
+            >
+              <TabsList className="w-full justify-center gap-2" dir="rtl">
+                <TabsTrigger value="overview">סקירה כללית</TabsTrigger>
+                <TabsTrigger value="extended">פרופיל מורחב</TabsTrigger>
+                <TabsTrigger value="photos">תמונות</TabsTrigger>
+                <TabsTrigger value="preferences">העדפות</TabsTrigger>
+                <TabsTrigger value="questionnaire">תשובות לשאלון</TabsTrigger>
+              </TabsList>
 
-          <div className="mt-6">
-            <TabsContent value="overview">
-              <ProfileSection
-                profile={profileData}
-                isEditing={isEditing}
-                setIsEditing={setIsEditing}
-                onSave={handleSave}
-                viewOnly={viewOnly}
-              />
-            </TabsContent>
+              <div className="mt-6">
+                <TabsContent value="overview">
+                  <ProfileSection
+                    profile={profileData}
+                    isEditing={isEditing}
+                    setIsEditing={setIsEditing}
+                    onSave={handleSave}
+                    viewOnly={viewOnly}
+                  />
+                </TabsContent>
 
-            <TabsContent value="extended">
-              <ExtendedProfileSection
-                profile={profileData}
-                isEditing={isEditing}
-                setIsEditing={setIsEditing}
-                onSave={handleSave}
-                viewOnly={viewOnly}
-              />
-            </TabsContent>
+                <TabsContent value="extended">
+                  <ExtendedProfileSection
+                    profile={profileData}
+                    isEditing={isEditing}
+                    setIsEditing={setIsEditing}
+                    onSave={handleSave}
+                    viewOnly={viewOnly}
+                  />
+                </TabsContent>
 
-            <TabsContent value="photos">
-              <PhotosSection
-                images={images}
-                isUploading={isLoading}
-                disabled={viewOnly}
-                onUpload={handleImageUpload}
-                onSetMain={handleSetMainImage}
-                onDelete={handleDeleteImage}
-              />
-            </TabsContent>
+                <TabsContent value="photos">
+                  <PhotosSection
+                    images={images}
+                    isUploading={isLoading}
+                    disabled={viewOnly}
+                    onUpload={handleImageUpload}
+                    onSetMain={handleSetMainImage}
+                    onDelete={handleDeleteImage}
+                  />
+                </TabsContent>
 
-            <TabsContent value="preferences">
-              <PreferencesSection
-                profile={profileData}
-                isEditing={isEditing}
-                setIsEditing={setIsEditing}
-                onChange={handleSave}
-                viewOnly={viewOnly}
-              />
-            </TabsContent>
+                <TabsContent value="preferences">
+                  <PreferencesSection
+                    profile={profileData}
+                    isEditing={isEditing}
+                    setIsEditing={setIsEditing}
+                    onChange={handleSave}
+                    viewOnly={viewOnly}
+                  />
+                </TabsContent>
 
-            <TabsContent value="questionnaire">
-              {questionnaireResponse ? (
-                <QuestionnaireResponsesSection
-                  questionnaire={questionnaireResponse}
-                  onUpdate={handleQuestionnaireUpdate}
-                  isEditable={!viewOnly}
-                  viewMode={isMatchmaker ? "matchmaker" : "candidate"}
-                />
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  לא נמצאו תשובות לשאלון
-                </div>
-              )}
-            </TabsContent>
+                <TabsContent value="questionnaire">
+                  {questionnaireResponse ? (
+                    <QuestionnaireResponsesSection
+                      questionnaire={questionnaireResponse}
+                      onUpdate={handleQuestionnaireUpdate}
+                      isEditable={!viewOnly}
+                      viewMode={isMatchmaker ? "matchmaker" : "candidate"}
+                    />
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      לא נמצאו תשובות לשאלון
+                    </div>
+                  )}
+                </TabsContent>
+              </div>
+            </Tabs>
           </div>
-        </Tabs>
-      </div>
-    </div>
+        </div>
+      </TabsProvider>
+    </DialogProvider>
   );
 };
 
