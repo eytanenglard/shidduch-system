@@ -100,7 +100,6 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
     const loadData = async () => {
       setIsLoading(true);
       try {
-        // Load profile data
         const profileUrl = userId
           ? `/api/profile?userId=${userId}`
           : "/api/profile";
@@ -108,22 +107,19 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         const profileData = await profileResponse.json();
 
         if (profileData.success) {
-          setProfileData(profileData.profile);
-          setImages(profileData.images || []);
-        }
+          // בדיקה האם הנתונים באמת השתנו לפני עדכון ה-state
+          setProfileData((prevData) =>
+            JSON.stringify(prevData) !== JSON.stringify(profileData.profile)
+              ? profileData.profile
+              : prevData
+          );
 
-        // Load questionnaire data
-        const questionnaireUrl = userId
-          ? `/api/profile/${userId}/questionnaire`
-          : "/api/profile/questionnaire";
-        const questionnaireResponse = await fetch(questionnaireUrl);
-        const questionnaireData = await questionnaireResponse.json();
-
-        if (
-          questionnaireData.success &&
-          questionnaireData.questionnaireResponse
-        ) {
-          setQuestionnaireResponse(questionnaireData.questionnaireResponse);
+          setImages((prevImages) =>
+            JSON.stringify(prevImages) !==
+            JSON.stringify(profileData.images || [])
+              ? profileData.images || []
+              : prevImages
+          );
         }
       } catch (error) {
         console.error("Failed to load profile data:", error);
@@ -133,8 +129,10 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
       }
     };
 
-    loadData();
-  });
+    if (userId) {
+      loadData();
+    }
+  }, [userId]); // מפעיל רק כשהמשתמש משתנה
 
   // Handlers
   const handleSave = async (formData: Partial<UserProfile>) => {
