@@ -35,7 +35,7 @@ import {
   StatsCard,
 } from "@/app/components/shared/shared/profile";
 
-// Types
+// Types from next-auth.ts
 import type {
   UserProfile,
   UserImage,
@@ -82,7 +82,6 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   viewOnly = false,
   userId,
 }) => {
-  // State
   const [profileData, setProfileData] = useState<UserProfile | null>(null);
   const [images, setImages] = useState<UserImage[]>([]);
   const [questionnaireResponse, setQuestionnaireResponse] =
@@ -96,12 +95,10 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
 
   const { update: updateSession } = useSession();
 
-  // Load initial data
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
       try {
-        // Load profile data
         const profileUrl = userId
           ? `/api/profile?userId=${userId}`
           : "/api/profile";
@@ -113,7 +110,6 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
           setImages(profileData.images || []);
         }
 
-        // Load questionnaire data
         const questionnaireUrl = userId
           ? `/api/profile/${userId}/questionnaire`
           : "/api/profile/questionnaire";
@@ -138,7 +134,6 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
     loadData();
   }, [userId]);
 
-  // Handlers
   const handleSave = async (formData: Partial<UserProfile>) => {
     setIsLoading(true);
     try {
@@ -234,7 +229,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   const handleQuestionnaireUpdate = async (
     world: string,
     questionId: string,
-    value: string | number | boolean | null
+    value: QuestionAnswers[keyof QuestionAnswers]
   ) => {
     try {
       const response = await fetch("/api/profile/questionnaire", {
@@ -274,7 +269,6 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
           </Alert>
         )}
 
-        {/* Quick Stats */}
         {profileData && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {QUICK_STATS.map((stat) => (
@@ -288,7 +282,6 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
           </div>
         )}
 
-        {/* Preview Dialog */}
         <div className="flex justify-center my-6">
           <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
             <DialogTrigger asChild>
@@ -330,7 +323,6 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
           </Dialog>
         </div>
 
-        {/* Main Tabs */}
         <Tabs
           value={activeTab}
           onValueChange={setActiveTab}
