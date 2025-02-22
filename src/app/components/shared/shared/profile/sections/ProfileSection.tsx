@@ -79,7 +79,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
           birthDate: data.profile.birthDate || null,
           nativeLanguage: data.profile.nativeLanguage || "",
           additionalLanguages: data.profile.additionalLanguages || [],
-          height: data.profile.height || "",
+          height: data.profile.height || null, // שינוי מ-"" ל-null
           maritalStatus: data.profile.maritalStatus || "",
           occupation: data.profile.occupation || "",
           education: data.profile.education || "",
@@ -88,8 +88,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
           city: data.profile.city || "",
           origin: data.profile.origin || "",
           parentStatus: data.profile.parentStatus || "",
-          siblings: data.profile.siblings || "",
-          position: data.profile.position || "",
+          siblings: data.profile.siblings || null, // שינוי מ-"" ל-null
+          position: data.profile.position || null, // שינוי מ-"" ל-null
           referenceName1: data.profile.referenceName1 || "",
           referencePhone1: data.profile.referencePhone1 || "",
           referenceName2: data.profile.referenceName2 || "",
@@ -120,53 +120,61 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
   // עדכון נתונים כאשר ה-prop profile משתנה
   useEffect(() => {
     if (profile) {
-      setFormData((prevFormData) => {
-        const mergedData = {
+      setFormData((prevFormData: Partial<UserProfile>) => {
+        const mergedData: Partial<UserProfile> = {
           ...prevFormData,
           ...profile,
-          gender: profile.gender || prevFormData.gender || "",
-          birthDate: profile.birthDate || prevFormData.birthDate || null,
+          gender: profile.gender || prevFormData.gender || undefined,
+          birthDate: profile.birthDate || prevFormData.birthDate || undefined,
           nativeLanguage:
-            profile.nativeLanguage || prevFormData.nativeLanguage || "",
+            profile.nativeLanguage || prevFormData.nativeLanguage || undefined,
           additionalLanguages:
             profile.additionalLanguages ||
             prevFormData.additionalLanguages ||
             [],
-          height: profile.height || prevFormData.height || "",
+          height: profile.height || prevFormData.height || null,
           maritalStatus:
-            profile.maritalStatus || prevFormData.maritalStatus || "",
-          occupation: profile.occupation || prevFormData.occupation || "",
-          education: profile.education || prevFormData.education || "",
+            profile.maritalStatus || prevFormData.maritalStatus || undefined,
+          occupation:
+            profile.occupation || prevFormData.occupation || undefined,
+          education: profile.education || prevFormData.education || undefined,
           religiousLevel:
-            profile.religiousLevel || prevFormData.religiousLevel || "",
-          address: profile.address || prevFormData.address || "",
-          city: profile.city || prevFormData.city || "",
-          origin: profile.origin || prevFormData.origin || "",
-          parentStatus: profile.parentStatus || prevFormData.parentStatus || "",
-          siblings: profile.siblings || prevFormData.siblings || "",
-          position: profile.position || prevFormData.position || "",
+            profile.religiousLevel || prevFormData.religiousLevel || undefined,
+          address: profile.address || prevFormData.address || undefined,
+          city: profile.city || prevFormData.city || undefined,
+          origin: profile.origin || prevFormData.origin || undefined,
+          parentStatus:
+            profile.parentStatus || prevFormData.parentStatus || undefined,
+          siblings: profile.siblings || prevFormData.siblings || undefined,
+          position: profile.position || prevFormData.position || undefined,
           referenceName1:
-            profile.referenceName1 || prevFormData.referenceName1 || "",
+            profile.referenceName1 || prevFormData.referenceName1 || undefined,
           referencePhone1:
-            profile.referencePhone1 || prevFormData.referencePhone1 || "",
+            profile.referencePhone1 ||
+            prevFormData.referencePhone1 ||
+            undefined,
           referenceName2:
-            profile.referenceName2 || prevFormData.referenceName2 || "",
+            profile.referenceName2 || prevFormData.referenceName2 || undefined,
           referencePhone2:
-            profile.referencePhone2 || prevFormData.referencePhone2 || "",
+            profile.referencePhone2 ||
+            prevFormData.referencePhone2 ||
+            undefined,
           isProfileVisible:
             profile.isProfileVisible ?? prevFormData.isProfileVisible ?? true,
           preferredMatchmakerGender:
             profile.preferredMatchmakerGender ||
             prevFormData.preferredMatchmakerGender ||
-            "",
+            undefined,
           availabilityStatus:
             profile.availabilityStatus ||
             prevFormData.availabilityStatus ||
             "AVAILABLE",
           availabilityNote:
-            profile.availabilityNote || prevFormData.availabilityNote || "",
-          about: profile.about || prevFormData.about || "",
-          hobbies: profile.hobbies || prevFormData.hobbies || "",
+            profile.availabilityNote ||
+            prevFormData.availabilityNote ||
+            undefined,
+          about: profile.about || prevFormData.about || undefined,
+          hobbies: profile.hobbies || prevFormData.hobbies || undefined,
         };
         setInitialData((prevInitial) => {
           if (JSON.stringify(prevInitial) !== JSON.stringify(mergedData)) {
@@ -183,10 +191,22 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
     field: keyof UserProfile,
     value: UserProfile[keyof UserProfile]
   ) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    if (field === "height" || field === "siblings" || field === "position") {
+      // המרה למספר או null עבור שדות מספריים
+      const numericValue =
+        typeof value === "string" && value.trim() !== ""
+          ? parseInt(value, 10)
+          : null;
+      setFormData((prev) => ({
+        ...prev,
+        [field]: numericValue,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [field]: value,
+      }));
+    }
   };
 
   const handleSave = () => {
@@ -362,8 +382,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         }
                       >
                         {lang.label}
-                        {formData.additionalLanguages?.includes(lang.value) &&
-                          " ✓"}
+                        {formData.additionalLanguages?.includes(lang.value) && (
+                          <> ✓</>
+                        )}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -399,15 +420,14 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 </div>
               </div>
               <div>
-                <Label>גובה</Label>
+                <Label>גובה (ס&quot;מ)</Label>
                 <Input
                   type="number"
-                  value={formData.height || ""}
-                  onChange={(e) =>
-                    handleChange("height", parseInt(e.target.value))
-                  }
+                  value={formData.height !== null ? formData.height : ""}
+                  onChange={(e) => handleChange("height", e.target.value)}
                   disabled={!isEditing}
                   className="mt-1"
+                  placeholder="הזן גובה בסנטימטרים"
                 />
               </div>
 
@@ -542,10 +562,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 <Label>מספר אחים ואחיות</Label>
                 <Input
                   type="number"
-                  value={formData.siblings || ""}
-                  onChange={(e) =>
-                    handleChange("siblings", parseInt(e.target.value))
-                  }
+                  value={formData.siblings !== null ? formData.siblings : ""}
+                  onChange={(e) => handleChange("siblings", e.target.value)}
                   disabled={!isEditing}
                   className="mt-1"
                 />
@@ -555,10 +573,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 <Label>מיקום בין האחים</Label>
                 <Input
                   type="number"
-                  value={formData.position || ""}
-                  onChange={(e) =>
-                    handleChange("position", parseInt(e.target.value))
-                  }
+                  value={formData.position !== null ? formData.position : ""}
+                  onChange={(e) => handleChange("position", e.target.value)}
                   disabled={!isEditing}
                   className="mt-1"
                 />

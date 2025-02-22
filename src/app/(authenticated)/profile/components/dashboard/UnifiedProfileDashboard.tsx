@@ -40,7 +40,7 @@ import type {
   UserProfile,
   UserImage,
   QuestionnaireResponse,
-  QuestionAnswers,
+  UpdateValue, // ייבוא UpdateValue מ-next-auth.ts
 } from "@/types/next-auth";
 
 // Stats configuration
@@ -229,13 +229,18 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   const handleQuestionnaireUpdate = async (
     world: string,
     questionId: string,
-    value: QuestionAnswers[keyof QuestionAnswers]
+    value: UpdateValue
   ) => {
     try {
+      const payload =
+        value.type === "answer"
+          ? { worldKey: world, questionId, value: value.value }
+          : { worldKey: world, questionId, isVisible: value.isVisible };
+
       const response = await fetch("/api/profile/questionnaire", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ worldKey: world, questionId, value }),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();

@@ -31,11 +31,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { QuestionnaireResponse, FormattedAnswer } from "@/types/next-auth";
+import type {
+  QuestionnaireResponse,
+  FormattedAnswer,
+  UpdateValue,
+} from "@/types/next-auth"; // ייבוא UpdateValue מ-next-auth.ts
 
-type UpdateValue =
-  | { type: "answer"; value: string }
-  | { type: "visibility"; isVisible: boolean };
 interface QuestionnaireResponsesSectionProps {
   questionnaire: QuestionnaireResponse | null;
   onUpdate?: (
