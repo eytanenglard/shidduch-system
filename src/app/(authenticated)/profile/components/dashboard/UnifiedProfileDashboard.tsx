@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Shared Profile Components
@@ -40,7 +40,6 @@ import type {
   UserProfile,
   UserImage,
   QuestionnaireResponse,
-  FormattedAnswer,
 } from "@/types/next-auth";
 
 // Stats configuration
@@ -90,18 +89,17 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+
   const [isMatchmaker, setIsMatchmaker] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
 
-  const { data: session, update: updateSession } = useSession();
+  const { update: updateSession } = useSession();
 
   // Load initial data
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
       try {
-        // Load profile data
         const profileUrl = userId
           ? `/api/profile?userId=${userId}`
           : "/api/profile";
@@ -109,22 +107,19 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         const profileData = await profileResponse.json();
 
         if (profileData.success) {
-          setProfileData(profileData.profile);
-          setImages(profileData.images || []);
-        }
+          // בדיקה האם הנתונים באמת השתנו לפני עדכון ה-state
+          setProfileData((prevData) =>
+            JSON.stringify(prevData) !== JSON.stringify(profileData.profile)
+              ? profileData.profile
+              : prevData
+          );
 
-        // Load questionnaire data
-        const questionnaireUrl = userId
-          ? `/api/profile/${userId}/questionnaire`
-          : "/api/profile/questionnaire";
-        const questionnaireResponse = await fetch(questionnaireUrl);
-        const questionnaireData = await questionnaireResponse.json();
-
-        if (
-          questionnaireData.success &&
-          questionnaireData.questionnaireResponse
-        ) {
-          setQuestionnaireResponse(questionnaireData.questionnaireResponse);
+          setImages((prevImages) =>
+            JSON.stringify(prevImages) !==
+            JSON.stringify(profileData.images || [])
+              ? profileData.images || []
+              : prevImages
+          );
         }
       } catch (error) {
         console.error("Failed to load profile data:", error);
@@ -134,8 +129,10 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
       }
     };
 
-    loadData();
-  }, [userId]);
+    if (userId) {
+      loadData();
+    }
+  }, [userId]); // מפעיל רק כשהמשתמש משתנה
 
   // Handlers
   const handleSave = async (formData: Partial<UserProfile>) => {
@@ -155,6 +152,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         toast.success("הפרופיל עודכן בהצלחה");
       }
     } catch (error) {
+      console.error("Failed to update profile:", error);
       toast.error("שגיאה בעדכון הפרופיל");
     } finally {
       setIsLoading(false);
@@ -178,6 +176,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         toast.success("התמונה הועלתה בהצלחה");
       }
     } catch (error) {
+      console.error("Failed to upload image:", error);
       toast.error("שגיאה בהעלאת התמונה");
     }
   };
@@ -197,6 +196,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         toast.success("התמונה הראשית עודכנה בהצלחה");
       }
     } catch (error) {
+      console.error("Failed to set main image:", error);
       toast.error("שגיאה בעדכון התמונה הראשית");
     }
   };
@@ -214,6 +214,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         toast.success("התמונה נמחקה בהצלחה");
       }
     } catch (error) {
+      console.error("Failed to delete image:", error);
       toast.error("שגיאה במחיקת התמונה");
     }
   };
@@ -221,13 +222,21 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   const handleQuestionnaireUpdate = async (
     world: string,
     questionId: string,
-    value: any
+    update:
+      | { type: "answer"; value: string }
+      | { type: "visibility"; isVisible: boolean }
   ) => {
     try {
       const response = await fetch("/api/profile/questionnaire", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ worldKey: world, questionId, value }),
+        body: JSON.stringify({
+          worldKey: world,
+          questionId,
+          value: update.type === "answer" ? update.value : undefined,
+          isVisible:
+            update.type === "visibility" ? update.isVisible : undefined,
+        }),
       });
 
       const data = await response.json();
@@ -252,12 +261,6 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   return (
     <div className="w-full max-w-7xl mx-auto py-8 px-4" dir="rtl">
       <div className="space-y-6">
-        {error && (
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
         {/* Quick Stats */}
         {profileData && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -392,4 +395,3 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
 };
 
 export default UnifiedProfileDashboard;
-
