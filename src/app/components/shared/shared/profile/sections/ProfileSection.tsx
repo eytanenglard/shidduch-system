@@ -23,6 +23,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Pencil, Save, X } from "lucide-react";
 import { UserProfile } from "@/types/next-auth";
+
 const languageOptions = [
   // שפות נפוצות
   { value: "hebrew", label: "עברית" },
@@ -48,6 +49,7 @@ const languageOptions = [
   { value: "ladino", label: "לדינו" },
   { value: "romanian", label: "רומנית" },
 ];
+
 interface ProfileSectionProps {
   profile: UserProfile | null;
   isEditing: boolean;
@@ -72,14 +74,12 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
       const response = await fetch("/api/profile");
       const data = await response.json();
       if (data.success && data.profile) {
-        // Initialize all fields with data from database
         const profileData = {
-          // Ensure all fields are initialized, even if null/undefined
           gender: data.profile.gender || "",
           birthDate: data.profile.birthDate || null,
           nativeLanguage: data.profile.nativeLanguage || "",
           additionalLanguages: data.profile.additionalLanguages || [],
-          height: data.profile.height || null,
+          height: data.profile.height || "",
           maritalStatus: data.profile.maritalStatus || "",
           occupation: data.profile.occupation || "",
           education: data.profile.education || "",
@@ -88,22 +88,20 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
           city: data.profile.city || "",
           origin: data.profile.origin || "",
           parentStatus: data.profile.parentStatus || "",
-          siblings: data.profile.siblings || null,
-          position: data.profile.position || null,
+          siblings: data.profile.siblings || "",
+          position: data.profile.position || "",
           referenceName1: data.profile.referenceName1 || "",
           referencePhone1: data.profile.referencePhone1 || "",
           referenceName2: data.profile.referenceName2 || "",
           referencePhone2: data.profile.referencePhone2 || "",
-          isProfileVisible: data.profile.isProfileVisible || false,
+          isProfileVisible: data.profile.isProfileVisible ?? true,
           preferredMatchmakerGender:
             data.profile.preferredMatchmakerGender || "",
           availabilityStatus: data.profile.availabilityStatus || "AVAILABLE",
           availabilityNote: data.profile.availabilityNote || "",
           about: data.profile.about || "",
           hobbies: data.profile.hobbies || "",
-          ...data.profile, // Include any additional fields from the database
         };
-
         setFormData(profileData);
         setInitialData(profileData);
       }
@@ -114,56 +112,72 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
     }
   };
 
+  // טעינה ראשונית של הפרופיל מה-API
   useEffect(() => {
-    // Load initial data from database
     fetchProfile();
-  }, []);
+  }, []); // ריק - רץ פעם אחת בטעינה הראשונית
 
-  // When profile prop changes or after initial fetch
+  // עדכון נתונים כאשר ה-prop profile משתנה
   useEffect(() => {
     if (profile) {
-      const mergedData = {
-        ...formData, // Keep existing form data
-        ...profile, // Override with profile data
-        // Explicitly set all possible fields if they exist in either source
-        gender: profile.gender || formData.gender,
-        birthDate: profile.birthDate || formData.birthDate,
-        nativeLanguage: profile.nativeLanguage || formData.nativeLanguage,
-        additionalLanguages:
-          profile.additionalLanguages || formData.additionalLanguages,
-        height: profile.height || formData.height,
-        maritalStatus: profile.maritalStatus || formData.maritalStatus,
-        occupation: profile.occupation || formData.occupation,
-        education: profile.education || formData.education,
-        religiousLevel: profile.religiousLevel || formData.religiousLevel,
-        address: profile.address || formData.address,
-        city: profile.city || formData.city,
-        origin: profile.origin || formData.origin,
-        // Family information
-        parentStatus: profile.parentStatus || formData.parentStatus,
-        siblings: profile.siblings || formData.siblings,
-        position: profile.position || formData.position,
-        // References
-        referenceName1: profile.referenceName1 || formData.referenceName1,
-        referencePhone1: profile.referencePhone1 || formData.referencePhone1,
-        referenceName2: profile.referenceName2 || formData.referenceName2,
-        referencePhone2: profile.referencePhone2 || formData.referencePhone2,
-        // Profile settings
-        isProfileVisible: profile.isProfileVisible ?? formData.isProfileVisible,
-        preferredMatchmakerGender:
-          profile.preferredMatchmakerGender ||
-          formData.preferredMatchmakerGender,
-        availabilityStatus:
-          profile.availabilityStatus || formData.availabilityStatus,
-        availabilityNote: profile.availabilityNote || formData.availabilityNote,
-        about: profile.about || formData.about,
-        hobbies: profile.hobbies || formData.hobbies,
-      };
-
-      setFormData(mergedData);
-      setInitialData(mergedData);
+      setFormData((prevFormData) => {
+        const mergedData = {
+          ...prevFormData,
+          ...profile,
+          gender: profile.gender || prevFormData.gender || "",
+          birthDate: profile.birthDate || prevFormData.birthDate || null,
+          nativeLanguage:
+            profile.nativeLanguage || prevFormData.nativeLanguage || "",
+          additionalLanguages:
+            profile.additionalLanguages ||
+            prevFormData.additionalLanguages ||
+            [],
+          height: profile.height || prevFormData.height || "",
+          maritalStatus:
+            profile.maritalStatus || prevFormData.maritalStatus || "",
+          occupation: profile.occupation || prevFormData.occupation || "",
+          education: profile.education || prevFormData.education || "",
+          religiousLevel:
+            profile.religiousLevel || prevFormData.religiousLevel || "",
+          address: profile.address || prevFormData.address || "",
+          city: profile.city || prevFormData.city || "",
+          origin: profile.origin || prevFormData.origin || "",
+          parentStatus: profile.parentStatus || prevFormData.parentStatus || "",
+          siblings: profile.siblings || prevFormData.siblings || "",
+          position: profile.position || prevFormData.position || "",
+          referenceName1:
+            profile.referenceName1 || prevFormData.referenceName1 || "",
+          referencePhone1:
+            profile.referencePhone1 || prevFormData.referencePhone1 || "",
+          referenceName2:
+            profile.referenceName2 || prevFormData.referenceName2 || "",
+          referencePhone2:
+            profile.referencePhone2 || prevFormData.referencePhone2 || "",
+          isProfileVisible:
+            profile.isProfileVisible ?? prevFormData.isProfileVisible ?? true,
+          preferredMatchmakerGender:
+            profile.preferredMatchmakerGender ||
+            prevFormData.preferredMatchmakerGender ||
+            "",
+          availabilityStatus:
+            profile.availabilityStatus ||
+            prevFormData.availabilityStatus ||
+            "AVAILABLE",
+          availabilityNote:
+            profile.availabilityNote || prevFormData.availabilityNote || "",
+          about: profile.about || prevFormData.about || "",
+          hobbies: profile.hobbies || prevFormData.hobbies || "",
+        };
+        setInitialData((prevInitial) => {
+          if (JSON.stringify(prevInitial) !== JSON.stringify(mergedData)) {
+            return mergedData;
+          }
+          return prevInitial;
+        });
+        return mergedData;
+      });
     }
-  }, [profile, formData]);
+  }, [profile]);
 
   const handleChange = (
     field: keyof UserProfile,
@@ -178,7 +192,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
   const handleSave = () => {
     onSave(formData);
     setIsEditing(false);
-    setInitialData(formData); // Update initialData after saving
+    setInitialData(formData);
   };
 
   const handleCancel = () => {
@@ -316,18 +330,16 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
               <div>
                 <Label>שפות נוספות</Label>
                 <Select
-                  value={formData.additionalLanguages?.[0] || ""} // נשים רק את הערך הראשון בתור הערך המוצג
+                  value={formData.additionalLanguages?.[0] || ""}
                   onValueChange={(value) => {
                     const currentLanguages = formData.additionalLanguages || [];
                     let newLanguages;
 
                     if (currentLanguages.includes(value)) {
-                      // אם השפה כבר נבחרה - נסיר אותה
                       newLanguages = currentLanguages.filter(
                         (lang) => lang !== value
                       );
                     } else {
-                      // אם השפה חדשה - נוסיף אותה
                       newLanguages = [...currentLanguages, value];
                     }
 
@@ -356,7 +368,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     ))}
                   </SelectContent>
                 </Select>
-                {/* תצוגת השפות שנבחרו */}
                 <div className="mt-2 flex flex-wrap gap-2">
                   {(formData.additionalLanguages || []).map((langValue) => {
                     const lang = languageOptions.find(
@@ -420,7 +431,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 </Select>
               </div>
 
-              {/* שדות חדשים - מידע אישי */}
               <div>
                 <Label>תעסוקה</Label>
                 <Input
@@ -465,7 +475,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 </Select>
               </div>
 
-              {/* כתובת ומיקום */}
               <div>
                 <Label>כתובת</Label>
                 <Input
@@ -566,7 +575,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* ממליץ ראשון */}
               <div className="space-y-4">
                 <div>
                   <Label>שם ממליץ/ה 1</Label>
@@ -594,7 +602,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 </div>
               </div>
 
-              {/* ממליץ שני */}
               <div className="space-y-4">
                 <div>
                   <Label>שם ממליץ/ה 2</Label>
