@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Shared Profile Components
@@ -89,17 +89,18 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
+  const [error, setError] = useState("");
   const [isMatchmaker, setIsMatchmaker] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
 
-  const { update: updateSession } = useSession();
+  const { update: updateSession } = useSession(); // הסרתי את session
 
   // Load initial data
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
       try {
+        // Load profile data
         const profileUrl = userId
           ? `/api/profile?userId=${userId}`
           : "/api/profile";
@@ -107,32 +108,34 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         const profileData = await profileResponse.json();
 
         if (profileData.success) {
-          // בדיקה האם הנתונים באמת השתנו לפני עדכון ה-state
-          setProfileData((prevData) =>
-            JSON.stringify(prevData) !== JSON.stringify(profileData.profile)
-              ? profileData.profile
-              : prevData
-          );
-
-          setImages((prevImages) =>
-            JSON.stringify(prevImages) !==
-            JSON.stringify(profileData.images || [])
-              ? profileData.images || []
-              : prevImages
-          );
+          setProfileData(profileData.profile);
+          setImages(profileData.images || []);
         }
-      } catch (error) {
-        console.error("Failed to load profile data:", error);
+
+        // Load questionnaire data
+        const questionnaireUrl = userId
+          ? `/api/profile/${userId}/questionnaire`
+          : "/api/profile/questionnaire";
+        const questionnaireResponse = await fetch(questionnaireUrl);
+        const questionnaireData = await questionnaireResponse.json();
+
+        if (
+          questionnaireData.success &&
+          questionnaireData.questionnaireResponse
+        ) {
+          setQuestionnaireResponse(questionnaireData.questionnaireResponse);
+        }
+      } catch (err) {
+        console.error("Failed to load profile data:", err);
+        setError("שגיאה בטעינת הנתונים"); // שימוש ב-setError
         toast.error("שגיאה בטעינת הנתונים");
       } finally {
         setIsLoading(false);
       }
     };
 
-    if (userId) {
-      loadData();
-    }
-  }, [userId]); // מפעיל רק כשהמשתמש משתנה
+    loadData();
+  }, [userId]);
 
   // Handlers
   const handleSave = async (formData: Partial<UserProfile>) => {
@@ -150,9 +153,11 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         setProfileData((prev) => ({ ...prev, ...formData } as UserProfile));
         setIsEditing(false);
         toast.success("הפרופיל עודכן בהצלחה");
+      } else {
+        setError("שגיאה בעדכון הפרופיל"); // שימוש ב-setError
       }
-    } catch (error) {
-      console.error("Failed to update profile:", error);
+    } catch (_) {
+      setError("שגיאה בעדכון הפרופיל"); // שימוש ב-setError
       toast.error("שגיאה בעדכון הפרופיל");
     } finally {
       setIsLoading(false);
@@ -174,9 +179,11 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         setImages((prev) => [...prev, data.image]);
         await updateSession();
         toast.success("התמונה הועלתה בהצלחה");
+      } else {
+        setError("שגיאה בהעלאת התמונה"); // שימוש ב-setError
       }
-    } catch (error) {
-      console.error("Failed to upload image:", error);
+    } catch (_) {
+      setError("שגיאה בהעלאת התמונה"); // שימוש ב-setError
       toast.error("שגיאה בהעלאת התמונה");
     }
   };
@@ -194,9 +201,11 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         setImages(data.images);
         await updateSession();
         toast.success("התמונה הראשית עודכנה בהצלחה");
+      } else {
+        setError("שגיאה בעדכון התמונה הראשית"); // שימוש ב-setError
       }
-    } catch (error) {
-      console.error("Failed to set main image:", error);
+    } catch (_) {
+      setError("שגיאה בעדכון התמונה הראשית"); // שימוש ב-setError
       toast.error("שגיאה בעדכון התמונה הראשית");
     }
   };
@@ -212,9 +221,11 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         setImages((prev) => prev.filter((img) => img.id !== imageId));
         await updateSession();
         toast.success("התמונה נמחקה בהצלחה");
+      } else {
+        setError("שגיאה במחיקת התמונה"); // שימוש ב-setError
       }
-    } catch (error) {
-      console.error("Failed to delete image:", error);
+    } catch (_) {
+      setError("שגיאה במחיקת התמונה"); // שימוש ב-setError
       toast.error("שגיאה במחיקת התמונה");
     }
   };
@@ -222,30 +233,25 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   const handleQuestionnaireUpdate = async (
     world: string,
     questionId: string,
-    update:
-      | { type: "answer"; value: string }
-      | { type: "visibility"; isVisible: boolean }
+    value: string // שיניתי מ-any ל-string
   ) => {
     try {
       const response = await fetch("/api/profile/questionnaire", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          worldKey: world,
-          questionId,
-          value: update.type === "answer" ? update.value : undefined,
-          isVisible:
-            update.type === "visibility" ? update.isVisible : undefined,
-        }),
+        body: JSON.stringify({ worldKey: world, questionId, value }),
       });
 
       const data = await response.json();
       if (data.success) {
         setQuestionnaireResponse(data.data);
         toast.success("השאלון עודכן בהצלחה");
+      } else {
+        setError("שגיאה בעדכון השאלון"); // שימוש ב-setError
       }
-    } catch (error) {
-      console.error("Failed to update questionnaire:", error);
+    } catch (err) {
+      console.error("Failed to update questionnaire:", err);
+      setError("שגיאה בעדכון השאלון"); // שימוש ב-setError
       toast.error("שגיאה בעדכון השאלון");
     }
   };
@@ -261,6 +267,12 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   return (
     <div className="w-full max-w-7xl mx-auto py-8 px-4" dir="rtl">
       <div className="space-y-6">
+        {error && (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
         {/* Quick Stats */}
         {profileData && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
