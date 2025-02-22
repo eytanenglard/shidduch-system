@@ -127,7 +127,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         }
       } catch (err) {
         console.error("Failed to load profile data:", err);
-        setError("שגיאה בטעינת הנתונים"); // שימוש ב-setError
+        setError("שגיאה בטעינת הנתונים");
         toast.error("שגיאה בטעינת הנתונים");
       } finally {
         setIsLoading(false);
@@ -154,10 +154,10 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         setIsEditing(false);
         toast.success("הפרופיל עודכן בהצלחה");
       } else {
-        setError("שגיאה בעדכון הפרופיל"); // שימוש ב-setError
+        setError("שגיאה בעדכון הפרופיל");
       }
-    } catch (_) {
-      setError("שגיאה בעדכון הפרופיל"); // שימוש ב-setError
+    } catch {
+      setError("שגיאה בעדכון הפרופיל");
       toast.error("שגיאה בעדכון הפרופיל");
     } finally {
       setIsLoading(false);
@@ -180,10 +180,10 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         await updateSession();
         toast.success("התמונה הועלתה בהצלחה");
       } else {
-        setError("שגיאה בהעלאת התמונה"); // שימוש ב-setError
+        setError("שגיאה בהעלאת התמונה");
       }
-    } catch (_) {
-      setError("שגיאה בהעלאת התמונה"); // שימוש ב-setError
+    } catch {
+      setError("שגיאה בהעלאת התמונה");
       toast.error("שגיאה בהעלאת התמונה");
     }
   };
@@ -202,10 +202,10 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         await updateSession();
         toast.success("התמונה הראשית עודכנה בהצלחה");
       } else {
-        setError("שגיאה בעדכון התמונה הראשית"); // שימוש ב-setError
+        setError("שגיאה בעדכון התמונה הראשית");
       }
-    } catch (_) {
-      setError("שגיאה בעדכון התמונה הראשית"); // שימוש ב-setError
+    } catch {
+      setError("שגיאה בעדכון התמונה הראשית");
       toast.error("שגיאה בעדכון התמונה הראשית");
     }
   };
@@ -222,10 +222,10 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         await updateSession();
         toast.success("התמונה נמחקה בהצלחה");
       } else {
-        setError("שגיאה במחיקת התמונה"); // שימוש ב-setError
+        setError("שגיאה במחיקת התמונה");
       }
-    } catch (_) {
-      setError("שגיאה במחיקת התמונה"); // שימוש ב-setError
+    } catch {
+      setError("שגיאה במחיקת התמונה");
       toast.error("שגיאה במחיקת התמונה");
     }
   };
@@ -233,7 +233,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   const handleQuestionnaireUpdate = async (
     world: string,
     questionId: string,
-    value: string // שיניתי מ-any ל-string
+    value: string
   ) => {
     try {
       const response = await fetch("/api/profile/questionnaire", {
@@ -247,11 +247,11 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         setQuestionnaireResponse(data.data);
         toast.success("השאלון עודכן בהצלחה");
       } else {
-        setError("שגיאה בעדכון השאלון"); // שימוש ב-setError
+        setError("שגיאה בעדכון השאלון");
       }
     } catch (err) {
       console.error("Failed to update questionnaire:", err);
-      setError("שגיאה בעדכון השאלון"); // שימוש ב-setError
+      setError("שגיאה בעדכון השאלון");
       toast.error("שגיאה בעדכון השאלון");
     }
   };
