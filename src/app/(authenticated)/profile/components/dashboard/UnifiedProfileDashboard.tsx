@@ -40,6 +40,7 @@ import type {
   UserProfile,
   UserImage,
   QuestionnaireResponse,
+  QuestionAnswers,
 } from "@/types/next-auth";
 
 // Stats configuration
@@ -93,7 +94,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   const [isMatchmaker, setIsMatchmaker] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
 
-  const { update: updateSession } = useSession(); // הסרתי את session
+  const { update: updateSession } = useSession();
 
   // Load initial data
   useEffect(() => {
@@ -233,7 +234,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   const handleQuestionnaireUpdate = async (
     world: string,
     questionId: string,
-    value: string
+    value: string | number | boolean | null
   ) => {
     try {
       const response = await fetch("/api/profile/questionnaire", {
