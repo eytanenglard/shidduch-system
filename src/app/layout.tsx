@@ -21,11 +21,13 @@ export default async function RootLayout({
 }) {
   const cookieStore = await cookies();
   const defaultLanguage = cookieStore.get("language")?.value || "he";
+  const isRTL = defaultLanguage === "he";
 
   return (
     <html
       lang={defaultLanguage}
-      dir={defaultLanguage === "he" ? "rtl" : "ltr"}
+      dir={isRTL ? "rtl" : "ltr"}
+      className={isRTL ? "dir-rtl" : "dir-ltr"}
       suppressHydrationWarning
     >
       <body
@@ -35,11 +37,13 @@ export default async function RootLayout({
         <Providers>
           <LanguageProvider>
             <div
-              className="min-h-screen flex flex-col"
-              dir={defaultLanguage === "he" ? "rtl" : "ltr"}
+              className={`min-h-screen flex flex-col ${
+                isRTL ? "dir-rtl" : "dir-ltr"
+              }`}
+              dir={isRTL ? "rtl" : "ltr"}
             >
               <Navbar />
-              <main className="flex-1">{children}</main>
+              <main className="flex-1 w-full">{children}</main>
             </div>
           </LanguageProvider>
         </Providers>

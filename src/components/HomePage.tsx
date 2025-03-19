@@ -117,32 +117,32 @@ export default function HomePage() {
   const { data: session } = useSession();
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen w-full overflow-x-hidden">
       {/* Hero Section - Enhanced with more modern animations and effects */}
-      <section className="relative py-24 md:py-32 overflow-hidden">
+      <section className="relative py-16 md:py-24 overflow-hidden">
         {/* Enhanced backdrop gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-white" />
 
         {/* Animated background shapes */}
         <div
-          className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-200 to-purple-200 rounded-full transform translate-x-1/2 -translate-y-1/2 opacity-20 animate-pulse"
+          className="absolute top-0 right-0 w-64 md:w-96 h-64 md:h-96 bg-gradient-to-br from-blue-200 to-purple-200 rounded-full transform translate-x-1/2 -translate-y-1/2 opacity-20 animate-pulse"
           style={{ animationDuration: "8s" }}
         />
         <div
-          className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-br from-blue-200 to-purple-200 rounded-full transform -translate-x-1/2 translate-y-1/2 opacity-20 animate-pulse"
+          className="absolute bottom-0 left-0 w-48 md:w-64 h-48 md:h-64 bg-gradient-to-br from-blue-200 to-purple-200 rounded-full transform -translate-x-1/2 translate-y-1/2 opacity-20 animate-pulse"
           style={{ animationDuration: "12s" }}
         />
         <div
-          className="absolute top-1/2 left-1/4 w-32 h-32 bg-gradient-to-br from-purple-200 to-blue-200 rounded-full opacity-10 animate-pulse"
+          className="absolute top-1/2 left-1/4 w-24 md:w-32 h-24 md:h-32 bg-gradient-to-br from-purple-200 to-blue-200 rounded-full opacity-10 animate-pulse"
           style={{ animationDuration: "15s" }}
         />
 
-        <div className="relative max-w-6xl mx-auto px-4 text-center">
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div
             className="animate-fadeIn"
             style={{ "--animation-delay": "0.2s" } as React.CSSProperties}
           >
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-800 mb-8 leading-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-800 mb-6 md:mb-8 leading-tight">
               בניית קשר
               <span
                 className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 animate-gradient"
@@ -159,7 +159,7 @@ export default function HomePage() {
             className="animate-fadeIn"
             style={{ "--animation-delay": "0.4s" } as React.CSSProperties}
           >
-            <p className="text-lg sm:text-xl md:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 mb-8 md:mb-12 max-w-3xl mx-auto leading-relaxed">
               אנו מחברים בין אנשים איכותיים המחפשים קשר רציני, תוך שמירה על ערכי
               המסורת והצניעות
             </p>
@@ -220,13 +220,13 @@ export default function HomePage() {
       </section>
 
       {/* Features Section - Enhanced cards with improved hover effects */}
-      <section className="py-20 px-4 bg-white relative">
+      <section className="py-16 md:py-20 px-4 bg-white relative">
         {/* Subtle background pattern */}
         <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:20px_20px]"></div>
 
         <div className="max-w-6xl mx-auto relative">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+          <div className="text-center mb-12 md:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4">
               למה
               <span
                 className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 animate-gradient"
@@ -240,7 +240,7 @@ export default function HomePage() {
             <div className="w-24 h-1 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto rounded-full" />
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
             <FeatureCard
               icon={<Shield className="w-8 h-8 text-blue-600" />}
               title="פרטיות מלאה"
@@ -266,15 +266,15 @@ export default function HomePage() {
       </section>
 
       {/* How It Works Section - Enhanced with connecting lines and better visuals */}
-      <section className="py-20 px-4 bg-gray-50 relative overflow-hidden">
+      <section className="py-16 md:py-20 px-4 bg-gray-50 relative overflow-hidden">
         {/* Enhanced background effects */}
         <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-blue-50 opacity-50" />
         <div className="absolute left-0 top-1/4 w-40 h-40 bg-blue-200/20 rounded-full blur-3xl"></div>
         <div className="absolute right-0 bottom-1/4 w-60 h-60 bg-purple-200/20 rounded-full blur-3xl"></div>
 
         <div className="relative max-w-4xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+          <div className="text-center mb-12 md:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4">
               <span
                 className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 animate-gradient"
                 style={{ backgroundSize: "200% 200%" }}
@@ -286,7 +286,7 @@ export default function HomePage() {
             <div className="w-24 h-1 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto rounded-full" />
           </div>
 
-          <div className="space-y-16 md:space-y-20">
+          <div className="space-y-12 md:space-y-16 lg:space-y-20">
             <Step
               number="1"
               title="הרשמה למערכת"
@@ -314,13 +314,13 @@ export default function HomePage() {
       </section>
 
       {/* Testimonials Section - With improved card design */}
-      <section className="py-20 px-4 relative">
+      <section className="py-16 md:py-20 px-4 relative">
         {/* Subtle background pattern */}
         <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#8b5cf6_1px,transparent_1px)] [background-size:20px_20px]"></div>
 
         <div className="max-w-6xl mx-auto relative">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+          <div className="text-center mb-12 md:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4">
               סיפורי
               <span
                 className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 animate-gradient"
@@ -333,7 +333,7 @@ export default function HomePage() {
             <div className="w-24 h-1 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto rounded-full" />
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             <TestimonialCard
               text="בזכות המערכת הכרתי את בן זוגי. ההתאמה הייתה מדויקת והליווי היה מקצועי ורגיש"
               author="רחל, ירושלים"
@@ -351,38 +351,38 @@ export default function HomePage() {
       </section>
 
       {/* Footer - With enhanced modern design */}
-      <footer className="bg-gradient-to-br from-gray-900 to-gray-800 text-white py-16 px-4 relative overflow-hidden">
+      <footer className="bg-gradient-to-br from-gray-900 to-gray-800 text-white py-12 md:py-16 px-4 relative overflow-hidden">
         {/* Enhanced background effects */}
         <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTAgMGg0MHY0MEgwVjB6bTEwIDEwaDIwdjIwSDEwVjEweiIvPjwvZz48L2c+PC9zdmc+')]"></div>
 
         <div className="max-w-6xl mx-auto relative">
-          <div className="grid md:grid-cols-3 gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
             <div>
-              <h3 className="font-bold text-xl mb-6 relative">
+              <h3 className="font-bold text-xl mb-4 md:mb-6 relative">
                 <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
                   ניווט מהיר
                 </span>
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-400/30 to-purple-400/30" />
               </h3>
-              <ul className="space-y-4"></ul>
+              <ul className="space-y-3 md:space-y-4"></ul>
             </div>
             <div>
-              <h3 className="font-bold text-xl mb-6 relative">
+              <h3 className="font-bold text-xl mb-4 md:mb-6 relative">
                 <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
                   מידע שימושי
                 </span>
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-400/30 to-purple-400/30" />
               </h3>
-              <ul className="space-y-4"></ul>
+              <ul className="space-y-3 md:space-y-4"></ul>
             </div>
             <div>
-              <h3 className="font-bold text-xl mb-6 relative">
+              <h3 className="font-bold text-xl mb-4 md:mb-6 relative">
                 <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
                   יצירת קשר
                 </span>
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-400/30 to-purple-400/30" />
               </h3>
-              <ul className="space-y-4">
+              <ul className="space-y-3 md:space-y-4">
                 <li className="flex items-center transition-transform hover:translate-x-1">
                   <span className="ml-2">📞</span>
                   <span>03-1234567</span>
@@ -398,7 +398,7 @@ export default function HomePage() {
               </ul>
             </div>
           </div>
-          <div className="mt-12 pt-8 border-t border-gray-700/50">
+          <div className="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-gray-700/50">
             <div className="text-center">
               <div className="mb-4">
                 <span className="inline-block px-4 py-2 rounded-full bg-gradient-to-r from-blue-500/10 to-purple-500/10 text-blue-400 hover:from-blue-500/20 hover:to-purple-500/20 transition-colors duration-300">
@@ -424,36 +424,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-// Add these CSS classes to your global CSS file
-/**
- * @keyframes fadeIn {
- *   from { opacity: 0; transform: translateY(10px); }
- *   to { opacity: 1; transform: translateY(0); }
- * }
- *
- * @keyframes gradient {
- *   0% { background-position: 0% 50%; }
- *   50% { background-position: 100% 50%; }
- *   100% { background-position: 0% 50%; }
- * }
- *
- * @keyframes bounce-slow {
- *   0%, 100% { transform: translateY(0); }
- *   50% { transform: translateY(-10px); }
- * }
- *
- * .animate-fadeIn {
- *   animation: fadeIn 0.8s ease-out forwards;
- *   animation-delay: var(--animation-delay, 0s);
- *   opacity: 0;
- * }
- *
- * .animate-gradient {
- *   animation: gradient 8s ease infinite;
- * }
- *
- * .animate-bounce-slow {
- *   animation: bounce-slow 3s ease-in-out infinite;
- * }
- */

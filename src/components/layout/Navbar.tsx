@@ -53,17 +53,20 @@ const Navbar = () => {
   );
 
   return (
-    <nav className="bg-white shadow-sm border-b sticky top-0 z-50">
-      <div className="container mx-auto px-4">
+    <nav className="bg-white shadow-sm border-b sticky top-0 z-50 w-full">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex justify-between items-center h-16">
-          <Link href="/" className="flex items-center space-x-2">
+          <Link href="/" className="flex items-center gap-2">
             <Heart className="h-6 w-6 text-indigo-600" />
             <span className="text-xl font-bold">מערכת שידוכים</span>
           </Link>
 
-          <div className="flex items-center gap-2 md:gap-4">
+          <div className="hidden md:flex items-center gap-1 md:gap-2">
             <Link href="/">
-              <Button variant={isActive("/") ? "default" : "ghost"}>
+              <Button
+                variant={isActive("/") ? "default" : "ghost"}
+                className="text-sm"
+              >
                 <Home className="ml-2 h-4 w-4" />
                 דף הבית
               </Button>
@@ -80,6 +83,7 @@ const Navbar = () => {
                             ? "default"
                             : "ghost"
                         }
+                        className="text-sm"
                       >
                         <Heart className="ml-2 h-4 w-4" />
                         הצעות שידוך
@@ -90,6 +94,7 @@ const Navbar = () => {
                         variant={
                           isActive("/matchmaker/clients") ? "default" : "ghost"
                         }
+                        className="text-sm"
                       >
                         <Users className="ml-2 h-4 w-4" />
                         מועמדים
@@ -101,6 +106,7 @@ const Navbar = () => {
                     <Link href="/matches">
                       <Button
                         variant={isActive("/matches") ? "default" : "ghost"}
+                        className="text-sm"
                       >
                         <Users className="ml-2 h-4 w-4" />
                         שידוכים זמינים
@@ -112,7 +118,7 @@ const Navbar = () => {
                 <Link href="/messages">
                   <Button
                     variant={isActive("/messages") ? "default" : "ghost"}
-                    className="relative"
+                    className="relative text-sm"
                   >
                     <MessageCircle className="ml-2 h-4 w-4" />
                     הודעות
@@ -127,58 +133,63 @@ const Navbar = () => {
             )}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 md:gap-2">
             <LanguageToggle />
 
             {session ? (
               <>
                 <AvailabilityStatus />
-                <div className="border-l border-gray-200 h-6 mx-2" />
-                <div className="flex items-center gap-2">
+                <div className="border-l border-gray-200 h-6 mx-1 md:mx-2 hidden md:block" />
+                <div className="flex items-center gap-1 md:gap-2">
                   <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-semibold text-sm">
                     {getInitials()}
                   </div>
-                  <Link href="/profile">
-                    <Button
-                      variant={isActive("/profile") ? "default" : "ghost"}
-                    >
-                      <User className="ml-2 h-4 w-4" />
-                      פרופיל אישי
-                    </Button>
-                  </Link>
-                  <Link href="/settings">
-                    <Button
-                      variant={isActive("/settings") ? "default" : "ghost"}
-                    >
-                      <Settings className="ml-2 h-4 w-4" />
-                      הגדרות חשבון
-                    </Button>
-                  </Link>
+                  <div className="hidden md:flex items-center gap-1 md:gap-2">
+                    <Link href="/profile">
+                      <Button
+                        variant={isActive("/profile") ? "default" : "ghost"}
+                        className="text-sm"
+                      >
+                        <User className="ml-2 h-4 w-4" />
+                        פרופיל אישי
+                      </Button>
+                    </Link>
+                    <Link href="/settings">
+                      <Button
+                        variant={isActive("/settings") ? "default" : "ghost"}
+                        className="text-sm"
+                      >
+                        <Settings className="ml-2 h-4 w-4" />
+                        הגדרות חשבון
+                      </Button>
+                    </Link>
+                  </div>
                   <Button
                     variant="ghost"
                     onClick={handleSignOut}
-                    className="whitespace-nowrap text-red-600 hover:text-red-700 hover:bg-red-50"
+                    className="whitespace-nowrap text-red-600 hover:text-red-700 hover:bg-red-50 text-sm"
                   >
                     <LogOut className="ml-2 h-4 w-4" />
-                    התנתקות
+                    <span className="hidden md:inline">התנתקות</span>
                   </Button>
                 </div>
               </>
             ) : (
               <>
                 <Link href="/auth/signin">
-                  <Button variant="ghost">
+                  <Button variant="ghost" className="text-sm">
                     <LogIn className="ml-2 h-4 w-4" />
-                    התחברות
+                    <span className="hidden md:inline">התחברות</span>
                   </Button>
                 </Link>
                 <Link href="/auth/register">
                   <Button
                     variant="default"
-                    className="whitespace-nowrap bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800"
+                    className="whitespace-nowrap bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-sm"
                   >
                     <UserPlus className="ml-2 h-4 w-4" />
-                    הרשמה למערכת
+                    <span className="hidden md:inline">הרשמה למערכת</span>
+                    <span className="md:hidden">הרשמה</span>
                   </Button>
                 </Link>
               </>
