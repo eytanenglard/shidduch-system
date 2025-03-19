@@ -15,6 +15,8 @@ interface StatsCardProps {
     isPositive?: boolean;
   };
   variant?: "default" | "success" | "warning" | "destructive";
+  bgGradient?: string;
+  iconColor?: string;
   className?: string;
 }
 
@@ -24,54 +26,69 @@ const StatsCard: React.FC<StatsCardProps> = ({
   value,
   trend,
   variant = "default",
+  bgGradient,
+  iconColor = "text-primary",
   className,
 }) => {
   const getVariantStyles = () => {
     switch (variant) {
       case "success":
-        return "bg-emerald-50 dark:bg-emerald-900/20";
+        return "border-emerald-200";
       case "warning":
-        return "bg-amber-50 dark:bg-amber-900/20";
+        return "border-amber-200";
       case "destructive":
-        return "bg-red-50 dark:bg-red-900/20";
+        return "border-red-200";
       default:
-        return "bg-card";
+        return "border-gray-200";
     }
   };
 
   return (
     <Card
       className={cn(
-        "hover:shadow-md transition-shadow p-4",
+        "hover:shadow-md transition-all duration-300 p-4 overflow-hidden",
+        bgGradient ? `bg-gradient-to-br ${bgGradient}` : "bg-card",
         getVariantStyles(),
         className
       )}
     >
-      <div className="flex items-center gap-3">
-        <div className="p-2 bg-primary/10 rounded-lg">
-          <Icon className="w-5 h-5 text-primary" />
+      <div className="flex items-start justify-between">
+        <div className="mr-4 flex-shrink-0">
+          <div className={`p-2.5 rounded-full bg-white/60 backdrop-blur-sm shadow-sm`}>
+            <Icon className={`w-4 h-4 ${iconColor}`} />
+          </div>
         </div>
 
-        <div className="flex-1">
-          <p className="text-sm text-muted-foreground">{title}</p>
-          <h3 className="text-xl font-semibold mt-1">{value}</h3>
+        <div className="flex-1 text-right">
+          <p className="text-xs text-muted-foreground mb-1">{title}</p>
+          <h3 className="text-xl font-bold">{value}</h3>
 
           {trend && (
-            <div className="flex items-center gap-1 mt-1">
+            <div className="flex items-center justify-end gap-1 mt-1">
               <span
                 className={cn(
-                  "text-sm font-medium",
+                  "text-sm font-medium flex items-center gap-0.5",
                   trend.isPositive ? "text-emerald-600" : "text-red-600"
                 )}
               >
-                {trend.value}%
+                {trend.isPositive ? "+" : "-"}{trend.value}%
+                <span className={`${trend.isPositive ? "rotate-0" : "rotate-180"} transition-transform`}>
+                  ↑
+                </span>
               </span>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-[11px] text-muted-foreground">
                 {trend.label}
               </span>
             </div>
           )}
         </div>
+      </div>
+
+      {/* Animated background pattern for more visual appeal */}
+      <div className="absolute right-0 bottom-0 opacity-10 pointer-events-none">
+        <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="60" cy="60" r="40" fill="currentColor" />
+        </svg>
       </div>
     </Card>
   );

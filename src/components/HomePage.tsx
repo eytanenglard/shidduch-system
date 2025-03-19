@@ -25,6 +25,7 @@ interface StepProps {
   number: string;
   title: string;
   description: string;
+  isLast?: boolean;
 }
 
 interface TestimonialCardProps {
@@ -32,50 +33,78 @@ interface TestimonialCardProps {
   author: string;
 }
 
-// Component for feature cards
+// Component for feature cards with improved hover effects
 const FeatureCard: React.FC<FeatureCardProps> = ({
   icon,
   title,
   description,
 }) => (
-  <Card className="group relative overflow-hidden border-none shadow-lg transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
-    <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-purple-50 opacity-0 group-hover:opacity-100 transition-opacity" />
-    <CardContent className="relative p-8">
-      <div className="mb-6 flex justify-center">
-        <div className="p-3 rounded-xl bg-blue-50 group-hover:bg-blue-100 transition-colors">
-          {icon}
+  <Card className="group relative overflow-hidden border-none shadow-lg transition-all duration-500 hover:shadow-2xl hover:-translate-y-2">
+    <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-purple-50 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+    <div className="absolute -inset-1 bg-gradient-to-br from-blue-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 rounded-xl blur-md transition-all duration-500" />
+    <CardContent className="relative p-8 backdrop-blur-sm">
+      <div className="mb-6 flex justify-center transform transition-transform duration-500 group-hover:scale-110">
+        <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 shadow-md group-hover:shadow-lg transition-all duration-500">
+          {React.cloneElement(icon as React.ReactElement, {
+            className:
+              "w-8 h-8 text-blue-600 group-hover:text-blue-700 transition-colors duration-500",
+          })}
         </div>
       </div>
-      <h3 className="text-xl font-bold mb-3 text-gray-800">{title}</h3>
-      <p className="text-gray-600 leading-relaxed">{description}</p>
+      <h3 className="text-xl font-bold mb-3 text-gray-800 group-hover:text-blue-700 transition-colors duration-300 text-center">
+        {title}
+      </h3>
+      <p className="text-gray-600 leading-relaxed group-hover:text-gray-700 transition-colors duration-300 text-center">
+        {description}
+      </p>
     </CardContent>
   </Card>
 );
 
-// Modernized Step Component
-const Step: React.FC<StepProps> = ({ number, title, description }) => (
-  <div className="flex gap-6 items-start group">
-    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center flex-shrink-0 text-lg font-bold shadow-lg group-hover:scale-110 transition-transform">
+// Modernized Step Component with enhanced visuals
+const Step: React.FC<StepProps> = ({
+  number,
+  title,
+  description,
+  isLast = false,
+}) => (
+  <div className="flex gap-6 items-start group relative">
+    {/* Connecting line between steps */}
+    {!isLast && (
+      <div className="absolute top-12 bottom-0 right-6 w-0.5 bg-gradient-to-b from-blue-500 to-blue-200 rounded-full" />
+    )}
+
+    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center flex-shrink-0 text-lg font-bold shadow-lg group-hover:scale-110 group-hover:shadow-blue-200 transition-all duration-500 z-10">
       {number}
     </div>
-    <div className="flex-1">
-      <h3 className="text-xl font-bold mb-2 text-gray-800 group-hover:text-blue-600 transition-colors">
+    <div className="flex-1 bg-white/80 backdrop-blur-sm p-5 rounded-lg shadow-sm group-hover:shadow-md transition-all duration-300 border border-blue-50 group-hover:border-blue-100">
+      <h3 className="text-xl font-bold mb-2 text-gray-800 group-hover:text-blue-600 transition-colors duration-300">
         {title}
       </h3>
-      <p className="text-gray-600 leading-relaxed">{description}</p>
+      <p className="text-gray-600 leading-relaxed group-hover:text-gray-700">
+        {description}
+      </p>
     </div>
   </div>
 );
 
-// Modernized Testimonial Card
+// Modernized Testimonial Card with enhanced aesthetics
 const TestimonialCard: React.FC<TestimonialCardProps> = ({ text, author }) => (
-  <Card className="group relative overflow-hidden border-none shadow-lg hover:shadow-2xl transition-all duration-300">
-    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-100 to-purple-100 opacity-50 rounded-full transform translate-x-16 -translate-y-16" />
-    <CardContent className="relative p-8">
-      <div className="mb-6 text-4xl text-blue-400 font-serif">❝</div>
-      <p className="text-gray-700 leading-relaxed text-lg mb-6">{text}</p>
-      <div className="flex items-center">
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold">
+  <Card className="group relative overflow-hidden border-none shadow-lg hover:shadow-2xl transition-all duration-500 h-full">
+    {/* Improved decorative elements */}
+    <div className="absolute -top-8 -right-8 w-32 h-32 bg-gradient-to-br from-blue-100 to-purple-100 opacity-50 rounded-full" />
+    <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 opacity-30 rounded-full" />
+
+    {/* Content with enhanced styling */}
+    <CardContent className="relative p-8 h-full flex flex-col backdrop-blur-sm">
+      <div className="mb-4 text-4xl text-blue-400 font-serif opacity-80 group-hover:opacity-100 transition-opacity duration-300">
+        ❝
+      </div>
+      <p className="text-gray-700 leading-relaxed text-lg mb-6 flex-grow">
+        {text}
+      </p>
+      <div className="flex items-center mt-auto">
+        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold shadow-md transform group-hover:scale-110 transition-transform duration-300">
           {author[0]}
         </div>
         <p className="mr-4 font-semibold text-gray-800">{author}</p>
@@ -89,76 +118,120 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen">
-      {/* Hero Section - Now with more modern design */}
-      <section className="relative py-24 overflow-hidden">
+      {/* Hero Section - Enhanced with more modern animations and effects */}
+      <section className="relative py-24 md:py-32 overflow-hidden">
+        {/* Enhanced backdrop gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-white" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-200 to-purple-200 rounded-full transform translate-x-1/2 -translate-y-1/2 opacity-20" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-br from-blue-200 to-purple-200 rounded-full transform -translate-x-1/2 translate-y-1/2 opacity-20" />
+
+        {/* Animated background shapes */}
+        <div
+          className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-200 to-purple-200 rounded-full transform translate-x-1/2 -translate-y-1/2 opacity-20 animate-pulse"
+          style={{ animationDuration: "8s" }}
+        />
+        <div
+          className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-br from-blue-200 to-purple-200 rounded-full transform -translate-x-1/2 translate-y-1/2 opacity-20 animate-pulse"
+          style={{ animationDuration: "12s" }}
+        />
+        <div
+          className="absolute top-1/2 left-1/4 w-32 h-32 bg-gradient-to-br from-purple-200 to-blue-200 rounded-full opacity-10 animate-pulse"
+          style={{ animationDuration: "15s" }}
+        />
 
         <div className="relative max-w-6xl mx-auto px-4 text-center">
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-800 mb-8 leading-tight">
-            בניית קשר
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-              {" "}
-              משמעותי{" "}
-            </span>
-            על בסיס ערכים משותפים
-          </h1>
-          <p className="text-xl md:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
-            אנו מחברים בין אנשים איכותיים המחפשים קשר רציני, תוך שמירה על ערכי
-            המסורת והצניעות
-          </p>
-
-          {!session ? (
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link href="/auth/register">
-                <Button
-                  size="lg"
-                  className="text-lg px-8 py-6 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-xl"
-                >
-                  הרשמה למערכת
-                  <ArrowLeft className="mr-2 h-5 w-5" />
-                </Button>
-              </Link>
-
-              <Link href="/auth/signin">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="text-lg px-8 py-6 border-2 hover:bg-gray-50 transition-colors duration-300 rounded-xl"
-                >
-                  התחברות
-                </Button>
-              </Link>
-            </div>
-          ) : (
-            <Link href="/profile">
-              <Button
-                size="lg"
-                className="text-lg px-8 py-6 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-xl"
+          <div
+            className="animate-fadeIn"
+            style={{ "--animation-delay": "0.2s" } as React.CSSProperties}
+          >
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-800 mb-8 leading-tight">
+              בניית קשר
+              <span
+                className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 animate-gradient"
+                style={{ backgroundSize: "200% 200%" }}
               >
-                לאזור האישי
-                <ArrowLeft className="mr-2 h-5 w-5" />
-              </Button>
+                {" "}
+                משמעותי{" "}
+              </span>
+              על בסיס ערכים משותפים
+            </h1>
+          </div>
+
+          <div
+            className="animate-fadeIn"
+            style={{ "--animation-delay": "0.4s" } as React.CSSProperties}
+          >
+            <p className="text-lg sm:text-xl md:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
+              אנו מחברים בין אנשים איכותיים המחפשים קשר רציני, תוך שמירה על ערכי
+              המסורת והצניעות
+            </p>
+          </div>
+
+          <div
+            className="animate-fadeIn"
+            style={{ "--animation-delay": "0.6s" } as React.CSSProperties}
+          >
+            {!session ? (
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <Link href="/auth/register">
+                  <Button
+                    size="lg"
+                    className="text-base md:text-lg px-6 md:px-8 py-5 md:py-6 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-xl w-full sm:w-auto"
+                  >
+                    הרשמה למערכת
+                    <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+
+                <Link href="/auth/signin">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="text-base md:text-lg px-6 md:px-8 py-5 md:py-6 border-2 hover:bg-gray-50 transition-colors duration-300 rounded-xl w-full sm:w-auto mt-3 sm:mt-0"
+                  >
+                    התחברות
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              <Link href="/profile">
+                <Button
+                  size="lg"
+                  className="text-base md:text-lg px-6 md:px-8 py-5 md:py-6 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-xl"
+                >
+                  לאזור האישי
+                  <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
+            )}
+          </div>
+
+          <div
+            className="mt-16 max-w-md mx-auto animate-fadeIn"
+            style={{ "--animation-delay": "0.8s" } as React.CSSProperties}
+          >
+            <Link href="/questionnaire">
+              <FeatureCard
+                icon={<ClipboardList className="w-8 h-8 text-blue-600" />}
+                title="שאלון התאמה"
+                description="מלא/י שאלון מקיף לקבלת הצעות שידוך מותאמות אישית"
+              />
             </Link>
-          )}
-          <Link href="/questionnaire">
-            <FeatureCard
-              icon={<ClipboardList className="w-8 h-8 text-blue-600" />}
-              title="שאלון התאמה"
-              description="מלא/י שאלון מקיף לקבלת הצעות שידוך מותאמות אישית"
-            />
-          </Link>
+          </div>
         </div>
       </section>
 
-      {/* Features Section - With modern cards */}
-      <section className="py-20 px-4 bg-white">
-        <div className="max-w-6xl mx-auto">
+      {/* Features Section - Enhanced cards with improved hover effects */}
+      <section className="py-20 px-4 bg-white relative">
+        {/* Subtle background pattern */}
+        <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:20px_20px]"></div>
+
+        <div className="max-w-6xl mx-auto relative">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-800 mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
               למה
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+              <span
+                className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 animate-gradient"
+                style={{ backgroundSize: "200% 200%" }}
+              >
                 {" "}
                 לבחור{" "}
               </span>
@@ -167,7 +240,7 @@ export default function HomePage() {
             <div className="w-24 h-1 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto rounded-full" />
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
             <FeatureCard
               icon={<Shield className="w-8 h-8 text-blue-600" />}
               title="פרטיות מלאה"
@@ -192,13 +265,20 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* How It Works Section - With modern steps */}
+      {/* How It Works Section - Enhanced with connecting lines and better visuals */}
       <section className="py-20 px-4 bg-gray-50 relative overflow-hidden">
+        {/* Enhanced background effects */}
         <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-blue-50 opacity-50" />
+        <div className="absolute left-0 top-1/4 w-40 h-40 bg-blue-200/20 rounded-full blur-3xl"></div>
+        <div className="absolute right-0 bottom-1/4 w-60 h-60 bg-purple-200/20 rounded-full blur-3xl"></div>
+
         <div className="relative max-w-4xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-800 mb-4">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+              <span
+                className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 animate-gradient"
+                style={{ backgroundSize: "200% 200%" }}
+              >
                 איך זה{" "}
               </span>
               עובד?
@@ -206,7 +286,7 @@ export default function HomePage() {
             <div className="w-24 h-1 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto rounded-full" />
           </div>
 
-          <div className="space-y-12">
+          <div className="space-y-16 md:space-y-20">
             <Step
               number="1"
               title="הרשמה למערכת"
@@ -227,18 +307,25 @@ export default function HomePage() {
               number="4"
               title="בניית קשר משמעותי"
               description="ליווי מקצועי לאורך התהליך עד ליצירת הקשר המיוחל"
+              isLast={true}
             />
           </div>
         </div>
       </section>
 
-      {/* Testimonials Section - With modern cards */}
-      <section className="py-20 px-4">
-        <div className="max-w-6xl mx-auto">
+      {/* Testimonials Section - With improved card design */}
+      <section className="py-20 px-4 relative">
+        {/* Subtle background pattern */}
+        <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#8b5cf6_1px,transparent_1px)] [background-size:20px_20px]"></div>
+
+        <div className="max-w-6xl mx-auto relative">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-800 mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
               סיפורי
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+              <span
+                className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 animate-gradient"
+                style={{ backgroundSize: "200% 200%" }}
+              >
                 {" "}
                 הצלחה{" "}
               </span>
@@ -263,46 +350,58 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Footer - With modern design */}
-      <footer className="bg-gradient-to-br from-gray-900 to-gray-800 text-white py-16 px-4">
-        <div className="max-w-6xl mx-auto">
+      {/* Footer - With enhanced modern design */}
+      <footer className="bg-gradient-to-br from-gray-900 to-gray-800 text-white py-16 px-4 relative overflow-hidden">
+        {/* Enhanced background effects */}
+        <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTAgMGg0MHY0MEgwVjB6bTEwIDEwaDIwdjIwSDEwVjEweiIvPjwvZz48L2c+PC9zdmc+')]"></div>
+
+        <div className="max-w-6xl mx-auto relative">
           <div className="grid md:grid-cols-3 gap-12">
             <div>
-              <h3 className="font-bold text-xl mb-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
-                ניווט מהיר
+              <h3 className="font-bold text-xl mb-6 relative">
+                <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
+                  ניווט מהיר
+                </span>
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-400/30 to-purple-400/30" />
               </h3>
               <ul className="space-y-4"></ul>
             </div>
             <div>
-              <h3 className="font-bold text-xl mb-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
-                מידע שימושי
+              <h3 className="font-bold text-xl mb-6 relative">
+                <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
+                  מידע שימושי
+                </span>
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-400/30 to-purple-400/30" />
               </h3>
               <ul className="space-y-4"></ul>
             </div>
             <div>
-              <h3 className="font-bold text-xl mb-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
-                יצירת קשר
+              <h3 className="font-bold text-xl mb-6 relative">
+                <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
+                  יצירת קשר
+                </span>
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-400/30 to-purple-400/30" />
               </h3>
               <ul className="space-y-4">
-                <li className="flex items-center">
+                <li className="flex items-center transition-transform hover:translate-x-1">
                   <span className="ml-2">📞</span>
                   <span>03-1234567</span>
                 </li>
-                <li className="flex items-center">
+                <li className="flex items-center transition-transform hover:translate-x-1">
                   <span className="ml-2">📱</span>
                   <span>054-1234567</span>
                 </li>
-                <li className="flex items-center">
+                <li className="flex items-center transition-transform hover:translate-x-1">
                   <span className="ml-2">✉️</span>
                   <span>info@example.com</span>
                 </li>
               </ul>
             </div>
           </div>
-          <div className="mt-12 pt-8 border-t border-gray-700">
+          <div className="mt-12 pt-8 border-t border-gray-700/50">
             <div className="text-center">
               <div className="mb-4">
-                <span className="inline-block px-4 py-2 rounded-full bg-gradient-to-r from-blue-500/10 to-purple-500/10 text-blue-400">
+                <span className="inline-block px-4 py-2 rounded-full bg-gradient-to-r from-blue-500/10 to-purple-500/10 text-blue-400 hover:from-blue-500/20 hover:to-purple-500/20 transition-colors duration-300">
                   מחברים לבבות בדרך הנכונה
                 </span>
               </div>
@@ -312,16 +411,49 @@ export default function HomePage() {
         </div>
       </footer>
 
-      {/* Floating Contact Button */}
-      <div className="fixed bottom-8 left-8 z-50">
+      {/* Floating Contact Button - Enhanced with animation */}
+      <div className="fixed bottom-8 left-8 z-50 animate-bounce-slow">
         <Button
           size="lg"
-          className="rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+          className="rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 group"
         >
-          <MessageCircle className="w-5 h-5 ml-2" />
-          דברו איתנו
+          <MessageCircle className="w-5 h-5 ml-2 group-hover:scale-110 transition-transform" />
+          <span className="group-hover:mr-1 transition-all">דברו איתנו</span>
         </Button>
       </div>
     </div>
   );
 }
+
+// Add these CSS classes to your global CSS file
+/**
+ * @keyframes fadeIn {
+ *   from { opacity: 0; transform: translateY(10px); }
+ *   to { opacity: 1; transform: translateY(0); }
+ * }
+ *
+ * @keyframes gradient {
+ *   0% { background-position: 0% 50%; }
+ *   50% { background-position: 100% 50%; }
+ *   100% { background-position: 0% 50%; }
+ * }
+ *
+ * @keyframes bounce-slow {
+ *   0%, 100% { transform: translateY(0); }
+ *   50% { transform: translateY(-10px); }
+ * }
+ *
+ * .animate-fadeIn {
+ *   animation: fadeIn 0.8s ease-out forwards;
+ *   animation-delay: var(--animation-delay, 0s);
+ *   opacity: 0;
+ * }
+ *
+ * .animate-gradient {
+ *   animation: gradient 8s ease infinite;
+ * }
+ *
+ * .animate-bounce-slow {
+ *   animation: bounce-slow 3s ease-in-out infinite;
+ * }
+ */

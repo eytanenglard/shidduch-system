@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useEffect } from "react";
-import { User } from "lucide-react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
+import { UserX } from "lucide-react";
 import MinimalCard from "../CandidateCard/MinimalCard";
 import QuickView from "../CandidateCard/QuickView";
 import { ProfileCard } from "@/app/components/shared/shared/profile";
@@ -23,6 +23,7 @@ import {
 import { toast } from "sonner";
 import { ActionDialogs } from "../dialogs/ActionDialogs";
 import NewSuggestionForm from "../NewSuggestionForm";
+import { Button } from "@/components/ui/button";
 
 interface CreateSuggestionData {
   priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
@@ -37,6 +38,7 @@ interface CreateSuggestionData {
   firstPartyNotes?: string;
   secondPartyNotes?: string;
 }
+
 interface CandidatesListProps {
   candidates: Candidate[];
   allCandidates: Candidate[];
@@ -66,6 +68,9 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   const [hoveredCandidate, setHoveredCandidate] = useState<Candidate | null>(
     null
   );
+  const [hoverPosition, setHoverPosition] = useState({ top: 0, left: 0 });
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const quickViewRef = useRef<HTMLDivElement>(null);
 
   // Dialog states
   const [showInviteDialog, setShowInviteDialog] = useState(false);
@@ -74,6 +79,33 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   const [dialogCandidate, setDialogCandidate] = useState<Candidate | null>(
     null
   );
+
+  // Close QuickView when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        hoveredCandidate &&
+        quickViewRef.current &&
+        !quickViewRef.current.contains(event.target as Node)
+      ) {
+        setHoveredCandidate(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [hoveredCandidate]);
+
+  // Clean up timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Load questionnaire when candidate is selected
   useEffect(() => {
@@ -173,9 +205,53 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     }
   };
 
+  const handleMouseEnter = (candidate: Candidate, e?: React.MouseEvent) => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+
+    // שמירת מידע על המיקום מחוץ ל-setTimeout
+    let top = window.scrollY + window.innerHeight / 3;
+    let left = window.innerWidth / 2;
+
+    if (e) {
+      const element = e.currentTarget as HTMLElement;
+      if (element) {
+        const rect = element.getBoundingClientRect();
+        const isMobile = window.innerWidth < 768;
+
+        // חישוב מיקום לפי גודל המסך
+        top = isMobile
+          ? rect.bottom + window.scrollY
+          : rect.top + window.scrollY;
+        left = isMobile ? rect.left : rect.right + 10;
+      }
+    }
+
+    hoverTimeoutRef.current = setTimeout(() => {
+      setHoverPosition({ top, left });
+      setHoveredCandidate(candidate);
+    }, 300); // השהייה קטנה למניעת הבהוב בתנועות עכבר מהירות
+  };
+
+  const handleMouseLeave = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+
+    // Small delay before hiding to allow moving to the QuickView
+    setTimeout(() => {
+      if (!quickViewRef.current?.matches(":hover")) {
+        setHoveredCandidate(null);
+      }
+    }, 100);
+  };
+
   const handleAction = useCallback(
     (action: CandidateAction, candidate: Candidate) => {
       setDialogCandidate(candidate);
+      setHoveredCandidate(null); // Close hover card
 
       switch (action) {
         case "invite":
@@ -198,38 +274,62 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     [onCandidateAction, onCandidateClick]
   );
 
+  // Loading states render
   if (isLoading) {
     return (
       <div
         className={`${
           viewMode === "grid"
-            ? "grid grid-cols-1 md:grid-cols-2 gap-4"
+            ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
             : "space-y-4"
         } ${className || ""}`}
       >
         {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} className="h-48 w-full" />
+          <div key={i} className="relative">
+            <Skeleton
+              className={
+                viewMode === "list" ? "h-32 w-full" : "h-[350px] w-full"
+              }
+            />
+            <div className="absolute top-3 right-3">
+              <Skeleton className="h-6 w-16 rounded-full" />
+            </div>
+          </div>
         ))}
       </div>
     );
   }
 
+  // Empty state render with improved UI
   if (candidates.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 text-gray-400">
-        <User className="w-12 h-12 mb-4" />
-        <p>לא נמצאו מועמדים</p>
+      <div className="flex flex-col items-center justify-center h-64 bg-gray-50 rounded-lg border border-dashed border-gray-300 p-6 text-center">
+        <UserX className="w-16 h-16 mb-4 text-gray-400" />
+        <p className="text-lg font-medium text-gray-500 mb-2">
+          לא נמצאו מועמדים
+        </p>
+        <p className="text-sm text-gray-400 max-w-md">
+          לא נמצאו מועמדים העונים לקריטריוני החיפוש. נסו להרחיב את החיפוש או
+          להסיר חלק מהמסננים.
+        </p>
+        <Button
+          variant="outline"
+          className="mt-4"
+          onClick={() => window.location.reload()}
+        >
+          רענן רשימה
+        </Button>
       </div>
     );
   }
 
   return (
     <>
-      {/* Candidates List */}
+      {/* Candidates List with improved grid/list implementations */}
       <div
         className={`${
           viewMode === "grid"
-            ? "grid grid-cols-1 md:grid-cols-2 gap-4"
+            ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-6"
             : "space-y-4"
         } ${className || ""}`}
       >
@@ -237,25 +337,47 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
           <div
             key={candidate.id}
             className="group relative"
-            onMouseEnter={() => setHoveredCandidate(candidate)}
-            onMouseLeave={() => setHoveredCandidate(null)}
+            onMouseEnter={(e) => handleMouseEnter(candidate, e)}
+            onMouseLeave={handleMouseLeave}
+            onTouchStart={() => handleMouseEnter(candidate)} // Touch support for mobile
           >
             <MinimalCard
               candidate={candidate}
               onClick={() => handleAction("view", candidate)}
-              className={viewMode === "list" ? "flex gap-4" : ""}
+              className={
+                viewMode === "list" ? "flex flex-row-reverse gap-4 h-32" : ""
+              }
             />
-            {hoveredCandidate?.id === candidate.id && (
-              <div className="absolute right-0 left-0 z-10 mt-2">
-                <QuickView
-                  candidate={candidate}
-                  onAction={(action) => handleAction(action, candidate)}
-                />
-              </div>
-            )}
           </div>
         ))}
       </div>
+
+      {/* Quick View Popup - Positioned absolutely for better UX */}
+      {hoveredCandidate && (
+        <div
+          ref={quickViewRef}
+          className="fixed z-50 md:absolute transform -translate-x-1/2 sm:translate-x-0"
+          style={{
+            top: `${hoverPosition.top}px`,
+            left: `${hoverPosition.left}px`,
+            maxWidth: window.innerWidth < 768 ? "calc(100vw - 32px)" : "420px",
+            ...(window.innerWidth < 768
+              ? {
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  maxHeight: "85vh",
+                }
+              : {}),
+          }}
+        >
+          <div className="drop-shadow-2xl">
+            <QuickView
+              candidate={hoveredCandidate}
+              onAction={(action) => handleAction(action, hoveredCandidate)}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Profile Dialog */}
       <Dialog
@@ -275,7 +397,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
               value={isMatchmaker ? "matchmaker" : "candidate"}
               onValueChange={(value) => setIsMatchmaker(value === "matchmaker")}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full sm:w-48">
                 <SelectValue placeholder="בחר תצוגה" />
               </SelectTrigger>
               <SelectContent>
