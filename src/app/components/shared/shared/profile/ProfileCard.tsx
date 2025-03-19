@@ -126,7 +126,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   questionnaire,
   viewMode = "candidate",
   className,
-  onAction,
 }) => {
   // State
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(

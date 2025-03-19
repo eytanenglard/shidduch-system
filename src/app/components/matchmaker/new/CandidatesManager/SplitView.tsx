@@ -9,7 +9,7 @@ import {
 import CandidatesList from "./CandidatesList";
 import StatsCard from "./StatsCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, UserCheck, Clock, Calendar, ChevronDown, ChevronUp } from "lucide-react";
+import { Users, UserCheck, Clock, Calendar, ChevronDown } from "lucide-react";
 import type { Candidate, CandidateAction } from "../types/candidates";
 import { Badge } from "@/components/ui/badge";
 
