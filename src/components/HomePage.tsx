@@ -540,7 +540,7 @@ export default function HomePage() {
               <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-blue-100 to-blue-50 opacity-50 rounded-full transform translate-x-20 -translate-y-20"></div>
 
               <h3 className="text-xl font-bold mb-4 text-gray-800 relative">
-                האתגר במערכות שידוכים קיימות
+                האתגר במערכות קיימות
               </h3>
 
               <ul className="space-y-3 relative">
@@ -938,12 +938,12 @@ export default function HomePage() {
               color="blue"
             />
             <MatchmakerCard
-              name="אייתן אנגלרד"
+              name="איתן אנגלרד"
               role="מייסד ומנכ״ל"
               description="יזם טכנולוגי עם התמחות בשידוכים. פיתח את פלטפורמת התוכנה הייחודית שלנו ואחראי באופן אישי ל-2 שידוכים מוצלחים."
               color="green"
             />
-            <MatchmakerCard
+           {/*  <MatchmakerCard
               name="רחל לוי"
               role="שדכנית בכירה"
               description="מומחית בהתאמת זוגות בקהילה הדתית-לאומית, עם הבנה עמוקה של ערכי המסורת ויכולת מוכחת ביצירת התאמות מוצלחות."
@@ -954,7 +954,7 @@ export default function HomePage() {
               role="יועץ זוגיות"
               description="בעל הכשרה בייעוץ זוגי ומומחה בליווי זוגות בשלבים הראשונים של הקשר. מסייע ביצירת יסודות איתנים לקשר ארוך טווח."
               color="pink"
-            />
+            /> */}
           </div>
         </div>
       </section>
@@ -1070,12 +1070,12 @@ export default function HomePage() {
         <div className="max-w-5xl mx-auto relative">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             <div>
-              <div className="mb-8">
+              <div className="mb-8 text-center">
                 <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
                   הפרטיות שלך חשובה לנו
                 </h2>
-                <div className="w-24 h-1 bg-white/30 rounded-full mb-6"></div>
-                <p className="text-lg text-white/90 mb-6">
+                <div className="w-24 h-1 bg-white/30 rounded-full mb-6 mx-auto"></div>
+                <p className="text-lg text-white/90 mb-6 mx-auto max-w-md">
                   בעולם השידוכים, הדיסקרטיות והפרטיות הן קריטיות. ב-Match Point
                   פיתחנו מערכת שמתעדפת את האבטחה והפרטיות שלך בכל שלב.
                 </p>
@@ -1152,7 +1152,7 @@ export default function HomePage() {
                     <Link href="/privacy">
                       <Button
                         variant="outline"
-                        className="border-2 border-white/50 text-white hover:bg-white/10 transition-all duration-300 rounded-xl"
+                        className="border-2 border-white/50 bg-white text-blue-600 hover:bg-white/90 transition-all duration-300 rounded-xl"
                       >
                         קראו את מדיניות הפרטיות
                       </Button>
@@ -1347,10 +1347,9 @@ export default function HomePage() {
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-400/30 to-blue-300/30" />
               </h3>
               <ul className="space-y-3 md:space-y-4">
-                <FooterItem icon="📞" text="03-1234567" />
                 <FooterItem icon="📱" text="054-321-0040" />
                 <FooterItem icon="✉️" text="matchpoint.center@gmail.com" />
-                <FooterItem icon="📍" text="רחוב השקד 12, תל אביב" />
+                <FooterItem icon="📍" text="רעננה" />
                 <FooterItem icon="🕒" text="א'-ה' 9:00-18:00, ו' 9:00-13:00" />
               </ul>
             </div>
@@ -1364,7 +1363,7 @@ export default function HomePage() {
                 </span>
               </div>
               <p className="text-gray-400">
-                © כל הזכויות שמורות Match Point 2024
+                © כל הזכויות שמורות Match Point 2025
               </p>
             </div>
           </div>
