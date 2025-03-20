@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 
 // הגדרת הנתיבים הציבוריים שלא דורשים אימות
 const publicPaths = [
+  '/',  // הוספת דף הבית כנתיב ציבורי
   '/auth/signin',
   '/auth/register',
   '/auth/verify-email',
