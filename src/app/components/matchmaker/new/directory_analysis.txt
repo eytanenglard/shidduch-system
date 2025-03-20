@@ -171,72 +171,87 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
 
   return (
     <Card
-      className={`relative overflow-hidden cursor-pointer transition-all hover:shadow-lg ${className}`}
+      className={`relative overflow-hidden cursor-pointer transition-all hover:shadow-md hover:translate-y-[-2px] duration-300 ${className}`}
       onClick={() => onClick(candidate)}
     >
-      {/* Background Image or Avatar */}
-      <div className="relative h-48 bg-gradient-to-b from-blue-50 to-blue-100">
+      {/* Status Badge - relocated to top left for better visibility */}
+      <div className="absolute top-3 left-3 z-10">
+        <Badge
+          className={`px-2.5 py-1 font-medium shadow-sm ${
+            candidate.profile.availabilityStatus === "AVAILABLE"
+              ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+              : "bg-amber-100 text-amber-800 border-amber-200"
+          }`}
+        >
+          {candidate.profile.availabilityStatus === "AVAILABLE"
+            ? "פנוי/ה"
+            : "בתהליך"}
+        </Badge>
+      </div>
+
+      {/* Background Image or Avatar with improved gradient overlay */}
+      <div className="relative h-48 sm:h-56 bg-gradient-to-b from-blue-50 to-blue-100">
         {mainImage ? (
-          <Image
-            src={mainImage.url}
-            alt={`${candidate.firstName} ${candidate.lastName}`}
-            fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            priority={false}
-            className="object-cover"
-          />
+          <>
+            <Image
+              src={mainImage.url}
+              alt={`${candidate.firstName} ${candidate.lastName}`}
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              priority={false}
+              className="object-cover"
+            />
+            {/* Gradient overlay for better text readability */}
+            <div className="absolute inset-0 bg-gradient-to-t from-gray-900/70 to-transparent" />
+          </>
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <User className="w-16 h-16 text-gray-400" />
+          <div className="w-full h-full flex items-center justify-center bg-blue-50">
+            <User className="w-20 h-20 text-gray-400" />
           </div>
         )}
 
-        {/* Status Badge */}
-        <div className="absolute top-3 right-3 z-10">
-          <Badge
-            className={
-              candidate.profile.availabilityStatus === "AVAILABLE"
-                ? "bg-green-100 text-green-800 border-green-200"
-                : "bg-yellow-100 text-yellow-800 border-yellow-200"
-            }
-          >
-            {candidate.profile.availabilityStatus === "AVAILABLE"
-              ? "פנוי/ה"
-              : "בתהליך"}
-          </Badge>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="p-4">
-        <h3 className="text-lg font-semibold mb-2 text-right">
-          {candidate.firstName} {candidate.lastName}
-        </h3>
-
-        <div className="space-y-2 text-gray-600 text-sm">
-          {/* Basic Info */}
-          <div className="flex items-center justify-end gap-2">
+        {/* Name and basic info overlay at bottom of image for better visual hierarchy */}
+        <div className="absolute bottom-0 w-full p-3 text-right">
+          <h3 className="text-lg font-bold mb-0.5 text-white drop-shadow-md">
+            {candidate.firstName} {candidate.lastName}
+          </h3>
+          
+          <div className="flex items-center justify-end gap-2 text-white/90 text-sm">
             <span>{age}</span>
             <Calendar className="w-4 h-4" />
           </div>
+        </div>
+      </div>
 
+      {/* Content section with improved spacing and organization */}
+      <div className="p-4">
+        <div className="space-y-2 text-gray-700 text-sm">
           {candidate.profile.city && (
             <div className="flex items-center justify-end gap-2">
-              <span>{candidate.profile.city}</span>
-              <MapPin className="w-4 h-4" />
+              <span className="font-medium">{candidate.profile.city}</span>
+              <MapPin className="w-4 h-4 text-blue-600" />
             </div>
           )}
 
           {candidate.profile.occupation && (
             <div className="flex items-center justify-end gap-2">
               <span>{candidate.profile.occupation}</span>
-              <Briefcase className="w-4 h-4" />
+              <Briefcase className="w-4 h-4 text-blue-600" />
             </div>
           )}
 
-          {/* Last Active */}
+          {/* Religious level display */}
+          {candidate.profile.religiousLevel && (
+            <div className="mt-1">
+              <Badge variant="outline" className="w-full justify-center">
+                {candidate.profile.religiousLevel}
+              </Badge>
+            </div>
+          )}
+
+          {/* Last Active - subtler design */}
           {candidate.profile.lastActive && (
-            <div className="flex items-center justify-end gap-2 text-xs text-gray-400">
+            <div className="flex items-center justify-end gap-1 mt-2 text-xs text-gray-400">
               <span>
                 {`פעיל/ה ${formatDistanceToNow(
                   new Date(candidate.profile.lastActive),
@@ -251,12 +266,23 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
           )}
         </div>
       </div>
+
+      {/* Verified indicator if applicable */}
+      {candidate.isVerified && (
+        <div className="absolute top-3 right-3 z-10">
+          <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">
+            <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+              <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
+            </svg>
+            מאומת
+          </Badge>
+        </div>
+      )}
     </Card>
   );
 };
 
 export default MinimalCandidateCard;
-
 
 ==================================================
 Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\matchmaker\new\CandidateCard\QuickView.tsx:
@@ -275,8 +301,22 @@ import {
   MapPin,
   User,
   FileText,
+  CalendarClock,
 } from "lucide-react";
 
+// פונקציה לחישוב גיל
+const calculateAge = (birthDate: Date): number => {
+  const today = new Date();
+  const birth = new Date(birthDate);
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age;
+};
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import type { Candidate } from "../types/candidates";
 
 interface QuickViewProps {
@@ -295,115 +335,145 @@ const QuickView: React.FC<QuickViewProps> = ({ candidate, onAction }) => {
 
   return (
     <div
-      className="bg-white/95 backdrop-blur-sm p-4 rounded-lg shadow-lg flex flex-col"
+      className="bg-white shadow-xl flex flex-col border border-gray-200 overflow-hidden max-w-md sm:max-w-lg w-full rounded-lg"
       onClick={handleClick}
     >
-      {/* Main Content Container */}
-      <div className="flex-1 space-y-4 text-right overflow-y-auto max-h-96">
-        {/* Basic Stats Grid */}
-        <div className="grid grid-cols-2 gap-3">
+      {/* Header with name and avatar */}
+      <div className="px-6 py-4 bg-gradient-to-r from-blue-500 to-blue-600 border-b text-white">
+        <div className="flex items-center justify-between">
+          <Badge className="bg-white text-blue-700 border-0 font-medium shadow-sm px-3 py-1">
+            {profile.availabilityStatus === "AVAILABLE" ? "פנוי/ה" : "בתהליך"}
+          </Badge>
+          <h3 className="text-lg font-bold">
+            {candidate.firstName} {candidate.lastName}
+          </h3>
+        </div>
+      </div>
+
+      {/* Main content container */}
+      <div className="flex-1 p-6 space-y-6 text-right overflow-y-auto max-h-[calc(80vh-200px)] sm:max-h-96 bg-white">
+        {/* Key information section */}
+        <div className="grid grid-cols-2 gap-y-4 gap-x-6">
+          {profile.birthDate && (
+            <div className="flex items-center justify-end gap-3 text-sm">
+              <span className="font-medium">
+                {calculateAge(new Date(profile.birthDate))} שנים
+              </span>
+              <CalendarClock className="w-5 h-5 text-blue-500" />
+            </div>
+          )}
+
           {profile.height && (
-            <div className="flex items-center justify-end gap-2 text-sm text-gray-600">
-              <span>{profile.height} ס״מ</span>
-              <User className="w-4 h-4" />
+            <div className="flex items-center justify-end gap-3 text-sm">
+              <span className="font-medium">{profile.height} ס״מ</span>
+              <User className="w-5 h-5 text-blue-500" />
             </div>
           )}
 
           {profile.maritalStatus && (
-            <div className="flex items-center justify-end gap-2 text-sm text-gray-600">
-              <span>{profile.maritalStatus}</span>
-              <Heart className="w-4 h-4" />
+            <div className="flex items-center justify-end gap-3 text-sm">
+              <span className="font-medium">{profile.maritalStatus}</span>
+              <Heart className="w-5 h-5 text-blue-500" />
             </div>
           )}
 
           {profile.religiousLevel && (
-            <div className="flex items-center justify-end gap-2 text-sm text-gray-600">
-              <span>{profile.religiousLevel}</span>
-              <Scroll className="w-4 h-4" />
-            </div>
-          )}
-
-          {profile.education && (
-            <div className="flex items-center justify-end gap-2 text-sm text-gray-600">
-              <span>{profile.education}</span>
-              <GraduationCap className="w-4 h-4" />
+            <div className="flex items-center justify-end gap-3 text-sm">
+              <span className="font-medium">{profile.religiousLevel}</span>
+              <Scroll className="w-5 h-5 text-blue-500" />
             </div>
           )}
         </div>
 
-        {/* About Section */}
-        {profile.about && (
-          <div className="border-t border-gray-100 pt-3">
-            <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">
-              {profile.about}
-            </p>
-          </div>
-        )}
+        <Separator className="my-4 bg-gray-200" />
 
-        {/* Location & Occupation */}
-        <div className="border-t border-gray-100 pt-3 space-y-2">
-          {profile.city && (
-            <div className="flex items-center justify-end gap-2 text-sm text-gray-600">
-              <span>{profile.city}</span>
-              <MapPin className="w-4 h-4" />
+        {/* Education & Occupation */}
+        <div className="space-y-4">
+          <h4 className="text-sm font-bold text-gray-600 mb-3">מידע נוסף</h4>
+          {profile.education && (
+            <div className="flex items-center justify-end gap-3 text-sm bg-blue-50 p-3 rounded-md">
+              <span className="font-medium">{profile.education}</span>
+              <GraduationCap className="w-5 h-5 text-blue-500" />
             </div>
           )}
 
           {profile.occupation && (
-            <div className="flex items-center justify-end gap-2 text-sm text-gray-600">
-              <span>{profile.occupation}</span>
-              <Briefcase className="w-4 h-4" />
+            <div className="flex items-center justify-end gap-3 text-sm bg-blue-50 p-3 rounded-md mt-2">
+              <span className="font-medium">{profile.occupation}</span>
+              <Briefcase className="w-5 h-5 text-blue-500" />
+            </div>
+          )}
+
+          {profile.city && (
+            <div className="flex items-center justify-end gap-3 text-sm bg-blue-50 p-3 rounded-md mt-2">
+              <span className="font-medium">{profile.city}</span>
+              <MapPin className="w-5 h-5 text-blue-500" />
             </div>
           )}
         </div>
+
+        {/* About section with improved styling */}
+        {profile.about && (
+          <>
+            <Separator className="my-4 bg-gray-200" />
+            <div className="space-y-3">
+              <h4 className="text-sm font-bold text-gray-600">אודות</h4>
+              <p className="text-sm leading-relaxed py-3 px-4 bg-gray-50 rounded-md border border-gray-200 shadow-sm">
+                {profile.about}
+              </p>
+            </div>
+          </>
+        )}
       </div>
 
-      {/* Action Buttons */}
-      <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-gray-100">
-        <Button
-          variant="default"
-          className="w-full"
-          onClick={() => onAction("view")}
-        >
-          <Eye className="w-4 h-4 ml-2" />
-          צפייה בפרופיל
-        </Button>
+      {/* Action Buttons with improved layout */}
+      <div className="p-4 bg-gray-50 border-t border-gray-200">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <Button
+            variant="default"
+            className="w-full bg-blue-500 hover:bg-blue-600 transition-colors shadow-sm"
+            onClick={() => onAction("view")}
+          >
+            <Eye className="w-4 h-4 ml-1.5" />
+            <span className="text-sm">צפייה בפרופיל</span>
+          </Button>
 
-        <Button
-          variant="outline"
-          className="w-full"
-          onClick={() => onAction("invite")}
-        >
-          <Mail className="w-4 h-4 ml-2" />
-          שליחת הזמנה
-        </Button>
+          <Button
+            variant="outline"
+            className="w-full border-blue-200 hover:bg-blue-50 transition-colors shadow-sm"
+            onClick={() => onAction("suggest")}
+          >
+            <FileText className="w-4 h-4 ml-1.5" />
+            <span className="text-sm">הצעת שידוך</span>
+          </Button>
 
-        <Button
-          variant="outline"
-          className="w-full"
-          onClick={() => onAction("suggest")}
-        >
-          <FileText className="w-4 h-4 ml-2" />
-          הצעת שידוך
-        </Button>
+          <Button
+            variant="outline"
+            className="w-full border-blue-200 hover:bg-blue-50 transition-colors shadow-sm"
+            onClick={() => onAction("invite")}
+          >
+            <Mail className="w-4 h-4 ml-1.5" />
+            <span className="text-sm">שליחת הזמנה</span>
+          </Button>
 
-        <Button
-          variant="outline"
-          className="w-full"
-          onClick={() => onAction("contact")}
-        >
-          <Clock className="w-4 h-4 ml-2" />
-          בדיקת זמינות
-        </Button>
+          <Button
+            variant="outline"
+            className="w-full sm:col-span-2 border-blue-200 hover:bg-blue-50 transition-colors shadow-sm"
+            onClick={() => onAction("contact")}
+          >
+            <Clock className="w-4 h-4 ml-1.5" />
+            <span className="text-sm">בדיקת זמינות</span>
+          </Button>
 
-        <Button
-          variant="ghost"
-          className="w-full text-red-600 hover:text-red-700 hover:bg-red-50"
-          onClick={() => onAction("favorite")}
-        >
-          <Heart className="w-4 h-4 ml-2" />
-          הוספה למועדפים
-        </Button>
+          <Button
+            variant="ghost"
+            className="w-full text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+            onClick={() => onAction("favorite")}
+          >
+            <Heart className="w-4 h-4 ml-1.5" />
+            <span className="text-sm">הוספה למועדפים</span>
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -415,8 +485,8 @@ export default QuickView;
 ==================================================
 Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\matchmaker\new\CandidatesManager\CandidatesList.tsx:
 ==================================================
-import React, { useState, useCallback, useEffect } from "react";
-import { User } from "lucide-react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
+import { UserX } from "lucide-react";
 import MinimalCard from "../CandidateCard/MinimalCard";
 import QuickView from "../CandidateCard/QuickView";
 import { ProfileCard } from "@/app/components/shared/shared/profile";
@@ -440,6 +510,7 @@ import {
 import { toast } from "sonner";
 import { ActionDialogs } from "../dialogs/ActionDialogs";
 import NewSuggestionForm from "../NewSuggestionForm";
+import { Button } from "@/components/ui/button";
 
 interface CreateSuggestionData {
   priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
@@ -454,6 +525,7 @@ interface CreateSuggestionData {
   firstPartyNotes?: string;
   secondPartyNotes?: string;
 }
+
 interface CandidatesListProps {
   candidates: Candidate[];
   allCandidates: Candidate[];
@@ -483,6 +555,9 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   const [hoveredCandidate, setHoveredCandidate] = useState<Candidate | null>(
     null
   );
+  const [hoverPosition, setHoverPosition] = useState({ top: 0, left: 0 });
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const quickViewRef = useRef<HTMLDivElement>(null);
 
   // Dialog states
   const [showInviteDialog, setShowInviteDialog] = useState(false);
@@ -491,6 +566,33 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   const [dialogCandidate, setDialogCandidate] = useState<Candidate | null>(
     null
   );
+
+  // Close QuickView when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        hoveredCandidate &&
+        quickViewRef.current &&
+        !quickViewRef.current.contains(event.target as Node)
+      ) {
+        setHoveredCandidate(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [hoveredCandidate]);
+
+  // Clean up timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Load questionnaire when candidate is selected
   useEffect(() => {
@@ -590,9 +692,53 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     }
   };
 
+  const handleMouseEnter = (candidate: Candidate, e?: React.MouseEvent) => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+
+    // שמירת מידע על המיקום מחוץ ל-setTimeout
+    let top = window.scrollY + window.innerHeight / 3;
+    let left = window.innerWidth / 2;
+
+    if (e) {
+      const element = e.currentTarget as HTMLElement;
+      if (element) {
+        const rect = element.getBoundingClientRect();
+        const isMobile = window.innerWidth < 768;
+
+        // חישוב מיקום לפי גודל המסך
+        top = isMobile
+          ? rect.bottom + window.scrollY
+          : rect.top + window.scrollY;
+        left = isMobile ? rect.left : rect.right + 10;
+      }
+    }
+
+    hoverTimeoutRef.current = setTimeout(() => {
+      setHoverPosition({ top, left });
+      setHoveredCandidate(candidate);
+    }, 300); // השהייה קטנה למניעת הבהוב בתנועות עכבר מהירות
+  };
+
+  const handleMouseLeave = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+
+    // Small delay before hiding to allow moving to the QuickView
+    setTimeout(() => {
+      if (!quickViewRef.current?.matches(":hover")) {
+        setHoveredCandidate(null);
+      }
+    }, 100);
+  };
+
   const handleAction = useCallback(
     (action: CandidateAction, candidate: Candidate) => {
       setDialogCandidate(candidate);
+      setHoveredCandidate(null); // Close hover card
 
       switch (action) {
         case "invite":
@@ -615,38 +761,62 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     [onCandidateAction, onCandidateClick]
   );
 
+  // Loading states render
   if (isLoading) {
     return (
       <div
         className={`${
           viewMode === "grid"
-            ? "grid grid-cols-1 md:grid-cols-2 gap-4"
+            ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
             : "space-y-4"
         } ${className || ""}`}
       >
         {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} className="h-48 w-full" />
+          <div key={i} className="relative">
+            <Skeleton
+              className={
+                viewMode === "list" ? "h-32 w-full" : "h-[350px] w-full"
+              }
+            />
+            <div className="absolute top-3 right-3">
+              <Skeleton className="h-6 w-16 rounded-full" />
+            </div>
+          </div>
         ))}
       </div>
     );
   }
 
+  // Empty state render with improved UI
   if (candidates.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 text-gray-400">
-        <User className="w-12 h-12 mb-4" />
-        <p>לא נמצאו מועמדים</p>
+      <div className="flex flex-col items-center justify-center h-64 bg-gray-50 rounded-lg border border-dashed border-gray-300 p-6 text-center">
+        <UserX className="w-16 h-16 mb-4 text-gray-400" />
+        <p className="text-lg font-medium text-gray-500 mb-2">
+          לא נמצאו מועמדים
+        </p>
+        <p className="text-sm text-gray-400 max-w-md">
+          לא נמצאו מועמדים העונים לקריטריוני החיפוש. נסו להרחיב את החיפוש או
+          להסיר חלק מהמסננים.
+        </p>
+        <Button
+          variant="outline"
+          className="mt-4"
+          onClick={() => window.location.reload()}
+        >
+          רענן רשימה
+        </Button>
       </div>
     );
   }
 
   return (
     <>
-      {/* Candidates List */}
+      {/* Candidates List with improved grid/list implementations */}
       <div
         className={`${
           viewMode === "grid"
-            ? "grid grid-cols-1 md:grid-cols-2 gap-4"
+            ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-6"
             : "space-y-4"
         } ${className || ""}`}
       >
@@ -654,25 +824,47 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
           <div
             key={candidate.id}
             className="group relative"
-            onMouseEnter={() => setHoveredCandidate(candidate)}
-            onMouseLeave={() => setHoveredCandidate(null)}
+            onMouseEnter={(e) => handleMouseEnter(candidate, e)}
+            onMouseLeave={handleMouseLeave}
+            onTouchStart={() => handleMouseEnter(candidate)} // Touch support for mobile
           >
             <MinimalCard
               candidate={candidate}
               onClick={() => handleAction("view", candidate)}
-              className={viewMode === "list" ? "flex gap-4" : ""}
+              className={
+                viewMode === "list" ? "flex flex-row-reverse gap-4 h-32" : ""
+              }
             />
-            {hoveredCandidate?.id === candidate.id && (
-              <div className="absolute right-0 left-0 z-10 mt-2">
-                <QuickView
-                  candidate={candidate}
-                  onAction={(action) => handleAction(action, candidate)}
-                />
-              </div>
-            )}
           </div>
         ))}
       </div>
+
+      {/* Quick View Popup - Positioned absolutely for better UX */}
+      {hoveredCandidate && (
+        <div
+          ref={quickViewRef}
+          className="fixed z-50 md:absolute transform -translate-x-1/2 sm:translate-x-0"
+          style={{
+            top: `${hoverPosition.top}px`,
+            left: `${hoverPosition.left}px`,
+            maxWidth: window.innerWidth < 768 ? "calc(100vw - 32px)" : "420px",
+            ...(window.innerWidth < 768
+              ? {
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  maxHeight: "85vh",
+                }
+              : {}),
+          }}
+        >
+          <div className="drop-shadow-2xl">
+            <QuickView
+              candidate={hoveredCandidate}
+              onAction={(action) => handleAction(action, hoveredCandidate)}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Profile Dialog */}
       <Dialog
@@ -692,7 +884,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
               value={isMatchmaker ? "matchmaker" : "candidate"}
               onValueChange={(value) => setIsMatchmaker(value === "matchmaker")}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full sm:w-48">
                 <SelectValue placeholder="בחר תצוגה" />
               </SelectTrigger>
               <SelectContent>
@@ -1363,7 +1555,7 @@ Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\compon
 ==================================================
 "use client";
 
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -1371,8 +1563,10 @@ import {
 } from "@/components/ui/resizable";
 import CandidatesList from "./CandidatesList";
 import StatsCard from "./StatsCard";
-import { Users, UserCheck, Clock, Calendar } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Users, UserCheck, Clock, Calendar, ChevronDown } from "lucide-react";
 import type { Candidate, CandidateAction } from "../types/candidates";
+import { Badge } from "@/components/ui/badge";
 
 interface SplitViewProps {
   maleCandidates: Candidate[];
@@ -1415,12 +1609,28 @@ const SplitView: React.FC<SplitViewProps> = ({
     },
   });
 
+  // State for mobile view tab selection
+  const [activeTab, setActiveTab] = useState<"male" | "female">("male");
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check screen size on mount and resize
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    
+    return () => {
+      window.removeEventListener('resize', checkScreenSize);
+    };
+  }, []);
+
   // Wrapper function for handling all action types
-  // SplitView.tsx
   const handleAction = useCallback(
     (type: CandidateAction, candidate: Candidate) => {
       if (type === "view" && onCandidateClick) {
-        // בדיקה אם הפונקציה קיימת
         onCandidateClick(candidate);
         return;
       }
@@ -1458,14 +1668,23 @@ const SplitView: React.FC<SplitViewProps> = ({
     [femaleCandidates, calculateStats]
   );
 
-  const renderStats = (stats: Stats, total: number) => (
-    <div className="grid grid-cols-4 gap-3 mb-4">
-      <StatsCard icon={Users} title="סה״כ" value={total} variant="default" />
+  const renderStats = (stats: Stats, total: number, gender: "male" | "female") => (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+      <StatsCard 
+        icon={Users} 
+        title="סה״כ" 
+        value={total} 
+        variant="default" 
+        bgGradient={gender === "male" ? "from-blue-50 to-blue-100" : "from-purple-50 to-purple-100"} 
+        iconColor={gender === "male" ? "text-blue-600" : "text-purple-600"}
+      />
       <StatsCard
         icon={Clock}
         title="פעילים"
         value={stats.activeCount}
         variant="success"
+        bgGradient={gender === "male" ? "from-blue-50 to-blue-100" : "from-purple-50 to-purple-100"}
+        iconColor={gender === "male" ? "text-blue-600" : "text-purple-600"}
         trend={{
           value: Math.round((stats.activeCount / total) * 100),
           label: "מכלל המועמדים",
@@ -1477,6 +1696,8 @@ const SplitView: React.FC<SplitViewProps> = ({
         title="מאומתים"
         value={stats.verifiedCount}
         variant="success"
+        bgGradient={gender === "male" ? "from-blue-50 to-blue-100" : "from-purple-50 to-purple-100"}
+        iconColor={gender === "male" ? "text-blue-600" : "text-purple-600"}
         trend={{
           value: Math.round((stats.verifiedCount / total) * 100),
           label: "מכלל המועמדים",
@@ -1488,6 +1709,8 @@ const SplitView: React.FC<SplitViewProps> = ({
         title="פנויים"
         value={stats.availableCount}
         variant="warning"
+        bgGradient={gender === "male" ? "from-blue-50 to-blue-100" : "from-purple-50 to-purple-100"}
+        iconColor={gender === "male" ? "text-blue-600" : "text-purple-600"}
         trend={{
           value: Math.round((stats.availableCount / total) * 100),
           label: "מכלל המועמדים",
@@ -1497,6 +1720,74 @@ const SplitView: React.FC<SplitViewProps> = ({
     </div>
   );
 
+  // Mobile view with tabs
+  if (isMobile) {
+    return (
+      <div className={`${className || ""} bg-white rounded-lg shadow-sm border overflow-hidden`}>
+        <Tabs 
+          defaultValue="male" 
+          value={activeTab}
+          onValueChange={(value) => setActiveTab(value as "male" | "female")}
+          className="w-full"
+        >
+          <TabsList className="w-full grid grid-cols-2 rounded-none">
+            <TabsTrigger 
+              value="male" 
+              className="relative py-4 data-[state=active]:bg-blue-50"
+            >
+              <div className="flex flex-col items-center">
+                <span className="font-semibold">מועמדים</span>
+                <Badge className="mt-1 bg-blue-100 text-blue-800 border-0">{maleCandidates.length}</Badge>
+              </div>
+              {activeTab === "male" && (
+                <ChevronDown className="absolute bottom-0 text-blue-500" size={16} />
+              )}
+            </TabsTrigger>
+            <TabsTrigger 
+              value="female" 
+              className="relative py-4 data-[state=active]:bg-purple-50"
+            >
+              <div className="flex flex-col items-center">
+                <span className="font-semibold">מועמדות</span>
+                <Badge className="mt-1 bg-purple-100 text-purple-800 border-0">{femaleCandidates.length}</Badge>
+              </div>
+              {activeTab === "female" && (
+                <ChevronDown className="absolute bottom-0 text-purple-500" size={16} />
+              )}
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="male" className="mt-0 pt-4 px-4 pb-6 focus-visible:outline-none focus-visible:ring-0">
+            {renderStats(maleStats, maleCandidates.length, "male")}
+            <CandidatesList
+              candidates={maleCandidates}
+              allCandidates={[...maleCandidates, ...femaleCandidates]}
+              onCandidateClick={onCandidateClick}
+              onCandidateAction={handleAction}
+              viewMode={viewMode}
+              isLoading={isLoading}
+              className="min-h-[500px]"
+            />
+          </TabsContent>
+
+          <TabsContent value="female" className="mt-0 pt-4 px-4 pb-6 focus-visible:outline-none focus-visible:ring-0">
+            {renderStats(femaleStats, femaleCandidates.length, "female")}
+            <CandidatesList
+              candidates={femaleCandidates}
+              allCandidates={[...maleCandidates, ...femaleCandidates]}
+              onCandidateClick={onCandidateClick}
+              onCandidateAction={handleAction}
+              viewMode={viewMode}
+              isLoading={isLoading}
+              className="min-h-[500px]"
+            />
+          </TabsContent>
+        </Tabs>
+      </div>
+    );
+  }
+
+  // Desktop view with resizable panels
   return (
     <div className={`${className || ""}`}>
       <ResizablePanelGroup
@@ -1508,15 +1799,21 @@ const SplitView: React.FC<SplitViewProps> = ({
           id={panels.male.id}
           defaultSize={panels.male.defaultSize}
           minSize={panels.male.minSize}
+          className="transition-all duration-200"
         >
           <div className="p-6">
             <div className="mb-6">
-              <h2 className="text-xl font-semibold mb-4">מועמדים</h2>
-              {renderStats(maleStats, maleCandidates.length)}
+              <div className="flex justify-between items-center mb-4">
+                <Badge className="bg-blue-100 text-blue-800 text-sm px-2.5 py-1 border-0">
+                  {maleCandidates.length} מועמדים
+                </Badge>
+                <h2 className="text-xl font-bold text-blue-900">מועמדים</h2>
+              </div>
+              {renderStats(maleStats, maleCandidates.length, "male")}
             </div>
             <CandidatesList
               candidates={maleCandidates}
-              allCandidates={[...maleCandidates, ...femaleCandidates]} // חדש!
+              allCandidates={[...maleCandidates, ...femaleCandidates]}
               onCandidateClick={onCandidateClick}
               onCandidateAction={handleAction}
               viewMode={viewMode}
@@ -1533,15 +1830,21 @@ const SplitView: React.FC<SplitViewProps> = ({
           id={panels.female.id}
           defaultSize={panels.female.defaultSize}
           minSize={panels.female.minSize}
+          className="transition-all duration-200"
         >
           <div className="p-6">
             <div className="mb-6">
-              <h2 className="text-xl font-semibold mb-4">מועמדות</h2>
-              {renderStats(femaleStats, femaleCandidates.length)}
+              <div className="flex justify-between items-center mb-4">
+                <Badge className="bg-purple-100 text-purple-800 text-sm px-2.5 py-1 border-0">
+                  {femaleCandidates.length} מועמדות
+                </Badge>
+                <h2 className="text-xl font-bold text-purple-900">מועמדות</h2>
+              </div>
+              {renderStats(femaleStats, femaleCandidates.length, "female")}
             </div>
             <CandidatesList
               candidates={femaleCandidates}
-              allCandidates={[...maleCandidates, ...femaleCandidates]} // חדש!
+              allCandidates={[...maleCandidates, ...femaleCandidates]}
               onCandidateClick={onCandidateClick}
               onCandidateAction={handleAction}
               viewMode={viewMode}
@@ -1556,7 +1859,6 @@ const SplitView: React.FC<SplitViewProps> = ({
 };
 
 export default SplitView;
-
 
 ==================================================
 Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\matchmaker\new\CandidatesManager\StatsCard.tsx:
@@ -1578,6 +1880,8 @@ interface StatsCardProps {
     isPositive?: boolean;
   };
   variant?: "default" | "success" | "warning" | "destructive";
+  bgGradient?: string;
+  iconColor?: string;
   className?: string;
 }
 
@@ -1587,61 +1891,75 @@ const StatsCard: React.FC<StatsCardProps> = ({
   value,
   trend,
   variant = "default",
+  bgGradient,
+  iconColor = "text-primary",
   className,
 }) => {
   const getVariantStyles = () => {
     switch (variant) {
       case "success":
-        return "bg-emerald-50 dark:bg-emerald-900/20";
+        return "border-emerald-200";
       case "warning":
-        return "bg-amber-50 dark:bg-amber-900/20";
+        return "border-amber-200";
       case "destructive":
-        return "bg-red-50 dark:bg-red-900/20";
+        return "border-red-200";
       default:
-        return "bg-card";
+        return "border-gray-200";
     }
   };
 
   return (
     <Card
       className={cn(
-        "hover:shadow-md transition-shadow p-4",
+        "hover:shadow-md transition-all duration-300 p-4 overflow-hidden",
+        bgGradient ? `bg-gradient-to-br ${bgGradient}` : "bg-card",
         getVariantStyles(),
         className
       )}
     >
-      <div className="flex items-center gap-3">
-        <div className="p-2 bg-primary/10 rounded-lg">
-          <Icon className="w-5 h-5 text-primary" />
+      <div className="flex items-start justify-between">
+        <div className="mr-4 flex-shrink-0">
+          <div className={`p-2.5 rounded-full bg-white/60 backdrop-blur-sm shadow-sm`}>
+            <Icon className={`w-4 h-4 ${iconColor}`} />
+          </div>
         </div>
 
-        <div className="flex-1">
-          <p className="text-sm text-muted-foreground">{title}</p>
-          <h3 className="text-xl font-semibold mt-1">{value}</h3>
+        <div className="flex-1 text-right">
+          <p className="text-xs text-muted-foreground mb-1">{title}</p>
+          <h3 className="text-xl font-bold">{value}</h3>
 
           {trend && (
-            <div className="flex items-center gap-1 mt-1">
+            <div className="flex items-center justify-end gap-1 mt-1">
               <span
                 className={cn(
-                  "text-sm font-medium",
+                  "text-sm font-medium flex items-center gap-0.5",
                   trend.isPositive ? "text-emerald-600" : "text-red-600"
                 )}
               >
-                {trend.value}%
+                {trend.isPositive ? "+" : "-"}{trend.value}%
+                <span className={`${trend.isPositive ? "rotate-0" : "rotate-180"} transition-transform`}>
+                  ↑
+                </span>
               </span>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-[11px] text-muted-foreground">
                 {trend.label}
               </span>
             </div>
           )}
         </div>
       </div>
+
+      {/* Animated background pattern for more visual appeal */}
+      <div className="absolute right-0 bottom-0 opacity-10 pointer-events-none">
+        <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="60" cy="60" r="40" fill="currentColor" />
+        </svg>
+      </div>
     </Card>
   );
 };
 
 export default StatsCard;
-
 
 ==================================================
 Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\matchmaker\new\constants\filterOptions.ts:

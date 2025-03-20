@@ -80,6 +80,23 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     null
   );
 
+  // State for mobile detection
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check screen size on mount and resize
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+
+    return () => {
+      window.removeEventListener("resize", checkScreenSize);
+    };
+  }, []);
+
   // Close QuickView when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -206,6 +223,9 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   };
 
   const handleMouseEnter = (candidate: Candidate, e?: React.MouseEvent) => {
+    // On mobile, disable hover behavior to prevent issues with scrolling
+    if (isMobile) return;
+
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
     }
@@ -235,6 +255,8 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   };
 
   const handleMouseLeave = () => {
+    if (isMobile) return;
+
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
       hoverTimeoutRef.current = null;
@@ -303,57 +325,51 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   // Empty state render with improved UI
   if (candidates.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 bg-gray-50 rounded-lg border border-dashed border-gray-300 p-6 text-center">
-        <UserX className="w-16 h-16 mb-4 text-gray-400" />
-        <p className="text-lg font-medium text-gray-500 mb-2">
+      <div className="flex flex-col items-center justify-center h-32 bg-gray-50 rounded-lg border border-dashed border-gray-300 p-4 text-center">
+        <UserX className="w-8 h-8 mb-2 text-gray-400" />
+        <p className="text-sm font-medium text-gray-500 mb-1">
           לא נמצאו מועמדים
         </p>
-        <p className="text-sm text-gray-400 max-w-md">
-          לא נמצאו מועמדים העונים לקריטריוני החיפוש. נסו להרחיב את החיפוש או
-          להסיר חלק מהמסננים.
+        <p className="text-xs text-gray-400">
+          נסו להרחיב את החיפוש או להסיר חלק מהמסננים.
         </p>
-        <Button
-          variant="outline"
-          className="mt-4"
-          onClick={() => window.location.reload()}
-        >
-          רענן רשימה
-        </Button>
       </div>
     );
   }
 
+  // Adjust the grid columns for mobile view to make cards smaller
+  const gridColumnsClass = isMobile
+    ? "grid-cols-1"
+    : viewMode === "grid"
+    ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-3 gap-y-4"
+    : "space-y-4";
+
   return (
     <>
       {/* Candidates List with improved grid/list implementations */}
-      <div
-        className={`${
-          viewMode === "grid"
-            ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-6"
-            : "space-y-4"
-        } ${className || ""}`}
-      >
+      <div className={`${gridColumnsClass} ${className || ""}`}>
         {candidates.map((candidate) => (
           <div
             key={candidate.id}
             className="group relative"
             onMouseEnter={(e) => handleMouseEnter(candidate, e)}
             onMouseLeave={handleMouseLeave}
-            onTouchStart={() => handleMouseEnter(candidate)} // Touch support for mobile
+            onClick={() => handleAction("view", candidate)} // Direct click handler for mobile
           >
             <MinimalCard
               candidate={candidate}
               onClick={() => handleAction("view", candidate)}
-              className={
-                viewMode === "list" ? "flex flex-row-reverse gap-4 h-32" : ""
-              }
+              className={`
+                ${viewMode === "list" ? "flex flex-row-reverse gap-4 h-32" : ""}
+                ${isMobile ? "transform scale-95" : ""}
+              `}
             />
           </div>
         ))}
       </div>
 
-      {/* Quick View Popup - Positioned absolutely for better UX */}
-      {hoveredCandidate && (
+      {/* Quick View Popup - Only shown on non-mobile */}
+      {hoveredCandidate && !isMobile && (
         <div
           ref={quickViewRef}
           className="fixed z-50 md:absolute transform -translate-x-1/2 sm:translate-x-0"

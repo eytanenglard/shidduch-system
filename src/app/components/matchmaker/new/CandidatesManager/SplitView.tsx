@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, useCallback, useMemo, useEffect } from "react";
+import React, {
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+  useRef,
+} from "react";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -8,10 +14,9 @@ import {
 } from "@/components/ui/resizable";
 import CandidatesList from "./CandidatesList";
 import StatsCard from "./StatsCard";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { Users, UserCheck, Clock, Calendar, ChevronDown } from "lucide-react";
 import type { Candidate, CandidateAction } from "../types/candidates";
-import { Badge } from "@/components/ui/badge";
 
 interface SplitViewProps {
   maleCandidates: Candidate[];
@@ -54,9 +59,10 @@ const SplitView: React.FC<SplitViewProps> = ({
     },
   });
 
-  // State for mobile view tab selection
-  const [activeTab, setActiveTab] = useState<"male" | "female">("male");
+  // State for mobile view
   const [isMobile, setIsMobile] = useState(false);
+  const maleScrollRef = useRef<HTMLDivElement>(null);
+  const femaleScrollRef = useRef<HTMLDivElement>(null);
 
   // Check screen size on mount and resize
   useEffect(() => {
@@ -65,10 +71,10 @@ const SplitView: React.FC<SplitViewProps> = ({
     };
 
     checkScreenSize();
-    window.addEventListener('resize', checkScreenSize);
-    
+    window.addEventListener("resize", checkScreenSize);
+
     return () => {
-      window.removeEventListener('resize', checkScreenSize);
+      window.removeEventListener("resize", checkScreenSize);
     };
   }, []);
 
@@ -113,14 +119,22 @@ const SplitView: React.FC<SplitViewProps> = ({
     [femaleCandidates, calculateStats]
   );
 
-  const renderStats = (stats: Stats, total: number, gender: "male" | "female") => (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-      <StatsCard 
-        icon={Users} 
-        title="סה״כ" 
-        value={total} 
-        variant="default" 
-        bgGradient={gender === "male" ? "from-blue-50 to-blue-100" : "from-purple-50 to-purple-100"} 
+  const renderStats = (
+    stats: Stats,
+    total: number,
+    gender: "male" | "female"
+  ) => (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
+      <StatsCard
+        icon={Users}
+        title="סה״כ"
+        value={total}
+        variant="default"
+        bgGradient={
+          gender === "male"
+            ? "from-blue-50 to-blue-100"
+            : "from-purple-50 to-purple-100"
+        }
         iconColor={gender === "male" ? "text-blue-600" : "text-purple-600"}
       />
       <StatsCard
@@ -128,7 +142,11 @@ const SplitView: React.FC<SplitViewProps> = ({
         title="פעילים"
         value={stats.activeCount}
         variant="success"
-        bgGradient={gender === "male" ? "from-blue-50 to-blue-100" : "from-purple-50 to-purple-100"}
+        bgGradient={
+          gender === "male"
+            ? "from-blue-50 to-blue-100"
+            : "from-purple-50 to-purple-100"
+        }
         iconColor={gender === "male" ? "text-blue-600" : "text-purple-600"}
         trend={{
           value: Math.round((stats.activeCount / total) * 100),
@@ -141,7 +159,11 @@ const SplitView: React.FC<SplitViewProps> = ({
         title="מאומתים"
         value={stats.verifiedCount}
         variant="success"
-        bgGradient={gender === "male" ? "from-blue-50 to-blue-100" : "from-purple-50 to-purple-100"}
+        bgGradient={
+          gender === "male"
+            ? "from-blue-50 to-blue-100"
+            : "from-purple-50 to-purple-100"
+        }
         iconColor={gender === "male" ? "text-blue-600" : "text-purple-600"}
         trend={{
           value: Math.round((stats.verifiedCount / total) * 100),
@@ -154,7 +176,11 @@ const SplitView: React.FC<SplitViewProps> = ({
         title="פנויים"
         value={stats.availableCount}
         variant="warning"
-        bgGradient={gender === "male" ? "from-blue-50 to-blue-100" : "from-purple-50 to-purple-100"}
+        bgGradient={
+          gender === "male"
+            ? "from-blue-50 to-blue-100"
+            : "from-purple-50 to-purple-100"
+        }
         iconColor={gender === "male" ? "text-blue-600" : "text-purple-600"}
         trend={{
           value: Math.round((stats.availableCount / total) * 100),
@@ -165,69 +191,71 @@ const SplitView: React.FC<SplitViewProps> = ({
     </div>
   );
 
-  // Mobile view with tabs
+  // Mobile view with side-by-side scrollable columns
   if (isMobile) {
     return (
-      <div className={`${className || ""} bg-white rounded-lg shadow-sm border overflow-hidden`}>
-        <Tabs 
-          defaultValue="male" 
-          value={activeTab}
-          onValueChange={(value) => setActiveTab(value as "male" | "female")}
-          className="w-full"
-        >
-          <TabsList className="w-full grid grid-cols-2 rounded-none">
-            <TabsTrigger 
-              value="male" 
-              className="relative py-4 data-[state=active]:bg-blue-50"
+      <div
+        className={`${
+          className || ""
+        } bg-white rounded-lg shadow-sm border overflow-hidden`}
+      >
+        <div className="flex flex-row h-[calc(100vh-200px)]">
+          {/* Male candidates column */}
+          <div className="w-1/2 flex flex-col border-l">
+            <div className="p-2 text-center bg-blue-50 border-b">
+              <div className="font-semibold">מועמדים</div>
+              <Badge className="bg-blue-100 text-blue-800 border-0">
+                {maleCandidates.length}
+              </Badge>
+            </div>
+            <div
+              ref={maleScrollRef}
+              className="flex-1 overflow-y-auto p-2 relative"
             >
-              <div className="flex flex-col items-center">
-                <span className="font-semibold">מועמדים</span>
-                <Badge className="mt-1 bg-blue-100 text-blue-800 border-0">{maleCandidates.length}</Badge>
+              {renderStats(maleStats, maleCandidates.length, "male")}
+              <div className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-blue-200 text-blue-800 p-1 rounded-r-md opacity-80">
+                <ChevronDown className="h-4 w-4 animate-bounce" />
               </div>
-              {activeTab === "male" && (
-                <ChevronDown className="absolute bottom-0 text-blue-500" size={16} />
-              )}
-            </TabsTrigger>
-            <TabsTrigger 
-              value="female" 
-              className="relative py-4 data-[state=active]:bg-purple-50"
+              <CandidatesList
+                candidates={maleCandidates}
+                allCandidates={[...maleCandidates, ...femaleCandidates]}
+                onCandidateClick={onCandidateClick}
+                onCandidateAction={handleAction}
+                viewMode={viewMode}
+                isLoading={isLoading}
+                className="min-h-[300px] pt-1"
+              />
+            </div>
+          </div>
+
+          {/* Female candidates column */}
+          <div className="w-1/2 flex flex-col">
+            <div className="p-2 text-center bg-purple-50 border-b">
+              <div className="font-semibold">מועמדות</div>
+              <Badge className="bg-purple-100 text-purple-800 border-0">
+                {femaleCandidates.length}
+              </Badge>
+            </div>
+            <div
+              ref={femaleScrollRef}
+              className="flex-1 overflow-y-auto p-2 relative"
             >
-              <div className="flex flex-col items-center">
-                <span className="font-semibold">מועמדות</span>
-                <Badge className="mt-1 bg-purple-100 text-purple-800 border-0">{femaleCandidates.length}</Badge>
+              {renderStats(femaleStats, femaleCandidates.length, "female")}
+              <div className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-purple-200 text-purple-800 p-1 rounded-l-md opacity-80">
+                <ChevronDown className="h-4 w-4 animate-bounce" />
               </div>
-              {activeTab === "female" && (
-                <ChevronDown className="absolute bottom-0 text-purple-500" size={16} />
-              )}
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="male" className="mt-0 pt-4 px-4 pb-6 focus-visible:outline-none focus-visible:ring-0">
-            {renderStats(maleStats, maleCandidates.length, "male")}
-            <CandidatesList
-              candidates={maleCandidates}
-              allCandidates={[...maleCandidates, ...femaleCandidates]}
-              onCandidateClick={onCandidateClick}
-              onCandidateAction={handleAction}
-              viewMode={viewMode}
-              isLoading={isLoading}
-              className="min-h-[500px]"
-            />
-          </TabsContent>
-
-          <TabsContent value="female" className="mt-0 pt-4 px-4 pb-6 focus-visible:outline-none focus-visible:ring-0">
-            {renderStats(femaleStats, femaleCandidates.length, "female")}
-            <CandidatesList
-              candidates={femaleCandidates}
-              allCandidates={[...maleCandidates, ...femaleCandidates]}
-              onCandidateClick={onCandidateClick}
-              onCandidateAction={handleAction}
-              viewMode={viewMode}
-              isLoading={isLoading}
-              className="min-h-[500px]"
-            />
-          </TabsContent>
-        </Tabs>
+              <CandidatesList
+                candidates={femaleCandidates}
+                allCandidates={[...maleCandidates, ...femaleCandidates]}
+                onCandidateClick={onCandidateClick}
+                onCandidateAction={handleAction}
+                viewMode={viewMode}
+                isLoading={isLoading}
+                className="min-h-[300px] pt-1"
+              />
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
