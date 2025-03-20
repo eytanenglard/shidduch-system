@@ -23,7 +23,6 @@ import {
 import { toast } from "sonner";
 import { ActionDialogs } from "../dialogs/ActionDialogs";
 import NewSuggestionForm from "../NewSuggestionForm";
-import { Button } from "@/components/ui/button";
 
 interface CreateSuggestionData {
   priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
