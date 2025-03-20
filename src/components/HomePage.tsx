@@ -943,7 +943,7 @@ export default function HomePage() {
               description="יזם טכנולוגי עם התמחות בשידוכים. פיתח את פלטפורמת התוכנה הייחודית שלנו ואחראי באופן אישי ל-2 שידוכים מוצלחים."
               color="green"
             />
-           {/*  <MatchmakerCard
+            {/*  <MatchmakerCard
               name="רחל לוי"
               role="שדכנית בכירה"
               description="מומחית בהתאמת זוגות בקהילה הדתית-לאומית, עם הבנה עמוקה של ערכי המסורת ויכולת מוכחת ביצירת התאמות מוצלחות."
@@ -1083,10 +1083,11 @@ export default function HomePage() {
 
               <div className="space-y-4">
                 <div className="flex items-start">
-                  <div className="bg-white/20 rounded-full p-2 mr-3 mt-1">
-                    <CheckCircle className="w-4 h-4 text-white" />
+                  <div className="...">
+                    <CheckCircle className="..." />
                   </div>
-                  <p className="text-white/90">
+                  <p className="...">
+                    {/* Some comment here */}
                     פרופילים גלויים רק לשדכנים מורשים, מבטיחים דיסקרטיות מלאה
                   </p>
                 </div>
@@ -1144,8 +1145,9 @@ export default function HomePage() {
                   </h3>
 
                   <p className="text-white/90 text-center mb-6">
-                    "אנו מתחייבים לשמור על הפרטיות והכבוד של כל משתמש במערכת
-                    שלנו, תוך יצירת סביבה בטוחה ומכבדת למציאת הזיווג המושלם"
+                    &quot;אנו מתחייבים לשמור על הפרטיות והכבוד של כל משתמש
+                    במערכת שלנו, תוך יצירת סביבה בטוחה ומכבדת למציאת הזיווג
+                    המושלם&quot;
                   </p>
 
                   <div className="text-center">
