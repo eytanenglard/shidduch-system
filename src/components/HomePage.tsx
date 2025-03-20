@@ -12,12 +12,7 @@ import {
   MessageCircle,
   ArrowLeft,
   ClipboardList,
-  ArrowRight,
-  Star,
-  Activity,
   Sparkles,
-  Zap,
-  CheckCircle,
   Calendar,
   Award,
 } from "lucide-react";
