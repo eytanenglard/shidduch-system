@@ -759,7 +759,7 @@ export default function HomePage() {
                     <span className="text-blue-600">0</span>;
                   </div>
                   <div className="mb-1 pl-4 text-gray-500">
-                    // Core values compatibility (weighted x3)
+                    {"// Core values compatibility (weighted x3)"}
                   </div>
                   <div className="mb-1 pl-4">
                     compatibilityScore <span className="text-gray-500">+=</span>{" "}
@@ -770,7 +770,7 @@ export default function HomePage() {
                     <span className="text-blue-600">3</span>;
                   </div>
                   <div className="mb-1 pl-4 text-gray-500">
-                    // Lifestyle compatibility (weighted x2)
+                    {"// Lifestyle compatibility (weighted x2)"}
                   </div>
                   <div className="mb-1 pl-4">
                     compatibilityScore <span className="text-gray-500">+=</span>{" "}
@@ -783,7 +783,7 @@ export default function HomePage() {
                     <span className="text-blue-600">2</span>;
                   </div>
                   <div className="mb-1 pl-4 text-gray-500">
-                    // Family background compatibility
+                    {"// Family background compatibility"}
                   </div>
                   <div className="mb-1 pl-4">
                     compatibilityScore <span className="text-gray-500">+=</span>{" "}
@@ -792,7 +792,7 @@ export default function HomePage() {
                     <span className="text-purple-600">)</span>;
                   </div>
                   <div className="mb-1 pl-4 text-gray-500">
-                    // Goals and aspirations alignment
+                    {"// Goals and aspirations alignment"}
                   </div>
                   <div className="mb-1 pl-4">
                     compatibilityScore <span className="text-gray-500">+=</span>{" "}
@@ -803,7 +803,7 @@ export default function HomePage() {
                     <span className="text-blue-600">1.5</span>;
                   </div>
                   <div className="mb-1 pl-4 text-gray-500">
-                    // Additional dimensions...
+                    {"// Additional dimensions..."}
                   </div>
                   <div className="mb-1 pl-4">
                     <span className="text-purple-600">return</span>{" "}
