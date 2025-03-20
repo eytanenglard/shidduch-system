@@ -1083,11 +1083,10 @@ export default function HomePage() {
 
               <div className="space-y-4">
                 <div className="flex items-start">
-                  <div className="...">
-                    <CheckCircle className="..." />
+                  <div className="bg-white/20 rounded-full p-2 mr-3 mt-1">
+                    <CheckCircle className="w-4 h-4 text-white" />
                   </div>
-                  <p className="...">
-                    {/* Some comment here */}
+                  <p className="text-white/90">
                     פרופילים גלויים רק לשדכנים מורשים, מבטיחים דיסקרטיות מלאה
                   </p>
                 </div>
