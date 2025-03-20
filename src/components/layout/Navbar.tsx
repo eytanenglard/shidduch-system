@@ -20,7 +20,6 @@ import {
   Heart,
   Menu,
   X,
-  ChevronDown,
 } from "lucide-react";
 import type { Session } from "next-auth";
 
