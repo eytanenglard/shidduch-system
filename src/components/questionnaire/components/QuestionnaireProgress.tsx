@@ -17,9 +17,6 @@ import {
   BarChart3,
   ArrowUpRight,
   HelpCircle,
-  Heart,
-  UserCheck,
-  BookOpen,
 } from "lucide-react";
 import type { WorldId } from "../types/types";
 import {

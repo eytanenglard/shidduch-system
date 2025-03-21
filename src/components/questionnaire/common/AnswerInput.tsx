@@ -37,7 +37,6 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { motion, AnimatePresence } from "framer-motion";
-import { useMediaQuery } from "../hooks/useMediaQuery";
 import { Badge } from "@/components/ui/badge";
 
 // Add custom CSS for progress indicator styles

@@ -24,11 +24,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 // Enum to track questionnaire flow stages
-enum QuestionnaireStage {
-  LANDING = "LANDING",
-  QUESTIONNAIRE = "QUESTIONNAIRE",
-  COMPLETE = "COMPLETE",
-}
 
 export default function QuestionnairePage() {
   const { data: session, status } = useSession();
