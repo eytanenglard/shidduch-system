@@ -7,7 +7,6 @@ import { Progress } from "@/components/ui/progress";
 import {
   ArrowLeft,
   ArrowRight,
-  Save,
   AlertCircle,
   CheckCircle,
   List,
@@ -38,7 +37,6 @@ export default function ValuesWorld({
   onComplete,
   onBack,
   answers,
-  isCompleted = false,
   language = "he",
 }: WorldComponentProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);

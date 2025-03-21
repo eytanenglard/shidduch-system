@@ -7,35 +7,37 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, AlertCircle, Loader2 } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2 } from "lucide-react";
+
 import MatchmakingQuestionnaire from "@/components/questionnaire/MatchmakingQuestionnaire";
 import {
-    Heart,
-    User,
-    Users,
-    Scroll,
-    Clock,
-    Star,
-    Shield,
-    CheckCircle,
-    Lock,
-    ArrowRight,
-  } from "lucide-react";
-  import { cn } from "@/lib/utils";
+  Heart,
+  User,
+  Users,
+  Scroll,
+  Clock,
+  Star,
+  Shield,
+  CheckCircle,
+  Lock,
+  ArrowRight,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 // Enum to track questionnaire flow stages
 enum QuestionnaireStage {
   LANDING = "LANDING",
   QUESTIONNAIRE = "QUESTIONNAIRE",
-  COMPLETE = "COMPLETE"
+  COMPLETE = "COMPLETE",
 }
 
 export default function QuestionnairePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  
+
   // State for tracking current stage in the flow
-  const [currentStage, setCurrentStage] = useState<QuestionnaireStage>(QuestionnaireStage.LANDING);
+  const [currentStage, setCurrentStage] = useState<QuestionnaireStage>(
+    QuestionnaireStage.LANDING
+  );
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasSavedProgress, setHasSavedProgress] = useState(false);
@@ -45,9 +47,9 @@ export default function QuestionnairePage() {
   useEffect(() => {
     const checkExistingProgress = async () => {
       if (status === "loading") return;
-      
+
       setIsLoading(true);
-      
+
       try {
         // If user is logged in, check for saved progress
         if (session?.user?.id) {
@@ -191,8 +193,8 @@ export default function QuestionnairePage() {
               חמישה עולמות, התאמה אחת מושלמת
             </h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              השאלון מחולק לחמישה "עולמות" שונים, כל אחד מתמקד בהיבט אחר של
-              האישיות והציפיות שלך.
+              השאלון מחולק לחמישה &quotעולמות&quot שונים, כל אחד מתמקד בהיבט אחר
+              של האישיות והציפיות שלך.
             </p>
           </div>
 
@@ -220,7 +222,8 @@ export default function QuestionnairePage() {
                 icon: <Users className="h-6 w-6" />,
                 color: "from-purple-400 to-purple-600",
                 questions: 18,
-                description: "מה אתה מחפש בזוגיות? ציפיות ורצונות במערכת היחסים",
+                description:
+                  "מה אתה מחפש בזוגיות? ציפיות ורצונות במערכת היחסים",
               },
               {
                 id: "PARTNER",
@@ -228,7 +231,8 @@ export default function QuestionnairePage() {
                 icon: <Heart className="h-6 w-6" />,
                 color: "from-amber-400 to-amber-600",
                 questions: 22,
-                description: "איזה בן/בת זוג אתה מחפש? תכונות וערכים בבן/בת הזוג",
+                description:
+                  "איזה בן/בת זוג אתה מחפש? תכונות וערכים בבן/בת הזוג",
               },
               {
                 id: "RELIGION",
@@ -236,7 +240,8 @@ export default function QuestionnairePage() {
                 icon: <Scroll className="h-6 w-6" />,
                 color: "from-emerald-400 to-emerald-600",
                 questions: 15,
-                description: "מה היחס שלך לדת, מסורת ואמונה? רוחניות וערכי יהדות",
+                description:
+                  "מה היחס שלך לדת, מסורת ואמונה? רוחניות וערכי יהדות",
               },
             ].map((world) => (
               <Card
@@ -282,7 +287,8 @@ export default function QuestionnairePage() {
               {
                 icon: <Clock className="h-6 w-6 text-blue-500" />,
                 title: "מהיר ונוח",
-                description: "השאלון מתחלק לעולמות נפרדים, כך שאפשר למלא חלק בכל פעם",
+                description:
+                  "השאלון מתחלק לעולמות נפרדים, כך שאפשר למלא חלק בכל פעם",
               },
               {
                 icon: <Shield className="h-6 w-6 text-blue-500" />,
@@ -292,7 +298,8 @@ export default function QuestionnairePage() {
               {
                 icon: <Star className="h-6 w-6 text-blue-500" />,
                 title: "התאמה מדויקת",
-                description: "אלגוריתם חכם המזהה את המועמדים המתאימים ביותר עבורך",
+                description:
+                  "אלגוריתם חכם המזהה את המועמדים המתאימים ביותר עבורך",
               },
             ].map((feature, index) => (
               <div
