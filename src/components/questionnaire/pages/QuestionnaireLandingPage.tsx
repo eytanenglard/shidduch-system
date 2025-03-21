@@ -1,15 +1,8 @@
-// src/components/questionnaire/QuestionnairePage.tsx
-"use client";
-
-import { useSession } from "next-auth/react";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+// src/components/questionnaire/pages/QuestionnaireLandingPage.tsx
+import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Loader2 } from "lucide-react";
-
-import MatchmakingQuestionnaire from "@/components/questionnaire/MatchmakingQuestionnaire";
 import {
   Heart,
   User,
@@ -21,84 +14,23 @@ import {
   CheckCircle,
   Lock,
   ArrowRight,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-// Enum to track questionnaire flow stages
+import { useSession } from "next-auth/react";
 
-export default function QuestionnairePage() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
+// Define the props interface
+interface QuestionnaireLandingPageProps {
+  onStartQuestionnaire: () => void;
+  hasSavedProgress: boolean;
+}
 
-  // State for tracking current stage in the flow
-  const [, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasSavedProgress, setHasSavedProgress] = useState(false);
-  const [showQuestionnaire, setShowQuestionnaire] = useState(false);
-
-  // Check for existing progress when component mounts
-  useEffect(() => {
-    const checkExistingProgress = async () => {
-      if (status === "loading") return;
-
-      setIsLoading(true);
-
-      try {
-        // If user is logged in, check for saved progress
-        if (session?.user?.id) {
-          const response = await fetch("/api/questionnaire");
-          const data = await response.json();
-
-          if (data.success && data.data) {
-            setHasSavedProgress(true);
-          }
-        }
-      } catch (err) {
-        console.error("Error checking questionnaire progress:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkExistingProgress();
-  }, [session, status]);
-
-  // Handler when questionnaire is completed
-  const handleQuestionnaireComplete = async () => {
-    try {
-      await router.push("/questionnaire/complete");
-    } catch (err) {
-      console.error("Error completing questionnaire:", err);
-      setError("אירעה שגיאה בסיום השאלון. אנא נסה שוב.");
-    }
-  };
-
-  // Loading state
-  if (status === "loading") {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="w-full max-w-md p-8 text-center">
-          <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-blue-600" />
-          <p className="text-lg font-medium">טוען...</p>
-          <p className="text-sm text-gray-500 mt-2">מאחזר את נתוני השאלון</p>
-        </Card>
-      </div>
-    );
-  }
-
-  if (showQuestionnaire) {
-    return (
-      <div className="container mx-auto py-8 px-4">
-        <Card className="max-w-4xl mx-auto">
-          <CardContent className="p-0">
-            <MatchmakingQuestionnaire
-              userId={session?.user?.id}
-              onComplete={handleQuestionnaireComplete}
-            />
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+export default function QuestionnaireLandingPage({
+  onStartQuestionnaire,
+  hasSavedProgress,
+}: QuestionnaireLandingPageProps) {
+  const { status } = useSession();
+  const isLoading = false; // You might want to manage this state differently
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
@@ -121,7 +53,7 @@ export default function QuestionnairePage() {
               <Button
                 size="lg"
                 className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-md"
-                onClick={() => setShowQuestionnaire(true)}
+                onClick={onStartQuestionnaire}
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -135,7 +67,7 @@ export default function QuestionnairePage() {
               <Button
                 size="lg"
                 className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-md"
-                onClick={() => setShowQuestionnaire(true)}
+                onClick={onStartQuestionnaire}
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -321,15 +253,11 @@ export default function QuestionnairePage() {
 
           <Button
             size="lg"
-            onClick={() => setShowQuestionnaire(true)}
+            onClick={onStartQuestionnaire}
             disabled={isLoading}
             className="bg-blue-600 hover:bg-blue-700"
           >
-            {isLoading ? (
-              <Loader2 className="h-5 w-5 animate-spin mr-2" />
-            ) : (
-              <ArrowRight className="h-5 w-5 mr-2" />
-            )}
+            <ArrowRight className="h-5 w-5 mr-2" />
             התחל/י עכשיו
           </Button>
         </div>
