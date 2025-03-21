@@ -11,6 +11,12 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import QuestionnaireLandingPage from "./pages/QuestionnaireLandingPage";
 import MatchmakingQuestionnaire from "./MatchmakingQuestionnaire";
 
+// Define interface for QuestionnaireLandingPage if not defined in its own file
+interface QuestionnaireLandingPageProps {
+  onStartQuestionnaire: () => void;
+  hasSavedProgress: boolean;
+}
+
 // Enum to track questionnaire flow stages
 enum QuestionnaireStage {
   LANDING = "LANDING",
