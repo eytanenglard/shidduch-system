@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -65,8 +65,8 @@ const Toast = ({ message, type, isVisible, onClose }) => {
     >
       <span className="font-medium">{message}</span>
       {onClose && (
-        <button 
-          onClick={onClose} 
+        <button
+          onClick={onClose}
           className="ml-2 text-white hover:bg-white/20 p-1 rounded-full transition-colors"
           aria-label="סגור הודעה"
         >
@@ -104,6 +104,50 @@ export default function QuestionnaireLayout({
 
   const isSmallScreen = useMediaQuery("(max-width: 640px)");
 
+  // Toast utilities
+  // Toast utilities
+  const showToast = useCallback(
+    (message: string, type: "success" | "error" | "info" = "info") => {
+      setToast({ message, type, isVisible: true });
+      setTimeout(() => {
+        setToast((prev) => ({ ...prev, isVisible: false }));
+      }, 3000);
+    },
+    []
+  );
+
+  // Save functionality
+  const handleSave = useCallback(
+    async (isAutoSave = false) => {
+      if (!onSaveProgress) {
+        if (!isAutoSave) {
+          showToast("לא ניתן לשמור את השאלון כרגע", "error");
+        }
+        return;
+      }
+
+      setIsSaving(true);
+      setError(null);
+
+      try {
+        await onSaveProgress();
+        setLastSaved(new Date());
+        setSaveCount((prev) => prev + 1);
+        if (!isAutoSave) {
+          showToast("השאלון נשמר בהצלחה", "success");
+        }
+      } catch {
+        setError("אירעה שגיאה בשמירת השאלון");
+        if (!isAutoSave) {
+          showToast("אירעה שגיאה בשמירת השאלון", "error");
+        }
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [onSaveProgress, showToast]
+  );
+
   // טיימר אוטומטי לשמירה
   useEffect(() => {
     let saveTimer: NodeJS.Timeout;
@@ -117,41 +161,7 @@ export default function QuestionnaireLayout({
     return () => {
       if (saveTimer) clearInterval(saveTimer);
     };
-  }, [onSaveProgress]);
-
-  // Toast utilities
-  const showToast = (
-    message: string,
-    type: "success" | "error" | "info" = "info"
-  ) => {
-    setToast({ message, type, isVisible: true });
-    setTimeout(() => {
-      setToast((prev) => ({ ...prev, isVisible: false }));
-    }, 3000);
-  };
-
-  // Save functionality
-  const handleSave = async (isAutoSave = false) => {
-    if (!onSaveProgress) {
-      !isAutoSave && showToast("לא ניתן לשמור את השאלון כרגע", "error");
-      return;
-    }
-
-    setIsSaving(true);
-    setError(null);
-
-    try {
-      await onSaveProgress();
-      setLastSaved(new Date());
-      setSaveCount(prev => prev + 1);
-      !isAutoSave && showToast("השאלון נשמר בהצלחה", "success");
-    } catch (err) {
-      setError("אירעה שגיאה בשמירת השאלון");
-      !isAutoSave && showToast("אירעה שגיאה בשמירת השאלון", "error");
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  }, [onSaveProgress, handleSave]);
 
   // Setup RTL/LTR classes
   const isRTL = language === "he";
@@ -177,7 +187,9 @@ export default function QuestionnaireLayout({
               )}
               onClick={() => {
                 onWorldChange(worldId as WorldId);
-                isMobile && setShowMobileNav(false);
+                if (isMobile) {
+                  setShowMobileNav(false);
+                }
               }}
             >
               <Icon className={cn("h-4 w-4", isMobile ? "mr-1" : "mr-2")} />
@@ -191,8 +203,16 @@ export default function QuestionnaireLayout({
           </TooltipTrigger>
           <TooltipContent side={isRTL ? "left" : "right"}>
             <div className="text-sm">
-              <p className="font-medium">{worldLabels[worldId as keyof typeof worldLabels]}</p>
-              <p>{isCompleted ? "✓ הושלם" : isActive ? "◉ פעיל כעת" : "○ טרם הושלם"}</p>
+              <p className="font-medium">
+                {worldLabels[worldId as keyof typeof worldLabels]}
+              </p>
+              <p>
+                {isCompleted
+                  ? "✓ הושלם"
+                  : isActive
+                  ? "◉ פעיל כעת"
+                  : "○ טרם הושלם"}
+              </p>
             </div>
           </TooltipContent>
         </Tooltip>
@@ -273,7 +293,7 @@ export default function QuestionnaireLayout({
                   variant="outline"
                   size="sm"
                   className="justify-start"
-                  onClick={() => window.location.href = "/questionnaire/map"}
+                  onClick={() => (window.location.href = "/questionnaire/map")}
                 >
                   <Home className="h-3 w-3 mr-2" />
                   חזרה למפת העולמות
@@ -318,7 +338,8 @@ export default function QuestionnaireLayout({
           </h1>
           {completedWorlds.length > 0 && (
             <div className="text-xs text-gray-500">
-              {completedWorlds.length} / {Object.keys(worldLabels).length} הושלמו
+              {completedWorlds.length} / {Object.keys(worldLabels).length}{" "}
+              הושלמו
             </div>
           )}
         </div>
@@ -408,7 +429,7 @@ export default function QuestionnaireLayout({
             <Button
               variant="outline"
               className="w-full"
-              onClick={() => window.location.href = "/questionnaire/map"}
+              onClick={() => (window.location.href = "/questionnaire/map")}
             >
               <Home className="w-4 h-4 mr-2" />
               מפת העולמות
@@ -473,7 +494,9 @@ export default function QuestionnaireLayout({
                       size="sm"
                       onClick={async () => {
                         await handleSave();
-                        onExit?.();
+                        if (onExit) {
+                          onExit();
+                        }
                       }}
                     >
                       שמור וצא
@@ -483,7 +506,9 @@ export default function QuestionnaireLayout({
                       size="sm"
                       onClick={() => {
                         setShowExitPrompt(false);
-                        onExit?.();
+                        if (onExit) {
+                          onExit();
+                        }
                       }}
                     >
                       צא ללא שמירה

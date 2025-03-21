@@ -78,6 +78,114 @@ export default function MatchmakingQuestionnaire({
     isVisible: false,
   });
 
+  const showToast = useCallback(
+    (message: string, type: "success" | "error" | "info" = "info") => {
+      setToastState({ message, type, isVisible: true });
+      setTimeout(() => {
+        setToastState((prev) => ({ ...prev, isVisible: false }));
+      }, 3000);
+    },
+    []
+  );
+
+  const getNextWorld = (currentWorldId: WorldId): WorldId | null => {
+    const currentIndex = WORLD_ORDER.indexOf(currentWorldId);
+    if (currentIndex < WORLD_ORDER.length - 1) {
+      return WORLD_ORDER[currentIndex + 1];
+    }
+    return null;
+  };
+
+  const prepareSubmissionData = useCallback((): QuestionnaireSubmission => {
+    const isCompleted = completedWorlds.length === WORLD_ORDER.length;
+    return {
+      userId: userId || sessionId,
+      answers: answers,
+      worldsCompleted: completedWorlds,
+      completed: isCompleted,
+      startedAt: startTime,
+      completedAt: isCompleted ? new Date().toISOString() : undefined,
+      userTrack,
+    };
+  }, [answers, completedWorlds, sessionId, startTime, userId, userTrack]);
+
+  const handleQuestionnaireComplete = useCallback(
+    async (isAutoSave = false) => {
+      if (isSaving) return;
+
+      setIsSaving(true);
+      setError(null);
+
+      try {
+        const submissionData = prepareSubmissionData();
+
+        // Moved validateSubmission inside the callback
+        const validateSubmission = (data: QuestionnaireSubmission): boolean => {
+          if (!data.userId) return false;
+          if (!Array.isArray(data.answers) || data.answers.length === 0)
+            return false;
+          if (!Array.isArray(data.worldsCompleted)) return false;
+          if (typeof data.completed !== "boolean") return false;
+          if (!data.startedAt) return false;
+          if (data.completed && !data.completedAt) return false;
+          return true;
+        };
+
+        if (!validateSubmission(submissionData)) {
+          throw new Error("Invalid submission data");
+        }
+
+        // אם המשתמש לא מחובר, שומרים בlocal ומעבירים לדף התחברות
+        if (!userId) {
+          localStorage.setItem(
+            "tempQuestionnaire",
+            JSON.stringify(submissionData)
+          );
+          router.push("/auth/signin");
+          return;
+        }
+
+        // שמירה בשרת
+        const response = await fetch("/api/questionnaire", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(submissionData),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to save questionnaire");
+        }
+
+        setLastSavedTime(new Date());
+
+        if (!isAutoSave && onComplete) {
+          onComplete();
+        }
+
+        if (!isAutoSave) {
+          showToast("השאלון נשמר בהצלחה", "success");
+        }
+      } catch (err) {
+        console.error("Failed to save questionnaire:", err);
+        setError(
+          err instanceof Error
+            ? err.message
+            : "אירעה שגיאה בשמירת השאלון. אנא נסה שוב."
+        );
+
+        if (!isAutoSave) {
+          showToast("אירעה שגיאה בשמירת השאלון", "error");
+        }
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [isSaving, prepareSubmissionData, userId, router, onComplete, showToast]
+  );
+
   // אוטוסייב
   useEffect(() => {
     let autoSaveInterval: NodeJS.Timeout;
@@ -93,17 +201,7 @@ export default function MatchmakingQuestionnaire({
     return () => {
       if (autoSaveInterval) clearInterval(autoSaveInterval);
     };
-  }, [currentStep, answers.length, userId]);
-
-  const showToast = useCallback(
-    (message: string, type: "success" | "error" | "info" = "info") => {
-      setToastState({ message, type, isVisible: true });
-      setTimeout(() => {
-        setToastState((prev) => ({ ...prev, isVisible: false }));
-      }, 3000);
-    },
-    []
-  );
+  }, [currentStep, answers.length, userId, handleQuestionnaireComplete]);
 
   // Load existing answers when component mounts
   useEffect(() => {
@@ -176,37 +274,6 @@ export default function MatchmakingQuestionnaire({
     [currentWorld]
   );
 
-  const prepareSubmissionData = useCallback((): QuestionnaireSubmission => {
-    const isCompleted = completedWorlds.length === WORLD_ORDER.length;
-    return {
-      userId: userId || sessionId,
-      answers: answers,
-      worldsCompleted: completedWorlds,
-      completed: isCompleted,
-      startedAt: startTime,
-      completedAt: isCompleted ? new Date().toISOString() : undefined,
-      userTrack,
-    };
-  }, [answers, completedWorlds, sessionId, startTime, userId, userTrack]);
-
-  const validateSubmission = (data: QuestionnaireSubmission): boolean => {
-    if (!data.userId) return false;
-    if (!Array.isArray(data.answers) || data.answers.length === 0) return false;
-    if (!Array.isArray(data.worldsCompleted)) return false;
-    if (typeof data.completed !== "boolean") return false;
-    if (!data.startedAt) return false;
-    if (data.completed && !data.completedAt) return false;
-    return true;
-  };
-
-  const getNextWorld = (currentWorldId: WorldId): WorldId | null => {
-    const currentIndex = WORLD_ORDER.indexOf(currentWorldId);
-    if (currentIndex < WORLD_ORDER.length - 1) {
-      return WORLD_ORDER[currentIndex + 1];
-    }
-    return null;
-  };
-
   const handleWorldChange = useCallback((newWorld: WorldId) => {
     setCurrentWorld(newWorld);
     setError(null);
@@ -250,70 +317,8 @@ export default function MatchmakingQuestionnaire({
         console.error("Error completing world:", err);
       }
     },
-    [completedWorlds, showToast, userId]
+    [completedWorlds, showToast, userId, handleQuestionnaireComplete]
   );
-
-  const handleQuestionnaireComplete = async (isAutoSave = false) => {
-    if (isSaving) return;
-
-    setIsSaving(true);
-    setError(null);
-
-    try {
-      const submissionData = prepareSubmissionData();
-
-      if (!validateSubmission(submissionData)) {
-        throw new Error("Invalid submission data");
-      }
-
-      // אם המשתמש לא מחובר, שומרים בlocal ומעבירים לדף התחברות
-      if (!userId) {
-        localStorage.setItem(
-          "tempQuestionnaire",
-          JSON.stringify(submissionData)
-        );
-        router.push("/auth/signin");
-        return;
-      }
-
-      // שמירה בשרת
-      const response = await fetch("/api/questionnaire", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(submissionData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to save questionnaire");
-      }
-
-      setLastSavedTime(new Date());
-
-      if (!isAutoSave && onComplete) {
-        onComplete();
-      }
-
-      if (!isAutoSave) {
-        showToast("השאלון נשמר בהצלחה", "success");
-      }
-    } catch (err) {
-      console.error("Failed to save questionnaire:", err);
-      setError(
-        err instanceof Error
-          ? err.message
-          : "אירעה שגיאה בשמירת השאלון. אנא נסה שוב."
-      );
-
-      if (!isAutoSave) {
-        showToast("אירעה שגיאה בשמירת השאלון", "error");
-      }
-    } finally {
-      setIsSaving(false);
-    }
-  };
 
   function renderCurrentWorld() {
     const worldProps = {
