@@ -122,10 +122,12 @@ export default function UserStats({
               </div>
               <Progress
                 value={matchScore}
-                className="h-2"
-                indicatorClassName={
-                  matchScore > 70 ? "bg-green-500" : "bg-blue-500"
-                }
+                className={cn(
+                  "h-2",
+                  matchScore > 70
+                    ? "[--progress-foreground:theme(colors.green.500)]"
+                    : "[--progress-foreground:theme(colors.blue.500)]"
+                )}
               />
             </div>
 
@@ -175,14 +177,14 @@ export default function UserStats({
               </div>
               <Progress
                 value={profileCompletion}
-                className="h-2"
-                indicatorClassName={
+                className={cn(
+                  "h-2",
                   profileCompletion < 30
-                    ? "bg-red-500"
+                    ? "[--progress-foreground:theme(colors.red.500)]"
                     : profileCompletion < 70
-                    ? "bg-amber-500"
-                    : "bg-green-500"
-                }
+                    ? "[--progress-foreground:theme(colors.amber.500)]"
+                    : "[--progress-foreground:theme(colors.green.500)]"
+                )}
               />
             </div>
 
@@ -284,14 +286,16 @@ export default function UserStats({
                         </div>
                         <Progress
                           value={trait.score}
-                          className="h-1.5"
-                          indicatorClassName={`bg-gradient-to-r from-blue-400 to-${
+                          className={cn(
+                            "h-1.5",
+                            "relative overflow-hidden",
+                            "before:absolute before:inset-0 before:bg-gradient-to-r before:from-blue-400",
                             trait.score < 40
-                              ? "blue-500"
+                              ? "before:to-blue-500"
                               : trait.score < 70
-                              ? "purple-500"
-                              : "pink-500"
-                          }`}
+                              ? "before:to-purple-500"
+                              : "before:to-pink-500"
+                          )}
                         />
                       </div>
                     </TooltipTrigger>
