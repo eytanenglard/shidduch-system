@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import QuestionnaireLayout from "./layout/QuestionnaireLayout";
 import Welcome from "./onboarding/Welcome";
@@ -14,6 +14,13 @@ import QuestionnaireCompletion from "./common/QuestionnaireCompletion";
 import { useLanguage } from "@/app/contexts/LanguageContext";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
+import {
+  Loader2,
+  CheckCircle,
+  AlertTriangle,
+  XCircle,
+  Info,
+} from "lucide-react";
 import type {
   WorldId,
   UserTrack,
@@ -22,6 +29,7 @@ import type {
   QuestionnaireAnswer,
   AnswerValue,
 } from "./types/types";
+import { Button } from "@/components/ui/button";
 
 enum OnboardingStep {
   WELCOME = "WELCOME",
@@ -32,10 +40,10 @@ enum OnboardingStep {
 
 const WORLD_ORDER: WorldId[] = [
   "PERSONALITY",
-  "RELATIONSHIP",
   "VALUES",
-  "RELIGION",
+  "RELATIONSHIP",
   "PARTNER",
+  "RELIGION",
 ];
 
 export default function MatchmakingQuestionnaire({
@@ -55,9 +63,11 @@ export default function MatchmakingQuestionnaire({
   const [answers, setAnswers] = useState<QuestionnaireAnswer[]>([]);
   const [completedWorlds, setCompletedWorlds] = useState<WorldId[]>([]);
   const [startTime] = useState(() => new Date().toISOString());
+  const [lastSavedTime, setLastSavedTime] = useState<Date | null>(null);
 
   // Submission state
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [toastState, setToastState] = useState<{
     message: string;
@@ -69,19 +79,37 @@ export default function MatchmakingQuestionnaire({
     isVisible: false,
   });
 
-  const showToast = (
-    message: string,
-    type: "success" | "error" | "info" = "info"
-  ) => {
-    setToastState({ message, type, isVisible: true });
-    setTimeout(() => {
-      setToastState((prev) => ({ ...prev, isVisible: false }));
-    }, 3000);
-  };
+  // אוטוסייב
+  useEffect(() => {
+    let autoSaveInterval: NodeJS.Timeout;
+
+    if (currentStep === OnboardingStep.WORLDS && userId) {
+      autoSaveInterval = setInterval(() => {
+        if (answers.length > 0) {
+          handleQuestionnaireComplete(true);
+        }
+      }, 120000); // auto-save every 2 minutes
+    }
+
+    return () => {
+      if (autoSaveInterval) clearInterval(autoSaveInterval);
+    };
+  }, [currentStep, answers.length, userId]);
+
+  const showToast = useCallback(
+    (message: string, type: "success" | "error" | "info" = "info") => {
+      setToastState({ message, type, isVisible: true });
+      setTimeout(() => {
+        setToastState((prev) => ({ ...prev, isVisible: false }));
+      }, 3000);
+    },
+    []
+  );
 
   // Load existing answers when component mounts
   useEffect(() => {
     const loadExistingAnswers = async () => {
+      setIsLoading(true);
       try {
         const response = await fetch("/api/questionnaire");
         const data = await response.json();
@@ -99,39 +127,57 @@ export default function MatchmakingQuestionnaire({
           // Update states
           setAnswers(allAnswers);
           setCompletedWorlds(data.data.worldsCompleted || []);
+          setUserTrack(data.data.userTrack || "SECULAR");
           setCurrentStep(
             data.data.completed
               ? OnboardingStep.COMPLETED
               : OnboardingStep.WORLDS
           );
+
+          // אם יש עולמות שהושלמו, בחר את העולם הבא בתור
+          if (data.data.worldsCompleted?.length > 0) {
+            const nextWorld = WORLD_ORDER.find(
+              (world) => !data.data.worldsCompleted.includes(world)
+            );
+            if (nextWorld) {
+              setCurrentWorld(nextWorld);
+            }
+          }
         }
       } catch (err) {
         console.error("Failed to load existing answers:", err);
         setError("אירעה שגיאה בטעינת התשובות הקיימות");
+      } finally {
+        setIsLoading(false);
       }
     };
 
     if (userId) {
       loadExistingAnswers();
+    } else {
+      setIsLoading(false);
     }
   }, [userId]);
 
-  const handleAnswer = (questionId: string, value: AnswerValue) => {
-    setError(null);
-    const newAnswer: QuestionnaireAnswer = {
-      questionId,
-      worldId: currentWorld,
-      value,
-      answeredAt: new Date().toISOString(),
-    };
+  const handleAnswer = useCallback(
+    (questionId: string, value: AnswerValue) => {
+      setError(null);
+      const newAnswer: QuestionnaireAnswer = {
+        questionId,
+        worldId: currentWorld,
+        value,
+        answeredAt: new Date().toISOString(),
+      };
 
-    setAnswers((prev) => {
-      const filtered = prev.filter((a) => a.questionId !== questionId);
-      return [...filtered, newAnswer];
-    });
-  };
+      setAnswers((prev) => {
+        const filtered = prev.filter((a) => a.questionId !== questionId);
+        return [...filtered, newAnswer];
+      });
+    },
+    [currentWorld]
+  );
 
-  const prepareSubmissionData = (): QuestionnaireSubmission => {
+  const prepareSubmissionData = useCallback((): QuestionnaireSubmission => {
     const isCompleted = completedWorlds.length === WORLD_ORDER.length;
     return {
       userId: userId || sessionId,
@@ -140,8 +186,9 @@ export default function MatchmakingQuestionnaire({
       completed: isCompleted,
       startedAt: startTime,
       completedAt: isCompleted ? new Date().toISOString() : undefined,
+      userTrack,
     };
-  };
+  }, [answers, completedWorlds, sessionId, startTime, userId, userTrack]);
 
   const validateSubmission = (data: QuestionnaireSubmission): boolean => {
     if (!data.userId) return false;
@@ -161,30 +208,55 @@ export default function MatchmakingQuestionnaire({
     return null;
   };
 
-  const handleWorldChange = (newWorld: WorldId) => {
+  const handleWorldChange = useCallback((newWorld: WorldId) => {
     setCurrentWorld(newWorld);
     setError(null);
-  };
+  }, []);
 
-  const handleWorldComplete = async (worldId: WorldId) => {
-    try {
-      if (!completedWorlds.includes(worldId)) {
-        setCompletedWorlds((prev) => [...prev, worldId]);
+  const handleWorldComplete = useCallback(
+    async (worldId: WorldId) => {
+      try {
+        if (!completedWorlds.includes(worldId)) {
+          setCompletedWorlds((prev) => [...prev, worldId]);
+        }
+
+        showToast(
+          `כל הכבוד! סיימת את עולם ה${
+            worldId === "PERSONALITY"
+              ? "אישיות"
+              : worldId === "VALUES"
+              ? "ערכים"
+              : worldId === "RELATIONSHIP"
+              ? "זוגיות"
+              : worldId === "PARTNER"
+              ? "פרטנר"
+              : "דת ומסורת"
+          }`,
+          "success"
+        );
+
+        const nextWorld = getNextWorld(worldId);
+        if (!nextWorld) {
+          setCurrentStep(OnboardingStep.COMPLETED);
+        } else {
+          setCurrentWorld(nextWorld);
+        }
+
+        // שמירה אוטומטית לאחר השלמת עולם
+        if (userId) {
+          await handleQuestionnaireComplete(true);
+        }
+      } catch (err) {
+        setError("אירעה שגיאה בשמירת ההתקדמות. אנא נסה שוב.");
+        console.error("Error completing world:", err);
       }
+    },
+    [completedWorlds, showToast, userId]
+  );
 
-      const nextWorld = getNextWorld(worldId);
-      if (!nextWorld) {
-        setCurrentStep(OnboardingStep.COMPLETED);
-      } else {
-        setCurrentWorld(nextWorld);
-      }
-    } catch (err) {
-      setError("אירעה שגיאה בשמירת ההתקדמות. אנא נסה שוב.");
-      console.error("Error completing world:", err);
-    }
-  };
+  const handleQuestionnaireComplete = async (isAutoSave = false) => {
+    if (isSaving) return;
 
-  const handleQuestionnaireComplete = async () => {
     setIsSaving(true);
     setError(null);
 
@@ -219,11 +291,15 @@ export default function MatchmakingQuestionnaire({
         throw new Error(errorData.error || "Failed to save questionnaire");
       }
 
-      if (onComplete) {
+      setLastSavedTime(new Date());
+
+      if (!isAutoSave && onComplete) {
         onComplete();
       }
 
-      showToast("השאלון נשמר בהצלחה", "success");
+      if (!isAutoSave) {
+        showToast("השאלון נשמר בהצלחה", "success");
+      }
     } catch (err) {
       console.error("Failed to save questionnaire:", err);
       setError(
@@ -231,7 +307,10 @@ export default function MatchmakingQuestionnaire({
           ? err.message
           : "אירעה שגיאה בשמירת השאלון. אנא נסה שוב."
       );
-      showToast("אירעה שגיאה בשמירת השאלון", "error");
+
+      if (!isAutoSave) {
+        showToast("אירעה שגיאה בשמירת השאלון", "error");
+      }
     } finally {
       setIsSaving(false);
     }
@@ -264,6 +343,16 @@ export default function MatchmakingQuestionnaire({
   }
 
   function renderCurrentStep() {
+    if (isLoading) {
+      return (
+        <div className="flex flex-col items-center justify-center min-h-screen p-4">
+          <Loader2 className="w-12 h-12 animate-spin text-blue-500 mb-4" />
+          <h2 className="text-xl font-medium">טוען את השאלון...</h2>
+          <p className="text-gray-500 mt-2">אנא המתן, מאחזר את ההתקדמות שלך</p>
+        </div>
+      );
+    }
+
     switch (currentStep) {
       case OnboardingStep.WELCOME:
         return (
@@ -294,7 +383,8 @@ export default function MatchmakingQuestionnaire({
             completedWorlds={completedWorlds}
             onWorldChange={handleWorldChange}
             onExit={() => router.push("/profile")}
-            onSaveProgress={handleQuestionnaireComplete}
+            onSaveProgress={() => handleQuestionnaireComplete(true)}
+            language={language}
           >
             {renderCurrentWorld()}
           </QuestionnaireLayout>
@@ -303,7 +393,7 @@ export default function MatchmakingQuestionnaire({
       case OnboardingStep.COMPLETED:
         return (
           <QuestionnaireCompletion
-            onSendToMatching={handleQuestionnaireComplete}
+            onSendToMatching={() => handleQuestionnaireComplete()}
             isLoading={isSaving}
             isLoggedIn={!!userId}
           />
@@ -314,25 +404,68 @@ export default function MatchmakingQuestionnaire({
     }
   }
 
+  const Toast = ({ message, type, isVisible }) => {
+    if (!isVisible) return null;
+
+    return (
+      <div
+        className={cn(
+          "fixed bottom-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-md transition-all duration-300",
+          type === "success"
+            ? "bg-green-500"
+            : type === "error"
+            ? "bg-red-500"
+            : "bg-blue-500",
+          "text-white"
+        )}
+      >
+        <div className="flex items-center">
+          {type === "success" ? (
+            <CheckCircle className="h-5 w-5 mr-2" />
+          ) : type === "error" ? (
+            <XCircle className="h-5 w-5 mr-2" />
+          ) : (
+            <Info className="h-5 w-5 mr-2" />
+          )}
+          <p>{message}</p>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div
-      className={cn("min-h-screen", language === "he" ? "dir-rtl" : "dir-ltr")}
+      className={cn(
+        "min-h-screen bg-gray-50",
+        language === "he" ? "dir-rtl" : "dir-ltr"
+      )}
     >
+      {/* נתוני שמירה אחרונה והתקדמות */}
+      {lastSavedTime && currentStep === OnboardingStep.WORLDS && (
+        <div className="fixed bottom-4 left-4 z-40 bg-white p-2 rounded-lg shadow-md text-xs text-gray-600 border">
+          <div className="flex items-center">
+            <CheckCircle className="h-3.5 w-3.5 text-green-500 mr-1" />
+            <span>נשמר לאחרונה: {lastSavedTime.toLocaleTimeString()}</span>
+          </div>
+        </div>
+      )}
+
       {error && (
-        <Alert variant="destructive" className="m-4">
+        <Alert variant="destructive" className="m-4 max-w-lg mx-auto">
+          <AlertTriangle className="h-4 w-4 mr-2" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-      {toastState.isVisible && (
-        <Alert
-          variant={toastState.type === "error" ? "destructive" : "default"}
-          className="m-4"
-        >
-          <AlertDescription>{toastState.message}</AlertDescription>
-        </Alert>
-      )}
 
+      {/* תצוגת השלב הנוכחי */}
       {renderCurrentStep()}
+
+      {/* התראות (Toast) */}
+      <Toast
+        message={toastState.message}
+        type={toastState.type}
+        isVisible={toastState.isVisible}
+      />
     </div>
   );
 }

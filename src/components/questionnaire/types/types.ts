@@ -137,6 +137,7 @@ export interface QuestionnaireSubmission {
   completed: boolean;
   startedAt: string;
   completedAt?: string;
+  userTrack?: UserTrack;  
 }
 
 export type UserTrack = 

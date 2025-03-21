@@ -122,6 +122,22 @@
     border-left: none;
     border-right: 1px solid var(--border);
   }
+
+  /* Progress indicator colors */
+  .progress-green [data-state="progress"] {
+    background-color: hsl(142 76% 36%);
+    /* Green-500 */
+  }
+
+  .progress-blue [data-state="progress"] {
+    background-color: hsl(221 83% 53%);
+    /* Blue-500 */
+  }
+
+  .progress-amber [data-state="progress"] {
+    background-color: hsl(45 93% 47%);
+    /* Amber-500 */
+  }
 }
 
 /* Animation classes */
