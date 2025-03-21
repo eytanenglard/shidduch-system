@@ -29,7 +29,6 @@ import type {
   QuestionnaireAnswer,
   AnswerValue,
 } from "./types/types";
-import { Button } from "@/components/ui/button";
 
 enum OnboardingStep {
   WELCOME = "WELCOME",

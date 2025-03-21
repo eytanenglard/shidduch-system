@@ -35,7 +35,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -62,24 +61,6 @@ const worldLabels = {
   RELIGION: "דת ומסורת",
 };
 
-const worldIcons = {
-  PERSONALITY: ({ className }: { className?: string }) => (
-    <CheckCircle2 className={className} />
-  ),
-  VALUES: ({ className }: { className?: string }) => (
-    <Star className={className} />
-  ),
-  RELATIONSHIP: ({ className }: { className?: string }) => (
-    <Heart className={className} />
-  ),
-  PARTNER: ({ className }: { className?: string }) => (
-    <UserCheck className={className} />
-  ),
-  RELIGION: ({ className }: { className?: string }) => (
-    <BookOpen className={className} />
-  ),
-};
-
 export default function QuestionnaireProgress({
   completedWorlds,
   allWorlds = ["PERSONALITY", "VALUES", "RELATIONSHIP", "PARTNER", "RELIGION"],
@@ -95,7 +76,6 @@ export default function QuestionnaireProgress({
 }: QuestionnaireProgressProps) {
   // מצב מקומי
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
-  const isMobile = useMediaQuery("(max-width: 640px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
 
   // חישוב אחוזי התקדמות

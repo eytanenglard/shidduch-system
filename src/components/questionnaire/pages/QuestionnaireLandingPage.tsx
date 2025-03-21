@@ -35,10 +35,7 @@ export default function QuestionnairePage() {
   const router = useRouter();
 
   // State for tracking current stage in the flow
-  const [currentStage, setCurrentStage] = useState<QuestionnaireStage>(
-    QuestionnaireStage.LANDING
-  );
-  const [error, setError] = useState<string | null>(null);
+  const [, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasSavedProgress, setHasSavedProgress] = useState(false);
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);

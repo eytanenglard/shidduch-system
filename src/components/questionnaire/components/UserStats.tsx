@@ -51,7 +51,6 @@ export default function UserStats({
   personalityTraits = [],
   activityLevel = "medium",
   registrationDate,
-  lastActive,
   className,
 }: UserStatsProps) {
   // חישוב תאריכים יפים להצגה

@@ -104,7 +104,6 @@ export default function QuestionCard({
   onPrevious,
   isLastQuestion = false,
   isFirstQuestion = false,
-  language = "he",
 }: QuestionCardProps) {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showHelp, setShowHelp] = useState(false);

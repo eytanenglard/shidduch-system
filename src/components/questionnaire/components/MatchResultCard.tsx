@@ -19,7 +19,6 @@ import {
   ChevronsUp,
   Music,
   Coffee,
-  Globe,
   Bookmark,
   ExternalLink,
 } from "lucide-react";
@@ -220,7 +219,7 @@ export default function MatchResultCard({
               <div className="flex items-center text-sm text-gray-600">
                 <MapPin className="h-3.5 w-3.5 mr-1" />
                 {location}
-                {distance && <span className="mr-1">({distance} ק"מ)</span>}
+                {distance && <span className="mr-1">({distance} ק&quotמ)</span>}
               </div>
             </div>
 

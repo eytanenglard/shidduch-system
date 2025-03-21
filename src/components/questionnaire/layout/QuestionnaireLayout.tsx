@@ -102,7 +102,6 @@ export default function QuestionnaireLayout({
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [saveCount, setSaveCount] = useState(0); // מונה שמירות
 
-  const isMobile = useMediaQuery("(max-width: 768px)");
   const isSmallScreen = useMediaQuery("(max-width: 640px)");
 
   // טיימר אוטומטי לשמירה

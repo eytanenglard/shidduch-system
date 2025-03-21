@@ -398,8 +398,6 @@ export default function InteractiveScale({
               const isActive =
                 activeValue !== null && item.value <= activeValue;
               const isHighlighted = item.value === activeValue;
-              const isInRange =
-                activeValue !== null && item.value <= activeValue;
 
               return (
                 <TooltipProvider key={item.value} delayDuration={300}>

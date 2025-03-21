@@ -3,11 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -24,7 +19,6 @@ import {
   Hand,
   Contrast,
   Speech,
-  PanelRight,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -39,7 +33,6 @@ interface AccessibilityFeaturesProps {
 export default function AccessibilityFeatures({
   className,
 }: AccessibilityFeaturesProps) {
-  const [isOpen, setIsOpen] = useState(false);
   const [fontScale, setFontScale] = useState(1);
   const [contrastMode, setContrastMode] = useState<"normal" | "high" | "dark">(
     "normal"

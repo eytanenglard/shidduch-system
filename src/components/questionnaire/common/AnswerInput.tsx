@@ -25,7 +25,6 @@ import {
   Sparkles,
   Clock,
   Copy,
-  Badge as LucideBadge,
   CheckCheck,
   Edit,
   Trash2,
@@ -62,20 +61,16 @@ export default function AnswerInput({
   onClear,
   showValidation = false,
   className = "",
-  language = "he",
 }: AnswerInputProps) {
   const [internalValue, setInternalValue] = useState<AnswerValue>(value);
   const [error, setError] = useState<string | null>(null);
   const [customValue, setCustomValue] = useState<string>("");
-  const [charactersCount, setCharactersCount] = useState<number>(0);
+  const [, setCharactersCount] = useState<number>(0);
   const [isFocused, setIsFocused] = useState<boolean>(false);
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [, setSelectedOption] = useState<string | null>(null);
   const [textAreaHeight, setTextAreaHeight] = useState<number>(150);
   const [isCollapsibleOpen, setIsCollapsibleOpen] = useState<boolean>(false);
   const [textCopied, setTextCopied] = useState(false);
-
-  const isMobile = useMediaQuery("(max-width: 640px)");
-  const isTablet = useMediaQuery("(max-width: 1024px)");
 
   useEffect(() => {
     setInternalValue(value);
@@ -825,7 +820,8 @@ export default function AnswerInput({
                 <div className="text-xs text-gray-500 flex items-center">
                   <Clock className="h-3 w-3 mr-1" />
                   זמן כתיבה משוער:{" "}
-                  {Math.max(1, Math.ceil((question.minLength ?? 0) / 70))} דק'
+                  {Math.max(1, Math.ceil((question.minLength ?? 0) / 70))}{" "}
+                  דק&apos
                 </div>
               )}
             </div>
