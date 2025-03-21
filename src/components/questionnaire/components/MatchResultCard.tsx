@@ -418,13 +418,13 @@ export default function MatchResultCard({
                               </div>
                               <Progress
                                 value={trait.score}
-                                className="h-2"
-                                indicatorClassName={cn(
+                                className={cn(
+                                  "h-2",
                                   trait.score >= 80
-                                    ? "bg-green-500"
+                                    ? "[--progress-foreground:theme(colors.green.500)]"
                                     : trait.score >= 60
-                                    ? "bg-blue-500"
-                                    : "bg-blue-400"
+                                    ? "[--progress-foreground:theme(colors.blue.500)]"
+                                    : "[--progress-foreground:theme(colors.blue.400)]"
                                 )}
                               />
                             </div>
