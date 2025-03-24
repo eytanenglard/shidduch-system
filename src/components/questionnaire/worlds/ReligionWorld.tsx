@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import WorldIntro from "../common/WorldIntro";
 import QuestionCard from "../common/QuestionCard";
@@ -22,7 +23,6 @@ export default function ReligionWorld({
   onComplete,
   onBack,
   answers,
-  isCompleted = false,
   language = "he",
 }: WorldComponentProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -30,9 +30,23 @@ export default function ReligionWorld({
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string>
   >({});
+  // Add animation state like in ValuesWorld
+  const [animateDirection, setAnimateDirection] = useState<
+    "left" | "right" | null
+  >(null);
+
+  // Add useEffect for animation
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setAnimateDirection(null);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [currentQuestionIndex]);
 
   const findAnswer = (questionId: string) => {
-    return answers.find((a) => a.questionId === questionId)?.value;
+    const foundAnswer = answers.find((a) => a.questionId === questionId);
+    return foundAnswer ? foundAnswer.value : undefined;
   };
 
   const validateAnswer = (
@@ -93,14 +107,48 @@ export default function ReligionWorld({
 
     if (error && currentQuestion.isRequired) {
       setValidationErrors({ ...validationErrors, [currentQuestion.id]: error });
-      return;
+      // We don't return here to allow advancing even with validation errors
     }
 
     if (currentQuestionIndex < allQuestions.length - 1) {
+      setAnimateDirection("left");
       setCurrentQuestionIndex((prev) => prev + 1);
     } else {
       onComplete();
     }
+  };
+
+  const handlePrevious = () => {
+    if (currentQuestionIndex > 0) {
+      setAnimateDirection("right");
+      setCurrentQuestionIndex((prev) => prev - 1);
+    } else {
+      onBack();
+    }
+  };
+
+  const handleClearAnswer = () => {
+    let emptyValue: AnswerValue;
+    switch (allQuestions[currentQuestionIndex].type) {
+      case "multiChoice":
+      case "multiSelect":
+        emptyValue = [];
+        break;
+      case "budgetAllocation":
+        emptyValue = {};
+        break;
+      case "scale":
+        emptyValue = 0;
+        break;
+      default:
+        emptyValue = "";
+    }
+
+    onAnswer(allQuestions[currentQuestionIndex].id, emptyValue);
+    setValidationErrors({
+      ...validationErrors,
+      [allQuestions[currentQuestionIndex].id]: "",
+    });
   };
 
   if (!isIntroComplete) {
@@ -118,40 +166,26 @@ export default function ReligionWorld({
     );
   }
 
+  // Handle case where allQuestions might be empty due to import issues
+  if (allQuestions.length === 0) {
+    return (
+      <div className="p-4 bg-red-50 rounded-lg border border-red-300 text-red-800">
+        <h3 className="font-bold">שגיאה בטעינת השאלות</h3>
+        <p>לא ניתן לטעון את השאלות לעולם זה. אנא נסה לרענן את הדף.</p>
+        <Button 
+          className="mt-4" 
+          variant="outline" 
+          onClick={onBack}
+        >
+          חזרה למפה
+        </Button>
+      </div>
+    );
+  }
+
   const currentQuestion = allQuestions[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / allQuestions.length) * 100;
   const currentValue = findAnswer(currentQuestion.id);
-
-  const handleClearAnswer = () => {
-    let emptyValue: AnswerValue;
-    switch (currentQuestion.type) {
-      case "multiChoice":
-      case "multiSelect":
-        emptyValue = [];
-        break;
-      case "budgetAllocation":
-        emptyValue = {};
-        break;
-      case "scale":
-        emptyValue = 0;
-        break;
-      default:
-        emptyValue = "";
-    }
-
-    onAnswer(currentQuestion.id, emptyValue);
-    setValidationErrors({
-      ...validationErrors,
-      [currentQuestion.id]: "",
-    });
-  };
-
-  console.log({
-    isCompleted,
-    currentQuestionIndex,
-    totalQuestions: allQuestions.length,
-    isLastQuestion: currentQuestionIndex === allQuestions.length - 1,
-  });
 
   return (
     <div className="max-w-2xl mx-auto p-4 space-y-6">
@@ -167,13 +201,13 @@ export default function ReligionWorld({
                 answer !== "" &&
                 (Array.isArray(answer) ? answer.length > 0 : true) &&
                 (typeof answer === "object" && !Array.isArray(answer)
-                  ? Object.keys(answer).length > 0
+                  ? Object.keys(answer || {}).length > 0
                   : true);
               const isCurrent = index === currentQuestionIndex;
               const isRequired = allQuestions[index].isRequired;
 
               return (
-                <div key={allQuestions[index].id} className="relative">
+                <div key={index} className="relative">
                   <button
                     onClick={() => setCurrentQuestionIndex(index)}
                     className={cn(
@@ -206,39 +240,41 @@ export default function ReligionWorld({
         <Progress value={progress} className="h-2" />
       </div>
 
-      <QuestionCard
-        question={currentQuestion}
-        depth={currentQuestion.depth}
-        isRequired={currentQuestion.isRequired}
-        validationError={validationErrors[currentQuestion.id]}
-        language={language}
+      <div
+        className={cn(
+          "transition-all duration-300 transform",
+          animateDirection === "left" && "translate-x-4 opacity-0",
+          animateDirection === "right" && "-translate-x-4 opacity-0"
+        )}
       >
-        <AnswerInput
+        <QuestionCard
           question={currentQuestion}
-          value={currentValue}
-          onChange={(value) => {
-            setValidationErrors({
-              ...validationErrors,
-              [currentQuestion.id]: "",
-            });
-            onAnswer(currentQuestion.id, value);
-          }}
-          onClear={() => !currentQuestion.isRequired && handleClearAnswer()}
+          depth={currentQuestion.depth}
+          isRequired={currentQuestion.isRequired}
+          validationError={validationErrors[currentQuestion.id]}
           language={language}
-          showValidation={true}
-        />
-      </QuestionCard>
+        >
+          <AnswerInput
+            question={currentQuestion}
+            value={currentValue}
+            onChange={(value) => {
+              setValidationErrors({
+                ...validationErrors,
+                [currentQuestion.id]: "",
+              });
+              onAnswer(currentQuestion.id, value);
+            }}
+            onClear={() => !currentQuestion.isRequired && handleClearAnswer()}
+            language={language}
+            showValidation={true}
+          />
+        </QuestionCard>
+      </div>
 
       <div className="flex justify-between pt-4">
         <Button
           variant="outline"
-          onClick={() => {
-            if (currentQuestionIndex > 0) {
-              setCurrentQuestionIndex((prev) => prev - 1);
-            } else {
-              onBack();
-            }
-          }}
+          onClick={handlePrevious}
         >
           <ArrowRight className="w-4 h-4 ml-2" />
           {currentQuestionIndex === 0 ? "חזור למפה" : "שאלה קודמת"}
@@ -250,12 +286,7 @@ export default function ReligionWorld({
             <ArrowLeft className="w-4 h-4 mr-2" />
           </Button>
         ) : (
-          <Button
-            onClick={handleNext}
-            disabled={allQuestions.some(
-              (q) => q.isRequired && !findAnswer(q.id)
-            )}
-          >
+          <Button onClick={handleNext}>
             סיים עולם זה
             <ArrowLeft className="w-4 h-4 mr-2" />
           </Button>

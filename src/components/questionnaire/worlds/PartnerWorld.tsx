@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import WorldIntro from "../common/WorldIntro";
 import QuestionCard from "../common/QuestionCard";
 import AnswerInput from "../common/AnswerInput";
@@ -18,7 +18,6 @@ export default function PartnerWorld({
   onComplete,
   onBack,
   answers,
-  isCompleted = false,
   language = "he",
 }: WorldComponentProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -26,9 +25,22 @@ export default function PartnerWorld({
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string>
   >({});
+  const [animateDirection, setAnimateDirection] = useState<
+    "left" | "right" | null
+  >(null);
+
+  // Add animation effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setAnimateDirection(null);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [currentQuestionIndex]);
 
   const findAnswer = (questionId: string) => {
-    return answers.find((a) => a.questionId === questionId)?.value;
+    const foundAnswer = answers.find((a) => a.questionId === questionId);
+    return foundAnswer ? foundAnswer.value : undefined;
   };
 
   const validateAnswer = (
@@ -38,6 +50,47 @@ export default function PartnerWorld({
     if (question.isRequired && !value) {
       return "נדרשת תשובה לשאלה זו";
     }
+
+    switch (question.type) {
+      case "openText": {
+        const textValue = value as string;
+        if (!textValue && !question.isRequired) return null;
+
+        const trimmedLength = textValue?.trim().length || 0;
+        if (
+          question.minLength &&
+          trimmedLength < question.minLength &&
+          question.isRequired
+        ) {
+          return `התשובה חייבת להכיל לפחות ${question.minLength} תווים`;
+        }
+        if (question.maxLength && trimmedLength > question.maxLength) {
+          return `התשובה לא יכולה להכיל יותר מ-${question.maxLength} תווים`;
+        }
+        break;
+      }
+
+      case "multiSelect":
+      case "multiChoice": {
+        const selectedValues = value as string[];
+        if (!selectedValues?.length && !question.isRequired) return null;
+
+        if (
+          question.minSelections &&
+          selectedValues.length < question.minSelections
+        ) {
+          return `יש לבחור לפחות ${question.minSelections} אפשרויות`;
+        }
+        if (
+          question.maxSelections &&
+          selectedValues.length > question.maxSelections
+        ) {
+          return `ניתן לבחור עד ${question.maxSelections} אפשרויות`;
+        }
+        break;
+      }
+    }
+
     return null;
   };
 
@@ -48,14 +101,48 @@ export default function PartnerWorld({
 
     if (error && currentQuestion.isRequired) {
       setValidationErrors({ ...validationErrors, [currentQuestion.id]: error });
-      return;
+      // No return statement here - allow advancing even with validation errors
     }
 
     if (currentQuestionIndex < allQuestions.length - 1) {
+      setAnimateDirection("left");
       setCurrentQuestionIndex((prev) => prev + 1);
-    } else if (!isCompleted) {
+    } else {
       onComplete();
     }
+  };
+
+  const handlePrevious = () => {
+    if (currentQuestionIndex > 0) {
+      setAnimateDirection("right");
+      setCurrentQuestionIndex((prev) => prev - 1);
+    } else {
+      onBack();
+    }
+  };
+
+  const handleClearAnswer = () => {
+    let emptyValue: AnswerValue;
+    switch (allQuestions[currentQuestionIndex].type) {
+      case "multiChoice":
+      case "multiSelect":
+        emptyValue = [];
+        break;
+      case "budgetAllocation":
+        emptyValue = {};
+        break;
+      case "scale":
+        emptyValue = 0;
+        break;
+      default:
+        emptyValue = "";
+    }
+
+    onAnswer(allQuestions[currentQuestionIndex].id, emptyValue);
+    setValidationErrors({
+      ...validationErrors,
+      [allQuestions[currentQuestionIndex].id]: "",
+    });
   };
 
   if (!isIntroComplete) {
@@ -73,6 +160,19 @@ export default function PartnerWorld({
     );
   }
 
+  // Error handling if questions don't load
+  if (allQuestions.length === 0) {
+    return (
+      <div className="p-4 bg-red-50 rounded-lg border border-red-300 text-red-800">
+        <h3 className="font-bold">שגיאה בטעינת השאלות</h3>
+        <p>לא ניתן לטעון את השאלות לעולם זה. אנא נסה לרענן את הדף.</p>
+        <Button className="mt-4" variant="outline" onClick={onBack}>
+          חזרה למפה
+        </Button>
+      </div>
+    );
+  }
+
   const currentQuestion = allQuestions[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / allQuestions.length) * 100;
   const currentValue = findAnswer(currentQuestion.id);
@@ -84,23 +184,40 @@ export default function PartnerWorld({
         <div className="flex items-center justify-between gap-2">
           <div className="flex-1 flex items-center gap-2 overflow-x-auto py-2">
             {allQuestions.map((_, index) => {
-              const isAnswered = !!findAnswer(allQuestions[index].id);
+              const answer = findAnswer(allQuestions[index].id);
+              const isAnswered =
+                answer !== undefined &&
+                answer !== null &&
+                answer !== "" &&
+                (Array.isArray(answer) ? answer.length > 0 : true) &&
+                (typeof answer === "object" && !Array.isArray(answer)
+                  ? Object.keys(answer || {}).length > 0
+                  : true);
               const isCurrent = index === currentQuestionIndex;
+              const isRequired = allQuestions[index].isRequired;
 
               return (
                 <button
                   key={index}
                   onClick={() => setCurrentQuestionIndex(index)}
                   className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center text-sm transition-colors",
+                    "w-8 h-8 rounded-full flex items-center justify-center text-sm transition-colors relative",
                     "hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500",
                     isCurrent && "ring-2 ring-blue-500",
                     isAnswered
                       ? "bg-blue-500 text-white"
-                      : "bg-gray-100 text-gray-600"
+                      : "bg-gray-100 text-gray-600",
+                    isRequired &&
+                      !isAnswered &&
+                      !isCurrent &&
+                      "ring-2 ring-red-500"
                   )}
+                  title={`שאלה ${index + 1}${isRequired ? " (חובה)" : ""}`}
                 >
                   {index + 1}
+                  {isRequired && (
+                    <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-red-500" />
+                  )}
                 </button>
               );
             })}
@@ -112,38 +229,39 @@ export default function PartnerWorld({
         <Progress value={progress} className="h-2" />
       </div>
 
-      <QuestionCard
-        question={currentQuestion}
-        depth={currentQuestion.depth}
-        isRequired={currentQuestion.isRequired}
-        validationError={validationErrors[currentQuestion.id]}
-        language={language}
+      <div
+        className={cn(
+          "transition-all duration-300 transform",
+          animateDirection === "left" && "translate-x-4 opacity-0",
+          animateDirection === "right" && "-translate-x-4 opacity-0"
+        )}
       >
-        <AnswerInput
+        <QuestionCard
           question={currentQuestion}
-          value={currentValue}
-          onChange={(value) => {
-            setValidationErrors({
-              ...validationErrors,
-              [currentQuestion.id]: "",
-            });
-            onAnswer(currentQuestion.id, value);
-          }}
+          depth={currentQuestion.depth}
+          isRequired={currentQuestion.isRequired}
+          validationError={validationErrors[currentQuestion.id]}
           language={language}
-        />
-      </QuestionCard>
+        >
+          <AnswerInput
+            question={currentQuestion}
+            value={currentValue}
+            onChange={(value) => {
+              setValidationErrors({
+                ...validationErrors,
+                [currentQuestion.id]: "",
+              });
+              onAnswer(currentQuestion.id, value);
+            }}
+            onClear={() => !currentQuestion.isRequired && handleClearAnswer()}
+            language={language}
+            showValidation={true}
+          />
+        </QuestionCard>
+      </div>
 
       <div className="flex justify-between pt-4">
-        <Button
-          variant="outline"
-          onClick={() => {
-            if (currentQuestionIndex > 0) {
-              setCurrentQuestionIndex((prev) => prev - 1);
-            } else {
-              onBack();
-            }
-          }}
-        >
+        <Button variant="outline" onClick={handlePrevious}>
           <ArrowRight className="w-4 h-4 ml-2" />
           {currentQuestionIndex === 0 ? "חזור למפה" : "שאלה קודמת"}
         </Button>
@@ -154,17 +272,10 @@ export default function PartnerWorld({
             <ArrowLeft className="w-4 h-4 mr-2" />
           </Button>
         ) : (
-          !isCompleted && (
-            <Button
-              onClick={handleNext}
-              disabled={allQuestions.some(
-                (q) => q.isRequired && !findAnswer(q.id)
-              )}
-            >
-              סיים עולם זה
-              <ArrowLeft className="w-4 h-4 mr-2" />
-            </Button>
-          )
+          <Button onClick={handleNext}>
+            סיים עולם זה
+            <ArrowLeft className="w-4 h-4 mr-2" />
+          </Button>
         )}
       </div>
     </div>

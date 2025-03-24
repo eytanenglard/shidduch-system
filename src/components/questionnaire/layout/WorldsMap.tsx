@@ -114,15 +114,9 @@ export default function WorldsMap({
   const [expanded, setExpanded] = useState<WorldId | null>(null);
   const isMobile = useMediaQuery("(max-width: 640px)");
 
-  const isWorldAccessible = (worldId: WorldId): boolean => {
-    const targetIndex = WORLD_ORDER.indexOf(worldId);
-
-    // The first world is always accessible
-    if (targetIndex === 0) return true;
-
-    // Can access if the previous world is completed
-    const previousWorld = WORLD_ORDER[targetIndex - 1];
-    return completedWorlds.includes(previousWorld);
+  //כרגע כל העולמות מוגדרים כנגישים
+  const isWorldAccessible = (): boolean => {
+    return true; // Allow access to all worlds
   };
 
   // נוסיף תיאור מצב התקדמות כללי
@@ -200,7 +194,7 @@ export default function WorldsMap({
             const config = worldsConfig[worldId];
             const isActive = currentWorld === worldId;
             const isCompleted = completedWorlds.includes(worldId);
-            const isAccessible = isWorldAccessible(worldId);
+            const isAccessible = isWorldAccessible();
 
             // לקבוע כמה מלא המעגל לפי התקדמות
             const progressClass = isCompleted
@@ -287,7 +281,7 @@ export default function WorldsMap({
           const Icon = config.icon;
           const isActive = currentWorld === worldId;
           const isCompleted = completedWorlds.includes(worldId);
-          const isAccessible = isWorldAccessible(worldId);
+          const isAccessible = isWorldAccessible();
           const isHovered = hoveredWorld === worldId;
           const isExpanded = expanded === worldId;
 
@@ -323,13 +317,11 @@ export default function WorldsMap({
               whileTap={isAccessible ? "tap" : ""}
               variants={cardVariants}
               onClick={() => {
-                if (isAccessible) {
-                  if (isExpanded) {
-                    setExpanded(null);
-                    onWorldChange?.(worldId);
-                  } else {
-                    setExpanded(worldId);
-                  }
+                if (isExpanded) {
+                  setExpanded(null);
+                  onWorldChange?.(worldId);
+                } else {
+                  setExpanded(worldId);
                 }
               }}
             >

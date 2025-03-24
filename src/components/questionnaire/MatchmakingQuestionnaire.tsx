@@ -14,6 +14,7 @@ import QuestionnaireCompletion from "./common/QuestionnaireCompletion";
 import { useLanguage } from "@/app/contexts/LanguageContext";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
+import WorldsMap from "./layout/WorldsMap"; // הוסף בחלק של ייבוא הקומפוננטות
 import {
   Loader2,
   CheckCircle,
@@ -25,7 +26,6 @@ import type {
   WorldId,
   UserTrack,
   QuestionnaireSubmission,
-  MatchmakingQuestionnaireProps,
   QuestionnaireAnswer,
   AnswerValue,
 } from "./types/types";
@@ -35,6 +35,7 @@ enum OnboardingStep {
   TRACK_SELECTION = "TRACK_SELECTION",
   WORLDS = "WORLDS",
   COMPLETED = "COMPLETED",
+  MAP = "MAP", // הוסף את זה
 }
 
 const WORLD_ORDER: WorldId[] = [
@@ -45,9 +46,15 @@ const WORLD_ORDER: WorldId[] = [
   "RELIGION",
 ];
 
+export interface MatchmakingQuestionnaireProps {
+  userId?: string;
+  onComplete?: () => void;
+  initialWorld?: WorldId;
+}
 export default function MatchmakingQuestionnaire({
   userId,
   onComplete,
+  initialWorld,
 }: MatchmakingQuestionnaireProps) {
   const router = useRouter();
   const { language } = useLanguage();
@@ -57,7 +64,16 @@ export default function MatchmakingQuestionnaire({
   const [currentStep, setCurrentStep] = useState<OnboardingStep>(
     OnboardingStep.WELCOME
   );
-  const [currentWorld, setCurrentWorld] = useState<WorldId>("VALUES");
+  // עדכון currentWorld כאשר יש שינוי ב-initialWorld
+  useEffect(() => {
+    if (initialWorld) {
+      setCurrentWorld(initialWorld);
+    }
+  }, [initialWorld]);
+
+  const [currentWorld, setCurrentWorld] = useState<WorldId>(
+    initialWorld || "VALUES"
+  );
   const [userTrack, setUserTrack] = useState<UserTrack>("SECULAR");
   const [answers, setAnswers] = useState<QuestionnaireAnswer[]>([]);
   const [completedWorlds, setCompletedWorlds] = useState<WorldId[]>([]);
@@ -324,7 +340,7 @@ export default function MatchmakingQuestionnaire({
     const worldProps = {
       onAnswer: handleAnswer,
       onComplete: () => handleWorldComplete(currentWorld),
-      onBack: () => router.push("/questionnaire/map"),
+      onBack: () => setCurrentStep(OnboardingStep.MAP),
       answers: answers.filter((a) => a.worldId === currentWorld),
       isCompleted: completedWorlds.includes(currentWorld),
       language,
@@ -346,6 +362,9 @@ export default function MatchmakingQuestionnaire({
     }
   }
 
+  const handleExit = useCallback(() => {
+    setCurrentStep(OnboardingStep.MAP);
+  }, []);
   function renderCurrentStep() {
     if (isLoading) {
       return (
@@ -358,6 +377,17 @@ export default function MatchmakingQuestionnaire({
     }
 
     switch (currentStep) {
+      case OnboardingStep.MAP:
+        return (
+          <WorldsMap
+            currentWorld={currentWorld}
+            completedWorlds={completedWorlds}
+            onWorldChange={(worldId) => {
+              setCurrentWorld(worldId);
+              setCurrentStep(OnboardingStep.WORLDS);
+            }}
+          />
+        );
       case OnboardingStep.WELCOME:
         return (
           <Welcome
@@ -386,7 +416,7 @@ export default function MatchmakingQuestionnaire({
             userTrack={userTrack}
             completedWorlds={completedWorlds}
             onWorldChange={handleWorldChange}
-            onExit={() => router.push("/profile")}
+            onExit={handleExit} // כאן
             onSaveProgress={() => handleQuestionnaireComplete(true)}
             language={language}
           >

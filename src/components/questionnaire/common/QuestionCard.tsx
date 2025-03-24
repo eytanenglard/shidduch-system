@@ -13,8 +13,6 @@ import {
   AlertCircle,
   HelpCircle,
   SkipForward,
-  ChevronRight,
-  ChevronLeft,
   Info,
   Star,
   X,
@@ -100,10 +98,6 @@ export default function QuestionCard({
   validationError,
   isDisabled = false,
   children,
-  onNext,
-  onPrevious,
-  isLastQuestion = false,
-  isFirstQuestion = false,
 }: QuestionCardProps) {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
@@ -135,49 +129,23 @@ export default function QuestionCard({
   // הרנדור משתנה בהתאם למכשיר
   const renderFooter = () => {
     if (isMobile) {
-      // פוטר פשוט יותר למובייל
+      // למובייל - השאר רק את המידע ללא כפתורים
       return (
-        <div className="grid grid-cols-2 gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onPrevious}
-            disabled={isFirstQuestion || !onPrevious}
-            className="flex items-center justify-center"
-          >
-            <ChevronRight className="w-4 h-4 ml-1" />
-            הקודם
-          </Button>
-
-          <Button
-            size="sm"
-            onClick={onNext}
-            disabled={!onNext}
-            className="flex items-center justify-center bg-blue-600 hover:bg-blue-700"
-          >
-            {isLastQuestion ? "סיים" : "הבא"}
-            <ChevronLeft className="w-4 h-4 mr-1" />
-          </Button>
+        <div className="text-center text-xs text-gray-500">
+          {question.metadata?.estimatedTime && (
+            <div className="flex items-center justify-center">
+              <Info className="h-3 w-3 mr-1 text-blue-400" />
+              זמן מוערך: {question.metadata.estimatedTime} דקות
+            </div>
+          )}
         </div>
       );
     }
 
-    // פוטר מלא למסך רגיל
+    // למסך רגיל - השאר רק את כפתור הדילוג אם קיים ואת המידע
     return (
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2">
-          {onPrevious && !isFirstQuestion && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onPrevious}
-              className="text-gray-600 hover:text-gray-900"
-            >
-              <ChevronRight className="w-4 h-4 ml-1" />
-              הקודם
-            </Button>
-          )}
-
           {onSkip && (
             <Button
               variant="ghost"
@@ -201,17 +169,6 @@ export default function QuestionCard({
               <Info className="h-3 w-3 mr-1 text-blue-400" />
               זמן מוערך: {question.metadata.estimatedTime} דקות
             </div>
-          )}
-
-          {onNext && (
-            <Button
-              size="sm"
-              onClick={onNext}
-              className="ml-2 bg-blue-600 hover:bg-blue-700"
-            >
-              {isLastQuestion ? "סיים" : "הבא"}
-              <ChevronLeft className="w-4 h-4 mr-1" />
-            </Button>
           )}
         </div>
       </div>

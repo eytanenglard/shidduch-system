@@ -4,12 +4,14 @@
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, AlertCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import QuestionnaireLandingPage from "./pages/QuestionnaireLandingPage";
 import MatchmakingQuestionnaire from "./MatchmakingQuestionnaire";
+import type { WorldId } from "./types/types";
 
 // Enum to track questionnaire flow stages
 enum QuestionnaireStage {
@@ -21,6 +23,7 @@ enum QuestionnaireStage {
 export default function QuestionnairePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   // State for tracking current stage in the flow
   const [currentStage, setCurrentStage] = useState<QuestionnaireStage>(
@@ -29,6 +32,9 @@ export default function QuestionnairePage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasSavedProgress, setHasSavedProgress] = useState(false);
+  const [initialWorld, setInitialWorld] = useState<WorldId | undefined>(
+    undefined
+  );
 
   // Check for existing progress when component mounts
   useEffect(() => {
@@ -56,6 +62,31 @@ export default function QuestionnairePage() {
 
     checkExistingProgress();
   }, [session, status]);
+
+  // Check for world parameter in URL
+  useEffect(() => {
+    if (status === "loading") return;
+
+    const worldParam = searchParams?.get("world");
+    if (
+      worldParam &&
+      ["PERSONALITY", "VALUES", "RELATIONSHIP", "PARTNER", "RELIGION"].includes(
+        worldParam as string
+      )
+    ) {
+      // If we have a world parameter and the current stage is appropriate, we'll set it
+      if (
+        currentStage === QuestionnaireStage.QUESTIONNAIRE ||
+        currentStage === QuestionnaireStage.LANDING
+      ) {
+        setCurrentStage(QuestionnaireStage.QUESTIONNAIRE);
+
+        // Pass the selected world to MatchmakingQuestionnaire
+        const selectedWorld = worldParam as WorldId;
+        setInitialWorld(selectedWorld);
+      }
+    }
+  }, [searchParams, status, currentStage]);
 
   // Handler when the landing page "start" button is clicked
   const handleStartQuestionnaire = () => {
@@ -102,6 +133,7 @@ export default function QuestionnairePage() {
           <MatchmakingQuestionnaire
             userId={session?.user?.id}
             onComplete={handleQuestionnaireComplete}
+            initialWorld={initialWorld}
           />
         );
 

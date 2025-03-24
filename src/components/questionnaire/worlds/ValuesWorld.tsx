@@ -119,7 +119,7 @@ export default function ValuesWorld({
 
     if (error && currentQuestion.isRequired) {
       setValidationErrors({ ...validationErrors, [currentQuestion.id]: error });
-      return;
+      // הוסרה שורת return שחסמה את ההמשך
     }
 
     if (currentQuestionIndex < allQuestions.length - 1) {
@@ -357,9 +357,6 @@ export default function ValuesWorld({
         ) : (
           <Button
             onClick={handleNext}
-            disabled={allQuestions.some(
-              (q) => q.isRequired && !findAnswer(q.id)
-            )}
             className="bg-green-600 hover:bg-green-700"
           >
             סיים עולם זה

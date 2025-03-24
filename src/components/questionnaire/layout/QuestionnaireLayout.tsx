@@ -1,3 +1,6 @@
+// src/components/questionnaire/layout/QuestionnaireLayout.tsx
+// Modified to use component imports instead of router navigation
+
 import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,7 +31,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-// מיפוי איקונים עבור "עולמות" שונים במערכת
+// Mapping icons for different "worlds" in the system
 const worldIcons = {
   PERSONALITY: User,
   VALUES: Heart,
@@ -37,7 +40,7 @@ const worldIcons = {
   RELIGION: CheckCircle,
 } as const;
 
-// מיפוי תוויות "עולמות" שונים
+// Mapping labels for different "worlds"
 const worldLabels = {
   PERSONALITY: "אישיות",
   VALUES: "ערכים ואמונות",
@@ -46,7 +49,7 @@ const worldLabels = {
   RELIGION: "דת ומסורת",
 } as const;
 
-// קומפוננטת טוסט משופרת
+// Enhanced Toast component
 const Toast = ({ message, type, isVisible, onClose }) => {
   if (!isVisible) return null;
 
@@ -100,11 +103,10 @@ export default function QuestionnaireLayout({
     isVisible: false,
   });
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const [saveCount, setSaveCount] = useState(0); // מונה שמירות
+  const [saveCount, setSaveCount] = useState(0); // Save counter
 
   const isSmallScreen = useMediaQuery("(max-width: 640px)");
 
-  // Toast utilities
   // Toast utilities
   const showToast = useCallback(
     (message: string, type: "success" | "error" | "info" = "info") => {
@@ -148,14 +150,14 @@ export default function QuestionnaireLayout({
     [onSaveProgress, showToast]
   );
 
-  // טיימר אוטומטי לשמירה
+  // Automatic save timer
   useEffect(() => {
     let saveTimer: NodeJS.Timeout;
 
     if (onSaveProgress) {
       saveTimer = setInterval(() => {
         handleSave(true);
-      }, 120000); // שמירה אוטומטית כל 2 דקות
+      }, 120000); // Auto-save every 2 minutes
     }
 
     return () => {
@@ -289,11 +291,12 @@ export default function QuestionnaireLayout({
                   שמור מצב נוכחי
                 </Button>
 
+                {/* Changed to use onExit function instead of direct router navigation */}
                 <Button
                   variant="outline"
                   size="sm"
                   className="justify-start"
-                  onClick={() => (window.location.href = "/questionnaire/map")}
+                  onClick={onExit}
                 >
                   <Home className="h-3 w-3 mr-2" />
                   חזרה למפת העולמות
@@ -426,11 +429,8 @@ export default function QuestionnaireLayout({
               שמור התקדמות
             </Button>
 
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => (window.location.href = "/questionnaire/map")}
-            >
+            {/* Changed to use onExit function instead of direct router navigation */}
+            <Button variant="outline" className="w-full" onClick={onExit}>
               <Home className="w-4 h-4 mr-2" />
               מפת העולמות
             </Button>

@@ -123,11 +123,6 @@ export interface QuestionnaireLayoutProps {
   onSaveProgress?: () => Promise<void>;  // הוספת הפרופ החדש
 
 }
-export interface MatchmakingQuestionnaireProps {
-  userId?: string;
-  onComplete?: () => void;
-  
-}
 
 // Data storage interfaces
 export interface QuestionnaireSubmission {
