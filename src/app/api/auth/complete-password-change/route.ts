@@ -1,11 +1,29 @@
 // src/app/api/auth/complete-password-change/route.ts
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { VerificationType } from "@prisma/client";
+import { VerificationType, Prisma } from "@prisma/client";
+
+// פונקציה שבודקת אם ה-metadata מכיל את הסיסמה המוצפנת
+function hasValidPasswordMetadata(metadata: Prisma.JsonValue | null): boolean {
+  return (
+    typeof metadata === 'object' && 
+    metadata !== null && 
+    'hashedNewPassword' in metadata && 
+    typeof (metadata as { hashedNewPassword: unknown }).hashedNewPassword === 'string'
+  );
+}
 
 export async function POST(req: Request) {
   try {
     const { userId, token } = await req.json();
+
+    // וידוא שהטוקן הוא מספרי בן 6 ספרות
+    if (!/^\d{6}$/.test(token)) {
+      return NextResponse.json(
+        { error: "קוד אימות לא תקין. נדרש קוד בן 6 ספרות." },
+        { status: 400 }
+      );
+    }
 
     // מציאת הטוקן
     const verification = await db.verification.findFirst({
@@ -25,7 +43,17 @@ export async function POST(req: Request) {
       );
     }
 
-    const { hashedNewPassword } = verification.metadata as { hashedNewPassword: string };
+    // בדיקה שהמטא-דאטה תקין ומכיל את הסיסמה המוצפנת
+    if (!hasValidPasswordMetadata(verification.metadata)) {
+      return NextResponse.json(
+        { error: "מידע אימות חסר או לא תקין, אנא התחל את התהליך מחדש" },
+        { status: 400 }
+      );
+    }
+
+    // כעת ניתן לגשת ל-hashedNewPassword בבטחה, המטא-דאטה אומת
+    const metadata = verification.metadata as Prisma.JsonObject;
+    const hashedNewPassword = metadata.hashedNewPassword as string;
 
     // עדכון הסיסמה והשלמת האימות
     await db.$transaction([
@@ -37,11 +65,17 @@ export async function POST(req: Request) {
       // עדכון סטטוס האימות
       db.verification.update({
         where: { id: verification.id },
-        data: { status: "COMPLETED" }
+        data: { 
+          status: "COMPLETED",
+          completedAt: new Date()
+        }
       })
     ]);
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ 
+      success: true,
+      message: "הסיסמה עודכנה בהצלחה"
+    });
 
   } catch (error) {
     console.error("Complete password change error:", error);
