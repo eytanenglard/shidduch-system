@@ -20,6 +20,7 @@ model User {
   status                          UserStatus              @default(PENDING)
   role                            UserRole                @default(CANDIDATE)
   isVerified                      Boolean                 @default(false)
+  isProfileComplete Boolean   @default(false)
   firstPartyInquiries             AvailabilityInquiry[]   @relation("FirstPartyInquiries")
   matchmakerAvailabilityInquiries AvailabilityInquiry[]   @relation("MatchmakerInquiries")
   secondPartyInquiries            AvailabilityInquiry[]   @relation("SecondPartyInquiries")
@@ -28,6 +29,8 @@ model User {
   receivedInvitation              Invitation?             @relation("ReceivedInvitation")
   firstPartySuggestions           MatchSuggestion[]       @relation("FirstPartySuggestions")
   createdSuggestions              MatchSuggestion[]       @relation("MatchmakerSuggestions")
+  accounts                        Account[]
+  sessions                        Session[]
   secondPartySuggestions          MatchSuggestion[]       @relation("SecondPartySuggestions")
   profile                         Profile?
   verifiedUsers                   Profile[]               @relation("VerifiedByMatchmaker")
@@ -43,6 +46,36 @@ model User {
   @@index([email])
   @@index([role])
   @@index([status])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
 }
 
 model Verification {

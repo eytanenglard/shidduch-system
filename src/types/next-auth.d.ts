@@ -25,6 +25,8 @@ export interface User extends DefaultUser {
   profile: UserProfile | null;
   images: UserImage[];
   questionnaireResponses: QuestionnaireResponse[];
+  redirectUrl?: string; // שדה חדש לניתוב משתמש חדש
+  newlyCreated?: boolean; // שדה חדש לציון שזה משתמש חדש
 }
 
 export interface Verification {
@@ -50,6 +52,8 @@ export interface JWT {
   profile: UserProfile | null;
   images: UserImage[];
   questionnaireResponses: QuestionnaireResponse[];
+  redirectUrl?: string; // שדה חדש לניתוב משתמש חדש
+  newlyCreated?: boolean; // שדה חדש לציון שזה משתמש חדש
 }
 
 export interface UserProfile extends PrismaProfile {
@@ -157,6 +161,8 @@ export interface QuestionnaireResponse extends PrismaQuestionnaireResponse {
 
 export interface Session {
   user: User;
+  redirectUrl?: string; // שדה חדש לניתוב משתמש חדש
+  newlyCreated?: boolean; // שדה חדש לציון שזה משתמש חדש
 }
 
 export { Gender, UserRole, UserStatus, AvailabilityStatus };
@@ -180,6 +186,8 @@ declare module 'next-auth' {
       images: PrismaUserImage[];
       questionnaireResponses: PrismaQuestionnaireResponse[];
     }
+    redirectUrl?: string; // שדה חדש לניתוב משתמש חדש
+    newlyCreated?: boolean; // שדה חדש לציון שזה משתמש חדש
   }
 
   interface User extends DefaultUser {
@@ -195,6 +203,8 @@ declare module 'next-auth' {
     profile: PrismaProfile | null;
     images: PrismaUserImage[];
     questionnaireResponses: PrismaQuestionnaireResponse[];
+    redirectUrl?: string; // שדה חדש לניתוב משתמש חדש
+    newlyCreated?: boolean; // שדה חדש לציון שזה משתמש חדש
   }
 }
 
@@ -216,6 +226,8 @@ declare module 'next-auth/jwt' {
     images: PrismaUserImage[];
     questionnaireResponses: PrismaQuestionnaireResponse[];
     sub?: string;
+    redirectUrl?: string; // שדה חדש לניתוב משתמש חדש
+    newlyCreated?: boolean; // שדה חדש לציון שזה משתמש חדש
   }
 }
 
@@ -224,4 +236,3 @@ export type ContactPreference = "direct" | "matchmaker" | "both";
 export type UpdateValue =
   | { type: "answer"; value: string }
   | { type: "visibility"; isVisible: boolean };
-
