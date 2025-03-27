@@ -19,6 +19,7 @@ export interface User extends DefaultUser {
   role: UserRole;
   status: UserStatus;
   isVerified: boolean;
+  isProfileComplete: boolean;
   lastLogin: Date | null;
   createdAt: Date;
   updatedAt: Date;
@@ -46,6 +47,7 @@ export interface JWT {
   role: UserRole;
   status: UserStatus;
   isVerified: boolean;
+  isProfileComplete: boolean;
   lastLogin: Date | null;
   createdAt: Date;
   updatedAt: Date;
@@ -54,6 +56,7 @@ export interface JWT {
   questionnaireResponses: QuestionnaireResponse[];
   redirectUrl?: string; // שדה חדש לניתוב משתמש חדש
   newlyCreated?: boolean; // שדה חדש לציון שזה משתמש חדש
+  sub?: string; // שדה שנמצא ב-JWT המקורי
 }
 
 export interface UserProfile extends PrismaProfile {
@@ -179,6 +182,7 @@ declare module 'next-auth' {
       role: UserRole;
       status: UserStatus;
       isVerified: boolean;
+      isProfileComplete: boolean;
       lastLogin: Date | null;
       createdAt: Date;
       updatedAt: Date;
@@ -197,6 +201,7 @@ declare module 'next-auth' {
     role: UserRole;
     status: UserStatus;
     isVerified: boolean;
+    isProfileComplete: boolean;
     lastLogin: Date | null;
     createdAt: Date;
     updatedAt: Date;
@@ -211,7 +216,7 @@ declare module 'next-auth' {
 declare module 'next-auth/jwt' {
   interface JWT {
     id: string;
-    email?: string | null;
+    email: string;
     firstName: string;
     lastName: string;
     name: string | null;
@@ -219,6 +224,7 @@ declare module 'next-auth/jwt' {
     role: UserRole;
     status: UserStatus;
     isVerified: boolean;
+    isProfileComplete: boolean;
     lastLogin: Date | null;
     createdAt: Date;
     updatedAt: Date;
@@ -230,9 +236,3 @@ declare module 'next-auth/jwt' {
     newlyCreated?: boolean; // שדה חדש לציון שזה משתמש חדש
   }
 }
-
-export type ContactPreference = "direct" | "matchmaker" | "both";
-
-export type UpdateValue =
-  | { type: "answer"; value: string }
-  | { type: "visibility"; isVisible: boolean };

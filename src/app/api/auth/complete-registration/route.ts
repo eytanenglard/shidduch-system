@@ -153,11 +153,12 @@ export async function POST(req: Request) {
       birthDate: birthDateObj.toISOString()
     });
     
-    // עדכון פרטי המשתמש
+    // עדכון פרטי המשתמש - כולל סימון שהפרופיל הושלם
     const updatedUser = await prisma.user.update({
       where: { id: user.id },
       data: {
         phone: body.phone,
+        isProfileComplete: true, // כאן מעדכנים את השדה שמסמן שהפרופיל הושלם
         profile: {
           upsert: {
             create: {
@@ -185,7 +186,10 @@ export async function POST(req: Request) {
       }
     });
     
-    console.log("User profile updated successfully", { userId: user.id });
+    console.log("User profile updated successfully", {
+      userId: user.id,
+      isProfileComplete: updatedUser.isProfileComplete // לוג האם השדה עודכן
+    });
     
     // שמירת מזהה המשתמש בעוגיה להמשך התהליך (במקרה שאין סשן)
     const headers = new Headers();
@@ -201,6 +205,7 @@ export async function POST(req: Request) {
           firstName: updatedUser.firstName,
           lastName: updatedUser.lastName,
           phone: updatedUser.phone,
+          isProfileComplete: updatedUser.isProfileComplete, // החזרת השדה בתשובה
           profile: updatedUser.profile
         }
       },

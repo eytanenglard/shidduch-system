@@ -7,14 +7,6 @@ import { compare } from "bcryptjs";
 import type { JWT } from "next-auth/jwt";
 import { UserRole, UserStatus } from "@prisma/client";
 
-// מרחיב את הסוגים כדי לאפשר שמירת מידע נוסף בתהליך האימות
-declare module "next-auth" {
-  interface User {
-    redirectUrl?: string;
-    newlyCreated?: boolean;
-  }
-}
-
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   debug: process.env.NODE_ENV === "development", // הוספת מצב דיבאג בפיתוח
@@ -35,6 +27,7 @@ export const authOptions: NextAuthOptions = {
           role: UserRole.CANDIDATE, // התפקיד כברירת מחדל
           status: UserStatus.ACTIVE, // נעשה אקטיבי ישירות כי מאומת על ידי גוגל
           isVerified: true, // כבר מאומת על ידי גוגל
+          isProfileComplete: false, // ברירת מחדל, יתעדכן לאחר השלמת הרישום
           lastLogin: now,
           createdAt: now,
           updatedAt: now,
@@ -97,6 +90,7 @@ export const authOptions: NextAuthOptions = {
           role: user.role,
           status: user.status,
           isVerified: user.isVerified,
+          isProfileComplete: user.isProfileComplete,
           lastLogin: user.lastLogin,
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
@@ -133,7 +127,8 @@ export const authOptions: NextAuthOptions = {
                 lastName: user.lastName || user.name?.split(' ').slice(1).join(' ') || "",
                 role: UserRole.CANDIDATE,
                 status: UserStatus.ACTIVE,
-                isVerified: true
+                isVerified: true,
+                isProfileComplete: false
               }
             });
             console.log("New user created", { userId: newUser.id });
@@ -158,15 +153,16 @@ export const authOptions: NextAuthOptions = {
             user.redirectUrl = '/auth/complete-registration';
             user.newlyCreated = true;
             user.id = newUser.id; // חשוב! מוודא שה-ID הנכון משמש
+            user.isProfileComplete = false;
             
             return true; // החזרת true במקום URL כדי לאפשר לתהליך האימות להמשיך
           } catch (error) {
             console.error("Error creating new user from Google auth", error);
             return false;
           }
-        } else if (!existingUser.profile) {
-          // משתמש קיים אבל אין לו פרופיל - צריך להשלים רישום
-          console.log("Existing user without profile", { userId: existingUser.id });
+        } else if (!existingUser.profile || !existingUser.isProfileComplete) {
+          // משתמש קיים אבל אין לו פרופיל או הפרופיל לא הושלם - צריך להשלים רישום
+          console.log("Existing user without complete profile", { userId: existingUser.id });
           
           // בדיקה אם יש כבר רשומת Account שמקשרת את המשתמש לחשבון Google
           const existingAccount = await prisma.account.findFirst({
@@ -207,12 +203,13 @@ export const authOptions: NextAuthOptions = {
           // הוספת מידע למשתמש שיסייע לזהות אותו בהמשך
           user.redirectUrl = '/auth/complete-registration';
           user.id = existingUser.id; // וידוא שה-ID נשמר
+          user.isProfileComplete = existingUser.isProfileComplete || false;
           
           return true; // החזרת true במקום URL
         }
         
-        // משתמש קיים עם פרופיל - התחברות רגילה
-        console.log("Existing user with profile", { userId: existingUser.id });
+        // משתמש קיים עם פרופיל מלא - התחברות רגילה
+        console.log("Existing user with complete profile", { userId: existingUser.id });
         
         // בדיקה אם יש כבר רשומת Account שמקשרת את המשתמש לחשבון Google
         const existingAccount = await prisma.account.findFirst({
@@ -249,6 +246,15 @@ export const authOptions: NextAuthOptions = {
           where: { id: existingUser.id },
           data: { lastLogin: new Date() }
         });
+        
+        // הגדרת המשתמש כמי שהשלים את הפרופיל
+        user.id = existingUser.id;
+        user.isProfileComplete = existingUser.isProfileComplete || false;
+        
+        // אם הפרופיל הושלם, הפנייה לדף הפרופיל
+        if (existingUser.isProfileComplete) {
+          user.redirectUrl = '/profile';
+        }
       }
       
       return true;
@@ -258,7 +264,7 @@ export const authOptions: NextAuthOptions = {
       // עדכון הטוקן כאשר יש התחברות חדשה
       if (user) {
         token.id = user.id;
-        token.email = user.email;
+        token.email = user.email as string;
         token.firstName = user.firstName;
         token.lastName = user.lastName;
         token.name = user.name || `${user.firstName} ${user.lastName}`;
@@ -266,6 +272,7 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role;
         token.status = user.status;
         token.isVerified = user.isVerified;
+        token.isProfileComplete = user.isProfileComplete || false;
         token.lastLogin = user.lastLogin || new Date();
         token.createdAt = user.createdAt || new Date();
         token.updatedAt = user.updatedAt || new Date();
@@ -289,6 +296,7 @@ export const authOptions: NextAuthOptions = {
           firstName: token.firstName,
           lastName: token.lastName,
           role: token.role,
+          isProfileComplete: token.isProfileComplete,
           redirectUrl: user.redirectUrl
         });
       }
@@ -313,6 +321,7 @@ export const authOptions: NextAuthOptions = {
         session.user.role = token.role;
         session.user.status = token.status;
         session.user.isVerified = token.isVerified;
+        session.user.isProfileComplete = token.isProfileComplete;
         session.user.lastLogin = token.lastLogin;
         session.user.createdAt = token.createdAt;
         session.user.updatedAt = token.updatedAt;
@@ -335,6 +344,7 @@ export const authOptions: NextAuthOptions = {
           email: session.user.email,
           role: session.user.role,
           profile: session.user.profile ? "exists" : "null",
+          isProfileComplete: session.user.isProfileComplete,
           redirectUrl: session.redirectUrl
         });
       }
@@ -345,7 +355,6 @@ export const authOptions: NextAuthOptions = {
       console.log("Redirect callback", { url, baseUrl });
       
       // שימוש ב-request כדי לקבל את הסשן הנוכחי
-      // קוד זה יפעל רק אם יש גישה לאובייקט request, אחרת צריך להשתמש בגישה אחרת
       try {
         // קבלת מידע מהסשן
         const session = await fetch(`${baseUrl}/api/auth/session`).then(res => res.json());
@@ -358,12 +367,29 @@ export const authOptions: NextAuthOptions = {
           }
           return customRedirect;
         }
+        
+        // בדיקה אם למשתמש יש כבר פרופיל שהושלם
+        if (session && session.user && session.user.isProfileComplete) {
+          console.log("User has completed profile, redirecting to profile page");
+          return `${baseUrl}/profile`;
+        }
       } catch (error) {
         console.error("Error getting session in redirect callback:", error);
       }
       
       // בדיקה למשתמשים חדשים שנרשמו עם גוגל - הפניה לדף השלמת הרישום
       if (url.includes("auth/callback/google")) {
+        // בדיקה אם המשתמש כבר השלים את הרישום (בדיקה נוספת)
+        try {
+          const session = await fetch(`${baseUrl}/api/auth/session`).then(res => res.json());
+          if (session && session.user && session.user.isProfileComplete) {
+            console.log("Google auth user has completed profile, redirecting to profile");
+            return `${baseUrl}/profile`;
+          }
+        } catch (error) {
+          console.error("Error checking profile status after Google auth:", error);
+        }
+        
         console.log("Google auth callback detected, redirecting to complete registration");
         return `${baseUrl}/auth/complete-registration`;
       }

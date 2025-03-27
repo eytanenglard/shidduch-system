@@ -45,10 +45,11 @@ export default function CompleteRegistrationForm() {
           lastName: session.user.lastName,
           hasProfile: !!session.user.profile,
           birthDate: session.user.profile?.birthDate,
+          isProfileComplete: session.user.isProfileComplete, // בדיקה האם הפרופיל הושלם
         });
 
-        // אם המשתמש כבר השלים את פרטי הפרופיל, שלח אותו לדף הפרופיל
-        if (session.user.profile?.birthDate) {
+        // בדיקה לפי שדה isProfileComplete במקום רק לפי birthDate
+        if (session.user.isProfileComplete) {
           console.log(
             "User already has a complete profile, redirecting to profile"
           );
@@ -131,6 +132,16 @@ export default function CompleteRegistrationForm() {
       }
 
       console.log("Profile completed successfully:", result);
+
+      // בדיקה שה-isProfileComplete הועבר מהשרת ובאמת מסומן כ-true
+      if (result.user && result.user.isProfileComplete) {
+        console.log("Profile marked as complete on the server");
+      } else {
+        console.warn(
+          "Server response doesn't confirm profile is complete",
+          result
+        );
+      }
 
       // אם היינו במצב פתרון חלופי, נסה להתחבר עם המשתמש שנוצר
       if (fallbackMode && result.user) {

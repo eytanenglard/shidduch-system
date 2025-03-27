@@ -34,8 +34,8 @@ export default withAuth(
       tokenExists: !!token,
       userID: token?.id,
       isVerified: token?.isVerified,
-      hasProfile: !!token?.profile,
-      hasBirthDate: !!token?.profile?.birthDate
+      isProfileComplete: token?.isProfileComplete,
+      hasProfile: !!token?.profile
     });
     
     // בדיקה אם זה חלק מתהליך ההתחברות עם Google
@@ -48,8 +48,8 @@ export default withAuth(
       return NextResponse.next();
     }
 
-    // בדיקה מיוחדת: אם זה משתמש מאומת שחסר לו פרופיל או תאריך לידה
-    if (token?.isVerified && (!token.profile || !token.profile?.birthDate)) {
+    // בדיקה מיוחדת: אם זה משתמש מאומת שהפרופיל שלו לא הושלם
+    if (token?.isVerified && token?.isProfileComplete === false) {
       console.log("User without complete profile detected, redirect check for path:", path);
       
       // אם המשתמש לא נמצא כבר בדף השלמת הרישום, הפנה אותו לשם
