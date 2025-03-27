@@ -236,3 +236,8 @@ declare module 'next-auth/jwt' {
     newlyCreated?: boolean; // שדה חדש לציון שזה משתמש חדש
   }
 }
+export type UpdateValue =
+  | { type: "answer"; value: string }
+  | { type: "visibility"; isVisible: boolean };
+
+
