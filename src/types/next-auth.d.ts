@@ -239,5 +239,9 @@ declare module 'next-auth/jwt' {
 export type UpdateValue =
   | { type: "answer"; value: string }
   | { type: "visibility"; isVisible: boolean };
+export type ContactPreference = "direct" | "matchmaker" | "both";
+
+
+
 
 
