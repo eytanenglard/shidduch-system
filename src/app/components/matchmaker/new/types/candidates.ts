@@ -53,7 +53,7 @@ export interface CandidatesFilter {
 // ViewMode and Action Types - אלה נשארים כמו שהם
 export type ViewMode = 'grid' | 'list';
 export type CardSize = 'sm' | 'md' | 'lg';
-export type CandidateAction = 'suggest' | 'invite' | 'contact' | 'favorite' | 'view';
+export type CandidateAction = 'suggest' | 'invite' | 'contact' | 'favorite' | 'view' | 'edit';
 
 // Profile Card Types
 export interface ProfileCardData {

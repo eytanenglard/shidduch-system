@@ -30,6 +30,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 
@@ -68,6 +69,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
 }) => {
   // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const deleteButtonRef = useRef<HTMLButtonElement>(null);
 
   // State
   const [showImageViewer, setShowImageViewer] = useState(false);
@@ -75,7 +77,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
     null
   );
   const [isProcessing, setIsProcessing] = useState(false);
-  const [, setDeleteConfirmOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [imageToDelete, setImageToDelete] = useState<string | null>(null);
   const [lastUploadedIndex, setLastUploadedIndex] = useState<number | null>(
     null
@@ -180,26 +182,36 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
     }
   };
 
-  // Image actions
-  const handleDeleteClick = async (imageId: string) => {
+  // פתרון חדש למחיקת תמונה - מחיקה ישירה ללא שימוש בדיאלוג מורכב
+  const handleDirectDelete = async (imageId: string) => {
     try {
-      // Check if this is the main image and there are other images
-      const imageToDelete = images.find((img) => img.id === imageId);
-      if (imageToDelete?.isMain && images.length > 1) {
-        // Find another image to set as main
-        const nextImage = images.find((img) => img.id !== imageId);
-        if (nextImage) {
-          await onSetMain(nextImage.id);
-        }
+      setIsProcessing(true);
+
+      // מציאת התמונה לפי מזהה
+      const imageIndex = images.findIndex((img) => img.id === imageId);
+      if (imageIndex === -1) return;
+
+      const imageObj = images[imageIndex];
+
+      // אם זו תמונה ראשית וקיימות תמונות נוספות
+      if (imageObj.isMain && images.length > 1) {
+        // בחירת תמונה אחרת להיות ראשית
+        const nextIndex = imageIndex === 0 ? 1 : 0;
+        await onSetMain(images[nextIndex].id);
       }
 
+      // מחיקת התמונה
       await onDelete(imageId);
-      setImageToDelete(null);
+
+      // סגירת התצוגה המורחבת אם היא פתוחה
       closeImageViewer();
       toast.success("התמונה נמחקה בהצלחה");
     } catch (error) {
-      console.error("Error deleting image:", error);
+      console.error("שגיאה במחיקת תמונה:", error);
       toast.error("שגיאה במחיקת התמונה");
+    } finally {
+      setIsProcessing(false);
+      setImageToDelete(null);
     }
   };
 
@@ -213,30 +225,18 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
     }
   };
 
-  // Delete confirmation dialog
-  const openDeleteConfirm = (imageId: string) => {
-    setImageToDelete(imageId);
-    setDeleteConfirmOpen(true);
+  // פונקציה למניעת בועת האירוע והעבירה לתצוגת התמונה
+  const handleControlClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
   };
 
-  const closeDeleteConfirm = () => {
-    setImageToDelete(null);
-    setDeleteConfirmOpen(false);
-  };
-
-  const confirmDelete = async () => {
-    if (imageToDelete) {
-      await handleDeleteClick(imageToDelete);
-      closeDeleteConfirm();
-    }
-  };
   return (
-    <Card>
-      <CardHeader>
+    <Card className="shadow-md">
+      <CardHeader className="bg-gray-50 rounded-t-lg border-b">
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-xl font-bold">תמונות פרופיל</CardTitle>
-            <CardDescription>
+            <CardDescription className="mt-1">
               העלה עד {maxImages} תמונות. תמונה ראשית תוצג בכרטיס הפרופיל.
             </CardDescription>
           </div>
@@ -249,6 +249,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
                 isProcessing ||
                 images.length >= maxImages
               }
+              className="transition-all hover:shadow-md"
             >
               {isUploading || isProcessing ? (
                 <Loader2 className="w-4 h-4 ml-2 animate-spin" />
@@ -260,75 +261,93 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
           )}
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-6">
         {/* Images Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {/* Current Images */}
           {images.map((image, index) => (
             <div
               key={image.id}
-              className="relative group aspect-square rounded-lg overflow-hidden cursor-pointer bg-gray-100"
-              onClick={() => handleImageClick(index)}
+              className="relative group aspect-square rounded-lg overflow-hidden cursor-pointer bg-gray-100 shadow-sm hover:shadow-md transition-shadow"
             >
-              <Image
-                src={image.url}
-                alt={`תמונת פרופיל ${index + 1}`}
-                fill
-                className="object-cover transition-transform group-hover:scale-105"
-                sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-              />
+              {/* תמונה עם אירוע לחיצה לפתיחת הגלריה */}
+              <div
+                className="w-full h-full"
+                onClick={() => handleImageClick(index)}
+              >
+                <Image
+                  src={image.url}
+                  alt={`תמונת פרופיל ${index + 1}`}
+                  fill
+                  className="object-cover transition-transform group-hover:scale-105"
+                  sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                />
+              </div>
 
-              {/* Overlay Controls */}
+              {/* Controls Layer - כפתורים שלא נפתחים בהובר אלא תמיד מוצגים עם שקיפות */}
               {!disabled && (
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="absolute top-2 right-2 flex gap-2">
+                <div
+                  className="absolute top-0 right-0 p-2 z-10"
+                  onClick={handleControlClick} // מניעת בועת האירוע
+                >
+                  <div className="flex gap-1.5">
+                    {/* Set Main Button */}
                     <Button
-                      variant="ghost"
+                      variant="secondary"
                       size="icon"
                       className={cn(
-                        "hover:bg-white/20",
-                        image.isMain ? "text-yellow-500" : "text-white"
+                        "w-8 h-8 rounded-full shadow-md border border-white/30 bg-black/40 hover:bg-black/60 transition-colors",
+                        image.isMain ? "text-yellow-400" : "text-white"
                       )}
                       onClick={(e) => {
                         e.stopPropagation();
                         if (!image.isMain) handleSetMainImage(image.id);
                       }}
-                      disabled={image.isMain}
+                      disabled={image.isMain || isProcessing}
                       title={image.isMain ? "תמונה ראשית" : "הפוך לתמונה ראשית"}
                     >
                       <Star
                         className={cn(
-                          "w-5 h-5",
-                          image.isMain && "fill-yellow-500"
+                          "w-4 h-4",
+                          image.isMain && "fill-yellow-400"
                         )}
                       />
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-white hover:bg-white/20"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openDeleteConfirm(image.id);
-                      }}
-                      title="מחק תמונה"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </Button>
+
+                    {/* Delete Button - שימוש במחיקה ישירה ללא דיאלוג */}
+                    <Dialog>
+                      <Button
+                        variant="secondary"
+                        size="icon"
+                        className="w-8 h-8 rounded-full shadow-md border border-white/30 bg-black/40 hover:bg-red-500 transition-colors text-white"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // פתיחת דיאלוג מחיקה פשוט מבוסס Dialog במקום AlertDialog
+                          setImageToDelete(image.id);
+                          setDeleteConfirmOpen(true);
+                        }}
+                        title="מחק תמונה"
+                        disabled={isProcessing}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </Dialog>
                   </div>
                 </div>
               )}
 
               {/* Main Image Badge */}
               {image.isMain && (
-                <Badge className="absolute top-2 left-2">ראשי</Badge>
+                <Badge className="absolute bottom-2 left-2 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 shadow-md text-white border-none">
+                  ראשי
+                </Badge>
               )}
             </div>
           ))}
 
           {/* Upload Placeholder */}
           {!disabled && images.length < maxImages && (
-            <label className="relative aspect-square rounded-lg border-2 border-dashed border-gray-300 hover:border-primary cursor-pointer transition-colors">
+            <label className="relative aspect-square rounded-lg border-2 border-dashed border-gray-300 hover:border-primary cursor-pointer transition-colors bg-gray-50 hover:bg-gray-100">
               <input
                 type="file"
                 ref={fileInputRef}
@@ -338,9 +357,12 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
                 disabled={disabled || isUploading || isProcessing}
               />
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <Upload className="w-8 h-8 text-muted-foreground mb-2" />
-                <span className="text-sm text-muted-foreground">
+                <Upload className="w-10 h-10 text-muted-foreground mb-2" />
+                <span className="text-sm font-medium text-muted-foreground">
                   העלאת תמונה
+                </span>
+                <span className="text-xs text-muted-foreground mt-1">
+                  JPG, PNG עד 5MB
                 </span>
               </div>
             </label>
@@ -348,43 +370,66 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
 
           {/* Empty State */}
           {images.length === 0 && (
-            <div className="col-span-full text-center py-12 bg-muted/50 rounded-lg">
-              <Camera className="w-12 h-12 mx-auto text-muted-foreground" />
-              <p className="mt-4 text-muted-foreground">
+            <div className="col-span-full text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+              <Camera className="w-14 h-14 mx-auto text-muted-foreground opacity-70" />
+              <p className="mt-4 text-muted-foreground font-medium">
                 לא הועלו תמונות עדיין
+              </p>
+              <p className="text-sm text-muted-foreground mt-1">
+                העלה תמונה כדי להציג את הפרופיל שלך
               </p>
             </div>
           )}
         </div>
 
-        {/* Delete Confirmation Dialog */}
-        <AlertDialog>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>מחיקת תמונה</AlertDialogTitle>
-              <AlertDialogDescription>
+        {/* Delete Dialog - פתרון חלופי עם Dialog במקום AlertDialog */}
+        <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-xl">מחיקת תמונה</DialogTitle>
+              <DialogDescription className="text-md">
                 האם את/ה בטוח/ה שברצונך למחוק את התמונה? פעולה זו לא ניתנת
                 לביטול.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={closeDeleteConfirm}>
-                ביטול
-              </AlertDialogCancel>
-              <AlertDialogAction
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                onClick={confirmDelete}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-end gap-2 mt-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setDeleteConfirmOpen(false);
+                  setImageToDelete(null);
+                }}
+                disabled={isProcessing}
               >
-                מחיקה
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+                ביטול
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  if (imageToDelete) {
+                    handleDirectDelete(imageToDelete);
+                    setDeleteConfirmOpen(false);
+                  }
+                }}
+                disabled={isProcessing}
+              >
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                    מוחק...
+                  </>
+                ) : (
+                  "מחיקה"
+                )}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Image Viewer Dialog */}
         <Dialog open={showImageViewer} onOpenChange={closeImageViewer}>
           <DialogContent
-            className="max-w-7xl h-[90vh] flex items-center justify-center p-0"
+            className="max-w-7xl h-[90vh] flex items-center justify-center p-0 bg-gray-900/95 border-gray-800"
             onKeyDown={handleKeyPress}
           >
             <DialogHeader>
@@ -401,7 +446,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10 bg-black/20 hover:bg-black/40"
+                    className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10 bg-black/50 hover:bg-black/70 text-white rounded-full w-12 h-12 transition-colors"
                     onClick={(e) => {
                       e.stopPropagation();
                       handlePreviousImage();
@@ -414,7 +459,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10 bg-black/20 hover:bg-black/40"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10 bg-black/50 hover:bg-black/70 text-white rounded-full w-12 h-12 transition-colors"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleNextImage();
@@ -422,6 +467,44 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
                   >
                     <ChevronRight className="w-8 h-8" />
                   </Button>
+                )}
+
+                {/* Actions in Image Viewer */}
+                {!disabled && (
+                  <div className="absolute top-4 right-4 z-20 flex gap-2">
+                    {/* Set as Main Button */}
+                    {!images[selectedViewerIndex].isMain && (
+                      <Button
+                        variant="secondary"
+                        className="bg-black/50 hover:bg-black/70 text-white border border-white/20"
+                        onClick={() =>
+                          handleSetMainImage(images[selectedViewerIndex].id)
+                        }
+                        size="sm"
+                        disabled={isProcessing}
+                      >
+                        <Star className="w-4 h-4 mr-2" />
+                        הפוך לתמונה ראשית
+                      </Button>
+                    )}
+
+                    {/* Delete Button */}
+                    <Button
+                      variant="secondary"
+                      className="bg-red-500/80 hover:bg-red-600 text-white border-none"
+                      onClick={() => {
+                        if (selectedViewerIndex !== null) {
+                          setImageToDelete(images[selectedViewerIndex].id);
+                          setDeleteConfirmOpen(true);
+                        }
+                      }}
+                      size="sm"
+                      disabled={isProcessing}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      מחק תמונה
+                    </Button>
+                  </div>
                 )}
 
                 {/* Main Image */}
@@ -437,7 +520,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
                 </div>
 
                 {/* Image Counter */}
-                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/60 text-white px-3 py-1 rounded-full">
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-4 py-1.5 rounded-full text-sm font-medium">
                   {selectedViewerIndex + 1} / {images.length}
                 </div>
               </div>

@@ -1,7 +1,7 @@
-// עדכון תמונות משתמשים ויצירת משתמשים חדשים לפי מגדר
-// יש לשמור קובץ זה עם סיומת .mjs
+// Update user images and create new users by gender
+// Save this file with .mjs extension
 
-// ייבוא החבילות הנחוצות
+// Import required packages
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
 import { createApi } from 'unsplash-js';
@@ -9,44 +9,44 @@ import fetch from 'node-fetch';
 import { v2 as cloudinary } from 'cloudinary';
 import { faker } from '@faker-js/faker';
 
-// טעינת משתני סביבה מקובץ .env
+// Load environment variables from .env file
 dotenv.config();
 
-// יצירת מופע של Prisma
+// Create Prisma instance
 const prisma = new PrismaClient();
 
-// בדיקה שכל מפתחות ה-API נטענו כראוי
+// Check that all API keys loaded properly
 if (!process.env.UNSPLASH_ACCESS_KEY) {
-  console.error('שגיאה: חסר מפתח API של Unsplash בקובץ .env');
+  console.error('Error: Missing Unsplash API key in .env file');
   process.exit(1);
 }
 
 if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
-  console.error('שגיאה: חסרים פרטי התחברות ל-Cloudinary בקובץ .env');
+  console.error('Error: Missing Cloudinary credentials in .env file');
   process.exit(1);
 }
 
-// הגדרות Cloudinary
+// Cloudinary configuration
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// יצירת מופע של Unsplash API
+// Create Unsplash API instance
 const unsplash = createApi({
   accessKey: process.env.UNSPLASH_ACCESS_KEY,
   fetch: fetch,
 });
 
 /**
- * פונקציה לקבלת תמונה איכותית מ-Unsplash לפי מגדר ודתיות
- * @param {string} gender - המגדר (MALE או FEMALE)
- * @returns {Promise<string>} - כתובת URL של התמונה שנמצאה
+ * Function to get quality image from Unsplash by gender and religiosity
+ * @param {string} gender - Gender (MALE or FEMALE)
+ * @returns {Promise<string>} - URL of the found image
  */
 async function getUnsplashImage(gender) {
   try {
-    // שאילתות מותאמות לפי מגדר ומראה דתי
+    // Queries customized by gender and religious appearance
     let queries = [];
     
     if (gender === 'MALE') {
@@ -69,65 +69,65 @@ async function getUnsplashImage(gender) {
     
     const randomQuery = queries[Math.floor(Math.random() * queries.length)];
     
-    console.log(`מחפש תמונת "${randomQuery}" ב-Unsplash עבור ${gender === 'MALE' ? 'גבר' : 'אישה'} דתי/ת...`);
+    console.log(`Searching for "${randomQuery}" on Unsplash for religious ${gender === 'MALE' ? 'man' : 'woman'}...`);
     
-    // חיפוש תמונות עם הגדרות מתקדמות
+    // Search images with advanced settings
     const result = await unsplash.search.getPhotos({
       query: randomQuery,
-      page: Math.floor(Math.random() * 5) + 1, // דף אקראי בין 1 ל-5
-      perPage: 10, // כמות תוצאות לדף
-      orientation: 'portrait', // תמונות לאורך (מתאים לתמונות פרופיל)
-      contentFilter: 'high', // סינון תוכן לא הולם
+      page: Math.floor(Math.random() * 5) + 1, // Random page between 1 and 5
+      perPage: 10, // Results per page
+      orientation: 'portrait', // Portrait images (suitable for profile pictures)
+      contentFilter: 'high', // Inappropriate content filtering
     });
     
     if (!result.response || !result.response.results || result.response.results.length === 0) {
-      throw new Error(`לא נמצאו תמונות בתשובה מ-Unsplash עבור ${gender === 'MALE' ? 'גבר' : 'אישה'} דתי/ת`);
+      throw new Error(`No images found in Unsplash response for religious ${gender === 'MALE' ? 'man' : 'woman'}`);
     }
     
-    // בחירה אקראית של תמונה מהתוצאות
+    // Random selection of an image from results
     const randomIndex = Math.floor(Math.random() * result.response.results.length);
     const photo = result.response.results[randomIndex];
     
-    console.log(`נמצאה תמונה: "${photo.description || photo.alt_description || 'בלי תיאור'}" מאת ${photo.user.name}`);
+    console.log(`Image found: "${photo.description || photo.alt_description || 'No description'}" by ${photo.user.name}`);
     
-    // שימוש בגרסה הרגילה של התמונה (איזון טוב בין איכות לגודל קובץ)
+    // Use regular version of image (good balance between quality and file size)
     return photo.urls.regular;
   } catch (error) {
-    console.error('שגיאה בקבלת תמונה מ-Unsplash:', error.message);
+    console.error('Error getting image from Unsplash:', error.message);
     throw error;
   }
 }
 
 /**
- * פונקציה להעלאת תמונות לפי מגדר
- * @param {string} gender - המגדר (MALE או FEMALE)
- * @param {number} count - מספר התמונות שיש להעלות
- * @returns {Promise<Array>} - מערך של נתוני התמונות שהועלו
+ * Function to upload images by gender
+ * @param {string} gender - Gender (MALE or FEMALE)
+ * @param {number} count - Number of images to upload
+ * @returns {Promise<Array>} - Array of uploaded image data
  */
 async function uploadReligiousImages(gender, count) {
   const imageData = [];
   
-  console.log(`מתחיל העלאת ${count} תמונות עבור ${gender === 'MALE' ? 'גברים' : 'נשים'} דתיים/ות...`);
+  console.log(`Starting upload of ${count} images for religious ${gender === 'MALE' ? 'men' : 'women'}...`);
   
   for (let i = 0; i < count; i++) {
     try {
-      console.log(`\nמעבד תמונה ${i + 1} מתוך ${count} עבור ${gender === 'MALE' ? 'גבר' : 'אישה'}...`);
+      console.log(`\nProcessing image ${i + 1} of ${count} for ${gender === 'MALE' ? 'man' : 'woman'}...`);
       
-      // קבלת תמונה מ-Unsplash לפי מגדר
+      // Get image from Unsplash by gender
       const imageUrl = await getUnsplashImage(gender);
       
-      console.log(`מעלה תמונה ${i + 1} ל-Cloudinary...`);
+      console.log(`Uploading image ${i + 1} to Cloudinary...`);
       
-      // העלאת התמונה ל-Cloudinary עם הגדרות משופרות
+      // Upload image to Cloudinary with improved settings
       const result = await cloudinary.uploader.upload(imageUrl, {
-        folder: 'user_photos', // תיקייה מסודרת לתמונות משתמשים
-        public_id: `${gender.toLowerCase()}_profile_${Date.now()}_${i}`, // מזהה ייחודי כולל מגדר
-        width: 400, // גודל מוגדל לאיכות טובה יותר
+        folder: 'user_photos', // Organized folder for user photos
+        public_id: `${gender.toLowerCase()}_profile_${Date.now()}_${i}`, // Unique identifier including gender
+        width: 400, // Increased size for better quality
         height: 400, 
         crop: 'fill',
-        gravity: 'face', // מיקוד על פנים אם יש בתמונה
-        quality: 'auto', // איכות אוטומטית לאיזון בין גודל לאיכות
-        fetch_format: 'auto', // פורמט אוטומטי לאופטימיזציה
+        gravity: 'face', // Focus on face if present in the image
+        quality: 'auto', // Automatic quality for balance between size and quality
+        fetch_format: 'auto', // Automatic format for optimization
       });
       
       imageData.push({
@@ -136,63 +136,63 @@ async function uploadReligiousImages(gender, count) {
         gender: gender
       });
       
-      console.log(`תמונה ${i + 1} הועלתה בהצלחה: ${result.secure_url}`);
+      console.log(`Image ${i + 1} uploaded successfully: ${result.secure_url}`);
       
-      // השהייה קטנה כדי לא לעבור על מגבלות קצב של Unsplash API
+      // Small delay to avoid exceeding Unsplash API rate limits
       if (i < count - 1) {
         const delay = Math.floor(Math.random() * 500) + 500; // 500-1000ms
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     } catch (error) {
-      console.error(`שגיאה בעיבוד תמונה ${i + 1} עבור ${gender}:`, error);
+      console.error(`Error processing image ${i + 1} for ${gender}:`, error);
       
-      // החלטה האם לנסות שוב או להמשיך
-      if (i >= count - 3) { // אם נשארו רק 3 תמונות או פחות, נמשיך בלעדיהן
-        console.log(`דילוג על תמונה ${i + 1} ומעבר לבאה...`);
+      // Decision whether to try again or continue
+      if (i >= count - 3) { // If only 3 or fewer images remain, continue without them
+        console.log(`Skipping image ${i + 1} and moving to next...`);
       } else {
-        console.log(`מנסה שוב תמונה ${i + 1}...`);
-        i--; // נסיון חוזר להעלות תמונה
+        console.log(`Trying image ${i + 1} again...`);
+        i--; // Retry uploading image
       }
     }
   }
   
-  console.log(`סיום העלאת ${imageData.length} תמונות בהצלחה עבור ${gender === 'MALE' ? 'גברים' : 'נשים'}!`);
+  console.log(`Finished uploading ${imageData.length} images successfully for ${gender === 'MALE' ? 'men' : 'women'}!`);
   return imageData;
 }
 
 /**
- * יצירת נתונים אקראיים למשתמש חדש
- * @param {string} gender - המגדר (MALE או FEMALE)
- * @returns {Object} - האובייקט עם נתוני המשתמש
+ * Create random data for a new user
+ * @param {string} gender - Gender (MALE or FEMALE)
+ * @returns {Object} - Object with user data
  */
 function generateUserData(gender) {
-  // שמות עבריים נפוצים
-  const maleFirstNames = ['אברהם', 'יצחק', 'יעקב', 'משה', 'דוד', 'שלמה', 'יוסף', 'אהרון', 'נתנאל', 'אליהו', 
-                         'בנימין', 'שמואל', 'מאיר', 'חיים', 'יהודה', 'דניאל', 'מנחם', 'אלעזר', 'שמעון', 'רפאל'];
-  const femaleFirstNames = ['שרה', 'רבקה', 'רחל', 'לאה', 'חנה', 'אסתר', 'מרים', 'רות', 'נעמי', 'דינה', 
-                           'יעל', 'תמר', 'אביגיל', 'מיכל', 'חוה', 'ציפורה', 'רחל', 'גילה', 'אפרת', 'שירה'];
-  const lastNames = ['כהן', 'לוי', 'מזרחי', 'אברהמי', 'פרץ', 'ביטון', 'אוחנה', 'דהן', 'אזולאי', 'אלמוג', 
-                    'בן ארי', 'גולדשטיין', 'פרידמן', 'רוזנברג', 'שפירא', 'וייס', 'ברקוביץ', 'קפלן', 'לביא', 'אבוטבול'];
+  // Common Hebrew names
+  const maleFirstNames = ['Abraham', 'Isaac', 'Jacob', 'Moses', 'David', 'Solomon', 'Joseph', 'Aaron', 'Nathaniel', 'Elijah', 
+                         'Benjamin', 'Samuel', 'Meir', 'Chaim', 'Judah', 'Daniel', 'Menachem', 'Elazar', 'Simon', 'Raphael'];
+  const femaleFirstNames = ['Sarah', 'Rebecca', 'Rachel', 'Leah', 'Hannah', 'Esther', 'Miriam', 'Ruth', 'Naomi', 'Dinah', 
+                           'Yael', 'Tamar', 'Abigail', 'Michal', 'Eve', 'Zipporah', 'Rachel', 'Gila', 'Efrat', 'Shira'];
+  const lastNames = ['Cohen', 'Levi', 'Mizrahi', 'Abrahami', 'Peretz', 'Biton', 'Ochana', 'Dahan', 'Azoulay', 'Almog', 
+                    'Ben Ari', 'Goldstein', 'Friedman', 'Rosenberg', 'Shapira', 'Weiss', 'Berkowitz', 'Kaplan', 'Lavi', 'Aboutboul'];
 
-  // בחירה אקראית של שם פרטי ושם משפחה
+  // Random selection of first name and last name
   const firstName = gender === 'MALE' 
     ? maleFirstNames[Math.floor(Math.random() * maleFirstNames.length)]
     : femaleFirstNames[Math.floor(Math.random() * femaleFirstNames.length)];
   const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
   
-  // יצירת אימייל
+  // Create email
   const emailDomains = ['gmail.com', 'outlook.com', 'yahoo.com', 'walla.co.il', 'hotmail.com'];
   const domain = emailDomains[Math.floor(Math.random() * emailDomains.length)];
   const email = `${firstName.toLowerCase()}${lastName.toLowerCase()}${Math.floor(Math.random() * 1000)}@${domain}`;
   
-  // יצירת מספר טלפון ישראלי
+  // Create Israeli phone number
   const phonePrefix = ['050', '052', '053', '054', '055', '058'];
   const prefix = phonePrefix[Math.floor(Math.random() * phonePrefix.length)];
   const phoneNumber = `${prefix}${Math.floor(1000000 + Math.random() * 9000000)}`;
   
   return {
     email,
-    password: faker.internet.password(12), // סיסמה אקראית חזקה
+    password: faker.internet.password(12), // Strong random password
     firstName,
     lastName,
     phone: phoneNumber,
@@ -205,15 +205,15 @@ function generateUserData(gender) {
       create: {
         gender: gender,
         birthDate: faker.date.between({ from: new Date('1980-01-01'), to: new Date('2000-12-31') }),
-        nativeLanguage: 'עברית',
-        additionalLanguages: ['אנגלית'],
-        height: Math.floor(160 + Math.random() * 30), // גובה בין 160 ל-190 ס"מ
-        maritalStatus: 'רווק/ה',
-        occupation: ['סטודנט/ית', 'מורה', 'מהנדס/ת', 'רופא/ה', 'עורך/ת דין', 'יזם/ית'][Math.floor(Math.random() * 6)],
-        education: ['תואר ראשון', 'תואר שני', 'תיכונית', 'ישיבה/סמינר'][Math.floor(Math.random() * 4)],
-        city: ['ירושלים', 'תל אביב', 'חיפה', 'באר שבע', 'אשדוד', 'בני ברק', 'פתח תקווה'][Math.floor(Math.random() * 7)],
-        religiousLevel: ['דתי/ה', 'חרדי/ת', 'מסורתי/ת', 'דתי/ה לייט'][Math.floor(Math.random() * 4)],
-        about: `שלום, שמי ${firstName} ואני מחפש/ת בן/בת זוג ${gender === 'MALE' ? 'חרדית' : 'חרדי'} לבניית בית נאמן בישראל.`,
+        nativeLanguage: 'Hebrew',
+        additionalLanguages: ['English'],
+        height: Math.floor(160 + Math.random() * 30), // Height between 160 and 190 cm
+        maritalStatus: 'Single',
+        occupation: ['Student', 'Teacher', 'Engineer', 'Doctor', 'Lawyer', 'Entrepreneur'][Math.floor(Math.random() * 6)],
+        education: ['Bachelor', 'Master', 'High School', 'Yeshiva/Seminary'][Math.floor(Math.random() * 4)],
+        city: ['Jerusalem', 'Tel Aviv', 'Haifa', 'Beer Sheva', 'Ashdod', 'Bnei Brak', 'Petah Tikva'][Math.floor(Math.random() * 7)],
+        religiousLevel: ['Religious', 'Ultra-Orthodox', 'Traditional', 'Light Religious'][Math.floor(Math.random() * 4)],
+        about: `Hello, my name is ${firstName} and I'm looking for an ${gender === 'MALE' ? 'ultra-orthodox woman' : 'ultra-orthodox man'} to build a faithful home in Israel.`,
         preferredAgeMin: Math.floor(20 + Math.random() * 5),
         preferredAgeMax: Math.floor(30 + Math.random() * 10),
         availabilityStatus: 'AVAILABLE'
@@ -223,38 +223,38 @@ function generateUserData(gender) {
 }
 
 /**
- * פונקציה ליצירת משתמשים חדשים
- * @param {number} count - מספר המשתמשים שיש ליצור
- * @param {Array} maleImages - מערך של תמונות גברים
- * @param {Array} femaleImages - מערך של תמונות נשים
- * @param {number} imagesPerUser - מספר התמונות לכל משתמש
+ * Function to create new users
+ * @param {number} count - Number of users to create
+ * @param {Array} maleImages - Array of male images
+ * @param {Array} femaleImages - Array of female images
+ * @param {number} imagesPerUser - Number of images per user
  */
 async function createNewUsers(count, maleImages, femaleImages, imagesPerUser = 3) {
   try {
-    console.log(`מתחיל יצירת ${count} משתמשים חדשים עם ${imagesPerUser} תמונות לכל משתמש...`);
+    console.log(`Starting creation of ${count} new users with ${imagesPerUser} images per user...`);
     
-    // חלוקה שווה בין גברים ונשים
+    // Equal division between men and women
     const maleCount = Math.floor(count / 2);
     const femaleCount = count - maleCount;
     
-    console.log(`יוצר ${maleCount} גברים ו-${femaleCount} נשים.`);
+    console.log(`Creating ${maleCount} men and ${femaleCount} women.`);
     
-    // יצירת משתמשים גברים
+    // Create male users
     let maleImageIndex = 0;
     for (let i = 0; i < maleCount; i++) {
       try {
-        // יצירת נתוני משתמש חדש
+        // Create new user data
         const userData = generateUserData('MALE');
-        console.log(`\nיוצר משתמש גבר ${i + 1}/${maleCount}: ${userData.firstName} ${userData.lastName}`);
+        console.log(`\nCreating male user ${i + 1}/${maleCount}: ${userData.firstName} ${userData.lastName}`);
         
-        // הכנת מערך ליצירת תמונות
+        // Prepare array for creating images
         const imageCreateArray = [];
         
-        // הוספת מספר תמונות שהוגדר לכל משתמש
+        // Add defined number of images for each user
         for (let j = 0; j < imagesPerUser; j++) {
-          // בדיקה שיש תמונה זמינה
+          // Check if image is available
           if (maleImageIndex >= maleImages.length) {
-            console.log('אין מספיק תמונות גברים, חוזר לתמונה הראשונה');
+            console.log('Not enough male images, returning to the first image');
             maleImageIndex = 0;
           }
           
@@ -262,13 +262,13 @@ async function createNewUsers(count, maleImages, femaleImages, imagesPerUser = 3
           
           imageCreateArray.push({
             url: image.url,
-            // רק התמונה הראשונה היא ראשית
+            // Only first image is primary
             isMain: j === 0,
             cloudinaryPublicId: image.publicId,
           });
         }
         
-        // יצירת המשתמש עם מספר תמונות
+        // Create user with multiple images
         const user = await prisma.user.create({
           data: {
             ...userData,
@@ -282,28 +282,28 @@ async function createNewUsers(count, maleImages, femaleImages, imagesPerUser = 3
           },
         });
         
-        console.log(`נוצר משתמש גבר: ${user.email} עם ID: ${user.id} ו-${user.images.length} תמונות`);
+        console.log(`Created male user: ${user.email} with ID: ${user.id} and ${user.images.length} images`);
       } catch (error) {
-        console.error(`שגיאה ביצירת משתמש גבר ${i + 1}:`, error);
+        console.error(`Error creating male user ${i + 1}:`, error);
       }
     }
     
-    // יצירת משתמשים נשים
+    // Create female users
     let femaleImageIndex = 0;
     for (let i = 0; i < femaleCount; i++) {
       try {
-        // יצירת נתוני משתמשת חדשה
+        // Create new user data
         const userData = generateUserData('FEMALE');
-        console.log(`\nיוצר משתמשת אישה ${i + 1}/${femaleCount}: ${userData.firstName} ${userData.lastName}`);
+        console.log(`\nCreating female user ${i + 1}/${femaleCount}: ${userData.firstName} ${userData.lastName}`);
         
-        // הכנת מערך ליצירת תמונות
+        // Prepare array for creating images
         const imageCreateArray = [];
         
-        // הוספת מספר תמונות שהוגדר לכל משתמשת
+        // Add defined number of images for each user
         for (let j = 0; j < imagesPerUser; j++) {
-          // בדיקה שיש תמונה זמינה
+          // Check if image is available
           if (femaleImageIndex >= femaleImages.length) {
-            console.log('אין מספיק תמונות נשים, חוזר לתמונה הראשונה');
+            console.log('Not enough female images, returning to the first image');
             femaleImageIndex = 0;
           }
           
@@ -311,13 +311,13 @@ async function createNewUsers(count, maleImages, femaleImages, imagesPerUser = 3
           
           imageCreateArray.push({
             url: image.url,
-            // רק התמונה הראשונה היא ראשית
+            // Only first image is primary
             isMain: j === 0,
             cloudinaryPublicId: image.publicId,
           });
         }
         
-        // יצירת המשתמשת עם מספר תמונות
+        // Create user with multiple images
         const user = await prisma.user.create({
           data: {
             ...userData,
@@ -331,53 +331,53 @@ async function createNewUsers(count, maleImages, femaleImages, imagesPerUser = 3
           },
         });
         
-        console.log(`נוצרה משתמשת אישה: ${user.email} עם ID: ${user.id} ו-${user.images.length} תמונות`);
+        console.log(`Created female user: ${user.email} with ID: ${user.id} and ${user.images.length} images`);
       } catch (error) {
-        console.error(`שגיאה ביצירת משתמשת אישה ${i + 1}:`, error);
+        console.error(`Error creating female user ${i + 1}:`, error);
       }
     }
     
-    console.log(`\nסיום יצירת ${count} משתמשים חדשים בהצלחה!`);
+    console.log(`\nFinished creating ${count} new users successfully!`);
   } catch (error) {
-    console.error('שגיאה ביצירת משתמשים חדשים:', error);
+    console.error('Error creating new users:', error);
   }
 }
 
 /**
- * פונקציה ראשית לעדכון ויצירת משתמשים חדשים
- * @param {number} newUserCount - מספר המשתמשים החדשים שיש ליצור
- * @param {number} imagesPerUser - מספר התמונות לכל משתמש
+ * Main function to update and create new users
+ * @param {number} newUserCount - Number of new users to create
+ * @param {number} imagesPerUser - Number of images per user
  */
 async function updateAndCreateUsers(newUserCount = 50, imagesPerUser = 3) {
   try {
-    console.log(`=== מתחיל תהליך יצירת ${newUserCount} משתמשים חדשים עם ${imagesPerUser} תמונות לכל משתמש ===`);
+    console.log(`=== Starting process of creating ${newUserCount} new users with ${imagesPerUser} images per user ===`);
     
-    // חישוב כמה תמונות צריך (מספר המשתמשים * מספר התמונות לכל משתמש)
+    // Calculate how many images are needed (number of users * number of images per user)
     const maleCount = Math.ceil(newUserCount / 2);
     const femaleCount = Math.ceil(newUserCount / 2);
     const maleImageCount = maleCount * imagesPerUser;
     const femaleImageCount = femaleCount * imagesPerUser;
     
-    console.log(`סה"כ נדרשות ${maleImageCount} תמונות גברים ו-${femaleImageCount} תמונות נשים`);
+    console.log(`Total required: ${maleImageCount} male images and ${femaleImageCount} female images`);
     
-    // העלאת תמונות גברים דתיים
+    // Upload religious male images
     const maleImages = await uploadReligiousImages('MALE', maleImageCount);
-    console.log(`הועלו ${maleImages.length} תמונות גברים דתיים`);
+    console.log(`Uploaded ${maleImages.length} religious male images`);
     
-    // העלאת תמונות נשים דתיות
+    // Upload religious female images
     const femaleImages = await uploadReligiousImages('FEMALE', femaleImageCount);
-    console.log(`הועלו ${femaleImages.length} תמונות נשים דתיות`);
+    console.log(`Uploaded ${femaleImages.length} religious female images`);
     
-    // יצירת משתמשים חדשים עם מספר תמונות לכל משתמש
+    // Create new users with a number of images per user
     await createNewUsers(newUserCount, maleImages, femaleImages, imagesPerUser);
     
-    // יצירת דוגמאות של ערכים
-    console.log('\n=== דוגמאות של ערכים שנוצרו ===');
-    // דוגמה לגבר דתי
+    // Create examples of values
+    console.log('\n=== Examples of created values ===');
+    // Example for religious man
     const maleExample = {
       email: 'david.cohen123@gmail.com',
-      firstName: 'דוד',
-      lastName: 'כהן',
+      firstName: 'David',
+      lastName: 'Cohen',
       phone: '0521234567',
       role: 'CANDIDATE',
       status: 'ACTIVE',
@@ -385,12 +385,12 @@ async function updateAndCreateUsers(newUserCount = 50, imagesPerUser = 3) {
       profile: {
         gender: 'MALE',
         birthDate: '1990-05-15',
-        nativeLanguage: 'עברית',
+        nativeLanguage: 'Hebrew',
         height: 178,
-        religiousLevel: 'דתי',
-        city: 'ירושלים',
-        occupation: 'מהנדס תוכנה',
-        about: 'שלום, שמי דוד ואני מחפש בת זוג חרדית לבניית בית נאמן בישראל.'
+        religiousLevel: 'Religious',
+        city: 'Jerusalem',
+        occupation: 'Software Engineer',
+        about: 'Hello, my name is David and I\'m looking for an ultra-orthodox woman to build a faithful home in Israel.'
       },
       images: [
         {
@@ -411,11 +411,11 @@ async function updateAndCreateUsers(newUserCount = 50, imagesPerUser = 3) {
       ]
     };
     
-    // דוגמה לאישה דתית
+    // Example for religious woman
     const femaleExample = {
       email: 'sarah.levi456@walla.co.il',
-      firstName: 'שרה',
-      lastName: 'לוי',
+      firstName: 'Sarah',
+      lastName: 'Levi',
       phone: '0541234567',
       role: 'CANDIDATE',
       status: 'ACTIVE',
@@ -423,12 +423,12 @@ async function updateAndCreateUsers(newUserCount = 50, imagesPerUser = 3) {
       profile: {
         gender: 'FEMALE',
         birthDate: '1992-08-23',
-        nativeLanguage: 'עברית',
+        nativeLanguage: 'Hebrew',
         height: 165,
-        religiousLevel: 'חרדית',
-        city: 'בני ברק',
-        occupation: 'מורה',
-        about: 'שלום, שמי שרה ואני מחפשת בן זוג חרדי לבניית בית נאמן בישראל.'
+        religiousLevel: 'Ultra-Orthodox',
+        city: 'Bnei Brak',
+        occupation: 'Teacher',
+        about: 'Hello, my name is Sarah and I\'m looking for an ultra-orthodox man to build a faithful home in Israel.'
       },
       images: [
         {
@@ -449,35 +449,35 @@ async function updateAndCreateUsers(newUserCount = 50, imagesPerUser = 3) {
       ]
     };
     
-    console.log('דוגמה לגבר דתי:');
+    console.log('Example for a religious man:');
     console.log(JSON.stringify(maleExample, null, 2));
-    console.log('\nדוגמה לאישה דתית:');
+    console.log('\nExample for a religious woman:');
     console.log(JSON.stringify(femaleExample, null, 2));
     
-    // החזרת דוגמאות
+    // Return examples
     return { maleExample, femaleExample };
   } catch (error) {
-    console.error('שגיאה לא צפויה בתהליך:', error);
+    console.error('Unexpected error in process:', error);
   } finally {
     await prisma.$disconnect();
-    console.log('החיבור לבסיס הנתונים נסגר.');
+    console.log('Database connection closed.');
   }
 }
 
-// הפעלת הפונקציה הראשית עם 50 משתמשים חדשים ו-3 תמונות לכל משתמש
-console.log('=== מתחיל תהליך עדכון ויצירת משתמשים ===');
-console.log('שימוש ב-Unsplash API לקבלת תמונות דתיות לפי מגדר');
+// Run the main function with 50 new users and 3 images per user
+console.log('=== Starting the process of updating and creating users ===');
+console.log('Using Unsplash API to get religious images by gender');
 console.log('==========================================');
 
-// ניתן לשנות את הפרמטר השני כדי להגדיר כמה תמונות יהיו לכל משתמש
-const IMAGES_PER_USER = 3; // מספר התמונות לכל משתמש
+// You can change the second parameter to define how many images each user will have
+const IMAGES_PER_USER = 3; // Number of images per user
 
 updateAndCreateUsers(50, IMAGES_PER_USER)
   .then((examples) => {
-    console.log('=== תהליך עדכון ויצירת משתמשים הושלם ===');
-    console.log('דוגמאות לערכים שנוצרו:');
+    console.log('=== User update and creation process completed ===');
+    console.log('Examples of created values:');
     console.log(examples);
   })
   .catch(err => {
-    console.error('שגיאה לא צפויה בתהליך:', err);
+    console.error('Unexpected error in process:', err);
   });

@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
-import { UserX } from "lucide-react";
+import { UserX, Edit } from "lucide-react";
 import MinimalCard from "../CandidateCard/MinimalCard";
 import QuickView from "../CandidateCard/QuickView";
 import { ProfileCard } from "@/app/components/shared/shared/profile";
@@ -13,6 +13,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -23,6 +24,7 @@ import {
 import { toast } from "sonner";
 import { ActionDialogs } from "../dialogs/ActionDialogs";
 import NewSuggestionForm from "../NewSuggestionForm";
+import MatchmakerEditProfile from "../MatchmakerEditProfile";
 
 interface CreateSuggestionData {
   priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
@@ -75,6 +77,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [showAvailabilityDialog, setShowAvailabilityDialog] = useState(false);
   const [showSuggestDialog, setShowSuggestDialog] = useState(false);
+  const [showEditProfileDialog, setShowEditProfileDialog] = useState(false);
   const [dialogCandidate, setDialogCandidate] = useState<Candidate | null>(
     null
   );
@@ -221,6 +224,11 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     }
   };
 
+  const handleEditProfile = (candidate: Candidate) => {
+    setDialogCandidate(candidate);
+    setShowEditProfileDialog(true);
+  };
+
   const handleMouseEnter = (candidate: Candidate, e?: React.MouseEvent) => {
     // On mobile, disable hover behavior to prevent issues with scrolling
     if (isMobile) return;
@@ -287,6 +295,9 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         case "view":
           setSelectedCandidate(candidate);
           onCandidateClick?.(candidate);
+          break;
+        case "edit":
+          handleEditProfile(candidate);
           break;
         default:
           onCandidateAction?.(action, candidate);
@@ -363,6 +374,19 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
                 ${isMobile ? "transform scale-95" : ""}
               `}
             />
+            
+            {/* Edit button - visible when hovering */}
+            <button
+              className="absolute top-2 left-2 bg-primary text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleAction("edit", candidate);
+              }}
+              aria-label="ערוך פרופיל"
+              title="ערוך פרופיל"
+            >
+              <Edit className="w-4 h-4" />
+            </button>
           </div>
         ))}
       </div>
@@ -406,7 +430,17 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
       >
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>פרופיל מועמד</DialogTitle>
+            <div className="flex items-center justify-between">
+              <DialogTitle>פרופיל מועמד</DialogTitle>
+              <Button
+                variant="outline"
+                onClick={() => handleAction("edit", selectedCandidate!)}
+                className="flex items-center gap-2"
+              >
+                <Edit className="w-4 h-4" />
+                עריכת פרופיל
+              </Button>
+            </div>
             <DialogDescription>צפייה בפרטי המועמד</DialogDescription>
             <Select
               value={isMatchmaker ? "matchmaker" : "candidate"}
@@ -464,6 +498,13 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         candidates={allCandidates}
         selectedCandidate={selectedCandidate}
         onSubmit={handleCreateSuggestion}
+      />
+
+      {/* Edit Profile Dialog */}
+      <MatchmakerEditProfile
+        isOpen={showEditProfileDialog}
+        onClose={() => setShowEditProfileDialog(false)}
+        candidate={dialogCandidate}
       />
     </>
   );

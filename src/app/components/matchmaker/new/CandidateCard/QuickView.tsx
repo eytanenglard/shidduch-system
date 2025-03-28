@@ -13,6 +13,7 @@ import {
   User,
   FileText,
   CalendarClock,
+  Edit,
 } from "lucide-react";
 
 // פונקציה לחישוב גיל
@@ -33,7 +34,7 @@ import type { Candidate } from "../types/candidates";
 interface QuickViewProps {
   candidate: Candidate;
   onAction: (
-    action: "view" | "invite" | "suggest" | "contact" | "favorite"
+    action: "view" | "invite" | "suggest" | "contact" | "favorite" | "edit"
   ) => void;
 }
 
@@ -178,11 +179,11 @@ const QuickView: React.FC<QuickViewProps> = ({ candidate, onAction }) => {
 
           <Button
             variant="ghost"
-            className="w-full text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors"
-            onClick={() => onAction("favorite")}
+            className="w-full hover:bg-blue-50 transition-colors bg-blue-50/50"
+            onClick={() => onAction("edit")}
           >
-            <Heart className="w-4 h-4 ml-1.5" />
-            <span className="text-sm">הוספה למועדפים</span>
+            <Edit className="w-4 h-4 ml-1.5" />
+            <span className="text-sm">עריכת פרופיל</span>
           </Button>
         </div>
       </div>
