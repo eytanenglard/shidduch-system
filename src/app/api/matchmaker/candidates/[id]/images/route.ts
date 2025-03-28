@@ -3,13 +3,20 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { UserRole } from "@prisma/client";
-import { v2 as cloudinary } from 'cloudinary';
+import { v2 as cloudinary } from "cloudinary";
 
-// Configure Cloudinary with non-null assertion or default values
+// Define Cloudinary upload result type
+type CloudinaryUploadResult = {
+  secure_url: string;
+  public_id: string;
+  [key: string]: unknown;
+};
+
+// Configure Cloudinary
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || '',
-  api_key: process.env.CLOUDINARY_API_KEY || '',
-  api_secret: process.env.CLOUDINARY_API_SECRET || '',
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 // Validate environment variables
@@ -85,33 +92,9 @@ export async function POST(
     const base64Image = buffer.toString('base64');
     const dataURI = `data:${image.type};base64,${base64Image}`;
 
-    // Upload to Cloudinary using the correctly typed promise
-    interface CloudinaryUploadResult {
-      public_id: string;
-      secure_url: string;
-      asset_id?: string;
-      version_id?: string;
-      version?: number;
-      signature?: string;
-      width?: number;
-      height?: number;
-      format?: string;
-      resource_type?: string;
-      created_at?: string;
-      tags?: string[];
-      bytes?: number;
-      type?: string;
-      etag?: string;
-      url?: string;
-      original_filename?: string;
-      api_key?: string;
-      placeholder?: boolean;
-      [key: string]: unknown;
-    }
-
-    const uploadResponse = await new Promise<CloudinaryUploadResult>((resolve, reject) => {
-      cloudinary.uploader.upload(
-        dataURI,
+    // Upload to Cloudinary using the upload_stream method (which is available in the types)
+    const uploadResult = await new Promise<CloudinaryUploadResult>((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
         {
           folder: `shidduch-system/users/${id}`,
           resource_type: 'image',
@@ -126,6 +109,10 @@ export async function POST(
           else reject(new Error('No result from Cloudinary upload'));
         }
       );
+      
+      // Convert the dataURI to buffer and pipe it to the upload stream
+      const bufferData = Buffer.from(dataURI.replace(/^data:image\/\w+;base64,/, ''), 'base64');
+      uploadStream.end(bufferData);
     });
 
     // Check if this is the first image, to make it the main image
@@ -137,8 +124,8 @@ export async function POST(
     const newImage = await prisma.userImage.create({
       data: {
         userId: id,
-        url: uploadResponse.secure_url,
-        cloudinaryPublicId: uploadResponse.public_id,
+        url: uploadResult.secure_url,
+        cloudinaryPublicId: uploadResult.public_id,
         isMain: existingImages === 0 // Make it main if it's the first image
       }
     });
