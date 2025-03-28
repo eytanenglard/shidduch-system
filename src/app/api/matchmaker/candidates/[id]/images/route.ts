@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { UserRole } from "@prisma/client";
-import { v2 as cloudinary } from "cloudinary";
+import { v2 as cloudinary, UploadApiOptions } from "cloudinary";
 
 // Define Cloudinary upload result type
 type CloudinaryUploadResult = {
@@ -97,17 +97,19 @@ export async function POST(
     const base64Image = buffer.toString('base64');
     const dataURI = `data:${image.type};base64,${base64Image}`;
 
-    // Upload to Cloudinary using the upload_stream method (which is available in the types)
+    // Upload to Cloudinary using the upload_stream method
     const uploadResult = await new Promise<CloudinaryUploadResult>((resolve, reject) => {
+      const uploadOptions: UploadApiOptions = {
+        folder: `shidduch-system/users/${id}`,
+        resource_type: "image",
+        transformation: [
+          { width: 1000, height: 1000, crop: "limit" },
+          { quality: "auto:good" }
+        ]
+      };
+      
       const uploadStream = cloudinary.uploader.upload_stream(
-        {
-          folder: `shidduch-system/users/${id}`,
-          resource_type: 'image',
-          transformation: [
-            { width: 1000, height: 1000, crop: 'limit' },
-            { quality: 'auto:good' }
-          ]
-        },
+        uploadOptions,
         (error, result) => {
           if (error) reject(error);
           else if (result) resolve(result as CloudinaryUploadResult);
