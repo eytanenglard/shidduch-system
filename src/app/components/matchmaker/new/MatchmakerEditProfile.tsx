@@ -14,7 +14,7 @@ import { PreferencesSection } from "@/app/components/shared/shared/profile";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, X, UserCog, Image as ImageIcon, Sliders } from "lucide-react";
 import type { UserProfile, UserImage } from "@/types/next-auth";
-import type { Candidate } from "../types/candidates";
+import type { Candidate } from "./types/candidates";
 import { motion } from "framer-motion";
 
 interface MatchmakerEditProfileProps {
