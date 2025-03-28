@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { UserRole } from "@prisma/client";
-import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
+import { v2 as cloudinary } from 'cloudinary';
 
 // Configure Cloudinary with non-null assertion or default values
 cloudinary.config({
@@ -85,23 +85,47 @@ export async function POST(
     const base64Image = buffer.toString('base64');
     const dataURI = `data:${image.type};base64,${base64Image}`;
 
-    // Upload to Cloudinary
-    // Import and use Cloudinary's provided types
+    // Upload to Cloudinary using the correctly typed promise
+    interface CloudinaryUploadResult {
+      public_id: string;
+      secure_url: string;
+      asset_id?: string;
+      version_id?: string;
+      version?: number;
+      signature?: string;
+      width?: number;
+      height?: number;
+      format?: string;
+      resource_type?: string;
+      created_at?: string;
+      tags?: string[];
+      bytes?: number;
+      type?: string;
+      etag?: string;
+      url?: string;
+      original_filename?: string;
+      api_key?: string;
+      placeholder?: boolean;
+      [key: string]: unknown;
+    }
 
-    // Use a properly typed Promise to handle the callback
-    const uploadResponse = await new Promise<UploadApiResponse>((resolve, reject) => {
-      cloudinary.uploader.upload(dataURI, {
-        folder: `shidduch-system/users/${id}`,
-        resource_type: 'image',
-        transformation: [
-          { width: 1000, height: 1000, crop: 'limit' },
-          { quality: 'auto:good' }
-        ]
-      }, (error, result) => {
-        if (error) reject(error);
-        else if (result) resolve(result);
-        else reject(new Error('No result from Cloudinary upload'));
-      });
+    const uploadResponse = await new Promise<CloudinaryUploadResult>((resolve, reject) => {
+      cloudinary.uploader.upload(
+        dataURI,
+        {
+          folder: `shidduch-system/users/${id}`,
+          resource_type: 'image',
+          transformation: [
+            { width: 1000, height: 1000, crop: 'limit' },
+            { quality: 'auto:good' }
+          ]
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else if (result) resolve(result as CloudinaryUploadResult);
+          else reject(new Error('No result from Cloudinary upload'));
+        }
+      );
     });
 
     // Check if this is the first image, to make it the main image
