@@ -59,8 +59,6 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
 }) => {
   // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const deleteButtonRef = useRef<HTMLButtonElement>(null);
-
   // State
   const [showImageViewer, setShowImageViewer] = useState(false);
   const [selectedViewerIndex, setSelectedViewerIndex] = useState<number | null>(
