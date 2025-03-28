@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { UserRole } from "@prisma/client";
-import { v2 as cloudinary } from 'cloudinary';
+import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
 
 // Configure Cloudinary with non-null assertion or default values
 cloudinary.config({
@@ -86,8 +86,10 @@ export async function POST(
     const dataURI = `data:${image.type};base64,${base64Image}`;
 
     // Upload to Cloudinary
-    // Type assertion to fix TypeScript error
-    const uploadResponse = await new Promise<any>((resolve, reject) => {
+    // Import and use Cloudinary's provided types
+
+    // Use a properly typed Promise to handle the callback
+    const uploadResponse = await new Promise<UploadApiResponse>((resolve, reject) => {
       cloudinary.uploader.upload(dataURI, {
         folder: `shidduch-system/users/${id}`,
         resource_type: 'image',
@@ -97,7 +99,8 @@ export async function POST(
         ]
       }, (error, result) => {
         if (error) reject(error);
-        else resolve(result);
+        else if (result) resolve(result);
+        else reject(new Error('No result from Cloudinary upload'));
       });
     });
 
