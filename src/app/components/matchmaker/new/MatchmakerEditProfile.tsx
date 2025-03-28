@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -12,13 +12,7 @@ import { ProfileSection } from "@/app/components/shared/shared/profile";
 import { PhotosSection } from "@/app/components/shared/shared/profile";
 import { PreferencesSection } from "@/app/components/shared/shared/profile";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Loader2,
-  X,
-  UserCog,
-  Image as ImageIcon,
-  Sliders,
-} from "lucide-react";
+import { Loader2, X, UserCog, Image as ImageIcon, Sliders } from "lucide-react";
 import type { UserProfile, UserImage } from "@/types/next-auth";
 import type { Candidate } from "../types/candidates";
 import { motion } from "framer-motion";
@@ -42,17 +36,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
   const [images, setImages] = useState<UserImage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch full profile data when component opens
-  useEffect(() => {
-    if (isOpen && candidate) {
-      setIsLoading(true);
-      fetchProfileData().finally(() => {
-        setIsLoading(false);
-      });
-    }
-  }, [isOpen, candidate]);
-
-  const fetchProfileData = async () => {
+  const fetchProfileData = useCallback(async () => {
     if (!candidate) return;
 
     try {
@@ -77,7 +61,16 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
       console.error("Error fetching profile:", error);
       toast.error("שגיאה בטעינת נתוני המועמד");
     }
-  };
+  }, [candidate]);
+  // Fetch full profile data when component opens
+  useEffect(() => {
+    if (isOpen && candidate) {
+      setIsLoading(true);
+      fetchProfileData().finally(() => {
+        setIsLoading(false);
+      });
+    }
+  }, [isOpen, candidate, fetchProfileData]);
 
   const handleProfileUpdate = async (updatedProfile: Partial<UserProfile>) => {
     if (!candidate) return;
