@@ -86,13 +86,19 @@ export async function POST(
     const dataURI = `data:${image.type};base64,${base64Image}`;
 
     // Upload to Cloudinary
-    const uploadResult = await cloudinary.uploader.upload(dataURI, {
-      folder: `shidduch-system/users/${id}`,
-      resource_type: 'image',
-      transformation: [
-        { width: 1000, height: 1000, crop: 'limit' },
-        { quality: 'auto:good' }
-      ]
+    // Type assertion to fix TypeScript error
+    const uploadResponse = await new Promise<any>((resolve, reject) => {
+      cloudinary.uploader.upload(dataURI, {
+        folder: `shidduch-system/users/${id}`,
+        resource_type: 'image',
+        transformation: [
+          { width: 1000, height: 1000, crop: 'limit' },
+          { quality: 'auto:good' }
+        ]
+      }, (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
+      });
     });
 
     // Check if this is the first image, to make it the main image
@@ -104,8 +110,8 @@ export async function POST(
     const newImage = await prisma.userImage.create({
       data: {
         userId: id,
-        url: uploadResult.secure_url,
-        cloudinaryPublicId: uploadResult.public_id,
+        url: uploadResponse.secure_url,
+        cloudinaryPublicId: uploadResponse.public_id,
         isMain: existingImages === 0 // Make it main if it's the first image
       }
     });
