@@ -1,4 +1,3 @@
-// /api/matchmaker/candidates/[id]/images/[imageId]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -7,10 +6,19 @@ import { UserRole } from "@prisma/client";
 import { v2 as cloudinary } from 'cloudinary';
 
 // Configure Cloudinary
+const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+const apiKey = process.env.CLOUDINARY_API_KEY;
+const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+// Check if required environment variables are set
+if (!cloudName || !apiKey || !apiSecret) {
+  console.error("Missing required Cloudinary environment variables");
+}
+
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+  cloud_name: cloudName as string,
+  api_key: apiKey as string,
+  api_secret: apiSecret as string,
 });
 
 // DELETE request handler for deleting an image
