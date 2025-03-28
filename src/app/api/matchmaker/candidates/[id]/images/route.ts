@@ -5,12 +5,17 @@ import prisma from "@/lib/prisma";
 import { UserRole } from "@prisma/client";
 import { v2 as cloudinary } from 'cloudinary';
 
-// Configure Cloudinary
+// Configure Cloudinary with non-null assertion or default values
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || '',
+  api_key: process.env.CLOUDINARY_API_KEY || '',
+  api_secret: process.env.CLOUDINARY_API_SECRET || '',
 });
+
+// Validate environment variables
+if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+  console.error("Missing Cloudinary environment variables");
+}
 
 export async function POST(
   req: NextRequest,
@@ -63,6 +68,14 @@ export async function POST(
       return NextResponse.json(
         { success: false, error: "No image provided" },
         { status: 400 }
+      );
+    }
+
+    // Check if Cloudinary is properly configured
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      return NextResponse.json(
+        { success: false, error: "Server configuration error - image upload service unavailable" },
+        { status: 500 }
       );
     }
 
