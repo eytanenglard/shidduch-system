@@ -12,16 +12,21 @@ type CloudinaryUploadResult = {
   [key: string]: unknown;
 };
 
-// Configure Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+// Check for required environment variables
+const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+const apiKey = process.env.CLOUDINARY_API_KEY;
+const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
 // Validate environment variables
-if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+if (!cloudName || !apiKey || !apiSecret) {
   console.error("Missing Cloudinary environment variables");
+} else {
+  // Configure Cloudinary only if all values are defined
+  cloudinary.config({
+    cloud_name: cloudName,
+    api_key: apiKey,
+    api_secret: apiSecret,
+  });
 }
 
 export async function POST(
@@ -79,7 +84,7 @@ export async function POST(
     }
 
     // Check if Cloudinary is properly configured
-    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+    if (!cloudName || !apiKey || !apiSecret) {
       return NextResponse.json(
         { success: false, error: "Server configuration error - image upload service unavailable" },
         { status: 500 }
