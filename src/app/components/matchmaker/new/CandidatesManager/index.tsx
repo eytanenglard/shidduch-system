@@ -278,9 +278,7 @@ const CandidatesManager: React.FC = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Info className="w-4 h-4 text-blue-500" />
-            <h3 className="font-medium">
-              תוצאות חיפוש: {searchResults.term}
-            </h3>
+            <h3 className="font-medium">תוצאות חיפוש: {searchResults.term}</h3>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="bg-white">
