@@ -500,15 +500,13 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     )}
                   </TabsTrigger>
 
-                  {questionnaire && (
-                    <TabsTrigger
-                      value="questionnaire"
-                      className="flex items-center gap-1 px-2.5 py-2 sm:gap-2 sm:px-4 sm:py-2.5 rounded-lg text-xs sm:text-sm whitespace-nowrap data-[state=active]:bg-white data-[state=active]:shadow data-[state=active]:text-primary"
-                    >
-                      <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                      <span>שאלון</span>
-                    </TabsTrigger>
-                  )}
+                  <TabsTrigger
+                    value="questionnaire"
+                    className="flex items-center gap-1 px-2.5 py-2 sm:gap-2 sm:px-4 sm:py-2.5 rounded-lg text-xs sm:text-sm whitespace-nowrap data-[state=active]:bg-white data-[state=active]:shadow data-[state=active]:text-primary"
+                  >
+                    <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <span>שאלון</span>
+                  </TabsTrigger>
 
                   {viewMode === "matchmaker" && (
                     <TabsTrigger
@@ -781,11 +779,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           </TabsContent>
 
           {/* Questionnaire Tab */}
-          {questionnaire && (
-            <TabsContent
-              value="questionnaire"
-              className="mt-2 focus:outline-none"
-            >
+          <TabsContent
+            value="questionnaire"
+            className="mt-2 focus:outline-none"
+          >
+            {questionnaire ? (
               <div className="space-y-4 sm:space-y-6">
                 {/* Questionnaire Status */}
                 <div className="rounded-lg sm:rounded-xl p-3 sm:p-4 bg-white border shadow-sm flex items-center justify-between">
@@ -962,8 +960,20 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   );
                 })}
               </div>
-            </TabsContent>
-          )}
+            ) : (
+              <div className="rounded-xl sm:rounded-2xl p-4 sm:p-6 bg-gradient-to-br from-gray-50 to-white border border-gray-200/50 shadow-sm text-center">
+                <div className="flex flex-col items-center justify-center py-8">
+                  <FileText className="w-12 h-12 sm:w-16 sm:h-16 text-gray-300 mb-4" />
+                  <h3 className="text-xl font-medium text-gray-700 mb-2">
+                    אין שאלון זמין
+                  </h3>
+                  <p className="text-gray-500 max-w-md">
+                    המועמד/ת טרם מילא/ה את השאלון או שאין גישה לשאלון זה.
+                  </p>
+                </div>
+              </div>
+            )}
+          </TabsContent>
 
           {/* Sensitive Information Tab (Matchmakers Only) */}
           {viewMode === "matchmaker" && (

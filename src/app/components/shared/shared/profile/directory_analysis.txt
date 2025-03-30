@@ -1,0 +1,5005 @@
+מבנה התיקייה:
+profile
+  ProfileCard.tsx
+  constants.ts
+  elements
+    MinimalCard.tsx
+    StatsCard.tsx
+    VisibilityControl.tsx
+  index.ts
+  sections
+    ExtendedProfileSection.tsx
+    PhotosSection.tsx
+    PreferencesSection.tsx
+    ProfileSection.tsx
+    QuestionnaireResponsesSection.tsx
+  types
+    profile.ts
+    questionnaire.ts
+  utils.ts
+
+תוכן הקבצים:
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\shared\shared\profile\constants.ts:
+==================================================
+// src/components/shared/profile/constants.ts
+import { Heart, User, Users, Scroll, GraduationCap, MapPin } from "lucide-react";
+
+export const WORLDS = {
+  values: {
+    key: "values",
+    title: "ערכים ואמונות",
+    icon: Heart,
+    color: "text-pink-500",
+    bgColor: "bg-pink-50",
+    borderColor: "border-pink-200",
+  },
+  personality: {
+    key: "personality",
+    title: "אישיות",
+    icon: User,
+    color: "text-blue-500",
+    bgColor: "bg-blue-50",
+    borderColor: "border-blue-200",
+  },
+  relationship: {
+    key: "relationship",
+    title: "זוגיות ומשפחה",
+    icon: Users,
+    color: "text-purple-500",
+    bgColor: "bg-purple-50",
+    borderColor: "border-purple-200",
+  },
+  religion: {
+    key: "religion",
+    title: "דת ומסורת",
+    icon: Scroll,
+    color: "text-indigo-500",
+    bgColor: "bg-indigo-50",
+    borderColor: "border-indigo-200",
+  },
+  partner: {
+    key: "partner",
+    title: "העדפות בן/בת זוג",
+    icon: Heart,
+    color: "text-red-500",
+    bgColor: "bg-red-50",
+    borderColor: "border-red-200",
+  },
+} as const;
+
+export const RELIGIOUS_LEVELS = [
+  "חרדי",
+  "חרדי מודרני",
+  "דתי",
+  "דתי-לייט",
+  "מסורתי"
+] as const;
+
+export const MARITAL_STATUS = [
+  "single",
+  "divorced",
+  "widowed"
+] as const;
+
+export const EDUCATION_LEVELS = [
+  "תיכונית",
+  "על תיכונית",
+  "אקדמית",
+  "תורנית"
+] as const;
+
+export const OCCUPATION_TYPES = [
+  "עובד/ת",
+  "סטודנט/ית",
+  "אברך/אברכית",
+  "עצמאי/ת"
+] as const;
+
+export const LOCATIONS = [
+  "צפון",
+  "מרכז",
+  "דרום",
+  "ירושלים",
+  "יהודה ושומרון"
+] as const;
+
+export const PROFILE_SECTIONS = {
+  BASIC_INFO: {
+    title: "פרטים אישיים",
+    icon: User,
+  },
+  EDUCATION: {
+    title: "השכלה ותעסוקה",
+    icon: GraduationCap,
+  },
+  LOCATION: {
+    title: "מיקום",
+    icon: MapPin,
+  },
+  FAMILY: {
+    title: "מידע משפחתי",
+    icon: Users,
+  },
+  PREFERENCES: {
+    title: "העדפות",
+    icon: Heart,
+  },
+} as const;
+
+export const COMMUNICATION_STYLES = [
+  "ישיר",
+  "עקיף",
+  "דיפלומטי"
+] as const;
+
+export const STRESS_MANAGEMENT = [
+  "רגוע",
+  "לחוץ",
+  "משתנה"
+] as const;
+
+export const CONTACT_PREFERENCES = [
+  { value: "direct", label: "ישירות" },
+  { value: "matchmaker", label: "דרך השדכן/ית" },
+  { value: "both", label: "שתי האפשרויות" }
+] as const;
+
+// הגדרות עבור הוולידציה
+export const VALIDATION_RULES = {
+  AGE: {
+    MIN: 18,
+    MAX: 99
+  },
+  HEIGHT: {
+    MIN: 100,
+    MAX: 250
+  },
+  NAME: {
+    MIN_LENGTH: 2,
+    MAX_LENGTH: 50
+  }
+} as const;
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\shared\shared\profile\index.ts:
+==================================================
+// src/components/shared/profile/index.ts
+
+// Main Components
+export { default as ProfileCard } from './ProfileCard';
+
+// Sections
+export { default as ExtendedProfileSection } from './sections/ExtendedProfileSection';
+export { default as PhotosSection } from './sections/PhotosSection';
+export { default as PreferencesSection } from './sections/PreferencesSection';
+export { default as ProfileSection } from './sections/ProfileSection';
+export { default as QuestionnaireResponsesSection } from './sections/QuestionnaireResponsesSection';
+
+// Elements
+export { default as StatsCard } from './elements/StatsCard';
+export { default as VisibilityControl } from './elements/VisibilityControl';
+export { default as MinimalCard } from './elements/MinimalCard';
+
+// Types
+export * from './types/profile';
+export * from './types/questionnaire';
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\shared\shared\profile\ProfileCard.tsx:
+==================================================
+import React, { useState } from "react";
+import Image from "next/image";
+import { cn } from "@/lib/utils";
+
+// UI Components
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+
+// Icons
+import {
+  User,
+  Heart,
+  FileText,
+  Image as ImageIcon,
+  Info,
+  Eye,
+  EyeOff,
+  Phone,
+  ChevronLeft,
+  ChevronRight,
+  Briefcase,
+  GraduationCap,
+  Users,
+  Book,
+  School,
+  Lock,
+  Languages,
+  Calendar,
+  Star,
+  MapPin,
+  Shield,
+  CheckCircle,
+  Clock,
+} from "lucide-react";
+
+// Types
+import type {
+  UserProfile,
+  UserImage,
+  QuestionnaireResponse,
+  ContactPreference,
+  AvailabilityStatus,
+} from "@/types/next-auth";
+
+// Types
+type ProfileActionType =
+  | "contact"
+  | "suggest"
+  | "hide"
+  | "report"
+  | "save"
+  | "verify"
+  | "update_status"
+  | "update_notes"
+  | "update_visibility";
+
+type ProfileActionData = {
+  profileId?: string;
+  userId?: string;
+  status?: AvailabilityStatus;
+  statusNote?: string;
+  matchingNotes?: string;
+  visibility?: boolean;
+  reportReason?: string;
+  reportDetails?: string;
+  contactPreference?: ContactPreference;
+  verificationDetails?: {
+    verifiedBy: string;
+    verificationDate: Date;
+    notes?: string;
+  };
+};
+
+// Interfaces
+interface WorldConfig {
+  key: string;
+  title: string;
+  icon: React.ElementType;
+  color: string;
+}
+
+interface ProfileCardProps {
+  profile: UserProfile;
+  images?: UserImage[];
+  questionnaire?: QuestionnaireResponse | null;
+  viewMode?: "matchmaker" | "candidate";
+  className?: string;
+  onAction?: (type: ProfileActionType, data?: ProfileActionData) => void;
+}
+
+// Constants
+const WORLDS: Record<string, WorldConfig> = {
+  values: {
+    key: "values",
+    title: "ערכים ואמונות",
+    icon: Heart,
+    color: "text-pink-500",
+  },
+  personality: {
+    key: "personality",
+    title: "אישיות",
+    icon: User,
+    color: "text-blue-500",
+  },
+  relationship: {
+    key: "relationship",
+    title: "זוגיות ומשפחה",
+    icon: Users,
+    color: "text-purple-500",
+  },
+  religion: {
+    key: "religion",
+    title: "דת ומסורת",
+    icon: Book,
+    color: "text-indigo-500",
+  },
+  partner: {
+    key: "partner",
+    title: "העדפות בן/בת זוג",
+    icon: Heart,
+    color: "text-red-500",
+  },
+};
+
+const ProfileCard: React.FC<ProfileCardProps> = ({
+  profile,
+  images = [],
+  questionnaire,
+  viewMode = "candidate",
+  className,
+}) => {
+  // State
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(
+    null
+  );
+  const [activeTab, setActiveTab] = useState("about");
+
+  // Calculate age from birthDate
+  const calculateAge = (birthDate: Date): number => {
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birth.getDate())
+    ) {
+      age--;
+    }
+    return age;
+  };
+
+  // Derived values
+  const age = calculateAge(new Date(profile.birthDate));
+  const mainImage = images?.find((img) => img.isMain);
+
+  // Image handlers
+  const handleImageClick = (index: number) => {
+    setSelectedImageIndex(index);
+  };
+
+  const handleNextImage = () => {
+    if (selectedImageIndex !== null && selectedImageIndex < images.length - 1) {
+      setSelectedImageIndex(selectedImageIndex + 1);
+    }
+  };
+
+  const handlePreviousImage = () => {
+    if (selectedImageIndex !== null && selectedImageIndex > 0) {
+      setSelectedImageIndex(selectedImageIndex - 1);
+    }
+  };
+
+  // Sensitive info component
+  const SensitiveInfo: React.FC<{ children: React.ReactNode }> = ({
+    children,
+  }) => {
+    if (viewMode !== "matchmaker") return null;
+
+    return (
+      <div className="relative border border-amber-300 rounded-xl p-4 sm:p-6 bg-gradient-to-br from-amber-50 to-white shadow-md">
+        <div className="flex items-center gap-2 mb-4 text-amber-700">
+          <Lock className="w-4 h-4 sm:w-5 sm:h-5" />
+          <span className="font-medium text-sm sm:text-base">
+            מידע לשדכנים בלבד
+          </span>
+        </div>
+        {children}
+      </div>
+    );
+  };
+
+  // Component for empty state with icon
+  const EmptyState: React.FC<{
+    icon: React.ElementType;
+    message: string;
+  }> = ({ icon: Icon, message }) => (
+    <div className="flex flex-col items-center justify-center py-6 sm:py-10 text-gray-400 bg-gray-50/50 rounded-xl border border-gray-100">
+      <Icon className="w-8 h-8 sm:w-12 sm:h-12 mb-2 sm:mb-3 opacity-50" />
+      <p className="text-xs sm:text-sm font-medium">{message}</p>
+    </div>
+  );
+
+  // Section header component
+  const SectionHeader: React.FC<{
+    icon: React.ElementType;
+    title: string;
+    iconColor?: string;
+  }> = ({ icon: Icon, title, iconColor = "text-primary" }) => (
+    <div className="flex items-center gap-2 mb-3 sm:mb-4">
+      <div
+        className={cn(
+          "p-1.5 sm:p-2 rounded-full bg-opacity-10",
+          iconColor.replace("text", "bg")
+        )}
+      >
+        <Icon className={cn("w-4 h-4 sm:w-5 sm:h-5", iconColor)} />
+      </div>
+      <h3 className="text-lg sm:text-xl font-semibold">{title}</h3>
+    </div>
+  );
+
+  return (
+    <Card
+      className={cn(
+        "w-full bg-white shadow-xl rounded-xl overflow-hidden border-0",
+        className
+      )}
+    >
+      {/* Header Section with Gradient Background */}
+      <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 p-4 sm:p-6 md:p-8 text-center relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <svg
+            width="100%"
+            height="100%"
+            viewBox="0 0 100 100"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              <pattern
+                id="grid"
+                width="10"
+                height="10"
+                patternUnits="userSpaceOnUse"
+              >
+                <path
+                  d="M 10 0 L 0 0 0 10"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="0.5"
+                />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid)" />
+          </svg>
+        </div>
+
+        {/* Profile Summary */}
+        <div className="relative z-10 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 max-w-3xl mx-auto">
+          {/* Profile Image */}
+          <div className="relative h-28 w-28 sm:h-36 sm:w-36 md:h-44 md:w-44 rounded-full overflow-hidden border-4 border-white shadow-lg transition-transform hover:scale-105 duration-300">
+            {mainImage ? (
+              <Image
+                src={mainImage.url}
+                alt="תמונת פרופיל"
+                fill
+                className="object-cover"
+                sizes="(max-width: 640px) 112px, (max-width: 768px) 144px, 176px"
+                priority
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+                <User className="w-10 h-10 sm:w-16 sm:h-16 text-gray-400" />
+              </div>
+            )}
+          </div>
+
+          {/* Profile Info */}
+          <div className="space-y-2 sm:space-y-3 text-center sm:text-right mt-2 sm:mt-0">
+            <div>
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-serif font-bold text-gray-800">
+                {profile?.user?.firstName} {profile?.user?.lastName}
+              </h2>
+              <div className="flex flex-wrap justify-center sm:justify-start gap-1.5 sm:gap-3 mt-2">
+                <div className="flex items-center gap-1 text-xs sm:text-sm text-gray-700 bg-white/80 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full shadow-sm">
+                  <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500" />
+                  <span>{age} שנים</span>
+                </div>
+
+                <div className="flex items-center gap-1 text-xs sm:text-sm text-gray-700 bg-white/80 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full shadow-sm">
+                  <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-red-500" />
+                  <span>{profile.city}</span>
+                </div>
+
+                {profile.religiousLevel && (
+                  <div className="flex items-center gap-1 text-xs sm:text-sm text-gray-700 bg-white/80 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full shadow-sm">
+                    <Shield className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600" />
+                    <span>{profile.religiousLevel}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Status Badges */}
+            <div className="flex flex-wrap gap-1.5 sm:gap-2 justify-center sm:justify-start mt-1 sm:mt-2">
+              {profile.isProfileVisible && (
+                <Badge className="bg-emerald-100 text-emerald-800 border-0 px-2 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm">
+                  <div className="flex items-center gap-1 sm:gap-1.5">
+                    <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    פנוי/ה להצעות
+                  </div>
+                </Badge>
+              )}
+
+              {profile.maritalStatus && (
+                <Badge
+                  variant="outline"
+                  className="bg-purple-50 border-purple-200 text-purple-700 px-2 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm"
+                >
+                  <Heart className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" />
+                  {profile.maritalStatus}
+                </Badge>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Stats Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 p-3 sm:p-6 bg-gray-50">
+        {/* Age */}
+        <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-4 rounded-xl bg-gradient-to-br from-blue-50 to-white border border-blue-100 shadow-sm hover:shadow-md transition-all">
+          <div className="p-1.5 sm:p-2.5 rounded-full bg-blue-100 text-blue-600">
+            <Calendar className="w-4 h-4 sm:w-5 sm:h-5" />
+          </div>
+          <div>
+            <p className="text-xs font-medium text-blue-600 mb-0.5">גיל</p>
+            <p className="text-base sm:text-lg font-semibold text-gray-800">
+              {age}
+            </p>
+          </div>
+        </div>
+
+        {/* Marital Status */}
+        <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-4 rounded-xl bg-gradient-to-br from-pink-50 to-white border border-pink-100 shadow-sm hover:shadow-md transition-all">
+          <div className="p-1.5 sm:p-2.5 rounded-full bg-pink-100 text-pink-600">
+            <Heart className="w-4 h-4 sm:w-5 sm:h-5" />
+          </div>
+          <div>
+            <p className="text-xs font-medium text-pink-600 mb-0.5">
+              מצב משפחתי
+            </p>
+            <p className="text-base sm:text-lg font-semibold text-gray-800">
+              {profile.maritalStatus || "-"}
+            </p>
+          </div>
+        </div>
+
+        {/* Education */}
+        <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-4 rounded-xl bg-gradient-to-br from-indigo-50 to-white border border-indigo-100 shadow-sm hover:shadow-md transition-all">
+          <div className="p-1.5 sm:p-2.5 rounded-full bg-indigo-100 text-indigo-600">
+            <School className="w-4 h-4 sm:w-5 sm:h-5" />
+          </div>
+          <div>
+            <p className="text-xs font-medium text-indigo-600 mb-0.5">השכלה</p>
+            <p className="text-base sm:text-lg font-semibold text-gray-800">
+              {profile.education || "-"}
+            </p>
+          </div>
+        </div>
+
+        {/* Native Language */}
+        <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-4 rounded-xl bg-gradient-to-br from-emerald-50 to-white border border-emerald-100 shadow-sm hover:shadow-md transition-all">
+          <div className="p-1.5 sm:p-2.5 rounded-full bg-emerald-100 text-emerald-600">
+            <Languages className="w-4 h-4 sm:w-5 sm:h-5" />
+          </div>
+          <div>
+            <p className="text-xs font-medium text-emerald-600 mb-0.5">
+              שפת אם
+            </p>
+            <p className="text-base sm:text-lg font-semibold text-gray-800">
+              {profile.nativeLanguage || "-"}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Photo Gallery Preview */}
+      <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100">
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <h3 className="text-base sm:text-lg font-semibold flex items-center gap-1 sm:gap-2">
+            <ImageIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
+            תמונות
+            <span className="text-xs sm:text-sm bg-gray-100 text-gray-700 rounded-full w-5 h-5 sm:w-6 sm:h-6 inline-flex items-center justify-center">
+              {images.length}
+            </span>
+          </h3>
+          {images.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setActiveTab("photos")}
+              className="text-xs text-gray-500 hover:text-gray-700 p-1 sm:p-2"
+            >
+              הצג הכל
+            </Button>
+          )}
+        </div>
+
+        {images.length > 0 ? (
+          <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-2 snap-x scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+            {images.slice(0, 5).map((image, index) => (
+              <div
+                key={image.id}
+                className="relative min-w-[90px] sm:min-w-[120px] w-[90px] h-[90px] sm:w-28 sm:h-28 rounded-lg overflow-hidden bg-gray-100 shadow-sm cursor-pointer snap-start hover:opacity-90 transition-all duration-300"
+                onClick={() => handleImageClick(index)}
+              >
+                <Image
+                  src={image.url}
+                  alt={`תמונת פרופיל ${index + 1}`}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 640px) 90px, 112px"
+                />
+                {image.isMain && (
+                  <div className="absolute top-1 right-1 bg-yellow-400 rounded-full p-0.5">
+                    <Star className="w-2 h-2 sm:w-3 sm:h-3 text-white fill-white" />
+                  </div>
+                )}
+              </div>
+            ))}
+
+            {/* Show more button if there are more than 5 images */}
+            {images.length > 5 && (
+              <div
+                className="relative min-w-[90px] sm:min-w-[120px] w-[90px] h-[90px] sm:w-28 sm:h-28 rounded-lg overflow-hidden bg-gray-100/60 flex items-center justify-center cursor-pointer snap-start hover:bg-gray-100 transition-all duration-300"
+                onClick={() => setActiveTab("photos")}
+              >
+                <div className="text-center">
+                  <span className="block text-base sm:text-lg font-bold text-gray-600">
+                    +{images.length - 5}
+                  </span>
+                  <span className="text-xs text-gray-500">תמונות</span>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <EmptyState icon={ImageIcon} message="אין תמונות בפרופיל" />
+        )}
+      </div>
+
+      {/* Main Tabs Navigation */}
+      <div className="p-3 sm:p-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <div className="bg-gray-50 p-0.5 sm:p-1 rounded-xl mb-4 sm:mb-6 sticky top-0 z-10">
+            <ScrollArea className="w-full overflow-x-visible" dir="rtl">
+              <div className="flex pb-1 px-1">
+                <TabsList className="h-auto inline-flex bg-transparent w-full flex-nowrap justify-start">
+                  <TabsTrigger
+                    value="about"
+                    className="flex items-center gap-1 px-2.5 py-2 sm:gap-2 sm:px-4 sm:py-2.5 rounded-lg text-xs sm:text-sm whitespace-nowrap data-[state=active]:bg-white data-[state=active]:shadow data-[state=active]:text-primary"
+                  >
+                    <Info className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <span>אודות</span>
+                  </TabsTrigger>
+
+                  <TabsTrigger
+                    value="education"
+                    className="flex items-center gap-1 px-2.5 py-2 sm:gap-2 sm:px-4 sm:py-2.5 rounded-lg text-xs sm:text-sm whitespace-nowrap data-[state=active]:bg-white data-[state=active]:shadow data-[state=active]:text-primary"
+                  >
+                    <GraduationCap className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <span className="hidden xs:inline">השכלה ותעסוקה</span>
+                    <span className="xs:hidden">השכלה</span>
+                  </TabsTrigger>
+
+                  <TabsTrigger
+                    value="family"
+                    className="flex items-center gap-1 px-2.5 py-2 sm:gap-2 sm:px-4 sm:py-2.5 rounded-lg text-xs sm:text-sm whitespace-nowrap data-[state=active]:bg-white data-[state=active]:shadow data-[state=active]:text-primary"
+                  >
+                    <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <span>משפחה</span>
+                  </TabsTrigger>
+
+                  <TabsTrigger
+                    value="photos"
+                    className="flex items-center gap-1 px-2.5 py-2 sm:gap-2 sm:px-4 sm:py-2.5 rounded-lg text-xs sm:text-sm whitespace-nowrap data-[state=active]:bg-white data-[state=active]:shadow data-[state=active]:text-primary"
+                  >
+                    <ImageIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <span>תמונות</span>
+                    {images.length > 0 && (
+                      <span className="text-xs bg-gray-200 text-gray-700 rounded-full px-1.5 py-0.5 ml-1 hidden sm:inline-block">
+                        {images.length}
+                      </span>
+                    )}
+                  </TabsTrigger>
+
+                  {questionnaire && (
+                    <TabsTrigger
+                      value="questionnaire"
+                      className="flex items-center gap-1 px-2.5 py-2 sm:gap-2 sm:px-4 sm:py-2.5 rounded-lg text-xs sm:text-sm whitespace-nowrap data-[state=active]:bg-white data-[state=active]:shadow data-[state=active]:text-primary"
+                    >
+                      <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <span>שאלון</span>
+                    </TabsTrigger>
+                  )}
+
+                  {viewMode === "matchmaker" && (
+                    <TabsTrigger
+                      value="sensitive"
+                      className="flex items-center gap-1 px-2.5 py-2 sm:gap-2 sm:px-4 sm:py-2.5 rounded-lg text-xs sm:text-sm whitespace-nowrap data-[state=active]:bg-white data-[state=active]:shadow data-[state=active]:text-amber-600 bg-amber-50/80 text-amber-700"
+                    >
+                      <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <span className="hidden xs:inline">מידע נוסף</span>
+                      <span className="xs:hidden">מידע</span>
+                    </TabsTrigger>
+                  )}
+                </TabsList>
+              </div>
+            </ScrollArea>
+          </div>
+
+          {/* About Tab */}
+          <TabsContent
+            value="about"
+            className="mt-2 space-y-6 sm:space-y-8 focus:outline-none"
+          >
+            {/* Basic Description */}
+            <div className="rounded-xl sm:rounded-2xl p-4 sm:p-6 bg-gradient-to-br from-blue-50 to-blue-50/20 border border-blue-100/50 shadow-sm">
+              <SectionHeader
+                icon={User}
+                title="אודות"
+                iconColor="text-blue-600"
+              />
+              {profile.about ? (
+                <p className="text-gray-700 whitespace-pre-wrap text-sm sm:text-base md:text-lg leading-relaxed">
+                  {profile.about}
+                </p>
+              ) : (
+                <EmptyState icon={User} message="לא הוזן תיאור" />
+              )}
+            </div>
+
+            {/* Hobbies */}
+            <div className="rounded-xl sm:rounded-2xl p-4 sm:p-6 bg-gradient-to-br from-pink-50 to-pink-50/20 border border-pink-100/50 shadow-sm">
+              <SectionHeader
+                icon={Heart}
+                title="תחביבים"
+                iconColor="text-pink-600"
+              />
+              {profile.hobbies ? (
+                <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-2 sm:mt-3">
+                  {profile.hobbies.split(",").map((hobby, index) => (
+                    <Badge
+                      key={index}
+                      className="px-2 py-1 sm:px-3 sm:py-1.5 bg-white text-pink-700 border border-pink-200 hover:bg-pink-50 transition-colors text-xs sm:text-sm"
+                    >
+                      {hobby.trim()}
+                    </Badge>
+                  ))}
+                </div>
+              ) : (
+                <EmptyState icon={Heart} message="לא הוזנו תחביבים" />
+              )}
+            </div>
+
+            {/* Languages */}
+            <div className="rounded-xl sm:rounded-2xl p-4 sm:p-6 bg-gradient-to-br from-green-50 to-green-50/20 border border-green-100/50 shadow-sm">
+              <SectionHeader
+                icon={Languages}
+                title="שפות"
+                iconColor="text-green-600"
+              />
+              <div className="space-y-3 sm:space-y-4 mt-2 sm:mt-3">
+                {/* Native Language */}
+                <div className="bg-white rounded-lg sm:rounded-xl shadow-sm p-3 sm:p-4 border border-green-100/80">
+                  <p className="text-xs sm:text-sm font-medium text-green-700 mb-1 sm:mb-2">
+                    שפת אם
+                  </p>
+                  <p className="text-base sm:text-lg md:text-xl font-medium text-gray-800">
+                    {profile.nativeLanguage || "-"}
+                  </p>
+                </div>
+
+                {/* Additional Languages */}
+                {profile.additionalLanguages &&
+                profile.additionalLanguages.length > 0 ? (
+                  <div className="bg-white rounded-lg sm:rounded-xl shadow-sm p-3 sm:p-4 border border-green-100/80">
+                    <p className="text-xs sm:text-sm font-medium text-green-700 mb-1 sm:mb-2">
+                      שפות נוספות
+                    </p>
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-1">
+                      {profile.additionalLanguages.map((lang) => (
+                        <Badge
+                          key={lang}
+                          className="px-2 py-1 sm:px-3 sm:py-1.5 bg-green-50 text-green-700 border border-green-200 text-xs sm:text-sm"
+                        >
+                          {lang}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-white/80 rounded-lg sm:rounded-xl p-3 sm:p-4 text-center text-xs sm:text-sm text-gray-500 border border-gray-100">
+                    לא הוזנו שפות נוספות
+                  </div>
+                )}
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Education & Employment Tab */}
+          <TabsContent
+            value="education"
+            className="mt-2 space-y-6 sm:space-y-8 focus:outline-none"
+          >
+            <div className="rounded-xl sm:rounded-2xl bg-white border border-indigo-100 shadow-sm overflow-hidden">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
+                {/* Education */}
+                <div className="p-4 sm:p-6 border-b md:border-b-0 md:border-l border-indigo-100 bg-gradient-to-br from-indigo-50 to-indigo-50/10">
+                  <SectionHeader
+                    icon={GraduationCap}
+                    title="השכלה"
+                    iconColor="text-indigo-600"
+                  />
+
+                  <div className="mt-3 sm:mt-4 space-y-4 sm:space-y-6">
+                    <div className="bg-white rounded-lg sm:rounded-xl shadow-sm p-3 sm:p-5 border border-indigo-100">
+                      <div className="flex items-start gap-3 sm:gap-4">
+                        <div className="p-2 sm:p-3 rounded-full bg-indigo-100 text-indigo-600">
+                          <GraduationCap className="w-4 h-4 sm:w-6 sm:h-6" />
+                        </div>
+                        <div>
+                          <p className="text-xs sm:text-sm font-medium text-indigo-600 mb-0.5 sm:mb-1">
+                            רמת השכלה
+                          </p>
+                          <p className="text-base sm:text-lg md:text-xl font-medium text-gray-800">
+                            {profile.education || "לא צוין"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Employment */}
+                <div className="p-4 sm:p-6 bg-gradient-to-br from-purple-50 to-purple-50/10">
+                  <SectionHeader
+                    icon={Briefcase}
+                    title="תעסוקה"
+                    iconColor="text-purple-600"
+                  />
+
+                  <div className="mt-3 sm:mt-4 space-y-4 sm:space-y-6">
+                    <div className="bg-white rounded-lg sm:rounded-xl shadow-sm p-3 sm:p-5 border border-purple-100">
+                      <div className="flex items-start gap-3 sm:gap-4">
+                        <div className="p-2 sm:p-3 rounded-full bg-purple-100 text-purple-600">
+                          <Briefcase className="w-4 h-4 sm:w-6 sm:h-6" />
+                        </div>
+                        <div>
+                          <p className="text-xs sm:text-sm font-medium text-purple-600 mb-0.5 sm:mb-1">
+                            עיסוק נוכחי
+                          </p>
+                          <p className="text-base sm:text-lg md:text-xl font-medium text-gray-800">
+                            {profile.occupation || "לא צוין"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Family Tab */}
+          <TabsContent value="family" className="mt-2 focus:outline-none">
+            <div className="rounded-xl sm:rounded-2xl p-4 sm:p-6 bg-gradient-to-br from-purple-50 to-purple-50/20 border border-purple-100/50 shadow-sm">
+              <SectionHeader
+                icon={Users}
+                title="מידע משפחתי"
+                iconColor="text-purple-600"
+              />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-5 mt-3 sm:mt-4">
+                {/* Parent Status */}
+                <div className="bg-white rounded-lg sm:rounded-xl shadow-sm p-3 sm:p-5 border border-purple-100 transition-all hover:shadow-md">
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <div className="p-2 sm:p-3 rounded-full bg-purple-100 text-purple-600">
+                      <Users className="w-4 h-4 sm:w-6 sm:h-6" />
+                    </div>
+                    <div>
+                      <p className="text-xs sm:text-sm font-medium text-purple-600 mb-0.5 sm:mb-1">
+                        מצב הורים
+                      </p>
+                      <p className="text-base sm:text-lg md:text-xl font-medium text-gray-800">
+                        {profile.parentStatus || "לא צוין"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Siblings Count */}
+                <div className="bg-white rounded-lg sm:rounded-xl shadow-sm p-3 sm:p-5 border border-purple-100 transition-all hover:shadow-md">
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <div className="p-2 sm:p-3 rounded-full bg-purple-100 text-purple-600">
+                      <Users className="w-4 h-4 sm:w-6 sm:h-6" />
+                    </div>
+                    <div>
+                      <p className="text-xs sm:text-sm font-medium text-purple-600 mb-0.5 sm:mb-1">
+                        מספר אחים/אחיות
+                      </p>
+                      <p className="text-base sm:text-lg md:text-xl font-medium text-gray-800">
+                        {profile.siblings ?? "לא צוין"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Family Position */}
+                <div className="bg-white rounded-lg sm:rounded-xl shadow-sm p-3 sm:p-5 border border-purple-100 transition-all hover:shadow-md">
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <div className="p-2 sm:p-3 rounded-full bg-purple-100 text-purple-600">
+                      <Users className="w-4 h-4 sm:w-6 sm:h-6" />
+                    </div>
+                    <div>
+                      <p className="text-xs sm:text-sm font-medium text-purple-600 mb-0.5 sm:mb-1">
+                        מיקום במשפחה
+                      </p>
+                      <p className="text-base sm:text-lg md:text-xl font-medium text-gray-800">
+                        {profile.position ?? "לא צוין"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Photos Tab */}
+          <TabsContent value="photos" className="mt-2 focus:outline-none">
+            <div className="rounded-xl sm:rounded-2xl p-4 sm:p-6 bg-gradient-to-br from-gray-50 to-white border border-gray-200/50 shadow-sm">
+              <SectionHeader icon={ImageIcon} title="גלריית תמונות" />
+
+              {images.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 mt-3 sm:mt-4">
+                  {images.map((image, index) => (
+                    <div
+                      key={image.id}
+                      className="relative aspect-square rounded-lg sm:rounded-xl overflow-hidden cursor-pointer group shadow-sm border border-gray-100"
+                      onClick={() => handleImageClick(index)}
+                    >
+                      <Image
+                        src={image.url}
+                        alt={`תמונת פרופיל ${index + 1}`}
+                        fill
+                        className="object-cover transition-transform duration-500 group-hover:scale-110"
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      {image.isMain && (
+                        <div className="absolute top-1 sm:top-2 right-1 sm:right-2">
+                          <Badge className="bg-amber-100 text-amber-800 border border-amber-200 shadow-sm text-xs">
+                            <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1 fill-amber-500 text-amber-500" />
+                            ראשי
+                          </Badge>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <EmptyState icon={ImageIcon} message="לא הועלו תמונות" />
+              )}
+            </div>
+          </TabsContent>
+
+          {/* Questionnaire Tab */}
+          {questionnaire && (
+            <TabsContent
+              value="questionnaire"
+              className="mt-2 focus:outline-none"
+            >
+              <div className="space-y-4 sm:space-y-6">
+                {/* Questionnaire Status */}
+                <div className="rounded-lg sm:rounded-xl p-3 sm:p-4 bg-white border shadow-sm flex items-center justify-between">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    {questionnaire.completed ? (
+                      <div className="p-1.5 sm:p-2 rounded-full bg-green-100 text-green-600">
+                        <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+                      </div>
+                    ) : (
+                      <div className="p-1.5 sm:p-2 rounded-full bg-blue-100 text-blue-600">
+                        <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
+                      </div>
+                    )}
+                    <div>
+                      <h4 className="text-sm sm:text-base font-medium text-gray-900">
+                        {questionnaire.completed
+                          ? "שאלון הושלם"
+                          : "שאלון בתהליך"}
+                      </h4>
+                      <p className="text-xs sm:text-sm text-gray-500">
+                        עודכן לאחרונה:{" "}
+                        {new Date(questionnaire.lastSaved).toLocaleDateString(
+                          "he-IL"
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-xs sm:text-sm text-gray-500">
+                    {`${
+                      questionnaire.worldsCompleted?.length || 0
+                    }/5 עולמות הושלמו`}
+                  </div>
+                </div>
+
+                {/* Questionnaire Content by World */}
+                {Object.entries(
+                  questionnaire.formattedAnswers || {
+                    values: [],
+                    personality: [],
+                    relationship: [],
+                    partner: [],
+                    religion: [],
+                  }
+                ).map(([world, answers]) => {
+                  if (answers.length === 0) return null;
+                  const worldConfig = WORLDS[world as keyof typeof WORLDS];
+
+                  return (
+                    <div
+                      key={world}
+                      className={cn(
+                        "rounded-lg sm:rounded-2xl p-4 sm:p-6 border shadow-sm transition-shadow hover:shadow-md",
+                        world === "values" &&
+                          "bg-gradient-to-br from-pink-50 to-pink-50/20 border-pink-100/50",
+                        world === "personality" &&
+                          "bg-gradient-to-br from-blue-50 to-blue-50/20 border-blue-100/50",
+                        world === "relationship" &&
+                          "bg-gradient-to-br from-purple-50 to-purple-50/20 border-purple-100/50",
+                        world === "religion" &&
+                          "bg-gradient-to-br from-indigo-50 to-indigo-50/20 border-indigo-100/50",
+                        world === "partner" &&
+                          "bg-gradient-to-br from-red-50 to-red-50/20 border-red-100/50"
+                      )}
+                    >
+                      <div className="flex items-center justify-between mb-4 sm:mb-6">
+                        <h3 className="text-base sm:text-xl font-semibold flex items-center gap-1.5 sm:gap-2">
+                          {worldConfig && (
+                            <div
+                              className={cn(
+                                "p-1.5 sm:p-2 rounded-full",
+                                worldConfig.color.replace("text", "bg") + "/10"
+                              )}
+                            >
+                              <worldConfig.icon
+                                className={cn(
+                                  "h-4 w-4 sm:h-5 sm:w-5",
+                                  worldConfig.color
+                                )}
+                              />
+                            </div>
+                          )}
+                          {worldConfig?.title || world}
+                        </h3>
+
+                        <Badge
+                          variant={
+                            questionnaire[
+                              `${world}Completed` as keyof QuestionnaireResponse
+                            ]
+                              ? "success"
+                              : "outline"
+                          }
+                          className={cn(
+                            "flex items-center gap-1 text-xs",
+                            questionnaire[
+                              `${world}Completed` as keyof QuestionnaireResponse
+                            ] && "bg-green-100 text-green-800 border-0"
+                          )}
+                        >
+                          {questionnaire[
+                            `${world}Completed` as keyof QuestionnaireResponse
+                          ] ? (
+                            <>
+                              <CheckCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                              הושלם
+                            </>
+                          ) : (
+                            <>
+                              <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                              בתהליך
+                            </>
+                          )}
+                        </Badge>
+                      </div>
+
+                      <div className="grid gap-3 sm:gap-4">
+                        {answers
+                          .filter(
+                            (answer) =>
+                              viewMode === "matchmaker" ||
+                              answer.isVisible !== false
+                          )
+                          .map((answer) => (
+                            <div
+                              key={answer.questionId}
+                              className={cn(
+                                "bg-white rounded-lg sm:rounded-xl p-3 sm:p-5 shadow-sm border transition-shadow hover:shadow-md",
+                                world === "values" && "border-pink-100",
+                                world === "personality" && "border-blue-100",
+                                world === "relationship" && "border-purple-100",
+                                world === "religion" && "border-indigo-100",
+                                world === "partner" && "border-red-100"
+                              )}
+                            >
+                              <div className="flex justify-between items-start mb-2 sm:mb-3">
+                                <p className="text-xs sm:text-sm font-medium text-gray-700 flex-1">
+                                  {answer.question}
+                                </p>
+                                {answer.isVisible ? (
+                                  <Badge
+                                    variant="outline"
+                                    className="bg-primary/5 text-primary border-primary/20 text-xs py-0.5 px-1.5"
+                                  >
+                                    <Eye className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1" />
+                                    מוצג
+                                  </Badge>
+                                ) : (
+                                  <Badge
+                                    variant="outline"
+                                    className="bg-gray-100 text-gray-500 border-gray-200 text-xs py-0.5 px-1.5"
+                                  >
+                                    <EyeOff className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1" />
+                                    מוסתר
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="bg-gray-50 rounded-md sm:rounded-lg p-2.5 sm:p-4 mb-1.5 sm:mb-2">
+                                <p className="text-sm sm:text-base md:text-lg font-medium text-gray-800">
+                                  {answer.displayText}
+                                </p>
+                              </div>
+                              <div className="flex justify-end">
+                                <p className="text-xs text-gray-400 flex items-center">
+                                  <Calendar className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1" />
+                                  {new Date(
+                                    answer.answeredAt
+                                  ).toLocaleDateString("he-IL")}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </TabsContent>
+          )}
+
+          {/* Sensitive Information Tab (Matchmakers Only) */}
+          {viewMode === "matchmaker" && (
+            <TabsContent value="sensitive" className="mt-2 focus:outline-none">
+              <SensitiveInfo>
+                {/* References */}
+                {profile.referenceName1 || profile.referenceName2 ? (
+                  <div className="space-y-3 sm:space-y-4 mb-5 sm:mb-8">
+                    <h3 className="text-base sm:text-xl font-semibold text-amber-800 flex items-center gap-1.5 sm:gap-2">
+                      <Phone className="w-4 h-4 sm:w-5 sm:h-5" />
+                      ממליצים
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                      {profile.referenceName1 && (
+                        <div className="p-3 sm:p-5 bg-white rounded-lg sm:rounded-xl shadow-sm border border-amber-200">
+                          <h4 className="font-medium mb-2 sm:mb-3 text-xs sm:text-sm text-amber-700">
+                            ממליץ/ה 1
+                          </h4>
+                          <div className="space-y-2 sm:space-y-3">
+                            <p className="flex items-center gap-1.5 sm:gap-2">
+                              <div className="p-1.5 sm:p-2 rounded-full bg-amber-100">
+                                <User className="w-3 h-3 sm:w-4 sm:h-4 text-amber-700" />
+                              </div>
+                              <span className="font-medium text-sm sm:text-base">
+                                {profile.referenceName1}
+                              </span>
+                            </p>
+                            <p className="flex items-center gap-1.5 sm:gap-2">
+                              <div className="p-1.5 sm:p-2 rounded-full bg-amber-100">
+                                <Phone className="w-3 h-3 sm:w-4 sm:h-4 text-amber-700" />
+                              </div>
+                              <span
+                                dir="ltr"
+                                className="font-medium text-sm sm:text-base"
+                              >
+                                {profile.referencePhone1}
+                              </span>
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {profile.referenceName2 && (
+                        <div className="p-3 sm:p-5 bg-white rounded-lg sm:rounded-xl shadow-sm border border-amber-200">
+                          <h4 className="font-medium mb-2 sm:mb-3 text-xs sm:text-sm text-amber-700">
+                            ממליץ/ה 2
+                          </h4>
+                          <div className="space-y-2 sm:space-y-3">
+                            <p className="flex items-center gap-1.5 sm:gap-2">
+                              <div className="p-1.5 sm:p-2 rounded-full bg-amber-100">
+                                <User className="w-3 h-3 sm:w-4 sm:h-4 text-amber-700" />
+                              </div>
+                              <span className="font-medium text-sm sm:text-base">
+                                {profile.referenceName2}
+                              </span>
+                            </p>
+                            <p className="flex items-center gap-1.5 sm:gap-2">
+                              <div className="p-1.5 sm:p-2 rounded-full bg-amber-100">
+                                <Phone className="w-3 h-3 sm:w-4 sm:h-4 text-amber-700" />
+                              </div>
+                              <span
+                                dir="ltr"
+                                className="font-medium text-sm sm:text-base"
+                              >
+                                {profile.referencePhone2}
+                              </span>
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mb-5 sm:mb-8">
+                    <h3 className="text-base sm:text-xl font-semibold text-amber-800 flex items-center gap-1.5 sm:gap-2 mb-3 sm:mb-4">
+                      <Phone className="w-4 h-4 sm:w-5 sm:h-5" />
+                      ממליצים
+                    </h3>
+                    <EmptyState icon={Phone} message="לא הוזנו ממליצים" />
+                  </div>
+                )}
+
+                {/* Contact Preferences */}
+                <div className="mt-4 sm:mt-6 space-y-3 sm:space-y-4 mb-5 sm:mb-8">
+                  <h3 className="text-base sm:text-xl font-semibold text-amber-800 flex items-center gap-1.5 sm:gap-2">
+                    <User className="w-4 h-4 sm:w-5 sm:h-5" />
+                    העדפות יצירת קשר
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                    <div className="p-3 sm:p-5 bg-white rounded-lg sm:rounded-xl shadow-sm border border-amber-200">
+                      <div className="flex items-start gap-2 sm:gap-3">
+                        <div className="p-1.5 sm:p-2.5 rounded-full bg-amber-100 text-amber-700">
+                          <Phone className="w-3 h-3 sm:w-4 sm:h-4" />
+                        </div>
+                        <div>
+                          <p className="text-xs sm:text-sm font-medium text-amber-700 mb-0.5 sm:mb-1">
+                            אופן יצירת קשר מועדף
+                          </p>
+                          <p className="text-sm sm:text-base md:text-lg font-medium">
+                            {profile.contactPreference === "direct"
+                              ? "ישירות"
+                              : profile.contactPreference === "matchmaker"
+                              ? "דרך השדכן/ית"
+                              : profile.contactPreference === "both"
+                              ? "שתי האפשרויות"
+                              : "לא צוין"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-3 sm:p-5 bg-white rounded-lg sm:rounded-xl shadow-sm border border-amber-200">
+                      <div className="flex items-start gap-2 sm:gap-3">
+                        <div className="p-1.5 sm:p-2.5 rounded-full bg-amber-100 text-amber-700">
+                          <User className="w-3 h-3 sm:w-4 sm:h-4" />
+                        </div>
+                        <div>
+                          <p className="text-xs sm:text-sm font-medium text-amber-700 mb-0.5 sm:mb-1">
+                            העדפת מגדר שדכן/ית
+                          </p>
+                          <p className="text-sm sm:text-base md:text-lg font-medium">
+                            {profile.preferredMatchmakerGender === "MALE"
+                              ? "שדכן"
+                              : profile.preferredMatchmakerGender === "FEMALE"
+                              ? "שדכנית"
+                              : "לא צוין"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Matching Notes */}
+                {profile.matchingNotes ? (
+                  <div className="mt-4 sm:mt-6 space-y-3 sm:space-y-4">
+                    <h3 className="text-base sm:text-xl font-semibold text-amber-800 flex items-center gap-1.5 sm:gap-2">
+                      <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
+                      הערות לשדכנים
+                    </h3>
+                    <div className="p-3 sm:p-5 bg-white rounded-lg sm:rounded-xl shadow-sm border border-amber-200">
+                      <p className="whitespace-pre-wrap text-sm sm:text-base md:text-lg font-medium">
+                        {profile.matchingNotes}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mt-4 sm:mt-6">
+                    <h3 className="text-base sm:text-xl font-semibold text-amber-800 flex items-center gap-1.5 sm:gap-2 mb-3 sm:mb-4">
+                      <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
+                      הערות לשדכנים
+                    </h3>
+                    <EmptyState icon={FileText} message="לא הוזנו הערות" />
+                  </div>
+                )}
+              </SensitiveInfo>
+            </TabsContent>
+          )}
+        </Tabs>
+      </div>
+
+      {/* Image Viewer Dialog */}
+      {selectedImageIndex !== null && (
+        <Dialog
+          open={selectedImageIndex !== null}
+          onOpenChange={() => setSelectedImageIndex(null)}
+        >
+          <DialogContent className="max-w-4xl p-0 bg-black/95 backdrop-blur-sm border-none shadow-2xl overflow-hidden">
+            <div className="p-2 sm:p-4 text-white">
+              <DialogTitle className="text-center text-base sm:text-xl font-semibold">
+                גלריית תמונות
+              </DialogTitle>
+            </div>
+            <div className="relative h-[60vh] sm:h-[70vh] max-h-[600px] w-full overflow-hidden">
+              <Image
+                src={images[selectedImageIndex].url}
+                alt={`תמונת פרופיל ${selectedImageIndex + 1}`}
+                fill
+                className="object-contain"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 70vw"
+                priority
+              />
+
+              {/* Navigation Buttons */}
+              {selectedImageIndex > 0 && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40 text-white rounded-full h-8 w-8 sm:h-12 sm:w-12"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePreviousImage();
+                  }}
+                >
+                  <ChevronLeft className="h-4 w-4 sm:h-6 sm:w-6" />
+                </Button>
+              )}
+
+              {selectedImageIndex < images.length - 1 && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40 text-white rounded-full h-8 w-8 sm:h-12 sm:w-12"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleNextImage();
+                  }}
+                >
+                  <ChevronRight className="h-4 w-4 sm:h-6 sm:w-6" />
+                </Button>
+              )}
+
+              {/* Image Counter */}
+              <div className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 bg-black/50 px-3 sm:px-4 py-1 sm:py-2 rounded-full text-white text-xs sm:text-sm">
+                {selectedImageIndex + 1} / {images.length}
+              </div>
+            </div>
+
+            {/* Thumbnails */}
+            <div className="flex gap-1.5 sm:gap-2 p-2 sm:p-4 overflow-x-auto bg-black/90 justify-center">
+              {images.map((image, index) => (
+                <div
+                  key={image.id}
+                  className={cn(
+                    "relative w-12 h-12 sm:w-16 sm:h-16 rounded-md sm:rounded-lg overflow-hidden cursor-pointer shadow-sm border-2 transition-all",
+                    selectedImageIndex === index
+                      ? "ring-2 ring-primary border-primary transform scale-110"
+                      : "border-transparent hover:border-gray-200 opacity-70 hover:opacity-100"
+                  )}
+                  onClick={() => setSelectedImageIndex(index)}
+                >
+                  <Image
+                    src={image.url}
+                    alt={`תמונה ${index + 1}`}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 640px) 48px, 64px"
+                  />
+                </div>
+              ))}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+    </Card>
+  );
+};
+
+export default ProfileCard;
+
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\shared\shared\profile\utils.ts:
+==================================================
+// src/components/shared/profile/utils.ts
+import type { UserProfile } from "@/types/next-auth";
+
+export const calculateAge = (birthDate: Date): number => {
+  const today = new Date();
+  const birth = new Date(birthDate);
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age;
+};
+
+export const formatProfileData = (profile: UserProfile) => {
+  return {
+    ...profile,
+    age: calculateAge(new Date(profile.birthDate)),
+    // Add any other formatting needed
+  };
+};
+
+export const validateProfileData = (data: Partial<UserProfile>) => {
+  const errors: Record<string, string> = {};
+  
+  // Add validation rules as needed
+  if (data.height && (data.height < 100 || data.height > 250)) {
+    errors.height = "גובה חייב להיות בין 100 ל-250 ס\"מ";
+  }
+  
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors
+  };
+};
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\shared\shared\profile\elements\MinimalCard.tsx:
+==================================================
+// src/components/shared/profile/elements/MinimalCard.tsx
+import React from "react";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { User, MapPin, Scroll, Heart } from "lucide-react";
+import Image from "next/image";
+import { calculateAge } from "../utils";
+import type { UserProfile, UserImage } from "@/types/next-auth";
+
+interface MinimalCardProps {
+  profile: UserProfile;
+  mainImage?: UserImage;
+  onClick?: () => void;
+  className?: string;
+}
+
+const MinimalCard: React.FC<MinimalCardProps> = ({
+  profile,
+  mainImage,
+  onClick,
+  className = "",
+}) => {
+  const age = calculateAge(new Date(profile.birthDate));
+
+  return (
+    <Card
+      onClick={onClick}
+      className={`relative overflow-hidden cursor-pointer hover:shadow-md transition-shadow ${className}`}
+    >
+      <div className="flex gap-4 p-4">
+        {/* תמונת פרופיל */}
+        <div className="relative w-24 h-24 rounded-lg overflow-hidden bg-gray-100">
+          {mainImage ? (
+            <Image
+              src={mainImage.url}
+              alt="תמונת פרופיל"
+              fill
+              className="object-cover"
+              sizes="96px"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <User className="w-8 h-8 text-gray-400" />
+            </div>
+          )}
+        </div>
+
+        {/* מידע בסיסי */}
+        <div className="flex-1 space-y-2">
+          <div>
+            <h3 className="text-lg font-medium">
+              {profile.user.firstName} {profile.user.lastName}
+            </h3>
+            <p className="text-sm text-gray-500">{age} שנים</p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {profile.city && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <MapPin className="w-3 h-3" />
+                {profile.city}
+              </Badge>
+            )}
+            {profile.religiousLevel && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <Scroll className="w-3 h-3" />
+                {profile.religiousLevel}
+              </Badge>
+            )}
+          </div>
+
+          {/* סטטוס זמינות */}
+          <div className="flex items-center gap-2 text-sm">
+            {profile.availabilityStatus === "AVAILABLE" ? (
+              <Badge variant="success" className="flex items-center gap-1">
+                <Heart className="w-3 h-3" />
+                פנוי/ה להצעות
+              </Badge>
+            ) : (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <Heart className="w-3 h-3" />
+                בתהליך הכרות
+              </Badge>
+            )}
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
+};
+
+export default MinimalCard;
+
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\shared\shared\profile\elements\StatsCard.tsx:
+==================================================
+import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
+
+interface StatsCardProps {
+  /**
+   * The icon to display in the card
+   */
+  icon: React.ElementType;
+
+  /**
+   * The title text to display
+   */
+  title: string;
+
+  /**
+   * The main value to display
+   */
+  value: string | number;
+
+  /**
+   * Optional progress value (0-100)
+   */
+  progress?: number;
+
+  /**
+   * Optional trend information
+   */
+  trend?: {
+    value: number;
+    label: string;
+    isPositive?: boolean;
+  };
+
+  /**
+   * Visual variant of the card
+   */
+  variant?: "default" | "success" | "warning" | "destructive";
+
+  /**
+   * Additional CSS classes
+   */
+  className?: string;
+}
+
+const StatsCard: React.FC<StatsCardProps> = ({
+  icon: Icon,
+  title,
+  value,
+  progress,
+  trend,
+  variant = "default",
+  className,
+}) => {
+  // Determine variant-specific background color
+  const getVariantStyles = () => {
+    switch (variant) {
+      case "success":
+        return "bg-emerald-50 dark:bg-emerald-900/20";
+      case "warning":
+        return "bg-amber-50 dark:bg-amber-900/20";
+      case "destructive":
+        return "bg-red-50 dark:bg-red-900/20";
+      default:
+        return "bg-card";
+    }
+  };
+
+  // Special handling for availability status
+  const isAvailabilityStatus = title === "סטטוס פניות";
+  const isAvailable = typeof value === 'string' && value.toLowerCase() === 'available';
+
+  // Render the value with special handling for availability status
+  const renderValue = () => {
+    if (isAvailabilityStatus) {
+      return (
+        <div className="mt-1">
+          <span className={cn(
+            "inline-flex px-3 py-1 rounded-full text-sm font-semibold tracking-wide",
+            isAvailable 
+              ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300"
+              : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
+          )}>
+            {value}
+          </span>
+        </div>
+      );
+    }
+    return <h3 className="text-2xl font-semibold">{value}</h3>;
+  };
+
+  return (
+    <Card
+      className={cn(
+        "hover:shadow-md transition-shadow",
+        getVariantStyles(),
+        className
+      )}
+    >
+      <CardContent className="p-6">
+        {/* Header Section */}
+        <div className="flex items-center space-x-4 rtl:space-x-reverse">
+          <div className="p-2 bg-primary/10 rounded-full">
+            <Icon className="w-6 h-6 text-primary" />
+          </div>
+          <div className="flex-1 space-y-1">
+            <p className="text-sm text-muted-foreground">{title}</p>
+            {renderValue()}
+          </div>
+        </div>
+
+        {/* Progress Bar Section */}
+        {progress !== undefined && (
+          <div className="mt-4 space-y-2">
+            <Progress 
+              value={progress} 
+              className="h-2"
+              aria-label={`${title} progress: ${progress}%`}
+            />
+            <p className="text-sm text-muted-foreground text-right">
+              {progress}%
+            </p>
+          </div>
+        )}
+
+        {/* Trend Section */}
+        {trend && (
+          <div className="mt-4 flex items-center">
+            <span
+              className={cn(
+                "text-sm font-medium",
+                trend.isPositive ? "text-emerald-600" : "text-red-600"
+              )}
+            >
+              {trend.isPositive ? "+" : "-"}
+              {trend.value}%
+            </span>
+            <span className="text-sm text-muted-foreground mr-2">
+              {trend.label}
+            </span>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+// Default export
+export default StatsCard;
+
+// Named exports for specific use cases
+export type { StatsCardProps };
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\shared\shared\profile\elements\VisibilityControl.tsx:
+==================================================
+import React from "react";
+import { Eye, EyeOff } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+
+interface VisibilityControlProps {
+  /**
+   * Current visibility state
+   */
+  isVisible: boolean;
+
+  /**
+   * Callback when visibility changes
+   */
+  onChange: (isVisible: boolean) => void;
+
+  /**
+   * Optional class name for additional styling
+   */
+  className?: string;
+
+  /**
+   * Optional disabled state
+   */
+  disabled?: boolean;
+
+  /**
+   * Optional custom tooltip text
+   */
+  tooltipText?: {
+    visible?: string;
+    hidden?: string;
+    action?: string;
+  };
+}
+
+const VisibilityControl: React.FC<VisibilityControlProps> = ({
+  isVisible,
+  onChange,
+  className,
+  disabled = false,
+  tooltipText = {
+    visible: "תשובה זו גלויה למועמדים",
+    hidden: "תשובה זו מוסתרת מהמועמדים",
+    action: "לחץ כדי",
+  },
+}) => {
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-2 bg-secondary/20 p-2 rounded-md",
+        disabled && "opacity-50 cursor-not-allowed",
+        className
+      )}
+    >
+      {/* Icon */}
+      {isVisible ? (
+        <Eye 
+          className="h-4 w-4 text-primary" 
+          aria-hidden="true"
+        />
+      ) : (
+        <EyeOff 
+          className="h-4 w-4 text-muted-foreground" 
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Switch with Tooltip */}
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="relative">
+              <Switch
+                checked={isVisible}
+                onCheckedChange={onChange}
+                disabled={disabled}
+                className={cn(
+                  "data-[state=checked]:bg-primary",
+                  disabled && "cursor-not-allowed"
+                )}
+                aria-label={`Toggle visibility: currently ${isVisible ? 'visible' : 'hidden'}`}
+              />
+              {/* Visually hidden text for screen readers */}
+              <span className="sr-only">
+                {isVisible ? "הסתר תוכן" : "הצג תוכן"}
+              </span>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent 
+            side="left" 
+            className="max-w-[200px]"
+            dir="rtl"
+          >
+            <p>
+              {isVisible ? tooltipText.visible : tooltipText.hidden}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {tooltipText.action} {isVisible ? "להסתיר" : "להציג"} תשובה זו
+            </p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  );
+};
+
+// Default export
+export default VisibilityControl;
+
+// Named exports for types
+export type { VisibilityControlProps };
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\shared\shared\profile\sections\ExtendedProfileSection.tsx:
+==================================================
+"use client";
+import React, { useState, useEffect } from "react";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardDescription,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { ExtendedProfileData } from "@/types/profile-extended";
+import { UserProfile } from "@/types/next-auth";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import { Pencil, Save, X } from "lucide-react";
+
+interface ExtendedProfileSectionProps {
+  profile: (UserProfile & { extendedData?: ExtendedProfileData }) | null;
+  isEditing: boolean;
+  viewOnly?: boolean;
+  setIsEditing: (value: boolean) => void;
+  onSave: (
+    data: Partial<UserProfile & { extendedData: ExtendedProfileData }>
+  ) => void;
+}
+
+type NestedChangeValue =
+  | string
+  | number
+  | boolean
+  | string[]
+  | { [key: string]: string }
+  | { location: string; proximity: "קרוב למשפחה" | "קרוב לקהילה" | "גמיש" };
+
+const ExtendedProfileSection: React.FC<ExtendedProfileSectionProps> = ({
+  profile,
+  isEditing,
+  viewOnly = false,
+  setIsEditing,
+  onSave,
+}) => {
+  const [formData, setFormData] = useState<ExtendedProfileData>({});
+  const [initialData, setInitialData] = useState<ExtendedProfileData>({});
+
+  useEffect(() => {
+    if (profile?.extendedData) {
+      setFormData(profile.extendedData);
+      setInitialData(profile.extendedData);
+    }
+  }, [profile]);
+
+  const handleChange = (
+    field: keyof ExtendedProfileData,
+    value: string | string[] | number
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleNestedChange = (
+    category: keyof ExtendedProfileData,
+    field: string,
+    value: NestedChangeValue
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        [field]: value,
+      },
+    }));
+  };
+
+  const handleSave = () => {
+    if (profile) {
+      onSave({
+        ...profile,
+        extendedData: formData,
+      });
+    }
+    setIsEditing(false);
+    setInitialData(formData);
+  };
+
+  const handleCancel = () => {
+    setFormData(initialData);
+    setIsEditing(false);
+  };
+
+  return (
+    <div className="relative min-h-screen bg-background">
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+        <div className="container mx-auto py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold">פרופיל מורחב</h1>
+              <p className="text-sm text-muted-foreground">
+                פרטים נוספים להתאמה מיטבית
+              </p>
+            </div>
+            {!viewOnly && (
+              <div className="flex gap-2">
+                {!isEditing ? (
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsEditing(true)}
+                    className="shadow-sm hover:shadow-md transition-shadow"
+                  >
+                    <Pencil className="w-4 h-4 ml-2" />
+                    עריכה
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                      variant="outline"
+                      onClick={handleCancel}
+                      className="shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      <X className="w-4 h-4 ml-2" />
+                      ביטול
+                    </Button>
+                    <Button
+                      variant="default"
+                      onClick={handleSave}
+                      className="shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      <Save className="w-4 h-4 ml-2" />
+                      שמירה
+                    </Button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto py-6 space-y-6">
+        {/* תכונות אישיות */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl font-bold">תכונות אישיות</CardTitle>
+            <CardDescription>אפיון אישיותי ודפוסי התנהגות</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <Label>מזג</Label>
+                <Select
+                  value={formData.personalityTraits?.temperament}
+                  onValueChange={(value) =>
+                    handleNestedChange(
+                      "personalityTraits",
+                      "temperament",
+                      value
+                    )
+                  }
+                  disabled={!isEditing}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="בחר מזג" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="מופנם">מופנם</SelectItem>
+                    <SelectItem value="מעורב">מעורב</SelectItem>
+                    <SelectItem value="חברותי">חברותי</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>סגנון קבלת החלטות</Label>
+                <Select
+                  value={formData.personalityTraits?.decisionMaking}
+                  onValueChange={(value) =>
+                    handleNestedChange(
+                      "personalityTraits",
+                      "decisionMaking",
+                      value
+                    )
+                  }
+                  disabled={!isEditing}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="בחר סגנון" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ספונטני">ספונטני</SelectItem>
+                    <SelectItem value="מתוכנן">מתוכנן</SelectItem>
+                    <SelectItem value="משולב">משולב</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>התמודדות עם לחץ</Label>
+                <Select
+                  value={formData.personalityTraits?.stressManagement}
+                  onValueChange={(value) =>
+                    handleNestedChange(
+                      "personalityTraits",
+                      "stressManagement",
+                      value
+                    )
+                  }
+                  disabled={!isEditing}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="בחר סגנון התמודדות" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="רגוע">רגוע</SelectItem>
+                    <SelectItem value="לחוץ">לחוץ</SelectItem>
+                    <SelectItem value="משתנה">משתנה</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>סגנון תקשורת</Label>
+                <Select
+                  value={formData.personalityTraits?.communicationStyle}
+                  onValueChange={(value) =>
+                    handleNestedChange(
+                      "personalityTraits",
+                      "communicationStyle",
+                      value
+                    )
+                  }
+                  disabled={!isEditing}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="בחר סגנון תקשורת" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ישיר">ישיר</SelectItem>
+                    <SelectItem value="עקיף">עקיף</SelectItem>
+                    <SelectItem value="דיפלומטי">דיפלומטי</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* פרופיל רוחני */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl font-bold">פרופיל רוחני</CardTitle>
+            <CardDescription>השקפת עולם והשתייכות קהילתית</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <Label>נוסח תפילה</Label>
+                <Select
+                  value={formData.spiritualProfile?.prayerStyle}
+                  onValueChange={(value) =>
+                    handleNestedChange("spiritualProfile", "prayerStyle", value)
+                  }
+                  disabled={!isEditing}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="בחר נוסח" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ספרד">ספרד</SelectItem>
+                    <SelectItem value="אשכנז">אשכנז</SelectItem>
+                    <SelectItem value="תימני">תימני</SelectItem>
+                    <SelectItem value="אחר">אחר</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>גישה ללימודי חול</Label>
+                <Select
+                  value={formData.spiritualProfile?.secularStudiesAttitude}
+                  onValueChange={(value) =>
+                    handleNestedChange(
+                      "spiritualProfile",
+                      "secularStudiesAttitude",
+                      value
+                    )
+                  }
+                  disabled={!isEditing}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="בחר גישה" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="חיובי">חיובי</SelectItem>
+                    <SelectItem value="שלילי">שלילי</SelectItem>
+                    <SelectItem value="מסויג">מסויג</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>רמת הקפדה בצניעות</Label>
+                <Select
+                  value={formData.spiritualProfile?.modestyLevel}
+                  onValueChange={(value) =>
+                    handleNestedChange(
+                      "spiritualProfile",
+                      "modestyLevel",
+                      value
+                    )
+                  }
+                  disabled={!isEditing}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="בחר רמת הקפדה" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="מחמיר">מחמיר</SelectItem>
+                    <SelectItem value="מקובל">מקובל</SelectItem>
+                    <SelectItem value="מודרני">מודרני</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>גישה לחינוך ילדים</Label>
+                <Textarea
+                  value={
+                    formData.spiritualProfile?.childrenEducationApproach || ""
+                  }
+                  onChange={(e) =>
+                    handleNestedChange(
+                      "spiritualProfile",
+                      "childrenEducationApproach",
+                      e.target.value
+                    )
+                  }
+                  disabled={!isEditing}
+                  className="mt-1"
+                  placeholder="תאר/י את גישתך לחינוך ילדים..."
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* רקע משפחתי */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl font-bold">רקע משפחתי</CardTitle>
+            <CardDescription>פרטים על המשפחה והתמיכה המשפחתית</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <Label>רמה רוחנית של ההורים</Label>
+                <Input
+                  value={formData.familyBackground?.parentsSpiritualLevel || ""}
+                  onChange={(e) =>
+                    handleNestedChange(
+                      "familyBackground",
+                      "parentsSpiritualLevel",
+                      e.target.value
+                    )
+                  }
+                  disabled={!isEditing}
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label>עיסוק האב</Label>
+                <Input
+                  value={
+                    formData.familyBackground?.parentsOccupations?.father || ""
+                  }
+                  onChange={(e) =>
+                    handleNestedChange(
+                      "familyBackground",
+                      "parentsOccupations",
+                      {
+                        ...formData.familyBackground?.parentsOccupations,
+                        father: e.target.value,
+                      }
+                    )
+                  }
+                  disabled={!isEditing}
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label>עיסוק האם</Label>
+                <Input
+                  value={
+                    formData.familyBackground?.parentsOccupations?.mother || ""
+                  }
+                  onChange={(e) =>
+                    handleNestedChange(
+                      "familyBackground",
+                      "parentsOccupations",
+                      {
+                        ...formData.familyBackground?.parentsOccupations,
+                        mother: e.target.value,
+                      }
+                    )
+                  }
+                  disabled={!isEditing}
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label>דינמיקה משפחתית</Label>
+                <Textarea
+                  value={formData.familyBackground?.familyDynamics || ""}
+                  onChange={(e) =>
+                    handleNestedChange(
+                      "familyBackground",
+                      "familyDynamics",
+                      e.target.value
+                    )
+                  }
+                  disabled={!isEditing}
+                  className="mt-1"
+                  placeholder="תאר/י את היחסים במשפחה..."
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* סגנון חיים */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl font-bold">סגנון חיים</CardTitle>
+            <CardDescription>העדפות ושאיפות לעתיד</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              <div>
+                <Label>שאיפות קריירה</Label>
+                <Textarea
+                  value={formData.lifestylePreferences?.careerAspiration || ""}
+                  onChange={(e) =>
+                    handleNestedChange(
+                      "lifestylePreferences",
+                      "careerAspiration",
+                      e.target.value
+                    )
+                  }
+                  disabled={!isEditing}
+                  className="mt-1"
+                  placeholder="תאר/י את שאיפותיך המקצועיות..."
+                />
+              </div>
+
+              <div>
+                <Label>תכניות לימודים עתידיות</Label>
+                <Textarea
+                  value={formData.lifestylePreferences?.futureStudyPlans || ""}
+                  onChange={(e) =>
+                    handleNestedChange(
+                      "lifestylePreferences",
+                      "futureStudyPlans",
+                      e.target.value
+                    )
+                  }
+                  disabled={!isEditing}
+                  className="mt-1"
+                  placeholder="תאר/י את תכניות הלימוד העתידיות שלך..."
+                />
+              </div>
+
+              <div>
+                <Label>העדפות מגורים</Label>
+                <Select
+                  value={
+                    formData.lifestylePreferences?.livingPreferences?.proximity
+                  }
+                  onValueChange={(value) =>
+                    handleNestedChange(
+                      "lifestylePreferences",
+                      "livingPreferences",
+                      {
+                        ...formData.lifestylePreferences?.livingPreferences,
+                        proximity: value,
+                      }
+                    )
+                  }
+                  disabled={!isEditing}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="בחר העדפת מגורים" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="קרוב למשפחה">קרוב למשפחה</SelectItem>
+                    <SelectItem value="קרוב לקהילה">קרוב לקהילה</SelectItem>
+                    <SelectItem value="גמיש">גמיש</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* בריאות ואורח חיים */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl font-bold">
+              בריאות ואורח חיים
+            </CardTitle>
+            <CardDescription>מידע רפואי והרגלי חיים</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <Label>מצב בריאותי</Label>
+                <Textarea
+                  value={formData.healthProfile?.generalHealth || ""}
+                  onChange={(e) =>
+                    handleNestedChange(
+                      "healthProfile",
+                      "generalHealth",
+                      e.target.value
+                    )
+                  }
+                  disabled={!isEditing}
+                  className="mt-1"
+                  placeholder="תאר/י את מצבך הבריאותי..."
+                />
+              </div>
+
+              <div>
+                <Label>הגבלות תזונתיות</Label>
+                <Input
+                  value={
+                    formData.healthProfile?.dietaryRestrictions?.join(", ") ||
+                    ""
+                  }
+                  onChange={(e) =>
+                    handleNestedChange(
+                      "healthProfile",
+                      "dietaryRestrictions",
+                      e.target.value.split(",").map((item) => item.trim())
+                    )
+                  }
+                  disabled={!isEditing}
+                  className="mt-1"
+                  placeholder="הפרד/י בפסיקים..."
+                />
+              </div>
+
+              <div>
+                <Label>פעילות גופנית</Label>
+                <Select
+                  value={formData.healthProfile?.physicalActivity}
+                  onValueChange={(value) =>
+                    handleNestedChange(
+                      "healthProfile",
+                      "physicalActivity",
+                      value
+                    )
+                  }
+                  disabled={!isEditing}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="בחר רמת פעילות" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="נמוכה">נמוכה</SelectItem>
+                    <SelectItem value="בינונית">בינונית</SelectItem>
+                    <SelectItem value="גבוהה">גבוהה</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* ערכים אישיים ומעורבות קהילתית */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl font-bold">
+              ערכים ומעורבות קהילתית
+            </CardTitle>
+            <CardDescription>ערכים אישיים ותרומה לקהילה</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              <div>
+                <Label>חשיבות כיבוד הורים (1-5)</Label>
+                <Slider
+                  value={[formData.personalValues?.parentalRespect || 3]}
+                  min={1}
+                  max={5}
+                  step={1}
+                  onValueChange={(value) =>
+                    handleNestedChange(
+                      "personalValues",
+                      "parentalRespect",
+                      value[0]
+                    )
+                  }
+                  disabled={!isEditing}
+                  className="mt-2"
+                />
+              </div>
+
+              <div>
+                <Label>התנדבות ומעורבות קהילתית</Label>
+                <Textarea
+                  value={formData.personalValues?.communityInvolvement || ""}
+                  onChange={(e) =>
+                    handleNestedChange(
+                      "personalValues",
+                      "communityInvolvement",
+                      e.target.value
+                    )
+                  }
+                  disabled={!isEditing}
+                  className="mt-1"
+                  placeholder="תאר/י את מעורבותך בקהילה..."
+                />
+              </div>
+              <div>
+                <Label>תחומי התנדבות מועדפים</Label>
+                <Select
+                  value={formData.personalValues?.volunteeringPreferences}
+                  onValueChange={(value) =>
+                    handleNestedChange(
+                      "personalValues",
+                      "volunteeringPreferences",
+                      value
+                    )
+                  }
+                  disabled={!isEditing}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="בחר תחום" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="חינוך">חינוך</SelectItem>
+                    <SelectItem value="בריאות">בריאות</SelectItem>
+                    <SelectItem value="רווחה">רווחה</SelectItem>
+                    <SelectItem value="קשישים">קשישים</SelectItem>
+                    <SelectItem value="נוער">נוער</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>גישה לניהול כספים</Label>
+                <Select
+                  value={formData.personalValues?.financialManagement}
+                  onValueChange={(value) =>
+                    handleNestedChange(
+                      "personalValues",
+                      "financialManagement",
+                      value
+                    )
+                  }
+                  disabled={!isEditing}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="בחר גישה" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="שמרני">שמרני</SelectItem>
+                    <SelectItem value="מאוזן">מאוזן</SelectItem>
+                    <SelectItem value="נועז">נועז</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* שאיפות וציפיות */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl font-bold">שאיפות וציפיות</CardTitle>
+            <CardDescription>מטרות אישיות וציפיות לעתיד</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <Label>מטרות לחמש השנים הקרובות</Label>
+                <Textarea
+                  value={formData.futureGoals?.join("\n") || ""}
+                  onChange={(e) =>
+                    handleChange("futureGoals", e.target.value.split("\n"))
+                  }
+                  disabled={!isEditing}
+                  className="mt-1"
+                  placeholder="רשום/י כל מטרה בשורה נפרדת..."
+                />
+              </div>
+
+              <div>
+                <Label>ציפיות מהזוגיות</Label>
+                <Textarea
+                  value={
+                    formData.lifestylePreferences?.relationshipExpectations ||
+                    ""
+                  }
+                  onChange={(e) =>
+                    handleNestedChange(
+                      "lifestylePreferences",
+                      "relationshipExpectations",
+                      e.target.value
+                    )
+                  }
+                  disabled={!isEditing}
+                  className="mt-1"
+                  placeholder="תאר/י את ציפיותיך מהזוגיות..."
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+export default ExtendedProfileSection;
+
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\shared\shared\profile\sections\PhotosSection.tsx:
+==================================================
+"use client";
+
+import React, { useRef, useState, useEffect } from "react";
+import Image from "next/image";
+import { cn } from "@/lib/utils";
+
+// UI Components
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+  DialogHeader,
+} from "@/components/ui/dialog";
+
+import { toast } from "sonner";
+
+// Icons
+import {
+  Camera,
+  Star,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+  Upload,
+  Trash2,
+} from "lucide-react";
+
+// Types
+import type { UserImage } from "@/types/next-auth";
+
+interface PhotosSectionProps {
+  images: UserImage[];
+  isUploading: boolean;
+  disabled?: boolean;
+  maxImages?: number;
+  onUpload: (file: File) => Promise<void>;
+  onSetMain: (imageId: string) => Promise<void>;
+  onDelete: (imageId: string) => Promise<void>;
+}
+
+const PhotosSection: React.FC<PhotosSectionProps> = ({
+  images,
+  isUploading,
+  disabled = false,
+  maxImages = 5,
+  onUpload,
+  onSetMain,
+  onDelete,
+}) => {
+  // Refs
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  // State
+  const [showImageViewer, setShowImageViewer] = useState(false);
+  const [selectedViewerIndex, setSelectedViewerIndex] = useState<number | null>(
+    null
+  );
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [imageToDelete, setImageToDelete] = useState<string | null>(null);
+  const [lastUploadedIndex, setLastUploadedIndex] = useState<number | null>(
+    null
+  );
+
+  // Effect to show newly uploaded image
+  useEffect(() => {
+    if (lastUploadedIndex !== null) {
+      setSelectedViewerIndex(lastUploadedIndex);
+      setShowImageViewer(true);
+      setLastUploadedIndex(null);
+    }
+  }, [lastUploadedIndex]);
+
+  // File handling functions
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ["image/jpeg", "image/png", "image/jpg"];
+    if (!validTypes.includes(file.type)) {
+      toast.error("סוג קובץ לא חוקי. ניתן להעלות רק תמונות מסוג JPG או PNG");
+      return;
+    }
+
+    // Validate file size (5MB limit)
+    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+    if (file.size > maxSize) {
+      toast.error("גודל הקובץ חייב להיות קטן מ-5MB");
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+      await onUpload(file);
+
+      // Set index to show the newly uploaded image
+      const newIndex = images.length;
+      setLastUploadedIndex(newIndex);
+
+      // Set as main if it's the first image
+      if (images.length === 0) {
+        const uploadedImage = images[0];
+        if (uploadedImage) {
+          await onSetMain(uploadedImage.id);
+        }
+      }
+
+      toast.success("התמונה הועלתה בהצלחה");
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      toast.error("שגיאה בהעלאת התמונה");
+    } finally {
+      setIsProcessing(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  // Image viewer functions
+  const handleImageClick = (index: number) => {
+    setSelectedViewerIndex(index);
+    setShowImageViewer(true);
+  };
+
+  const closeImageViewer = () => {
+    setShowImageViewer(false);
+    setSelectedViewerIndex(null);
+  };
+
+  const handleNextImage = () => {
+    if (
+      selectedViewerIndex !== null &&
+      selectedViewerIndex < images.length - 1
+    ) {
+      setSelectedViewerIndex(selectedViewerIndex + 1);
+    }
+  };
+
+  const handlePreviousImage = () => {
+    if (selectedViewerIndex !== null && selectedViewerIndex > 0) {
+      setSelectedViewerIndex(selectedViewerIndex - 1);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (selectedViewerIndex === null) return;
+
+    switch (e.key) {
+      case "ArrowRight":
+        handlePreviousImage(); // RTL navigation
+        break;
+      case "ArrowLeft":
+        handleNextImage(); // RTL navigation
+        break;
+      case "Escape":
+        closeImageViewer();
+        break;
+    }
+  };
+
+  // פתרון חדש למחיקת תמונה - מחיקה ישירה ללא שימוש בדיאלוג מורכב
+  const handleDirectDelete = async (imageId: string) => {
+    try {
+      setIsProcessing(true);
+
+      // מציאת התמונה לפי מזהה
+      const imageIndex = images.findIndex((img) => img.id === imageId);
+      if (imageIndex === -1) return;
+
+      const imageObj = images[imageIndex];
+
+      // אם זו תמונה ראשית וקיימות תמונות נוספות
+      if (imageObj.isMain && images.length > 1) {
+        // בחירת תמונה אחרת להיות ראשית
+        const nextIndex = imageIndex === 0 ? 1 : 0;
+        await onSetMain(images[nextIndex].id);
+      }
+
+      // מחיקת התמונה
+      await onDelete(imageId);
+
+      // סגירת התצוגה המורחבת אם היא פתוחה
+      closeImageViewer();
+      toast.success("התמונה נמחקה בהצלחה");
+    } catch (error) {
+      console.error("שגיאה במחיקת תמונה:", error);
+      toast.error("שגיאה במחיקת התמונה");
+    } finally {
+      setIsProcessing(false);
+      setImageToDelete(null);
+    }
+  };
+
+  const handleSetMainImage = async (imageId: string) => {
+    try {
+      await onSetMain(imageId);
+      toast.success("התמונה הראשית עודכנה בהצלחה");
+    } catch (error) {
+      console.error("Error setting main image:", error);
+      toast.error("שגיאה בעדכון התמונה הראשית");
+    }
+  };
+
+  // פונקציה למניעת בועת האירוע והעבירה לתצוגת התמונה
+  const handleControlClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
+  return (
+    <Card className="shadow-md">
+      <CardHeader className="bg-gray-50 rounded-t-lg border-b">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-xl font-bold">תמונות פרופיל</CardTitle>
+            <CardDescription className="mt-1">
+              העלה עד {maxImages} תמונות. תמונה ראשית תוצג בכרטיס הפרופיל.
+            </CardDescription>
+          </div>
+          {!disabled && (
+            <Button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={
+                disabled ||
+                isUploading ||
+                isProcessing ||
+                images.length >= maxImages
+              }
+              className="transition-all hover:shadow-md"
+            >
+              {isUploading || isProcessing ? (
+                <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+              ) : (
+                <Camera className="w-4 h-4 ml-2" />
+              )}
+              העלאת תמונה
+            </Button>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="p-6">
+        {/* Images Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {/* Current Images */}
+          {images.map((image, index) => (
+            <div
+              key={image.id}
+              className="relative group aspect-square rounded-lg overflow-hidden cursor-pointer bg-gray-100 shadow-sm hover:shadow-md transition-shadow"
+            >
+              {/* תמונה עם אירוע לחיצה לפתיחת הגלריה */}
+              <div
+                className="w-full h-full"
+                onClick={() => handleImageClick(index)}
+              >
+                <Image
+                  src={image.url}
+                  alt={`תמונת פרופיל ${index + 1}`}
+                  fill
+                  className="object-cover transition-transform group-hover:scale-105"
+                  sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                />
+              </div>
+
+              {/* Controls Layer - כפתורים שלא נפתחים בהובר אלא תמיד מוצגים עם שקיפות */}
+              {!disabled && (
+                <div
+                  className="absolute top-0 right-0 p-2 z-10"
+                  onClick={handleControlClick} // מניעת בועת האירוע
+                >
+                  <div className="flex gap-1.5">
+                    {/* Set Main Button */}
+                    <Button
+                      variant="secondary"
+                      size="icon"
+                      className={cn(
+                        "w-8 h-8 rounded-full shadow-md border border-white/30 bg-black/40 hover:bg-black/60 transition-colors",
+                        image.isMain ? "text-yellow-400" : "text-white"
+                      )}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!image.isMain) handleSetMainImage(image.id);
+                      }}
+                      disabled={image.isMain || isProcessing}
+                      title={image.isMain ? "תמונה ראשית" : "הפוך לתמונה ראשית"}
+                    >
+                      <Star
+                        className={cn(
+                          "w-4 h-4",
+                          image.isMain && "fill-yellow-400"
+                        )}
+                      />
+                    </Button>
+
+                    {/* Delete Button - שימוש במחיקה ישירה ללא דיאלוג */}
+                    <Dialog>
+                      <Button
+                        variant="secondary"
+                        size="icon"
+                        className="w-8 h-8 rounded-full shadow-md border border-white/30 bg-black/40 hover:bg-red-500 transition-colors text-white"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // פתיחת דיאלוג מחיקה פשוט מבוסס Dialog במקום AlertDialog
+                          setImageToDelete(image.id);
+                          setDeleteConfirmOpen(true);
+                        }}
+                        title="מחק תמונה"
+                        disabled={isProcessing}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </Dialog>
+                  </div>
+                </div>
+              )}
+
+              {/* Main Image Badge */}
+              {image.isMain && (
+                <Badge className="absolute bottom-2 left-2 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 shadow-md text-white border-none">
+                  ראשי
+                </Badge>
+              )}
+            </div>
+          ))}
+
+          {/* Upload Placeholder */}
+          {!disabled && images.length < maxImages && (
+            <label className="relative aspect-square rounded-lg border-2 border-dashed border-gray-300 hover:border-primary cursor-pointer transition-colors bg-gray-50 hover:bg-gray-100">
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/jpeg,image/png,image/jpg"
+                onChange={handleFileSelect}
+                disabled={disabled || isUploading || isProcessing}
+              />
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <Upload className="w-10 h-10 text-muted-foreground mb-2" />
+                <span className="text-sm font-medium text-muted-foreground">
+                  העלאת תמונה
+                </span>
+                <span className="text-xs text-muted-foreground mt-1">
+                  JPG, PNG עד 5MB
+                </span>
+              </div>
+            </label>
+          )}
+
+          {/* Empty State */}
+          {images.length === 0 && (
+            <div className="col-span-full text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+              <Camera className="w-14 h-14 mx-auto text-muted-foreground opacity-70" />
+              <p className="mt-4 text-muted-foreground font-medium">
+                לא הועלו תמונות עדיין
+              </p>
+              <p className="text-sm text-muted-foreground mt-1">
+                העלה תמונה כדי להציג את הפרופיל שלך
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Delete Dialog - פתרון חלופי עם Dialog במקום AlertDialog */}
+        <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-xl">מחיקת תמונה</DialogTitle>
+              <DialogDescription className="text-md">
+                האם את/ה בטוח/ה שברצונך למחוק את התמונה? פעולה זו לא ניתנת
+                לביטול.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-end gap-2 mt-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setDeleteConfirmOpen(false);
+                  setImageToDelete(null);
+                }}
+                disabled={isProcessing}
+              >
+                ביטול
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  if (imageToDelete) {
+                    handleDirectDelete(imageToDelete);
+                    setDeleteConfirmOpen(false);
+                  }
+                }}
+                disabled={isProcessing}
+              >
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                    מוחק...
+                  </>
+                ) : (
+                  "מחיקה"
+                )}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Image Viewer Dialog */}
+        <Dialog open={showImageViewer} onOpenChange={closeImageViewer}>
+          <DialogContent
+            className="max-w-7xl h-[90vh] flex items-center justify-center p-0 bg-gray-900/95 border-gray-800"
+            onKeyDown={handleKeyPress}
+          >
+            <DialogHeader>
+              <DialogTitle className="sr-only">תצוגת תמונה</DialogTitle>
+              <DialogDescription className="sr-only">
+                גלריית תמונות פרופיל
+              </DialogDescription>
+            </DialogHeader>
+
+            {selectedViewerIndex !== null && images[selectedViewerIndex] && (
+              <div className="relative w-full h-full">
+                {/* Navigation Buttons */}
+                {selectedViewerIndex > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10 bg-black/50 hover:bg-black/70 text-white rounded-full w-12 h-12 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePreviousImage();
+                    }}
+                  >
+                    <ChevronLeft className="w-8 h-8" />
+                  </Button>
+                )}
+                {selectedViewerIndex < images.length - 1 && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10 bg-black/50 hover:bg-black/70 text-white rounded-full w-12 h-12 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleNextImage();
+                    }}
+                  >
+                    <ChevronRight className="w-8 h-8" />
+                  </Button>
+                )}
+
+                {/* Actions in Image Viewer */}
+                {!disabled && (
+                  <div className="absolute top-4 right-4 z-20 flex gap-2">
+                    {/* Set as Main Button */}
+                    {!images[selectedViewerIndex].isMain && (
+                      <Button
+                        variant="secondary"
+                        className="bg-black/50 hover:bg-black/70 text-white border border-white/20"
+                        onClick={() =>
+                          handleSetMainImage(images[selectedViewerIndex].id)
+                        }
+                        size="sm"
+                        disabled={isProcessing}
+                      >
+                        <Star className="w-4 h-4 mr-2" />
+                        הפוך לתמונה ראשית
+                      </Button>
+                    )}
+
+                    {/* Delete Button */}
+                    <Button
+                      variant="secondary"
+                      className="bg-red-500/80 hover:bg-red-600 text-white border-none"
+                      onClick={() => {
+                        if (selectedViewerIndex !== null) {
+                          setImageToDelete(images[selectedViewerIndex].id);
+                          setDeleteConfirmOpen(true);
+                        }
+                      }}
+                      size="sm"
+                      disabled={isProcessing}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      מחק תמונה
+                    </Button>
+                  </div>
+                )}
+
+                {/* Main Image */}
+                <div className="relative w-full h-full">
+                  <Image
+                    src={images[selectedViewerIndex].url}
+                    alt={`תמונת פרופיל ${selectedViewerIndex + 1}`}
+                    fill
+                    className="object-contain"
+                    sizes="(max-width: 2048px) 90vw, 85vw"
+                    priority
+                  />
+                </div>
+
+                {/* Image Counter */}
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-4 py-1.5 rounded-full text-sm font-medium">
+                  {selectedViewerIndex + 1} / {images.length}
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default PhotosSection;
+
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\shared\shared\profile\sections\PreferencesSection.tsx:
+==================================================
+// src/app/(authenticated)/profile/components/dashboard/PreferencesSection.tsx
+"use client";
+
+import React, { useState, useEffect } from "react";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardDescription,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Pencil, Save, X } from "lucide-react";
+import { UserProfile, ContactPreference } from "@/types/next-auth";
+
+interface PreferencesSectionProps {
+  profile: UserProfile | null;
+  isEditing: boolean;
+  viewOnly?: boolean;
+  setIsEditing: (value: boolean) => void;
+  onChange: (data: Partial<UserProfile>) => void;
+}
+
+const PreferencesSection: React.FC<PreferencesSectionProps> = ({
+  profile,
+  isEditing,
+  viewOnly = false,
+  setIsEditing,
+  onChange,
+}) => {
+  const [formData, setFormData] = useState<Partial<UserProfile>>({});
+  const [initialData, setInitialData] = useState<Partial<UserProfile>>({});
+
+  // Effect for handling initial data and profile updates
+  useEffect(() => {
+    if (profile) {
+      // Helper function to convert null to undefined
+      const nullToUndefined = <T,>(value: T | null): T | undefined =>
+        value === null ? undefined : value;
+
+      const newFormData: Partial<UserProfile> = {
+        ...profile,
+        // Handle numeric fields - explicitly convert null to undefined
+        preferredAgeMin: nullToUndefined(profile.preferredAgeMin),
+        preferredAgeMax: nullToUndefined(profile.preferredAgeMax),
+        preferredHeightMin: nullToUndefined(profile.preferredHeightMin),
+        preferredHeightMax: nullToUndefined(profile.preferredHeightMax),
+        height: nullToUndefined(profile.height),
+
+        // Handle reference fields
+        referenceName1: profile.referenceName1 ?? "",
+        referencePhone1: profile.referencePhone1 ?? "",
+        referenceName2: profile.referenceName2 ?? "",
+        referencePhone2: profile.referencePhone2 ?? "",
+
+        // Handle array fields with empty array defaults
+        preferredLocations: profile.preferredLocations ?? [],
+        preferredReligiousLevels: profile.preferredReligiousLevels ?? [],
+        preferredEducation: profile.preferredEducation ?? [],
+        preferredOccupations: profile.preferredOccupations ?? [],
+
+        // Handle other optional fields
+        matchingNotes: profile.matchingNotes ?? "",
+        contactPreference: profile.contactPreference ?? undefined,
+        education: profile.education ?? "",
+        occupation: profile.occupation ?? "",
+      };
+
+      console.log("Initialized form data:", newFormData);
+      setFormData(newFormData);
+      setInitialData(newFormData);
+    }
+  }, [profile]);
+
+  // Debug current form data
+  useEffect(() => {
+    console.log("Current form data:", formData);
+  }, [formData]);
+
+  // Effect for handling edit mode changes
+  useEffect(() => {
+    if (!isEditing) {
+      // When exiting edit mode, reset form data to initial data
+      setFormData(initialData);
+    }
+  }, [isEditing, initialData]);
+
+  const handleChange = <K extends keyof UserProfile>(
+    field: K,
+    value: UserProfile[K] | undefined
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value !== undefined && value !== null ? value : prev[field],
+    }));
+  };
+
+  const handleSave = () => {
+    onChange(formData);
+    setIsEditing(false);
+    setInitialData(formData);
+  };
+
+  const handleCancel = () => {
+    setFormData(initialData);
+    setIsEditing(false);
+  };
+
+  return (
+    <div className="relative min-h-screen bg-background">
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+        <div className="container mx-auto py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold">העדפות שידוך</h1>
+              <p className="text-sm text-muted-foreground">
+                נהל את העדפות השידוך שלך
+              </p>
+            </div>
+            {!viewOnly && (
+              <div className="flex gap-2">
+                {!isEditing ? (
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsEditing(true)}
+                    className="shadow-sm hover:shadow-md transition-shadow"
+                  >
+                    <Pencil className="w-4 h-4 ml-2" />
+                    עריכה
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                      variant="outline"
+                      onClick={handleCancel}
+                      className="shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      <X className="w-4 h-4 ml-2" />
+                      ביטול
+                    </Button>
+                    <Button
+                      variant="default"
+                      onClick={handleSave}
+                      className="shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      <Save className="w-4 h-4 ml-2" />
+                      שמירה
+                    </Button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto py-6 space-y-6">
+        {/* Additional Preferences */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl font-bold">תיאור כללי</CardTitle>
+            <CardDescription>
+              כתיבה חופשית על הבן זוג או הבת זוג
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              <div>
+                <Label>תיאור</Label>
+                {isEditing ? (
+                  <Textarea
+                    value={formData.matchingNotes || ""}
+                    onChange={(e) =>
+                      handleChange("matchingNotes", e.target.value)
+                    }
+                    placeholder="הוסף/י הערות והעדפות ..."
+                    className="mt-2"
+                  />
+                ) : (
+                  <p className="mt-2 whitespace-pre-wrap">
+                    {formData.matchingNotes || "אין הערות "}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label>אופן יצירת קשר מועדף</Label>
+                {isEditing ? (
+                  <Select
+                    value={formData.contactPreference || undefined}
+                    onValueChange={(value: string) => {
+                      if (
+                        value === "direct" ||
+                        value === "matchmaker" ||
+                        value === "both"
+                      ) {
+                        handleChange(
+                          "contactPreference",
+                          value as ContactPreference
+                        );
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="mt-2">
+                      <SelectValue placeholder="בחר אפשרות" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="direct">ישירות</SelectItem>
+                      <SelectItem value="matchmaker">דרך השדכן/ית</SelectItem>
+                      <SelectItem value="both">שתי האפשרויות</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <p className="mt-2">
+                    {(() => {
+                      switch (formData.contactPreference) {
+                        case "direct":
+                          return "ישירות";
+                        case "matchmaker":
+                          return "דרך השדכן/ית";
+                        case "both":
+                          return "שתי האפשרויות";
+                        default:
+                          return "לא צוין אופן יצירת קשר מועדף";
+                      }
+                    })()}
+                  </p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        {/* Age & Height Preferences */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl font-bold">
+              העדפות גיל וגובה
+            </CardTitle>
+            <CardDescription>הגדר/י טווחי גיל וגובה מועדפים</CardDescription>{" "}
+          </CardHeader>
+          <CardContent>
+            <div
+              className="grid grid-cols-1 md:grid-cols-2 gap-6 grid-flow-col-dense"
+              dir="rtl"
+            >
+              <div className="space-y-4">
+                <Label>טווח גילאים</Label>
+                <div className="flex gap-4">
+                  <div>
+                    <Input
+                      type="number"
+                      placeholder="מ-"
+                      value={formData.preferredAgeMin || ""}
+                      onChange={(e) =>
+                        handleChange(
+                          "preferredAgeMin",
+                          parseInt(e.target.value)
+                        )
+                      }
+                      disabled={!isEditing}
+                    />
+                    <span className="text-sm text-muted-foreground">
+                      מינימום
+                    </span>
+                  </div>
+                  <div>
+                    <Input
+                      type="number"
+                      placeholder="עד-"
+                      value={formData.preferredAgeMax || ""}
+                      onChange={(e) =>
+                        handleChange(
+                          "preferredAgeMax",
+                          parseInt(e.target.value)
+                        )
+                      }
+                      disabled={!isEditing}
+                    />
+                    <span className="text-sm text-muted-foreground">
+                      מקסימום
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <Label>טווח גבהים (בס&quot;מ)</Label>
+
+                <div className="flex gap-4">
+                  <div>
+                    <Input
+                      type="number"
+                      placeholder="מ-"
+                      value={formData.preferredHeightMin || ""}
+                      onChange={(e) =>
+                        handleChange(
+                          "preferredHeightMin",
+                          parseInt(e.target.value)
+                        )
+                      }
+                      disabled={!isEditing}
+                    />
+                    <span className="text-sm text-muted-foreground">
+                      מינימום
+                    </span>
+                  </div>
+                  <div>
+                    <Input
+                      type="number"
+                      placeholder="עד-"
+                      value={formData.preferredHeightMax || ""}
+                      onChange={(e) =>
+                        handleChange(
+                          "preferredHeightMax",
+                          parseInt(e.target.value)
+                        )
+                      }
+                      disabled={!isEditing}
+                    />
+                    <span className="text-sm text-muted-foreground">
+                      מקסימום
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Location & Religious Preferences */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl font-bold">
+              העדפות מיקום ודת
+            </CardTitle>
+            <CardDescription>העדפות מיקום ורמת דתיות</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div
+              className="grid grid-cols-1 md:grid-cols-2 gap-6 grid-flow-col-dense"
+              dir="rtl"
+            >
+              <div className="space-y-4">
+                <Label>אזורי מגורים מועדפים</Label>
+                {isEditing ? (
+                  <div className="flex flex-wrap gap-2">
+                    {["צפון", "מרכז", "דרום", "ירושלים", "יהודה ושומרון"].map(
+                      (location) => (
+                        <Button
+                          key={location}
+                          variant={
+                            formData.preferredLocations?.includes(location)
+                              ? "default"
+                              : "outline"
+                          }
+                          onClick={() => {
+                            const locations = formData.preferredLocations || [];
+                            const newLocations = locations.includes(location)
+                              ? locations.filter((l) => l !== location)
+                              : [...locations, location];
+                            handleChange("preferredLocations", newLocations);
+                          }}
+                          className="min-w-[100px]"
+                        >
+                          {location}
+                        </Button>
+                      )
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {formData.preferredLocations?.map((location) => (
+                      <Badge key={location} variant="secondary">
+                        {location}
+                      </Badge>
+                    )) || "לא צוינו אזורים מועדפים"}
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-4">
+                <Label>רמות דתיות מועדפות</Label>
+                {isEditing ? (
+                  <div className="flex flex-wrap gap-2">
+                    {["חרדי", "חרדי מודרני", "דתי", "דתי-לייט", "מסורתי"].map(
+                      (level) => (
+                        <Button
+                          key={level}
+                          variant={
+                            formData.preferredReligiousLevels?.includes(level)
+                              ? "default"
+                              : "outline"
+                          }
+                          onClick={() => {
+                            const levels =
+                              formData.preferredReligiousLevels || [];
+                            const newLevels = levels.includes(level)
+                              ? levels.filter((l) => l !== level)
+                              : [...levels, level];
+                            handleChange("preferredReligiousLevels", newLevels);
+                          }}
+                          className="min-w-[100px]"
+                        >
+                          {level}
+                        </Button>
+                      )
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {formData.preferredReligiousLevels?.map((level) => (
+                      <Badge key={level} variant="secondary">
+                        {level}
+                      </Badge>
+                    )) || "לא צוינו רמות דתיות מועדפות"}
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Education & Occupation */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl font-bold">השכלה ותעסוקה</CardTitle>
+            <CardDescription>העדפות בתחום ההשכלה והתעסוקה</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div
+              className="grid grid-cols-1 md:grid-cols-2 gap-6 grid-flow-col-dense"
+              dir="rtl"
+            >
+              <div className="space-y-4">
+                <Label>רמות השכלה מועדפות</Label>
+                {isEditing ? (
+                  <div className="flex flex-wrap gap-2">
+                    {["תיכונית", "על תיכונית", "אקדמית", "תורנית"].map(
+                      (education) => (
+                        <Button
+                          key={education}
+                          variant={
+                            formData.preferredEducation?.includes(education)
+                              ? "default"
+                              : "outline"
+                          }
+                          onClick={() => {
+                            const educations =
+                              formData.preferredEducation || [];
+                            const newEducations = educations.includes(education)
+                              ? educations.filter((e) => e !== education)
+                              : [...educations, education];
+                            handleChange("preferredEducation", newEducations);
+                          }}
+                          className="min-w-[100px]"
+                        >
+                          {education}
+                        </Button>
+                      )
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {formData.preferredEducation?.map((education) => (
+                      <Badge key={education} variant="secondary">
+                        {education}
+                      </Badge>
+                    )) || "לא צוינו רמות השכלה מועדפות"}
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-4">
+                <Label>תחומי עיסוק מועדפים</Label>
+                {isEditing ? (
+                  <div className="flex flex-wrap gap-2">
+                    {["עובד/ת", "סטודנט/ית", "אברך/אברכית", "עצמאי/ת"].map(
+                      (occupation) => (
+                        <Button
+                          key={occupation}
+                          variant={
+                            formData.preferredOccupations?.includes(occupation)
+                              ? "default"
+                              : "outline"
+                          }
+                          onClick={() => {
+                            const occupations =
+                              formData.preferredOccupations || [];
+                            const newOccupations = occupations.includes(
+                              occupation
+                            )
+                              ? occupations.filter((o) => o !== occupation)
+                              : [...occupations, occupation];
+                            handleChange(
+                              "preferredOccupations",
+                              newOccupations
+                            );
+                          }}
+                          className="min-w-[100px]"
+                        >
+                          {occupation}
+                        </Button>
+                      )
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {formData.preferredOccupations?.map((occupation) => (
+                      <Badge key={occupation} variant="secondary">
+                        {occupation}
+                      </Badge>
+                    )) || "לא צוינו תחומי עיסוק מועדפים"}
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+export default PreferencesSection;
+
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\shared\shared\profile\sections\ProfileSection.tsx:
+==================================================
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { Gender, AvailabilityStatus } from "@prisma/client";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Pencil, Save, X } from "lucide-react";
+import { UserProfile } from "@/types/next-auth";
+
+const languageOptions = [
+  // שפות נפוצות
+  { value: "hebrew", label: "עברית" },
+  { value: "english", label: "אנגלית" },
+  { value: "yiddish", label: "יידיש" },
+  { value: "russian", label: "רוסית" },
+  { value: "arabic", label: "ערבית" },
+  { value: "french", label: "צרפתית" },
+  // שאר השפות לפי א-ב
+  { value: "amharic", label: "אמהרית" },
+  { value: "italian", label: "איטלקית" },
+  { value: "ukrainian", label: "אוקראינית" },
+  { value: "spanish", label: "ספרדית" },
+  { value: "portuguese", label: "פורטוגזית" },
+  { value: "persian", label: "פרסית" },
+  { value: "polish", label: "פולנית" },
+  { value: "chinese", label: "סינית" },
+  { value: "german", label: "גרמנית" },
+  { value: "georgian", label: "גאורגית" },
+  { value: "dutch", label: "הולנדית" },
+  { value: "hungarian", label: "הונגרית" },
+  { value: "turkish", label: "טורקית" },
+  { value: "ladino", label: "לדינו" },
+  { value: "romanian", label: "רומנית" },
+];
+
+interface ProfileSectionProps {
+  profile: UserProfile | null;
+  isEditing: boolean;
+  setIsEditing: (value: boolean) => void;
+  viewOnly?: boolean;
+  onSave: (data: Partial<UserProfile>) => void;
+}
+
+const ProfileSection: React.FC<ProfileSectionProps> = ({
+  profile,
+  isEditing,
+  setIsEditing,
+  viewOnly = false,
+  onSave,
+}) => {
+  const [formData, setFormData] = useState<Partial<UserProfile>>({});
+  const [loading, setLoading] = useState(true);
+  const [initialData, setInitialData] = useState<Partial<UserProfile>>({});
+
+  const fetchProfile = async () => {
+    try {
+      const response = await fetch("/api/profile");
+      const data = await response.json();
+      if (data.success && data.profile) {
+        const profileData = {
+          gender: data.profile.gender || "",
+          birthDate: data.profile.birthDate || null,
+          nativeLanguage: data.profile.nativeLanguage || "",
+          additionalLanguages: data.profile.additionalLanguages || [],
+          height: data.profile.height || null, // שינוי מ-"" ל-null
+          maritalStatus: data.profile.maritalStatus || "",
+          occupation: data.profile.occupation || "",
+          education: data.profile.education || "",
+          religiousLevel: data.profile.religiousLevel || "",
+          address: data.profile.address || "",
+          city: data.profile.city || "",
+          origin: data.profile.origin || "",
+          parentStatus: data.profile.parentStatus || "",
+          siblings: data.profile.siblings || null, // שינוי מ-"" ל-null
+          position: data.profile.position || null, // שינוי מ-"" ל-null
+          referenceName1: data.profile.referenceName1 || "",
+          referencePhone1: data.profile.referencePhone1 || "",
+          referenceName2: data.profile.referenceName2 || "",
+          referencePhone2: data.profile.referencePhone2 || "",
+          isProfileVisible: data.profile.isProfileVisible ?? true,
+          preferredMatchmakerGender:
+            data.profile.preferredMatchmakerGender || "",
+          availabilityStatus: data.profile.availabilityStatus || "AVAILABLE",
+          availabilityNote: data.profile.availabilityNote || "",
+          about: data.profile.about || "",
+          hobbies: data.profile.hobbies || "",
+        };
+        setFormData(profileData);
+        setInitialData(profileData);
+      }
+    } catch (error) {
+      console.error("Failed to fetch profile:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // טעינה ראשונית של הפרופיל מה-API
+  useEffect(() => {
+    fetchProfile();
+  }, []); // ריק - רץ פעם אחת בטעינה הראשונית
+
+  // עדכון נתונים כאשר ה-prop profile משתנה
+  useEffect(() => {
+    if (profile) {
+      setFormData((prevFormData: Partial<UserProfile>) => {
+        const mergedData: Partial<UserProfile> = {
+          ...prevFormData,
+          ...profile,
+          gender: profile.gender || prevFormData.gender || undefined,
+          birthDate: profile.birthDate || prevFormData.birthDate || undefined,
+          nativeLanguage:
+            profile.nativeLanguage || prevFormData.nativeLanguage || undefined,
+          additionalLanguages:
+            profile.additionalLanguages ||
+            prevFormData.additionalLanguages ||
+            [],
+          height: profile.height || prevFormData.height || null,
+          maritalStatus:
+            profile.maritalStatus || prevFormData.maritalStatus || undefined,
+          occupation:
+            profile.occupation || prevFormData.occupation || undefined,
+          education: profile.education || prevFormData.education || undefined,
+          religiousLevel:
+            profile.religiousLevel || prevFormData.religiousLevel || undefined,
+          address: profile.address || prevFormData.address || undefined,
+          city: profile.city || prevFormData.city || undefined,
+          origin: profile.origin || prevFormData.origin || undefined,
+          parentStatus:
+            profile.parentStatus || prevFormData.parentStatus || undefined,
+          siblings: profile.siblings || prevFormData.siblings || undefined,
+          position: profile.position || prevFormData.position || undefined,
+          referenceName1:
+            profile.referenceName1 || prevFormData.referenceName1 || undefined,
+          referencePhone1:
+            profile.referencePhone1 ||
+            prevFormData.referencePhone1 ||
+            undefined,
+          referenceName2:
+            profile.referenceName2 || prevFormData.referenceName2 || undefined,
+          referencePhone2:
+            profile.referencePhone2 ||
+            prevFormData.referencePhone2 ||
+            undefined,
+          isProfileVisible:
+            profile.isProfileVisible ?? prevFormData.isProfileVisible ?? true,
+          preferredMatchmakerGender:
+            profile.preferredMatchmakerGender ||
+            prevFormData.preferredMatchmakerGender ||
+            undefined,
+          availabilityStatus:
+            profile.availabilityStatus ||
+            prevFormData.availabilityStatus ||
+            "AVAILABLE",
+          availabilityNote:
+            profile.availabilityNote ||
+            prevFormData.availabilityNote ||
+            undefined,
+          about: profile.about || prevFormData.about || undefined,
+          hobbies: profile.hobbies || prevFormData.hobbies || undefined,
+        };
+        setInitialData((prevInitial) => {
+          if (JSON.stringify(prevInitial) !== JSON.stringify(mergedData)) {
+            return mergedData;
+          }
+          return prevInitial;
+        });
+        return mergedData;
+      });
+    }
+  }, [profile]);
+
+  const handleChange = (
+    field: keyof UserProfile,
+    value: UserProfile[keyof UserProfile]
+  ) => {
+    if (field === "height" || field === "siblings" || field === "position") {
+      // המרה למספר או null עבור שדות מספריים
+      const numericValue =
+        typeof value === "string" && value.trim() !== ""
+          ? parseInt(value, 10)
+          : null;
+      setFormData((prev) => ({
+        ...prev,
+        [field]: numericValue,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [field]: value,
+      }));
+    }
+  };
+
+  const handleSave = () => {
+    onSave(formData);
+    setIsEditing(false);
+    setInitialData(formData);
+  };
+
+  const handleCancel = () => {
+    setFormData(() => ({
+      ...initialData,
+      ...profile,
+    }));
+    setIsEditing(false);
+  };
+
+  if (loading) {
+    return <div className="text-center p-4">טוען...</div>;
+  }
+
+  return (
+    <div className="relative min-h-screen bg-background">
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+        <div className="container mx-auto py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold">פרופיל משתמש</h1>
+              <p className="text-sm text-muted-foreground">
+                נהל את פרטי הפרופיל שלך
+              </p>
+            </div>
+            {!viewOnly && (
+              <div className="flex gap-2">
+                {!isEditing ? (
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsEditing(true)}
+                    className="shadow-sm hover:shadow-md transition-shadow"
+                  >
+                    <Pencil className="w-4 h-4 ml-2" />
+                    עריכה
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                      variant="outline"
+                      onClick={handleCancel}
+                      className="shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      <X className="w-4 h-4 ml-2" />
+                      ביטול
+                    </Button>
+                    <Button
+                      variant="default"
+                      onClick={handleSave}
+                      className="shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      <Save className="w-4 h-4 ml-2" />
+                      שמירה
+                    </Button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="container mx-auto py-6 space-y-6">
+        {/* כרטיס פרטים אישיים */}
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-xl font-bold">פרטים אישיים</CardTitle>
+            <CardDescription>מידע בסיסי על המועמד</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* שדות קיימים */}
+              <div>
+                <Label>מגדר</Label>
+                <Select
+                  value={formData.gender || ""}
+                  onValueChange={(value) =>
+                    handleChange("gender", value as Gender)
+                  }
+                  disabled={!isEditing}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="בחר מגדר" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="MALE">זכר</SelectItem>
+                    <SelectItem value="FEMALE">נקבה</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>תאריך לידה</Label>
+                <Input
+                  type="date"
+                  value={
+                    formData.birthDate
+                      ? new Date(formData.birthDate).toISOString().split("T")[0]
+                      : ""
+                  }
+                  onChange={(e) =>
+                    handleChange("birthDate", new Date(e.target.value))
+                  }
+                  disabled={!isEditing}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label>שפת אם</Label>
+                <Select
+                  value={formData.nativeLanguage || ""}
+                  onValueChange={(value) =>
+                    handleChange("nativeLanguage", value)
+                  }
+                  disabled={!isEditing}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="בחר שפת אם" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[300px]">
+                    <div className="sticky top-0 p-2 bg-white border-b">
+                      <Input placeholder="חפש שפה..." className="w-full" />
+                    </div>
+                    {languageOptions.map((lang) => (
+                      <SelectItem key={lang.value} value={lang.value}>
+                        {lang.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>שפות נוספות</Label>
+                <Select
+                  value={formData.additionalLanguages?.[0] || ""}
+                  onValueChange={(value) => {
+                    const currentLanguages = formData.additionalLanguages || [];
+                    let newLanguages;
+
+                    if (currentLanguages.includes(value)) {
+                      newLanguages = currentLanguages.filter(
+                        (lang) => lang !== value
+                      );
+                    } else {
+                      newLanguages = [...currentLanguages, value];
+                    }
+
+                    handleChange("additionalLanguages", newLanguages);
+                  }}
+                  disabled={!isEditing}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="בחר שפות נוספות" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[300px] overflow-y-auto">
+                    {languageOptions.map((lang) => (
+                      <SelectItem
+                        key={lang.value}
+                        value={lang.value}
+                        className={
+                          formData.additionalLanguages?.includes(lang.value)
+                            ? "bg-gray-100"
+                            : ""
+                        }
+                      >
+                        {lang.label}
+                        {formData.additionalLanguages?.includes(lang.value) && (
+                          <> ✓</>
+                        )}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {(formData.additionalLanguages || []).map((langValue) => {
+                    const lang = languageOptions.find(
+                      (l) => l.value === langValue
+                    );
+                    return lang ? (
+                      <span
+                        key={lang.value}
+                        className="bg-gray-100 px-2 py-1 rounded-md text-sm"
+                      >
+                        {lang.label}
+                        {!isEditing ? null : (
+                          <button
+                            onClick={() => {
+                              const newLanguages =
+                                formData.additionalLanguages?.filter(
+                                  (l) => l !== langValue
+                                ) || [];
+                              handleChange("additionalLanguages", newLanguages);
+                            }}
+                            className="ml-2 text-gray-500 hover:text-gray-700"
+                          >
+                            ×
+                          </button>
+                        )}
+                      </span>
+                    ) : null;
+                  })}
+                </div>
+              </div>
+              <div>
+                <Label>גובה (ס&quot;מ)</Label>
+                <Input
+                  type="number"
+                  value={formData.height !== null ? formData.height : ""}
+                  onChange={(e) => handleChange("height", e.target.value)}
+                  disabled={!isEditing}
+                  className="mt-1"
+                  placeholder="הזן גובה בסנטימטרים"
+                />
+              </div>
+
+              <div>
+                <Label>מצב משפחתי</Label>
+                <Select
+                  value={formData.maritalStatus || ""}
+                  onValueChange={(value) =>
+                    handleChange("maritalStatus", value)
+                  }
+                  disabled={!isEditing}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="בחר מצב משפחתי" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="single">רווק/ה</SelectItem>
+                    <SelectItem value="divorced">גרוש/ה</SelectItem>
+                    <SelectItem value="widowed">אלמן/ה</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>תעסוקה</Label>
+                <Input
+                  value={formData.occupation || ""}
+                  onChange={(e) => handleChange("occupation", e.target.value)}
+                  disabled={!isEditing}
+                  placeholder="תעסוקה נוכחית"
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label>השכלה</Label>
+                <Input
+                  value={formData.education || ""}
+                  onChange={(e) => handleChange("education", e.target.value)}
+                  disabled={!isEditing}
+                  placeholder="השכלה"
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label>רמת דתיות</Label>
+                <Select
+                  value={formData.religiousLevel || ""}
+                  onValueChange={(value) =>
+                    handleChange("religiousLevel", value)
+                  }
+                  disabled={!isEditing}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="בחר רמת דתיות" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="חרדי">חרדי</SelectItem>
+                    <SelectItem value="חרדי מודרני">חרדי מודרני</SelectItem>
+                    <SelectItem value="דתי">דתי</SelectItem>
+                    <SelectItem value="דתי-לייט">דתי-לייט</SelectItem>
+                    <SelectItem value="מסורתי">מסורתי</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>כתובת</Label>
+                <Input
+                  value={formData.address || ""}
+                  onChange={(e) => handleChange("address", e.target.value)}
+                  disabled={!isEditing}
+                  placeholder="כתובת מגורים"
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label>עיר</Label>
+                <Input
+                  value={formData.city || ""}
+                  onChange={(e) => handleChange("city", e.target.value)}
+                  disabled={!isEditing}
+                  placeholder="עיר מגורים"
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label>מוצא</Label>
+                <Input
+                  value={formData.origin || ""}
+                  onChange={(e) => handleChange("origin", e.target.value)}
+                  disabled={!isEditing}
+                  placeholder="ארץ מוצא / עדה"
+                  className="mt-1"
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* כרטיס מידע משפחתי */}
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-xl font-bold">מידע משפחתי</CardTitle>
+            <CardDescription>פרטים על המשפחה והרקע</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div>
+                <Label>מצב משפחתי של ההורים</Label>
+                <Select
+                  value={formData.parentStatus || ""}
+                  onValueChange={(value) => handleChange("parentStatus", value)}
+                  disabled={!isEditing}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="בחר מצב" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="נשואים">נשואים</SelectItem>
+                    <SelectItem value="גרושים">גרושים</SelectItem>
+                    <SelectItem value="אלמן">אלמן</SelectItem>
+                    <SelectItem value="אלמנה">אלמנה</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>מספר אחים ואחיות</Label>
+                <Input
+                  type="number"
+                  value={formData.siblings !== null ? formData.siblings : ""}
+                  onChange={(e) => handleChange("siblings", e.target.value)}
+                  disabled={!isEditing}
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label>מיקום בין האחים</Label>
+                <Input
+                  type="number"
+                  value={formData.position !== null ? formData.position : ""}
+                  onChange={(e) => handleChange("position", e.target.value)}
+                  disabled={!isEditing}
+                  className="mt-1"
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* כרטיס ממליצים */}
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-xl font-bold">ממליצים</CardTitle>
+            <CardDescription>פרטי קשר של ממליצים</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div>
+                  <Label>שם ממליץ/ה 1</Label>
+                  <Input
+                    value={formData.referenceName1 || ""}
+                    onChange={(e) =>
+                      handleChange("referenceName1", e.target.value)
+                    }
+                    disabled={!isEditing}
+                    placeholder="שם מלא"
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label>טלפון ממליץ/ה 1</Label>
+                  <Input
+                    value={formData.referencePhone1 || ""}
+                    onChange={(e) =>
+                      handleChange("referencePhone1", e.target.value)
+                    }
+                    disabled={!isEditing}
+                    placeholder="מספר טלפון"
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <Label>שם ממליץ/ה 2</Label>
+                  <Input
+                    value={formData.referenceName2 || ""}
+                    onChange={(e) =>
+                      handleChange("referenceName2", e.target.value)
+                    }
+                    disabled={!isEditing}
+                    placeholder="שם מלא"
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label>טלפון ממליץ/ה 2</Label>
+                  <Input
+                    value={formData.referencePhone2 || ""}
+                    onChange={(e) =>
+                      handleChange("referencePhone2", e.target.value)
+                    }
+                    disabled={!isEditing}
+                    placeholder="מספר טלפון"
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* כרטיס הגדרות פרופיל */}
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-xl font-bold">הגדרות פרופיל</CardTitle>
+            <CardDescription>הגדרות פרטיות וזמינות</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>הצג פרופיל למשדכים</Label>
+                  <p className="text-sm text-muted-foreground">
+                    האם לאפשר למשדכים לצפות בפרופיל שלך
+                  </p>
+                </div>
+                <Switch
+                  checked={formData.isProfileVisible || false}
+                  onCheckedChange={(checked) =>
+                    handleChange("isProfileVisible", checked)
+                  }
+                  disabled={!isEditing}
+                />
+              </div>
+
+              <div>
+                <Label>מגדר מועדף למשדכ/ת</Label>
+                <Select
+                  value={formData.preferredMatchmakerGender || ""}
+                  onValueChange={(value) =>
+                    handleChange("preferredMatchmakerGender", value as Gender)
+                  }
+                  disabled={!isEditing}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="בחר העדפה" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="MALE">משדך</SelectItem>
+                    <SelectItem value="FEMALE">שדכנית</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>סטטוס זמינות</Label>
+                <Select
+                  value={formData.availabilityStatus || "AVAILABLE"}
+                  onValueChange={(value) =>
+                    handleChange(
+                      "availabilityStatus",
+                      value as AvailabilityStatus
+                    )
+                  }
+                  disabled={!isEditing}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="בחר סטטוס" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="AVAILABLE">פנוי/ה</SelectItem>
+                    <SelectItem value="UNAVAILABLE">לא פנוי/ה</SelectItem>
+                    <SelectItem value="DATING">בתהליך היכרות</SelectItem>
+                    <SelectItem value="ENGAGED">מאורס/ת</SelectItem>
+                    <SelectItem value="MARRIED">נשוי/אה</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>הערת זמינות</Label>
+                <Textarea
+                  value={formData.availabilityNote || ""}
+                  onChange={(e) =>
+                    handleChange("availabilityNote", e.target.value)
+                  }
+                  disabled={!isEditing}
+                  placeholder="הוסף הערה לגבי הזמינות שלך..."
+                  className="mt-1"
+                />
+              </div>
+
+              <div className="space-y-4">
+                <Label>תיאור אישי</Label>
+                {isEditing ? (
+                  <Textarea
+                    value={formData.about || ""}
+                    onChange={(e) => handleChange("about", e.target.value)}
+                    className="mt-2"
+                    placeholder="ספר/י קצת על עצמך..."
+                  />
+                ) : (
+                  <p className="mt-2 whitespace-pre-wrap">
+                    {formData.about || "אין תיאור"}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-4">
+                <Label>תחביבים</Label>
+                {isEditing ? (
+                  <Textarea
+                    value={formData.hobbies || ""}
+                    onChange={(e) => handleChange("hobbies", e.target.value)}
+                    className="mt-2"
+                    placeholder="פרט/י את תחביבייך..."
+                  />
+                ) : (
+                  <p className="mt-2">
+                    {formData.hobbies || "לא צוינו תחביבים"}
+                  </p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+export default ProfileSection;
+
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\shared\shared\profile\sections\QuestionnaireResponsesSection.tsx:
+==================================================
+import React, { useState } from "react";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardDescription,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import {
+  Heart,
+  Users,
+  User,
+  Scroll,
+  Book,
+  CheckCircle,
+  Clock,
+  Pencil,
+  X,
+  Eye,
+  EyeOff,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import type {
+  QuestionnaireResponse,
+  FormattedAnswer,
+  UpdateValue,
+} from "@/types/next-auth"; // ייבוא UpdateValue מ-next-auth.ts
+
+interface QuestionnaireResponsesSectionProps {
+  questionnaire: QuestionnaireResponse | null;
+  onUpdate?: (
+    world: string,
+    questionId: string,
+    value: UpdateValue
+  ) => Promise<void>;
+  isEditable?: boolean;
+  viewMode?: "matchmaker" | "candidate";
+}
+
+const WORLDS = {
+  values: {
+    key: "values",
+    title: "ערכים ואמונות",
+    icon: Heart,
+    color: "text-pink-500",
+    bgColor: "bg-pink-50",
+    borderColor: "border-pink-200",
+  },
+  personality: {
+    key: "personality",
+    title: "אישיות",
+    icon: User,
+    color: "text-blue-500",
+    bgColor: "bg-blue-50",
+    borderColor: "border-blue-200",
+  },
+  relationship: {
+    key: "relationship",
+    title: "זוגיות ומשפחה",
+    icon: Users,
+    color: "text-purple-500",
+    bgColor: "bg-purple-50",
+    borderColor: "border-purple-200",
+  },
+  religion: {
+    key: "religion",
+    title: "דת ומסורת",
+    icon: Scroll,
+    color: "text-indigo-500",
+    bgColor: "bg-indigo-50",
+    borderColor: "border-indigo-200",
+  },
+  partner: {
+    key: "partner",
+    title: "העדפות בן/בת זוג",
+    icon: Heart,
+    color: "text-red-500",
+    bgColor: "bg-red-50",
+    borderColor: "border-red-200",
+  },
+} as const;
+
+const QuestionCard = ({
+  question,
+  answer,
+  isEditing,
+  onEdit,
+  onVisibilityChange,
+}: {
+  question: string;
+  answer: FormattedAnswer;
+  isEditing: boolean;
+  onEdit: (value: string) => void;
+  onVisibilityChange: (isVisible: boolean) => void;
+}) => {
+  const [editValue, setEditValue] = useState(answer.displayText);
+  const [isEditing2, setIsEditing2] = useState(false);
+
+  const handleStartEdit = () => {
+    setIsEditing2(true);
+    setEditValue(answer.displayText);
+  };
+
+  const handleSave = () => {
+    onEdit(editValue);
+    setIsEditing2(false);
+  };
+
+  const handleCancel = () => {
+    setEditValue(answer.displayText);
+    setIsEditing2(false);
+  };
+
+  return (
+    <div className="rounded-lg border bg-card p-4 shadow-sm">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="font-medium text-base">{question}</h4>
+            <div className="flex items-center gap-2" dir="ltr">
+              <div
+                className={cn(
+                  "flex items-center gap-2 px-3 py-1.5 rounded-full text-sm shrink-0 flex-row-reverse",
+                  answer.isVisible
+                    ? "bg-primary/10 text-primary"
+                    : "bg-muted text-muted-foreground"
+                )}
+              >
+                {answer.isVisible ? (
+                  <Eye className="h-4 w-4" />
+                ) : (
+                  <EyeOff className="h-4 w-4" />
+                )}
+                <span
+                  className="text-xs font-medium whitespace-nowrap"
+                  dir="rtl"
+                >
+                  {answer.isVisible ? "מוצג למועמדים" : "מוסתר"}
+                </span>
+                {isEditing && (
+                  <Switch
+                    checked={answer.isVisible ?? true}
+                    onCheckedChange={onVisibilityChange}
+                    className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted-foreground/30"
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+
+          {isEditing2 ? (
+            <div className="space-y-2">
+              <Textarea
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                className="min-h-[100px]"
+                placeholder="הקלד/י את תשובתך כאן..."
+              />
+              <div className="flex justify-end gap-2">
+                <Button size="sm" variant="outline" onClick={handleCancel}>
+                  <X className="h-4 w-4 ml-1" />
+                  ביטול
+                </Button>
+                <Button size="sm" onClick={handleSave}>
+                  <CheckCircle className="h-4 w-4 ml-1" />
+                  שמירה
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="relative group overflow-hidden">
+              <div className="p-3 bg-muted/30 rounded-md">
+                <p className="text-sm break-words overflow-wrap-anywhere whitespace-pre-wrap">
+                  {answer.displayText}
+                </p>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="text-xs text-muted-foreground block mt-2">
+                        {answer.answeredAt}
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent dir="rtl">
+                      <p>תאריך עדכון אחרון</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              {isEditing && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={handleStartEdit}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const WorldSection = ({
+  title,
+  icon: Icon,
+  answers,
+  isEditing,
+  onEdit,
+  onVisibilityChange,
+  isCompleted,
+  className,
+}: {
+  title: string;
+  icon: React.ElementType;
+  answers: FormattedAnswer[];
+  isEditing: boolean;
+  onEdit: (questionId: string, value: string) => void;
+  onVisibilityChange: (questionId: string, isVisible: boolean) => void;
+  isCompleted: boolean;
+  className?: string;
+}) => {
+  return (
+    <Card className={cn("overflow-hidden", className)}>
+      <CardHeader className="p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div
+              className={cn(
+                "p-2 rounded-full",
+                answers.length > 0 ? "bg-primary/10" : "bg-muted"
+              )}
+            >
+              <Icon
+                className={cn(
+                  "h-5 w-5",
+                  answers.length > 0 ? "text-primary" : "text-muted-foreground"
+                )}
+              />
+            </div>
+            <div>
+              <CardTitle className="text-lg">{title}</CardTitle>
+              <CardDescription>{answers.length} תשובות</CardDescription>
+            </div>
+          </div>
+          {isCompleted && (
+            <Badge variant="success" className="gap-1">
+              <CheckCircle className="h-3 w-3" />
+              הושלם
+            </Badge>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="p-4 pt-0">
+        {answers.length > 0 ? (
+          <div className="space-y-4">
+            {answers.map((answer) => (
+              <QuestionCard
+                key={answer.questionId}
+                question={answer.question}
+                answer={answer}
+                isEditing={isEditing}
+                onEdit={(value) => onEdit(answer.questionId, value)}
+                onVisibilityChange={(isVisible) =>
+                  onVisibilityChange(answer.questionId, isVisible)
+                }
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8 text-muted-foreground">
+            <Book className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <p>אין תשובות בחלק זה</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+const QuestionnaireResponsesSection: React.FC<
+  QuestionnaireResponsesSectionProps
+> = ({ questionnaire, onUpdate, isEditable = false }) => {
+  const [isEditing, setIsEditing] = useState(false);
+
+  if (!questionnaire) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        לא נמצא שאלון
+      </div>
+    );
+  }
+
+  const handleEdit = async (
+    worldKey: string,
+    questionId: string,
+    value: string
+  ) => {
+    try {
+      if (!value?.trim()) {
+        toast.error("לא ניתן לשמור ערך ריק");
+        return;
+      }
+
+      if (onUpdate) {
+        console.log("Updating answer:", { worldKey, questionId, value });
+        await onUpdate(worldKey, questionId, {
+          type: "answer",
+          value: value.trim(),
+        });
+        toast.success("התשובה עודכנה בהצלחה");
+      }
+    } catch (error) {
+      console.error("Error updating answer:", error);
+      toast.error("שגיאה בעדכון התשובה");
+    }
+  };
+
+  const handleVisibilityChange = async (
+    worldKey: string,
+    questionId: string,
+    isVisible: boolean
+  ) => {
+    try {
+      if (onUpdate) {
+        await onUpdate(worldKey, questionId, {
+          type: "visibility",
+          isVisible,
+        });
+        toast.success("הגדרות הנראות עודכנו בהצלחה");
+      }
+    } catch (error) {
+      console.error("Error updating visibility:", error);
+      toast.error("שגיאה בעדכון הגדרות הנראות");
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Status Header */}
+      <div className="flex items-center justify-between bg-card p-4 rounded-lg border">
+        <div className="flex items-center gap-2">
+          {questionnaire.completed ? (
+            <CheckCircle className="h-5 w-5 text-green-500" />
+          ) : (
+            <Clock className="h-5 w-5 text-blue-500" />
+          )}
+          <div>
+            <p className="font-medium">
+              {questionnaire.completed ? "שאלון הושלם" : "שאלון בתהליך"}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              עודכן לאחרונה:{" "}
+              {new Date(questionnaire.lastSaved).toLocaleDateString("he-IL")}
+            </p>
+          </div>
+        </div>
+
+        {isEditable && (
+          <Button
+            variant="outline"
+            onClick={() => setIsEditing(!isEditing)}
+            className="gap-2"
+          >
+            {isEditing ? (
+              <>
+                <X className="h-4 w-4" />
+                סיום עריכה
+              </>
+            ) : (
+              <>
+                <Pencil className="h-4 w-4" />
+                עריכת תשובות
+              </>
+            )}
+          </Button>
+        )}
+      </div>
+
+      {/* Worlds Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {Object.entries(WORLDS).map(([key, world]) => (
+          <WorldSection
+            key={key}
+            title={world.title}
+            icon={world.icon}
+            answers={
+              questionnaire.formattedAnswers?.[
+                key as keyof typeof questionnaire.formattedAnswers
+              ] ?? []
+            }
+            isEditing={isEditing}
+            onEdit={(questionId, value) => handleEdit(key, questionId, value)}
+            onVisibilityChange={(questionId, isVisible) =>
+              handleVisibilityChange(key, questionId, isVisible)
+            }
+            isCompleted={
+              questionnaire[
+                `${key}Completed` as keyof QuestionnaireResponse
+              ] as boolean
+            }
+            className={cn(world.bgColor, world.borderColor)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default QuestionnaireResponsesSection;
+
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\shared\shared\profile\types\profile.ts:
+==================================================
+import type { UserProfile, UserImage, QuestionnaireResponse } from "@/types/next-auth";
+
+// Define specific types for questionnaire updates
+export interface QuestionnaireUpdateValue {
+  type: 'answer' | 'visibility';
+  value?: string;
+  isVisible?: boolean;
+}
+
+// Interfaces for the main sections
+export interface PhotosSectionProps {
+  images: UserImage[];
+  isUploading: boolean;
+  disabled?: boolean;
+  onUpload: (file: File) => Promise<void>;
+  onSetMain: (imageId: string) => Promise<void>;
+  onDelete: (imageId: string) => Promise<void>;
+}
+
+export interface ExtendedProfileSectionProps {
+  profile: UserProfile | null;
+  isEditing: boolean;
+  viewOnly?: boolean;
+  setIsEditing: (value: boolean) => void;
+  onSave: (data: Partial<UserProfile>) => void;
+}
+
+export interface PreferencesSectionProps {
+  profile: UserProfile | null;
+  isEditing: boolean;
+  viewOnly?: boolean;
+  setIsEditing: (value: boolean) => void;
+  onChange: (data: Partial<UserProfile>) => void;
+}
+
+export interface QuestionnaireResponsesSectionProps {
+  questionnaire: QuestionnaireResponse | null;
+  onUpdate?: (world: string, questionId: string, value: QuestionnaireUpdateValue) => Promise<void>;
+  isEditable?: boolean;
+  viewMode?: "matchmaker" | "candidate";
+}
+
+// Types for the extended profile data
+export interface ExtendedProfileData {
+  personalityTraits?: {
+    temperament?: string;
+    decisionMaking?: string;
+    stressManagement?: string;
+    communicationStyle?: string;
+  };
+  spiritualProfile?: {
+    prayerStyle?: string;
+    secularStudiesAttitude?: string;
+    modestyLevel?: string;
+    childrenEducationApproach?: string;
+  };
+  familyBackground?: {
+    parentsSpiritualLevel?: string;
+    parentsOccupations?: {
+      father?: string;
+      mother?: string;
+    };
+    familyDynamics?: string;
+  };
+  lifestylePreferences?: {
+    careerAspiration?: string;
+    futureStudyPlans?: string;
+    livingPreferences?: {
+      proximity?: string;
+    };
+    relationshipExpectations?: string;
+  };
+  healthProfile?: {
+    generalHealth?: string;
+    dietaryRestrictions?: string[];
+    physicalActivity?: string;
+  };
+  personalValues?: {
+    parentalRespect?: number;
+    communityInvolvement?: string;
+    volunteeringPreferences?: string;
+    financialManagement?: string;
+  };
+  futureGoals?: string[];
+  [key: string]: unknown;
+}
+
+// Additional utility types
+export type ViewMode = "matchmaker" | "candidate";
+export type CardSize = "sm" | "md" | "lg";
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\shared\shared\profile\types\questionnaire.ts:
+==================================================
+// src/components/shared/profile/types/questionnaire.ts
+
+export type QuestionnaireAnswerValue = {
+  type: 'answer';
+  value: string;
+} | {
+  type: 'visibility';
+  isVisible: boolean;
+} | string | number | boolean;
+
+export interface FormattedAnswer {
+  questionId: string;
+  question: string;
+  value: QuestionnaireAnswerValue;
+  displayText: string;
+  answeredAt: string;
+  category?: string;
+  isVisible: boolean;
+}
+
+export interface QuestionnaireResponse {
+  id: string;
+  userId: string;
+  formattedAnswers: {
+    values: FormattedAnswer[];
+    personality: FormattedAnswer[];
+    relationship: FormattedAnswer[];
+    partner: FormattedAnswer[];
+    religion: FormattedAnswer[];
+  };
+  valuesCompleted: boolean;
+  personalityCompleted: boolean;
+  relationshipCompleted: boolean;
+  partnerCompleted: boolean;
+  religionCompleted: boolean;
+  worldsCompleted: string[];
+  completed: boolean;
+  startedAt: string | Date;
+  completedAt?: string | Date;
+  lastSaved: string | Date;
+}
+
+export interface QuestionnaireWorld {
+  key: string;
+  title: string;
+  icon: React.ElementType;
+  color: string;
+  bgColor: string;
+  borderColor: string;
+}
+
+export interface QuestionCardProps {
+  question: string;
+  answer: FormattedAnswer;
+  isEditing: boolean;
+  onEdit: (value: string) => void;
+  onVisibilityChange: (isVisible: boolean) => void;
+}
+
+export interface WorldSectionProps {
+  title: string;
+  icon: React.ElementType;
+  answers: FormattedAnswer[];
+  isEditing: boolean;
+  onEdit: (questionId: string, value: string) => void;
+  onVisibilityChange: (questionId: string, isVisible: boolean) => void;
+  isCompleted: boolean;
+  className?: string;
+}
