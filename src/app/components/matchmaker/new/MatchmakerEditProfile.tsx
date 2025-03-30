@@ -81,12 +81,13 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
       // Clean up empty enum fields to prevent validation errors
       const cleanedProfile = { ...updatedProfile };
 
-      // Convert undefined values to null for enum fields
+      // Convert undefined values to undefined for enum fields (not null)
+      // TypeScript is enforcing that gender can only be Gender enum or undefined
       if (cleanedProfile.gender === undefined) {
-        cleanedProfile.gender = null;
+        // Keep it as undefined, don't set to null
       }
       if (cleanedProfile.preferredMatchmakerGender === undefined) {
-        cleanedProfile.preferredMatchmakerGender = null;
+        // Keep it as undefined, don't set to null
       }
       console.log("Sending profile update:", cleanedProfile);
 
