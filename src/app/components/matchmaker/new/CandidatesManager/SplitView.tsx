@@ -21,11 +21,13 @@ import type { Candidate, CandidateAction } from "../types/candidates";
 interface SplitViewProps {
   maleCandidates: Candidate[];
   femaleCandidates: Candidate[];
+  allCandidates?: Candidate[]; // הוסף את זה
   onCandidateClick?: (candidate: Candidate) => void;
   onCandidateAction: (type: CandidateAction, candidate: Candidate) => void;
   viewMode: "grid" | "list";
   isLoading?: boolean;
   className?: string;
+  highlightTerm?: string; // כנראה חסר גם זה
 }
 
 interface Stats {

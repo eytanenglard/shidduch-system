@@ -19,10 +19,12 @@ export interface Candidate {
   id: string;
   email: string;
   firstName: string;
+  createdAt: Date;
   lastName: string;
   status: UserStatus;
   isVerified: boolean;
   images: CandidateImage[];
+  isProfileComplete: boolean;
   profile: CandidateProfile;
 }
 

@@ -28,6 +28,7 @@ export interface User extends DefaultUser {
   questionnaireResponses: QuestionnaireResponse[];
   redirectUrl?: string; // שדה חדש לניתוב משתמש חדש
   newlyCreated?: boolean; // שדה חדש לציון שזה משתמש חדש
+  isProfileComplete: boolean;
 }
 
 export interface Verification {

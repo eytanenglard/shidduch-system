@@ -5,13 +5,18 @@ import type {
   FilterState,
   SavedFilter,
   FilterOption,
-  FilterChangeHandler
+  FilterChangeHandler,  
 } from '../types/filters';
 import { DEFAULT_FILTER_STATE } from '../types/filters'; 
 
 type SavedFilterFromStorage = Omit<SavedFilter, 'createdAt'> & {
   createdAt: string;
 };
+
+interface SearchHistoryItemFromStorage {
+  query: string;
+  timestamp: string;
+}
 interface UseFilterLogicProps {
   onFilterChange?: FilterChangeHandler;
   defaultFilters?: Partial<FilterState>;
@@ -31,6 +36,8 @@ export const useFilterLogic = ({
   
   const [savedFilters, setSavedFilters] = useState<SavedFilter[]>([]);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [searchHistory, setSearchHistory] = useState<{query: string, timestamp: Date}[]>([]);
+  const [lastAppliedFilter, setLastAppliedFilter] = useState<string | null>(null);
 
   // Load saved filters and history from localStorage
   useEffect(() => {
@@ -50,6 +57,14 @@ export const useFilterLogic = ({
       if (searches) {
         setRecentSearches(JSON.parse(searches));
       }
+
+      // Load search history
+      const history = localStorage.getItem(`${localStorageKey}_search_history`);
+      if (history) {
+        setSearchHistory(JSON.parse(history).map((item: SearchHistoryItemFromStorage) => ({          ...item,
+          timestamp: new Date(item.timestamp)
+        })));
+      }
     } catch (error) {
       console.error('Error loading saved filters:', error);
     }
@@ -57,28 +72,27 @@ export const useFilterLogic = ({
 
   // Update filters
   const updateFilters = useCallback((newFilters: Partial<FilterState>) => {
+    console.log("updateFilters called with:", newFilters);
+    
     setFilters(prev => {
       const updated = { ...prev, ...newFilters };
+      console.log("Updated filters:", updated);
       
-      // If there's a new search query, update search history
+      // אם יש מחרוזת חיפוש חדשה, עדכן את היסטורית החיפוש
       if (newFilters.searchQuery && newFilters.searchQuery !== prev.searchQuery) {
-        setRecentSearches(prevSearches => {
-          const updatedSearches = [
-            newFilters.searchQuery!,
-            ...prevSearches.filter(s => s !== newFilters.searchQuery)
-          ].slice(0, 10);
-          
-          localStorage.setItem(
-            `${localStorageKey}_recent_searches`,
-            JSON.stringify(updatedSearches)
-          );
-          
-          return updatedSearches;
-        });
+        const newQuery = newFilters.searchQuery;
+        console.log("New search query detected:", newQuery);
+        
+        // המשך הקוד הקיים...
       }
-
+  
       // Call onChange callback if exists
-      onFilterChange?.(updated);
+      if (onFilterChange) {
+        console.log("Calling onFilterChange with updated filters");
+        onFilterChange(updated);
+      } else {
+        console.log("No onFilterChange callback provided");
+      }
       
       return updated;
     });
@@ -92,8 +106,15 @@ export const useFilterLogic = ({
     };
 
     setFilters(defaultState);
+    setLastAppliedFilter(null);
     onFilterChange?.(defaultState);
   }, [defaultFilters, onFilterChange]);
+
+  // Clear recent searches
+  const clearRecentSearches = useCallback(() => {
+    setRecentSearches([]);
+    localStorage.removeItem(`${localStorageKey}_recent_searches`);
+  }, [localStorageKey]);
 
   // Save new filter
   const saveFilter = useCallback(async (name: string, filters: FilterState) => {
@@ -130,9 +151,14 @@ export const useFilterLogic = ({
     setSavedFilters(prev => {
       const updated = prev.filter(f => f.id !== id);
       localStorage.setItem(localStorageKey, JSON.stringify(updated));
+      
+      if (lastAppliedFilter === id) {
+        setLastAppliedFilter(null);
+      }
+      
       return updated;
     });
-  }, [localStorageKey]);
+  }, [localStorageKey, lastAppliedFilter]);
 
   // Set default filter
   const setDefaultFilter = useCallback((id: string) => {
@@ -151,9 +177,20 @@ export const useFilterLogic = ({
     const filter = savedFilters.find(f => f.id === id);
     if (filter) {
       setFilters({ ...filter.filters, savedFilterId: id });
+      setLastAppliedFilter(id);
       onFilterChange?.({ ...filter.filters, savedFilterId: id });
     }
   }, [savedFilters, onFilterChange]);
+
+  // Apply popular filter
+  const applyPopularFilter = useCallback((filterConfig: Partial<FilterState>) => {
+    const updatedFilters = {
+      ...DEFAULT_FILTER_STATE,
+      ...filterConfig
+    };
+    setFilters(updatedFilters);
+    onFilterChange?.(updatedFilters);
+  }, [onFilterChange]);
 
   // Check for active filters
   const hasActiveFilters = useMemo(() => {
@@ -204,8 +241,9 @@ export const useFilterLogic = ({
       });
     }
 
+    // גיל
     if (filters.ageRange && (
-      filters.ageRange.min !== DEFAULT_FILTER_STATE.ageRange?.min ||
+      filters.ageRange.min !== DEFAULT_FILTER_STATE.ageRange?.min || 
       filters.ageRange.max !== DEFAULT_FILTER_STATE.ageRange?.max
     )) {
       active.push({
@@ -216,18 +254,11 @@ export const useFilterLogic = ({
       });
     }
 
-    // גיל
-    if (filters.ageRange && (filters.ageRange.min !== 18 || filters.ageRange.max !== 99)) {
-      active.push({
-        key: 'ageRange',
-        value: filters.ageRange,
-        label: `גיל: ${filters.ageRange.min}-${filters.ageRange.max}`,
-        category: 'מידע בסיסי'
-      });
-    }
-
     // גובה
-    if (filters.heightRange && (filters.heightRange.min !== 140 || filters.heightRange.max !== 210)) {
+    if (filters.heightRange && (
+      filters.heightRange.min !== DEFAULT_FILTER_STATE.heightRange?.min || 
+      filters.heightRange.max !== DEFAULT_FILTER_STATE.heightRange?.max
+    )) {
       active.push({
         key: 'heightRange',
         value: filters.heightRange,
@@ -238,22 +269,40 @@ export const useFilterLogic = ({
 
     // ערים
     if (filters.cities?.length) {
-      active.push({
-        key: 'cities',
-        value: filters.cities,
-        label: `ערים: ${filters.cities.join(', ')}`,
-        category: 'מיקום'
-      });
+      if (filters.cities.length === 1) {
+        active.push({
+          key: 'cities',
+          value: filters.cities[0],
+          label: `עיר: ${filters.cities[0]}`,
+          category: 'מיקום'
+        });
+      } else {
+        active.push({
+          key: 'cities',
+          value: filters.cities,
+          label: `ערים: ${filters.cities.length} נבחרו`,
+          category: 'מיקום'
+        });
+      }
     }
 
     // תחומי עיסוק
     if (filters.occupations?.length) {
-      active.push({
-        key: 'occupations',
-        value: filters.occupations,
-        label: `תחומי עיסוק: ${filters.occupations.join(', ')}`,
-        category: 'תעסוקה'
-      });
+      if (filters.occupations.length === 1) {
+        active.push({
+          key: 'occupations',
+          value: filters.occupations[0],
+          label: `תחום עיסוק: ${filters.occupations[0]}`,
+          category: 'תעסוקה'
+        });
+      } else {
+        active.push({
+          key: 'occupations',
+          value: filters.occupations,
+          label: `תחומי עיסוק: ${filters.occupations.length} נבחרו`,
+          category: 'תעסוקה'
+        });
+      }
     }
 
     // רמת דתיות
@@ -288,10 +337,16 @@ export const useFilterLogic = ({
 
     // סטטוס זמינות
     if (filters.availabilityStatus) {
+      const statusLabel = 
+        filters.availabilityStatus === "AVAILABLE" ? "פנוי/ה" :
+        filters.availabilityStatus === "DATING" ? "בתהליך הכרות" :
+        filters.availabilityStatus === "UNAVAILABLE" ? "לא פנוי/ה" :
+        filters.availabilityStatus;
+      
       active.push({
         key: 'availabilityStatus',
         value: filters.availabilityStatus,
-        label: `סטטוס זמינות: ${filters.availabilityStatus}`,
+        label: `סטטוס זמינות: ${statusLabel}`,
         category: 'זמינות'
       });
     }
@@ -348,36 +403,57 @@ export const useFilterLogic = ({
 
     return active;
   }, [filters]);
-// Remove single filter
-const removeFilter = useCallback((key: keyof FilterState, value?: string) => {
-  setFilters(prev => {
-    const updated = { ...prev };
 
-    if (Array.isArray(updated[key]) && value !== undefined) {
-      if (key === 'cities' || key === 'occupations') {
-        updated[key] = (updated[key] as string[]).filter(v => v !== value);
+  // Remove single filter
+  const removeFilter = useCallback((key: keyof FilterState, value?: string) => {
+    setFilters(prev => {
+      const updated = { ...prev };
+
+      if (Array.isArray(updated[key]) && value !== undefined) {
+        if (key === 'cities' || key === 'occupations') {
+          updated[key] = (updated[key] as string[]).filter(v => v !== value);
+        }
+      } else {
+        delete updated[key];
       }
-    } else {
-      delete updated[key];
-    }
 
-    onFilterChange?.(updated);
-    return updated;
-  });
-}, [onFilterChange]);
+      onFilterChange?.(updated);
+      return updated;
+    });
+  }, [onFilterChange]);
+  
+  // Calculate popular filters based on search history
+  const popularFilters = useMemo(() => {
+    // Group searches by frequency
+    const searchFrequency: Record<string, number> = {};
+    searchHistory.forEach(item => {
+      searchFrequency[item.query] = (searchFrequency[item.query] || 0) + 1;
+    });
+    
+    // Sort by frequency
+    return Object.entries(searchFrequency)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([query]) => query);
+  }, [searchHistory]);
 
   return {
     // Current state
     filters,
     savedFilters,
     recentSearches,
+    searchHistory,
     activeFilters,
     hasActiveFilters,
+    popularFilters,
+    lastAppliedFilter,
 
     // Actions
     setFilters: updateFilters,
     removeFilter,
     resetFilters,
+    clearRecentSearches,
+    applyPopularFilter,
 
     // Saved filters management
     saveFilter,

@@ -10,22 +10,52 @@ export interface UseCandidatesReturn {
   candidates: Candidate[];
   maleCandidates: Candidate[];
   femaleCandidates: Candidate[];
+  filteredCandidates: Candidate[];
   filters: CandidatesFilter;
   setFilters: Dispatch<SetStateAction<CandidatesFilter>>;
   refresh: () => Promise<void>;
   totalCount: number;
+  filteredCount: number;
   maleCount: number;
   femaleCount: number;
+  searchResults: {
+    term: string;
+    count: number;
+    male: number;
+    female: number;
+  } | null;
   exportCandidates: (candidates: Candidate[], filters: CandidatesFilter) => Promise<void>;
   updateCandidate: (id: string, updates: Partial<CandidateProfile>) => Promise<void>;
+  sorting: {
+    field: string;
+    direction: 'asc' | 'desc';
+  };
+  setSorting: (field: string, direction: 'asc' | 'desc') => void;
+  searchSuggestions: (term: string) => Promise<Candidate[]>;
 }
 
-export const useCandidates = (): UseCandidatesReturn => {
+interface CandidateWithSearchScore extends Candidate {
+  _searchScore?: number;
+}
+export const useCandidates = (initialFilters: CandidatesFilter = {}): UseCandidatesReturn => {
   // Base states
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filters, setFilters] = useState<CandidatesFilter>({});
+  const [filters, setFilters] = useState<CandidatesFilter>(initialFilters);
+  const [searchResults, setSearchResults] = useState<{
+    term: string;
+    count: number;
+    male: number;
+    female: number;
+  } | null>(null);
+  const [sorting, setSortingState] = useState<{
+    field: string;
+    direction: 'asc' | 'desc';
+  }>({
+    field: 'lastActive',
+    direction: 'desc',
+  });
 
   // Helper function to calculate age
   const calculateAge = useCallback((birthDate: Date): number => {
@@ -67,9 +97,80 @@ export const useCandidates = (): UseCandidatesReturn => {
     }
   };
 
+  // Set sorting field and direction
+  const setSorting = useCallback((field: string, direction: 'asc' | 'desc') => {
+    setSortingState({ field, direction });
+  }, []);
+
+  // Search suggestions based on a term
+  const searchSuggestions = useCallback(async (term: string): Promise<Candidate[]> => {
+    if (!term || term.length < 2) return [];
+    
+    // Local search implementation for quick response
+    const searchTerm = term.toLowerCase();
+    return candidates.filter(candidate => {
+      const searchableText = `
+        ${candidate.firstName} 
+        ${candidate.lastName} 
+        ${candidate.profile.occupation || ''} 
+        ${candidate.profile.city || ''}
+        ${candidate.profile.religiousLevel || ''}
+      `.toLowerCase();
+      
+      return searchableText.includes(searchTerm);
+    }).slice(0, 10);
+    
+    // Alternatively, you can implement an API call for server-side search
+    // if the dataset is very large
+  }, [candidates]);
+
+  const sortCandidates = useCallback((candidatesList: Candidate[], field: string, direction: 'asc' | 'desc') => {
+    return [...candidatesList].sort((a, b) => {
+      let valueA, valueB;
+      
+      switch (field) {
+        case 'name':
+          valueA = `${a.firstName} ${a.lastName}`.toLowerCase();
+          valueB = `${b.firstName} ${b.lastName}`.toLowerCase();
+          break;
+        case 'age':
+          valueA = calculateAge(a.profile.birthDate);
+          valueB = calculateAge(b.profile.birthDate);
+          break;
+        case 'city':
+          valueA = (a.profile.city || '').toLowerCase();
+          valueB = (b.profile.city || '').toLowerCase();
+          break;
+        case 'religiousLevel':
+          valueA = (a.profile.religiousLevel || '').toLowerCase();
+          valueB = (b.profile.religiousLevel || '').toLowerCase();
+          break;
+        case 'lastActive':
+          valueA = a.profile.lastActive ? new Date(a.profile.lastActive).getTime() : 0;
+          valueB = b.profile.lastActive ? new Date(b.profile.lastActive).getTime() : 0;
+          break;
+        case 'registrationDate':
+          valueA = new Date(a.createdAt).getTime();
+          valueB = new Date(b.createdAt).getTime();
+          break;
+        case 'height':
+          valueA = a.profile.height || 0;
+          valueB = b.profile.height || 0;
+          break;
+        default:
+          valueA = 0;
+          valueB = 0;
+      }
+      
+      if (valueA < valueB) return direction === 'asc' ? -1 : 1;
+      if (valueA > valueB) return direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [calculateAge]);
+  
   // Filter candidates based on current filters
   const filteredCandidates = useMemo(() => {
-    return candidates.filter(candidate => {
+    let results = candidates.filter(candidate => {
       // Gender filter
       if (filters.gender && candidate.profile.gender !== filters.gender) {
         return false;
@@ -77,7 +178,7 @@ export const useCandidates = (): UseCandidatesReturn => {
 
       // Age filter
       if (filters.ageRange) {
-        const age = calculateAge(candidate.profile.birthDate )
+        const age = calculateAge(candidate.profile.birthDate)
         if (age < filters.ageRange.min || age > filters.ageRange.max) {
           return false;
         }
@@ -149,26 +250,74 @@ export const useCandidates = (): UseCandidatesReturn => {
         }
       }
 
-      // Search query filter
-      if (filters.searchQuery) {
-        const searchTerm = filters.searchQuery.toLowerCase();
-        const searchableText = `
-          ${candidate.firstName} 
-          ${candidate.lastName} 
-          ${candidate.profile.occupation || ''} 
-          ${candidate.profile.city || ''}
-          ${candidate.profile.religiousLevel || ''}
-          ${candidate.profile.about || ''}
-        `.toLowerCase();
-        
-        if (!searchableText.includes(searchTerm)) {
-          return false;
-        }
+      // Profile completeness filter
+      if (filters.isProfileComplete !== undefined && 
+          candidate.isProfileComplete !== filters.isProfileComplete) {
+        return false;
       }
+
+      // Search query filter - enhanced with highlighting and better matching
+// Search query filter - with improved handling
+if (filters.searchQuery) {
+  // טיפול טוב יותר במחרוזת החיפוש - הסרת רווחים מיותרים 
+  const searchTerm = (filters.searchQuery || '').trim().toLowerCase();
+  
+  // אם אין מחרוזת חיפוש אחרי הטיפול, לא נסנן
+  if (!searchTerm) {
+    // חשוב: אם מחרוזת החיפוש ריקה, נחזיר true כדי לא לסנן
+    return true;
+  }
+  
+  // חיפוש פשוט יותר שיעבוד בוודאות - בודק אם המחרוזת נמצאת בשדות העיקריים
+  const fullName = `${candidate.firstName} ${candidate.lastName}`.toLowerCase();
+  const city = (candidate.profile.city || '').toLowerCase();
+  const occupation = (candidate.profile.occupation || '').toLowerCase();
+  const religiousLevel = (candidate.profile.religiousLevel || '').toLowerCase();
+  
+  // בדיקה אם המחרוזת מופיעה באחד השדות החשובים
+  if (fullName.includes(searchTerm) || 
+      city.includes(searchTerm) || 
+      occupation.includes(searchTerm) || 
+      religiousLevel.includes(searchTerm)) {
+    // החיפוש מוצלח - לא צריך להוסיף ניקוד מורכב בשלב זה
+    return true;
+  }
+  
+  // אם הגענו לכאן, לא מצאנו התאמה
+  return false;
+}
 
       return true;
     });
-  }, [candidates, filters, calculateAge]);
+
+    // Sort results
+    if (filters.searchQuery) {
+      // Sort by search relevance if search query exists
+      results = results.sort((a, b) => {
+        return ((b as CandidateWithSearchScore)._searchScore || 0) - 
+               ((a as CandidateWithSearchScore)._searchScore || 0);
+      });
+      // Update search results stats
+      const maleResults = results.filter(c => c.profile.gender === 'MALE').length;
+      const femaleResults = results.filter(c => c.profile.gender === 'FEMALE').length;
+      
+      setSearchResults({
+        term: filters.searchQuery,
+        count: results.length,
+        male: maleResults,
+        female: femaleResults
+      });
+    } else {
+      // Otherwise sort by selected field
+      results = sortCandidates(results, sorting.field, sorting.direction);
+      setSearchResults(null);
+    }
+
+    return results;
+  }, [candidates, filters, calculateAge, sorting.field, sorting.direction, sortCandidates]);
+
+  
+
 
   // Split candidates by gender
   const maleCandidates = useMemo(() => 
@@ -184,6 +333,7 @@ export const useCandidates = (): UseCandidatesReturn => {
   // Export candidates to CSV
   const exportCandidates = async (
     candidates: Candidate[], 
+    filters: CandidatesFilter
   ): Promise<void> => {
     try {
       // Prepare data for export
@@ -200,9 +350,26 @@ export const useCandidates = (): UseCandidatesReturn => {
         'מצב משפחתי': candidate.profile.maritalStatus || '',
         'סטטוס זמינות': candidate.profile.availabilityStatus || '',
         'מאומת': candidate.isVerified ? 'כן' : 'לא',
-        'פעילות אחרונה': candidate.profile.lastActive || ''
+        'פעילות אחרונה': candidate.profile.lastActive 
+          ? new Date(candidate.profile.lastActive).toLocaleDateString('he-IL')
+          : ''
       }));
 
+      // Add filter info to filename
+      const filenameSegments = ['candidates'];
+      
+      if (filters.gender) {
+        filenameSegments.push(filters.gender === 'MALE' ? 'male' : 'female');
+      }
+      
+      if (filters.religiousLevel) {
+        filenameSegments.push(filters.religiousLevel.replace(/ /g, '-'));
+      }
+      
+      if (filters.cities?.length === 1) {
+        filenameSegments.push(filters.cities[0].replace(/ /g, '-'));
+      }
+      
       // Convert to CSV
       const csv = Papa.unparse(exportData);
       
@@ -210,9 +377,10 @@ export const useCandidates = (): UseCandidatesReturn => {
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       const url = URL.createObjectURL(blob);
+      const timestamp = new Date().toISOString().split('T')[0];
       
       link.setAttribute('href', url);
-      link.setAttribute('download', `candidates_export_${new Date().toISOString()}.csv`);
+      link.setAttribute('download', `${filenameSegments.join('_')}_${timestamp}.csv`);
       document.body.appendChild(link);
       
       link.click();
@@ -256,17 +424,23 @@ export const useCandidates = (): UseCandidatesReturn => {
   return {
     loading,
     error,
-    candidates: filteredCandidates,
+    candidates,
+    filteredCandidates,
     maleCandidates,
     femaleCandidates,
     filters,
     setFilters,
     refresh: fetchCandidates,
     totalCount: candidates.length,
+    filteredCount: filteredCandidates.length,
     maleCount: maleCandidates.length,
     femaleCount: femaleCandidates.length,
+    searchResults,
     exportCandidates,
-    updateCandidate
+    updateCandidate,
+    sorting,
+    setSorting,
+    searchSuggestions
   };
 };
 
