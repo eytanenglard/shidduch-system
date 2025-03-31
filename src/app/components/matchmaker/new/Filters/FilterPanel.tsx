@@ -1067,10 +1067,10 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                     {/* טווח ערכים */}
                     <div className="flex justify-between mt-2 px-1">
                       <span className="text-xs text-gray-500">
-                        {AGE_RANGE.min}
+                        {AGE_RANGE.max}
                       </span>
                       <span className="text-xs text-gray-500">
-                        {AGE_RANGE.max}
+                        {AGE_RANGE.min}
                       </span>
                     </div>
                   </div>
