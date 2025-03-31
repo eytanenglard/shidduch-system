@@ -4,14 +4,13 @@ import React, { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Download,
   Filter,
   LayoutGrid,
   List,
-  Plus,
   ArrowUpDown,
   RefreshCw,
   Info,
+  SlidersHorizontal,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -26,12 +25,6 @@ import ActiveFilters from "../Filters/ActiveFilters";
 import SearchBar from "../Filters/SearchBar";
 import CandidatesStats from "./CandidatesStats";
 import { LoadingContainer } from "../shared/LoadingStates";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -74,7 +67,7 @@ const CandidatesManager: React.FC = () => {
   // Local State
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [showFilters, setShowFilters] = useState(false);
-  const [showStats, setShowStats] = useState(false);
+  const showStats = false; // קבוע במקום state
   const [localFilters, setLocalFilters] = useState<CandidatesFilter>({});
   const [isProcessing, setIsProcessing] = useState(false);
   const [, setIsMobileView] = useState(false);
@@ -90,11 +83,10 @@ const CandidatesManager: React.FC = () => {
     femaleCandidates,
     filteredCandidates,
     exportCandidates,
-    totalCount,
     searchResults,
     sorting,
     setSorting,
-    setFilters, // Add this
+    setFilters,
   } = useCandidates();
 
   const {
@@ -106,10 +98,15 @@ const CandidatesManager: React.FC = () => {
     saveFilter,
     resetFilters,
     clearRecentSearches,
-    loadSavedFilter,
+    toggleSeparateFiltering,
+    updateMaleFilters,
+    updateFemaleFilters,
+    copyFilters,
   } = useFilterLogic({
     onFilterChange: (newFilters) => {
       setLocalFilters(newFilters);
+      // עדכון הפילטרים ב-useCandidates
+      setFilters(newFilters);
     },
   });
 
@@ -149,7 +146,7 @@ const CandidatesManager: React.FC = () => {
 
       setShowSearchResults(!!value);
     },
-    [setFilters] // This dependency is now valid
+    [setFilters]
   );
 
   const handleRemoveFilter = useCallback(
@@ -171,11 +168,19 @@ const CandidatesManager: React.FC = () => {
           };
         }
 
+        if (key === "separateFiltering") {
+          return {
+            ...newFilters,
+            separateFiltering: false,
+          };
+        }
+
         delete newFilters[key];
+        setFilters(newFilters); // עדכון גם ב-useCandidates 
         return newFilters;
       });
     },
-    []
+    [setFilters]
   );
 
   const handleCandidateAction = useCallback(
@@ -239,7 +244,10 @@ const CandidatesManager: React.FC = () => {
   const handleFilterSave = useCallback(
     async (name: string) => {
       try {
-        await saveFilter(name, localFilters);
+        await saveFilter(name, {
+          ...localFilters,
+          separateFiltering: filters.separateFiltering,
+        });
         toast.success("הפילטר נשמר בהצלחה", {
           description: `הפילטר "${name}" נשמר ויהיה זמין לשימוש עתידי`,
         });
@@ -247,7 +255,7 @@ const CandidatesManager: React.FC = () => {
         toast.error("שגיאה בשמירת הפילטר");
       }
     },
-    [localFilters, saveFilter]
+    [localFilters, saveFilter, filters.separateFiltering]
   );
 
   const handleExport = useCallback(async () => {
@@ -303,76 +311,40 @@ const CandidatesManager: React.FC = () => {
     );
   };
 
+  // חישוב ספירת הפילטרים הפעילים
+  const countActiveFilters = () => {
+    return activeFilters.length;
+  };
+
+  // הצגת באנר הסבר על מצב סינון נפרד
+  const renderSeparateFilteringInfo = () => {
+    if (!filters.separateFiltering) return null;
+    
+    return (
+      <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg mb-4 flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <SlidersHorizontal className="w-4 h-4 text-blue-500" />
+          <span className="font-medium text-blue-700">מצב סינון נפרד פעיל</span>
+          <span className="text-sm text-blue-600">- סינון שונה מוחל על מועמדים ומועמדות</span>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={toggleSeparateFiltering}
+          className="bg-white text-blue-700 border-blue-200 hover:bg-blue-100 hover:text-blue-800 transition-colors"
+        >
+          <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+          חזור לסינון רגיל
+        </Button>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-white border-b shadow-sm">
         <div className="container mx-auto py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold text-gray-800">
-                ניהול מועמדים
-              </h1>
-              <Badge variant="outline" className="text-sm">
-                {filteredCandidates.length} מתוך {totalCount} מועמדים
-              </Badge>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowStats((prev) => !prev)}
-                      disabled={isProcessing}
-                      className={
-                        showStats
-                          ? "bg-blue-50 text-blue-700 border-blue-200"
-                          : ""
-                      }
-                    >
-                      סטטיסטיקות
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{showStats ? "הסתר" : "הצג"} נתונים סטטיסטיים</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowExportConfirm(true)}
-                      disabled={isProcessing || filteredCandidates.length === 0}
-                    >
-                      <Download className="w-4 h-4 ml-2" />
-                      ייצוא
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>ייצוא נתוני המועמדים המסוננים לקובץ Excel</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              <Button
-                onClick={() => {
-                  /* Add candidate logic */
-                }}
-                disabled={isProcessing}
-              >
-                <Plus className="w-4 h-4 ml-2" />
-                הוספת מועמד
-              </Button>
-            </div>
-          </div>
-
           {/* Search and Filters Bar */}
           <div className="mt-4 flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
@@ -456,9 +428,9 @@ const CandidatesManager: React.FC = () => {
                   >
                     <Filter className="w-4 h-4 ml-2" />
                     סינון
-                    {activeFilters.length > 0 && (
+                    {countActiveFilters() > 0 && (
                       <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center">
-                        {activeFilters.length}
+                        {countActiveFilters()}
                       </Badge>
                     )}
                   </Button>
@@ -473,7 +445,11 @@ const CandidatesManager: React.FC = () => {
                   <div className="p-1">
                     <FilterPanel
                       filters={localFilters}
-                      onFiltersChange={setLocalFilters}
+                      onFiltersChange={(newFilters) => {
+                        // עדכון הפילטרים המקומיים והגלובליים
+                        setLocalFilters(newFilters);
+                        setFilters(newFilters);
+                      }}
                       onSavePreset={handleFilterSave}
                       onReset={resetFilters}
                       savedFilters={savedFilters.map((f) => ({
@@ -482,6 +458,11 @@ const CandidatesManager: React.FC = () => {
                         isDefault: f.isDefault,
                       }))}
                       popularFilters={popularFilters}
+                      separateFiltering={filters.separateFiltering}
+                      onToggleSeparateFiltering={toggleSeparateFiltering}
+                      onMaleFiltersChange={updateMaleFilters}
+                      onFemaleFiltersChange={updateFemaleFilters}
+                      onCopyFilters={copyFilters}
                     />
                   </div>
                 </SheetContent>
@@ -526,6 +507,9 @@ const CandidatesManager: React.FC = () => {
       <div className="container mx-auto py-6">
         {/* Search Results Summary */}
         {showSearchResults && renderSearchSummary()}
+        
+        {/* Separate Filtering Banner */}
+        {renderSeparateFilteringInfo()}
 
         {/* Statistics Overview */}
         {showStats && (
@@ -538,20 +522,27 @@ const CandidatesManager: React.FC = () => {
             <div className="hidden md:block w-80">
               <FilterPanel
                 filters={localFilters}
-                onFiltersChange={setLocalFilters}
-                onReset={resetFilters}
+                onFiltersChange={(newFilters) => {
+                  // עדכון הפילטרים המקומיים והגלובליים
+                  setLocalFilters(newFilters);
+                  setFilters(newFilters);
+                }}
                 onSavePreset={handleFilterSave}
+                onReset={resetFilters}
                 savedFilters={savedFilters.map((f) => ({
                   id: f.id,
                   name: f.name,
                   isDefault: f.isDefault,
                 }))}
                 popularFilters={popularFilters}
-                onApplySavedFilter={loadSavedFilter}
+                separateFiltering={filters.separateFiltering}
+                onToggleSeparateFiltering={toggleSeparateFiltering}
+                onMaleFiltersChange={updateMaleFilters}
+                onFemaleFiltersChange={updateFemaleFilters}
+                onCopyFilters={copyFilters}
               />
             </div>
           )}
-
           {/* Main Content */}
           <div className="flex-1">
             {loading ? (
@@ -562,6 +553,12 @@ const CandidatesManager: React.FC = () => {
                   onCandidateAction={() => {}}
                   viewMode={viewMode}
                   isLoading
+                  separateFiltering={filters.separateFiltering}
+                  maleFilters={filters.maleFilters}
+                  femaleFilters={filters.femaleFilters}
+                  onMaleFiltersChange={updateMaleFilters}
+                  onFemaleFiltersChange={updateFemaleFilters}
+                  onCopyFilters={copyFilters}
                 />
               </LoadingContainer>
             ) : (
@@ -571,7 +568,12 @@ const CandidatesManager: React.FC = () => {
                 allCandidates={candidates}
                 onCandidateAction={handleCandidateAction}
                 viewMode={viewMode}
-                highlightTerm={localFilters.searchQuery}
+                separateFiltering={filters.separateFiltering}
+                maleFilters={filters.maleFilters}
+                femaleFilters={filters.femaleFilters}
+                onMaleFiltersChange={updateMaleFilters}
+                onFemaleFiltersChange={updateFemaleFilters}
+                onCopyFilters={copyFilters}
               />
             )}
           </div>

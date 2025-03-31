@@ -34,16 +34,13 @@ export interface UseCandidatesReturn {
   searchSuggestions: (term: string) => Promise<Candidate[]>;
 }
 
-interface CandidateWithSearchScore extends Candidate {
-  _searchScore?: number;
-}
 export const useCandidates = (initialFilters: CandidatesFilter = {}): UseCandidatesReturn => {
   // Base states
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<CandidatesFilter>(initialFilters);
-  const [searchResults, setSearchResults] = useState<{
+  const [searchResults, ] = useState<{
     term: string;
     count: number;
     male: number;
@@ -168,154 +165,149 @@ export const useCandidates = (initialFilters: CandidatesFilter = {}): UseCandida
     });
   }, [calculateAge]);
   
-  // Filter candidates based on current filters
-  const filteredCandidates = useMemo(() => {
-    let results = candidates.filter(candidate => {
-      // Gender filter
-      if (filters.gender && candidate.profile.gender !== filters.gender) {
-        return false;
-      }
+// בקובץ useCandidates.ts - לעדכן את החלק של filteredCandidates
 
-      // Age filter
-      if (filters.ageRange) {
-        const age = calculateAge(candidate.profile.birthDate)
-        if (age < filters.ageRange.min || age > filters.ageRange.max) {
-          return false;
-        }
-      }
-
-      // Height filter
-      if (filters.heightRange && candidate.profile.height) {
-        if (
-          candidate.profile.height < filters.heightRange.min || 
-          candidate.profile.height > filters.heightRange.max
-        ) {
-          return false;
-        }
-      }
-
-      // Religious level filter
-      if (filters.religiousLevel && candidate.profile.religiousLevel !== filters.religiousLevel) {
-        return false;
-      }
-
-      // Cities filter
-      if (filters.cities?.length && candidate.profile.city) {
-        if (!filters.cities.includes(candidate.profile.city)) {
-          return false;
-        }
-      }
-
-      // Occupations filter
-      if (filters.occupations?.length && candidate.profile.occupation) {
-        if (!filters.occupations.includes(candidate.profile.occupation)) {
-          return false;
-        }
-      }
-
-      // Education level filter
-      if (filters.educationLevel && candidate.profile.education !== filters.educationLevel) {
-        return false;
-      }
-
-      // Marital status filter
-      if (filters.maritalStatus && candidate.profile.maritalStatus !== filters.maritalStatus) {
-        return false;
-      }
-
-      // Availability status filter
-      if (filters.availabilityStatus && 
-          candidate.profile.availabilityStatus !== filters.availabilityStatus) {
-        return false;
-      }
-
-      // Verification filter
-      if (filters.isVerified !== undefined && candidate.isVerified !== filters.isVerified) {
-        return false;
-      }
-
-      // References filter
-      if (filters.hasReferences && 
-          !candidate.profile.referenceName1 && 
-          !candidate.profile.referenceName2) {
-        return false;
-      }
-
-      // Last active days filter
-      if (filters.lastActiveDays && candidate.profile.lastActive) {
-        const lastActive = new Date(candidate.profile.lastActive);
-        const daysDiff = (new Date().getTime() - lastActive.getTime()) / (1000 * 60 * 60 * 24);
-        if (daysDiff > filters.lastActiveDays) {
-          return false;
-        }
-      }
-
-      // Profile completeness filter
-      if (filters.isProfileComplete !== undefined && 
-          candidate.isProfileComplete !== filters.isProfileComplete) {
-        return false;
-      }
-
-      // Search query filter - enhanced with highlighting and better matching
-// Search query filter - with improved handling
-if (filters.searchQuery) {
-  // טיפול טוב יותר במחרוזת החיפוש - הסרת רווחים מיותרים 
-  const searchTerm = (filters.searchQuery || '').trim().toLowerCase();
+const filteredCandidates = useMemo(() => {
+  console.log("Filtering candidates with filters:", filters);
   
-  // אם אין מחרוזת חיפוש אחרי הטיפול, לא נסנן
-  if (!searchTerm) {
-    // חשוב: אם מחרוזת החיפוש ריקה, נחזיר true כדי לא לסנן
-    return true;
-  }
-  
-  // חיפוש פשוט יותר שיעבוד בוודאות - בודק אם המחרוזת נמצאת בשדות העיקריים
-  const fullName = `${candidate.firstName} ${candidate.lastName}`.toLowerCase();
-  const city = (candidate.profile.city || '').toLowerCase();
-  const occupation = (candidate.profile.occupation || '').toLowerCase();
-  const religiousLevel = (candidate.profile.religiousLevel || '').toLowerCase();
-  
-  // בדיקה אם המחרוזת מופיעה באחד השדות החשובים
-  if (fullName.includes(searchTerm) || 
-      city.includes(searchTerm) || 
-      occupation.includes(searchTerm) || 
-      religiousLevel.includes(searchTerm)) {
-    // החיפוש מוצלח - לא צריך להוסיף ניקוד מורכב בשלב זה
-    return true;
-  }
-  
-  // אם הגענו לכאן, לא מצאנו התאמה
-  return false;
-}
+  // אם הסינון הנפרד מופעל, נשתמש בפילטרים הכלליים בלבד ללא מגדר
+  const currentFilters = filters.separateFiltering 
+    ? { ...filters, gender: undefined }
+    : filters;
 
-      return true;
-    });
-
-    // Sort results
-    if (filters.searchQuery) {
-      // Sort by search relevance if search query exists
-      results = results.sort((a, b) => {
-        return ((b as CandidateWithSearchScore)._searchScore || 0) - 
-               ((a as CandidateWithSearchScore)._searchScore || 0);
-      });
-      // Update search results stats
-      const maleResults = results.filter(c => c.profile.gender === 'MALE').length;
-      const femaleResults = results.filter(c => c.profile.gender === 'FEMALE').length;
-      
-      setSearchResults({
-        term: filters.searchQuery,
-        count: results.length,
-        male: maleResults,
-        female: femaleResults
-      });
-    } else {
-      // Otherwise sort by selected field
-      results = sortCandidates(results, sorting.field, sorting.direction);
-      setSearchResults(null);
+  let results = candidates.filter(candidate => {
+    // סינון לפי מגדר רק אם הסינון הנפרד כבוי
+    if (!filters.separateFiltering && currentFilters.gender && candidate.profile.gender !== currentFilters.gender) {
+      return false;
+    }
+    
+    // בדיקת גיל מותאמת
+    if (currentFilters.ageRange) {
+      try {
+        const age = calculateAge(candidate.profile.birthDate);
+        if (age < currentFilters.ageRange.min || age > currentFilters.ageRange.max) {
+          return false;
+        }
+      } catch (err) {
+        console.error("Error calculating age for candidate:", candidate.id, err);
+      }
+    }
+    
+    // סינון סטטוס משתמש
+    if (filters.userStatus && candidate.status !== filters.userStatus) {
+      return false;
     }
 
-    return results;
-  }, [candidates, filters, calculateAge, sorting.field, sorting.direction, sortCandidates]);
+    // סינון סטטוס זמינות - ודא המרה נכונה של הטיפוס
+    if (filters.availabilityStatus && 
+        candidate.profile.availabilityStatus !== filters.availabilityStatus) {
+      return false;
+    }
+    
+    // בדיקת גובה
+    if (filters.heightRange && candidate.profile.height) {
+      if (
+        candidate.profile.height < filters.heightRange.min || 
+        candidate.profile.height > filters.heightRange.max
+      ) {
+        return false;
+      }
+    }
 
+    // בדיקת רמת דתיות
+    if (filters.religiousLevel && candidate.profile.religiousLevel !== filters.religiousLevel) {
+      return false;
+    }
+
+    // בדיקת ערים
+    if (filters.cities?.length && candidate.profile.city) {
+      if (!filters.cities.includes(candidate.profile.city)) {
+        return false;
+      }
+    }
+
+    // בדיקת תחומי עיסוק
+    if (filters.occupations?.length && candidate.profile.occupation) {
+      if (!filters.occupations.includes(candidate.profile.occupation)) {
+        return false;
+      }
+    }
+
+    // בדיקת השכלה
+    if (filters.educationLevel && candidate.profile.education !== filters.educationLevel) {
+      return false;
+    }
+
+    // בדיקת מצב משפחתי
+    if (filters.maritalStatus && candidate.profile.maritalStatus !== filters.maritalStatus) {
+      return false;
+    }
+
+    // בדיקת אימות
+    if (filters.isVerified !== undefined && candidate.isVerified !== filters.isVerified) {
+      return false;
+    }
+
+    // בדיקת המלצות
+    if (filters.hasReferences && 
+        !candidate.profile.referenceName1 && 
+        !candidate.profile.referenceName2) {
+      return false;
+    }
+
+    // בדיקת פעילות אחרונה
+    if (filters.lastActiveDays && candidate.profile.lastActive) {
+      const lastActive = new Date(candidate.profile.lastActive);
+      const daysDiff = (new Date().getTime() - lastActive.getTime()) / (1000 * 60 * 60 * 24);
+      if (daysDiff > filters.lastActiveDays) {
+        return false;
+      }
+    }
+
+    // בדיקת שלמות פרופיל
+    if (filters.isProfileComplete !== undefined && 
+        candidate.isProfileComplete !== filters.isProfileComplete) {
+      return false;
+    }
+
+    // בדיקת חיפוש - עם טיפול משופר במחרוזת
+    if (filters.searchQuery) {
+      // טיפול טוב יותר במחרוזת החיפוש - הסרת רווחים מיותרים 
+      const searchTerm = (filters.searchQuery || '').trim().toLowerCase();
+      
+      // אם אין מחרוזת חיפוש אחרי הטיפול, לא נסנן
+      if (!searchTerm) {
+        // חשוב: אם מחרוזת החיפוש ריקה, נחזיר true כדי לא לסנן
+        return true;
+      }
+      
+      // חיפוש פשוט יותר שיעבוד בוודאות - בודק אם המחרוזת נמצאת בשדות העיקריים
+      const fullName = `${candidate.firstName} ${candidate.lastName}`.toLowerCase();
+      const city = (candidate.profile.city || '').toLowerCase();
+      const occupation = (candidate.profile.occupation || '').toLowerCase();
+      const religiousLevel = (candidate.profile.religiousLevel || '').toLowerCase();
+      
+      // בדיקה אם המחרוזת מופיעה באחד השדות החשובים
+      if (fullName.includes(searchTerm) || 
+          city.includes(searchTerm) || 
+          occupation.includes(searchTerm) || 
+          religiousLevel.includes(searchTerm)) {
+        return true;
+      }
+      
+      return false;
+    }
+
+    return true;
+  });
+
+  // מיון התוצאות
+  if (sorting.field && sorting.direction) {
+    results = sortCandidates(results, sorting.field, sorting.direction);
+  }
+
+  return results;
+}, [candidates, filters, calculateAge, sorting.field, sorting.direction, sortCandidates]);
   
 
 

@@ -19,6 +19,15 @@ export interface SavedFilter {
 
 // הגדרת מצב הפילטרים - ללא הרחבה של CandidatesFilter
 export interface FilterState {
+    // הוספת מצב תצוגה נפרדת
+    separateFiltering: boolean;
+  
+    // פילטרים נפרדים לגברים
+    maleFilters?: Omit<FilterState, 'gender' | 'maleFilters' | 'femaleFilters' | 'separateFiltering'>;
+    
+    // פילטרים נפרדים לנשים
+    femaleFilters?: Omit<FilterState, 'gender' | 'maleFilters' | 'femaleFilters' | 'separateFiltering'>;
+  
   searchQuery?: string;
   savedFilterId?: string;
   gender?: Gender | undefined;
@@ -109,6 +118,9 @@ export interface FilterResults {
 
 // קונסטנטות של הפילטרים
 export const DEFAULT_FILTER_STATE: FilterState = {
+  separateFiltering: false,
+  maleFilters: {},
+  femaleFilters: {},
   gender: undefined,
   ageRange: { min: 18, max: 99 },
   heightRange: { min: 140, max: 210 },

@@ -306,3 +306,268 @@ html[dir="rtl"] body {
     padding-right: 1rem;
   }
 }
+
+/* סגנונות לפאנל סינון נפרד לפי מגדר */
+.male-filter-panel {
+  border-color: #dbeaff;
+  background-color: #f5f9ff;
+}
+
+.female-filter-panel {
+  border-color: #f2e6ff;
+  background-color: #faf5ff;
+}
+
+/* סגנונות למצב קומפקטי */
+.compact-filter-panel {
+  padding: 0.5rem;
+  font-size: 0.75rem;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.compact-filter-panel .filter-section {
+  margin-bottom: 0.5rem;
+}
+
+.compact-filter-panel .filter-title {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.compact-filter-panel .filter-content {
+  padding: 0.25rem 0.5rem;
+}
+
+/* כפתורים קומפקטיים */
+.compact-button {
+  height: 1.5rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  font-size: 0.7rem;
+}
+
+.compact-icon {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+/* Add this to your globals.css or a component CSS file */
+.compact-filter-panel {
+  padding: 0.5rem;
+  font-size: 0.75rem;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.male-filter-panel,
+.female-filter-panel {
+  border-width: 1px;
+  border-radius: 0.375rem;
+}
+
+.male-filter-panel {
+  border-color: #dbeaff;
+  background-color: #f5f9ff;
+}
+
+.female-filter-panel {
+  border-color: #f2e6ff;
+  background-color: #faf5ff;
+}
+
+/* הוסף לגלובל CSS */
+.compact-filter-panel .filter-section {
+  margin-bottom: 0.25rem;
+}
+
+.compact-filter-panel .filter-title {
+  font-size: 0.65rem;
+  padding: 0.125rem 0.25rem;
+}
+
+.compact-filter-panel .filter-content {
+  padding: 0.125rem 0.25rem;
+}
+
+/* הקטן את כל המרכיבים בתצוגה הקומפקטית */
+.compact-mode .MuiSlider-root {
+  height: 2px;
+}
+
+.compact-mode .MuiSlider-thumb {
+  width: 10px;
+  height: 10px;
+}
+
+/* תמיכה בסליידרים בעברית */
+[dir="rtl"] .slider-root,
+html[dir="rtl"] [data-orientation="horizontal"] {
+  direction: ltr;
+}
+
+[dir="rtl"] .slider-thumb {
+  transform: translateX(-50%);
+}
+
+/* שיפור התאמת הפילטרים ל-RTL */
+.filter-panel-content {
+  direction: rtl;
+  text-align: right;
+}
+
+/* תיקון למרווחים ב-RTL */
+[dir="rtl"] .select-trigger .select-value {
+  text-align: right;
+}
+
+[dir="rtl"] .badgeContainer {
+  margin-left: 0;
+  margin-right: 0.5rem;
+}
+
+/* תיקון לתצוגת טווח מספרים ב-RTL */
+.range-display {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: space-between;
+  align-items: center;
+}
+
+[dir="rtl"] .range-min {
+  order: 2;
+}
+
+[dir="rtl"] .range-max {
+  order: 1;
+}
+
+/* תיקונים לסליידרים ב-RTL */
+.slider-container[dir="ltr"] {
+  width: 100%;
+}
+
+/* עבור תצוגת תג (badge) עם מספרים ב-RTL */
+[dir="rtl"] .range-badge {
+  display: inline-block;
+  min-width: 2.5rem;
+  text-align: center;
+}
+
+/* שיפור תצוגת dropdown ברשימות סינון */
+[dir="rtl"] .filter-dropdown-content {
+  text-align: right;
+}
+
+/* תיקון alignמנט בתיבות בחירה */
+[dir="rtl"] .select-value {
+  text-align: right;
+}
+
+/* שיפור תצוגת בחירות מרובות */
+[dir="rtl"] .multi-select-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Add these styles to globals.css to improve RTL handling for sliders */
+
+/* Better RTL support for sliders */
+.rtl-slider-container {
+  direction: ltr;
+  width: 100%;
+}
+
+/* Force number display direction */
+.rtl-number-display {
+  direction: ltr;
+  display: inline-block;
+  text-align: center;
+}
+
+/* Improve the layout of the filters panel in RTL */
+.separate-filters-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Style enhancements for male/female filter panels */
+.gender-filter-panel {
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.male-filter-panel {
+  border: 1px solid #dbeaff;
+  background-color: #f5f9ff;
+}
+
+.female-filter-panel {
+  border: 1px solid #f2e6ff;
+  background-color: #faf5ff;
+}
+
+/* Better badge styling */
+.filter-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.5rem;
+  font-weight: 600;
+  border-radius: 0.25rem;
+  background-color: white;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* כדי לשפר את המראה של רכיב Slider בעברית */
+.slider {
+  direction: ltr !important;
+}
+
+/* שיפור מראה של האינדיקטורים */
+.slider .slider-thumb {
+  width: 16px;
+  height: 16px;
+  background-color: white;
+  border: 2px solid #3b82f6;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.slider .slider-track {
+  height: 6px;
+  background-color: #e5e7eb;
+}
+
+.slider .slider-range {
+  background-color: #3b82f6;
+}
+
+/* תיקון למצב RTL בסרגלים */
+.slider-wrapper {
+  direction: rtl;
+}
+
+.rtl {
+  direction: rtl;
+}
+
+/* שיפור מראה של הסרגל */
+.slider[dir="rtl"] .slider-thumb {
+  width: 18px;
+  height: 18px;
+  background-color: white;
+  border: 2px solid #3b82f6;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.slider[dir="rtl"] .slider-track {
+  height: 6px;
+  background-color: #e5e7eb;
+}
+
+.slider[dir="rtl"] .slider-range {
+  background-color: #3b82f6;
+}

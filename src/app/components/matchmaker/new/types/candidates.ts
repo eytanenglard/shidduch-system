@@ -50,6 +50,11 @@ export interface CandidatesFilter {
   isProfileComplete?: boolean;
   searchQuery?: string;
   savedFilterId?: string;
+  separateFiltering?: boolean;
+  maleFilters?: Partial<CandidatesFilter>;
+  femaleFilters?: Partial<CandidatesFilter>;
+  userStatus?: UserStatus; // הוסף שדה זה
+
 }
 
 // ViewMode and Action Types - אלה נשארים כמו שהם

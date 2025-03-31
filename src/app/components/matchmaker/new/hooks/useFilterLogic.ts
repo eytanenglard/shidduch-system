@@ -1,4 +1,4 @@
-// src/app/components/matchmaker/new/hooks/useFilterLogic.ts
+// src/app/components/matchmaker/new/hooks/useFilterLogic.ts - גרסה משופרת
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import type {
@@ -61,7 +61,8 @@ export const useFilterLogic = ({
       // Load search history
       const history = localStorage.getItem(`${localStorageKey}_search_history`);
       if (history) {
-        setSearchHistory(JSON.parse(history).map((item: SearchHistoryItemFromStorage) => ({          ...item,
+        setSearchHistory(JSON.parse(history).map((item: SearchHistoryItemFromStorage) => ({
+          ...item,
           timestamp: new Date(item.timestamp)
         })));
       }
@@ -70,7 +71,7 @@ export const useFilterLogic = ({
     }
   }, [localStorageKey]);
 
-  // Update filters
+  // עדכון פילטרים כללי
   const updateFilters = useCallback((newFilters: Partial<FilterState>) => {
     console.log("updateFilters called with:", newFilters);
     
@@ -83,20 +84,42 @@ export const useFilterLogic = ({
         const newQuery = newFilters.searchQuery;
         console.log("New search query detected:", newQuery);
         
-        // המשך הקוד הקיים...
+        // עדכון היסטוריית החיפוש
+        const updatedHistory = [
+          { query: newQuery, timestamp: new Date() },
+          ...searchHistory.filter(item => item.query !== newQuery).slice(0, 9)
+        ];
+        
+        setSearchHistory(updatedHistory);
+        setRecentSearches(updatedHistory.map(item => item.query));
+        
+        // שמירה ב-localStorage
+        try {
+          localStorage.setItem(
+            `${localStorageKey}_recent_searches`, 
+            JSON.stringify(updatedHistory.map(item => item.query))
+          );
+          localStorage.setItem(
+            `${localStorageKey}_search_history`,
+            JSON.stringify(updatedHistory.map(item => ({
+              query: item.query,
+              timestamp: item.timestamp.toISOString()
+            })))
+          );
+        } catch (e) {
+          console.error("Error saving search history:", e);
+        }
       }
-  
-      // Call onChange callback if exists
+
+      // קריאה לפונקציית callback
       if (onFilterChange) {
         console.log("Calling onFilterChange with updated filters");
         onFilterChange(updated);
-      } else {
-        console.log("No onFilterChange callback provided");
       }
       
       return updated;
     });
-  }, [onFilterChange, localStorageKey]);
+  }, [onFilterChange, searchHistory, localStorageKey, setRecentSearches, setSearchHistory]);
 
   // Reset filters
   const resetFilters = useCallback(() => {
@@ -135,6 +158,118 @@ export const useFilterLogic = ({
     return newFilter;
   }, [localStorageKey]);
 
+  // פונקציה משופרת להחלפת מצב הסינון הנפרד
+  const toggleSeparateFiltering = useCallback(() => {
+    setFilters(prev => {
+      const newSeparateFiltering = !prev.separateFiltering;
+      
+      // אם מפעילים סינון נפרד, נייצר את הפילטרים הראשוניים לכל מגדר
+      if (newSeparateFiltering) {
+        return {
+          ...prev,
+          separateFiltering: true,
+          // אתחול פילטרים נפרדים עם ערכים בסיסיים
+          maleFilters: prev.maleFilters || {
+            ageRange: prev.ageRange,
+            heightRange: prev.heightRange,
+            religiousLevel: prev.religiousLevel,
+            educationLevel: prev.educationLevel,
+            cities: prev.cities,
+            isVerified: prev.isVerified,
+            hasReferences: prev.hasReferences,
+            isProfileComplete: prev.isProfileComplete,
+          },
+          femaleFilters: prev.femaleFilters || {
+            ageRange: prev.ageRange,
+            heightRange: prev.heightRange,
+            religiousLevel: prev.religiousLevel,
+            educationLevel: prev.educationLevel,
+            cities: prev.cities,
+            isVerified: prev.isVerified,
+            hasReferences: prev.hasReferences,
+            isProfileComplete: prev.isProfileComplete,
+          }
+        };
+      } else {
+        // אם מכבים סינון נפרד, אנחנו משאירים את הפילטרים הכלליים
+        return {
+          ...prev,
+          separateFiltering: false,
+        };
+      }
+    });
+  }, []);
+
+  // פונקציה משופרת לעדכון סינון גברים
+  const updateMaleFilters = useCallback((maleFilters: Partial<FilterState>) => {
+    setFilters(prev => {
+      const updatedMaleFilters = {
+        ...prev.maleFilters,
+        ...maleFilters
+      };
+      
+      const updated = {
+        ...prev,
+        maleFilters: updatedMaleFilters
+      };
+      
+      // קריאה לפונקציית callback אם קיימת
+      if (onFilterChange) {
+        onFilterChange(updated);
+      }
+      
+      return updated;
+    });
+  }, [onFilterChange]);
+
+  // פונקציה משופרת לעדכון סינון נשים
+  const updateFemaleFilters = useCallback((femaleFilters: Partial<FilterState>) => {
+    setFilters(prev => {
+      const updatedFemaleFilters = {
+        ...prev.femaleFilters,
+        ...femaleFilters
+      };
+      
+      const updated = {
+        ...prev,
+        femaleFilters: updatedFemaleFilters
+      };
+      
+      // קריאה לפונקציית callback אם קיימת
+      if (onFilterChange) {
+        onFilterChange(updated);
+      }
+      
+      return updated;
+    });
+  }, [onFilterChange]);
+
+  // פונקציה משופרת להעתקת סינון מצד אחד לשני
+  const copyFilters = useCallback((source: 'male' | 'female', target: 'male' | 'female') => {
+    setFilters(prev => {
+      const sourceFilters = source === 'male' ? prev.maleFilters : prev.femaleFilters;
+      
+      if (!sourceFilters) {
+        return prev;
+      }
+      
+      const updated = { ...prev };
+      
+      if (target === 'male') {
+        updated.maleFilters = { ...sourceFilters };
+      } else {
+        updated.femaleFilters = { ...sourceFilters };
+      }
+      
+      // קריאה לפונקציית callback אם קיימת
+      if (onFilterChange) {
+        onFilterChange(updated);
+      }
+      
+      return updated;
+    });
+  }, [onFilterChange]);
+
   // Update existing filter
   const updateSavedFilter = useCallback((id: string, updates: Partial<SavedFilter>) => {
     setSavedFilters(prev => {
@@ -172,13 +307,26 @@ export const useFilterLogic = ({
     });
   }, [localStorageKey]);
 
-  // Load saved filter
+  // Load saved filter - תמיכה בסינון נפרד
   const loadSavedFilter = useCallback((id: string) => {
     const filter = savedFilters.find(f => f.id === id);
     if (filter) {
-      setFilters({ ...filter.filters, savedFilterId: id });
+      // בדוק אם יש בפילטר השמור מידע לגבי סינון נפרד
+      setFilters({ 
+        ...filter.filters, 
+        savedFilterId: id,
+        // וודא שיש תמיד את המאפיינים האלה, גם אם אינם מוגדרים בפילטר המקורי
+        separateFiltering: true as boolean,        maleFilters: filter.filters.maleFilters || {},
+        femaleFilters: filter.filters.femaleFilters || {}
+      });
+      
       setLastAppliedFilter(id);
-      onFilterChange?.({ ...filter.filters, savedFilterId: id });
+      onFilterChange?.({ 
+        ...filter.filters, 
+        savedFilterId: id,
+        separateFiltering: true as boolean,        maleFilters: filter.filters.maleFilters || {},
+        femaleFilters: filter.filters.femaleFilters || {} 
+      });
     }
   }, [savedFilters, onFilterChange]);
 
@@ -215,7 +363,9 @@ export const useFilterLogic = ({
       (filters.heightRange && (
         filters.heightRange.min !== DEFAULT_FILTER_STATE.heightRange?.min ||
         filters.heightRange.max !== DEFAULT_FILTER_STATE.heightRange?.max
-      ))
+      )) ||
+      // בדיקת פילטרים נפרדים פעילים
+      filters.separateFiltering
     );
   }, [filters]);
 
@@ -237,6 +387,15 @@ export const useFilterLogic = ({
         key: 'gender',
         value: filters.gender,
         label: `מגדר: ${filters.gender === 'MALE' ? 'זכר' : 'נקבה'}`,
+        category: 'מידע בסיסי'
+      });
+    }
+
+    if (filters.separateFiltering) {
+      active.push({
+        key: 'separateFiltering',
+        value: true,
+        label: 'סינון נפרד לפי מגדר',
         category: 'מידע בסיסי'
       });
     }
@@ -409,7 +568,9 @@ export const useFilterLogic = ({
     setFilters(prev => {
       const updated = { ...prev };
 
-      if (Array.isArray(updated[key]) && value !== undefined) {
+      if (key === 'separateFiltering') {
+        updated.separateFiltering = false;
+      } else if (Array.isArray(updated[key]) && value !== undefined) {
         if (key === 'cities' || key === 'occupations') {
           updated[key] = (updated[key] as string[]).filter(v => v !== value);
         }
@@ -447,7 +608,13 @@ export const useFilterLogic = ({
     hasActiveFilters,
     popularFilters,
     lastAppliedFilter,
-
+    
+    // Separate filtering functions
+    toggleSeparateFiltering,
+    updateMaleFilters,
+    updateFemaleFilters,
+    copyFilters,
+    
     // Actions
     setFilters: updateFilters,
     removeFilter,
