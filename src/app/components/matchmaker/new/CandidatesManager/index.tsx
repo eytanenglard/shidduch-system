@@ -156,23 +156,20 @@ const CandidatesManager: React.FC = () => {
   );
   const handleMaleSearch = useCallback(
     (value: string) => {
-      if (filters.separateFiltering) {
-        updateMaleSearchQuery(value);
-        setShowSearchResults(!!value);
-      }
+      // תמיד מעדכנים את החיפוש הנפרד לגברים, גם ללא מצב סינון נפרד
+      updateMaleSearchQuery(value);
+      setShowSearchResults(!!value);
     },
-    [filters.separateFiltering, updateMaleSearchQuery]
+    [updateMaleSearchQuery]
   );
-
   // חיפוש נפרד לנשים
   const handleFemaleSearch = useCallback(
     (value: string) => {
-      if (filters.separateFiltering) {
-        updateFemaleSearchQuery(value);
-        setShowSearchResults(!!value);
-      }
+      // תמיד מעדכנים את החיפוש הנפרד לנשים, גם ללא מצב סינון נפרד
+      updateFemaleSearchQuery(value);
+      setShowSearchResults(!!value);
     },
-    [filters.separateFiltering, updateFemaleSearchQuery]
+    [updateFemaleSearchQuery]
   );
 
   const handleRemoveFilter = useCallback(
@@ -623,6 +620,11 @@ const CandidatesManager: React.FC = () => {
                   onMaleFiltersChange={updateMaleFilters}
                   onFemaleFiltersChange={updateFemaleFilters}
                   onCopyFilters={copyFilters}
+                  // תמיד מעבירים את props לחיפוש נפרד
+                  maleSearchQuery={filters.maleSearchQuery || ""}
+                  femaleSearchQuery={filters.femaleSearchQuery || ""}
+                  onMaleSearchChange={handleMaleSearch}
+                  onFemaleSearchChange={handleFemaleSearch}
                 />
               </LoadingContainer>
             ) : (
@@ -638,9 +640,9 @@ const CandidatesManager: React.FC = () => {
                 onMaleFiltersChange={updateMaleFilters}
                 onFemaleFiltersChange={updateFemaleFilters}
                 onCopyFilters={copyFilters}
-                // העברת נתוני החיפוש הנפרד
-                maleSearchQuery={filters.maleSearchQuery}
-                femaleSearchQuery={filters.femaleSearchQuery}
+                // תמיד מעבירים את props לחיפוש נפרד
+                maleSearchQuery={filters.maleSearchQuery || ""}
+                femaleSearchQuery={filters.femaleSearchQuery || ""}
                 onMaleSearchChange={handleMaleSearch}
                 onFemaleSearchChange={handleFemaleSearch}
               />

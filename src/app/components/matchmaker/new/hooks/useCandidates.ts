@@ -310,7 +310,6 @@ export const useCandidates = (initialFilters: CandidatesFilter = {}): UseCandida
   // חלוקה למועמדים ומועמדות עם תמיכה בחיפוש נפרד
   const maleCandidates = useMemo(() => {
     // בסינון נפרד, נבדוק גם את החיפוש הספציפי לגברים
-    if (filters.separateFiltering) {
       return filteredCandidates
         .filter(c => c.profile.gender === 'MALE')
         .filter(candidate => {
@@ -403,15 +402,12 @@ export const useCandidates = (initialFilters: CandidatesFilter = {}): UseCandida
           
           return true;
         });
-    }
     
-    // ללא סינון נפרד, נחזיר את כל הגברים מהרשימה המסוננת
-    return filteredCandidates.filter(c => c.profile.gender === 'MALE');
   }, [filteredCandidates, filters.separateFiltering, filters.maleFilters, filters.maleSearchQuery, calculateAge, checkSearchMatch]);
 
   const femaleCandidates = useMemo(() => {
     // בסינון נפרד, נבדוק גם את החיפוש הספציפי לנשים
-    if (filters.separateFiltering) {
+
       return filteredCandidates
         .filter(c => c.profile.gender === 'FEMALE')
         .filter(candidate => {
@@ -504,10 +500,6 @@ export const useCandidates = (initialFilters: CandidatesFilter = {}): UseCandida
           
           return true;
         });
-    }
-    
-    // ללא סינון נפרד, נחזיר את כל הנשים מהרשימה המסוננת
-    return filteredCandidates.filter(c => c.profile.gender === 'FEMALE');
   }, [filteredCandidates, filters.separateFiltering, filters.femaleFilters, filters.femaleSearchQuery, calculateAge, checkSearchMatch]);
 
   // עדכון תוצאות החיפוש

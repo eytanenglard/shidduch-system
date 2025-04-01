@@ -270,7 +270,7 @@ export const useFilterLogic = ({
         maleSearchQuery: query
       };
       
-      // מעדכנים גם את הפילטרים הספציפיים לגברים
+      // מעדכנים גם את הפילטרים הספציפיים לגברים אם פעיל סינון נפרד
       if (prev.separateFiltering) {
         updated.maleFilters = {
           ...prev.maleFilters,
@@ -295,7 +295,7 @@ export const useFilterLogic = ({
         femaleSearchQuery: query
       };
       
-      // מעדכנים גם את הפילטרים הספציפיים לנשים
+      // מעדכנים גם את הפילטרים הספציפיים לנשים אם פעיל סינון נפרד
       if (prev.separateFiltering) {
         updated.femaleFilters = {
           ...prev.femaleFilters,

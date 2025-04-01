@@ -127,24 +127,11 @@ const SplitView: React.FC<SplitViewProps> = ({
     [onCandidateAction, onCandidateClick]
   );
   const renderSearchField = (gender: "male" | "female") => {
-    console.log(
-      `Trying to render search field for ${gender}, separateFiltering: ${separateFiltering}`
-    );
-
-    if (!separateFiltering) {
-      console.log(
-        `Not rendering search for ${gender} - separateFiltering is off`
-      );
-      return null;
-    }
+    // מסירים את הבדיקה של separateFiltering כדי שהחיפוש יוצג תמיד
 
     const isMale = gender === "male";
     const searchValue = isMale ? maleSearchQuery : femaleSearchQuery;
     const handleChange = isMale ? onMaleSearchChange : onFemaleSearchChange;
-
-    console.log(
-      `For ${gender}: searchValue=${searchValue}, handleChange exists: ${!!handleChange}`
-    );
 
     if (!handleChange) {
       console.log(`Not rendering search for ${gender} - no handler`);
@@ -500,6 +487,7 @@ const SplitView: React.FC<SplitViewProps> = ({
 
   // Mobile view with side-by-side scrollable columns
   if (isMobile) {
+    // עבור תצוגת מובייל
     return (
       <div
         className={`${
@@ -516,13 +504,11 @@ const SplitView: React.FC<SplitViewProps> = ({
               </Badge>
             </div>
 
-            {/* פקדי הסינון הנפרד */}
-            {separateFiltering && (
-              <>
-                {renderGenderFilterControls("male")}
-                {renderSearchField("male")}
-              </>
-            )}
+            {/* פקדי החיפוש מוצגים תמיד גם למובייל */}
+            {renderSearchField("male")}
+
+            {/* פקדי הסינון הנפרד - רק אם פעיל */}
+            {separateFiltering && renderGenderFilterControls("male")}
 
             <div
               ref={maleScrollRef}
@@ -553,13 +539,11 @@ const SplitView: React.FC<SplitViewProps> = ({
               </Badge>
             </div>
 
-            {/* פקדי הסינון הנפרד */}
-            {separateFiltering && (
-              <>
-                {renderGenderFilterControls("female")}
-                {renderSearchField("female")}
-              </>
-            )}
+            {/* פקדי החיפוש מוצגים תמיד גם למובייל */}
+            {renderSearchField("female")}
+
+            {/* פקדי הסינון הנפרד - רק אם פעיל */}
+            {separateFiltering && renderGenderFilterControls("female")}
 
             <div
               ref={femaleScrollRef}
@@ -613,13 +597,11 @@ const SplitView: React.FC<SplitViewProps> = ({
                 <h2 className="text-lg font-bold text-blue-900">מועמדים</h2>
               </div>
 
-              {/* פקדי הסינון הנפרד */}
-              {separateFiltering && (
-                <>
-                  {renderGenderFilterControls("male")}
-                  {renderSearchField("male")}
-                </>
-              )}
+              {/* פקדי החיפוש מוצגים תמיד */}
+              {renderSearchField("male")}
+
+              {/* פקדי הסינון הנפרד - רק אם פעיל */}
+              {separateFiltering && renderGenderFilterControls("male")}
 
               {/* סטטיסטיקות */}
               {renderStats(maleStats, filteredMaleCandidates.length, "male")}
@@ -634,8 +616,7 @@ const SplitView: React.FC<SplitViewProps> = ({
               viewMode={viewMode}
               isLoading={isLoading}
               className="min-h-[600px]"
-              // העבר את מונח החיפוש לצורך הדגשה
-              highlightTerm={separateFiltering ? maleSearchQuery : undefined}
+              highlightTerm={maleSearchQuery} // משתמשים תמיד במונח החיפוש המגדרי
             />
           </div>
         </ResizablePanel>
@@ -658,13 +639,11 @@ const SplitView: React.FC<SplitViewProps> = ({
                 <h2 className="text-lg font-bold text-purple-900">מועמדות</h2>
               </div>
 
-              {/* פקדי הסינון הנפרד */}
-              {separateFiltering && (
-                <>
-                  {renderGenderFilterControls("female")}
-                  {renderSearchField("female")}
-                </>
-              )}
+              {/* פקדי החיפוש מוצגים תמיד */}
+              {renderSearchField("female")}
+
+              {/* פקדי הסינון הנפרד - רק אם פעיל */}
+              {separateFiltering && renderGenderFilterControls("female")}
 
               {/* סטטיסטיקות */}
               {renderStats(
@@ -683,8 +662,7 @@ const SplitView: React.FC<SplitViewProps> = ({
               viewMode={viewMode}
               isLoading={isLoading}
               className="min-h-[600px]"
-              // העבר את מונח החיפוש לצורך הדגשה
-              highlightTerm={separateFiltering ? femaleSearchQuery : undefined}
+              highlightTerm={femaleSearchQuery} // משתמשים תמיד במונח החיפוש המגדרי
             />
           </div>
         </ResizablePanel>
