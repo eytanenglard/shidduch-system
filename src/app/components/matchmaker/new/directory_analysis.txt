@@ -2076,23 +2076,20 @@ const CandidatesManager: React.FC = () => {
   );
   const handleMaleSearch = useCallback(
     (value: string) => {
-      if (filters.separateFiltering) {
-        updateMaleSearchQuery(value);
-        setShowSearchResults(!!value);
-      }
+      // תמיד מעדכנים את החיפוש הנפרד לגברים, גם ללא מצב סינון נפרד
+      updateMaleSearchQuery(value);
+      setShowSearchResults(!!value);
     },
-    [filters.separateFiltering, updateMaleSearchQuery]
+    [updateMaleSearchQuery]
   );
-
   // חיפוש נפרד לנשים
   const handleFemaleSearch = useCallback(
     (value: string) => {
-      if (filters.separateFiltering) {
-        updateFemaleSearchQuery(value);
-        setShowSearchResults(!!value);
-      }
+      // תמיד מעדכנים את החיפוש הנפרד לנשים, גם ללא מצב סינון נפרד
+      updateFemaleSearchQuery(value);
+      setShowSearchResults(!!value);
     },
-    [filters.separateFiltering, updateFemaleSearchQuery]
+    [updateFemaleSearchQuery]
   );
 
   const handleRemoveFilter = useCallback(
@@ -2543,6 +2540,11 @@ const CandidatesManager: React.FC = () => {
                   onMaleFiltersChange={updateMaleFilters}
                   onFemaleFiltersChange={updateFemaleFilters}
                   onCopyFilters={copyFilters}
+                  // תמיד מעבירים את props לחיפוש נפרד
+                  maleSearchQuery={filters.maleSearchQuery || ""}
+                  femaleSearchQuery={filters.femaleSearchQuery || ""}
+                  onMaleSearchChange={handleMaleSearch}
+                  onFemaleSearchChange={handleFemaleSearch}
                 />
               </LoadingContainer>
             ) : (
@@ -2558,9 +2560,9 @@ const CandidatesManager: React.FC = () => {
                 onMaleFiltersChange={updateMaleFilters}
                 onFemaleFiltersChange={updateFemaleFilters}
                 onCopyFilters={copyFilters}
-                // העברת נתוני החיפוש הנפרד
-                maleSearchQuery={filters.maleSearchQuery}
-                femaleSearchQuery={filters.femaleSearchQuery}
+                // תמיד מעבירים את props לחיפוש נפרד
+                maleSearchQuery={filters.maleSearchQuery || ""}
+                femaleSearchQuery={filters.femaleSearchQuery || ""}
                 onMaleSearchChange={handleMaleSearch}
                 onFemaleSearchChange={handleFemaleSearch}
               />
@@ -2732,24 +2734,11 @@ const SplitView: React.FC<SplitViewProps> = ({
     [onCandidateAction, onCandidateClick]
   );
   const renderSearchField = (gender: "male" | "female") => {
-    console.log(
-      `Trying to render search field for ${gender}, separateFiltering: ${separateFiltering}`
-    );
-
-    if (!separateFiltering) {
-      console.log(
-        `Not rendering search for ${gender} - separateFiltering is off`
-      );
-      return null;
-    }
+    // מסירים את הבדיקה של separateFiltering כדי שהחיפוש יוצג תמיד
 
     const isMale = gender === "male";
     const searchValue = isMale ? maleSearchQuery : femaleSearchQuery;
     const handleChange = isMale ? onMaleSearchChange : onFemaleSearchChange;
-
-    console.log(
-      `For ${gender}: searchValue=${searchValue}, handleChange exists: ${!!handleChange}`
-    );
 
     if (!handleChange) {
       console.log(`Not rendering search for ${gender} - no handler`);
@@ -3105,6 +3094,7 @@ const SplitView: React.FC<SplitViewProps> = ({
 
   // Mobile view with side-by-side scrollable columns
   if (isMobile) {
+    // עבור תצוגת מובייל
     return (
       <div
         className={`${
@@ -3121,13 +3111,11 @@ const SplitView: React.FC<SplitViewProps> = ({
               </Badge>
             </div>
 
-            {/* פקדי הסינון הנפרד */}
-            {separateFiltering && (
-              <>
-                {renderGenderFilterControls("male")}
-                {renderSearchField("male")}
-              </>
-            )}
+            {/* פקדי החיפוש מוצגים תמיד גם למובייל */}
+            {renderSearchField("male")}
+
+            {/* פקדי הסינון הנפרד - רק אם פעיל */}
+            {separateFiltering && renderGenderFilterControls("male")}
 
             <div
               ref={maleScrollRef}
@@ -3158,13 +3146,11 @@ const SplitView: React.FC<SplitViewProps> = ({
               </Badge>
             </div>
 
-            {/* פקדי הסינון הנפרד */}
-            {separateFiltering && (
-              <>
-                {renderGenderFilterControls("female")}
-                {renderSearchField("female")}
-              </>
-            )}
+            {/* פקדי החיפוש מוצגים תמיד גם למובייל */}
+            {renderSearchField("female")}
+
+            {/* פקדי הסינון הנפרד - רק אם פעיל */}
+            {separateFiltering && renderGenderFilterControls("female")}
 
             <div
               ref={femaleScrollRef}
@@ -3218,13 +3204,11 @@ const SplitView: React.FC<SplitViewProps> = ({
                 <h2 className="text-lg font-bold text-blue-900">מועמדים</h2>
               </div>
 
-              {/* פקדי הסינון הנפרד */}
-              {separateFiltering && (
-                <>
-                  {renderGenderFilterControls("male")}
-                  {renderSearchField("male")}
-                </>
-              )}
+              {/* פקדי החיפוש מוצגים תמיד */}
+              {renderSearchField("male")}
+
+              {/* פקדי הסינון הנפרד - רק אם פעיל */}
+              {separateFiltering && renderGenderFilterControls("male")}
 
               {/* סטטיסטיקות */}
               {renderStats(maleStats, filteredMaleCandidates.length, "male")}
@@ -3239,8 +3223,7 @@ const SplitView: React.FC<SplitViewProps> = ({
               viewMode={viewMode}
               isLoading={isLoading}
               className="min-h-[600px]"
-              // העבר את מונח החיפוש לצורך הדגשה
-              highlightTerm={separateFiltering ? maleSearchQuery : undefined}
+              highlightTerm={maleSearchQuery} // משתמשים תמיד במונח החיפוש המגדרי
             />
           </div>
         </ResizablePanel>
@@ -3263,13 +3246,11 @@ const SplitView: React.FC<SplitViewProps> = ({
                 <h2 className="text-lg font-bold text-purple-900">מועמדות</h2>
               </div>
 
-              {/* פקדי הסינון הנפרד */}
-              {separateFiltering && (
-                <>
-                  {renderGenderFilterControls("female")}
-                  {renderSearchField("female")}
-                </>
-              )}
+              {/* פקדי החיפוש מוצגים תמיד */}
+              {renderSearchField("female")}
+
+              {/* פקדי הסינון הנפרד - רק אם פעיל */}
+              {separateFiltering && renderGenderFilterControls("female")}
 
               {/* סטטיסטיקות */}
               {renderStats(
@@ -3288,8 +3269,7 @@ const SplitView: React.FC<SplitViewProps> = ({
               viewMode={viewMode}
               isLoading={isLoading}
               className="min-h-[600px]"
-              // העבר את מונח החיפוש לצורך הדגשה
-              highlightTerm={separateFiltering ? femaleSearchQuery : undefined}
+              highlightTerm={femaleSearchQuery} // משתמשים תמיד במונח החיפוש המגדרי
             />
           </div>
         </ResizablePanel>
@@ -6883,7 +6863,6 @@ export const useCandidates = (initialFilters: CandidatesFilter = {}): UseCandida
   // חלוקה למועמדים ומועמדות עם תמיכה בחיפוש נפרד
   const maleCandidates = useMemo(() => {
     // בסינון נפרד, נבדוק גם את החיפוש הספציפי לגברים
-    if (filters.separateFiltering) {
       return filteredCandidates
         .filter(c => c.profile.gender === 'MALE')
         .filter(candidate => {
@@ -6976,15 +6955,12 @@ export const useCandidates = (initialFilters: CandidatesFilter = {}): UseCandida
           
           return true;
         });
-    }
     
-    // ללא סינון נפרד, נחזיר את כל הגברים מהרשימה המסוננת
-    return filteredCandidates.filter(c => c.profile.gender === 'MALE');
   }, [filteredCandidates, filters.separateFiltering, filters.maleFilters, filters.maleSearchQuery, calculateAge, checkSearchMatch]);
 
   const femaleCandidates = useMemo(() => {
     // בסינון נפרד, נבדוק גם את החיפוש הספציפי לנשים
-    if (filters.separateFiltering) {
+
       return filteredCandidates
         .filter(c => c.profile.gender === 'FEMALE')
         .filter(candidate => {
@@ -7077,10 +7053,6 @@ export const useCandidates = (initialFilters: CandidatesFilter = {}): UseCandida
           
           return true;
         });
-    }
-    
-    // ללא סינון נפרד, נחזיר את כל הנשים מהרשימה המסוננת
-    return filteredCandidates.filter(c => c.profile.gender === 'FEMALE');
   }, [filteredCandidates, filters.separateFiltering, filters.femaleFilters, filters.femaleSearchQuery, calculateAge, checkSearchMatch]);
 
   // עדכון תוצאות החיפוש
@@ -7490,7 +7462,7 @@ export const useFilterLogic = ({
         maleSearchQuery: query
       };
       
-      // מעדכנים גם את הפילטרים הספציפיים לגברים
+      // מעדכנים גם את הפילטרים הספציפיים לגברים אם פעיל סינון נפרד
       if (prev.separateFiltering) {
         updated.maleFilters = {
           ...prev.maleFilters,
@@ -7515,7 +7487,7 @@ export const useFilterLogic = ({
         femaleSearchQuery: query
       };
       
-      // מעדכנים גם את הפילטרים הספציפיים לנשים
+      // מעדכנים גם את הפילטרים הספציפיים לנשים אם פעיל סינון נפרד
       if (prev.separateFiltering) {
         updated.femaleFilters = {
           ...prev.femaleFilters,

@@ -240,7 +240,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
       clearTimeout(hoverTimeoutRef.current);
     }
 
-    // שמירת מידע על המיקום מחוץ ל-setTimeout
+    // מיקום ברירת מחדל
     let top = window.scrollY + window.innerHeight / 3;
     let left = window.innerWidth / 2;
 
@@ -248,20 +248,27 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
       const element = e.currentTarget as HTMLElement;
       if (element) {
         const rect = element.getBoundingClientRect();
-        const isMobile = window.innerWidth < 768;
+        const screenMiddle = window.innerWidth / 2;
+        const isRightPanel = rect.left < screenMiddle; // האם האלמנט בפאנל ימני
 
-        // חישוב מיקום לפי גודל המסך
-        top = isMobile
-          ? rect.bottom + window.scrollY
-          : rect.top + window.scrollY;
-        left = isMobile ? rect.left : rect.right + 10;
+        // חישוב גובה
+        top = rect.top + window.scrollY;
+
+        // קביעת מיקום אופקי לפי הפאנל
+        if (isRightPanel) {
+          // אם האלמנט בפאנל ימני, מציג את החלון בצד ימין (אך לא חורג מהמסך)
+          left = Math.min(rect.right + 10, window.innerWidth - 430);
+        } else {
+          // אם האלמנט בפאנל שמאלי, מציג את החלון בצד שמאל
+          left = Math.max(rect.left - 430, 10);
+        }
       }
     }
 
     hoverTimeoutRef.current = setTimeout(() => {
       setHoverPosition({ top, left });
       setHoveredCandidate(candidate);
-    }, 300); // השהייה קטנה למניעת הבהוב בתנועות עכבר מהירות
+    }, 300);
   };
 
   const handleMouseLeave = () => {
