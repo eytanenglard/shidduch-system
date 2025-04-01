@@ -189,13 +189,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
     setOpen(false);
   };
 
-  // Get current placeholder based on selected category
-  const getCurrentPlaceholder = () => {
-    const category = SEARCH_CATEGORIES.find((cat) => cat.id === searchCategory);
-    return category?.placeholder || placeholder;
-  };
-
-  return (
+   return (
     <div className={`relative ${className}`} ref={searchContainerRef}>
       {/* Search Input Field */}
       <div className="relative flex items-center rounded-lg border border-input bg-background shadow-sm transition-colors focus-within:ring-1 focus-within:ring-blue-200">
