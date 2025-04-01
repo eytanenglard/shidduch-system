@@ -38,12 +38,39 @@ const ActiveFilters: React.FC<ActiveFiltersProps> = ({
   const getActiveFilters = (): ActiveFilter[] => {
     const activeFilters: ActiveFilter[] = [];
 
-    // Search Query (first position)
-    if (filters.searchQuery) {
+    // חיפוש כללי (מופיע רק אם אין סינון נפרד)
+    if (!filters.separateFiltering && filters.searchQuery) {
       activeFilters.push({
         key: "searchQuery",
         label: `חיפוש: ${filters.searchQuery}`,
         color: "bg-blue-100 text-blue-800 border-blue-200",
+      });
+    }
+
+    // חיפוש נפרד לגברים (מופיע רק במצב סינון נפרד)
+    if (filters.separateFiltering && filters.maleSearchQuery) {
+      activeFilters.push({
+        key: "maleSearchQuery",
+        label: `חיפוש מועמדים: ${filters.maleSearchQuery}`,
+        color: "bg-blue-100 text-blue-800 border-blue-200",
+      });
+    }
+
+    // חיפוש נפרד לנשים (מופיע רק במצב סינון נפרד)
+    if (filters.separateFiltering && filters.femaleSearchQuery) {
+      activeFilters.push({
+        key: "femaleSearchQuery",
+        label: `חיפוש מועמדות: ${filters.femaleSearchQuery}`,
+        color: "bg-purple-100 text-purple-800 border-purple-200",
+      });
+    }
+
+    // מצב סינון נפרד
+    if (filters.separateFiltering) {
+      activeFilters.push({
+        key: "separateFiltering",
+        label: `סינון וחיפוש נפרד`,
+        color: "bg-indigo-100 text-indigo-800 border-indigo-200",
       });
     }
 

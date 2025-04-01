@@ -577,6 +577,7 @@ export default Actions;
 ==================================================
 Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\matchmaker\new\CandidateCard\MinimalCard.tsx:
 ==================================================
+// MinimalCard.tsx - עם תמיכה בהדגשת מונח חיפוש
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
@@ -1155,6 +1156,8 @@ interface CandidatesListProps {
   viewMode: "grid" | "list";
   isLoading?: boolean;
   className?: string;
+  // הוסף את ה-prop החדש
+  highlightTerm?: string;
 }
 
 const CandidatesList: React.FC<CandidatesListProps> = ({
@@ -1165,6 +1168,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   viewMode,
   isLoading = false,
   className,
+  highlightTerm,
 }) => {
   // Base states
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(
@@ -1477,11 +1481,12 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
               candidate={candidate}
               onClick={() => handleAction("view", candidate)}
               className={`
-                ${viewMode === "list" ? "flex flex-row-reverse gap-4 h-32" : ""}
-                ${isMobile ? "transform scale-95" : ""}
-              `}
+    ${viewMode === "list" ? "flex flex-row-reverse gap-4 h-32" : ""}
+    ${isMobile ? "transform scale-95" : ""}
+  `}
+              // העבר את מונח החיפוש לכרטיסיה
+              highlightTerm={highlightTerm}
             />
-            
             {/* Edit button - visible when hovering */}
             <button
               className="absolute top-2 left-2 bg-primary text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
@@ -1618,6 +1623,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
 };
 
 export default CandidatesList;
+
 
 ==================================================
 Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\matchmaker\new\CandidatesManager\CandidatesStats.tsx:
@@ -2016,6 +2022,9 @@ const CandidatesManager: React.FC = () => {
     updateMaleFilters,
     updateFemaleFilters,
     copyFilters,
+    // פונקציות חדשות לחיפוש נפרד
+    updateMaleSearchQuery,
+    updateFemaleSearchQuery,
   } = useFilterLogic({
     onFilterChange: (newFilters) => {
       setLocalFilters(newFilters);
@@ -2046,21 +2055,44 @@ const CandidatesManager: React.FC = () => {
   // Search handlers
   const handleSearch = useCallback(
     (value: string) => {
-      // Update local UI state
-      setLocalFilters((prev) => ({
-        ...prev,
-        searchQuery: value,
-      }));
+      // עדכון חיפוש - אם במצב סינון נפרד, החיפוש משפיע רק על שדה החיפוש הכללי
+      if (!filters.separateFiltering) {
+        // Update local UI state
+        setLocalFilters((prev) => ({
+          ...prev,
+          searchQuery: value,
+        }));
 
-      // Update filter state in useCandidates hook
-      setFilters((prev) => ({
-        ...prev,
-        searchQuery: value,
-      }));
+        // Update filter state in useCandidates hook
+        setFilters((prev) => ({
+          ...prev,
+          searchQuery: value,
+        }));
 
-      setShowSearchResults(!!value);
+        setShowSearchResults(!!value);
+      }
     },
-    [setFilters]
+    [setFilters, filters.separateFiltering]
+  );
+  const handleMaleSearch = useCallback(
+    (value: string) => {
+      if (filters.separateFiltering) {
+        updateMaleSearchQuery(value);
+        setShowSearchResults(!!value);
+      }
+    },
+    [filters.separateFiltering, updateMaleSearchQuery]
+  );
+
+  // חיפוש נפרד לנשים
+  const handleFemaleSearch = useCallback(
+    (value: string) => {
+      if (filters.separateFiltering) {
+        updateFemaleSearchQuery(value);
+        setShowSearchResults(!!value);
+      }
+    },
+    [filters.separateFiltering, updateFemaleSearchQuery]
   );
 
   const handleRemoveFilter = useCallback(
@@ -2089,8 +2121,31 @@ const CandidatesManager: React.FC = () => {
           };
         }
 
+        // טיפול בשדות החיפוש הנפרדים
+        if (key === "maleSearchQuery") {
+          return {
+            ...newFilters,
+            maleSearchQuery: "",
+            maleFilters: {
+              ...newFilters.maleFilters,
+              searchQuery: "",
+            },
+          };
+        }
+
+        if (key === "femaleSearchQuery") {
+          return {
+            ...newFilters,
+            femaleSearchQuery: "",
+            femaleFilters: {
+              ...newFilters.femaleFilters,
+              searchQuery: "",
+            },
+          };
+        }
+
         delete newFilters[key];
-        setFilters(newFilters); // עדכון גם ב-useCandidates 
+        setFilters(newFilters); // עדכון גם ב-useCandidates
         return newFilters;
       });
     },
@@ -2193,7 +2248,13 @@ const CandidatesManager: React.FC = () => {
   }, [filteredCandidates, localFilters, exportCandidates, isProcessing]);
 
   const renderSearchSummary = () => {
+    // עדכון - תצוגת סיכום חיפוש תלויה במצב הסינון
     if (!searchResults) return null;
+
+    // אם במצב סינון נפרד, הסיכום יוצג בצורה שונה
+    if (filters.separateFiltering) {
+      return null; // במצב סינון נפרד, כל צד מציג את הסיכום שלו בנפרד
+    }
 
     return (
       <div className="bg-blue-50/50 p-3 border rounded-lg mb-4">
@@ -2233,13 +2294,17 @@ const CandidatesManager: React.FC = () => {
   // הצגת באנר הסבר על מצב סינון נפרד
   const renderSeparateFilteringInfo = () => {
     if (!filters.separateFiltering) return null;
-    
+
     return (
       <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg mb-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
           <SlidersHorizontal className="w-4 h-4 text-blue-500" />
-          <span className="font-medium text-blue-700">מצב סינון נפרד פעיל</span>
-          <span className="text-sm text-blue-600">- סינון שונה מוחל על מועמדים ומועמדות</span>
+          <span className="font-medium text-blue-700">
+            מצב סינון וחיפוש נפרד פעיל
+          </span>
+          <span className="text-sm text-blue-600">
+            - סינון וחיפוש שונה מוחל על מועמדים ומועמדות
+          </span>
         </div>
         <Button
           variant="outline"
@@ -2262,18 +2327,23 @@ const CandidatesManager: React.FC = () => {
           {/* Search and Filters Bar */}
           <div className="mt-4 flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
-              <SearchBar
-                value={localFilters.searchQuery || ""}
-                onChange={handleSearch}
-                onSelect={() => {
-                  /* Handle candidate selection */
-                }}
-                recentSearches={recentSearches}
-                onSaveSearch={(term) => handleSearch(term)}
-                onClearRecentSearches={clearRecentSearches}
-                placeholder="חיפוש לפי שם, עיר, תחום עיסוק ועוד..."
-                autoFocus={false}
-              />
+              {/* שדה חיפוש ראשי - נראה רק אם לא במצב סינון נפרד */}
+              {!filters.separateFiltering && (
+                <SearchBar
+                  value={localFilters.searchQuery || ""}
+                  onChange={handleSearch}
+                  onSelect={() => {
+                    /* Handle candidate selection */
+                  }}
+                  recentSearches={recentSearches}
+                  onSaveSearch={(term) => handleSearch(term)}
+                  onClearRecentSearches={clearRecentSearches}
+                  placeholder="חיפוש לפי שם, עיר, תחום עיסוק ועוד..."
+                  autoFocus={false}
+                  genderTarget="all"
+                  separateMode={false}
+                />
+              )}
             </div>
 
             <div className="flex gap-2">
@@ -2421,7 +2491,7 @@ const CandidatesManager: React.FC = () => {
       <div className="container mx-auto py-6">
         {/* Search Results Summary */}
         {showSearchResults && renderSearchSummary()}
-        
+
         {/* Separate Filtering Banner */}
         {renderSeparateFilteringInfo()}
 
@@ -2488,6 +2558,11 @@ const CandidatesManager: React.FC = () => {
                 onMaleFiltersChange={updateMaleFilters}
                 onFemaleFiltersChange={updateFemaleFilters}
                 onCopyFilters={copyFilters}
+                // העברת נתוני החיפוש הנפרד
+                maleSearchQuery={filters.maleSearchQuery}
+                femaleSearchQuery={filters.femaleSearchQuery}
+                onMaleSearchChange={handleMaleSearch}
+                onFemaleSearchChange={handleFemaleSearch}
               />
             )}
           </div>
@@ -2495,8 +2570,8 @@ const CandidatesManager: React.FC = () => {
       </div>
 
       {/* Export Confirmation Dialog */}
-      <AlertDialog>
-        {showExportConfirm && (
+      {showExportConfirm && (
+        <AlertDialog>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>
@@ -2508,19 +2583,22 @@ const CandidatesManager: React.FC = () => {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>ביטול</AlertDialogCancel>
+              <AlertDialogCancel onClick={() => setShowExportConfirm(false)}>
+                ביטול
+              </AlertDialogCancel>
               <AlertDialogAction onClick={handleExport} disabled={isProcessing}>
                 {isProcessing ? "מייצא..." : "אישור ייצוא"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
-        )}
-      </AlertDialog>
+        </AlertDialog>
+      )}
     </div>
   );
 };
 
 export default CandidatesManager;
+
 
 ==================================================
 Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\matchmaker\new\CandidatesManager\SplitView.tsx:
@@ -2554,7 +2632,7 @@ import { Button } from "@/components/ui/button";
 import type { Candidate, CandidateAction } from "../types/candidates";
 import type { FilterState } from "../types/filters";
 import { calculateAge } from "@/lib/utils";
-
+import SearchBar from "../Filters/SearchBar";
 interface SplitViewProps {
   maleCandidates: Candidate[];
   femaleCandidates: Candidate[];
@@ -2573,6 +2651,12 @@ interface SplitViewProps {
   onMaleFiltersChange: (filters: Partial<FilterState>) => void;
   onFemaleFiltersChange: (filters: Partial<FilterState>) => void;
   onCopyFilters: (source: "male" | "female", target: "male" | "female") => void;
+
+  // הוספת פרמטרים לחיפוש נפרד
+  maleSearchQuery?: string;
+  femaleSearchQuery?: string;
+  onMaleSearchChange?: (query: string) => void;
+  onFemaleSearchChange?: (query: string) => void;
 }
 
 interface Stats {
@@ -2592,11 +2676,14 @@ const SplitView: React.FC<SplitViewProps> = ({
   viewMode,
   isLoading = false,
   className,
-  // פרמטרים לסינון נפרד
   separateFiltering,
   maleFilters = {},
   femaleFilters = {},
-
+  // פרמטרים חדשים לחיפוש נפרד
+  maleSearchQuery = "",
+  femaleSearchQuery = "",
+  onMaleSearchChange,
+  onFemaleSearchChange,
 }) => {
   // Panel configuration state
   const [panels] = useState({
@@ -2644,7 +2731,44 @@ const SplitView: React.FC<SplitViewProps> = ({
     },
     [onCandidateAction, onCandidateClick]
   );
+  const renderSearchField = (gender: "male" | "female") => {
+    console.log(
+      `Trying to render search field for ${gender}, separateFiltering: ${separateFiltering}`
+    );
 
+    if (!separateFiltering) {
+      console.log(
+        `Not rendering search for ${gender} - separateFiltering is off`
+      );
+      return null;
+    }
+
+    const isMale = gender === "male";
+    const searchValue = isMale ? maleSearchQuery : femaleSearchQuery;
+    const handleChange = isMale ? onMaleSearchChange : onFemaleSearchChange;
+
+    console.log(
+      `For ${gender}: searchValue=${searchValue}, handleChange exists: ${!!handleChange}`
+    );
+
+    if (!handleChange) {
+      console.log(`Not rendering search for ${gender} - no handler`);
+      return null;
+    }
+
+    return (
+      <div className="mb-4">
+        <SearchBar
+          value={searchValue || ""}
+          onChange={handleChange}
+          placeholder={isMale ? "חיפוש מועמדים..." : "חיפוש מועמדות..."}
+          className="w-full"
+          genderTarget={gender}
+          separateMode={true}
+        />
+      </div>
+    );
+  };
   // Memoized stats calculations
   const calculateStats = useCallback((candidates: Candidate[]): Stats => {
     const now = Date.now();
@@ -2938,46 +3062,46 @@ const SplitView: React.FC<SplitViewProps> = ({
   );
 
   // הרכיב של בחירת הפילטרים למגדר ספציפי
-// בקובץ SplitView.tsx - הקוד המתוקן
+  // בקובץ SplitView.tsx - הקוד המתוקן
 
-const renderGenderFilterControls = (gender: "male" | "female") => {
-  const isMaleGender = gender === "male";
-  const toggleFilters = isMaleGender
-    ? () => setShowMaleFilters(!showMaleFilters)
-    : () => setShowFemaleFilters(!showFemaleFilters);
-  const filterCount = isMaleGender ? maleFilterCount : femaleFilterCount;
-  
-  return (
-    <div
-      className={`flex items-center gap-2 mb-2 px-2 py-1.5 rounded-md ${
-        isMaleGender ? "bg-blue-50" : "bg-purple-50"
-      }`}
-    >
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={toggleFilters}
-        className={`flex items-center gap-1.5 text-xs px-2 py-1 h-7 relative ${
-          isMaleGender
-            ? "text-blue-700 hover:bg-blue-100"
-            : "text-purple-700 hover:bg-purple-100"
+  const renderGenderFilterControls = (gender: "male" | "female") => {
+    const isMaleGender = gender === "male";
+    const toggleFilters = isMaleGender
+      ? () => setShowMaleFilters(!showMaleFilters)
+      : () => setShowFemaleFilters(!showFemaleFilters);
+    const filterCount = isMaleGender ? maleFilterCount : femaleFilterCount;
+
+    return (
+      <div
+        className={`flex items-center gap-2 mb-2 px-2 py-1.5 rounded-md ${
+          isMaleGender ? "bg-blue-50" : "bg-purple-50"
         }`}
       >
-        <Filter className="w-3.5 h-3.5" />
-        <span>סינון</span>
-        {filterCount > 0 && (
-          <Badge
-            className={`h-5 w-5 p-0 flex items-center justify-center absolute -top-2 -right-1 ${
-              isMaleGender ? "bg-blue-600" : "bg-purple-600"
-            }`}
-          >
-            {filterCount}
-          </Badge>
-        )}
-      </Button>
-    </div>
-  );
-};
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={toggleFilters}
+          className={`flex items-center gap-1.5 text-xs px-2 py-1 h-7 relative ${
+            isMaleGender
+              ? "text-blue-700 hover:bg-blue-100"
+              : "text-purple-700 hover:bg-purple-100"
+          }`}
+        >
+          <Filter className="w-3.5 h-3.5" />
+          <span>סינון</span>
+          {filterCount > 0 && (
+            <Badge
+              className={`h-5 w-5 p-0 flex items-center justify-center absolute -top-2 -right-1 ${
+                isMaleGender ? "bg-blue-600" : "bg-purple-600"
+              }`}
+            >
+              {filterCount}
+            </Badge>
+          )}
+        </Button>
+      </div>
+    );
+  };
 
   // Mobile view with side-by-side scrollable columns
   if (isMobile) {
@@ -2998,7 +3122,12 @@ const renderGenderFilterControls = (gender: "male" | "female") => {
             </div>
 
             {/* פקדי הסינון הנפרד */}
-            {separateFiltering && renderGenderFilterControls("male")}
+            {separateFiltering && (
+              <>
+                {renderGenderFilterControls("male")}
+                {renderSearchField("male")}
+              </>
+            )}
 
             <div
               ref={maleScrollRef}
@@ -3020,7 +3149,6 @@ const renderGenderFilterControls = (gender: "male" | "female") => {
               />
             </div>
           </div>
-
           {/* Female candidates column */}
           <div className="w-1/2 flex flex-col">
             <div className="p-2 text-center bg-purple-50 border-b">
@@ -3031,7 +3159,12 @@ const renderGenderFilterControls = (gender: "male" | "female") => {
             </div>
 
             {/* פקדי הסינון הנפרד */}
-            {separateFiltering && renderGenderFilterControls("female")}
+            {separateFiltering && (
+              <>
+                {renderGenderFilterControls("female")}
+                {renderSearchField("female")}
+              </>
+            )}
 
             <div
               ref={femaleScrollRef}
@@ -3086,7 +3219,12 @@ const renderGenderFilterControls = (gender: "male" | "female") => {
               </div>
 
               {/* פקדי הסינון הנפרד */}
-              {separateFiltering && renderGenderFilterControls("male")}
+              {separateFiltering && (
+                <>
+                  {renderGenderFilterControls("male")}
+                  {renderSearchField("male")}
+                </>
+              )}
 
               {/* סטטיסטיקות */}
               {renderStats(maleStats, filteredMaleCandidates.length, "male")}
@@ -3101,6 +3239,8 @@ const renderGenderFilterControls = (gender: "male" | "female") => {
               viewMode={viewMode}
               isLoading={isLoading}
               className="min-h-[600px]"
+              // העבר את מונח החיפוש לצורך הדגשה
+              highlightTerm={separateFiltering ? maleSearchQuery : undefined}
             />
           </div>
         </ResizablePanel>
@@ -3124,7 +3264,12 @@ const renderGenderFilterControls = (gender: "male" | "female") => {
               </div>
 
               {/* פקדי הסינון הנפרד */}
-              {separateFiltering && renderGenderFilterControls("female")}
+              {separateFiltering && (
+                <>
+                  {renderGenderFilterControls("female")}
+                  {renderSearchField("female")}
+                </>
+              )}
 
               {/* סטטיסטיקות */}
               {renderStats(
@@ -3143,6 +3288,8 @@ const renderGenderFilterControls = (gender: "male" | "female") => {
               viewMode={viewMode}
               isLoading={isLoading}
               className="min-h-[600px]"
+              // העבר את מונח החיפוש לצורך הדגשה
+              highlightTerm={separateFiltering ? femaleSearchQuery : undefined}
             />
           </div>
         </ResizablePanel>
@@ -3921,12 +4068,39 @@ const ActiveFilters: React.FC<ActiveFiltersProps> = ({
   const getActiveFilters = (): ActiveFilter[] => {
     const activeFilters: ActiveFilter[] = [];
 
-    // Search Query (first position)
-    if (filters.searchQuery) {
+    // חיפוש כללי (מופיע רק אם אין סינון נפרד)
+    if (!filters.separateFiltering && filters.searchQuery) {
       activeFilters.push({
         key: "searchQuery",
         label: `חיפוש: ${filters.searchQuery}`,
         color: "bg-blue-100 text-blue-800 border-blue-200",
+      });
+    }
+
+    // חיפוש נפרד לגברים (מופיע רק במצב סינון נפרד)
+    if (filters.separateFiltering && filters.maleSearchQuery) {
+      activeFilters.push({
+        key: "maleSearchQuery",
+        label: `חיפוש מועמדים: ${filters.maleSearchQuery}`,
+        color: "bg-blue-100 text-blue-800 border-blue-200",
+      });
+    }
+
+    // חיפוש נפרד לנשים (מופיע רק במצב סינון נפרד)
+    if (filters.separateFiltering && filters.femaleSearchQuery) {
+      activeFilters.push({
+        key: "femaleSearchQuery",
+        label: `חיפוש מועמדות: ${filters.femaleSearchQuery}`,
+        color: "bg-purple-100 text-purple-800 border-purple-200",
+      });
+    }
+
+    // מצב סינון נפרד
+    if (filters.separateFiltering) {
+      activeFilters.push({
+        key: "separateFiltering",
+        label: `סינון וחיפוש נפרד`,
+        color: "bg-indigo-100 text-indigo-800 border-indigo-200",
       });
     }
 
@@ -4482,6 +4656,7 @@ const GenderFilterPanel = ({
                       const currentMax =
                         filters?.ageRange?.max || AGE_RANGE.default.max;
                       onFiltersChange({
+                        ...filters,
                         ageRange: {
                           min: Math.min(newMin, currentMax),
                           max: currentMax,
@@ -4514,6 +4689,7 @@ const GenderFilterPanel = ({
                       const currentMin =
                         filters?.ageRange?.min || AGE_RANGE.default.min;
                       onFiltersChange({
+                        ...filters,
                         ageRange: {
                           min: currentMin,
                           max: Math.max(currentMin, newMax),
@@ -4580,6 +4756,7 @@ const GenderFilterPanel = ({
                       const currentMax =
                         filters?.heightRange?.max || HEIGHT_RANGE.default.max;
                       onFiltersChange({
+                        ...filters,
                         heightRange: {
                           min: Math.min(newMin, currentMax),
                           max: currentMax,
@@ -4612,6 +4789,7 @@ const GenderFilterPanel = ({
                       const currentMin =
                         filters?.heightRange?.min || HEIGHT_RANGE.default.min;
                       onFiltersChange({
+                        ...filters,
                         heightRange: {
                           min: currentMin,
                           max: Math.max(currentMin, newMax),
@@ -4828,7 +5006,6 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
       heightRange: { min: value[0], max: value[1] },
     });
   };
-
   const handleApplyPopularFilter = (filter: Partial<CandidatesFilter>) => {
     onFiltersChange({
       ...filters,
@@ -5192,10 +5369,13 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                           ) {
                             const currentMin =
                               filters.ageRange?.min || AGE_RANGE.default.min;
-                            handleAgeRangeChange([
-                              currentMin,
-                              Math.max(currentMin, newMax),
-                            ]);
+                            onFiltersChange({
+                              ...filters,
+                              ageRange: {
+                                min: currentMin,
+                                max: Math.max(currentMin, newMax),
+                              },
+                            });
                           }
                         }}
                         className="w-16 text-center text-lg font-bold text-blue-700 focus:outline-none"
@@ -5222,10 +5402,13 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                           ) {
                             const currentMax =
                               filters.ageRange?.max || AGE_RANGE.default.max;
-                            handleAgeRangeChange([
-                              Math.min(newMin, currentMax),
-                              currentMax,
-                            ]);
+                            onFiltersChange({
+                              ...filters,
+                              ageRange: {
+                                min: Math.min(newMin, currentMax),
+                                max: currentMax,
+                              },
+                            });
                           }
                         }}
                         className="w-16 text-center text-lg font-bold text-blue-700 focus:outline-none"
@@ -5260,10 +5443,10 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                     {/* טווח ערכים */}
                     <div className="flex justify-between mt-2 px-1">
                       <span className="text-xs text-gray-500">
-                        {AGE_RANGE.min}
+                        {AGE_RANGE.max}
                       </span>
                       <span className="text-xs text-gray-500">
-                        {AGE_RANGE.max}
+                        {AGE_RANGE.min}
                       </span>
                     </div>
                   </div>
@@ -5378,10 +5561,13 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                             const currentMin =
                               filters.heightRange?.min ||
                               HEIGHT_RANGE.default.min;
-                            handleHeightRangeChange([
-                              currentMin,
-                              Math.max(currentMin, newMax),
-                            ]);
+                            onFiltersChange({
+                              ...filters,
+                              heightRange: {
+                                min: currentMin,
+                                max: Math.max(currentMin, newMax),
+                              },
+                            });
                           }
                         }}
                         className="w-16 text-center text-lg font-bold text-blue-700 focus:outline-none"
@@ -5411,10 +5597,13 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                             const currentMax =
                               filters.heightRange?.max ||
                               HEIGHT_RANGE.default.max;
-                            handleHeightRangeChange([
-                              Math.min(newMin, currentMax),
-                              currentMax,
-                            ]);
+                            onFiltersChange({
+                              ...filters,
+                              heightRange: {
+                                min: Math.min(newMin, currentMax),
+                                max: currentMax,
+                              },
+                            });
                           }
                         }}
                         className="w-16 text-center text-lg font-bold text-blue-700 focus:outline-none"
@@ -5985,6 +6174,10 @@ interface SearchBarProps {
   className?: string;
   placeholder?: string;
   autoFocus?: boolean;
+  // הוספת שדה לציון לאיזה מגדר החיפוש מכוון
+  genderTarget?: "male" | "female" | "all";
+  // הוספת שדה לציון האם החיפוש מופעל במצב נפרד
+  separateMode?: boolean;
 }
 
 const SEARCH_CATEGORIES = [
@@ -5998,7 +6191,7 @@ const SEARCH_CATEGORIES = [
   { id: "all", label: "הכל", placeholder: "חיפוש בכל השדות..." },
 ];
 
-export const SearchBar: React.FC<SearchBarProps> = ({
+const SearchBar: React.FC<SearchBarProps> = ({
   value,
   onChange,
   onSelect,
@@ -6010,6 +6203,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   className = "",
   placeholder = "חיפוש מועמדים...",
   autoFocus = false,
+  genderTarget = "all",
+  separateMode = false,
 }) => {
   const [open, setOpen] = useState(false);
   const [searchCategory, setSearchCategory] = useState<string>("all");
@@ -6034,21 +6229,28 @@ export const SearchBar: React.FC<SearchBarProps> = ({
 
   // Handle search when user presses Enter or selects a suggestion
   const handleSearch = (searchValue: string) => {
-    console.log("handleSearch called with:", searchValue);
+    console.log(
+      `handleSearch called with: ${searchValue}, gender: ${genderTarget}, separate: ${separateMode}`
+    );
 
     if (searchValue.trim()) {
-      console.log("Calling onChange with:", searchValue.trim());
       onChange(searchValue.trim());
 
       if (onSaveSearch) {
-        console.log("Calling onSaveSearch with:", searchValue.trim());
+        // שמירת החיפוש בהיסטוריה
+        // אפשר גם לשמור את המגדר אם יש צורך
         onSaveSearch(searchValue.trim());
       }
-    } else {
-      console.log("Search value is empty, not calling onChange/onSaveSearch");
     }
   };
-
+  // כשמשתמשים בחיפוש נפרד, נעדכן את הפלייסהולדר בהתאם
+  const getSearchPlaceholder = () => {
+    if (separateMode) {
+      if (genderTarget === "male") return "חיפוש מועמדים...";
+      if (genderTarget === "female") return "חיפוש מועמדות...";
+    }
+    return placeholder;
+  };
   // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
@@ -6150,11 +6352,31 @@ export const SearchBar: React.FC<SearchBarProps> = ({
             console.log("Search input clicked, opening dropdown");
             setOpen(true);
           }}
-          placeholder={getCurrentPlaceholder()}
+          placeholder={getSearchPlaceholder()}
           className="border-0 pr-10 focus-visible:ring-0 focus-visible:ring-offset-0"
           autoFocus={autoFocus}
         />
-
+        {/* הוספת סימון של המגדר בחיפוש */}
+        {separateMode && (
+          <div className="absolute left-10 top-1/2 -translate-y-1/2">
+            <Badge
+              variant="outline"
+              className={
+                genderTarget === "male"
+                  ? "bg-blue-100"
+                  : genderTarget === "female"
+                  ? "bg-purple-100"
+                  : ""
+              }
+            >
+              {genderTarget === "male"
+                ? "מועמדים"
+                : genderTarget === "female"
+                ? "מועמדות"
+                : "הכל"}
+            </Badge>
+          </div>
+        )}
         {/* Search Categories Pills */}
         <div className="hidden md:flex absolute left-3 top-1/2 -translate-y-1/2 gap-1">
           {SEARCH_CATEGORIES.map((category) => (
@@ -6396,7 +6618,7 @@ export const useCandidates = (initialFilters: CandidatesFilter = {}): UseCandida
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<CandidatesFilter>(initialFilters);
-  const [searchResults, ] = useState<{
+  const [searchResults, setSearchResults] = useState<{
     term: string;
     count: number;
     male: number;
@@ -6521,162 +6743,368 @@ export const useCandidates = (initialFilters: CandidatesFilter = {}): UseCandida
     });
   }, [calculateAge]);
   
-// בקובץ useCandidates.ts - לעדכן את החלק של filteredCandidates
-
-const filteredCandidates = useMemo(() => {
-  console.log("Filtering candidates with filters:", filters);
-  
-  // אם הסינון הנפרד מופעל, נשתמש בפילטרים הכלליים בלבד ללא מגדר
-  const currentFilters = filters.separateFiltering 
-    ? { ...filters, gender: undefined }
-    : filters;
-
-  let results = candidates.filter(candidate => {
-    // סינון לפי מגדר רק אם הסינון הנפרד כבוי
-    if (!filters.separateFiltering && currentFilters.gender && candidate.profile.gender !== currentFilters.gender) {
-      return false;
-    }
+  // פונקציה לבדיקה אם מועמד עומד בקריטריוני חיפוש
+  const checkSearchMatch = useCallback((candidate: Candidate, searchTerm: string): boolean => {
+    if (!searchTerm) return true;
     
-    // בדיקת גיל מותאמת
-    if (currentFilters.ageRange) {
-      try {
-        const age = calculateAge(candidate.profile.birthDate);
-        if (age < currentFilters.ageRange.min || age > currentFilters.ageRange.max) {
+    // נרמול החיפוש
+    const normalizedTerm = searchTerm.toLowerCase().trim();
+    if (!normalizedTerm) return true;
+    
+    // בדיקת התאמה בשדות השונים
+    const fullName = `${candidate.firstName} ${candidate.lastName}`.toLowerCase();
+    const city = (candidate.profile.city || '').toLowerCase();
+    const occupation = (candidate.profile.occupation || '').toLowerCase();
+    const religiousLevel = (candidate.profile.religiousLevel || '').toLowerCase();
+    
+    return (
+      fullName.includes(normalizedTerm) || 
+      city.includes(normalizedTerm) || 
+      occupation.includes(normalizedTerm) || 
+      religiousLevel.includes(normalizedTerm)
+    );
+  }, []);
+
+  // בקובץ useCandidates.ts - לעדכן את החלק של filteredCandidates
+  const filteredCandidates = useMemo(() => {
+    console.log("Filtering candidates with filters:", filters);
+    
+    // אם הסינון הנפרד מופעל, נשתמש בפילטרים הכלליים בלבד ללא מגדר
+    const currentFilters = filters.separateFiltering 
+      ? { ...filters, gender: undefined }
+      : filters;
+
+    let results = candidates.filter(candidate => {
+      // סינון לפי מגדר רק אם הסינון הנפרד כבוי
+      if (!filters.separateFiltering && currentFilters.gender && candidate.profile.gender !== currentFilters.gender) {
+        return false;
+      }
+      
+      // בדיקת גיל מותאמת
+      if (currentFilters.ageRange) {
+        try {
+          const age = calculateAge(candidate.profile.birthDate);
+          if (age < currentFilters.ageRange.min || age > currentFilters.ageRange.max) {
+            return false;
+          }
+        } catch (err) {
+          console.error("Error calculating age for candidate:", candidate.id, err);
+        }
+      }
+      
+      // סינון סטטוס משתמש
+      if (filters.userStatus && candidate.status !== filters.userStatus) {
+        return false;
+      }
+
+      // סינון סטטוס זמינות - ודא המרה נכונה של הטיפוס
+      if (filters.availabilityStatus && 
+          candidate.profile.availabilityStatus !== filters.availabilityStatus) {
+        return false;
+      }
+      
+      // בדיקת גובה
+      if (filters.heightRange && candidate.profile.height) {
+        if (
+          candidate.profile.height < filters.heightRange.min || 
+          candidate.profile.height > filters.heightRange.max
+        ) {
           return false;
         }
-      } catch (err) {
-        console.error("Error calculating age for candidate:", candidate.id, err);
       }
+
+      // בדיקת רמת דתיות
+      if (filters.religiousLevel && candidate.profile.religiousLevel !== filters.religiousLevel) {
+        return false;
+      }
+
+      // בדיקת ערים
+      if (filters.cities?.length && candidate.profile.city) {
+        if (!filters.cities.includes(candidate.profile.city)) {
+          return false;
+        }
+      }
+
+      // בדיקת תחומי עיסוק
+      if (filters.occupations?.length && candidate.profile.occupation) {
+        if (!filters.occupations.includes(candidate.profile.occupation)) {
+          return false;
+        }
+      }
+
+      // בדיקת השכלה
+      if (filters.educationLevel && candidate.profile.education !== filters.educationLevel) {
+        return false;
+      }
+
+      // בדיקת מצב משפחתי
+      if (filters.maritalStatus && candidate.profile.maritalStatus !== filters.maritalStatus) {
+        return false;
+      }
+
+      // בדיקת אימות
+      if (filters.isVerified !== undefined && candidate.isVerified !== filters.isVerified) {
+        return false;
+      }
+
+      // בדיקת המלצות
+      if (filters.hasReferences && 
+          !candidate.profile.referenceName1 && 
+          !candidate.profile.referenceName2) {
+        return false;
+      }
+
+      // בדיקת פעילות אחרונה
+      if (filters.lastActiveDays && candidate.profile.lastActive) {
+        const lastActive = new Date(candidate.profile.lastActive);
+        const daysDiff = (new Date().getTime() - lastActive.getTime()) / (1000 * 60 * 60 * 24);
+        if (daysDiff > filters.lastActiveDays) {
+          return false;
+        }
+      }
+
+      // בדיקת שלמות פרופיל
+      if (filters.isProfileComplete !== undefined && 
+          candidate.isProfileComplete !== filters.isProfileComplete) {
+        return false;
+      }
+
+      // בדיקת חיפוש כללי - רק אם אין סינון נפרד
+      if (!filters.separateFiltering && currentFilters.searchQuery) {
+        return checkSearchMatch(candidate, currentFilters.searchQuery);
+      }
+
+      return true;
+    });
+
+    // מיון התוצאות
+    if (sorting.field && sorting.direction) {
+      results = sortCandidates(results, sorting.field, sorting.direction);
+    }
+
+    return results;
+  }, [candidates, filters, calculateAge, sorting.field, sorting.direction, sortCandidates, checkSearchMatch]);
+
+  // חלוקה למועמדים ומועמדות עם תמיכה בחיפוש נפרד
+  const maleCandidates = useMemo(() => {
+    // בסינון נפרד, נבדוק גם את החיפוש הספציפי לגברים
+    if (filters.separateFiltering) {
+      return filteredCandidates
+        .filter(c => c.profile.gender === 'MALE')
+        .filter(candidate => {
+          // בדיקת פילטרים ספציפיים לגברים
+          if (filters.maleFilters) {
+            // בדיקת גיל
+            if (filters.maleFilters.ageRange) {
+              const age = calculateAge(candidate.profile.birthDate);
+              if (age < filters.maleFilters.ageRange.min || age > filters.maleFilters.ageRange.max) {
+                return false;
+              }
+            }
+            
+            // בדיקת גובה
+            if (filters.maleFilters.heightRange && candidate.profile.height) {
+              if (
+                candidate.profile.height < filters.maleFilters.heightRange.min || 
+                candidate.profile.height > filters.maleFilters.heightRange.max
+              ) {
+                return false;
+              }
+            }
+
+            // בדיקת רמת דתיות
+            if (filters.maleFilters.religiousLevel && candidate.profile.religiousLevel !== filters.maleFilters.religiousLevel) {
+              return false;
+            }
+
+            // בדיקת ערים
+            if (filters.maleFilters.cities?.length && candidate.profile.city) {
+              if (!filters.maleFilters.cities.includes(candidate.profile.city)) {
+                return false;
+              }
+            }
+
+            // בדיקת תחומי עיסוק
+            if (filters.maleFilters.occupations?.length && candidate.profile.occupation) {
+              if (!filters.maleFilters.occupations.includes(candidate.profile.occupation)) {
+                return false;
+              }
+            }
+
+            // בדיקת השכלה
+            if (filters.maleFilters.educationLevel && candidate.profile.education !== filters.maleFilters.educationLevel) {
+              return false;
+            }
+
+            // בדיקת מצב משפחתי
+            if (filters.maleFilters.maritalStatus && candidate.profile.maritalStatus !== filters.maleFilters.maritalStatus) {
+              return false;
+            }
+
+            // בדיקת אימות
+            if (filters.maleFilters.isVerified !== undefined && candidate.isVerified !== filters.maleFilters.isVerified) {
+              return false;
+            }
+
+            // בדיקת המלצות
+            if (filters.maleFilters.hasReferences && 
+                !candidate.profile.referenceName1 && 
+                !candidate.profile.referenceName2) {
+              return false;
+            }
+
+            // בדיקת פעילות אחרונה
+            if (filters.maleFilters.lastActiveDays && candidate.profile.lastActive) {
+              const lastActive = new Date(candidate.profile.lastActive);
+              const daysDiff = (new Date().getTime() - lastActive.getTime()) / (1000 * 60 * 60 * 24);
+              if (daysDiff > filters.maleFilters.lastActiveDays) {
+                return false;
+              }
+            }
+
+            // בדיקת שלמות פרופיל
+            if (filters.maleFilters.isProfileComplete !== undefined && 
+                candidate.isProfileComplete !== filters.maleFilters.isProfileComplete) {
+              return false;
+            }
+
+            // בדיקת חיפוש ספציפי לפילטרים של הגברים
+            if (filters.maleFilters.searchQuery) {
+              return checkSearchMatch(candidate, filters.maleFilters.searchQuery);
+            }
+          }
+          
+          // בדיקת חיפוש נפרד לגברים
+          if (filters.maleSearchQuery) {
+            return checkSearchMatch(candidate, filters.maleSearchQuery);
+          }
+          
+          return true;
+        });
     }
     
-    // סינון סטטוס משתמש
-    if (filters.userStatus && candidate.status !== filters.userStatus) {
-      return false;
-    }
+    // ללא סינון נפרד, נחזיר את כל הגברים מהרשימה המסוננת
+    return filteredCandidates.filter(c => c.profile.gender === 'MALE');
+  }, [filteredCandidates, filters.separateFiltering, filters.maleFilters, filters.maleSearchQuery, calculateAge, checkSearchMatch]);
 
-    // סינון סטטוס זמינות - ודא המרה נכונה של הטיפוס
-    if (filters.availabilityStatus && 
-        candidate.profile.availabilityStatus !== filters.availabilityStatus) {
-      return false;
+  const femaleCandidates = useMemo(() => {
+    // בסינון נפרד, נבדוק גם את החיפוש הספציפי לנשים
+    if (filters.separateFiltering) {
+      return filteredCandidates
+        .filter(c => c.profile.gender === 'FEMALE')
+        .filter(candidate => {
+          // בדיקת פילטרים ספציפיים לנשים
+          if (filters.femaleFilters) {
+            // בדיקת גיל
+            if (filters.femaleFilters.ageRange) {
+              const age = calculateAge(candidate.profile.birthDate);
+              if (age < filters.femaleFilters.ageRange.min || age > filters.femaleFilters.ageRange.max) {
+                return false;
+              }
+            }
+            
+            // בדיקת גובה
+            if (filters.femaleFilters.heightRange && candidate.profile.height) {
+              if (
+                candidate.profile.height < filters.femaleFilters.heightRange.min || 
+                candidate.profile.height > filters.femaleFilters.heightRange.max
+              ) {
+                return false;
+              }
+            }
+
+            // בדיקת רמת דתיות
+            if (filters.femaleFilters.religiousLevel && candidate.profile.religiousLevel !== filters.femaleFilters.religiousLevel) {
+              return false;
+            }
+
+            // בדיקת ערים
+            if (filters.femaleFilters.cities?.length && candidate.profile.city) {
+              if (!filters.femaleFilters.cities.includes(candidate.profile.city)) {
+                return false;
+              }
+            }
+
+            // בדיקת תחומי עיסוק
+            if (filters.femaleFilters.occupations?.length && candidate.profile.occupation) {
+              if (!filters.femaleFilters.occupations.includes(candidate.profile.occupation)) {
+                return false;
+              }
+            }
+
+            // בדיקת השכלה
+            if (filters.femaleFilters.educationLevel && candidate.profile.education !== filters.femaleFilters.educationLevel) {
+              return false;
+            }
+
+            // בדיקת מצב משפחתי
+            if (filters.femaleFilters.maritalStatus && candidate.profile.maritalStatus !== filters.femaleFilters.maritalStatus) {
+              return false;
+            }
+
+            // בדיקת אימות
+            if (filters.femaleFilters.isVerified !== undefined && candidate.isVerified !== filters.femaleFilters.isVerified) {
+              return false;
+            }
+
+            // בדיקת המלצות
+            if (filters.femaleFilters.hasReferences && 
+                !candidate.profile.referenceName1 && 
+                !candidate.profile.referenceName2) {
+              return false;
+            }
+
+            // בדיקת פעילות אחרונה
+            if (filters.femaleFilters.lastActiveDays && candidate.profile.lastActive) {
+              const lastActive = new Date(candidate.profile.lastActive);
+              const daysDiff = (new Date().getTime() - lastActive.getTime()) / (1000 * 60 * 60 * 24);
+              if (daysDiff > filters.femaleFilters.lastActiveDays) {
+                return false;
+              }
+            }
+
+            // בדיקת שלמות פרופיל
+            if (filters.femaleFilters.isProfileComplete !== undefined && 
+                candidate.isProfileComplete !== filters.femaleFilters.isProfileComplete) {
+              return false;
+            }
+
+            // בדיקת חיפוש ספציפי לפילטרים של הנשים
+            if (filters.femaleFilters.searchQuery) {
+              return checkSearchMatch(candidate, filters.femaleFilters.searchQuery);
+            }
+          }
+          
+          // בדיקת חיפוש נפרד לנשים
+          if (filters.femaleSearchQuery) {
+            return checkSearchMatch(candidate, filters.femaleSearchQuery);
+          }
+          
+          return true;
+        });
     }
     
-    // בדיקת גובה
-    if (filters.heightRange && candidate.profile.height) {
-      if (
-        candidate.profile.height < filters.heightRange.min || 
-        candidate.profile.height > filters.heightRange.max
-      ) {
-        return false;
-      }
+    // ללא סינון נפרד, נחזיר את כל הנשים מהרשימה המסוננת
+    return filteredCandidates.filter(c => c.profile.gender === 'FEMALE');
+  }, [filteredCandidates, filters.separateFiltering, filters.femaleFilters, filters.femaleSearchQuery, calculateAge, checkSearchMatch]);
+
+  // עדכון תוצאות החיפוש
+  useEffect(() => {
+    if (!filters.separateFiltering && filters.searchQuery) {
+      // מצב חיפוש רגיל
+      setSearchResults({
+        term: filters.searchQuery,
+        count: filteredCandidates.length,
+        male: maleCandidates.length,
+        female: femaleCandidates.length
+      });
+    } else if (filters.separateFiltering) {
+      // במצב חיפוש נפרד, לא מציגים תוצאות חיפוש מאוחדות
+      setSearchResults(null);
+    } else {
+      setSearchResults(null);
     }
-
-    // בדיקת רמת דתיות
-    if (filters.religiousLevel && candidate.profile.religiousLevel !== filters.religiousLevel) {
-      return false;
-    }
-
-    // בדיקת ערים
-    if (filters.cities?.length && candidate.profile.city) {
-      if (!filters.cities.includes(candidate.profile.city)) {
-        return false;
-      }
-    }
-
-    // בדיקת תחומי עיסוק
-    if (filters.occupations?.length && candidate.profile.occupation) {
-      if (!filters.occupations.includes(candidate.profile.occupation)) {
-        return false;
-      }
-    }
-
-    // בדיקת השכלה
-    if (filters.educationLevel && candidate.profile.education !== filters.educationLevel) {
-      return false;
-    }
-
-    // בדיקת מצב משפחתי
-    if (filters.maritalStatus && candidate.profile.maritalStatus !== filters.maritalStatus) {
-      return false;
-    }
-
-    // בדיקת אימות
-    if (filters.isVerified !== undefined && candidate.isVerified !== filters.isVerified) {
-      return false;
-    }
-
-    // בדיקת המלצות
-    if (filters.hasReferences && 
-        !candidate.profile.referenceName1 && 
-        !candidate.profile.referenceName2) {
-      return false;
-    }
-
-    // בדיקת פעילות אחרונה
-    if (filters.lastActiveDays && candidate.profile.lastActive) {
-      const lastActive = new Date(candidate.profile.lastActive);
-      const daysDiff = (new Date().getTime() - lastActive.getTime()) / (1000 * 60 * 60 * 24);
-      if (daysDiff > filters.lastActiveDays) {
-        return false;
-      }
-    }
-
-    // בדיקת שלמות פרופיל
-    if (filters.isProfileComplete !== undefined && 
-        candidate.isProfileComplete !== filters.isProfileComplete) {
-      return false;
-    }
-
-    // בדיקת חיפוש - עם טיפול משופר במחרוזת
-    if (filters.searchQuery) {
-      // טיפול טוב יותר במחרוזת החיפוש - הסרת רווחים מיותרים 
-      const searchTerm = (filters.searchQuery || '').trim().toLowerCase();
-      
-      // אם אין מחרוזת חיפוש אחרי הטיפול, לא נסנן
-      if (!searchTerm) {
-        // חשוב: אם מחרוזת החיפוש ריקה, נחזיר true כדי לא לסנן
-        return true;
-      }
-      
-      // חיפוש פשוט יותר שיעבוד בוודאות - בודק אם המחרוזת נמצאת בשדות העיקריים
-      const fullName = `${candidate.firstName} ${candidate.lastName}`.toLowerCase();
-      const city = (candidate.profile.city || '').toLowerCase();
-      const occupation = (candidate.profile.occupation || '').toLowerCase();
-      const religiousLevel = (candidate.profile.religiousLevel || '').toLowerCase();
-      
-      // בדיקה אם המחרוזת מופיעה באחד השדות החשובים
-      if (fullName.includes(searchTerm) || 
-          city.includes(searchTerm) || 
-          occupation.includes(searchTerm) || 
-          religiousLevel.includes(searchTerm)) {
-        return true;
-      }
-      
-      return false;
-    }
-
-    return true;
-  });
-
-  // מיון התוצאות
-  if (sorting.field && sorting.direction) {
-    results = sortCandidates(results, sorting.field, sorting.direction);
-  }
-
-  return results;
-}, [candidates, filters, calculateAge, sorting.field, sorting.direction, sortCandidates]);
-  
-
-
-  // Split candidates by gender
-  const maleCandidates = useMemo(() => 
-    filteredCandidates.filter(c => c.profile.gender === 'MALE'),
-    [filteredCandidates]
-  );
-
-  const femaleCandidates = useMemo(() => 
-    filteredCandidates.filter(c => c.profile.gender === 'FEMALE'),
-    [filteredCandidates]
-  );
+  }, [filteredCandidates, maleCandidates, femaleCandidates, filters.searchQuery, filters.separateFiltering]);
 
   // Export candidates to CSV
   const exportCandidates = async (
@@ -6791,8 +7219,6 @@ const filteredCandidates = useMemo(() => {
     searchSuggestions
   };
 };
-
-export default useCandidates;
 
 ==================================================
 Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\matchmaker\new\hooks\useFilterLogic.ts:
@@ -6909,6 +7335,18 @@ export const useFilterLogic = ({
           console.error("Error saving search history:", e);
         }
       }
+      
+      // טיפול בחיפוש נפרד לגברים
+      if (newFilters.maleSearchQuery && newFilters.maleSearchQuery !== prev.maleSearchQuery) {
+        // כאן אפשר לייצר היסטוריה נפרדת לחיפושי גברים או לשמור בהיסטוריה הכללית
+        console.log("New male search query:", newFilters.maleSearchQuery);
+      }
+      
+      // טיפול בחיפוש נפרד לנשים
+      if (newFilters.femaleSearchQuery && newFilters.femaleSearchQuery !== prev.femaleSearchQuery) {
+        // כאן אפשר לייצר היסטוריה נפרדת לחיפושי נשים או לשמור בהיסטוריה הכללית
+        console.log("New female search query:", newFilters.femaleSearchQuery);
+      }
 
       // קריאה לפונקציית callback
       if (onFilterChange) {
@@ -6959,43 +7397,17 @@ export const useFilterLogic = ({
 
   // פונקציה משופרת להחלפת מצב הסינון הנפרד
   const toggleSeparateFiltering = useCallback(() => {
+    console.log("toggleSeparateFiltering called");
+    
     setFilters(prev => {
-      const newSeparateFiltering = !prev.separateFiltering;
+      const newState = {
+        ...prev,
+        separateFiltering: !prev.separateFiltering
+      };
       
-      // אם מפעילים סינון נפרד, נייצר את הפילטרים הראשוניים לכל מגדר
-      if (newSeparateFiltering) {
-        return {
-          ...prev,
-          separateFiltering: true,
-          // אתחול פילטרים נפרדים עם ערכים בסיסיים
-          maleFilters: prev.maleFilters || {
-            ageRange: prev.ageRange,
-            heightRange: prev.heightRange,
-            religiousLevel: prev.religiousLevel,
-            educationLevel: prev.educationLevel,
-            cities: prev.cities,
-            isVerified: prev.isVerified,
-            hasReferences: prev.hasReferences,
-            isProfileComplete: prev.isProfileComplete,
-          },
-          femaleFilters: prev.femaleFilters || {
-            ageRange: prev.ageRange,
-            heightRange: prev.heightRange,
-            religiousLevel: prev.religiousLevel,
-            educationLevel: prev.educationLevel,
-            cities: prev.cities,
-            isVerified: prev.isVerified,
-            hasReferences: prev.hasReferences,
-            isProfileComplete: prev.isProfileComplete,
-          }
-        };
-      } else {
-        // אם מכבים סינון נפרד, אנחנו משאירים את הפילטרים הכלליים
-        return {
-          ...prev,
-          separateFiltering: false,
-        };
-      }
+      console.log(`Changing separateFiltering from ${prev.separateFiltering} to ${newState.separateFiltering}`);
+      
+      return newState;
     });
   }, []);
 
@@ -7006,6 +7418,22 @@ export const useFilterLogic = ({
         ...prev.maleFilters,
         ...maleFilters
       };
+      
+      // אם יש עדכון של מחרוזת חיפוש ספציפית לגברים
+      if (maleFilters.searchQuery !== undefined) {
+        const updated = {
+          ...prev,
+          maleFilters: updatedMaleFilters,
+          maleSearchQuery: maleFilters.searchQuery // שמירת החיפוש גם בשדה הנפרד
+        };
+        
+        // קריאה לפונקציית callback אם קיימת
+        if (onFilterChange) {
+          onFilterChange(updated);
+        }
+        
+        return updated;
+      }
       
       const updated = {
         ...prev,
@@ -7029,12 +7457,77 @@ export const useFilterLogic = ({
         ...femaleFilters
       };
       
+      // אם יש עדכון של מחרוזת חיפוש ספציפית לנשים
+      if (femaleFilters.searchQuery !== undefined) {
+        const updated = {
+          ...prev,
+          femaleFilters: updatedFemaleFilters,
+          femaleSearchQuery: femaleFilters.searchQuery // שמירת החיפוש גם בשדה הנפרד
+        };
+        
+        // קריאה לפונקציית callback אם קיימת
+        if (onFilterChange) {
+          onFilterChange(updated);
+        }
+        
+        return updated;
+      }
+      
       const updated = {
         ...prev,
         femaleFilters: updatedFemaleFilters
       };
       
       // קריאה לפונקציית callback אם קיימת
+      if (onFilterChange) {
+        onFilterChange(updated);
+      }
+      
+      return updated;
+    });
+  }, [onFilterChange]);
+
+  const updateMaleSearchQuery = useCallback((query: string) => {
+    setFilters(prev => {
+      // שומרים את החיפוש בשדה הייעודי
+      const updated = {
+        ...prev,
+        maleSearchQuery: query
+      };
+      
+      // מעדכנים גם את הפילטרים הספציפיים לגברים
+      if (prev.separateFiltering) {
+        updated.maleFilters = {
+          ...prev.maleFilters,
+          searchQuery: query
+        };
+      }
+      
+      if (onFilterChange) {
+        onFilterChange(updated);
+      }
+      
+      return updated;
+    });
+  }, [onFilterChange]);
+  
+  // פונקציה חדשה לעדכון חיפוש נפרד לנשים
+  const updateFemaleSearchQuery = useCallback((query: string) => {
+    setFilters(prev => {
+      // שומרים את החיפוש בשדה הייעודי
+      const updated = {
+        ...prev,
+        femaleSearchQuery: query
+      };
+      
+      // מעדכנים גם את הפילטרים הספציפיים לנשים
+      if (prev.separateFiltering) {
+        updated.femaleFilters = {
+          ...prev.femaleFilters,
+          searchQuery: query
+        };
+      }
+      
       if (onFilterChange) {
         onFilterChange(updated);
       }
@@ -7414,6 +7907,10 @@ export const useFilterLogic = ({
     updateFemaleFilters,
     copyFilters,
     
+    // חיפוש נפרד פונקציות חדשות
+    updateMaleSearchQuery,
+    updateFemaleSearchQuery,
+    
     // Actions
     setFilters: updateFilters,
     removeFilter,
@@ -7427,9 +7924,8 @@ export const useFilterLogic = ({
     deleteFilter,
     setDefaultFilter,
     loadSavedFilter,
-  };
 };
-
+};
 export default useFilterLogic;
 
 ==================================================
@@ -10547,7 +11043,6 @@ export interface Candidate {
   isProfileComplete: boolean;
   profile: CandidateProfile;
 }
-
 export interface CandidatesFilter {
   gender?: Gender;
   ageRange?: {
@@ -10571,10 +11066,14 @@ export interface CandidatesFilter {
   searchQuery?: string;
   savedFilterId?: string;
   separateFiltering?: boolean;
+  
+  // הוספת שדות חיפוש נפרדים
+  maleSearchQuery?: string;
+  femaleSearchQuery?: string;
+  
   maleFilters?: Partial<CandidatesFilter>;
   femaleFilters?: Partial<CandidatesFilter>;
-  userStatus?: UserStatus; // הוסף שדה זה
-
+  userStatus?: UserStatus;
 }
 
 // ViewMode and Action Types - אלה נשארים כמו שהם
@@ -10656,17 +11155,22 @@ export interface SavedFilter {
   createdAt: Date;
 }
 
-// הגדרת מצב הפילטרים - ללא הרחבה של CandidatesFilter
 export interface FilterState {
-    // הוספת מצב תצוגה נפרדת
-    separateFiltering: boolean;
+  // הוספת מצב תצוגה נפרדת
+  separateFiltering: boolean;
   
-    // פילטרים נפרדים לגברים
-    maleFilters?: Omit<FilterState, 'gender' | 'maleFilters' | 'femaleFilters' | 'separateFiltering'>;
-    
-    // פילטרים נפרדים לנשים
-    femaleFilters?: Omit<FilterState, 'gender' | 'maleFilters' | 'femaleFilters' | 'separateFiltering'>;
+  // הוספת שדות חיפוש נפרדים
+  maleSearchQuery?: string;
+  femaleSearchQuery?: string;
+
+  // פילטרים נפרדים לגברים
+  maleFilters?: Omit<FilterState, 'gender' | 'maleFilters' | 'femaleFilters' | 
+    'separateFiltering' | 'maleSearchQuery' | 'femaleSearchQuery'>;
   
+  // פילטרים נפרדים לנשים
+  femaleFilters?: Omit<FilterState, 'gender' | 'maleFilters' | 'femaleFilters' | 
+    'separateFiltering' | 'maleSearchQuery' | 'femaleSearchQuery'>;
+
   searchQuery?: string;
   savedFilterId?: string;
   gender?: Gender | undefined;
@@ -10760,6 +11264,8 @@ export const DEFAULT_FILTER_STATE: FilterState = {
   separateFiltering: false,
   maleFilters: {},
   femaleFilters: {},
+  maleSearchQuery: '',
+  femaleSearchQuery: '',
   gender: undefined,
   ageRange: { min: 18, max: 99 },
   heightRange: { min: 140, max: 210 },

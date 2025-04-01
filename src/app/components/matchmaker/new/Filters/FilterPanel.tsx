@@ -775,7 +775,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
       <div className="mb-4 border rounded-lg p-4 bg-blue-50/10">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <div className="font-medium">סינון נפרד לפי מגדר</div>
+            <div className="font-medium">סינון וחיפוש נפרד לפי מגדר</div>
             <p className="text-sm text-gray-500">
               סנן מועמדים ומועמדות עם קריטריונים שונים
             </p>

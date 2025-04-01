@@ -1,3 +1,4 @@
+// MinimalCard.tsx - עם תמיכה בהדגשת מונח חיפוש
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";

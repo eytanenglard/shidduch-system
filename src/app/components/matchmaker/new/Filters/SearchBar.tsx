@@ -20,6 +20,10 @@ interface SearchBarProps {
   className?: string;
   placeholder?: string;
   autoFocus?: boolean;
+  // הוספת שדה לציון לאיזה מגדר החיפוש מכוון
+  genderTarget?: "male" | "female" | "all";
+  // הוספת שדה לציון האם החיפוש מופעל במצב נפרד
+  separateMode?: boolean;
 }
 
 const SEARCH_CATEGORIES = [
@@ -33,7 +37,7 @@ const SEARCH_CATEGORIES = [
   { id: "all", label: "הכל", placeholder: "חיפוש בכל השדות..." },
 ];
 
-export const SearchBar: React.FC<SearchBarProps> = ({
+const SearchBar: React.FC<SearchBarProps> = ({
   value,
   onChange,
   onSelect,
@@ -45,6 +49,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   className = "",
   placeholder = "חיפוש מועמדים...",
   autoFocus = false,
+  genderTarget = "all",
+  separateMode = false,
 }) => {
   const [open, setOpen] = useState(false);
   const [searchCategory, setSearchCategory] = useState<string>("all");
@@ -69,21 +75,40 @@ export const SearchBar: React.FC<SearchBarProps> = ({
 
   // Handle search when user presses Enter or selects a suggestion
   const handleSearch = (searchValue: string) => {
-    console.log("handleSearch called with:", searchValue);
+    console.log(
+      `handleSearch called with: ${searchValue}, gender: ${genderTarget}, separate: ${separateMode}`
+    );
 
     if (searchValue.trim()) {
-      console.log("Calling onChange with:", searchValue.trim());
       onChange(searchValue.trim());
 
       if (onSaveSearch) {
-        console.log("Calling onSaveSearch with:", searchValue.trim());
+        // שמירת החיפוש בהיסטוריה
+        // אפשר גם לשמור את המגדר אם יש צורך
         onSaveSearch(searchValue.trim());
       }
-    } else {
-      console.log("Search value is empty, not calling onChange/onSaveSearch");
     }
   };
+  // כשמשתמשים בחיפוש נפרד, נעדכן את הפלייסהולדר בהתאם
+  const getSearchPlaceholder = () => {
+    if (separateMode) {
+      // מצא את ה-placeholder של הקטגוריה "all" או השתמש בברירת מחדל
+      const allCategoryPlaceholder =
+        SEARCH_CATEGORIES.find((cat) => cat.id === "all")?.placeholder ||
+        "חיפוש בכל השדות...";
 
+      if (genderTarget === "male") {
+        return `חיפוש מועמדים - ${allCategoryPlaceholder}`;
+      }
+      if (genderTarget === "female") {
+        return `חיפוש מועמדות - ${allCategoryPlaceholder}`;
+      }
+    }
+
+    // אם לא במצב סינון נפרד, השתמש בקטגוריה הנוכחית שנבחרה
+    const category = SEARCH_CATEGORIES.find((cat) => cat.id === searchCategory);
+    return category?.placeholder || placeholder;
+  };
   // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
@@ -175,6 +200,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
       {/* Search Input Field */}
       <div className="relative flex items-center rounded-lg border border-input bg-background shadow-sm transition-colors focus-within:ring-1 focus-within:ring-blue-200">
         <Search className="absolute right-3 h-4 w-4 text-muted-foreground" />
+
+        {/* הכנסת שדה הקלט */}
         <Input
           ref={inputRef}
           type="text"
@@ -185,40 +212,45 @@ export const SearchBar: React.FC<SearchBarProps> = ({
             console.log("Search input clicked, opening dropdown");
             setOpen(true);
           }}
-          placeholder={getCurrentPlaceholder()}
-          className="border-0 pr-10 focus-visible:ring-0 focus-visible:ring-offset-0"
+          placeholder={getSearchPlaceholder()}
+          className={`border-0 pr-10 focus-visible:ring-0 focus-visible:ring-offset-0 ${
+            separateMode ? "pl-16" : ""
+          }`}
           autoFocus={autoFocus}
         />
 
-        {/* Search Categories Pills */}
-        <div className="hidden md:flex absolute left-3 top-1/2 -translate-y-1/2 gap-1">
-          {SEARCH_CATEGORIES.map((category) => (
+        {/* תווית המגדר כתווית קבועה שלא חופפת את יתר האלמנטים */}
+        {separateMode && (
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
             <Badge
-              key={category.id}
-              variant={searchCategory === category.id ? "default" : "outline"}
-              className={`text-xs cursor-pointer transition-colors ${
-                searchCategory === category.id
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-transparent hover:bg-muted"
-              }`}
-              onClick={() => {
-                console.log("Category changed to:", category.id);
-                setSearchCategory(category.id);
-              }}
+              variant="outline"
+              className={
+                genderTarget === "male"
+                  ? "bg-blue-100 text-blue-800 border-blue-200"
+                  : genderTarget === "female"
+                  ? "bg-purple-100 text-purple-800 border-purple-200"
+                  : ""
+              }
             >
-              {category.label}
+              {genderTarget === "male"
+                ? "מועמדים"
+                : genderTarget === "female"
+                ? "מועמדות"
+                : "הכל"}
             </Badge>
-          ))}
-        </div>
+          </div>
+        )}
 
-        {/* Clear Button */}
+        {/* כפתור ניקוי עם מיקום משופר */}
         {showClearButton && (
           <Button
             type="button"
             variant="ghost"
             size="icon"
             onClick={handleClear}
-            className="absolute left-3 top-1/2 -translate-y-1/2 h-7 w-7 md:left-40"
+            className={`absolute ${
+              separateMode ? "left-16" : "left-3 md:left-40"
+            } top-1/2 -translate-y-1/2 h-7 w-7 z-10`}
           >
             <X className="h-4 w-4" />
           </Button>
@@ -344,6 +376,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
               </div>
             </div>
           )}
+
+
 
           {/* Search Categories on Mobile */}
           <div className="md:hidden border-t">

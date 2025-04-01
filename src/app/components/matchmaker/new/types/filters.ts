@@ -17,17 +17,22 @@ export interface SavedFilter {
   createdAt: Date;
 }
 
-// הגדרת מצב הפילטרים - ללא הרחבה של CandidatesFilter
 export interface FilterState {
-    // הוספת מצב תצוגה נפרדת
-    separateFiltering: boolean;
+  // הוספת מצב תצוגה נפרדת
+  separateFiltering: boolean;
   
-    // פילטרים נפרדים לגברים
-    maleFilters?: Omit<FilterState, 'gender' | 'maleFilters' | 'femaleFilters' | 'separateFiltering'>;
-    
-    // פילטרים נפרדים לנשים
-    femaleFilters?: Omit<FilterState, 'gender' | 'maleFilters' | 'femaleFilters' | 'separateFiltering'>;
+  // הוספת שדות חיפוש נפרדים
+  maleSearchQuery?: string;
+  femaleSearchQuery?: string;
+
+  // פילטרים נפרדים לגברים
+  maleFilters?: Omit<FilterState, 'gender' | 'maleFilters' | 'femaleFilters' | 
+    'separateFiltering' | 'maleSearchQuery' | 'femaleSearchQuery'>;
   
+  // פילטרים נפרדים לנשים
+  femaleFilters?: Omit<FilterState, 'gender' | 'maleFilters' | 'femaleFilters' | 
+    'separateFiltering' | 'maleSearchQuery' | 'femaleSearchQuery'>;
+
   searchQuery?: string;
   savedFilterId?: string;
   gender?: Gender | undefined;
@@ -121,6 +126,8 @@ export const DEFAULT_FILTER_STATE: FilterState = {
   separateFiltering: false,
   maleFilters: {},
   femaleFilters: {},
+  maleSearchQuery: '',
+  femaleSearchQuery: '',
   gender: undefined,
   ageRange: { min: 18, max: 99 },
   heightRange: { min: 140, max: 210 },

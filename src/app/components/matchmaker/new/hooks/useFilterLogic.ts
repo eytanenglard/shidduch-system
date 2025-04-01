@@ -110,6 +110,18 @@ export const useFilterLogic = ({
           console.error("Error saving search history:", e);
         }
       }
+      
+      // טיפול בחיפוש נפרד לגברים
+      if (newFilters.maleSearchQuery && newFilters.maleSearchQuery !== prev.maleSearchQuery) {
+        // כאן אפשר לייצר היסטוריה נפרדת לחיפושי גברים או לשמור בהיסטוריה הכללית
+        console.log("New male search query:", newFilters.maleSearchQuery);
+      }
+      
+      // טיפול בחיפוש נפרד לנשים
+      if (newFilters.femaleSearchQuery && newFilters.femaleSearchQuery !== prev.femaleSearchQuery) {
+        // כאן אפשר לייצר היסטוריה נפרדת לחיפושי נשים או לשמור בהיסטוריה הכללית
+        console.log("New female search query:", newFilters.femaleSearchQuery);
+      }
 
       // קריאה לפונקציית callback
       if (onFilterChange) {
@@ -160,43 +172,17 @@ export const useFilterLogic = ({
 
   // פונקציה משופרת להחלפת מצב הסינון הנפרד
   const toggleSeparateFiltering = useCallback(() => {
+    console.log("toggleSeparateFiltering called");
+    
     setFilters(prev => {
-      const newSeparateFiltering = !prev.separateFiltering;
+      const newState = {
+        ...prev,
+        separateFiltering: !prev.separateFiltering
+      };
       
-      // אם מפעילים סינון נפרד, נייצר את הפילטרים הראשוניים לכל מגדר
-      if (newSeparateFiltering) {
-        return {
-          ...prev,
-          separateFiltering: true,
-          // אתחול פילטרים נפרדים עם ערכים בסיסיים
-          maleFilters: prev.maleFilters || {
-            ageRange: prev.ageRange,
-            heightRange: prev.heightRange,
-            religiousLevel: prev.religiousLevel,
-            educationLevel: prev.educationLevel,
-            cities: prev.cities,
-            isVerified: prev.isVerified,
-            hasReferences: prev.hasReferences,
-            isProfileComplete: prev.isProfileComplete,
-          },
-          femaleFilters: prev.femaleFilters || {
-            ageRange: prev.ageRange,
-            heightRange: prev.heightRange,
-            religiousLevel: prev.religiousLevel,
-            educationLevel: prev.educationLevel,
-            cities: prev.cities,
-            isVerified: prev.isVerified,
-            hasReferences: prev.hasReferences,
-            isProfileComplete: prev.isProfileComplete,
-          }
-        };
-      } else {
-        // אם מכבים סינון נפרד, אנחנו משאירים את הפילטרים הכלליים
-        return {
-          ...prev,
-          separateFiltering: false,
-        };
-      }
+      console.log(`Changing separateFiltering from ${prev.separateFiltering} to ${newState.separateFiltering}`);
+      
+      return newState;
     });
   }, []);
 
@@ -207,6 +193,22 @@ export const useFilterLogic = ({
         ...prev.maleFilters,
         ...maleFilters
       };
+      
+      // אם יש עדכון של מחרוזת חיפוש ספציפית לגברים
+      if (maleFilters.searchQuery !== undefined) {
+        const updated = {
+          ...prev,
+          maleFilters: updatedMaleFilters,
+          maleSearchQuery: maleFilters.searchQuery // שמירת החיפוש גם בשדה הנפרד
+        };
+        
+        // קריאה לפונקציית callback אם קיימת
+        if (onFilterChange) {
+          onFilterChange(updated);
+        }
+        
+        return updated;
+      }
       
       const updated = {
         ...prev,
@@ -230,12 +232,77 @@ export const useFilterLogic = ({
         ...femaleFilters
       };
       
+      // אם יש עדכון של מחרוזת חיפוש ספציפית לנשים
+      if (femaleFilters.searchQuery !== undefined) {
+        const updated = {
+          ...prev,
+          femaleFilters: updatedFemaleFilters,
+          femaleSearchQuery: femaleFilters.searchQuery // שמירת החיפוש גם בשדה הנפרד
+        };
+        
+        // קריאה לפונקציית callback אם קיימת
+        if (onFilterChange) {
+          onFilterChange(updated);
+        }
+        
+        return updated;
+      }
+      
       const updated = {
         ...prev,
         femaleFilters: updatedFemaleFilters
       };
       
       // קריאה לפונקציית callback אם קיימת
+      if (onFilterChange) {
+        onFilterChange(updated);
+      }
+      
+      return updated;
+    });
+  }, [onFilterChange]);
+
+  const updateMaleSearchQuery = useCallback((query: string) => {
+    setFilters(prev => {
+      // שומרים את החיפוש בשדה הייעודי
+      const updated = {
+        ...prev,
+        maleSearchQuery: query
+      };
+      
+      // מעדכנים גם את הפילטרים הספציפיים לגברים
+      if (prev.separateFiltering) {
+        updated.maleFilters = {
+          ...prev.maleFilters,
+          searchQuery: query
+        };
+      }
+      
+      if (onFilterChange) {
+        onFilterChange(updated);
+      }
+      
+      return updated;
+    });
+  }, [onFilterChange]);
+  
+  // פונקציה חדשה לעדכון חיפוש נפרד לנשים
+  const updateFemaleSearchQuery = useCallback((query: string) => {
+    setFilters(prev => {
+      // שומרים את החיפוש בשדה הייעודי
+      const updated = {
+        ...prev,
+        femaleSearchQuery: query
+      };
+      
+      // מעדכנים גם את הפילטרים הספציפיים לנשים
+      if (prev.separateFiltering) {
+        updated.femaleFilters = {
+          ...prev.femaleFilters,
+          searchQuery: query
+        };
+      }
+      
       if (onFilterChange) {
         onFilterChange(updated);
       }
@@ -615,6 +682,10 @@ export const useFilterLogic = ({
     updateFemaleFilters,
     copyFilters,
     
+    // חיפוש נפרד פונקציות חדשות
+    updateMaleSearchQuery,
+    updateFemaleSearchQuery,
+    
     // Actions
     setFilters: updateFilters,
     removeFilter,
@@ -628,7 +699,6 @@ export const useFilterLogic = ({
     deleteFilter,
     setDefaultFilter,
     loadSavedFilter,
-  };
 };
-
+};
 export default useFilterLogic;

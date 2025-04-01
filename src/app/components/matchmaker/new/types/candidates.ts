@@ -27,7 +27,6 @@ export interface Candidate {
   isProfileComplete: boolean;
   profile: CandidateProfile;
 }
-
 export interface CandidatesFilter {
   gender?: Gender;
   ageRange?: {
@@ -51,10 +50,14 @@ export interface CandidatesFilter {
   searchQuery?: string;
   savedFilterId?: string;
   separateFiltering?: boolean;
+  
+  // הוספת שדות חיפוש נפרדים
+  maleSearchQuery?: string;
+  femaleSearchQuery?: string;
+  
   maleFilters?: Partial<CandidatesFilter>;
   femaleFilters?: Partial<CandidatesFilter>;
-  userStatus?: UserStatus; // הוסף שדה זה
-
+  userStatus?: UserStatus;
 }
 
 // ViewMode and Action Types - אלה נשארים כמו שהם

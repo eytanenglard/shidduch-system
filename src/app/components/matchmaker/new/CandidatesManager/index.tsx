@@ -102,6 +102,9 @@ const CandidatesManager: React.FC = () => {
     updateMaleFilters,
     updateFemaleFilters,
     copyFilters,
+    // פונקציות חדשות לחיפוש נפרד
+    updateMaleSearchQuery,
+    updateFemaleSearchQuery,
   } = useFilterLogic({
     onFilterChange: (newFilters) => {
       setLocalFilters(newFilters);
@@ -132,21 +135,44 @@ const CandidatesManager: React.FC = () => {
   // Search handlers
   const handleSearch = useCallback(
     (value: string) => {
-      // Update local UI state
-      setLocalFilters((prev) => ({
-        ...prev,
-        searchQuery: value,
-      }));
+      // עדכון חיפוש - אם במצב סינון נפרד, החיפוש משפיע רק על שדה החיפוש הכללי
+      if (!filters.separateFiltering) {
+        // Update local UI state
+        setLocalFilters((prev) => ({
+          ...prev,
+          searchQuery: value,
+        }));
 
-      // Update filter state in useCandidates hook
-      setFilters((prev) => ({
-        ...prev,
-        searchQuery: value,
-      }));
+        // Update filter state in useCandidates hook
+        setFilters((prev) => ({
+          ...prev,
+          searchQuery: value,
+        }));
 
-      setShowSearchResults(!!value);
+        setShowSearchResults(!!value);
+      }
     },
-    [setFilters]
+    [setFilters, filters.separateFiltering]
+  );
+  const handleMaleSearch = useCallback(
+    (value: string) => {
+      if (filters.separateFiltering) {
+        updateMaleSearchQuery(value);
+        setShowSearchResults(!!value);
+      }
+    },
+    [filters.separateFiltering, updateMaleSearchQuery]
+  );
+
+  // חיפוש נפרד לנשים
+  const handleFemaleSearch = useCallback(
+    (value: string) => {
+      if (filters.separateFiltering) {
+        updateFemaleSearchQuery(value);
+        setShowSearchResults(!!value);
+      }
+    },
+    [filters.separateFiltering, updateFemaleSearchQuery]
   );
 
   const handleRemoveFilter = useCallback(
@@ -175,8 +201,31 @@ const CandidatesManager: React.FC = () => {
           };
         }
 
+        // טיפול בשדות החיפוש הנפרדים
+        if (key === "maleSearchQuery") {
+          return {
+            ...newFilters,
+            maleSearchQuery: "",
+            maleFilters: {
+              ...newFilters.maleFilters,
+              searchQuery: "",
+            },
+          };
+        }
+
+        if (key === "femaleSearchQuery") {
+          return {
+            ...newFilters,
+            femaleSearchQuery: "",
+            femaleFilters: {
+              ...newFilters.femaleFilters,
+              searchQuery: "",
+            },
+          };
+        }
+
         delete newFilters[key];
-        setFilters(newFilters); // עדכון גם ב-useCandidates 
+        setFilters(newFilters); // עדכון גם ב-useCandidates
         return newFilters;
       });
     },
@@ -279,7 +328,13 @@ const CandidatesManager: React.FC = () => {
   }, [filteredCandidates, localFilters, exportCandidates, isProcessing]);
 
   const renderSearchSummary = () => {
+    // עדכון - תצוגת סיכום חיפוש תלויה במצב הסינון
     if (!searchResults) return null;
+
+    // אם במצב סינון נפרד, הסיכום יוצג בצורה שונה
+    if (filters.separateFiltering) {
+      return null; // במצב סינון נפרד, כל צד מציג את הסיכום שלו בנפרד
+    }
 
     return (
       <div className="bg-blue-50/50 p-3 border rounded-lg mb-4">
@@ -319,13 +374,17 @@ const CandidatesManager: React.FC = () => {
   // הצגת באנר הסבר על מצב סינון נפרד
   const renderSeparateFilteringInfo = () => {
     if (!filters.separateFiltering) return null;
-    
+
     return (
       <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg mb-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
           <SlidersHorizontal className="w-4 h-4 text-blue-500" />
-          <span className="font-medium text-blue-700">מצב סינון נפרד פעיל</span>
-          <span className="text-sm text-blue-600">- סינון שונה מוחל על מועמדים ומועמדות</span>
+          <span className="font-medium text-blue-700">
+            מצב סינון וחיפוש נפרד פעיל
+          </span>
+          <span className="text-sm text-blue-600">
+            - סינון וחיפוש שונה מוחל על מועמדים ומועמדות
+          </span>
         </div>
         <Button
           variant="outline"
@@ -348,18 +407,23 @@ const CandidatesManager: React.FC = () => {
           {/* Search and Filters Bar */}
           <div className="mt-4 flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
-              <SearchBar
-                value={localFilters.searchQuery || ""}
-                onChange={handleSearch}
-                onSelect={() => {
-                  /* Handle candidate selection */
-                }}
-                recentSearches={recentSearches}
-                onSaveSearch={(term) => handleSearch(term)}
-                onClearRecentSearches={clearRecentSearches}
-                placeholder="חיפוש לפי שם, עיר, תחום עיסוק ועוד..."
-                autoFocus={false}
-              />
+              {/* שדה חיפוש ראשי - נראה רק אם לא במצב סינון נפרד */}
+              {!filters.separateFiltering && (
+                <SearchBar
+                  value={localFilters.searchQuery || ""}
+                  onChange={handleSearch}
+                  onSelect={() => {
+                    /* Handle candidate selection */
+                  }}
+                  recentSearches={recentSearches}
+                  onSaveSearch={(term) => handleSearch(term)}
+                  onClearRecentSearches={clearRecentSearches}
+                  placeholder="חיפוש לפי שם, עיר, תחום עיסוק ועוד..."
+                  autoFocus={false}
+                  genderTarget="all"
+                  separateMode={false}
+                />
+              )}
             </div>
 
             <div className="flex gap-2">
@@ -507,7 +571,7 @@ const CandidatesManager: React.FC = () => {
       <div className="container mx-auto py-6">
         {/* Search Results Summary */}
         {showSearchResults && renderSearchSummary()}
-        
+
         {/* Separate Filtering Banner */}
         {renderSeparateFilteringInfo()}
 
@@ -574,6 +638,11 @@ const CandidatesManager: React.FC = () => {
                 onMaleFiltersChange={updateMaleFilters}
                 onFemaleFiltersChange={updateFemaleFilters}
                 onCopyFilters={copyFilters}
+                // העברת נתוני החיפוש הנפרד
+                maleSearchQuery={filters.maleSearchQuery}
+                femaleSearchQuery={filters.femaleSearchQuery}
+                onMaleSearchChange={handleMaleSearch}
+                onFemaleSearchChange={handleFemaleSearch}
               />
             )}
           </div>
@@ -581,8 +650,8 @@ const CandidatesManager: React.FC = () => {
       </div>
 
       {/* Export Confirmation Dialog */}
-      <AlertDialog>
-        {showExportConfirm && (
+      {showExportConfirm && (
+        <AlertDialog>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>
@@ -594,14 +663,16 @@ const CandidatesManager: React.FC = () => {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>ביטול</AlertDialogCancel>
+              <AlertDialogCancel onClick={() => setShowExportConfirm(false)}>
+                ביטול
+              </AlertDialogCancel>
               <AlertDialogAction onClick={handleExport} disabled={isProcessing}>
                 {isProcessing ? "מייצא..." : "אישור ייצוא"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
-        )}
-      </AlertDialog>
+        </AlertDialog>
+      )}
     </div>
   );
 };

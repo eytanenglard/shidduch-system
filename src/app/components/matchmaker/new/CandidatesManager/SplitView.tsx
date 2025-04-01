@@ -27,7 +27,7 @@ import { Button } from "@/components/ui/button";
 import type { Candidate, CandidateAction } from "../types/candidates";
 import type { FilterState } from "../types/filters";
 import { calculateAge } from "@/lib/utils";
-
+import SearchBar from "../Filters/SearchBar";
 interface SplitViewProps {
   maleCandidates: Candidate[];
   femaleCandidates: Candidate[];
@@ -46,6 +46,12 @@ interface SplitViewProps {
   onMaleFiltersChange: (filters: Partial<FilterState>) => void;
   onFemaleFiltersChange: (filters: Partial<FilterState>) => void;
   onCopyFilters: (source: "male" | "female", target: "male" | "female") => void;
+
+  // הוספת פרמטרים לחיפוש נפרד
+  maleSearchQuery?: string;
+  femaleSearchQuery?: string;
+  onMaleSearchChange?: (query: string) => void;
+  onFemaleSearchChange?: (query: string) => void;
 }
 
 interface Stats {
@@ -65,11 +71,14 @@ const SplitView: React.FC<SplitViewProps> = ({
   viewMode,
   isLoading = false,
   className,
-  // פרמטרים לסינון נפרד
   separateFiltering,
   maleFilters = {},
   femaleFilters = {},
-
+  // פרמטרים חדשים לחיפוש נפרד
+  maleSearchQuery = "",
+  femaleSearchQuery = "",
+  onMaleSearchChange,
+  onFemaleSearchChange,
 }) => {
   // Panel configuration state
   const [panels] = useState({
@@ -117,7 +126,44 @@ const SplitView: React.FC<SplitViewProps> = ({
     },
     [onCandidateAction, onCandidateClick]
   );
+  const renderSearchField = (gender: "male" | "female") => {
+    console.log(
+      `Trying to render search field for ${gender}, separateFiltering: ${separateFiltering}`
+    );
 
+    if (!separateFiltering) {
+      console.log(
+        `Not rendering search for ${gender} - separateFiltering is off`
+      );
+      return null;
+    }
+
+    const isMale = gender === "male";
+    const searchValue = isMale ? maleSearchQuery : femaleSearchQuery;
+    const handleChange = isMale ? onMaleSearchChange : onFemaleSearchChange;
+
+    console.log(
+      `For ${gender}: searchValue=${searchValue}, handleChange exists: ${!!handleChange}`
+    );
+
+    if (!handleChange) {
+      console.log(`Not rendering search for ${gender} - no handler`);
+      return null;
+    }
+
+    return (
+      <div className="mb-4">
+        <SearchBar
+          value={searchValue || ""}
+          onChange={handleChange}
+          placeholder={isMale ? "חיפוש מועמדים..." : "חיפוש מועמדות..."}
+          className="w-full"
+          genderTarget={gender}
+          separateMode={true}
+        />
+      </div>
+    );
+  };
   // Memoized stats calculations
   const calculateStats = useCallback((candidates: Candidate[]): Stats => {
     const now = Date.now();
@@ -411,46 +457,46 @@ const SplitView: React.FC<SplitViewProps> = ({
   );
 
   // הרכיב של בחירת הפילטרים למגדר ספציפי
-// בקובץ SplitView.tsx - הקוד המתוקן
+  // בקובץ SplitView.tsx - הקוד המתוקן
 
-const renderGenderFilterControls = (gender: "male" | "female") => {
-  const isMaleGender = gender === "male";
-  const toggleFilters = isMaleGender
-    ? () => setShowMaleFilters(!showMaleFilters)
-    : () => setShowFemaleFilters(!showFemaleFilters);
-  const filterCount = isMaleGender ? maleFilterCount : femaleFilterCount;
-  
-  return (
-    <div
-      className={`flex items-center gap-2 mb-2 px-2 py-1.5 rounded-md ${
-        isMaleGender ? "bg-blue-50" : "bg-purple-50"
-      }`}
-    >
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={toggleFilters}
-        className={`flex items-center gap-1.5 text-xs px-2 py-1 h-7 relative ${
-          isMaleGender
-            ? "text-blue-700 hover:bg-blue-100"
-            : "text-purple-700 hover:bg-purple-100"
+  const renderGenderFilterControls = (gender: "male" | "female") => {
+    const isMaleGender = gender === "male";
+    const toggleFilters = isMaleGender
+      ? () => setShowMaleFilters(!showMaleFilters)
+      : () => setShowFemaleFilters(!showFemaleFilters);
+    const filterCount = isMaleGender ? maleFilterCount : femaleFilterCount;
+
+    return (
+      <div
+        className={`flex items-center gap-2 mb-2 px-2 py-1.5 rounded-md ${
+          isMaleGender ? "bg-blue-50" : "bg-purple-50"
         }`}
       >
-        <Filter className="w-3.5 h-3.5" />
-        <span>סינון</span>
-        {filterCount > 0 && (
-          <Badge
-            className={`h-5 w-5 p-0 flex items-center justify-center absolute -top-2 -right-1 ${
-              isMaleGender ? "bg-blue-600" : "bg-purple-600"
-            }`}
-          >
-            {filterCount}
-          </Badge>
-        )}
-      </Button>
-    </div>
-  );
-};
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={toggleFilters}
+          className={`flex items-center gap-1.5 text-xs px-2 py-1 h-7 relative ${
+            isMaleGender
+              ? "text-blue-700 hover:bg-blue-100"
+              : "text-purple-700 hover:bg-purple-100"
+          }`}
+        >
+          <Filter className="w-3.5 h-3.5" />
+          <span>סינון</span>
+          {filterCount > 0 && (
+            <Badge
+              className={`h-5 w-5 p-0 flex items-center justify-center absolute -top-2 -right-1 ${
+                isMaleGender ? "bg-blue-600" : "bg-purple-600"
+              }`}
+            >
+              {filterCount}
+            </Badge>
+          )}
+        </Button>
+      </div>
+    );
+  };
 
   // Mobile view with side-by-side scrollable columns
   if (isMobile) {
@@ -471,7 +517,12 @@ const renderGenderFilterControls = (gender: "male" | "female") => {
             </div>
 
             {/* פקדי הסינון הנפרד */}
-            {separateFiltering && renderGenderFilterControls("male")}
+            {separateFiltering && (
+              <>
+                {renderGenderFilterControls("male")}
+                {renderSearchField("male")}
+              </>
+            )}
 
             <div
               ref={maleScrollRef}
@@ -493,7 +544,6 @@ const renderGenderFilterControls = (gender: "male" | "female") => {
               />
             </div>
           </div>
-
           {/* Female candidates column */}
           <div className="w-1/2 flex flex-col">
             <div className="p-2 text-center bg-purple-50 border-b">
@@ -504,7 +554,12 @@ const renderGenderFilterControls = (gender: "male" | "female") => {
             </div>
 
             {/* פקדי הסינון הנפרד */}
-            {separateFiltering && renderGenderFilterControls("female")}
+            {separateFiltering && (
+              <>
+                {renderGenderFilterControls("female")}
+                {renderSearchField("female")}
+              </>
+            )}
 
             <div
               ref={femaleScrollRef}
@@ -559,7 +614,12 @@ const renderGenderFilterControls = (gender: "male" | "female") => {
               </div>
 
               {/* פקדי הסינון הנפרד */}
-              {separateFiltering && renderGenderFilterControls("male")}
+              {separateFiltering && (
+                <>
+                  {renderGenderFilterControls("male")}
+                  {renderSearchField("male")}
+                </>
+              )}
 
               {/* סטטיסטיקות */}
               {renderStats(maleStats, filteredMaleCandidates.length, "male")}
@@ -574,6 +634,8 @@ const renderGenderFilterControls = (gender: "male" | "female") => {
               viewMode={viewMode}
               isLoading={isLoading}
               className="min-h-[600px]"
+              // העבר את מונח החיפוש לצורך הדגשה
+              highlightTerm={separateFiltering ? maleSearchQuery : undefined}
             />
           </div>
         </ResizablePanel>
@@ -597,7 +659,12 @@ const renderGenderFilterControls = (gender: "male" | "female") => {
               </div>
 
               {/* פקדי הסינון הנפרד */}
-              {separateFiltering && renderGenderFilterControls("female")}
+              {separateFiltering && (
+                <>
+                  {renderGenderFilterControls("female")}
+                  {renderSearchField("female")}
+                </>
+              )}
 
               {/* סטטיסטיקות */}
               {renderStats(
@@ -616,6 +683,8 @@ const renderGenderFilterControls = (gender: "male" | "female") => {
               viewMode={viewMode}
               isLoading={isLoading}
               className="min-h-[600px]"
+              // העבר את מונח החיפוש לצורך הדגשה
+              highlightTerm={separateFiltering ? femaleSearchQuery : undefined}
             />
           </div>
         </ResizablePanel>

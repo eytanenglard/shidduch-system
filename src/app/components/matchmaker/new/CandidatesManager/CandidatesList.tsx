@@ -48,6 +48,8 @@ interface CandidatesListProps {
   viewMode: "grid" | "list";
   isLoading?: boolean;
   className?: string;
+  // הוסף את ה-prop החדש
+  highlightTerm?: string;
 }
 
 const CandidatesList: React.FC<CandidatesListProps> = ({
@@ -58,6 +60,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   viewMode,
   isLoading = false,
   className,
+  highlightTerm,
 }) => {
   // Base states
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(
@@ -370,11 +373,12 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
               candidate={candidate}
               onClick={() => handleAction("view", candidate)}
               className={`
-                ${viewMode === "list" ? "flex flex-row-reverse gap-4 h-32" : ""}
-                ${isMobile ? "transform scale-95" : ""}
-              `}
+    ${viewMode === "list" ? "flex flex-row-reverse gap-4 h-32" : ""}
+    ${isMobile ? "transform scale-95" : ""}
+  `}
+              // העבר את מונח החיפוש לכרטיסיה
+              highlightTerm={highlightTerm}
             />
-            
             {/* Edit button - visible when hovering */}
             <button
               className="absolute top-2 left-2 bg-primary text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
