@@ -21,7 +21,6 @@ import type { MatchSuggestionStatus } from "@prisma/client";
 import NewSuggestionForm from "../../suggestions/NewSuggestionForm";
 import SuggestionsStats from "./SuggestionsStats";
 import SuggestionActionBar from "./SuggestionActionBar";
-import ManagerSuggestionsList from "../list/ManagerSuggestionsList";
 import SuggestionDetailsDialog from "../details/SuggestionDetailsDialog";
 import SuggestionCard from "../cards/SuggestionCard";
 import { toast } from "sonner";
@@ -46,7 +45,7 @@ export default function MatchmakerDashboard() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [showMessageForm, setShowMessageForm] = useState(false);
-  const [messageRecipient, setMessageRecipient] = useState<
+  const [, setMessageRecipient] = useState<
     "first" | "second" | "both"
   >("both");
 

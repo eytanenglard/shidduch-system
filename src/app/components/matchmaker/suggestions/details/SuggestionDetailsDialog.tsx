@@ -36,7 +36,6 @@ import {
   Download,
   AlarmClock,
   Trash2,
-  ChevronRight,
   MapPin,
   Mail,
   Phone,

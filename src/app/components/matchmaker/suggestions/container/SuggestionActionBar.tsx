@@ -88,19 +88,6 @@ const SuggestionActionBar: React.FC<SuggestionActionBarProps> = ({
     }
   };
 
-  const handleStatusChange = (status: MatchSuggestionStatus | undefined) => {
-    if (status) {
-      onFiltersChange({
-        ...filters,
-        status: [status],
-      });
-    } else {
-      const newFilters = { ...filters };
-      delete newFilters.status;
-      onFiltersChange(newFilters);
-    }
-  };
-
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "PENDING_FIRST_PARTY":
