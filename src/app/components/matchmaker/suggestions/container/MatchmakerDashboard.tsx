@@ -4,7 +4,7 @@ import React, { useState, useCallback, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Download, RefreshCw } from "lucide-react";
+import { Plus, Download, RefreshCw, BarChart } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,6 +15,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import type {
   Suggestion,
   SuggestionFilters,
@@ -30,7 +38,7 @@ import SuggestionCard from "../cards/SuggestionCard";
 import { toast } from "sonner";
 import EditSuggestionForm from "../EditSuggestionForm";
 import MessageForm from "../MessageForm";
-
+import MonthlyTrendModal from "./MonthlyTrendModal";
 type DialogActionData = {
   suggestionId?: string;
   newStatus?: MatchSuggestionStatus;
@@ -47,7 +55,7 @@ type ConfirmActionData = {
 
 export default function MatchmakerDashboard() {
   // State management
-  const [activeTab, setActiveTab] = useState("active");
+  const [activeTab, setActiveTab] = useState("pending"); // Changed default tab to "pending"
   const [showNewSuggestion, setShowNewSuggestion] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<SuggestionFilters>({});
@@ -64,6 +72,7 @@ export default function MatchmakerDashboard() {
   const [showEditForm, setShowEditForm] = useState(false);
   const [showMessageForm, setShowMessageForm] = useState(false);
   const [, setMessageRecipient] = useState<"first" | "second" | "both">("both");
+  const [showMonthlyTrendDialog, setShowMonthlyTrendDialog] = useState(false);
 
   // Calculate suggestion counts
   const activeCount = suggestions.filter((s) => s.category === "ACTIVE").length;
@@ -682,6 +691,15 @@ export default function MatchmakerDashboard() {
               ייצוא
             </Button>
 
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowMonthlyTrendDialog(true)}
+            >
+              <BarChart className="w-4 h-4 ml-2" />
+              מגמה חודשית
+            </Button>
+
             <Button onClick={() => setShowNewSuggestion(true)}>
               <Plus className="w-4 h-4 ml-2" />
               הצעה חדשה
@@ -707,8 +725,8 @@ export default function MatchmakerDashboard() {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <div className="flex items-center justify-between mb-6">
             <TabsList>
-              <TabsTrigger value="active">הצעות פעילות</TabsTrigger>
               <TabsTrigger value="pending">ממתין לאישור</TabsTrigger>
+              <TabsTrigger value="active">הצעות פעילות</TabsTrigger>
               <TabsTrigger value="history">היסטוריה</TabsTrigger>
             </TabsList>
           </div>
@@ -733,81 +751,6 @@ export default function MatchmakerDashboard() {
           ) : (
             <>
               {/* Suggestions Lists */}
-              <TabsContent value="active">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {suggestions
-                    .filter((s) => s.category === "ACTIVE")
-                    .filter((s) => {
-                      // Apply search filter
-                      if (searchQuery) {
-                        const query = searchQuery.toLowerCase();
-                        return (
-                          s.firstParty.firstName
-                            .toLowerCase()
-                            .includes(query) ||
-                          s.firstParty.lastName.toLowerCase().includes(query) ||
-                          s.secondParty.firstName
-                            .toLowerCase()
-                            .includes(query) ||
-                          s.secondParty.lastName
-                            .toLowerCase()
-                            .includes(query) ||
-                          (s.matchingReason &&
-                            s.matchingReason.toLowerCase().includes(query)) ||
-                          (s.firstParty.profile?.city &&
-                            s.firstParty.profile.city
-                              .toLowerCase()
-                              .includes(query)) ||
-                          (s.secondParty.profile?.city &&
-                            s.secondParty.profile.city
-                              .toLowerCase()
-                              .includes(query))
-                        );
-                      }
-                      return true;
-                    })
-                    .filter((s) => {
-                      // Apply priority filter
-                      if (filters.priority && filters.priority.length > 0) {
-                        return filters.priority.includes(s.priority);
-                      }
-                      return true;
-                    })
-                    .filter((s) => {
-                      // Apply status filter
-                      if (filters.status && filters.status.length > 0) {
-                        return filters.status.includes(s.status);
-                      }
-                      return true;
-                    })
-                    .filter((s) => {
-                      // Apply date range filter
-                      if (filters.dateRange) {
-                        const createdAt = new Date(s.createdAt);
-                        return (
-                          createdAt >= filters.dateRange.start &&
-                          createdAt <= (filters.dateRange.end || new Date())
-                        );
-                      }
-                      return true;
-                    })
-                    .map((suggestion) => (
-                      <SuggestionCard
-                        key={suggestion.id}
-                        suggestion={suggestion}
-                        onAction={handleSuggestionAction}
-                      />
-                    ))}
-                </div>
-
-                {suggestions.filter((s) => s.category === "ACTIVE").length ===
-                  0 && (
-                  <div className="flex flex-col items-center justify-center h-64 text-gray-400">
-                    <p>אין הצעות פעילות</p>
-                  </div>
-                )}
-              </TabsContent>
-
               <TabsContent value="pending">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {suggestions
@@ -879,6 +822,81 @@ export default function MatchmakerDashboard() {
                   0 && (
                   <div className="flex flex-col items-center justify-center h-64 text-gray-400">
                     <p>אין הצעות ממתינות</p>
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="active">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {suggestions
+                    .filter((s) => s.category === "ACTIVE")
+                    .filter((s) => {
+                      // Apply search filter
+                      if (searchQuery) {
+                        const query = searchQuery.toLowerCase();
+                        return (
+                          s.firstParty.firstName
+                            .toLowerCase()
+                            .includes(query) ||
+                          s.firstParty.lastName.toLowerCase().includes(query) ||
+                          s.secondParty.firstName
+                            .toLowerCase()
+                            .includes(query) ||
+                          s.secondParty.lastName
+                            .toLowerCase()
+                            .includes(query) ||
+                          (s.matchingReason &&
+                            s.matchingReason.toLowerCase().includes(query)) ||
+                          (s.firstParty.profile?.city &&
+                            s.firstParty.profile.city
+                              .toLowerCase()
+                              .includes(query)) ||
+                          (s.secondParty.profile?.city &&
+                            s.secondParty.profile.city
+                              .toLowerCase()
+                              .includes(query))
+                        );
+                      }
+                      return true;
+                    })
+                    .filter((s) => {
+                      // Apply priority filter
+                      if (filters.priority && filters.priority.length > 0) {
+                        return filters.priority.includes(s.priority);
+                      }
+                      return true;
+                    })
+                    .filter((s) => {
+                      // Apply status filter
+                      if (filters.status && filters.status.length > 0) {
+                        return filters.status.includes(s.status);
+                      }
+                      return true;
+                    })
+                    .filter((s) => {
+                      // Apply date range filter
+                      if (filters.dateRange) {
+                        const createdAt = new Date(s.createdAt);
+                        return (
+                          createdAt >= filters.dateRange.start &&
+                          createdAt <= (filters.dateRange.end || new Date())
+                        );
+                      }
+                      return true;
+                    })
+                    .map((suggestion) => (
+                      <SuggestionCard
+                        key={suggestion.id}
+                        suggestion={suggestion}
+                        onAction={handleSuggestionAction}
+                      />
+                    ))}
+                </div>
+
+                {suggestions.filter((s) => s.category === "ACTIVE").length ===
+                  0 && (
+                  <div className="flex flex-col items-center justify-center h-64 text-gray-400">
+                    <p>אין הצעות פעילות</p>
                   </div>
                 )}
               </TabsContent>
@@ -977,6 +995,29 @@ export default function MatchmakerDashboard() {
         onClose={() => setSelectedSuggestion(null)}
         onAction={handleDialogAction}
       />
+
+      {/* Monthly Trend Dialog */}
+      <Dialog
+        open={showMonthlyTrendDialog}
+        onOpenChange={setShowMonthlyTrendDialog}
+      >
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>מגמה חודשית</DialogTitle>
+            <DialogDescription>ניתוח מגמות הצעות לאורך זמן</DialogDescription>
+          </DialogHeader>
+
+          <div className="p-4">
+            <MonthlyTrendModal suggestions={suggestions} />
+          </div>
+
+          <DialogFooter>
+            <Button onClick={() => setShowMonthlyTrendDialog(false)}>
+              סגור
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Confirm Action Dialog */}
       {showConfirmDialog && (

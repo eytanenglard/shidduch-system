@@ -17,13 +17,9 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
   Legend,
 } from "recharts";
 import type { Suggestion, SuggestionFilters } from "@/types/suggestions";
-import { MatchSuggestionStatus, Priority } from "@prisma/client";
 
 interface StatsCardProps {
   icon: React.ElementType;
@@ -43,16 +39,6 @@ interface SuggestionsStatsProps {
   className?: string;
   onFilterChange?: (filter: Partial<SuggestionFilters>) => void;
 }
-
-const COLORS = [
-  "#3B82F6",
-  "#EF4444",
-  "#10B981",
-  "#F59E0B",
-  "#6366F1",
-  "#8B5CF6",
-  "#EC4899",
-];
 
 const StatsCard: React.FC<StatsCardProps> = ({
   icon: Icon,
@@ -209,12 +195,6 @@ const SuggestionsStats: React.FC<SuggestionsStatsProps> = ({
       );
     }
 
-    // Group by priority
-    const byPriority = suggestions.reduce((acc, s) => {
-      acc[s.priority] = (acc[s.priority] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
     return {
       total,
       active,
@@ -228,7 +208,6 @@ const SuggestionsStats: React.FC<SuggestionsStatsProps> = ({
       success,
       successRate,
       byStatus,
-      byPriority,
       monthlyData: monthlyArray,
       trends: {
         active: activeTrend,
@@ -237,55 +216,6 @@ const SuggestionsStats: React.FC<SuggestionsStatsProps> = ({
       },
     };
   }, [suggestions]);
-
-  // Filter by status
-  const handleStatusClick = (status: MatchSuggestionStatus) => {
-    if (onFilterChange) {
-      onFilterChange({ status: [status] });
-    }
-  };
-
-  // Filter by priority
-  const handlePriorityClick = (priority: string) => {
-    if (onFilterChange) {
-      onFilterChange({ priority: [priority as Priority] });
-    }
-  };
-
-  // Get nice display label for status
-  const getStatusLabel = (status: string) => {
-    const statusMap: Record<string, string> = {
-      PENDING_FIRST_PARTY: "ממתין לצד א׳",
-      PENDING_SECOND_PARTY: "ממתין לצד ב׳",
-      FIRST_PARTY_APPROVED: "צד א׳ אישר",
-      SECOND_PARTY_APPROVED: "צד ב׳ אישר",
-      FIRST_PARTY_DECLINED: "צד א׳ דחה",
-      SECOND_PARTY_DECLINED: "צד ב׳ דחה",
-      CONTACT_DETAILS_SHARED: "פרטי קשר שותפו",
-      DATING: "בתהליך היכרות",
-      EXPIRED: "פג תוקף",
-      ENGAGED: "מאורסים",
-      MARRIED: "נישאו",
-      DRAFT: "טיוטה",
-      CLOSED: "סגור",
-      CANCELLED: "בוטל",
-      AWAITING_FIRST_DATE_FEEDBACK: "ממתין למשוב פגישה",
-    };
-
-    return statusMap[status] || status;
-  };
-
-  // Get priority display label
-  const getPriorityLabel = (priority: string) => {
-    const priorityMap: Record<string, string> = {
-      URGENT: "דחוף",
-      HIGH: "עדיפות גבוהה",
-      MEDIUM: "עדיפות רגילה",
-      LOW: "עדיפות נמוכה",
-    };
-
-    return priorityMap[priority] || priority;
-  };
 
   return (
     <div className={`space-y-6 ${className}`}>
@@ -448,52 +378,8 @@ const SuggestionsStats: React.FC<SuggestionsStatsProps> = ({
         </Card>
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Status Distribution */}
-        <Card className="p-4">
-          <h3 className="text-lg font-medium mb-4">התפלגות סטטוסים</h3>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={Object.entries(stats.byStatus)
-                    .filter(([, count]) => count > 0)
-                    .map(([status, count]) => ({
-                      name: getStatusLabel(status),
-                      value: count,
-                      status: status,
-                    }))}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) =>
-                    `${name} (${(percent * 100).toFixed(0)}%)`
-                  }
-                  outerRadius={80}
-                  dataKey="value"
-                  onClick={(data) =>
-                    handleStatusClick(data.status as MatchSuggestionStatus)
-                  }
-                >
-                  {Object.entries(stats.byStatus)
-                    .filter(([, count]) => count > 0)
-                    .map((_, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                        style={{ cursor: "pointer" }}
-                      />
-                    ))}
-                </Pie>
-                <Tooltip formatter={(value) => [`${value} הצעות`, ""]} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
-
-        {/* Monthly Trend */}
+      {/* מגמה חודשית נשארת כאן אבל עכשיו היא מוצגת בדיאלוג מודלי */}
+      <div className="hidden">
         <Card className="p-4">
           <h3 className="text-lg font-medium mb-4">מגמה חודשית</h3>
           <div className="h-64">
@@ -519,54 +405,6 @@ const SuggestionsStats: React.FC<SuggestionsStatsProps> = ({
           </div>
         </Card>
       </div>
-
-      {/* Priority Distribution */}
-      <Card className="p-4">
-        <h3 className="text-lg font-medium mb-4">התפלגות לפי עדיפות</h3>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          {Object.entries(stats.byPriority)
-            .sort(([a], [b]) => {
-              const priorityOrder = { URGENT: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
-              return (
-                priorityOrder[a as keyof typeof priorityOrder] -
-                priorityOrder[b as keyof typeof priorityOrder]
-              );
-            })
-            .map(([priority, count]) => (
-              <Card
-                key={priority}
-                className={`p-3 cursor-pointer hover:shadow-md transition-shadow
-                  ${
-                    priority === "URGENT"
-                      ? "bg-red-50"
-                      : priority === "HIGH"
-                      ? "bg-orange-50"
-                      : priority === "MEDIUM"
-                      ? "bg-blue-50"
-                      : "bg-gray-50"
-                  }`}
-                onClick={() => handlePriorityClick(priority)}
-              >
-                <div className="flex items-center gap-2">
-                  <div
-                    className={`w-3 h-3 rounded-full 
-                    ${
-                      priority === "URGENT"
-                        ? "bg-red-500"
-                        : priority === "HIGH"
-                        ? "bg-orange-500"
-                        : priority === "MEDIUM"
-                        ? "bg-blue-500"
-                        : "bg-gray-500"
-                    }`}
-                  />
-                  <div className="text-sm">{getPriorityLabel(priority)}</div>
-                  <div className="font-bold ml-auto">{count}</div>
-                </div>
-              </Card>
-            ))}
-        </div>
-      </Card>
     </div>
   );
 };
