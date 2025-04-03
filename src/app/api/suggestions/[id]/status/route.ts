@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { statusTransitionService } from "@/app/components/matchmaker/new/services/suggestions/StatusTransitionService";
+import { statusTransitionService } from "@/app/components/matchmaker/suggestions/services/suggestions/StatusTransitionService";
 
 export async function PATCH(
   req: NextRequest,
