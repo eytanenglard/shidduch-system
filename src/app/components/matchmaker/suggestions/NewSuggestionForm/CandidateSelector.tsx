@@ -16,7 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { calculateAge } from "@/lib/utils";
-import type { Candidate } from "../types/candidates";
+import type { Candidate } from "../../new/types/candidates";
 
 interface CandidateSelectorProps {
   value: Candidate | null;

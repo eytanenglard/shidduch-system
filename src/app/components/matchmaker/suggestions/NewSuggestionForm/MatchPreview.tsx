@@ -4,7 +4,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, AlertCircle, XCircle } from "lucide-react";
 import { calculateMatchScore } from "../utils/matchingAlgorithm";
-import type { Candidate } from "../types/candidates";
+import type { Candidate } from "../../new/types/candidates";
 import type { MatchScore } from "../utils/matchingAlgorithm";
 
 interface MatchPreviewProps {

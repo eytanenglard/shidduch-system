@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { ActionDialogs } from "../dialogs/ActionDialogs";
-import NewSuggestionForm from "../NewSuggestionForm";
+import NewSuggestionForm from "../../suggestions/NewSuggestionForm";
 import MatchmakerEditProfile from "../MatchmakerEditProfile";
 
 interface CreateSuggestionData {

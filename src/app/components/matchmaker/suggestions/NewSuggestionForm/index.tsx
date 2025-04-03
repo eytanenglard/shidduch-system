@@ -15,7 +15,7 @@ import { Priority, MatchSuggestionStatus } from "@prisma/client";
 import { Separator } from "@/components/ui/separator";
 import { CheckCircle, UserPlus } from "lucide-react";
 import { Steps } from "@/components/ui/steps";
-import type { Candidate } from "../types/candidates";
+import type { Candidate } from "../../new/types/candidates";
 import { newSuggestionSchema } from "./schema";
 import type { NewSuggestionFormData } from "./schema";
 import SuggestionDetails from "./SuggestionDetails";

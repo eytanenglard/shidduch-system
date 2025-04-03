@@ -1,0 +1,1228 @@
+מבנה התיקייה:
+suggestions
+  [id]
+    message
+      route.ts
+    remind
+      route.ts
+    resend
+      route.ts
+    route.ts
+    share-contact
+      route.ts
+    status
+      route.ts
+  route.ts
+
+תוכן הקבצים:
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\api\matchmaker\suggestions\route.ts:
+==================================================
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { Session } from "next-auth";
+import { MatchSuggestionStatus, Prisma } from "@prisma/client";
+import { suggestionService } from "@/app/components/matchmaker/new/services/suggestions/SuggestionService";
+import type { CreateSuggestionData } from "@/app/types/suggestions";
+
+const getSuggestionCategory = (status: MatchSuggestionStatus) => {
+  switch (status) {
+    case 'DRAFT':
+    case 'AWAITING_MATCHMAKER_APPROVAL':
+    case 'PENDING_FIRST_PARTY':
+    case 'PENDING_SECOND_PARTY':
+      return 'PENDING';
+    
+    case 'FIRST_PARTY_DECLINED':
+    case 'SECOND_PARTY_DECLINED':
+    case 'MATCH_DECLINED':
+    case 'ENDED_AFTER_FIRST_DATE':
+    case 'ENGAGED':
+    case 'MARRIED':
+    case 'EXPIRED':
+    case 'CLOSED':
+    case 'CANCELLED':
+      return 'HISTORY';
+    
+    default:
+      return 'ACTIVE';
+  }
+};
+
+export async function POST(req: Request) {
+  try {
+    const session = await getServerSession(authOptions) as Session | null;
+    
+    if (!session?.user?.id || session.user.role !== 'MATCHMAKER') {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const data = await req.json();
+    
+    const suggestionData: CreateSuggestionData = {
+      ...data,
+      matchmakerId: session.user.id,
+    };
+
+    const suggestion = await suggestionService.createSuggestion(suggestionData);
+    
+    return NextResponse.json(suggestion);
+    
+  } catch (error) {
+    console.error('Error creating suggestion:', error);
+    return NextResponse.json(
+      { error: 'Failed to create suggestion' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET(req: Request) {
+  try {
+    const session = await getServerSession(authOptions) as Session | null;
+    
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const status = searchParams.get("status");
+    const priority = searchParams.get("priority");
+    const timeframe = searchParams.get("timeframe");
+
+    const where: Prisma.MatchSuggestionWhereInput = {};
+    
+    if (session.user.role === 'MATCHMAKER') {
+      where.matchmakerId = session.user.id;
+    } else {
+      where.OR = [
+        { firstPartyId: session.user.id },
+        { secondPartyId: session.user.id }
+      ];
+    }
+
+    if (status) where.status = status as MatchSuggestionStatus;
+    if (priority) where.priority = priority as Prisma.EnumPriorityFieldUpdateOperationsInput["set"];
+
+    if (timeframe) {
+      const date = new Date();
+      switch (timeframe) {
+        case 'today':
+          date.setHours(0, 0, 0, 0);
+          where.createdAt = { gte: date };
+          break;
+        case 'week':
+          date.setDate(date.getDate() - 7);
+          where.createdAt = { gte: date };
+          break;
+        case 'month':
+          date.setMonth(date.getMonth() - 1);
+          where.createdAt = { gte: date };
+          break;
+      }
+    }
+
+    const suggestions = await prisma.matchSuggestion.findMany({
+      where,
+      include: {
+        firstParty: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            status: true,
+            isVerified: true,
+            images: {
+              select: {
+                id: true,
+                url: true,
+                isMain: true
+              }
+            },
+            profile: true
+          }
+        },
+        secondParty: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            status: true,
+            isVerified: true,
+            images: {
+              select: {
+                id: true,
+                url: true,
+                isMain: true
+              }
+            },
+            profile: true
+          }
+        },
+        matchmaker: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            role: true
+          }
+        },
+        statusHistory: true,
+        meetings: true
+      },
+      orderBy: {
+        lastActivity: 'desc'
+      }
+    });
+
+    const formattedSuggestions = suggestions.map(suggestion => ({
+      ...suggestion,
+      category: getSuggestionCategory(suggestion.status),
+      firstParty: {
+        ...suggestion.firstParty,
+        profile: suggestion.firstParty.profile ? {
+          ...suggestion.firstParty.profile,
+          birthDate: suggestion.firstParty.profile.birthDate?.toISOString(),
+          lastActive: suggestion.firstParty.profile.lastActive?.toISOString(),
+          availabilityUpdatedAt: suggestion.firstParty.profile.availabilityUpdatedAt?.toISOString(),
+          createdAt: suggestion.firstParty.profile.createdAt?.toISOString(),
+          updatedAt: suggestion.firstParty.profile.updatedAt?.toISOString()
+        } : null
+      },
+      secondParty: {
+        ...suggestion.secondParty,
+        profile: suggestion.secondParty.profile ? {
+          ...suggestion.secondParty.profile,
+          birthDate: suggestion.secondParty.profile.birthDate?.toISOString(),
+          lastActive: suggestion.secondParty.profile.lastActive?.toISOString(),
+          availabilityUpdatedAt: suggestion.secondParty.profile.availabilityUpdatedAt?.toISOString(),
+          createdAt: suggestion.secondParty.profile.createdAt?.toISOString(),
+          updatedAt: suggestion.secondParty.profile.updatedAt?.toISOString()
+        } : null
+      },
+      statusHistory: suggestion.statusHistory.map(history => ({
+        ...history,
+        createdAt: history.createdAt.toISOString()
+      })),
+      meetings: suggestion.meetings.map(meeting => ({
+        ...meeting,
+        createdAt: meeting.createdAt.toISOString(),
+        updatedAt: meeting.updatedAt.toISOString()
+      })),
+      createdAt: suggestion.createdAt.toISOString(),
+      updatedAt: suggestion.updatedAt.toISOString(),
+      lastActivity: suggestion.lastActivity.toISOString()
+    }));
+
+    return NextResponse.json(formattedSuggestions);
+    
+  } catch (error) {
+    console.error('Error fetching suggestions:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch suggestions' },
+      { status: 500 }
+    );
+  }
+}
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\api\matchmaker\suggestions\[id]\route.ts:
+==================================================
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { UserRole } from "@prisma/client";
+import { SuggestionService } from "@/app/components/matchmaker/new/services/suggestions/SuggestionService";
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    // וידוא משתמש מחובר
+    if (!session?.user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+    
+    // וידוא הרשאות שדכן
+    if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
+      return NextResponse.json(
+        { success: false, error: "Insufficient permissions" },
+        { status: 403 }
+      );
+    }
+    
+    const suggestionId = params.id;
+    const data = await req.json();
+    
+    const suggestionService = SuggestionService.getInstance();
+    
+    try {
+      // שימוש בשירות עדכון הצעה
+      const updatedSuggestion = await suggestionService.updateSuggestion(
+        suggestionId,
+        session.user.id,
+        {
+          id: suggestionId,
+          priority: data.priority,
+          notes: {
+            internal: data.internalNotes,
+            forFirstParty: data.firstPartyNotes,
+            forSecondParty: data.secondPartyNotes,
+            matchingReason: data.matchingReason,
+            followUpNotes: data.followUpNotes
+          },
+          decisionDeadline: data.decisionDeadline ? new Date(data.decisionDeadline) : undefined,
+          responseDeadline: data.responseDeadline ? new Date(data.responseDeadline) : undefined
+        }
+      );
+      
+      return NextResponse.json({
+        success: true,
+        data: updatedSuggestion
+      });
+      
+    } catch (serviceError: any) {
+      console.error("Error from suggestion service:", serviceError);
+      return NextResponse.json(
+        { success: false, error: serviceError.message || "Failed to update suggestion" },
+        { status: serviceError.message.includes("Unauthorized") ? 403 : 400 }
+      );
+    }
+    
+  } catch (error) {
+    console.error("Error updating suggestion:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to update suggestion" },
+      { status: 500 }
+    );
+  }
+}
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\api\matchmaker\suggestions\[id]\message\route.ts:
+==================================================
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { MatchSuggestionStatus, UserRole } from "@prisma/client";
+import { EmailService } from "@/app/components/matchmaker/new/services/email/EmailService";
+
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    // וידוא משתמש מחובר
+    if (!session?.user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    // וידוא הרשאות שדכן
+    if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
+      return NextResponse.json(
+        { success: false, error: "Insufficient permissions" },
+        { status: 403 }
+      );
+    }
+
+    const suggestionId = params.id;
+    const { partyType, messageType, content } = await req.json();
+
+    // וידוא קיום ההצעה
+    const suggestion = await prisma.matchSuggestion.findUnique({
+      where: { id: suggestionId },
+      include: {
+        firstParty: {
+          include: { profile: true }
+        },
+        secondParty: {
+          include: { profile: true }
+        },
+        matchmaker: true
+      },
+    });
+
+    if (!suggestion) {
+      return NextResponse.json(
+        { success: false, error: "Suggestion not found" },
+        { status: 404 }
+      );
+    }
+
+    // וידוא שדכן בעל הרשאות לשליחת הודעות להצעה
+    if (
+      suggestion.matchmakerId !== session.user.id &&
+      session.user.role !== UserRole.ADMIN
+    ) {
+      return NextResponse.json(
+        { success: false, error: "You are not authorized to send messages for this suggestion" },
+        { status: 403 }
+      );
+    }
+
+    // יצירת רשימת נמענים
+    const recipients: string[] = [];
+    if (partyType === "first" || partyType === "both") {
+      recipients.push(suggestion.firstParty.email);
+    }
+    if (partyType === "second" || partyType === "both") {
+      recipients.push(suggestion.secondParty.email);
+    }
+
+    // בניית כותרת ההודעה
+    let subject = "";
+    switch (messageType) {
+      case "reminder":
+        subject = "תזכורת: הצעת שידוך ממתינה לתשובתך";
+        break;
+      case "update":
+        subject = "עדכון בהצעת שידוך";
+        break;
+      default:
+        subject = "הודעה חדשה בנוגע להצעת שידוך";
+    }
+
+    // יצירת תוכן HTML להודעה
+    const htmlContent = `
+      <div dir="rtl">
+        <h2>שלום,</h2>
+        <p>${content}</p>
+        <p>לצפייה בפרטי ההצעה: <a href="${process.env.NEXT_PUBLIC_BASE_URL}/suggestions/${suggestionId}/review">לחץ כאן</a></p>
+        <p>בברכה,<br>${session.user.firstName} ${session.user.lastName}</p>
+      </div>
+    `;
+
+    // שליחת אימייל לכל הנמענים
+    const emailService = EmailService.getInstance();
+    for (const recipient of recipients) {
+      await emailService.sendEmail({
+        to: recipient,
+        subject,
+        html: htmlContent,
+      });
+    }
+
+    // רישום ההודעה במערכת
+    await prisma.$transaction(async (tx) => {
+      try {
+        // עדכון שדה lastActivity בהצעה
+        await tx.matchSuggestion.update({
+          where: { id: suggestionId },
+          data: {
+            lastActivity: new Date(),
+          },
+        });
+        
+        // הוספת רשומה להיסטוריית הסטטוס
+        await tx.suggestionStatusHistory.create({
+          data: {
+            suggestionId,
+            status: suggestion.status as MatchSuggestionStatus, // Explicitly cast to ensure correct type
+            notes: `הודעה נשלחה מאת השדכן: ${messageType} - ${content.substring(0, 50)}${content.length > 50 ? '...' : ''}`,
+          },
+        });
+      } catch (txError) {
+        console.error("Transaction error:", txError);
+        throw txError;
+      }
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: "Message sent successfully",
+      recipients: recipients.length
+    });
+  } catch (error) {
+    console.error("Error sending message:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to send message" },
+      { status: 500 }
+    );
+  }
+}
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\api\matchmaker\suggestions\[id]\remind\route.ts:
+==================================================
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { UserRole, MatchSuggestionStatus } from "@prisma/client";
+import { EmailService } from "@/app/components/matchmaker/new/services/email/EmailService";
+
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    // וידוא משתמש מחובר
+    if (!session?.user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    // וידוא הרשאות שדכן
+    if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
+      return NextResponse.json(
+        { success: false, error: "Insufficient permissions" },
+        { status: 403 }
+      );
+    }
+
+    const suggestionId = params.id;
+    const { partyType } = await req.json();
+
+    // וידוא קיום ההצעה
+    const suggestion = await prisma.matchSuggestion.findUnique({
+      where: { id: suggestionId },
+      include: {
+        firstParty: {
+          include: { profile: true }
+        },
+        secondParty: {
+          include: { profile: true }
+        },
+        matchmaker: true
+      },
+    });
+
+    if (!suggestion) {
+      return NextResponse.json(
+        { success: false, error: "Suggestion not found" },
+        { status: 404 }
+      );
+    }
+
+    // וידוא שדכן בעל הרשאות לשליחת תזכורות להצעה
+    if (
+      suggestion.matchmakerId !== session.user.id &&
+      session.user.role !== UserRole.ADMIN
+    ) {
+      return NextResponse.json(
+        { success: false, error: "You are not authorized to send reminders for this suggestion" },
+        { status: 403 }
+      );
+    }
+    
+    // בניית תוכן התזכורת בהתאם לסטטוס ההצעה
+    const subject = "תזכורת: הצעת שידוך ממתינה לתשובתך";
+    
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    const reviewUrl = `${baseUrl}/suggestions/${suggestionId}/review`;
+    
+    // יצירת רשימת הודעות לשליחה
+    let sentCount = 0;
+    
+    // התאמת תוכן למצב ההצעה
+    if (partyType === "first" || partyType === "both") {
+      if (suggestion.status === MatchSuggestionStatus.PENDING_FIRST_PARTY) {
+        const emailService = EmailService.getInstance();
+        const htmlContent = `
+          <div dir="rtl">
+            <h2>שלום ${suggestion.firstParty.firstName},</h2>
+            <p>זוהי תזכורת ידידותית שהצעת שידוך מאת ${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName} ממתינה לתשובתך.</p>
+            <p>לצפייה בפרטי ההצעה ומענה: <a href="${reviewUrl}">לחץ כאן</a></p>
+            <p>בברכה,<br>מערכת השידוכים</p>
+          </div>
+        `;
+        
+        await emailService.sendEmail({
+          to: suggestion.firstParty.email,
+          subject,
+          html: htmlContent
+        });
+        
+        sentCount++;
+      }
+    }
+    
+    if (partyType === "second" || partyType === "both") {
+      if (suggestion.status === MatchSuggestionStatus.PENDING_SECOND_PARTY) {
+        const emailService = EmailService.getInstance();
+        const htmlContent = `
+          <div dir="rtl">
+            <h2>שלום ${suggestion.secondParty.firstName},</h2>
+            <p>זוהי תזכורת ידידותית שהצעת שידוך מאת ${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName} ממתינה לתשובתך.</p>
+            <p>לצפייה בפרטי ההצעה ומענה: <a href="${reviewUrl}">לחץ כאן</a></p>
+            <p>בברכה,<br>מערכת השידוכים</p>
+          </div>
+        `;
+        
+        await emailService.sendEmail({
+          to: suggestion.secondParty.email,
+          subject,
+          html: htmlContent
+        });
+        
+        sentCount++;
+      }
+    }
+    
+    // בדיקה שנשלח לפחות אימייל אחד
+    if (sentCount === 0) {
+      return NextResponse.json({
+        success: false,
+        error: "No applicable recipients for reminder in current status"
+      }, { status: 400 });
+    }
+
+    // עדכון הפעילות האחרונה בהצעה
+    await prisma.matchSuggestion.update({
+      where: { id: suggestionId },
+      data: {
+        lastActivity: new Date(),
+      },
+    });
+
+    // רישום התזכורת בהיסטוריה
+    await prisma.suggestionStatusHistory.create({
+      data: {
+        suggestionId,
+        status: suggestion.status, // לא משנים סטטוס, רק מתעדים תזכורת
+        notes: `תזכורת נשלחה ל${partyType === "first" ? "צד ראשון" : partyType === "second" ? "צד שני" : "שני הצדדים"} על ידי ${session.user.firstName} ${session.user.lastName}`,
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: "Reminder sent successfully",
+      recipientCount: sentCount
+    });
+  } catch (error) {
+    console.error("Error sending reminder:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to send reminder" },
+      { status: 500 }
+    );
+  }
+}
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\api\matchmaker\suggestions\[id]\resend\route.ts:
+==================================================
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { UserRole, MatchSuggestionStatus } from "@prisma/client";
+import { EmailService } from "@/app/components/matchmaker/new/services/email/EmailService";
+import { StatusTransitionService } from "@/app/components/matchmaker/new/services/suggestions/StatusTransitionService";
+
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    // וידוא משתמש מחובר
+    if (!session?.user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    // וידוא הרשאות שדכן
+    if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
+      return NextResponse.json(
+        { success: false, error: "Insufficient permissions" },
+        { status: 403 }
+      );
+    }
+
+    const suggestionId = params.id;
+    const { partyType } = await req.json();
+
+    // וידוא קיום ההצעה
+    const suggestion = await prisma.matchSuggestion.findUnique({
+      where: { id: suggestionId },
+      include: {
+        firstParty: {
+          include: { profile: true }
+        },
+        secondParty: {
+          include: { profile: true }
+        },
+        matchmaker: true
+      },
+    });
+
+    if (!suggestion) {
+      return NextResponse.json(
+        { success: false, error: "Suggestion not found" },
+        { status: 404 }
+      );
+    }
+
+    // וידוא שדכן בעל הרשאות לשליחת הצעות מחדש
+    if (
+      suggestion.matchmakerId !== session.user.id &&
+      session.user.role !== UserRole.ADMIN
+    ) {
+      return NextResponse.json(
+        { success: false, error: "You are not authorized to resend this suggestion" },
+        { status: 403 }
+      );
+    }
+
+    const statusTransitionService = StatusTransitionService.getInstance();
+    let updatedSuggestion = suggestion;
+    const transitionNotes = `הצעה נשלחה מחדש ע"י ${session.user.firstName} ${session.user.lastName}`;
+    
+    // עדכון סטטוס ההצעה לסטטוס המתאים לשליחה מחדש
+    if (partyType === "both" || partyType === "first") {
+      // שליחה מחדש לצד ראשון
+      updatedSuggestion = await statusTransitionService.transitionStatus(
+        updatedSuggestion, 
+        MatchSuggestionStatus.PENDING_FIRST_PARTY,
+        `${transitionNotes} - לצד ראשון`
+      );
+      
+      // אם זה גם לצד שני, נחכה להשלמת השליחה הראשונה
+      if (partyType === "first") {
+        // עדכון זמן השליחה לצד ראשון
+        await prisma.matchSuggestion.update({
+          where: { id: suggestionId },
+          data: {
+            firstPartySent: new Date(),
+            lastActivity: new Date()
+          }
+        });
+      }
+    }
+    
+    if (partyType === "both" || partyType === "second") {
+      // שליחה מחדש לצד שני (ישירות או אחרי הראשון)
+      updatedSuggestion = await statusTransitionService.transitionStatus(
+        updatedSuggestion, 
+        MatchSuggestionStatus.PENDING_SECOND_PARTY,
+        `${transitionNotes} - לצד שני`
+      );
+      
+      // עדכון זמן השליחה לצד שני
+      await prisma.matchSuggestion.update({
+        where: { id: suggestionId },
+        data: {
+          secondPartySent: new Date(),
+          lastActivity: new Date()
+        }
+      });
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: `Suggestion successfully resent to ${partyType === "first" ? "first party" : partyType === "second" ? "second party" : "both parties"}`,
+      suggestion: updatedSuggestion
+    });
+  } catch (error) {
+    console.error("Error resending suggestion:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to resend suggestion" },
+      { status: 500 }
+    );
+  }
+}
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\api\matchmaker\suggestions\[id]\share-contact\route.ts:
+==================================================
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { UserRole, MatchSuggestionStatus } from "@prisma/client";
+import { StatusTransitionService } from "@/app/components/matchmaker/new/services/suggestions/StatusTransitionService";
+
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    // וידוא משתמש מחובר
+    if (!session?.user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    // וידוא הרשאות שדכן
+    if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
+      return NextResponse.json(
+        { success: false, error: "Insufficient permissions" },
+        { status: 403 }
+      );
+    }
+
+    const suggestionId = params.id;
+
+    // וידוא קיום ההצעה
+    const suggestion = await prisma.matchSuggestion.findUnique({
+      where: { id: suggestionId },
+      include: {
+        firstParty: {
+          include: { profile: true }
+        },
+        secondParty: {
+          include: { profile: true }
+        },
+        matchmaker: true
+      },
+    });
+
+    if (!suggestion) {
+      return NextResponse.json(
+        { success: false, error: "Suggestion not found" },
+        { status: 404 }
+      );
+    }
+
+    // וידוא שדכן בעל הרשאות לשיתוף פרטי קשר
+    if (
+      suggestion.matchmakerId !== session.user.id &&
+      session.user.role !== UserRole.ADMIN
+    ) {
+      return NextResponse.json(
+        { success: false, error: "You are not authorized to share contact details for this suggestion" },
+        { status: 403 }
+      );
+    }
+
+    // וידוא שההצעה במצב המתאים לשיתוף פרטי קשר
+    if (
+      suggestion.status !== MatchSuggestionStatus.FIRST_PARTY_APPROVED &&
+      suggestion.status !== MatchSuggestionStatus.SECOND_PARTY_APPROVED &&
+      suggestion.status !== MatchSuggestionStatus.AWAITING_MATCHMAKER_APPROVAL
+    ) {
+      return NextResponse.json({
+        success: false,
+        error: "Suggestion is not in a valid status for sharing contact details"
+      }, { status: 400 });
+    }
+
+    // עדכון סטטוס ההצעה ל-CONTACT_DETAILS_SHARED
+    const statusTransitionService = StatusTransitionService.getInstance();
+    const updatedSuggestion = await statusTransitionService.transitionStatus(
+      suggestion,
+      MatchSuggestionStatus.CONTACT_DETAILS_SHARED,
+      `פרטי קשר שותפו בין ${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} ל${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} ע"י ${session.user.firstName} ${session.user.lastName}`
+    );
+
+    return NextResponse.json({
+      success: true,
+      message: "Contact details shared successfully",
+      suggestion: updatedSuggestion
+    });
+  } catch (error) {
+    console.error("Error sharing contact details:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to share contact details" },
+      { status: 500 }
+    );
+  }
+}
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\api\matchmaker\suggestions\[id]\status\route.ts:
+==================================================
+// src/app/api/matchmaker/suggestions/[id]/status/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { MatchSuggestionStatus, UserRole } from "@prisma/client";
+import { z } from "zod";
+
+// Schema for validating status update data
+const updateStatusSchema = z.object({
+  status: z.nativeEnum(MatchSuggestionStatus),
+  notes: z.string().optional(),
+});
+
+/**
+ * PATCH endpoint for updating suggestion status
+ */
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    // 1. User authentication
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    // 2. Verify permissions
+    if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
+      return NextResponse.json(
+        { success: false, error: "Insufficient permissions" },
+        { status: 403 }
+      );
+    }
+
+    // 3. Validate request data
+    const body = await req.json();
+    console.log("Received status update request:", body);
+    
+    const validationResult = updateStatusSchema.safeParse(body);
+    if (!validationResult.success) {
+      console.error("Validation error:", validationResult.error);
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: "Invalid request data", 
+          details: validationResult.error.errors 
+        },
+        { status: 400 }
+      );
+    }
+    
+    const { status, notes } = validationResult.data;
+
+    // 4. Verify suggestion exists
+    const suggestionId = params.id;
+    const suggestion = await prisma.matchSuggestion.findUnique({
+      where: { id: suggestionId },
+      include: {
+        matchmaker: {
+          select: { id: true }
+        }
+      }
+    });
+
+    if (!suggestion) {
+      return NextResponse.json(
+        { success: false, error: "Suggestion not found" },
+        { status: 404 }
+      );
+    }
+
+    // 5. Verify permission on specific suggestion
+    if (suggestion.matchmaker.id !== session.user.id && session.user.role !== UserRole.ADMIN) {
+      return NextResponse.json(
+        { success: false, error: "You don't have permission to update this suggestion" },
+        { status: 403 }
+      );
+    }
+
+    // 6. Calculate category based on new status
+    const getCategory = (status: MatchSuggestionStatus) => {
+      switch (status) {
+        case "DRAFT":
+        case "AWAITING_MATCHMAKER_APPROVAL":
+        case "PENDING_FIRST_PARTY":
+        case "PENDING_SECOND_PARTY":
+          return "PENDING";
+        
+        case "FIRST_PARTY_DECLINED":
+        case "SECOND_PARTY_DECLINED":
+        case "MATCH_DECLINED":
+        case "ENDED_AFTER_FIRST_DATE":
+        case "ENGAGED":
+        case "MARRIED":
+        case "EXPIRED":
+        case "CLOSED":
+        case "CANCELLED":
+          return "HISTORY";
+        
+        default:
+          return "ACTIVE";
+      }
+    };
+
+    // 7. Update status in a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      // Save previous status
+      const previousStatus = suggestion.status;
+
+      // Update the suggestion
+      const updatedSuggestion = await tx.matchSuggestion.update({
+        where: { id: suggestionId },
+        data: {
+          status: status,
+          previousStatus: previousStatus,
+          lastStatusChange: new Date(),
+          lastActivity: new Date(),
+          category: getCategory(status),
+          
+          // Update additional fields based on new status
+          ...(status === MatchSuggestionStatus.CLOSED ? { closedAt: new Date() } : {}),
+          ...(status === MatchSuggestionStatus.PENDING_FIRST_PARTY ? { firstPartySent: new Date() } : {}),
+          ...(status === MatchSuggestionStatus.PENDING_SECOND_PARTY ? { secondPartySent: new Date() } : {}),
+        },
+      });
+
+      // Add status history record
+      await tx.suggestionStatusHistory.create({
+        data: {
+          suggestionId,
+          status,
+          notes: notes || `סטטוס שונה ל-${status} על ידי ${session.user.firstName} ${session.user.lastName}`,
+        },
+      });
+
+      return updatedSuggestion;
+    });
+
+    // 8. Return success response
+    return NextResponse.json({
+      success: true,
+      message: "Status updated successfully",
+      suggestion: {
+        id: result.id,
+        status: result.status,
+        previousStatus: result.previousStatus,
+        lastStatusChange: result.lastStatusChange,
+        category: result.category,
+      },
+    });
+
+  } catch (error) {
+    console.error("Error updating suggestion status:", error);
+    
+    // Return detailed error message if available
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: "Failed to update status", 
+        details: errorMessage 
+      },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * GET endpoint for fetching suggestion history
+ */
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    // 1. User authentication
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // 2. Parse URL parameters
+    const searchParams = new URL(req.url).searchParams;
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
+    const limit = searchParams.get("limit") ? parseInt(searchParams.get("limit")!) : 50;
+
+    // 3. Check viewing permissions
+    const suggestion = await prisma.matchSuggestion.findUnique({
+      where: { id: params.id },
+      select: {
+        id: true,
+        status: true,
+        lastStatusChange: true,
+        matchmakerId: true,
+        firstPartyId: true,
+        secondPartyId: true,
+      }
+    });
+    
+    if (!suggestion) {
+      return NextResponse.json({ error: "Suggestion not found" }, { status: 404 });
+    }
+    
+    // Check if user has permission to view this suggestion
+    const canView = 
+      session.user.role === UserRole.ADMIN ||
+      suggestion.matchmakerId === session.user.id ||
+      suggestion.firstPartyId === session.user.id ||
+      suggestion.secondPartyId === session.user.id;
+      
+    if (!canView) {
+      return NextResponse.json({ error: "Not authorized to view this suggestion" }, { status: 403 });
+    }
+    
+    // 4. Build history query
+    const historyQuery = {
+      where: {
+        suggestionId: params.id,
+        ...(startDate && {
+          createdAt: {
+            gte: new Date(startDate),
+            ...(endDate && {
+              lte: new Date(endDate),
+            }),
+          },
+        }),
+      },
+      include: {
+        suggestion: {
+          select: {
+            firstParty: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
+            secondParty: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
+            matchmaker: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc" as const,
+      },
+      take: limit,
+    };
+
+    // 5. Fetch status change history
+    const history = await prisma.suggestionStatusHistory.findMany(historyQuery);
+
+    // 6. Format results
+    const formattedHistory = history.map(entry => ({
+      id: entry.id,
+      status: entry.status,
+      notes: entry.notes,
+      createdAt: entry.createdAt,
+      actors: {
+        firstParty: {
+          id: entry.suggestion.firstParty.id,
+          name: `${entry.suggestion.firstParty.firstName} ${entry.suggestion.firstParty.lastName}`,
+        },
+        secondParty: {
+          id: entry.suggestion.secondParty.id,
+          name: `${entry.suggestion.secondParty.firstName} ${entry.suggestion.secondParty.lastName}`,
+        },
+        matchmaker: {
+          id: entry.suggestion.matchmaker.id,
+          name: `${entry.suggestion.matchmaker.firstName} ${entry.suggestion.matchmaker.lastName}`,
+        },
+      },
+    }));
+
+    return NextResponse.json({
+      history: formattedHistory,
+      suggestion: {
+        id: suggestion.id,
+        currentStatus: suggestion.status,
+        lastStatusChange: suggestion.lastStatusChange?.toISOString() ?? null,
+      },
+    });
+
+  } catch (error) {
+    console.error("Error fetching suggestion history:", error);
+    
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    
+    return NextResponse.json(
+      { error: "Failed to fetch history", details: errorMessage },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * HEAD endpoint for getting status summary
+ */
+export async function HEAD(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    // 1. User authentication
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return new Response(null, { status: 401 });
+    }
+
+    // 2. Fetch suggestion details
+    const suggestion = await prisma.matchSuggestion.findUnique({
+      where: { id: params.id },
+      select: {
+        id: true,
+        status: true,
+        lastStatusChange: true,
+        firstPartyId: true,
+        secondPartyId: true,
+        matchmakerId: true,
+      }
+    });
+
+    if (!suggestion) {
+      return new Response(null, { status: 404 });
+    }
+
+    // 3. Check viewing permissions
+    const canView = 
+      session.user.role === UserRole.ADMIN ||
+      suggestion.matchmakerId === session.user.id ||
+      suggestion.firstPartyId === session.user.id ||
+      suggestion.secondPartyId === session.user.id;
+      
+    if (!canView) {
+      return new Response(null, { status: 403 });
+    }
+
+    // 4. Prepare headers
+    const headers: Record<string, string> = {
+      'X-Suggestion-Status': suggestion.status,
+      'X-First-Party': suggestion.firstPartyId,
+      'X-Second-Party': suggestion.secondPartyId,
+    };
+
+    // Add lastStatusChange header only if it exists
+    if (suggestion.lastStatusChange) {
+      headers['X-Last-Status-Change'] = suggestion.lastStatusChange.toISOString();
+    }
+
+    return new Response(null, { headers });
+
+  } catch (error) {
+    console.error("Error fetching suggestion status:", error);
+    return new Response(null, { status: 500 });
+  }
+}

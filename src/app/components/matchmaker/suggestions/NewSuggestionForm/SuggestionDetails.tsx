@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { calculateAge } from "@/lib/utils";
 import type { NewSuggestionFormData } from "./schema";
-import type { Candidate } from "../types/candidates";
+import type { Candidate } from "../../new/types/candidates";
 
 interface SuggestionDetailsProps {
   className?: string;

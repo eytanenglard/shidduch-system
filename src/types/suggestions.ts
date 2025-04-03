@@ -25,7 +25,7 @@ export interface CreateSuggestionData {
   secondPartyId: string;
   status?: MatchSuggestionStatus;
   priority?: Priority;
-  decisionDeadline: Date;
+  decisionDeadline: Date | string; // Update to accept string as well
   notes?: {
     internal?: string;
     forFirstParty?: string;
@@ -34,17 +34,16 @@ export interface CreateSuggestionData {
     followUpNotes?: string;
   };
 }
-
 export interface SuggestionMeeting {
   id: string;
   suggestionId: string;
-  scheduledDate: Date;
+  scheduledDate: Date | string;
   location?: string;
   status: MeetingStatus;
   notes?: string;
   feedback?: DateFeedback[];
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Date | string;
+  updatedAt: Date | string;
 }
 
 export interface SuggestionStatusHistory {
@@ -53,7 +52,7 @@ export interface SuggestionStatusHistory {
   status: MatchSuggestionStatus;
   reason?: string;
   notes?: string;
-  createdAt: Date;
+  createdAt: Date | string;
 }
 
 export interface DateFeedback {
@@ -65,7 +64,7 @@ export interface DateFeedback {
   feedback: string;
   status: string;
   nextSteps?: string;
-  createdAt: Date;
+  createdAt: Date | string;
 }
 
 export interface Suggestion {
@@ -82,20 +81,21 @@ export interface Suggestion {
   matchingReason?: string | null;
   followUpNotes?: string | null;
   
-  responseDeadline?: Date | null;
-  decisionDeadline?: Date | null;
-  lastStatusChange?: Date | null;
+  // Update date type definitions to be consistent
+  responseDeadline?: Date | string | null;
+  decisionDeadline?: Date | string | null;
+  lastStatusChange?: Date | string | null;
   previousStatus?: MatchSuggestionStatus | null;
   
-  lastActivity: Date;
-  firstPartySent?: Date | null;
-  firstPartyResponded?: Date | null;
-  secondPartySent?: Date | null;
-  secondPartyResponded?: Date | null;
-  firstMeetingScheduled?: Date | null;
-  closedAt?: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
+  lastActivity: Date | string;
+  firstPartySent?: Date | string | null;
+  firstPartyResponded?: Date | string | null;
+  secondPartySent?: Date | string | null;
+  secondPartyResponded?: Date | string | null;
+  firstMeetingScheduled?: Date | string | null;
+  closedAt?: Date | string | null;
+  createdAt: Date | string;
+  updatedAt: Date | string;
   statusHistory: SuggestionStatusHistory[];
   matchmaker?: User;
   firstParty: SuggestionParty;
@@ -127,6 +127,11 @@ export interface UpdateSuggestionData {
   };
 }
 
+export type SortByOption = 
+  | "lastActivity" 
+  | "createdAt" 
+  | "priority" 
+  | "decisionDeadline";
 export interface SuggestionFilters {
   status?: MatchSuggestionStatus[];
   priority?: Priority[];
@@ -139,6 +144,8 @@ export interface SuggestionFilters {
   requiresAction?: boolean;
   hasDeadlinePassed?: boolean;
   searchTerm?: string;
+  userId?: string;           // סינון לפי מזהה משתמש ספציפי
+  sortBy?: SortByOption; 
 }
 
 export interface SuggestionResponse {

@@ -317,6 +317,7 @@ const emailTemplates: Record<MatchSuggestionStatus, EmailTemplate | null> = {
       </div>
     `)
   },
+  
 };
 
 export class EmailService {
