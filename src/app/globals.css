@@ -571,3 +571,16 @@ html[dir="rtl"] [data-orientation="horizontal"] {
 .slider[dir="rtl"] .slider-range {
   background-color: #3b82f6;
 }
+
+.rtl {
+  direction: rtl;
+}
+
+.grid-flow-row-dense {
+  grid-auto-flow: row dense;
+}
+
+/* הוסף מחלקה כללית לרכיבי ממשק */
+.matchmaker-dashboard {
+  direction: rtl;
+}

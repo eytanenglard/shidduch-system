@@ -466,7 +466,10 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] flex flex-col p-0">
+      <DialogContent
+        className="max-w-6xl max-h-[90vh] flex flex-col p-0"
+        style={{ direction: "rtl" }}
+      >
         {/* Header with Progress Bar */}
         <div className="bg-gradient-to-r from-slate-50 to-white border-b flex-shrink-0">
           <DialogHeader className="p-6 pb-3">
@@ -555,7 +558,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
           onValueChange={setActiveTab}
           className="flex-1 flex flex-col overflow-hidden"
         >
-          <TabsList className="px-6 pt-2 border-b justify-start gap-1 flex-shrink-0">
+          <TabsList className="px-6 pt-2 border-b justify-end gap-1 flex-shrink-0">
             <TabsTrigger
               value="overview"
               className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 rounded-t-lg"

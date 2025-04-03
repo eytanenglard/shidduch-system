@@ -662,15 +662,15 @@ export default function MatchmakerDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-6 rtl matchmaker-dashboard">
       <div className="container mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold">ניהול הצעות שידוכים</h1>
+          <div className="flex items-center gap-4 justify-end">
             <Badge variant="outline" className="text-sm">
               {suggestions.length} הצעות
             </Badge>
+            <h1 className="text-2xl font-bold">ניהול הצעות שידוכים</h1>
           </div>
 
           <div className="flex items-center gap-2">
@@ -681,13 +681,13 @@ export default function MatchmakerDashboard() {
               disabled={isRefreshing}
             >
               <RefreshCw
-                className={`w-4 h-4 ml-2 ${isRefreshing ? "animate-spin" : ""}`}
+                className={`w-4 h-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`}
               />
               {isRefreshing ? "מעדכן..." : "רענן נתונים"}
             </Button>
 
             <Button variant="outline" size="sm" onClick={handleExport}>
-              <Download className="w-4 h-4 ml-2" />
+              <Download className="w-4 h-4 mr-2" />
               ייצוא
             </Button>
 
@@ -696,12 +696,12 @@ export default function MatchmakerDashboard() {
               size="sm"
               onClick={() => setShowMonthlyTrendDialog(true)}
             >
-              <BarChart className="w-4 h-4 ml-2" />
+              <BarChart className="w-4 h-4 mr-2" />
               מגמה חודשית
             </Button>
 
             <Button onClick={() => setShowNewSuggestion(true)}>
-              <Plus className="w-4 h-4 ml-2" />
+              <Plus className="w-4 h-4 mr-2" />
               הצעה חדשה
             </Button>
           </div>
@@ -724,7 +724,7 @@ export default function MatchmakerDashboard() {
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <div className="flex items-center justify-between mb-6">
-            <TabsList>
+            <TabsList dir="rtl" className="flex-row-reverse">
               <TabsTrigger value="pending">ממתין לאישור</TabsTrigger>
               <TabsTrigger value="active">הצעות פעילות</TabsTrigger>
               <TabsTrigger value="history">היסטוריה</TabsTrigger>
@@ -752,7 +752,7 @@ export default function MatchmakerDashboard() {
             <>
               {/* Suggestions Lists */}
               <TabsContent value="pending">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 grid-flow-row-dense">
                   {suggestions
                     .filter((s) => s.category === "PENDING")
                     .filter((s) => {
@@ -827,7 +827,7 @@ export default function MatchmakerDashboard() {
               </TabsContent>
 
               <TabsContent value="active">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 grid-flow-row-dense">
                   {suggestions
                     .filter((s) => s.category === "ACTIVE")
                     .filter((s) => {
@@ -902,7 +902,7 @@ export default function MatchmakerDashboard() {
               </TabsContent>
 
               <TabsContent value="history">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 grid-flow-row-dense">
                   {suggestions
                     .filter((s) => s.category === "HISTORY")
                     .filter((s) => {

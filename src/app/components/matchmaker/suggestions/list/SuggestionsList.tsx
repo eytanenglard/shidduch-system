@@ -213,12 +213,14 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
           </div>
         </LoadingContainer>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        // בערך בשורה 196 - שנה את הגריד להצגה מימין לשמאל
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 grid-flow-row-dense">
           {filteredSuggestions.map((suggestion) => (
             <SuggestionCard
               key={suggestion.id}
               suggestion={suggestion as unknown as Suggestion}
               onAction={onAction}
+              className="rtl" // הוסף מחלקה זו
             />
           ))}
         </div>

@@ -288,7 +288,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
         {/* Parties info */}
         <div className="grid grid-cols-2 gap-4 mb-4">
           {/* First party */}
-          <div className="space-y-2 border-l pl-4">
+          <div className="space-y-2 border-l pl-4 order-1">
             <div className="flex items-center justify-between">
               <Badge variant="outline" className="bg-blue-50">
                 צד א׳
@@ -344,7 +344,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
           </div>
 
           {/* Second party */}
-          <div className="space-y-2">
+          <div className="space-y-2 order-0">
             <div className="flex items-center justify-between">
               <Badge variant="outline" className="bg-purple-50">
                 צד ב׳
