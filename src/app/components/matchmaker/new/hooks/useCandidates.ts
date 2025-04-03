@@ -403,8 +403,7 @@ export const useCandidates = (initialFilters: CandidatesFilter = {}): UseCandida
           return true;
         });
     
-  }, [filteredCandidates, filters.separateFiltering, filters.maleFilters, filters.maleSearchQuery, calculateAge, checkSearchMatch]);
-
+      }, [filteredCandidates, filters.maleFilters, filters.maleSearchQuery, calculateAge, checkSearchMatch]);
   const femaleCandidates = useMemo(() => {
     // בסינון נפרד, נבדוק גם את החיפוש הספציפי לנשים
 
@@ -500,8 +499,7 @@ export const useCandidates = (initialFilters: CandidatesFilter = {}): UseCandida
           
           return true;
         });
-  }, [filteredCandidates, filters.separateFiltering, filters.femaleFilters, filters.femaleSearchQuery, calculateAge, checkSearchMatch]);
-
+      }, [filteredCandidates, filters.femaleFilters, filters.femaleSearchQuery, calculateAge, checkSearchMatch]);
   // עדכון תוצאות החיפוש
   useEffect(() => {
     if (!filters.separateFiltering && filters.searchQuery) {

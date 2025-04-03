@@ -13,6 +13,11 @@ import type { MatchSuggestion } from "@prisma/client";
 import type { UserProfile, UserImage } from "@/types/next-auth";
 import SuggestionCard from "../cards/SuggestionCard";
 import { LoadingContainer } from "../../new/shared/LoadingStates";
+import type {
+  Suggestion,
+  ActionAdditionalData,
+  SuggestionStatusHistory,
+} from "@/types/suggestions";
 
 interface PartyInfo {
   id: string;
@@ -25,14 +30,24 @@ interface PartyInfo {
 interface ExtendedMatchSuggestion extends MatchSuggestion {
   firstParty: PartyInfo;
   secondParty: PartyInfo;
+  statusHistory: SuggestionStatusHistory[]; // הוספת השדה החסר
 }
 
 interface SuggestionsListProps {
   suggestions: ExtendedMatchSuggestion[];
   isLoading?: boolean;
   onAction: (
-    type: "view" | "contact" | "message",
-    suggestion: ExtendedMatchSuggestion
+    type:
+      | "view"
+      | "contact"
+      | "message"
+      | "edit"
+      | "delete"
+      | "resend"
+      | "changeStatus"
+      | "reminder",
+    suggestion: Suggestion,
+    additionalData?: ActionAdditionalData
   ) => void;
   className?: string;
 }
@@ -202,7 +217,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
           {filteredSuggestions.map((suggestion) => (
             <SuggestionCard
               key={suggestion.id}
-              suggestion={suggestion}
+              suggestion={suggestion as unknown as Suggestion}
               onAction={onAction}
             />
           ))}
