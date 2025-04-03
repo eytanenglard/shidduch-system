@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { UserRole, MatchSuggestionStatus } from "@prisma/client";
-import { EmailService } from "@/app/components/matchmaker/new/services/email/EmailService";
 import { StatusTransitionService } from "@/app/components/matchmaker/new/services/suggestions/StatusTransitionService";
 
 export async function POST(

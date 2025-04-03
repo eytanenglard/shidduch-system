@@ -18,6 +18,11 @@ export interface SuggestionParty extends User {
   images: UserImage[];
 }
 
+export interface ActionAdditionalData {
+  partyType?: "first" | "second" | "both";
+  type?: string;
+};
+
 // Rest of the interfaces remain the same
 export interface CreateSuggestionData {
   matchmakerId: string;

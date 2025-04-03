@@ -1,6 +1,14 @@
 import React, { useMemo } from "react";
 import { Card } from "@/components/ui/card";
-import { Users, CheckCircle, Clock, Calendar, AlertCircle, Ban, X } from "lucide-react";
+import {
+  Users,
+  CheckCircle,
+  Clock,
+  Calendar,
+  AlertCircle,
+  Ban,
+  X,
+} from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -14,8 +22,8 @@ import {
   Cell,
   Legend,
 } from "recharts";
-import type { Suggestion } from "@/types/suggestions";
-import { MatchSuggestionStatus } from "@prisma/client";
+import type { Suggestion, SuggestionFilters } from "@/types/suggestions";
+import { MatchSuggestionStatus, Priority } from "@prisma/client";
 
 interface StatsCardProps {
   icon: React.ElementType;
@@ -33,10 +41,18 @@ interface StatsCardProps {
 interface SuggestionsStatsProps {
   suggestions: Suggestion[];
   className?: string;
-  onFilterChange?: (filter: any) => void;
+  onFilterChange?: (filter: Partial<SuggestionFilters>) => void;
 }
 
-const COLORS = ["#3B82F6", "#EF4444", "#10B981", "#F59E0B", "#6366F1", "#8B5CF6", "#EC4899"];
+const COLORS = [
+  "#3B82F6",
+  "#EF4444",
+  "#10B981",
+  "#F59E0B",
+  "#6366F1",
+  "#8B5CF6",
+  "#EC4899",
+];
 
 const StatsCard: React.FC<StatsCardProps> = ({
   icon: Icon,
@@ -47,8 +63,10 @@ const StatsCard: React.FC<StatsCardProps> = ({
   onClick,
   isClickable = false,
 }) => (
-  <Card 
-    className={`p-4 ${className} ${isClickable ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`}
+  <Card
+    className={`p-4 ${className} ${
+      isClickable ? "cursor-pointer hover:shadow-md transition-shadow" : ""
+    }`}
     onClick={onClick}
   >
     <div className="flex items-center justify-between">
@@ -63,7 +81,8 @@ const StatsCard: React.FC<StatsCardProps> = ({
             <span
               className={trend.isPositive ? "text-green-600" : "text-red-600"}
             >
-              {trend.value > 0 ? "+" : ""}{trend.value}%
+              {trend.value > 0 ? "+" : ""}
+              {trend.value}%
             </span>
             <span className="text-xs text-gray-500">מהחודש שעבר</span>
           </div>
@@ -80,15 +99,9 @@ const SuggestionsStats: React.FC<SuggestionsStatsProps> = ({
 }) => {
   const stats = useMemo(() => {
     const total = suggestions.length;
-    const active = suggestions.filter(
-      (s) => s.category === "ACTIVE"
-    ).length;
-    const pending = suggestions.filter(
-      (s) => s.category === "PENDING"
-    ).length;
-    const history = suggestions.filter(
-      (s) => s.category === "HISTORY"
-    ).length;
+    const active = suggestions.filter((s) => s.category === "ACTIVE").length;
+    const pending = suggestions.filter((s) => s.category === "PENDING").length;
+    const history = suggestions.filter((s) => s.category === "HISTORY").length;
 
     const approvedByFirst = suggestions.filter(
       (s) => s.status === "FIRST_PARTY_APPROVED"
@@ -97,14 +110,12 @@ const SuggestionsStats: React.FC<SuggestionsStatsProps> = ({
       (s) => s.status === "SECOND_PARTY_APPROVED"
     ).length;
     const declined = suggestions.filter(
-      (s) => s.status === "FIRST_PARTY_DECLINED" || s.status === "SECOND_PARTY_DECLINED"
+      (s) =>
+        s.status === "FIRST_PARTY_DECLINED" ||
+        s.status === "SECOND_PARTY_DECLINED"
     ).length;
-    const expired = suggestions.filter(
-      (s) => s.status === "EXPIRED"
-    ).length;
-    const dating = suggestions.filter(
-      (s) => s.status === "DATING"
-    ).length;
+    const expired = suggestions.filter((s) => s.status === "EXPIRED").length;
+    const dating = suggestions.filter((s) => s.status === "DATING").length;
     const success = suggestions.filter((s) =>
       ["MARRIED", "ENGAGED"].includes(s.status)
     ).length;
@@ -115,34 +126,53 @@ const SuggestionsStats: React.FC<SuggestionsStatsProps> = ({
     }, {} as Record<string, number>);
 
     // Group suggestions by month
-    const monthlyData = suggestions.reduce((acc, s) => {
-      const month = new Date(s.createdAt).getMonth();
-      const year = new Date(s.createdAt).getFullYear();
-      const key = `${year}-${month + 1}`;
+    const monthlyData = suggestions.reduce(
+      (acc, s) => {
+        const month = new Date(s.createdAt).getMonth();
+        const year = new Date(s.createdAt).getFullYear();
+        const key = `${year}-${month + 1}`;
 
-      if (!acc[key]) {
-        acc[key] = {
-          month: new Date(year, month).toLocaleString("he", { month: "short" }),
-          year: year,
-          count: 0,
-          active: 0,
-          pending: 0,
-          success: 0,
-          declined: 0,
-        };
-      }
+        if (!acc[key]) {
+          acc[key] = {
+            month: new Date(year, month).toLocaleString("he", {
+              month: "short",
+            }),
+            year: year,
+            count: 0,
+            active: 0,
+            pending: 0,
+            success: 0,
+            declined: 0,
+          };
+        }
 
-      acc[key].count += 1;
+        acc[key].count += 1;
 
-      if (s.category === "ACTIVE") acc[key].active += 1;
-      if (s.category === "PENDING") acc[key].pending += 1;
-      if (["MARRIED", "ENGAGED"].includes(s.status)) acc[key].success += 1;
-      if (s.status === "FIRST_PARTY_DECLINED" || s.status === "SECOND_PARTY_DECLINED") {
-        acc[key].declined += 1;
-      }
+        if (s.category === "ACTIVE") acc[key].active += 1;
+        if (s.category === "PENDING") acc[key].pending += 1;
+        if (["MARRIED", "ENGAGED"].includes(s.status)) acc[key].success += 1;
+        if (
+          s.status === "FIRST_PARTY_DECLINED" ||
+          s.status === "SECOND_PARTY_DECLINED"
+        ) {
+          acc[key].declined += 1;
+        }
 
-      return acc;
-    }, {} as Record<string, any>);
+        return acc;
+      },
+      {} as Record<
+        string,
+        {
+          month: string;
+          year: number;
+          count: number;
+          active: number;
+          pending: number;
+          success: number;
+          declined: number;
+        }
+      >
+    );
 
     // Convert to array and sort by date
     const monthlyArray = Object.values(monthlyData).sort((a, b) => {
@@ -167,10 +197,16 @@ const SuggestionsStats: React.FC<SuggestionsStatsProps> = ({
     if (monthlyArray.length >= 2) {
       const currentMonth = monthlyArray[monthlyArray.length - 1];
       const previousMonth = monthlyArray[monthlyArray.length - 2];
-      
+
       activeTrend = calculateTrend(currentMonth.active, previousMonth.active);
-      pendingTrend = calculateTrend(currentMonth.pending, previousMonth.pending);
-      successTrend = calculateTrend(currentMonth.success, previousMonth.success);
+      pendingTrend = calculateTrend(
+        currentMonth.pending,
+        previousMonth.pending
+      );
+      successTrend = calculateTrend(
+        currentMonth.success,
+        previousMonth.success
+      );
     }
 
     // Group by priority
@@ -212,7 +248,7 @@ const SuggestionsStats: React.FC<SuggestionsStatsProps> = ({
   // Filter by priority
   const handlePriorityClick = (priority: string) => {
     if (onFilterChange) {
-      onFilterChange({ priority: [priority] });
+      onFilterChange({ priority: [priority as Priority] });
     }
   };
 
@@ -233,9 +269,9 @@ const SuggestionsStats: React.FC<SuggestionsStatsProps> = ({
       DRAFT: "טיוטה",
       CLOSED: "סגור",
       CANCELLED: "בוטל",
-      AWAITING_FIRST_DATE_FEEDBACK: "ממתין למשוב פגישה"
+      AWAITING_FIRST_DATE_FEEDBACK: "ממתין למשוב פגישה",
     };
-    
+
     return statusMap[status] || status;
   };
 
@@ -245,9 +281,9 @@ const SuggestionsStats: React.FC<SuggestionsStatsProps> = ({
       URGENT: "דחוף",
       HIGH: "עדיפות גבוהה",
       MEDIUM: "עדיפות רגילה",
-      LOW: "עדיפות נמוכה"
+      LOW: "עדיפות נמוכה",
     };
-    
+
     return priorityMap[priority] || priority;
   };
 
@@ -259,7 +295,10 @@ const SuggestionsStats: React.FC<SuggestionsStatsProps> = ({
           icon={Users}
           title="סה״כ הצעות"
           value={stats.total}
-          trend={{ value: stats.trends.active, isPositive: stats.trends.active >= 0 }}
+          trend={{
+            value: stats.trends.active,
+            isPositive: stats.trends.active >= 0,
+          }}
           isClickable={true}
           onClick={() => onFilterChange && onFilterChange({})}
         />
@@ -267,65 +306,103 @@ const SuggestionsStats: React.FC<SuggestionsStatsProps> = ({
           icon={CheckCircle}
           title="הצעות פעילות"
           value={stats.active}
-          trend={{ value: stats.trends.active, isPositive: stats.trends.active >= 0 }}
+          trend={{
+            value: stats.trends.active,
+            isPositive: stats.trends.active >= 0,
+          }}
           isClickable={true}
-          onClick={() => onFilterChange && onFilterChange({ category: ["ACTIVE"] })}
+          onClick={() =>
+            onFilterChange &&
+            onFilterChange({
+              status: [
+                "DATING",
+                "FIRST_PARTY_APPROVED",
+                "SECOND_PARTY_APPROVED",
+                "CONTACT_DETAILS_SHARED",
+              ],
+            })
+          }
         />
         <StatsCard
           icon={Clock}
           title="ממתינות לתגובה"
           value={stats.pending}
-          trend={{ value: stats.trends.pending, isPositive: stats.trends.pending >= 0 }}
+          trend={{
+            value: stats.trends.pending,
+            isPositive: stats.trends.pending >= 0,
+          }}
           isClickable={true}
-          onClick={() => onFilterChange && onFilterChange({ 
-            status: ["PENDING_FIRST_PARTY", "PENDING_SECOND_PARTY"] 
-          })}
+          onClick={() =>
+            onFilterChange &&
+            onFilterChange({
+              status: ["PENDING_FIRST_PARTY", "PENDING_SECOND_PARTY"],
+            })
+          }
         />
         <StatsCard
           icon={Calendar}
           title="שידוכים מוצלחים"
           value={`${stats.successRate}%`}
-          trend={{ value: stats.trends.success, isPositive: stats.trends.success >= 0 }}
+          trend={{
+            value: stats.trends.success,
+            isPositive: stats.trends.success >= 0,
+          }}
           isClickable={true}
-          onClick={() => onFilterChange && onFilterChange({ 
-            status: ["DATING", "ENGAGED", "MARRIED"] 
-          })}
+          onClick={() =>
+            onFilterChange &&
+            onFilterChange({
+              status: ["DATING", "ENGAGED", "MARRIED"],
+            })
+          }
         />
       </div>
 
       {/* Action Cards */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-3 mt-4">
-        <Card 
+        <Card
           className="p-3 cursor-pointer hover:shadow-md transition-shadow bg-yellow-50"
-          onClick={() => onFilterChange && onFilterChange({ 
-            status: ["PENDING_FIRST_PARTY"]
-          })}
+          onClick={() =>
+            onFilterChange &&
+            onFilterChange({
+              status: ["PENDING_FIRST_PARTY"],
+            })
+          }
         >
           <div className="flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-yellow-600" />
             <div className="text-xs">ממתין לצד א׳</div>
-            <div className="font-bold ml-auto">{stats.byStatus["PENDING_FIRST_PARTY"] || 0}</div>
+            <div className="font-bold ml-auto">
+              {stats.byStatus["PENDING_FIRST_PARTY"] || 0}
+            </div>
           </div>
         </Card>
-        
-        <Card 
+
+        <Card
           className="p-3 cursor-pointer hover:shadow-md transition-shadow bg-blue-50"
-          onClick={() => onFilterChange && onFilterChange({ 
-            status: ["PENDING_SECOND_PARTY"]
-          })}
+          onClick={() =>
+            onFilterChange &&
+            onFilterChange({
+              status: ["PENDING_SECOND_PARTY"],
+            })
+          }
         >
           <div className="flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-blue-600" />
             <div className="text-xs">ממתין לצד ב׳</div>
-            <div className="font-bold ml-auto">{stats.byStatus["PENDING_SECOND_PARTY"] || 0}</div>
+            <div className="font-bold ml-auto">
+              {stats.byStatus["PENDING_SECOND_PARTY"] || 0}
+            </div>
           </div>
         </Card>
-        
-        <Card 
+
+        <Card
           className="p-3 cursor-pointer hover:shadow-md transition-shadow bg-red-50"
-          onClick={() => onFilterChange && onFilterChange({ 
-            status: ["FIRST_PARTY_DECLINED", "SECOND_PARTY_DECLINED"]
-          })}
+          onClick={() =>
+            onFilterChange &&
+            onFilterChange({
+              status: ["FIRST_PARTY_DECLINED", "SECOND_PARTY_DECLINED"],
+            })
+          }
         >
           <div className="flex items-center gap-2">
             <X className="w-4 h-4 text-red-600" />
@@ -333,30 +410,40 @@ const SuggestionsStats: React.FC<SuggestionsStatsProps> = ({
             <div className="font-bold ml-auto">{stats.declined}</div>
           </div>
         </Card>
-        
-        <Card 
+
+        <Card
           className="p-3 cursor-pointer hover:shadow-md transition-shadow bg-pink-50"
-          onClick={() => onFilterChange && onFilterChange({ 
-            status: ["DATING"] 
-          })}
+          onClick={() =>
+            onFilterChange &&
+            onFilterChange({
+              status: ["DATING"],
+            })
+          }
         >
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-pink-600" />
             <div className="text-xs">בתהליך היכרות</div>
-            <div className="font-bold ml-auto">{stats.byStatus["DATING"] || 0}</div>
+            <div className="font-bold ml-auto">
+              {stats.byStatus["DATING"] || 0}
+            </div>
           </div>
         </Card>
-        
-        <Card 
+
+        <Card
           className="p-3 cursor-pointer hover:shadow-md transition-shadow bg-gray-50"
-          onClick={() => onFilterChange && onFilterChange({ 
-            status: ["EXPIRED"] 
-          })}
+          onClick={() =>
+            onFilterChange &&
+            onFilterChange({
+              status: ["EXPIRED"],
+            })
+          }
         >
           <div className="flex items-center gap-2">
             <Ban className="w-4 h-4 text-gray-600" />
             <div className="text-xs">פג תוקף</div>
-            <div className="font-bold ml-auto">{stats.byStatus["EXPIRED"] || 0}</div>
+            <div className="font-bold ml-auto">
+              {stats.byStatus["EXPIRED"] || 0}
+            </div>
           </div>
         </Card>
       </div>
@@ -371,11 +458,11 @@ const SuggestionsStats: React.FC<SuggestionsStatsProps> = ({
               <PieChart>
                 <Pie
                   data={Object.entries(stats.byStatus)
-                    .filter(([_, count]) => count > 0)
+                    .filter(([, count]) => count > 0)
                     .map(([status, count]) => ({
                       name: getStatusLabel(status),
                       value: count,
-                      status: status
+                      status: status,
                     }))}
                   cx="50%"
                   cy="50%"
@@ -385,21 +472,21 @@ const SuggestionsStats: React.FC<SuggestionsStatsProps> = ({
                   }
                   outerRadius={80}
                   dataKey="value"
-                  onClick={(data) => handleStatusClick(data.status as MatchSuggestionStatus)}
+                  onClick={(data) =>
+                    handleStatusClick(data.status as MatchSuggestionStatus)
+                  }
                 >
                   {Object.entries(stats.byStatus)
-                    .filter(([_, count]) => count > 0)
+                    .filter(([, count]) => count > 0)
                     .map((_, index) => (
                       <Cell
                         key={`cell-${index}`}
                         fill={COLORS[index % COLORS.length]}
-                        style={{ cursor: 'pointer' }}
+                        style={{ cursor: "pointer" }}
                       />
                     ))}
                 </Pie>
-                <Tooltip 
-                  formatter={(value) => [`${value} הצעות`, ""]}
-                />
+                <Tooltip formatter={(value) => [`${value} הצעות`, ""]} />
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
@@ -418,7 +505,7 @@ const SuggestionsStats: React.FC<SuggestionsStatsProps> = ({
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
-                <Tooltip 
+                <Tooltip
                   formatter={(value) => [`${value} הצעות`, ""]}
                   labelFormatter={(label) => `חודש ${label}`}
                 />
@@ -440,24 +527,39 @@ const SuggestionsStats: React.FC<SuggestionsStatsProps> = ({
           {Object.entries(stats.byPriority)
             .sort(([a], [b]) => {
               const priorityOrder = { URGENT: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
-              return priorityOrder[a as keyof typeof priorityOrder] - priorityOrder[b as keyof typeof priorityOrder];
+              return (
+                priorityOrder[a as keyof typeof priorityOrder] -
+                priorityOrder[b as keyof typeof priorityOrder]
+              );
             })
             .map(([priority, count]) => (
-              <Card 
+              <Card
                 key={priority}
                 className={`p-3 cursor-pointer hover:shadow-md transition-shadow
-                  ${priority === "URGENT" ? "bg-red-50" : 
-                    priority === "HIGH" ? "bg-orange-50" : 
-                    priority === "MEDIUM" ? "bg-blue-50" : 
-                    "bg-gray-50"}`}
+                  ${
+                    priority === "URGENT"
+                      ? "bg-red-50"
+                      : priority === "HIGH"
+                      ? "bg-orange-50"
+                      : priority === "MEDIUM"
+                      ? "bg-blue-50"
+                      : "bg-gray-50"
+                  }`}
                 onClick={() => handlePriorityClick(priority)}
               >
                 <div className="flex items-center gap-2">
-                  <div className={`w-3 h-3 rounded-full 
-                    ${priority === "URGENT" ? "bg-red-500" : 
-                      priority === "HIGH" ? "bg-orange-500" : 
-                      priority === "MEDIUM" ? "bg-blue-500" : 
-                      "bg-gray-500"}`} />
+                  <div
+                    className={`w-3 h-3 rounded-full 
+                    ${
+                      priority === "URGENT"
+                        ? "bg-red-500"
+                        : priority === "HIGH"
+                        ? "bg-orange-500"
+                        : priority === "MEDIUM"
+                        ? "bg-blue-500"
+                        : "bg-gray-500"
+                    }`}
+                  />
                   <div className="text-sm">{getPriorityLabel(priority)}</div>
                   <div className="font-bold ml-auto">{count}</div>
                 </div>

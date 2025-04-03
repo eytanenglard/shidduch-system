@@ -15,9 +15,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import type { Suggestion, SuggestionFilters } from "@/types/suggestions";
+import type {
+  Suggestion,
+  SuggestionFilters,
+  ActionAdditionalData,
+} from "@/types/suggestions";
 import type { NewSuggestionFormData } from "../../suggestions/NewSuggestionForm/schema";
-import type { MatchSuggestionStatus } from "@prisma/client";
+import type { MatchSuggestionStatus, Priority } from "@prisma/client";
 import NewSuggestionForm from "../../suggestions/NewSuggestionForm";
 import SuggestionsStats from "./SuggestionsStats";
 import SuggestionActionBar from "./SuggestionActionBar";
@@ -26,6 +30,16 @@ import SuggestionCard from "../cards/SuggestionCard";
 import { toast } from "sonner";
 import EditSuggestionForm from "../EditSuggestionForm";
 import MessageForm from "../MessageForm";
+
+type SuggestionCategory = "ACTIVE" | "PENDING" | "HISTORY";
+
+// הרחבת הטיפוס הקיים עבור DialogAction
+interface DialogActionData extends ActionAdditionalData {
+  suggestionId?: string;
+  newStatus?: MatchSuggestionStatus;
+  notes?: string;
+  suggestion?: Suggestion;
+}
 
 export default function MatchmakerDashboard() {
   // State management
@@ -40,14 +54,12 @@ export default function MatchmakerDashboard() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [confirmAction, setConfirmAction] = useState<{
     type: string;
-    data: any;
+    data: Record<string, unknown>;
   } | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [showMessageForm, setShowMessageForm] = useState(false);
-  const [, setMessageRecipient] = useState<
-    "first" | "second" | "both"
-  >("both");
+  const [, setMessageRecipient] = useState<"first" | "second" | "both">("both");
 
   // Calculate suggestion counts
   const activeCount = suggestions.filter((s) => s.category === "ACTIVE").length;
@@ -180,7 +192,7 @@ export default function MatchmakerDashboard() {
       | "changeStatus"
       | "reminder",
     suggestion: Suggestion,
-    additionalData?: any
+    additionalData?: ActionAdditionalData
   ) => {
     console.log(
       `Action ${type} for suggestion ${suggestion.id}`,
@@ -269,7 +281,9 @@ export default function MatchmakerDashboard() {
                 ...suggestion,
                 status: newStatus,
                 // עדכון קטגוריית ההצעה בהתאם לסטטוס החדש
-                category: getCategoryFromStatus(newStatus) as any,
+                category: getCategoryFromStatus(
+                  newStatus
+                ) as SuggestionCategory,
                 lastActivity: new Date().toISOString(),
                 lastStatusChange: new Date().toISOString(),
                 previousStatus: suggestion.status,
@@ -288,7 +302,7 @@ export default function MatchmakerDashboard() {
   };
 
   // Handle dialog actions
-  const handleDialogAction = (action: string, data?: any) => {
+  const handleDialogAction = (action: string, data?: DialogActionData) => {
     console.log(`Dialog action: ${action}`, data);
 
     switch (action) {
@@ -299,12 +313,17 @@ export default function MatchmakerDashboard() {
         setSelectedSuggestion(null);
         break;
       case "delete":
-        setConfirmAction({
-          type: "delete",
-          data: { suggestionId: data.suggestionId },
-        });
-        setShowConfirmDialog(true);
-        setSelectedSuggestion(null);
+        if (data?.suggestionId) {
+          setConfirmAction({
+            type: "delete",
+            data: { suggestionId: data.suggestionId },
+          });
+          setShowConfirmDialog(true);
+          setSelectedSuggestion(null);
+        } else {
+          console.error("Missing suggestionId for delete action");
+          toast.error("שגיאה בתהליך המחיקה");
+        }
         break;
       case "message":
         // פתיחת טופס שליחת הודעה
@@ -332,15 +351,33 @@ export default function MatchmakerDashboard() {
         break;
       case "contact":
       case "reminder":
-        if (data?.partyType) {
+        if (data?.suggestionId && data?.partyType) {
           sendReminder(data.suggestionId, data.partyType);
+        } else {
+          console.error(
+            "Missing suggestionId or partyType for reminder action"
+          );
+          // אולי להציג הודעת שגיאה למשתמש
         }
         break;
       case "sendReminder":
-        sendReminder(data.suggestionId, data.type);
+        if (data?.suggestionId && data?.type) {
+          sendReminder(
+            data.suggestionId,
+            data.type as "first" | "second" | "both"
+          );
+        } else {
+          console.error("Missing suggestionId or type for sendReminder action");
+          toast.error("שגיאה בשליחת תזכורת");
+        }
         break;
       case "resendToAll":
-        resendSuggestion(data.suggestionId, "both");
+        if (data?.suggestionId) {
+          resendSuggestion(data.suggestionId, "both");
+        } else {
+          console.error("Missing suggestionId for resendToAll action");
+          toast.error("שגיאה בשליחת ההצעה מחדש");
+        }
         break;
       case "export":
       case "exportHistory":
@@ -350,10 +387,17 @@ export default function MatchmakerDashboard() {
         toast.info("פונקציונליות תיאום פגישה בפיתוח");
         break;
       case "shareContacts":
-        setConfirmAction({
-          type: "shareContacts",
-          data: { suggestionId: data.suggestionId },
-        });
+        if (data?.suggestionId) {
+          setConfirmAction({
+            type: "shareContacts",
+            data: { suggestionId: data.suggestionId },
+          });
+          setShowConfirmDialog(true);
+        } else {
+          console.error("Missing suggestionId for shareContacts action");
+          toast.error("שגיאה בשיתוף פרטי קשר");
+        }
+        break;
         setShowConfirmDialog(true);
         break;
     }
@@ -361,7 +405,7 @@ export default function MatchmakerDashboard() {
   const handleUpdateSuggestion = async (data: {
     suggestionId: string;
     updates: {
-      priority?: any;
+      priority?: Priority;
       matchingReason?: string;
       firstPartyNotes?: string;
       secondPartyNotes?: string;
@@ -553,7 +597,9 @@ export default function MatchmakerDashboard() {
       switch (confirmAction.type) {
         case "delete":
           const deleteResponse = await fetch(
-            `/api/suggestions/${confirmAction.data.suggestionId}/delete`,
+            `/api/suggestions/${
+              confirmAction.data.suggestionId as string
+            }/delete`,
             {
               method: "DELETE",
             }
@@ -562,19 +608,51 @@ export default function MatchmakerDashboard() {
           if (!deleteResponse.ok)
             throw new Error("Failed to delete suggestion");
 
-          handleSuggestionDeleted(confirmAction.data.suggestionId);
+          if (typeof confirmAction.data.suggestionId === "string") {
+            handleSuggestionDeleted(confirmAction.data.suggestionId as string);
+          } else {
+            console.error("Invalid suggestionId for delete action");
+            toast.error("שגיאה במחיקת ההצעה");
+          }
           break;
         case "contact":
-          await sendReminder(
-            confirmAction.data.suggestionId,
-            confirmAction.data.partyType
-          );
+          if (
+            typeof confirmAction.data.suggestionId === "string" &&
+            typeof confirmAction.data.partyType === "string" &&
+            ["first", "second", "both"].includes(
+              confirmAction.data.partyType as string
+            )
+          ) {
+            await sendReminder(
+              confirmAction.data.suggestionId as string,
+              confirmAction.data.partyType as "first" | "second" | "both"
+            );
+          } else {
+            console.error("Invalid data for contact action");
+            toast.error("שגיאה בשליחת תזכורת");
+          }
           break;
         case "resend":
-          await resendSuggestion(confirmAction.data.suggestionId, "both");
+          if (typeof confirmAction.data.suggestionId === "string") {
+            await resendSuggestion(
+              confirmAction.data.suggestionId as string,
+              "both"
+            );
+          } else {
+            console.error("Invalid suggestionId for resend action");
+            toast.error("שגיאה בשליחת ההצעה מחדש");
+          }
           break;
+
         case "shareContacts":
-          await shareContactDetails(confirmAction.data.suggestionId);
+          if (typeof confirmAction.data.suggestionId === "string") {
+            await shareContactDetails(
+              confirmAction.data.suggestionId as string
+            );
+          } else {
+            console.error("Invalid suggestionId for shareContacts action");
+            toast.error("שגיאה בשיתוף פרטי קשר");
+          }
           break;
       }
     } catch (error) {

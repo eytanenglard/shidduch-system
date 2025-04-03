@@ -30,12 +30,8 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { he } from "date-fns/locale";
-import type {
-  MatchSuggestion,
-  MatchSuggestionStatus,
-  Priority,
-} from "@prisma/client";
-import type { Suggestion } from "@/types/suggestions";
+import type { MatchSuggestionStatus, Priority } from "@prisma/client";
+import type { Suggestion, ActionAdditionalData } from "@/types/suggestions";
 import { Progress } from "@/components/ui/progress";
 
 interface SuggestionCardProps {
@@ -51,7 +47,7 @@ interface SuggestionCardProps {
       | "changeStatus"
       | "reminder",
     suggestion: Suggestion,
-    additionalData?: any
+    additionalData?: ActionAdditionalData
   ) => void;
   className?: string;
 }

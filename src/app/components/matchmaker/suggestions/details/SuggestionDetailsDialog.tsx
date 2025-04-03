@@ -44,80 +44,92 @@ import {
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { MatchSuggestionStatus, Priority } from "@prisma/client";
-import type { Suggestion } from "@/types/suggestions";
+import { MatchSuggestionStatus } from "@prisma/client";
+import type { Suggestion, ActionAdditionalData } from "@/types/suggestions";
 import type { QuestionnaireResponse } from "@/types/next-auth";
+import Image from "next/image";
+
+interface DialogActionData extends ActionAdditionalData {
+  suggestionId?: string;
+  newStatus?: MatchSuggestionStatus;
+  notes?: string;
+  suggestion?: Suggestion;
+  partyId?: string;
+  type?: string;
+  partyType?: "first" | "second" | "both";
+}
 
 interface SuggestionDetailsDialogProps {
   suggestion: Suggestion | null;
   isOpen: boolean;
   onClose: () => void;
-  onAction: (action: string, data?: any) => void;
+  onAction: (action: string, data?: DialogActionData) => void;
 }
 
 // Map status to its display info
 const getStatusInfo = (status: MatchSuggestionStatus) => {
-  const statusMap: Record<string, { label: string; icon: any; color: string }> =
-    {
-      DRAFT: { label: "טיוטה", icon: Edit, color: "text-gray-600" },
-      PENDING_FIRST_PARTY: {
-        label: "ממתין לתשובת צד א׳",
-        icon: Clock,
-        color: "text-yellow-600",
-      },
-      FIRST_PARTY_APPROVED: {
-        label: "צד א׳ אישר",
-        icon: CheckCircle,
-        color: "text-green-600",
-      },
-      FIRST_PARTY_DECLINED: {
-        label: "צד א׳ דחה",
-        icon: XCircle,
-        color: "text-red-600",
-      },
-      PENDING_SECOND_PARTY: {
-        label: "ממתין לתשובת צד ב׳",
-        icon: Clock,
-        color: "text-blue-600",
-      },
-      SECOND_PARTY_APPROVED: {
-        label: "צד ב׳ אישר",
-        icon: CheckCircle,
-        color: "text-green-600",
-      },
-      SECOND_PARTY_DECLINED: {
-        label: "צד ב׳ דחה",
-        icon: XCircle,
-        color: "text-red-600",
-      },
-      AWAITING_MATCHMAKER_APPROVAL: {
-        label: "ממתין לאישור שדכן",
-        icon: AlertCircle,
-        color: "text-purple-600",
-      },
-      CONTACT_DETAILS_SHARED: {
-        label: "פרטי קשר שותפו",
-        icon: Send,
-        color: "text-purple-600",
-      },
-      AWAITING_FIRST_DATE_FEEDBACK: {
-        label: "ממתין למשוב פגישה",
-        icon: MessageCircle,
-        color: "text-orange-600",
-      },
-      DATING: {
-        label: "בתהליך היכרות",
-        icon: Calendar,
-        color: "text-pink-600",
-      },
-      EXPIRED: { label: "פג תוקף", icon: AlarmClock, color: "text-gray-600" },
-      CLOSED: { label: "סגור", icon: XCircle, color: "text-gray-600" },
-    };
-
+  const statusMap: Record<
+    string,
+    { label: string; icon: React.ElementType; color: string }
+  > = {
+    DRAFT: { label: "טיוטה", icon: Edit, color: "text-gray-600" },
+    PENDING_FIRST_PARTY: {
+      label: "ממתין לתשובת צד א׳",
+      icon: Clock,
+      color: "text-yellow-600",
+    },
+    FIRST_PARTY_APPROVED: {
+      label: "צד א׳ אישר",
+      icon: CheckCircle,
+      color: "text-green-600",
+    },
+    FIRST_PARTY_DECLINED: {
+      label: "צד א׳ דחה",
+      icon: XCircle,
+      color: "text-red-600",
+    },
+    PENDING_SECOND_PARTY: {
+      label: "ממתין לתשובת צד ב׳",
+      icon: Clock,
+      color: "text-blue-600",
+    },
+    SECOND_PARTY_APPROVED: {
+      label: "צד ב׳ אישר",
+      icon: CheckCircle,
+      color: "text-green-600",
+    },
+    SECOND_PARTY_DECLINED: {
+      label: "צד ב׳ דחה",
+      icon: XCircle,
+      color: "text-red-600",
+    },
+    AWAITING_MATCHMAKER_APPROVAL: {
+      label: "ממתין לאישור שדכן",
+      icon: AlertCircle,
+      color: "text-purple-600",
+    },
+    CONTACT_DETAILS_SHARED: {
+      label: "פרטי קשר שותפו",
+      icon: Send,
+      color: "text-purple-600",
+    },
+    AWAITING_FIRST_DATE_FEEDBACK: {
+      label: "ממתין למשוב פגישה",
+      icon: MessageCircle,
+      color: "text-orange-600",
+    },
+    DATING: {
+      label: "בתהליך היכרות",
+      icon: Calendar,
+      color: "text-pink-600",
+    },
+    EXPIRED: { label: "פג תוקף", icon: AlarmClock, color: "text-gray-600" },
+    CLOSED: { label: "סגור", icon: XCircle, color: "text-gray-600" },
+  };
   return (
     statusMap[status] || {
-      label: status,
-      icon: AlertCircle,
+      label: status as string,
+      icon: AlertCircle as React.ElementType,
       color: "text-gray-600",
     }
   );
@@ -710,15 +722,18 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                       </h3>
 
                       <div className="flex items-center gap-3 mb-3">
-                        <img
-                          src={
-                            suggestion.firstParty.images.find(
-                              (img) => img.isMain
-                            )?.url || "/placeholders/user.png"
-                          }
-                          alt={`${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName}`}
-                          className="w-14 h-14 rounded-full object-cover border-2 border-blue-200"
-                        />
+                        <div className="relative h-14 w-14">
+                          <Image
+                            src={
+                              suggestion.firstParty.images.find(
+                                (img) => img.isMain
+                              )?.url || "/placeholders/user.png"
+                            }
+                            alt={`${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName}`}
+                            fill
+                            className="rounded-full object-cover border-2 border-blue-200"
+                          />
+                        </div>
                         <div>
                           <div className="font-medium">
                             {suggestion.firstParty.firstName}{" "}
@@ -820,15 +835,18 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                       </h3>
 
                       <div className="flex items-center gap-3 mb-3">
-                        <img
-                          src={
-                            suggestion.secondParty.images.find(
-                              (img) => img.isMain
-                            )?.url || "/placeholders/user.png"
-                          }
-                          alt={`${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName}`}
-                          className="w-14 h-14 rounded-full object-cover border-2 border-purple-200"
-                        />
+                        <div className="relative h-14 w-14">
+                          <Image
+                            src={
+                              suggestion.secondParty.images.find(
+                                (img) => img.isMain
+                              )?.url || "/placeholders/user.png"
+                            }
+                            alt={`${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName}`}
+                            fill
+                            className="rounded-full object-cover border-2 border-purple-200"
+                          />
+                        </div>
                         <div>
                           <div className="font-medium">
                             {suggestion.secondParty.firstName}{" "}
@@ -1026,14 +1044,17 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                   </div>
 
                   <div className="flex items-center gap-3 py-2">
-                    <img
-                      src={
-                        suggestion.firstParty.images.find((img) => img.isMain)
-                          ?.url || "/placeholders/user.png"
-                      }
-                      alt={`${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName}`}
-                      className="w-16 h-16 rounded-full object-cover border-2 border-blue-200"
-                    />
+                    <div className="relative h-16 w-16">
+                      <Image
+                        src={
+                          suggestion.firstParty.images.find((img) => img.isMain)
+                            ?.url || "/placeholders/user.png"
+                        }
+                        alt={`${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName}`}
+                        fill
+                        className="rounded-full object-cover border-2 border-blue-200"
+                      />
+                    </div>
                     <div>
                       <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm">
                         <div className="flex items-center">
@@ -1168,14 +1189,18 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                   </div>
 
                   <div className="flex items-center gap-3 py-2">
-                    <img
-                      src={
-                        suggestion.secondParty.images.find((img) => img.isMain)
-                          ?.url || "/placeholders/user.png"
-                      }
-                      alt={`${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName}`}
-                      className="w-16 h-16 rounded-full object-cover border-2 border-purple-200"
-                    />
+                    <div className="relative h-16 w-16">
+                      <Image
+                        src={
+                          suggestion.secondParty.images.find(
+                            (img) => img.isMain
+                          )?.url || "/placeholders/user.png"
+                        }
+                        alt={`${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName}`}
+                        fill
+                        className="rounded-full object-cover border-2 border-purple-200"
+                      />
+                    </div>
                     <div>
                       <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm">
                         <div className="flex items-center">

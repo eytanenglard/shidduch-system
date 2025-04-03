@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import prisma from "@/lib/prisma";
 import { UserRole } from "@prisma/client";
 import { SuggestionService } from "@/app/components/matchmaker/new/services/suggestions/SuggestionService";
 
@@ -58,14 +57,22 @@ export async function PATCH(
         data: updatedSuggestion
       });
       
-    } catch (serviceError: any) {
-      console.error("Error from suggestion service:", serviceError);
-      return NextResponse.json(
-        { success: false, error: serviceError.message || "Failed to update suggestion" },
-        { status: serviceError.message.includes("Unauthorized") ? 403 : 400 }
-      );
-    }
-    
+    } catch (serviceError: unknown) {
+        console.error("Error from suggestion service:", serviceError);
+        
+        if (serviceError instanceof Error) {
+          return NextResponse.json(
+            { success: false, error: serviceError.message || "Failed to update suggestion" },
+            { status: serviceError.message.includes("Unauthorized") ? 403 : 400 }
+          );
+        }
+        
+        // במקרה של שגיאה שאינה מסוג Error
+        return NextResponse.json(
+          { success: false, error: "Failed to update suggestion" },
+          { status: 400 }
+        );
+      }
   } catch (error) {
     console.error("Error updating suggestion:", error);
     return NextResponse.json(
