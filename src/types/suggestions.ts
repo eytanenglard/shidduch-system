@@ -21,7 +21,9 @@ export interface SuggestionParty extends User {
 export interface ActionAdditionalData {
   partyType?: "first" | "second" | "both";
   type?: string;
-};
+  newStatus?: MatchSuggestionStatus;
+  notes?: string;
+}
 
 // Rest of the interfaces remain the same
 export interface CreateSuggestionData {
