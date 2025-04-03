@@ -1,5 +1,5 @@
 // /utils/statisticsCalculator.ts
-import type { Candidate } from '../types/candidates';
+import type { Candidate } from '../../new/types/candidates';
 import { Gender, AvailabilityStatus } from '@prisma/client';
 
 

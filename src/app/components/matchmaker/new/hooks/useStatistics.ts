@@ -10,7 +10,7 @@ import {
   calculateGenderStats,
   calculateAvailabilityStats,
   calculateCompletionStats
-} from '../utils/statisticsCalculator';
+} from '../../suggestions/utils/statisticsCalculator';
 
 export interface Statistics {
   gender: {

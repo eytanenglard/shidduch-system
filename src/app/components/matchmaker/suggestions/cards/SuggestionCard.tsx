@@ -455,6 +455,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
             הודעה
           </Button>
 
+          {/* סקציית פעולות בקובץ SuggestionCard.tsx */}
           {isWaitingForResponse && (
             <Button
               variant="outline"
@@ -470,7 +471,13 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
               }
             >
               <Send className="w-4 h-4 ml-1" />
-              שלח תזכורת
+              {suggestion.status === "PENDING_FIRST_PARTY"
+                ? "שלח תזכורת לצד ראשון"
+                : suggestion.status === "PENDING_SECOND_PARTY"
+                ? "שלח תזכורת לצד שני"
+                : suggestion.status === "AWAITING_FIRST_DATE_FEEDBACK"
+                ? "שלח בקשת עדכון מפגש"
+                : "שלח תזכורת"}
             </Button>
           )}
 

@@ -441,19 +441,37 @@ export default function MatchmakerDashboard() {
     partyType: "first" | "second" | "both"
   ) => {
     try {
+      const suggestion = suggestions.find((s) => s.id === suggestionId);
+      let reminderMessage = "";
+
+      // התאם את ההודעה למצב הנוכחי
+      if (suggestion) {
+        if (suggestion.status === "PENDING_FIRST_PARTY") {
+          reminderMessage = "תזכורת להגיב להצעת השידוך";
+        } else if (suggestion.status === "PENDING_SECOND_PARTY") {
+          reminderMessage = "תזכורת להגיב להצעת השידוך";
+        } else if (suggestion.status === "AWAITING_FIRST_DATE_FEEDBACK") {
+          reminderMessage = "בקשת עדכון לגבי המפגש";
+        }
+      }
+
       const response = await fetch(
         `/api/matchmaker/suggestions/${suggestionId}/remind`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ partyType }),
+          body: JSON.stringify({
+            partyType,
+            messageType:
+              suggestion?.status === "AWAITING_FIRST_DATE_FEEDBACK"
+                ? "feedback"
+                : "reminder",
+            customMessage: reminderMessage,
+          }),
         }
       );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to send reminder");
-      }
+      if (!response.ok) throw new Error("Failed to send reminder");
 
       toast.success(
         `תזכורת נשלחה ${
@@ -466,11 +484,7 @@ export default function MatchmakerDashboard() {
       );
     } catch (error) {
       console.error("Error sending reminder:", error);
-      toast.error(
-        `שגיאה בשליחת התזכורת: ${
-          error instanceof Error ? error.message : "שגיאה לא מזוהה"
-        }`
-      );
+      toast.error("שגיאה בשליחת התזכורת");
     }
   };
 

@@ -1087,7 +1087,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
 
                     {suggestion.status === "PENDING_FIRST_PARTY" && (
                       <Button
-                        className="flex-1 bg-blue-600 hover:bg-blue-700"
+                        className="w-full justify-start bg-yellow-500 hover:bg-yellow-600"
                         onClick={() =>
                           onAction("reminder", {
                             suggestionId: suggestion.id,
@@ -1096,8 +1096,39 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                           })
                         }
                       >
-                        <Send className="w-4 h-4 ml-1" />
-                        שלח תזכורת
+                        <AlertCircle className="w-4 h-4 ml-2" />
+                        שלח תזכורת לצד ראשון
+                      </Button>
+                    )}
+
+                    {suggestion.status === "PENDING_SECOND_PARTY" && (
+                      <Button
+                        className="w-full justify-start bg-yellow-500 hover:bg-yellow-600"
+                        onClick={() =>
+                          onAction("reminder", {
+                            suggestionId: suggestion.id,
+                            partyId: suggestion.secondParty.id,
+                            partyType: "second",
+                          })
+                        }
+                      >
+                        <AlertCircle className="w-4 h-4 ml-2" />
+                        שלח תזכורת לצד שני
+                      </Button>
+                    )}
+
+                    {suggestion.status === "AWAITING_FIRST_DATE_FEEDBACK" && (
+                      <Button
+                        className="w-full justify-start bg-yellow-500 hover:bg-yellow-600"
+                        onClick={() =>
+                          onAction("reminder", {
+                            suggestionId: suggestion.id,
+                            partyType: "both",
+                          })
+                        }
+                      >
+                        <AlertCircle className="w-4 h-4 ml-2" />
+                        שלח בקשת עדכון מפגש
                       </Button>
                     )}
                   </div>
