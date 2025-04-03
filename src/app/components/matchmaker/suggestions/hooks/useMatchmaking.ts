@@ -2,7 +2,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { AvailabilityStatus } from '@prisma/client';
 import { calculateMatchScore, MatchScore } from '../utils/matchingAlgorithm';
-import { MATCH_THRESHOLDS } from '../constants/matchingCriteria';
+import { MATCH_THRESHOLDS } from '../../new/constants/matchingCriteria';
 import type { User } from '@/types/next-auth';
 // Define types and interfaces
 interface UseMatchmakingProps {
