@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { MatchSuggestionStatus, UserRole } from "@prisma/client";
-import { EmailService } from "@/app/components/matchmaker/new/services/email/EmailService";
+import { EmailService } from "@/app/components/matchmaker/suggestions/services/email/EmailService";
 
 export async function POST(
   req: NextRequest,

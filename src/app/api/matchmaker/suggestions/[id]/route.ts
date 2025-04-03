@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { UserRole } from "@prisma/client";
-import { SuggestionService } from "@/app/components/matchmaker/new/services/suggestions/SuggestionService";
+import { SuggestionService } from "@/app/components/matchmaker/suggestions/services/suggestions/SuggestionService";
 
 export async function PATCH(
   req: NextRequest,
