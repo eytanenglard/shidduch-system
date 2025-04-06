@@ -6,7 +6,6 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { UserRole, MatchSuggestionStatus } from "@prisma/client";
 import { initNotificationService } from "@/app/components/matchmaker/suggestions/services/notification/initNotifications";
-import { NotificationContent } from "@/app/components/matchmaker/suggestions/services/notification/NotificationService";
 
 // Initialize the notification service
 const notificationService = initNotificationService();
@@ -69,14 +68,8 @@ export async function POST(
       );
     }
     
-    // Create reminder content based on suggestion status
-    const subject = "תזכורת: הצעת שידוך ממתינה לתשובתך";
-    
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-    const reviewUrl = `${baseUrl}/suggestions/${suggestionId}/review`;
-    
     // Define parties that will receive the reminder
-    let notifyParties: ('first' | 'second')[] = [];
+    const notifyParties: ('first' | 'second')[] = [];
     let sentCount = 0;
     
     if (partyType === "first" || partyType === "both") {
@@ -120,15 +113,17 @@ export async function POST(
         notes: `תזכורת נשלחה ל${partyType === "first" ? "צד ראשון" : partyType === "second" ? "צד שני" : "שני הצדדים"} על ידי ${session.user.firstName} ${session.user.lastName}`,
       },
     });
-// רק לאחר העדכון בדאטהבייס - שלח את ההודעה
-await notificationService.handleSuggestionStatusChange(
-  suggestion,
-  {
-    channels: ['email', 'whatsapp'],
-    notifyParties,
-    customMessage: reminderContent
-  }
-);
+    
+    // רק לאחר העדכון בדאטהבייס - שלח את ההודעה
+    await notificationService.handleSuggestionStatusChange(
+      suggestion,
+      {
+        channels: ['email', 'whatsapp'],
+        notifyParties,
+        customMessage: reminderContent
+      }
+    );
+    
     return NextResponse.json({
       success: true,
       message: "Reminder sent successfully",

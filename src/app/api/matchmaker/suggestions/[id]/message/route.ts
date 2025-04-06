@@ -6,15 +6,10 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { MatchSuggestionStatus, UserRole } from "@prisma/client";
 import { initNotificationService } from "@/app/components/matchmaker/suggestions/services/notification/initNotifications";
-import { RecipientInfo } from "@/app/components/matchmaker/suggestions/services/notification/NotificationService";
 
 // Initialize the notification service
 const notificationService = initNotificationService();
 
-type RecipientWithChannels = {
-  recipient: RecipientInfo;
-  preferredChannels: ('email' | 'whatsapp')[];
-};
 
 export async function POST(
   req: NextRequest,
@@ -75,7 +70,7 @@ export async function POST(
     }
 
     // Define which parties will receive the message
-    let notifyParties: ('first' | 'second')[] = [];
+    const notifyParties: ('first' | 'second')[] = [];
     
     if (partyType === "first" || partyType === "both") {
       notifyParties.push('first');
@@ -85,20 +80,7 @@ export async function POST(
       notifyParties.push('second');
     }
 
-    // Create message subject based on type
-    let subject = "";
-    switch (messageType) {
-      case "reminder":
-        subject = "תזכורת: הצעת שידוך ממתינה לתשובתך";
-        break;
-      case "update":
-        subject = "עדכון בהצעת שידוך";
-        break;
-      default:
-        subject = "הודעה חדשה בנוגע להצעת שידוך";
-    }
-
-    console.log(`Message request received for suggestion ${suggestionId}, will be handled through transactions`);
+     console.log(`Message request received for suggestion ${suggestionId}, will be handled through transactions`);
 
     // Log the message in the system
     await prisma.$transaction(async (tx) => {

@@ -7,6 +7,7 @@ import { MatchSuggestionStatus, Prisma } from "@prisma/client";
 import { suggestionService } from "@/app/components/matchmaker/suggestions/services/suggestions/SuggestionService";
 import type { CreateSuggestionData } from "@/app/types/suggestions";
 
+// פונקציית עזר שמגדירה את הקטגוריה של ההצעה לפי הסטטוס שלה
 const getSuggestionCategory = (status: MatchSuggestionStatus) => {
   switch (status) {
     case 'DRAFT':
@@ -31,6 +32,7 @@ const getSuggestionCategory = (status: MatchSuggestionStatus) => {
   }
 };
 
+// יצירת הצעה חדשה
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions) as Session | null;
@@ -59,6 +61,7 @@ export async function POST(req: Request) {
   }
 }
 
+// קבלת רשימת הצעות
 export async function GET(req: Request) {
   try {
     const session = await getServerSession(authOptions) as Session | null;
@@ -159,6 +162,7 @@ export async function GET(req: Request) {
       }
     });
 
+    // עיבוד המידע המוחזר - המרת תאריכים וכו'
     const formattedSuggestions = suggestions.map(suggestion => ({
       ...suggestion,
       category: getSuggestionCategory(suggestion.status),
