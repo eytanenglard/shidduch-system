@@ -129,7 +129,7 @@ const Navbar = () => {
                         href="/matches"
                         isActive={isActive("/matches")}
                         icon={<Users className="ml-2 h-4 w-4" />}
-                        text="שידוכים זמינים"
+                        text="ההצעות שלי"
                       />
                     </>
                   )}
@@ -308,7 +308,7 @@ const Navbar = () => {
                       onClick={() => setMobileMenuOpen(false)}
                       isActive={isActive("/matches")}
                       icon={<Users className="ml-2 h-5 w-5" />}
-                      text="שידוכים זמינים"
+                      text=""
                     />
                   )}
 

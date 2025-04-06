@@ -1,0 +1,1081 @@
+מבנה התיקייה:
+suggestions
+  MatchSuggestionsContainer.tsx
+  cards
+    MinimalSuggestionCard.tsx
+    SuggestionQuickView.tsx
+  dialogs
+    AskMatchmakerDialog.tsx
+  list
+    SuggestionsList.tsx
+
+תוכן הקבצים:
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\suggestions\MatchSuggestionsContainer.tsx:
+==================================================
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card } from "@/components/ui/card";
+import { Clock, History, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import type { MatchSuggestion } from "@prisma/client";
+import type { UserProfile, UserImage } from "@/types/next-auth";
+
+import SuggestionsList from "./list/SuggestionsList";
+
+interface ExtendedUserProfile extends UserProfile {
+  user: {
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+}
+
+interface PartyInfo {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  profile: ExtendedUserProfile;
+  images: UserImage[];
+}
+
+interface ExtendedMatchSuggestion extends MatchSuggestion {
+  matchmaker: {
+    firstName: string;
+    lastName: string;
+  };
+  firstParty: PartyInfo;
+  secondParty: PartyInfo;
+}
+
+interface MatchSuggestionsContainerProps {
+  userId: string;
+  className?: string;
+}
+
+const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
+  userId,
+  className,
+}) => {
+  // States
+  const [activeSuggestions, setActiveSuggestions] = useState<
+    ExtendedMatchSuggestion[]
+  >([]);
+  const [, setHistorySuggestions] = useState<ExtendedMatchSuggestion[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("active");
+  const [viewMode] = useState<"grid" | "list">("grid");
+
+  // Fetch suggestions
+  useEffect(() => {
+    const loadSuggestions = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        // Load both active and history suggestions
+        const [activeResponse, historyResponse] = await Promise.all([
+          fetch(`/api/suggestions/active`),
+          fetch(`/api/suggestions/history`),
+        ]);
+
+        if (!activeResponse.ok || !historyResponse.ok) {
+          throw new Error("Failed to fetch suggestions");
+        }
+
+        const activeData = await activeResponse.json();
+        const historyData = await historyResponse.json();
+
+        setActiveSuggestions(activeData.suggestions);
+        setHistorySuggestions(historyData.suggestions);
+      } catch (error) {
+        console.error("Error loading suggestions:", error);
+        setError("אירעה שגיאה בטעינת ההצעות");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadSuggestions();
+  }, [userId]);
+
+  // Handle suggestion status change
+  const handleStatusChange = async (
+    suggestionId: string,
+    newStatus: string
+  ) => {
+    try {
+      const response = await fetch(`/api/suggestions/${suggestionId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update suggestion status");
+      }
+
+      // Update local state
+      setActiveSuggestions((prev) =>
+        prev.filter((suggestion) => suggestion.id !== suggestionId)
+      );
+
+      const updatedSuggestion = await response.json();
+      setHistorySuggestions((prev) => [updatedSuggestion, ...prev]);
+    } catch (error) {
+      console.error("Error updating suggestion status:", error);
+      throw error;
+    }
+  };
+
+  return (
+    <Card className={`p-6 ${className}`}>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <div className="flex items-center justify-between mb-6">
+          <TabsList>
+            <TabsTrigger value="active" className="flex items-center gap-2">
+              <Clock className="w-4 h-4" />
+              הצעות פעילות
+              {activeSuggestions.length > 0 && (
+                <span className="px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-xs">
+                  {activeSuggestions.length}
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="history" className="flex items-center gap-2">
+              <History className="w-4 h-4" />
+              היסטוריה
+            </TabsTrigger>
+          </TabsList>
+        </div>
+
+        {error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        <TabsContent value="active">
+          <SuggestionsList
+            suggestions={activeSuggestions}
+            userId={userId}
+            viewMode={viewMode}
+            isLoading={isLoading}
+            onStatusChange={handleStatusChange}
+          />
+        </TabsContent>
+
+        <TabsContent value="history">
+          <SuggestionsList
+            suggestions={activeSuggestions}
+            userId={userId}
+            viewMode={viewMode}
+            isLoading={isLoading}
+            onStatusChange={handleStatusChange}
+          />
+        </TabsContent>
+      </Tabs>
+    </Card>
+  );
+};
+
+export default MatchSuggestionsContainer;
+
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\suggestions\cards\MinimalSuggestionCard.tsx:
+==================================================
+import React from "react";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  User,
+  MapPin,
+  Briefcase,
+  Clock,
+  UserCircle,
+  Eye,
+  CheckCircle,
+  XCircle,
+  MessageCircle,
+} from "lucide-react";
+import Image from "next/image";
+import { formatDistanceToNow } from "date-fns";
+import { he } from "date-fns/locale";
+import type { MatchSuggestion } from "@prisma/client";
+import type { UserProfile, UserImage } from "@/types/next-auth";
+
+interface ExtendedUserProfile extends UserProfile {
+  user: {
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+}
+
+interface PartyInfo {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  profile: ExtendedUserProfile;
+  images: UserImage[];
+}
+
+interface ExtendedMatchSuggestion extends MatchSuggestion {
+  matchmaker: {
+    firstName: string;
+    lastName: string;
+  };
+  firstParty: PartyInfo;
+  secondParty: PartyInfo;
+}
+
+interface MinimalSuggestionCardProps {
+  suggestion: ExtendedMatchSuggestion;
+  userId: string;
+  onClick: (suggestion: ExtendedMatchSuggestion) => void;
+  onQuickAction?: (suggestion: ExtendedMatchSuggestion) => void;
+  onApprove?: (suggestion: ExtendedMatchSuggestion) => void;
+  className?: string;
+  isHistory?: boolean;
+}
+
+const calculateAge = (birthDate: Date): number => {
+  const today = new Date();
+  const birth = new Date(birthDate);
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age;
+};
+
+const getStatusInfo = (status: string) => {
+  switch (status) {
+    case "PENDING_FIRST_PARTY":
+      return {
+        label: "ממתין לתשובתך",
+        className: "bg-yellow-100 text-yellow-800 border-yellow-200",
+      };
+    case "PENDING_SECOND_PARTY":
+      return {
+        label: "ממתין לתשובת הצד השני",
+        className: "bg-blue-100 text-blue-800 border-blue-200",
+      };
+    case "FIRST_PARTY_APPROVED":
+    case "SECOND_PARTY_APPROVED":
+      return {
+        label: "אישרת את ההצעה",
+        className: "bg-green-100 text-green-800 border-green-200",
+      };
+    case "CONTACT_DETAILS_SHARED":
+      return {
+        label: "פרטי קשר שותפו",
+        className: "bg-purple-100 text-purple-800 border-purple-200",
+      };
+    default:
+      return {
+        label: "בטיפול",
+        className: "bg-gray-100 text-gray-800 border-gray-200",
+      };
+  }
+};
+
+const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
+  suggestion,
+  userId,
+  onClick,
+  onQuickAction,
+  onApprove,
+  className,
+  isHistory = false,
+}) => {
+  const targetParty =
+    suggestion.firstPartyId === userId
+      ? suggestion.secondParty
+      : suggestion.firstParty;
+
+  if (!targetParty) {
+    return null;
+  }
+
+  const mainImage = targetParty.images?.find((img) => img.isMain);
+  const age = targetParty.profile?.birthDate
+    ? calculateAge(new Date(targetParty.profile.birthDate))
+    : null;
+  const statusInfo = getStatusInfo(suggestion.status);
+
+  return (
+    <Card
+      className={`relative overflow-hidden cursor-pointer transition-all hover:shadow-lg ${
+        className ?? ""
+      }`}
+      onClick={() => onClick(suggestion)}
+    >
+      <div className="relative h-48 bg-gradient-to-b from-blue-50 to-blue-100">
+        {mainImage?.url ? (
+          <Image
+            src={mainImage.url}
+            alt={`${targetParty.firstName} ${targetParty.lastName}`}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <User className="w-16 h-16 text-gray-400" />
+          </div>
+        )}
+
+        <div className="absolute top-3 right-3">
+          <Badge className={statusInfo.className}>{statusInfo.label}</Badge>
+        </div>
+
+        <div className="absolute bottom-3 right-3">
+          <Badge variant="outline" className="bg-white/90">
+            <UserCircle className="w-3 h-3 ml-1" />
+            {suggestion.matchmaker.firstName} {suggestion.matchmaker.lastName}
+          </Badge>
+        </div>
+
+        {!isHistory && (
+          <div className="absolute bottom-3 left-3">
+            <Button
+              size="sm"
+              variant="secondary"
+              className="bg-white/90"
+              onClick={(e) => {
+                e.stopPropagation();
+                onQuickAction?.(suggestion);
+              }}
+            >
+              פעולות מהירות
+            </Button>
+          </div>
+        )}
+
+        {suggestion.decisionDeadline && (
+          <div className="absolute bottom-12 left-3">
+            <Badge variant="outline" className="bg-white/90">
+              <Clock className="w-3 h-3 ml-1" />
+              {formatDistanceToNow(new Date(suggestion.decisionDeadline), {
+                addSuffix: true,
+                locale: he,
+              })}
+            </Badge>
+          </div>
+        )}
+      </div>
+
+      <div className="p-4">
+        <h3 className="text-lg font-semibold mb-2 text-right">
+          {targetParty.firstName} {targetParty.lastName}
+        </h3>
+
+        <div className="space-y-2 text-gray-600 text-sm">
+          {age && (
+            <div className="flex items-center justify-end gap-2">
+              <span>{age}</span>
+            </div>
+          )}
+
+          {targetParty.profile.city && (
+            <div className="flex items-center justify-end gap-2">
+              <span>{targetParty.profile.city}</span>
+              <MapPin className="w-4 h-4" />
+            </div>
+          )}
+
+          {targetParty.profile.occupation && (
+            <div className="flex items-center justify-end gap-2">
+              <span>{targetParty.profile.occupation}</span>
+              <Briefcase className="w-4 h-4" />
+            </div>
+          )}
+
+          <div className="flex items-center justify-end gap-2 text-xs text-gray-400">
+            <span>
+              {`הוצע ${formatDistanceToNow(new Date(suggestion.createdAt), {
+                addSuffix: true,
+                locale: he,
+              })}`}
+            </span>
+            <Clock className="w-3 h-3" />
+          </div>
+
+          {!isHistory && (
+            <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-gray-100">
+              <Button
+                size="sm"
+                variant="default"
+                className="w-full"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClick(suggestion);
+                }}
+              >
+                <Eye className="w-4 h-4 ml-2" />
+                צפייה בפרופיל
+              </Button>
+
+              <Button
+                size="sm"
+                variant="default"
+                className="w-full bg-green-600 hover:bg-green-700"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onApprove?.(suggestion);
+                }}
+              >
+                <CheckCircle className="w-4 h-4 ml-2" />
+                אישור הצעה
+              </Button>
+
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full text-red-600 hover:text-red-700 hover:bg-red-50"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onQuickAction?.(suggestion);
+                }}
+              >
+                <XCircle className="w-4 h-4 ml-2" />
+                דחיית הצעה
+              </Button>
+
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onQuickAction?.(suggestion);
+                }}
+              >
+                <MessageCircle className="w-4 h-4 ml-2" />
+                שאלה לשדכן
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+    </Card>
+  );
+};
+
+export default MinimalSuggestionCard;
+
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\suggestions\cards\SuggestionQuickView.tsx:
+==================================================
+import React from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Heart,
+  User,
+  Clock,
+  Eye,
+  Scroll,
+  GraduationCap,
+  Briefcase,
+  MapPin,
+  MessageCircle,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
+import type { MatchSuggestion } from "@prisma/client";
+import type { UserProfile, UserImage } from "@/types/next-auth";
+
+interface ExtendedUserProfile extends UserProfile {
+  user: {
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+}
+
+interface PartyInfo {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  profile: ExtendedUserProfile;
+  images: UserImage[];
+}
+
+interface ExtendedMatchSuggestion extends MatchSuggestion {
+  matchmaker: {
+    firstName: string;
+    lastName: string;
+  };
+  firstParty: PartyInfo;
+  secondParty: PartyInfo;
+}
+
+interface SuggestionQuickViewProps {
+  suggestion: ExtendedMatchSuggestion;
+  userId?: string;
+  onAction: (action: "approve" | "reject" | "ask" | "view") => void;
+}
+
+const SuggestionQuickView: React.FC<SuggestionQuickViewProps> = ({
+  suggestion,
+  userId,
+  onAction,
+}) => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
+  const profile = userId
+    ? suggestion.firstPartyId === userId
+      ? suggestion.secondParty.profile
+      : suggestion.firstParty.profile
+    : suggestion.secondParty.profile;
+
+  return (
+    <div
+      className="bg-white/95 backdrop-blur-sm p-4 rounded-lg shadow-lg flex flex-col"
+      onClick={handleClick}
+    >
+      <div className="flex-1 space-y-4 text-right overflow-y-auto max-h-96">
+        <div className="grid grid-cols-2 gap-3">
+          {profile.height && (
+            <div className="flex items-center justify-end gap-2 text-sm text-gray-600">
+              <span>{profile.height} ס״מ</span>
+              <User className="w-4 h-4" />
+            </div>
+          )}
+
+          {profile.maritalStatus && (
+            <div className="flex items-center justify-end gap-2 text-sm text-gray-600">
+              <span>{profile.maritalStatus}</span>
+              <Heart className="w-4 h-4" />
+            </div>
+          )}
+
+          {profile.religiousLevel && (
+            <div className="flex items-center justify-end gap-2 text-sm text-gray-600">
+              <span>{profile.religiousLevel}</span>
+              <Scroll className="w-4 h-4" />
+            </div>
+          )}
+
+          {profile.education && (
+            <div className="flex items-center justify-end gap-2 text-sm text-gray-600">
+              <span>{profile.education}</span>
+              <GraduationCap className="w-4 h-4" />
+            </div>
+          )}
+        </div>
+
+        {profile.about && (
+          <div className="border-t border-gray-100 pt-3">
+            <h4 className="text-sm font-medium mb-1">אודות:</h4>
+            <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">
+              {profile.about}
+            </p>
+          </div>
+        )}
+
+        {suggestion.matchingReason && (
+          <div className="border-t border-gray-100 pt-3">
+            <h4 className="text-sm font-medium mb-1">סיבת ההצעה:</h4>
+            <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">
+              {suggestion.matchingReason}
+            </p>
+          </div>
+        )}
+
+        <div className="border-t border-gray-100 pt-3 space-y-2">
+          {profile.city && (
+            <div className="flex items-center justify-end gap-2 text-sm text-gray-600">
+              <span>{profile.city}</span>
+              <MapPin className="w-4 h-4" />
+            </div>
+          )}
+
+          {profile.occupation && (
+            <div className="flex items-center justify-end gap-2 text-sm text-gray-600">
+              <span>{profile.occupation}</span>
+              <Briefcase className="w-4 h-4" />
+            </div>
+          )}
+        </div>
+
+        {suggestion.decisionDeadline && (
+          <div className="border-t border-gray-100 pt-3">
+            <div className="flex items-center justify-end gap-2 text-sm text-yellow-600">
+              <span>
+                נדרשת תשובה עד{" "}
+                {new Date(suggestion.decisionDeadline).toLocaleDateString(
+                  "he-IL"
+                )}
+              </span>
+              <Clock className="w-4 h-4" />
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-gray-100">
+        <Button
+          variant="default"
+          className="w-full"
+          onClick={() => onAction("view")}
+        >
+          <Eye className="w-4 h-4 ml-2" />
+          צפייה בפרופיל
+        </Button>
+
+        <Button
+          variant="default"
+          className="w-full bg-green-600 hover:bg-green-700"
+          onClick={() => onAction("approve")}
+        >
+          <CheckCircle className="w-4 h-4 ml-2" />
+          אישור הצעה
+        </Button>
+
+        <Button
+          variant="outline"
+          className="w-full text-red-600 hover:text-red-700 hover:bg-red-50"
+          onClick={() => onAction("reject")}
+        >
+          <XCircle className="w-4 h-4 ml-2" />
+          דחיית הצעה
+        </Button>
+
+        <Button
+          variant="outline"
+          className="w-full"
+          onClick={() => onAction("ask")}
+        >
+          <MessageCircle className="w-4 h-4 ml-2" />
+          שאלה לשדכן
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+export default SuggestionQuickView;
+
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\suggestions\dialogs\AskMatchmakerDialog.tsx:
+==================================================
+// src/app/components/suggestions/dialogs/AskMatchmakerDialog.tsx
+"use client";
+
+import React, { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { MessageCircle } from "lucide-react";
+
+interface AskMatchmakerDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (question: string) => Promise<void>;
+  matchmakerName?: string;
+}
+
+export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  matchmakerName,
+}) => {
+  const [question, setQuestion] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!question.trim()) return;
+
+    try {
+      setIsSubmitting(true);
+      await onSubmit(question);
+      setQuestion("");
+      onClose();
+    } catch (error) {
+      console.error("Error submitting question:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>
+            שאלה ל{matchmakerName ? `שדכן ${matchmakerName}` : "שדכן"}
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4 py-4">
+          <Textarea
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            placeholder="הזן את שאלתך כאן..."
+            className="min-h-[120px]"
+          />
+        </div>
+
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            disabled={isSubmitting}
+          >
+            ביטול
+          </Button>
+          <Button
+            type="submit"
+            onClick={handleSubmit}
+            disabled={!question.trim() || isSubmitting}
+          >
+            <MessageCircle className="w-4 h-4 ml-2" />
+            {isSubmitting ? "שולח..." : "שלח שאלה"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\suggestions\list\SuggestionsList.tsx:
+==================================================
+"use client";
+import React, { useState, useEffect } from "react";
+import { User } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { ProfileCard } from "@/app/components/shared/shared/profile";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
+import type { MatchSuggestion } from "@prisma/client";
+import type {
+  UserProfile,
+  UserImage,
+  QuestionnaireResponse,
+} from "@/types/next-auth";
+
+import MinimalSuggestionCard from "../cards/MinimalSuggestionCard";
+import SuggestionQuickView from "../cards/SuggestionQuickView";
+import { AskMatchmakerDialog } from "../dialogs/AskMatchmakerDialog";
+
+interface ExtendedUserProfile extends UserProfile {
+  user: {
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+}
+
+interface PartyInfo {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  profile: ExtendedUserProfile;
+  images: UserImage[];
+}
+
+interface ExtendedMatchSuggestion extends MatchSuggestion {
+  matchmaker: {
+    firstName: string;
+    lastName: string;
+  };
+  firstParty: PartyInfo;
+  secondParty: PartyInfo;
+}
+
+interface SuggestionsListProps {
+  suggestions: ExtendedMatchSuggestion[];
+  userId: string;
+  isHistory?: boolean;
+  viewMode: "grid" | "list";
+  isLoading?: boolean;
+  className?: string;
+  onStatusChange?: (suggestionId: string, newStatus: string) => Promise<void>;
+}
+
+const SuggestionsList: React.FC<SuggestionsListProps> = ({
+  suggestions,
+  isHistory = false,
+  viewMode,
+  isLoading = false,
+  userId,
+  className,
+  onStatusChange,
+}) => {
+  const [selectedSuggestion, setSelectedSuggestion] =
+    useState<ExtendedMatchSuggestion | null>(null);
+  const [quickActionSuggestion, setQuickActionSuggestion] =
+    useState<ExtendedMatchSuggestion | null>(null);
+  const [showAskDialog, setShowAskDialog] = useState(false);
+  const [questionnaireResponse, setQuestionnaireResponse] =
+    useState<QuestionnaireResponse | null>(null);
+
+  useEffect(() => {
+    const loadQuestionnaire = async () => {
+      if (!selectedSuggestion) {
+        setQuestionnaireResponse(null);
+        return;
+      }
+
+      const targetParty =
+        selectedSuggestion.firstPartyId === userId
+          ? selectedSuggestion.secondParty
+          : selectedSuggestion.firstParty;
+
+      try {
+        const response = await fetch(
+          `/api/profile/questionnaire?userId=${targetParty.id}`
+        );
+        const data = await response.json();
+
+        if (data.success && data.questionnaireResponse) {
+          const formattedQuestionnaire = {
+            ...data.questionnaireResponse,
+            formattedAnswers: {
+              values: data.questionnaireResponse.formattedAnswers.values || [],
+              personality:
+                data.questionnaireResponse.formattedAnswers.personality || [],
+              relationship:
+                data.questionnaireResponse.formattedAnswers.relationship || [],
+              partner:
+                data.questionnaireResponse.formattedAnswers.partner || [],
+              religion:
+                data.questionnaireResponse.formattedAnswers.religion || [],
+            },
+          };
+          setQuestionnaireResponse(formattedQuestionnaire);
+        }
+      } catch (error) {
+        console.error("Failed to load questionnaire:", error);
+        toast.error("שגיאה בטעינת השאלון");
+      }
+    };
+
+    loadQuestionnaire();
+  }, [selectedSuggestion, userId]);
+
+  const handleAction = async (
+    action: "approve" | "reject" | "ask" | "view",
+    suggestion: ExtendedMatchSuggestion
+  ) => {
+    try {
+      switch (action) {
+        case "view":
+          setSelectedSuggestion(suggestion);
+          break;
+
+        case "ask":
+          setSelectedSuggestion(suggestion);
+          setShowAskDialog(true);
+          break;
+
+        case "approve":
+          if (onStatusChange) {
+            const isFirstParty = suggestion.firstPartyId === userId;
+            const newStatus = isFirstParty
+              ? "FIRST_PARTY_APPROVED"
+              : "SECOND_PARTY_APPROVED";
+            await onStatusChange(suggestion.id, newStatus);
+            toast.success("ההצעה אושרה בהצלחה");
+          }
+          break;
+
+        case "reject":
+          if (onStatusChange) {
+            const isFirstParty = suggestion.firstPartyId === userId;
+            const newStatus = isFirstParty
+              ? "FIRST_PARTY_DECLINED"
+              : "SECOND_PARTY_DECLINED";
+            await onStatusChange(suggestion.id, newStatus);
+            toast.success("ההצעה נדחתה");
+          }
+          break;
+      }
+    } catch (error) {
+      console.error("Error handling suggestion action:", error);
+      toast.error("אירעה שגיאה בעת ביצוע הפעולה");
+    }
+  };
+
+  const handleSendQuestion = async (questionText: string) => {
+    if (!selectedSuggestion) return;
+
+    try {
+      await fetch(`/api/suggestions/${selectedSuggestion.id}/inquiries`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: questionText }),
+      });
+
+      toast.success("השאלה נשלחה בהצלחה לשדכן");
+      setShowAskDialog(false);
+    } catch (error) {
+      console.error("Error sending question:", error);
+      toast.error("אירעה שגיאה בשליחת השאלה");
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div
+        className={`${
+          viewMode === "grid"
+            ? "grid grid-cols-1 md:grid-cols-2 gap-4"
+            : "space-y-4"
+        } ${className}`}
+      >
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Skeleton key={i} className="h-48 w-full" />
+        ))}
+      </div>
+    );
+  }
+
+  if (suggestions.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 text-gray-400">
+        <User className="w-12 h-12 mb-4" />
+        <p>{isHistory ? "אין הצעות בהיסטוריה" : "אין הצעות פעילות"}</p>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div
+        className={`${
+          viewMode === "grid"
+            ? "grid grid-cols-1 md:grid-cols-2 gap-4"
+            : "space-y-4"
+        } ${className}`}
+      >
+        {suggestions.map((suggestion) => (
+          <div key={suggestion.id} className="relative">
+            <MinimalSuggestionCard
+              suggestion={suggestion}
+              userId={userId}
+              onClick={() => handleAction("view", suggestion)}
+              onQuickAction={setQuickActionSuggestion}
+              onApprove={() => handleAction("approve", suggestion)}
+              isHistory={isHistory}
+              className={viewMode === "list" ? "flex gap-4" : ""}
+            />
+          </div>
+        ))}
+      </div>
+
+      <Dialog
+        open={!!selectedSuggestion}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedSuggestion(null);
+            setQuestionnaireResponse(null);
+          }
+        }}
+      >
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>פרטי המועמד/ת</DialogTitle>
+          </DialogHeader>
+
+          {selectedSuggestion && (
+            <div className="space-y-6">
+              <ProfileCard
+                profile={{
+                  ...(selectedSuggestion.firstPartyId === userId
+                    ? selectedSuggestion.secondParty.profile
+                    : selectedSuggestion.firstParty.profile),
+                  user: {
+                    firstName:
+                      selectedSuggestion.firstPartyId === userId
+                        ? selectedSuggestion.secondParty.firstName
+                        : selectedSuggestion.firstParty.firstName,
+                    lastName:
+                      selectedSuggestion.firstPartyId === userId
+                        ? selectedSuggestion.secondParty.lastName
+                        : selectedSuggestion.firstParty.lastName,
+                    email:
+                      selectedSuggestion.firstPartyId === userId
+                        ? selectedSuggestion.secondParty.email
+                        : selectedSuggestion.firstParty.email,
+                  },
+                }}
+                images={
+                  selectedSuggestion.firstPartyId === userId
+                    ? selectedSuggestion.secondParty.images
+                    : selectedSuggestion.firstParty.images
+                }
+                questionnaire={questionnaireResponse}
+                viewMode="candidate"
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={!!quickActionSuggestion}
+        onOpenChange={(open) => !open && setQuickActionSuggestion(null)}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>פעולות מהירות</DialogTitle>
+          </DialogHeader>
+          {quickActionSuggestion && (
+            <SuggestionQuickView
+              suggestion={quickActionSuggestion}
+              onAction={(action) => {
+                handleAction(action, quickActionSuggestion);
+                if (action !== "view") {
+                  setQuickActionSuggestion(null);
+                }
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <AskMatchmakerDialog
+        isOpen={showAskDialog}
+        onClose={() => setShowAskDialog(false)}
+        onSubmit={handleSendQuestion}
+        matchmakerName={selectedSuggestion?.matchmaker.firstName}
+      />
+    </>
+  );
+};
+
+export default SuggestionsList;
+

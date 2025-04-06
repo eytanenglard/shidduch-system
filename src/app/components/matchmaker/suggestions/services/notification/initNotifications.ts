@@ -7,6 +7,12 @@ import { whatsAppAdapter } from './adapters/WhatsAppAdapter';
 // Define notification channel type
 export type NotificationChannel = 'email' | 'whatsapp' | 'sms';
 
+export type NotificationOptions = {
+    channels: NotificationChannel[];
+    notifyParties?: ('first' | 'second' | 'matchmaker')[];
+    customMessage?: string;
+  };
+
 /**
  * Initializes the notification service by registering all available adapters
  * @returns The initialized notification service

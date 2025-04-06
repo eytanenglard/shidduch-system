@@ -360,7 +360,7 @@ export class EmailService {
 
   async handleSuggestionStatusChange(
     suggestion: SuggestionWithParties,
-  
+    customMessage?: string
   ): Promise<void> {
     try {
       console.log('email222:------------');

@@ -19,12 +19,14 @@ export type NotificationChannel = 'email' | 'whatsapp' | 'sms';
 
 export type NotificationOptions = {
   channels: NotificationChannel[];
+  notifyParties?: ('first' | 'second' | 'matchmaker')[];
   priority?: 'high' | 'normal' | 'low';
   attachments?: Array<{
     filename: string;
     content: Buffer | string;
     contentType: string;
   }>;
+  customMessage?: string;
   metadata?: Record<string, unknown>;
 };
 
@@ -90,10 +92,18 @@ export class NotificationService {
   ): Promise<void> {
     const templateContent = this.getSuggestionTemplate(suggestion);
     if (!templateContent) return;
-
+  
     const recipientsWithChannels = this.getRecipientsForSuggestion(suggestion);
-
+  
     for (const { recipient, preferredChannels } of recipientsWithChannels) {
+      // Filter recipients based on notifyParties if provided
+      if (options.notifyParties) {
+        const recipientType = this.getRecipientType(recipient, suggestion);
+        if (!recipientType || !options.notifyParties.includes(recipientType)) {
+          continue; // Skip this recipient
+        }
+      }
+      
       const channelsToUse = options.channels || preferredChannels || ['email'];
       
       await this.sendNotification(
@@ -103,7 +113,20 @@ export class NotificationService {
       );
     }
   }
-
+// Helper method to determine recipient type
+private getRecipientType(
+  recipient: RecipientInfo, 
+  suggestion: SuggestionWithParties
+): 'first' | 'second' | 'matchmaker' | null {
+  if (recipient.email === suggestion.firstParty.email) {
+    return 'first';
+  } else if (recipient.email === suggestion.secondParty.email) {
+    return 'second';
+  } else if (recipient.email === suggestion.matchmaker.email) {
+    return 'matchmaker';
+  }
+  return null;
+}
   private getSuggestionTemplate(suggestion: SuggestionWithParties): NotificationContent | null {
     // Template similar to what you have in EmailService
     // but adapted for multi-channel (separating HTML from plain text)
