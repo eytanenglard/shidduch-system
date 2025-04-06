@@ -1,19 +1,6 @@
 import { NotificationAdapter, NotificationChannel, RecipientInfo, NotificationContent } from '../NotificationService';
 import twilio from 'twilio';
 
-// Define an interface for the Twilio message parameters with WhatsApp template
-interface TwilioWhatsAppTemplateParams {
-  from: string;
-  to: string;
-  templateId: string;
-  components: Array<{
-    type: string;
-    parameters: Array<{
-      type: string;
-      text: string;
-    }>;
-  }>;
-}
 
 export class WhatsAppAdapter implements NotificationAdapter {
   private static instance: WhatsAppAdapter;

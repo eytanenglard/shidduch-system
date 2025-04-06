@@ -12,8 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { MessageCircle, Send, User, AlertCircle } from "lucide-react";
+import { MessageCircle, Send, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
@@ -30,7 +29,6 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
   onClose,
   onSubmit,
   matchmakerName,
-  suggestionId,
 }) => {
   const [question, setQuestion] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);

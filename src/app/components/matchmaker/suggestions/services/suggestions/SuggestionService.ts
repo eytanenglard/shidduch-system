@@ -291,7 +291,6 @@ export class SuggestionService {
   ): void {
     const isMatchmaker = userId === suggestion.matchmakerId;
     const isFirstParty = userId === suggestion.firstPartyId;
-    const isSecondParty = userId === suggestion.secondPartyId;
 
     switch (newStatus) {
       case MatchSuggestionStatus.FIRST_PARTY_APPROVED:

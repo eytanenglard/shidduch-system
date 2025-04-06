@@ -5,7 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
-import { MatchSuggestionStatus } from "@prisma/client";
+import { MatchSuggestionStatus, MatchSuggestion } from "@prisma/client";
 import { statusTransitionService } from "@/app/components/matchmaker/suggestions/services/suggestions/StatusTransitionService";
 
 // Validation schema for status update
@@ -205,7 +205,7 @@ async function createMeetingIfNecessary(
 // Helper function to update profiles if needed
 async function updateProfilesIfNeeded(
   newStatus: MatchSuggestionStatus,
-  suggestion: any
+  suggestion: MatchSuggestion,
 ) {
   // Special handling for ENGAGED and MARRIED statuses
   if (newStatus === "ENGAGED" || newStatus === "MARRIED") {

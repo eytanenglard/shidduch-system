@@ -21,7 +21,6 @@ import {
   Info,
   User,
   Clock,
-  Heart,
   Briefcase,
   GraduationCap,
   MapPin,

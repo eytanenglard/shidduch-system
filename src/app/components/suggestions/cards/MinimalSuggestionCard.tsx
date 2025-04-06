@@ -164,7 +164,6 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
   suggestion,
   userId,
   onClick,
-  onQuickAction,
   onApprove,
   onInquiry,
   onDecline,
