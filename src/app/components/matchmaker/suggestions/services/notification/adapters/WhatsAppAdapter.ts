@@ -1,7 +1,19 @@
-// src/app/components/matchmaker/suggestions/services/notification/adapters/WhatsAppAdapter.ts
-
 import { NotificationAdapter, NotificationChannel, RecipientInfo, NotificationContent } from '../NotificationService';
 import twilio from 'twilio';
+
+// Define an interface for the Twilio message parameters with WhatsApp template
+interface TwilioWhatsAppTemplateParams {
+  from: string;
+  to: string;
+  templateId: string;
+  components: Array<{
+    type: string;
+    parameters: Array<{
+      type: string;
+      text: string;
+    }>;
+  }>;
+}
 
 export class WhatsAppAdapter implements NotificationAdapter {
   private static instance: WhatsAppAdapter;
@@ -90,8 +102,8 @@ export class WhatsAppAdapter implements NotificationAdapter {
       
       console.log(`Sending WhatsApp template message from: ${fromWhatsApp} to: whatsapp:${toNumber}`);
       
-      // Using type assertion instead of MediaParams
-      const message = await this.client.messages.create({
+      // Use proper typing for WhatsApp template message
+      const messageParams: TwilioWhatsAppTemplateParams = {
         from: fromWhatsApp,
         to: `whatsapp:${toNumber}`,
         // Use the approved template
@@ -106,7 +118,9 @@ export class WhatsAppAdapter implements NotificationAdapter {
             ]
           }
         ]
-      } as any); // Use type assertion to avoid TypeScript errors
+      };
+      
+      const message = await this.client.messages.create(messageParams);
   
       console.log('WhatsApp template message sent successfully:', {
         messageId: message.sid,
