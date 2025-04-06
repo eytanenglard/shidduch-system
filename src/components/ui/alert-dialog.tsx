@@ -11,12 +11,33 @@ const AlertDialogContext = createContext<AlertDialogContextType>({
 });
 
 // Root component
+type AlertDialogProps = {
+  children: React.ReactNode;
+  open?: boolean; 
+  onOpenChange?: (open: boolean) => void;
+};
+
 const AlertDialog = ({
   children,
-}: {
-  children: React.ReactNode;
-}): JSX.Element => {
-  const [open, setOpen] = useState(false);
+  open: externalOpen,
+  onOpenChange
+}: AlertDialogProps): JSX.Element => {
+  const [internalOpen, setInternalOpen] = useState(false);
+  
+  // אם סופקו props חיצוניים, השתמש בהם, אחרת השתמש במצב הפנימי
+  const open = externalOpen !== undefined ? externalOpen : internalOpen;
+  
+  const setOpen = useCallback((value: boolean | ((prev: boolean) => boolean)) => {
+    // עדכון המצב הפנימי
+    if (typeof value === 'function') {
+      const newValue = value(open);
+      setInternalOpen(newValue);
+      onOpenChange?.(newValue);
+    } else {
+      setInternalOpen(value);
+      onOpenChange?.(value);
+    }
+  }, [open, onOpenChange]);
 
   const contextValue = {
     open,

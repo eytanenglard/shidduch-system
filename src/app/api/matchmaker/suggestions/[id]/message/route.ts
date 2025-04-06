@@ -1,9 +1,28 @@
+// src/app/api/matchmaker/suggestions/[id]/message/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { MatchSuggestionStatus, UserRole } from "@prisma/client";
-import { EmailService } from "@/app/components/matchmaker/suggestions/services/email/EmailService";
+import { 
+  initNotificationService,
+  NotificationChannel 
+} from "@/app/components/matchmaker/suggestions/services/notification/initNotifications";
+import { RecipientInfo } from "@/app/components/matchmaker/suggestions/services/notification/NotificationService";
+
+// Initialize the notification service
+const notificationService = initNotificationService();
+
+type RecipientWithChannels = {
+  recipient: RecipientInfo;
+  preferredChannels: NotificationChannel[];
+};
+
+type SendResult = {
+  recipient: string;
+  result: Record<NotificationChannel, boolean>;
+};
 
 export async function POST(
   req: NextRequest,
@@ -12,7 +31,7 @@ export async function POST(
   try {
     const session = await getServerSession(authOptions);
     
-    // וידוא משתמש מחובר
+    // Verify user is logged in
     if (!session?.user) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
@@ -20,7 +39,7 @@ export async function POST(
       );
     }
 
-    // וידוא הרשאות שדכן
+    // Verify matchmaker permissions
     if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
       return NextResponse.json(
         { success: false, error: "Insufficient permissions" },
@@ -31,7 +50,7 @@ export async function POST(
     const suggestionId = params.id;
     const { partyType, messageType, content } = await req.json();
 
-    // וידוא קיום ההצעה
+    // Verify suggestion exists
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
       include: {
@@ -52,7 +71,7 @@ export async function POST(
       );
     }
 
-    // וידוא שדכן בעל הרשאות לשליחת הודעות להצעה
+    // Verify matchmaker permissions for this suggestion
     if (
       suggestion.matchmakerId !== session.user.id &&
       session.user.role !== UserRole.ADMIN
@@ -63,16 +82,30 @@ export async function POST(
       );
     }
 
-    // יצירת רשימת נמענים
-    const recipients: string[] = [];
+    // Create recipients list
+    const recipients: RecipientWithChannels[] = [];
     if (partyType === "first" || partyType === "both") {
-      recipients.push(suggestion.firstParty.email);
+      recipients.push({
+        recipient: {
+          email: suggestion.firstParty.email,
+          phone: suggestion.firstParty.phone || undefined,
+          name: `${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName}`
+        },
+        preferredChannels: ['email', 'whatsapp']
+      });
     }
     if (partyType === "second" || partyType === "both") {
-      recipients.push(suggestion.secondParty.email);
+      recipients.push({
+        recipient: {
+          email: suggestion.secondParty.email,
+          phone: suggestion.secondParty.phone || undefined,
+          name: `${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName}`
+        },
+        preferredChannels: ['email', 'whatsapp']
+      });
     }
 
-    // בניית כותרת ההודעה
+    // Create message subject
     let subject = "";
     switch (messageType) {
       case "reminder":
@@ -85,30 +118,38 @@ export async function POST(
         subject = "הודעה חדשה בנוגע להצעת שידוך";
     }
 
-    // יצירת תוכן HTML להודעה
-    const htmlContent = `
-      <div dir="rtl">
-        <h2>שלום,</h2>
-        <p>${content}</p>
-        <p>לצפייה בפרטי ההצעה: <a href="${process.env.NEXT_PUBLIC_BASE_URL}/suggestions/${suggestionId}/review">לחץ כאן</a></p>
-        <p>בברכה,<br>${session.user.firstName} ${session.user.lastName}</p>
-      </div>
-    `;
+    // Create content
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    const reviewUrl = `${baseUrl}/suggestions/${suggestionId}/review`;
+    
+    const notificationContent = {
+      subject,
+      body: `שלום,\n\n${content}\n\nלצפייה בפרטי ההצעה: ${reviewUrl}\n\nבברכה,\n${session.user.firstName} ${session.user.lastName}`,
+      htmlBody: `
+        <div dir="rtl">
+          <h2>שלום,</h2>
+          <p>${content}</p>
+          <p>לצפייה בפרטי ההצעה: <a href="${reviewUrl}">לחץ כאן</a></p>
+          <p>בברכה,<br>${session.user.firstName} ${session.user.lastName}</p>
+        </div>
+      `
+    };
 
-    // שליחת אימייל לכל הנמענים
-    const emailService = EmailService.getInstance();
-    for (const recipient of recipients) {
-      await emailService.sendEmail({
-        to: recipient,
-        subject,
-        html: htmlContent,
-      });
+    // Send notifications to all recipients via their preferred channels
+    const sendResults: SendResult[] = [];
+    for (const { recipient, preferredChannels } of recipients) {
+      const result = await notificationService.sendNotification(
+        recipient,
+        notificationContent,
+        { channels: preferredChannels }
+      );
+      sendResults.push({ recipient: recipient.email, result });
     }
 
-    // רישום ההודעה במערכת
+    // Log the message in the system
     await prisma.$transaction(async (tx) => {
       try {
-        // עדכון שדה lastActivity בהצעה
+        // Update the lastActivity field in the suggestion
         await tx.matchSuggestion.update({
           where: { id: suggestionId },
           data: {
@@ -116,11 +157,11 @@ export async function POST(
           },
         });
         
-        // הוספת רשומה להיסטוריית הסטטוס
+        // Add a record to the status history
         await tx.suggestionStatusHistory.create({
           data: {
             suggestionId,
-            status: suggestion.status as MatchSuggestionStatus, // Explicitly cast to ensure correct type
+            status: suggestion.status as MatchSuggestionStatus,
             notes: `הודעה נשלחה מאת השדכן: ${messageType} - ${content.substring(0, 50)}${content.length > 50 ? '...' : ''}`,
           },
         });
@@ -132,8 +173,8 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      message: "Message sent successfully",
-      recipients: recipients.length
+      message: "Messages sent successfully",
+      results: sendResults
     });
   } catch (error) {
     console.error("Error sending message:", error);

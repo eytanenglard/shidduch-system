@@ -4,6 +4,11 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { UserRole, MatchSuggestionStatus } from "@prisma/client";
 import { StatusTransitionService } from "@/app/components/matchmaker/suggestions/services/suggestions/StatusTransitionService";
+import { initNotificationService } from "@/app/components/matchmaker/suggestions/services/notification/initNotifications";
+import { NotificationContent } from "@/app/components/matchmaker/suggestions/services/notification/NotificationService";
+
+// Initialize the notification service
+const notificationService = initNotificationService();
 
 export async function POST(
   req: NextRequest,
@@ -12,7 +17,7 @@ export async function POST(
   try {
     const session = await getServerSession(authOptions);
     
-    // וידוא משתמש מחובר
+    // Verify user is logged in
     if (!session?.user) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
@@ -20,7 +25,7 @@ export async function POST(
       );
     }
 
-    // וידוא הרשאות שדכן
+    // Verify matchmaker permissions
     if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
       return NextResponse.json(
         { success: false, error: "Insufficient permissions" },
@@ -31,7 +36,7 @@ export async function POST(
     const suggestionId = params.id;
     const { partyType } = await req.json();
 
-    // וידוא קיום ההצעה
+    // Verify suggestion exists
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
       include: {
@@ -52,7 +57,7 @@ export async function POST(
       );
     }
 
-    // וידוא שדכן בעל הרשאות לשליחת הצעות מחדש
+    // Verify matchmaker permissions for resending
     if (
       suggestion.matchmakerId !== session.user.id &&
       session.user.role !== UserRole.ADMIN
@@ -67,18 +72,45 @@ export async function POST(
     let updatedSuggestion = suggestion;
     const transitionNotes = `הצעה נשלחה מחדש ע"י ${session.user.firstName} ${session.user.lastName}`;
     
-    // עדכון סטטוס ההצעה לסטטוס המתאים לשליחה מחדש
+    // Update suggestion status to the appropriate status for resending
     if (partyType === "both" || partyType === "first") {
-      // שליחה מחדש לצד ראשון
+      // Resend to first party
       updatedSuggestion = await statusTransitionService.transitionStatus(
         updatedSuggestion, 
         MatchSuggestionStatus.PENDING_FIRST_PARTY,
         `${transitionNotes} - לצד ראשון`
       );
       
-      // אם זה גם לצד שני, נחכה להשלמת השליחה הראשונה
+      // Create a custom notification for resending
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+      const reviewUrl = `${baseUrl}/suggestions/${suggestionId}/review`;
+      
+      const notificationContent: NotificationContent = {
+        subject: "הצעת שידוך נשלחה אליך מחדש",
+        body: `שלום ${suggestion.firstParty.firstName},\n\nהצעת השידוך בין ${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} ל${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} נשלחה אליך מחדש ע"י ${session.user.firstName} ${session.user.lastName}.\n\nלצפייה בפרטי ההצעה: ${reviewUrl}\n\nבברכה,\nמערכת השידוכים`,
+        htmlBody: `
+          <div dir="rtl">
+            <h2>שלום ${suggestion.firstParty.firstName},</h2>
+            <p>הצעת השידוך בין ${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} ל${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} נשלחה אליך מחדש ע"י ${session.user.firstName} ${session.user.lastName}.</p>
+            <p>לצפייה בפרטי ההצעה: <a href="${reviewUrl}">לחץ כאן</a></p>
+            <p>בברכה,<br>מערכת השידוכים</p>
+          </div>
+        `
+      };
+      
+      // Send the notification via multiple channels
+      await notificationService.sendNotification(
+        {
+          email: suggestion.firstParty.email,
+          phone: suggestion.firstParty.phone || undefined,
+          name: `${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName}`
+        },
+        notificationContent,
+        { channels: ['email', 'whatsapp'] }
+      );
+      
+      // If this is just for the first party, update the sent time
       if (partyType === "first") {
-        // עדכון זמן השליחה לצד ראשון
         await prisma.matchSuggestion.update({
           where: { id: suggestionId },
           data: {
@@ -90,14 +122,42 @@ export async function POST(
     }
     
     if (partyType === "both" || partyType === "second") {
-      // שליחה מחדש לצד שני (ישירות או אחרי הראשון)
+      // Resend to second party (directly or after the first)
       updatedSuggestion = await statusTransitionService.transitionStatus(
         updatedSuggestion, 
         MatchSuggestionStatus.PENDING_SECOND_PARTY,
         `${transitionNotes} - לצד שני`
       );
       
-      // עדכון זמן השליחה לצד שני
+      // Create a custom notification for resending
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+      const reviewUrl = `${baseUrl}/suggestions/${suggestionId}/review`;
+      
+      const notificationContent: NotificationContent = {
+        subject: "הצעת שידוך נשלחה אליך מחדש",
+        body: `שלום ${suggestion.secondParty.firstName},\n\nהצעת השידוך בין ${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} ל${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} נשלחה אליך מחדש ע"י ${session.user.firstName} ${session.user.lastName}.\n\nלצפייה בפרטי ההצעה: ${reviewUrl}\n\nבברכה,\nמערכת השידוכים`,
+        htmlBody: `
+          <div dir="rtl">
+            <h2>שלום ${suggestion.secondParty.firstName},</h2>
+            <p>הצעת השידוך בין ${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} ל${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} נשלחה אליך מחדש ע"י ${session.user.firstName} ${session.user.lastName}.</p>
+            <p>לצפייה בפרטי ההצעה: <a href="${reviewUrl}">לחץ כאן</a></p>
+            <p>בברכה,<br>מערכת השידוכים</p>
+          </div>
+        `
+      };
+      
+      // Send the notification via multiple channels
+      await notificationService.sendNotification(
+        {
+          email: suggestion.secondParty.email,
+          phone: suggestion.secondParty.phone || undefined,
+          name: `${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName}`
+        },
+        notificationContent,
+        { channels: ['email', 'whatsapp'] }
+      );
+      
+      // Update the sent time
       await prisma.matchSuggestion.update({
         where: { id: suggestionId },
         data: {

@@ -17,6 +17,7 @@ suggestions
     SuggestionsStats.tsx
   details
     SuggestionDetailsDialog.tsx
+  directory_analysis.txt
   hooks
     useMatchmaking.ts
   list
@@ -25,6 +26,12 @@ suggestions
   services
     email
       EmailService.ts
+    notification
+      NotificationService.ts
+      adapters
+        EmailAdapter.ts
+        WhatsAppAdapter.ts
+      initNotifications.ts
     suggestions
       StatusTransitionService.ts
       SuggestionService.ts
@@ -33,6 +40,11 @@ suggestions
     statisticsCalculator.ts
 
 תוכן הקבצים:
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\matchmaker\suggestions\directory_analysis.txt:
+==================================================
+File skipped: Contains more than 20,000 words (23415 words)
 
 ==================================================
 Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\matchmaker\suggestions\EditSuggestionForm.tsx:
@@ -1334,6 +1346,12 @@ export default function MatchmakerDashboard() {
     }
   };
 
+  useEffect(() => {
+    if (confirmAction?.type === "delete" && !showConfirmDialog) {
+      // בדיקה אם דיאלוג האישור נסגר אחרי פעולת מחיקה - ריענון הנתונים
+      fetchSuggestions();
+    }
+  }, [showConfirmDialog, confirmAction]);
   // Initial data fetch
   useEffect(() => {
     fetchSuggestions();
@@ -1368,12 +1386,29 @@ export default function MatchmakerDashboard() {
   };
 
   // Handle suggestion deletion
-  const handleSuggestionDeleted = useCallback((deletedId: string) => {
-    setSuggestions((prevSuggestions) =>
-      prevSuggestions.filter((suggestion) => suggestion.id !== deletedId)
-    );
-    toast.success("ההצעה נמחקה בהצלחה");
-  }, []);
+  const handleSuggestionDeleted = useCallback(
+    (deletedId: string) => {
+      // הסרת ההצעה מהמצב המקומי
+      setSuggestions((prevSuggestions) =>
+        prevSuggestions.filter((suggestion) => suggestion.id !== deletedId)
+      );
+
+      // סגירת כל חלונות המודאל הפתוחים במידת הצורך
+      if (selectedSuggestion?.id === deletedId) {
+        setSelectedSuggestion(null);
+      }
+      if (showEditForm && selectedSuggestion?.id === deletedId) {
+        setShowEditForm(false);
+      }
+      if (showMessageForm && selectedSuggestion?.id === deletedId) {
+        setShowMessageForm(false);
+      }
+
+      // הוספת הודעת הצלחה (אופציונלי - כבר נוסף בhandleConfirmAction)
+      // toast.success("ההצעה נמחקה בהצלחה");
+    },
+    [selectedSuggestion, showEditForm, showMessageForm]
+  );
 
   // Export suggestions to CSV
   const handleExport = async () => {
@@ -1429,10 +1464,13 @@ export default function MatchmakerDashboard() {
         setSelectedSuggestion(suggestion);
         break;
       case "delete":
+        // הגדר את מידע הפעולה
         setConfirmAction({
           type: "delete",
           data: { suggestionId: suggestion.id },
         });
+
+        // הצג את הדיאלוג
         setShowConfirmDialog(true);
         break;
       case "contact":
@@ -1805,7 +1843,7 @@ export default function MatchmakerDashboard() {
   };
 
   // Share contact details function
-  const shareContactDetails = async (suggestionId: string) => {
+  /*   const shareContactDetails = async (suggestionId: string) => {
     try {
       const response = await fetch(
         `/api/matchmaker/suggestions/${suggestionId}/share-contact`,
@@ -1830,43 +1868,38 @@ export default function MatchmakerDashboard() {
         }`
       );
     }
-  };
+  }; */
 
   // Handle confirm dialog actions
+
   const handleConfirmAction = async () => {
     if (!confirmAction) return;
 
     try {
       switch (confirmAction.type) {
         case "delete":
+          // קריאה לשרת
           const deleteResponse = await fetch(
-            `/api/suggestions/${confirmAction.data.suggestionId}/delete`,
+            `/api/matchmaker/suggestions/${confirmAction.data.suggestionId}/delete`,
             {
               method: "DELETE",
             }
           );
 
-          if (!deleteResponse.ok)
-            throw new Error("Failed to delete suggestion");
+          // בדיקת תשובה
+          if (!deleteResponse.ok) {
+            // טיפול בשגיאה
+          }
 
+          // עדכון UI
           handleSuggestionDeleted(confirmAction.data.suggestionId);
-          break;
-        case "contact":
-          await sendReminder(
-            confirmAction.data.suggestionId,
-            confirmAction.data.partyType || "both" // Provide a default value
-          );
-          break;
-        case "resend":
-          await resendSuggestion(confirmAction.data.suggestionId, "both");
-          break;
-        case "shareContacts":
-          await shareContactDetails(confirmAction.data.suggestionId);
+          toast.success("ההצעה נמחקה בהצלחה");
           break;
       }
     } catch (error) {
-      console.error(`Error processing ${confirmAction.type} action:`, error);
-      toast.error(`שגיאה בביצוע הפעולה: ${confirmAction.type}`);
+      // טיפול בשגיאות
+      console.error("שגיאה בתהליך המחיקה:", error);
+      toast.error("אירעה שגיאה בעת מחיקת ההצעה");
     } finally {
       setShowConfirmDialog(false);
       setConfirmAction(null);
@@ -2232,20 +2265,18 @@ export default function MatchmakerDashboard() {
       </Dialog>
 
       {/* Confirm Action Dialog */}
-      {showConfirmDialog && (
-        <AlertDialog>
+      {confirmAction && (
+        <AlertDialog
+          open={showConfirmDialog}
+          onOpenChange={setShowConfirmDialog}
+        >
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>האם את/ה בטוח/ה?</AlertDialogTitle>
               <AlertDialogDescription>
                 {confirmAction?.type === "delete" &&
                   "פעולה זו תמחק את ההצעה לצמיתות ולא ניתן יהיה לשחזר אותה."}
-                {confirmAction?.type === "contact" &&
-                  "האם לשלוח תזכורת למועמד לגבי ההצעה?"}
-                {confirmAction?.type === "resend" &&
-                  "האם לשלוח את ההצעה מחדש לשני הצדדים?"}
-                {confirmAction?.type === "shareContacts" &&
-                  "האם לשתף את פרטי הקשר בין שני הצדדים?"}
+                {/* תנאים אחרים כאן */}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -2253,10 +2284,7 @@ export default function MatchmakerDashboard() {
                 ביטול
               </AlertDialogCancel>
               <AlertDialogAction
-                onClick={() => {
-                  handleConfirmAction();
-                  setShowConfirmDialog(false);
-                }}
+                onClick={handleConfirmAction}
                 className={
                   confirmAction?.type === "delete"
                     ? "bg-red-600 hover:bg-red-700"
@@ -5125,13 +5153,13 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                       מחיקת ההצעה לצמיתות מהמערכת
                     </p>
                     <Button
-                      variant="destructive"
-                      className="w-full"
+                      variant="outline"
+                      className="border-red-200 hover:bg-red-50 text-red-600"
                       onClick={() =>
                         onAction("delete", { suggestionId: suggestion.id })
                       }
                     >
-                      <Trash2 className="w-4 h-4 ml-2" />
+                      <Trash2 className="w-4 h-4 ml-1" />
                       מחק הצעה
                     </Button>
                   </div>
@@ -5642,7 +5670,7 @@ const ManagerSuggestionsList: React.FC<ManagerSuggestionsListProps> = ({
 
     try {
       const response = await fetch(
-        `/api/suggestions/${suggestionToDelete}/delete`,
+        `/api/matchmaker/suggestions/${suggestionToDelete}/delete`,
         {
           method: "DELETE",
         }
@@ -7570,11 +7598,678 @@ export class EmailService {
 export const emailService = EmailService.getInstance();
 
 ==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\matchmaker\suggestions\services\notification\initNotifications.ts:
+==================================================
+// src/app/components/matchmaker/suggestions/services/notification/initNotifications.ts
+
+import { notificationService } from './NotificationService';
+import { emailAdapter } from './adapters/EmailAdapter';
+import { whatsAppAdapter } from './adapters/WhatsAppAdapter';
+
+// Define notification channel type
+export type NotificationChannel = 'email' | 'whatsapp' | 'sms';
+
+/**
+ * Initializes the notification service by registering all available adapters
+ * @returns The initialized notification service
+ */
+export function initNotificationService() {
+  // Register adapters
+  notificationService.registerAdapter(emailAdapter);
+  notificationService.registerAdapter(whatsAppAdapter);
+  
+  console.log('Notification service initialized with email and WhatsApp adapters');
+  
+  return notificationService;
+}
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\matchmaker\suggestions\services\notification\NotificationService.ts:
+==================================================
+// src/app/components/matchmaker/suggestions/services/notification/NotificationService.ts
+
+import { MatchSuggestionStatus } from '@prisma/client';
+import { SuggestionWithParties } from '../suggestions/StatusTransitionService';
+
+export type RecipientInfo = {
+  email: string;
+  phone?: string; // Phone number with international prefix, e.g.: +972501234567
+  name: string;
+};
+
+export type NotificationContent = {
+  subject: string;
+  body: string;
+  htmlBody?: string; // HTML version for email
+};
+
+export type NotificationChannel = 'email' | 'whatsapp' | 'sms';
+
+export type NotificationOptions = {
+  channels: NotificationChannel[];
+  priority?: 'high' | 'normal' | 'low';
+  attachments?: Array<{
+    filename: string;
+    content: Buffer | string;
+    contentType: string;
+  }>;
+  metadata?: Record<string, unknown>;
+};
+
+export interface NotificationAdapter {
+  canSendTo(recipient: RecipientInfo): boolean;
+  send(recipient: RecipientInfo, content: NotificationContent): Promise<boolean>;
+  getChannelType(): NotificationChannel;
+}
+
+export class NotificationService {
+  private static instance: NotificationService;
+  private adapters: Map<NotificationChannel, NotificationAdapter> = new Map();
+
+  private constructor() {}
+
+  public static getInstance(): NotificationService {
+    if (!NotificationService.instance) {
+      NotificationService.instance = new NotificationService();
+    }
+    return NotificationService.instance;
+  }
+
+  public registerAdapter(adapter: NotificationAdapter): void {
+    this.adapters.set(adapter.getChannelType(), adapter);
+  }
+
+  public async sendNotification(
+    recipient: RecipientInfo,
+    content: NotificationContent,
+    options: NotificationOptions
+  ): Promise<Record<NotificationChannel, boolean>> {
+    const results: Record<NotificationChannel, boolean> = {} as Record<NotificationChannel, boolean>;
+
+    for (const channel of options.channels) {
+      const adapter = this.adapters.get(channel);
+      if (!adapter) {
+        console.warn(`No adapter registered for channel: ${channel}`);
+        results[channel] = false;
+        continue;
+      }
+
+      if (!adapter.canSendTo(recipient)) {
+        console.warn(`Cannot send to recipient via ${channel}: missing required info`);
+        results[channel] = false;
+        continue;
+      }
+
+      try {
+        results[channel] = await adapter.send(recipient, content);
+      } catch (error) {
+        console.error(`Error sending notification via ${channel}:`, error);
+        results[channel] = false;
+      }
+    }
+
+    return results;
+  }
+
+  // Dedicated method for handling suggestion-related notifications
+  public async handleSuggestionStatusChange(
+    suggestion: SuggestionWithParties,
+    options: Partial<NotificationOptions> = {}
+  ): Promise<void> {
+    const templateContent = this.getSuggestionTemplate(suggestion);
+    if (!templateContent) return;
+
+    const recipientsWithChannels = this.getRecipientsForSuggestion(suggestion);
+
+    for (const { recipient, preferredChannels } of recipientsWithChannels) {
+      const channelsToUse = options.channels || preferredChannels || ['email'];
+      
+      await this.sendNotification(
+        recipient,
+        templateContent,
+        { ...options, channels: channelsToUse }
+      );
+    }
+  }
+
+  private getSuggestionTemplate(suggestion: SuggestionWithParties): NotificationContent | null {
+    // Template similar to what you have in EmailService
+    // but adapted for multi-channel (separating HTML from plain text)
+    
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    
+    switch (suggestion.status) {
+      case MatchSuggestionStatus.PENDING_FIRST_PARTY:
+        return {
+          subject: 'הצעת שידוך חדשה עבורך',
+          body: `שלום ${suggestion.firstParty.firstName},\n\n${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName} הציע/ה עבורך הצעת שידוך.\n\nלצפייה בפרטי ההצעה ומענה: ${baseUrl}/suggestions/${suggestion.id}/review\n\nבברכה,\nצוות המערכת`,
+          htmlBody: `<div dir="rtl"><h2>שלום ${suggestion.firstParty.firstName},</h2><p>${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName} הציע/ה עבורך הצעת שידוך.</p><p>לצפייה בפרטי ההצעה ומענה, אנא היכנס/י לקישור הבא:</p><p><a href="${baseUrl}/suggestions/${suggestion.id}/review">לצפייה בהצעה</a></p><p>בברכה,<br>צוות המערכת</p></div>`
+        };
+      
+      case MatchSuggestionStatus.FIRST_PARTY_APPROVED:
+        return {
+          subject: 'עדכון סטטוס - הצעת שידוך אושרה על ידי הצד הראשון',
+          body: `שלום ${suggestion.matchmaker.firstName},\n\n${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} אישר/ה את הצעת השידוך.\n\nההצעה תועבר כעת באופן אוטומטי לצד השני.\n\nלצפייה בפרטים נוספים: ${baseUrl}/dashboard/suggestions/${suggestion.id}\n\nבברכה,\nצוות המערכת`,
+          htmlBody: `<div dir="rtl"><h2>שלום ${suggestion.matchmaker.firstName},</h2><p>${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} אישר/ה את הצעת השידוך.</p><p>ההצעה תועבר כעת באופן אוטומטי לצד השני.</p><p><a href="${baseUrl}/dashboard/suggestions/${suggestion.id}">לצפייה בפרטים נוספים</a></p><p>בברכה,<br>צוות המערכת</p></div>`
+        };
+
+      case MatchSuggestionStatus.FIRST_PARTY_DECLINED:
+        return {
+          subject: 'עדכון סטטוס - הצעת שידוך נדחתה',
+          body: `שלום ${suggestion.matchmaker.firstName},\n\n${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} דחה/תה את הצעת השידוך.\n\nלצפייה בפרטים נוספים: ${baseUrl}/dashboard/suggestions/${suggestion.id}\n\nבברכה,\nצוות המערכת`,
+          htmlBody: `<div dir="rtl"><h2>שלום ${suggestion.matchmaker.firstName},</h2><p>${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} דחה/תה את הצעת השידוך.</p><p><a href="${baseUrl}/dashboard/suggestions/${suggestion.id}">לצפייה בפרטים נוספים</a></p><p>בברכה,<br>צוות המערכת</p></div>`
+        };
+
+      case MatchSuggestionStatus.PENDING_SECOND_PARTY:
+        return {
+          subject: 'הצעת שידוך חדשה עבורך',
+          body: `שלום ${suggestion.secondParty.firstName},\n\n${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName} הציע/ה עבורך הצעת שידוך.\n\nהצד הראשון כבר אישר את ההצעה.\n\nלצפייה בפרטי ההצעה ומענה: ${baseUrl}/suggestions/${suggestion.id}/review\n\nבברכה,\nצוות המערכת`,
+          htmlBody: `<div dir="rtl"><h2>שלום ${suggestion.secondParty.firstName},</h2><p>${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName} הציע/ה עבורך הצעת שידוך.</p><p>הצד הראשון כבר אישר את ההצעה.</p><p><a href="${baseUrl}/suggestions/${suggestion.id}/review">לצפייה בפרטי ההצעה ומענה</a></p><p>בברכה,<br>צוות המערכת</p></div>`
+        };
+
+      case MatchSuggestionStatus.SECOND_PARTY_APPROVED:
+        return {
+          subject: 'עדכון סטטוס - הצעת שידוך אושרה על ידי הצד השני',
+          body: `שלום ${suggestion.matchmaker.firstName},\n\n${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} אישר/ה את הצעת השידוך.\n\nשני הצדדים אישרו את ההצעה. ניתן כעת לשתף פרטי קשר.\n\nלצפייה בפרטים נוספים: ${baseUrl}/dashboard/suggestions/${suggestion.id}\n\nבברכה,\nצוות המערכת`,
+          htmlBody: `<div dir="rtl"><h2>שלום ${suggestion.matchmaker.firstName},</h2><p>${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} אישר/ה את הצעת השידוך.</p><p>שני הצדדים אישרו את ההצעה. ניתן כעת לשתף פרטי קשר.</p><p><a href="${baseUrl}/dashboard/suggestions/${suggestion.id}">לצפייה בפרטים נוספים</a></p><p>בברכה,<br>צוות המערכת</p></div>`
+        };
+
+      case MatchSuggestionStatus.SECOND_PARTY_DECLINED:
+        return {
+          subject: 'עדכון סטטוס - הצעת שידוך נדחתה',
+          body: `שלום ${suggestion.matchmaker.firstName},\n\n${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} דחה/תה את הצעת השידוך.\n\nלצפייה בפרטים נוספים: ${baseUrl}/dashboard/suggestions/${suggestion.id}\n\nבברכה,\nצוות המערכת`,
+          htmlBody: `<div dir="rtl"><h2>שלום ${suggestion.matchmaker.firstName},</h2><p>${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} דחה/תה את הצעת השידוך.</p><p><a href="${baseUrl}/dashboard/suggestions/${suggestion.id}">לצפייה בפרטים נוספים</a></p><p>בברכה,<br>צוות המערכת</p></div>`
+        };
+    
+      case MatchSuggestionStatus.CONTACT_DETAILS_SHARED:
+        // Prepare contact details with multi-line support
+        const firstPartyDetails = this.formatUserDetails(suggestion.firstParty);
+        const secondPartyDetails = this.formatUserDetails(suggestion.secondParty);
+        
+        return {
+          subject: 'פרטי קשר להצעת השידוך',
+          body: `ברכות! שני הצדדים אישרו את הצעת השידוך.\n\nפרטי הקשר של הצד הראשון:\n${firstPartyDetails}\n\nפרטי הקשר של הצד השני:\n${secondPartyDetails}\n\nאנא צרו קשר בהקדם לתיאום פגישה ראשונה.\n\nבהצלחה!`,
+          htmlBody: `<div dir="rtl"><h2>ברכות! שני הצדדים אישרו את הצעת השידוך.</h2><p>פרטי הקשר של הצד הראשון:</p><pre>${firstPartyDetails}</pre><p>פרטי הקשר של הצד השני:</p><pre>${secondPartyDetails}</pre><p>אנא צרו קשר בהקדם לתיאום פגישה ראשונה.</p><p>בהצלחה!</p></div>`
+        };
+      
+      case MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK:
+        return {
+          subject: 'בקשה למשוב על הפגישה הראשונה',
+          body: `שלום,\n\nנשמח לקבל את המשוב שלך על הפגישה הראשונה.\n\nלשליחת המשוב: ${baseUrl}/suggestions/${suggestion.id}/feedback\n\nבברכה,\nצוות המערכת`,
+          htmlBody: `<div dir="rtl"><h2>שלום,</h2><p>נשמח לקבל את המשוב שלך על הפגישה הראשונה.</p><p><a href="${baseUrl}/suggestions/${suggestion.id}/feedback">לשליחת המשוב</a></p><p>בברכה,<br>צוות המערכת</p></div>`
+        };
+
+      case MatchSuggestionStatus.THINKING_AFTER_DATE:
+        return {
+          subject: 'בקשת זמן למחשבה לאחר הפגישה',
+          body: `שלום ${suggestion.matchmaker.firstName},\n\nאחד הצדדים ביקש זמן למחשבה לאחר הפגישה.\n\nלצפייה בפרטים נוספים: ${baseUrl}/dashboard/suggestions/${suggestion.id}\n\nבברכה,\nצוות המערכת`,
+          htmlBody: `<div dir="rtl"><h2>שלום ${suggestion.matchmaker.firstName},</h2><p>אחד הצדדים ביקש זמן למחשבה לאחר הפגישה.</p><p><a href="${baseUrl}/dashboard/suggestions/${suggestion.id}">לצפייה בפרטים נוספים</a></p><p>בברכה,<br>צוות המערכת</p></div>`
+        };
+
+      case MatchSuggestionStatus.DATING:
+        return {
+          subject: 'עדכון סטטוס - בתהליך היכרות',
+          body: `שלום ${suggestion.matchmaker.firstName},\n\nהזוג נמצא בתהליך היכרות.\n\nלצפייה בפרטים: ${baseUrl}/dashboard/suggestions/${suggestion.id}\n\nבברכה,\nצוות המערכת`,
+          htmlBody: `<div dir="rtl"><h2>שלום ${suggestion.matchmaker.firstName},</h2><p>הזוג נמצא בתהליך היכרות.</p><p><a href="${baseUrl}/dashboard/suggestions/${suggestion.id}">לצפייה בפרטים</a></p><p>בברכה,<br>צוות המערכת</p></div>`
+        };
+
+      case MatchSuggestionStatus.ENGAGED:
+        return {
+          subject: 'מזל טוב! - אירוסין',
+          body: `מזל טוב ${suggestion.firstParty.firstName} ו${suggestion.secondParty.firstName}!\n\nאנו שמחים לשמוע על האירוסין ומאחלים לכם המון הצלחה בהמשך הדרך.\n\nבברכה,\nצוות המערכת`,
+          htmlBody: `<div dir="rtl"><h2>מזל טוב ${suggestion.firstParty.firstName} ו${suggestion.secondParty.firstName}!</h2><p>אנו שמחים לשמוע על האירוסין ומאחלים לכם המון הצלחה בהמשך הדרך.</p><p>בברכה,<br>צוות המערכת</p></div>`
+        };
+
+      case MatchSuggestionStatus.MARRIED:
+        return {
+          subject: 'מזל טוב! - חתונה',
+          body: `מזל טוב ${suggestion.firstParty.firstName} ו${suggestion.secondParty.firstName}!\n\nאנו שמחים לשמוע על החתונה ומאחלים לכם חיים מאושרים יחד.\n\nבברכה,\nצוות המערכת`,
+          htmlBody: `<div dir="rtl"><h2>מזל טוב ${suggestion.firstParty.firstName} ו${suggestion.secondParty.firstName}!</h2><p>אנו שמחים לשמוע על החתונה ומאחלים לכם חיים מאושרים יחד.</p><p>בברכה,<br>צוות המערכת</p></div>`
+        };
+
+      case MatchSuggestionStatus.EXPIRED:
+        return {
+          subject: 'הצעת השידוך פגה',
+          body: `שלום ${suggestion.matchmaker.firstName},\n\nהצעת השידוך פגה עקב חוסר מענה במועד.\n\nלצפייה בפרטים: ${baseUrl}/dashboard/suggestions/${suggestion.id}\n\nבברכה,\nצוות המערכת`,
+          htmlBody: `<div dir="rtl"><h2>שלום ${suggestion.matchmaker.firstName},</h2><p>הצעת השידוך פגה עקב חוסר מענה במועד.</p><p><a href="${baseUrl}/dashboard/suggestions/${suggestion.id}">לצפייה בפרטים</a></p><p>בברכה,<br>צוות המערכת</p></div>`
+        };
+
+      default:
+        return null;
+    }
+  }
+
+  private getRecipientsForSuggestion(suggestion: SuggestionWithParties): Array<{
+    recipient: RecipientInfo;
+    preferredChannels: NotificationChannel[];
+  }> {
+    const recipients: Array<{
+      recipient: RecipientInfo;
+      preferredChannels: NotificationChannel[];
+    }> = [];
+
+    // Logic to determine recipients based on suggestion status
+    // Similar to what's in getRecipientsByStatus in EmailService
+    
+    switch (suggestion.status) {
+      case MatchSuggestionStatus.DRAFT:
+        recipients.push({
+          recipient: {
+            email: suggestion.matchmaker.email,
+            phone: suggestion.matchmaker.phone || undefined,
+            name: `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`
+          },
+          preferredChannels: ['email'] // Email only for drafts
+        });
+        break;
+      
+      case MatchSuggestionStatus.PENDING_FIRST_PARTY:
+        recipients.push({
+          recipient: {
+            email: suggestion.firstParty.email,
+            phone: suggestion.firstParty.phone || undefined,
+            name: `${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName}`
+          },
+          preferredChannels: ['email', 'whatsapp'] // Email and WhatsApp for candidates
+        });
+        break;
+      
+      case MatchSuggestionStatus.FIRST_PARTY_APPROVED:
+      case MatchSuggestionStatus.FIRST_PARTY_DECLINED:
+        recipients.push({
+          recipient: {
+            email: suggestion.matchmaker.email,
+            phone: suggestion.matchmaker.phone || undefined,
+            name: `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`
+          },
+          preferredChannels: ['email', 'whatsapp'] // Email and WhatsApp for matchmaker
+        });
+        break;
+      
+      case MatchSuggestionStatus.PENDING_SECOND_PARTY:
+        recipients.push({
+          recipient: {
+            email: suggestion.secondParty.email,
+            phone: suggestion.secondParty.phone || undefined,
+            name: `${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName}`
+          },
+          preferredChannels: ['email', 'whatsapp'] // Email and WhatsApp for candidates
+        });
+        break;
+      
+      case MatchSuggestionStatus.SECOND_PARTY_APPROVED:
+      case MatchSuggestionStatus.SECOND_PARTY_DECLINED:
+        recipients.push({
+          recipient: {
+            email: suggestion.matchmaker.email,
+            phone: suggestion.matchmaker.phone || undefined,
+            name: `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`
+          },
+          preferredChannels: ['email', 'whatsapp'] // Email and WhatsApp for matchmaker
+        });
+        break;
+      
+      case MatchSuggestionStatus.AWAITING_MATCHMAKER_APPROVAL:
+        recipients.push({
+          recipient: {
+            email: suggestion.matchmaker.email,
+            phone: suggestion.matchmaker.phone || undefined,
+            name: `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`
+          },
+          preferredChannels: ['email', 'whatsapp'] // Email and WhatsApp for matchmaker
+        });
+        break;
+      
+      case MatchSuggestionStatus.CONTACT_DETAILS_SHARED:
+        // Send to both parties and matchmaker
+        recipients.push(
+          {
+            recipient: {
+              email: suggestion.firstParty.email,
+              phone: suggestion.firstParty.phone || undefined,
+              name: `${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName}`
+            },
+            preferredChannels: ['email', 'whatsapp']
+          },
+          {
+            recipient: {
+              email: suggestion.secondParty.email,
+              phone: suggestion.secondParty.phone || undefined,
+              name: `${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName}`
+            },
+            preferredChannels: ['email', 'whatsapp']
+          },
+          {
+            recipient: {
+              email: suggestion.matchmaker.email,
+              phone: suggestion.matchmaker.phone || undefined,
+              name: `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`
+            },
+            preferredChannels: ['email']
+          }
+        );
+        break;
+      
+      case MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK:
+        // Send to both parties
+        recipients.push(
+          {
+            recipient: {
+              email: suggestion.firstParty.email,
+              phone: suggestion.firstParty.phone || undefined,
+              name: `${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName}`
+            },
+            preferredChannels: ['email', 'whatsapp']
+          },
+          {
+            recipient: {
+              email: suggestion.secondParty.email,
+              phone: suggestion.secondParty.phone || undefined,
+              name: `${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName}`
+            },
+            preferredChannels: ['email', 'whatsapp']
+          }
+        );
+        break;
+      
+      case MatchSuggestionStatus.ENGAGED:
+      case MatchSuggestionStatus.MARRIED:
+        // Send to both parties and matchmaker
+        recipients.push(
+          {
+            recipient: {
+              email: suggestion.firstParty.email,
+              phone: suggestion.firstParty.phone || undefined,
+              name: `${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName}`
+            },
+            preferredChannels: ['email', 'whatsapp']
+          },
+          {
+            recipient: {
+              email: suggestion.secondParty.email,
+              phone: suggestion.secondParty.phone || undefined,
+              name: `${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName}`
+            },
+            preferredChannels: ['email', 'whatsapp']
+          },
+          {
+            recipient: {
+              email: suggestion.matchmaker.email,
+              phone: suggestion.matchmaker.phone || undefined,
+              name: `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`
+            },
+            preferredChannels: ['email', 'whatsapp']
+          }
+        );
+        break;
+
+      default:
+        // Default: send to matchmaker only
+        recipients.push({
+          recipient: {
+            email: suggestion.matchmaker.email,
+            phone: suggestion.matchmaker.phone || undefined,
+            name: `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`
+          },
+          preferredChannels: ['email']
+        });
+        break;
+    }
+
+    return recipients;
+  }
+
+  // Helper function to format contact details
+  private formatUserDetails(user: { 
+    firstName: string; 
+    lastName: string; 
+    email: string; 
+    phone?: string | null 
+  }): string {
+    const details = [
+      `שם: ${user.firstName} ${user.lastName}`,
+      `אימייל: ${user.email}`,
+    ];
+
+    if (user.phone) {
+      details.push(`טלפון: ${user.phone}`);
+    }
+
+    return details.join('\n');
+  }
+}
+
+export const notificationService = NotificationService.getInstance();
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\matchmaker\suggestions\services\notification\adapters\EmailAdapter.ts:
+==================================================
+// src/app/components/matchmaker/suggestions/services/notification/adapters/EmailAdapter.ts
+
+import { NotificationAdapter, NotificationChannel, RecipientInfo, NotificationContent } from '../NotificationService';
+import nodemailer from 'nodemailer';
+
+export class EmailAdapter implements NotificationAdapter {
+  private static instance: EmailAdapter;
+  private transporter: nodemailer.Transporter;
+
+  private constructor() {
+    // Configure the transporter exactly like in EmailService
+    this.transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_USER || '',
+        pass: process.env.GMAIL_APP_PASSWORD || '',
+      },
+      tls: {
+        rejectUnauthorized: false
+      }
+    });
+
+    // Verify email configuration on initialization
+    this.verifyEmailConfig();
+  }
+
+  private async verifyEmailConfig(): Promise<void> {
+    try {
+      await this.transporter.verify();
+      console.log('Email configuration verified successfully');
+    } catch (error) {
+      console.error('Email configuration verification failed:', error);
+      // Don't throw, to allow the system to continue even if verification fails
+    }
+  }
+
+  public static getInstance(): EmailAdapter {
+    if (!EmailAdapter.instance) {
+      EmailAdapter.instance = new EmailAdapter();
+    }
+    return EmailAdapter.instance;
+  }
+
+  public getChannelType(): NotificationChannel {
+    return 'email';
+  }
+
+  public canSendTo(recipient: RecipientInfo): boolean {
+    return !!recipient.email;
+  }
+
+  public async send(recipient: RecipientInfo, content: NotificationContent): Promise<boolean> {
+    try {
+      const result = await this.transporter.sendMail({
+        from: `${process.env.EMAIL_FROM_NAME || 'מערכת השידוכים'} <${process.env.GMAIL_USER || ''}>`,
+        to: recipient.email,
+        subject: content.subject,
+        text: content.body,
+        html: content.htmlBody || content.body.replace(/\n/g, '<br>'),
+      });
+
+      console.log('Email sent successfully:', {
+        messageId: result.messageId,
+        response: result.response,
+        to: recipient.email,
+        subject: content.subject
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Detailed error sending email:', {
+        error: error instanceof Error ? {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        } : error,
+        recipient: recipient.email,
+        subject: content.subject
+      });
+      return false;
+    }
+  }
+}
+
+export const emailAdapter = EmailAdapter.getInstance();
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\matchmaker\suggestions\services\notification\adapters\WhatsAppAdapter.ts:
+==================================================
+// src/app/components/matchmaker/suggestions/services/notification/adapters/WhatsAppAdapter.ts
+
+import { NotificationAdapter, NotificationChannel, RecipientInfo, NotificationContent } from '../NotificationService';
+import twilio from 'twilio';
+
+export class WhatsAppAdapter implements NotificationAdapter {
+  private static instance: WhatsAppAdapter;
+  private client: twilio.Twilio | null = null;
+  private fromNumber: string = '';
+
+  private constructor() {
+    const accountSid = process.env.TWILIO_ACCOUNT_SID;
+    const authToken = process.env.TWILIO_AUTH_TOKEN;
+    this.fromNumber = process.env.TWILIO_WHATSAPP_NUMBER || '';
+
+    if (!accountSid || !authToken || !this.fromNumber) {
+      console.error('Missing Twilio configuration. WhatsApp notifications will not be available.');
+      // We don't throw an error here to allow the system to continue working without WhatsApp
+    } else {
+      try {
+        this.client = twilio(accountSid, authToken);
+        console.log('WhatsApp adapter initialized with from number:', this.fromNumber);
+      } catch (error) {
+        console.error('Failed to initialize Twilio client:', error);
+        this.client = null;
+      }
+    }
+  }
+
+  public static getInstance(): WhatsAppAdapter {
+    if (!WhatsAppAdapter.instance) {
+      WhatsAppAdapter.instance = new WhatsAppAdapter();
+    }
+    return WhatsAppAdapter.instance;
+  }
+
+  public getChannelType(): NotificationChannel {
+    return 'whatsapp';
+  }
+
+  public canSendTo(recipient: RecipientInfo): boolean {
+    return (
+      !!recipient.phone && 
+      recipient.phone.length > 8 && 
+      this.client !== null && 
+      this.fromNumber !== ''
+    );
+  }
+
+// בקובץ WhatsAppAdapter.ts
+private formatPhoneNumber(phone: string): string {
+    // Clean everything except digits
+    let cleaned = phone.replace(/\D/g, '');
+    
+    // Add international prefix if needed
+    if (cleaned.startsWith('0')) {
+      cleaned = '972' + cleaned.substring(1);
+    }
+    
+    // Ensure the phone number has a plus prefix
+    if (!cleaned.startsWith('+')) {
+      cleaned = '+' + cleaned;
+    }
+    
+    return cleaned;
+  }
+  
+  public async send(recipient: RecipientInfo, content: NotificationContent): Promise<boolean> {
+    console.log('WhatsApp adapter - attempting to send message', {
+      recipientPhone: recipient.phone,
+      fromNumber: this.fromNumber,
+      hasClient: !!this.client
+    });
+    
+    if (!this.client) {
+      console.error('WhatsApp client not initialized');
+      return false;
+    }
+  
+    if (!recipient.phone) {
+      console.error('Recipient phone number is missing');
+      return false;
+    }
+  
+    try {
+      // Ensure phone number is in the correct format
+      const toNumber = this.formatPhoneNumber(recipient.phone);
+      
+      // Make sure fromNumber has the whatsapp: prefix
+      const fromWhatsApp = this.fromNumber.startsWith('whatsapp:') 
+        ? this.fromNumber 
+        : `whatsapp:${this.fromNumber}`;
+      
+      console.log(`Attempting to send WhatsApp message from: ${fromWhatsApp} to: whatsapp:${toNumber}`);
+      
+      // Send the message via Twilio
+      const message = await this.client.messages.create({
+        body: content.body,
+        from: fromWhatsApp,
+        to: `whatsapp:${toNumber}`
+      });
+  
+      console.log('WhatsApp message sent successfully:', {
+        messageId: message.sid,
+        status: message.status,
+        to: toNumber,
+        subject: content.subject
+      });
+  
+      return true;
+    } catch (error) {
+      console.error('Error sending WhatsApp message:', {
+        error: error instanceof Error ? {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        } : error,
+        recipient: recipient.phone,
+        subject: content.subject
+      });
+      return false;
+    }
+  }
+}
+
+export const whatsAppAdapter = WhatsAppAdapter.getInstance();
+
+==================================================
 Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\matchmaker\suggestions\services\suggestions\StatusTransitionService.ts:
 ==================================================
 import { MatchSuggestionStatus, User, MatchSuggestion, Profile } from "@prisma/client";
 import prisma from "@/lib/prisma";
-import { EmailService } from "../email/EmailService";
+import { initNotificationService } from "../notification/initNotifications";
+import { emailService } from "../email/EmailService";
+
+// Initialize the notification service
+const notificationService = initNotificationService();
 
 type UserWithProfile = User & {
   profile: Profile | null;
@@ -7654,14 +8349,18 @@ export class StatusTransitionService {
       return updated;
     });
 
-    // Send email notifications using EmailService
+    // Send notifications through both channels
     try {
-      await EmailService.getInstance().handleSuggestionStatusChange(
-        updatedSuggestion,
-      );
+      // Keep the legacy email service for backward compatibility
+      await emailService.handleSuggestionStatusChange(updatedSuggestion);
+      
+      // Also use the new notification service which supports multiple channels
+      await notificationService.handleSuggestionStatusChange(updatedSuggestion, {
+        channels: ['email', 'whatsapp']
+      });
     } catch (error) {
       // Log error but don't fail the transition
-      console.error('Error sending status transition emails:', error);
+      console.error('Error sending status transition notifications:', error);
     }
 
     return updatedSuggestion;

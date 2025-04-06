@@ -122,6 +122,12 @@ export default function MatchmakerDashboard() {
     }
   };
 
+  useEffect(() => {
+    if (confirmAction?.type === "delete" && !showConfirmDialog) {
+      // בדיקה אם דיאלוג האישור נסגר אחרי פעולת מחיקה - ריענון הנתונים
+      fetchSuggestions();
+    }
+  }, [showConfirmDialog, confirmAction]);
   // Initial data fetch
   useEffect(() => {
     fetchSuggestions();
@@ -156,12 +162,29 @@ export default function MatchmakerDashboard() {
   };
 
   // Handle suggestion deletion
-  const handleSuggestionDeleted = useCallback((deletedId: string) => {
-    setSuggestions((prevSuggestions) =>
-      prevSuggestions.filter((suggestion) => suggestion.id !== deletedId)
-    );
-    toast.success("ההצעה נמחקה בהצלחה");
-  }, []);
+  const handleSuggestionDeleted = useCallback(
+    (deletedId: string) => {
+      // הסרת ההצעה מהמצב המקומי
+      setSuggestions((prevSuggestions) =>
+        prevSuggestions.filter((suggestion) => suggestion.id !== deletedId)
+      );
+
+      // סגירת כל חלונות המודאל הפתוחים במידת הצורך
+      if (selectedSuggestion?.id === deletedId) {
+        setSelectedSuggestion(null);
+      }
+      if (showEditForm && selectedSuggestion?.id === deletedId) {
+        setShowEditForm(false);
+      }
+      if (showMessageForm && selectedSuggestion?.id === deletedId) {
+        setShowMessageForm(false);
+      }
+
+      // הוספת הודעת הצלחה (אופציונלי - כבר נוסף בhandleConfirmAction)
+      // toast.success("ההצעה נמחקה בהצלחה");
+    },
+    [selectedSuggestion, showEditForm, showMessageForm]
+  );
 
   // Export suggestions to CSV
   const handleExport = async () => {
@@ -217,10 +240,13 @@ export default function MatchmakerDashboard() {
         setSelectedSuggestion(suggestion);
         break;
       case "delete":
+        // הגדר את מידע הפעולה
         setConfirmAction({
           type: "delete",
           data: { suggestionId: suggestion.id },
         });
+
+        // הצג את הדיאלוג
         setShowConfirmDialog(true);
         break;
       case "contact":
@@ -593,7 +619,7 @@ export default function MatchmakerDashboard() {
   };
 
   // Share contact details function
-  const shareContactDetails = async (suggestionId: string) => {
+  /*   const shareContactDetails = async (suggestionId: string) => {
     try {
       const response = await fetch(
         `/api/matchmaker/suggestions/${suggestionId}/share-contact`,
@@ -618,43 +644,38 @@ export default function MatchmakerDashboard() {
         }`
       );
     }
-  };
+  }; */
 
   // Handle confirm dialog actions
+
   const handleConfirmAction = async () => {
     if (!confirmAction) return;
 
     try {
       switch (confirmAction.type) {
         case "delete":
+          // קריאה לשרת
           const deleteResponse = await fetch(
-            `/api/suggestions/${confirmAction.data.suggestionId}/delete`,
+            `/api/matchmaker/suggestions/${confirmAction.data.suggestionId}/delete`,
             {
               method: "DELETE",
             }
           );
 
-          if (!deleteResponse.ok)
-            throw new Error("Failed to delete suggestion");
+          // בדיקת תשובה
+          if (!deleteResponse.ok) {
+            // טיפול בשגיאה
+          }
 
+          // עדכון UI
           handleSuggestionDeleted(confirmAction.data.suggestionId);
-          break;
-        case "contact":
-          await sendReminder(
-            confirmAction.data.suggestionId,
-            confirmAction.data.partyType || "both" // Provide a default value
-          );
-          break;
-        case "resend":
-          await resendSuggestion(confirmAction.data.suggestionId, "both");
-          break;
-        case "shareContacts":
-          await shareContactDetails(confirmAction.data.suggestionId);
+          toast.success("ההצעה נמחקה בהצלחה");
           break;
       }
     } catch (error) {
-      console.error(`Error processing ${confirmAction.type} action:`, error);
-      toast.error(`שגיאה בביצוע הפעולה: ${confirmAction.type}`);
+      // טיפול בשגיאות
+      console.error("שגיאה בתהליך המחיקה:", error);
+      toast.error("אירעה שגיאה בעת מחיקת ההצעה");
     } finally {
       setShowConfirmDialog(false);
       setConfirmAction(null);
@@ -1020,20 +1041,18 @@ export default function MatchmakerDashboard() {
       </Dialog>
 
       {/* Confirm Action Dialog */}
-      {showConfirmDialog && (
-        <AlertDialog>
+      {confirmAction && (
+        <AlertDialog
+          open={showConfirmDialog}
+          onOpenChange={setShowConfirmDialog}
+        >
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>האם את/ה בטוח/ה?</AlertDialogTitle>
               <AlertDialogDescription>
                 {confirmAction?.type === "delete" &&
                   "פעולה זו תמחק את ההצעה לצמיתות ולא ניתן יהיה לשחזר אותה."}
-                {confirmAction?.type === "contact" &&
-                  "האם לשלוח תזכורת למועמד לגבי ההצעה?"}
-                {confirmAction?.type === "resend" &&
-                  "האם לשלוח את ההצעה מחדש לשני הצדדים?"}
-                {confirmAction?.type === "shareContacts" &&
-                  "האם לשתף את פרטי הקשר בין שני הצדדים?"}
+                {/* תנאים אחרים כאן */}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -1041,10 +1060,7 @@ export default function MatchmakerDashboard() {
                 ביטול
               </AlertDialogCancel>
               <AlertDialogAction
-                onClick={() => {
-                  handleConfirmAction();
-                  setShowConfirmDialog(false);
-                }}
+                onClick={handleConfirmAction}
                 className={
                   confirmAction?.type === "delete"
                     ? "bg-red-600 hover:bg-red-700"

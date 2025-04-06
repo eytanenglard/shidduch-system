@@ -3,7 +3,11 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { UserRole, MatchSuggestionStatus } from "@prisma/client";
-import { EmailService } from "@/app/components/matchmaker/suggestions/services/email/EmailService";
+import { initNotificationService } from "@/app/components/matchmaker/suggestions/services/notification/initNotifications";
+import { NotificationContent } from "@/app/components/matchmaker/suggestions/services/notification/NotificationService";
+
+// Initialize the notification service
+const notificationService = initNotificationService();
 
 export async function POST(
   req: NextRequest,
@@ -12,7 +16,7 @@ export async function POST(
   try {
     const session = await getServerSession(authOptions);
     
-    // וידוא משתמש מחובר
+    // Verify user is logged in
     if (!session?.user) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
@@ -20,7 +24,7 @@ export async function POST(
       );
     }
 
-    // וידוא הרשאות שדכן
+    // Verify matchmaker permissions
     if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
       return NextResponse.json(
         { success: false, error: "Insufficient permissions" },
@@ -31,7 +35,7 @@ export async function POST(
     const suggestionId = params.id;
     const { partyType } = await req.json();
 
-    // וידוא קיום ההצעה
+    // Verify suggestion exists
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
       include: {
@@ -52,7 +56,7 @@ export async function POST(
       );
     }
 
-    // וידוא שדכן בעל הרשאות לשליחת תזכורות להצעה
+    // Verify matchmaker permissions for this suggestion
     if (
       suggestion.matchmakerId !== session.user.id &&
       session.user.role !== UserRole.ADMIN
@@ -63,33 +67,41 @@ export async function POST(
       );
     }
     
-    // בניית תוכן התזכורת בהתאם לסטטוס ההצעה
+    // Create reminder content based on suggestion status
     const subject = "תזכורת: הצעת שידוך ממתינה לתשובתך";
     
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
     const reviewUrl = `${baseUrl}/suggestions/${suggestionId}/review`;
     
-    // יצירת רשימת הודעות לשליחה
+    // Create list of messages to send
     let sentCount = 0;
     
-    // התאמת תוכן למצב ההצעה
+    // Create appropriate content for the reminder based on suggestion status
     if (partyType === "first" || partyType === "both") {
       if (suggestion.status === MatchSuggestionStatus.PENDING_FIRST_PARTY) {
-        const emailService = EmailService.getInstance();
-        const htmlContent = `
-          <div dir="rtl">
-            <h2>שלום ${suggestion.firstParty.firstName},</h2>
-            <p>זוהי תזכורת ידידותית שהצעת שידוך מאת ${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName} ממתינה לתשובתך.</p>
-            <p>לצפייה בפרטי ההצעה ומענה: <a href="${reviewUrl}">לחץ כאן</a></p>
-            <p>בברכה,<br>מערכת השידוכים</p>
-          </div>
-        `;
-        
-        await emailService.sendEmail({
-          to: suggestion.firstParty.email,
+        const notificationContent: NotificationContent = {
           subject,
-          html: htmlContent
-        });
+          body: `שלום ${suggestion.firstParty.firstName},\n\nזוהי תזכורת ידידותית שהצעת שידוך מאת ${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName} ממתינה לתשובתך.\n\nלצפייה בפרטי ההצעה: ${reviewUrl}\n\nבברכה,\nמערכת השידוכים`,
+          htmlBody: `
+            <div dir="rtl">
+              <h2>שלום ${suggestion.firstParty.firstName},</h2>
+              <p>זוהי תזכורת ידידותית שהצעת שידוך מאת ${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName} ממתינה לתשובתך.</p>
+              <p>לצפייה בפרטי ההצעה ומענה: <a href="${reviewUrl}">לחץ כאן</a></p>
+              <p>בברכה,<br>מערכת השידוכים</p>
+            </div>
+          `
+        };
+        
+        // Send notification via multiple channels
+        await notificationService.sendNotification(
+          {
+            email: suggestion.firstParty.email,
+            phone: suggestion.firstParty.phone || undefined,
+            name: `${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName}`
+          },
+          notificationContent,
+          { channels: ['email', 'whatsapp'] }
+        );
         
         sentCount++;
       }
@@ -97,27 +109,35 @@ export async function POST(
     
     if (partyType === "second" || partyType === "both") {
       if (suggestion.status === MatchSuggestionStatus.PENDING_SECOND_PARTY) {
-        const emailService = EmailService.getInstance();
-        const htmlContent = `
-          <div dir="rtl">
-            <h2>שלום ${suggestion.secondParty.firstName},</h2>
-            <p>זוהי תזכורת ידידותית שהצעת שידוך מאת ${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName} ממתינה לתשובתך.</p>
-            <p>לצפייה בפרטי ההצעה ומענה: <a href="${reviewUrl}">לחץ כאן</a></p>
-            <p>בברכה,<br>מערכת השידוכים</p>
-          </div>
-        `;
-        
-        await emailService.sendEmail({
-          to: suggestion.secondParty.email,
+        const notificationContent: NotificationContent = {
           subject,
-          html: htmlContent
-        });
+          body: `שלום ${suggestion.secondParty.firstName},\n\nזוהי תזכורת ידידותית שהצעת שידוך מאת ${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName} ממתינה לתשובתך.\n\nלצפייה בפרטי ההצעה: ${reviewUrl}\n\nבברכה,\nמערכת השידוכים`,
+          htmlBody: `
+            <div dir="rtl">
+              <h2>שלום ${suggestion.secondParty.firstName},</h2>
+              <p>זוהי תזכורת ידידותית שהצעת שידוך מאת ${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName} ממתינה לתשובתך.</p>
+              <p>לצפייה בפרטי ההצעה ומענה: <a href="${reviewUrl}">לחץ כאן</a></p>
+              <p>בברכה,<br>מערכת השידוכים</p>
+            </div>
+          `
+        };
+        
+        // Send notification via multiple channels
+        await notificationService.sendNotification(
+          {
+            email: suggestion.secondParty.email,
+            phone: suggestion.secondParty.phone || undefined,
+            name: `${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName}`
+          },
+          notificationContent,
+          { channels: ['email', 'whatsapp'] }
+        );
         
         sentCount++;
       }
     }
     
-    // בדיקה שנשלח לפחות אימייל אחד
+    // Check if at least one message was sent
     if (sentCount === 0) {
       return NextResponse.json({
         success: false,
@@ -125,7 +145,7 @@ export async function POST(
       }, { status: 400 });
     }
 
-    // עדכון הפעילות האחרונה בהצעה
+    // Update the last activity timestamp in the suggestion
     await prisma.matchSuggestion.update({
       where: { id: suggestionId },
       data: {
@@ -133,11 +153,11 @@ export async function POST(
       },
     });
 
-    // רישום התזכורת בהיסטוריה
+    // Log the reminder to history
     await prisma.suggestionStatusHistory.create({
       data: {
         suggestionId,
-        status: suggestion.status, // לא משנים סטטוס, רק מתעדים תזכורת
+        status: suggestion.status, // Don't change status, just log the reminder
         notes: `תזכורת נשלחה ל${partyType === "first" ? "צד ראשון" : partyType === "second" ? "צד שני" : "שני הצדדים"} על ידי ${session.user.firstName} ${session.user.lastName}`,
       },
     });

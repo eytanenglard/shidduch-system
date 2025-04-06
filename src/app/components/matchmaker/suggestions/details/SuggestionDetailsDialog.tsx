@@ -1618,13 +1618,13 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                       מחיקת ההצעה לצמיתות מהמערכת
                     </p>
                     <Button
-                      variant="destructive"
-                      className="w-full"
+                      variant="outline"
+                      className="border-red-200 hover:bg-red-50 text-red-600"
                       onClick={() =>
                         onAction("delete", { suggestionId: suggestion.id })
                       }
                     >
-                      <Trash2 className="w-4 h-4 ml-2" />
+                      <Trash2 className="w-4 h-4 ml-1" />
                       מחק הצעה
                     </Button>
                   </div>

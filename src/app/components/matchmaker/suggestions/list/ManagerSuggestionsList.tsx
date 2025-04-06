@@ -102,7 +102,7 @@ const ManagerSuggestionsList: React.FC<ManagerSuggestionsListProps> = ({
 
     try {
       const response = await fetch(
-        `/api/suggestions/${suggestionToDelete}/delete`,
+        `/api/matchmaker/suggestions/${suggestionToDelete}/delete`,
         {
           method: "DELETE",
         }

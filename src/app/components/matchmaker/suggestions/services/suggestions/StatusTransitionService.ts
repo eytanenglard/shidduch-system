@@ -1,6 +1,10 @@
 import { MatchSuggestionStatus, User, MatchSuggestion, Profile } from "@prisma/client";
 import prisma from "@/lib/prisma";
-import { EmailService } from "../email/EmailService";
+import { initNotificationService } from "../notification/initNotifications";
+import { emailService } from "../email/EmailService";
+
+// Initialize the notification service
+const notificationService = initNotificationService();
 
 type UserWithProfile = User & {
   profile: Profile | null;
@@ -80,14 +84,18 @@ export class StatusTransitionService {
       return updated;
     });
 
-    // Send email notifications using EmailService
+    // Send notifications through both channels
     try {
-      await EmailService.getInstance().handleSuggestionStatusChange(
-        updatedSuggestion,
-      );
+      // Keep the legacy email service for backward compatibility
+      await emailService.handleSuggestionStatusChange(updatedSuggestion);
+      
+      // Also use the new notification service which supports multiple channels
+      await notificationService.handleSuggestionStatusChange(updatedSuggestion, {
+        channels: ['email', 'whatsapp']
+      });
     } catch (error) {
       // Log error but don't fail the transition
-      console.error('Error sending status transition emails:', error);
+      console.error('Error sending status transition notifications:', error);
     }
 
     return updatedSuggestion;
