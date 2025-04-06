@@ -1,6 +1,4 @@
-// Full path: src/app/components/suggestions/inquiries/InquiryThreadView.tsx
-
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react"; // Import useCallback
 import {
   Card,
   CardContent,
@@ -19,6 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
+// Interface Inquiry remains the same...
 interface Inquiry {
   id: string;
   suggestionId: string;
@@ -62,7 +61,17 @@ const InquiryThreadView: React.FC<InquiryThreadViewProps> = ({
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchInquiries = async () => {
+  // Wrap fetchInquiries in useCallback
+  // It depends on suggestionId, so list suggestionId as its dependency.
+  const fetchInquiries = useCallback(async () => {
+    // Check suggestionId inside useCallback or rely on useEffect condition
+    if (!suggestionId) {
+      // Optionally clear inquiries or handle appropriately if suggestionId becomes null/undefined
+      setInquiries([]);
+      setIsLoading(false);
+      return;
+    }
+
     try {
       setIsLoading(true);
       setError(null);
@@ -72,31 +81,38 @@ const InquiryThreadView: React.FC<InquiryThreadViewProps> = ({
       );
 
       if (!response.ok) {
-        throw new Error("Failed to fetch inquiries");
+        const errorData = await response.json().catch(() => ({})); // Try to get error details
+        console.error("Failed to fetch inquiries:", response.status, errorData);
+        throw new Error(`Failed to fetch inquiries (${response.status})`);
       }
 
       const data = await response.json();
-      setInquiries(data.inquiries || []);
+      // Ensure data.inquiries is always an array
+      setInquiries(Array.isArray(data.inquiries) ? data.inquiries : []);
     } catch (error) {
       console.error("Error fetching inquiries:", error);
       setError("אירעה שגיאה בטעינת השאלות");
+      // Optionally show a toast notification for fetch errors too
+      // toast.error("אירעה שגיאה בטעינת השאלות");
     } finally {
       setIsLoading(false);
     }
-  };
+    // Add suggestionId as a dependency for useCallback
+  }, [suggestionId]);
 
   useEffect(() => {
-    if (suggestionId) {
-      fetchInquiries();
-    }
-  }, [suggestionId]);
+    // Now the effect depends on the memoized fetchInquiries function.
+    // It will run initially and whenever fetchInquiries changes (i.e., when suggestionId changes).
+    fetchInquiries();
+    // Add the memoized fetchInquiries to the dependency array.
+  }, [fetchInquiries]);
 
   const handleSendQuestion = async () => {
     if (!newQuestion.trim()) return;
 
     try {
       setIsSending(true);
-      setError(null);
+      setError(null); // Clear previous errors
 
       const response = await fetch(
         `/api/suggestions/${suggestionId}/inquiries`,
@@ -108,30 +124,41 @@ const InquiryThreadView: React.FC<InquiryThreadViewProps> = ({
       );
 
       if (!response.ok) {
-        throw new Error("Failed to send inquiry");
+        const errorData = await response.json().catch(() => ({})); // Try to get error details
+        console.error("Failed to send inquiry:", response.status, errorData);
+        throw new Error(`Failed to send inquiry (${response.status})`);
       }
 
-      // Refresh the inquiries list
+      // Refresh the inquiries list by calling the memoized fetch function
       await fetchInquiries();
-      setNewQuestion("");
+      setNewQuestion(""); // Clear input only on success
       toast.success("השאלה נשלחה בהצלחה");
     } catch (error) {
       console.error("Error sending inquiry:", error);
-      setError("אירעה שגיאה בשליחת השאלה");
+      setError("אירעה שגיאה בשליחת השאלה"); // Set error state for potential display
       toast.error("אירעה שגיאה בשליחת השאלה");
     } finally {
       setIsSending(false);
     }
   };
 
+  // getInitials, formatDate, getStatusLabel remain the same...
   const getInitials = (name: string) => {
-    const parts = name.split(" ");
-    if (parts.length === 1) return parts[0].charAt(0);
-    return `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(0)}`;
+    const parts = name?.split(" ") || ["?"]; // Handle potential null/undefined name
+    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+    return `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(
+      0
+    )}`.toUpperCase();
   };
 
-  const formatDate = (date: string | Date) => {
-    return format(new Date(date), "dd בMMMM yyyy, HH:mm", { locale: he });
+  const formatDate = (date: string | Date | null) => {
+    if (!date) return ""; // Handle null date
+    try {
+      return format(new Date(date), "dd בMMMM yyyy, HH:mm", { locale: he });
+    } catch (e) {
+      console.error("Error formatting date:", date, e);
+      return "תאריך לא תקין"; // Fallback for invalid date
+    }
   };
 
   const getStatusLabel = (status: Inquiry["status"]) => {
@@ -139,55 +166,102 @@ const InquiryThreadView: React.FC<InquiryThreadViewProps> = ({
       case "PENDING":
         return {
           label: "ממתין לתשובה",
-          className: "bg-yellow-100 text-yellow-800",
+          className: "border-yellow-300 bg-yellow-50 text-yellow-700", // Adjusted colors for better contrast/style
         };
       case "ANSWERED":
-        return { label: "נענה", className: "bg-green-100 text-green-800" };
+        return {
+          label: "נענה",
+          className: "border-green-300 bg-green-50 text-green-700",
+        };
       case "CLOSED":
-        return { label: "סגור", className: "bg-gray-100 text-gray-800" };
+        return {
+          label: "סגור",
+          className: "border-gray-300 bg-gray-50 text-gray-600",
+        };
       default:
-        return { label: status, className: "bg-gray-100 text-gray-800" };
+        // Handle potential unknown status gracefully
+        const statusStr = String(status);
+        return {
+          label: statusStr,
+          className: "border-gray-300 bg-gray-50 text-gray-600",
+        };
     }
   };
 
+  // JSX structure remains largely the same
   return (
-    <Card className={cn("bg-white shadow-sm", className)}>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <MessageCircle className="w-5 h-5" />
+    <Card className={cn("bg-white shadow-sm flex flex-col", className)}>
+      <CardHeader className="pb-3 border-b">
+        {" "}
+        {/* Added border */}
+        <CardTitle className="text-lg flex items-center gap-2 text-gray-800">
+          {" "}
+          {/* Adjusted text color */}
+          <MessageCircle className="w-5 h-5 text-primary" />{" "}
+          {/* Use primary color */}
           שאלות לשדכן
         </CardTitle>
       </CardHeader>
 
-      <CardContent className="pb-0">
+      {/* Make content area scrollable, not the whole card */}
+      <CardContent className="flex-1 py-4 px-4 space-y-6 overflow-y-auto max-h-[400px]">
+        {" "}
+        {/* Adjusted padding and added scroll */}
         {isLoading ? (
-          <div className="space-y-4">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="flex gap-3">
-                <Skeleton className="h-10 w-10 rounded-full" />
-                <div className="space-y-2 flex-1">
-                  <Skeleton className="h-4 w-28" />
-                  <Skeleton className="h-16 w-full" />
+          <div className="space-y-4 p-4">
+            {" "}
+            {/* Added padding for skeleton */}
+            {Array.from({ length: 2 }).map(
+              (
+                _,
+                i // Reduced skeleton count slightly
+              ) => (
+                <div key={i} className="flex gap-3">
+                  <Skeleton className="h-10 w-10 rounded-full" />
+                  <div className="space-y-2 flex-1">
+                    <Skeleton className="h-4 w-28" />
+                    <Skeleton className="h-10 w-full" /> {/* Adjusted height */}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            )}
           </div>
         ) : error ? (
-          <div className="text-center text-red-500 py-4">{error}</div>
+          <div className="text-center text-red-600 py-4 px-4 flex flex-col items-center">
+            {" "}
+            {/* Adjusted text color */}
+            <MessageCircle className="mx-auto h-10 w-10 mb-2 opacity-50 text-red-500" />
+            <p className="font-medium">שגיאה</p>
+            <p className="text-sm">{error}</p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={fetchInquiries}
+              className="mt-4"
+            >
+              נסה שוב
+            </Button>
+          </div>
         ) : inquiries.length === 0 ? (
-          <div className="text-center text-gray-500 py-8">
+          <div className="text-center text-gray-500 py-8 flex flex-col items-center">
             <MessageCircle className="mx-auto h-12 w-12 mb-3 opacity-20" />
-            <p>אין שאלות בשרשור זה</p>
+            <p className="font-medium">אין עדיין שאלות</p>
             {showComposer && (
-              <p className="text-sm mt-2">
-                התחל את השיחה על ידי שליחת שאלה לשדכן
+              <p className="text-sm mt-1 text-gray-400">
+                תוכל לשאול את השדכן שאלה כאן למטה.
               </p>
             )}
           </div>
         ) : (
-          <div className="space-y-6 max-h-[400px] overflow-y-auto">
+          // Removed max-h and overflow from here, moved to CardContent
+          <div className="space-y-6">
             {inquiries.map((inquiry) => {
-              const isFromCurrentUser = inquiry.fromUserId === userId;
+              const isMyQuestion = inquiry.fromUserId === userId; // User asking the question
+              // Determine alignment based on who *asked* the original question
+              const alignRight = isMyQuestion; // Align right if the current user asked the question
+
+              const asker = inquiry.fromUser;
+              const responder = inquiry.toUser; // Usually the matchmaker
               const statusInfo = getStatusLabel(inquiry.status);
 
               return (
@@ -195,83 +269,107 @@ const InquiryThreadView: React.FC<InquiryThreadViewProps> = ({
                   key={inquiry.id}
                   className={cn(
                     "flex gap-3",
-                    isFromCurrentUser ? "flex-row" : "flex-row-reverse"
+                    alignRight ? "flex-row-reverse" : "flex-row" // Align based on asker
                   )}
                 >
-                  <Avatar className="h-10 w-10 mt-1 flex-shrink-0">
-                    <AvatarFallback>
-                      {isFromCurrentUser
-                        ? getInitials(
-                            `${inquiry.fromUser.firstName} ${inquiry.fromUser.lastName}`
-                          )
-                        : getInitials(
-                            `${inquiry.toUser.firstName} ${inquiry.toUser.lastName}`
-                          )}
+                  {/* Avatar of the person who asked the question */}
+                  <Avatar className="h-9 w-9 mt-1 flex-shrink-0">
+                    <AvatarFallback className="text-xs">
+                      {getInitials(`${asker.firstName} ${asker.lastName}`)}
                     </AvatarFallback>
                   </Avatar>
 
-                  <div
-                    className={cn(
-                      "flex-1 space-y-1",
-                      isFromCurrentUser ? "text-right" : "text-left"
-                    )}
-                  >
-                    <div className="flex items-center justify-between">
+                  <div className={cn("flex-1 space-y-1")}>
+                    {/* Question Section */}
+                    <div className="flex items-center justify-between flex-wrap gap-x-2 gap-y-1">
                       <div
                         className={cn(
                           "flex items-center gap-2",
-                          isFromCurrentUser ? "flex-row-reverse" : "flex-row"
+                          alignRight ? "flex-row-reverse" : "flex-row"
                         )}
                       >
-                        <span className="font-medium text-sm">
-                          {isFromCurrentUser
-                            ? `${inquiry.fromUser.firstName} ${inquiry.fromUser.lastName}`
-                            : `${inquiry.toUser.firstName} ${inquiry.toUser.lastName}`}
+                        <span className="font-medium text-sm text-gray-800">
+                          {`${asker.firstName} ${asker.lastName}`}
                         </span>
                         <Badge
                           variant="outline"
-                          className={cn("text-xs", statusInfo.className)}
+                          className={cn(
+                            "text-xs px-1.5 py-0.5 font-normal",
+                            statusInfo.className
+                          )}
                         >
                           {statusInfo.label}
                         </Badge>
                       </div>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-gray-400">
                         {formatDate(inquiry.createdAt)}
                       </span>
                     </div>
-
                     <div
                       className={cn(
-                        "p-3 rounded-lg",
-                        isFromCurrentUser
-                          ? "bg-blue-50 ml-auto"
-                          : "bg-gray-50 mr-auto"
+                        "p-3 rounded-lg max-w-[85%]", // Limit width
+                        alignRight
+                          ? "bg-blue-50 text-blue-900 ml-auto text-right" // Asker's question style
+                          : "bg-gray-100 text-gray-800 mr-auto text-left" // Other person's question style
                       )}
+                      dir="auto" // Auto direction based on text content
                     >
-                      <p className="whitespace-pre-wrap">{inquiry.question}</p>
+                      <p className="whitespace-pre-wrap text-sm">
+                        {inquiry.question}
+                      </p>
                     </div>
 
-                    {inquiry.answer && inquiry.status === "ANSWERED" && (
-                      <div className="mt-3">
-                        <div className="flex items-center justify-between mt-2 mb-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-500">
-                              {formatDate(inquiry.answeredAt!)}
+                    {/* Answer Section (if exists) */}
+                    {inquiry.answer && inquiry.answeredAt && (
+                      <div className="mt-2 flex gap-3">
+                        {/* Answer Avatar (Matchmaker/Responder) - Aligned opposite to question */}
+                        {!alignRight && (
+                          <div className="w-9 flex-shrink-0"></div>
+                        )}{" "}
+                        {/* Spacer */}
+                        <Avatar className="h-9 w-9 mt-1 flex-shrink-0">
+                          <AvatarFallback className="text-xs bg-green-100 text-green-700">
+                            {getInitials(
+                              `${responder.firstName} ${responder.lastName}`
+                            )}
+                          </AvatarFallback>
+                        </Avatar>
+                        {alignRight && (
+                          <div className="w-9 flex-shrink-0"></div>
+                        )}{" "}
+                        {/* Spacer */}
+                        {/* Answer Content */}
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between flex-wrap gap-x-2 gap-y-1">
+                            {/* Answer Meta - aligned opposite */}
+                            <div
+                              className={cn(
+                                "flex items-center gap-2",
+                                !alignRight ? "flex-row-reverse" : "flex-row"
+                              )}
+                            >
+                              <span className="font-medium text-sm text-gray-800">
+                                {`${responder.firstName} ${responder.lastName}`}{" "}
+                                (תשובה)
+                              </span>
+                            </div>
+                            <span className="text-xs text-gray-400">
+                              {formatDate(inquiry.answeredAt)}
                             </span>
                           </div>
-                          <span className="font-medium text-sm">
-                            תשובת השדכן
-                          </span>
-                        </div>
-                        <div
-                          className={cn(
-                            "p-3 rounded-lg bg-green-50",
-                            isFromCurrentUser ? "mr-auto" : "ml-auto"
-                          )}
-                        >
-                          <p className="whitespace-pre-wrap">
-                            {inquiry.answer}
-                          </p>
+                          <div
+                            className={cn(
+                              "p-3 rounded-lg bg-green-50 text-green-900 max-w-[85%]", // Limit width
+                              !alignRight
+                                ? "ml-auto text-right"
+                                : "mr-auto text-left" // Align answer opposite to question
+                            )}
+                            dir="auto" // Auto direction
+                          >
+                            <p className="whitespace-pre-wrap text-sm">
+                              {inquiry.answer}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     )}
@@ -284,19 +382,23 @@ const InquiryThreadView: React.FC<InquiryThreadViewProps> = ({
       </CardContent>
 
       {showComposer && (
-        <CardFooter className="flex-col space-y-2 pt-4 pb-4">
+        <CardFooter className="flex-col space-y-2 pt-4 pb-4 border-t bg-gray-50">
+          {" "}
+          {/* Added border and subtle bg */}
           <Textarea
-            placeholder="כתוב את שאלתך לשדכן..."
+            placeholder="כתוב כאן את שאלתך לשדכן..."
             value={newQuestion}
             onChange={(e) => setNewQuestion(e.target.value)}
-            className="text-right"
+            className="bg-white text-right" // Ensure white background for textarea
             rows={3}
+            disabled={isSending} // Disable textarea while sending
           />
           <div className="flex justify-end w-full">
             <Button
               onClick={handleSendQuestion}
-              disabled={!newQuestion.trim() || isSending}
+              disabled={!newQuestion.trim() || isSending || isLoading} // Also disable if loading inquiries
               className="gap-2"
+              size="sm" // Slightly smaller button
             >
               {isSending ? (
                 <>

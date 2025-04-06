@@ -6,10 +6,8 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { UserRole, MatchSuggestionStatus } from "@prisma/client";
 import { StatusTransitionService } from "@/app/components/matchmaker/suggestions/services/suggestions/StatusTransitionService";
-import { initNotificationService } from "@/app/components/matchmaker/suggestions/services/notification/initNotifications";
 
 // Initialize the notification service
-const notificationService = initNotificationService();
 
 export async function POST(
   req: NextRequest,
