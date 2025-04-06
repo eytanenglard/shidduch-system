@@ -67,21 +67,6 @@ const inquiry = await prisma.suggestionInquiry.create({
     }
   });
 
-    // Send email notification to matchmaker
-    const emailTemplate = {
-      subject: `שאלה חדשה על הצעת שידוך`,
-      body: `
-        <div dir="rtl">
-          <h2>שלום ${suggestion.matchmaker.firstName},</h2>
-          <p>התקבלה שאלה חדשה על הצעת השידוך בין ${suggestion.firstParty.firstName} ל${suggestion.secondParty.firstName}.</p>
-          <div style="background: #f5f5f5; padding: 15px; margin: 15px 0; border-radius: 5px;">
-            <p style="margin: 0;">${question}</p>
-          </div>
-          <p>לצפייה בפרטים נוספים ומענה, היכנס/י למערכת.</p>
-        </div>
-      `,
-    };
-
 /*     await EmailService.getInstance().sendEmail({
       to: suggestion.matchmaker.email,
       subject: emailTemplate.subject,
