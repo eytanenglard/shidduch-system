@@ -51,6 +51,7 @@ export class NotificationService {
 
   public registerAdapter(adapter: NotificationAdapter): void {
     this.adapters.set(adapter.getChannelType(), adapter);
+    console.log(`Registered ${adapter.getChannelType()} adapter`);
   }
 
   public async sendNotification(
@@ -59,6 +60,7 @@ export class NotificationService {
     options: NotificationOptions
   ): Promise<Record<NotificationChannel, boolean>> {
     const results: Record<NotificationChannel, boolean> = {} as Record<NotificationChannel, boolean>;
+    console.log(`Attempting to send notification to ${recipient.name} via channels:`, options.channels);
 
     for (const channel of options.channels) {
       const adapter = this.adapters.get(channel);
@@ -75,7 +77,9 @@ export class NotificationService {
       }
 
       try {
+        console.log(`Sending ${channel} notification to ${recipient.name}`);
         results[channel] = await adapter.send(recipient, content);
+        console.log(`${channel} notification sent successfully: ${results[channel]}`);
       } catch (error) {
         console.error(`Error sending notification via ${channel}:`, error);
         results[channel] = false;
@@ -90,21 +94,29 @@ export class NotificationService {
     suggestion: SuggestionWithParties,
     options: Partial<NotificationOptions> = {}
   ): Promise<void> {
-    const templateContent = this.getSuggestionTemplate(suggestion);
-    if (!templateContent) return;
+    console.log(`Processing notifications for suggestion ${suggestion.id} with status ${suggestion.status}`);
+    
+    const templateContent = this.getSuggestionTemplate(suggestion, options.customMessage);
+    if (!templateContent) {
+      console.log(`No template found for status ${suggestion.status} - skipping notification`);
+      return;
+    }
   
     const recipientsWithChannels = this.getRecipientsForSuggestion(suggestion);
+    console.log(`Found ${recipientsWithChannels.length} potential recipients`);
   
     for (const { recipient, preferredChannels } of recipientsWithChannels) {
       // Filter recipients based on notifyParties if provided
       if (options.notifyParties) {
         const recipientType = this.getRecipientType(recipient, suggestion);
         if (!recipientType || !options.notifyParties.includes(recipientType)) {
-          continue; // Skip this recipient
+          console.log(`Skipping recipient ${recipient.name} (${recipientType}) - not in notifyParties`, options.notifyParties);
+          continue;
         }
       }
       
       const channelsToUse = options.channels || preferredChannels || ['email'];
+      console.log(`Sending notification to ${recipient.name} via channels:`, channelsToUse);
       
       await this.sendNotification(
         recipient,
@@ -112,27 +124,49 @@ export class NotificationService {
         { ...options, channels: channelsToUse }
       );
     }
-  }
-// Helper method to determine recipient type
-private getRecipientType(
-  recipient: RecipientInfo, 
-  suggestion: SuggestionWithParties
-): 'first' | 'second' | 'matchmaker' | null {
-  if (recipient.email === suggestion.firstParty.email) {
-    return 'first';
-  } else if (recipient.email === suggestion.secondParty.email) {
-    return 'second';
-  } else if (recipient.email === suggestion.matchmaker.email) {
-    return 'matchmaker';
-  }
-  return null;
-}
-  private getSuggestionTemplate(suggestion: SuggestionWithParties): NotificationContent | null {
-    // Template similar to what you have in EmailService
-    // but adapted for multi-channel (separating HTML from plain text)
     
+    console.log(`Finished processing notifications for suggestion ${suggestion.id}`);
+  }
+
+  // Helper method to determine recipient type
+  private getRecipientType(
+    recipient: RecipientInfo, 
+    suggestion: SuggestionWithParties
+  ): 'first' | 'second' | 'matchmaker' | null {
+    if (recipient.email === suggestion.firstParty.email) {
+      return 'first';
+    } else if (recipient.email === suggestion.secondParty.email) {
+      return 'second';
+    } else if (recipient.email === suggestion.matchmaker.email) {
+      return 'matchmaker';
+    }
+    return null;
+  }
+
+  private getSuggestionTemplate(
+    suggestion: SuggestionWithParties,
+    customMessage?: string
+  ): NotificationContent | null {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
     
+    // If there's a custom message, use it instead of the template
+    if (customMessage) {
+      const reviewUrl = `${baseUrl}/suggestions/${suggestion.id}/review`;
+      return {
+        subject: "עדכון בהצעת שידוך",
+        body: `שלום,\n\n${customMessage}\n\nלצפייה בפרטי ההצעה: ${reviewUrl}\n\nבברכה,\nמערכת השידוכים`,
+        htmlBody: `
+          <div dir="rtl">
+            <h2>שלום,</h2>
+            <p>${customMessage}</p>
+            <p>לצפייה בפרטי ההצעה: <a href="${reviewUrl}">לחץ כאן</a></p>
+            <p>בברכה,<br>מערכת השידוכים</p>
+          </div>
+        `
+      };
+    }
+    
+    // Otherwise use the template based on status
     switch (suggestion.status) {
       case MatchSuggestionStatus.PENDING_FIRST_PARTY:
         return {
@@ -230,6 +264,8 @@ private getRecipientType(
         };
 
       default:
+        // For other statuses, return null to skip notification
+        console.log(`No template defined for status: ${suggestion.status}`);
         return null;
     }
   }
@@ -242,10 +278,8 @@ private getRecipientType(
       recipient: RecipientInfo;
       preferredChannels: NotificationChannel[];
     }> = [];
-
-    // Logic to determine recipients based on suggestion status
-    // Similar to what's in getRecipientsByStatus in EmailService
     
+    // Logic to determine recipients based on suggestion status
     switch (suggestion.status) {
       case MatchSuggestionStatus.DRAFT:
         recipients.push({

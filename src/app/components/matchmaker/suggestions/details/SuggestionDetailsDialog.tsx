@@ -384,40 +384,6 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
           statusChangeNote || "ללא הערות"
         }`
       );
-
-      // קריאה לנתיב ה-API הנכון עם הפרמטרים המתאימים
-      const response = await fetch(
-        `/api/matchmaker/suggestions/${suggestion.id}/status`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            status: newStatus,
-            notes:
-              statusChangeNote ||
-              `סטטוס שונה ל-${getAllStatusLabels()[newStatus]}`,
-          }),
-        }
-      );
-
-      // בדיקת השגיאות בפורמט מפורט יותר
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Server response:", errorData);
-        throw new Error(
-          errorData.error ||
-            `Failed to update status: ${response.status} ${response.statusText}`
-        );
-      }
-
-      const responseData = await response.json();
-      console.log("Status update response:", responseData);
-
-      // עדכון הצליח - הקפצת הודעת הצלחה
-      toast.success("סטטוס ההצעה עודכן בהצלחה");
-
       // עדכון הקומפוננטה ההורה
       onAction("changeStatus", {
         suggestionId: suggestion.id,

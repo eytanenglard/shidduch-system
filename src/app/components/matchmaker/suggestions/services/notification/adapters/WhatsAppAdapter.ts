@@ -100,29 +100,35 @@ export class WhatsAppAdapter implements NotificationAdapter {
       // The fromNumber must be formatted exactly like this for WhatsApp
       const fromWhatsApp = `whatsapp:${this.fromNumber.startsWith('+') ? this.fromNumber : '+' + this.fromNumber}`;
       
-      console.log(`Sending WhatsApp template message from: ${fromWhatsApp} to: whatsapp:${toNumber}`);
+      console.log(`Sending WhatsApp message from: ${fromWhatsApp} to: whatsapp:${toNumber}`);
       
-      // Use proper typing for WhatsApp template message
-      const messageParams: TwilioWhatsAppTemplateParams = {
+      // OPTION 1: שליחת הודעה רגילה (ללא טמפלייט)
+      const message = await this.client.messages.create({
         from: fromWhatsApp,
         to: `whatsapp:${toNumber}`,
-        // Use the approved template
-        templateId: 'match_suggestion_notification',
-        components: [
-          {
-            type: 'body',
-            parameters: [
-              { type: 'text', text: recipient.name },                      // {{1}} - Name
-              { type: 'text', text: content.subject || 'שדכן המערכת' },    // {{2}} - Matchmaker name
-              { type: 'text', text: content.body.split('\n').pop() || '' } // {{3}} - Link
-            ]
-          }
-        ]
-      };
+        contentSid: 'HX8d2b3f1b684c544407b1e8ec4c35075f',
+        contentVariables: JSON.stringify({
+          1: recipient.name,
+          2: content.subject || 'שדכן המערכת',
+          3: content.body.split('\n').pop() || 'לחץ על הקישור לפרטים נוספים'
+        })
+      });
       
-      const message = await this.client.messages.create(messageParams);
+      // OPTION 2: שליחת הודעה עם טמפלייט (השתמש בזה אם אתה חייב להשתמש בטמפלייט)
+      /*
+      const message = await this.client.messages.create({
+        from: fromWhatsApp,
+        to: `whatsapp:${toNumber}`,
+        contentSid: 'your-content-sid-here',  // ה-SID של התבנית שיצרת בפאנל Twilio
+        contentVariables: JSON.stringify({
+          1: recipient.name,
+          2: content.subject || 'שדכן המערכת',
+          3: content.body.split('\n')[0] || 'לחץ על הקישור לפרטים נוספים'
+        })
+      });
+      */
   
-      console.log('WhatsApp template message sent successfully:', {
+      console.log('WhatsApp message sent successfully:', {
         messageId: message.sid,
         status: message.status,
         to: toNumber

@@ -1,3 +1,5 @@
+// src/app/api/matchmaker/suggestions/[id]/resend/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -5,7 +7,6 @@ import prisma from "@/lib/prisma";
 import { UserRole, MatchSuggestionStatus } from "@prisma/client";
 import { StatusTransitionService } from "@/app/components/matchmaker/suggestions/services/suggestions/StatusTransitionService";
 import { initNotificationService } from "@/app/components/matchmaker/suggestions/services/notification/initNotifications";
-import { NotificationContent } from "@/app/components/matchmaker/suggestions/services/notification/NotificationService";
 
 // Initialize the notification service
 const notificationService = initNotificationService();
@@ -78,35 +79,11 @@ export async function POST(
       updatedSuggestion = await statusTransitionService.transitionStatus(
         updatedSuggestion, 
         MatchSuggestionStatus.PENDING_FIRST_PARTY,
-        `${transitionNotes} - לצד ראשון`
-      );
-      
-      // Create a custom notification for resending
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-      const reviewUrl = `${baseUrl}/suggestions/${suggestionId}/review`;
-      
-      const notificationContent: NotificationContent = {
-        subject: "הצעת שידוך נשלחה אליך מחדש",
-        body: `שלום ${suggestion.firstParty.firstName},\n\nהצעת השידוך בין ${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} ל${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} נשלחה אליך מחדש ע"י ${session.user.firstName} ${session.user.lastName}.\n\nלצפייה בפרטי ההצעה: ${reviewUrl}\n\nבברכה,\nמערכת השידוכים`,
-        htmlBody: `
-          <div dir="rtl">
-            <h2>שלום ${suggestion.firstParty.firstName},</h2>
-            <p>הצעת השידוך בין ${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} ל${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} נשלחה אליך מחדש ע"י ${session.user.firstName} ${session.user.lastName}.</p>
-            <p>לצפייה בפרטי ההצעה: <a href="${reviewUrl}">לחץ כאן</a></p>
-            <p>בברכה,<br>מערכת השידוכים</p>
-          </div>
-        `
-      };
-      
-      // Send the notification via multiple channels
-      await notificationService.sendNotification(
+        `${transitionNotes} - לצד ראשון`,
         {
-          email: suggestion.firstParty.email,
-          phone: suggestion.firstParty.phone || undefined,
-          name: `${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName}`
-        },
-        notificationContent,
-        { channels: ['email', 'whatsapp'] }
+          sendNotifications: true,
+          notifyParties: ['first']
+        }
       );
       
       // If this is just for the first party, update the sent time
@@ -126,35 +103,11 @@ export async function POST(
       updatedSuggestion = await statusTransitionService.transitionStatus(
         updatedSuggestion, 
         MatchSuggestionStatus.PENDING_SECOND_PARTY,
-        `${transitionNotes} - לצד שני`
-      );
-      
-      // Create a custom notification for resending
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-      const reviewUrl = `${baseUrl}/suggestions/${suggestionId}/review`;
-      
-      const notificationContent: NotificationContent = {
-        subject: "הצעת שידוך נשלחה אליך מחדש",
-        body: `שלום ${suggestion.secondParty.firstName},\n\nהצעת השידוך בין ${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} ל${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} נשלחה אליך מחדש ע"י ${session.user.firstName} ${session.user.lastName}.\n\nלצפייה בפרטי ההצעה: ${reviewUrl}\n\nבברכה,\nמערכת השידוכים`,
-        htmlBody: `
-          <div dir="rtl">
-            <h2>שלום ${suggestion.secondParty.firstName},</h2>
-            <p>הצעת השידוך בין ${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} ל${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} נשלחה אליך מחדש ע"י ${session.user.firstName} ${session.user.lastName}.</p>
-            <p>לצפייה בפרטי ההצעה: <a href="${reviewUrl}">לחץ כאן</a></p>
-            <p>בברכה,<br>מערכת השידוכים</p>
-          </div>
-        `
-      };
-      
-      // Send the notification via multiple channels
-      await notificationService.sendNotification(
+        `${transitionNotes} - לצד שני`,
         {
-          email: suggestion.secondParty.email,
-          phone: suggestion.secondParty.phone || undefined,
-          name: `${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName}`
-        },
-        notificationContent,
-        { channels: ['email', 'whatsapp'] }
+          sendNotifications: true,
+          notifyParties: ['second']
+        }
       );
       
       // Update the sent time

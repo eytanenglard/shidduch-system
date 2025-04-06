@@ -126,23 +126,6 @@ const EditSuggestionForm: React.FC<EditSuggestionFormProps> = ({
           statusNotes || `סטטוס שונה ל-${getStatusLabel(statusToUpdate)}`;
       }
 
-      // קריאה ל-API לעדכון ההצעה
-      const response = await fetch(
-        `/api/matchmaker/suggestions/${suggestion.id}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(updateData),
-        }
-      );
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to update suggestion");
-      }
-
       // עדכון הקומפוננטה ההורה
       await onSave({
         suggestionId: suggestion.id,

@@ -1,12 +1,9 @@
-// Full path: src/app/components/matchmaker/suggestions/services/suggestions/StatusTransitionService.ts
+// src/app/components/matchmaker/suggestions/services/suggestions/StatusTransitionService.ts
 
 import { MatchSuggestionStatus, User, MatchSuggestion, Profile } from "@prisma/client";
 import prisma from "@/lib/prisma";
-import { initNotificationService } from "../notification/initNotifications";
-import { emailService } from "../email/EmailService";
+import { notificationService } from "../notification/NotificationService";
 
-// Initialize the notification service
-const notificationService = initNotificationService();
 
 type UserWithProfile = User & {
   profile: Profile | null;
@@ -105,22 +102,18 @@ export class StatusTransitionService {
     // Only send notifications if option is enabled
     if (mergedOptions.sendNotifications) {
       try {
-        // Keep the legacy email service for backward compatibility
-        await emailService.handleSuggestionStatusChange(
-          updatedSuggestion, 
-          mergedOptions.customMessage
-        );
-        
-        // Also use the new notification service which supports multiple channels
+        // Utilize the notification service for all channels (email, WhatsApp, etc.)
         await notificationService.handleSuggestionStatusChange(
+          
           updatedSuggestion, 
           {
             channels: ['email', 'whatsapp'],
-            notifyParties: mergedOptions.notifyParties as ('first' | 'second' | 'matchmaker')[],  // הוספנו המרת טיפוס
+            notifyParties: mergedOptions.notifyParties as ('first' | 'second' | 'matchmaker')[],
             customMessage: mergedOptions.customMessage
           }
         );
         
+        console.log(`Notifications sent for suggestion ${updatedSuggestion.id} status change to ${newStatus}`);
       } catch (error) {
         // Log error but don't fail the transition
         console.error('Error sending status transition notifications:', error);
@@ -267,138 +260,135 @@ export class StatusTransitionService {
       secondParty?: { id: string; label: string; nextStatus: MatchSuggestionStatus }[];
       matchmaker?: { id: string; label: string; nextStatus: MatchSuggestionStatus }[];
     }> = {
-  DRAFT: { // נוסף
-    matchmaker: [
-      { id: "send-to-first", label: "שליחה לצד הראשון", nextStatus: MatchSuggestionStatus.PENDING_FIRST_PARTY }
-    ]
-  },
-  PENDING_FIRST_PARTY: {
-    firstParty: [
-      { id: "approve", label: "אישור ההצעה", nextStatus: MatchSuggestionStatus.FIRST_PARTY_APPROVED },
-      { id: "decline", label: "דחיית ההצעה", nextStatus: MatchSuggestionStatus.FIRST_PARTY_DECLINED }
-    ],
-    matchmaker: [
-      { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
-    ]
-  },
-  FIRST_PARTY_APPROVED: {
-    matchmaker: [
-      { id: "send-to-second", label: "שליחה לצד השני", nextStatus: MatchSuggestionStatus.PENDING_SECOND_PARTY },
-      { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
-    ]
-  },
-  FIRST_PARTY_DECLINED: { // נוסף
-    matchmaker: [
-      { id: "close", label: "סגירת הצעה", nextStatus: MatchSuggestionStatus.CLOSED }
-    ]
-  },
-  PENDING_SECOND_PARTY: {
-    secondParty: [
-      { id: "approve", label: "אישור ההצעה", nextStatus: MatchSuggestionStatus.SECOND_PARTY_APPROVED },
-      { id: "decline", label: "דחיית ההצעה", nextStatus: MatchSuggestionStatus.SECOND_PARTY_DECLINED }
-    ],
-    matchmaker: [
-      { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
-    ]
-  },
-  SECOND_PARTY_APPROVED: {
-    matchmaker: [
-      // אפשר להוסיף כאן מעבר ל AWAITING_MATCHMAKER_APPROVAL אם נדרש
-      { id: "share-contacts", label: "שיתוף פרטי קשר", nextStatus: MatchSuggestionStatus.CONTACT_DETAILS_SHARED },
-      { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
-    ]
-  },
-  SECOND_PARTY_DECLINED: { // נוסף
-    matchmaker: [
-      { id: "close", label: "סגירת הצעה", nextStatus: MatchSuggestionStatus.CLOSED }
-    ]
-  },
-  AWAITING_MATCHMAKER_APPROVAL: { // נוסף
-    matchmaker: [
-      { id: "approve-share", label: "אישור שיתוף פרטים", nextStatus: MatchSuggestionStatus.CONTACT_DETAILS_SHARED },
-      { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
-    ]
-  },
-  CONTACT_DETAILS_SHARED: {
-    // הסטטוס הבא כאן צריך להיות תואם למעברים המותרים
-    firstParty: [
-      { id: "provide-feedback", label: "דיווח משוב לאחר פגישה", nextStatus: MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK }
-    ],
-    secondParty: [
-      { id: "provide-feedback", label: "דיווח משוב לאחר פגישה", nextStatus: MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK }
-    ],
-    matchmaker: [
-      { id: "request-feedback", label: "בקש משוב", nextStatus: MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK },
-      { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
-    ]
-  },
-  AWAITING_FIRST_DATE_FEEDBACK: { // נוסף
-     matchmaker: [
-        { id: "mark-thinking", label: "סמן כ'בחשיבה'", nextStatus: MatchSuggestionStatus.THINKING_AFTER_DATE },
-        { id: "mark-ended-first", label: "סמן כ'הסתיים לאחר פגישה'", nextStatus: MatchSuggestionStatus.ENDED_AFTER_FIRST_DATE },
-        { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
-     ]
-  },
-  THINKING_AFTER_DATE: { // נוסף
-     matchmaker: [
-        { id: "proceed-second", label: "המשך לפגישה שניה", nextStatus: MatchSuggestionStatus.PROCEEDING_TO_SECOND_DATE },
-        { id: "mark-ended-first", label: "סמן כ'הסתיים לאחר פגישה'", nextStatus: MatchSuggestionStatus.ENDED_AFTER_FIRST_DATE },
-        { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
-     ]
-  },
-  PROCEEDING_TO_SECOND_DATE: { // נוסף
-     matchmaker: [
-        { id: "mark-dating", label: "סמן כ'בתהליך היכרות'", nextStatus: MatchSuggestionStatus.DATING },
-        { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
-     ]
-  },
-  ENDED_AFTER_FIRST_DATE: { // נוסף
-    matchmaker: [
-      { id: "close", label: "סגירת הצעה", nextStatus: MatchSuggestionStatus.CLOSED }
-    ]
-  },
-  MEETING_PENDING: { // נוסף
-     matchmaker: [
-        { id: "schedule-meeting", label: "קביעת פגישה", nextStatus: MatchSuggestionStatus.MEETING_SCHEDULED },
-        { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
-     ]
-  },
-  MEETING_SCHEDULED: { // נוסף
-     matchmaker: [
-        { id: "mark-dating", label: "סמן כ'בתהליך היכרות'", nextStatus: MatchSuggestionStatus.DATING },
-        { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
-     ]
-  },
-   MATCH_APPROVED: { // נוסף
-     matchmaker: [
-        { id: "mark-dating", label: "סמן כ'בתהליך היכרות'", nextStatus: MatchSuggestionStatus.DATING },
-        { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
-     ]
-   },
-  MATCH_DECLINED: { // נוסף
-    matchmaker: [
-      { id: "close", label: "סגירת הצעה", nextStatus: MatchSuggestionStatus.CLOSED }
-    ]
-  },
-  DATING: {
-    matchmaker: [
-      { id: "mark-engaged", label: "עדכון אירוסין", nextStatus: MatchSuggestionStatus.ENGAGED },
-      { id: "close", label: "סגירת תהליך", nextStatus: MatchSuggestionStatus.CLOSED }, // הוספתי אפשרות סגירה
-      { id: "cancel", label: "ביטול השידוך", nextStatus: MatchSuggestionStatus.CANCELLED }
-    ]
-  },
-  ENGAGED: {
-    matchmaker: [
-      { id: "mark-married", label: "עדכון נישואין", nextStatus: MatchSuggestionStatus.MARRIED },
-      { id: "cancel", label: "ביטול אירוסין", nextStatus: MatchSuggestionStatus.CANCELLED } // הוספתי אפשרות ביטול
-    ]
-  },
-  // סטטוסים סופיים או ללא פעולות מוגדרות
-  MARRIED: {}, // נוסף
-  EXPIRED: {}, // נוסף
-  CLOSED: {}, // נוסף
-  CANCELLED: {} // נוסף
-};
+      DRAFT: {
+        matchmaker: [
+          { id: "send-to-first", label: "שליחה לצד הראשון", nextStatus: MatchSuggestionStatus.PENDING_FIRST_PARTY }
+        ]
+      },
+      PENDING_FIRST_PARTY: {
+        firstParty: [
+          { id: "approve", label: "אישור ההצעה", nextStatus: MatchSuggestionStatus.FIRST_PARTY_APPROVED },
+          { id: "decline", label: "דחיית ההצעה", nextStatus: MatchSuggestionStatus.FIRST_PARTY_DECLINED }
+        ],
+        matchmaker: [
+          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
+        ]
+      },
+      FIRST_PARTY_APPROVED: {
+        matchmaker: [
+          { id: "send-to-second", label: "שליחה לצד השני", nextStatus: MatchSuggestionStatus.PENDING_SECOND_PARTY },
+          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
+        ]
+      },
+      FIRST_PARTY_DECLINED: {
+        matchmaker: [
+          { id: "close", label: "סגירת הצעה", nextStatus: MatchSuggestionStatus.CLOSED }
+        ]
+      },
+      PENDING_SECOND_PARTY: {
+        secondParty: [
+          { id: "approve", label: "אישור ההצעה", nextStatus: MatchSuggestionStatus.SECOND_PARTY_APPROVED },
+          { id: "decline", label: "דחיית ההצעה", nextStatus: MatchSuggestionStatus.SECOND_PARTY_DECLINED }
+        ],
+        matchmaker: [
+          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
+        ]
+      },
+      SECOND_PARTY_APPROVED: {
+        matchmaker: [
+          { id: "share-contacts", label: "שיתוף פרטי קשר", nextStatus: MatchSuggestionStatus.CONTACT_DETAILS_SHARED },
+          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
+        ]
+      },
+      SECOND_PARTY_DECLINED: {
+        matchmaker: [
+          { id: "close", label: "סגירת הצעה", nextStatus: MatchSuggestionStatus.CLOSED }
+        ]
+      },
+      AWAITING_MATCHMAKER_APPROVAL: {
+        matchmaker: [
+          { id: "approve-share", label: "אישור שיתוף פרטים", nextStatus: MatchSuggestionStatus.CONTACT_DETAILS_SHARED },
+          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
+        ]
+      },
+      CONTACT_DETAILS_SHARED: {
+        firstParty: [
+          { id: "provide-feedback", label: "דיווח משוב לאחר פגישה", nextStatus: MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK }
+        ],
+        secondParty: [
+          { id: "provide-feedback", label: "דיווח משוב לאחר פגישה", nextStatus: MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK }
+        ],
+        matchmaker: [
+          { id: "request-feedback", label: "בקש משוב", nextStatus: MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK },
+          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
+        ]
+      },
+      AWAITING_FIRST_DATE_FEEDBACK: {
+         matchmaker: [
+            { id: "mark-thinking", label: "סמן כ'בחשיבה'", nextStatus: MatchSuggestionStatus.THINKING_AFTER_DATE },
+            { id: "mark-ended-first", label: "סמן כ'הסתיים לאחר פגישה'", nextStatus: MatchSuggestionStatus.ENDED_AFTER_FIRST_DATE },
+            { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
+         ]
+      },
+      THINKING_AFTER_DATE: {
+         matchmaker: [
+            { id: "proceed-second", label: "המשך לפגישה שניה", nextStatus: MatchSuggestionStatus.PROCEEDING_TO_SECOND_DATE },
+            { id: "mark-ended-first", label: "סמן כ'הסתיים לאחר פגישה'", nextStatus: MatchSuggestionStatus.ENDED_AFTER_FIRST_DATE },
+            { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
+         ]
+      },
+      PROCEEDING_TO_SECOND_DATE: {
+         matchmaker: [
+            { id: "mark-dating", label: "סמן כ'בתהליך היכרות'", nextStatus: MatchSuggestionStatus.DATING },
+            { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
+         ]
+      },
+      ENDED_AFTER_FIRST_DATE: {
+        matchmaker: [
+          { id: "close", label: "סגירת הצעה", nextStatus: MatchSuggestionStatus.CLOSED }
+        ]
+      },
+      MEETING_PENDING: {
+         matchmaker: [
+            { id: "schedule-meeting", label: "קביעת פגישה", nextStatus: MatchSuggestionStatus.MEETING_SCHEDULED },
+            { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
+         ]
+      },
+      MEETING_SCHEDULED: {
+         matchmaker: [
+            { id: "mark-dating", label: "סמן כ'בתהליך היכרות'", nextStatus: MatchSuggestionStatus.DATING },
+            { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
+         ]
+      },
+      MATCH_APPROVED: {
+         matchmaker: [
+            { id: "mark-dating", label: "סמן כ'בתהליך היכרות'", nextStatus: MatchSuggestionStatus.DATING },
+            { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
+         ]
+      },
+      MATCH_DECLINED: {
+        matchmaker: [
+          { id: "close", label: "סגירת הצעה", nextStatus: MatchSuggestionStatus.CLOSED }
+        ]
+      },
+      DATING: {
+        matchmaker: [
+          { id: "mark-engaged", label: "עדכון אירוסין", nextStatus: MatchSuggestionStatus.ENGAGED },
+          { id: "close", label: "סגירת תהליך", nextStatus: MatchSuggestionStatus.CLOSED },
+          { id: "cancel", label: "ביטול השידוך", nextStatus: MatchSuggestionStatus.CANCELLED }
+        ]
+      },
+      ENGAGED: {
+        matchmaker: [
+          { id: "mark-married", label: "עדכון נישואין", nextStatus: MatchSuggestionStatus.MARRIED },
+          { id: "cancel", label: "ביטול אירוסין", nextStatus: MatchSuggestionStatus.CANCELLED }
+        ]
+      },
+      MARRIED: {},
+      EXPIRED: {},
+      CLOSED: {},
+      CANCELLED: {}
+    };
     
     if (isFirstParty && actions[suggestion.status]?.firstParty) {
       return actions[suggestion.status].firstParty || [];

@@ -5,10 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { MatchSuggestionStatus, UserRole } from "@prisma/client";
-import { 
-  initNotificationService,
-  NotificationChannel 
-} from "@/app/components/matchmaker/suggestions/services/notification/initNotifications";
+import { initNotificationService } from "@/app/components/matchmaker/suggestions/services/notification/initNotifications";
 import { RecipientInfo } from "@/app/components/matchmaker/suggestions/services/notification/NotificationService";
 
 // Initialize the notification service
@@ -16,12 +13,7 @@ const notificationService = initNotificationService();
 
 type RecipientWithChannels = {
   recipient: RecipientInfo;
-  preferredChannels: NotificationChannel[];
-};
-
-type SendResult = {
-  recipient: string;
-  result: Record<NotificationChannel, boolean>;
+  preferredChannels: ('email' | 'whatsapp')[];
 };
 
 export async function POST(
@@ -82,30 +74,18 @@ export async function POST(
       );
     }
 
-    // Create recipients list
-    const recipients: RecipientWithChannels[] = [];
+    // Define which parties will receive the message
+    let notifyParties: ('first' | 'second')[] = [];
+    
     if (partyType === "first" || partyType === "both") {
-      recipients.push({
-        recipient: {
-          email: suggestion.firstParty.email,
-          phone: suggestion.firstParty.phone || undefined,
-          name: `${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName}`
-        },
-        preferredChannels: ['email', 'whatsapp']
-      });
+      notifyParties.push('first');
     }
+    
     if (partyType === "second" || partyType === "both") {
-      recipients.push({
-        recipient: {
-          email: suggestion.secondParty.email,
-          phone: suggestion.secondParty.phone || undefined,
-          name: `${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName}`
-        },
-        preferredChannels: ['email', 'whatsapp']
-      });
+      notifyParties.push('second');
     }
 
-    // Create message subject
+    // Create message subject based on type
     let subject = "";
     switch (messageType) {
       case "reminder":
@@ -118,33 +98,7 @@ export async function POST(
         subject = "הודעה חדשה בנוגע להצעת שידוך";
     }
 
-    // Create content
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-    const reviewUrl = `${baseUrl}/suggestions/${suggestionId}/review`;
-    
-    const notificationContent = {
-      subject,
-      body: `שלום,\n\n${content}\n\nלצפייה בפרטי ההצעה: ${reviewUrl}\n\nבברכה,\n${session.user.firstName} ${session.user.lastName}`,
-      htmlBody: `
-        <div dir="rtl">
-          <h2>שלום,</h2>
-          <p>${content}</p>
-          <p>לצפייה בפרטי ההצעה: <a href="${reviewUrl}">לחץ כאן</a></p>
-          <p>בברכה,<br>${session.user.firstName} ${session.user.lastName}</p>
-        </div>
-      `
-    };
-
-    // Send notifications to all recipients via their preferred channels
-    const sendResults: SendResult[] = [];
-    for (const { recipient, preferredChannels } of recipients) {
-      const result = await notificationService.sendNotification(
-        recipient,
-        notificationContent,
-        { channels: preferredChannels }
-      );
-      sendResults.push({ recipient: recipient.email, result });
-    }
+    console.log(`Message request received for suggestion ${suggestionId}, will be handled through transactions`);
 
     // Log the message in the system
     await prisma.$transaction(async (tx) => {
@@ -165,6 +119,16 @@ export async function POST(
             notes: `הודעה נשלחה מאת השדכן: ${messageType} - ${content.substring(0, 50)}${content.length > 50 ? '...' : ''}`,
           },
         });
+    
+        // שליחת ההודעה רק אחרי העדכון בדאטהבייס
+        await notificationService.handleSuggestionStatusChange(
+          suggestion, 
+          {
+            channels: ['email', 'whatsapp'],
+            notifyParties,
+            customMessage: content
+          }
+        );
       } catch (txError) {
         console.error("Transaction error:", txError);
         throw txError;
@@ -174,7 +138,7 @@ export async function POST(
     return NextResponse.json({
       success: true,
       message: "Messages sent successfully",
-      results: sendResults
+      recipients: notifyParties
     });
   } catch (error) {
     console.error("Error sending message:", error);

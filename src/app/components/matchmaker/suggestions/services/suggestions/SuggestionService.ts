@@ -1,11 +1,16 @@
-import { MatchSuggestionStatus, Priority, UserRole, MatchSuggestion } from "@prisma/client";
+// src/app/components/matchmaker/suggestions/services/suggestions/SuggestionService.ts
+
+import { MatchSuggestionStatus, Priority, UserRole } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { statusTransitionService, type SuggestionWithParties } from "./StatusTransitionService";
-import { emailService } from "../email/EmailService";
+import { initNotificationService } from "../notification/initNotifications";
 import type { 
   CreateSuggestionData,
   UpdateSuggestionData,
 } from "@/types/suggestions";
+
+// Initialize notification service
+const notificationService = initNotificationService();
 
 export class SuggestionService {
   private static instance: SuggestionService;
@@ -32,44 +37,12 @@ export class SuggestionService {
       throw new Error("Unauthorized - User is not a matchmaker");
     }
 
-  /*   // 2. בדיקת זמינות המועמדים
-    const [firstParty, secondParty] = await Promise.all([
-      prisma.user.findUnique({
-        where: { id: data.firstPartyId },
-        include: { profile: true },
-      }),
-      prisma.user.findUnique({
-        where: { id: data.secondPartyId },
-        include: { profile: true },
-      }),
-    ]); 
-
-    if (!firstParty || !secondParty) {
-      throw new Error("One or both parties not found");
-    }
-
-    if (
-      firstParty.profile?.availabilityStatus !== "AVAILABLE" ||
-      secondParty.profile?.availabilityStatus !== "AVAILABLE"
-    ) {
-      throw new Error("One or both parties are not available for matching");
-    } 
- */
-  /*   // 3. בדיקת הצעות קיימות
-    const existingSuggestion = await this.checkExistingSuggestion(
-      data.firstPartyId,
-      data.secondPartyId
-    );
-
-    if (existingSuggestion) {
-      throw new Error("Active suggestion already exists between these parties");
-    }
- */
     // 4. יצירת ההצעה בטרנזקציה
     const suggestion = await prisma.$transaction(async (tx) => {
       // יצירת ההצעה עם הנתונים המנוקים
       console.log('Decision deadline value:', data.decisionDeadline);
-console.log('Decision deadline type:', typeof data.decisionDeadline);
+      console.log('Decision deadline type:', typeof data.decisionDeadline);
+      
       const cleanedData = {
         matchmakerId: data.matchmakerId,
         firstPartyId: data.firstPartyId,
@@ -112,11 +85,20 @@ console.log('Decision deadline type:', typeof data.decisionDeadline);
       return newSuggestion;
     });
 
-    // 5. שליחת התראות מייל
-    console.log('email:------------');
-    await emailService.handleSuggestionStatusChange(
-      suggestion,
-    );
+    // 5. שליחת התראות באמצעות מערכת ההתראות המאוחדת
+    try {
+      console.log('Sending notifications for new suggestion...');
+      await notificationService.handleSuggestionStatusChange(
+        suggestion,
+        {
+          channels: ['email', 'whatsapp'],
+          notifyParties: ['first'] // רק לצד הראשון בשלב זה
+        }
+      );
+    } catch (error) {
+      console.error('Error sending initial suggestion notifications:', error);
+      // לא לעצור את התהליך - רק לדווח על השגיאה
+    }
 
     return suggestion;
   }
@@ -303,7 +285,7 @@ console.log('Decision deadline type:', typeof data.decisionDeadline);
    * אימות הרשאות לשינוי סטטוס
    */
   private validateStatusChangePermission(
-    suggestion: MatchSuggestion,
+    suggestion: SuggestionWithParties,
     userId: string,
     newStatus: MatchSuggestionStatus
   ): void {
@@ -317,17 +299,6 @@ console.log('Decision deadline type:', typeof data.decisionDeadline);
         if (!isFirstParty) throw new Error("Only first party can approve/decline at this stage");
         break;
 
-      case MatchSuggestionStatus.SECOND_PARTY_APPROVED:
-      case MatchSuggestionStatus.SECOND_PARTY_DECLINED:
-        if (!isSecondParty) throw new Error("Only second party can approve/decline at this stage");
-        break;
-
-      case MatchSuggestionStatus.CANCELLED:
-        if (!isMatchmaker && !isFirstParty && !isSecondParty) {
-          throw new Error("Only involved parties can cancel the suggestion");
-        }
-        break;
-
       default:
         if (!isMatchmaker) throw new Error("Only matchmaker can change status at this stage");
     }
@@ -339,7 +310,7 @@ console.log('Decision deadline type:', typeof data.decisionDeadline);
   private async checkExistingSuggestion(
     firstPartyId: string,
     secondPartyId: string
-  ): Promise<MatchSuggestion | null> {
+  ): Promise<SuggestionWithParties | null> {
     return await prisma.matchSuggestion.findFirst({
       where: {
         AND: [
@@ -361,8 +332,16 @@ console.log('Decision deadline type:', typeof data.decisionDeadline);
           },
         ],
       },
+      include: {
+        firstParty: {
+          include: { profile: true }
+        },
+        secondParty: {
+          include: { profile: true }
+        },
+        matchmaker: true,
+      },
     });
   }
 }
-
 export const suggestionService = SuggestionService.getInstance();

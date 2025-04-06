@@ -54,27 +54,6 @@ const MessageForm: React.FC<MessageFormProps> = ({
     try {
       setIsSubmitting(true);
 
-      // Call the API to send the message
-      const response = await fetch(
-        `/api/matchmaker/suggestions/${suggestion.id}/message`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            partyType,
-            messageType,
-            content: messageContent,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to send message");
-      }
-
       // Notify the parent component
       await onSend({
         suggestionId: suggestion.id,
