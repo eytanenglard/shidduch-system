@@ -67,12 +67,6 @@ const inquiry = await prisma.suggestionInquiry.create({
     }
   });
 
-/*     await EmailService.getInstance().sendEmail({
-      to: suggestion.matchmaker.email,
-      subject: emailTemplate.subject,
-      html: emailTemplate.body,
-    }); */
-
     return NextResponse.json({
       success: true,
       inquiry,
