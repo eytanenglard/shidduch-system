@@ -5,20 +5,20 @@ const HowItWorksSection: React.FC = () => {
   return (
     <section className="py-16 md:py-20 px-4 bg-white relative overflow-hidden">
       {/* Enhanced background effects */}
-      <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:20px_20px]"></div>
+      <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:20px_20px]"></div>
 
       <div className="relative max-w-4xl mx-auto">
         <div className="text-center mb-12 md:mb-16">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4">
             <span
-              className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-700 animate-gradient"
+              className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-cyan-700 animate-gradient"
               style={{ backgroundSize: "200% 200%" }}
             >
               איך זה{" "}
             </span>
             עובד?
           </h2>
-          <div className="w-24 h-1 bg-gradient-to-r from-blue-600 to-blue-700 mx-auto rounded-full" />
+          <div className="w-24 h-1 bg-gradient-to-r from-cyan-600 to-cyan-700 mx-auto rounded-full" />
         </div>
 
         <div className="space-y-12 md:space-y-16 lg:space-y-20">
@@ -26,7 +26,7 @@ const HowItWorksSection: React.FC = () => {
             number="1"
             title="הרשמה למערכת"
             description="מילוי פרופיל אישי מפורט והגדרת העדפות לחיפוש לאחר תהליך רישום פשוט וידידותי"
-            color="blue"
+            color="cyan"
           />
 
           <Step
@@ -54,7 +54,7 @@ const HowItWorksSection: React.FC = () => {
             number="5"
             title="ניתוח התאמה חכם"
             description="האלגוריתם מנתח עשרות אלפי פרופילים לפי 27 ממדי התאמה ומייצר רשימת מועמדים פוטנציאליים"
-            color="blue"
+            color="cyan"
           />
 
           <Step
@@ -83,7 +83,7 @@ const HowItWorksSection: React.FC = () => {
             title="בניית קשר משמעותי"
             description="ליווי מקצועי לאורך התהליך עד ליצירת הקשר המיוחל והמשמעותי"
             isLast={true}
-            color="blue"
+            color="cyan"
           />
         </div>
       </div>

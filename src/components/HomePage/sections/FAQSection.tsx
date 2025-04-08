@@ -10,12 +10,12 @@ const FAQSection: React.FC = () => {
         <div className="text-center mb-12">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4">
             שאלות
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-700">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-cyan-700">
               {" "}
               נפוצות{" "}
             </span>
           </h2>
-          <div className="w-24 h-1 bg-gradient-to-r from-blue-600 to-blue-700 mx-auto rounded-full mb-6" />
+          <div className="w-24 h-1 bg-gradient-to-r from-cyan-600 to-cyan-700 mx-auto rounded-full mb-6" />
           <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-8">
             אלו התשובות לשאלות הנפוצות ביותר על שירות Match Point שלנו
           </p>

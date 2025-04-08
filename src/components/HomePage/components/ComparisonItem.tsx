@@ -13,7 +13,7 @@ const ComparisonItem: React.FC<ComparisonItemProps> = ({
   <li className="flex items-start">
     <div
       className={`p-1 rounded-full ${
-        isNegative ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600"
+        isNegative ? "bg-red-100 text-red-600" : "bg-cyan-100 text-cyan-600"
       } mr-3 mt-1 flex-shrink-0`}
     >
       {isNegative ? (

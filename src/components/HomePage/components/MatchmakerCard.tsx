@@ -5,7 +5,7 @@ export interface MatchmakerCardProps {
   name: string;
   role: string;
   description: string;
-  color: "blue" | "green" | "orange" | "pink";
+  color: "cyan" | "green" | "orange" | "pink";
 }
 
 // Matchmaker Card Component
@@ -16,11 +16,11 @@ const MatchmakerCard: React.FC<MatchmakerCardProps> = ({
   color,
 }) => {
   const colorClasses = {
-    blue: {
-      gradient: "from-blue-500/10 to-blue-700/10",
-      bg: "from-blue-100 to-blue-200",
-      border: "border-blue-100",
-      shadow: "shadow-blue-100/50",
+    cyan: {
+      gradient: "from-cyan-500/10 to-cyan-700/10",
+      bg: "from-cyan-100 to-cyan-200",
+      border: "border-cyan-100",
+      shadow: "shadow-cyan-100/50",
     },
     green: {
       gradient: "from-green-500/10 to-green-700/10",

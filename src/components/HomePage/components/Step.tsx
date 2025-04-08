@@ -5,7 +5,7 @@ export interface StepProps {
   title: string;
   description: string;
   isLast?: boolean;
-  color: "blue" | "green" | "orange" | "pink";
+  color: "cyan" | "green" | "orange" | "pink";
 }
 
 // Modernized Step Component with enhanced visuals
@@ -17,12 +17,12 @@ const Step: React.FC<StepProps> = ({
   color,
 }) => {
   const colorClasses = {
-    blue: {
-      gradient: "from-blue-500 to-blue-600",
-      hover: "group-hover:text-blue-600",
-      border: "group-hover:border-blue-100",
-      shadow: "group-hover:shadow-blue-100",
-      line: "from-blue-500 to-blue-200",
+    cyan: {
+      gradient: "from-cyan-500 to-cyan-600",
+      hover: "group-hover:text-cyan-600",
+      border: "group-hover:border-cyan-100",
+      shadow: "group-hover:shadow-cyan-100",
+      line: "from-cyan-500 to-cyan-200",
     },
     green: {
       gradient: "from-green-500 to-green-600",

@@ -5,7 +5,7 @@ import { CheckCircle, Lock } from "lucide-react";
 
 const PrivacyAssuranceSection: React.FC = () => {
   return (
-    <section className="py-16 md:py-20 px-4 bg-gradient-to-br from-blue-600 to-blue-700 text-white relative overflow-hidden">
+    <section className="py-16 md:py-20 px-4 bg-gradient-to-br from-cyan-600 to-cyan-700 text-white relative overflow-hidden">
       <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgdmlld0JveD0iMCAwIDIwIDIwIj48Y2lyY2xlIGN4PSIxMCIgY3k9IjEwIiByPSIxIiBmaWxsPSIjZmZmZmZmIi8+PC9zdmc+')]"></div>
 
       <div className="absolute top-0 left-0 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
@@ -96,7 +96,7 @@ const PrivacyAssuranceSection: React.FC = () => {
                   <Link href="/privacy">
                     <Button
                       variant="outline"
-                      className="border-2 border-white/50 bg-white text-blue-600 hover:bg-white/90 transition-all duration-300 rounded-xl"
+                      className="border-2 border-white/50 bg-white text-cyan-600 hover:bg-white/90 transition-all duration-300 rounded-xl"
                     >
                       קראו את מדיניות הפרטיות
                     </Button>

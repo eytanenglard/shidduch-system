@@ -6,7 +6,7 @@ export interface TestimonialCardProps {
   text: string;
   author: string;
   result?: string;
-  color: "blue" | "green" | "orange" | "pink";
+  color: "cyan" | "green" | "orange" | "pink";
 }
 
 // Modernized Testimonial Card with enhanced aesthetics
@@ -17,11 +17,11 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
   color,
 }) => {
   const colorClasses = {
-    blue: {
-      gradient1: "from-blue-100 to-blue-50",
-      gradient2: "from-blue-50 to-blue-100",
-      avatar: "from-blue-500 to-blue-600",
-      result: "text-blue-600",
+    cyan: {
+      gradient1: "from-cyan-100 to-cyan-50",
+      gradient2: "from-cyan-50 to-cyan-100",
+      avatar: "from-cyan-500 to-cyan-600",
+      result: "text-cyan-600",
     },
     green: {
       gradient1: "from-green-100 to-green-50",

@@ -30,9 +30,10 @@ export default function HomePage() {
     <div className="min-h-screen w-full overflow-x-hidden">
       <HeroSection session={session} isVisible={isVisible} />
       <ValuePropositionSection />
+      <HowItWorksSection />
       <FeaturesSection />
       <AlgorithmSection />
-      <HowItWorksSection />
+
       <MatchmakerTeamSection />
       <SuccessStoriesSection />
       <FAQSection />
@@ -44,7 +45,7 @@ export default function HomePage() {
       <div className="fixed bottom-8 left-8 z-50 animate-bounce-slow">
         <Button
           size="lg"
-          className="rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 group"
+          className="rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800 group"
         >
           <MessageCircle className="w-5 h-5 ml-2 group-hover:scale-110 transition-transform" />
           <span className="group-hover:mr-1 transition-all">דברו איתנו</span>

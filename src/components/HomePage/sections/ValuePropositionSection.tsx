@@ -3,8 +3,8 @@ import ComparisonItem from "../components/ComparisonItem";
 
 const ValuePropositionSection: React.FC = () => {
   return (
-    <section className="py-16 md:py-20 px-4 bg-blue-50 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-white opacity-70"></div>
+    <section className="py-16 md:py-20 px-4 bg-cyan-50 relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-cyan-50 to-white opacity-70"></div>
       <div className="absolute top-0 right-0 w-full h-full overflow-hidden">
         <svg
           className="absolute right-0 top-0 h-full opacity-10"
@@ -17,8 +17,8 @@ const ValuePropositionSection: React.FC = () => {
           ></path>
           <defs>
             <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#3b82f6" />
-              <stop offset="100%" stopColor="#60a5fa" />
+              <stop offset="0%" stopColor="#06b6d4" />
+              <stop offset="100%" stopColor="#22d3ee" />
             </linearGradient>
           </defs>
         </svg>
@@ -28,13 +28,13 @@ const ValuePropositionSection: React.FC = () => {
         <div className="text-center mb-12">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4">
             מה הופך את
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-700">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-cyan-700">
               {" "}
               Match Point{" "}
             </span>
             לייחודית?
           </h2>
-          <div className="w-24 h-1 bg-gradient-to-r from-blue-600 to-blue-700 mx-auto rounded-full mb-6" />
+          <div className="w-24 h-1 bg-gradient-to-r from-cyan-600 to-cyan-700 mx-auto rounded-full mb-6" />
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
             השילוב המושלם בין טכנולוגיה מתקדמת לבין הנגיעה האנושית והמסורתית
           </p>
@@ -42,7 +42,7 @@ const ValuePropositionSection: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
           <div className="bg-white rounded-2xl shadow-xl p-8 transform md:translate-x-4 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-blue-100 to-blue-50 opacity-50 rounded-full transform translate-x-20 -translate-y-20"></div>
+            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-cyan-100 to-cyan-50 opacity-50 rounded-full transform translate-x-20 -translate-y-20"></div>
 
             <h3 className="text-xl font-bold mb-4 text-gray-800 relative">
               האתגר במערכות קיימות
@@ -68,7 +68,7 @@ const ValuePropositionSection: React.FC = () => {
           </div>
 
           <div className="bg-white rounded-2xl shadow-xl p-8 transform md:-translate-x-4 relative overflow-hidden">
-            <div className="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-br from-blue-100 to-blue-50 opacity-50 rounded-full transform -translate-x-20 translate-y-20"></div>
+            <div className="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-br from-cyan-100 to-cyan-50 opacity-50 rounded-full transform -translate-x-20 translate-y-20"></div>
 
             <h3 className="text-xl font-bold mb-4 text-gray-800 relative">
               הפתרון של Match Point

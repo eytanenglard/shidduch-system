@@ -59,9 +59,10 @@ export default function HomePage() {
     <div className="min-h-screen w-full overflow-x-hidden">
       <HeroSection session={session} isVisible={isVisible} />
       <ValuePropositionSection />
+      <HowItWorksSection />
       <FeaturesSection />
       <AlgorithmSection />
-      <HowItWorksSection />
+
       <MatchmakerTeamSection />
       <SuccessStoriesSection />
       <FAQSection />
@@ -82,6 +83,7 @@ export default function HomePage() {
     </div>
   );
 }
+
 
 ==================================================
 Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\components\HomePage\components\ComparisonItem.tsx:
@@ -1103,9 +1105,11 @@ import {
   ArrowLeft,
   ClipboardList,
   Heart,
-  Check,
   Shield,
-  Star,
+  User,
+  BookOpen,
+  Users,
+  Sparkles,
 } from "lucide-react";
 import { Session } from "next-auth";
 
@@ -1179,7 +1183,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
   return (
     <section
       ref={sectionRef}
-      className="relative min-h-screen py-16 md:py-0 overflow-hidden flex items-center"
+      className="relative min-h-screen pt-0 overflow-hidden flex -mt-0.25"
     >
       {/* Enhanced gradient background with animated gradient */}
       <div
@@ -1231,7 +1235,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
       </div>
 
       <div className="relative w-full mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-        {/* Main title at the top - עדכון סכמת צבעים להתאמה לפאזל */}
+        {/* Main title at the top */}
         <div
           className={`text-center mb-[-50px] transition-all duration-1000 transform ${
             isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
@@ -1247,38 +1251,14 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
             </div>
           </div>
 
-              <div className="relative w-full max-w-lg mx-auto">
+          <div className="relative w-full max-w-lg mx-auto">
             <div className="h-1 bg-gradient-to-r from-cyan-500/30 to-pink-500/30 rounded-full"></div>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          {/* Left column: Content - עדכון צבעים בטקסט להתאמה לפאזל */}
+          {/* Left column: Content - Updated text and styling */}
           <div className="lg:col-span-5 text-center lg:text-right">
-            <div
-              className={`transition-all duration-1000 transform ${
-                isVisible
-                  ? "translate-y-0 opacity-100"
-                  : "translate-y-10 opacity-0"
-              }`}
-              style={getStaggerDelay(1)}
-            >
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-800 mb-6 md:mb-8 leading-tight">
-                בניית קשר
-                <span className="relative inline-block mx-2">
-                  <span
-                    className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-pink-500 animate-gradient"
-                    style={{ backgroundSize: "200% 200%" }}
-                  >
-                    משמעותי
-                  </span>
-                  <span className="absolute -inset-1 bg-gradient-to-r from-cyan-100 to-pink-100 rounded-lg blur-md -z-10 opacity-60"></span>
-                </span>
-                <br className="hidden md:block" />
-                על בסיס ערכים משותפים
-              </h2>
-            </div>
-
             <div
               className={`transition-all duration-1000 transform ${
                 isVisible
@@ -1288,31 +1268,72 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
               style={getStaggerDelay(2)}
             >
               <p className="text-lg md:text-xl lg:text-2xl text-gray-600 mb-8 md:mb-10 max-w-xl mx-auto lg:mr-0 lg:ml-auto leading-relaxed">
-                מערכת
-                <span className="text-cyan-600 font-semibold"> חדשנית </span>
-                המשלבת טכנולוגיה מתקדמת וליווי אישי לאיתור
-                <span className="relative inline-flex mx-1">
-                  <span className="text-pink-600 font-semibold">
-                    התאמות מדויקות
-                  </span>
-                  <span className="absolute bottom-0 h-1 w-full bg-pink-200/50 rounded-full"></span>
+                אנחנו שדכנים שעובדים ביחד עם{" "}
+                <span className="font-bold text-cyan-500">AI</span> ש
+                <span className="font-bold bg-gradient-to-r from-cyan-500 to-pink-500 text-transparent bg-clip-text">
+                  החלום שלנו זה להגשים לך את החלום
+                </span>{" "}
+                ולחבר אותך עם{" "}
+                <span className="font-bold text-cyan-500">
+                  בן או בת הזוג שלך
+                </span>{" "}
+                כמה שיותר מהר, כדי שתוכל/י לחיות את{" "}
+                <span className="font-bold text-pink-500">
+                  החיים שתמיד רצית
                 </span>
-                שיובילו אתכם לקשר משמעותי לחיים
+                .
+                <br />
+                <span className="mt-2 inline-block font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-pink-500 animate-gradient">
+                  אז למה את/ה מחכה? קדימה בוא/י נתחיל!
+                </span>
               </p>
             </div>
 
-            {/* Buttons container - עדכון צבעים לכפתורים להתאמה לפאזל */}
+            {/* Move questionnaire card to appear before buttons */}
             <div
-              className={`transition-all duration-1000 transform ${
+              className={`mb-8 lg:mb-10 transition-all duration-1000 transform ${
                 isVisible
                   ? "translate-y-0 opacity-100"
                   : "translate-y-10 opacity-0"
               }`}
               style={getStaggerDelay(3)}
             >
+              <Link href="/questionnaire">
+                <Card className="group relative overflow-hidden border-none shadow-lg hover:shadow-xl transition-all duration-500 hover:-translate-y-2 rounded-xl max-w-md mx-auto lg:mr-0 lg:ml-auto">
+                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-50 via-white to-pink-50 opacity-80" />
+                  <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 via-pink-500/20 to-cyan-500/20 opacity-0 group-hover:opacity-100 rounded-xl blur-md transition-all duration-500" />
+                  <CardContent className="relative p-6 flex items-center">
+                    <div className="relative p-4 mr-5 rounded-full bg-gradient-to-r from-cyan-500 to-pink-500 shadow-lg group-hover:shadow-xl transition-all duration-500 group-hover:scale-110 overflow-hidden">
+                      {/* Inner shimmer effect */}
+                      <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
+                      <ClipboardList className="relative z-10 w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-800 group-hover:text-cyan-700 transition-colors duration-300">
+                        שאלון התאמה
+                      </h3>
+                      <p className="text-gray-600 text-sm">
+                        מלא/י שאלון מקיף לקבלת הצעות שידוך מותאמות אישית
+                      </p>
+                    </div>
+                    <ArrowLeft className="h-6 w-6 mr-auto text-pink-500 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-500" />
+                  </CardContent>
+                </Card>
+              </Link>
+            </div>
+
+            {/* Buttons container - Updated with more space between buttons */}
+            <div
+              className={`transition-all duration-1000 transform ${
+                isVisible
+                  ? "translate-y-0 opacity-100"
+                  : "translate-y-10 opacity-0"
+              }`}
+              style={getStaggerDelay(4)}
+            >
               {!session ? (
-                <div className="flex justify-center lg:justify-end space-x-4 rtl:space-x-reverse">
-                  <Link href="/auth/register" className="w-full sm:w-auto">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 w-full max-w-md mx-auto lg:mr-0 lg:ml-auto">
+                  <Link href="/auth/register" className="w-full">
                     <Button
                       size="lg"
                       className="text-base w-full md:text-lg px-8 py-6 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden"
@@ -1325,7 +1346,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                     </Button>
                   </Link>
 
-                  <Link href="/auth/signin" className="w-full sm:w-auto">
+                  <Link href="/auth/signin" className="w-full">
                     <Button
                       variant="outline"
                       size="lg"
@@ -1352,45 +1373,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                 </div>
               )}
             </div>
-
-            {/* Questionnaire card - עדכון צבעים להתאמה לפאזל */}
-            <div
-              className={`mt-6 lg:mt-8 transition-all duration-1000 transform ${
-                isVisible
-                  ? "translate-y-0 opacity-100"
-                  : "translate-y-10 opacity-0"
-              }`}
-              style={getStaggerDelay(4)}
-            >
-              <Link href="/questionnaire">
-                <Card className="group relative overflow-hidden border-none shadow-lg hover:shadow-xl transition-all duration-500 hover:-translate-y-2 rounded-xl max-w-md mx-auto lg:mr-0 lg:ml-auto">
-                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-50 via-white to-pink-50 opacity-80" />
-                  <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 via-pink-500/20 to-cyan-500/20 opacity-0 group-hover:opacity-100 rounded-xl blur-md transition-all duration-500" />
-                  <CardContent className="relative p-6 flex items-center">
-                    <div className="relative p-4 mr-5 rounded-full bg-gradient-to-r from-cyan-500 to-pink-500 shadow-lg group-hover:shadow-xl transition-all duration-500 group-hover:scale-110 overflow-hidden">
-                      {/* Inner shimmer effect */}
-                      <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
-                      <ClipboardList className="relative z-10 w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-800 group-hover:text-cyan-700 transition-colors duration-300">
-                        שאלון התאמה
-                      </h3>
-                      <p className="text-gray-600 text-sm">
-                        מלא/י שאלון מקיף לקבלת הצעות שידוך מותאמות אישית
-                      </p>
-                    </div>
-                    <ArrowLeft className="h-6 w-6 mr-auto text-pink-500 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-500" />
-                  </CardContent>
-                </Card>
-              </Link>
-            </div>
           </div>
 
           {/* Central spacing column for larger screens */}
           <div className="hidden lg:block lg:col-span-1"></div>
 
-          {/* Right column: Puzzle Animation - נשמר כפי שהוא */}
+          {/* Right column: Puzzle Animation */}
           <div
             ref={puzzleContainerRef}
             className={`lg:col-span-6 relative h-[450px] sm:h-[550px] md:h-[650px] transition-all duration-1000 transform ${
@@ -1409,7 +1397,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                   <div className="absolute w-3/4 h-3/4 border-[1px] border-dashed border-gray-400 rounded-full animate-spin-reverse-slow"></div>
                 </div>
 
-                {/* Left Piece (Tradition) - נשמר כפי שהוא */}
+                {/* Left Piece (Tradition) */}
                 <div
                   className="absolute top-1/2 left-1/4 transform -translate-y-1/2 -translate-x-1/2 transition-all duration-700 ease-out"
                   style={{
@@ -1470,7 +1458,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                   </div>
                 </div>
 
-                {/* Right Piece (Technology) - נשמר כפי שהוא */}
+                {/* Right Piece (Technology) */}
                 <div
                   className="absolute top-1/2 right-1/4 transform -translate-y-1/2 translate-x-1/2 transition-all duration-700 ease-out"
                   style={{
@@ -1531,7 +1519,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                   </div>
                 </div>
 
-                {/* Connection Animation - עדכון להתאמה לצבעי הפאזל */}
+                {/* Connection Animation */}
                 <div
                   className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-30"
                   style={{
@@ -1603,69 +1591,77 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
           </div>
         </div>
 
-        {/* Trust indicators - עדכון סכמת צבעים להתאמה לפאזל */}
+        {/* Trust indicators - Negative margin to eliminate gap completely */}
         <div
-          className={`mt-16 transition-all duration-1000 transform ${
+          className={`-mt-5 transition-all duration-1000 transform ${
             isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
           }`}
           style={getStaggerDelay(5)}
         >
-      <div className="flex flex-wrap items-center justify-between gap-4 bg-white/40 backdrop-blur-sm py-5 px-8 rounded-2xl shadow-lg">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-full bg-amber-100">
-                <Star className="h-5 w-5 text-amber-500 fill-amber-500" />
-              </div>
-              <div>
-                <div className="flex items-center">
-                  <span className="text-amber-500">★★★★★</span>
-                </div>
-                <span className="text-sm text-gray-600">
-                  4.9/5 דירוג ממשתמשים
-                </span>
-              </div>
-            </div>
-
+          <div className="flex flex-wrap items-center justify-between gap-4 bg-white/40 backdrop-blur-sm py-5 px-8 rounded-2xl shadow-lg">
             <div className="flex items-center gap-2">
               <div className="p-2 rounded-full bg-cyan-100">
-                <Check className="h-5 w-5 text-cyan-600" />
+                <Shield className="h-5 w-5 text-cyan-600" />
               </div>
               <div>
-                <span className="font-semibold text-cyan-600">1,200+</span>
-                <br />
-                <span className="text-sm text-gray-600">זוגות מוצלחים</span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-full bg-pink-100">
-                <Shield className="h-5 w-5 text-pink-500" />
-              </div>
-              <div>
-                <span className="font-semibold text-pink-500">100%</span>
+                <span className="font-semibold text-cyan-600">100%</span>
                 <br />
                 <span className="text-sm text-gray-600">אבטחת פרטיות</span>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
-              <div className="p-2 rounded-full bg-cyan-100">
-                <Heart className="h-5 w-5 text-cyan-600" />
+              <div className="p-2 rounded-full bg-pink-100">
+                <Heart className="h-5 w-5 text-pink-500" />
               </div>
               <div>
-                <span className="font-semibold text-cyan-600">97%</span>
+                <span className="font-semibold text-pink-500">50+</span>
                 <br />
-                <span className="text-sm text-gray-600">שביעות רצון</span>
+                <span className="text-sm text-gray-600">מדדי תאימות</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-full bg-cyan-100">
+                <User className="h-5 w-5 text-cyan-600" />
+              </div>
+              <div>
+                <span className="font-semibold text-cyan-600">24/6</span>
+                <br />
+                <span className="text-sm text-gray-600">ליווי אישי</span>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
               <div className="p-2 rounded-full bg-pink-100">
-                <Check className="h-5 w-5 text-pink-500" />
+                <BookOpen className="h-5 w-5 text-pink-500" />
               </div>
               <div>
-                <span className="font-semibold text-pink-500">24/7</span>
+                <span className="font-semibold text-pink-500">20+</span>
                 <br />
-                <span className="text-sm text-gray-600">תמיכה אישית</span>
+                <span className="text-sm text-gray-600">שת״פ עם קהילות</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-full bg-cyan-100">
+                <Users className="h-5 w-5 text-cyan-600" />
+              </div>
+              <div>
+                <span className="font-semibold text-cyan-600">מקצועי</span>
+                <br />
+                <span className="text-sm text-gray-600">צוות שדכנים</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-full bg-pink-100">
+                <Sparkles className="h-5 w-5 text-pink-500" />
+              </div>
+              <div>
+                <span className="font-semibold text-pink-500">מושלם</span>
+                <br />
+                <span className="text-sm text-gray-600">מסורת וחדשנות</span>
               </div>
             </div>
           </div>
@@ -1676,7 +1672,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
 };
 
 // Add these animations to your global CSS or tailwind config:
-// 
+//
 // .animate-float-slow {
 //   animation: float 6s ease-in-out infinite;
 // }
@@ -1684,7 +1680,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
 //   0%, 100% { transform: translateY(0); }
 //   50% { transform: translateY(-20px); }
 // }
-// 
+//
 // .animate-gradient-slow {
 //   animation: gradient-anim 15s ease infinite;
 // }
@@ -1693,7 +1689,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
 //   50% { background-position: 100% 50%; }
 //   100% { background-position: 0% 50%; }
 // }
-// 
+//
 // .animate-spin-slow {
 //   animation: spin 20s linear infinite;
 // }
@@ -1701,7 +1697,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
 //   from { transform: rotate(0deg); }
 //   to { transform: rotate(360deg); }
 // }
-// 
+//
 // .animate-spin-reverse-slow {
 //   animation: spin-reverse 15s linear infinite;
 // }
@@ -1709,14 +1705,14 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
 //   from { transform: rotate(360deg); }
 //   to { transform: rotate(0deg); }
 // }
-// 
+//
 // .animate-shimmer {
 //   animation: shimmer 2.5s infinite;
 // }
 // @keyframes shimmer {
 //   100% { transform: translateX(100%); }
 // }
-// 
+//
 // .animate-gradient {
 //   animation: gradient-text 3s ease infinite;
 // }
@@ -1726,6 +1722,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
 // }
 
 export default HeroSection;
+
 
 ==================================================
 Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\components\HomePage\sections\HowItWorksSection.tsx:

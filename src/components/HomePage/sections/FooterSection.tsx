@@ -15,11 +15,11 @@ const FooterSection: React.FC = () => {
             <Link href="/" className="flex items-center gap-2 group mb-6">
               <div className="relative overflow-hidden rounded-full p-1 transition-all duration-300 group-hover:scale-110">
                 <Heart
-                  className="h-7 w-7 text-blue-400 transition-all duration-300 group-hover:text-blue-300"
+                  className="h-7 w-7 text-cyan-400 transition-all duration-300 group-hover:text-cyan-300"
                   fill="#1e293b"
                 />
               </div>
-              <span className="text-xl font-bold text-white group-hover:text-blue-300 transition-all duration-300">
+              <span className="text-xl font-bold text-white group-hover:text-cyan-300 transition-all duration-300">
                 Match Point
               </span>
             </Link>
@@ -32,7 +32,7 @@ const FooterSection: React.FC = () => {
             <div className="flex space-x-4 rtl:space-x-reverse">
               <a
                 href="#"
-                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-blue-600/20 transition-colors duration-300"
+                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-cyan-600/20 transition-colors duration-300"
               >
                 <svg
                   className="w-5 h-5 text-white"
@@ -49,7 +49,7 @@ const FooterSection: React.FC = () => {
               </a>
               <a
                 href="#"
-                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-blue-400/20 transition-colors duration-300"
+                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-cyan-400/20 transition-colors duration-300"
               >
                 <svg
                   className="w-5 h-5 text-white"
@@ -82,10 +82,10 @@ const FooterSection: React.FC = () => {
 
           <div>
             <h3 className="font-bold text-xl mb-4 md:mb-6 relative">
-              <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-300">
+              <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-cyan-300">
                 ניווט מהיר
               </span>
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-400/30 to-blue-300/30" />
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-400/30 to-cyan-300/30" />
             </h3>
             <ul className="space-y-3 md:space-y-4">
               <FooterLink href="/">דף הבית</FooterLink>
@@ -98,10 +98,10 @@ const FooterSection: React.FC = () => {
 
           <div>
             <h3 className="font-bold text-xl mb-4 md:mb-6 relative">
-              <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-300">
+              <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-cyan-300">
                 מידע שימושי
               </span>
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-400/30 to-blue-300/30" />
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-400/30 to-cyan-300/30" />
             </h3>
             <ul className="space-y-3 md:space-y-4">
               <FooterLink href="/privacy">פרטיות</FooterLink>
@@ -114,10 +114,10 @@ const FooterSection: React.FC = () => {
 
           <div>
             <h3 className="font-bold text-xl mb-4 md:mb-6 relative">
-              <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-300">
+              <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-cyan-300">
                 יצירת קשר
               </span>
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-400/30 to-blue-300/30" />
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-400/30 to-cyan-300/30" />
             </h3>
             <ul className="space-y-3 md:space-y-4">
               <FooterItem icon="📱" text="054-321-0040" />
@@ -131,7 +131,7 @@ const FooterSection: React.FC = () => {
         <div className="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-gray-700/50">
           <div className="text-center">
             <div className="mb-4">
-              <span className="inline-block px-4 py-2 rounded-full bg-gradient-to-r from-blue-500/10 to-blue-400/10 text-blue-400 hover:from-blue-500/20 hover:to-blue-400/20 transition-colors duration-300">
+              <span className="inline-block px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/10 to-cyan-400/10 text-cyan-400 hover:from-cyan-500/20 hover:to-cyan-400/20 transition-colors duration-300">
                 מחברים לבבות בדרך הנכונה
               </span>
             </div>

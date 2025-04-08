@@ -6,7 +6,7 @@ import { ArrowLeft, Sparkles } from "lucide-react";
 const CTASection: React.FC = () => {
   return (
     <section className="py-16 md:py-20 px-4 bg-white relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-white opacity-70"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-cyan-50 to-white opacity-70"></div>
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
         <svg
           className="absolute left-0 top-0 h-full opacity-5"
@@ -19,22 +19,22 @@ const CTASection: React.FC = () => {
           ></path>
           <defs>
             <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#3b82f6" />
-              <stop offset="100%" stopColor="#8b5cf6" />
+              <stop offset="0%" stopColor="#06b6d4" />
+              <stop offset="100%" stopColor="#0891b2" />
             </linearGradient>
           </defs>
         </svg>
       </div>
 
       <div className="max-w-4xl mx-auto text-center relative">
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 md:p-12 shadow-xl border border-blue-100">
-          <div className="inline-block mb-6 p-3 bg-blue-100 rounded-full text-blue-600">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 md:p-12 shadow-xl border border-cyan-100">
+          <div className="inline-block mb-6 p-3 bg-cyan-100 rounded-full text-cyan-600">
             <Sparkles className="w-8 h-8" />
           </div>
 
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4">
             מוכנים להתחיל את
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-700">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-cyan-700">
               {" "}
               המסע שלכם?{" "}
             </span>
@@ -49,7 +49,7 @@ const CTASection: React.FC = () => {
             <Link href="/auth/register">
               <Button
                 size="lg"
-                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl group"
+                className="bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl group"
               >
                 <span>להרשמה מיידית</span>
                 <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
@@ -60,7 +60,7 @@ const CTASection: React.FC = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-2 border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300 transition-all duration-300 rounded-xl"
+                className="border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-300 transition-all duration-300 rounded-xl"
               >
                 למידע נוסף
               </Button>

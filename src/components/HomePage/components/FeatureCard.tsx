@@ -6,7 +6,7 @@ export interface FeatureCardProps {
   icon: React.ReactNode;
   title: string;
   description: string;
-  color: "blue" | "green" | "orange" | "pink";
+  color: "cyan" | "green" | "orange" | "pink";
 }
 
 // Component for feature cards with improved hover effects
@@ -17,12 +17,12 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
   color,
 }) => {
   const colorClasses = {
-    blue: {
-      gradient: "from-blue-500/10 to-blue-700/10",
-      bg: "from-blue-50 to-blue-100",
-      text: "text-blue-600 group-hover:text-blue-700",
-      title: "group-hover:text-blue-700",
-      shadow: "shadow-blue-200/50",
+    cyan: {
+      gradient: "from-cyan-500/10 to-cyan-700/10",
+      bg: "from-cyan-50 to-cyan-100",
+      text: "text-cyan-600 group-hover:text-cyan-700",
+      title: "group-hover:text-cyan-700",
+      shadow: "shadow-cyan-200/50",
     },
     green: {
       gradient: "from-green-500/10 to-green-700/10",
