@@ -82,11 +82,11 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
   return (
     <section
       ref={sectionRef}
-      className="relative min-h-screen py-16 md:py-0 overflow-hidden flex items-center"
+      className="relative min-h-screen pt-0 overflow-hidden flex -mt-0.025"
     >
       {/* Enhanced gradient background with animated gradient */}
       <div
-        className="absolute inset-0 bg-gradient-to-br from-cyan-50 via-slate-50 to-pink-50 animate-gradient-slow"
+        className="absolute inset-0 bg-gradient-to-br from-cyan-50 via-white to-pink-50 animate-gradient-slow"
         style={{ backgroundSize: "400% 400%" }}
       />
 
@@ -110,7 +110,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
         }}
       ></div>
       <div
-        className="absolute top-1/3 left-[20%] w-20 h-20 rounded-full bg-gradient-to-br from-purple-200/20 to-purple-300/10 animate-float-slow backdrop-blur-sm"
+        className="absolute top-1/3 left-[20%] w-20 h-20 rounded-full bg-gradient-to-br from-cyan-200/20 to-cyan-300/10 animate-float-slow backdrop-blur-sm"
         style={{
           ...getParallaxStyle(0.7),
           animationDuration: "12s",
@@ -118,7 +118,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
         }}
       ></div>
       <div
-        className="absolute bottom-1/4 right-[20%] w-28 h-28 rounded-full bg-gradient-to-br from-blue-200/20 to-blue-300/10 animate-float-slow backdrop-blur-sm"
+        className="absolute bottom-1/4 right-[20%] w-28 h-28 rounded-full bg-gradient-to-br from-pink-200/20 to-pink-300/10 animate-float-slow backdrop-blur-sm"
         style={{
           ...getParallaxStyle(0.4),
           animationDuration: "20s",
@@ -128,13 +128,13 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
 
       {/* Sacred geometry pattern for spiritual dimension */}
       <div className="absolute inset-0 opacity-5 overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200%] aspect-square border-[1px] border-blue-500/20 rounded-full"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200%] aspect-square border-[1px] border-cyan-500/20 rounded-full"></div>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] aspect-square border-[1px] border-pink-500/20 rounded-full"></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100%] aspect-square border-[1px] border-purple-500/20 rounded-full"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100%] aspect-square border-[1px] border-cyan-500/20 rounded-full"></div>
       </div>
 
       <div className="relative w-full mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-        {/* Main title at the top - New position */}
+        {/* Main title at the top */}
         <div
           className={`text-center mb-[-50px] transition-all duration-1000 transform ${
             isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
@@ -150,41 +150,14 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
             </div>
           </div>
 
-          <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-blue-600 mb-2">
-            MATCH POINT
-          </h1>
           <div className="relative w-full max-w-lg mx-auto">
-            <div className="h-1 bg-gradient-to-r from-cyan-500/30 to-pink-600/30 rounded-full"></div>
+            <div className="h-1 bg-gradient-to-r from-cyan-500/30 to-pink-500/30 rounded-full"></div>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          {/* Left column: Content with enhanced animations */}
+          {/* Left column: Content - Updated text and styling */}
           <div className="lg:col-span-5 text-center lg:text-right">
-            <div
-              className={`transition-all duration-1000 transform ${
-                isVisible
-                  ? "translate-y-0 opacity-100"
-                  : "translate-y-10 opacity-0"
-              }`}
-              style={getStaggerDelay(1)}
-            >
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-800 mb-6 md:mb-8 leading-tight">
-                בניית קשר
-                <span className="relative inline-block mx-2">
-                  <span
-                    className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500 animate-gradient"
-                    style={{ backgroundSize: "200% 200%" }}
-                  >
-                    משמעותי
-                  </span>
-                  <span className="absolute -inset-1 bg-gradient-to-r from-pink-100 to-cyan-100 rounded-lg blur-md -z-10 opacity-60"></span>
-                </span>
-                <br className="hidden md:block" />
-                על בסיס ערכים משותפים
-              </h2>
-            </div>
-
             <div
               className={`transition-all duration-1000 transform ${
                 isVisible
@@ -194,84 +167,40 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
               style={getStaggerDelay(2)}
             >
               <p className="text-lg md:text-xl lg:text-2xl text-gray-600 mb-8 md:mb-10 max-w-xl mx-auto lg:mr-0 lg:ml-auto leading-relaxed">
-                מערכת
-                <span className="text-cyan-600 font-semibold"> חדשנית </span>
-                המשלבת טכנולוגיה מתקדמת וליווי אישי לאיתור
-                <span className="relative inline-flex mx-1">
-                  <span className="text-pink-600 font-semibold">
-                    התאמות מדויקות
-                  </span>
-                  <span className="absolute bottom-0 h-1 w-full bg-pink-200/50 rounded-full"></span>
+                אנחנו שדכנים שעובדים ביחד עם{" "}
+                <span className="font-bold text-cyan-500">AI</span> ש
+                <span className="font-bold bg-gradient-to-r from-cyan-500 to-pink-500 text-transparent bg-clip-text">
+                  החלום שלנו זה להגשים לך את החלום
+                </span>{" "}
+                ולחבר אותך עם{" "}
+                <span className="font-bold text-cyan-500">
+                  בן או בת הזוג שלך
+                </span>{" "}
+                כמה שיותר מהר, כדי שתוכל/י לחיות את{" "}
+                <span className="font-bold text-pink-500">
+                  החיים שתמיד רצית
                 </span>
-                שיובילו אתכם לקשר משמעותי לחיים
+                .
+                <br />
+                <span className="mt-2 inline-block font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-pink-500 animate-gradient">
+                  אז למה את/ה מחכה? קדימה בוא/י נתחיל!
+                </span>
               </p>
             </div>
 
-            {/* Buttons container - Improved symmetrical layout */}
+            {/* Move questionnaire card to appear before buttons */}
             <div
-              className={`transition-all duration-1000 transform ${
+              className={`mb-8 lg:mb-10 transition-all duration-1000 transform ${
                 isVisible
                   ? "translate-y-0 opacity-100"
                   : "translate-y-10 opacity-0"
               }`}
               style={getStaggerDelay(3)}
             >
-              {!session ? (
-                <div className="flex justify-center lg:justify-end space-x-4 rtl:space-x-reverse">
-                  <Link href="/auth/register" className="w-full sm:w-auto">
-                    <Button
-                      size="lg"
-                      className="text-base w-full md:text-lg px-8 py-6 bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden"
-                    >
-                      {/* Button background shimmer effect */}
-                      <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full animate-shimmer"></span>
-
-                      <span className="relative z-10">הרשמה למערכת</span>
-                      <ArrowLeft className="relative z-10 mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                  </Link>
-
-                  <Link href="/auth/signin" className="w-full sm:w-auto">
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      className="text-base w-full md:text-lg px-8 py-6 border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-300 rounded-full transition-all duration-300"
-                    >
-                      התחברות
-                    </Button>
-                  </Link>
-                </div>
-              ) : (
-                <div className="flex justify-center lg:justify-end">
-                  <Link href="/profile" className="w-full sm:w-auto">
-                    <Button
-                      size="lg"
-                      className="text-base w-full md:text-lg px-8 py-6 bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden"
-                    >
-                      {/* Button background shimmer effect */}
-                      <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full animate-shimmer"></span>
-
-                      <span className="relative z-10">לאזור האישי</span>
-                      <ArrowLeft className="relative z-10 mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                  </Link>
-                </div>
-              )}
-            </div>
-
-            {/* Questionnaire card - Aligned with buttons above */}
-            <div
-              className={`mt-6 lg:mt-8 transition-all duration-1000 transform ${
-                isVisible
-                  ? "translate-y-0 opacity-100"
-                  : "translate-y-10 opacity-0"
-              }`}
-              style={getStaggerDelay(4)}
-            >
               <Link href="/questionnaire">
                 <Card className="group relative overflow-hidden border-none shadow-lg hover:shadow-xl transition-all duration-500 hover:-translate-y-2 rounded-xl max-w-md mx-auto lg:mr-0 lg:ml-auto">
                   <div className="absolute inset-0 bg-gradient-to-r from-cyan-50 via-white to-pink-50 opacity-80" />
-                  <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 via-purple-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 rounded-xl blur-md transition-all duration-500" />
+                  <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 via-pink-500/20 to-cyan-500/20 opacity-0 group-hover:opacity-100 rounded-xl blur-md transition-all duration-500" />
                   <CardContent className="relative p-6 flex items-center">
                     <div className="relative p-4 mr-5 rounded-full bg-gradient-to-r from-cyan-500 to-pink-500 shadow-lg group-hover:shadow-xl transition-all duration-500 group-hover:scale-110 overflow-hidden">
                       {/* Inner shimmer effect */}
@@ -290,6 +219,58 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                   </CardContent>
                 </Card>
               </Link>
+            </div>
+
+            {/* Buttons container - Updated with more space between buttons */}
+            <div
+              className={`transition-all duration-1000 transform ${
+                isVisible
+                  ? "translate-y-0 opacity-100"
+                  : "translate-y-10 opacity-0"
+              }`}
+              style={getStaggerDelay(4)}
+            >
+              {!session ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 w-full max-w-md mx-auto lg:mr-0 lg:ml-auto">
+                  <Link href="/auth/register" className="w-full">
+                    <Button
+                      size="lg"
+                      className="text-base w-full md:text-lg px-8 py-6 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden"
+                    >
+                      {/* Button background shimmer effect */}
+                      <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full animate-shimmer"></span>
+
+                      <span className="relative z-10">הרשמה למערכת</span>
+                      <ArrowLeft className="relative z-10 mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </Link>
+
+                  <Link href="/auth/signin" className="w-full">
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="text-base w-full md:text-lg px-8 py-6 border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-300 rounded-full transition-all duration-300"
+                    >
+                      התחברות
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <div className="flex justify-center lg:justify-end">
+                  <Link href="/profile" className="w-full sm:w-auto">
+                    <Button
+                      size="lg"
+                      className="text-base w-full md:text-lg px-8 py-6 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden"
+                    >
+                      {/* Button background shimmer effect */}
+                      <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full animate-shimmer"></span>
+
+                      <span className="relative z-10">לאזור האישי</span>
+                      <ArrowLeft className="relative z-10 mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
 
@@ -315,7 +296,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                   <div className="absolute w-3/4 h-3/4 border-[1px] border-dashed border-gray-400 rounded-full animate-spin-reverse-slow"></div>
                 </div>
 
-                {/* Left Piece (Tradition) - Enhanced */}
+                {/* Left Piece (Tradition) */}
                 <div
                   className="absolute top-1/2 left-1/4 transform -translate-y-1/2 -translate-x-1/2 transition-all duration-700 ease-out"
                   style={{
@@ -355,20 +336,20 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                         </div>
 
                         <span className="text-white text-4xl md:text-5xl font-bold drop-shadow-md mb-4">
-                          מסורת
+                          שידוכים
                         </span>
                         <p className="text-cyan-100 text-base md:text-lg text-center mb-5">
-                          ערכים, משפחה ומורשת
+                          ערכים, אישיות ועומק
                         </p>
                         <div className="mt-2 flex flex-wrap justify-center gap-2">
                           <span className="px-3 py-1 bg-white/20 rounded-full text-sm text-white">
-                            קהילה
+                            יוזמה
                           </span>
                           <span className="px-3 py-1 bg-white/20 rounded-full text-sm text-white">
-                            ערכים
+                            חשיבה
                           </span>
                           <span className="px-3 py-1 bg-white/20 rounded-full text-sm text-white">
-                            אמונה
+                            פרטיות
                           </span>
                         </div>
                       </div>
@@ -376,7 +357,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                   </div>
                 </div>
 
-                {/* Right Piece (Technology) - Enhanced */}
+                {/* Right Piece (Technology) */}
                 <div
                   className="absolute top-1/2 right-1/4 transform -translate-y-1/2 translate-x-1/2 transition-all duration-700 ease-out"
                   style={{
@@ -426,10 +407,10 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                             AI
                           </span>
                           <span className="px-3 py-1 bg-white/20 rounded-full text-sm text-white">
-                            התאמה מדויקת
+                            דאטה בייס גדול
                           </span>
                           <span className="px-3 py-1 bg-white/20 rounded-full text-sm text-white">
-                            פרטיות
+                            ממשק נוח
                           </span>
                         </div>
                       </div>
@@ -437,7 +418,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                   </div>
                 </div>
 
-                {/* Connection Animation - Enhanced */}
+                {/* Connection Animation */}
                 <div
                   className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-30"
                   style={{
@@ -476,7 +457,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                         }}
                       ></div>
                       <div
-                        className="absolute top-1/2 left-1/2 w-3 h-3 bg-purple-400 rounded-full animate-ping"
+                        className="absolute top-1/2 left-1/2 w-3 h-3 bg-cyan-600 rounded-full animate-ping"
                         style={{
                           animationDuration: "2s",
                           marginTop: "15px",
@@ -509,9 +490,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
           </div>
         </div>
 
-        {/* Enhanced trust indicators - Full width row at bottom */}
+        {/* Trust indicators - Negative margin to eliminate gap completely */}
         <div
-          className={`mt-16 transition-all duration-1000 transform ${
+          className={`-mt-5 transition-all duration-1000 transform ${
             isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
           }`}
           style={getStaggerDelay(5)}
@@ -533,7 +514,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
 
             <div className="flex items-center gap-2">
               <div className="p-2 rounded-full bg-cyan-100">
-                <Check className="h-5 w-5 text-cyan-500" />
+                <Check className="h-5 w-5 text-cyan-600" />
               </div>
               <div>
                 <span className="font-semibold text-cyan-600">1,200+</span>
@@ -547,29 +528,29 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                 <Shield className="h-5 w-5 text-pink-500" />
               </div>
               <div>
-                <span className="font-semibold text-pink-600">100%</span>
+                <span className="font-semibold text-pink-500">100%</span>
                 <br />
                 <span className="text-sm text-gray-600">אבטחת פרטיות</span>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
-              <div className="p-2 rounded-full bg-purple-100">
-                <Heart className="h-5 w-5 text-purple-500" />
+              <div className="p-2 rounded-full bg-cyan-100">
+                <Heart className="h-5 w-5 text-cyan-600" />
               </div>
               <div>
-                <span className="font-semibold text-purple-600">97%</span>
+                <span className="font-semibold text-cyan-600">97%</span>
                 <br />
                 <span className="text-sm text-gray-600">שביעות רצון</span>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
-              <div className="p-2 rounded-full bg-blue-100">
-                <Check className="h-5 w-5 text-blue-500" />
+              <div className="p-2 rounded-full bg-pink-100">
+                <Check className="h-5 w-5 text-pink-500" />
               </div>
               <div>
-                <span className="font-semibold text-blue-600">24/7</span>
+                <span className="font-semibold text-pink-500">24/7</span>
                 <br />
                 <span className="text-sm text-gray-600">תמיכה אישית</span>
               </div>
@@ -581,13 +562,54 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
   );
 };
 
-// Add this to your global CSS or tailwind config
+// Add these animations to your global CSS or tailwind config:
+//
 // .animate-float-slow {
 //   animation: float 6s ease-in-out infinite;
 // }
 // @keyframes float {
 //   0%, 100% { transform: translateY(0); }
 //   50% { transform: translateY(-20px); }
+// }
+//
+// .animate-gradient-slow {
+//   animation: gradient-anim 15s ease infinite;
+// }
+// @keyframes gradient-anim {
+//   0% { background-position: 0% 50%; }
+//   50% { background-position: 100% 50%; }
+//   100% { background-position: 0% 50%; }
+// }
+//
+// .animate-spin-slow {
+//   animation: spin 20s linear infinite;
+// }
+// @keyframes spin {
+//   from { transform: rotate(0deg); }
+//   to { transform: rotate(360deg); }
+// }
+//
+// .animate-spin-reverse-slow {
+//   animation: spin-reverse 15s linear infinite;
+// }
+// @keyframes spin-reverse {
+//   from { transform: rotate(360deg); }
+//   to { transform: rotate(0deg); }
+// }
+//
+// .animate-shimmer {
+//   animation: shimmer 2.5s infinite;
+// }
+// @keyframes shimmer {
+//   100% { transform: translateX(100%); }
+// }
+//
+// .animate-gradient {
+//   animation: gradient-text 3s ease infinite;
+// }
+// @keyframes gradient-text {
+//   0%, 100% { background-position: 0% 50%; }
+//   50% { background-position: 100% 50%; }
 // }
 
 export default HeroSection;
