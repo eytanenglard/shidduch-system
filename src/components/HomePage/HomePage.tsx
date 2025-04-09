@@ -31,10 +31,9 @@ export default function HomePage() {
       <HeroSection session={session} isVisible={isVisible} />
       <ValuePropositionSection />
       <HowItWorksSection />
+      <MatchmakerTeamSection />
       <FeaturesSection />
       <AlgorithmSection />
-
-      <MatchmakerTeamSection />
       <SuccessStoriesSection />
       <FAQSection />
       <PrivacyAssuranceSection />
