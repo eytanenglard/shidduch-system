@@ -148,7 +148,7 @@ const MatchmakerTeamSection: React.FC = () => {
             description="עם ניסיון של 8 שנים בתחום השידוכים, דינה מביאה כישורים בינאישיים יוצאי דופן והבנה עמוקה של צרכי המועמדים. הגישה האישית והאמפתית שלה יצרה עשרות זוגות מאושרים והיא מלווה כל מועמד בדרך מותאמת אישית."
             color="cyan"
             tags={["מומחית התאמה", "ליווי אישי", "2+ שנות ניסיון"]}
-            imageSrc="/images/team/dina.jpg"
+            imageSrc="/images/team/dina4.jpg"
           />
           <MatchmakerCard
             name="איתן אנגלרד"
