@@ -141,9 +141,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
       </div>
 
       <div className="relative w-full mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl flex flex-col">
-        {/* Main title at the top */}
+        {/* Mobile layout order: 1. Title */}
         <div
-          className={`text-center mb-2 sm:mb-4 md:mb-[-50px] transition-all duration-1000 transform ${
+          className={`text-center mb-6 sm:mb-4 md:mb-[-50px] transition-all duration-1000 transform ${
             isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
           }`}
           style={getStaggerDelay(0)}
@@ -162,17 +162,106 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
           </div>
         </div>
 
-        {/* Reordered content for mobile first */}
-        <div className="flex flex-col-reverse lg:flex-row lg:grid lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-8 items-center">
-          {/* Left column: Content - Updated text and styling */}
-          <div className="w-full lg:col-span-5 text-center lg:text-right mt-4 lg:mt-0">
+        {/* Mobile layout: Different column order for mobile and desktop */}
+        <div className="flex flex-col lg:flex-row lg:grid lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-8 items-center">
+          {/* Mobile-first reordering */}
+          <div className="w-full lg:col-span-5 text-center lg:text-right mt-4 lg:mt-0 flex flex-col">
+            {/* Mobile layout order: 2. Buttons */}
+            <div className="order-1 lg:order-3">
+              {/* Questionnaire card */}
+              <div
+                className={`mb-6 transition-all duration-1000 transform ${
+                  isVisible
+                    ? "translate-y-0 opacity-100"
+                    : "translate-y-10 opacity-0"
+                }`}
+                style={getStaggerDelay(1)}
+              >
+                <Link href="/questionnaire">
+                  <Card className="group relative overflow-hidden border-none shadow-lg hover:shadow-xl transition-all duration-500 hover:-translate-y-2 rounded-xl max-w-md mx-auto lg:mr-0 lg:ml-auto">
+                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-50 via-white to-pink-50 opacity-80" />
+                    <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 via-pink-500/20 to-cyan-500/20 opacity-0 group-hover:opacity-100 rounded-xl blur-md transition-all duration-500" />
+                    <CardContent className="relative p-4 sm:p-6 flex items-center">
+                      <div className="relative p-3 sm:p-4 mr-3 sm:mr-5 rounded-full bg-gradient-to-r from-cyan-500 to-pink-500 shadow-lg group-hover:shadow-xl transition-all duration-500 group-hover:scale-110 overflow-hidden">
+                        {/* Inner shimmer effect */}
+                        <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
+                        <ClipboardList className="relative z-10 w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-base sm:text-lg font-bold text-gray-800 group-hover:text-cyan-700 transition-colors duration-300">
+                          שאלון התאמה
+                        </h3>
+                        <p className="text-xs sm:text-sm text-gray-600">
+                          מלא/י שאלון מקיף לקבלת הצעות שידוך מותאמות אישית
+                        </p>
+                      </div>
+                      <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6 mr-auto text-pink-500 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-500" />
+                    </CardContent>
+                  </Card>
+                </Link>
+              </div>
+
+              {/* Authentication buttons */}
+              <div
+                className={`transition-all duration-1000 transform ${
+                  isVisible
+                    ? "translate-y-0 opacity-100"
+                    : "translate-y-10 opacity-0"
+                }`}
+                style={getStaggerDelay(2)}
+              >
+                {!session ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-md mx-auto lg:mr-0 lg:ml-auto">
+                    <Link href="/auth/register" className="w-full">
+                      <Button
+                        size="lg"
+                        className="text-sm sm:text-base w-full md:text-lg px-4 sm:px-8 py-5 sm:py-6 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden"
+                      >
+                        {/* Button background shimmer effect */}
+                        <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full animate-shimmer"></span>
+
+                        <span className="relative z-10">הרשמה למערכת</span>
+                        <ArrowLeft className="relative z-10 mr-2 h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" />
+                      </Button>
+                    </Link>
+
+                    <Link href="/auth/signin" className="w-full">
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        className="text-sm sm:text-base w-full md:text-lg px-4 sm:px-8 py-5 sm:py-6 border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-300 rounded-full transition-all duration-300"
+                      >
+                        התחברות
+                      </Button>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="flex justify-center lg:justify-end">
+                    <Link href="/profile" className="w-full sm:w-auto">
+                      <Button
+                        size="lg"
+                        className="text-sm sm:text-base w-full md:text-lg px-4 sm:px-8 py-5 sm:py-6 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden"
+                      >
+                        {/* Button background shimmer effect */}
+                        <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full animate-shimmer"></span>
+
+                        <span className="relative z-10">לאזור האישי</span>
+                        <ArrowLeft className="relative z-10 mr-2 h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" />
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Mobile layout order: 4. Text content */}
             <div
-              className={`transition-all duration-1000 transform ${
+              className={`order-3 lg:order-1 mt-6 lg:mt-0 transition-all duration-1000 transform ${
                 isVisible
                   ? "translate-y-0 opacity-100"
                   : "translate-y-10 opacity-0"
               }`}
-              style={getStaggerDelay(2)}
+              style={getStaggerDelay(4)}
             >
               <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 mb-6 md:mb-8 lg:mb-10 max-w-xl mx-auto lg:mr-0 lg:ml-auto leading-relaxed">
                 אנחנו שדכנים שעובדים ביחד עם{" "}
@@ -195,105 +284,20 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                 </span>
               </p>
             </div>
-
-            {/* Move questionnaire card to appear before buttons */}
-            <div
-              className={`mb-6 transition-all duration-1000 transform ${
-                isVisible
-                  ? "translate-y-0 opacity-100"
-                  : "translate-y-10 opacity-0"
-              }`}
-              style={getStaggerDelay(3)}
-            >
-              <Link href="/questionnaire">
-                <Card className="group relative overflow-hidden border-none shadow-lg hover:shadow-xl transition-all duration-500 hover:-translate-y-2 rounded-xl max-w-md mx-auto lg:mr-0 lg:ml-auto">
-                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-50 via-white to-pink-50 opacity-80" />
-                  <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 via-pink-500/20 to-cyan-500/20 opacity-0 group-hover:opacity-100 rounded-xl blur-md transition-all duration-500" />
-                  <CardContent className="relative p-4 sm:p-6 flex items-center">
-                    <div className="relative p-3 sm:p-4 mr-3 sm:mr-5 rounded-full bg-gradient-to-r from-cyan-500 to-pink-500 shadow-lg group-hover:shadow-xl transition-all duration-500 group-hover:scale-110 overflow-hidden">
-                      {/* Inner shimmer effect */}
-                      <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
-                      <ClipboardList className="relative z-10 w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="text-base sm:text-lg font-bold text-gray-800 group-hover:text-cyan-700 transition-colors duration-300">
-                        שאלון התאמה
-                      </h3>
-                      <p className="text-xs sm:text-sm text-gray-600">
-                        מלא/י שאלון מקיף לקבלת הצעות שידוך מותאמות אישית
-                      </p>
-                    </div>
-                    <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6 mr-auto text-pink-500 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-500" />
-                  </CardContent>
-                </Card>
-              </Link>
-            </div>
-
-            {/* Buttons container - Updated with more space between buttons */}
-            <div
-              className={`transition-all duration-1000 transform ${
-                isVisible
-                  ? "translate-y-0 opacity-100"
-                  : "translate-y-10 opacity-0"
-              }`}
-              style={getStaggerDelay(4)}
-            >
-              {!session ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-md mx-auto lg:mr-0 lg:ml-auto">
-                  <Link href="/auth/register" className="w-full">
-                    <Button
-                      size="lg"
-                      className="text-sm sm:text-base w-full md:text-lg px-4 sm:px-8 py-5 sm:py-6 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden"
-                    >
-                      {/* Button background shimmer effect */}
-                      <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full animate-shimmer"></span>
-
-                      <span className="relative z-10">הרשמה למערכת</span>
-                      <ArrowLeft className="relative z-10 mr-2 h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                  </Link>
-
-                  <Link href="/auth/signin" className="w-full">
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      className="text-sm sm:text-base w-full md:text-lg px-4 sm:px-8 py-5 sm:py-6 border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-300 rounded-full transition-all duration-300"
-                    >
-                      התחברות
-                    </Button>
-                  </Link>
-                </div>
-              ) : (
-                <div className="flex justify-center lg:justify-end">
-                  <Link href="/profile" className="w-full sm:w-auto">
-                    <Button
-                      size="lg"
-                      className="text-sm sm:text-base w-full md:text-lg px-4 sm:px-8 py-5 sm:py-6 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden"
-                    >
-                      {/* Button background shimmer effect */}
-                      <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full animate-shimmer"></span>
-
-                      <span className="relative z-10">לאזור האישי</span>
-                      <ArrowLeft className="relative z-10 mr-2 h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                  </Link>
-                </div>
-              )}
-            </div>
           </div>
 
           {/* Central spacing column for larger screens */}
           <div className="hidden lg:block lg:col-span-1"></div>
 
-          {/* Right column: Puzzle Animation - Moved up for mobile */}
+          {/* Mobile layout order: 3. Puzzle Animation */}
           <div
             ref={puzzleContainerRef}
-            className={`w-full lg:col-span-6 relative h-[300px] sm:h-[400px] md:h-[500px] lg:h-[650px] transition-all duration-1000 transform ${
+            className={`order-2 w-full lg:col-span-6 relative h-[300px] sm:h-[400px] md:h-[500px] lg:h-[650px] transition-all duration-1000 transform ${
               isVisible
                 ? "translate-y-0 opacity-100"
                 : "translate-y-10 opacity-0"
             }`}
-            style={{ transitionDelay: "200ms" }}
+            style={{ transitionDelay: "350ms" }}
           >
             {/* Modernized, more spiritual puzzle visualization */}
             <div className="absolute inset-0 flex items-center justify-center">
@@ -490,7 +494,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
           </div>
         </div>
 
-        {/* Trust indicators - Reorganized for mobile */}
+        {/* Trust indicators */}
         <div
           className={`mt-6 sm:mt-8 transition-all duration-1000 transform ${
             isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
