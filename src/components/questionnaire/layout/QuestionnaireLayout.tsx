@@ -1,5 +1,4 @@
 // src/components/questionnaire/layout/QuestionnaireLayout.tsx
-// Modified to use component imports instead of router navigation
 
 import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -30,6 +29,15 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"; // הוספת ייבוא ל-Sheet
+import FAQ from "../components/FAQ"; // ייבוא קומפוננטת FAQ
+import AccessibilityFeatures from "../components/AccessibilityFeatures"; // ייבוא קומפוננטת נגישות
 
 // Mapping icons for different "worlds" in the system
 const worldIcons = {
@@ -37,7 +45,7 @@ const worldIcons = {
   VALUES: Heart,
   RELATIONSHIP: Users,
   PARTNER: Heart,
-  RELIGION: CheckCircle,
+  RELIGION: CheckCircle, // Using CheckCircle for Religion as an example, adjust if needed
 } as const;
 
 // Mapping labels for different "worlds"
@@ -45,7 +53,7 @@ const worldLabels = {
   PERSONALITY: "אישיות",
   VALUES: "ערכים ואמונות",
   RELATIONSHIP: "זוגיות",
-  PARTNER: "תכונות וערכים בבן/בת הזוג",
+  PARTNER: "תכונות וערכים בבן/בת הזוג", // Corrected label
   RELIGION: "דת ומסורת",
 } as const;
 
@@ -183,7 +191,7 @@ export default function QuestionnaireLayout({
               size={isMobile ? "sm" : "default"}
               className={cn(
                 "flex items-center justify-start gap-2 w-full mb-2 transition-all",
-                isActive ? "bg-primary text-white" : "",
+                isActive ? "bg-primary text-white" : "", // Use primary color from theme
                 isCompleted ? "border-green-500" : "",
                 isMobile ? "text-xs py-1" : ""
               )}
@@ -222,6 +230,46 @@ export default function QuestionnaireLayout({
     );
   };
 
+  // --- תחילת הוספת קוד ---
+  // פונקציה לרנדור כפתור FAQ עם Sheet
+  const renderFAQButton = (isMobile: boolean) => (
+    <Sheet>
+      <SheetTrigger asChild>
+        <Button
+          variant="ghost"
+          size={isMobile ? "sm" : "icon"} // Changed size to "icon" for desktop
+          className={cn(
+            "flex items-center justify-center", // Centered content for icon button
+            isMobile
+              ? "justify-start gap-2 w-full mb-2 text-xs py-1"
+              : "w-8 h-8 p-0 rounded-full" // Specific desktop styles
+          )}
+          aria-label="שאלות נפוצות"
+        >
+          <HelpCircle className={cn("h-4 w-4", isMobile ? "mr-1" : "")} />
+          {!isMobile && <span className="sr-only">שאלות נפוצות</span>}{" "}
+          {/* Hidden text for desktop */}
+          {isMobile && <span>שאלות נפוצות</span>}
+        </Button>
+      </SheetTrigger>
+      <SheetContent
+        side={isRTL ? "left" : "right"}
+        className="w-[90vw] max-w-lg overflow-y-auto"
+      >
+        <SheetHeader>
+          <SheetTitle>שאלות נפוצות</SheetTitle>
+        </SheetHeader>
+        <div className="mt-4">
+          <FAQ
+          // You can pass currentWorld to filter FAQs if desired
+          // initialOpenId="save-progress" // Optionally open a specific FAQ item
+          />
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+  // --- סוף הוספת קוד ---
+
   const MobileNav = () => (
     <AnimatePresence>
       {showMobileNav && (
@@ -241,7 +289,7 @@ export default function QuestionnaireLayout({
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             className={`fixed top-0 ${
               isRTL ? "right-0" : "left-0"
-            } h-full w-3/4 max-w-xs bg-white shadow-lg p-4 z-50 ${directionClass}`}
+            } h-full w-3/4 max-w-xs bg-white shadow-lg p-4 z-50 ${directionClass} flex flex-col`} // Added flex flex-col
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-medium flex items-center">
@@ -258,10 +306,14 @@ export default function QuestionnaireLayout({
               </Button>
             </div>
 
-            <div className="mb-6 space-y-1">
+            <div className="flex-1 overflow-y-auto mb-4">
+              {" "}
+              {/* Made scrollable */}
               {Object.keys(worldIcons).map((worldId) => (
                 <NavButton key={worldId} worldId={worldId} isMobile={true} />
               ))}
+              {/* Add FAQ button to mobile nav */}
+              {renderFAQButton(true)}
             </div>
 
             <div className="mt-auto pt-4 border-t space-y-4">
@@ -348,6 +400,31 @@ export default function QuestionnaireLayout({
         </div>
 
         <div className="flex items-center gap-1">
+          {/* --- תחילת הוספת קוד --- */}
+          {/* Add FAQ button to Mobile Header */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-full"
+              >
+                <HelpCircle className="h-4 w-4" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent
+              side={isRTL ? "left" : "right"}
+              className="w-[90vw] max-w-lg overflow-y-auto"
+            >
+              <SheetHeader>
+                <SheetTitle>שאלות נפוצות</SheetTitle>
+              </SheetHeader>
+              <div className="mt-4">
+                <FAQ />
+              </div>
+            </SheetContent>
+          </Sheet>
+          {/* --- סוף הוספת קוד --- */}
           {lastSaved && !isSmallScreen && (
             <span className="text-xs text-gray-500 mr-1">
               <CheckCircle className="inline-block h-3 w-3 mr-1 text-green-500" />
@@ -387,17 +464,34 @@ export default function QuestionnaireLayout({
           <div className="flex items-center justify-between">
             <h3 className="font-medium text-lg">עולמות השאלון</h3>
             <div className="flex gap-1">
-              <Button variant="ghost" size="sm" className="w-8 h-8 p-0">
-                <Settings className="w-4 h-4" />
-              </Button>
-              <Button variant="ghost" size="sm" className="w-8 h-8 p-0">
-                <HelpCircle className="w-4 h-4" />
-              </Button>
+              {/* --- תחילת הוספת קוד --- */}
+              {/* FAQ button for desktop */}
+              {renderFAQButton(false)}
+              {/* --- סוף הוספת קוד --- */}
+              <TooltipProvider delayDuration={300}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="w-8 h-8 p-0 rounded-full"
+                    >
+                      <Settings className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">
+                    <p>הגדרות</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              {/* Removed the original HelpCircle as FAQ button replaces it */}
             </div>
           </div>
         </div>
 
-        <div className="p-4 space-y-2 flex-1">
+        <div className="p-4 space-y-2 flex-1 overflow-y-auto">
+          {" "}
+          {/* Made scrollable */}
           {Object.keys(worldIcons).map((worldId) => (
             <NavButton key={worldId} worldId={worldId} isMobile={false} />
           ))}
@@ -448,14 +542,20 @@ export default function QuestionnaireLayout({
       </aside>
 
       {/* Main content area */}
-      <main className="flex-1 p-3 md:p-6 lg:pb-16 overflow-y-auto">
+      <main className="flex-1 p-3 md:p-6 lg:pb-16 overflow-y-auto relative">
+        {" "}
+        {/* Added relative */}
         {error && (
           <Alert variant="destructive" className="mb-4">
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-
         {children}
+        {/* --- תחילת הוספת קוד --- */}
+        {/* Render AccessibilityFeatures so it's always available */}
+        <AccessibilityFeatures className="fixed bottom-4 right-4 lg:bottom-6 lg:right-6 z-50" />{" "}
+        {/* Added fixed positioning */}
+        {/* --- סוף הוספת קוד --- */}
       </main>
 
       {/* Exit Confirmation Dialog */}
@@ -497,8 +597,13 @@ export default function QuestionnaireLayout({
                         if (onExit) {
                           onExit();
                         }
+                        setShowExitPrompt(false); // Close prompt after action
                       }}
+                      disabled={isSaving} // Disable while saving
                     >
+                      {isSaving ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                      ) : null}
                       שמור וצא
                     </Button>
                     <Button

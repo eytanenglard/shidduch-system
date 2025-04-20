@@ -12,7 +12,7 @@ import {
   Info,
   Star,
   Play,
-  UserCheck,
+  UserCheck, // Added UserCheck icon
 } from "lucide-react";
 import type { WorldId } from "../types/types";
 import { cn } from "@/lib/utils";
@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
 import { useMediaQuery } from "../hooks/useMediaQuery";
+import { Badge } from "@/components/ui/badge"; // Added Badge import
 
 interface WorldsMapProps {
   currentWorld: WorldId;
@@ -33,6 +34,7 @@ interface WorldsMapProps {
   className?: string;
 }
 
+// Updated config with UserCheck for Partner
 const worldsConfig = {
   RELATIONSHIP: {
     icon: Users,
@@ -71,8 +73,8 @@ const worldsConfig = {
     order: 1,
   },
   PARTNER: {
-    icon: UserCheck,
-    color: "bg-pink-100",
+    icon: UserCheck, // Changed icon
+    color: "bg-pink-100", // Adjusted color to match Values for example, change if needed
     activeColor: "bg-pink-600",
     hoverColor: "hover:bg-pink-200",
     borderColor: "border-pink-300",
@@ -96,13 +98,30 @@ const worldsConfig = {
   },
 } as const;
 
-const WORLD_ORDER: WorldId[] = [
+// Define the keys of worldsConfig as a specific type
+type WorldConfigKey = keyof typeof worldsConfig;
+
+// Define the order using the specific type
+const WORLD_ORDER: WorldConfigKey[] = [
   "PERSONALITY",
   "VALUES",
   "RELATIONSHIP",
   "PARTNER",
   "RELIGION",
 ];
+
+// Define Badge variants (add to your theme or global CSS if needed)
+// Assuming your Badge component accepts these variant names as strings
+const badgeVariants = {
+  default: "border-transparent bg-blue-100 text-blue-800",
+  success: "border-transparent bg-green-100 text-green-800",
+  warning: "border-transparent bg-yellow-100 text-yellow-800",
+  secondary: "border-transparent bg-gray-100 text-gray-800",
+  outline: "text-foreground", // Default outline style
+};
+
+// Define the type for the badge variant keys
+type BadgeVariant = keyof typeof badgeVariants;
 
 export default function WorldsMap({
   currentWorld,
@@ -114,22 +133,27 @@ export default function WorldsMap({
   const [expanded, setExpanded] = useState<WorldId | null>(null);
   const isMobile = useMediaQuery("(max-width: 640px)");
 
-  //כרגע כל העולמות מוגדרים כנגישים
+  // Type safety: Ensure WorldId is compatible with WorldConfigKey if needed elsewhere
+  // This check is usually implicit if WorldId is defined as keyof typeof worldsConfig
+  // Example assertion if types were potentially incompatible:
+  // const currentWorldTyped: WorldConfigKey = currentWorld;
+
   const isWorldAccessible = (): boolean => {
-    return true; // Allow access to all worlds
+    // Implement logic here if some worlds should be locked initially
+    // For now, all worlds are accessible
+    return true;
   };
 
-  // נוסיף תיאור מצב התקדמות כללי
   const completionPercent =
     completedWorlds.length > 0
       ? Math.round((completedWorlds.length / WORLD_ORDER.length) * 100)
       : 0;
 
+  // Find the next recommended world
   const nextRecommendedWorld = WORLD_ORDER.find(
     (world) => !completedWorlds.includes(world)
   );
 
-  // אנימציה עבור תנועת הכרטיסים
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
@@ -137,7 +161,6 @@ export default function WorldsMap({
     tap: { scale: 0.98, transition: { duration: 0.1 } },
   };
 
-  // אנימציה עבור החלפת תוכן
   const contentVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { duration: 0.2 } },
@@ -154,32 +177,31 @@ export default function WorldsMap({
           </div>
 
           <div className="mt-2 w-full sm:max-w-[200px]">
-            <div className="relative">
-              <Progress value={completionPercent} className="h-2 bg-gray-100" />
-              <div
-                className={cn(
-                  "absolute inset-0 h-2 rounded-full transition-all",
-                  completionPercent === 100
-                    ? "bg-green-500"
-                    : completionPercent > 50
-                    ? "bg-blue-500"
-                    : "bg-blue-400"
-                )}
-                style={{ width: `${completionPercent}%` }}
-              />
-            </div>
+            {/* Progress bar - simple version */}
+            <Progress value={completionPercent} className="h-2" />
           </div>
         </div>
 
+        {/* Recommended World Button */}
         {nextRecommendedWorld && nextRecommendedWorld !== currentWorld && (
-          <Button
-            size="sm"
-            onClick={() => onWorldChange?.(nextRecommendedWorld)}
-            className="bg-blue-600 hover:bg-blue-700 text-white gap-1"
-          >
-            <Play className="h-3 w-3 ml-1" />
-            עבור לעולם המומלץ הבא
-          </Button>
+          <TooltipProvider delayDuration={200}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  onClick={() => onWorldChange?.(nextRecommendedWorld)}
+                  className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white gap-1 shadow-md hover:shadow-lg transition-shadow animate-pulse-slow" // Added animation
+                >
+                  <Star className="h-4 w-4 ml-1 fill-current" />{" "}
+                  {/* Filled star */}
+                  עבור לעולם המומלץ: {worldsConfig[nextRecommendedWorld].label}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>המשך בסדר המומלץ לחוויה מיטבית</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
       </div>
 
@@ -195,15 +217,17 @@ export default function WorldsMap({
             const isActive = currentWorld === worldId;
             const isCompleted = completedWorlds.includes(worldId);
             const isAccessible = isWorldAccessible();
+            const isRecommended =
+              worldId === nextRecommendedWorld && !isCompleted; // Is this the next recommended?
 
-            // לקבוע כמה מלא המעגל לפי התקדמות
             const progressClass = isCompleted
               ? "bg-green-500"
               : isActive
               ? config.activeColor
+              : isRecommended // Highlight recommended world
+              ? "bg-gradient-to-r from-blue-400 to-cyan-400"
               : "bg-gray-200";
 
-            // לקבוע איזה תוכן להציג במעגל (איקון או מספר)
             const circleContent = isCompleted ? (
               <CheckCircle2 className="h-5 w-5 text-white" />
             ) : isAccessible ? (
@@ -227,7 +251,9 @@ export default function WorldsMap({
                           "w-10 h-10 rounded-full flex items-center justify-center",
                           "border-2 border-white shadow-sm transition-all",
                           isActive
-                            ? "ring-2 ring-offset-2 ring-blue-500 animate-pulse"
+                            ? "ring-2 ring-offset-2 ring-blue-500" // Simpler active indicator
+                            : isRecommended // Highlight recommended
+                            ? "ring-2 ring-offset-1 ring-cyan-400"
                             : "",
                           progressClass,
                           isActive || isCompleted
@@ -240,27 +266,61 @@ export default function WorldsMap({
                         onClick={() => isAccessible && onWorldChange?.(worldId)}
                         disabled={!isAccessible}
                       >
+                        {/* Recommended Star Indicator */}
+                        {isRecommended && (
+                          <Star className="absolute -top-1 -right-1 h-3 w-3 text-yellow-400 fill-current" />
+                        )}
                         {circleContent}
                       </motion.button>
+                      {/* World Label Below Circle */}
                       <div className="absolute -bottom-6 text-xs font-medium whitespace-nowrap">
                         {config.label}
                       </div>
                     </motion.div>
                   </TooltipTrigger>
-                  <TooltipContent side="top" className="p-2 max-w-[200px]">
-                    <p className="font-medium">{config.label}</p>
-                    <p className="text-xs">{config.description}</p>
-                    {isCompleted && (
-                      <p className="text-xs text-green-600 mt-1">✓ הושלם</p>
-                    )}
-                    {isActive && (
-                      <p className="text-xs text-blue-600 mt-1">◉ פעיל כעת</p>
-                    )}
-                    {!isAccessible && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        השלם את העולמות הקודמים
-                      </p>
-                    )}
+                  {/* Enhanced Tooltip Content */}
+                  <TooltipContent
+                    side="top"
+                    className="p-2 max-w-[200px] text-center"
+                  >
+                    <p className="font-medium text-base mb-1">{config.label}</p>
+                    <p className="text-xs text-gray-600">
+                      {config.description}
+                    </p>
+                    <div className="mt-2 flex justify-center">
+                      {isCompleted && (
+                        <Badge className={cn("text-xs", badgeVariants.success)}>
+                          ✓ הושלם
+                        </Badge>
+                      )}
+                      {isActive && (
+                        <Badge className={cn("text-xs", badgeVariants.default)}>
+                          ◉ פעיל כעת
+                        </Badge>
+                      )}
+                      {isRecommended && (
+                        <Badge className={cn("text-xs", badgeVariants.warning)}>
+                          ★ מומלץ הבא
+                        </Badge>
+                      )}
+                      {!isCompleted &&
+                        !isActive &&
+                        !isRecommended &&
+                        isAccessible && (
+                          <Badge
+                            className={cn("text-xs", badgeVariants.outline)}
+                          >
+                            ○ זמין
+                          </Badge>
+                        )}
+                      {!isAccessible && (
+                        <Badge
+                          className={cn("text-xs", badgeVariants.secondary)}
+                        >
+                          <Lock className="h-3 w-3 mr-1" /> נעול
+                        </Badge>
+                      )}
+                    </div>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -282,30 +342,32 @@ export default function WorldsMap({
           const isActive = currentWorld === worldId;
           const isCompleted = completedWorlds.includes(worldId);
           const isAccessible = isWorldAccessible();
+          const isRecommended =
+            worldId === nextRecommendedWorld && !isCompleted;
           const isHovered = hoveredWorld === worldId;
           const isExpanded = expanded === worldId;
 
-          // מעבר על הסטטוס של העולם לקביעת הסגנון
-          let statusIcon: React.ReactNode = null;
           let statusText = "";
-          let statusClass = "";
+          // *** FIX START ***
+          // Declare badgeVariant with the specific BadgeVariant type
+          let badgeVariant: BadgeVariant = "outline";
+          // *** FIX END ***
 
           if (isCompleted) {
-            statusIcon = <CheckCircle2 className="w-5 h-5 text-green-500" />;
             statusText = "הושלם";
-            statusClass = "text-green-600";
+            badgeVariant = "success";
           } else if (!isAccessible) {
-            statusIcon = <Lock className="w-5 h-5 text-gray-400" />;
             statusText = "נעול";
-            statusClass = "text-gray-400";
+            badgeVariant = "secondary";
           } else if (isActive) {
-            statusIcon = <Play className="w-5 h-5 text-blue-500" />;
             statusText = "פעיל כעת";
-            statusClass = "text-blue-600";
+            badgeVariant = "default";
+          } else if (isRecommended) {
+            statusText = "מומלץ הבא";
+            badgeVariant = "warning";
           } else {
-            statusIcon = <Info className="w-5 h-5 text-blue-400" />;
             statusText = "זמין";
-            statusClass = "text-blue-400";
+            badgeVariant = "outline"; // Explicitly setting default
           }
 
           return (
@@ -317,25 +379,31 @@ export default function WorldsMap({
               whileTap={isAccessible ? "tap" : ""}
               variants={cardVariants}
               onClick={() => {
+                if (!isAccessible) return; // Prevent action on locked cards
                 if (isExpanded) {
-                  setExpanded(null);
-                  onWorldChange?.(worldId);
+                  setExpanded(null); // Close if already expanded
                 } else {
-                  setExpanded(worldId);
+                  setExpanded(worldId); // Expand this card
                 }
+                // Optionally navigate immediately on click if not expanded
+                // if (!isExpanded && onWorldChange) {
+                //    onWorldChange(worldId);
+                // }
               }}
             >
               <Card
                 className={cn(
-                  "transition-all duration-200 overflow-hidden h-full",
+                  "transition-all duration-200 overflow-hidden h-full cursor-pointer", // Added cursor-pointer
                   isActive
                     ? "ring-2 ring-blue-500 shadow-md"
                     : "hover:shadow-md",
-                  !isAccessible && "cursor-not-allowed opacity-90"
+                  isRecommended ? "ring-2 ring-cyan-400 shadow-md" : "", // Recommended highlight
+                  !isAccessible && "cursor-not-allowed opacity-90 bg-gray-50" // Style locked cards
                 )}
                 onMouseEnter={() => setHoveredWorld(worldId)}
                 onMouseLeave={() => setHoveredWorld(null)}
               >
+                {/* Top color bar */}
                 <div
                   className={cn(
                     "h-2",
@@ -343,6 +411,8 @@ export default function WorldsMap({
                       ? config.activeColor
                       : isCompleted
                       ? "bg-green-500"
+                      : isRecommended
+                      ? "bg-gradient-to-r from-blue-400 to-cyan-400"
                       : "bg-gray-200"
                   )}
                 ></div>
@@ -351,6 +421,7 @@ export default function WorldsMap({
                   className={cn("p-4", isExpanded ? "pb-8" : "pb-4")}
                 >
                   <div className="flex items-center gap-3">
+                    {/* Icon */}
                     <div
                       className={cn(
                         "p-2 rounded-full",
@@ -365,16 +436,35 @@ export default function WorldsMap({
                       />
                     </div>
 
+                    {/* Title and Status Badge */}
                     <div className="flex-1">
                       <h3 className="font-medium flex items-center">
                         {config.label}
-                        {isActive && (
-                          <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                            פעיל
-                          </span>
-                        )}
+                        {/* *** FIX START *** */}
+                        {/* Remove 'as any'. The type of badgeVariant is now correctly inferred */}
+                        <Badge
+                          variant={badgeVariant}
+                          className="ml-2 text-xs px-1.5 py-0.5"
+                        >
+                          {/* *** FIX END *** */}
+                          {/* Icons for badges */}
+                          {badgeVariant === "success" && (
+                            <CheckCircle2 className="h-3 w-3 mr-1" />
+                          )}
+                          {badgeVariant === "warning" && (
+                            <Star className="h-3 w-3 mr-1" />
+                          )}
+                          {badgeVariant === "default" && (
+                            <Play className="h-3 w-3 mr-1" />
+                          )}
+                          {badgeVariant === "secondary" && (
+                            <Lock className="h-3 w-3 mr-1" />
+                          )}
+                          {statusText}
+                        </Badge>
                       </h3>
 
+                      {/* Description (shown on hover/expand) */}
                       <AnimatePresence mode="wait">
                         {(isHovered ||
                           isExpanded ||
@@ -391,16 +481,9 @@ export default function WorldsMap({
                         )}
                       </AnimatePresence>
                     </div>
-
-                    {/* Status Icon */}
-                    <div className="flex flex-col items-center ml-1">
-                      {statusIcon}
-                      <span className={cn("text-xs mt-1", statusClass)}>
-                        {isMobile ? "" : statusText}
-                      </span>
-                    </div>
                   </div>
 
+                  {/* Expanded Content */}
                   <AnimatePresence>
                     {isExpanded && (
                       <motion.div
@@ -414,17 +497,23 @@ export default function WorldsMap({
                           {config.description}
                         </p>
 
+                        {/* Action Button */}
                         <Button
                           className={cn(
                             "w-full",
                             isCompleted
                               ? "bg-green-600 hover:bg-green-700"
+                              : isRecommended
+                              ? "bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600"
                               : "bg-blue-600 hover:bg-blue-700"
                           )}
                           onClick={(e) => {
-                            e.stopPropagation();
-                            onWorldChange?.(worldId);
+                            e.stopPropagation(); // Prevent card click when button is clicked
+                            if (isAccessible && onWorldChange) {
+                              onWorldChange(worldId);
+                            }
                           }}
+                          disabled={!isAccessible}
                         >
                           {isCompleted ? (
                             <>
@@ -435,6 +524,11 @@ export default function WorldsMap({
                             <>
                               <Play className="w-4 h-4 mr-2" />
                               המשך בעולם זה
+                            </>
+                          ) : isRecommended ? (
+                            <>
+                              <Star className="w-4 h-4 mr-2 fill-current" />
+                              התחל עולם מומלץ
                             </>
                           ) : (
                             <>
@@ -447,13 +541,14 @@ export default function WorldsMap({
                     )}
                   </AnimatePresence>
 
+                  {/* Indicator for active world (when not expanded) */}
                   {isActive && !isExpanded && (
                     <motion.div
                       initial={{ opacity: 0, y: 5 }}
                       animate={{ opacity: 1, y: 0 }}
                       className="mt-3 pt-3 border-t text-xs text-gray-600 flex items-center"
                     >
-                      <Star className="h-3 w-3 text-amber-500 mr-1" />
+                      <Info className="h-3 w-3 text-blue-500 mr-1" />
                       אתה נמצא כעת בעולם זה
                     </motion.div>
                   )}
@@ -466,3 +561,15 @@ export default function WorldsMap({
     </div>
   );
 }
+
+// Remember to add the animation if needed:
+/*
+@layer utilities {
+  @keyframes pulse-slow {
+    50% { opacity: .7; }
+  }
+  .animate-pulse-slow {
+    animation: pulse-slow 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+}
+*/
