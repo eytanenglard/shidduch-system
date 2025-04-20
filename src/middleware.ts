@@ -3,21 +3,21 @@ import { NextResponse } from "next/server";
 
 // הגדרת הנתיבים הציבוריים שלא דורשים אימות
 const publicPaths = [
-  '/',  // הוספת דף הבית כנתיב ציבורי
+  '/',  // דף הבית
   '/auth/signin',
   '/auth/register',
   '/auth/verify-email',
   '/auth/verify',
-  '/auth/complete-registration',
-  '/api/auth/complete-registration',
+  '/auth/google-callback', // החלפת complete-registration בנתיב החדש
+  '/api/auth/complete-profile', // שינוי שם API
   '/availability-response',
   '/api/matchmaker/inquiries'
 ];
 
 // נתיבים שמותר לגשת אליהם גם ללא פרופיל מלא
 const allowWithoutProfilePaths = [
-  '/auth/complete-registration',
-  '/api/auth/complete-registration',
+  '/auth/google-callback', // החלפת complete-registration
+  '/api/auth/complete-profile', // שינוי שם API
   '/auth/signout',
   '/api/auth/signout',
   '/auth/error'
@@ -54,9 +54,9 @@ export default withAuth(
       
       // אם המשתמש לא נמצא כבר בדף השלמת הרישום, הפנה אותו לשם
       if (!allowWithoutProfilePaths.some(allowedPath => path.startsWith(allowedPath))) {
-        console.log("Redirecting to complete registration");
+        console.log("Redirecting to google callback for profile completion");
         return NextResponse.redirect(
-          new URL('/auth/complete-registration', req.url)
+          new URL('/auth/google-callback', req.url) // שינוי היעד להפניה
         );
       }
     }
@@ -98,8 +98,8 @@ export const config = {
     '/api/profile/:path*',
     '/api/preferences/:path*',
     '/api/auth/verify',
-    '/auth/complete-registration',
-    '/api/auth/complete-registration',
+    '/auth/google-callback', // שינוי מ-complete-registration
+    '/api/auth/complete-profile', // שינוי שם API
     '/availability-response',
     '/api/matchmaker/inquiries/:path*',
   ]

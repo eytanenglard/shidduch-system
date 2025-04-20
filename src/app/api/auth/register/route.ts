@@ -13,6 +13,7 @@ type LogMetadata = {
   firstName?: string;
   lastName?: string;
   hasInvitation?: boolean;
+  phone?: string; // הוספת שדה phone
   token?: string;
   expiry?: Date;
   status?: string;
@@ -147,6 +148,23 @@ export async function POST(req: Request) {
       throw new Error('גיל מינימלי להרשמה הוא 18');
     }
 
+    // בדיקת מספר טלפון
+    const phoneRegex = /^0\d{9}$/;
+    if (!phoneRegex.test(body.phone)) {
+      logger.error('Invalid phone number format', { phone: body.phone });
+      throw new Error('מספר טלפון לא תקין');
+    }
+    
+    // בדיקת כפילות טלפון
+    const existingPhone = await prisma.user.findUnique({
+      where: { phone: body.phone }
+    });
+    
+    if (existingPhone) {
+      logger.error('Phone number already exists', { phone: body.phone });
+      throw new Error('מספר הטלפון כבר רשום במערכת');
+    }
+
     logger.info('Starting password hashing');
     const hashedPassword = await hash(body.password, 12);
     logger.info('Password hashed successfully');
@@ -157,12 +175,13 @@ export async function POST(req: Request) {
         data: {
           email: body.email,
           password: hashedPassword,
-          phone: body.phone || null,
+          phone: body.phone,
           firstName: body.firstName,
           lastName: body.lastName,
           role: UserRole.CANDIDATE,
           status: UserStatus.PENDING,
           isVerified: false,
+          isProfileComplete: true, // שינוי: אנחנו מסמנים את הפרופיל כהושלם מכיוון שקיבלנו את כל המידע
           profile: {
             create: {
               gender: body.gender,
@@ -264,7 +283,6 @@ export async function POST(req: Request) {
 
     logger.error('Registration failed', {
       error: errorDetails,
-      
       timestamp: new Date().toISOString()
     });
     

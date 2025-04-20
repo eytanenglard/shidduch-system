@@ -150,10 +150,15 @@ export const authOptions: NextAuthOptions = {
             console.log("Google account linked to user", { userId: newUser.id });
             
             // הוספת מידע למשתמש שיסייע לזהות אותו בהמשך
-            user.redirectUrl = '/auth/complete-registration';
+            user.redirectUrl = '/auth/google-callback'; // שינוי - מפנה לדף ה-callback החדש
             user.newlyCreated = true;
             user.id = newUser.id; // חשוב! מוודא שה-ID הנכון משמש
             user.isProfileComplete = false;
+            
+            // שמירת האימייל בלוקל סטורג' לשימוש מאוחר יותר
+            if (typeof localStorage !== 'undefined') {
+              localStorage.setItem('last_google_user_email', user.email!);
+            }
             
             return true; // החזרת true במקום URL כדי לאפשר לתהליך האימות להמשיך
           } catch (error) {
@@ -201,7 +206,7 @@ export const authOptions: NextAuthOptions = {
           });
           
           // הוספת מידע למשתמש שיסייע לזהות אותו בהמשך
-          user.redirectUrl = '/auth/complete-registration';
+          user.redirectUrl = '/auth/google-callback'; // שינוי - מפנה לדף ה-callback החדש
           user.id = existingUser.id; // וידוא שה-ID נשמר
           user.isProfileComplete = existingUser.isProfileComplete || false;
           
@@ -379,19 +384,8 @@ export const authOptions: NextAuthOptions = {
       
       // בדיקה למשתמשים חדשים שנרשמו עם גוגל - הפניה לדף השלמת הרישום
       if (url.includes("auth/callback/google")) {
-        // בדיקה אם המשתמש כבר השלים את הרישום (בדיקה נוספת)
-        try {
-          const session = await fetch(`${baseUrl}/api/auth/session`).then(res => res.json());
-          if (session && session.user && session.user.isProfileComplete) {
-            console.log("Google auth user has completed profile, redirecting to profile");
-            return `${baseUrl}/profile`;
-          }
-        } catch (error) {
-          console.error("Error checking profile status after Google auth:", error);
-        }
-        
-        console.log("Google auth callback detected, redirecting to complete registration");
-        return `${baseUrl}/auth/complete-registration`;
+        console.log("Google auth callback detected, redirecting to Google callback page");
+        return `${baseUrl}/auth/google-callback`;
       }
       
       // אם זה URL מקומי (יחסי), הוסף את baseUrl
@@ -411,7 +405,7 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: '/auth/signin',
     error: '/auth/error',
-    newUser: '/auth/complete-registration',
+    newUser: '/auth/google-callback', // עדכון - משתמש בדף הcallback החדש
     verifyRequest: '/auth/verify-request'
   },
 

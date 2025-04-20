@@ -1,4 +1,3 @@
-// src/app/api/auth/complete-registration/route.ts
 import { NextResponse } from 'next/server';
 import { PrismaClient, Gender } from '@prisma/client';
 import { getServerSession } from 'next-auth';
@@ -14,7 +13,8 @@ interface ExtendedSession extends Session {
 
 const prisma = new PrismaClient();
 
-interface CompleteRegistrationData {
+interface ProfileData {
+  email?: string;
   phone: string;
   gender: Gender;
   birthDate: string;
@@ -22,8 +22,7 @@ interface CompleteRegistrationData {
   height?: number;
   occupation?: string;
   education?: string;
-  userId?: string; // אופציונלי - יכול להישלח מהטופס
-  email?: string; // אופציונלי - יכול להישלח מהטופס
+  userId?: string;
 }
 
 export async function POST(req: Request) {
@@ -48,8 +47,8 @@ export async function POST(req: Request) {
     console.log("Session token from cookies:", sessionToken ? "Found" : "Not found");
     
     // קבלת הנתונים מהבקשה
-    const body: CompleteRegistrationData = await req.json();
-    console.log("Complete registration data:", body);
+    const body: ProfileData = await req.json();
+    console.log("Complete profile data:", body);
     
     // מציאת המשתמש
     let user;
@@ -216,7 +215,7 @@ export async function POST(req: Request) {
     );
     
   } catch (error) {
-    console.error('Error in complete-registration:', error);
+    console.error('Error in complete-profile:', error);
     
     return NextResponse.json(
       { 

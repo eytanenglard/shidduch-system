@@ -1,4 +1,4 @@
-import RegisterForm from "@/app/components/auth/RegisterForm";
+import RegisterSteps from "@/app/components/auth/RegisterSteps";
 import Link from "next/link";
 
 export default function RegisterPage() {
@@ -19,7 +19,7 @@ export default function RegisterPage() {
             </Link>
           </p>
         </div>
-        <RegisterForm />
+        <RegisterSteps />
       </div>
     </div>
   );
