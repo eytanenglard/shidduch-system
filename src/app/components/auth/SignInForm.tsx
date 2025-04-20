@@ -1,37 +1,56 @@
-// src/components/auth/SignInForm.tsx
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Mail, Lock, AlertCircle } from "lucide-react";
+import Link from "next/link";
 
 export default function SignInForm() {
   const router = useRouter();
-  const [error, setError] = useState<string>("");
+  const searchParams = useSearchParams();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  // בדיקה אם יש יעד הפניה בפרמטרים של ה-URL
+  // בדיקה אם יש שגיאה מה-URL
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const email = urlParams.get("email");
-
-    // שמירת האימייל ב-localStorage אם קיים
-    if (email) {
-      localStorage.setItem("last_google_user_email", email);
+    const errorMessage = searchParams.get("error");
+    if (errorMessage) {
+      switch (errorMessage) {
+        case "CredentialsSignin":
+          setError("אימייל או סיסמה אינם נכונים");
+          break;
+        default:
+          setError("אירעה שגיאה, נסה שנית");
+      }
     }
-  }, []);
+  }, [searchParams]);
+
+  // בדיקה אם יש אימייל בפרמטרים של ה-URL
+  useEffect(() => {
+    const emailParam = searchParams.get("email");
+    if (emailParam) {
+      setEmail(emailParam);
+      localStorage.setItem("last_google_user_email", emailParam);
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError("");
 
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
+    if (!email || !password) {
+      setError("אנא הזן אימייל וסיסמה");
+      return;
+    }
 
     try {
+      setError("");
+      setIsLoading(true);
+
       // שמירת האימייל ב-localStorage לשימוש אפשרי בהמשך
       localStorage.setItem("last_user_email", email);
 
@@ -42,7 +61,8 @@ export default function SignInForm() {
       });
 
       if (result?.error) {
-        setError(result.error);
+        setError("אימייל או סיסמה אינם נכונים");
+        console.error("Sign-in error:", result.error);
       } else {
         // בדיקה אם יש שאלון זמני
         const tempQuestionnaire = localStorage.getItem("tempQuestionnaire");
@@ -66,12 +86,12 @@ export default function SignInForm() {
           }
         }
 
-        // אם אין שאלון או שהשמירה נכשלה, נווט לדשבורד
+        // אם אין שאלון או שהשמירה נכשלה, נווט לפרופיל
         router.push("/profile");
-        router.refresh();
       }
-    } catch {
-      setError("אירעה שגיאה בהתחברות");
+    } catch (err) {
+      console.error("Unexpected sign-in error:", err);
+      setError("אירעה שגיאה בהתחברות, נסה שנית");
     } finally {
       setIsLoading(false);
     }
@@ -82,14 +102,12 @@ export default function SignInForm() {
       setIsGoogleLoading(true);
       setError("");
 
-      // לפני השימוש ב-signIn, שמור את הנתון שהתחברות עם גוגל מתבצעת
+      // לפני השימוש ב-signIn, שמור מידע על התחברות גוגל
       localStorage.setItem("google_auth_in_progress", "true");
-
-      // החלפת כל המידע מה-localStorage למצב Google בלבד
       localStorage.setItem("auth_method", "google");
 
-      // ניסיון התחברות עם גוגל
-      await signIn("google", { callbackUrl: "/auth/complete-registration" });
+      // NextAuth יטפל בהפניה - עדכון ליעד החדש
+      await signIn("google", { callbackUrl: "/auth/google-callback" });
     } catch (error) {
       console.error("Google sign-in error:", error);
       setError("אירעה שגיאה בהתחברות עם גוגל");
@@ -98,76 +116,117 @@ export default function SignInForm() {
   };
 
   return (
-    <div className="space-y-6 max-w-sm mx-auto">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label
-            htmlFor="email"
-            className="block text-sm font-medium text-gray-700"
-          >
-            אימייל
-          </label>
-          <input
-            type="email"
-            name="email"
-            id="email"
-            required
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
-          />
+    <div className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden relative">
+      {/* Decorative elements */}
+      <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-cyan-500 to-pink-500"></div>
+
+      <div className="p-6 sm:p-8">
+        <div className="text-center mb-6">
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">
+            התחברות למערכת
+          </h1>
+          <p className="text-gray-600">
+            ברוכים השבים! המשיכו למצוא את השידוך המושלם
+          </p>
         </div>
 
-        <div>
-          <label
-            htmlFor="password"
-            className="block text-sm font-medium text-gray-700"
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
+            <p className="text-red-600 text-sm">{error}</p>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4 mb-6">
+          <div className="space-y-1">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700"
+            >
+              אימייל
+            </label>
+            <div className="relative">
+              <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full pr-10 pl-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
+                placeholder="you@example.com"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700"
+            >
+              סיסמה
+            </label>
+            <div className="relative">
+              <Lock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <input
+                type="password"
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full pr-10 pl-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
+                placeholder="הסיסמה שלך"
+              />
+            </div>
+            <div className="flex justify-end">
+              <Link
+                href="/auth/forgot-password"
+                className="text-sm text-cyan-600 hover:text-cyan-700 hover:underline mt-1"
+              >
+                שכחת סיסמה?
+              </Link>
+            </div>
+          </div>
+
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="w-full py-3 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 shadow-lg flex items-center justify-center gap-2 relative overflow-hidden"
           >
-            סיסמה
-          </label>
-          <input
-            type="password"
-            name="password"
-            id="password"
-            required
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
-          />
+            {isLoading ? (
+              <>
+                <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>מתחבר...</span>
+              </>
+            ) : (
+              <>
+                {/* Button shimmer effect */}
+                <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
+                <span>התחברות</span>
+              </>
+            )}
+          </Button>
+        </form>
+
+        <div className="relative mb-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-300" />
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-white text-gray-500">או</span>
+          </div>
         </div>
 
-        {error && <div className="text-red-500 text-sm">{error}</div>}
-
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+        <Button
+          onClick={handleGoogleSignIn}
+          disabled={isGoogleLoading}
+          variant="outline"
+          size="lg"
+          className="w-full relative border-2 border-gray-300 hover:border-gray-400 py-3 rounded-xl flex items-center justify-center gap-3 group"
         >
-          {isLoading ? "מתחבר..." : "התחבר"}
-        </button>
-      </form>
-
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-300" />
-        </div>
-        <div className="relative flex justify-center text-sm">
-          <span className="px-2 bg-white text-gray-500">או</span>
-        </div>
-      </div>
-
-      <button
-        type="button"
-        onClick={handleGoogleSignIn}
-        disabled={isGoogleLoading}
-        className="w-full flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-      >
-        <div className="mr-2">
           {isGoogleLoading ? (
-            <span>מתחבר...</span>
+            <div className="animate-spin h-5 w-5 border-2 border-gray-500 rounded-full border-t-transparent" />
           ) : (
             <>
-              <svg
-                className="h-5 w-5 ml-2"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
+              <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
                 <path
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                   fill="#4285F4"
@@ -185,11 +244,25 @@ export default function SignInForm() {
                   fill="#EA4335"
                 />
               </svg>
-              התחבר עם גוגל
+              <span className="text-gray-700 font-medium">
+                התחברות עם Google
+              </span>
             </>
           )}
+        </Button>
+
+        <div className="mt-6 text-center">
+          <p className="text-gray-600 text-sm">
+            אין לך חשבון עדיין?{" "}
+            <Link
+              href="/auth/register"
+              className="text-cyan-600 font-medium hover:text-cyan-700 hover:underline"
+            >
+              הרשמה עכשיו
+            </Link>
+          </p>
         </div>
-      </button>
+      </div>
     </div>
   );
 }

@@ -88,7 +88,8 @@ export default withAuth(
 
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    // החרג assets סטטיים ונכסים אחרים
+    '/((?!api|_next/static|_next/image|favicon.ico|assets|images).*)',
     '/dashboard/:path*',
     '/matches/:path*',
     '/preferences/:path*',
@@ -98,8 +99,8 @@ export const config = {
     '/api/profile/:path*',
     '/api/preferences/:path*',
     '/api/auth/verify',
-    '/auth/google-callback', // שינוי מ-complete-registration
-    '/api/auth/complete-profile', // שינוי שם API
+    '/auth/google-callback',
+    '/api/auth/complete-profile',
     '/availability-response',
     '/api/matchmaker/inquiries/:path*',
   ]

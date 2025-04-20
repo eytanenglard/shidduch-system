@@ -357,47 +357,24 @@ export const authOptions: NextAuthOptions = {
     },
 
     async redirect({ url, baseUrl }) {
+      // הסר את הקריאה ל-session API כאן והשתמש בנתונים שכבר יש לך
       console.log("Redirect callback", { url, baseUrl });
       
-      // שימוש ב-request כדי לקבל את הסשן הנוכחי
-      try {
-        // קבלת מידע מהסשן
-        const session = await fetch(`${baseUrl}/api/auth/session`).then(res => res.json());
-        
-        if (session && session.redirectUrl) {
-          console.log("Using redirectUrl from session:", session.redirectUrl);
-          const customRedirect = session.redirectUrl;
-          if (customRedirect.startsWith("/")) {
-            return `${baseUrl}${customRedirect}`;
-          }
-          return customRedirect;
-        }
-        
-        // בדיקה אם למשתמש יש כבר פרופיל שהושלם
-        if (session && session.user && session.user.isProfileComplete) {
-          console.log("User has completed profile, redirecting to profile page");
-          return `${baseUrl}/profile`;
-        }
-      } catch (error) {
-        console.error("Error getting session in redirect callback:", error);
-      }
-      
-      // בדיקה למשתמשים חדשים שנרשמו עם גוגל - הפניה לדף השלמת הרישום
+      // פשט את הלוגיקה - השתמש בנתונים שכבר קיימים ב-token/user
       if (url.includes("auth/callback/google")) {
-        console.log("Google auth callback detected, redirecting to Google callback page");
         return `${baseUrl}/auth/google-callback`;
       }
       
-      // אם זה URL מקומי (יחסי), הוסף את baseUrl
+      // אם זה URL מקומי, הוסף את baseUrl
       if (url.startsWith("/")) {
         return `${baseUrl}${url}`;
       } 
-      // אם זה URL מלא שמתחיל עם baseUrl, אפשר להשתמש בו
+      // אם זה URL מלא שמתחיל עם baseUrl, השתמש בו
       else if (url.startsWith(baseUrl)) {
         return url;
       }
       
-      // אחרת, החזר לדף הבית
+      // אחרת, חזור לדף הבית
       return baseUrl;
     }
   },

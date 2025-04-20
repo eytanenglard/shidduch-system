@@ -2,8 +2,7 @@
 import NextAuth from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
-console.log('NextAuth route initialization');
+// הסר את הלוגים או הפעל אותם רק בסביבת פיתוח
 const handler = NextAuth(authOptions);
-console.log('NextAuth handler created');
 
 export { handler as GET, handler as POST };
