@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ProfileCard } from "@/app/components/shared/shared/profile";
+import { ProfileCard } from "@/app/components/profile";
 import { Timeline } from "@/components/ui/timeline";
 import {
   AlertCircle,

@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect, useRef } from "react";
 import { UserX, Edit } from "lucide-react";
 import MinimalCard from "../CandidateCard/MinimalCard";
 import QuickView from "../CandidateCard/QuickView";
-import { ProfileCard } from "@/app/components/shared/shared/profile";
+import { ProfileCard } from "@/app/components/profile";
 import type { Candidate, CandidateAction } from "../types/candidates";
 import type { QuestionnaireResponse } from "@/types/next-auth";
 import { Skeleton } from "@/components/ui/skeleton";

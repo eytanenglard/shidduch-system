@@ -8,9 +8,9 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { ProfileSection } from "@/app/components/shared/shared/profile";
-import { PhotosSection } from "@/app/components/shared/shared/profile";
-import { PreferencesSection } from "@/app/components/shared/shared/profile";
+import { ProfileSection } from "@/app/components/profile";
+import { PhotosSection } from "@/app/components/profile";
+import { PreferencesSection } from "@/app/components/profile";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, X, UserCog, Image as ImageIcon, Sliders } from "lucide-react";
 import type { UserProfile, UserImage } from "@/types/next-auth";

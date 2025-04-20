@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
-import { ProfileCard } from "@/app/components/shared/shared/profile";
+import { ProfileCard } from "@/app/components/profile";
 import SuggestionTimeline from "../timeline/SuggestionTimeline";
 import { AskMatchmakerDialog } from "../dialogs/AskMatchmakerDialog";
 import type { MatchSuggestion } from "@prisma/client";
