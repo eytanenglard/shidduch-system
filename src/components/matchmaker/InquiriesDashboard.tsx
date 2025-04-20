@@ -147,8 +147,8 @@ export default function InquiriesDashboard() {
                     {/* Availability note section */}
                     {inquiry.firstParty.profile?.availabilityNote && (
                       <p className="text-sm text-gray-600 mt-1">
-                        &quot;{inquiry.firstParty.profile.availabilityNote}
-                        &quot;
+                       {inquiry.firstParty.profile.availabilityNote}
+                
                       </p>
                     )}
                   </div>

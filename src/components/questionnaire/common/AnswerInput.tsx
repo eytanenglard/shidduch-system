@@ -819,8 +819,7 @@ export default function AnswerInput({
                 <div className="text-xs text-gray-500 flex items-center">
                   <Clock className="h-3 w-3 mr-1" />
                   זמן כתיבה משוער:{" "}
-                  {Math.max(1, Math.ceil((question.minLength ?? 0) / 70))}{" "}
-                  דק&apos
+                  {Math.max(1, Math.ceil((question.minLength ?? 0) / 70))} דקות
                 </div>
               )}
             </div>
@@ -938,7 +937,7 @@ export default function AnswerInput({
               )}
             >
               <div className="text-sm">
-                סה&quot;כ:{" "}
+                סהכ:{" "}
                 <span
                   className={cn(
                     "font-medium",

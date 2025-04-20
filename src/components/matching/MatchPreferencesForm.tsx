@@ -198,7 +198,7 @@ export default function MatchPreferencesForm() {
 
           {/* טווח גבהים */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">טווח גבהים (בס&quot;מ)</h3>
+            <h3 className="text-lg font-semibold">טווח גבהים (בסמ)</h3>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>מגובה</Label>

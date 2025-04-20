@@ -296,7 +296,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
               </div>
 
               <div className="space-y-4">
-                <Label>טווח גבהים (בס&quot;מ)</Label>
+                <Label>טווח גבהים (בסמ)</Label>
 
                 <div className="flex gap-4">
                   <div>

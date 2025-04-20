@@ -420,7 +420,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 </div>
               </div>
               <div>
-                <Label>גובה (ס&quot;מ)</Label>
+                <Label>גובה (סמ)</Label>
                 <Input
                   type="number"
                   value={formData.height !== null ? formData.height : ""}

@@ -161,13 +161,13 @@ const MatchingSystem = () => {
                   <SelectContent>
                     <SelectItem value="charedi">חרדי</SelectItem>
                     <SelectItem value="dati">דתי</SelectItem>
-                    <SelectItem value="chardal">חרד&quot;ל</SelectItem>{" "}
+                    <SelectItem value="chardal">חרדל</SelectItem>{" "}
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <Label>גובה (בס&quot;מ)</Label>{" "}
+                <Label>גובה (בסמ)</Label>{" "}
                 <div className="flex gap-2 mt-2">
                   <Input
                     type="number"
