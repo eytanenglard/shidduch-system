@@ -3,30 +3,24 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
-import { valuesQuestionsPartOne } from "@/components/questionnaire/questions/values/valuesQuestionsPartOne";
-import { valuesQuestionsPartTwo } from "@/components/questionnaire/questions/values/valuesQuestionsPartTwo"; 
-import { personalityQuestionsPartOne } from "@/components/questionnaire/questions/personality/personalityQuestionsPartOne";
-import { personalityQuestionsPartTwo } from "@/components/questionnaire/questions/personality/personalityQuestionsPartTwo";
-import { relationshipBasicsQuestions } from "@/components/questionnaire/questions/relationship/relationshipBasicsQuestions";
-import { relationshipDepthQuestions } from "@/components/questionnaire/questions/relationship/relationshipDepthQuestions";
-import { partnerBasicQuestions } from "@/components/questionnaire/questions/partner/partnerBasicQuestions";
-import { partnerDepthQuestions } from "@/components/questionnaire/questions/partner/partnerDepthQuestions";
-import { faithQuestions } from "@/components/questionnaire/questions/religion/faithQuestions";
-import { practicalQuestions } from "@/components/questionnaire/questions/religion/practicalReligionQuestions";
+
+import { valuesQuestions } from "@/components/questionnaire/questions/values/valuesQuestions";
+import { personalityQuestions } from "@/components/questionnaire/questions/personality/personalityQuestions";
+import { relationshipQuestions } from "@/components/questionnaire/questions/relationship/relationshipQuestions";
+import { partnerQuestions } from "@/components/questionnaire/questions/partner/partnerQuestions";
+import { religionQuestions } from "@/components/questionnaire/questions/religion/religionQuestions";
+
 
 // Combine all questions into a single array
+// --- UPDATED allQuestions ARRAY ---
 const allQuestions = [
-  ...valuesQuestionsPartOne,
-  ...valuesQuestionsPartTwo,
-  ...personalityQuestionsPartOne,
-  ...personalityQuestionsPartTwo,
-  ...relationshipBasicsQuestions,
-  ...relationshipDepthQuestions,
-  ...partnerBasicQuestions,
-  ...partnerDepthQuestions,
-  ...faithQuestions,
-  ...practicalQuestions
+  ...valuesQuestions,
+  ...personalityQuestions,
+  ...relationshipQuestions,
+  ...partnerQuestions,
+  ...religionQuestions // Use the consolidated religion questions array
 ];
+// --- END UPDATED allQuestions ARRAY ---
 
 // Define key types
 type WorldKey = 'values' | 'personality' | 'relationship' | 'partner' | 'religion';
@@ -85,31 +79,39 @@ const valueTranslations: Record<string, string> = {
   'high': 'גבוהה',
   'medium': 'בינונית',
   'low': 'נמוכה'
+  // Add other translations as needed based on your actual values
 };
 
 function getQuestionLabel(questionId: string): string {
+  // Find question in the *updated* allQuestions array
   const question = allQuestions.find(q => q.id === questionId);
   return question?.question || questionId;
 }
 
 function getQuestionCategory(questionId: string): string {
+  // Find question in the *updated* allQuestions array
   const question = allQuestions.find(q => q.id === questionId);
-  return question?.category || '';
+  // Ensure category exists, fallback to worldId or empty string if needed
+  return question?.category || question?.worldId.toLowerCase() || '';
 }
+
 
 function formatValue(value: Prisma.JsonValue): string {
   if (typeof value === 'boolean') {
     return value ? 'כן' : 'לא';
   }
-  
+
   if (Array.isArray(value)) {
+    // Map each value in the array using translations or the value itself
     return value.map(v => valueTranslations[String(v)] || String(v)).join(', ');
   }
-  
+
   if (typeof value === 'object' && value !== null) {
+    // Basic stringification for objects, consider more specific formatting if needed
     return JSON.stringify(value);
   }
-  
+
+  // Handle strings and numbers
   const stringValue = String(value);
   return valueTranslations[stringValue] || stringValue;
 }
@@ -121,41 +123,42 @@ function isValidAnswerObject(item: Prisma.JsonValue): item is Prisma.JsonObject 
   answeredAt: string | number;
   isVisible?: boolean;
 } {
-  return typeof item === 'object' && 
-         item !== null && 
-         'questionId' in item && 
+  return typeof item === 'object' &&
+         item !== null &&
+         'questionId' in item &&
          'value' in item &&
-         item.value !== undefined &&
+         item.value !== undefined && // Ensure value exists
          'answeredAt' in item;
 }
 
 function safeParseJson(value: Prisma.JsonValue | null): JsonAnswerData[] {
-  if (Array.isArray(value)) {
-    return value
-      .filter(isValidAnswerObject)
-      .map(item => ({
-        questionId: String(item.questionId),
-        value: item.value,
-        answeredAt: String(item.answeredAt),
-        isVisible: Boolean(item.isVisible ?? true)
-      }));
-  }
-  return [];
+   if (Array.isArray(value)) {
+     return value
+       .filter(isValidAnswerObject) // Use the type guard
+       .map(item => ({
+         questionId: String(item.questionId),
+         value: item.value,
+         answeredAt: String(item.answeredAt),
+         isVisible: Boolean(item.isVisible ?? true) // Default isVisible to true if missing
+       }));
+   }
+   // If value is not an array or null/undefined, return empty array
+   return [];
 }
 
 function formatAnswers(answers: Prisma.JsonValue | null): FormattedAnswer[] {
   const parsedAnswers = safeParseJson(answers);
-  
+
   return parsedAnswers.map(answer => {
     const displayText = formatValue(answer.value);
     const category = getQuestionCategory(answer.questionId);
-    
+
     return {
       questionId: answer.questionId,
       question: getQuestionLabel(answer.questionId),
       value: answer.value,
       displayText,
-      category,
+      category, // Include category if needed elsewhere
       isVisible: answer.isVisible,
       answeredAt: new Date(answer.answeredAt).toLocaleDateString('he-IL', {
         year: 'numeric',
@@ -163,8 +166,9 @@ function formatAnswers(answers: Prisma.JsonValue | null): FormattedAnswer[] {
         day: 'numeric',
       })
     };
-  }).sort((a, b) => a.questionId.localeCompare(b.questionId));
+  }).sort((a, b) => a.questionId.localeCompare(b.questionId)); // Sort for consistency
 }
+
 
 export async function GET(req: Request) {
   try {
@@ -182,32 +186,45 @@ export async function GET(req: Request) {
     });
 
     if (!questionnaireResponse) {
-      return NextResponse.json({
-        success: true,
-        questionnaireResponse: null
-      });
+       // Return success but with null data if no questionnaire found
+       return NextResponse.json({
+          success: true,
+          questionnaireResponse: null
+       });
     }
 
     // Create formatted answers with correct typing
     const formattedAnswers: Partial<FormattedAnswersType> = {};
-    
+
+    // Iterate through the world keys defined in KEY_MAPPING
     (Object.keys(KEY_MAPPING) as WorldKey[]).forEach(worldKey => {
-      const dbKey = getDbKey(worldKey);
-      formattedAnswers[worldKey] = formatAnswers(questionnaireResponse[dbKey]);
+       const dbKey = getDbKey(worldKey);
+       // Check if the key exists on the response before formatting
+       if (questionnaireResponse[dbKey]) {
+           formattedAnswers[worldKey] = formatAnswers(questionnaireResponse[dbKey]);
+       } else {
+           formattedAnswers[worldKey] = []; // Initialize with empty array if no data
+       }
     });
+
+    // Explicitly cast formattedAnswers to the full type
+    const completeFormattedAnswers = formattedAnswers as FormattedAnswersType;
 
     const formattedResponse = {
       ...questionnaireResponse,
-      formattedAnswers: formattedAnswers as FormattedAnswersType
+      formattedAnswers: completeFormattedAnswers
     };
 
-    // Filter out non-visible answers for other users
+    // Filter out non-visible answers if viewing another user's profile
     if (userId !== session.user.id) {
-      Object.keys(formattedResponse.formattedAnswers).forEach((worldKey) => {
-        const key = worldKey as WorldKey;
-        formattedResponse.formattedAnswers[key] = 
-          formattedResponse.formattedAnswers[key].filter(answer => answer.isVisible !== false);
-      });
+       Object.keys(formattedResponse.formattedAnswers).forEach((worldKey) => {
+           const key = worldKey as WorldKey;
+           // Ensure the key exists before filtering
+           if (formattedResponse.formattedAnswers[key]) {
+               formattedResponse.formattedAnswers[key] =
+                 formattedResponse.formattedAnswers[key].filter(answer => answer.isVisible !== false);
+           }
+       });
     }
 
     return NextResponse.json({
@@ -216,95 +233,134 @@ export async function GET(req: Request) {
     });
 
   } catch (error) {
-    console.error('Error in GET:', error);
+    console.error('Error in GET /api/questionnaire:', error); // Log the actual error
     return NextResponse.json({ success: false, error: "Failed to fetch questionnaire" }, { status: 500 });
   }
 }
 
+
 export async function PATCH(req: Request) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-    }
+   try {
+     const session = await getServerSession(authOptions);
+     if (!session?.user?.id) {
+       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+     }
 
-    const body = await req.json();
-    const { worldKey, questionId, value } = body as { 
-      worldKey: WorldKey; 
-      questionId: string; 
-      value: UpdateData;
-    };
+     const body = await req.json();
+     const { worldKey, questionId, value } = body as {
+       worldKey: WorldKey;
+       questionId: string;
+       value: UpdateData; // value is now { type: 'answer'|'visibility', value?: string, isVisible?: boolean }
+     };
 
-    const dbKey = getDbKey(worldKey);
+     // Validate input
+     if (!worldKey || !questionId || !value || !value.type) {
+        return NextResponse.json({ success: false, error: "Invalid request body" }, { status: 400 });
+     }
+     if (!KEY_MAPPING[worldKey]) {
+         return NextResponse.json({ success: false, error: "Invalid world key" }, { status: 400 });
+     }
 
-    const questionnaire = await prisma.questionnaireResponse.findFirst({
-      where: { userId: session.user.id },
-      orderBy: { createdAt: 'desc' }
-    });
 
-    if (!questionnaire) {
-      return NextResponse.json({ success: false, error: "שאלון לא נמצא" }, { status: 404 });
-    }
+     const dbKey = getDbKey(worldKey);
 
-    const currentAnswers = safeParseJson(questionnaire[dbKey]);
-    const existingAnswer = currentAnswers.find((a) => a.questionId === questionId);
+     const questionnaire = await prisma.questionnaireResponse.findFirst({
+       where: { userId: session.user.id },
+       orderBy: { createdAt: 'desc' } // Get the latest questionnaire for the user
+     });
 
-    let updatedAnswer: JsonAnswerData;
+     if (!questionnaire) {
+       return NextResponse.json({ success: false, error: "שאלון לא נמצא" }, { status: 404 });
+     }
 
-    if (value.type === 'visibility') {
-      if (!existingAnswer) {
-        throw new Error("לא נמצאה תשובה לעדכון");
-      }
-      
-      updatedAnswer = {
-        ...existingAnswer,
-        isVisible: value.isVisible,
-        answeredAt: new Date().toISOString()
-      };
-    } else {
-      updatedAnswer = {
-        questionId,
-        value: value.value as string,
-        isVisible: existingAnswer?.isVisible ?? true,
-        answeredAt: new Date().toISOString()
-      };
-    }
+     const currentAnswers = safeParseJson(questionnaire[dbKey]);
+     const existingAnswerIndex = currentAnswers.findIndex((a) => a.questionId === questionId);
+     const existingAnswer = existingAnswerIndex !== -1 ? currentAnswers[existingAnswerIndex] : null;
 
-    const updatedAnswers = [
-      ...currentAnswers.filter((a) => a.questionId !== questionId),
-      updatedAnswer
-    ];
+     let updatedAnswer: JsonAnswerData;
 
-    const updated = await prisma.questionnaireResponse.update({
-      where: { id: questionnaire.id },
-      data: {
-        [dbKey]: updatedAnswers,
-        lastSaved: new Date()
-      }
-    });
+     if (value.type === 'visibility') {
+        // Handle visibility update
+        if (!existingAnswer) {
+          // Cannot update visibility for a non-existent answer
+          return NextResponse.json({ success: false, error: "לא נמצאה תשובה לעדכון נראות" }, { status: 404 });
+        }
+        if (typeof value.isVisible !== 'boolean') {
+             return NextResponse.json({ success: false, error: "ערך נראות לא תקין" }, { status: 400 });
+        }
+        updatedAnswer = {
+          ...existingAnswer,
+          isVisible: value.isVisible,
+          answeredAt: new Date().toISOString() // Update timestamp on visibility change too
+        };
+     } else if (value.type === 'answer') {
+       // Handle answer update
+       // Validate the actual answer value if needed (basic check here)
+       if (value.value === undefined) {
+            return NextResponse.json({ success: false, error: "ערך תשובה חסר" }, { status: 400 });
+       }
+       updatedAnswer = {
+         questionId,
+         value: value.value as Prisma.JsonValue, // Cast the value appropriately
+         isVisible: existingAnswer?.isVisible ?? true, // Preserve existing visibility or default to true
+         answeredAt: new Date().toISOString()
+       };
+     } else {
+         return NextResponse.json({ success: false, error: "סוג עדכון לא תקין" }, { status: 400 });
+     }
 
-    // Create formatted answers with correct typing
-    const formattedAnswers: Partial<FormattedAnswersType> = {};
-    
-    (Object.keys(KEY_MAPPING) as WorldKey[]).forEach(key => {
-      const dbKey = getDbKey(key);
-      formattedAnswers[key] = formatAnswers(updated[dbKey]);
-    });
+     // Create the updated answers array
+     const updatedAnswers = [...currentAnswers]; // Create a mutable copy
+     if (existingAnswerIndex !== -1) {
+         updatedAnswers[existingAnswerIndex] = updatedAnswer; // Replace existing
+     } else if (value.type === 'answer') { // Only add if it's an answer update and didn't exist
+         updatedAnswers.push(updatedAnswer); // Add new answer
+     }
 
-    const formattedResponse = {
-      ...updated,
-      formattedAnswers: formattedAnswers as FormattedAnswersType
-    };
+     const updated = await prisma.questionnaireResponse.update({
+       where: { id: questionnaire.id },
+       data: {
+         [dbKey]: updatedAnswers as Prisma.JsonValue, // Ensure the array is treated as JSON
+         lastSaved: new Date()
+       }
+     });
 
-    return NextResponse.json({
-      success: true,
-      data: formattedResponse
-    });
+     // --- Reformat response after update ---
+     const formattedAnswers: Partial<FormattedAnswersType> = {};
+     (Object.keys(KEY_MAPPING) as WorldKey[]).forEach(key => {
+       const currentDbKey = getDbKey(key);
+       // Check if the key exists on the updated response before formatting
+        if (updated[currentDbKey]) {
+            formattedAnswers[key] = formatAnswers(updated[currentDbKey]);
+        } else {
+            formattedAnswers[key] = []; // Initialize with empty array if no data
+        }
+     });
 
-  } catch (error) {
-    if (error instanceof Error) {
-      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
-    }
-    return NextResponse.json({ success: false, error: "שגיאה בעדכון השאלון" }, { status: 500 });
-  }
+     const completeFormattedAnswers = formattedAnswers as FormattedAnswersType;
+
+     const formattedResponse = {
+       ...updated,
+       formattedAnswers: completeFormattedAnswers
+     };
+     // --- End Reformat response ---
+
+
+     return NextResponse.json({
+       success: true,
+       data: formattedResponse // Return the updated and formatted data
+     });
+
+   } catch (error) {
+       console.error('Error in PATCH /api/questionnaire:', error);
+       if (error instanceof Prisma.PrismaClientKnownRequestError) {
+            // Handle specific Prisma errors if needed
+            return NextResponse.json({ success: false, error: "שגיאת מסד נתונים" }, { status: 500 });
+       }
+       if (error instanceof Error) {
+         // Return specific error messages if thrown explicitly
+         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+       }
+       return NextResponse.json({ success: false, error: "שגיאה בעדכון השאלון" }, { status: 500 });
+   }
 }
