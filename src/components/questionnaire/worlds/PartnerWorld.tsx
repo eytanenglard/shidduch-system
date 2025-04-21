@@ -58,7 +58,7 @@ export default function PartnerWorld({
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string>
   >({});
-  const [animateDirection, setAnimateDirection] = useState<
+  const [, setAnimateDirection] = useState<
     "left" | "right" | null
   >(null);
 

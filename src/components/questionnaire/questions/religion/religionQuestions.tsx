@@ -19,12 +19,9 @@ import {
   UsersRound, // חברים, מעגל חברתי
   GraduationCap, // חינוך
   HandHeart, // תמיכה, נתינה (בהקשר דתי)
-  AlertTriangle, // אזהרה, קו אדום (פחות מתאים כאן)
   Coffee, // פנאי (בהקשר של שבת)
   CheckCheck, // אישור, הסכמה
   Info, // מידע, הבהרה
-  Briefcase, // עבודה (לעומת לימוד)
-  Percent, // סולם, רמה
   Lightbulb, // רעיון, פתיחות
 } from "lucide-react";
 

@@ -33,7 +33,7 @@ import {
 } from "lucide-react";
 import InteractiveScale from "./InteractiveScale";
 // ודא שגם Option מיובא מפורשות אם הוא לא
-import type { AnswerValue, AnswerInputProps, Question, Option } from "../types/types";
+import type { AnswerValue, AnswerInputProps, Option } from "../types/types";
 import { cn } from "@/lib/utils";
 import {
   Collapsible,
@@ -55,15 +55,14 @@ export default function AnswerInput({
   value,
   onChange,
   onClear,
-  showValidation = false,
   className = "",
 }: AnswerInputProps) {
   const [internalValue, setInternalValue] = useState<AnswerValue>(value);
   const [error, setError] = useState<string | null>(null);
   const [customValue, setCustomValue] = useState<string>("");
-  const [charactersCount, setCharactersCount] = useState<number>(0);
+  const [, setCharactersCount] = useState<number>(0);
   const [isFocused, setIsFocused] = useState<boolean>(false);
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [, setSelectedOption] = useState<string | null>(null);
   const [textAreaHeight, setTextAreaHeight] = useState<number>(150);
   const [isCollapsibleOpen, setIsCollapsibleOpen] = useState<boolean>(false);
   const [textCopied, setTextCopied] = useState(false);
@@ -882,7 +881,7 @@ export default function AnswerInput({
         console.warn("Unsupported question type:", question.type);
         return (
              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md text-yellow-800">
-                 <p><strong>אופס!</strong> סוג השאלה '{question.type}' אינו נתמך כרגע.</p>
+                 <p><strong>אופס!</strong> סוג השאלה {question.type} אינו נתמך כרגע.</p>
              </div>
          );
     }

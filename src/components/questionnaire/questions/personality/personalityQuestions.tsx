@@ -24,11 +24,7 @@ import {
   Home,
   Edit,
   AlertTriangle,
-  Activity,
-  ShieldCheck,
-  Scale,
   Award,
-  CheckCheck,
   Smile,
 } from "lucide-react";
 
