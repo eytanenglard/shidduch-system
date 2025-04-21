@@ -1,3 +1,4 @@
+// src/components/questionnaire/common/QuestionCard.tsx
 import React, { useState } from "react";
 import {
   Card,
@@ -16,7 +17,7 @@ import {
   Info,
   Star,
   X,
-  CornerRightDown,
+  CornerRightDown, // Corrected from CornerDownRight
   MessageCircle,
   Lightbulb,
 } from "lucide-react";
@@ -38,22 +39,22 @@ import { useMediaQuery } from "../hooks/useMediaQuery";
 
 interface QuestionCardProps {
   question: Question;
-  answer?: Answer;
+  answer?: Answer; // Assuming Answer type is defined elsewhere, includes value and potentially status
   depth: QuestionDepth;
   isRequired?: boolean;
-  onAnswer?: (value: AnswerValue) => void;
+  onAnswer?: (value: AnswerValue) => void; // Kept for potential direct answer handling if needed
   onSkip?: () => void;
   onBookmark?: () => void;
   onHelp?: () => void;
   className?: string;
   validationError?: string;
   isDisabled?: boolean;
-  children?: React.ReactNode;
+  children?: React.ReactNode; // This is where AnswerInput will be rendered
   language?: string;
-  onNext?: () => void;
-  onPrevious?: () => void;
-  isLastQuestion?: boolean;
-  isFirstQuestion?: boolean;
+  onNext?: () => void; // Kept for potential future use
+  onPrevious?: () => void; // Kept for potential future use
+  isLastQuestion?: boolean; // Kept for potential future use
+  isFirstQuestion?: boolean; // Kept for potential future use
 }
 
 // קונפיגורציה של צבעים ותוויות עבור רמות שאלה שונות
@@ -97,7 +98,8 @@ export default function QuestionCard({
   className = "",
   validationError,
   isDisabled = false,
-  children,
+  children, // Children will contain the AnswerInput component
+  language = "he", // Default language
 }: QuestionCardProps) {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
@@ -177,6 +179,8 @@ export default function QuestionCard({
 
   return (
     <motion.div
+      // Using question.id as key might interfere with animations between questions
+      // key={question.id}
       initial="initial"
       animate="animate"
       exit="exit"
@@ -185,31 +189,36 @@ export default function QuestionCard({
       <Card
         className={cn(
           "transition-all duration-200 border shadow-sm",
+          "relative", // Ensure relative positioning for the absolute background
           depthColors[depth],
           isDisabled ? "opacity-75 cursor-not-allowed" : "hover:shadow-md",
           "overflow-hidden",
           className
         )}
       >
-        {/* רקע גרדיאנט עדין */}
+        {/* רקע גרדיאנט עדין - *** תוקן עם pointer-events-none *** */}
         <div
           className={cn(
             "absolute inset-0 bg-gradient-to-b opacity-50",
-            depthGradients[depth]
+            depthGradients[depth],
+            "pointer-events-none" // Add this class to prevent blocking clicks
           )}
         />
 
         {/* Header Section */}
-        <CardHeader className="relative flex flex-col space-y-2 pb-2">
+        <CardHeader className="relative flex flex-col space-y-2 pb-2 z-10">
+          {" "}
+          {/* Added z-10 */}
           <div className="flex items-center justify-between">
             <div className="flex flex-wrap items-center gap-2">
               <TooltipProvider delayDuration={300}>
                 <Tooltip>
                   <TooltipTrigger asChild>
+                    {/* Changed from asChild to avoid ref issues if Badge doesn't support it */}
                     <Badge
                       variant="outline"
                       className={cn(
-                        "text-xs px-2 py-1 rounded-full font-normal",
+                        "text-xs px-2 py-1 rounded-full font-normal cursor-default", // Added cursor-default
                         depthBadgeColors[depth]
                       )}
                     >
@@ -296,6 +305,7 @@ export default function QuestionCard({
                     "flex items-center justify-center"
                   )}
                   onClick={() => setShowHint(!showHint)}
+                  aria-label="הצג טיפים" // Added aria-label
                 >
                   <Lightbulb className="h-4 w-4" />
                 </Button>
@@ -305,7 +315,9 @@ export default function QuestionCard({
         </CardHeader>
 
         {/* Content Section */}
-        <CardContent className="relative pt-2 space-y-4">
+        <CardContent className="relative pt-2 space-y-4 z-10">
+          {" "}
+          {/* Added z-10 */}
           {/* Tips for writing */}
           <AnimatePresence>
             {showHint && question.type === "openText" && (
@@ -331,6 +343,7 @@ export default function QuestionCard({
                     size="sm"
                     className="p-0 h-6 w-6 ml-1 text-blue-500"
                     onClick={() => setShowHint(false)}
+                    aria-label="סגור טיפים" // Added aria-label
                   >
                     <X className="h-3 w-3" />
                   </Button>
@@ -387,7 +400,7 @@ export default function QuestionCard({
           </AnimatePresence>
 
           {/* Required Indicator */}
-          {isRequired && (
+          {isRequired && !validationError && ( // Only show if no error is present
             <div className="text-xs text-red-500 flex items-center">
               <AlertCircle className="h-3 w-3 mr-1" />
               שאלת חובה
@@ -397,13 +410,15 @@ export default function QuestionCard({
           {/* Answer Component */}
           <div className="mt-4">
             <motion.div variants={contentVariants} className="relative">
-              {children}
+              {children} {/* This renders the AnswerInput */}
             </motion.div>
           </div>
         </CardContent>
 
         {/* Footer Section */}
-        <CardFooter className="flex justify-between items-center pt-4 border-t border-gray-100 bg-gray-50/50">
+        <CardFooter className="relative flex justify-between items-center pt-4 border-t border-gray-100 bg-gray-50/50 z-10">
+          {" "}
+          {/* Added z-10 */}
           {renderFooter()}
         </CardFooter>
       </Card>

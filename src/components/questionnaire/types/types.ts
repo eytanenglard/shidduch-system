@@ -1,14 +1,16 @@
-// Basic type definitions
-export type WorldId = 
-  | 'VALUES'        
-  | 'RELATIONSHIP'  
-  | 'PERSONALITY'   
-  | 'PARTNER'
-  | 'RELIGION';       
+// src/components/questionnaire/types/types.ts
 
-export type QuestionType = 
+// Basic type definitions
+export type WorldId =
+  | 'VALUES'
+  | 'RELATIONSHIP'
+  | 'PERSONALITY'
+  | 'PARTNER'
+  | 'RELIGION';
+
+export type QuestionType =
   | 'singleChoice'
-  | 'multiChoice' 
+  | 'multiChoice'
   | 'multiSelect'
   | 'openText'
   | 'scale'
@@ -16,15 +18,14 @@ export type QuestionType =
   | 'budgetAllocation'
   | 'ranking'
   | 'scenario'
-  | 'multiSelectWithOther'
-  ;
+  | 'multiSelectWithOther';
 
 export type QuestionDepth = 'BASIC' | 'ADVANCED' | 'EXPERT';
 
-export type AnswerValue = 
-  | string 
-  | number 
-  | string[] 
+export type AnswerValue =
+  | string
+  | number
+  | string[]
   | number[]
   | Record<string, number>
   | undefined;
@@ -35,7 +36,7 @@ export type AnswerStatus = 'COMPLETE' | 'PARTIAL' | 'SKIPPED';
 export interface Option {
   value: string;
   text: string;
-  icon?: React.ReactNode;
+  icon?: React.ReactNode; // Icon associated with a specific choice/option
   description?: string;
   allowFreeText?: boolean;
   placeholder?:string;
@@ -43,16 +44,17 @@ export interface Option {
 
 export interface BudgetCategory {
   label: string;
-  min: number;
-  max: number;
-  icon?: React.ReactNode;
+  icon?: React.ReactNode; // Icon associated with a specific budget category
   description?: string;
+  min?: number;
+  max?: number;
 }
 
 export interface QuestionMetadata {
   helpText?: string;
-  estimatedTime?: number;
+  estimatedTime?: number; // בדקות
   tags?: string[];
+  // Icon is NOT part of metadata
 }
 
 export interface Question {
@@ -71,13 +73,14 @@ export interface Question {
   minSelections?: number;
   maxSelections?: number;
   description?: string;
-  min?: number;
-  max?: number;
-  step?: number;
-  categories?: BudgetCategory[];
-  totalPoints?: number;
+  min?: number; // for scale
+  max?: number; // for scale
+  step?: number; // for scale
+  categories?: BudgetCategory[]; // for budgetAllocation
+  totalPoints?: number; // for budgetAllocation
   metadata?: QuestionMetadata;
   items?: Option[]; // for ranking questions
+  icon?: React.ReactNode; // <<< --- הוספנו כאן: אייקון אופציונלי לשאלה עצמה
 }
 
 // Answer-related interfaces
@@ -106,7 +109,7 @@ export interface AnswerInputProps {
   question: Question;
   value?: AnswerValue;
   onChange?: (value: AnswerValue) => void;
-  onClear?: () => void;  // Added this line
+  onClear?: () => void;
   language?: string;
   showValidation?: boolean;
   className?: string;
@@ -115,13 +118,12 @@ export interface AnswerInputProps {
 export interface QuestionnaireLayoutProps {
   children: React.ReactNode;
   currentWorld: WorldId;
-  userTrack: UserTrack;  // הוספנו את זה
+  userTrack: UserTrack;
   completedWorlds: WorldId[];
   onWorldChange: (worldId: WorldId) => void;
   onExit?: () => void;
   language?: string;
-  onSaveProgress?: () => Promise<void>;  // הוספת הפרופ החדש
-
+  onSaveProgress?: () => Promise<void>;
 }
 
 // Data storage interfaces
@@ -132,11 +134,11 @@ export interface QuestionnaireSubmission {
   completed: boolean;
   startedAt: string;
   completedAt?: string;
-  userTrack?: UserTrack;  
+  userTrack?: UserTrack;
 }
 
-export type UserTrack = 
-  | 'SECULAR'     // חילוני
-  | 'TRADITIONAL' // מסורתי
-  | 'RELIGIOUS'   // דתי
-  | 'ORTHODOX';   // חרדי
+export type UserTrack =
+  | 'SECULAR'
+  | 'TRADITIONAL'
+  | 'RELIGIOUS'
+  | 'ORTHODOX';
