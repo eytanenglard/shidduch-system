@@ -99,7 +99,6 @@ export default function QuestionCard({
   validationError,
   isDisabled = false,
   children, // Children will contain the AnswerInput component
-  language = "he", // Default language
 }: QuestionCardProps) {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
