@@ -1,17 +1,17 @@
 // src/components/questionnaire/worlds/RelationshipWorld.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react"; // No longer need useState for index
 import WorldIntro from "../common/WorldIntro";
 import QuestionCard from "../common/QuestionCard";
 import AnswerInput from "../common/AnswerInput";
-import QuestionsList from "../common/QuestionsList"; // ייבוא QuestionsList
+import QuestionsList from "../common/QuestionsList";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
   ArrowLeft,
   ArrowRight,
-  List,
-  CheckCircle,
   AlertCircle,
+  CheckCircle,
+  List,
   PanelLeftClose,
   PanelRightClose,
   PanelLeftOpen,
@@ -19,7 +19,7 @@ import {
   ListChecks,
   CircleDot,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // ייבוא רכיבי Card
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Sheet,
   SheetContent,
@@ -33,17 +33,18 @@ import type {
   AnswerValue,
   Question,
 } from "../types/types";
-import { relationshipQuestions } from "../questions/relationship/relationshipQuestions";
+import { relationshipQuestions } from "../questions/relationship/relationshipQuestions"; // Correct import
 import { cn } from "@/lib/utils";
-import { useMediaQuery } from "../hooks/useMediaQuery"; // ייבוא Hook
-import { motion, AnimatePresence } from "framer-motion"; // ייבוא אנימציה
+import { useMediaQuery } from "../hooks/useMediaQuery";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip"; // ייבוא Tooltip
+} from "@/components/ui/tooltip";
 
+// --- Fetch questions for this world ---
 const allQuestions = relationshipQuestions;
 
 export default function RelationshipWorld({
@@ -52,32 +53,33 @@ export default function RelationshipWorld({
   onBack,
   answers,
   language = "he",
-}: WorldComponentProps) {
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  // --- Receiving props from parent ---
+  currentQuestionIndex,
+  setCurrentQuestionIndex,
+}: // -----------------------------------
+WorldComponentProps) {
+  // --- Local state for intro and validation, index state is removed ---
   const [isIntroComplete, setIsIntroComplete] = useState(false);
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string>
   >({});
-  const [, setAnimateDirection] = useState<
-    "left" | "right" | null
-  >(null);
-
-  // --- הוספת מצב והוקים חדשים ---
+  const [, setAnimateDirection] = useState<"left" | "right" | null>(null);
   const isDesktop = useMediaQuery("(min-width: 1024px)");
   const isRTL = language === "he";
   const [isListVisible, setIsListVisible] = useState(true);
-  // ------------------------------
 
+  // Effect for animation timing (uses the prop currentQuestionIndex now)
   useEffect(() => {
     const timer = setTimeout(() => setAnimateDirection(null), 300);
     return () => clearTimeout(timer);
-  }, [currentQuestionIndex]);
+  }, [currentQuestionIndex]); // Dependency is now the prop
 
+  // --- Helper function to find answer value ---
   const findAnswer = (questionId: string) => {
     return answers.find((a) => a.questionId === questionId)?.value;
   };
 
-  // פונקציית ולידציה (ללא שינוי)
+  // --- Validation function ---
   const validateAnswer = (
     question: Question,
     value: AnswerValue
@@ -117,23 +119,18 @@ export default function RelationshipWorld({
       case "multiSelect":
       case "multiChoice":
       case "multiSelectWithOther": {
-        const selectedValues = value as string[];
-        if (
-          question.minSelections &&
-          selectedValues.length < question.minSelections
-        ) {
+        const selectedValues = value as string[] | undefined;
+        const count = selectedValues?.length ?? 0;
+        if (question.minSelections && count < question.minSelections) {
           return `יש לבחור לפחות ${question.minSelections} אפשרויות`;
         }
-        if (
-          question.maxSelections &&
-          selectedValues.length > question.maxSelections
-        ) {
+        if (question.maxSelections && count > question.maxSelections) {
           return `ניתן לבחור עד ${question.maxSelections} אפשרויות`;
         }
         break;
       }
       case "budgetAllocation": {
-        const allocationValue = value as Record<string, number>;
+        const allocationValue = value as Record<string, number> | undefined;
         if (allocationValue) {
           const totalAllocated = Object.values(allocationValue).reduce(
             (sum, val) => sum + (val || 0),
@@ -144,18 +141,10 @@ export default function RelationshipWorld({
             totalAllocated !== question.totalPoints &&
             question.isRequired
           ) {
-            if (totalAllocated < question.totalPoints) {
-              return `יש להקצות בדיוק ${question.totalPoints} נקודות. חסרות ${
-                question.totalPoints - totalAllocated
-              } נקודות.`;
-            } else {
-              return `יש להקצות בדיוק ${
-                question.totalPoints
-              } נקודות. יש עודף של ${
-                totalAllocated - question.totalPoints
-              } נקודות.`;
-            }
+            return `יש להקצות בדיוק ${question.totalPoints} נקודות.`;
           }
+        } else if (question.isRequired && !isValueEmpty) {
+          return "נדרשת הקצאת תקציב.";
         }
         break;
       }
@@ -163,6 +152,7 @@ export default function RelationshipWorld({
     return null;
   };
 
+  // --- Navigation handlers using props ---
   const handleNext = () => {
     const currentQuestion = allQuestions[currentQuestionIndex];
     const value = findAnswer(currentQuestion.id);
@@ -172,29 +162,47 @@ export default function RelationshipWorld({
       setValidationErrors({ ...validationErrors, [currentQuestion.id]: error });
       return;
     }
-    setValidationErrors((prev) => {
-      const newErrors = { ...prev };
-      delete newErrors[currentQuestion.id];
-      return newErrors;
-    });
+    setValidationErrors((prev) => ({ ...prev, [currentQuestion.id]: "" }));
 
     if (currentQuestionIndex < allQuestions.length - 1) {
       setAnimateDirection("left");
-      setCurrentQuestionIndex((prev) => prev + 1);
+      setCurrentQuestionIndex(currentQuestionIndex + 1); // Use prop function
     } else {
-      onComplete();
+      // Check all required before completing
+      const firstUnansweredRequired = allQuestions.find(
+        (q) => q.isRequired && validateAnswer(q, findAnswer(q.id)) !== null
+      );
+      if (firstUnansweredRequired) {
+        const errorIndex = allQuestions.findIndex(
+          (q) => q.id === firstUnansweredRequired.id
+        );
+        if (errorIndex !== -1) {
+          setCurrentQuestionIndex(errorIndex);
+          setValidationErrors({
+            ...validationErrors,
+            [firstUnansweredRequired.id]:
+              validateAnswer(
+                firstUnansweredRequired,
+                findAnswer(firstUnansweredRequired.id)
+              ) || "נדרשת תשובה לשאלה זו",
+          });
+        }
+      } else {
+        onComplete(); // All required answered
+      }
     }
   };
 
   const handlePrevious = () => {
     if (currentQuestionIndex > 0) {
       setAnimateDirection("right");
-      setCurrentQuestionIndex((prev) => prev - 1);
+      setCurrentQuestionIndex(currentQuestionIndex - 1); // Use prop function
     } else {
       onBack();
     }
   };
 
+  // --- Clear answer handler ---
   const handleClearAnswer = () => {
     const currentQuestion = allQuestions[currentQuestionIndex];
     let emptyValue: AnswerValue;
@@ -214,20 +222,20 @@ export default function RelationshipWorld({
         emptyValue = "";
     }
     onAnswer(currentQuestion.id, emptyValue);
-    setValidationErrors({ ...validationErrors, [currentQuestion.id]: "" });
+    setValidationErrors((prev) => ({ ...prev, [currentQuestion.id]: "" }));
   };
 
-  // --- Render Intro ---
+  // --- Render Intro Screen ---
   if (!isIntroComplete) {
     return (
       <WorldIntro
         worldId="RELATIONSHIP"
         title="עולם הזוגיות"
         description="בואו נבין יחד מה חשוב לך בקשר זוגי, בתקשורת, בשותפות ובחזון המשפחתי"
-        estimatedTime={40}
+        estimatedTime={40} // Update estimate
         totalQuestions={allQuestions.length}
         requiredQuestions={allQuestions.filter((q) => q.isRequired).length}
-        depths={["BASIC", "ADVANCED"]}
+        depths={["BASIC", "ADVANCED"]} // Update based on questions
         onStart={() => setIsIntroComplete(true)}
       />
     );
@@ -236,9 +244,9 @@ export default function RelationshipWorld({
   // --- Handle Loading Error ---
   if (allQuestions.length === 0) {
     return (
-      <div className="p-4 bg-red-50 rounded-lg border border-red-300 text-red-800">
-        <h3 className="font-bold">שגיאה בטעינת השאלות</h3>
-        <p>לא ניתן לטעון את השאלות לעולם זה. אנא נסה לרענן את הדף.</p>
+      <div className="p-4 bg-red-50 rounded-lg border border-red-300 text-red-800 text-center">
+        <h3 className="font-bold text-lg mb-2">שגיאה בטעינת השאלות</h3>
+        <p>לא ניתן היה לטעון את השאלות עבור עולם זה.</p>
         <Button className="mt-4" variant="outline" onClick={onBack}>
           חזרה למפה
         </Button>
@@ -246,39 +254,42 @@ export default function RelationshipWorld({
     );
   }
 
+  // --- Get Current Question (using prop index) ---
   const currentQuestion = allQuestions[currentQuestionIndex];
   if (!currentQuestion) {
-    return <div>שגיאה בטעינת השאלה הנוכחית.</div>;
+    console.error(
+      `Error: Invalid question index ${currentQuestionIndex} for RelationshipWorld.`
+    );
+    setCurrentQuestionIndex(0); // Attempt recovery
+    return <div>שגיאה בטעינת השאלה...</div>;
   }
 
   // --- Calculate Progress ---
   const progress = ((currentQuestionIndex + 1) / allQuestions.length) * 100;
   const currentValue = findAnswer(currentQuestion.id);
-  const answeredQuestionsCount = allQuestions.filter((q) =>
-    answers.some((a) => {
-      const val = a.value;
-      return (
-        a.questionId === q.id &&
-        val !== undefined &&
-        val !== null &&
-        (typeof val === "string" ? val.trim() !== "" : true) &&
-        (Array.isArray(val) ? val.length > 0 : true) &&
-        (typeof val === "object" && !Array.isArray(val)
-          ? Object.keys(val).length > 0
-          : true)
-      );
-    })
-  ).length;
+  const answeredQuestionsCount = allQuestions.filter((q) => {
+    const answerValue = findAnswer(q.id);
+    return (
+      answerValue !== undefined &&
+      answerValue !== null &&
+      (typeof answerValue !== "string" || answerValue.trim() !== "") &&
+      (!Array.isArray(answerValue) || answerValue.length > 0) &&
+      (typeof answerValue !== "object" ||
+        Array.isArray(answerValue) ||
+        Object.keys(answerValue).length > 0)
+    );
+  }).length;
   const completionPercentage = Math.round(
     (answeredQuestionsCount / allQuestions.length) * 100
   );
 
-  // --- Helper Components ---
+  // --- Helper Components for Rendering ---
   const renderHeader = (showSheetButton: boolean) => (
     <div className="bg-white p-3 rounded-lg shadow-sm border space-y-2 mb-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-medium">עולם הזוגיות</h2>
+          <h2 className="text-lg font-medium">עולם הזוגיות</h2>{" "}
+          {/* Correct Title */}
           <div className="text-sm text-gray-500">
             שאלה {currentQuestionIndex + 1} מתוך {allQuestions.length}
           </div>
@@ -322,7 +333,8 @@ export default function RelationshipWorld({
                   <SheetDescription>
                     לחץ על שאלה כדי לעבור אליה ישירות.
                     <div className="mt-3 pt-3 border-t space-y-1">
-                      {/* מקרא סמלים */}
+                      {" "}
+                      {/* Legend */}
                       <div className="flex items-center text-xs text-gray-600">
                         <CheckCircle className="h-3 w-3 text-green-500 me-1.5" />
                         <span>הושלם</span>
@@ -375,10 +387,10 @@ export default function RelationshipWorld({
           question={currentQuestion}
           value={currentValue}
           onChange={(value) => {
-            setValidationErrors({
-              ...validationErrors,
+            setValidationErrors((prev) => ({
+              ...prev,
               [currentQuestion.id]: "",
-            });
+            }));
             onAnswer(currentQuestion.id, value);
           }}
           onClear={handleClearAnswer}
@@ -456,19 +468,16 @@ export default function RelationshipWorld({
 
   // --- Conditional Layout Rendering ---
   if (isDesktop) {
-    // --- Desktop Layout ---
     return (
       <div className="w-full relative" dir={isRTL ? "rtl" : "ltr"}>
         <ListToggleButton />
         {renderHeader(false)}
-
         <div
           className={cn(
             "transition-all duration-300 ease-in-out",
             isListVisible ? "grid grid-cols-12 gap-8" : "flex justify-center"
           )}
         >
-          {/* Main Question Area */}
           <div
             className={cn(
               "space-y-6",
@@ -480,8 +489,6 @@ export default function RelationshipWorld({
             {renderQuestionCard()}
             {renderNavigationButtons()}
           </div>
-
-          {/* Questions List Sidebar */}
           <AnimatePresence>
             {isListVisible && (
               <motion.div
@@ -513,9 +520,10 @@ export default function RelationshipWorld({
                       <ListChecks className="h-5 w-5 text-blue-600" />
                       <span>שאלות בעולם זה</span>
                     </CardTitle>
-                    {/* מקרא סמלים */}
-                     <div className="pt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
-                       <div className="flex items-center">
+                    <div className="pt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
+                      {" "}
+                      {/* Legend */}
+                      <div className="flex items-center">
                         <CheckCircle className="h-3 w-3 text-green-500 me-1.5" />
                         <span>הושלם</span>
                       </div>
@@ -547,7 +555,6 @@ export default function RelationshipWorld({
       </div>
     );
   } else {
-    // --- Mobile Layout ---
     return (
       <div
         className="max-w-2xl mx-auto p-2 sm:p-4 space-y-6"

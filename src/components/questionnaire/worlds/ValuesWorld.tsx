@@ -1,5 +1,5 @@
 // src/components/questionnaire/worlds/ValuesWorld.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react"; // No longer need useState for index
 import WorldIntro from "../common/WorldIntro";
 import QuestionCard from "../common/QuestionCard";
 import AnswerInput from "../common/AnswerInput";
@@ -33,7 +33,7 @@ import type {
   AnswerValue,
   Question,
 } from "../types/types";
-import { valuesQuestions } from "../questions/values/valuesQuestions";
+import { valuesQuestions } from "../questions/values/valuesQuestions"; // Make sure this path is correct
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import { motion, AnimatePresence } from "framer-motion";
@@ -44,6 +44,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
+// --- Fetch questions for this world ---
 const allQuestions = valuesQuestions;
 
 export default function ValuesWorld({
@@ -52,30 +53,33 @@ export default function ValuesWorld({
   onBack,
   answers,
   language = "he",
-}: WorldComponentProps) {
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  // --- Receiving props from parent ---
+  currentQuestionIndex,
+  setCurrentQuestionIndex,
+}: // -----------------------------------
+WorldComponentProps) {
+  // --- Local state for intro and validation, index state is removed ---
   const [isIntroComplete, setIsIntroComplete] = useState(false);
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string>
   >({});
-  const [, setAnimateDirection] = useState<
-    "left" | "right" | null
-  >(null);
-
+  const [, setAnimateDirection] = useState<"left" | "right" | null>(null); // For animation direction
   const isDesktop = useMediaQuery("(min-width: 1024px)");
   const isRTL = language === "he";
-  const [isListVisible, setIsListVisible] = useState(true);
+  const [isListVisible, setIsListVisible] = useState(true); // For desktop sidebar toggle
 
+  // Effect for animation timing (uses the prop currentQuestionIndex now)
   useEffect(() => {
     const timer = setTimeout(() => setAnimateDirection(null), 300);
     return () => clearTimeout(timer);
-  }, [currentQuestionIndex]);
+  }, [currentQuestionIndex]); // Dependency is now the prop
 
+  // --- Helper function to find answer value ---
   const findAnswer = (questionId: string) => {
     return answers.find((a) => a.questionId === questionId)?.value;
   };
 
-  // פונקציית ולידציה (ללא שינוי)
+  // --- Validation function (no changes needed here) ---
   const validateAnswer = (
     question: Question,
     value: AnswerValue
@@ -92,10 +96,12 @@ export default function ValuesWorld({
     if (question.isRequired && isValueEmpty) {
       return "נדרשת תשובה לשאלה זו";
     }
+    // No error if not required and empty
     if (!question.isRequired && isValueEmpty) {
       return null;
     }
 
+    // Type-specific validations
     switch (question.type) {
       case "openText": {
         const textValue = value as string;
@@ -115,23 +121,18 @@ export default function ValuesWorld({
       case "multiSelect":
       case "multiChoice":
       case "multiSelectWithOther": {
-        const selectedValues = value as string[];
-        if (
-          question.minSelections &&
-          selectedValues.length < question.minSelections
-        ) {
+        const selectedValues = value as string[] | undefined; // Allow undefined
+        const count = selectedValues?.length ?? 0;
+        if (question.minSelections && count < question.minSelections) {
           return `יש לבחור לפחות ${question.minSelections} אפשרויות`;
         }
-        if (
-          question.maxSelections &&
-          selectedValues.length > question.maxSelections
-        ) {
+        if (question.maxSelections && count > question.maxSelections) {
           return `ניתן לבחור עד ${question.maxSelections} אפשרויות`;
         }
         break;
       }
       case "budgetAllocation": {
-        const allocationValue = value as Record<string, number>;
+        const allocationValue = value as Record<string, number> | undefined; // Allow undefined
         if (allocationValue) {
           const totalAllocated = Object.values(allocationValue).reduce(
             (sum, val) => sum + (val || 0),
@@ -154,24 +155,29 @@ export default function ValuesWorld({
               } נקודות.`;
             }
           }
+        } else if (question.isRequired && !isValueEmpty) {
+          // Handle case where budget is required but value is somehow invalid (though isValueEmpty should catch it)
+          return "נדרשת הקצאת תקציב.";
         }
         break;
       }
+      // Add other cases if needed (scale, ranking, etc.)
     }
-    return null;
+    return null; // No error
   };
 
+  // --- Navigation handlers using props ---
   const handleNext = () => {
-    console.log("handleNext called"); // בדיקה
     const currentQuestion = allQuestions[currentQuestionIndex];
     const value = findAnswer(currentQuestion.id);
     const error = validateAnswer(currentQuestion, value);
 
     if (error && currentQuestion.isRequired) {
       setValidationErrors({ ...validationErrors, [currentQuestion.id]: error });
-      console.log("Validation error, returning");
-      return;
+      return; // Stop if required question has validation error
     }
+
+    // Clear error for the current question if validation passes
     setValidationErrors((prev) => {
       const newErrors = { ...prev };
       delete newErrors[currentQuestion.id];
@@ -179,31 +185,51 @@ export default function ValuesWorld({
     });
 
     if (currentQuestionIndex < allQuestions.length - 1) {
-      console.log("Going to next question");
       setAnimateDirection("left");
-      setCurrentQuestionIndex((prev) => prev + 1);
+      setCurrentQuestionIndex(currentQuestionIndex + 1); // Use prop function
     } else {
-      console.log("Completing world");
-      onComplete();
+      // Last question, check all required questions in this world are answered
+      const firstUnansweredRequired = allQuestions.find(
+        (q) => q.isRequired && validateAnswer(q, findAnswer(q.id)) !== null // Check if validation fails (means unanswered/invalid)
+      );
+
+      if (firstUnansweredRequired) {
+        // Find the index of the first unanswered required question
+        const errorIndex = allQuestions.findIndex(
+          (q) => q.id === firstUnansweredRequired.id
+        );
+        if (errorIndex !== -1) {
+          setCurrentQuestionIndex(errorIndex); // Navigate to the first error
+          setValidationErrors({
+            ...validationErrors,
+            [firstUnansweredRequired.id]:
+              validateAnswer(
+                firstUnansweredRequired,
+                findAnswer(firstUnansweredRequired.id)
+              ) || "נדרשת תשובה לשאלה זו",
+          });
+          // Optionally show a toast message here indicating required questions are missing
+        }
+      } else {
+        onComplete(); // All good, complete the world
+      }
     }
   };
 
   const handlePrevious = () => {
-    console.log("handlePrevious called"); // בדיקה
     if (currentQuestionIndex > 0) {
-      console.log("Going to previous question");
       setAnimateDirection("right");
-      setCurrentQuestionIndex((prev) => prev - 1);
+      setCurrentQuestionIndex(currentQuestionIndex - 1); // Use prop function
     } else {
-      console.log("Going back");
-      onBack();
+      onBack(); // Go back to the map or previous step
     }
   };
 
+  // --- Clear answer handler ---
   const handleClearAnswer = () => {
-    // ... (קוד ניקוי תשובה ללא שינוי) ...
     const currentQuestion = allQuestions[currentQuestionIndex];
     let emptyValue: AnswerValue;
+    // Determine empty value based on question type
     switch (currentQuestion.type) {
       case "multiChoice":
       case "multiSelect":
@@ -214,27 +240,31 @@ export default function ValuesWorld({
         emptyValue = {};
         break;
       case "scale":
-        emptyValue = undefined;
+        emptyValue = undefined; // Or null, depending on preference
         break;
-      default:
-        emptyValue = "";
+      default: // openText, singleChoice, etc.
+        emptyValue = ""; // Or undefined/null
     }
-    onAnswer(currentQuestion.id, emptyValue);
-    setValidationErrors({ ...validationErrors, [currentQuestion.id]: "" });
+    onAnswer(currentQuestion.id, emptyValue); // Call parent's onAnswer
+    // Clear validation error for this question
+    setValidationErrors((prev) => {
+      const newErrors = { ...prev };
+      delete newErrors[currentQuestion.id];
+      return newErrors;
+    });
   };
 
-  // --- Render Intro ---
+  // --- Render Intro Screen ---
   if (!isIntroComplete) {
-    // ... (קוד הצגת מבוא) ...
     return (
       <WorldIntro
         worldId="VALUES"
         title="עולם הערכים והאמונות"
-        description="בואו נברר יחד מהם הערכים והעקרונות המנחים בחייך"
-        estimatedTime={35}
+        description="בואו נברר יחד מהם הערכים והעקרונות המנחים בחייך, מה חשוב לך במשפחה, בקהילה ובהשקפת העולם שלך."
+        estimatedTime={35} // Update with actual estimate
         totalQuestions={allQuestions.length}
         requiredQuestions={allQuestions.filter((q) => q.isRequired).length}
-        depths={["BASIC", "ADVANCED"]}
+        depths={["BASIC", "ADVANCED"]} // Adjust based on actual depths used
         onStart={() => setIsIntroComplete(true)}
       />
     );
@@ -242,11 +272,11 @@ export default function ValuesWorld({
 
   // --- Handle Loading Error ---
   if (allQuestions.length === 0) {
-    // ... (קוד טיפול בשגיאה) ...
     return (
-      <div className="p-4 bg-red-50 rounded-lg border border-red-300 text-red-800">
-        <h3 className="font-bold">שגיאה בטעינת השאלות</h3>
-        <p>לא ניתן לטעון את השאלות לעולם זה. אנא נסה לרענן את הדף.</p>
+      <div className="p-4 bg-red-50 rounded-lg border border-red-300 text-red-800 text-center">
+        <h3 className="font-bold text-lg mb-2">שגיאה בטעינת השאלות</h3>
+        <p>לא ניתן היה לטעון את השאלות עבור עולם זה.</p>
+        <p>אנא נסה לרענן את הדף או לחזור מאוחר יותר.</p>
         <Button className="mt-4" variant="outline" onClick={onBack}>
           חזרה למפה
         </Button>
@@ -254,40 +284,54 @@ export default function ValuesWorld({
     );
   }
 
+  // --- Get Current Question (using prop index) ---
   const currentQuestion = allQuestions[currentQuestionIndex];
   if (!currentQuestion) {
-    // ... (קוד טיפול בשגיאה) ...
-    return <div>שגיאה בטעינת השאלה הנוכחית.</div>;
+    // This should ideally not happen if index is managed correctly, but good to handle
+    console.error(
+      `Error: Invalid question index ${currentQuestionIndex} for ValuesWorld.`
+    );
+    // Attempt to recover or show error
+    setCurrentQuestionIndex(0); // Reset to first question
+    return (
+      <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-300 text-yellow-800 text-center">
+        <p>אירעה שגיאה בטעינת השאלה. מחזיר לשאלה הראשונה...</p>
+        <Button
+          className="mt-2"
+          variant="outline"
+          onClick={() => setCurrentQuestionIndex(0)}
+        >
+          אישור
+        </Button>
+      </div>
+    );
   }
 
   // --- Calculate Progress ---
-  // ... (קוד חישוב התקדמות ללא שינוי) ...
   const progress = ((currentQuestionIndex + 1) / allQuestions.length) * 100;
   const currentValue = findAnswer(currentQuestion.id);
-  const answeredQuestionsCount = allQuestions.filter((q) =>
-    answers.some((a) => {
-      const val = a.value;
-      return (
-        a.questionId === q.id &&
-        val !== undefined &&
-        val !== null &&
-        (typeof val === "string" ? val.trim() !== "" : true) &&
-        (Array.isArray(val) ? val.length > 0 : true) &&
-        (typeof val === "object" && !Array.isArray(val)
-          ? Object.keys(val).length > 0
-          : true)
-      );
-    })
-  ).length;
+  const answeredQuestionsCount = allQuestions.filter((q) => {
+    const answerValue = findAnswer(q.id);
+    return (
+      answerValue !== undefined &&
+      answerValue !== null &&
+      (typeof answerValue !== "string" || answerValue.trim() !== "") &&
+      (!Array.isArray(answerValue) || answerValue.length > 0) &&
+      (typeof answerValue !== "object" ||
+        Array.isArray(answerValue) ||
+        Object.keys(answerValue).length > 0)
+    );
+  }).length;
+
   const completionPercentage = Math.round(
     (answeredQuestionsCount / allQuestions.length) * 100
   );
 
   // --- Helper Components for Rendering ---
 
+  // Renders the header section with progress and list button
   const renderHeader = (showSheetButton: boolean) => (
     <div className="bg-white p-3 rounded-lg shadow-sm border space-y-2 mb-6">
-      {/* ... (קוד כותרת ללא שינוי) ... */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-medium">עולם הערכים והאמונות</h2>
@@ -296,6 +340,7 @@ export default function ValuesWorld({
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {/* Completion Percentage */}
           <div
             className={cn(
               "hidden sm:flex items-center text-sm",
@@ -312,6 +357,7 @@ export default function ValuesWorld({
             />
             <span>{completionPercentage}% הושלם</span>
           </div>
+          {/* Mobile/Sheet Button */}
           {showSheetButton && (
             <Sheet>
               <SheetTrigger asChild>
@@ -333,6 +379,7 @@ export default function ValuesWorld({
                   </SheetTitle>
                   <SheetDescription>
                     לחץ על שאלה כדי לעבור אליה ישירות.
+                    {/* Legend */}
                     <div className="mt-3 pt-3 border-t space-y-1">
                       <div className="flex items-center text-xs text-gray-600">
                         <CheckCircle className="h-3 w-3 text-green-500 me-1.5" />
@@ -352,12 +399,12 @@ export default function ValuesWorld({
                 <div className="mt-4">
                   <QuestionsList
                     allQuestions={allQuestions}
-                    currentQuestionIndex={currentQuestionIndex}
-                    setCurrentQuestionIndex={setCurrentQuestionIndex}
+                    currentQuestionIndex={currentQuestionIndex} // Use prop
+                    setCurrentQuestionIndex={setCurrentQuestionIndex} // Use prop
                     answers={answers}
                     language={language}
-                    // Pass a function to close the sheet if needed
-                    // onClose={() => ... }
+                    // Example: Pass function to close sheet on selection
+                    // onClose={() => document.querySelector('[data-radix-sheet-close]')?.click()}
                   />
                 </div>
               </SheetContent>
@@ -369,13 +416,11 @@ export default function ValuesWorld({
     </div>
   );
 
-  // *** שינוי: הוצאת כפתורי הניווט מחוץ לאזור האנימציה של השאלה ***
+  // Renders the main question card with animation
   const renderQuestionCard = () => (
     <motion.div
-      className={cn(
-        "transition-opacity duration-300" // רק אנימציית opacity
-      )}
-      key={currentQuestionIndex}
+      className={cn("transition-opacity duration-300")}
+      key={currentQuestionIndex} // Key ensures re-render on index change
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -391,13 +436,14 @@ export default function ValuesWorld({
           question={currentQuestion}
           value={currentValue}
           onChange={(value) => {
-            setValidationErrors({
-              ...validationErrors,
+            // Clear validation on change
+            setValidationErrors((prev) => ({
+              ...prev,
               [currentQuestion.id]: "",
-            });
-            onAnswer(currentQuestion.id, value);
+            }));
+            onAnswer(currentQuestion.id, value); // Pass to parent
           }}
-          onClear={handleClearAnswer}
+          onClear={handleClearAnswer} // Use clear handler
           language={language}
           showValidation={!!validationErrors[currentQuestion.id]}
         />
@@ -405,10 +451,9 @@ export default function ValuesWorld({
     </motion.div>
   );
 
+  // Renders the navigation buttons (Prev/Next/Finish)
   const renderNavigationButtons = () => (
     <div className="flex justify-between pt-4 mt-6 border-t">
-      {" "}
-      {/* ללא אנימציה עוטפת */}
       <Button
         variant="outline"
         onClick={handlePrevious}
@@ -420,7 +465,7 @@ export default function ValuesWorld({
       {currentQuestionIndex < allQuestions.length - 1 ? (
         <Button
           variant="default"
-          onClick={handleNext} // ישירות על הכפתור
+          onClick={handleNext}
           className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2"
         >
           <span>שאלה הבאה</span>
@@ -428,7 +473,7 @@ export default function ValuesWorld({
         </Button>
       ) : (
         <Button
-          onClick={handleNext} // ישירות על הכפתור
+          onClick={handleNext}
           className="bg-green-600 hover:bg-green-700 flex items-center gap-2"
         >
           <span>סיים עולם זה</span>
@@ -438,8 +483,8 @@ export default function ValuesWorld({
     </div>
   );
 
+  // Renders the button to toggle the questions list sidebar on desktop
   const ListToggleButton = () => (
-    // ... (קוד כפתור הטוגל ללא שינוי) ...
     <TooltipProvider delayDuration={100}>
       <Tooltip>
         <TooltipTrigger asChild>
@@ -447,7 +492,7 @@ export default function ValuesWorld({
             variant="outline"
             size="icon"
             onClick={() => setIsListVisible(!isListVisible)}
-            className="fixed top-[80px] z-30 bg-white/80 backdrop-blur-sm shadow-md hover:bg-gray-100 rounded-full w-10 h-10" // שינוי לעיגול
+            className="fixed top-[80px] z-30 bg-white/80 backdrop-blur-sm shadow-md hover:bg-gray-100 rounded-full w-10 h-10"
             style={isRTL ? { left: "1.5rem" } : { right: "1.5rem" }}
           >
             {isListVisible ? (
@@ -463,13 +508,10 @@ export default function ValuesWorld({
             )}
             <span className="sr-only">
               {isListVisible ? "הסתר רשימה" : "הצג רשימה"}
-            </span>{" "}
-            {/* טקסט לנגישות */}
+            </span>
           </Button>
         </TooltipTrigger>
         <TooltipContent side={isRTL ? "right" : "left"}>
-          {" "}
-          {/* שינוי כיוון ה-Tooltip */}
           <p>{isListVisible ? "הסתר רשימת שאלות" : "הצג רשימת שאלות"}</p>
         </TooltipContent>
       </Tooltip>
@@ -482,8 +524,7 @@ export default function ValuesWorld({
     return (
       <div className="w-full relative" dir={isRTL ? "rtl" : "ltr"}>
         <ListToggleButton />
-        {renderHeader(false)}
-
+        {renderHeader(false)} {/* Header without sheet button */}
         <div
           className={cn(
             "transition-all duration-300 ease-in-out",
@@ -491,17 +532,16 @@ export default function ValuesWorld({
           )}
         >
           {/* Main Question Area */}
-          <div // *** שינוי: div רגיל, ללא motion וללא layout ***
+          <div
             className={cn(
-              "space-y-6", // רק style בסיסי
+              "space-y-6",
               isListVisible
                 ? "col-span-12 lg:col-span-7 xl:col-span-8"
-                : "w-full max-w-4xl" // הגבלת רוחב כשממורכז
+                : "w-full max-w-4xl"
             )}
-            // *** אין אנימציית layout ***
           >
-            {renderQuestionCard()} {/* מכיל את האנימציה של השאלה עצמה */}
-            {renderNavigationButtons()} {/* כפתורים מחוץ לאנימציה */}
+            {renderQuestionCard()}
+            {renderNavigationButtons()}
           </div>
 
           {/* Questions List Sidebar */}
@@ -528,15 +568,15 @@ export default function ValuesWorld({
                   marginInlineEnd: isRTL ? undefined : "-2rem",
                 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
-                layout // Keep layout for sidebar animation
+                layout // Animate layout changes for the sidebar itself
               >
                 <Card className="sticky top-6 shadow-lg border border-gray-200 h-[calc(100vh-5rem)] overflow-hidden flex flex-col">
                   <CardHeader className="pb-3 pt-4 border-b bg-gray-50/50 flex-shrink-0">
-                    {/* ... כותרת רשימה ... */}
                     <CardTitle className="text-lg font-semibold flex items-center gap-2 text-gray-800">
                       <ListChecks className="h-5 w-5 text-blue-600" />
                       <span>שאלות בעולם זה</span>
                     </CardTitle>
+                    {/* Legend */}
                     <div className="pt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
                       <div className="flex items-center">
                         <CheckCircle className="h-3 w-3 text-green-500 me-1.5" />
@@ -555,11 +595,11 @@ export default function ValuesWorld({
                   <CardContent className="p-2 flex-grow overflow-hidden">
                     <QuestionsList
                       allQuestions={allQuestions}
-                      currentQuestionIndex={currentQuestionIndex}
-                      setCurrentQuestionIndex={setCurrentQuestionIndex}
+                      currentQuestionIndex={currentQuestionIndex} // Use prop
+                      setCurrentQuestionIndex={setCurrentQuestionIndex} // Use prop
                       answers={answers}
                       language={language}
-                      className="h-full"
+                      className="h-full" // Ensure list takes full height
                     />
                   </CardContent>
                 </Card>
@@ -576,7 +616,7 @@ export default function ValuesWorld({
         className="max-w-2xl mx-auto p-2 sm:p-4 space-y-6"
         dir={isRTL ? "rtl" : "ltr"}
       >
-        {renderHeader(true)}
+        {renderHeader(true)} {/* Header with sheet button */}
         {renderQuestionCard()}
         {renderNavigationButtons()}
       </div>

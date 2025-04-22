@@ -103,6 +103,8 @@ export interface WorldComponentProps {
   answers: QuestionnaireAnswer[];
   isCompleted?: boolean;
   language?: string;
+  currentQuestionIndex: number;
+  setCurrentQuestionIndex: (index: number) => void;
 }
 
 export interface AnswerInputProps {
