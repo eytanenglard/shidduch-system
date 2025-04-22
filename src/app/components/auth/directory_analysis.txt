@@ -1,0 +1,2042 @@
+מבנה התיקייה:
+auth
+  ProgressBar.tsx
+  RegisterForm.tsx
+  RegisterSteps.tsx
+  RegistrationContext.tsx
+  SignInForm.tsx
+  steps
+    BasicInfoStep.tsx
+    CompleteStep.tsx
+    OptionalInfoStep.tsx
+    PersonalDetailsStep.tsx
+    WelcomeStep.tsx
+
+תוכן הקבצים:
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\auth\ProgressBar.tsx:
+==================================================
+"use client";
+
+import React from "react";
+import { motion } from "framer-motion";
+
+interface ProgressBarProps {
+  currentStep: number;
+  totalSteps: number;
+}
+
+const ProgressBar: React.FC<ProgressBarProps> = ({
+  currentStep,
+  totalSteps,
+}) => {
+  // Calculate percentage
+  const percentage = (currentStep / totalSteps) * 100;
+
+  // Generate step markers
+  const steps = Array.from({ length: totalSteps }, (_, i) => i + 1);
+
+  return (
+    <div className="w-full relative">
+      {/* Step labels */}
+      <div className="flex justify-between mb-2">
+        {steps.map((step) => (
+          <div
+            key={step}
+            className={`text-xs font-medium transition-colors duration-300 ${
+              step <= currentStep ? "text-gray-800" : "text-gray-400"
+            }`}
+          >
+            שלב {step}
+          </div>
+        ))}
+      </div>
+
+      {/* Progress bar track */}
+      <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+        {/* Animated progress fill */}
+        <motion.div
+          className="h-full bg-gradient-to-r from-cyan-500 to-pink-500"
+          initial={{ width: `${((currentStep - 1) / totalSteps) * 100}%` }}
+          animate={{ width: `${percentage}%` }}
+          transition={{ duration: 0.5, ease: "easeInOut" }}
+        />
+      </div>
+
+      {/* Step markers */}
+      <div className="relative flex justify-between mt-1">
+        {steps.map((step) => (
+          <motion.div
+            key={step}
+            className={`w-6 h-6 rounded-full flex items-center justify-center -mt-4 z-10 transition-all duration-300
+              ${
+                step <= currentStep
+                  ? "bg-gradient-to-r from-cyan-500 to-pink-500 shadow-md text-white"
+                  : "bg-white border-2 border-gray-300 text-gray-500"
+              }`}
+            initial={{ scale: step === currentStep ? 0.8 : 1 }}
+            animate={{ scale: step === currentStep ? 1.1 : 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <span className="text-xs font-semibold">{step}</span>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default ProgressBar;
+
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\auth\RegisterForm.tsx:
+==================================================
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Gender } from "@prisma/client";
+import { signIn } from "next-auth/react";
+
+interface RegistrationFormData {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  gender: Gender;
+  birthDate: string;
+  maritalStatus?: string;
+  height?: number;
+  occupation?: string;
+  education?: string;
+}
+
+export default function RegisterForm() {
+  const router = useRouter();
+  const [error, setError] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [password, setPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+
+  const validatePassword = (value: string) => {
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+    if (!passwordRegex.test(value)) {
+      setPasswordError(
+        "הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר"
+      );
+      return false;
+    }
+    setPasswordError("");
+    return true;
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
+
+    if (!validatePassword(password)) {
+      setIsLoading(false);
+      return;
+    }
+
+    const formData = new FormData(e.currentTarget);
+    const data: RegistrationFormData = {
+      email: formData.get("email") as string,
+      password: password,
+      firstName: formData.get("firstName") as string,
+      lastName: formData.get("lastName") as string,
+      phone: formData.get("phone") as string,
+      gender: formData.get("gender") as Gender,
+      birthDate: formData.get("birthDate") as string,
+      maritalStatus: formData.get("maritalStatus") as string,
+      height: formData.get("height")
+        ? Number(formData.get("height"))
+        : undefined,
+      occupation: formData.get("occupation") as string,
+      education: formData.get("education") as string,
+    };
+
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "אירעה שגיאה בהרשמה");
+      }
+
+      // העברה לדף אימות המייל
+      router.push(`/auth/verify-email?email=${encodeURIComponent(data.email)}`);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "אירעה שגיאה בהרשמה");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setIsGoogleLoading(true);
+      setError("");
+      
+      // ניסיון התחברות עם גוגל - הסרנו את callbackUrl
+      // NextAuth יטפל בהפניה באמצעות פונקציית callback.redirect
+      await signIn("google");
+    } catch (error) {
+      console.error("Google sign-in error:", error);
+      setError("אירעה שגיאה בהתחברות עם גוגל");
+      setIsGoogleLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6 max-w-sm mx-auto">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* השארנו את כל השדות הקיימים */}
+        <div>
+          <label
+            htmlFor="firstName"
+            className="block text-sm font-medium text-gray-700"
+          >
+            שם פרטי
+          </label>
+          <input
+            type="text"
+            name="firstName"
+            id="firstName"
+            required
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="lastName"
+            className="block text-sm font-medium text-gray-700"
+          >
+            שם משפחה
+          </label>
+          <input
+            type="text"
+            name="lastName"
+            id="lastName"
+            required
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium text-gray-700"
+          >
+            אימייל
+          </label>
+          <input
+            type="email"
+            name="email"
+            id="email"
+            required
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="phone"
+            className="block text-sm font-medium text-gray-700"
+          >
+            טלפון נייד
+          </label>
+          <input
+            type="tel"
+            name="phone"
+            id="phone"
+            required
+            pattern="[0-9]{10}"
+            placeholder="0501234567"
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="password"
+            className="block text-sm font-medium text-gray-700"
+          >
+            סיסמה
+          </label>
+          <input
+            type="password"
+            name="password"
+            id="password"
+            required
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              validatePassword(e.target.value);
+            }}
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+          />
+          <p className="mt-1 text-sm text-gray-500">
+            הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה באנגלית, אות קטנה באנגלית
+            ומספר
+          </p>
+          {passwordError && (
+            <div className="text-red-500 text-sm">{passwordError}</div>
+          )}
+        </div>
+
+        {/* שאר השדות */}
+        <div>
+          <label
+            htmlFor="gender"
+            className="block text-sm font-medium text-gray-700"
+          >
+            מגדר
+          </label>
+          <select
+            name="gender"
+            id="gender"
+            required
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+          >
+            <option value="">בחר מגדר</option>
+            <option value="MALE">זכר</option>
+            <option value="FEMALE">נקבה</option>
+          </select>
+        </div>
+
+        <div>
+          <label
+            htmlFor="birthDate"
+            className="block text-sm font-medium text-gray-700"
+          >
+            תאריך לידה
+          </label>
+          <input
+            type="date"
+            name="birthDate"
+            id="birthDate"
+            required
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="maritalStatus"
+            className="block text-sm font-medium text-gray-700"
+          >
+            מצב משפחתי
+          </label>
+          <select
+            name="maritalStatus"
+            id="maritalStatus"
+            required
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+          >
+            <option value="">בחר מצב משפחתי</option>
+            <option value="רווק/ה">רווק/ה</option>
+            <option value="גרוש/ה">גרוש/ה</option>
+            <option value="אלמן/ה">אלמן/ה</option>
+          </select>
+        </div>
+
+        <div>
+          <label
+            htmlFor="height"
+            className="block text-sm font-medium text-gray-700"
+          >
+            גובה (בסמ)
+          </label>
+          <input
+            type="number"
+            name="height"
+            id="height"
+            min="120"
+            max="220"
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="occupation"
+            className="block text-sm font-medium text-gray-700"
+          >
+            עיסוק
+          </label>
+          <input
+            type="text"
+            name="occupation"
+            id="occupation"
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="education"
+            className="block text-sm font-medium text-gray-700"
+          >
+            השכלה
+          </label>
+          <input
+            type="text"
+            name="education"
+            id="education"
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+          />
+        </div>
+
+        {error && <div className="text-red-500 text-sm">{error}</div>}
+
+        <button
+          type="submit"
+          disabled={isLoading || !!passwordError}
+          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+        >
+          {isLoading ? "נרשם..." : "הרשמה"}
+        </button>
+      </form>
+
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-300" />
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="px-2 bg-white text-gray-500">או</span>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={handleGoogleSignIn}
+        disabled={isGoogleLoading}
+        className="w-full flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+      >
+        <div className="mr-2">
+          {isGoogleLoading ? (
+            <span>מתחבר...</span>
+          ) : (
+            <>
+              <svg 
+                className="h-5 w-5 ml-2" 
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  fill="#4285F4"
+                />
+                <path
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  fill="#34A853"
+                />
+                <path
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                  fill="#FBBC05"
+                />
+                <path
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                  fill="#EA4335"
+                />
+              </svg>
+              הרשמה עם גוגל
+            </>
+          )}
+        </div>
+      </button>
+    </div>
+  );
+}
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\auth\RegisterSteps.tsx:
+==================================================
+"use client";
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { RegistrationProvider, useRegistration } from './RegistrationContext';
+import WelcomeStep from './steps/WelcomeStep';
+import BasicInfoStep from './steps/BasicInfoStep';
+import PersonalDetailsStep from './steps/PersonalDetailsStep';
+import OptionalInfoStep from './steps/OptionalInfoStep';
+import CompleteStep from './steps/CompleteStep';
+import ProgressBar from './ProgressBar';
+import { ArrowRight } from 'lucide-react';
+
+// Wrapper component that uses the context
+const RegisterStepsContent: React.FC = () => {
+  const { data } = useRegistration();
+  const router = useRouter();
+  const { data: session } = useSession();
+
+  // If user is already logged in, redirect to profile
+  useEffect(() => {
+    if (session?.user) {
+      router.push('/profile');
+    }
+  }, [session, router]);
+
+  // Render the current step
+  const renderStep = () => {
+    switch (data.step) {
+      case 0:
+        return <WelcomeStep />;
+      case 1:
+        return <BasicInfoStep />;
+      case 2:
+        return <PersonalDetailsStep />;
+      case 3:
+        return <OptionalInfoStep />;
+      case 4:
+        return <CompleteStep />;
+      default:
+        return <WelcomeStep />;
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-cyan-50 via-white to-pink-50 p-4 sm:p-8">
+      {/* Back to home button */}
+      <button 
+        onClick={() => router.push('/')}
+        className="absolute top-4 left-4 text-gray-600 hover:text-gray-800 transition-colors flex items-center gap-1 text-sm"
+      >
+        <ArrowRight className="h-4 w-4" />
+        חזרה לדף הבית
+      </button>
+
+      {/* Logo or branding */}
+      <div className="mb-6">
+        <h1 className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-pink-500 text-3xl font-bold text-center mb-2">
+          הרשמה למערכת
+        </h1>
+        <p className="text-gray-600 text-center max-w-md mx-auto">
+          {data.step === 0 ? 'ברוכים הבאים! בואו נתחיל בצעדים פשוטים' : 
+           data.step === 4 ? 'מצוין! הנה סיימנו את תהליך ההרשמה' :
+           `שלב ${data.step} מתוך 3 - ממשיכים להתקדם`}
+        </p>
+      </div>
+
+      {/* Progress bar (hidden on welcome and complete screens) */}
+      {data.step > 0 && data.step < 4 && (
+        <div className="w-full max-w-md mb-4">
+          <ProgressBar currentStep={data.step} totalSteps={3} />
+        </div>
+      )}
+
+      {/* Main content area */}
+      <div className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden relative">
+        {/* Decorative elements */}
+        <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-cyan-500 to-pink-500"></div>
+        <div className="p-6 sm:p-8">{renderStep()}</div>
+      </div>
+    </div>
+  );
+};
+
+// Export with provider wrapper
+export default function RegisterSteps() {
+  return (
+    <RegistrationProvider>
+      <RegisterStepsContent />
+    </RegistrationProvider>
+  );
+}
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\auth\RegistrationContext.tsx:
+==================================================
+"use client";
+
+import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { Gender } from '@prisma/client';
+
+// Define the structure of the registration data
+export interface RegistrationData {
+  // Basic info
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  
+  // Personal details
+  phone: string;
+  gender: Gender | '';
+  birthDate: string;
+  maritalStatus: string;
+  
+  // Optional info
+  height?: number;
+  occupation?: string;
+  education?: string;
+  
+  // Additional state
+  step: number;
+  isGoogleSignup: boolean;
+}
+
+// Default initial state
+const initialRegistrationData: RegistrationData = {
+  email: '',
+  password: '',
+  firstName: '',
+  lastName: '',
+  phone: '',
+  gender: '',
+  birthDate: '',
+  maritalStatus: '',
+  height: undefined,
+  occupation: '',
+  education: '',
+  step: 0,
+  isGoogleSignup: false
+};
+
+// Define context type
+interface RegistrationContextType {
+  data: RegistrationData;
+  setData: React.Dispatch<React.SetStateAction<RegistrationData>>;
+  updateField: <K extends keyof RegistrationData>(
+    field: K,
+    value: RegistrationData[K]
+  ) => void;
+  nextStep: () => void;
+  prevStep: () => void;
+  goToStep: (step: number) => void;
+  isLastStep: () => boolean;
+  resetForm: () => void;
+  setGoogleSignup: (data: Partial<RegistrationData>) => void;
+}
+
+// Create context with default values
+const RegistrationContext = createContext<RegistrationContextType>({
+  data: initialRegistrationData,
+  setData: () => {},
+  updateField: () => {},
+  nextStep: () => {},
+  prevStep: () => {},
+  goToStep: () => {},
+  isLastStep: () => false,
+  resetForm: () => {},
+  setGoogleSignup: () => {}
+});
+
+// Provider component
+export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [data, setData] = useState<RegistrationData>({ ...initialRegistrationData });
+
+  // Total number of steps in registration flow
+  const TOTAL_STEPS = 4; // 0=welcome, 1=basic info, 2=personal details, 3=optional info, 4=complete
+
+  // Update a single field
+  const updateField = <K extends keyof RegistrationData>(
+    field: K,
+    value: RegistrationData[K]
+  ) => {
+    setData(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Navigation functions
+  const nextStep = () => {
+    if (data.step < TOTAL_STEPS) {
+      setData(prev => ({ ...prev, step: prev.step + 1 }));
+    }
+  };
+
+  const prevStep = () => {
+    if (data.step > 0) {
+      setData(prev => ({ ...prev, step: prev.step - 1 }));
+    }
+  };
+
+  const goToStep = (step: number) => {
+    if (step >= 0 && step <= TOTAL_STEPS) {
+      setData(prev => ({ ...prev, step }));
+    }
+  };
+
+  const isLastStep = () => {
+    return data.step === TOTAL_STEPS;
+  };
+
+  // Reset the form
+  const resetForm = () => {
+    setData({ ...initialRegistrationData });
+  };
+
+  // Set up data for Google signup
+  const setGoogleSignup = (googleData: Partial<RegistrationData>) => {
+    setData(prev => ({
+      ...prev,
+      ...googleData,
+      isGoogleSignup: true,
+      // Skip to personal details if we have basic info
+      step: googleData.email && googleData.firstName && googleData.lastName ? 2 : 1
+    }));
+  };
+
+  const value = {
+    data,
+    setData,
+    updateField,
+    nextStep,
+    prevStep,
+    goToStep,
+    isLastStep,
+    resetForm,
+    setGoogleSignup
+  };
+
+  return (
+    <RegistrationContext.Provider value={value}>
+      {children}
+    </RegistrationContext.Provider>
+  );
+};
+
+// Custom hook for using the registration context
+export const useRegistration = () => {
+  const context = useContext(RegistrationContext);
+  if (!context) {
+    throw new Error('useRegistration must be used within a RegistrationProvider');
+  }
+  return context;
+};
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\auth\SignInForm.tsx:
+==================================================
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { Button } from "@/components/ui/button";
+import { Mail, Lock, AlertCircle } from "lucide-react";
+import Link from "next/link";
+
+export default function SignInForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+  // בדיקה אם יש שגיאה מה-URL
+  useEffect(() => {
+    const errorMessage = searchParams.get("error");
+    if (errorMessage) {
+      switch (errorMessage) {
+        case "CredentialsSignin":
+          setError("אימייל או סיסמה אינם נכונים");
+          break;
+        default:
+          setError("אירעה שגיאה, נסה שנית");
+      }
+    }
+  }, [searchParams]);
+
+  // בדיקה אם יש אימייל בפרמטרים של ה-URL
+  useEffect(() => {
+    const emailParam = searchParams.get("email");
+    if (emailParam) {
+      setEmail(emailParam);
+      localStorage.setItem("last_google_user_email", emailParam);
+    }
+  }, [searchParams]);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!email || !password) {
+      setError("אנא הזן אימייל וסיסמה");
+      return;
+    }
+
+    try {
+      setError("");
+      setIsLoading(true);
+
+      // שמירת האימייל ב-localStorage לשימוש אפשרי בהמשך
+      localStorage.setItem("last_user_email", email);
+
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setError("אימייל או סיסמה אינם נכונים");
+        console.error("Sign-in error:", result.error);
+      } else {
+        // בדיקה אם יש שאלון זמני
+        const tempQuestionnaire = localStorage.getItem("tempQuestionnaire");
+
+        if (tempQuestionnaire) {
+          try {
+            const response = await fetch("/api/questionnaire", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: tempQuestionnaire,
+            });
+
+            if (response.ok) {
+              localStorage.removeItem("tempQuestionnaire");
+              localStorage.removeItem("questionnaireProgress");
+              router.push("/questionnaire/complete");
+              return;
+            }
+          } catch (error) {
+            console.error("Error saving questionnaire:", error);
+          }
+        }
+
+        // אם אין שאלון או שהשמירה נכשלה, נווט לפרופיל
+        router.push("/profile");
+      }
+    } catch (err) {
+      console.error("Unexpected sign-in error:", err);
+      setError("אירעה שגיאה בהתחברות, נסה שנית");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setIsGoogleLoading(true);
+      setError("");
+
+      // לפני השימוש ב-signIn, שמור מידע על התחברות גוגל
+      localStorage.setItem("google_auth_in_progress", "true");
+      localStorage.setItem("auth_method", "google");
+
+      // NextAuth יטפל בהפניה - עדכון ליעד החדש
+      await signIn("google", { callbackUrl: "/auth/google-callback" });
+    } catch (error) {
+      console.error("Google sign-in error:", error);
+      setError("אירעה שגיאה בהתחברות עם גוגל");
+      setIsGoogleLoading(false);
+    }
+  };
+
+  return (
+    <div className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden relative">
+      {/* Decorative elements */}
+      <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-cyan-500 to-pink-500"></div>
+
+      <div className="p-6 sm:p-8">
+        <div className="text-center mb-6">
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">
+            התחברות למערכת
+          </h1>
+          <p className="text-gray-600">
+            ברוכים השבים! המשיכו למצוא את השידוך המושלם
+          </p>
+        </div>
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
+            <p className="text-red-600 text-sm">{error}</p>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4 mb-6">
+          <div className="space-y-1">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700"
+            >
+              אימייל
+            </label>
+            <div className="relative">
+              <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full pr-10 pl-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
+                placeholder="you@example.com"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700"
+            >
+              סיסמה
+            </label>
+            <div className="relative">
+              <Lock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <input
+                type="password"
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full pr-10 pl-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
+                placeholder="הסיסמה שלך"
+              />
+            </div>
+            <div className="flex justify-end">
+              <Link
+                href="/auth/forgot-password"
+                className="text-sm text-cyan-600 hover:text-cyan-700 hover:underline mt-1"
+              >
+                שכחת סיסמה?
+              </Link>
+            </div>
+          </div>
+
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="w-full py-3 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 shadow-lg flex items-center justify-center gap-2 relative overflow-hidden"
+          >
+            {isLoading ? (
+              <>
+                <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>מתחבר...</span>
+              </>
+            ) : (
+              <>
+                {/* Button shimmer effect */}
+                <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
+                <span>התחברות</span>
+              </>
+            )}
+          </Button>
+        </form>
+
+        <div className="relative mb-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-300" />
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-white text-gray-500">או</span>
+          </div>
+        </div>
+
+        <Button
+          onClick={handleGoogleSignIn}
+          disabled={isGoogleLoading}
+          variant="outline"
+          size="lg"
+          className="w-full relative border-2 border-gray-300 hover:border-gray-400 py-3 rounded-xl flex items-center justify-center gap-3 group"
+        >
+          {isGoogleLoading ? (
+            <div className="animate-spin h-5 w-5 border-2 border-gray-500 rounded-full border-t-transparent" />
+          ) : (
+            <>
+              <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  fill="#4285F4"
+                />
+                <path
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  fill="#34A853"
+                />
+                <path
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                  fill="#FBBC05"
+                />
+                <path
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                  fill="#EA4335"
+                />
+              </svg>
+              <span className="text-gray-700 font-medium">
+                התחברות עם Google
+              </span>
+            </>
+          )}
+        </Button>
+
+        <div className="mt-6 text-center">
+          <p className="text-gray-600 text-sm">
+            אין לך חשבון עדיין?{" "}
+            <Link
+              href="/auth/register"
+              className="text-cyan-600 font-medium hover:text-cyan-700 hover:underline"
+            >
+              הרשמה עכשיו
+            </Link>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\auth\steps\BasicInfoStep.tsx:
+==================================================
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRegistration } from "../RegistrationContext";
+import { Button } from "@/components/ui/button";
+import {
+  ArrowLeft,
+  ArrowRight,
+  User,
+  Mail,
+  Lock,
+  AlertCircle,
+} from "lucide-react";
+import { motion } from "framer-motion";
+
+const BasicInfoStep: React.FC = () => {
+  const { data, updateField, nextStep, prevStep } = useRegistration();
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [isFormValid, setIsFormValid] = useState(false);
+
+  // Form validation
+  useEffect(() => {
+    // Validate all fields
+    const isEmailValid = validateEmail(data.email);
+    const isPasswordValid =
+      data.isGoogleSignup || (!passwordError && data.password.length >= 8);
+    const isNameValid =
+      data.firstName.trim().length > 0 && data.lastName.trim().length > 0;
+
+    setIsFormValid(isEmailValid && isPasswordValid && isNameValid);
+  }, [
+    data.email,
+    data.password,
+    data.firstName,
+    data.lastName,
+    data.isGoogleSignup,
+    passwordError,
+  ]);
+
+  // Email validation
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+    const isValid = email.trim() !== "" && emailRegex.test(email);
+
+    if (!isValid && email.trim() !== "") {
+      setEmailError("כתובת אימייל לא תקינה");
+    } else {
+      setEmailError("");
+    }
+
+    return isValid;
+  };
+
+  // Password validation
+  const validatePassword = (password: string): boolean => {
+    if (data.isGoogleSignup) return true; // Skip validation for Google signup
+
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+    const isValid = passwordRegex.test(password);
+
+    if (!isValid && password.trim() !== "") {
+      setPasswordError(
+        "הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר"
+      );
+    } else {
+      setPasswordError("");
+    }
+
+    return isValid;
+  };
+
+  const handleContinue = () => {
+    if (isFormValid) {
+      nextStep();
+    }
+  };
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5 },
+    },
+  };
+
+  return (
+    <motion.div
+      className="space-y-5"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.h2
+        className="text-xl font-bold text-gray-800 mb-4"
+        variants={itemVariants}
+      >
+        קצת עליך
+      </motion.h2>
+
+      <motion.div variants={itemVariants} className="space-y-4">
+        <div className="space-y-1">
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium text-gray-700"
+          >
+            אימייל
+          </label>
+          <div className="relative">
+            <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <input
+              type="email"
+              id="email"
+              value={data.email}
+              onChange={(e) => updateField("email", e.target.value)}
+              onBlur={() => validateEmail(data.email)}
+              placeholder="you@example.com"
+              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors
+                ${
+                  emailError
+                    ? "border-red-300 focus:ring-red-200"
+                    : "border-gray-300 focus:ring-cyan-200 focus:border-cyan-500"
+                }`}
+              disabled={data.isGoogleSignup}
+            />
+            {emailError && (
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <AlertCircle className="h-5 w-5 text-red-500" />
+              </div>
+            )}
+          </div>
+          {emailError && (
+            <p className="text-red-500 text-xs mt-1">{emailError}</p>
+          )}
+        </div>
+
+        {!data.isGoogleSignup && (
+          <motion.div variants={itemVariants} className="space-y-1">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700"
+            >
+              סיסמה
+            </label>
+            <div className="relative">
+              <Lock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <input
+                type={passwordVisible ? "text" : "password"}
+                id="password"
+                value={data.password}
+                onChange={(e) => updateField("password", e.target.value)}
+                onBlur={() => validatePassword(data.password)}
+                placeholder="לפחות 8 תווים"
+                className={`w-full pr-10 pl-10 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors
+                  ${
+                    passwordError
+                      ? "border-red-300 focus:ring-red-200"
+                      : "border-gray-300 focus:ring-cyan-200 focus:border-cyan-500"
+                  }`}
+              />
+              <button
+                type="button"
+                onClick={() => setPasswordVisible(!passwordVisible)}
+                className="absolute inset-y-0 left-0 flex items-center pl-3"
+              >
+                <span className="text-gray-500">
+                  {passwordVisible ? "🙈" : "👁️"}
+                </span>
+              </button>
+              {passwordError && (
+                <div className="absolute inset-y-0 left-0 flex items-center pl-10 pointer-events-none">
+                  <AlertCircle className="h-5 w-5 text-red-500" />
+                </div>
+              )}
+            </div>
+            {passwordError && (
+              <p className="text-red-500 text-xs mt-1">{passwordError}</p>
+            )}
+            {!passwordError && (
+              <p className="text-gray-500 text-xs mt-1">
+                הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה באנגלית, אות קטנה
+                באנגלית ומספר
+              </p>
+            )}
+          </motion.div>
+        )}
+
+        <motion.div variants={itemVariants} className="space-y-1">
+          <label
+            htmlFor="firstName"
+            className="block text-sm font-medium text-gray-700"
+          >
+            שם פרטי
+          </label>
+          <div className="relative">
+            <User className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <input
+              type="text"
+              id="firstName"
+              value={data.firstName}
+              onChange={(e) => updateField("firstName", e.target.value)}
+              placeholder="ישראל"
+              className="w-full pr-10 pl-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
+              disabled={data.isGoogleSignup}
+            />
+          </div>
+        </motion.div>
+
+        <motion.div variants={itemVariants} className="space-y-1">
+          <label
+            htmlFor="lastName"
+            className="block text-sm font-medium text-gray-700"
+          >
+            שם משפחה
+          </label>
+          <div className="relative">
+            <User className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <input
+              type="text"
+              id="lastName"
+              value={data.lastName}
+              onChange={(e) => updateField("lastName", e.target.value)}
+              placeholder="ישראלי"
+              className="w-full pr-10 pl-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
+              disabled={data.isGoogleSignup}
+            />
+          </div>
+        </motion.div>
+      </motion.div>
+
+      <motion.div
+        variants={itemVariants}
+        className="flex justify-between pt-4 mt-4"
+      >
+        <Button
+          onClick={prevStep}
+          variant="outline"
+          className="flex items-center gap-2 border-gray-300"
+        >
+          <ArrowRight className="h-4 w-4" />
+          חזרה
+        </Button>
+
+        <Button
+          onClick={handleContinue}
+          disabled={!isFormValid}
+          className={`flex items-center gap-2 ${
+            isFormValid
+              ? "bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600"
+              : "bg-gray-300 cursor-not-allowed"
+          }`}
+        >
+          המשך
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+export default BasicInfoStep;
+
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\auth\steps\CompleteStep.tsx:
+==================================================
+"use client";
+
+import { useRouter } from 'next/navigation';
+import { useRegistration } from '../RegistrationContext';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft, CheckCircle, Mail, User } from 'lucide-react';
+import { motion } from 'framer-motion';
+import Link from 'next/link';
+
+const CompleteStep: React.FC = () => {
+  const { data } = useRegistration();
+  const router = useRouter();
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { 
+        staggerChildren: 0.15,
+        delayChildren: 0.3
+      }
+    }
+  };
+  
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.6, ease: "easeOut" }
+    }
+  };
+
+  const circleVariants = {
+    hidden: { scale: 0.8, opacity: 0 },
+    visible: { 
+      scale: 1, 
+      opacity: 1,
+      transition: { 
+        duration: 0.6,
+        ease: "easeOut"
+      }
+    }
+  };
+
+
+  const navigateToProfile = () => {
+    router.push('/profile');
+  };
+
+  const navigateToQuestionnaire = () => {
+    router.push('/questionnaire');
+  };
+
+  return (
+    <motion.div 
+      className="space-y-6 text-center"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      {/* Success animation */}
+      <motion.div
+        className="flex justify-center mb-6"
+        variants={circleVariants}
+      >
+        <div className="relative w-28 h-28 rounded-full bg-gradient-to-r from-cyan-500 to-pink-500 flex items-center justify-center">
+          <motion.div 
+            className="absolute inset-1 bg-white rounded-full flex items-center justify-center"
+            animate={{ scale: [0.6, 1] }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+          >
+            <CheckCircle className="h-14 w-14 text-green-500" />
+          </motion.div>
+        </div>
+      </motion.div>
+      
+      <motion.h2 
+        className="text-2xl font-bold text-gray-800"
+        variants={itemVariants}
+      >
+        הרשמה הושלמה בהצלחה!
+      </motion.h2>
+      
+      <motion.div variants={itemVariants}>
+        {!data.isGoogleSignup && (
+          <div className="p-4 bg-cyan-50 rounded-lg mb-5">
+            <div className="flex items-center gap-2 text-cyan-700 mb-2">
+              <Mail className="h-5 w-5" />
+              <h3 className="font-medium">לא לשכוח לאמת את האימייל</h3>
+            </div>
+            <p className="text-sm text-cyan-600">
+              שלחנו לך מייל לכתובת <span className="font-bold">{data.email}</span>.
+              <br />
+              אנא לחץ על הקישור במייל כדי להשלים את תהליך האימות.
+            </p>
+          </div>
+        )}
+        
+        <p className="text-gray-600 mb-6">
+          {data.isGoogleSignup 
+            ? 'הפרופיל שלך הושלם בהצלחה!' 
+            : 'ברכות על ההרשמה! המשיכו בתהליך כדי למצוא את השידוך המושלם עבורך.'}
+        </p>
+      </motion.div>
+      
+      <motion.div
+        variants={itemVariants}
+        className="flex flex-col gap-4"
+      >
+        <Button
+          onClick={navigateToProfile}
+          className="w-full py-3 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 rounded-lg shadow-lg flex items-center justify-center gap-2 group relative overflow-hidden"
+        >
+          {/* Button shimmer effect */}
+          <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
+          
+          <User className="h-5 w-5 text-white" />
+          <span className="text-white">לפרופיל שלי</span>
+          <ArrowLeft className="h-4 w-4 text-white opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-300" />
+        </Button>
+        
+        <Button
+          onClick={navigateToQuestionnaire}
+          variant="outline"
+          className="w-full py-3 border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-300 flex items-center justify-center gap-2"
+        >
+          <span>למילוי שאלון התאמה</span>
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        
+        <Link href="/" className="text-sm text-gray-500 hover:text-gray-700 hover:underline mt-2">
+          חזרה לדף הבית
+        </Link>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+export default CompleteStep;
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\auth\steps\OptionalInfoStep.tsx:
+==================================================
+"use client";
+
+import { useState } from "react";
+import { useRegistration } from "../RegistrationContext";
+import { Button } from "@/components/ui/button";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Ruler,
+  Briefcase,
+  GraduationCap,
+} from "lucide-react";
+import { motion } from "framer-motion";
+
+const OptionalInfoStep: React.FC = () => {
+  const { data, updateField, nextStep, prevStep } = useRegistration();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    setError("");
+
+    try {
+      // Construct registration data from context
+      const registrationData = {
+        email: data.email,
+        password: data.password,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phone: data.phone,
+        gender: data.gender,
+        birthDate: data.birthDate,
+        maritalStatus: data.maritalStatus,
+        height: data.height,
+        occupation: data.occupation,
+        education: data.education,
+      };
+
+      // Choose the appropriate API endpoint based on isGoogleSignup
+      const endpoint = data.isGoogleSignup
+        ? "/api/auth/complete-profile" // For users who signed up with Google
+        : "/api/auth/register"; // For standard email registration
+
+      // Send the registration data to the backend
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(registrationData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "אירעה שגיאה בהרשמה");
+      }
+
+      // Move to completion step
+      nextStep();
+    } catch (error) {
+      console.error("Registration error:", error);
+      setError(error instanceof Error ? error.message : "אירעה שגיאה בהרשמה");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5 },
+    },
+  };
+
+  return (
+    <motion.div
+      className="space-y-5"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.h2
+        className="text-xl font-bold text-gray-800 mb-1"
+        variants={itemVariants}
+      >
+        מידע נוסף (אופציונלי)
+      </motion.h2>
+
+      <motion.p className="text-gray-600 text-sm mb-4" variants={itemVariants}>
+        מידע זה יעזור לנו להתאים לך שידוכים מדויקים יותר. כל השדות הבאים הם
+        אופציונליים.
+      </motion.p>
+
+      <motion.div variants={itemVariants} className="space-y-4">
+        <div className="space-y-1">
+          <label
+            htmlFor="height"
+            className="block text-sm font-medium text-gray-700 flex items-center gap-1"
+          >
+            <Ruler className="h-4 w-4 text-gray-400" />
+            גובה (בסמ)
+          </label>
+          <input
+            type="number"
+            id="height"
+            min="120"
+            max="220"
+            value={data.height || ""}
+            onChange={(e) =>
+              updateField(
+                "height",
+                e.target.value ? parseInt(e.target.value) : undefined
+              )
+            }
+            placeholder="לדוגמה: 175"
+            className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
+          />
+        </div>
+
+        <motion.div variants={itemVariants} className="space-y-1">
+          <label
+            htmlFor="occupation"
+            className="block text-sm font-medium text-gray-700 flex items-center gap-1"
+          >
+            <Briefcase className="h-4 w-4 text-gray-400" />
+            עיסוק
+          </label>
+          <input
+            type="text"
+            id="occupation"
+            value={data.occupation || ""}
+            onChange={(e) => updateField("occupation", e.target.value)}
+            placeholder="לדוגמה: מהנדס תוכנה, מורה, סטודנט/ית"
+            className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
+          />
+        </motion.div>
+
+        <motion.div variants={itemVariants} className="space-y-1">
+          <label
+            htmlFor="education"
+            className="block text-sm font-medium text-gray-700 flex items-center gap-1"
+          >
+            <GraduationCap className="h-4 w-4 text-gray-400" />
+            השכלה
+          </label>
+          <input
+            type="text"
+            id="education"
+            value={data.education || ""}
+            onChange={(e) => updateField("education", e.target.value)}
+            placeholder="לדוגמה: תואר ראשון במדעי המחשב"
+            className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
+          />
+        </motion.div>
+
+        {error && (
+          <motion.div
+            variants={itemVariants}
+            className="p-3 bg-red-50 border border-red-200 rounded-lg"
+          >
+            <p className="text-red-600 text-sm">{error}</p>
+          </motion.div>
+        )}
+      </motion.div>
+
+      <motion.div
+        variants={itemVariants}
+        className="flex justify-between pt-4 mt-4"
+      >
+        <Button
+          onClick={prevStep}
+          variant="outline"
+          className="flex items-center gap-2 border-gray-300"
+          disabled={isSubmitting}
+        >
+          <ArrowRight className="h-4 w-4" />
+          חזרה
+        </Button>
+
+        <Button
+          onClick={handleSubmit}
+          disabled={isSubmitting}
+          className="bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 flex items-center gap-2"
+        >
+          {isSubmitting ? (
+            <>
+              <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              מבצע רישום...
+            </>
+          ) : (
+            <>
+              סיום והרשמה
+              <ArrowLeft className="h-4 w-4" />
+            </>
+          )}
+        </Button>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+export default OptionalInfoStep;
+
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\auth\steps\PersonalDetailsStep.tsx:
+==================================================
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRegistration } from "../RegistrationContext";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, ArrowRight, Phone, Calendar, User } from "lucide-react";
+import { Gender } from "@prisma/client";
+import { motion } from "framer-motion";
+
+const PersonalDetailsStep: React.FC = () => {
+  const { data, updateField, nextStep, prevStep } = useRegistration();
+  const [phoneError, setPhoneError] = useState("");
+  const [ageError, setAgeError] = useState("");
+  const [isFormValid, setIsFormValid] = useState(false);
+
+  // Form validation
+  useEffect(() => {
+    // Validate all required fields
+    const isPhoneValid = !phoneError && data.phone.length >= 10;
+    const isBirthDateValid = !ageError && data.birthDate !== "";
+    const isGenderValid = data.gender !== "";
+    const isMaritalStatusValid = data.maritalStatus !== "";
+
+    setIsFormValid(
+      isPhoneValid && isBirthDateValid && isGenderValid && isMaritalStatusValid
+    );
+  }, [
+    data.phone,
+    data.birthDate,
+    data.gender,
+    data.maritalStatus,
+    phoneError,
+    ageError,
+  ]);
+
+  // Phone validation
+  const validatePhone = (phone: string): boolean => {
+    const phoneRegex = /^0\d{9}$/;
+    const isValid = phone.trim() !== "" && phoneRegex.test(phone);
+
+    if (!isValid && phone.trim() !== "") {
+      setPhoneError("מספר טלפון לא תקין (צריך להתחיל ב-0 ולהכיל 10 ספרות)");
+    } else {
+      setPhoneError("");
+    }
+
+    return isValid;
+  };
+
+  // Age validation
+  const validateAge = (birthDate: string): boolean => {
+    if (!birthDate) return false;
+
+    const birthDateObj = new Date(birthDate);
+    const age = Math.floor(
+      (new Date().getTime() - birthDateObj.getTime()) / 31557600000
+    );
+
+    if (age < 18) {
+      setAgeError("גיל מינימלי להרשמה הוא 18");
+      return false;
+    } else {
+      setAgeError("");
+      return true;
+    }
+  };
+
+  const handleContinue = () => {
+    if (isFormValid) {
+      nextStep();
+    }
+  };
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5 },
+    },
+  };
+
+  return (
+    <motion.div
+      className="space-y-5"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.h2
+        className="text-xl font-bold text-gray-800 mb-4"
+        variants={itemVariants}
+      >
+        פרטים אישיים
+      </motion.h2>
+
+      <motion.div variants={itemVariants} className="space-y-4">
+        <div className="space-y-1">
+          <label
+            htmlFor="phone"
+            className="block text-sm font-medium text-gray-700"
+          >
+            טלפון נייד
+          </label>
+          <div className="relative">
+            <Phone className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <input
+              type="tel"
+              id="phone"
+              value={data.phone}
+              onChange={(e) => updateField("phone", e.target.value)}
+              onBlur={() => validatePhone(data.phone)}
+              placeholder="0501234567"
+              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors
+                ${
+                  phoneError
+                    ? "border-red-300 focus:ring-red-200"
+                    : "border-gray-300 focus:ring-cyan-200 focus:border-cyan-500"
+                }`}
+            />
+          </div>
+          {phoneError && (
+            <p className="text-red-500 text-xs mt-1">{phoneError}</p>
+          )}
+        </div>
+
+        <motion.div variants={itemVariants} className="space-y-1">
+          <label
+            htmlFor="gender"
+            className="block text-sm font-medium text-gray-700"
+          >
+            מגדר
+          </label>
+          <div className="grid grid-cols-2 gap-4 mt-1">
+            <button
+              type="button"
+              onClick={() => updateField("gender", Gender.MALE)}
+              className={`flex items-center justify-center gap-3 py-3 rounded-lg border-2 transition-all
+                ${
+                  data.gender === Gender.MALE
+                    ? "border-cyan-500 bg-cyan-50 text-cyan-700"
+                    : "border-gray-200 hover:border-gray-300 text-gray-700"
+                }`}
+            >
+              <span className="text-2xl">👨</span>
+              <span>זכר</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => updateField("gender", Gender.FEMALE)}
+              className={`flex items-center justify-center gap-3 py-3 rounded-lg border-2 transition-all
+                ${
+                  data.gender === Gender.FEMALE
+                    ? "border-pink-500 bg-pink-50 text-pink-700"
+                    : "border-gray-200 hover:border-gray-300 text-gray-700"
+                }`}
+            >
+              <span className="text-2xl">👩</span>
+              <span>נקבה</span>
+            </button>
+          </div>
+        </motion.div>
+
+        <motion.div variants={itemVariants} className="space-y-1">
+          <label
+            htmlFor="birthDate"
+            className="block text-sm font-medium text-gray-700"
+          >
+            תאריך לידה
+          </label>
+          <div className="relative">
+            <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <input
+              type="date"
+              id="birthDate"
+              value={data.birthDate}
+              onChange={(e) => {
+                updateField("birthDate", e.target.value);
+                validateAge(e.target.value);
+              }}
+              max={
+                new Date(new Date().setFullYear(new Date().getFullYear() - 18))
+                  .toISOString()
+                  .split("T")[0]
+              }
+              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors
+                ${
+                  ageError
+                    ? "border-red-300 focus:ring-red-200"
+                    : "border-gray-300 focus:ring-cyan-200 focus:border-cyan-500"
+                }`}
+            />
+          </div>
+          {ageError && <p className="text-red-500 text-xs mt-1">{ageError}</p>}
+        </motion.div>
+
+        <motion.div variants={itemVariants} className="space-y-1">
+          <label
+            htmlFor="maritalStatus"
+            className="block text-sm font-medium text-gray-700"
+          >
+            מצב משפחתי
+          </label>
+          <div className="relative">
+            <User className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <select
+              id="maritalStatus"
+              value={data.maritalStatus}
+              onChange={(e) => updateField("maritalStatus", e.target.value)}
+              className="w-full pr-10 pl-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none appearance-none bg-white"
+            >
+              <option value="">בחר מצב משפחתי</option>
+              <option value="רווק/ה">רווק/ה</option>
+              <option value="גרוש/ה">גרוש/ה</option>
+              <option value="אלמן/ה">אלמן/ה</option>
+            </select>
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+              <svg
+                className="h-5 w-5 text-gray-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
+
+      <motion.div
+        variants={itemVariants}
+        className="flex justify-between pt-4 mt-4"
+      >
+        <Button
+          onClick={prevStep}
+          variant="outline"
+          className="flex items-center gap-2 border-gray-300"
+        >
+          <ArrowRight className="h-4 w-4" />
+          חזרה
+        </Button>
+
+        <Button
+          onClick={handleContinue}
+          disabled={!isFormValid}
+          className={`flex items-center gap-2 ${
+            isFormValid
+              ? "bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600"
+              : "bg-gray-300 cursor-not-allowed"
+          }`}
+        >
+          המשך
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+export default PersonalDetailsStep;
+
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\components\auth\steps\WelcomeStep.tsx:
+==================================================
+"use client";
+
+import { useState } from "react";
+import { useRegistration } from "../RegistrationContext";
+import { signIn } from "next-auth/react";
+import { Button } from "@/components/ui/button";
+import { Heart, ArrowLeft, Mail } from "lucide-react";
+import Link from "next/link";
+
+const WelcomeStep: React.FC = () => {
+  const { nextStep,  } = useRegistration();
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setIsGoogleLoading(true);
+
+      // Store this information for potential fallback
+      localStorage.setItem("registration_started", "true");
+
+      // Use NextAuth to handle Google sign-in
+      // The redirect/callback will be handled by NextAuth
+      await signIn("google", { callbackUrl: "/auth/google-callback" });
+    } catch (error) {
+      console.error("Google sign-in error:", error);
+      setIsGoogleLoading(false);
+    }
+  };
+
+  const handleEmailSignUp = () => {
+    nextStep();
+  };
+
+  return (
+    <div className="space-y-6 text-center">
+      {/* Welcome animation */}
+      <div className="flex justify-center mb-4">
+        <div className="relative">
+          <div className="w-20 h-20 rounded-full bg-pink-100 flex items-center justify-center animate-pulse">
+            <Heart className="h-10 w-10 text-pink-500 fill-pink-500" />
+          </div>
+          <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-cyan-500 flex items-center justify-center text-white font-bold animate-bounce">
+            <span className="text-sm">👋</span>
+          </div>
+        </div>
+      </div>
+
+      <h2 className="text-2xl font-bold text-gray-800">ברוכים הבאים!</h2>
+
+      <p className="text-gray-600 max-w-sm mx-auto">
+        אנחנו שמחים שבחרת להצטרף אלינו. בואו נתחיל בתהליך הרשמה קצר ופשוט שיאפשר
+        לנו להכיר אותך טוב יותר.
+      </p>
+
+      {/* Buttons */}
+      <div className="space-y-4 mt-8">
+        <Button
+          onClick={handleGoogleSignIn}
+          disabled={isGoogleLoading}
+          variant="outline"
+          size="lg"
+          className="w-full relative border-2 border-gray-300 hover:border-gray-400 py-6 rounded-xl flex items-center justify-center gap-3 group"
+        >
+          {isGoogleLoading ? (
+            <div className="animate-spin h-5 w-5 border-2 border-gray-500 rounded-full border-t-transparent" />
+          ) : (
+            <>
+              <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  fill="#4285F4"
+                />
+                <path
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  fill="#34A853"
+                />
+                <path
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                  fill="#FBBC05"
+                />
+                <path
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                  fill="#EA4335"
+                />
+              </svg>
+              <span className="text-gray-700 font-medium">המשך עם Google</span>
+            </>
+          )}
+        </Button>
+
+        <Button
+          onClick={handleEmailSignUp}
+          size="lg"
+          className="w-full py-6 rounded-xl bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 shadow-lg flex items-center justify-center gap-3 group relative overflow-hidden"
+        >
+          {/* Button background shimmer effect */}
+          <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
+          <Mail className="h-5 w-5 text-white" />
+          <span className="text-white font-medium">המשך עם אימייל</span>
+          <ArrowLeft className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+        </Button>
+      </div>
+
+      {/* Already have an account link */}
+      <div className="mt-8 pt-4 border-t border-gray-200">
+        <p className="text-gray-600 text-sm">
+          כבר יש לך חשבון?{" "}
+          <Link
+            href="/auth/signin"
+            className="text-cyan-600 font-medium hover:text-cyan-700 hover:underline"
+          >
+            התחברות
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default WelcomeStep;
+

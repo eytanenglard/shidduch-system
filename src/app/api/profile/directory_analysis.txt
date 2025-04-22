@@ -1,0 +1,1004 @@
+מבנה התיקייה:
+profile
+  availability
+    route.ts
+  images
+    [imageId]
+      route.ts
+    route.ts
+  questionnaire
+    route.ts
+  route.ts
+  update
+    route.ts
+
+תוכן הקבצים:
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\api\profile\route.ts:
+==================================================
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { UserProfile } from "@/types/next-auth";
+
+export async function GET(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const requestedUserId = searchParams.get('userId');
+
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const userQuery = requestedUserId 
+      ? { id: requestedUserId }
+      : { email: session.user.email };
+
+    const user = await prisma.user.findUnique({
+      where: userQuery,
+      include: {
+        profile: true,
+        images: true
+      }
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    const userProfile = user.profile as unknown as UserProfile;
+
+    const profile = {
+      ...userProfile,
+      // Personal Information
+      gender:userProfile?.gender|| null,
+      birthDate:userProfile?.birthDate|| null,
+      nativeLanguage: userProfile?.nativeLanguage || null,
+      additionalLanguages: userProfile?.additionalLanguages || [],
+      height: userProfile?.height || null,
+      maritalStatus: userProfile?.maritalStatus || null,
+      occupation: userProfile?.occupation || "",
+      education: userProfile?.education || "",
+      address: userProfile?.address || null,
+      city: userProfile?.city || null,
+      origin: userProfile?.origin || null,
+      religiousLevel: userProfile?.religiousLevel || null,
+      about: userProfile?.about || null,
+      hobbies: userProfile?.hobbies || null,
+
+      // Family Information
+      parentStatus: userProfile?.parentStatus || null,
+      siblings: userProfile?.siblings || null,
+      position: userProfile?.position || null,
+
+      // Matching Preferences
+      preferredAgeMin: userProfile?.preferredAgeMin || null,
+      preferredAgeMax: userProfile?.preferredAgeMax || null,
+      preferredHeightMin: userProfile?.preferredHeightMin || null,
+      preferredHeightMax: userProfile?.preferredHeightMax || null,
+      preferredReligiousLevels: userProfile?.preferredReligiousLevels || [],
+      preferredLocations: userProfile?.preferredLocations || [],
+      preferredEducation: userProfile?.preferredEducation || [],
+      preferredOccupations: userProfile?.preferredOccupations || [],
+
+      // Contact and References
+      contactPreference: userProfile?.contactPreference || null,
+      referenceName1: userProfile?.referenceName1 || "",
+      referencePhone1: userProfile?.referencePhone1 || "",
+      referenceName2: userProfile?.referenceName2 || "",
+      referencePhone2: userProfile?.referencePhone2 || "",
+
+      // Profile Settings
+      isProfileVisible: userProfile?.isProfileVisible ?? true,
+      preferredMatchmakerGender: userProfile?.preferredMatchmakerGender || null,
+      matchingNotes: userProfile?.matchingNotes || null,
+      verifiedBy: userProfile?.verifiedBy || null,
+
+      // Availability Status
+      availabilityStatus: userProfile?.availabilityStatus || 'AVAILABLE',
+      availabilityNote: userProfile?.availabilityNote || null,
+      availabilityUpdatedAt: userProfile?.availabilityUpdatedAt || null,
+
+      // System Fields
+      createdAt: userProfile?.createdAt || new Date(),
+      updatedAt: userProfile?.updatedAt || new Date(),
+      lastActive: userProfile?.lastActive || null,
+
+      // User Information
+      user: {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+      }
+    };
+
+    return NextResponse.json({
+      success: true,
+      profile,
+      images: user.images
+    });
+
+  } catch (error) {
+    console.error('Profile fetch error:', error instanceof Error ? error.message : 'Unknown error');
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\api\profile\availability\route.ts:
+==================================================
+// src/app/api/profile/availability/route.ts
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import type { UpdateAvailabilityRequest } from "@/types/profile";
+
+export async function PUT(req: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const data = await req.json() as UpdateAvailabilityRequest;
+
+    const updatedProfile = await prisma.profile.update({
+      where: { userId: session.user.id },
+      data: {
+        availabilityStatus: data.availabilityStatus,
+        availabilityNote: data.availabilityNote || null,
+        updatedAt: new Date()
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            role: true,
+          }
+        }
+      }
+    });
+
+    return NextResponse.json({
+      success: true,
+      profile: updatedProfile
+    });
+
+  } catch (error) {
+    console.error("Error:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to update status" },
+      { status: 500 }
+    );
+  }
+}
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\api\profile\images\route.ts:
+==================================================
+// src/app/api/profile/images/route.ts
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { v2 as cloudinary } from "cloudinary";
+
+type CloudinaryUploadResult = {
+  secure_url: string;
+  public_id: string;
+};
+// Configure Cloudinary
+if (!process.env.CLOUDINARY_CLOUD_NAME || 
+    !process.env.CLOUDINARY_API_KEY || 
+    !process.env.CLOUDINARY_API_SECRET) {
+  throw new Error("Missing required Cloudinary environment variables");
+}
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// GET - Fetch all images for a user
+export async function GET() {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const userImages = await prisma.userImage.findMany({
+      where: { 
+        user: {
+          email: session.user.email 
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    return NextResponse.json({ success: true, images: userImages });
+  } catch (error) {
+    console.error("[GetImages] Error:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch images" },
+      { status: 500 }
+    );
+  }
+}
+
+// POST - Upload a new image
+export async function POST(req: Request) {
+  try {
+    console.log("[Upload] Starting upload process");
+    
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      console.error("[Upload] Authentication failed - No user session");
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      include: { images: true },
+    });
+
+    if (!user) {
+      console.error(`[Upload] User not found for email: ${session.user.email}`);
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    if (user.images.length >= 5) {
+      console.warn(`[Upload] User ${user.id} has reached maximum images limit`);
+      return NextResponse.json(
+        { error: "Maximum number of images reached" },
+        { status: 400 }
+      );
+    }
+
+    const formData = await req.formData();
+    const file = formData.get("file") as File;
+    
+    if (!file) {
+      console.error("[Upload] No file provided in request");
+      return NextResponse.json({ error: "No file provided" }, { status: 400 });
+    }
+
+    // Validate file
+    const validTypes = ["image/jpeg", "image/png", "image/jpg"];
+    if (!validTypes.includes(file.type)) {
+      console.error(`[Upload] Invalid file type: ${file.type}`);
+      return NextResponse.json(
+        { error: "Invalid file type. Only JPG and PNG are allowed" },
+        { status: 400 }
+      );
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      console.error(`[Upload] File too large: ${file.size} bytes`);
+      return NextResponse.json(
+        { error: "File size must be less than 5MB" },
+        { status: 400 }
+      );
+    }
+
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+
+    try {
+      const uploadPromise = new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            folder: "profile-images",
+            resource_type: "image",
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+        uploadStream.end(buffer);
+      });
+
+      const result = await uploadPromise as CloudinaryUploadResult;
+
+      const image = await prisma.userImage.create({
+        data: {
+          userId: user.id,
+          url: result.secure_url,
+          cloudinaryPublicId: result.public_id,
+          isMain: user.images.length === 0,
+        },
+      });
+
+      return NextResponse.json({ success: true, image });
+    } catch (cloudinaryError) {
+      console.error("[Upload] Cloudinary upload failed:", cloudinaryError);
+      return NextResponse.json(
+        { error: "Failed to upload image to cloud storage" },
+        { status: 500 }
+      );
+    }
+  } catch (error) {
+    console.error("[Upload] General error:", error);
+    return NextResponse.json(
+      { error: "Failed to upload image" },
+      { status: 500 }
+    );
+  }
+}
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\api\profile\images\[imageId]\route.ts:
+==================================================
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { v2 as cloudinary } from "cloudinary";
+
+// Configure Cloudinary
+if (!process.env.CLOUDINARY_CLOUD_NAME || 
+    !process.env.CLOUDINARY_API_KEY || 
+    !process.env.CLOUDINARY_API_SECRET) {
+  throw new Error("Missing required Cloudinary environment variables");
+}
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: { imageId: string } }
+) {
+  try {
+    // Verify authentication
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" }, 
+        { status: 401 }
+      );
+    }
+
+    const { imageId } = params;
+    
+    // Find the image and include user data for ownership verification
+    const image = await prisma.userImage.findUnique({
+      where: { id: imageId },
+      include: { user: true },
+    });
+
+    // Check if image exists
+    if (!image) {
+      return NextResponse.json(
+        { success: false, error: "Image not found" }, 
+        { status: 404 }
+      );
+    }
+
+    // Verify image ownership
+    if (image.user.email !== session.user.email) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" }, 
+        { status: 403 }
+      );
+    }
+
+    // Delete from Cloudinary if cloudinaryPublicId exists
+    if (image.cloudinaryPublicId) {
+      try {
+        await cloudinary.uploader.destroy(image.cloudinaryPublicId);
+      } catch (error) {
+        console.error("[Delete Image] Cloudinary deletion error:", error);
+        // Continue with database deletion even if Cloudinary deletion fails
+      }
+    }
+
+    // Delete from database
+    await prisma.userImage.delete({
+      where: { id: imageId },
+    });
+
+    // If this was the main image, set another image as main if available
+    if (image.isMain) {
+      const remainingImage = await prisma.userImage.findFirst({
+        where: { userId: image.userId },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      if (remainingImage) {
+        await prisma.userImage.update({
+          where: { id: remainingImage.id },
+          data: { isMain: true },
+        });
+      }
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("[Delete Image] Error:", error);
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: "Failed to delete image",
+        details: error instanceof Error ? error.message : "Unknown error"
+      }, 
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(
+  request: Request,
+  { params }: { params: { imageId: string } }
+) {
+  try {
+    // Verify authentication
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" }, 
+        { status: 401 }
+      );
+    }
+
+    const { imageId } = params;
+
+    // Find the image and include user data for ownership verification
+    const image = await prisma.userImage.findUnique({
+      where: { id: imageId },
+      include: { user: true },
+    });
+
+    // Check if image exists
+    if (!image) {
+      return NextResponse.json(
+        { success: false, error: "Image not found" }, 
+        { status: 404 }
+      );
+    }
+
+    // Verify image ownership
+    if (image.user.email !== session.user.email) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" }, 
+        { status: 403 }
+      );
+    }
+
+    // Reset all user's images to non-main
+    await prisma.userImage.updateMany({
+      where: { userId: image.userId },
+      data: { isMain: false },
+    });
+
+    // Set the selected image as main
+    await prisma.userImage.update({
+      where: { id: imageId },
+      data: { isMain: true },
+    });
+
+    // Get updated images list
+    const updatedImages = await prisma.userImage.findMany({
+      where: { userId: image.userId },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return NextResponse.json({ 
+      success: true, 
+      images: updatedImages 
+    });
+  } catch (error) {
+    console.error("[Set Main Image] Error:", error);
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: "Failed to set main image",
+        details: error instanceof Error ? error.message : "Unknown error"
+      }, 
+      { status: 500 }
+    );
+  }
+}
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\api\profile\questionnaire\route.ts:
+==================================================
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
+
+import { valuesQuestions } from "@/components/questionnaire/questions/values/valuesQuestions";
+import { personalityQuestions } from "@/components/questionnaire/questions/personality/personalityQuestions";
+import { relationshipQuestions } from "@/components/questionnaire/questions/relationship/relationshipQuestions";
+import { partnerQuestions } from "@/components/questionnaire/questions/partner/partnerQuestions";
+import { religionQuestions } from "@/components/questionnaire/questions/religion/religionQuestions";
+
+
+// Combine all questions into a single array
+// --- UPDATED allQuestions ARRAY ---
+const allQuestions = [
+  ...valuesQuestions,
+  ...personalityQuestions,
+  ...relationshipQuestions,
+  ...partnerQuestions,
+  ...religionQuestions // Use the consolidated religion questions array
+];
+// --- END UPDATED allQuestions ARRAY ---
+
+// Define key types
+type WorldKey = 'values' | 'personality' | 'relationship' | 'partner' | 'religion';
+type DbWorldKey = 'valuesAnswers' | 'personalityAnswers' | 'relationshipAnswers' | 'partnerAnswers' | 'religionAnswers';
+
+// Key mapping utility
+const KEY_MAPPING: Record<WorldKey, DbWorldKey> = {
+  values: 'valuesAnswers',
+  personality: 'personalityAnswers',
+  relationship: 'relationshipAnswers',
+  partner: 'partnerAnswers',
+  religion: 'religionAnswers'
+};
+
+function getDbKey(worldKey: WorldKey): DbWorldKey {
+  return KEY_MAPPING[worldKey];
+}
+
+type JsonAnswerData = {
+  questionId: string;
+  value: Prisma.JsonValue;
+  answeredAt: string;
+  isVisible?: boolean;
+}
+
+interface UpdateData {
+  type: 'answer' | 'visibility';
+  value?: string;
+  isVisible?: boolean;
+}
+
+interface FormattedAnswer {
+  questionId: string;
+  question: string;
+  value: Prisma.JsonValue;
+  displayText: string;
+  answeredAt: string;
+  category?: string;
+  isVisible?: boolean;
+}
+
+type FormattedAnswersType = Record<WorldKey, FormattedAnswer[]>;
+
+const valueTranslations: Record<string, string> = {
+  'combat': 'קרבי',
+  'intelligence': 'אינטליגנציה',
+  'stable': 'יציב',
+  'yes': 'כן',
+  'no': 'לא',
+  'religious': 'דתי',
+  'traditional': 'מסורתי',
+  'secular': 'חילוני',
+  'male': 'גבר',
+  'female': 'אישה',
+  'both': 'שניהם',
+  'high': 'גבוהה',
+  'medium': 'בינונית',
+  'low': 'נמוכה'
+  // Add other translations as needed based on your actual values
+};
+
+function getQuestionLabel(questionId: string): string {
+  // Find question in the *updated* allQuestions array
+  const question = allQuestions.find(q => q.id === questionId);
+  return question?.question || questionId;
+}
+
+function getQuestionCategory(questionId: string): string {
+  // Find question in the *updated* allQuestions array
+  const question = allQuestions.find(q => q.id === questionId);
+  // Ensure category exists, fallback to worldId or empty string if needed
+  return question?.category || question?.worldId.toLowerCase() || '';
+}
+
+
+function formatValue(value: Prisma.JsonValue): string {
+  if (typeof value === 'boolean') {
+    return value ? 'כן' : 'לא';
+  }
+
+  if (Array.isArray(value)) {
+    // Map each value in the array using translations or the value itself
+    return value.map(v => valueTranslations[String(v)] || String(v)).join(', ');
+  }
+
+  if (typeof value === 'object' && value !== null) {
+    // Basic stringification for objects, consider more specific formatting if needed
+    return JSON.stringify(value);
+  }
+
+  // Handle strings and numbers
+  const stringValue = String(value);
+  return valueTranslations[stringValue] || stringValue;
+}
+
+// Type guard to check if a value is a valid answer object
+function isValidAnswerObject(item: Prisma.JsonValue): item is Prisma.JsonObject & {
+  questionId: string | number;
+  value: Prisma.JsonValue;
+  answeredAt: string | number;
+  isVisible?: boolean;
+} {
+  return typeof item === 'object' &&
+         item !== null &&
+         'questionId' in item &&
+         'value' in item &&
+         item.value !== undefined && // Ensure value exists
+         'answeredAt' in item;
+}
+
+function safeParseJson(value: Prisma.JsonValue | null): JsonAnswerData[] {
+   if (Array.isArray(value)) {
+     return value
+       .filter(isValidAnswerObject) // Use the type guard
+       .map(item => ({
+         questionId: String(item.questionId),
+         value: item.value,
+         answeredAt: String(item.answeredAt),
+         isVisible: Boolean(item.isVisible ?? true) // Default isVisible to true if missing
+       }));
+   }
+   // If value is not an array or null/undefined, return empty array
+   return [];
+}
+
+function formatAnswers(answers: Prisma.JsonValue | null): FormattedAnswer[] {
+  const parsedAnswers = safeParseJson(answers);
+
+  return parsedAnswers.map(answer => {
+    const displayText = formatValue(answer.value);
+    const category = getQuestionCategory(answer.questionId);
+
+    return {
+      questionId: answer.questionId,
+      question: getQuestionLabel(answer.questionId),
+      value: answer.value,
+      displayText,
+      category, // Include category if needed elsewhere
+      isVisible: answer.isVisible,
+      answeredAt: new Date(answer.answeredAt).toLocaleDateString('he-IL', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+    };
+  }).sort((a, b) => a.questionId.localeCompare(b.questionId)); // Sort for consistency
+}
+
+
+export async function GET(req: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
+    const url = new URL(req.url);
+    const userId = url.searchParams.get('userId') || session.user.id;
+
+    const questionnaireResponse = await prisma.questionnaireResponse.findFirst({
+      where: { userId },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    if (!questionnaireResponse) {
+       // Return success but with null data if no questionnaire found
+       return NextResponse.json({
+          success: true,
+          questionnaireResponse: null
+       });
+    }
+
+    // Create formatted answers with correct typing
+    const formattedAnswers: Partial<FormattedAnswersType> = {};
+
+    // Iterate through the world keys defined in KEY_MAPPING
+    (Object.keys(KEY_MAPPING) as WorldKey[]).forEach(worldKey => {
+       const dbKey = getDbKey(worldKey);
+       // Check if the key exists on the response before formatting
+       if (questionnaireResponse[dbKey]) {
+           formattedAnswers[worldKey] = formatAnswers(questionnaireResponse[dbKey]);
+       } else {
+           formattedAnswers[worldKey] = []; // Initialize with empty array if no data
+       }
+    });
+
+    // Explicitly cast formattedAnswers to the full type
+    const completeFormattedAnswers = formattedAnswers as FormattedAnswersType;
+
+    const formattedResponse = {
+      ...questionnaireResponse,
+      formattedAnswers: completeFormattedAnswers
+    };
+
+    // Filter out non-visible answers if viewing another user's profile
+    if (userId !== session.user.id) {
+       Object.keys(formattedResponse.formattedAnswers).forEach((worldKey) => {
+           const key = worldKey as WorldKey;
+           // Ensure the key exists before filtering
+           if (formattedResponse.formattedAnswers[key]) {
+               formattedResponse.formattedAnswers[key] =
+                 formattedResponse.formattedAnswers[key].filter(answer => answer.isVisible !== false);
+           }
+       });
+    }
+
+    return NextResponse.json({
+      success: true,
+      questionnaireResponse: formattedResponse
+    });
+
+  } catch (error) {
+    console.error('Error in GET /api/questionnaire:', error); // Log the actual error
+    return NextResponse.json({ success: false, error: "Failed to fetch questionnaire" }, { status: 500 });
+  }
+}
+
+
+export async function PATCH(req: Request) {
+   try {
+     const session = await getServerSession(authOptions);
+     if (!session?.user?.id) {
+       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+     }
+
+     const body = await req.json();
+     const { worldKey, questionId, value } = body as {
+       worldKey: WorldKey;
+       questionId: string;
+       value: UpdateData; // value is now { type: 'answer'|'visibility', value?: string, isVisible?: boolean }
+     };
+
+     // Validate input
+     if (!worldKey || !questionId || !value || !value.type) {
+        return NextResponse.json({ success: false, error: "Invalid request body" }, { status: 400 });
+     }
+     if (!KEY_MAPPING[worldKey]) {
+         return NextResponse.json({ success: false, error: "Invalid world key" }, { status: 400 });
+     }
+
+
+     const dbKey = getDbKey(worldKey);
+
+     const questionnaire = await prisma.questionnaireResponse.findFirst({
+       where: { userId: session.user.id },
+       orderBy: { createdAt: 'desc' } // Get the latest questionnaire for the user
+     });
+
+     if (!questionnaire) {
+       return NextResponse.json({ success: false, error: "שאלון לא נמצא" }, { status: 404 });
+     }
+
+     const currentAnswers = safeParseJson(questionnaire[dbKey]);
+     const existingAnswerIndex = currentAnswers.findIndex((a) => a.questionId === questionId);
+     const existingAnswer = existingAnswerIndex !== -1 ? currentAnswers[existingAnswerIndex] : null;
+
+     let updatedAnswer: JsonAnswerData;
+
+     if (value.type === 'visibility') {
+        // Handle visibility update
+        if (!existingAnswer) {
+          // Cannot update visibility for a non-existent answer
+          return NextResponse.json({ success: false, error: "לא נמצאה תשובה לעדכון נראות" }, { status: 404 });
+        }
+        if (typeof value.isVisible !== 'boolean') {
+             return NextResponse.json({ success: false, error: "ערך נראות לא תקין" }, { status: 400 });
+        }
+        updatedAnswer = {
+          ...existingAnswer,
+          isVisible: value.isVisible,
+          answeredAt: new Date().toISOString() // Update timestamp on visibility change too
+        };
+     } else if (value.type === 'answer') {
+       // Handle answer update
+       // Validate the actual answer value if needed (basic check here)
+       if (value.value === undefined) {
+            return NextResponse.json({ success: false, error: "ערך תשובה חסר" }, { status: 400 });
+       }
+       updatedAnswer = {
+         questionId,
+         value: value.value as Prisma.JsonValue, // Cast the value appropriately
+         isVisible: existingAnswer?.isVisible ?? true, // Preserve existing visibility or default to true
+         answeredAt: new Date().toISOString()
+       };
+     } else {
+         return NextResponse.json({ success: false, error: "סוג עדכון לא תקין" }, { status: 400 });
+     }
+
+     // Create the updated answers array
+     const updatedAnswers = [...currentAnswers]; // Create a mutable copy
+     if (existingAnswerIndex !== -1) {
+         updatedAnswers[existingAnswerIndex] = updatedAnswer; // Replace existing
+     } else if (value.type === 'answer') { // Only add if it's an answer update and didn't exist
+         updatedAnswers.push(updatedAnswer); // Add new answer
+     }
+
+     const updated = await prisma.questionnaireResponse.update({
+       where: { id: questionnaire.id },
+       data: {
+         [dbKey]: updatedAnswers as Prisma.JsonValue, // Ensure the array is treated as JSON
+         lastSaved: new Date()
+       }
+     });
+
+     // --- Reformat response after update ---
+     const formattedAnswers: Partial<FormattedAnswersType> = {};
+     (Object.keys(KEY_MAPPING) as WorldKey[]).forEach(key => {
+       const currentDbKey = getDbKey(key);
+       // Check if the key exists on the updated response before formatting
+        if (updated[currentDbKey]) {
+            formattedAnswers[key] = formatAnswers(updated[currentDbKey]);
+        } else {
+            formattedAnswers[key] = []; // Initialize with empty array if no data
+        }
+     });
+
+     const completeFormattedAnswers = formattedAnswers as FormattedAnswersType;
+
+     const formattedResponse = {
+       ...updated,
+       formattedAnswers: completeFormattedAnswers
+     };
+     // --- End Reformat response ---
+
+
+     return NextResponse.json({
+       success: true,
+       data: formattedResponse // Return the updated and formatted data
+     });
+
+   } catch (error) {
+       console.error('Error in PATCH /api/questionnaire:', error);
+       if (error instanceof Prisma.PrismaClientKnownRequestError) {
+            // Handle specific Prisma errors if needed
+            return NextResponse.json({ success: false, error: "שגיאת מסד נתונים" }, { status: 500 });
+       }
+       if (error instanceof Error) {
+         // Return specific error messages if thrown explicitly
+         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+       }
+       return NextResponse.json({ success: false, error: "שגיאה בעדכון השאלון" }, { status: 500 });
+   }
+}
+
+
+==================================================
+Contents of C:\Users\eytan\Desktop\שידוכים\shidduch-system\src\app\api\profile\update\route.ts:
+==================================================
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+
+
+export async function PUT() {
+  try {
+    // Verify authentication
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    // Find the user
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      include: {
+        images: true,
+      }
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    // Fetch updated user with all required information
+    const updatedUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: {
+        firstName: true,
+        lastName: true,
+        email: true,
+        images: true,
+        profile: true
+      }
+    });
+
+    if (!updatedUser) {
+      return NextResponse.json(
+        { error: 'Failed to fetch updated profile' },
+        { status: 500 }
+      );
+    }
+
+    // Transform the data to include user information
+    const transformedProfile = {
+      ...updatedUser.profile,
+      user: {
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        email: updatedUser.email,
+      },
+      images: updatedUser.images,
+      mainImage: updatedUser.images.find(img => img.isMain) || null
+    };
+
+    return NextResponse.json({
+      success: true,
+      profile: transformedProfile
+    });
+
+  } catch (error) {
+    console.error('Profile update error:', error);
+    
+    if (error instanceof Error) {
+      // Prisma errors
+      if (error.name === 'PrismaClientKnownRequestError') {
+        return NextResponse.json(
+          { error: 'Database operation failed' },
+          { status: 400 }
+        );
+      }
+      
+      // Validation errors
+      if (error.name === 'ValidationError') {
+        return NextResponse.json(
+          { error: error.message },
+          { status: 400 }
+        );
+      }
+      
+      return NextResponse.json(
+        { error: error.message },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
