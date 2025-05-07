@@ -21,7 +21,16 @@ export async function POST(req: Request) {
       );
     }
 
+    // הוספת בדיקה: אם למשתמש אין סיסמה (למשל, נרשם דרך OAuth)
+    if (!user.password) {
+      return NextResponse.json(
+        { error: "לא הוגדרה סיסמה לחשבון זה. ייתכן שנרשמת באמצעות שירות חיצוני." },
+        { status: 400 }
+      );
+    }
+
     // בדיקת סיסמה נוכחית
+    // כעת, user.password מובטח להיות string
     const isValidPassword = await compare(currentPassword, user.password);
     if (!isValidPassword) {
       return NextResponse.json(
