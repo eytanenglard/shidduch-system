@@ -76,6 +76,16 @@ export interface UserProfile extends PrismaProfile {
     // --- END OF ADDED SECTION ---
   }
 
+// ADD THIS DEFINITION:
+export interface FormattedAnswer {
+  questionId: string;
+  question: string;
+  answer: string;
+  displayText: string;
+  isVisible?: boolean;
+  answeredAt: string | Date; // Matches usage in QuestionnaireResponse
+}
+// END OF ADDED DEFINITION
 export interface UserImage extends PrismaUserImage {
     id: string;
     url: string;
