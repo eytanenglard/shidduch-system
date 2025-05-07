@@ -8,84 +8,16 @@ import type {
   UserRole,
   UserStatus,
   QuestionnaireResponse as PrismaQuestionnaireResponse,
+  Prisma, // Make sure Prisma is imported if used for JsonValue
 } from '@prisma/client';
 import { DefaultSession, DefaultUser } from 'next-auth';
-import { DefaultJWT } from 'next-auth/jwt';
+import { DefaultJWT, JWT as NextAuthJWT } from 'next-auth/jwt'; // Import JWT as NextAuthJWT to avoid name clash
 
 // --- Standalone Interface Definitions (if used elsewhere) ---
-// These mirror the module augmentations below
 
-export interface User extends DefaultUser {
-  id: string;
-  email: string; // email is typically required and guaranteed by NextAuth
-  firstName: string;
-  lastName: string;
-  phone?: string | null; // Add phone here as well
-  name: string | null; // DefaultUser might have this optional
-  image: string | null; // DefaultUser has this
-  role: UserRole;
-  status: UserStatus;
-  isVerified: boolean; // Email verification status
-  isProfileComplete: boolean;
-  isPhoneVerified: boolean; // <<-- ADDED
-  lastLogin: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-  profile: UserProfile | null;
-  images: UserImage[];
-  questionnaireResponses: QuestionnaireResponse[];
-  // Optional flags passed during auth flow
-  redirectUrl?: string;
-  newlyCreated?: boolean;
-  requiresCompletion?: boolean; // <<-- ADDED
-}
-
-export interface Verification {
-  metadata?: {
-    hashedNewPassword?: string;
-    [key: string]: string | number | boolean | null | undefined;
-  }
-}
-
-export interface JWT extends DefaultJWT {
-  id: string; // Ensure id is required
-  email: string; // Ensure email is required
-  firstName: string;
-  lastName: string;
-  phone?: string | null; // <<-- ADDED
-  name: string | null;
-  picture: string | null; // Matches DefaultJWT picture
-  role: UserRole;
-  status: UserStatus;
-  isVerified: boolean; // Email verification
-  isProfileComplete: boolean;
-  isPhoneVerified: boolean; // <<-- ADDED
-  lastLogin: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-  profile: UserProfile | null;
-  images: UserImage[];
-  questionnaireResponses: QuestionnaireResponse[];
-  // Optional flags
-  redirectUrl?: string;
-  newlyCreated?: boolean;
-  requiresCompletion?: boolean; // <<-- ADDED
-  // DefaultJWT fields like sub, iat, exp, jti might also exist
-}
-
-export interface Session extends DefaultSession {
-  user: User; // Use the extended User interface defined above
-  // Optional flags (can be on session root or session.user)
-  redirectUrl?: string;
-  newlyCreated?: boolean;
-  requiresCompletion?: boolean; // <<-- ADDED
-}
-
-
-// --- Prisma Model Extensions (Keep these as they define nested structures) ---
-
+// This UserProfile is the one imported by ProfileCard.tsx
+// It extends PrismaProfile and adds specific fields, including the nested user info.
 export interface UserProfile extends PrismaProfile {
-    // Keep your detailed UserProfile definition
     id: string;
     userId: string;
     gender: Gender;
@@ -93,7 +25,7 @@ export interface UserProfile extends PrismaProfile {
     nativeLanguage?: string | null;
     additionalLanguages: string[];
     height: number | null;
-    maritalStatus?: string | null; // Allow null if optional
+    maritalStatus?: string | null;
     occupation?: string | null;
     education?: string | null;
     address?: string | null;
@@ -103,8 +35,8 @@ export interface UserProfile extends PrismaProfile {
     about?: string | null;
     hobbies?: string | null;
     parentStatus?: string | null;
-    siblings?: number | null; // Allow null if optional
-    position?: number | null; // Allow null if optional
+    siblings?: number | null;
+    position?: number | null;
     preferredAgeMin?: number | null;
     preferredAgeMax?: number | null;
     preferredHeightMin?: number | null;
@@ -119,41 +51,63 @@ export interface UserProfile extends PrismaProfile {
     referenceName2?: string | null;
     referencePhone2?: string | null;
     isProfileVisible: boolean;
-    preferredMatchmakerGender?: Gender | null; // Allow null if optional
+    preferredMatchmakerGender?: Gender | null;
     matchingNotes?: string | null;
     verifiedBy?: string | null;
     availabilityStatus: AvailabilityStatus;
     availabilityNote?: string | null;
-    availabilityUpdatedAt?: Date | null; // Allow null if optional
+    availabilityUpdatedAt?: Date | null;
     createdAt: Date;
     updatedAt: Date;
-    lastActive?: Date | null; // Allow null if optional
-    // Removed 'user' relation from here if UserProfile is nested within User type above
+    lastActive?: Date | null;
+
+    // --- ADDED SECTION TO FIX THE ERROR ---
+    /**
+     * Optional nested user information, typically containing basic details
+     * like first and last name. This is to support components like ProfileCard
+     * that expect name information directly associated with the profile data.
+     * This data would need to be populated by including the related User record
+     * (or parts of it) when fetching the Profile.
+     */
+    user?: {
+        firstName?: string; // Made optional to match `profile?.user?.firstName` usage
+        lastName?: string;  // Made optional to match `profile?.user?.lastName` usage
+    };
+    // --- END OF ADDED SECTION ---
   }
 
 export interface UserImage extends PrismaUserImage {
-    // Keep your detailed UserImage definition
     id: string;
     url: string;
     isMain: boolean;
-    cloudinaryPublicId?: string | null; // Allow null if optional
+    cloudinaryPublicId?: string | null;
     userId: string;
     createdAt: Date;
     updatedAt: Date;
   }
 
-// Assume FormattedAnswer and QuestionAnswers are correctly defined
-
+  export interface QuestionAnswers {
+    [key: string]: Prisma.JsonValue; // או any אם הערכים לא בהכרח JSON, אבל JsonValue עדיף
+  }
 export interface QuestionnaireResponse extends PrismaQuestionnaireResponse {
-    // Keep your detailed QuestionnaireResponse definition
     id: string;
     userId: string;
-    valuesAnswers: QuestionAnswers | Prisma.JsonValue | null; // Use Prisma.JsonValue or QuestionAnswers
+    valuesAnswers: QuestionAnswers | Prisma.JsonValue | null;
     personalityAnswers: QuestionAnswers | Prisma.JsonValue | null;
     relationshipAnswers: QuestionAnswers | Prisma.JsonValue | null;
     partnerAnswers: QuestionAnswers | Prisma.JsonValue | null;
     religionAnswers: QuestionAnswers | Prisma.JsonValue | null;
-    // formattedAnswers?: { /* ... */ }; // Optional formatting
+    // formattedAnswers?: { [key: string]: { questionId: string; question: string; answer: any; displayText: string; isVisible?: boolean; answeredAt: Date }[] };
+    formattedAnswers?: {
+      [key: string]: Array<{
+        questionId: string;
+        question: string;
+        answer: string;
+        displayText: string;
+        isVisible?: boolean;
+        answeredAt: string | Date; // Ensure this matches ProfileCard usage
+      }>;
+    } | null;
     valuesCompleted: boolean;
     personalityCompleted: boolean;
     relationshipCompleted: boolean;
@@ -161,113 +115,157 @@ export interface QuestionnaireResponse extends PrismaQuestionnaireResponse {
     religionCompleted: boolean;
     worldsCompleted: string[];
     completed: boolean;
-    startedAt: Date; // Use Date type
+    startedAt: Date;
     completedAt: Date | null;
-    lastSaved: Date; // Use Date type
-    createdAt: Date; // Use Date type
-    updatedAt: Date; // Use Date type
+    lastSaved: Date;
+    createdAt: Date;
+    updatedAt: Date;
   }
+
+
+export interface User extends DefaultUser {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone?: string | null;
+  name: string | null;
+  image: string | null;
+  role: UserRole;
+  status: UserStatus;
+  isVerified: boolean;
+  isProfileComplete: boolean;
+  isPhoneVerified: boolean;
+  lastLogin: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  profile: UserProfile | null; // Use the extended UserProfile
+  images: UserImage[];
+  questionnaireResponses: QuestionnaireResponse[];
+  redirectUrl?: string;
+  newlyCreated?: boolean;
+  requiresCompletion?: boolean;
+}
+
+export interface Verification {
+  metadata?: {
+    hashedNewPassword?: string;
+    [key: string]: string | number | boolean | null | undefined;
+  }
+}
+
+export interface JWT extends DefaultJWT {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone?: string | null;
+  name: string | null;
+  picture: string | null;
+  role: UserRole;
+  status: UserStatus;
+  isVerified: boolean;
+  isProfileComplete: boolean;
+  isPhoneVerified: boolean;
+  lastLogin: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  profile: UserProfile | null; // Use the extended UserProfile
+  images: UserImage[];
+  questionnaireResponses: QuestionnaireResponse[];
+  redirectUrl?: string;
+  newlyCreated?: boolean;
+  requiresCompletion?: boolean;
+}
+
+export interface Session extends DefaultSession {
+  user: User; // Use the extended User interface defined above
+  redirectUrl?: string;
+  newlyCreated?: boolean;
+  requiresCompletion?: boolean;
+}
 
 
 // --- Module Augmentation for NextAuth ---
 
 declare module 'next-auth' {
-  /**
-   * Returned by `useSession`, `getSession` and received as a prop on the `SessionProvider` React Context
-   */
-  interface RedirectCallbackParams<T = NextAuthJWT | undefined> { // Use the imported JWT type here
-    /** The URL provided as the redirect target */
+  interface RedirectCallbackParams<T = NextAuthJWT | undefined> {
     url: string;
-    /** The base URL of the site */
     baseUrl: string;
-    /** The JWT token, only available if using the "jwt" session strategy */
-    token?: T; // Use T which defaults to NextAuthJWT | undefined
+    token?: T;
   }
   interface Session extends DefaultSession {
-    
     user: {
       id: string;
-      email: string; // Keep non-optional
+      email: string;
       firstName: string;
       lastName: string;
-      phone?: string | null; // <<-- ADDED
+      phone?: string | null;
       name: string | null;
       image: string | null;
       role: UserRole;
       status: UserStatus;
-      isVerified: boolean; // Email verification
+      isVerified: boolean;
       isProfileComplete: boolean;
-      isPhoneVerified: boolean; // <<-- ADDED
+      isPhoneVerified: boolean;
       lastLogin: Date | null;
       createdAt: Date;
       updatedAt: Date;
-      // Keep nested Prisma types optional or defined as needed
-      profile: PrismaProfile | null;
-      images: PrismaUserImage[];
-      questionnaireResponses: PrismaQuestionnaireResponse[];
-    } & DefaultSession['user']; // Extend DefaultSession user if needed
+      profile: UserProfile | null; // Changed from PrismaProfile to UserProfile
+      images: UserImage[]; // Changed from PrismaUserImage to UserImage
+      questionnaireResponses: QuestionnaireResponse[]; // Changed from PrismaQuestionnaireResponse
+    } & DefaultSession['user'];
 
-    // Optional flags directly on session
     redirectUrl?: string;
     newlyCreated?: boolean;
-    requiresCompletion?: boolean; // <<-- ADDED
+    requiresCompletion?: boolean;
   }
 
-  /**
-   * The shape of the user object returned in the OAuth providers' `profile` callback,
-   * or the second parameter of the `session` callback, when using a database.
-   */
   interface User extends DefaultUser {
-    id: string; // Ensure id is always present
+    id: string;
     firstName: string;
     lastName: string;
-    phone?: string | null; // <<-- ADDED
+    phone?: string | null;
     role: UserRole;
     status: UserStatus;
-    isVerified: boolean; // Email verification
+    isVerified: boolean;
     isProfileComplete: boolean;
-    isPhoneVerified: boolean; // <<-- ADDED
+    isPhoneVerified: boolean;
     lastLogin: Date | null;
     createdAt: Date;
     updatedAt: Date;
-    // Keep nested Prisma types optional or defined as needed
-    profile: PrismaProfile | null;
-    images: PrismaUserImage[];
-    questionnaireResponses: PrismaQuestionnaireResponse[];
-    // Optional flags
+    profile: UserProfile | null; // Changed from PrismaProfile to UserProfile
+    images: UserImage[]; // Changed from PrismaUserImage to UserImage
+    questionnaireResponses: QuestionnaireResponse[]; // Changed from PrismaQuestionnaireResponse
     redirectUrl?: string;
     newlyCreated?: boolean;
-    requiresCompletion?: boolean; // <<-- ADDED
+    requiresCompletion?: boolean;
   }
 }
 
 declare module 'next-auth/jwt' {
-  /** Returned by the `jwt` callback and `getToken`, when using JWT sessions */
   interface JWT extends DefaultJWT {
-    id: string; // Ensure id is always present
-    email: string; // Ensure email is always present
+    id: string;
+    email: string;
     firstName: string;
     lastName: string;
-    phone?: string | null; // <<-- ADDED
-    name: string | null; // Use DefaultJWT name type
-    picture: string | null; // Use DefaultJWT picture type
+    phone?: string | null;
+    name: string | null;
+    picture: string | null;
     role: UserRole;
     status: UserStatus;
-    isVerified: boolean; // Email verification
+    isVerified: boolean;
     isProfileComplete: boolean;
-    isPhoneVerified: boolean; // <<-- ADDED
+    isPhoneVerified: boolean;
     lastLogin: Date | null;
     createdAt: Date;
     updatedAt: Date;
-    // Keep nested Prisma types optional or defined as needed
-    profile: PrismaProfile | null;
-    images: PrismaUserImage[];
-    questionnaireResponses: PrismaQuestionnaireResponse[];
-    // Optional flags
+    profile: UserProfile | null; // Changed from PrismaProfile to UserProfile
+    images: UserImage[]; // Changed from PrismaUserImage to UserImage
+    questionnaireResponses: QuestionnaireResponse[]; // Changed from PrismaQuestionnaireResponse
     redirectUrl?: string;
     newlyCreated?: boolean;
-    requiresCompletion?: boolean; // <<-- ADDED
-    // DefaultJWT fields like sub, iat, exp, jti are automatically included
+    requiresCompletion?: boolean;
   }
 }
 
@@ -276,4 +274,4 @@ export type UpdateValue =
   | { type: "answer"; value: string }
   | { type: "visibility"; isVisible: boolean };
 export type ContactPreference = "direct" | "matchmaker" | "both";
-export { Gender, UserRole, UserStatus, AvailabilityStatus }; // Export enums
+export { Gender, UserRole, UserStatus, AvailabilityStatus };
