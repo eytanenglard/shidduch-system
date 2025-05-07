@@ -23,10 +23,22 @@ import {
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
-import { 
-  User, Mail, Key, Shield, Clock, 
-  Eye, EyeOff, CheckCircle, XCircle, ArrowRight,
-  Calendar, Bell, Settings, Check, AlertCircle
+import {
+  User,
+  Mail,
+  Key,
+  Shield,
+  Clock,
+  Eye,
+  EyeOff,
+  CheckCircle,
+  XCircle,
+  ArrowRight,
+  Calendar,
+  Bell,
+  Settings,
+  Check,
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
@@ -56,7 +68,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isSendingVerification, setIsSendingVerification] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // Form states
   const [firstName, setFirstName] = useState(user?.firstName || "");
   const [lastName, setLastName] = useState(user?.lastName || "");
@@ -64,12 +76,12 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
-  
+
   // Password visibility toggles
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
+
   // Password change flow states
   const [passwordChangeStep, setPasswordChangeStep] = useState(1);
   const [showVerificationInput, setShowVerificationInput] = useState(false);
@@ -78,12 +90,12 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
     length: false,
     uppercase: false,
     lowercase: false,
-    number: false
+    number: false,
   });
 
   // Animations and effects
   const [activeSection, setActiveSection] = useState<string | null>(null);
-  
+
   // Track password strength
   useEffect(() => {
     if (!newPassword) {
@@ -92,20 +104,20 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
         length: false,
         uppercase: false,
         lowercase: false,
-        number: false
+        number: false,
       });
       return;
     }
-    
+
     const requirements = {
       length: newPassword.length >= PASSWORD_MIN_LENGTH,
       uppercase: /[A-Z]/.test(newPassword),
       lowercase: /[a-z]/.test(newPassword),
-      number: /[0-9]/.test(newPassword)
+      number: /[0-9]/.test(newPassword),
     };
-    
+
     setPasswordRequirements(requirements);
-    
+
     // Calculate strength
     const metRequirements = Object.values(requirements).filter(Boolean).length;
     setPasswordStrength(metRequirements * 25); // 25% for each requirement
@@ -155,13 +167,16 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
 
       toast.success("קוד אימות נשלח למייל שלך", {
         description: "אנא בדוק את תיבת הדואר הנכנס שלך",
-        icon: <Mail className="h-5 w-5 text-blue-500" />
+        icon: <Mail className="h-5 w-5 text-blue-500" />,
       });
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "שגיאה בשליחת קוד אימות", {
-        description: "נסה שוב מאוחר יותר או פנה לתמיכה",
-        icon: <AlertCircle className="h-5 w-5 text-red-500" />
-      });
+      toast.error(
+        error instanceof Error ? error.message : "שגיאה בשליחת קוד אימות",
+        {
+          description: "נסה שוב מאוחר יותר או פנה לתמיכה",
+          icon: <AlertCircle className="h-5 w-5 text-red-500" />,
+        }
+      );
     } finally {
       setIsSendingVerification(false);
     }
@@ -171,7 +186,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
     if (!firstName.trim() || !lastName.trim()) {
       toast.error("נא למלא את כל השדות", {
         description: "שם פרטי ושם משפחה הם שדות חובה",
-        icon: <AlertCircle className="h-5 w-5 text-red-500" />
+        icon: <AlertCircle className="h-5 w-5 text-red-500" />,
       });
       return;
     }
@@ -190,13 +205,13 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
       await updateSession();
       toast.success("השם עודכן בהצלחה", {
         description: `השם החדש שלך: ${firstName} ${lastName}`,
-        icon: <Check className="h-5 w-5 text-green-500" />
+        icon: <Check className="h-5 w-5 text-green-500" />,
       });
       setIsEditingName(false);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "שגיאה בעדכון השם", {
         description: "נסה שוב מאוחר יותר או פנה לתמיכה",
-        icon: <AlertCircle className="h-5 w-5 text-red-500" />
+        icon: <AlertCircle className="h-5 w-5 text-red-500" />,
       });
     } finally {
       setIsLoading(false);
@@ -207,7 +222,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
     if (!currentPassword || !newPassword || !confirmPassword) {
       toast.error("נא למלא את כל השדות", {
         description: "כל השדות הם שדות חובה לשינוי סיסמה",
-        icon: <AlertCircle className="h-5 w-5 text-red-500" />
+        icon: <AlertCircle className="h-5 w-5 text-red-500" />,
       });
       return;
     }
@@ -215,7 +230,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
     if (newPassword !== confirmPassword) {
       toast.error("הסיסמאות אינן תואמות", {
         description: "אנא ודא שהסיסמה החדשה זהה בשני השדות",
-        icon: <AlertCircle className="h-5 w-5 text-red-500" />
+        icon: <AlertCircle className="h-5 w-5 text-red-500" />,
       });
       return;
     }
@@ -223,10 +238,13 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
     try {
       validatePassword(newPassword);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "שגיאה באימות הסיסמה", {
-        description: "אנא עקוב אחר כל דרישות הסיסמה",
-        icon: <AlertCircle className="h-5 w-5 text-red-500" />
-      });
+      toast.error(
+        error instanceof Error ? error.message : "שגיאה באימות הסיסמה",
+        {
+          description: "אנא עקוב אחר כל דרישות הסיסמה",
+          icon: <AlertCircle className="h-5 w-5 text-red-500" />,
+        }
+      );
       return;
     }
 
@@ -251,13 +269,16 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
       setShowVerificationInput(true);
       toast.success("קוד אימות נשלח למייל שלך", {
         description: "קוד בן 6 ספרות נשלח לכתובת המייל המקושרת לחשבונך",
-        icon: <Mail className="h-5 w-5 text-blue-500" />
+        icon: <Mail className="h-5 w-5 text-blue-500" />,
       });
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "שגיאה באימות הסיסמה", {
-        description: "ייתכן שהסיסמה הנוכחית שגויה",
-        icon: <AlertCircle className="h-5 w-5 text-red-500" />
-      });
+      toast.error(
+        error instanceof Error ? error.message : "שגיאה באימות הסיסמה",
+        {
+          description: "ייתכן שהסיסמה הנוכחית שגויה",
+          icon: <AlertCircle className="h-5 w-5 text-red-500" />,
+        }
+      );
       resetPasswordForm();
     } finally {
       setIsLoading(false);
@@ -268,7 +289,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
     if (!verificationCode) {
       toast.error("נא להזין את קוד האימות", {
         description: "קוד האימות הוא שדה חובה",
-        icon: <AlertCircle className="h-5 w-5 text-red-500" />
+        icon: <AlertCircle className="h-5 w-5 text-red-500" />,
       });
       return;
     }
@@ -277,7 +298,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
     if (!/^\d{6}$/.test(verificationCode)) {
       toast.error("קוד אימות לא תקין", {
         description: "קוד האימות חייב להכיל 6 ספרות",
-        icon: <AlertCircle className="h-5 w-5 text-red-500" />
+        icon: <AlertCircle className="h-5 w-5 text-red-500" />,
       });
       return;
     }
@@ -301,14 +322,17 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
 
       toast.success("הסיסמה עודכנה בהצלחה", {
         description: "הסיסמה החדשה שלך פעילה כעת",
-        icon: <CheckCircle className="h-5 w-5 text-green-500" />
+        icon: <CheckCircle className="h-5 w-5 text-green-500" />,
       });
       resetPasswordForm();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "שגיאה בעדכון הסיסמה", {
-        description: "קוד האימות שגוי או שפג תוקפו",
-        icon: <AlertCircle className="h-5 w-5 text-red-500" />
-      });
+      toast.error(
+        error instanceof Error ? error.message : "שגיאה בעדכון הסיסמה",
+        {
+          description: "קוד האימות שגוי או שפג תוקפו",
+          icon: <AlertCircle className="h-5 w-5 text-red-500" />,
+        }
+      );
     } finally {
       setIsLoading(false);
     }
@@ -335,14 +359,18 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Main Account Card */}
-      <Card 
+      <Card
         className={`shadow-md hover:shadow-lg transition-all duration-300 border-t-4 border-blue-600 overflow-hidden relative`}
-        onMouseEnter={() => setActiveSection('main')}
+        onMouseEnter={() => setActiveSection("main")}
         onMouseLeave={() => setActiveSection(null)}
       >
         {/* Gradient background effect */}
-        <div className={`absolute inset-0 bg-gradient-to-r from-blue-50 to-blue-100 opacity-0 transition-opacity duration-500 ${activeSection === 'main' ? 'opacity-60' : ''}`}></div>
-        
+        <div
+          className={`absolute inset-0 bg-gradient-to-r from-blue-50 to-blue-100 opacity-0 transition-opacity duration-500 ${
+            activeSection === "main" ? "opacity-60" : ""
+          }`}
+        ></div>
+
         <CardHeader className="border-b pb-3 relative">
           <CardTitle className="text-xl flex items-center">
             <Settings className="w-5 h-5 text-blue-600 mr-2" />
@@ -350,7 +378,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
           </CardTitle>
           <CardDescription>נהל את פרטי החשבון והאבטחה שלך</CardDescription>
         </CardHeader>
-        
+
         <CardContent className="divide-y relative">
           {/* Basic Info Section */}
           <div className="py-4">
@@ -390,7 +418,9 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
                 <Mail className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-3">
                   <div>
-                    <p className="text-sm font-medium text-gray-700">כתובת מייל</p>
+                    <p className="text-sm font-medium text-gray-700">
+                      כתובת מייל
+                    </p>
                     <p className="text-base text-gray-800">{user.email}</p>
                   </div>
                   {!user.isVerified && (
@@ -422,25 +452,41 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
                 <div>
                   <p className="text-sm font-medium text-gray-700">הרשאות</p>
                   <div className="flex flex-wrap gap-2 mt-1">
-                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                      {user.role === 'ADMIN' ? 'מנהל' : 
-                       user.role === 'MATCHMAKER' ? 'שדכן' : 'מועמד'}
-                    </Badge>
-                    <Badge 
-                      className={user.status === "ACTIVE" 
-                        ? "bg-green-100 text-green-800 hover:bg-green-200" 
-                        : "bg-yellow-100 text-yellow-800 hover:bg-yellow-200"}
+                    <Badge
+                      variant="outline"
+                      className="bg-blue-50 text-blue-700 border-blue-200"
                     >
-                      {user.status === 'ACTIVE' ? 'פעיל' : 
-                       user.status === 'PENDING' ? 'ממתין לאישור' : 
-                       user.status === 'INACTIVE' ? 'לא פעיל' : 'חסום'}
+                      {user.role === "ADMIN"
+                        ? "מנהל"
+                        : user.role === "MATCHMAKER"
+                        ? "שדכן"
+                        : "מועמד"}
                     </Badge>
-                    <Badge 
-                      className={user.isVerified 
-                        ? "bg-green-100 text-green-800 hover:bg-green-200" 
-                        : "bg-red-100 text-red-800 hover:bg-red-200"}
+                    <Badge
+                      className={
+                        user.status === "ACTIVE"
+                          ? "bg-green-100 text-green-800 hover:bg-green-200"
+                          : "bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
+                      }
                     >
-                      {user.isVerified ? 'מאומת' : 'לא מאומת'}
+                      {user.status === "ACTIVE"
+                        ? "פעיל"
+                        : user.status == "PENDING_EMAIL_VERIFICATION"
+                        ? "ממתין לאישור אימייל"
+                        : user.status == "PENDING_PHONE_VERIFICATION"
+                        ? "ממתין לאישור פלאפון"
+                        : user.status === "INACTIVE"
+                        ? "לא פעיל"
+                        : "חסום"}
+                    </Badge>
+                    <Badge
+                      className={
+                        user.isVerified
+                          ? "bg-green-100 text-green-800 hover:bg-green-200"
+                          : "bg-red-100 text-red-800 hover:bg-red-200"
+                      }
+                    >
+                      {user.isVerified ? "מאומת" : "לא מאומת"}
                     </Badge>
                   </div>
                 </div>
@@ -454,14 +500,16 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-gray-500" />
                       <p className="text-gray-800">
-                        נוצר ב: {new Date(user.createdAt).toLocaleDateString("he-IL")}
+                        נוצר ב:{" "}
+                        {new Date(user.createdAt).toLocaleDateString("he-IL")}
                       </p>
                     </div>
                     {user.lastLogin && (
                       <div className="flex items-center gap-2">
                         <Clock className="w-4 h-4 text-gray-500" />
                         <p className="text-gray-800">
-                          התחברות אחרונה: {new Date(user.lastLogin).toLocaleDateString("he-IL")}
+                          התחברות אחרונה:{" "}
+                          {new Date(user.lastLogin).toLocaleDateString("he-IL")}
                         </p>
                       </div>
                     )}
@@ -503,22 +551,23 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
               <div>
                 <p className="text-sm font-medium text-gray-700">אימות חשבון</p>
                 <p className="text-base text-gray-800 flex items-center gap-1">
-                  {user.isVerified ? 
+                  {user.isVerified ? (
                     <>
                       <CheckCircle className="w-4 h-4 text-green-600" />
                       החשבון מאומת
-                    </> : 
+                    </>
+                  ) : (
                     <>
                       <XCircle className="w-4 h-4 text-red-600" />
                       החשבון לא מאומת
                     </>
-                  }
+                  )}
                 </p>
               </div>
             </div>
           </div>
         </CardContent>
-        
+
         <CardFooter className="bg-gradient-to-r from-gray-50 to-white border-t p-4 text-sm text-gray-500 relative">
           <div className="flex items-center">
             <Bell className="w-4 h-4 text-blue-600 mr-2" />
@@ -535,14 +584,14 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
               <User className="h-5 w-5 text-blue-600" />
               עריכת שם
             </DialogTitle>
-            <DialogDescription>
-              עדכן את שמך כפי שיוצג באתר
-            </DialogDescription>
+            <DialogDescription>עדכן את שמך כפי שיוצג באתר</DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="firstName" className="text-gray-700">שם פרטי</Label>
+              <Label htmlFor="firstName" className="text-gray-700">
+                שם פרטי
+              </Label>
               <Input
                 id="firstName"
                 value={firstName}
@@ -553,7 +602,9 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="lastName" className="text-gray-700">שם משפחה</Label>
+              <Label htmlFor="lastName" className="text-gray-700">
+                שם משפחה
+              </Label>
               <Input
                 id="lastName"
                 value={lastName}
@@ -574,8 +625,8 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
             >
               ביטול
             </Button>
-            <Button 
-              onClick={handleNameUpdate} 
+            <Button
+              onClick={handleNameUpdate}
               disabled={isLoading}
               className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
             >
@@ -584,7 +635,9 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
                   <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                   מעדכן...
                 </span>
-              ) : "שמירה"}
+              ) : (
+                "שמירה"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -603,36 +656,63 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
               <Key className="h-5 w-5 text-blue-600" />
               שינוי סיסמה
             </DialogTitle>
-            <DialogDescription>
-              עדכן את סיסמת החשבון שלך
-            </DialogDescription>
+            <DialogDescription>עדכן את סיסמת החשבון שלך</DialogDescription>
           </DialogHeader>
 
           {/* Step progress indicator */}
           <div className="mb-4">
             <div className="flex justify-between mb-2">
               <div className="flex items-center gap-1 text-sm font-medium">
-                <div className={`rounded-full h-6 w-6 flex items-center justify-center ${
-                  passwordChangeStep >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
-                }`}>1</div>
-                <span className={passwordChangeStep >= 1 ? 'text-blue-600' : 'text-gray-500'}>הזנת סיסמאות</span>
+                <div
+                  className={`rounded-full h-6 w-6 flex items-center justify-center ${
+                    passwordChangeStep >= 1
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-200 text-gray-500"
+                  }`}
+                >
+                  1
+                </div>
+                <span
+                  className={
+                    passwordChangeStep >= 1 ? "text-blue-600" : "text-gray-500"
+                  }
+                >
+                  הזנת סיסמאות
+                </span>
               </div>
               <div className="flex-grow border-t border-gray-300 mt-3 mx-2"></div>
               <div className="flex items-center gap-1 text-sm font-medium">
-                <div className={`rounded-full h-6 w-6 flex items-center justify-center ${
-                  passwordChangeStep >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
-                }`}>2</div>
-                <span className={passwordChangeStep >= 2 ? 'text-blue-600' : 'text-gray-500'}>אימות</span>
+                <div
+                  className={`rounded-full h-6 w-6 flex items-center justify-center ${
+                    passwordChangeStep >= 2
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-200 text-gray-500"
+                  }`}
+                >
+                  2
+                </div>
+                <span
+                  className={
+                    passwordChangeStep >= 2 ? "text-blue-600" : "text-gray-500"
+                  }
+                >
+                  אימות
+                </span>
               </div>
             </div>
-            <Progress value={passwordChangeStep === 1 ? 50 : 100} className="h-1" />
+            <Progress
+              value={passwordChangeStep === 1 ? 50 : 100}
+              className="h-1"
+            />
           </div>
 
           {!showVerificationInput ? (
             /* Step 1: Password Form */
             <div className="grid gap-4 py-2">
               <div className="space-y-2">
-                <Label htmlFor="currentPassword" className="text-gray-700">סיסמה נוכחית</Label>
+                <Label htmlFor="currentPassword" className="text-gray-700">
+                  סיסמה נוכחית
+                </Label>
                 <div className="relative">
                   <Input
                     id="currentPassword"
@@ -648,13 +728,19 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
                     className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                     onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                   >
-                    {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    {showCurrentPassword ? (
+                      <EyeOff size={18} />
+                    ) : (
+                      <Eye size={18} />
+                    )}
                   </button>
                 </div>
               </div>
-              
+
               <div className="space-y-2">
-                <Label htmlFor="newPassword" className="text-gray-700">סיסמה חדשה</Label>
+                <Label htmlFor="newPassword" className="text-gray-700">
+                  סיסמה חדשה
+                </Label>
                 <div className="relative">
                   <Input
                     id="newPassword"
@@ -673,28 +759,35 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
                     {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
-                
+
                 {/* Password strength indicator */}
                 {newPassword && (
                   <div className="mt-2">
                     <div className="flex justify-between items-center mb-1">
-                      <span className="text-xs text-gray-600">חוזק הסיסמה:</span>
-                      <span className={`text-xs font-medium ${
-                        passwordStrength <= 25 ? 'text-red-600' : 
-                        passwordStrength <= 50 ? 'text-orange-600' : 
-                        passwordStrength <= 75 ? 'text-yellow-600' : 
-                        'text-green-600'
-                      }`}>
+                      <span className="text-xs text-gray-600">
+                        חוזק הסיסמה:
+                      </span>
+                      <span
+                        className={`text-xs font-medium ${
+                          passwordStrength <= 25
+                            ? "text-red-600"
+                            : passwordStrength <= 50
+                            ? "text-orange-600"
+                            : passwordStrength <= 75
+                            ? "text-yellow-600"
+                            : "text-green-600"
+                        }`}
+                      >
                         {getPasswordStrengthText()}
                       </span>
                     </div>
                     <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
-                      <div 
+                      <div
                         className={`h-full ${getPasswordStrengthColor()} transition-all duration-300`}
                         style={{ width: `${passwordStrength}%` }}
                       ></div>
                     </div>
-                    
+
                     {/* Password requirements */}
                     <div className="grid grid-cols-2 gap-x-2 gap-y-1 mt-3">
                       <div className="flex items-center gap-1.5 text-xs">
@@ -703,40 +796,64 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
                         ) : (
                           <XCircle className="h-3.5 w-3.5 text-gray-400" />
                         )}
-                        <span className={passwordRequirements.length ? 'text-green-600' : 'text-gray-500'}>
+                        <span
+                          className={
+                            passwordRequirements.length
+                              ? "text-green-600"
+                              : "text-gray-500"
+                          }
+                        >
                           לפחות {PASSWORD_MIN_LENGTH} תווים
                         </span>
                       </div>
-                      
+
                       <div className="flex items-center gap-1.5 text-xs">
                         {passwordRequirements.uppercase ? (
                           <CheckCircle className="h-3.5 w-3.5 text-green-600" />
                         ) : (
                           <XCircle className="h-3.5 w-3.5 text-gray-400" />
                         )}
-                        <span className={passwordRequirements.uppercase ? 'text-green-600' : 'text-gray-500'}>
+                        <span
+                          className={
+                            passwordRequirements.uppercase
+                              ? "text-green-600"
+                              : "text-gray-500"
+                          }
+                        >
                           אות גדולה באנגלית
                         </span>
                       </div>
-                      
+
                       <div className="flex items-center gap-1.5 text-xs">
                         {passwordRequirements.lowercase ? (
                           <CheckCircle className="h-3.5 w-3.5 text-green-600" />
                         ) : (
                           <XCircle className="h-3.5 w-3.5 text-gray-400" />
                         )}
-                        <span className={passwordRequirements.lowercase ? 'text-green-600' : 'text-gray-500'}>
+                        <span
+                          className={
+                            passwordRequirements.lowercase
+                              ? "text-green-600"
+                              : "text-gray-500"
+                          }
+                        >
                           אות קטנה באנגלית
                         </span>
                       </div>
-                      
+
                       <div className="flex items-center gap-1.5 text-xs">
                         {passwordRequirements.number ? (
                           <CheckCircle className="h-3.5 w-3.5 text-green-600" />
                         ) : (
                           <XCircle className="h-3.5 w-3.5 text-gray-400" />
                         )}
-                        <span className={passwordRequirements.number ? 'text-green-600' : 'text-gray-500'}>
+                        <span
+                          className={
+                            passwordRequirements.number
+                              ? "text-green-600"
+                              : "text-gray-500"
+                          }
+                        >
                           מספר אחד לפחות
                         </span>
                       </div>
@@ -744,9 +861,11 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
                   </div>
                 )}
               </div>
-              
+
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-gray-700">אימות סיסמה חדשה</Label>
+                <Label htmlFor="confirmPassword" className="text-gray-700">
+                  אימות סיסמה חדשה
+                </Label>
                 <div className="relative">
                   <Input
                     id="confirmPassword"
@@ -755,7 +874,9 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     disabled={isLoading}
                     className={`border-gray-300 focus:border-blue-500 pr-10 ${
-                      confirmPassword && newPassword !== confirmPassword ? 'border-red-300 focus:border-red-500' : ''
+                      confirmPassword && newPassword !== confirmPassword
+                        ? "border-red-300 focus:border-red-500"
+                        : ""
                     }`}
                     placeholder="הזן שוב את הסיסמה החדשה"
                   />
@@ -764,19 +885,28 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
                     className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   >
-                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    {showConfirmPassword ? (
+                      <EyeOff size={18} />
+                    ) : (
+                      <Eye size={18} />
+                    )}
                   </button>
                 </div>
                 {confirmPassword && newPassword !== confirmPassword && (
-                  <p className="text-xs text-red-600 mt-1">הסיסמאות אינן תואמות</p>
+                  <p className="text-xs text-red-600 mt-1">
+                    הסיסמאות אינן תואמות
+                  </p>
                 )}
               </div>
 
               <Alert className="bg-blue-50 border-blue-200">
                 <Mail className="h-4 w-4 text-blue-600" />
-                <AlertTitle className="text-blue-700 font-medium">שים לב</AlertTitle>
+                <AlertTitle className="text-blue-700 font-medium">
+                  שים לב
+                </AlertTitle>
                 <AlertDescription className="text-blue-600">
-                  לאחר אימות הסיסמה הנוכחית, יישלח קוד אימות בן 6 ספרות למייל שלך
+                  לאחר אימות הסיסמה הנוכחית, יישלח קוד אימות בן 6 ספרות למייל
+                  שלך
                 </AlertDescription>
               </Alert>
             </div>
@@ -784,13 +914,15 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
             /* Step 2: Verification code input */
             <div className="grid gap-4 py-2">
               <div className="space-y-2">
-                <Label htmlFor="verificationCode" className="text-gray-700">קוד אימות</Label>
+                <Label htmlFor="verificationCode" className="text-gray-700">
+                  קוד אימות
+                </Label>
                 <Input
                   id="verificationCode"
                   value={verificationCode}
                   onChange={(e) => {
                     // Allow only numbers and limit to 6 digits
-                    const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                    const value = e.target.value.replace(/\D/g, "").slice(0, 6);
                     setVerificationCode(value);
                   }}
                   placeholder="הזן את הקוד בן 6 הספרות שנשלח למייל"
@@ -802,12 +934,15 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
                   קוד האימות תקף ל-24 שעות
                 </p>
               </div>
-              
+
               <Alert className="bg-blue-50 border-blue-200">
                 <Mail className="h-4 w-4 text-blue-600" />
-                <AlertTitle className="text-blue-700 font-medium">לא קיבלת את הקוד?</AlertTitle>
+                <AlertTitle className="text-blue-700 font-medium">
+                  לא קיבלת את הקוד?
+                </AlertTitle>
                 <AlertDescription className="text-blue-600">
-                  בדוק את תיבת הדואר הנכנס והספאם. אם הקוד לא התקבל, נסה להתחיל את התהליך מחדש.
+                  בדוק את תיבת הדואר הנכנס והספאם. אם הקוד לא התקבל, נסה להתחיל
+                  את התהליך מחדש.
                 </AlertDescription>
               </Alert>
             </div>
@@ -834,11 +969,11 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
               {isLoading ? (
                 <span className="flex items-center gap-2">
                   <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                  {showVerificationInput ? 'מאמת...' : 'שולח...'}
+                  {showVerificationInput ? "מאמת..." : "שולח..."}
                 </span>
               ) : (
                 <span className="flex items-center gap-1">
-                  {showVerificationInput ? 'אישור' : 'המשך'}
+                  {showVerificationInput ? "אישור" : "המשך"}
                   {!showVerificationInput && <ArrowRight className="h-4 w-4" />}
                 </span>
               )}
