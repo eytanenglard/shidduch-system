@@ -71,7 +71,8 @@ export interface UserProfile extends PrismaProfile {
      */
     user?: {
         firstName?: string; // Made optional to match `profile?.user?.firstName` usage
-        lastName?: string;  // Made optional to match `profile?.user?.lastName` usage
+        lastName?: string; 
+        email?: string; // Made optional to match `profile?.user?.lastName` usage
     };
     // --- END OF ADDED SECTION ---
   }
