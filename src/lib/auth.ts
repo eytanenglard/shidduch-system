@@ -25,9 +25,10 @@ export const authOptions: NextAuthOptions = {
           name: profile.name,
           image: profile.picture,
           role: UserRole.CANDIDATE, // התפקיד כברירת מחדל
-          status: UserStatus.ACTIVE, // נעשה אקטיבי ישירות כי מאומת על ידי גוגל
+          status: UserStatus.PENDING_PHONE_VERIFICATION,
           isVerified: true, // כבר מאומת על ידי גוגל
           isProfileComplete: false, // ברירת מחדל, יתעדכן לאחר השלמת הרישום
+          isPhoneVerified: false, // טלפון לא מאומת
           lastLogin: now,
           createdAt: now,
           updatedAt: now,
@@ -45,7 +46,11 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error("Missing credentials");
+          // You might want to return null instead of throwing an error
+          // for a slightly smoother UX, letting NextAuth handle it.
+          // Or keep throwing if you prefer explicit errors.
+          // return null; 
+          throw new Error("Missing email or password");
         }
 
         const user = await prisma.user.findUnique({
@@ -64,34 +69,53 @@ export const authOptions: NextAuthOptions = {
           }
         });
 
-        if (!user) {
-          throw new Error("No user found");
+        // Check if user exists *and* has a password set
+        if (!user || !user.password) {
+          // User not found OR user exists but has no password (likely OAuth user)
+          // Returning null signals failed authentication to NextAuth
+          console.log(`Authentication failed for ${credentials.email}: User not found or password not set.`);
+          return null; 
+          // Or throw a more specific error:
+          // throw new Error("Invalid credentials or login method."); 
         }
 
-        const isPasswordValid = await compare(credentials.password, user.password);
+        // --- Now TypeScript knows user.password is a string here ---
+        const isPasswordValid = await compare(credentials.password, user.password); 
+        
         if (!isPasswordValid) {
-          throw new Error("Invalid password");
+          console.log(`Authentication failed for ${credentials.email}: Invalid password.`);
+          // Returning null signals failed authentication
+          return null;
+          // Or throw:
+          // throw new Error("Invalid password");
         }
 
+        console.log(`Authentication successful for ${credentials.email}`);
+
+        // User authenticated successfully, update last login and return user data
         const mainImage = user.images.find(img => img.isMain);
 
-        await prisma.user.update({
+        // Update lastLogin asynchronously, no need to wait for it
+        prisma.user.update({
           where: { id: user.id },
           data: { lastLogin: new Date() }
-        });
+        }).catch(err => console.error("Failed to update lastLogin:", err)); // Log error if update fails
 
+        // Return the user object expected by NextAuth
         return {
           id: user.id,
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
           name: `${user.firstName} ${user.lastName}`,
-          image: mainImage?.url || null,
+          image: mainImage?.url || null, // Keep null if no main image
           role: user.role,
           status: user.status,
           isVerified: user.isVerified,
           isProfileComplete: user.isProfileComplete,
-          lastLogin: user.lastLogin,
+          // Pass these through if needed by session/jwt callbacks
+          isPhoneVerified: user.isPhoneVerified, 
+          lastLogin: user.lastLogin, 
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
           profile: user.profile,
@@ -128,7 +152,9 @@ export const authOptions: NextAuthOptions = {
                 role: UserRole.CANDIDATE,
                 status: UserStatus.ACTIVE,
                 isVerified: true,
-                isProfileComplete: false
+                isProfileComplete: false,
+                isPhoneVerified: false,
+
               }
             });
             console.log("New user created", { userId: newUser.id });
@@ -150,16 +176,12 @@ export const authOptions: NextAuthOptions = {
             console.log("Google account linked to user", { userId: newUser.id });
             
             // הוספת מידע למשתמש שיסייע לזהות אותו בהמשך
-            user.redirectUrl = '/auth/google-callback'; // שינוי - מפנה לדף ה-callback החדש
+            user.redirectUrl = '/auth/complete-registration';
             user.newlyCreated = true;
             user.id = newUser.id; // חשוב! מוודא שה-ID הנכון משמש
             user.isProfileComplete = false;
-            
-            // שמירת האימייל בלוקל סטורג' לשימוש מאוחר יותר
-            if (typeof localStorage !== 'undefined') {
-              localStorage.setItem('last_google_user_email', user.email!);
-            }
-            
+            user.isPhoneVerified = false;
+
             return true; // החזרת true במקום URL כדי לאפשר לתהליך האימות להמשיך
           } catch (error) {
             console.error("Error creating new user from Google auth", error);
@@ -206,11 +228,16 @@ export const authOptions: NextAuthOptions = {
           });
           
           // הוספת מידע למשתמש שיסייע לזהות אותו בהמשך
-          user.redirectUrl = '/auth/google-callback'; // שינוי - מפנה לדף ה-callback החדש
+          user.redirectUrl = '/auth/complete-registration';
           user.id = existingUser.id; // וידוא שה-ID נשמר
           user.isProfileComplete = existingUser.isProfileComplete || false;
-          
-          return true; // החזרת true במקום URL
+           user.isPhoneVerified = existingUser.isPhoneVerified;
+         
+           // אם הטלפון לא אומת, נסמן שנדרשת פעולה
+           if (!existingUser.isPhoneVerified) {
+              user.requiresCompletion = true; // דגל שמציין צורך בפעולה (אימות טלפון/השלמה)
+            }
+           return true; // החזרת true במקום URL
         }
         
         // משתמש קיים עם פרופיל מלא - התחברות רגילה
@@ -266,7 +293,7 @@ export const authOptions: NextAuthOptions = {
     },
 
     async jwt({ token, user, trigger, session }): Promise<JWT> {
-      // עדכון הטוקן כאשר יש התחברות חדשה
+      // 1. При начальном входе или если есть объект 'user'
       if (user) {
         token.id = user.id;
         token.email = user.email as string;
@@ -276,42 +303,81 @@ export const authOptions: NextAuthOptions = {
         token.picture = user.image || null;
         token.role = user.role;
         token.status = user.status;
-        token.isVerified = user.isVerified;
+        token.isVerified = user.isVerified; // Email verification from initial login
         token.isProfileComplete = user.isProfileComplete || false;
+        token.isPhoneVerified = user.isPhoneVerified;
         token.lastLogin = user.lastLogin || new Date();
         token.createdAt = user.createdAt || new Date();
         token.updatedAt = user.updatedAt || new Date();
         token.profile = user.profile || null;
         token.images = user.images || [];
         token.questionnaireResponses = user.questionnaireResponses || [];
+        token.requiresCompletion = 'requiresCompletion' in user ? user.requiresCompletion as boolean | undefined : !user.isPhoneVerified;
+    
+        if (user.redirectUrl) token.redirectUrl = user.redirectUrl;
+        if (user.newlyCreated) token.newlyCreated = true;
+    
+        console.log("JWT callback - initial user data from 'user' object:", { /* ... token fields ... */ });
+      }
+    
+      // 2. При вызове updateSession() (trigger === "update")
+      // ИЛИ если токен существует, но некоторые поля могут нуждаться в обновлении (например, isVerified)
+      if (trigger === "update" || (token.id && typeof token.isVerified === 'undefined')) { // Добавлено условие для обновления при необходимости
+        console.log(`JWT callback - trigger is '${trigger}'. Attempting to refresh token data for user ID: ${token.id}`);
         
-        // שמירת מידע נוסף בטוקן
-        if (user.redirectUrl) {
-          token.redirectUrl = user.redirectUrl;
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id },
+          include: {
+            profile: true,
+            images: { where: { isMain: true }, take: 1 }, // Только основное изображение
+            questionnaireResponses: { orderBy: { createdAt: 'desc' }, take: 1 }
+          }
+        });
+    
+        if (dbUser) {
+          console.log("JWT callback - Fetched updated user data from DB:", {
+            isVerified: dbUser.isVerified,
+            isProfileComplete: dbUser.isProfileComplete,
+            isPhoneVerified: dbUser.isPhoneVerified,
+            status: dbUser.status
+          });
+    
+          token.firstName = dbUser.firstName;
+          token.lastName = dbUser.lastName;
+          token.name = `${dbUser.firstName} ${dbUser.lastName}`;
+          token.picture = dbUser.images?.[0]?.url || null; // Обновляем изображение
+          token.role = dbUser.role;
+          token.status = dbUser.status;
+          token.isVerified = dbUser.isVerified; // Critically update this
+          token.isProfileComplete = dbUser.isProfileComplete;
+          token.isPhoneVerified = dbUser.isPhoneVerified;
+          token.profile = dbUser.profile; // Обновляем профиль
+          token.questionnaireResponses = dbUser.questionnaireResponses; // Обновляем анкеты
+          token.requiresCompletion = !dbUser.isPhoneVerified; // Пересчитываем на основе свежих данных
+    
+          // Если session был передан в updateSession (например, update({ name: "New Name" }))
+          // то сольем эти изменения. Если session не был передан, эта часть не выполнится.
+          if (session) {
+            token = { ...token, ...session };
+            console.log("JWT callback - Merged with explicit session data provided to update()", session);
+          }
+        } else {
+          console.warn(`JWT callback - User with ID ${token.id} not found in DB during update. Invalidating token might be an option.`);
+          // Можно рассмотреть вариант инвалидации токена, если пользователь удален
+          // return null; // или вернуть старый токен
         }
-        
-        if (user.newlyCreated) {
-          token.newlyCreated = true;
-        }
-        
-        // הוספת לוג לדיבאג
-        console.log("JWT callback - user data:", { 
+      }
+      
+      // Логирование перед возвратом токена
+      console.log("JWT callback - returning token:", { 
           id: token.id,
           email: token.email,
-          firstName: token.firstName,
-          lastName: token.lastName,
-          role: token.role,
-          isProfileComplete: token.isProfileComplete,
-          redirectUrl: user.redirectUrl
-        });
-      }
-
-      // עדכון הפרופיל אם נדרש
-      if (trigger === "update" && session) {
-        token = { ...token, ...session };
-        console.log("JWT updated from session");
-      }
-
+          isVerified: token.isVerified, 
+          isProfileComplete: token.isProfileComplete, 
+          isPhoneVerified: token.isPhoneVerified,
+          requiresCompletion: token.requiresCompletion
+      });
+    
       return token;
     },
 
@@ -327,6 +393,8 @@ export const authOptions: NextAuthOptions = {
         session.user.status = token.status;
         session.user.isVerified = token.isVerified;
         session.user.isProfileComplete = token.isProfileComplete;
+        session.user.isPhoneVerified = token.isPhoneVerified; // העברת הסטטוס לסשן
+        session.requiresCompletion = token.requiresCompletion;
         session.user.lastLogin = token.lastLogin;
         session.user.createdAt = token.createdAt;
         session.user.updatedAt = token.updatedAt;
@@ -350,39 +418,71 @@ export const authOptions: NextAuthOptions = {
           role: session.user.role,
           profile: session.user.profile ? "exists" : "null",
           isProfileComplete: session.user.isProfileComplete,
+          isPhoneVerified: session.user.isPhoneVerified,
+        requiresCompletion: session.requiresCompletion,
           redirectUrl: session.redirectUrl
         });
       }
       return session;
     },
 
-    async redirect({ url, baseUrl }) {
-      // הסר את הקריאה ל-session API כאן והשתמש בנתונים שכבר יש לך
-      console.log("Redirect callback", { url, baseUrl });
-      
-      // פשט את הלוגיקה - השתמש בנתונים שכבר קיימים ב-token/user
-      if (url.includes("auth/callback/google")) {
-        return `${baseUrl}/auth/google-callback`;
+    async redirect(params: { url: string; baseUrl: string; token?: JWT }) { // <-- הוספת הגדרת טיפוס מפורשת
+      const { url, baseUrl, token } = params; // <-- פירוק המשתנים מתוך params
+      console.log("Redirect callback initiated", { url, baseUrl, tokenExists: !!token });
+  
+      // --- Priority 1: Redirect for Phone Verification/Profile Completion ---
+      // If the token exists and indicates phone verification is needed
+      if (token && !token.isPhoneVerified) {
+          // Check if the user is already trying to access an allowed verification/completion path
+          const verificationPaths = [
+              '/auth/register',
+              '/auth/verify-phone',
+              '/auth/update-phone',
+              // Add relevant API paths if needed, although API calls shouldn't trigger redirect directly
+          ];
+          const isAlreadyOnAllowedPath = verificationPaths.some(p => url.startsWith(baseUrl + p));
+  
+          if (!isAlreadyOnAllowedPath) {
+              console.log(`Redirect callback: Token exists, phone not verified. Redirecting to /auth/register.`);
+              // Always redirect to the start of the completion/verification flow
+              return `${baseUrl}/auth/register`;
+          } else {
+               console.log(`Redirect callback: Token exists, phone not verified, but already on allowed path: ${url}`);
+               // Allow staying on the current allowed path
+               return url;
+          }
       }
-      
-      // אם זה URL מקומי, הוסף את baseUrl
+      // --- End Priority 1 ---
+  
+  
+      // --- Priority 2: Default NextAuth behavior (intended URL or base URL) ---
+      // This part runs only if token exists AND phone IS verified, or if no token exists (public access)
+  
+      // If signing in or signing up (url might be the callback url)
+      // Let the middleware handle access control after this initial redirect.
+      // If the original requested URL (before OAuth) was stored somewhere, redirect there.
+      // Otherwise, fall back.
+  
+      // Check if the URL is relative (starts with '/')
       if (url.startsWith("/")) {
+        console.log(`Redirect callback: Relative URL detected. Returning: ${baseUrl}${url}`);
         return `${baseUrl}${url}`;
-      } 
-      // אם זה URL מלא שמתחיל עם baseUrl, השתמש בו
+      }
+      // Check if the URL is already absolute and starts with the baseUrl
       else if (url.startsWith(baseUrl)) {
+        console.log(`Redirect callback: Absolute URL matches baseUrl. Returning: ${url}`);
         return url;
       }
-      
-      // אחרת, חזור לדף הבית
-      return baseUrl;
+      // Fallback for other cases (e.g., OAuth callbacks returning to baseUrl)
+      console.log(`Redirect callback: Fallback. Redirecting to baseUrl: ${baseUrl}`);
+      return baseUrl; // Default redirect to home page after successful login IF phone is verified
     }
   },
 
   pages: {
     signIn: '/auth/signin',
     error: '/auth/error',
-    newUser: '/auth/google-callback', // עדכון - משתמש בדף הcallback החדש
+    newUser: '/auth/register',
     verifyRequest: '/auth/verify-request'
   },
 

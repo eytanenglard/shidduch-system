@@ -1,231 +1,152 @@
+// src/app/api/auth/complete-profile/route.ts
+
 import { NextResponse } from 'next/server';
-import { PrismaClient, Gender } from '@prisma/client';
-import { getServerSession } from 'next-auth';
-import { cookies } from 'next/headers';
-import { authOptions } from '@/lib/auth';
-import { Session } from 'next-auth';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth'; // Adjust path if needed
+import prisma from '@/lib/prisma'; // Adjust path if needed
+import { Prisma } from '@prisma/client'; // <-- Import Prisma namespace for error types
+import { z } from 'zod';
+import { Gender } from '@prisma/client'; // Import Gender enum
 
-// מרחיב את הממשק של Session להכיל את השדות החדשים
-interface ExtendedSession extends Session {
-  redirectUrl?: string;
-  newlyCreated?: boolean;
-}
-
-const prisma = new PrismaClient();
-
-interface ProfileData {
-  email?: string;
-  phone: string;
-  gender: Gender;
-  birthDate: string;
-  maritalStatus?: string;
-  height?: number;
-  occupation?: string;
-  education?: string;
-  userId?: string;
-}
+// Zod Schema - includes phone for validation from client
+const completeProfileSchema = z.object({
+  phone: z.string().regex(/^0\d{9}$/, "Invalid phone number format (e.g., 0501234567)"),
+  gender: z.nativeEnum(Gender), // Use Prisma enum Gender
+  birthDate: z.string().refine((date) => !isNaN(Date.parse(date)), {
+     message: "Invalid birth date format",
+  }).refine((date) => { // Optional: Age validation (e.g., >= 18)
+      const age = Math.floor((new Date().getTime() - new Date(date).getTime()) / 31557600000);
+      return age >= 18;
+  }, { message: "Must be at least 18 years old" }),
+  maritalStatus: z.string().min(1, "Marital status is required"), // Assuming it's required in the form
+  height: z.coerce.number().int().min(120).max(220).optional(), // coerce handles string-to-number
+  occupation: z.string().optional(),
+  education: z.string().optional(),
+});
 
 export async function POST(req: Request) {
   try {
-    // קבלת סשן עם הגדרות האימות הנכונות
-    const session = await getServerSession(authOptions) as ExtendedSession | null;
-    console.log("Session in API:", session ? JSON.stringify({
-      user: session.user ? {
-        id: session.user.id,
-        email: session.user.email,
-        name: session.user.name
-      } : null,
-      redirectUrl: session.redirectUrl,
-      newlyCreated: session.newlyCreated
-    }, null, 2) : "No session");
-    
-    // בדיקת קוקיז
-    const cookieStore = cookies();
-    const sessionToken = cookieStore.get('next-auth.session-token')?.value 
-      || cookieStore.get('__Secure-next-auth.session-token')?.value;
-    
-    console.log("Session token from cookies:", sessionToken ? "Found" : "Not found");
-    
-    // קבלת הנתונים מהבקשה
-    const body: ProfileData = await req.json();
-    console.log("Complete profile data:", body);
-    
-    // מציאת המשתמש
-    let user;
-    
-    // ניסיון 1: לפי ID בסשן
-    if (session?.user?.id) {
-      console.log("Looking for user by ID from session:", session.user.id);
-      user = await prisma.user.findUnique({
-        where: { id: session.user.id }
-      });
-      console.log("User found by session ID:", user ? user.id : "Not found");
+    // 1. Get the session
+    const session = await getServerSession(authOptions);
+
+    // 2. Check for authentication
+    if (!session?.user?.id) {
+      console.error("API complete-profile: Unauthorized access attempt.");
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    
-    // ניסיון 2: לפי אימייל בסשן
-    if (!user && session?.user?.email) {
-      console.log("Looking for user by email from session:", session.user.email);
-      user = await prisma.user.findUnique({
-        where: { email: session.user.email }
-      });
-      console.log("User found by session email:", user ? user.id : "Not found");
+    const userId = session.user.id;
+
+    // 3. Parse and validate the request body
+    const body = await req.json();
+    const validation = completeProfileSchema.safeParse(body);
+
+    if (!validation.success) {
+      console.error("API complete-profile: Validation failed.", validation.error.errors);
+      return NextResponse.json({ error: 'Invalid input data', details: validation.error.flatten() }, { status: 400 });
     }
-    
-    // ניסיון 3: לפי ID שנשלח מהטופס
-    if (!user && body.userId) {
-      console.log("Looking for user by ID from form:", body.userId);
-      user = await prisma.user.findUnique({
-        where: { id: body.userId }
-      });
-      console.log("User found by form ID:", user ? user.id : "Not found");
-    }
-    
-    // ניסיון 4: לפי אימייל שנשלח מהטופס
-    if (!user && body.email) {
-      console.log("Looking for user by email from form:", body.email);
-      user = await prisma.user.findUnique({
-        where: { email: body.email }
-      });
-      console.log("User found by form email:", user ? user.id : "Not found");
-    }
-    
-    // במצב פיתוח בלבד - ניסיון למצוא משתמש גוגל אחרון
-    if (!user && process.env.NODE_ENV === 'development') {
-      console.log("Development mode: Looking for most recent Google user");
-      const recentGoogleUsers = await prisma.user.findMany({
-        where: {
-          password: "",  // משתמשי גוגל בדרך כלל אין להם סיסמה
-          role: "CANDIDATE"
+
+    // Destructure validated data
+    const {
+        phone, // Phone is needed for the User update
+        gender,
+        birthDate,
+        maritalStatus,
+        height,
+        occupation,
+        education
+    } = validation.data;
+
+    // 4. Perform database operations in a transaction
+    console.log(`API complete-profile: Attempting to update profile and user phone for user ${userId}`);
+    const updatedUser = await prisma.$transaction(async (tx) => {
+      // Upsert Profile (data relevant to Profile model, excluding phone)
+      await tx.profile.upsert({
+        where: { userId: userId },
+        create: {
+          userId: userId,
+          gender: gender,
+          birthDate: new Date(birthDate), // Convert string to Date
+          maritalStatus: maritalStatus, // Ensure this matches your schema
+          height: height,
+          occupation: occupation,
+          education: education,
+          // Add any other default fields for Profile if needed
         },
-        orderBy: { createdAt: 'desc' },
-        take: 1
+        update: {
+          gender: gender,
+          birthDate: new Date(birthDate), // Convert string to Date
+          maritalStatus: maritalStatus,
+          height: height,
+          occupation: occupation,
+          education: education,
+        },
       });
-      
-      if (recentGoogleUsers.length > 0) {
-        user = recentGoogleUsers[0];
-        console.log("Found most recent Google user:", user.id);
-      }
-    }
-    
-    if (!user) {
-      console.error("Cannot find user to update");
-      return NextResponse.json(
-        { error: 'לא נמצא משתמש להשלמת הרשמה. נא להתחבר מחדש או למלא את האימייל שלך.' },
-        { status: 404 }
-      );
-    }
-    
-    // וידוא תאריך לידה
-    const birthDateObj = new Date(body.birthDate);
-    const age = Math.floor((new Date().getTime() - birthDateObj.getTime()) / 31557600000);
-    if (age < 18) {
-      return NextResponse.json(
-        { error: 'גיל מינימלי להרשמה הוא 18' },
-        { status: 400 }
-      );
-    }
-    
-    // בדיקת מספר טלפון
-    const phoneRegex = /^0\d{9}$/;
-    if (!phoneRegex.test(body.phone)) {
-      return NextResponse.json(
-        { error: 'מספר טלפון לא תקין' },
-        { status: 400 }
-      );
-    }
-    
-    // בדיקת כפילות טלפון
-    const existingPhone = await prisma.user.findUnique({
-      where: { phone: body.phone }
+      console.log(`API complete-profile: Profile data upserted for user ${userId}`);
+
+      // Update User (set phone and mark profile as complete)
+      const user = await tx.user.update({
+        where: { id: userId },
+        data: {
+          phone: phone, // Update phone on the User model
+          isProfileComplete: true,
+          updatedAt: new Date(), // Update timestamp
+        },
+         select: { // Select only necessary fields to return
+             id: true,
+             email: true,
+             firstName: true,
+             lastName: true,
+             isProfileComplete: true,
+             role: true,
+             status: true,
+             phone: true // Include phone in selection if needed by client
+         }
+      });
+      console.log(`API complete-profile: User record updated for user ${userId} (phone & isProfileComplete).`);
+      return user;
     });
-    
-    if (existingPhone && existingPhone.id !== user.id) {
-      return NextResponse.json(
-        { error: 'מספר הטלפון כבר רשום במערכת' },
-        { status: 409 }
-      );
+
+    // 5. Return success response
+    console.log(`API complete-profile: Profile completed successfully for user ${userId}`);
+    return NextResponse.json({ message: "Profile completed successfully", user: updatedUser }, { status: 200 });
+
+  } catch (error: unknown) { // <-- Catch error as 'unknown' type
+    console.error("API complete-profile: An error occurred:", error);
+
+    // Type guards for specific error handling
+    if (error instanceof z.ZodError) {
+        console.error("API complete-profile: Zod validation error during processing.", error.flatten());
+        return NextResponse.json({ error: 'Validation Error during processing', details: error.flatten() }, { status: 400 });
     }
-    
-    console.log("Updating user profile:", {
-      userId: user.id,
-      gender: body.gender,
-      birthDate: birthDateObj.toISOString()
-    });
-    
-    // עדכון פרטי המשתמש - כולל סימון שהפרופיל הושלם
-    const updatedUser = await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        phone: body.phone,
-        isProfileComplete: true, // כאן מעדכנים את השדה שמסמן שהפרופיל הושלם
-        profile: {
-          upsert: {
-            create: {
-              gender: body.gender,
-              birthDate: birthDateObj,
-              maritalStatus: body.maritalStatus || null,
-              height: body.height || null,
-              occupation: body.occupation || null,
-              education: body.education || null,
-              isProfileVisible: true
-            },
-            update: {
-              gender: body.gender,
-              birthDate: birthDateObj,
-              maritalStatus: body.maritalStatus || null,
-              height: body.height || null,
-              occupation: body.occupation || null,
-              education: body.education || null
+
+    // Check if it's a known Prisma error (using the imported Prisma namespace)
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        console.error(`API complete-profile: Prisma Known Error - Code: ${error.code}`, error.meta);
+        if (error.code === 'P2002') {
+            // Example: Unique constraint failed (likely User.phone)
+            // Check target field if available in meta
+            const target = error.meta?.target as string[] | undefined;
+            if (target?.includes('phone')) {
+                 return NextResponse.json({ error: 'מספר טלפון זה כבר רשום במערכת.' }, { status: 409 }); // 409 Conflict
+            } else {
+                 return NextResponse.json({ error: 'Unique constraint violation.' }, { status: 409 });
             }
-          }
         }
-      },
-      include: {
-        profile: true
-      }
-    });
-    
-    console.log("User profile updated successfully", {
-      userId: user.id,
-      isProfileComplete: updatedUser.isProfileComplete // לוג האם השדה עודכן
-    });
-    
-    // שמירת מזהה המשתמש בעוגיה להמשך התהליך (במקרה שאין סשן)
-    const headers = new Headers();
-    headers.append('Set-Cookie', `user_id=${user.id}; Path=/; HttpOnly; Max-Age=3600`);
-    
-    return NextResponse.json(
-      {
-        success: true,
-        message: 'פרטי המשתמש נשמרו בהצלחה',
-        user: {
-          id: updatedUser.id,
-          email: updatedUser.email,
-          firstName: updatedUser.firstName,
-          lastName: updatedUser.lastName,
-          phone: updatedUser.phone,
-          isProfileComplete: updatedUser.isProfileComplete, // החזרת השדה בתשובה
-          profile: updatedUser.profile
-        }
-      },
-      { 
-        status: 200,
-        headers: headers
-      }
-    );
-    
-  } catch (error) {
-    console.error('Error in complete-profile:', error);
-    
-    return NextResponse.json(
-      { 
-        success: false,
-        error: 'אירעה שגיאה בהשלמת הפרופיל',
-        details: process.env.NODE_ENV === 'development' ? String(error) : undefined
-      },
-      { status: 500 }
-    );
-  } finally {
-    await prisma.$disconnect();
+        // Handle other Prisma known errors if needed
+        return NextResponse.json({ error: 'Database error occurred' }, { status: 500 });
+    }
+
+    // Check for other Prisma error types if necessary
+    if (error instanceof Prisma.PrismaClientValidationError) {
+        console.error("API complete-profile: Prisma Validation Error.", error.message);
+        return NextResponse.json({ error: 'Database validation error.' }, { status: 400 }); // Or 500 depending on context
+    }
+
+    // Fallback for generic errors
+    let errorMessage = 'Internal Server Error';
+    if (error instanceof Error) {
+        errorMessage = error.message; // Get message from standard Error object
+    }
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

@@ -10,16 +10,17 @@ datasource db {
 model User {
   id                              String                  @id @default(cuid())
   email                           String                  @unique
-  password                        String
+  password                        String?
   firstName                       String
   lastName                        String
   phone                           String?                 @unique
   createdAt                       DateTime                @default(now())
   updatedAt                       DateTime                @updatedAt
   lastLogin                       DateTime?
-  status                          UserStatus              @default(PENDING)
+  status                          UserStatus              @default(PENDING_PHONE_VERIFICATION) // שינוי ברירת מחדל
   role                            UserRole                @default(CANDIDATE)
   isVerified                      Boolean                 @default(false)
+  isPhoneVerified                 Boolean                 @default(false) 
   isProfileComplete Boolean   @default(false)
   firstPartyInquiries             AvailabilityInquiry[]   @relation("FirstPartyInquiries")
   matchmakerAvailabilityInquiries AvailabilityInquiry[]   @relation("MatchmakerInquiries")
@@ -83,6 +84,7 @@ model Verification {
   userId      String?
   type        VerificationType
   token       String             @unique
+  target      String?            // הוספת שדה למטרה (מספר טלפון/אימייל)
   expiresAt   DateTime
   status      VerificationStatus @default(PENDING)
   attempts    Int                @default(0)
@@ -91,7 +93,8 @@ model Verification {
   completedAt DateTime?
   user        User?              @relation(fields: [userId], references: [id])
 
-  @@index([userId, type])
+  @@index([userId, type, status]) // אינדקס משופר
+  @@index([target, type, status]) // אינדקס לחיפוש לפי מטרה
 }
 
 model Profile {
@@ -299,7 +302,7 @@ model UserImage {
   id                 String   @id @default(cuid())
   url                String
   isMain             Boolean  @default(false)
-  cloudinaryPublicId String
+  cloudinaryPublicId String?
   userId             String
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
@@ -365,7 +368,8 @@ enum UserRole {
 }
 
 enum UserStatus {
-  PENDING
+  PENDING_EMAIL_VERIFICATION
+  PENDING_PHONE_VERIFICATION // ממתין לאימות טלפון לאחר הרשמה
   ACTIVE
   INACTIVE
   BLOCKED
@@ -438,7 +442,7 @@ enum InvitationStatus {
 
 enum VerificationType {
   EMAIL
-  PHONE
+  PHONE_WHATSAPP 
   DOCUMENT
   REFERENCE
   PASSWORD_RESET

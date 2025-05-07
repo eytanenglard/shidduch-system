@@ -1,103 +1,143 @@
+// src/app/auth/google-callback/page.tsx
+
 "use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-import { RegistrationProvider, useRegistration } from '@/app/components/auth/RegistrationContext';
-import RegisterSteps from '@/app/components/auth/RegisterSteps';
-import { SessionProvider } from 'next-auth/react';
+import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { SessionProvider, getSession } from "next-auth/react";
+import {
+  RegistrationProvider,
+  useRegistration,
+} from "@/app/components/auth/RegistrationContext";
+import RegisterSteps from "@/app/components/auth/RegisterSteps";
+import { User } from "@/types/next-auth";
+import { CheckCircle, Loader2, XCircle } from "lucide-react"; // Added XCircle for error
 
-// Component to handle Google signup callback
 const GoogleCallbackContent = () => {
   const router = useRouter();
-  const { data: session, status } = useSession();
-  const { setGoogleSignup } = useRegistration();
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
+  // Use a state to manage the overall status instead of multiple booleans
+  const [status, setStatus] = useState<
+    "loading" | "success" | "register" | "error"
+  >("loading");
+  const [error, setError] = useState<string>("");
+  const [sessionChecked, setSessionChecked] = useState(false);
+  const { setGoogleSignup, data: registrationData } = useRegistration();
 
-  useEffect(() => {
-    const handleGoogleCallback = async () => {
-      // Wait for session to load
-      if (status === 'loading') return;
+  const checkSessionAndProceed = useCallback(async () => {
+    console.log("Attempting to fetch session manually using getSession()...");
+    setStatus("loading"); // Reset status
+    setError("");
 
-      try {
-        // Check if we have a valid session
-        if (session?.user) {
-          console.log('Google auth callback - got user session');
-          
-          // Check if user already has a complete profile
-          const userHasProfile = session.user.isProfileComplete;
-          
-          if (userHasProfile) {
-            console.log('User already has a complete profile, redirecting to profile');
-            router.push('/profile');
-            return;
-          }
-          
-          // Extract user data from session to pre-fill the registration form
-          const userData = {
-            email: session.user.email || '',
-            firstName: session.user.firstName || '',
-            lastName: session.user.lastName || '',
-            // Initialize these to empty values to be filled by the user
-            phone: '',
-            gender: '' as const, // שימוש ב-as const במקום as ''
-            birthDate: '',
-            maritalStatus: '',
-          };
-          
-          console.log('Initializing registration flow with Google data');
-          setGoogleSignup(userData);
-          setIsLoading(false);
+    try {
+      const session = await getSession();
+      console.log("getSession() result:", session);
+      setSessionChecked(true);
+
+      if (session?.user) {
+        const currentUser = session.user as User;
+        console.log("Manual session check successful. User data:", {
+          id: currentUser.id,
+          email: currentUser.email,
+          isProfileComplete: currentUser.isProfileComplete,
+        });
+
+        if (currentUser.isProfileComplete) {
+          console.log(
+            `User ${currentUser.email} profile complete. Setting status to 'success' then redirecting to /profile.`
+          );
+          setStatus("success"); // Set status to success
+
+          // Redirect after a delay
+          setTimeout(() => {
+            console.log("Redirecting to /profile after delay.");
+            router.replace("/profile");
+          }, 3000); // 3-second delay
         } else {
-          // No session found, something went wrong with Google auth
-          console.error('No session found after Google authentication');
-          setError('ההתחברות דרך Google נכשלה, אנא נסה שוב או השתמש בהרשמה רגילה.');
-          setIsLoading(false);
+          // Profile is Incomplete - Proceed to registration steps
+          console.log(
+            `User ${currentUser.email} profile incomplete. Initializing registration steps.`
+          );
+          if (
+            currentUser.email &&
+            currentUser.firstName &&
+            currentUser.lastName
+          ) {
+            const googleData = {
+              email: currentUser.email,
+              firstName: currentUser.firstName,
+              lastName: currentUser.lastName,
+            };
+            console.log("Calling setGoogleSignup with:", googleData);
+            try {
+              setGoogleSignup(googleData);
+              console.log(
+                "setGoogleSignup called successfully. Setting status to 'register'."
+              );
+              setStatus("register"); // Set status to register
+            } catch (contextError) {
+              console.error("Error calling setGoogleSignup:", contextError);
+              setError("שגיאה באתחול תהליך ההרשמה.");
+              setStatus("error"); // Set status to error
+            }
+          } else {
+            console.error("Missing essential Google data after getSession.");
+            setError("פרטים חסרים מ-Google. נסה שוב או הירשם ידנית.");
+            setStatus("error"); // Set status to error
+          }
         }
-      } catch (error) {
-        console.error('Error in Google callback:', error);
-        setError('אירעה שגיאה בתהליך ההרשמה עם Google.');
-        setIsLoading(false);
+      } else {
+        console.error(
+          "Manual session check failed (getSession returned null or no user)."
+        );
+        setError("לא ניתן היה לאמת את ההתחברות מול השרת. נסה שוב.");
+        setStatus("error"); // Set status to error
       }
-    };
+    } catch (err) {
+      console.error("Error calling getSession():", err);
+      setError("אירעה שגיאה בבדיקת ההתחברות מול השרת.");
+      setStatus("error"); // Set status to error
+    }
+    // Removed setIsLoading(false) - status state handles it now
+  }, [router, setGoogleSignup]);
 
-    handleGoogleCallback();
-  }, [session, status, router, setGoogleSignup]);
+  // Fetch session only once
+  useEffect(() => {
+    if (!sessionChecked) {
+      checkSessionAndProceed();
+    }
+  }, [sessionChecked, checkSessionAndProceed]); // Removed initialStatus dependency
 
-  if (isLoading) {
+  // --- Render Logic based on status ---
+
+  if (status === "loading") {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-cyan-50 via-white to-pink-50 p-4">
-        <div className="mb-4 w-16 h-16 border-4 border-t-4 border-cyan-500 border-t-pink-500 rounded-full animate-spin"></div>
-        <h2 className="text-xl font-medium text-gray-700">מתחבר עם Google...</h2>
-        <p className="text-gray-500 mt-2">אנא המתן בעת שאנחנו מעבדים את הפרטים שלך</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-cyan-50 via-white to-pink-50 p-4 text-center">
+        <Loader2 className="h-16 w-16 animate-spin text-cyan-600 mb-4" />
+        {/* Optional: Use the fancy border spinner if preferred
+         <div className="mb-4 w-16 h-16 border-4 border-t-4 border-cyan-500 border-t-pink-500 rounded-full animate-spin"></div> */}
+        <h2 className="text-xl font-semibold text-gray-700">
+          מאמת התחברות Google...
+        </h2>
+        <p className="text-gray-500 mt-2">אנא המתן...</p>
       </div>
     );
   }
 
-  if (error) {
+  if (status === "error") {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-cyan-50 via-white to-pink-50 p-4">
-        <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-6">
-          <div className="text-red-500 mb-4">
-            <svg className="w-12 h-12 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            <h2 className="text-xl font-bold text-center">שגיאת התחברות</h2>
+        <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-6 border-t-4 border-red-500">
+          <div className="text-center text-red-500 mb-4">
+            <XCircle className="w-12 h-12 mx-auto mb-3" />
+            <h2 className="text-xl font-bold">שגיאה בתהליך</h2>
           </div>
           <p className="text-gray-600 text-center mb-6">{error}</p>
-          <div className="flex flex-col gap-3">
+          <div className="flex justify-center">
             <button
-              onClick={() => router.push('/auth/register')}
-              className="w-full py-2 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 text-white rounded-lg"
+              onClick={() => router.push("/auth/signin")}
+              className="py-2 px-6 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 text-white rounded-lg shadow-md transition-all duration-300"
             >
-              נסה להירשם שוב
-            </button>
-            <button
-              onClick={() => router.push('/')}
-              className="w-full py-2 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50"
-            >
-              חזרה לדף הבית
+              חזרה להתחברות
             </button>
           </div>
         </div>
@@ -105,11 +145,42 @@ const GoogleCallbackContent = () => {
     );
   }
 
-  // If we're here, we have Google user data and we're continuing the registration flow
-  return <RegisterSteps />;
+  if (status === "success") {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-cyan-50 via-white to-pink-50 p-4">
+        <div className="bg-white p-8 rounded-xl shadow-xl text-center max-w-md w-full">
+          <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-gray-800">
+            התחברת בהצלחה עם Google!
+          </h1>
+          <p className="text-gray-600 mt-3">
+            החשבון שלך אומת, מיד תועבר לפרופיל שלך.
+          </p>
+          <p className="text-gray-500 mt-1">אנא המתן...</p>
+          <Loader2 className="h-6 w-6 text-gray-400 animate-spin mx-auto mt-5" />
+        </div>
+      </div>
+    );
+  }
+
+  if (status === "register") {
+    // Profile was incomplete, setGoogleSignup was called, render RegisterSteps
+    console.log(
+      "Rendering RegisterSteps component via 'register' status. Current registration step:",
+      registrationData.step
+    );
+    return <RegisterSteps />;
+  }
+
+  // Fallback case (should ideally not be reached if status logic is correct)
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      מצב לא צפוי...
+    </div>
+  );
 };
 
-// Export the page with providers
+// Export remains the same
 export default function GoogleCallbackPage() {
   return (
     <SessionProvider>
