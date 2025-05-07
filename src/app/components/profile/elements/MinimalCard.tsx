@@ -22,6 +22,11 @@ const MinimalCard: React.FC<MinimalCardProps> = ({
 }) => {
   const age = calculateAge(new Date(profile.birthDate));
 
+  // Handle cases where profile.user might be undefined
+  const userName = profile.user
+    ? `${profile.user.firstName} ${profile.user.lastName}`
+    : "שם לא זמין"; // "Name not available" in Hebrew
+
   return (
     <Card
       onClick={onClick}
@@ -48,9 +53,7 @@ const MinimalCard: React.FC<MinimalCardProps> = ({
         {/* מידע בסיסי */}
         <div className="flex-1 space-y-2">
           <div>
-            <h3 className="text-lg font-medium">
-              {profile.user.firstName} {profile.user.lastName}
-            </h3>
+            <h3 className="text-lg font-medium">{userName}</h3>
             <p className="text-sm text-gray-500">{age} שנים</p>
           </div>
 
