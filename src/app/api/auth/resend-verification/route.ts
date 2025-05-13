@@ -1,3 +1,4 @@
+
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { randomBytes } from "crypto";
@@ -47,9 +48,10 @@ export async function POST(req: Request) {
     });
 
     // שליחת מייל אימות חדש
+    // *** התיקון כאן: שימוש ב-verificationCode במקום verificationLink ***
     await emailService.sendVerificationEmail({
       email: user.email,
-      verificationLink: verification.token,
+      verificationCode: verification.token, // שונה מ-verificationLink
       firstName: user.firstName,
       expiresIn: '24 שעות'
     });
