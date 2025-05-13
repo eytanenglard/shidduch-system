@@ -3,25 +3,25 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient, UserRole, UserStatus, Prisma, VerificationType } from '@prisma/client';
 import { hash } from 'bcryptjs';
-import { randomBytes } from 'crypto';
-import { emailService } from '@/lib/email/emailService'; // ודא שהנתיב נכון
-
-// הסר ייבוא של דברים שלא נחוצים בשלב זה (כמו sendOtpViaWhatsApp, Gender, generateOtp)
-// import { Gender } from '@prisma/client';
-// import { generateOtp, sendOtpViaWhatsApp } from '@/lib/phoneVerificationService';
+import { emailService } from '@/lib/email/emailService';
+import { VerificationService } from '@/lib/services/verificationService'; 
 
 const prisma = new PrismaClient();
 
-// הגדרת logger נשארת זהה
+// עדכון LogMetadata סופי ומלא
 type LogMetadata = {
   userId?: string;
   email?: string;
   firstName?: string;
   lastName?: string;
-  token?: string;
-  expiry?: Date;
   status?: string;
-  error?: unknown;
+  errorObject?: unknown;     // לשמירת אובייקט השגיאה המקורי
+  errorMessage?: string;     // הודעת השגיאה כטקסט
+  errorName?: string;        // error.name
+  errorCode?: string;        // error.code (למשל, שגיאות Prisma)
+  errorMeta?: unknown;       // error.meta (למשל, שגיאות Prisma)
+  errorStack?: string;       // error.stack
+  errorContext?: string;     // להוספת הקשר לשגיאה (למשל, "Main catch block", "Inside handleError")
   timestamp?: string;
   hasEmail?: boolean;
   hasPassword?: boolean;
@@ -40,16 +40,23 @@ const logger = {
     }));
   },
   error: (message: string, meta?: LogMetadata) => {
+    // נוודא ש-errorObject לא נשלח ישירות אם הוא מכיל מידע רגיש או גדול מדי בצורה לא מבוקרת.
+    // לרוב, המאפיינים שחילצנו (errorMessage, errorName וכו') מספיקים ללוג.
+    const loggableMeta = { ...meta };
+    if (loggableMeta.errorObject && process.env.NODE_ENV !== 'development') {
+        // בסביבת פרודקשן, אולי נרצה להסיר את האובייקט המלא אם הוא לא טופל כראוי
+        // delete loggableMeta.errorObject; 
+        // או להשאיר רק חלקים נבחרים ממנו. כרגע נשאיר אותו.
+    }
     console.error(JSON.stringify({
       timestamp: new Date().toISOString(),
       level: 'error',
       message,
-      ...meta
+      ...loggableMeta
     }));
   }
 };
 
-// Interface מצומצם לקלט הראשוני
 interface InitialRegistrationData {
   email: string;
   password: string;
@@ -57,52 +64,90 @@ interface InitialRegistrationData {
   lastName: string;
 }
 
-// Updated error handler - התאם את הודעות השגיאה בהתאם לשדות הקיימים
 function handleError(error: unknown): { message: string; status: number } {
+    const logMeta: LogMetadata = { 
+        errorContext: "Inside handleError before processing",
+        timestamp: new Date().toISOString(),
+        errorObject: error // שמירת האובייקט המקורי
+    };
+
+    if (error instanceof Error) {
+        logMeta.errorName = error.name;
+        logMeta.errorMessage = error.message;
+        if (process.env.NODE_ENV === 'development') {
+            logMeta.errorStack = error.stack;
+        }
+    } else {
+        logMeta.errorMessage = String(error);
+    }
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        logMeta.errorCode = error.code;
+        logMeta.errorMeta = error.meta;
+    } else if (typeof error === 'object' && error !== null && 'code' in error) {
+        // טיפול במקרים שבהם error הוא אובייקט עם שדה code אך אינו PrismaClientKnownRequestError
+        logMeta.errorCode = String((error as { code: unknown }).code);
+    }
+    
+    logger.error("Error received in handleError", logMeta);
+
+
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       switch (error.code) {
-        case 'P2002':
+        case 'P2002': 
           const target = error.meta?.target as string[] | undefined;
           if (target?.includes('email')) {
-            return { message: 'משתמש עם כתובת אימייל זו כבר קיים במערכת', status: 409 };
+            return { message: 'משתמש עם כתובת אימייל זו כבר קיים במערכת.', status: 409 };
           }
-          // הסר בדיקה של P2002 עבור טלפון, כי הוא לא נשלח בשלב זה
-          return { message: 'משתמש עם פרטים אלה כבר קיים במערכת', status: 409 };
-        case 'P2014': return { message: 'שגיאה בנתונים שהוזנו', status: 400 };
-        default: return { message: 'שגיאה בשמירת הנתונים', status: 500 };
+          return { message: `משתמש עם פרטים אלה כבר קיים במערכת (קוד ${error.code}).`, status: 409 };
+        case 'P2003': 
+            const fieldName = error.meta?.field_name as string | undefined;
+            return { message: `שגיאת תלות בנתונים (שדה: ${fieldName || 'לא ידוע'}). אנא נסה שנית.`, status: 500};
+        case 'P2014': return { message: 'שגיאה בנתונים שהוזנו.', status: 400 };
+        default: 
+            return { message: `שגיאה בשמירת הנתונים (קוד שגיאת DB: ${error.code}).`, status: 500 };
       }
     }
     if (error instanceof Error) {
-      // עדכן את רשימת הודעות השגיאה הצפויות
+       if (error.message === 'משתמש עם כתובת אימייל זו כבר קיים במערכת.') {
+           return { message: error.message, status: 409 };
+       }
        if (['חסרים פרטים חובה', 'כתובת אימייל לא תקינה', 'הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר'].includes(error.message)) {
            return { message: error.message, status: 400 };
        }
-      return { message: error.message, status: 400 }; // Default to 400 for other errors
+       // אם השגיאה הגיעה מ-VerificationService.createVerification, היא תהיה Error instance
+       // וההודעה שלה תהיה השגיאה המקורית מ-Prisma או הודעה מותאמת אישית מהשירות.
+       // כאן אנחנו נותנים להודעה המקורית לעבור, או שיש טיפול ספציפי אם ההודעה ידועה.
+       if (error.message.includes('אירעה שגיאה ביצירת קוד אימות') || 
+           (error.cause instanceof Prisma.PrismaClientKnownRequestError && error.cause.code === 'P2003')) {
+            // אם השגיאה המקורית היא P2003 (מ-cause), החזר הודעה מתאימה
+            return { message: 'אירעה שגיאה ביצירת רשומת האימות עקב בעיית תלות. אנא נסה שנית.', status: 500 };
+       }
+      return { message: error.message, status: 400 }; 
     }
-    return { message: 'אירעה שגיאה בלתי צפויה', status: 500 };
+    return { message: 'אירעה שגיאה בלתי צפויה.', status: 500 };
   }
 
-// --- Main POST Handler ---
+
 export async function POST(req: Request) {
   logger.info('Initial registration process initiated');
 
   try {
-    logger.info('Attempting database connection');
-    await prisma.$connect();
-    logger.info('Database connection established');
-
     const body: InitialRegistrationData = await req.json();
     logger.info('Initial registration data received', {
       email: body.email,
       firstName: body.firstName,
       lastName: body.lastName,
-      hasPassword: !!body.password // בדוק אם סיסמה קיימת
+      hasPassword: !!body.password
     });
 
-    // --- Input Validation ---
-    // בדוק רק את השדות הנשלחים בשלב זה
     if (!body.email || !body.password || !body.firstName || !body.lastName) {
-        logger.error('Missing required fields for initial registration', { /* log individual fields */ });
+        logger.error('Missing required fields for initial registration', { 
+            hasEmail: !!body.email, 
+            hasPassword: !!body.password, 
+            hasFirstName: !!body.firstName, 
+            hasLastName: !!body.lastName 
+        });
         throw new Error('חסרים פרטים חובה');
     }
 
@@ -117,164 +162,142 @@ export async function POST(req: Request) {
       logger.error('Invalid password format');
       throw new Error('הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר');
     }
+    
+    const normalizedEmail = body.email.toLowerCase();
 
-    // הסר ולידציות שלא רלוונטיות לשלב זה (גיל, טלפון)
-    // --- End Input Validation ---
-
-
-    // --- Check for existing email (שמור על הבדיקה הזו) ---
     const existingUser = await prisma.user.findUnique({
-        where: { email: body.email },
+        where: { email: normalizedEmail }, 
     });
     if (existingUser) {
-        // שקול האם להחזיר שגיאה או לאפשר 'upsert' אם המשתמש התחיל ולא סיים
-        // כרגע, נחזיר שגיאה כדי למנוע דריסה לא מכוונת
-        logger.error('Email already exists', { email: body.email });
-        throw new Error('משתמש עם כתובת אימייל זו כבר קיים במערכת');
+        logger.error('Email already exists in database', { email: normalizedEmail });
+        throw new Error('משתמש עם כתובת אימייל זו כבר קיים במערכת.');
     }
-    // --- End Email Check ---
-
-
-    // --- Prepare data ---
+    
     logger.info('Starting password hashing');
     const hashedPassword = await hash(body.password, 12);
     logger.info('Password hashed successfully');
 
-    // הסר יצירת OTP לטלפון בשלב זה
-    // const otpCode = generateOtp();
-    // const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
-
-    const emailVerificationToken = randomBytes(32).toString('hex'); // Generate email token
-    const emailTokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // Email token expires in 24 hours
-    // --- End Prepare data ---
-
-
-    // --- Database Transaction ---
     logger.info('Starting database transaction for initial user creation');
-    const result = await prisma.$transaction(async (tx) => {
-      // Create the user record - אין צורך ב-upsert אם בדקנו למעלה שהאימייל לא קיים
+    
+    const result = await prisma.$transaction(async (tx) => { 
       const user = await tx.user.create({
           data: {
-            email: body.email,
+            email: normalizedEmail, 
             password: hashedPassword,
             firstName: body.firstName,
             lastName: body.lastName,
             role: UserRole.CANDIDATE,
-            // סטטוסים התחלתיים:
-            status: UserStatus.PENDING_EMAIL_VERIFICATION, // או סטטוס מתאים אחר
-            isVerified: false, // Email not verified yet
-            isProfileComplete: false, // Profile not complete
-            isPhoneVerified: false, // Phone not verified
-            // לא מוסיפים profile או phone בשלב זה
+            status: UserStatus.PENDING_EMAIL_VERIFICATION,
+            isVerified: false, 
+            isProfileComplete: false, 
+            isPhoneVerified: false, 
           },
       });
+      logger.info('User created successfully within transaction', { userId: user.id });
 
-      logger.info('User created successfully', { userId: user.id });
+      const expiresInHoursForOtp = 1;
+      const { verification: emailVerificationRecord, otp: generatedOtp } = await VerificationService.createVerification(
+        user.id,
+        VerificationType.EMAIL,
+        user.email, 
+        expiresInHoursForOtp,
+        tx 
+      );
+      logger.info('Email verification record and OTP created within transaction', { verificationId: emailVerificationRecord.id, userId: user.id });
 
-      // Delete previous *pending* EMAIL verification records for this user (אם רוצים למנוע טוקנים כפולים)
-      await tx.verification.deleteMany({
-          where: {
-              userId: user.id,
-              status: 'PENDING',
-              type: VerificationType.EMAIL
-          }
-      });
-      logger.info('Deleted previous pending email verification records', { userId: user.id });
-
-      // Create *new* email verification record
-      const emailVerification = await tx.verification.create({
-          data: {
-              userId: user.id,
-              type: VerificationType.EMAIL,
-              target: user.email, // Store the email
-              token: emailVerificationToken, // Store the email token
-              expiresAt: emailTokenExpiresAt,
-              status: 'PENDING',
-          }
-      });
-      logger.info('Email verification record created', { verificationId: emailVerification.id });
-
-      // הסר יצירת רשומת אימות לטלפון
-      // const phoneVerification = await tx.verification.create(...)
-
-      // Return user and email verification token needed for the email link
-      return { user, emailVerificationToken };
+      return { user, generatedOtp }; 
     });
 
     logger.info('Database transaction completed successfully', { userId: result.user.id });
-    // --- End Database Transaction ---
-
-
-    // --- Send Email Notification ---
-    // הסר שליחת OTP לוואטסאפ
+    
     let emailSentSuccess = false;
+    const emailOtpExpiryText = "שעה אחת"; 
+
     try {
-      logger.info('Sending verification email', { userId: result.user.id, email: result.user.email });
+      logger.info('Sending verification OTP email', { userId: result.user.id, email: result.user.email });
       await emailService.sendVerificationEmail({
         email: result.user.email,
-        // ודא שהשם 'verificationLink' מתאים למה שהפונקציה מצפה לו (אולי זה צריך להיות הטוקן עצמו?)
-        // אם הפונקציה בונה את הלינק, שלח לה את הטוקן
-        verificationLink: `${process.env.NEXTAUTH_URL}/auth/verify-email?token=${result.emailVerificationToken}`, // בנה את הלינק המלא
+        verificationCode: result.generatedOtp, 
         firstName: result.user.firstName,
-        expiresIn: '24 שעות'
+        expiresIn: emailOtpExpiryText 
       });
       emailSentSuccess = true;
-      logger.info('Verification email sent successfully', { userId: result.user.id });
+      logger.info('Verification OTP email sent successfully', { userId: result.user.id });
     } catch (error) {
-      logger.error('Failed to send verification email', {
-        error: error instanceof Error ? error.message : String(error),
-        userId: result.user.id
-      });
-      // חשוב: אם שליחת המייל נכשלת, תהליך ההרשמה נתקע.
-      // אולי כדאי להחזיר שגיאה 500 אם המייל הוא קריטי.
-      // לחילופין, לאפשר למשתמש לבקש שליחה מחדש בדף האימות.
-      // כרגע נמשיך ונחזיר הצלחה, אך עם הודעה מתאימה.
+      const errorLogMeta: LogMetadata = { userId: result.user.id };
+      if (error instanceof Error) {
+        errorLogMeta.errorName = error.name;
+        errorLogMeta.errorMessage = error.message;
+        errorLogMeta.errorStack = error.stack;
+      } else {
+        errorLogMeta.errorMessage = String(error);
+      }
+      logger.error('Failed to send verification OTP email', errorLogMeta);
     }
-    // --- End Send Email Notification ---
-
-
-    // --- Prepare Response ---
-    let message = 'החשבון נוצר בהצלחה. ';
+    
+    let responseMessage = 'החשבון נוצר בהצלחה. ';
     if (emailSentSuccess) {
-        message += 'נשלח מייל לאימות כתובת הדוא"ל שלך. אנא בדוק את תיבת הדואר ולחץ על הקישור.';
+        responseMessage += `נשלח קוד אימות לכתובת הדוא"ל שלך (${result.user.email}). אנא הזן את הקוד כדי להמשיך.`;
     } else {
-        message += 'הייתה בעיה בשליחת מייל האימות. אנא נסה שוב מאוחר יותר או פנה לתמיכה.';
+        responseMessage += 'הייתה בעיה בשליחת קוד האימות. תוכל לבקש קוד חדש במסך הבא או לפנות לתמיכה.';
     }
 
-    logger.info('Initial registration API call completed, user needs to verify email', { userId: result.user.id });
-    // החזר רק הודעה, אין צורך ב-userId או דגלים נוספים לקליינט בשלב זה
+    logger.info('Initial registration API call completed, user needs to verify email with OTP', { userId: result.user.id });
     return NextResponse.json(
       {
         success: true,
-        message: message,
+        message: responseMessage,
+        email: result.user.email, 
+        userId: result.user.id, 
       },
-      { status: 201 } // 201 Created
+      { status: 201 }
     );
-    // --- End Prepare Response ---
 
-  } catch (error: unknown) { // Catch error as unknown
-    const errorDetails = error instanceof Error ? {
-      name: error.name,
-      message: error.message,
-    } : { message: String(error) };
+  } catch (error: unknown) { 
+    // בניית אובייקט הלוג בצורה מבוקרת
+    const logMetaForCatch: LogMetadata = { 
+        errorContext: "Main catch block in POST /api/auth/register",
+        timestamp: new Date().toISOString(),
+        errorObject: error // שמור את האובייקט המקורי
+    };
 
-    logger.error('Initial registration failed', {
-      error: errorDetails,
-      timestamp: new Date().toISOString()
-    });
+    if (error instanceof Error) {
+        logMetaForCatch.errorName = error.name;
+        logMetaForCatch.errorMessage = error.message;
+        if (process.env.NODE_ENV === 'development') {
+            logMetaForCatch.errorStack = error.stack;
+        }
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+            logMetaForCatch.errorCode = error.code;
+            logMetaForCatch.errorMeta = error.meta;
+        } else if (typeof error === 'object' && error !== null && 'code' in error) {
+            logMetaForCatch.errorCode = String((error as { code: unknown }).code);
+        }
+    } else {
+        logMetaForCatch.errorMessage = String(error);
+    }
+    
+    logger.error('Initial registration failed', logMetaForCatch);
 
-    const { message, status } = handleError(error); // Use updated error handler
+    const { message, status } = handleError(error); // handleError יבצע לוגינג משלו גם כן
+
+    // בניית details עבור תגובת השגיאה לקליינט
+    const responseErrorDetails = process.env.NODE_ENV === 'development' ? {
+        name: logMetaForCatch.errorName,
+        message: logMetaForCatch.errorMessage,
+        code: logMetaForCatch.errorCode,
+        meta: logMetaForCatch.errorMeta,
+        stack: logMetaForCatch.errorStack
+    } : undefined;
+
 
     return NextResponse.json(
       {
         success: false,
-        error: message,
-        details: process.env.NODE_ENV === 'development' ? errorDetails : undefined
+        error: message, 
+        details: responseErrorDetails
       },
       { status }
     );
-  } finally {
-    await prisma.$disconnect();
-    logger.info('Database connection closed');
-  }
+  } 
 }

@@ -7,63 +7,25 @@ import { useSession } from "next-auth/react";
 import { RegistrationProvider, useRegistration } from "./RegistrationContext";
 import WelcomeStep from "./steps/WelcomeStep";
 import BasicInfoStep from "./steps/BasicInfoStep";
+import EmailVerificationCodeStep from "./steps/EmailVerificationCodeStep";
 import PersonalDetailsStep from "./steps/PersonalDetailsStep";
 import OptionalInfoStep from "./steps/OptionalInfoStep";
 import CompleteStep from "./steps/CompleteStep";
 import ProgressBar from "./ProgressBar";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ArrowRight, Info, MailCheck } from "lucide-react"; // הוסף MailCheck
-import { Button } from "@/components/ui/button"; // הוסף Button
-import { motion } from "framer-motion"; // הוסף motion
+import { ArrowRight, Info } from "lucide-react";
+// import { motion } from "framer-motion"; // Not directly used here, but sub-components use it
 
-// קומפוננטה ייעודית להצגת הודעת "בדוק אימייל"
-const EmailVerificationPending: React.FC = () => {
-  const { data } = useRegistration(); // קבל את האימייל מהקונטקסט
-
-  return (
-    <motion.div
-      className="space-y-5 text-center p-6 bg-blue-50 rounded-lg border border-blue-200"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      <MailCheck className="h-12 w-12 text-blue-500 mx-auto mb-4" />
-      <h2 className="text-xl font-bold text-blue-800">כמעט סיימנו!</h2>
-      <p className="text-blue-700">
-        שלחנו מייל אימות לכתובת{" "}
-        <strong className="font-semibold">{data.email}</strong>.
-      </p>
-      <p className="text-gray-600 text-sm mt-2">
-        אנא בדוק את תיבת הדואר הנכנס שלך (וגם את תיקיית הספאם/זבל) ולחץ על
-        הקישור כדי לאמת את חשבונך.
-      </p>
-      <p className="text-gray-600 text-sm mt-2">
-        לאחר אימות המייל, תוכל להתחבר ולהשלים את פרטי הפרופיל שלך.
-      </p>
-      <Button
-        onClick={() => (window.location.href = "/auth/signin")} // הפנה להתחברות
-        variant="link"
-        className="mt-4 text-blue-600 hover:text-blue-800"
-      >
-        חזרה לדף ההתחברות
-      </Button>
-      {/* אפשר להוסיף כפתור resend אם ה-API תומך */}
-    </motion.div>
-  );
-};
-
-// Wrapper component that uses the context
 const RegisterStepsContent: React.FC = () => {
-  // Use the registration context hook
   const { data, initializeForCompletion, goToStep } = useRegistration();
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { data: session, status: sessionStatus } = useSession(); // Renamed status to avoid conflict
   const searchParams = useSearchParams();
   const [showIncompleteProfileMessage, setShowIncompleteProfileMessage] =
     useState(false);
-  const [initialized, setInitialized] = useState(false);
+  const [initializedForCompletion, setInitializedForCompletion] =
+    useState(false);
 
-  // ... useEffects נשארים כפי שהם ...
   useEffect(() => {
     const reason = searchParams.get("reason");
     if (reason === "complete_profile") {
@@ -73,190 +35,269 @@ const RegisterStepsContent: React.FC = () => {
 
   useEffect(() => {
     if (
-      status === "authenticated" &&
+      sessionStatus === "authenticated" &&
       session?.user &&
-      !session.user.isProfileComplete && // או !session.user.isPhoneVerified כתנאי העיקרי
-      !initialized
+      !session.user.isProfileComplete &&
+      !initializedForCompletion && // Use the dedicated state
+      !data.isCompletingProfile && // Ensure we are not already in completion mode
+      !data.isVerifyingEmailCode // And not verifying email
     ) {
       console.log(
-        "Detected authenticated user with incomplete profile. Initializing completion flow."
+        "RegisterSteps: Authenticated user with incomplete profile. Initializing completion flow."
       );
       initializeForCompletion({
         email: session.user.email || "",
-        firstName: session.user.firstName,
+        firstName: session.user.firstName, // These might be null/undefined
         lastName: session.user.lastName,
       });
-      setInitialized(true);
-    } else if (status === "authenticated" && session?.user?.isProfileComplete) {
-      // או isPhoneVerified
+      setInitializedForCompletion(true); // Mark as initialized
+    } else if (
+      sessionStatus === "authenticated" &&
+      session?.user?.isProfileComplete
+    ) {
       console.log(
         "RegisterSteps: User authenticated and profile complete, redirecting to /profile"
       );
       router.push("/profile");
     } else if (
-      status === "unauthenticated" &&
-      data.isCompletingProfile &&
-      data.step !== 0 // בדוק אם אנחנו לא כבר בשלב 0 לפני שמחזירים
+      sessionStatus === "unauthenticated" &&
+      data.isCompletingProfile && // If was in completion mode
+      !data.isVerifyingEmailCode // And not verifying email
+      // data.step !== 0 // No need to check step if isCompletingProfile is true
     ) {
-      goToStep(0); // חזור לשלב ההתחלה של השלמת הפרופיל (שיופעל רק אם מחובר)
+      // If user becomes unauthenticated while they were in profile completion mode,
+      // reset them to the initial registration step (Welcome)
       console.log(
-        "User became unauthenticated during profile completion, resetting step."
+        "User became unauthenticated during profile completion, resetting to WelcomeStep."
       );
+      goToStep(0);
+      // Also reset isCompletingProfile if necessary, though goToStep(0) might handle it
+      // depending on RegistrationContext logic. For clarity:
+      // setData(prev => ({ ...prev, isCompletingProfile: false, step: 0 }));
     }
   }, [
-    status,
+    sessionStatus,
     session,
     initializeForCompletion,
-    initialized,
+    initializedForCompletion,
     router,
-    data.step,
+    // data.step, // data.step changes frequently, data object itself is better
+    data, // Listen to changes in the whole data object from context
     goToStep,
-    data.isCompletingProfile, // הוסף כתלות
+    // data.isCompletingProfile, // Covered by 'data'
+    // data.isVerifyingEmailCode, // Covered by 'data'
   ]);
 
-  // Function to render the current step component
   const renderStep = (): React.ReactNode => {
-    // --- בדיקה חדשה: הצג הודעת אימות אימייל ---
-    if (data.isEmailVerificationPending && !data.isCompletingProfile) {
-      return <EmailVerificationPending />;
-    }
-    // --- סוף בדיקה חדשה ---
-
-    // לוגיקה קיימת להשלמת פרופיל
-    if (data.isCompletingProfile && data.step < 2) {
-      console.log(
-        "In completion mode but step is < 2, attempting to show step 2"
-      );
-      return <PersonalDetailsStep />;
+    if (data.isVerifyingEmailCode && !data.isCompletingProfile) {
+      console.log("RegisterSteps: Rendering EmailVerificationCodeStep.");
+      return <EmailVerificationCodeStep />;
     }
 
-    // לוגיקה קיימת לבחירת שלב
+    // Profile Completion Flow
+    if (data.isCompletingProfile) {
+      // Profile completion starts at PersonalDetails (which is step 2 in the main flow)
+      // and goes to OptionalInfo (step 3), then Complete (step 4)
+      switch (data.step) {
+        case 2: // Personal Details
+          console.log(
+            "RegisterSteps (Completion): Rendering PersonalDetailsStep."
+          );
+          return <PersonalDetailsStep />;
+        case 3: // Optional Info
+          console.log(
+            "RegisterSteps (Completion): Rendering OptionalInfoStep."
+          );
+          return <OptionalInfoStep />;
+        case 4: // Completion Confirmation Screen
+          console.log("RegisterSteps (Completion): Rendering CompleteStep.");
+          return <CompleteStep />;
+        default:
+          // If in completion mode but step is unexpected (e.g., 0 or 1),
+          // default to PersonalDetails or log an error.
+          console.warn(
+            `RegisterSteps (Completion): Unexpected step ${data.step}. Defaulting to PersonalDetailsStep.`
+          );
+          return <PersonalDetailsStep />;
+      }
+    }
+
+    // Regular Registration Flow
     switch (data.step) {
-      case 0:
-        return data.isCompletingProfile ? null : <WelcomeStep />;
-      case 1:
-        // אם אנחנו לא משלימים פרופיל ולא ממתינים לאימייל, הצג שלב 1
-        return data.isCompletingProfile ? null : <BasicInfoStep />;
-      case 2:
-        return <PersonalDetailsStep />;
-      case 3:
-        return <OptionalInfoStep />;
-      case 4:
-        return <CompleteStep />; // שלב זה יופיע רק בסוף תהליך *השלמת* הפרופיל
-      default:
-        return data.isCompletingProfile ? (
-          <PersonalDetailsStep />
-        ) : (
-          <WelcomeStep />
+      case 0: // Welcome
+        console.log("RegisterSteps (Registration): Rendering WelcomeStep.");
+        return <WelcomeStep />;
+      case 1: // Basic Info (EmailVerificationCodeStep is handled above)
+        console.log("RegisterSteps (Registration): Rendering BasicInfoStep.");
+        return <BasicInfoStep />;
+      case 2: // Personal Details (after email verification)
+        console.log(
+          "RegisterSteps (Registration): Rendering PersonalDetailsStep."
         );
+        return <PersonalDetailsStep />;
+      case 3: // Optional Info
+        console.log(
+          "RegisterSteps (Registration): Rendering OptionalInfoStep."
+        );
+        return <OptionalInfoStep />;
+      case 4: // Complete (This step is usually for profile completion confirmation)
+        // In a new registration, after OptionalInfo, they might be redirected or shown a different message.
+        // For now, if step 4 is reached in normal registration, show CompleteStep.
+        console.log(
+          "RegisterSteps (Registration): Rendering CompleteStep (end of multi-step form)."
+        );
+        return <CompleteStep />;
+      default:
+        console.warn(
+          `RegisterSteps (Registration): Unexpected step ${data.step}. Defaulting to WelcomeStep.`
+        );
+        return <WelcomeStep />;
     }
   };
 
-  // ... Loading state נשאר זהה ...
-  if (
-    status === "loading" ||
-    (status === "authenticated" &&
-      !initialized &&
-      !session?.user?.isProfileComplete)
-  ) {
+  if (sessionStatus === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        טוען נתוני משתמש...
+        טוען...
       </div>
     );
   }
-  if (status === "authenticated" && session?.user?.isProfileComplete) {
+  // If authenticated and profile is complete, useEffect will redirect.
+  // If authenticated, incomplete profile, and not yet initializedForCompletion, show loading.
+  if (
+    sessionStatus === "authenticated" &&
+    session?.user &&
+    !session.user.isProfileComplete &&
+    !initializedForCompletion &&
+    !data.isCompletingProfile
+  ) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        מעביר לפרופיל...
+        בודק נתוני משתמש...
       </div>
     );
   }
 
   const stepContent = renderStep();
-  if (stepContent === null) {
-    // זה קורה אם isCompletingProfile=true ו step < 2
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        טוען שלב הבא...
-      </div>
-    );
+
+  // --- Determine Titles and Progress Bar ---
+  let pageTitle = "הרשמה למערכת";
+  let stepDescription = "ברוכים הבאים! בואו נתחיל.";
+
+  // ProgressBar logic:
+  // Registration: Welcome(0) -> Basic(1) --Verify--> Personal(2) -> Optional(3) -> End(4)
+  // ProgressBar steps: (BasicInfo) -> (Personal) -> (Optional) => 3 steps for progress bar
+  // Completion: Personal(data.step=2) -> Optional(data.step=3) -> End(data.step=4)
+  // ProgressBar steps: (Personal) -> (Optional) => 2 steps for progress bar
+
+  let currentProgressBarStep = 0;
+  let totalProgressBarSteps = 3; // For new registration
+  let showProgressBar = false;
+
+  if (data.isVerifyingEmailCode) {
+    pageTitle = "אימות כתובת מייל";
+    stepDescription = `כדי להמשיך, יש לאמת את כתובת המייל שלך: ${data.emailForVerification}.`;
+    showProgressBar = false; // Or treat as part of BasicInfo's progress
+  } else if (data.isCompletingProfile) {
+    pageTitle = "השלמת פרטים";
+    totalProgressBarSteps = 2; // Personal, Optional
+    if (data.step === 2) {
+      // PersonalDetails
+      stepDescription = "שלב 1 מתוך 2: פרטים אישיים.";
+      currentProgressBarStep = 1;
+      showProgressBar = true;
+    } else if (data.step === 3) {
+      // OptionalInfo
+      stepDescription = "שלב 2 מתוך 2: מידע נוסף (מומלץ).";
+      currentProgressBarStep = 2;
+      showProgressBar = true;
+    } else if (data.step === 4) {
+      // CompleteStep
+      stepDescription = "הפרופיל הושלם בהצלחה!";
+      showProgressBar = false; // Or show full
+    }
+  } else {
+    // New Registration
+    if (data.step === 0) {
+      // Welcome
+      // Default description is fine
+      showProgressBar = false;
+    } else if (data.step === 1) {
+      // BasicInfo
+      stepDescription = "שלב 1 מתוך 3: פרטי חשבון.";
+      currentProgressBarStep = 1;
+      showProgressBar = true;
+    } else if (data.step === 2) {
+      // PersonalDetails
+      stepDescription = "שלב 2 מתוך 3: פרטים אישיים.";
+      currentProgressBarStep = 2;
+      showProgressBar = true;
+    } else if (data.step === 3) {
+      // OptionalInfo
+      stepDescription = "שלב 3 מתוך 3: מידע נוסף (אופציונלי).";
+      currentProgressBarStep = 3;
+      showProgressBar = true;
+    } else if (data.step === 4) {
+      // CompleteStep (if used for new reg completion)
+      stepDescription = "ההרשמה הושלמה!";
+      showProgressBar = false; // Or show full
+    }
   }
 
-  // --- Main Render ---
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-cyan-50 via-white to-pink-50 p-4 sm:p-8">
-      {/* Back to home button */}
       <button
         onClick={() => router.push("/")}
-        className="absolute top-4 left-4 text-gray-600 hover:text-gray-800 transition-colors flex items-center gap-1 text-sm z-20"
+        className="absolute top-4 left-4 rtl:right-4 rtl:left-auto text-gray-600 hover:text-gray-800 transition-colors flex items-center gap-1 text-sm z-20"
       >
-        <ArrowRight className="h-4 w-4" />
+        <ArrowRight className="h-4 w-4" />{" "}
+        {/* Icon might need to flip for RTL */}
         חזרה לדף הבית
       </button>
 
-      {/* Branding - עדכן את הטקסט אם אנחנו במצב "בדוק אימייל" */}
       <div className="mb-6 text-center">
         <h1 className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-pink-500 text-3xl font-bold mb-2">
-          {data.isEmailVerificationPending
-            ? "אימות כתובת מייל"
-            : data.isCompletingProfile
-            ? "השלמת פרטים"
-            : "הרשמה למערכת"}
+          {pageTitle}
         </h1>
-        {/* הסתר את תיאור השלב אם אנחנו במצב "בדוק אימייל" */}
-        {!data.isEmailVerificationPending && (
-          <p className="text-gray-600 max-w-md mx-auto">
-            {data.step === 4
-              ? "כמעט סיימנו!"
-              : data.isCompletingProfile
-              ? `שלב ${data.step - 1} מתוך 2 - ממשיכים להתקדם.`
-              : data.step === 0
-              ? "ברוכים הבאים! בואו נתחיל."
-              : `שלב ${data.step} מתוך 3 - נא למלא את הפרטים.`}
-          </p>
-        )}
+        <p className="text-gray-600 max-w-md mx-auto">{stepDescription}</p>
       </div>
 
-      {/* Alert Message for incomplete profile - נשאר זהה */}
-      {showIncompleteProfileMessage && (
-        <Alert className="mb-6 w-full max-w-md bg-yellow-50 border-yellow-200 text-yellow-800 shadow-md">
-          <Info className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-1" />
-          <div className="ml-3">
-            <AlertTitle className="font-semibold mb-1">
-              השלמת פרופיל נדרשת
-            </AlertTitle>
-            <AlertDescription className="text-sm">
-              כדי לגשת לאזור האישי ולשאר חלקי האתר, יש להשלים תחילה את פרטי
-              הפרופיל שלך.
-            </AlertDescription>
-          </div>
-        </Alert>
-      )}
+      {showIncompleteProfileMessage &&
+        !data.isCompletingProfile && ( // Show only if not already in completion flow
+          <Alert className="mb-6 w-full max-w-md bg-yellow-50 border-yellow-200 text-yellow-800 shadow-md">
+            <Info className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-1" />
+            <div className="ml-3 rtl:mr-3 rtl:ml-0">
+              <AlertTitle className="font-semibold mb-1">
+                השלמת פרופיל נדרשת
+              </AlertTitle>
+              <AlertDescription className="text-sm">
+                כדי לגשת לאזור האישי ולשאר חלקי האתר, יש להשלים תחילה את פרטי
+                הפרופיל שלך.
+              </AlertDescription>
+            </div>
+          </Alert>
+        )}
 
-      {/* Progress bar - הסתר אם אנחנו במצב "בדוק אימייל" */}
-      {!data.isEmailVerificationPending && data.step >= 2 && data.step < 4 && (
+      {showProgressBar && (
         <div className="w-full max-w-md mb-6">
           <ProgressBar
-            currentStep={data.isCompletingProfile ? data.step - 1 : data.step}
-            totalSteps={data.isCompletingProfile ? 2 : 3}
+            currentStep={currentProgressBarStep}
+            totalSteps={totalProgressBarSteps}
           />
         </div>
       )}
 
-      {/* Main content area */}
       <div className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden relative">
-        {/* הסתר את הפס העליון אם אנחנו במצב "בדוק אימייל" או השאר לפי עיצוב */}
-        {!data.isEmailVerificationPending && (
+        {/* Conditional top bar, hide if verifying email or on welcome step */}
+        {!(
+          data.isVerifyingEmailCode ||
+          (data.step === 0 && !data.isCompletingProfile)
+        ) && (
           <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-cyan-500 to-pink-500"></div>
         )}
-        <div className="p-6 sm:p-8">
-          {stepContent}{" "}
-          {/* Render the determined step or the pending message */}
-        </div>
+        <div className="p-6 sm:p-8">{stepContent}</div>
       </div>
 
-      {/* Footer נשאר זהה */}
       <div className="mt-8 text-center text-sm text-gray-500">
         יש לך שאלות?{" "}
         <a href="/contact" className="text-cyan-600 hover:underline">
@@ -267,7 +308,6 @@ const RegisterStepsContent: React.FC = () => {
   );
 };
 
-// Export with provider wrapper נשאר זהה
 export default function RegisterSteps() {
   return (
     <RegistrationProvider>

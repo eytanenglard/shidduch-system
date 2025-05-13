@@ -35,9 +35,8 @@ const Navbar = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      // Calculate scroll progress (0 to 1) based on how far user has scrolled
       const scrollPosition = window.scrollY;
-      const scrollThreshold = 300; // Fully opaque after scrolling this many pixels
+      const scrollThreshold = 300;
       const progress = Math.min(scrollPosition / scrollThreshold, 1);
 
       setScrollProgress(progress);
@@ -76,21 +75,18 @@ const Navbar = () => {
     </Button>
   );
 
-  // Dynamic style for the navbar based on scroll - Enhanced with gradient
   const navbarStyle = {
     background: scrolled
       ? `rgba(255, 255, 255, ${scrollProgress * 0.9})`
-      : `rgb(236, 254, 255)`, // Solid cyan background matching the hero
-
+      : `rgb(236, 254, 255)`,
     backdropFilter: `blur(${5 + scrollProgress * 10}px)`,
     borderBottom: scrolled
-      ? "1px solid rgba(6, 182, 212, 0.2)" // Cyan border when scrolled
-      : "1px solid rgba(255, 255, 255, 0.1)", // Subtle white border when at top
+      ? "1px solid rgba(6, 182, 212, 0.2)"
+      : "1px solid rgba(255, 255, 255, 0.1)",
     boxShadow: scrolled ? "0 4px 20px rgba(6, 182, 212, 0.1)" : "none",
   };
 
-  // Shared gradient button style for all navigation buttons
-  const gradientButtonStyle = scrolled 
+  const gradientButtonStyle = scrolled
     ? "bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white shadow-md hover:shadow-lg rounded-xl"
     : "bg-gradient-to-r from-cyan-500/70 via-pink-500/30 to-cyan-500/70 hover:from-cyan-500/90 hover:via-pink-500/40 hover:to-cyan-500/90 text-white backdrop-filter backdrop-blur-sm shadow-md hover:shadow-lg rounded-xl";
 
@@ -100,7 +96,6 @@ const Navbar = () => {
         className="sticky top-0 z-50 w-full transition-all duration-500"
         style={navbarStyle}
       >
-        {/* Enhanced gradient top line with animation */}
         <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-cyan-400 via-pink-300 to-cyan-400 animate-gradient-x"></div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
@@ -114,10 +109,7 @@ const Navbar = () => {
                   className="h-7 w-7 transition-all duration-500 text-pink-500"
                   fill="#f0faff"
                 />
-                {/* Enhanced pulsing animation */}
-                <div
-                  className="absolute inset-0 rounded-full animate-ping-slow bg-gradient-to-r from-cyan-200/40 to-pink-200/40"
-                ></div>
+                <div className="absolute inset-0 rounded-full animate-ping-slow bg-gradient-to-r from-cyan-200/40 to-pink-200/40"></div>
               </div>
               <span
                 className={`text-xl font-bold transition-all duration-500 
@@ -126,14 +118,10 @@ const Navbar = () => {
               >
                 Match Point
               </span>
-              {/* New subtle glow effect */}
               <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/0 via-pink-500/0 to-cyan-500/0 group-hover:from-cyan-500/10 group-hover:via-pink-500/10 group-hover:to-cyan-500/10 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
             </Link>
 
-            {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-1 md:gap-2">
-              {/* Removed Home button as requested */}
-
               {session && (
                 <>
                   {isMatchmaker ? (
@@ -186,7 +174,6 @@ const Navbar = () => {
             <div className="flex items-center gap-1 md:gap-2">
               <LanguageToggle />
 
-              {/* Mobile Menu Toggle Button */}
               <Button
                 variant="ghost"
                 size="sm"
@@ -275,7 +262,6 @@ const Navbar = () => {
         </div>
       </nav>
 
-      {/* Mobile Menu Overlay with improved blur effect */}
       {mobileMenuOpen && (
         <div
           className="fixed inset-0 bg-gradient-to-br from-cyan-900/30 via-gray-900/50 to-pink-900/30 z-50 backdrop-blur-md transition-opacity duration-300"
@@ -283,7 +269,6 @@ const Navbar = () => {
         />
       )}
 
-      {/* Enhanced Mobile Menu Sidebar */}
       <div
         className={`fixed top-0 ${
           language === "he" ? "right-0" : "left-0"
@@ -296,10 +281,10 @@ const Navbar = () => {
         }`}
       >
         <div className="flex justify-between items-center p-4 border-b border-cyan-100 bg-gradient-to-r from-cyan-50 to-white">
-            <div className="relative">
-              <Heart className="h-6 w-6 text-pink-500" fill="#f0faff" />
-              <div className="absolute inset-0 rounded-full animate-ping-slow bg-gradient-to-r from-cyan-200/40 to-pink-200/40"></div>
-            </div>
+          <div className="relative">
+            <Heart className="h-6 w-6 text-pink-500" fill="#f0faff" />
+            <div className="absolute inset-0 rounded-full animate-ping-slow bg-gradient-to-r from-cyan-200/40 to-pink-200/40"></div>
+          </div>
           <Button
             variant="ghost"
             size="sm"
@@ -329,8 +314,6 @@ const Navbar = () => {
 
           <nav className="p-2">
             <ul className="space-y-1">
-              {/* Removed Home button from mobile menu as well */}
-
               {session ? (
                 <>
                   {isMatchmaker ? (
@@ -374,17 +357,17 @@ const Navbar = () => {
                     }
                     gradientStyle="bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-600 hover:from-cyan-700 hover:via-blue-700 hover:to-cyan-700"
                   />
+                  {/* הוספנו קו הפרדה רק אם הפריטים הבאים קיימים */}
+                  <li className="pt-2 mt-2 border-t border-gray-100" />
 
-                  <li className="pt-2 mt-2 border-t border-gray-100">
-                    <MobileNavItem
-                      href="/profile"
-                      onClick={() => setMobileMenuOpen(false)}
-                      isActive={isActive("/profile")}
-                      icon={<User className="ml-2 h-5 w-5" />}
-                      text="פרופיל אישי"
-                      gradientStyle="bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-600 hover:from-cyan-700 hover:via-blue-700 hover:to-cyan-700"
-                    />
-                  </li>
+                  <MobileNavItem
+                    href="/profile"
+                    onClick={() => setMobileMenuOpen(false)}
+                    isActive={isActive("/profile")}
+                    icon={<User className="ml-2 h-5 w-5" />}
+                    text="פרופיל אישי"
+                    gradientStyle="bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-600 hover:from-cyan-700 hover:via-blue-700 hover:to-cyan-700"
+                  />
                   <MobileNavItem
                     href="/settings"
                     onClick={() => setMobileMenuOpen(false)}
@@ -393,47 +376,37 @@ const Navbar = () => {
                     text="הגדרות חשבון"
                     gradientStyle="bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-600 hover:from-cyan-700 hover:via-blue-700 hover:to-cyan-700"
                   />
-                  <li>
-                    <Button
-                      variant="default"
-                      onClick={handleSignOut}
-                      className="w-full justify-start bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-600 hover:from-cyan-700 hover:via-blue-700 hover:to-cyan-700 shadow-md transition-all duration-300 text-white rounded-xl"
-                    >
-                      <LogOut className="ml-2 h-5 w-5" />
-                      התנתקות
-                    </Button>
-                  </li>
+                  {/* כפתור ההתנתקות עכשיו עטוף ב-MobileNavItem */}
+                  <MobileNavItem
+                    href="#" // ניתן להשאיר # או להסיר את ה-href אם ה-onClick מטפל בניווט
+                    onClick={handleSignOut}
+                    isActive={false} // כפתור התנתקות לא פעיל במובן של נתיב
+                    icon={<LogOut className="ml-2 h-5 w-5" />}
+                    text="התנתקות"
+                    gradientStyle="bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-600 hover:from-cyan-700 hover:via-blue-700 hover:to-cyan-700 rounded-xl"
+                  />
                 </>
               ) : (
                 <>
-                  <li className="pt-2 mt-2 border-t border-gray-100">
-                    <Link
-                      href="/auth/signin"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      <Button
-                        variant="default"
-                        className="w-full justify-start bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-600 hover:from-cyan-700 hover:via-blue-700 hover:to-cyan-700 shadow-md transition-all duration-300 text-white"
-                      >
-                        <LogIn className="ml-2 h-5 w-5" />
-                        התחברות
-                      </Button>
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="/auth/register"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      <Button
-                        variant="default"
-                        className="w-full justify-start bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-600 hover:from-cyan-700 hover:via-blue-700 hover:to-cyan-700 shadow-md transition-all duration-300 text-white"
-                      >
-                        <UserPlus className="ml-2 h-5 w-5" />
-                        הרשמה למערכת
-                      </Button>
-                    </Link>
-                  </li>
+                  {/* הוספנו קו הפרדה רק אם הפריטים הבאים קיימים */}
+                  <li className="pt-2 mt-2 border-t border-gray-100" />
+                  {/* כפתורי התחברות והרשמה עכשיו משתמשים ב-MobileNavItem */}
+                  <MobileNavItem
+                    href="/auth/signin"
+                    onClick={() => setMobileMenuOpen(false)}
+                    isActive={isActive("/auth/signin")}
+                    icon={<LogIn className="ml-2 h-5 w-5" />}
+                    text="התחברות"
+                    gradientStyle="bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-600 hover:from-cyan-700 hover:via-blue-700 hover:to-cyan-700"
+                  />
+                  <MobileNavItem
+                    href="/auth/register"
+                    onClick={() => setMobileMenuOpen(false)}
+                    isActive={isActive("/auth/register")}
+                    icon={<UserPlus className="ml-2 h-5 w-5" />}
+                    text="הרשמה למערכת"
+                    gradientStyle="bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-600 hover:from-cyan-700 hover:via-blue-700 hover:to-cyan-700"
+                  />
                 </>
               )}
             </ul>
@@ -444,7 +417,6 @@ const Navbar = () => {
   );
 };
 
-// NavItem component for desktop navigation - updated to use consistent gradient styling
 const NavItem = ({
   href,
   icon,
@@ -465,7 +437,6 @@ const NavItem = ({
       variant="default"
       className={`text-sm transition-all duration-300 relative group overflow-hidden ${gradientStyle}`}
     >
-      {/* Subtle shimmer effect on all items */}
       <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
       <span className="relative z-10 flex items-center">
         {icon}
@@ -480,10 +451,10 @@ const NavItem = ({
   </Link>
 );
 
-// MobileNavItem component - Enhanced with consistent gradient styling
 const MobileNavItem = ({
   href,
   onClick,
+  isActive, // הוספנו isActive כדי שנוכל להשתמש בו אם נרצה בעתיד
   icon,
   text,
   badge,
@@ -498,12 +469,15 @@ const MobileNavItem = ({
   gradientStyle: string;
 }) => (
   <li>
-    <Link href={href} onClick={onClick}>
+    <Link href={href} onClick={onClick} passHref>
+      {" "}
+      {/* הוספנו passHref */}
       <Button
         variant="default"
+        // className={`w-full justify-start transition-all duration-300 relative overflow-hidden group text-white shadow-md ${gradientStyle} ${isActive ? "ring-2 ring-pink-300" : ""}`}
+        // ה-styling של הכפתור נלקח ישירות מה-gradientStyle שהועבר. אין צורך להוסיף כאן class נוסף אם הוא כבר מוגדר ב-gradientStyle
         className={`w-full justify-start transition-all duration-300 relative overflow-hidden group text-white shadow-md ${gradientStyle}`}
       >
-        {/* Subtle shimmer effect on all items */}
         <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
         <span className="relative z-10 flex items-center">
           {icon}
@@ -518,30 +492,5 @@ const MobileNavItem = ({
     </Link>
   </li>
 );
-
-// Add these animations to your global CSS
-// @keyframes gradient-x {
-//   0% { background-position: 0% 50%; }
-//   50% { background-position: 100% 50%; }
-//   100% { background-position: 0% 50%; }
-// }
-// .animate-gradient-x {
-//   background-size: 200% 100%;
-//   animation: gradient-x 10s ease infinite;
-// }
-// @keyframes ping-slow {
-//   0% { transform: scale(1); opacity: 1; }
-//   50% { transform: scale(1.5); opacity: 0; }
-//   100% { transform: scale(1); opacity: 0; }
-// }
-// .animate-ping-slow {
-//   animation: ping-slow 3s cubic-bezier(0, 0, 0.2, 1) infinite;
-// }
-// @keyframes shimmer {
-//   100% { transform: translateX(100%); }
-// }
-// .animate-shimmer {
-//   animation: shimmer 2.5s infinite;
-// }
 
 export default Navbar;

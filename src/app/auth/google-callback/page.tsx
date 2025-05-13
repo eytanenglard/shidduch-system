@@ -11,21 +11,21 @@ import {
 } from "@/app/components/auth/RegistrationContext";
 import RegisterSteps from "@/app/components/auth/RegisterSteps";
 import { User } from "@/types/next-auth";
-import { CheckCircle, Loader2, XCircle } from "lucide-react"; // Added XCircle for error
+import { CheckCircle, Loader2, XCircle } from "lucide-react";
 
 const GoogleCallbackContent = () => {
   const router = useRouter();
-  // Use a state to manage the overall status instead of multiple booleans
   const [status, setStatus] = useState<
     "loading" | "success" | "register" | "error"
   >("loading");
   const [error, setError] = useState<string>("");
   const [sessionChecked, setSessionChecked] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   const { setGoogleSignup, data: registrationData } = useRegistration();
 
   const checkSessionAndProceed = useCallback(async () => {
     console.log("Attempting to fetch session manually using getSession()...");
-    setStatus("loading"); // Reset status
+    setStatus("loading");
     setError("");
 
     try {
@@ -45,15 +45,12 @@ const GoogleCallbackContent = () => {
           console.log(
             `User ${currentUser.email} profile complete. Setting status to 'success' then redirecting to /profile.`
           );
-          setStatus("success"); // Set status to success
-
-          // Redirect after a delay
+          setStatus("success");
           setTimeout(() => {
             console.log("Redirecting to /profile after delay.");
             router.replace("/profile");
-          }, 3000); // 3-second delay
+          }, 3000);
         } else {
-          // Profile is Incomplete - Proceed to registration steps
           console.log(
             `User ${currentUser.email} profile incomplete. Initializing registration steps.`
           );
@@ -73,48 +70,48 @@ const GoogleCallbackContent = () => {
               console.log(
                 "setGoogleSignup called successfully. Setting status to 'register'."
               );
-              setStatus("register"); // Set status to register
+              setStatus("register");
             } catch (contextError) {
               console.error("Error calling setGoogleSignup:", contextError);
               setError("שגיאה באתחול תהליך ההרשמה.");
-              setStatus("error"); // Set status to error
+              setStatus("error");
             }
           } else {
             console.error("Missing essential Google data after getSession.");
             setError("פרטים חסרים מ-Google. נסה שוב או הירשם ידנית.");
-            setStatus("error"); // Set status to error
+            setStatus("error");
           }
         }
       } else {
         console.error(
           "Manual session check failed (getSession returned null or no user)."
         );
+        if (retryCount < 3) {
+          console.log(`Retrying session check (${retryCount + 1}/3)...`);
+          setRetryCount(retryCount + 1);
+          setTimeout(() => checkSessionAndProceed(), 1000);
+          return;
+        }
         setError("לא ניתן היה לאמת את ההתחברות מול השרת. נסה שוב.");
-        setStatus("error"); // Set status to error
+        setStatus("error");
       }
     } catch (err) {
       console.error("Error calling getSession():", err);
       setError("אירעה שגיאה בבדיקת ההתחברות מול השרת.");
-      setStatus("error"); // Set status to error
+      setStatus("error");
     }
-    // Removed setIsLoading(false) - status state handles it now
-  }, [router, setGoogleSignup]);
+  }, [router, setGoogleSignup, retryCount]);
 
-  // Fetch session only once
   useEffect(() => {
     if (!sessionChecked) {
       checkSessionAndProceed();
     }
-  }, [sessionChecked, checkSessionAndProceed]); // Removed initialStatus dependency
-
-  // --- Render Logic based on status ---
+  }, [sessionChecked, checkSessionAndProceed]);
 
   if (status === "loading") {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-cyan-50 via-white to-pink-50 p-4 text-center">
         <Loader2 className="h-16 w-16 animate-spin text-cyan-600 mb-4" />
-        {/* Optional: Use the fancy border spinner if preferred
-         <div className="mb-4 w-16 h-16 border-4 border-t-4 border-cyan-500 border-t-pink-500 rounded-full animate-spin"></div> */}
         <h2 className="text-xl font-semibold text-gray-700">
           מאמת התחברות Google...
         </h2>
@@ -164,7 +161,6 @@ const GoogleCallbackContent = () => {
   }
 
   if (status === "register") {
-    // Profile was incomplete, setGoogleSignup was called, render RegisterSteps
     console.log(
       "Rendering RegisterSteps component via 'register' status. Current registration step:",
       registrationData.step
@@ -172,7 +168,6 @@ const GoogleCallbackContent = () => {
     return <RegisterSteps />;
   }
 
-  // Fallback case (should ideally not be reached if status logic is correct)
   return (
     <div className="min-h-screen flex items-center justify-center">
       מצב לא צפוי...
@@ -180,7 +175,6 @@ const GoogleCallbackContent = () => {
   );
 };
 
-// Export remains the same
 export default function GoogleCallbackPage() {
   return (
     <SessionProvider>

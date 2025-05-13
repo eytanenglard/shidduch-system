@@ -17,47 +17,23 @@ interface VerificationState {
 export default function VerifyEmailPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { data: session, update: updateSession } = useSession();
+  const { data: session } = useSession();
 
-  const rawTokenParam = searchParams.get("token");
-  const emailFromQuery = searchParams.get("email");
+  const navigationTimeoutIdRef = useRef<NodeJS.Timeout | null>(null);
 
-  let actualToken: string | null = null;
-  if (rawTokenParam) {
-    if (rawTokenParam.includes("://") && rawTokenParam.includes("?token=")) {
-      try {
-        const nestedUrl = new URL(rawTokenParam);
-        actualToken = nestedUrl.searchParams.get("token");
-      } catch (e) {
-        console.warn(
-          "VerifyEmailPage: Could not parse rawTokenParam as a URL, assuming it's the token itself:",
-          rawTokenParam,
-          e
-        );
-        actualToken = rawTokenParam;
-      }
-    } else {
-      actualToken = rawTokenParam;
-    }
-  }
+  // Ref to ensure the API call logic runs only once after the component has "settled" from StrictMode effects.
+  const verificationApiCallMadeRef = useRef(false);
 
-  const [verification, setVerification] = useState<VerificationState>(() => {
-    if (actualToken) {
-      return { status: "verifying", message: "" };
-    }
-    if (emailFromQuery) {
-      return { status: "pending", message: "" };
-    }
-    return {
-      status: "error",
-      message: "קישור האימות אינו תקין (חסר מידע נדרש).",
-    };
+  const [verification, setVerification] = useState<VerificationState>({
+    status: "pending",
+    message: "",
   });
 
   const [isResending, setIsResending] = useState(false);
-  const verificationAttemptCompletedOrFailedRef = useRef(false);
 
   const handleResendVerification = async () => {
+    // ... (same as before)
+    const emailFromQuery = searchParams.get("email");
     if (!emailFromQuery) {
       setVerification({
         status: "error",
@@ -66,7 +42,7 @@ export default function VerifyEmailPage() {
       return;
     }
     setIsResending(true);
-    setVerification((prev) => ({ ...prev, message: "" }));
+    setVerification({ status: "pending", message: "" });
     try {
       const response = await fetch("/api/auth/resend-verification", {
         method: "POST",
@@ -94,191 +70,203 @@ export default function VerifyEmailPage() {
   };
 
   useEffect(() => {
+    let isEffectMounted = true; // Tracks if the current effect instance is still mounted
     const controller = new AbortController();
-    const signal = controller.signal;
-    let navigationTimeoutId: NodeJS.Timeout | null = null; // Define timeout ID here
 
-    const performVerification = async () => {
-      if (!actualToken) {
-        if (rawTokenParam && verification.status !== "error") {
-          console.error(
-            "VerifyEmailPage (performVerification): No actual token extracted from rawTokenParam:",
-            rawTokenParam
-          );
-          setVerification({
-            status: "error",
-            message: "פורמט קישור האימות אינו תקין (בעיה בחילוץ הטוקן).",
-          });
-          verificationAttemptCompletedOrFailedRef.current = true;
-        }
+    const processVerification = async () => {
+      if (verificationApiCallMadeRef.current) {
+        console.log(
+          "VerifyEmailPage: API call already made or in progress, skipping."
+        );
         return;
       }
+      verificationApiCallMadeRef.current = true; // Mark that we are making the call
 
+      const rawTokenParam = searchParams.get("token");
+      const emailFromQuery = searchParams.get("email");
+      let actualToken: string | null = null;
+
+      console.log("VerifyEmailPage: Raw token from URL:", rawTokenParam);
+      if (rawTokenParam) {
+        // ... (token extraction logic)
+        if (
+          rawTokenParam.includes("://") &&
+          rawTokenParam.includes("?token=")
+        ) {
+          try {
+            const nestedUrl = new URL(rawTokenParam);
+            actualToken = nestedUrl.searchParams.get("token");
+            console.log(
+              "VerifyEmailPage: Extracted token from nested URL:",
+              actualToken
+            );
+          } catch (error) {
+            console.warn(
+              "VerifyEmailPage: Could not parse rawTokenParam as a URL:",
+              rawTokenParam,
+              error
+            );
+            actualToken = rawTokenParam;
+          }
+        } else {
+          actualToken = rawTokenParam;
+          console.log(
+            "VerifyEmailPage: Using raw token directly:",
+            actualToken
+          );
+        }
+      }
+
+      if (!actualToken) {
+        if (emailFromQuery) {
+          console.log(
+            "VerifyEmailPage: No token, but email found. Setting to pending."
+          );
+          if (isEffectMounted)
+            setVerification({
+              status: "pending",
+              message: "שלחנו מייל אימות לכתובת:",
+            });
+        } else {
+          console.log(
+            "VerifyEmailPage: No token and no email. Setting to error."
+          );
+          if (isEffectMounted)
+            setVerification({
+              status: "error",
+              message: "קישור האימות אינו תקין (חסר מידע נדרש).",
+            });
+        }
+        return; // Stop further processing
+      }
+
+      if (isEffectMounted)
+        setVerification({ status: "verifying", message: "" });
+      console.log(
+        "VerifyEmailPage: ==> Attempting API verification for token:",
+        actualToken
+      );
+
+      // Session check
       if (
         session?.user?.email &&
         emailFromQuery &&
         session.user.email !== emailFromQuery
       ) {
         console.warn(
-          "VerifyEmailPage (performVerification): User logged in with a different email. Preventing verification."
+          "VerifyEmailPage: User logged in with different email. Aborting."
         );
-        setVerification({
-          status: "error",
-          message: "אתה מחובר עם חשבון מייל אחר. אנא התנתק ונסה שוב את הלינק.",
-        });
-        verificationAttemptCompletedOrFailedRef.current = true;
+        if (isEffectMounted)
+          setVerification({
+            status: "error",
+            message:
+              "אתה מחובר עם חשבון מייל אחר. אנא התנתק ונסה שוב את הלינק.",
+          });
         return;
       }
 
-      console.log(
-        "VerifyEmailPage (performVerification): Attempting to verify with token:",
-        actualToken
-      );
       try {
         const response = await fetch("/api/auth/verify", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ token: actualToken, type: "EMAIL" }),
-          signal,
+          signal: controller.signal,
         });
 
-        const data = await response.json();
-
-        if (signal.aborted) {
-          console.log(
-            "VerifyEmailPage (performVerification): Verification fetch aborted by signal. Resetting attempt flag."
+        let data;
+        try {
+          data = await response.json();
+        } catch (jsonError) {
+          console.error(
+            "VerifyEmailPage (API): Failed to parse JSON response.",
+            jsonError
           );
-          verificationAttemptCompletedOrFailedRef.current = false;
+          if (response.ok && response.status !== 204)
+            throw new Error("תגובה לא תקינה מהשרת (JSON parsing failed).");
+          else if (!response.ok)
+            throw new Error("תגובה לא תקינה מהשרת במהלך האימות.");
+        }
+
+        if (controller.signal.aborted) {
+          console.log("VerifyEmailPage (API): Fetch aborted by cleanup.");
           return;
         }
 
         if (!response.ok) {
-          throw new Error(data.error || "שגיאה באימות החשבון");
+          const errorMessage =
+            data?.error || `שגיאה באימות החשבון (סטטוס ${response.status})`;
+          throw new Error(errorMessage);
         }
 
-        console.log(
-          "VerifyEmailPage (performVerification): Verification successful via API."
-        );
-        verificationAttemptCompletedOrFailedRef.current = true;
-        if (!signal.aborted) {
+        console.log("VerifyEmailPage (API): Verification successful.");
+        if (isEffectMounted) {
           setVerification({
             status: "success",
             message: "החשבון אומת בהצלחה!",
           });
-
-          console.log(
-            "VerifyEmailPage (performVerification): Attempting to update session..."
-          );
-          await updateSession();
-          console.log(
-            "VerifyEmailPage (performVerification): Session update triggered."
-          );
-
-          // Check signal again before setting timeout, as updateSession might trigger re-render and abort
-          if (!signal.aborted) {
-            navigationTimeoutId = setTimeout(() => {
+          navigationTimeoutIdRef.current = setTimeout(() => {
+            if (isEffectMounted) {
+              // Check mount status again before navigating
+              console.log("VerifyEmailPage: Navigating now to /auth/signin.");
+              router.push("/auth/signin");
+            } else {
               console.log(
-                "VerifyEmailPage (performVerification): Navigating to '/' after timeout."
+                "VerifyEmailPage: Effect unmounted before navigation timeout."
               );
-              router.push("/");
-            }, 1500);
-          } else {
-            console.log(
-              "VerifyEmailPage (performVerification): Navigation setTimeout not set due to signal abortion prior to timeout setup."
-            );
-          }
-        } else {
-          console.log(
-            "VerifyEmailPage (performVerification): Success processing aborted by signal after fetch."
-          );
+            }
+          }, 1500);
         }
       } catch (error: unknown) {
-        if (
-          typeof error === "object" &&
-          error !== null &&
-          "name" in error &&
-          error.name === "AbortError"
-        ) {
+        if (controller.signal.aborted) {
+          // Check if the error is due to our own abort
           console.log(
-            "VerifyEmailPage (performVerification) [catch]: Verification fetch aborted. Resetting attempt flag to allow retry."
+            "VerifyEmailPage (API) [catch]: Fetch aborted by controller during operation."
           );
-          verificationAttemptCompletedOrFailedRef.current = false;
-          return;
-        }
-
-        console.error(
-          "VerifyEmailPage (performVerification) [catch]: Error during API verification:",
-          error
-        );
-        verificationAttemptCompletedOrFailedRef.current = true;
-        if (!signal.aborted) {
+        } else if (isEffectMounted) {
+          console.error(
+            "VerifyEmailPage (API) [catch]: Error during API verification:",
+            error
+          );
           let errorMessage = "שגיאה באימות החשבון";
           if (error instanceof Error) {
-            if (error.message.includes("הטוקן כבר נוצל")) {
+            if (error.message.includes("הטוקן כבר נוצל"))
               errorMessage =
                 "הטוקן הזה כבר נוצל לאימות. אם נרשמת בהצלחה, נסה להתחבר.";
-            } else if (error.message.includes("תוקף הטוקן פג")) {
+            else if (error.message.includes("תוקף הטוקן פג"))
               errorMessage =
                 "תוקף קישור האימות פג. אנא נסה לשלוח מייל אימות מחדש.";
-            } else {
+            else if (error.message.includes("תגובה לא תקינה מהשרת"))
               errorMessage = error.message;
-            }
+            else errorMessage = error.message;
+          } else {
+            errorMessage = "אירעה שגיאה לא צפויה במהלך האימות.";
           }
           setVerification({ status: "error", message: errorMessage });
-        } else {
-          console.log(
-            "VerifyEmailPage (performVerification) [catch]: Error processing aborted by signal after fetch."
-          );
         }
       }
     };
 
-    if (verification.status === "verifying" && actualToken) {
-      if (!verificationAttemptCompletedOrFailedRef.current) {
-        console.log(
-          "VerifyEmailPage (useEffect): Calling performVerification (attempt ref is false)."
-        );
-        performVerification();
-      } else {
-        console.log(
-          "VerifyEmailPage (useEffect): Skipping performVerification (attempt ref is true - already completed/failed)."
-        );
-      }
-    } else if (
-      verification.status === "verifying" &&
-      !actualToken &&
-      rawTokenParam
-    ) {
-      console.error(
-        "VerifyEmailPage (useEffect): Status 'verifying' but no actualToken (extraction failed). Setting to error."
-      );
-      setVerification({
-        status: "error",
-        message: "פורמט קישור האימות אינו תקין.",
-      });
-      verificationAttemptCompletedOrFailedRef.current = true;
-    }
+    processVerification();
 
     return () => {
       console.log(
-        "VerifyEmailPage (useEffect cleanup): Aborting any in-progress fetch and clearing navigation timeout."
+        "VerifyEmailPage (useEffect cleanup): Cleaning up. Aborting API call."
       );
+      isEffectMounted = false; // Mark that this effect instance is being cleaned up
       controller.abort();
-      if (navigationTimeoutId) {
-        // Clear the timeout if it was set
-        clearTimeout(navigationTimeoutId);
+      if (navigationTimeoutIdRef.current) {
+        clearTimeout(navigationTimeoutIdRef.current);
+        console.log(
+          "VerifyEmailPage (useEffect cleanup): Cleared navigation timeout."
+        );
       }
+      // Do NOT reset verificationApiCallMadeRef.current here.
+      // It should ensure the logic runs only once per component true lifecycle.
     };
-  }, [
-    actualToken,
-    emailFromQuery,
-    router,
-    updateSession,
-    session,
-    verification.status,
-    rawTokenParam,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, router, session]); // Dependencies
 
+  // ... (JSX remains the same)
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
@@ -291,15 +279,22 @@ export default function VerifyEmailPage() {
                   variant="default"
                   className="text-sm text-center bg-blue-50 border-blue-200 text-blue-800"
                 >
-                  <AlertDescription>{verification.message}</AlertDescription>
+                  <AlertDescription>
+                    {verification.message ||
+                      (searchParams.get("email")
+                        ? "שלחנו מייל אימות לכתובת:"
+                        : "טוען מידע...")}
+                  </AlertDescription>
                 </Alert>
               )}
-              <p>שלחנו מייל אימות לכתובת:</p>
+              {!verification.message && searchParams.get("email") && (
+                <p>שלחנו מייל אימות לכתובת:</p>
+              )}
               <p className="font-medium">
-                {emailFromQuery || "לא צוינה כתובת"}
+                {searchParams.get("email") || "לא צוינה כתובת"}
               </p>
               <p>אנא בדקו את תיבת הדואר שלכם ולחצו על הקישור לאימות החשבון.</p>
-              {emailFromQuery && (
+              {searchParams.get("email") && (
                 <Button
                   onClick={handleResendVerification}
                   disabled={isResending}
@@ -329,7 +324,7 @@ export default function VerifyEmailPage() {
                 {verification.message}
               </h2>
               <p className="text-gray-600">
-                החשבון אומת בהצלחה. מעביר אותך להמשך...
+                החשבון אומת בהצלחה. מעביר אותך להתחברות...
               </p>
               <Loader2 className="h-6 w-6 animate-spin mx-auto mt-4 text-gray-400" />
             </div>
@@ -339,7 +334,7 @@ export default function VerifyEmailPage() {
               <Alert variant="destructive">
                 <AlertDescription>{verification.message}</AlertDescription>
               </Alert>
-              {emailFromQuery &&
+              {searchParams.get("email") &&
                 !verification.message.includes("הטוקן הזה כבר נוצל") &&
                 !verification.message.includes("מחובר עם חשבון מייל אחר") &&
                 (verification.message.includes("תוקף קישור האימות פג") ||
@@ -349,7 +344,9 @@ export default function VerifyEmailPage() {
                   (verification.message.includes("שגיאה באימות החשבון") &&
                     !verification.message.includes(
                       "פורמט קישור האימות אינו תקין"
-                    ))) && (
+                    ) &&
+                    !verification.message.includes("תגובה לא תקינה מהשרת")) ||
+                  verification.message.includes("תגובה לא תקינה מהשרת")) && (
                   <div className="flex justify-center">
                     <Button
                       onClick={handleResendVerification}

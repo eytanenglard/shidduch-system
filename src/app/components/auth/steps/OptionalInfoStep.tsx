@@ -2,46 +2,42 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation"; // Import useRouter for redirection
-import { useRegistration } from "../RegistrationContext"; // Your registration context hook
-import { Button } from "@/components/ui/button"; // Shadcn UI Button
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // Shadcn UI Alert
-import { Input } from "@/components/ui/input"; // Assuming Shadcn UI Input
+import { useRouter } from "next/navigation";
+import { useRegistration } from "../RegistrationContext";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Input } from "@/components/ui/input";
 import {
   ArrowLeft,
   ArrowRight,
   Ruler,
   Briefcase,
   GraduationCap,
-  Loader2, // Spinner icon
-  AlertCircle, // Error icon
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
-import { motion } from "framer-motion"; // For animations
+import { motion } from "framer-motion";
 
 // Define the possible states during form submission
-type SubmissionStatus = "idle" | "saving" | "sendingCode" | "error";
+type SubmissionStatus = "idle" | "savingProfile" | "sendingCode" | "error"; // שינוי saving ל-savingProfile
 
 const OptionalInfoStep: React.FC = () => {
-  // Get data and update functions from the registration context
   const { data, updateField, prevStep } = useRegistration();
-  const router = useRouter(); // Initialize the router hook
+  const router = useRouter();
 
-  // State for loading indicators and error messages
   const [submissionStatus, setSubmissionStatus] =
     useState<SubmissionStatus>("idle");
-  const [error, setError] = useState<string | null>(null); // Store error messages
+  const [error, setError] = useState<string | null>(null);
 
-  // --- Form Submission Handler ---
   const handleSubmit = async () => {
-    setSubmissionStatus("saving"); // Start saving profile data
-    setError(null); // Clear previous errors
+    setSubmissionStatus("savingProfile"); // Start saving profile data
+    setError(null);
 
-    // --- Step 1: Save Profile Data ---
     try {
-      // Prepare data payload for the profile API
+      // --- Step 1: Save Profile Data ---
       const profileData = {
         // Data from previous steps (PersonalDetailsStep)
-        phone: data.phone,
+        phone: data.phone, // Phone is needed for User update inside complete-profile API
         gender: data.gender,
         birthDate: data.birthDate,
         maritalStatus: data.maritalStatus,
@@ -51,95 +47,97 @@ const OptionalInfoStep: React.FC = () => {
         education: data.education,
       };
 
-      console.log("Submitting profile data:", profileData);
+      console.log("OptionalInfoStep: Submitting profile data:", profileData);
 
-      // Call the API to save/update the profile details
       const profileResponse = await fetch("/api/auth/complete-profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(profileData),
+        credentials: "include", // <-- *** הוספנו את זה ***
       });
 
-      // Handle non-successful profile save response
       if (!profileResponse.ok) {
-        let errorMessage = "אירעה שגיאה בשמירת פרטי הפרופיל";
+        let errorMessage = `שגיאה ${profileResponse.status}`;
         try {
           const errorData = await profileResponse.json();
-          // Use specific error from API if available
           errorMessage =
             errorData.error ||
-            `שגיאה ${profileResponse.status}: ${profileResponse.statusText}`;
-          console.error("API Error Details (complete-profile):", errorData);
+            `שגיאה ${profileResponse.status}: נתונים לא תקינים או בעיית שרת.`;
+          console.error(
+            "OptionalInfoStep: API Error Details (complete-profile):",
+            errorData
+          );
         } catch (parseError) {
-          // Fallback if error response is not JSON
           errorMessage = `שגיאה ${profileResponse.status}: ${profileResponse.statusText}`;
           console.error(
-            "Failed to parse error response (complete-profile):",
+            "OptionalInfoStep: Failed to parse error response (complete-profile):",
             parseError
           );
         }
-        // Throw error to be caught below, stopping the process
-        throw new Error(errorMessage);
+        throw new Error(errorMessage); // זרוק שגיאה כדי להפסיק את התהליך
       }
 
-      const profileResult = await profileResponse.json(); // Get success response if needed
-      console.log("Profile data saved successfully:", profileResult);
+      const profileResult = await profileResponse.json();
+      console.log(
+        "OptionalInfoStep: Profile data saved successfully:",
+        profileResult
+      );
 
       // --- Step 2: Send Phone Verification Code ---
-      setSubmissionStatus("sendingCode"); // Update status
-      console.log("Attempting to send phone verification code...");
+      setSubmissionStatus("sendingCode");
+      console.log(
+        "OptionalInfoStep: Attempting to send phone verification code..."
+      );
 
-      // Call the API responsible for sending the OTP
       const sendCodeResponse = await fetch("/api/auth/send-phone-code", {
         method: "POST",
-        // No body needed, API uses the session to get the user ID and phone
+        headers: { "Content-Type": "application/json" }, // Content-Type עדיין חשוב, גם אם אין body
+        // body: JSON.stringify({}), // שלח אובייקט ריק אם ה-API דורש body כלשהו
+        credentials: "include", // <-- *** הוספנו את זה ***
       });
 
-      // Handle non-successful OTP send response
       if (!sendCodeResponse.ok) {
-        let errorMessage = "אירעה שגיאה בשליחת קוד האימות לוואטסאפ";
+        let errorMessage = `שגיאה ${sendCodeResponse.status}`;
         try {
           const errorData = await sendCodeResponse.json();
           errorMessage =
             errorData.error ||
-            `שגיאה ${sendCodeResponse.status}: ${sendCodeResponse.statusText}`;
-          console.error("API Error Details (send-phone-code):", errorData);
+            `שגיאה ${sendCodeResponse.status}: לא ניתן היה לשלוח קוד אימות.`;
+          console.error(
+            "OptionalInfoStep: API Error Details (send-phone-code):",
+            errorData
+          );
         } catch (parseError) {
           errorMessage = `שגיאה ${sendCodeResponse.status}: ${sendCodeResponse.statusText}`;
           console.error(
-            "Failed to parse error response (send-phone-code):",
+            "OptionalInfoStep: Failed to parse error response (send-phone-code):",
             parseError
           );
         }
-        // Throw error to be caught, stopping redirection
-        throw new Error(errorMessage);
+        throw new Error(errorMessage); // זרוק שגיאה
       }
 
-      const sendCodeResult = await sendCodeResponse.json(); // Get success response
-      console.log("Verification code sent successfully:", sendCodeResult);
+      const sendCodeResult = await sendCodeResponse.json();
+      console.log(
+        "OptionalInfoStep: Verification code sent successfully:",
+        sendCodeResult
+      );
 
       // --- Step 3: Redirect to Verification Page ---
-      // Both API calls were successful, navigate the user
-      console.log("Redirecting to /auth/verify-phone...");
-      router.push("/auth/verify-phone");
+      console.log("OptionalInfoStep: Redirecting to /auth/verify-phone...");
+      router.push("/auth/verify-phone"); // נווט לדף אימות הטלפון
     } catch (err) {
-      // Catch errors from either API call
-      console.error("Error during profile completion or OTP sending:", err);
-      // Set the error state to display the message to the user
+      console.error(
+        "OptionalInfoStep: Error during profile completion or OTP sending:",
+        err
+      );
       setError(err instanceof Error ? err.message : "אירעה שגיאה לא צפויה");
-      setSubmissionStatus("error"); // Set status to error
-    } finally {
-      // Reset status only if there was an error, otherwise redirection happens
-      // If status is saving or sendingCode and an error occurred, it will be set to 'error' above.
-      if (submissionStatus === "error") {
-        // If the process resulted in an error, reset to idle after handling
-        // This might need adjustment based on UX - maybe keep error state until user interaction?
-        // setSubmissionStatus('idle'); // Re-enable the button after error
-      }
-      // No need to reset if redirecting
+      setSubmissionStatus("error"); // עדכן סטטוס לשגיאה
     }
+    // אין צורך ב-finally להחזרת סטטוס ל-idle אם יש ניווט,
+    // אבל אם נשארים בדף עקב שגיאה, הכפתור צריך להיות פעיל שוב.
+    // הסטטוס 'error' יאפשר להציג את השגיאה, אבל לא ימנע לחיצה חוזרת אם צריך.
   };
-  // --- End Form Submission Handler ---
 
   // --- Animation Variants ---
   const containerVariants = {
@@ -163,18 +161,22 @@ const OptionalInfoStep: React.FC = () => {
   // --- Helper to get button text based on status ---
   const getButtonText = (): string => {
     switch (submissionStatus) {
-      case "saving":
+      case "savingProfile":
         return "שומר פרטים...";
       case "sendingCode":
         return "שולח קוד אימות...";
       case "error":
-        return data.isCompletingProfile ? "סיום והמשך לאימות" : "סיום והרשמה"; // Show original text on error
+        // במקרה של שגיאה, חזור לטקסט המקורי כדי לאפשר ניסיון חוזר
+        return data.isCompletingProfile ? "סיום והמשך לאימות" : "סיום והרשמה";
       case "idle":
       default:
-        return data.isCompletingProfile ? "סיום והמשך לאימות" : "סיום והרשמה";
+        return data.isCompletingProfile ? "סיום והמשך לאימות" : "סיום והרשמה"; // טקסט דינמי בהתאם למצב
     }
   };
   // --- End Helper ---
+
+  const isSubmitting =
+    submissionStatus === "savingProfile" || submissionStatus === "sendingCode";
 
   // --- Render Component ---
   return (
@@ -197,94 +199,85 @@ const OptionalInfoStep: React.FC = () => {
       </motion.p>
 
       {/* Display Error Alert if exists */}
-      {error && (
-        <motion.div variants={itemVariants}>
-          <Alert variant="destructive" className="mb-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>שגיאה</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        </motion.div>
-      )}
+      {error &&
+        submissionStatus === "error" && ( // הצג שגיאה רק אם הסטטוס הוא error
+          <motion.div variants={itemVariants}>
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>שגיאה</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          </motion.div>
+        )}
 
       {/* Form Fields Container */}
       <motion.div variants={itemVariants} className="space-y-4">
         {/* Height Field */}
         <div className="space-y-1">
           <label
-            htmlFor="height"
+            htmlFor="heightOptional"
             className="block text-sm font-medium text-gray-700 flex items-center gap-1"
           >
             <Ruler className="h-4 w-4 text-gray-400" />
             גובה (בסמ)
           </label>
-          <Input // Use Shadcn Input
+          <Input
             type="number"
-            id="height"
+            id="heightOptional"
             min="120"
             max="220"
-            value={data.height ?? ""} // Use ?? for undefined/null -> empty string
+            value={data.height ?? ""}
             onChange={(e) =>
               updateField(
                 "height",
-                // Parse to number, handle empty string or invalid input
                 e.target.value
                   ? parseInt(e.target.value, 10) || undefined
                   : undefined
               )
             }
             placeholder="לדוגמה: 175"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
-            disabled={
-              submissionStatus === "saving" ||
-              submissionStatus === "sendingCode"
-            } // Disable during submission
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none disabled:bg-gray-100"
+            disabled={isSubmitting} // Disable during submission
           />
         </div>
 
         {/* Occupation Field */}
         <div className="space-y-1">
           <label
-            htmlFor="occupation"
+            htmlFor="occupationOptional"
             className="block text-sm font-medium text-gray-700 flex items-center gap-1"
           >
             <Briefcase className="h-4 w-4 text-gray-400" />
             עיסוק
           </label>
-          <Input // Use Shadcn Input
+          <Input
             type="text"
-            id="occupation"
+            id="occupationOptional"
             value={data.occupation ?? ""}
             onChange={(e) => updateField("occupation", e.target.value)}
             placeholder="לדוגמה: מהנדס תוכנה, מורה, סטודנט/ית"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
-            disabled={
-              submissionStatus === "saving" ||
-              submissionStatus === "sendingCode"
-            } // Disable during submission
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none disabled:bg-gray-100"
+            disabled={isSubmitting} // Disable during submission
           />
         </div>
 
         {/* Education Field */}
         <div className="space-y-1">
           <label
-            htmlFor="education"
+            htmlFor="educationOptional"
             className="block text-sm font-medium text-gray-700 flex items-center gap-1"
           >
             <GraduationCap className="h-4 w-4 text-gray-400" />
             השכלה
           </label>
-          <Input // Use Shadcn Input
+          <Input
             type="text"
-            id="education"
+            id="educationOptional"
             value={data.education ?? ""}
             onChange={(e) => updateField("education", e.target.value)}
             placeholder="לדוגמה: תואר ראשון במדעי המחשב"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
-            disabled={
-              submissionStatus === "saving" ||
-              submissionStatus === "sendingCode"
-            } // Disable during submission
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none disabled:bg-gray-100"
+            disabled={isSubmitting} // Disable during submission
           />
         </div>
       </motion.div>
@@ -293,18 +286,15 @@ const OptionalInfoStep: React.FC = () => {
       {/* Navigation Buttons */}
       <motion.div
         variants={itemVariants}
-        className="flex justify-between pt-4 mt-6" // Added top margin
+        className="flex justify-between pt-4 mt-6"
       >
         {/* Back Button */}
         <Button
-          type="button" // Explicitly set type
+          type="button"
           onClick={prevStep}
           variant="outline"
           className="flex items-center gap-2 border-gray-300"
-          // Disable button while saving profile or sending code
-          disabled={
-            submissionStatus === "saving" || submissionStatus === "sendingCode"
-          }
+          disabled={isSubmitting} // Disable button while submitting
         >
           <ArrowRight className="h-4 w-4" /> {/* RTL: Right arrow for back */}
           חזרה
@@ -312,25 +302,19 @@ const OptionalInfoStep: React.FC = () => {
 
         {/* Submit/Complete Button */}
         <Button
-          type="button" // Explicitly set type
+          type="button"
           onClick={handleSubmit}
-          // Disable button while saving profile or sending code
-          disabled={
-            submissionStatus === "saving" || submissionStatus === "sendingCode"
-          }
-          className="bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 flex items-center gap-2 min-w-[180px] justify-center px-4 py-2" // Ensure minimum width and padding
+          disabled={isSubmitting} // Disable button while submitting
+          className="bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 flex items-center gap-2 min-w-[180px] justify-center px-4 py-2 disabled:opacity-70"
         >
-          {/* Show spinner and dynamic text when busy */}
-          {submissionStatus === "saving" ||
-          submissionStatus === "sendingCode" ? (
+          {isSubmitting ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              <span>{getButtonText()}</span>
+              <span>{getButtonText()}</span> {/* טקסט דינמי */}
             </>
           ) : (
-            // Show regular text and icon when idle or on error
             <>
-              <span>{getButtonText()}</span>
+              <span>{getButtonText()}</span> {/* טקסט דינמי */}
               <ArrowLeft className="h-4 w-4 ml-2" />{" "}
               {/* RTL: Left arrow for continue */}
             </>
@@ -340,7 +324,6 @@ const OptionalInfoStep: React.FC = () => {
       {/* End Navigation Buttons */}
     </motion.div>
   );
-  // --- End Render Component ---
 };
 
 export default OptionalInfoStep;

@@ -2,52 +2,94 @@
 
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth'; // Adjust path if needed
-import prisma from '@/lib/prisma'; // Adjust path if needed
-import { Prisma } from '@prisma/client'; // <-- Import Prisma namespace for error types
+import { authOptions } from '@/lib/auth'; // ודא שהנתיב הזה נכון ומצביע על קובץ authOptions שלך
+import prisma from '@/lib/prisma'; // ודא שהנתיב הזה נכון
+import { Prisma } from '@prisma/client';
 import { z } from 'zod';
-import { Gender } from '@prisma/client'; // Import Gender enum
+import { Gender, UserStatus } from '@prisma/client'; // ייבוא Gender ו-UserStatus
 
-// Zod Schema - includes phone for validation from client
+// Zod Schema - כולל phone לאימות מהלקוח
 const completeProfileSchema = z.object({
   phone: z.string().regex(/^0\d{9}$/, "Invalid phone number format (e.g., 0501234567)"),
-  gender: z.nativeEnum(Gender), // Use Prisma enum Gender
+  gender: z.nativeEnum(Gender),
   birthDate: z.string().refine((date) => !isNaN(Date.parse(date)), {
      message: "Invalid birth date format",
-  }).refine((date) => { // Optional: Age validation (e.g., >= 18)
+  }).refine((date) => {
       const age = Math.floor((new Date().getTime() - new Date(date).getTime()) / 31557600000);
       return age >= 18;
   }, { message: "Must be at least 18 years old" }),
-  maritalStatus: z.string().min(1, "Marital status is required"), // Assuming it's required in the form
-  height: z.coerce.number().int().min(120).max(220).optional(), // coerce handles string-to-number
+  maritalStatus: z.string().min(1, "Marital status is required"),
+  height: z.coerce.number().int().min(120).max(220).optional(),
   occupation: z.string().optional(),
   education: z.string().optional(),
 });
 
 export async function POST(req: Request) {
+  console.log("--- [API /api/auth/complete-profile] POST Request Received ---");
+  console.log(`[API /api/auth/complete-profile] Timestamp: ${new Date().toISOString()}`);
+
+  // לוג מפורט של כל ה-Headers, כולל הקוקיז
+  const headersObject: { [key: string]: string } = {};
+  req.headers.forEach((value, key) => {
+    headersObject[key] = value;
+  });
+  console.log("[API /api/auth/complete-profile] Request Headers:", JSON.stringify(headersObject, null, 2));
+
+  // בדיקה מפורשת של משתנה הסביבה NEXTAUTH_SECRET (למטרות דיבוג בלבד!)
+  // !!! הסר את זה בסביבת Production !!!
+  console.log("[API /api/auth/complete-profile] DEBUG: NEXTAUTH_SECRET value (first 5 chars):", process.env.NEXTAUTH_SECRET?.substring(0, 5) || "NOT SET");
+
   try {
-    // 1. Get the session
-    const session = await getServerSession(authOptions);
+    console.log("[API /api/auth/complete-profile] Attempting to get session using getServerSession...");
+    const session = await getServerSession(authOptions); // ודא ש-authOptions מיובא נכון
 
-    // 2. Check for authentication
-    if (!session?.user?.id) {
-      console.error("API complete-profile: Unauthorized access attempt.");
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    console.log("[API /api/auth/complete-profile] Session object from getServerSession:", JSON.stringify(session, null, 2));
+
+    if (!session || !session.user || !session.user.id) {
+      console.error("[API /api/auth/complete-profile] ERROR: Unauthorized access attempt. Session or user.id is missing.");
+      console.error("[API /api/auth/complete-profile] Details:", {
+        sessionExists: !!session,
+        userExistsInSession: !!session?.user,
+        userIdExistsInSession: !!session?.user?.id,
+      });
+      return NextResponse.json({ error: 'Unauthorized - Session not found or invalid' }, { status: 401 });
     }
-    const userId = session.user.id;
 
-    // 3. Parse and validate the request body
-    const body = await req.json();
+    const userId = session.user.id;
+    console.log(`[API /api/auth/complete-profile] User authenticated with ID: ${userId}`);
+    console.log(`[API /api/auth/complete-profile] User email from session: ${session.user.email}`);
+
+    // בדיקה אם הטלפון כבר מאומת (למרות שה-middleware אמור לכסות זאת)
+    if (session.user.isPhoneVerified) {
+        console.warn(`[API /api/auth/complete-profile] User ${userId} phone is ALREADY verified according to session. Proceeding, but this might indicate a flow issue.`);
+    }
+    if (session.user.isProfileComplete) {
+        console.warn(`[API /api/auth/complete-profile] User ${userId} profile is ALREADY complete according to session. Proceeding, but this might indicate a flow issue.`);
+    }
+
+
+    console.log("[API /api/auth/complete-profile] Attempting to parse request body...");
+    let body;
+    try {
+        body = await req.json();
+        console.log("[API /api/auth/complete-profile] Request body parsed successfully:", JSON.stringify(body, null, 2));
+    } catch (parseError) {
+        console.error("[API /api/auth/complete-profile] ERROR: Failed to parse request body as JSON:", parseError);
+        return NextResponse.json({ error: 'Invalid request body - Must be JSON' }, { status: 400 });
+    }
+
+    console.log("[API /api/auth/complete-profile] Validating request body with Zod schema...");
     const validation = completeProfileSchema.safeParse(body);
 
     if (!validation.success) {
-      console.error("API complete-profile: Validation failed.", validation.error.errors);
+      console.error("[API /api/auth/complete-profile] ERROR: Request body validation failed.");
+      console.error("[API /api/auth/complete-profile] Validation errors:", JSON.stringify(validation.error.flatten(), null, 2));
       return NextResponse.json({ error: 'Invalid input data', details: validation.error.flatten() }, { status: 400 });
     }
+    console.log("[API /api/auth/complete-profile] Request body validated successfully.");
 
-    // Destructure validated data
     const {
-        phone, // Phone is needed for the User update
+        phone,
         gender,
         birthDate,
         maritalStatus,
@@ -56,97 +98,107 @@ export async function POST(req: Request) {
         education
     } = validation.data;
 
-    // 4. Perform database operations in a transaction
-    console.log(`API complete-profile: Attempting to update profile and user phone for user ${userId}`);
+    console.log(`[API /api/auth/complete-profile] Attempting to update profile and user phone for user ${userId} in a transaction.`);
+    console.log("[API /api/auth/complete-profile] Data to be saved:", JSON.stringify(validation.data, null, 2));
+
     const updatedUser = await prisma.$transaction(async (tx) => {
-      // Upsert Profile (data relevant to Profile model, excluding phone)
+      console.log(`[API /api/auth/complete-profile] Inside transaction for user ${userId}. Upserting profile...`);
       await tx.profile.upsert({
         where: { userId: userId },
         create: {
           userId: userId,
           gender: gender,
-          birthDate: new Date(birthDate), // Convert string to Date
-          maritalStatus: maritalStatus, // Ensure this matches your schema
-          height: height,
-          occupation: occupation,
-          education: education,
-          // Add any other default fields for Profile if needed
-        },
-        update: {
-          gender: gender,
-          birthDate: new Date(birthDate), // Convert string to Date
+          birthDate: new Date(birthDate),
           maritalStatus: maritalStatus,
           height: height,
           occupation: occupation,
           education: education,
+          // שדות נוספים עם ערכי ברירת מחדל אם יש צורך (למשל, additionalLanguages: [])
+        },
+        update: {
+          gender: gender,
+          birthDate: new Date(birthDate),
+          maritalStatus: maritalStatus,
+          height: height,
+          occupation: occupation,
+          education: education,
+          updatedAt: new Date(), // חשוב לעדכן גם כאן
         },
       });
-      console.log(`API complete-profile: Profile data upserted for user ${userId}`);
+      console.log(`[API /api/auth/complete-profile] Profile data upserted for user ${userId}.`);
 
-      // Update User (set phone and mark profile as complete)
+      console.log(`[API /api/auth/complete-profile] Updating User record for user ${userId} (phone, isProfileComplete, status)...`);
       const user = await tx.user.update({
         where: { id: userId },
         data: {
-          phone: phone, // Update phone on the User model
+          phone: phone,
           isProfileComplete: true,
-          updatedAt: new Date(), // Update timestamp
+          // כאן המקום לשקול אם לעדכן את ה-status.
+          // אם השלב הבא הוא אימות טלפון, הסטטוס צריך להיות PENDING_PHONE_VERIFICATION.
+          // אם ה-middleware כבר מבטיח שרק משתמשים עם PENDING_PHONE_VERIFICATION מגיעים לכאן,
+          // אז אולי אין צורך לשנות את הסטטוס כאן אלא רק לאחר אימות הטלפון.
+          // עם זאת, אם הסטטוס היה PENDING_EMAIL_VERIFICATION, יש לעדכן אותו.
+          // לפי הסכימה שלך, ברירת המחדל היא PENDING_PHONE_VERIFICATION.
+          // אם אימות המייל כבר בוצע, נניח שהסטטוס כבר PENDING_PHONE_VERIFICATION.
+          // status: UserStatus.PENDING_PHONE_VERIFICATION, // ודא שזה הסטטוס הנכון
+          updatedAt: new Date(),
         },
-         select: { // Select only necessary fields to return
+         select: {
              id: true,
              email: true,
              firstName: true,
              lastName: true,
              isProfileComplete: true,
+             isPhoneVerified: true, // חשוב להחזיר את זה כדי שהסשן יתעדכן
              role: true,
              status: true,
-             phone: true // Include phone in selection if needed by client
+             phone: true
          }
       });
-      console.log(`API complete-profile: User record updated for user ${userId} (phone & isProfileComplete).`);
+      console.log(`[API /api/auth/complete-profile] User record updated for user ${userId}. New profile status: isProfileComplete=${user.isProfileComplete}, isPhoneVerified=${user.isPhoneVerified}, status=${user.status}`);
       return user;
     });
 
-    // 5. Return success response
-    console.log(`API complete-profile: Profile completed successfully for user ${userId}`);
+    console.log(`[API /api/auth/complete-profile] Profile completed successfully for user ${userId}.`);
+    console.log("[API /api/auth/complete-profile] Returning success response with user data:", JSON.stringify({ message: "Profile completed successfully", user: updatedUser }, null, 2));
     return NextResponse.json({ message: "Profile completed successfully", user: updatedUser }, { status: 200 });
 
-  } catch (error: unknown) { // <-- Catch error as 'unknown' type
-    console.error("API complete-profile: An error occurred:", error);
+  } catch (error: unknown) {
+    console.error("[API /api/auth/complete-profile] --- ERROR IN POST HANDLER ---");
+    console.error("[API /api/auth/complete-profile] Error object:", error); // לוג מלא של אובייקט השגיאה
 
-    // Type guards for specific error handling
     if (error instanceof z.ZodError) {
-        console.error("API complete-profile: Zod validation error during processing.", error.flatten());
+        console.error("[API /api/auth/complete-profile] Zod validation error during processing:", JSON.stringify(error.flatten(), null, 2));
         return NextResponse.json({ error: 'Validation Error during processing', details: error.flatten() }, { status: 400 });
     }
 
-    // Check if it's a known Prisma error (using the imported Prisma namespace)
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        console.error(`API complete-profile: Prisma Known Error - Code: ${error.code}`, error.meta);
+        console.error(`[API /api/auth/complete-profile] Prisma Known Request Error - Code: ${error.code}`);
+        console.error("[API /api/auth/complete-profile] Prisma Error Meta:", error.meta);
+        console.error("[API /api/auth/complete-profile] Prisma Error Message:", error.message);
         if (error.code === 'P2002') {
-            // Example: Unique constraint failed (likely User.phone)
-            // Check target field if available in meta
             const target = error.meta?.target as string[] | undefined;
-            if (target?.includes('phone')) {
-                 return NextResponse.json({ error: 'מספר טלפון זה כבר רשום במערכת.' }, { status: 409 }); // 409 Conflict
+            if (target?.includes('phone') && target?.includes('User')) { // יותר ספציפי
+                 return NextResponse.json({ error: 'מספר טלפון זה כבר רשום במערכת.' }, { status: 409 });
             } else {
-                 return NextResponse.json({ error: 'Unique constraint violation.' }, { status: 409 });
+                 return NextResponse.json({ error: `Unique constraint violation on ${target?.join(', ')}.` }, { status: 409 });
             }
         }
-        // Handle other Prisma known errors if needed
-        return NextResponse.json({ error: 'Database error occurred' }, { status: 500 });
+        return NextResponse.json({ error: 'Database error occurred (Prisma Known Request Error)' }, { status: 500 });
     }
 
-    // Check for other Prisma error types if necessary
     if (error instanceof Prisma.PrismaClientValidationError) {
-        console.error("API complete-profile: Prisma Validation Error.", error.message);
-        return NextResponse.json({ error: 'Database validation error.' }, { status: 400 }); // Or 500 depending on context
+        console.error("[API /api/auth/complete-profile] Prisma Validation Error:", error.message);
+        return NextResponse.json({ error: 'Database validation error (Prisma Validation Error).' }, { status: 400 });
     }
 
-    // Fallback for generic errors
     let errorMessage = 'Internal Server Error';
     if (error instanceof Error) {
-        errorMessage = error.message; // Get message from standard Error object
+        errorMessage = error.message;
     }
+    console.error(`[API /api/auth/complete-profile] Fallback error message: ${errorMessage}`);
     return NextResponse.json({ error: errorMessage }, { status: 500 });
+  } finally {
+    console.log("--- [API /api/auth/complete-profile] POST Request Finished ---");
   }
 }

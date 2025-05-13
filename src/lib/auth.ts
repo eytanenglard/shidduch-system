@@ -1,41 +1,70 @@
+// lib/auth.ts
+
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import { NextAuthOptions } from "next-auth";
+import { NextAuthOptions, Profile as OAuthProfile } from "next-auth"; // OAuthProfile מיובא
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import prisma from "./prisma";
 import { compare } from "bcryptjs";
-import type { JWT } from "next-auth/jwt";
+import type { User, JWT as ExtendedUserJWT, User as ExtendedUser, Session as ExtendedSession } from "@/types/next-auth"; // ודא שהנתיב נכון
 import { UserRole, UserStatus } from "@prisma/client";
+
+console.log("Auth options file loaded");
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
-  debug: process.env.NODE_ENV === "development", // הוספת מצב דיבאג בפיתוח
-  
+  debug: process.env.NODE_ENV === "development",
+
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      profile(profile) {
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code",
+        },
+      },
+      profile(profile: OAuthProfile & { sub?: string; given_name?: string; family_name?: string; picture?: string; email_verified?: boolean }, tokens) {
         const now = new Date();
-        return {
-          id: profile.sub,
+        console.log("[GoogleProvider Profile Fn] Raw profile from Google:", profile);
+        console.log("[GoogleProvider Profile Fn] Tokens from Google:", tokens);
+    
+        if (!profile.email) {
+          throw new Error("Email not found in Google profile");
+        }
+        if (!profile.sub) {
+          throw new Error("Sub (Google User ID) not found in Google profile");
+        }
+    
+        const userForAdapter: User = {
+          id: profile.sub, // Temporary ID for TypeScript; Prisma will generate a new cuid()
           email: profile.email,
-          firstName: profile.given_name,
-          lastName: profile.family_name,
-          name: profile.name,
-          image: profile.picture,
-          role: UserRole.CANDIDATE, // התפקיד כברירת מחדל
+          firstName: profile.given_name || profile.name?.split(' ')[0] || "",
+          lastName: profile.family_name || profile.name?.split(' ').slice(1).join(' ') || "",
+          name: profile.name || `${profile.given_name || ""} ${profile.family_name || ""}`.trim(),
+          password: null, // OAuth users don't have a password
+          phone: null, // Not provided by Google
+          image: profile.picture || null,
+          role: UserRole.CANDIDATE,
           status: UserStatus.PENDING_PHONE_VERIFICATION,
-          isVerified: true, // כבר מאומת על ידי גוגל
-          isProfileComplete: false, // ברירת מחדל, יתעדכן לאחר השלמת הרישום
-          isPhoneVerified: false, // טלפון לא מאומת
-          lastLogin: now,
-          createdAt: now,
-          updatedAt: now,
-          profile: null, // יווצר מאוחר יותר בתהליך השלמת הרישום
-          images: [],
-          questionnaireResponses: []
+          isVerified: !!profile.email_verified,
+          isProfileComplete: false,
+          isPhoneVerified: false,
+          lastLogin: null, // Set on first sign-in
+          createdAt: now, // Approximate, will be set by Prisma
+          updatedAt: now, // Approximate, will be set by Prisma
+          profile: null, // No profile yet
+          images: [], // No images yet
+          questionnaireResponses: [], // No responses yet
+          redirectUrl: undefined,
+          newlyCreated: true, // Mark as new for registration flow
+          requiresCompletion: true, // Needs to complete profile
         };
+    
+        console.log("[GoogleProvider Profile Fn] User object for adapter:", userForAdapter);
+        return userForAdapter;
       }
     }),
     CredentialsProvider({
@@ -45,455 +74,398 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
+        console.log("[CredentialsProvider Authorize] Attempting login for:", credentials?.email);
         if (!credentials?.email || !credentials?.password) {
-          // You might want to return null instead of throwing an error
-          // for a slightly smoother UX, letting NextAuth handle it.
-          // Or keep throwing if you prefer explicit errors.
-          // return null; 
-          throw new Error("Missing email or password");
+          console.error("[CredentialsProvider Authorize] Missing email or password");
+          return null;
         }
 
         const user = await prisma.user.findUnique({
-          where: { 
-            email: credentials.email 
-          },
+          where: { email: credentials.email.toLowerCase() },
           include: {
             profile: true,
-            images: true,
-            questionnaireResponses: {
-              orderBy: {
-                createdAt: 'desc'
-              },
-              take: 1
-            }
+            images: { where: { isMain: true }, take: 1 },
+            questionnaireResponses: { orderBy: { createdAt: 'desc' }, take: 1 }
           }
         });
 
-        // Check if user exists *and* has a password set
         if (!user || !user.password) {
-          // User not found OR user exists but has no password (likely OAuth user)
-          // Returning null signals failed authentication to NextAuth
-          console.log(`Authentication failed for ${credentials.email}: User not found or password not set.`);
-          return null; 
-          // Or throw a more specific error:
-          // throw new Error("Invalid credentials or login method."); 
-        }
-
-        // --- Now TypeScript knows user.password is a string here ---
-        const isPasswordValid = await compare(credentials.password, user.password); 
-        
-        if (!isPasswordValid) {
-          console.log(`Authentication failed for ${credentials.email}: Invalid password.`);
-          // Returning null signals failed authentication
+          console.log(`[CredentialsProvider Authorize] User ${credentials.email} not found or password not set.`);
           return null;
-          // Or throw:
-          // throw new Error("Invalid password");
         }
 
-        console.log(`Authentication successful for ${credentials.email}`);
+        const isPasswordValid = await compare(credentials.password, user.password);
+        if (!isPasswordValid) {
+          console.log(`[CredentialsProvider Authorize] Invalid password for ${credentials.email}.`);
+          return null;
+        }
 
-        // User authenticated successfully, update last login and return user data
-        const mainImage = user.images.find(img => img.isMain);
-
-        // Update lastLogin asynchronously, no need to wait for it
-        prisma.user.update({
+        console.log(`[CredentialsProvider Authorize] Authentication successful for ${credentials.email}`);
+        await prisma.user.update({
           where: { id: user.id },
           data: { lastLogin: new Date() }
-        }).catch(err => console.error("Failed to update lastLogin:", err)); // Log error if update fails
+        }).catch(err => console.error("[CredentialsProvider Authorize] Failed to update lastLogin:", err));
 
-        // Return the user object expected by NextAuth
-        return {
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          name: `${user.firstName} ${user.lastName}`,
-          image: mainImage?.url || null, // Keep null if no main image
-          role: user.role,
-          status: user.status,
-          isVerified: user.isVerified,
-          isProfileComplete: user.isProfileComplete,
-          // Pass these through if needed by session/jwt callbacks
-          isPhoneVerified: user.isPhoneVerified, 
-          lastLogin: user.lastLogin, 
-          createdAt: user.createdAt,
-          updatedAt: user.updatedAt,
-          profile: user.profile,
-          images: user.images,
-          questionnaireResponses: user.questionnaireResponses
-        };
+        return user as any;
       }
-    })
+    }),
+    CredentialsProvider({
+      id: "email-verified-autologin",
+      name: "Email Verified AutoLogin",
+      credentials: {
+        authToken: { label: "Auth Token", type: "text" },
+      },
+      async authorize(credentials) {
+        console.log("[AutoLoginProvider Authorize] Attempting auto-login with token:", credentials?.authToken ? "Token Present" : "No Token");
+        if (!credentials?.authToken) {
+          console.error("[AutoLoginProvider Authorize] No authToken provided.");
+          return null;
+        }
+
+        const tokenRecord = await prisma.oneTimeAuthToken.findUnique({
+          where: { token: credentials.authToken },
+        });
+
+        if (!tokenRecord) {
+          console.log("[AutoLoginProvider Authorize] AuthToken not found in DB.");
+          return null;
+        }
+
+        if (new Date() > tokenRecord.expiresAt) {
+          console.log("[AutoLoginProvider Authorize] AuthToken expired. Deleting token.");
+          await prisma.oneTimeAuthToken.delete({ where: { id: tokenRecord.id } }).catch(err => console.error("[AutoLoginProvider Authorize] Error deleting expired token:", err));
+          return null;
+        }
+
+        console.log("[AutoLoginProvider Authorize] AuthToken valid. Deleting token.");
+        await prisma.oneTimeAuthToken.delete({ where: { id: tokenRecord.id } }).catch(err => console.error("[AutoLoginProvider Authorize] Error deleting used token:", err));
+
+        const user = await prisma.user.findUnique({
+          where: { id: tokenRecord.userId },
+          include: {
+            profile: true,
+            images: { where: { isMain: true }, take: 1 },
+            questionnaireResponses: { orderBy: { createdAt: 'desc' }, take: 1 }
+          }
+        });
+
+        if (!user) {
+          console.log("[AutoLoginProvider Authorize] User not found for the given authToken.");
+          return null;
+        }
+        console.log(`[AutoLoginProvider Authorize] Auto-login successful for user ${user.email}`);
+        return user as any;
+      },
+    }),
   ],
 
   callbacks: {
     async signIn({ user, account, profile }) {
-      console.log("signIn callback", { user, account, profile });
-      
-      if (account?.provider === "google") {
-        // בדיקה אם המשתמש קיים במערכת
-        const existingUser = await prisma.user.findUnique({
-          where: { email: user.email! },
-          include: { profile: true }
-        });
-
-        if (!existingUser) {
-          // יצירת משתמש חדש אם לא קיים
-          try {
-            console.log("Creating new user from Google auth", { email: user.email });
-            
-            // יצירת משתמש חדש
-            const newUser = await prisma.user.create({
-              data: {
-                email: user.email!,
-                password: "", // אין צורך בסיסמה למשתמשים מגוגל
-                firstName: user.firstName || user.name?.split(' ')[0] || "",
-                lastName: user.lastName || user.name?.split(' ').slice(1).join(' ') || "",
-                role: UserRole.CANDIDATE,
-                status: UserStatus.ACTIVE,
-                isVerified: true,
-                isProfileComplete: false,
-                isPhoneVerified: false,
-
-              }
-            });
-            console.log("New user created", { userId: newUser.id });
-            
-            // יצירת רשומת Account שמקשרת את המשתמש לחשבון Google
-            await prisma.account.create({
-              data: {
-                userId: newUser.id,
-                type: account.type,
-                provider: account.provider,
-                providerAccountId: account.providerAccountId,
-                access_token: account.access_token,
-                expires_at: account.expires_at,
-                token_type: account.token_type,
-                scope: account.scope,
-                id_token: account.id_token
-              }
-            });
-            console.log("Google account linked to user", { userId: newUser.id });
-            
-            // הוספת מידע למשתמש שיסייע לזהות אותו בהמשך
-            user.redirectUrl = '/auth/complete-registration';
-            user.newlyCreated = true;
-            user.id = newUser.id; // חשוב! מוודא שה-ID הנכון משמש
-            user.isProfileComplete = false;
-            user.isPhoneVerified = false;
-
-            return true; // החזרת true במקום URL כדי לאפשר לתהליך האימות להמשיך
-          } catch (error) {
-            console.error("Error creating new user from Google auth", error);
-            return false;
-          }
-        } else if (!existingUser.profile || !existingUser.isProfileComplete) {
-          // משתמש קיים אבל אין לו פרופיל או הפרופיל לא הושלם - צריך להשלים רישום
-          console.log("Existing user without complete profile", { userId: existingUser.id });
-          
-          // בדיקה אם יש כבר רשומת Account שמקשרת את המשתמש לחשבון Google
-          const existingAccount = await prisma.account.findFirst({
-            where: {
-              userId: existingUser.id,
-              provider: account.provider,
-              providerAccountId: account.providerAccountId
-            }
+      const typedUser = user as ExtendedUser;
+      const oauthProfile = profile as OAuthProfile & { email_verified?: boolean };
+      console.log("[signIn Callback] Triggered.", {
+        userId: typedUser.id,
+        userEmail: typedUser.email,
+        accountProvider: account?.provider,
+        isUserVerifiedByProvider: oauthProfile?.email_verified,
+        accountId: account?.providerAccountId
+      });
+    
+      // Use providerAccountId for Google accounts, as user.id may not be set yet
+      const userId = account?.provider === 'google' ? account.providerAccountId : typedUser.id;
+      if (!userId) {
+        console.error("[signIn Callback] Critical: No user ID or providerAccountId available.", { user, account });
+        return false;
+      }
+    
+      let dbUser = await prisma.user.findUnique({
+        where: { email: typedUser.email.toLowerCase() },
+      });
+    
+      // If no user exists, ensure the adapter created one
+      if (!dbUser && account?.provider === 'google') {
+        try {
+          dbUser = await prisma.user.create({
+            data: {
+              email: typedUser.email.toLowerCase(),
+              firstName: typedUser.firstName,
+              lastName: typedUser.lastName,
+              role: UserRole.CANDIDATE,
+              status: UserStatus.PENDING_PHONE_VERIFICATION,
+              isVerified: !!oauthProfile?.email_verified,
+              isProfileComplete: false,
+              isPhoneVerified: false,
+            },
           });
-          
-          // אם אין רשומת Account, יוצר אותה
-          if (!existingAccount) {
-            try {
-              await prisma.account.create({
-                data: {
-                  userId: existingUser.id,
-                  type: account.type,
-                  provider: account.provider,
-                  providerAccountId: account.providerAccountId,
-                  access_token: account.access_token,
-                  expires_at: account.expires_at,
-                  token_type: account.token_type,
-                  scope: account.scope,
-                  id_token: account.id_token
-                }
-              });
-              console.log("Google account linked to existing user", { userId: existingUser.id });
-            } catch (error) {
-              console.error("Error linking Google account to existing user", error);
-            }
-          }
-          
-          await prisma.user.update({
-            where: { id: existingUser.id },
-            data: { lastLogin: new Date() }
+          // Link the Google account
+          await prisma.account.create({
+            data: {
+              userId: dbUser.id,
+              type: 'oauth',
+              provider: 'google',
+              providerAccountId: account.providerAccountId,
+              access_token: account.access_token,
+              refresh_token: account.refresh_token,
+              expires_at: account.expires_at,
+              token_type: account.token_type,
+              scope: account.scope,
+              id_token: account.id_token,
+            },
           });
-          
-          // הוספת מידע למשתמש שיסייע לזהות אותו בהמשך
-          user.redirectUrl = '/auth/complete-registration';
-          user.id = existingUser.id; // וידוא שה-ID נשמר
-          user.isProfileComplete = existingUser.isProfileComplete || false;
-           user.isPhoneVerified = existingUser.isPhoneVerified;
-         
-           // אם הטלפון לא אומת, נסמן שנדרשת פעולה
-           if (!existingUser.isPhoneVerified) {
-              user.requiresCompletion = true; // דגל שמציין צורך בפעולה (אימות טלפון/השלמה)
-            }
-           return true; // החזרת true במקום URL
-        }
-        
-        // משתמש קיים עם פרופיל מלא - התחברות רגילה
-        console.log("Existing user with complete profile", { userId: existingUser.id });
-        
-        // בדיקה אם יש כבר רשומת Account שמקשרת את המשתמש לחשבון Google
-        const existingAccount = await prisma.account.findFirst({
-          where: {
-            userId: existingUser.id,
-            provider: account.provider,
-            providerAccountId: account.providerAccountId
-          }
-        });
-        
-        // אם אין רשומת Account, יוצר אותה
-        if (!existingAccount) {
-          try {
-            await prisma.account.create({
-              data: {
-                userId: existingUser.id,
-                type: account.type,
-                provider: account.provider,
-                providerAccountId: account.providerAccountId,
-                access_token: account.access_token,
-                expires_at: account.expires_at,
-                token_type: account.token_type,
-                scope: account.scope,
-                id_token: account.id_token
-              }
-            });
-            console.log("Google account linked to existing user with profile", { userId: existingUser.id });
-          } catch (error) {
-            console.error("Error linking Google account to existing user with profile", error);
-          }
-        }
-        
-        await prisma.user.update({
-          where: { id: existingUser.id },
-          data: { lastLogin: new Date() }
-        });
-        
-        // הגדרת המשתמש כמי שהשלים את הפרופיל
-        user.id = existingUser.id;
-        user.isProfileComplete = existingUser.isProfileComplete || false;
-        
-        // אם הפרופיל הושלם, הפנייה לדף הפרופיל
-        if (existingUser.isProfileComplete) {
-          user.redirectUrl = '/profile';
+          console.log(`[signIn Callback] Created new user and linked Google account for ${dbUser.email}`);
+        } catch (error) {
+          console.error("[signIn Callback] Failed to create user or account:", error);
+          return false;
         }
       }
-      
+    
+      if (!dbUser) {
+        console.error(`[signIn Callback] User with email ${typedUser.email} not found and could not be created.`);
+        return false;
+      }
+    
+      typedUser.email = dbUser.email;
+      typedUser.firstName = dbUser.firstName;
+      typedUser.lastName = dbUser.lastName;
+      typedUser.role = dbUser.role;
+      typedUser.status = dbUser.status;
+      typedUser.isVerified = dbUser.isVerified;
+      typedUser.isProfileComplete = dbUser.isProfileComplete;
+      typedUser.isPhoneVerified = dbUser.isPhoneVerified;
+    
+      if (account?.provider === "google") {
+        if (dbUser.isVerified === false && oauthProfile?.email_verified === true) {
+          console.log(`[signIn Callback] Google User ${dbUser.email} was not email-verified, but Google says it is. Updating DB.`);
+          await prisma.user.update({
+            where: { id: dbUser.id },
+            data: { isVerified: true, status: UserStatus.PENDING_PHONE_VERIFICATION }
+          });
+          typedUser.isVerified = true;
+          typedUser.status = UserStatus.PENDING_PHONE_VERIFICATION;
+        }
+      }
+    
+      await prisma.user.update({
+        where: { id: dbUser.id },
+        data: { lastLogin: new Date() }
+      }).catch(err => console.error(`[signIn Callback] Failed to update lastLogin for user ${dbUser.id}:`, err));
+    
+      if (!dbUser.isProfileComplete || !dbUser.isPhoneVerified) {
+        typedUser.redirectUrl = '/auth/register';
+        typedUser.requiresCompletion = true;
+        if ((dbUser.status === UserStatus.PENDING_PHONE_VERIFICATION || dbUser.status === UserStatus.PENDING_EMAIL_VERIFICATION) && !dbUser.isProfileComplete) {
+          typedUser.newlyCreated = true;
+          console.log(`[signIn Callback] User ${dbUser.email} marked as newlyCreated.`);
+        }
+      } else {
+        typedUser.redirectUrl = '/profile';
+        typedUser.requiresCompletion = false;
+      }
+    
+      console.log("[signIn Callback] Processed user. Flags:", {
+        userId: typedUser.id,
+        email: typedUser.email,
+        isProfileComplete: typedUser.isProfileComplete,
+        isPhoneVerified: typedUser.isPhoneVerified,
+        requiresCompletion: typedUser.requiresCompletion,
+        newlyCreated: typedUser.newlyCreated,
+        redirectUrl: typedUser.redirectUrl,
+        status: typedUser.status
+      });
       return true;
     },
 
-    async jwt({ token, user, trigger, session }): Promise<JWT> {
-      // 1. При начальном входе или если есть объект 'user'
-      if (user) {
-        token.id = user.id;
-        token.email = user.email as string;
-        token.firstName = user.firstName;
-        token.lastName = user.lastName;
-        token.name = user.name || `${user.firstName} ${user.lastName}`;
-        token.picture = user.image || null;
-        token.role = user.role;
-        token.status = user.status;
-        token.isVerified = user.isVerified; // Email verification from initial login
-        token.isProfileComplete = user.isProfileComplete || false;
-        token.isPhoneVerified = user.isPhoneVerified;
-        token.lastLogin = user.lastLogin || new Date();
-        token.createdAt = user.createdAt || new Date();
-        token.updatedAt = user.updatedAt || new Date();
-        token.profile = user.profile || null;
-        token.images = user.images || [];
-        token.questionnaireResponses = user.questionnaireResponses || [];
-        token.requiresCompletion = 'requiresCompletion' in user ? user.requiresCompletion as boolean | undefined : !user.isPhoneVerified;
-    
-        if (user.redirectUrl) token.redirectUrl = user.redirectUrl;
-        if (user.newlyCreated) token.newlyCreated = true;
-    
-        console.log("JWT callback - initial user data from 'user' object:", { /* ... token fields ... */ });
-      }
-    
-      // 2. При вызове updateSession() (trigger === "update")
-      // ИЛИ если токен существует, но некоторые поля могут нуждаться в обновлении (например, isVerified)
-      if (trigger === "update" || (token.id && typeof token.isVerified === 'undefined')) { // Добавлено условие для обновления при необходимости
-        console.log(`JWT callback - trigger is '${trigger}'. Attempting to refresh token data for user ID: ${token.id}`);
+    async jwt({ token, user, trigger, session, account }) {
+      const typedToken = token as ExtendedUserJWT;
+      const typedUser = user as ExtendedUser | undefined;
+
+      console.log("[JWT Callback] Triggered.", {
+          trigger,
+          tokenEmail: typedToken.email,
+          userEmail: typedUser?.email,
+          isAccountPresent: !!account,
+          isSessionPresent: !!session
+      });
+
+      if (typedUser) {
+        typedToken.id = typedUser.id;
+        typedToken.email = typedUser.email;
+        typedToken.firstName = typedUser.firstName;
+        typedToken.lastName = typedUser.lastName;
+        typedToken.name = typedUser.name || `${typedUser.firstName} ${typedUser.lastName}`;
+        typedToken.picture = typedUser.image || null;
+        typedToken.role = typedUser.role;
+        typedToken.status = typedUser.status;
+        typedToken.isVerified = typedUser.isVerified;
+        typedToken.isProfileComplete = typedUser.isProfileComplete || false;
+        typedToken.isPhoneVerified = typedUser.isPhoneVerified || false;
+        typedToken.requiresCompletion = typedUser.requiresCompletion;
+        typedToken.redirectUrl = typedUser.redirectUrl;
+        typedToken.newlyCreated = typedUser.newlyCreated;
         
-        const dbUser = await prisma.user.findUnique({
-          where: { id: token.id },
-          include: {
-            profile: true,
-            images: { where: { isMain: true }, take: 1 }, // Только основное изображение
-            questionnaireResponses: { orderBy: { createdAt: 'desc' }, take: 1 }
-          }
+        console.log("[JWT Callback - Initial Population] Token populated from user object:", {
+            email: typedToken.email,
+            status: typedToken.status,
+            isPhoneVerified: typedToken.isPhoneVerified,
+            isProfileComplete: typedToken.isProfileComplete,
+            requiresCompletion: typedToken.requiresCompletion,
+            redirectUrl: typedToken.redirectUrl
         });
-    
-        if (dbUser) {
-          console.log("JWT callback - Fetched updated user data from DB:", {
-            isVerified: dbUser.isVerified,
-            isProfileComplete: dbUser.isProfileComplete,
-            isPhoneVerified: dbUser.isPhoneVerified,
-            status: dbUser.status
-          });
-    
-          token.firstName = dbUser.firstName;
-          token.lastName = dbUser.lastName;
-          token.name = `${dbUser.firstName} ${dbUser.lastName}`;
-          token.picture = dbUser.images?.[0]?.url || null; // Обновляем изображение
-          token.role = dbUser.role;
-          token.status = dbUser.status;
-          token.isVerified = dbUser.isVerified; // Critically update this
-          token.isProfileComplete = dbUser.isProfileComplete;
-          token.isPhoneVerified = dbUser.isPhoneVerified;
-          token.profile = dbUser.profile; // Обновляем профиль
-          token.questionnaireResponses = dbUser.questionnaireResponses; // Обновляем анкеты
-          token.requiresCompletion = !dbUser.isPhoneVerified; // Пересчитываем на основе свежих данных
-    
-          // Если session был передан в updateSession (например, update({ name: "New Name" }))
-          // то сольем эти изменения. Если session не был передан, эта часть не выполнится.
-          if (session) {
-            token = { ...token, ...session };
-            console.log("JWT callback - Merged with explicit session data provided to update()", session);
-          }
-        } else {
-          console.warn(`JWT callback - User with ID ${token.id} not found in DB during update. Invalidating token might be an option.`);
-          // Можно рассмотреть вариант инвалидации токена, если пользователь удален
-          // return null; // или вернуть старый токен
-        }
       }
       
-      // Логирование перед возвратом токена
-      console.log("JWT callback - returning token:", { 
-          id: token.id,
-          email: token.email,
-          isVerified: token.isVerified, 
-          isProfileComplete: token.isProfileComplete, 
-          isPhoneVerified: token.isPhoneVerified,
-          requiresCompletion: token.requiresCompletion
-      });
-    
-      return token;
+      if (typedToken.id && (trigger === "signIn" || trigger === "signUp" || trigger === "update" || !typedToken.profile)) {
+          console.log(`[JWT Callback - DB Refresh] Refreshing token data for user ID: ${typedToken.id} due to trigger: ${trigger} or missing profile.`);
+          const dbUserForJwt = await prisma.user.findUnique({
+            where: { id: typedToken.id },
+            include: {
+              profile: true,
+              images: { where: { isMain: true }, take: 1 },
+              questionnaireResponses: { orderBy: { createdAt: 'desc' }, take: 1 }
+            }
+          });
+
+          if (dbUserForJwt) {
+            typedToken.firstName = dbUserForJwt.firstName;
+            typedToken.lastName = dbUserForJwt.lastName;
+            typedToken.name = `${dbUserForJwt.firstName} ${dbUserForJwt.lastName}`;
+            typedToken.picture = dbUserForJwt.images?.[0]?.url || typedToken.picture;
+            typedToken.role = dbUserForJwt.role;
+            typedToken.status = dbUserForJwt.status;
+            typedToken.isVerified = dbUserForJwt.isVerified;
+            typedToken.isProfileComplete = dbUserForJwt.isProfileComplete;
+            typedToken.isPhoneVerified = dbUserForJwt.isPhoneVerified;
+            typedToken.profile = dbUserForJwt.profile as any;
+            typedToken.images = dbUserForJwt.images as any[];
+            typedToken.questionnaireResponses = dbUserForJwt.questionnaireResponses as any[];
+            typedToken.lastLogin = dbUserForJwt.lastLogin;
+            typedToken.createdAt = dbUserForJwt.createdAt;
+            typedToken.updatedAt = dbUserForJwt.updatedAt;
+            typedToken.requiresCompletion = (!dbUserForJwt.isProfileComplete || !dbUserForJwt.isPhoneVerified);
+            if (trigger !== "update" || !session) {
+                typedToken.redirectUrl = typedToken.requiresCompletion ? '/auth/register' : '/profile';
+            }
+            console.log("[JWT Callback - DB Refresh] Token updated from DB:", {
+                email: typedToken.email,
+                status: typedToken.status,
+                isPhoneVerified: typedToken.isPhoneVerified,
+                isProfileComplete: typedToken.isProfileComplete,
+                requiresCompletion: typedToken.requiresCompletion,
+                redirectUrl: typedToken.redirectUrl
+            });
+          } else {
+              console.warn(`[JWT Callback - DB Refresh] User with ID ${typedToken.id} not found in DB during refresh.`);
+          }
+      }
+      
+      if (trigger === "update" && session) {
+        console.log("[JWT Callback - Client Update] Merging session data into token:", session);
+        const sessionUser = (session as ExtendedSession)?.user;
+        if(sessionUser) {
+          // Example: if (sessionUser.firstName) typedToken.firstName = sessionUser.firstName;
+        }
+      }
+      console.log("[JWT Callback] Returning final token:", { email: typedToken.email, isPhoneVerified: typedToken.isPhoneVerified, status: typedToken.status, requiresCompletion: typedToken.requiresCompletion });
+      return typedToken;
     },
 
     async session({ session, token }) {
-      if (session.user && token) {
-        session.user.id = token.id;
-        session.user.email = token.email as string;
-        session.user.firstName = token.firstName;
-        session.user.lastName = token.lastName;
-        session.user.name = token.name;
-        session.user.image = token.picture;
-        session.user.role = token.role;
-        session.user.status = token.status;
-        session.user.isVerified = token.isVerified;
-        session.user.isProfileComplete = token.isProfileComplete;
-        session.user.isPhoneVerified = token.isPhoneVerified; // העברת הסטטוס לסשן
-        session.requiresCompletion = token.requiresCompletion;
-        session.user.lastLogin = token.lastLogin;
-        session.user.createdAt = token.createdAt;
-        session.user.updatedAt = token.updatedAt;
-        session.user.profile = token.profile;
-        session.user.images = token.images;
-        session.user.questionnaireResponses = token.questionnaireResponses;
-        
-        // העברת מידע נוסף לסשן
-        if (token.redirectUrl) {
-          session.redirectUrl = token.redirectUrl;
-        }
-        
-        if (token.newlyCreated) {
-          session.newlyCreated = true;
-        }
-        
-        // הוספת לוג לדיבאג
-        console.log("Session callback - user data:", { 
-          id: session.user.id,
-          email: session.user.email,
-          role: session.user.role,
-          profile: session.user.profile ? "exists" : "null",
-          isProfileComplete: session.user.isProfileComplete,
-          isPhoneVerified: session.user.isPhoneVerified,
-        requiresCompletion: session.requiresCompletion,
-          redirectUrl: session.redirectUrl
-        });
+      const typedToken = token as ExtendedUserJWT;
+      const typedSession = session as ExtendedSession;
+
+      console.log("[Session Callback] Triggered.", { tokenEmail: typedToken.email });
+
+      if (typedSession.user && typedToken.id) {
+        typedSession.user.id = typedToken.id;
+        typedSession.user.email = typedToken.email;
+        typedSession.user.firstName = typedToken.firstName;
+        typedSession.user.lastName = typedToken.lastName;
+        typedSession.user.name = typedToken.name;
+        typedSession.user.image = typedToken.picture;
+        typedSession.user.role = typedToken.role;
+        typedSession.user.status = typedToken.status;
+        typedSession.user.isVerified = typedToken.isVerified;
+        typedSession.user.isProfileComplete = typedToken.isProfileComplete;
+        typedSession.user.isPhoneVerified = typedToken.isPhoneVerified;
+        typedSession.requiresCompletion = typedToken.requiresCompletion;
+        typedSession.redirectUrl = typedToken.redirectUrl;
+        typedSession.newlyCreated = typedToken.newlyCreated;
+        typedSession.user.profile = typedToken.profile as any;
+        typedSession.user.images = typedToken.images as any[];
+        typedSession.user.questionnaireResponses = typedToken.questionnaireResponses as any[];
+        typedSession.user.lastLogin = typedToken.lastLogin;
+        typedSession.user.createdAt = typedToken.createdAt;
+        typedSession.user.updatedAt = typedToken.updatedAt;
+      } else {
+          console.warn("[Session Callback] Token ID or session.user missing. Session might be incomplete.");
       }
-      return session;
+      console.log("[Session Callback] Populated session:", { email: typedSession.user?.email, requiresCompletion: typedSession.requiresCompletion, redirectUrl: typedSession.redirectUrl, isPhoneVerified: typedSession.user?.isPhoneVerified });
+      return typedSession;
     },
 
-    async redirect(params: { url: string; baseUrl: string; token?: JWT }) { // <-- הוספת הגדרת טיפוס מפורשת
-      const { url, baseUrl, token } = params; // <-- פירוק המשתנים מתוך params
-      console.log("Redirect callback initiated", { url, baseUrl, tokenExists: !!token });
-  
-      // --- Priority 1: Redirect for Phone Verification/Profile Completion ---
-      // If the token exists and indicates phone verification is needed
-      if (token && !token.isPhoneVerified) {
-          // Check if the user is already trying to access an allowed verification/completion path
-          const verificationPaths = [
-              '/auth/register',
-              '/auth/verify-phone',
-              '/auth/update-phone',
-              // Add relevant API paths if needed, although API calls shouldn't trigger redirect directly
+    async redirect({ url, baseUrl, token }: { url: string; baseUrl: string; token?: ExtendedUserJWT }) {
+      const typedToken = token;
+      console.log("[Redirect Callback] Triggered.", {
+          url,
+          baseUrl,
+          tokenEmail: typedToken?.email,
+          tokenRequiresCompletion: typedToken?.requiresCompletion,
+          tokenRedirectUrl: typedToken?.redirectUrl,
+          isPhoneVerifiedInToken: typedToken?.isPhoneVerified
+      });
+
+      const defaultRedirectTarget = url.startsWith("/")
+        ? `${baseUrl}${url}`
+        : url.startsWith(baseUrl)
+        ? url
+        : baseUrl;
+
+      if (typedToken) {
+        if (typedToken.redirectUrl) {
+          const finalRedirectUrl = typedToken.redirectUrl.startsWith("/")
+            ? `${baseUrl}${typedToken.redirectUrl}`
+            : typedToken.redirectUrl;
+          console.log(`[Redirect Callback] Using redirectUrl from token: ${typedToken.redirectUrl}. Final: ${finalRedirectUrl}`);
+          return finalRedirectUrl;
+        }
+
+        if (typedToken.requiresCompletion) {
+          const completionPage = `${baseUrl}/auth/register`;
+          const allowedCompletionPaths = [
+            `${baseUrl}/auth/register`,
+            `${baseUrl}/auth/verify-phone`,
+            `${baseUrl}/auth/update-phone`,
           ];
-          const isAlreadyOnAllowedPath = verificationPaths.some(p => url.startsWith(baseUrl + p));
-  
-          if (!isAlreadyOnAllowedPath) {
-              console.log(`Redirect callback: Token exists, phone not verified. Redirecting to /auth/register.`);
-              // Always redirect to the start of the completion/verification flow
-              return `${baseUrl}/auth/register`;
-          } else {
-               console.log(`Redirect callback: Token exists, phone not verified, but already on allowed path: ${url}`);
-               // Allow staying on the current allowed path
-               return url;
+          const isOnAllowedPath = allowedCompletionPaths.some(p => url.startsWith(p)) || url.includes("/api/auth/");
+
+          if (url !== completionPage && !isOnAllowedPath) {
+            console.log(`[Redirect Callback] User requires completion. Current URL: ${url}. Redirecting to ${completionPage}`);
+            return completionPage;
           }
+           console.log(`[Redirect Callback] User requires completion, but is already on an allowed path or target: ${url}`);
+        }
+      } else {
+          console.log("[Redirect Callback] No token present. Defaulting to URL or baseUrl.");
       }
-      // --- End Priority 1 ---
-  
-  
-      // --- Priority 2: Default NextAuth behavior (intended URL or base URL) ---
-      // This part runs only if token exists AND phone IS verified, or if no token exists (public access)
-  
-      // If signing in or signing up (url might be the callback url)
-      // Let the middleware handle access control after this initial redirect.
-      // If the original requested URL (before OAuth) was stored somewhere, redirect there.
-      // Otherwise, fall back.
-  
-      // Check if the URL is relative (starts with '/')
-      if (url.startsWith("/")) {
-        console.log(`Redirect callback: Relative URL detected. Returning: ${baseUrl}${url}`);
-        return `${baseUrl}${url}`;
-      }
-      // Check if the URL is already absolute and starts with the baseUrl
-      else if (url.startsWith(baseUrl)) {
-        console.log(`Redirect callback: Absolute URL matches baseUrl. Returning: ${url}`);
-        return url;
-      }
-      // Fallback for other cases (e.g., OAuth callbacks returning to baseUrl)
-      console.log(`Redirect callback: Fallback. Redirecting to baseUrl: ${baseUrl}`);
-      return baseUrl; // Default redirect to home page after successful login IF phone is verified
+      
+      console.log(`[Redirect Callback] No overriding conditions met. Returning default target: ${defaultRedirectTarget}`);
+      return defaultRedirectTarget;
     }
   },
 
   pages: {
     signIn: '/auth/signin',
     error: '/auth/error',
-    newUser: '/auth/register',
     verifyRequest: '/auth/verify-request'
   },
 
   session: {
     strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60,
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
 
   secret: process.env.NEXTAUTH_SECRET,
   jwt: {
-    maxAge: 30 * 24 * 60 * 60,
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   useSecureCookies: process.env.NODE_ENV === "production",
 };

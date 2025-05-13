@@ -156,6 +156,7 @@ export interface User extends DefaultUser {
   redirectUrl?: string;
   newlyCreated?: boolean;
   requiresCompletion?: boolean;
+  password?: string | null;
 }
 
 export interface Verification {
@@ -200,11 +201,7 @@ export interface Session extends DefaultSession {
 // --- Module Augmentation for NextAuth ---
 
 declare module 'next-auth' {
-  interface RedirectCallbackParams<T = NextAuthJWT | undefined> {
-    url: string;
-    baseUrl: string;
-    token?: T;
-  }
+
   interface Session extends DefaultSession {
     user: {
       id: string;

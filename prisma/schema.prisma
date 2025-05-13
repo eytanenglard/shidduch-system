@@ -20,8 +20,8 @@ model User {
   status                          UserStatus              @default(PENDING_PHONE_VERIFICATION) // שינוי ברירת מחדל
   role                            UserRole                @default(CANDIDATE)
   isVerified                      Boolean                 @default(false)
-  isPhoneVerified                 Boolean                 @default(false) 
-  isProfileComplete Boolean   @default(false)
+  isPhoneVerified                 Boolean                 @default(false)
+  isProfileComplete               Boolean                 @default(false)
   firstPartyInquiries             AvailabilityInquiry[]   @relation("FirstPartyInquiries")
   matchmakerAvailabilityInquiries AvailabilityInquiry[]   @relation("MatchmakerInquiries")
   secondPartyInquiries            AvailabilityInquiry[]   @relation("SecondPartyInquiries")
@@ -43,6 +43,7 @@ model User {
   videos                          Video[]
   approvedSuggestions             MatchSuggestion[]       @relation("ApprovedSuggestions")
   reviewedSuggestions             MatchSuggestion[]       @relation("ReviewedSuggestions")
+  oneTimeAuthTokens               OneTimeAuthToken[]
 
   @@index([email])
   @@index([role])
@@ -69,13 +70,24 @@ model Account {
   @@index([userId])
 }
 
+model OneTimeAuthToken {
+  id        String   @id @default(cuid())
+  token     String   @unique // הטוקן החד-פעמי
+  userId    String // מזהה המשתמש אליו הטוקן משויך
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime // תאריך ושעת תפוגה של הטוקן
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
 model Session {
   id           String   @id @default(cuid())
   sessionToken String   @unique
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@index([userId])
 }
 
@@ -83,8 +95,8 @@ model Verification {
   id          String             @id @default(cuid())
   userId      String?
   type        VerificationType
-  token       String             @unique
-  target      String?            // הוספת שדה למטרה (מספר טלפון/אימייל)
+  token       String
+  target      String? // הוספת שדה למטרה (מספר טלפון/אימייל)
   expiresAt   DateTime
   status      VerificationStatus @default(PENDING)
   attempts    Int                @default(0)
@@ -95,6 +107,7 @@ model Verification {
 
   @@index([userId, type, status]) // אינדקס משופר
   @@index([target, type, status]) // אינדקס לחיפוש לפי מטרה
+  @@index([token, type, status]) // אופציונלי: אינדקס גם על הטוקן אם החיפושים יתבצעו ישירות עליו
 }
 
 model Profile {
@@ -442,7 +455,7 @@ enum InvitationStatus {
 
 enum VerificationType {
   EMAIL
-  PHONE_WHATSAPP 
+  PHONE_WHATSAPP
   DOCUMENT
   REFERENCE
   PASSWORD_RESET

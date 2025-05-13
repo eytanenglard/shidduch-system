@@ -1,6 +1,7 @@
+// src/app/components/auth/SignInForm.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
@@ -24,22 +25,28 @@ export default function SignInForm() {
         case "CredentialsSignin":
           setError("אימייל או סיסמה אינם נכונים");
           break;
+        case "OAuthAccountNotLinked":
+          setError(
+            "חשבון זה כבר מקושר באמצעות ספק אחר. אנא התחבר באמצעות הספק המקורי."
+          );
+          break;
+        // Add more specific error messages as needed
         default:
           setError("אירעה שגיאה, נסה שנית");
       }
     }
   }, [searchParams]);
 
-  // בדיקה אם יש אימייל בפרמטרים של ה-URL
+  // בדיקה אם יש אימייל בפרמטרים של ה-URL (למשל, לאחר הרשמה)
   useEffect(() => {
     const emailParam = searchParams.get("email");
     if (emailParam) {
       setEmail(emailParam);
-      localStorage.setItem("last_google_user_email", emailParam);
+      // אין צורך לשמור ל-localStorage כאן אם זה רק לאכלוס ראשוני
     }
   }, [searchParams]);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!email || !password) {
@@ -51,47 +58,44 @@ export default function SignInForm() {
       setError("");
       setIsLoading(true);
 
-      // שמירת האימייל ב-localStorage לשימוש אפשרי בהמשך
+      // שמירת האימייל ב-localStorage לשימוש אפשרי בהמשך (למשל, אם משתמש חוזר)
       localStorage.setItem("last_user_email", email);
 
       const result = await signIn("credentials", {
         email,
         password,
-        redirect: false,
+        // callbackUrl: "/profile", // אפשר להגדיר יעד ברירת מחדל, אבל ה-redirect callback יקבע את הסופי
+        // אם הטלפון לא מאומת, הוא יופנה ל /auth/register
       });
 
+      // אם ההתחברות נכשלה (result.error קיים), ה-redirect callback לא יופעל.
+      // NextAuth עשוי להפנות לדף השגיאה או להישאר כאן עם שגיאה ב-URL.
       if (result?.error) {
-        setError("אימייל או סיסמה אינם נכונים");
-        console.error("Sign-in error:", result.error);
-      } else {
-        // בדיקה אם יש שאלון זמני
-        const tempQuestionnaire = localStorage.getItem("tempQuestionnaire");
-
-        if (tempQuestionnaire) {
-          try {
-            const response = await fetch("/api/questionnaire", {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: tempQuestionnaire,
-            });
-
-            if (response.ok) {
-              localStorage.removeItem("tempQuestionnaire");
-              localStorage.removeItem("questionnaireProgress");
-              router.push("/questionnaire/complete");
-              return;
-            }
-          } catch (error) {
-            console.error("Error saving questionnaire:", error);
-          }
+        if (result.error === "CredentialsSignin") {
+          setError("אימייל או סיסמה אינם נכונים");
+        } else {
+          // אתה יכול להוסיף טיפול ספציפי לשגיאות אחרות כאן
+          console.error("Sign-in error from NextAuth:", result.error);
+          setError(result.error || "אירעה שגיאה בהתחברות, נסה שנית");
         }
-
-        // אם אין שאלון או שהשמירה נכשלה, נווט לפרופיל
-        router.push("/profile");
+      } else if (result && result.ok && result.url) {
+        // ההתחברות הצליחה ו-NextAuth מנהל את ההפניה.
+        // result.url הוא היעד הסופי.
+        // אין צורך ב-router.push ידני מכאן.
+        // לוגיקת tempQuestionnaire תטופל בדף שאליו המשתמש מופנה (למשל /profile או דף סיום הרשמה).
+        console.log("Sign-in successful, NextAuth redirecting to:", result.url);
+      } else if (result && !result.ok && !result.error) {
+        // מקרה פחות שכיח, כאשר אין שגיאה מפורשת אבל גם לא הצלחה עם URL.
+        console.warn(
+          "Sign-in attempt did not result in an error or a redirect URL:",
+          result
+        );
+        setError("תהליך ההתחברות לא הושלם כראוי. נסה שנית.");
       }
     } catch (err) {
-      console.error("Unexpected sign-in error:", err);
-      setError("אירעה שגיאה בהתחברות, נסה שנית");
+      // שגיאות רשת או אחרות שלא נתפסו על ידי signIn
+      console.error("Unexpected sign-in error in handleSubmit:", err);
+      setError("אירעה שגיאה לא צפויה בהתחברות, נסה שנית");
     } finally {
       setIsLoading(false);
     }
@@ -102,22 +106,23 @@ export default function SignInForm() {
       setIsGoogleLoading(true);
       setError("");
 
-      // לפני השימוש ב-signIn, שמור מידע על התחברות גוגל
       localStorage.setItem("google_auth_in_progress", "true");
       localStorage.setItem("auth_method", "google");
 
-      // NextAuth יטפל בהפניה - עדכון ליעד החדש
+      // NextAuth יטפל בהפניה. ה-callbackUrl הוא היעד *לאחר* ש-Google מחזיר את המשתמש לאפליקציה שלך.
+      // לאחר מכן, ה-redirect callback של NextAuth (ב-auth.ts) יקבע את ההפניה הסופית.
       await signIn("google", { callbackUrl: "/auth/google-callback" });
+      // אם signIn מוצלח, הדפדפן יופנה ולא יגיע לקוד שאחרי ה-await הזה.
+      // setIsGoogleLoading(false); // לא יתבצע אם ההפניה קרתה
     } catch (error) {
       console.error("Google sign-in error:", error);
       setError("אירעה שגיאה בהתחברות עם גוגל");
-      setIsGoogleLoading(false);
+      setIsGoogleLoading(false); // חשוב במקרה של שגיאה לפני ההפניה
     }
   };
 
   return (
     <div className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden relative">
-      {/* Decorative elements */}
       <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-cyan-500 to-pink-500"></div>
 
       <div className="p-6 sm:p-8">
@@ -150,10 +155,13 @@ export default function SignInForm() {
               <input
                 type="email"
                 id="email"
+                name="email" // חשוב עבור שימוש ב-FormData אם תרצה, למרות שכאן אתה לוקח מה-state
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full pr-10 pl-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
                 placeholder="you@example.com"
+                required
               />
             </div>
           </div>
@@ -170,10 +178,13 @@ export default function SignInForm() {
               <input
                 type="password"
                 id="password"
+                name="password"
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full pr-10 pl-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
                 placeholder="הסיסמה שלך"
+                required
               />
             </div>
             <div className="flex justify-end">
@@ -189,7 +200,7 @@ export default function SignInForm() {
           <Button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 shadow-lg flex items-center justify-center gap-2 relative overflow-hidden"
+            className="w-full py-3 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 shadow-lg flex items-center justify-center gap-2 relative overflow-hidden group" // Added group for shimmer
           >
             {isLoading ? (
               <>
@@ -198,7 +209,6 @@ export default function SignInForm() {
               </>
             ) : (
               <>
-                {/* Button shimmer effect */}
                 <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
                 <span>התחברות</span>
               </>
@@ -216,6 +226,7 @@ export default function SignInForm() {
         </div>
 
         <Button
+          type="button" // חשוב type="button" כדי לא לשלוח את הטופס
           onClick={handleGoogleSignIn}
           disabled={isGoogleLoading}
           variant="outline"
@@ -255,7 +266,7 @@ export default function SignInForm() {
           <p className="text-gray-600 text-sm">
             אין לך חשבון עדיין?{" "}
             <Link
-              href="/auth/register"
+              href="/auth/register" // זה צריך להפנות לדף התחלת תהליך ההרשמה שלך
               className="text-cyan-600 font-medium hover:text-cyan-700 hover:underline"
             >
               הרשמה עכשיו
