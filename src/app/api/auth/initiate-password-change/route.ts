@@ -43,10 +43,12 @@ export async function POST(req: Request) {
     const hashedNewPassword = await hash(newPassword, 12);
 
     // יצירת קוד אימות בן 6 ספרות באמצעות שירות האימות
-    const verification = await VerificationService.createVerificationToken(
+    // שינוי שם הפונקציה והוספת פרמטר target
+    const { verification } = await VerificationService.createVerification(
       user.id,
       VerificationType.PASSWORD_RESET,
-      24 // תקף ל-24 שעות
+      user.email, // הוספת user.email כפרמטר target
+      24 // תקף ל-24 שעות (expiresInHours)
     );
 
     // שמירת הסיסמה המוצפנת במטא-דאטה של האימות
