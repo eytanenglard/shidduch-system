@@ -454,7 +454,6 @@ const NavItem = ({
 const MobileNavItem = ({
   href,
   onClick,
-  isActive, // הוספנו isActive כדי שנוכל להשתמש בו אם נרצה בעתיד
   icon,
   text,
   badge,

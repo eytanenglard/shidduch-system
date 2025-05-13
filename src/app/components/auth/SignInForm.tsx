@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, FormEvent } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Mail, Lock, AlertCircle } from "lucide-react";

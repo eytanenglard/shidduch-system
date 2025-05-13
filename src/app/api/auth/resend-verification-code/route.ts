@@ -96,7 +96,7 @@ export async function POST(req: Request) {
     logger.error('Failed to resend verification code', { email: emailForLog, error: errorDetails, timestamp: new Date().toISOString() });
 
     let errorMessage = 'אירעה שגיאה בשליחה חוזרת של הקוד.';
-    let errorStatus = 500;
+    const errorStatus = 500;
 
     if (error instanceof Error) {
         if (error.message === 'אירעה שגיאה ביצירת קוד אימות') {
