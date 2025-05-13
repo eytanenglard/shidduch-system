@@ -7,16 +7,22 @@ import { emailService } from '@/lib/email/emailService';
 
 const prisma = new PrismaClient();
 
+// Updated LogMetadata type
 type LogMetadata = {
   email?: string;
   error?: unknown;
-  timestamp?: string;
+  timestamp?: string; // Note: logger already adds a timestamp. This allows overriding or adding a specific one.
   userId?: string;
+  verificationId?: string; // Added to fix the error
+  status?: UserStatus;     // Added for metadata in a logger.warn call
+  isVerified?: boolean;    // Added for metadata in a logger.warn call
 };
 
+// Updated logger object with 'warn' method
 const logger = {
   info: (message: string, meta?: LogMetadata) => console.log(JSON.stringify({ timestamp: new Date().toISOString(), level: 'info', message, ...meta })),
-  error: (message: string, meta?: LogMetadata) => console.error(JSON.stringify({ timestamp: new Date().toISOString(), level: 'error', message, ...meta }))
+  error: (message: string, meta?: LogMetadata) => console.error(JSON.stringify({ timestamp: new Date().toISOString(), level: 'error', message, ...meta })),
+  warn: (message: string, meta?: LogMetadata) => console.warn(JSON.stringify({ timestamp: new Date().toISOString(), level: 'warn', message, ...meta })) // Added 'warn' method
 };
 
 interface ResendCodeRequest {
@@ -45,12 +51,13 @@ export async function POST(req: Request) {
     });
 
     if (!user) {
-      logger.warn('User not found for resending code', { email: normalizedEmail });
+      logger.warn('User not found for resending code', { email: normalizedEmail }); // Now valid
       return NextResponse.json({ success: false, error: 'משתמש עם כתובת אימייל זו אינו רשום.' }, { status: 404 });
     }
 
     // ודא שהמשתמש עדיין צריך לאמת אימייל
     if (user.isVerified || user.status !== UserStatus.PENDING_EMAIL_VERIFICATION) {
+        // This log call now correctly uses properties defined in LogMetadata
         logger.warn('User email already verified or not pending email verification', { email: normalizedEmail, userId: user.id, status: user.status, isVerified: user.isVerified });
         return NextResponse.json({ success: false, error: 'כתובת האימייל כבר מאומתת או שאינה ממתינה לאימות.' }, { status: 400 });
     }
@@ -63,6 +70,7 @@ export async function POST(req: Request) {
       user.email, // השתמש באימייל מהמשתמש (שכבר מנורמל)
       expiresInHoursForOtp
     );
+    // This log call now correctly uses verificationId defined in LogMetadata
     logger.info('New verification record created for resend', { verificationId: newVerificationRecord.id, userId: user.id });
 
 

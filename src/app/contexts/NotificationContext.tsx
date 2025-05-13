@@ -77,10 +77,11 @@ export function NotificationProvider({
       const data = await response.json();
       setNotifications(data);
       // console.log("[NotificationContext] Notifications fetched successfully:", data);
-    } catch (error) {
+    } catch {
+      // <-- שינוי: שימוש ב-_error כדי לציין שהמשתנה אינו בשימוש
       // console.error(
       //   "[NotificationContext] Error fetching or parsing notifications:",
-      //   error
+      //   _error // <-- גם כאן, אם נוריד את ההערה
       // );
       // אם יש שגיאה (כולל JSON לא תקין), אפס נוטיפיקציות
       setNotifications({ availabilityRequests: 0, messages: 0, total: 0 });

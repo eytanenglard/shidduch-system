@@ -11,7 +11,7 @@ import type {
   Prisma, // Make sure Prisma is imported if used for JsonValue
 } from '@prisma/client';
 import { DefaultSession, DefaultUser } from 'next-auth';
-import { DefaultJWT, JWT as NextAuthJWT } from 'next-auth/jwt'; // Import JWT as NextAuthJWT to avoid name clash
+import { DefaultJWT } from 'next-auth/jwt'; // Import JWT as NextAuthJWT to avoid name clash
 
 // --- Standalone Interface Definitions (if used elsewhere) ---
 

@@ -9,7 +9,6 @@ import { Mail, Lock, AlertCircle } from "lucide-react";
 import Link from "next/link";
 
 export default function SignInForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

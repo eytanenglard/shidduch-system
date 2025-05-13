@@ -6,7 +6,7 @@ import { authOptions } from '@/lib/auth'; // ודא שהנתיב הזה נכון
 import prisma from '@/lib/prisma'; // ודא שהנתיב הזה נכון
 import { Prisma } from '@prisma/client';
 import { z } from 'zod';
-import { Gender, UserStatus } from '@prisma/client'; // ייבוא Gender ו-UserStatus
+import { Gender } from '@prisma/client'; // ייבוא Gender ו-UserStatus
 
 // Zod Schema - כולל phone לאימות מהלקוח
 const completeProfileSchema = z.object({
