@@ -42,7 +42,7 @@ export async function POST(req: Request) {
 
     await emailService.sendVerificationEmail({
       email: user.email,
-      verificationLink: verification.token,
+      verificationCode: verification.token, // Changed from verificationLink to verificationCode
       firstName: user.firstName,
       expiresIn: '24 שעות'
     });
