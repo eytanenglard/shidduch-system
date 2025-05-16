@@ -180,7 +180,7 @@ const Navbar = () => {
                 className={`p-1 md:hidden transition-colors duration-300 rounded-xl ${
                   scrolled
                     ? "text-cyan-600 hover:text-pink-500"
-                    : "text-white hover:text-pink-200 hover:bg-white/10"
+                    : "text-cyan-700 hover:text-pink-600 hover:bg-cyan-500/10"
                 }`}
                 onClick={toggleMobileMenu}
               >

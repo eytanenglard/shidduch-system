@@ -4,7 +4,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { RegistrationProvider, useRegistration } from "./RegistrationContext"; // Import RegistrationData if needed
+import { RegistrationProvider, useRegistration } from "./RegistrationContext";
 import WelcomeStep from "./steps/WelcomeStep";
 import BasicInfoStep from "./steps/BasicInfoStep";
 import EmailVerificationCodeStep from "./steps/EmailVerificationCodeStep";
@@ -13,123 +13,126 @@ import OptionalInfoStep from "./steps/OptionalInfoStep";
 import CompleteStep from "./steps/CompleteStep";
 import ProgressBar from "./ProgressBar";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ArrowRight, Info, Loader2 } from "lucide-react"; // Added Loader2
+import { ArrowRight, Info, Loader2 } from "lucide-react";
 
 const RegisterStepsContent: React.FC = () => {
-  // Destructure all needed functions from context, including resetForm
-  const { data, initializeForCompletion, goToStep, resetForm } =
-    useRegistration();
+  const {
+    data: registrationContextData,
+    initializeFromSession,
+    resetForm,
+    goToStep,
+    setData,
+  } = useRegistration();
   const router = useRouter();
   const { data: session, status: sessionStatus } = useSession();
   const searchParams = useSearchParams();
 
   const [showIncompleteProfileMessage, setShowIncompleteProfileMessage] =
     useState(false);
-  // State to track if initialization for completion has been attempted/done for the current session
-  const [completionInitializedForSession, setCompletionInitializedForSession] =
-    useState(false);
+  const [initializationAttempted, setInitializationAttempted] = useState(false);
 
   useEffect(() => {
     const reason = searchParams.get("reason");
-    // Show message only if directed to complete profile AND not already in completion mode
-    if (reason === "complete_profile" && !data.isCompletingProfile) {
+    if (
+      reason === "complete_profile" &&
+      !registrationContextData.isCompletingProfile
+    ) {
       setShowIncompleteProfileMessage(true);
+    } else if (
+      reason === "verify_phone" &&
+      !registrationContextData.isCompletingProfile
+    ) {
+      // This case indicates they should be guided towards phone verification.
+      // CompleteStep (step 4) should handle this message.
+      setShowIncompleteProfileMessage(true); // Or a more specific message
     } else {
       setShowIncompleteProfileMessage(false);
     }
-  }, [searchParams, data.isCompletingProfile]);
+  }, [searchParams, registrationContextData.isCompletingProfile]);
 
   useEffect(() => {
     console.log(
       "[RegisterSteps] Effect triggered. Session Status:",
       sessionStatus,
       "Context Data:",
-      data,
+      registrationContextData,
       "Session User:",
-      session?.user
+      session?.user,
+      "Initialization Attempted:",
+      initializationAttempted
     );
 
+    if (sessionStatus === "loading") {
+      return; // Wait for session to load
+    }
+
     if (sessionStatus === "authenticated" && session?.user) {
-      // Scenario 1: User is authenticated, profile is complete, and phone is verified.
-      if (session.user.isProfileComplete && session.user.isPhoneVerified) {
+      const user = session.user;
+
+      // Scenario 1: Fully complete and verified. Redirect away.
+      if (user.isProfileComplete && user.isPhoneVerified) {
         console.log(
-          "[RegisterSteps] Scenario 1: Fully complete profile. Redirecting to /profile."
+          "[RegisterSteps] User fully verified. Redirecting to /profile."
         );
         router.push("/profile");
-        return; // Early exit to prevent further processing
+        return;
       }
 
-      // Scenario 2: User authenticated, but profile is NOT complete.
-      // Middleware likely redirected them here.
+      // Scenario 2: User is authenticated but not fully set up.
+      // Initialize context from session if not already done or if context is still at step 0 (Welcome)
+      // and not in a special state like email verification.
       if (
-        !session.user.isProfileComplete &&
-        !data.isCompletingProfile &&
-        !completionInitializedForSession
+        !initializationAttempted ||
+        (registrationContextData.step === 0 &&
+          !registrationContextData.isVerifyingEmailCode)
       ) {
         console.log(
-          "[RegisterSteps] Scenario 2: Incomplete profile. Initializing completion flow."
+          "[RegisterSteps] Authenticated. Initializing registration context from session data."
         );
-        initializeForCompletion({
-          email: session.user.email || "",
-          firstName: session.user.firstName,
-          lastName: session.user.lastName,
-        });
-        setCompletionInitializedForSession(true); // Mark that we've tried to initialize for this session
-        return; // Early exit
+        initializeFromSession(user);
+        setInitializationAttempted(true); // Mark that initialization has been attempted for this session user
+        return; // Allow context to update and re-render
       }
-
-      // Scenario 3: User authenticated, phone NOT verified.
-      // This should ideally be handled by middleware sending to /auth/verify-phone.
-      // If they land here, it's a fallback.
-      if (!session.user.isPhoneVerified && !data.isVerifyingEmailCode) {
-        // also ensure not in email verification
-        // If they are in a registration flow that hasn't reached phone verification, that's fine.
-        // But if profile is otherwise "complete" but phone isn't, redirect.
-        // This condition needs care. Let's assume if they are on step 0,1,2,3,4 of registration, it's fine.
-        // If `isProfileComplete` was true but `isPhoneVerified` false, then redirect.
-        if (
-          session.user.isProfileComplete === true &&
-          session.user.isPhoneVerified === false
-        ) {
-          console.log(
-            "[RegisterSteps] Scenario 3: Profile marked complete but phone not verified. Redirecting to /auth/verify-phone."
-          );
-          router.push("/auth/verify-phone");
-          return;
-        }
-      }
-
-      // If user is in profile completion mode (data.isCompletingProfile is true)
-      // and their session profile is still incomplete, this is the active state of filling the form.
-      // No specific action needed here, the form will render.
+      // If initialization was attempted, let the current context state drive the UI.
     } else if (sessionStatus === "unauthenticated") {
-      // Scenario 4: User becomes unauthenticated.
-      console.log("[RegisterSteps] Scenario 4: User unauthenticated.");
-      setCompletionInitializedForSession(false); // Reset for next potential login
-      // If they were in any step other than Welcome, or in completion/verification mode, reset.
+      console.log("[RegisterSteps] User unauthenticated.");
+      setInitializationAttempted(false); // Reset for next potential login
+
+      // If user was in a flow that requires authentication (e.g. completing profile, verifying email for an existing account)
+      // then reset the form. A brand new registration (step 0, 1 before account creation) can proceed unauthenticated.
       if (
-        data.step !== 0 ||
-        data.isCompletingProfile ||
-        data.isVerifyingEmailCode
+        registrationContextData.isCompletingProfile ||
+        registrationContextData.isVerifyingEmailCode
       ) {
         console.log(
-          "[RegisterSteps] Resetting registration due to unauthentication."
+          "[RegisterSteps] Resetting registration due to unauthentication while in profile completion or email verification."
         );
-        resetForm(); // Use resetForm from context
+        resetForm();
+      } else if (
+        registrationContextData.step > 1 &&
+        !registrationContextData.isCompletingProfile
+      ) {
+        // If they were past BasicInfo in a new registration (e.g. on PersonalDetails) and became unauth, also reset.
+        // This situation is less likely if BasicInfoStep creates account then moves to email verification.
+        console.log(
+          "[RegisterSteps] Resetting registration due to unauthentication during new registration flow past BasicInfo."
+        );
+        resetForm();
       }
     }
   }, [
     sessionStatus,
     session,
     router,
-    data, // Key dependency: whole data object
-    initializeForCompletion,
-    resetForm, // Added resetForm
-    completionInitializedForSession, // Added
+    registrationContextData, // Main dependency for context state
+    initializeFromSession,
+    resetForm,
+    initializationAttempted, // Local state to control initialization
+    setData,
+    goToStep, // Added goToStep and setData for potential recovery
   ]);
 
   const renderStep = (): React.ReactNode => {
-    // Handle loading states first
     if (sessionStatus === "loading") {
       return (
         <div className="flex flex-col items-center justify-center p-10 min-h-[300px]">
@@ -138,142 +141,189 @@ const RegisterStepsContent: React.FC = () => {
         </div>
       );
     }
+
+    // If session is authenticated, but context hasn't been initialized from session yet
+    // (e.g., waiting for the useEffect to run initializeFromSession)
     if (
       sessionStatus === "authenticated" &&
-      !session?.user?.isProfileComplete &&
-      !data.isCompletingProfile &&
-      !completionInitializedForSession
+      session?.user &&
+      !initializationAttempted &&
+      registrationContextData.step === 0
     ) {
-      // Waiting for the useEffect to initialize completion
-      return (
-        <div className="flex flex-col items-center justify-center p-10 min-h-[300px]">
-          <Loader2 className="h-8 w-8 animate-spin text-cyan-600 mb-4" />
-          <p className="text-gray-600">מכין טופס השלמת פרטים...</p>
-        </div>
-      );
+      if (!session.user.isProfileComplete || !session.user.isPhoneVerified) {
+        return (
+          <div className="flex flex-col items-center justify-center p-10 min-h-[300px]">
+            <Loader2 className="h-8 w-8 animate-spin text-cyan-600 mb-4" />
+            <p className="text-gray-600">מכין את תהליך ההרשמה...</p>
+          </div>
+        );
+      }
     }
 
-    // If email verification is active (for new registrations, not profile completion)
-    if (data.isVerifyingEmailCode && !data.isCompletingProfile) {
+    // Email Verification for new Email/Password users
+    if (
+      registrationContextData.isVerifyingEmailCode &&
+      !registrationContextData.isCompletingProfile
+    ) {
       console.log(
         "[RegisterSteps] Rendering EmailVerificationCodeStep. Current step in context:",
-        data.step
+        registrationContextData.step
       );
       return <EmailVerificationCodeStep />;
     }
 
-    // Profile Completion Flow (user is authenticated, profile was incomplete)
-    if (data.isCompletingProfile) {
+    // Profile Completion Flow (isCompletingProfile is true)
+    // This covers Google Signups needing completion, or Email/Pass users post-email-verification,
+    // or users returning to complete profile/phone.
+    if (registrationContextData.isCompletingProfile) {
       console.log(
         "[RegisterSteps] (Profile Completion Flow) Current step:",
-        data.step
+        registrationContextData.step
       );
-      switch (data.step) {
-        case 2: // Personal Details (first step of completion)
+      switch (registrationContextData.step) {
+        case 2: // Personal Details (first step of completion or resume here)
           return <PersonalDetailsStep />;
         case 3: // Optional Info
           return <OptionalInfoStep />;
-        case 4: // Complete Confirmation Screen for profile completion
-          return <CompleteStep />; // This step should guide to phone verification if not yet done.
+        case 4: // Complete Confirmation Screen (guides to phone verification if needed)
+          return <CompleteStep />;
         default:
+          // This case might be hit if initializeFromSession determined a state but step is unexpected.
+          // Or if user was on step 0/1 of completion (which shouldn't happen with current init logic).
           console.warn(
-            `[RegisterSteps] (Completion) Unexpected step ${data.step}. Defaulting to PersonalDetailsStep (step 2).`
+            `[RegisterSteps] (Completion) Unexpected step ${registrationContextData.step}. Attempting recovery.`
           );
-          // If initializeForCompletion sets step to 2, this default should ideally not be hit often.
-          // If somehow step is wrong, try to force it or show an error.
-          if (data.step < 2 || data.step > 4) goToStep(2); // Try to recover
-          return <PersonalDetailsStep />;
+          // If session exists, re-initialize to be safe. Otherwise, go to step 2 for completion.
+          if (session?.user) {
+            if (!initializationAttempted) {
+              // Avoid infinite loops if re-init also leads here
+              initializeFromSession(session.user);
+              setInitializationAttempted(true); // Mark it
+              return (
+                <div className="flex flex-col items-center justify-center p-10 min-h-[300px]">
+                  <Loader2 className="h-8 w-8 animate-spin text-cyan-600 mb-4" />
+                  <p className="text-gray-600">מאפס שלב...</p>
+                </div>
+              );
+            } else {
+              // If already attempted initialization and still here, default to step 2 of completion
+              if (
+                registrationContextData.step < 2 ||
+                registrationContextData.step > 4
+              )
+                goToStep(2);
+              return <PersonalDetailsStep />;
+            }
+          } else {
+            // No session, but in completion mode? This is odd. Reset.
+            resetForm();
+            return <WelcomeStep />;
+          }
       }
     }
 
-    // Regular New Registration Flow
+    // Regular New Registration Flow (isCompletingProfile is false, not verifying email)
     console.log(
       "[RegisterSteps] (New Registration Flow) Current step:",
-      data.step
+      registrationContextData.step
     );
-    switch (data.step) {
+    switch (registrationContextData.step) {
       case 0: // Welcome
         return <WelcomeStep />;
-      case 1: // Basic Info (Email, Password). EmailVerificationCodeStep is handled above.
+      case 1: // Basic Info (Email, Password). EmailVerification is handled above.
         return <BasicInfoStep />;
-      case 2: // Personal Details (after email verification for new users)
+      // Steps 2, 3, 4 for new registration are typically after email verification.
+      // completeEmailVerification in context moves to step 2.
+      // So, if isCompletingProfile is false, user should not be on steps 2,3,4 unless email was verified.
+      // The context state (driven by initializeFromSession or flow functions) should manage this.
+      // If a new user (not completing profile) somehow gets to step 2,3,4 without isCompletingProfile being set,
+      // it implies they passed email verification for a new account.
+      case 2:
         return <PersonalDetailsStep />;
-      case 3: // Optional Info
+      case 3:
         return <OptionalInfoStep />;
-      case 4: // Complete Confirmation Screen for new registration
-        return <CompleteStep />; // This step should guide to phone verification.
+      case 4:
+        return <CompleteStep />; // For new reg, this is after OptionalInfo
       default:
         console.warn(
-          `[RegisterSteps] (Registration) Unexpected step ${data.step}. Defaulting to WelcomeStep (step 0).`
+          `[RegisterSteps] (Registration) Unexpected step ${registrationContextData.step}. Defaulting to WelcomeStep (step 0).`
         );
-        if (data.step !== 0) goToStep(0); // Try to recover
+        if (registrationContextData.step !== 0) goToStep(0); // Try to recover
         return <WelcomeStep />;
     }
   };
 
   const stepContent = renderStep();
 
-  // --- Determine Page Title, Description, and ProgressBar ---
   let pageTitle = "הרשמה למערכת";
   let stepDescription = "ברוכים הבאים! בואו נתחיל.";
   let currentProgressBarStep = 0;
-  let totalProgressBarSteps = 3; // Basic (1), Personal (2), Optional (3) for new registration
+  let totalProgressBarSteps = 3; // Default for new: Basic (1), Personal (2), Optional (3)
   let showProgressBar = false;
 
-  if (data.isVerifyingEmailCode) {
+  if (registrationContextData.isVerifyingEmailCode) {
     pageTitle = "אימות כתובת מייל";
     stepDescription = `כדי להמשיך, יש לאמת את כתובת המייל שלך: ${
-      data.emailForVerification || data.email
+      registrationContextData.emailForVerification ||
+      registrationContextData.email
     }.`;
-    showProgressBar = true; // Show progress for Basic Info step
-    currentProgressBarStep = 1; // Still part of "Basic Info" stage
+    showProgressBar = true;
+    currentProgressBarStep = 1; // Part of "Basic Info" stage
     totalProgressBarSteps = 3;
-  } else if (data.isCompletingProfile) {
+  } else if (registrationContextData.isCompletingProfile) {
     pageTitle = "השלמת פרטים";
-    totalProgressBarSteps = 2; // Personal (1), Optional (2) for completion flow
-    if (data.step === 2) {
+    // Progress bar for completion: Personal (1), Optional (2)
+    totalProgressBarSteps = 2;
+    if (registrationContextData.step === 2) {
       // PersonalDetails
       stepDescription = "שלב 1 מתוך 2: פרטים אישיים.";
       currentProgressBarStep = 1;
       showProgressBar = true;
-    } else if (data.step === 3) {
+    } else if (registrationContextData.step === 3) {
       // OptionalInfo
       stepDescription = "שלב 2 מתוך 2: מידע נוסף (מומלץ).";
       currentProgressBarStep = 2;
       showProgressBar = true;
-    } else if (data.step === 4) {
+    } else if (registrationContextData.step === 4) {
       // CompleteStep for completion
-      stepDescription = "הפרטים הושלמו! השלב הבא: אימות טלפון.";
-      showProgressBar = false; // Or show full
+      stepDescription = session?.user?.isPhoneVerified
+        ? "הפרופיל שלך מוכן!"
+        : "הפרטים הושלמו! השלב הבא: אימות טלפון.";
+      showProgressBar = false; // Or show full progress
+    } else {
+      // Should not happen if steps are 2,3,4 for completion
+      stepDescription = "אנא המתן...";
+      showProgressBar = false;
     }
   } else {
-    // New Registration Flow
-    if (data.step === 0) {
-      /* Welcome */ pageTitle = "ברוכים הבאים";
+    // New Registration Flow (not verifying email, not completing profile)
+    if (registrationContextData.step === 0) {
+      /* Welcome */
+      pageTitle = "ברוכים הבאים";
       stepDescription = "בואו נתחיל את המסע יחד.";
       showProgressBar = false;
-    } else if (data.step === 1) {
+    } else if (registrationContextData.step === 1) {
       /* BasicInfo */
       pageTitle = "יצירת חשבון";
       stepDescription = "שלב 1 מתוך 3: פרטי התחברות.";
       currentProgressBarStep = 1;
       showProgressBar = true;
-    } else if (data.step === 2) {
-      /* PersonalDetails */
+    } else if (registrationContextData.step === 2) {
+      /* PersonalDetails after new reg email verify */
       pageTitle = "פרטים אישיים";
       stepDescription = "שלב 2 מתוך 3: קצת עליך.";
       currentProgressBarStep = 2;
       showProgressBar = true;
-    } else if (data.step === 3) {
+    } else if (registrationContextData.step === 3) {
       /* OptionalInfo */
       pageTitle = "מידע נוסף";
       stepDescription = "שלב 3 מתוך 3: עוד קצת פרטים (אופציונלי).";
       currentProgressBarStep = 3;
       showProgressBar = true;
-    } else if (data.step === 4) {
+    } else if (registrationContextData.step === 4) {
       /* CompleteStep for new registration */
       pageTitle = "סיום הרשמה ראשונית";
-      stepDescription = "הפרטים נשמרו! השלב הבא: אימות טלפון.";
+      stepDescription = "הפרטים נשמרו! השלב הבא: אימות טלפון."; // This assumes new reg always needs phone verify next
       showProgressBar = false; // Or show full
     }
   }
@@ -300,11 +350,12 @@ const RegisterStepsContent: React.FC = () => {
           <Info className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-1" />
           <div className="ml-3 rtl:mr-3 rtl:ml-0">
             <AlertTitle className="font-semibold mb-1">
-              השלמת פרופיל נדרשת
+              נדרשת פעולה להשלמת החשבון
             </AlertTitle>
             <AlertDescription className="text-sm">
-              כדי לגשת לאזור האישי ולשאר חלקי האתר, יש להשלים תחילה את פרטי
-              הפרופיל שלך.
+              {searchParams.get("reason") === "verify_phone"
+                ? "הפרופיל שלך כמעט מוכן! נדרש אימות טלפון כדי להמשיך."
+                : "כדי לגשת לאזור האישי ולשאר חלקי האתר, יש להשלים תחילה את פרטי הפרופיל ואימותים נדרשים."}
             </AlertDescription>
           </div>
         </Alert>
@@ -322,13 +373,14 @@ const RegisterStepsContent: React.FC = () => {
       <div className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden relative">
         {!(
           (
-            data.isVerifyingEmailCode ||
-            (data.step === 0 && !data.isCompletingProfile)
-          ) // No top bar on welcome or if verifying email
-        ) &&
-          data.step !== 4 && ( // Also no top bar on complete step
-            <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-cyan-500 to-pink-500"></div>
-          )}
+            registrationContextData.isVerifyingEmailCode ||
+            (registrationContextData.step === 0 &&
+              !registrationContextData.isCompletingProfile) ||
+            registrationContextData.step === 4
+          ) // No top bar on welcome, email verify, or complete step
+        ) && (
+          <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-cyan-500 to-pink-500"></div>
+        )}
         <div className="p-6 sm:p-8">{stepContent}</div>
       </div>
 
