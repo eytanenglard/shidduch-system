@@ -54,7 +54,6 @@ export const authOptions: NextAuthOptions = {
           firstName: firstName,
           lastName: lastName,
           name: profile.name || `${firstName} ${lastName}`.trim(), // 'name' is part of ExtendedUser, not directly Prisma User model
-          password: null, 
           phone: null, 
           image: profile.picture || null, // 'image' is part of ExtendedUser, will be derived from UserImage in JWT/Session
           role: UserRole.CANDIDATE,

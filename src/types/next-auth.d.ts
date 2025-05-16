@@ -1,3 +1,4 @@
+
 // src/types/next-auth.d.ts (or similar path)
 
 import type {
@@ -188,7 +189,6 @@ export interface Session extends DefaultSession {
   requiresCompletion?: boolean;
 }
 
-
 // --- Module Augmentation for NextAuth ---
 
 declare module 'next-auth' {
@@ -240,6 +240,7 @@ declare module 'next-auth' {
     redirectUrl?: string;
     newlyCreated?: boolean;
     requiresCompletion?: boolean;
+    
   }
 }
 
