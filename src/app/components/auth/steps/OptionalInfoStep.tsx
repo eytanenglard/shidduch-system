@@ -35,17 +35,19 @@ const OptionalInfoStep: React.FC = () => {
 
     try {
       // --- Step 1: Save Profile Data ---
-      const profileData = {
-        // Data from previous steps (PersonalDetailsStep)
-        phone: data.phone, // Phone is needed for User update inside complete-profile API
-        gender: data.gender,
-        birthDate: data.birthDate,
-        maritalStatus: data.maritalStatus,
-        // Data from this step (OptionalInfoStep)
-        height: data.height,
-        occupation: data.occupation,
-        education: data.education,
-      };
+   // Inside OptionalInfoStep.tsx, in handleSubmit:
+const profileData = {
+  firstName: data.firstName, // Add this
+  lastName: data.lastName,   // Add this
+  phone: data.phone,
+  gender: data.gender,
+  birthDate: data.birthDate,
+  maritalStatus: data.maritalStatus,
+  height: data.height,
+  occupation: data.occupation,
+  education: data.education,
+};
+// ... rest of the fetch call to /api/auth/complete-profile
 
       console.log("OptionalInfoStep: Submitting profile data:", profileData);
 
