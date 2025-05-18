@@ -17,17 +17,15 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Pencil, Save, X } from "lucide-react";
 import { UserProfile } from "@/types/next-auth";
-import { cn } from "@/lib/utils"; // הוספת cn לשילוב classNames
+import { cn } from "@/lib/utils";
 
 const languageOptions = [
-  // שפות נפוצות
   { value: "hebrew", label: "עברית" },
   { value: "english", label: "אנגלית" },
   { value: "yiddish", label: "יידיש" },
   { value: "russian", label: "רוסית" },
   { value: "arabic", label: "ערבית" },
   { value: "french", label: "צרפתית" },
-  // שאר השפות לפי א-ב
   { value: "amharic", label: "אמהרית" },
   { value: "italian", label: "איטלקית" },
   { value: "ukrainian", label: "אוקראינית" },
@@ -53,6 +51,23 @@ interface ProfileSectionProps {
   onSave: (data: Partial<UserProfile>) => void;
 }
 
+// פונקציית עזר להמרת ערך ל-Date אם הוא מחרוזת תאריך תקינה או Date קיים
+const ensureDateObject = (
+  value: string | number | Date | null | undefined
+): Date | undefined => {
+  if (!value) return undefined;
+  if (value instanceof Date && !isNaN(value.getTime())) {
+    return value;
+  }
+  if (typeof value === "string" || typeof value === "number") {
+    const date = new Date(value);
+    if (!isNaN(date.getTime())) {
+      return date;
+    }
+  }
+  return undefined;
+};
+
 const ProfileSection: React.FC<ProfileSectionProps> = ({
   profile,
   isEditing,
@@ -61,182 +76,236 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
   onSave,
 }) => {
   const [formData, setFormData] = useState<Partial<UserProfile>>({});
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // מתחיל כ-true כי אנחנו תמיד מנסים לאתחל נתונים
   const [initialData, setInitialData] = useState<Partial<UserProfile>>({});
 
-  // ---- לוגיקת טעינה ועדכון נתונים (עם תיקון number | undefined) ----
-  const fetchProfile = async () => {
+  // אתחול נתונים מה-API
+  const fetchProfileAndInitialize = async () => {
+    setLoading(true);
     try {
       const response = await fetch("/api/profile");
       const data = await response.json();
       if (data.success && data.profile) {
-        const profileData = {
-          gender: data.profile.gender || undefined,
-          birthDate: data.profile.birthDate || undefined,
-          nativeLanguage: data.profile.nativeLanguage || undefined,
-          additionalLanguages: data.profile.additionalLanguages || [],
-          height: data.profile.height ?? undefined, // תוקן ל-undefined
-          maritalStatus: data.profile.maritalStatus || undefined,
-          occupation: data.profile.occupation || undefined,
-          education: data.profile.education || undefined,
-          religiousLevel: data.profile.religiousLevel || undefined,
-          address: data.profile.address || undefined,
-          city: data.profile.city || undefined,
-          origin: data.profile.origin || undefined,
-          parentStatus: data.profile.parentStatus || undefined,
-          siblings: data.profile.siblings ?? undefined, // תוקן ל-undefined
-          position: data.profile.position ?? undefined, // תוקן ל-undefined
-          referenceName1: data.profile.referenceName1 || undefined,
-          referencePhone1: data.profile.referencePhone1 || undefined,
-          referenceName2: data.profile.referenceName2 || undefined,
-          referencePhone2: data.profile.referencePhone2 || undefined,
-          isProfileVisible: data.profile.isProfileVisible ?? true,
+        const fetchedProfile = data.profile;
+        const profileData: Partial<UserProfile> = {
+          gender: fetchedProfile.gender || undefined,
+          birthDate: ensureDateObject(fetchedProfile.birthDate),
+          nativeLanguage: fetchedProfile.nativeLanguage || undefined,
+          additionalLanguages: fetchedProfile.additionalLanguages || [],
+          height: fetchedProfile.height ?? undefined,
+          maritalStatus: fetchedProfile.maritalStatus || undefined,
+          occupation: fetchedProfile.occupation || undefined,
+          education: fetchedProfile.education || undefined,
+          religiousLevel: fetchedProfile.religiousLevel || undefined,
+          address: fetchedProfile.address || undefined,
+          city: fetchedProfile.city || undefined,
+          origin: fetchedProfile.origin || undefined,
+          parentStatus: fetchedProfile.parentStatus || undefined,
+          siblings: fetchedProfile.siblings ?? undefined,
+          position: fetchedProfile.position ?? undefined,
+          referenceName1: fetchedProfile.referenceName1 || undefined,
+          referencePhone1: fetchedProfile.referencePhone1 || undefined,
+          referenceName2: fetchedProfile.referenceName2 || undefined,
+          referencePhone2: fetchedProfile.referencePhone2 || undefined,
+          isProfileVisible: fetchedProfile.isProfileVisible ?? true,
           preferredMatchmakerGender:
-            data.profile.preferredMatchmakerGender || undefined,
-          availabilityStatus: data.profile.availabilityStatus || "AVAILABLE",
-          availabilityNote: data.profile.availabilityNote || undefined,
-          about: data.profile.about || undefined,
-          hobbies: data.profile.hobbies || undefined,
+            fetchedProfile.preferredMatchmakerGender || undefined,
+          availabilityStatus:
+            fetchedProfile.availabilityStatus || AvailabilityStatus.AVAILABLE,
+          availabilityNote: fetchedProfile.availabilityNote || undefined,
+          availabilityUpdatedAt: ensureDateObject(
+            fetchedProfile.availabilityUpdatedAt
+          ),
+          about: fetchedProfile.about || undefined,
+          hobbies: fetchedProfile.hobbies || undefined,
+          createdAt: ensureDateObject(fetchedProfile.createdAt),
+          updatedAt: ensureDateObject(fetchedProfile.updatedAt),
+          lastActive: ensureDateObject(fetchedProfile.lastActive),
         };
         setFormData(profileData);
         setInitialData(profileData);
+      } else {
+        const emptyProfileData: Partial<UserProfile> = {
+          additionalLanguages: [],
+          isProfileVisible: true,
+          availabilityStatus: AvailabilityStatus.AVAILABLE,
+        };
+        setFormData(emptyProfileData);
+        setInitialData(emptyProfileData);
       }
     } catch (error) {
       console.error("Failed to fetch profile:", error);
+      const errorProfileData: Partial<UserProfile> = {
+        additionalLanguages: [],
+        isProfileVisible: true,
+        availabilityStatus: AvailabilityStatus.AVAILABLE,
+      };
+      setFormData(errorProfileData);
+      setInitialData(errorProfileData);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchProfile();
-  }, []);
-
-  useEffect(() => {
+    // אם ה-profile prop קיים, הוא מקבל עדיפות על פני fetch.
+    // אם ה-profile prop לא קיים, ננסה להביא מה-API.
     if (profile) {
-      setFormData((prevFormData: Partial<UserProfile>) => {
-        const mergedData: Partial<UserProfile> = {
-          ...prevFormData, // Start with existing form data
-          ...profile, // Override with incoming profile prop values
-          gender: profile.gender || prevFormData.gender || undefined,
-          birthDate: profile.birthDate || prevFormData.birthDate || undefined,
-          nativeLanguage:
-            profile.nativeLanguage || prevFormData.nativeLanguage || undefined,
-          additionalLanguages:
-            profile.additionalLanguages ||
-            prevFormData.additionalLanguages ||
-            [],
-          // Ensure numeric fields use ?? and end with undefined
-          height: profile.height ?? prevFormData.height ?? undefined,
-          maritalStatus:
-            profile.maritalStatus || prevFormData.maritalStatus || undefined,
-          occupation:
-            profile.occupation || prevFormData.occupation || undefined,
-          education: profile.education || prevFormData.education || undefined,
-          religiousLevel:
-            profile.religiousLevel || prevFormData.religiousLevel || undefined,
-          address: profile.address || prevFormData.address || undefined,
-          city: profile.city || prevFormData.city || undefined,
-          origin: profile.origin || prevFormData.origin || undefined,
-          parentStatus:
-            profile.parentStatus || prevFormData.parentStatus || undefined,
-          // Ensure numeric fields use ?? and end with undefined
-          siblings: profile.siblings ?? prevFormData.siblings ?? undefined,
-          position: profile.position ?? prevFormData.position ?? undefined,
-          referenceName1:
-            profile.referenceName1 || prevFormData.referenceName1 || undefined,
+      // console.log("ProfileSection: Initializing from prop 'profile'", profile);
+      const profilePropData: Partial<UserProfile> = {
+        gender: profile.gender || undefined,
+        birthDate: ensureDateObject(profile.birthDate),
+        nativeLanguage: profile.nativeLanguage || undefined,
+        additionalLanguages: profile.additionalLanguages || [],
+        height: profile.height ?? undefined,
+        maritalStatus: profile.maritalStatus || undefined,
+        occupation: profile.occupation || undefined,
+        education: profile.education || undefined,
+        religiousLevel: profile.religiousLevel || undefined,
+        address: profile.address || undefined,
+        city: profile.city || undefined,
+        origin: profile.origin || undefined,
+        parentStatus: profile.parentStatus || undefined,
+        siblings: profile.siblings ?? undefined,
+        position: profile.position ?? undefined,
+        referenceName1: profile.referenceName1 || undefined,
+        referencePhone1: profile.referencePhone1 || undefined,
+        referenceName2: profile.referenceName2 || undefined,
+        referencePhone2: profile.referencePhone2 || undefined,
+        isProfileVisible: profile.isProfileVisible ?? true,
+        preferredMatchmakerGender:
+          profile.preferredMatchmakerGender || undefined,
+        availabilityStatus:
+          profile.availabilityStatus || AvailabilityStatus.AVAILABLE,
+        availabilityNote: profile.availabilityNote || undefined,
+        availabilityUpdatedAt: ensureDateObject(profile.availabilityUpdatedAt),
+        about: profile.about || undefined,
+        hobbies: profile.hobbies || undefined,
+        createdAt: ensureDateObject(profile.createdAt),
+        updatedAt: ensureDateObject(profile.updatedAt),
+        lastActive: ensureDateObject(profile.lastActive),
+      };
+      setFormData(profilePropData);
+      setInitialData(profilePropData);
+      setLoading(false);
+    } else {
+      // console.log("ProfileSection: 'profile' prop is null, fetching from API.");
+      fetchProfileAndInitialize();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile]); // הוספנו את profile כתלות. ה-fetch יקרה רק אם profile הוא null/undefined.
+
+  // אפקט זה ירוץ כאשר ה-profile prop משתנה *לאחר* הטעינה הראשונית,
+  // לדוגמה, אם נתונים מתעדכנים ממקור חיצוני.
+  useEffect(() => {
+    if (profile && !loading) {
+      // רק אם לא בטעינה ראשונית וה-profile prop קיים
+      // console.log("ProfileSection: Prop 'profile' updated, merging data.", profile);
+      setFormData((prevFormData) => {
+        const newFormData: Partial<UserProfile> = {
+          // שומר על עדיפות ל-profile prop, אך משתמש ב-prevFormData כגיבוי
+          // אם שדה מסוים לא קיים ב-profile prop שהתקבל.
+          gender: profile.gender ?? prevFormData.gender,
+          birthDate:
+            ensureDateObject(profile.birthDate) ?? prevFormData.birthDate,
+          nativeLanguage: profile.nativeLanguage ?? prevFormData.nativeLanguage,
+          additionalLanguages: profile.additionalLanguages?.length
+            ? profile.additionalLanguages
+            : prevFormData.additionalLanguages || [],
+          height: profile.height ?? prevFormData.height,
+          maritalStatus: profile.maritalStatus ?? prevFormData.maritalStatus,
+          occupation: profile.occupation ?? prevFormData.occupation,
+          education: profile.education ?? prevFormData.education,
+          religiousLevel: profile.religiousLevel ?? prevFormData.religiousLevel,
+          address: profile.address ?? prevFormData.address,
+          city: profile.city ?? prevFormData.city,
+          origin: profile.origin ?? prevFormData.origin,
+          parentStatus: profile.parentStatus ?? prevFormData.parentStatus,
+          siblings: profile.siblings ?? prevFormData.siblings,
+          position: profile.position ?? prevFormData.position,
+          referenceName1: profile.referenceName1 ?? prevFormData.referenceName1,
           referencePhone1:
-            profile.referencePhone1 ||
-            prevFormData.referencePhone1 ||
-            undefined,
-          referenceName2:
-            profile.referenceName2 || prevFormData.referenceName2 || undefined,
+            profile.referencePhone1 ?? prevFormData.referencePhone1,
+          referenceName2: profile.referenceName2 ?? prevFormData.referenceName2,
           referencePhone2:
-            profile.referencePhone2 ||
-            prevFormData.referencePhone2 ||
-            undefined,
+            profile.referencePhone2 ?? prevFormData.referencePhone2,
           isProfileVisible:
             profile.isProfileVisible ?? prevFormData.isProfileVisible ?? true,
           preferredMatchmakerGender:
-            profile.preferredMatchmakerGender ||
-            prevFormData.preferredMatchmakerGender ||
-            undefined,
+            profile.preferredMatchmakerGender ??
+            prevFormData.preferredMatchmakerGender,
           availabilityStatus:
-            profile.availabilityStatus ||
-            prevFormData.availabilityStatus ||
-            "AVAILABLE",
+            profile.availabilityStatus ??
+            prevFormData.availabilityStatus ??
+            AvailabilityStatus.AVAILABLE,
           availabilityNote:
-            profile.availabilityNote ||
-            prevFormData.availabilityNote ||
-            undefined,
-          about: profile.about || prevFormData.about || undefined,
-          hobbies: profile.hobbies || prevFormData.hobbies || undefined,
+            profile.availabilityNote ?? prevFormData.availabilityNote,
+          availabilityUpdatedAt:
+            ensureDateObject(profile.availabilityUpdatedAt) ??
+            prevFormData.availabilityUpdatedAt,
+          about: profile.about ?? prevFormData.about,
+          hobbies: profile.hobbies ?? prevFormData.hobbies,
+          createdAt:
+            ensureDateObject(profile.createdAt) ?? prevFormData.createdAt,
+          updatedAt:
+            ensureDateObject(profile.updatedAt) ?? prevFormData.updatedAt,
+          lastActive:
+            ensureDateObject(profile.lastActive) ?? prevFormData.lastActive,
         };
-        // Update initialData only if mergedData is different
-        setInitialData((prevInitial) => {
-          if (JSON.stringify(prevInitial) !== JSON.stringify(mergedData)) {
-            return mergedData;
-          }
-          return prevInitial;
-        });
-        return mergedData;
+
+        if (JSON.stringify(initialData) !== JSON.stringify(newFormData)) {
+          setInitialData(newFormData);
+        }
+        return newFormData;
       });
     }
-  }, [profile]);
+  }, [profile, loading, initialData]); // הוספנו loading ו-initialData לתלויות
 
-  // --- לוגיקת שינוי ערכים (עם תיקון number | undefined), שמירה וביטול ---
   const handleChange = (
     field: keyof UserProfile,
     value: UserProfile[keyof UserProfile]
   ) => {
-    if (field === "height" || field === "siblings" || field === "position") {
-      const rawValue = value as string; // Input value is always string
-      let finalValue: number | undefined = undefined; // Default to undefined
-
-      // Try parsing only if the string is not empty
-      if (rawValue && rawValue.trim() !== "") {
-        const parsed = parseInt(rawValue, 10);
-        // Assign the number only if parsing was successful (not NaN)
-        if (!isNaN(parsed)) {
-          finalValue = parsed;
+    setFormData((prev) => {
+      let finalValue = value;
+      if (field === "height" || field === "siblings" || field === "position") {
+        const rawValue = value as string;
+        if (rawValue === "" || rawValue === null || rawValue === undefined) {
+          finalValue = undefined;
+        } else {
+          const parsed = parseInt(rawValue, 10);
+          finalValue = !isNaN(parsed) ? parsed : undefined;
         }
-        // If parsing failed (NaN), finalValue remains undefined
+      } else if (field === "birthDate") {
+        finalValue = ensureDateObject(
+          value as string | Date | null | undefined
+        ) as UserProfile[keyof UserProfile];
       }
-      // If the string was empty, finalValue remains undefined
 
-      setFormData((prev) => ({
+      return {
         ...prev,
-        [field]: finalValue, // Assign the number or undefined
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        [field]: value,
-      }));
-    }
+        [field]: finalValue,
+      };
+    });
   };
 
   const handleSave = () => {
     onSave(formData);
     setIsEditing(false);
-    setInitialData(formData); // Update initialData after successful save
+    setInitialData(formData);
   };
 
   const handleCancel = () => {
-    setFormData(initialData); // Revert to the initial data before editing started
+    setFormData(initialData);
     setIsEditing(false);
   };
 
   if (loading) {
-    return <div className="text-center p-4">טוען...</div>;
+    return <div className="text-center p-4">טוען נתוני פרופיל...</div>;
   }
 
-  // --- רנדור הקומפוננטה עם העיצוב המעודכן ---
   return (
     <div className="relative" dir="rtl">
-      {/* כותרת דביקה מעוצבת */}
       <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-lg border-b border-gray-200/50">
-        {/* הוספתי z-40 כדי שיהיה מתחת ל-z-50 פוטנציאלי */}
         <div className="container mx-auto py-3 px-4">
           <div className="flex items-center justify-between">
             <div>
@@ -252,7 +321,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 {!isEditing ? (
                   <Button
                     variant="outline"
-                    size="sm" // הקטנת כפתורים להתאמה
+                    size="sm"
                     onClick={() => setIsEditing(true)}
                     className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-cyan-300 text-cyan-600 hover:bg-cyan-50"
                   >
@@ -287,19 +356,15 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
         </div>
       </div>
 
-      {/* קונטיינר ראשי עם ריווח */}
       <div className="container mx-auto py-6 px-4 space-y-6">
-        {/* --- פרטים אישיים --- */}
         <Card className="bg-white/70 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/30 overflow-hidden">
           <CardHeader className="bg-gradient-to-r from-cyan-50/30 to-pink-50/30 border-b border-gray-200/50 p-4">
             <CardTitle className="text-base font-semibold text-gray-700">
               פרטים אישיים
             </CardTitle>
-            {/* <CardDescription className="text-xs text-gray-500">מידע בסיסי</CardDescription> */}
           </CardHeader>
           <CardContent className="p-4 md:p-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-5">
-              {/* מגדר */}
               <div>
                 <Label className="block mb-1.5 text-xs font-medium text-gray-600">
                   מגדר
@@ -321,7 +386,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 </Select>
               </div>
 
-              {/* תאריך לידה */}
               <div>
                 <Label className="block mb-1.5 text-xs font-medium text-gray-600">
                   תאריך לידה
@@ -335,19 +399,14 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       : ""
                   }
                   onChange={(e) => {
-                    const date = new Date(e.target.value);
-                    handleChange(
-                      "birthDate",
-                      !isNaN(date.getTime()) ? date : undefined
-                    );
+                    handleChange("birthDate", e.target.value || undefined);
                   }}
                   disabled={!isEditing}
                   className="h-9 text-xs focus:ring-cyan-500"
-                  max={new Date().toISOString().split("T")[0]} // Prevent future dates
+                  max={new Date().toISOString().split("T")[0]}
                 />
               </div>
 
-              {/* שפת אם */}
               <div>
                 <Label className="block mb-1.5 text-xs font-medium text-gray-600">
                   שפת אם
@@ -355,7 +414,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 <Select
                   value={formData.nativeLanguage || ""}
                   onValueChange={(value) =>
-                    handleChange("nativeLanguage", value)
+                    handleChange("nativeLanguage", value || undefined)
                   }
                   disabled={!isEditing}
                 >
@@ -372,7 +431,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 </Select>
               </div>
 
-              {/* שפות נוספות */}
               <div className="sm:col-span-2 lg:col-span-1">
                 <Label className="block mb-1.5 text-xs font-medium text-gray-600">
                   שפות נוספות
@@ -423,7 +481,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         {lang.label}
                         {isEditing && (
                           <button
-                            type="button" // Prevent form submission if inside a form
+                            type="button"
                             onClick={() => {
                               const newLanguages =
                                 formData.additionalLanguages?.filter(
@@ -443,14 +501,13 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 </div>
               </div>
 
-              {/* גובה */}
               <div>
                 <Label className="block mb-1.5 text-xs font-medium text-gray-600">
                   גובה (סמ)
                 </Label>
                 <Input
                   type="number"
-                  value={formData.height ?? ""} // Use ?? for undefined as well
+                  value={formData.height ?? ""}
                   onChange={(e) => handleChange("height", e.target.value)}
                   disabled={!isEditing}
                   className="h-9 text-xs focus:ring-cyan-500"
@@ -460,7 +517,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 />
               </div>
 
-              {/* מצב משפחתי */}
               <div>
                 <Label className="block mb-1.5 text-xs font-medium text-gray-600">
                   מצב משפחתי
@@ -468,7 +524,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 <Select
                   value={formData.maritalStatus || ""}
                   onValueChange={(value) =>
-                    handleChange("maritalStatus", value)
+                    handleChange("maritalStatus", value || undefined)
                   }
                   disabled={!isEditing}
                 >
@@ -483,35 +539,36 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 </Select>
               </div>
 
-              {/* תעסוקה */}
               <div>
                 <Label className="block mb-1.5 text-xs font-medium text-gray-600">
                   תעסוקה
                 </Label>
                 <Input
                   value={formData.occupation || ""}
-                  onChange={(e) => handleChange("occupation", e.target.value)}
+                  onChange={(e) =>
+                    handleChange("occupation", e.target.value || undefined)
+                  }
                   disabled={!isEditing}
                   placeholder="תעסוקה נוכחית"
                   className="h-9 text-xs focus:ring-cyan-500"
                 />
               </div>
 
-              {/* השכלה */}
               <div>
                 <Label className="block mb-1.5 text-xs font-medium text-gray-600">
                   השכלה
                 </Label>
                 <Input
                   value={formData.education || ""}
-                  onChange={(e) => handleChange("education", e.target.value)}
+                  onChange={(e) =>
+                    handleChange("education", e.target.value || undefined)
+                  }
                   disabled={!isEditing}
                   placeholder="השכלה"
                   className="h-9 text-xs focus:ring-cyan-500"
                 />
               </div>
 
-              {/* רמת דתיות */}
               <div>
                 <Label className="block mb-1.5 text-xs font-medium text-gray-600">
                   רמה דתית
@@ -519,7 +576,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 <Select
                   value={formData.religiousLevel || ""}
                   onValueChange={(value) =>
-                    handleChange("religiousLevel", value)
+                    handleChange("religiousLevel", value || undefined)
                   }
                   disabled={!isEditing}
                 >
@@ -536,42 +593,45 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 </Select>
               </div>
 
-              {/* כתובת */}
               <div>
                 <Label className="block mb-1.5 text-xs font-medium text-gray-600">
                   כתובת
                 </Label>
                 <Input
                   value={formData.address || ""}
-                  onChange={(e) => handleChange("address", e.target.value)}
+                  onChange={(e) =>
+                    handleChange("address", e.target.value || undefined)
+                  }
                   disabled={!isEditing}
                   placeholder="כתובת מגורים"
                   className="h-9 text-xs focus:ring-cyan-500"
                 />
               </div>
 
-              {/* עיר */}
               <div>
                 <Label className="block mb-1.5 text-xs font-medium text-gray-600">
                   עיר
                 </Label>
                 <Input
                   value={formData.city || ""}
-                  onChange={(e) => handleChange("city", e.target.value)}
+                  onChange={(e) =>
+                    handleChange("city", e.target.value || undefined)
+                  }
                   disabled={!isEditing}
                   placeholder="עיר מגורים"
                   className="h-9 text-xs focus:ring-cyan-500"
                 />
               </div>
 
-              {/* מוצא */}
               <div>
                 <Label className="block mb-1.5 text-xs font-medium text-gray-600">
                   מוצא / עדה
                 </Label>
                 <Input
                   value={formData.origin || ""}
-                  onChange={(e) => handleChange("origin", e.target.value)}
+                  onChange={(e) =>
+                    handleChange("origin", e.target.value || undefined)
+                  }
                   disabled={!isEditing}
                   placeholder="ארץ מוצא / עדה"
                   className="h-9 text-xs focus:ring-cyan-500"
@@ -581,7 +641,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
           </CardContent>
         </Card>
 
-        {/* --- מידע משפחתי --- */}
         <Card className="bg-white/70 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/30 overflow-hidden">
           <CardHeader className="bg-gradient-to-r from-cyan-50/30 to-pink-50/30 border-b border-gray-200/50 p-4">
             <CardTitle className="text-base font-semibold text-gray-700">
@@ -596,7 +655,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 </Label>
                 <Select
                   value={formData.parentStatus || ""}
-                  onValueChange={(value) => handleChange("parentStatus", value)}
+                  onValueChange={(value) =>
+                    handleChange("parentStatus", value || undefined)
+                  }
                   disabled={!isEditing}
                 >
                   <SelectTrigger className="h-9 text-xs focus:ring-cyan-500">
@@ -607,7 +668,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     <SelectItem value="גרושים">גרושים</SelectItem>
                     <SelectItem value="אלמן">אלמן</SelectItem>
                     <SelectItem value="אלמנה">אלמנה</SelectItem>
-                    {/* אפשר להוסיף עוד אופציות לפי הצורך */}
                   </SelectContent>
                 </Select>
               </div>
@@ -645,7 +705,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
           </CardContent>
         </Card>
 
-        {/* --- ממליצים --- */}
         <Card className="bg-white/70 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/30 overflow-hidden">
           <CardHeader className="bg-gradient-to-r from-cyan-50/30 to-pink-50/30 border-b border-gray-200/50 p-4">
             <CardTitle className="text-base font-semibold text-gray-700">
@@ -654,7 +713,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
           </CardHeader>
           <CardContent className="p-4 md:p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
-              {/* ממליץ 1 */}
               <div className="space-y-4">
                 <div>
                   <Label className="block mb-1.5 text-xs font-medium text-gray-600">
@@ -663,7 +721,10 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                   <Input
                     value={formData.referenceName1 || ""}
                     onChange={(e) =>
-                      handleChange("referenceName1", e.target.value)
+                      handleChange(
+                        "referenceName1",
+                        e.target.value || undefined
+                      )
                     }
                     disabled={!isEditing}
                     placeholder="שם מלא"
@@ -675,10 +736,13 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     טלפון ממליץ/ה 1
                   </Label>
                   <Input
-                    type="tel" // Use type="tel" for phone numbers
+                    type="tel"
                     value={formData.referencePhone1 || ""}
                     onChange={(e) =>
-                      handleChange("referencePhone1", e.target.value)
+                      handleChange(
+                        "referencePhone1",
+                        e.target.value || undefined
+                      )
                     }
                     disabled={!isEditing}
                     placeholder="מספר טלפון"
@@ -687,7 +751,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 </div>
               </div>
 
-              {/* ממליץ 2 */}
               <div className="space-y-4">
                 <div>
                   <Label className="block mb-1.5 text-xs font-medium text-gray-600">
@@ -696,7 +759,10 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                   <Input
                     value={formData.referenceName2 || ""}
                     onChange={(e) =>
-                      handleChange("referenceName2", e.target.value)
+                      handleChange(
+                        "referenceName2",
+                        e.target.value || undefined
+                      )
                     }
                     disabled={!isEditing}
                     placeholder="שם מלא"
@@ -711,7 +777,10 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     type="tel"
                     value={formData.referencePhone2 || ""}
                     onChange={(e) =>
-                      handleChange("referencePhone2", e.target.value)
+                      handleChange(
+                        "referencePhone2",
+                        e.target.value || undefined
+                      )
                     }
                     disabled={!isEditing}
                     placeholder="מספר טלפון"
@@ -723,7 +792,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
           </CardContent>
         </Card>
 
-        {/* --- הגדרות פרופיל --- */}
         <Card className="bg-white/70 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/30 overflow-hidden">
           <CardHeader className="bg-gradient-to-r from-cyan-50/30 to-pink-50/30 border-b border-gray-200/50 p-4">
             <CardTitle className="text-base font-semibold text-gray-700">
@@ -732,7 +800,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
           </CardHeader>
           <CardContent className="p-4 md:p-6">
             <div className="space-y-6">
-              {/* נראות פרופיל */}
               <div className="flex items-center justify-between gap-4 border-b border-gray-200/50 pb-4">
                 <div>
                   <Label className="font-medium text-sm text-gray-700">
@@ -751,7 +818,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 />
               </div>
 
-              {/* מגדר שדכן מועדף */}
               <div>
                 <Label className="block mb-1.5 text-xs font-medium text-gray-600">
                   מגדר שדכן/ית מועדף
@@ -759,7 +825,10 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 <Select
                   value={formData.preferredMatchmakerGender || ""}
                   onValueChange={(value) =>
-                    handleChange("preferredMatchmakerGender", value as Gender)
+                    handleChange(
+                      "preferredMatchmakerGender",
+                      (value as Gender) || undefined
+                    )
                   }
                   disabled={!isEditing}
                 >
@@ -769,22 +838,24 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                   <SelectContent>
                     <SelectItem value="MALE">משדך</SelectItem>
                     <SelectItem value="FEMALE">שדכנית</SelectItem>
-                    <SelectItem value="NONE">ללא העדפה</SelectItem>{" "}
+                    <SelectItem value="NONE">ללא העדפה</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              {/* סטטוס זמינות */}
               <div>
                 <Label className="block mb-1.5 text-xs font-medium text-gray-600">
                   סטטוס פניות
                 </Label>
                 <Select
-                  value={formData.availabilityStatus || "AVAILABLE"}
+                  value={
+                    formData.availabilityStatus || AvailabilityStatus.AVAILABLE
+                  }
                   onValueChange={(value) =>
                     handleChange(
                       "availabilityStatus",
-                      value as AvailabilityStatus
+                      (value as AvailabilityStatus) ||
+                        AvailabilityStatus.AVAILABLE
                     )
                   }
                   disabled={!isEditing}
@@ -802,7 +873,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 </Select>
               </div>
 
-              {/* הערת זמינות */}
               <div>
                 <Label className="block mb-1.5 text-xs font-medium text-gray-600">
                   הערת פניות (אופציונלי)
@@ -810,7 +880,10 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 <Textarea
                   value={formData.availabilityNote || ""}
                   onChange={(e) =>
-                    handleChange("availabilityNote", e.target.value)
+                    handleChange(
+                      "availabilityNote",
+                      e.target.value || undefined
+                    )
                   }
                   disabled={!isEditing}
                   placeholder="הערה קצרה לגבי הסטטוס..."
@@ -819,7 +892,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 />
               </div>
 
-              {/* תיאור אישי */}
               <div className="border-t border-gray-200/50 pt-4 space-y-1.5">
                 <Label className="block text-sm font-medium text-gray-700">
                   קצת עלי
@@ -827,7 +899,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 {isEditing ? (
                   <Textarea
                     value={formData.about || ""}
-                    onChange={(e) => handleChange("about", e.target.value)}
+                    onChange={(e) =>
+                      handleChange("about", e.target.value || undefined)
+                    }
                     className="text-xs focus:ring-cyan-500 min-h-[100px]"
                     placeholder="ספר/י קצת על עצמך, השקפה, תכונות..."
                     rows={4}
@@ -843,7 +917,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 )}
               </div>
 
-              {/* תחביבים */}
               <div className="border-t border-gray-200/50 pt-4 space-y-1.5">
                 <Label className="block text-sm font-medium text-gray-700">
                   תחביבים ופנאי
@@ -851,7 +924,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 {isEditing ? (
                   <Textarea
                     value={formData.hobbies || ""}
-                    onChange={(e) => handleChange("hobbies", e.target.value)}
+                    onChange={(e) =>
+                      handleChange("hobbies", e.target.value || undefined)
+                    }
                     className="text-xs focus:ring-cyan-500 min-h-[80px]"
                     placeholder="מה את/ה אוהב/ת לעשות בזמן הפנוי?"
                     rows={3}

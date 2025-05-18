@@ -1,4 +1,4 @@
-// Update user images and create new users by gender
+  // Update user images and create new users by gender
 // Save this file with .mjs extension
 
 // Import required packages
