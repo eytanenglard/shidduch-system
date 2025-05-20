@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth"; // Using 'next-auth' is fine
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { UserProfile } from "@/types/next-auth"; // Import for potential explicit typing if needed
 
 export async function GET() {
   try {
@@ -65,13 +66,27 @@ export async function GET() {
                 height: true,
                 maritalStatus: true,
                 occupation: true,
-                education: true,
-                address: true,
+                education: true, // תיאור טקסטואלי
+                educationLevel: true, // רמת השכלה מובנית - נוסף
+                // address: true, // הוסר מ-UserProfile
                 city: true,
                 origin: true,
                 religiousLevel: true,
                 about: true,
-                hobbies: true,
+                // hobbies: true, // הוסר (הוחלף ב-profileHobbies)
+
+                // --- שדות חדשים מ-UserProfile ---
+                shomerNegiah: true,
+                serviceType: true,
+                serviceDetails: true,
+                headCovering: true, // לנשים
+                kippahType: true, // לגברים
+                hasChildrenFromPrevious: true,
+                profileCharacterTraits: true,
+                profileHobbies: true,
+                aliyaCountry: true,
+                aliyaYear: true,
+                
                 parentStatus: true,
                 siblings: true,
                 position: true,
@@ -84,10 +99,7 @@ export async function GET() {
                 preferredEducation: true,
                 preferredOccupations: true,
                 contactPreference: true,
-                referenceName1: true,
-                referencePhone1: true,
-                referenceName2: true,
-                referencePhone2: true,
+         
                 isProfileVisible: true,
                 preferredMatchmakerGender: true,
                 matchingNotes: true,
@@ -127,13 +139,27 @@ export async function GET() {
                 height: true,
                 maritalStatus: true,
                 occupation: true,
-                education: true,
-                address: true,
+                education: true, // תיאור טקסטואלי
+                educationLevel: true, // רמת השכלה מובנית - נוסף
+                // address: true, // הוסר מ-UserProfile
                 city: true,
                 origin: true,
                 religiousLevel: true,
                 about: true,
-                hobbies: true,
+                // hobbies: true, // הוסר (הוחלף ב-profileHobbies)
+
+                // --- שדות חדשים מ-UserProfile ---
+                shomerNegiah: true,
+                serviceType: true,
+                serviceDetails: true,
+                headCovering: true, // לנשים
+                kippahType: true, // לגברים
+                hasChildrenFromPrevious: true,
+                profileCharacterTraits: true,
+                profileHobbies: true,
+                aliyaCountry: true,
+                aliyaYear: true,
+
                 parentStatus: true,
                 siblings: true,
                 position: true,
@@ -146,10 +172,7 @@ export async function GET() {
                 preferredEducation: true,
                 preferredOccupations: true,
                 contactPreference: true,
-                referenceName1: true,
-                referencePhone1: true,
-                referenceName2: true,
-                referencePhone2: true,
+
                 isProfileVisible: true,
                 preferredMatchmakerGender: true,
                 matchingNotes: true,
@@ -176,24 +199,50 @@ export async function GET() {
         },
       },
       orderBy: {
-        updatedAt: "desc",
+        updatedAt: "desc", // Changed from createdAt in previous example, make sure this is intended for history
       },
     });
 
-    const formattedSuggestions = historySuggestions.map(suggestion => ({
-      ...suggestion,
-      secondParty: {
-        ...suggestion.secondParty,
-        profile: {
-          ...suggestion.secondParty.profile,
-          user: {
-            firstName: suggestion.secondParty.firstName,
-            lastName: suggestion.secondParty.lastName,
-            email: suggestion.secondParty.email,
-          }
+    // Typing the suggestion before mapping for better intellisense and safety
+    // This assumes the structure returned by Prisma matches what's expected by UserProfile
+    // and related types.
+    const formattedSuggestions = historySuggestions.map(suggestion => {
+      // Ensure profile exists before trying to spread it, or handle potential null case
+      // Prisma's `include` with `select` guarantees `profile` exists if the relation does,
+      // but if `firstParty` or `secondParty` could be null (e.g., if the user was deleted),
+      // you'd need to handle that. Here, they are expected to be non-null.
+      
+      const firstPartyProfile = suggestion.firstParty.profile as UserProfile | null;
+      const secondPartyProfile = suggestion.secondParty.profile as UserProfile | null;
+
+      return {
+        ...suggestion,
+        firstParty: {
+            ...suggestion.firstParty,
+            profile: firstPartyProfile ? { // Add user sub-object to firstParty.profile if it's part of UserProfile type
+                ...firstPartyProfile,
+                user: {
+                    id: suggestion.firstParty.id,
+                    firstName: suggestion.firstParty.firstName,
+                    lastName: suggestion.firstParty.lastName,
+                    email: suggestion.firstParty.email,
+                }
+            } : null,
+        },
+        secondParty: {
+          ...suggestion.secondParty,
+          profile: secondPartyProfile ? {
+            ...secondPartyProfile,
+            user: { // This structure matches the UserProfile.user field
+              id: suggestion.secondParty.id,
+              firstName: suggestion.secondParty.firstName,
+              lastName: suggestion.secondParty.lastName,
+              email: suggestion.secondParty.email,
+            }
+          } : null,
         }
-      }
-    }));
+      };
+    });
 
     return NextResponse.json({
       success: true,
@@ -202,8 +251,9 @@ export async function GET() {
 
   } catch (error) {
     console.error("Error fetching suggestion history:", error);
+    const errorMessage = error instanceof Error ? error.message : "Internal server error";
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: errorMessage },
       { status: 500 }
     );
   }

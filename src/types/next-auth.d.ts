@@ -16,55 +16,67 @@ import { DefaultSession, DefaultUser } from 'next-auth';
 import { DefaultJWT } from 'next-auth/jwt';
 
 // --- Standalone Interface Definitions (if used elsewhere) ---
+
 export interface UserProfile extends PrismaProfile {
-    id: string;
-    userId: string;
-    gender: Gender;
-    birthDate: Date;
-    nativeLanguage?: string | null;
-    additionalLanguages: string[];
-    height: number | null;
-    maritalStatus?: string | null;
-    occupation?: string | null;
-    education?: string | null;
-    address?: string | null;
-    city?: string | null;
-    origin?: string | null;
-    religiousLevel?: string | null;
-    about?: string | null;
-    hobbies?: string | null;
-    parentStatus?: string | null;
-    siblings?: number | null;
-    position?: number | null;
-    preferredAgeMin?: number | null;
-    preferredAgeMax?: number | null;
-    preferredHeightMin?: number | null;
-    preferredHeightMax?: number | null;
-    preferredReligiousLevels: string[];
-    preferredLocations: string[];
-    preferredEducation: string[];
-    preferredOccupations: string[];
-    contactPreference?: string | null;
-    referenceName1?: string | null;
-    referencePhone1?: string | null;
-    referenceName2?: string | null;
-    referencePhone2?: string | null;
-    isProfileVisible: boolean;
-    preferredMatchmakerGender?: Gender | null;
-    matchingNotes?: string | null;
-    verifiedBy?: string | null;
-    availabilityStatus: AvailabilityStatus;
-    availabilityNote?: string | null;
-    availabilityUpdatedAt?: Date | null;
-    createdAt: Date;
-    updatedAt: Date;
-    lastActive?: Date | null;
-    user?: {
-        firstName?: string;
-        lastName?: string;
-        email?: string;
-    };
-  }
+  id: string;
+  userId: string;
+  gender: Gender;
+  birthDate: Date;
+  nativeLanguage?: string | null;
+  additionalLanguages: string[];
+  height: number | null;
+  maritalStatus?: string | null;
+  occupation?: string | null;
+  education?: string | null; // תיאור טקסטואלי
+  educationLevel?: string | null; // רמת השכלה מובנית
+  // address?: string | null; // הוסר
+  city?: string | null;
+  origin?: string | null;
+  religiousLevel?: string | null; // יורחבו האופציות ב-UI
+  about?: string | null;
+  // hobbies?: string | null; // הוסר (הוחלף ב-profileHobbies)
+
+  // --- שדות חדשים ---
+  shomerNegiah?: boolean | null;
+  serviceType?: ServiceType | null;
+  serviceDetails?: string | null;
+  headCovering?: HeadCoveringType | null; // לנשים
+  kippahType?: KippahType | null; // לגברים
+  hasChildrenFromPrevious?: boolean | null;
+  profileCharacterTraits: string[];
+  profileHobbies: string[];
+  aliyaCountry?: string | null;
+  aliyaYear?: number | null;
+
+  parentStatus?: string | null;
+  siblings?: number | null;
+  position?: number | null;
+  preferredAgeMin?: number | null;
+  preferredAgeMax?: number | null;
+  preferredHeightMin?: number | null;
+  preferredHeightMax?: number | null;
+  preferredReligiousLevels: string[];
+  preferredLocations: string[];
+  preferredEducation: string[];
+  preferredOccupations: string[];
+  contactPreference?: string | null;
+  isProfileVisible: boolean;
+  preferredMatchmakerGender?: Gender | null;
+  matchingNotes?: string | null;
+  verifiedBy?: string | null;
+  availabilityStatus: AvailabilityStatus;
+  availabilityNote?: string | null;
+  availabilityUpdatedAt?: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  lastActive?: Date | null;
+  user?: {
+    id?: string;
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+  };
+}
 
 export interface FormattedAnswer {
   questionId: string;
@@ -275,4 +287,4 @@ export type UpdateValue =
   | { type: "answer"; value: string }
   | { type: "visibility"; isVisible: boolean };
 export type ContactPreference = "direct" | "matchmaker" | "both";
-export { Gender, UserRole, UserStatus, AvailabilityStatus }; // Ensure UserStatus is exported
+export { Gender, UserRole, UserStatus, AvailabilityStatus, ServiceType, HeadCoveringType, KippahType };

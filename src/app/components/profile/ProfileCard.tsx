@@ -578,9 +578,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             {/* Hobbies */}
             <div className="rounded-xl sm:rounded-2xl p-4 sm:p-6 bg-gradient-to-br from-pink-50 to-white border border-pink-100/50 shadow-md">
               <SectionHeader icon={Heart} title="תחביבים" worldKey="values" />
-              {profile.hobbies ? (
+              {profile.profileHobbies ? (
                 <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-2 sm:mt-3">
-                  {profile.hobbies.split(",").map((hobby, index) => (
+                  {profile.profileHobbies.map((hobby, index) => (
                     <Badge
                       key={index}
                       className="px-2.5 py-1 sm:px-3 sm:py-1.5 bg-white text-pink-700 border border-pink-200 shadow-sm hover:bg-pink-50 transition-colors text-xs sm:text-sm font-medium"
@@ -995,74 +995,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           {viewMode === "matchmaker" && (
             <TabsContent value="sensitive" className="mt-2 focus:outline-none">
               <SensitiveInfo>
-                {/* References */}
-                {profile.referenceName1 || profile.referenceName2 ? (
-                  <div className="space-y-4 sm:space-y-5 mb-6 sm:mb-8">
-                    <h3 className="text-base sm:text-lg font-semibold text-amber-800 flex items-center gap-1.5 sm:gap-2">
-                      <Phone className="w-4 h-4 sm:w-5 sm:h-5" />
-                      ממליצים
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-                      {profile.referenceName1 && profile.referencePhone1 && (
-                        <div className="p-3 sm:p-4 bg-white rounded-lg sm:rounded-xl shadow-sm border border-amber-200">
-                          <h4 className="font-medium mb-2 sm:mb-3 text-xs sm:text-sm text-amber-700">
-                            ממליצ/ה 1
-                          </h4>
-                          <div className="space-y-2 sm:space-y-3">
-                            <p className="flex items-center gap-2 sm:gap-2.5 text-sm sm:text-base">
-                              <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-600 flex-shrink-0" />
-                              <span className="font-medium text-gray-800">
-                                {profile.referenceName1}
-                              </span>
-                            </p>
-                            <p className="flex items-center gap-2 sm:gap-2.5 text-sm sm:text-base">
-                              <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-600 flex-shrink-0" />
-                              <span
-                                dir="ltr"
-                                className="font-medium text-gray-800"
-                              >
-                                {profile.referencePhone1}
-                              </span>
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                      {profile.referenceName2 && profile.referencePhone2 && (
-                        <div className="p-3 sm:p-4 bg-white rounded-lg sm:rounded-xl shadow-sm border border-amber-200">
-                          <h4 className="font-medium mb-2 sm:mb-3 text-xs sm:text-sm text-amber-700">
-                            ממליצ/ה 2
-                          </h4>
-                          <div className="space-y-2 sm:space-y-3">
-                            <p className="flex items-center gap-2 sm:gap-2.5 text-sm sm:text-base">
-                              <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-600 flex-shrink-0" />
-                              <span className="font-medium text-gray-800">
-                                {profile.referenceName2}
-                              </span>
-                            </p>
-                            <p className="flex items-center gap-2 sm:gap-2.5 text-sm sm:text-base">
-                              <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-600 flex-shrink-0" />
-                              <span
-                                dir="ltr"
-                                className="font-medium text-gray-800"
-                              >
-                                {profile.referencePhone2}
-                              </span>
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="mb-6 sm:mb-8">
-                    <h3 className="text-base sm:text-lg font-semibold text-amber-800 flex items-center gap-1.5 sm:gap-2 mb-3 sm:mb-4">
-                      <Phone className="w-4 h-4 sm:w-5 sm:h-5" />
-                      ממליצים
-                    </h3>
-                    <EmptyState icon={Phone} message="לא הוזנו ממליצים" />
-                  </div>
-                )}
-
                 {/* Contact Preferences */}
                 <div className="space-y-4 sm:space-y-5 mb-6 sm:mb-8">
                   <h3 className="text-base sm:text-lg font-semibold text-amber-800 flex items-center gap-1.5 sm:gap-2">

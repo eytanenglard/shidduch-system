@@ -289,7 +289,7 @@ export default function QuestionnaireLayout({
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             className={`fixed top-0 ${
               isRTL ? "right-0" : "left-0"
-            } h-full w-3/4 max-w-xs bg-white shadow-lg p-4 z-50 ${directionClass} flex flex-col`} // Added flex flex-col
+            } h-full w-3/4 max-w-xs bg-white shadow-lg p-4 z-50 ${directionClass} flex flex-col overflow-y-auto`} // Updated: Added overflow-y-auto
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-medium flex items-center">
@@ -306,17 +306,14 @@ export default function QuestionnaireLayout({
               </Button>
             </div>
 
-            <div className="flex-1 overflow-y-auto mb-4">
-              {" "}
-              {/* Made scrollable */}
+            <div className="mb-4"> {/* Updated: Removed flex-1 and overflow-y-auto */}
               {Object.keys(worldIcons).map((worldId) => (
                 <NavButton key={worldId} worldId={worldId} isMobile={true} />
               ))}
-              {/* Add FAQ button to mobile nav */}
               {renderFAQButton(true)}
             </div>
 
-            <div className="mt-auto pt-4 border-t space-y-4">
+            <div className="pt-4 border-t space-y-4"> {/* Updated: Removed mt-auto */}
               {lastSaved && (
                 <div className="flex items-center text-xs text-gray-500 mb-2">
                   <CheckCircle className="h-3 w-3 mr-1 text-green-500" />
@@ -343,7 +340,6 @@ export default function QuestionnaireLayout({
                   שמור מצב נוכחי
                 </Button>
 
-                {/* Changed to use onExit function instead of direct router navigation */}
                 <Button
                   variant="outline"
                   size="sm"
@@ -456,7 +452,7 @@ export default function QuestionnaireLayout({
       {/* Desktop Sidebar */}
       <aside
         className={cn(
-          "w-60 bg-white border-r hidden lg:flex lg:flex-col overflow-y-auto",
+          "w-60 bg-white border-r hidden lg:flex lg:flex-col overflow-y-auto", // overflow-y-auto is important here
           isRTL ? "border-l" : "border-r"
         )}
       >
@@ -484,20 +480,17 @@ export default function QuestionnaireLayout({
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-              {/* Removed the original HelpCircle as FAQ button replaces it */}
             </div>
           </div>
         </div>
 
-        <div className="p-4 space-y-2 flex-1 overflow-y-auto">
-          {" "}
-          {/* Made scrollable */}
+        <div className="p-4 space-y-2"> {/* Updated: Removed flex-1 and overflow-y-auto */}
           {Object.keys(worldIcons).map((worldId) => (
             <NavButton key={worldId} worldId={worldId} isMobile={false} />
           ))}
         </div>
 
-        <div className="p-4 border-t mt-auto">
+        <div className="p-4 border-t"> {/* Updated: Removed mt-auto */}
           {lastSaved && (
             <div className="flex items-center text-xs text-gray-500 mb-3">
               <CheckCircle className="h-3 w-3 mr-1 text-green-500" />
@@ -523,7 +516,6 @@ export default function QuestionnaireLayout({
               שמור התקדמות
             </Button>
 
-            {/* Changed to use onExit function instead of direct router navigation */}
             <Button variant="outline" className="w-full" onClick={onExit}>
               <Home className="w-4 h-4 mr-2" />
               מפת העולמות
@@ -543,8 +535,6 @@ export default function QuestionnaireLayout({
 
       {/* Main content area */}
       <main className="flex-1 p-3 md:p-6 lg:pb-16 overflow-y-auto relative">
-        {" "}
-        {/* Added relative */}
         {error && (
           <Alert variant="destructive" className="mb-4">
             <AlertDescription>{error}</AlertDescription>
@@ -552,9 +542,7 @@ export default function QuestionnaireLayout({
         )}
         {children}
         {/* --- תחילת הוספת קוד --- */}
-        {/* Render AccessibilityFeatures so it's always available */}
-        <AccessibilityFeatures className="fixed bottom-4 right-4 lg:bottom-6 lg:right-6 z-50" />{" "}
-        {/* Added fixed positioning */}
+        <AccessibilityFeatures className="fixed bottom-4 right-4 lg:bottom-6 lg:right-6 z-50" />
         {/* --- סוף הוספת קוד --- */}
       </main>
 
@@ -597,9 +585,9 @@ export default function QuestionnaireLayout({
                         if (onExit) {
                           onExit();
                         }
-                        setShowExitPrompt(false); // Close prompt after action
+                        setShowExitPrompt(false); 
                       }}
-                      disabled={isSaving} // Disable while saving
+                      disabled={isSaving}
                     >
                       {isSaving ? (
                         <Loader2 className="h-4 w-4 animate-spin mr-1" />

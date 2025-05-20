@@ -420,14 +420,9 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                                   <span>{targetParty.profile.city}</span>
                                 </li>
                               )}
-                              {targetParty.profile.address && (
-                                <li className="flex items-center justify-end gap-2">
-                                  <span>{targetParty.profile.address}</span>
-                                </li>
-                              )}
+                             
                             </ul>
                           </div>
-
                           <div className="bg-purple-50 p-4 rounded-lg">
                             <div className="flex items-center justify-end gap-2 mb-2">
                               <h4 className="font-medium">רקע דתי</h4>

@@ -1,5 +1,6 @@
+
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth"; // Assuming next-auth/next might be more common for app router, but this works.
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
@@ -64,13 +65,27 @@ export async function GET() {
                 height: true,
                 maritalStatus: true,
                 occupation: true,
-                education: true,
-                address: true,
+                education: true, // תיאור טקסטואלי
+                educationLevel: true, // רמת השכלה מובנית - נוסף
+                // address: true, // הוסר מ-UserProfile
                 city: true,
                 origin: true,
                 religiousLevel: true,
                 about: true,
-                hobbies: true,
+                // hobbies: true, // הוסר (הוחלף ב-profileHobbies)
+
+                // --- שדות חדשים מ-UserProfile ---
+                shomerNegiah: true,
+                serviceType: true,
+                serviceDetails: true,
+                headCovering: true, // לנשים
+                kippahType: true, // לגברים
+                hasChildrenFromPrevious: true,
+                profileCharacterTraits: true,
+                profileHobbies: true,
+                aliyaCountry: true,
+                aliyaYear: true,
+                
                 parentStatus: true,
                 siblings: true,
                 position: true,
@@ -83,10 +98,7 @@ export async function GET() {
                 preferredEducation: true,
                 preferredOccupations: true,
                 contactPreference: true,
-                referenceName1: true,
-                referencePhone1: true,
-                referenceName2: true,
-                referencePhone2: true,
+      
                 isProfileVisible: true,
                 preferredMatchmakerGender: true,
                 matchingNotes: true,
@@ -126,13 +138,27 @@ export async function GET() {
                 height: true,
                 maritalStatus: true,
                 occupation: true,
-                education: true,
-                address: true,
+                education: true, // תיאור טקסטואלי
+                educationLevel: true, // רמת השכלה מובנית - נוסף
+                // address: true, // הוסר מ-UserProfile
                 city: true,
                 origin: true,
                 religiousLevel: true,
                 about: true,
-                hobbies: true,
+                // hobbies: true, // הוסר (הוחלף ב-profileHobbies)
+
+                // --- שדות חדשים מ-UserProfile ---
+                shomerNegiah: true,
+                serviceType: true,
+                serviceDetails: true,
+                headCovering: true, // לנשים
+                kippahType: true, // לגברים
+                hasChildrenFromPrevious: true,
+                profileCharacterTraits: true,
+                profileHobbies: true,
+                aliyaCountry: true,
+                aliyaYear: true,
+
                 parentStatus: true,
                 siblings: true,
                 position: true,
@@ -145,10 +171,7 @@ export async function GET() {
                 preferredEducation: true,
                 preferredOccupations: true,
                 contactPreference: true,
-                referenceName1: true,
-                referencePhone1: true,
-                referenceName2: true,
-                referencePhone2: true,
+             
                 isProfileVisible: true,
                 preferredMatchmakerGender: true,
                 matchingNotes: true,
@@ -186,8 +209,10 @@ export async function GET() {
     
   } catch (error) {
     console.error("Error fetching active suggestions:", error);
+    // It's good practice to type the error if possible, e.g., if (error instanceof Error)
+    const errorMessage = error instanceof Error ? error.message : "Internal server error";
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: errorMessage }, // More specific error message if available
       { status: 500 }
     );
   }

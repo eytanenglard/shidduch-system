@@ -118,15 +118,27 @@ model Profile {
   nativeLanguage            String?
   additionalLanguages       String[]
   height                    Int?
-  maritalStatus             String?
+  maritalStatus             String?            // נשאר String, יטופל עם אופציות מוגדרות ב-UI
   occupation                String?
-  education                 String?
-  address                   String?
+  education                 String?            // השכלה - תיאור טקסטואלי
+  educationLevel            String?            // רמת השכלה - מבנה סגור (למשל, תיכונית, אקדמית)
   city                      String?
   origin                    String?
-  religiousLevel            String?
-  about                     String?
-  hobbies                   String?
+  religiousLevel            String?            // רמה דתית - יורחבו האופציות ב-UI
+  // --- שדות חדשים ---
+  shomerNegiah              Boolean?           // שמירת נגיעה
+  serviceType               ServiceType?       // סוג שירות - Enum
+  serviceDetails            String?            // פירוט על השירות (יחידה, תפקיד, שם ישיבה/מכינה)
+  headCovering              HeadCoveringType?  // כיסוי ראש (לנשים) - Enum
+  kippahType                KippahType?        // סוג כיפה (לגברים) - Enum
+  hasChildrenFromPrevious   Boolean?           @default(false) // האם יש ילדים מקשר קודם
+  profileCharacterTraits    String[]           @default([]) // תכונות אופי נבחרות
+  profileHobbies            String[]           @default([]) // תחביבים נבחרים
+  aliyaCountry              String?            // אם עלה, מאיזו מדינה
+  aliyaYear                 Int?               // שנת עלייה
+
+  // --- שדות קיימים (חלקם עם שינוי קטן בהבנה) ---
+  about                     String?            // תיאור חופשי
   parentStatus              String?
   siblings                  Int?
   position                  Int?
@@ -139,10 +151,6 @@ model Profile {
   preferredEducation        String[]           @default([])
   preferredOccupations      String[]           @default([])
   contactPreference         String?
-  referenceName1            String?
-  referencePhone1           String?
-  referenceName2            String?
-  referencePhone2           String?
   isProfileVisible          Boolean            @default(true)
   preferredMatchmakerGender Gender?
   matchingNotes             String?
@@ -153,10 +161,45 @@ model Profile {
   createdAt                 DateTime           @default(now())
   updatedAt                 DateTime           @updatedAt
   lastActive                DateTime?
+
   user                      User               @relation(fields: [userId], references: [id])
   verifiedByMatchmaker      User?              @relation("VerifiedByMatchmaker", fields: [verifiedBy], references: [id])
 }
 
+// --- Enums חדשים ---
+enum ServiceType {
+  MILITARY_COMBATANT
+  MILITARY_SUPPORT
+  MILITARY_OFFICER
+  MILITARY_INTELLIGENCE_CYBER_TECH
+  NATIONAL_SERVICE_ONE_YEAR
+  NATIONAL_SERVICE_TWO_YEARS
+  HESDER_YESHIVA
+  YESHIVA_ONLY_POST_HS
+  PRE_MILITARY_ACADEMY_AND_SERVICE // מכינה ואז שירות
+  EXEMPTED
+  CIVILIAN_SERVICE
+  OTHER
+}
+
+enum HeadCoveringType { // לנשים
+  FULL_COVERAGE // כיסוי מלא
+  PARTIAL_COVERAGE // כיסוי חלקי
+  HAT_BERET // כובע / ברט
+  SCARF_ONLY_SOMETIMES // מטפחת רק לפעמים/בית כנסת
+  NONE // ללא כיסוי ראש
+}
+
+enum KippahType { // לגברים
+  BLACK_VELVET // קטיפה שחורה
+  KNITTED_SMALL // סרוגה קטנה
+  KNITTED_LARGE // סרוגה גדולה
+  CLOTH // בד
+  BRESLEV // ברסלב (לבנה גדולה)
+  NONE_AT_WORK_OR_CASUAL // לא בעבודה / ביום-יום
+  NONE_USUALLY // לרוב לא חובש
+  OTHER // אחר
+}
 model Meeting {
   id            String          @id @default(cuid())
   suggestionId  String

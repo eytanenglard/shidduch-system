@@ -81,10 +81,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
         height: profile.height === null ? undefined : profile.height,
 
         // String fields: convert null to empty string for controlled inputs
-        referenceName1: profile.referenceName1 ?? "",
-        referencePhone1: profile.referencePhone1 ?? "",
-        referenceName2: profile.referenceName2 ?? "",
-        referencePhone2: profile.referencePhone2 ?? "",
+     
         matchingNotes: profile.matchingNotes ?? "",
         education: profile.education ?? "",
         occupation: profile.occupation ?? "",
@@ -121,10 +118,6 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
         preferredHeightMin: nullToUndefined(profile.preferredHeightMin),
         preferredHeightMax: nullToUndefined(profile.preferredHeightMax),
         height: profile.height === null ? undefined : profile.height,
-        referenceName1: profile.referenceName1 ?? "",
-        referencePhone1: profile.referencePhone1 ?? "",
-        referenceName2: profile.referenceName2 ?? "",
-        referencePhone2: profile.referencePhone2 ?? "",
         matchingNotes: profile.matchingNotes ?? "",
         education: profile.education ?? "",
         occupation: profile.occupation ?? "",

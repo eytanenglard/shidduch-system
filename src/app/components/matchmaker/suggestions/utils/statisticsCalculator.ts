@@ -203,7 +203,6 @@ export const calculateCompletionStats = (candidates: Candidate[]) => {
   candidates.forEach(candidate => {
     if (candidate.images.length > 0) stats.hasPhotos++;
     if (candidate.profile.about) stats.hasAbout++;
-    if (candidate.profile.referenceName1 || candidate.profile.referenceName2) stats.hasReferences++;
     if (candidate.profile.preferredAgeMin && candidate.profile.preferredAgeMax) stats.hasPreferences++;
     if (candidate.isVerified) stats.isVerified++;
     
@@ -213,7 +212,6 @@ export const calculateCompletionStats = (candidates: Candidate[]) => {
       candidate.profile.about &&
       candidate.profile.religiousLevel &&
       candidate.profile.city &&
-      (candidate.profile.referenceName1 || candidate.profile.referenceName2) &&
       candidate.profile.preferredAgeMin &&
       candidate.profile.preferredAgeMax
     ) {

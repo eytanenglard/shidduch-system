@@ -270,12 +270,7 @@ export const useCandidates = (initialFilters: CandidatesFilter = {}): UseCandida
       }
 
       // בדיקת המלצות
-      if (filters.hasReferences && 
-          !candidate.profile.referenceName1 && 
-          !candidate.profile.referenceName2) {
-        return false;
-      }
-
+   
       // בדיקת פעילות אחרונה
       if (filters.lastActiveDays && candidate.profile.lastActive) {
         const lastActive = new Date(candidate.profile.lastActive);
@@ -367,12 +362,7 @@ export const useCandidates = (initialFilters: CandidatesFilter = {}): UseCandida
               return false;
             }
 
-            // בדיקת המלצות
-            if (filters.maleFilters.hasReferences && 
-                !candidate.profile.referenceName1 && 
-                !candidate.profile.referenceName2) {
-              return false;
-            }
+    
 
             // בדיקת פעילות אחרונה
             if (filters.maleFilters.lastActiveDays && candidate.profile.lastActive) {
@@ -464,12 +454,7 @@ export const useCandidates = (initialFilters: CandidatesFilter = {}): UseCandida
               return false;
             }
 
-            // בדיקת המלצות
-            if (filters.femaleFilters.hasReferences && 
-                !candidate.profile.referenceName1 && 
-                !candidate.profile.referenceName2) {
-              return false;
-            }
+       
 
             // בדיקת פעילות אחרונה
             if (filters.femaleFilters.lastActiveDays && candidate.profile.lastActive) {

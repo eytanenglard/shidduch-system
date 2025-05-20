@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image"; // Import next/image
 import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -20,10 +21,14 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import type { Session } from "next-auth";
+import type { Session } from "next-auth"; // ודא שהטיפוס Session מיובא נכון
+import type { UserImage } from "@/types/next-auth"; // ייבא את טיפוס UserImage
 
 const Navbar = () => {
-  const { data: session } = useSession() as { data: Session | null };
+  // ודא שהטיפוס Session כאן כולל את שדה images
+  const { data: session } = useSession() as {
+    data: (Session & { user?: { images?: UserImage[] } }) | null;
+  };
   const pathname = usePathname();
   const { notifications } = useNotifications();
   const isActive = (path: string) => pathname === path;
@@ -61,8 +66,18 @@ const Navbar = () => {
     if (!fullName) return "";
 
     const [firstName, lastName] = fullName.split(" ");
-    return `${firstName?.[0] || ""}${lastName?.[0] || ""}`;
+    return `${firstName?.[0] || ""}${lastName?.[0] || ""}`.toUpperCase();
   };
+
+  // פונקציה חדשה לקבלת תמונת פרופיל ראשית
+  const getMainProfileImage = (): UserImage | null => {
+    if (session?.user?.images && Array.isArray(session.user.images)) {
+      return session.user.images.find((img) => img.isMain) || null;
+    }
+    return null;
+  };
+
+  const mainProfileImage = getMainProfileImage();
 
   const LanguageToggle = () => (
     <Button
@@ -89,6 +104,8 @@ const Navbar = () => {
   const gradientButtonStyle = scrolled
     ? "bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white shadow-md hover:shadow-lg rounded-xl"
     : "bg-gradient-to-r from-cyan-500/70 via-pink-500/30 to-cyan-500/70 hover:from-cyan-500/90 hover:via-pink-500/40 hover:to-cyan-500/90 text-white backdrop-filter backdrop-blur-sm shadow-md hover:shadow-lg rounded-xl";
+
+  const profileIconSize = "w-9 h-9 md:w-10 md:h-10"; // גודל אחיד לתמונה/ראשי תיבות
 
   return (
     <>
@@ -121,6 +138,7 @@ const Navbar = () => {
               <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/0 via-pink-500/0 to-cyan-500/0 group-hover:from-cyan-500/10 group-hover:via-pink-500/10 group-hover:to-cyan-500/10 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
             </Link>
 
+            {/* Desktop Navigation Links */}
             <div className="hidden md:flex items-center gap-1 md:gap-2">
               {session && (
                 <>
@@ -144,16 +162,14 @@ const Navbar = () => {
                       />
                     </>
                   ) : (
-                    <>
-                      <NavItem
-                        href="/matches"
-                        isActive={isActive("/matches")}
-                        icon={<Users className="ml-2 h-4 w-4" />}
-                        text="ההצעות שלי"
-                        scrolled={scrolled}
-                        gradientStyle={gradientButtonStyle}
-                      />
-                    </>
+                    <NavItem
+                      href="/matches"
+                      isActive={isActive("/matches")}
+                      icon={<Users className="ml-2 h-4 w-4" />}
+                      text="ההצעות שלי"
+                      scrolled={scrolled}
+                      gradientStyle={gradientButtonStyle}
+                    />
                   )}
 
                   <NavItem
@@ -167,10 +183,12 @@ const Navbar = () => {
                     scrolled={scrolled}
                     gradientStyle={gradientButtonStyle}
                   />
+                  {/* ה-NavItem של פרופיל והגדרות הוסרו מכאן ויופיעו ליד התמונה/התנתקות */}
                 </>
               )}
             </div>
 
+            {/* Right side items: Language, Mobile Menu, Auth */}
             <div className="flex items-center gap-1 md:gap-2">
               <LanguageToggle />
 
@@ -197,16 +215,9 @@ const Navbar = () => {
                       scrolled ? "border-gray-200" : "border-white/20"
                     }`}
                   />
+                  {/* User actions - Desktop */}
                   <div className="hidden md:flex items-center gap-1 md:gap-2">
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm shadow-sm transition-all duration-300 ${
-                        scrolled
-                          ? "bg-gradient-to-br from-cyan-100 to-cyan-200 text-cyan-700 font-semibold"
-                          : "bg-gradient-to-br from-white/10 to-pink-300/10 text-white backdrop-filter backdrop-blur-sm"
-                      }`}
-                    >
-                      {getInitials()}
-                    </div>
+                    {/* ה-NavItem שהיו קודם כאן: פרופיל, הגדרות, הועברו להיות ליד התמונה/התנתקות */}
                     <NavItem
                       href="/profile"
                       isActive={isActive("/profile")}
@@ -231,10 +242,48 @@ const Navbar = () => {
                       <LogOut className="ml-2 h-4 w-4" />
                       <span>התנתקות</span>
                     </Button>
+                    {/* Profile Image / Initials - Moved to be the most right element */}
+                    <Link href="/profile" passHref>
+                      <div
+                        className={`relative ${profileIconSize} rounded-full flex items-center justify-center text-sm shadow-md transition-all duration-300 cursor-pointer group overflow-hidden`}
+                        title={session.user?.name || "פרופיל"}
+                      >
+                        {mainProfileImage ? (
+                          <Image
+                            src={mainProfileImage.url}
+                            alt={session.user?.name || "תמונת פרופיל"}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 768px) 40px, 40px" // גודל תמונה בהתאם ל-profileIconSize
+                          />
+                        ) : (
+                          <span
+                            className={`font-semibold text-base ${
+                              scrolled ? "text-cyan-700" : "text-cyan-600" // <--- השינוי כאן
+                            }`}
+                          >
+                            {getInitials()}
+                          </span>
+                        )}
+                        {/* רקע שמשתנה עם הגלילה, אם אין תמונה */}
+                        {!mainProfileImage && (
+                          <div
+                            className={`absolute inset-0 -z-10 ${
+                              scrolled
+                                ? "bg-gradient-to-br from-cyan-100 to-cyan-200"
+                                : "bg-gradient-to-br from-white/10 to-pink-300/10 backdrop-filter backdrop-blur-sm"
+                            }`}
+                          ></div>
+                        )}
+                        {/* אפקט hover עדין */}
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-200"></div>
+                      </div>
+                    </Link>
                   </div>
                 </>
               ) : (
                 <>
+                  {/* Auth links for non-logged in users - Desktop */}
                   <div className="hidden md:flex items-center gap-2">
                     <Link href="/auth/signin">
                       <Button
@@ -262,6 +311,7 @@ const Navbar = () => {
         </div>
       </nav>
 
+      {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
         <div
           className="fixed inset-0 bg-gradient-to-br from-cyan-900/30 via-gray-900/50 to-pink-900/30 z-50 backdrop-blur-md transition-opacity duration-300"
@@ -269,10 +319,11 @@ const Navbar = () => {
         />
       )}
 
+      {/* Mobile Menu Panel */}
       <div
         className={`fixed top-0 ${
           language === "he" ? "right-0" : "left-0"
-        } z-50 h-full w-3/4 max-w-xs bg-gradient-to-br from-white to-cyan-50 shadow-2xl transform transition-transform duration-300 ease-in-out ${
+        } z-[60] h-full w-3/4 max-w-xs bg-gradient-to-br from-white to-cyan-50 shadow-2xl transform transition-transform duration-300 ease-in-out ${
           mobileMenuOpen
             ? "translate-x-0"
             : language === "he"
@@ -298,8 +349,26 @@ const Navbar = () => {
         <div className="overflow-y-auto h-full pb-20">
           {session && (
             <div className="flex items-center gap-3 p-4 border-b border-cyan-100 bg-gradient-to-r from-cyan-50 to-white">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-100 to-pink-100 flex items-center justify-center text-cyan-700 font-semibold text-lg shadow-sm">
-                {getInitials()}
+              {/* Mobile Menu Profile Image / Initials */}
+              <div
+                className={`relative ${profileIconSize} rounded-full flex items-center justify-center text-lg shadow-sm overflow-hidden`}
+              >
+                {mainProfileImage ? (
+                  <Image
+                    src={mainProfileImage.url}
+                    alt={session.user?.name || "תמונת פרופיל"}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 48px, 48px" // קצת יותר גדול במובייל
+                  />
+                ) : (
+                  <span className="font-semibold text-cyan-700">
+                    {getInitials()}
+                  </span>
+                )}
+                {!mainProfileImage && (
+                  <div className="absolute inset-0 -z-10 bg-gradient-to-br from-cyan-100 to-pink-100"></div>
+                )}
               </div>
               <div>
                 <div className="font-semibold text-gray-900">
@@ -357,7 +426,6 @@ const Navbar = () => {
                     }
                     gradientStyle="bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-600 hover:from-cyan-700 hover:via-blue-700 hover:to-cyan-700"
                   />
-                  {/* הוספנו קו הפרדה רק אם הפריטים הבאים קיימים */}
                   <li className="pt-2 mt-2 border-t border-gray-100" />
 
                   <MobileNavItem
@@ -376,11 +444,10 @@ const Navbar = () => {
                     text="הגדרות חשבון"
                     gradientStyle="bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-600 hover:from-cyan-700 hover:via-blue-700 hover:to-cyan-700"
                   />
-                  {/* כפתור ההתנתקות עכשיו עטוף ב-MobileNavItem */}
                   <MobileNavItem
-                    href="#" // ניתן להשאיר # או להסיר את ה-href אם ה-onClick מטפל בניווט
+                    href="#"
                     onClick={handleSignOut}
-                    isActive={false} // כפתור התנתקות לא פעיל במובן של נתיב
+                    isActive={false}
                     icon={<LogOut className="ml-2 h-5 w-5" />}
                     text="התנתקות"
                     gradientStyle="bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-600 hover:from-cyan-700 hover:via-blue-700 hover:to-cyan-700 rounded-xl"
@@ -388,9 +455,7 @@ const Navbar = () => {
                 </>
               ) : (
                 <>
-                  {/* הוספנו קו הפרדה רק אם הפריטים הבאים קיימים */}
                   <li className="pt-2 mt-2 border-t border-gray-100" />
-                  {/* כפתורי התחברות והרשמה עכשיו משתמשים ב-MobileNavItem */}
                   <MobileNavItem
                     href="/auth/signin"
                     onClick={() => setMobileMenuOpen(false)}
@@ -429,7 +494,7 @@ const NavItem = ({
   icon: React.ReactNode;
   text: string;
   badge?: number;
-  scrolled: boolean;
+  scrolled: boolean; // scrolled נשאר כאן כי הוא משפיע על gradientStyle שמגיע מבחוץ
   gradientStyle: string;
 }) => (
   <Link href={href}>
@@ -457,7 +522,8 @@ const MobileNavItem = ({
   icon,
   text,
   badge,
-  gradientStyle,
+  gradientStyle, // gradientStyle מגיע עכשיו ישירות כ className עם כל העיצוב הדרוש
+  isActive, // isActive עדיין יכול להיות שימושי להדגשה נוספת אם צריך
 }: {
   href: string;
   onClick: () => void;
@@ -469,13 +535,11 @@ const MobileNavItem = ({
 }) => (
   <li>
     <Link href={href} onClick={onClick} passHref>
-      {" "}
-      {/* הוספנו passHref */}
       <Button
         variant="default"
-        // className={`w-full justify-start transition-all duration-300 relative overflow-hidden group text-white shadow-md ${gradientStyle} ${isActive ? "ring-2 ring-pink-300" : ""}`}
-        // ה-styling של הכפתור נלקח ישירות מה-gradientStyle שהועבר. אין צורך להוסיף כאן class נוסף אם הוא כבר מוגדר ב-gradientStyle
-        className={`w-full justify-start transition-all duration-300 relative overflow-hidden group text-white shadow-md ${gradientStyle}`}
+        className={`w-full justify-start transition-all duration-300 relative overflow-hidden group text-white shadow-md ${gradientStyle} ${
+          isActive ? "ring-2 ring-pink-300/70" : ""
+        }`} // ניתן להוסיף הדגשה על בסיס isActive
       >
         <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
         <span className="relative z-10 flex items-center">

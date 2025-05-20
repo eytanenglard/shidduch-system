@@ -17,13 +17,6 @@ export interface PhotosSectionProps {
   onDelete: (imageId: string) => Promise<void>;
 }
 
-export interface ExtendedProfileSectionProps {
-  profile: UserProfile | null;
-  isEditing: boolean;
-  viewOnly?: boolean;
-  setIsEditing: (value: boolean) => void;
-  onSave: (data: Partial<UserProfile>) => void;
-}
 
 export interface PreferencesSectionProps {
   profile: UserProfile | null;

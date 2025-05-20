@@ -47,13 +47,27 @@ export async function GET() {  // Removed unused req parameter
             height: true,
             maritalStatus: true,
             occupation: true,
-            education: true,
-            address: true,
+            education: true, // תיאור טקסטואלי
+            educationLevel: true, // רמת השכלה מובנית
+            // address: true, // הוסר מ-UserProfile
             city: true,
             origin: true,
             religiousLevel: true,
             about: true,
-            hobbies: true,
+            // hobbies: true, // הוסר (הוחלף ב-profileHobbies)
+
+            // --- שדות חדשים מ-UserProfile ---
+            shomerNegiah: true,
+            serviceType: true,
+            serviceDetails: true,
+            headCovering: true, // לנשים
+            kippahType: true, // לגברים
+            hasChildrenFromPrevious: true,
+            profileCharacterTraits: true,
+            profileHobbies: true,
+            aliyaCountry: true,
+            aliyaYear: true,
+            
             parentStatus: true,
             siblings: true,
             position: true,
@@ -66,10 +80,6 @@ export async function GET() {  // Removed unused req parameter
             preferredEducation: true,
             preferredOccupations: true,
             contactPreference: true,
-            referenceName1: true,
-            referencePhone1: true,
-            referenceName2: true,
-            referencePhone2: true,
             isProfileVisible: true,
             preferredMatchmakerGender: true,
             matchingNotes: true,
@@ -85,28 +95,33 @@ export async function GET() {  // Removed unused req parameter
       }
     });
 
-    const formattedUsers = users.map(user => ({
-      id: user.id,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      status: user.status,
-      isVerified: user.isVerified,
-      images: user.images,
-      profile: {
-        ...user.profile,
-        birthDate: user.profile?.birthDate,
-        lastActive: user.profile?.lastActive?.toISOString(),
-        availabilityUpdatedAt: user.profile?.availabilityUpdatedAt?.toISOString(),
-        createdAt: user.profile?.createdAt?.toISOString(),
-        updatedAt: user.profile?.updatedAt?.toISOString(),
-        user: {
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email
+    const formattedUsers = users.map(user => {
+      // Since profile is guaranteed by `isNot: null`, user.profile will exist.
+      const profile = user.profile!; 
+
+      return {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        status: user.status,
+        isVerified: user.isVerified,
+        images: user.images,
+        profile: {
+          ...profile,
+          birthDate: profile.birthDate.toISOString(), // birthDate is Date, non-null in UserProfile
+          lastActive: profile.lastActive?.toISOString(),
+          availabilityUpdatedAt: profile.availabilityUpdatedAt?.toISOString(),
+          createdAt: profile.createdAt.toISOString(), // createdAt is Date, non-null in UserProfile
+          updatedAt: profile.updatedAt.toISOString(), // updatedAt is Date, non-null in UserProfile
+          user: { // This field is part of the UserProfile type definition
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email
+          }
         }
-      }
-    }));
+      };
+    });
 
     return new NextResponse(
       JSON.stringify({

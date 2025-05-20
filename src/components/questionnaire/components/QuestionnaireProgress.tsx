@@ -678,7 +678,6 @@ export default function QuestionnaireProgress({
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center">
                 <Globe className="h-5 w-5 mr-2 text-blue-500" />
-                עולמות השאלון
               </CardTitle>
               <CardDescription>
                 מעקב אחר התקדמותך בעולמות השונים של השאלון

@@ -2,6 +2,42 @@
 @tailwind components;
 @tailwind utilities;
 
+/* הוסף את זה לקובץ ה-CSS הגלובלי שלך */
+.btn-refined-gradient {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  /* ריפוד קטן יותר לכפתור אייקון קומפקטי */
+  border-radius: 0.75rem;
+  /* 12px, מעוגל יותר */
+  font-weight: 500;
+  color: white;
+  background-image: linear-gradient(135deg, #22d3ee, #f472b6);
+  /* ציאן לורוד */
+  border: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  /* צל מעט יותר עדין */
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+.btn-refined-gradient:hover {
+  background-image: linear-gradient(135deg, #06b6d4, #ec4899);
+  /* גוונים מעט כהים יותר */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12), 0 2px 3px rgba(0, 0, 0, 0.08);
+  /* צל מודגש יותר בהובר */
+  transform: translateY(-1px);
+}
+
+.btn-refined-gradient svg {
+  /* אין צורך ב-margin נוסף אם הריפוד של הכפתור מטפל בזה */
+  width: 1.125rem;
+  /* 18px - התאמה לגודל אייקון רצוי */
+  height: 1.125rem;
+  /* 18px */
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

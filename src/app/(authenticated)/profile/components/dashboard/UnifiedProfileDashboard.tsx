@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react"; // Added Dispatch, SetStateAction for clarity
 import { useSession } from "next-auth/react";
-import { Eye, User, MapPin, Scroll, Clock } from "lucide-react";
+import { Eye } from "lucide-react";
 import { toast } from "sonner";
 
 // UI Components
@@ -23,13 +23,11 @@ import {
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card } from "@/components/ui/card";
 
 // Shared Profile Components (Assuming these exist and are styled appropriately or accept props for styling)
 import {
   ProfileCard,
   PhotosSection,
-  ExtendedProfileSection,
   PreferencesSection,
   ProfileSection,
   QuestionnaireResponsesSection,
@@ -42,78 +40,6 @@ import type {
   QuestionnaireResponse,
   UpdateValue,
 } from "@/types/next-auth"; // Assuming correct path
-import { cn } from "@/lib/utils"; // Utility for conditional classes
-
-// Stats configuration
-const QUICK_STATS = [
-  {
-    key: "maritalStatus",
-    title: "מצב משפחתי",
-    icon: User,
-    color: "cyan",
-    getValue: (profile: UserProfile) => profile.maritalStatus || "לא צוין",
-  },
-  {
-    key: "location",
-    title: "מיקום",
-    icon: MapPin,
-    color: "pink",
-    getValue: (profile: UserProfile) => profile.city || "לא צוין",
-  },
-  {
-    key: "religiousLevel",
-    title: "רמת דתיות",
-    icon: Scroll,
-    color: "cyan",
-    getValue: (profile: UserProfile) => profile.religiousLevel || "לא צוין",
-  },
-  {
-    key: "availability",
-    title: "סטטוס פניות",
-    icon: Clock,
-    color: "pink",
-    getValue: (profile: UserProfile) => profile.availabilityStatus || "לא צוין",
-  },
-];
-
-// Reusable Stats Card component styled according to HeroSection's trust indicators
-interface InspiredStatsCardProps {
-  icon: React.ElementType;
-  title: string;
-  value: string;
-  color: "cyan" | "pink";
-}
-
-const InspiredStatsCard: React.FC<InspiredStatsCardProps> = ({
-  icon: Icon,
-  title,
-  value,
-  color,
-}) => {
-  const bgColor = color === "cyan" ? "bg-cyan-100" : "bg-pink-100";
-  const textColor = color === "cyan" ? "text-cyan-600" : "text-pink-500";
-
-  return (
-    <Card className="bg-white/60 backdrop-blur-sm rounded-2xl shadow-lg border-none p-4 hover:shadow-xl transition-shadow duration-300">
-      <div className="flex items-center gap-3">
-        <div className={cn("p-2 rounded-full flex-shrink-0", bgColor)}>
-          <Icon className={cn("h-5 w-5", textColor)} />
-        </div>
-        {/* **** FIX: Swapped order of title and value **** */}
-        <div className="flex flex-col">
-          {" "}
-          {/* Use flex-col for vertical arrangement */}
-          <p className="text-sm text-gray-600">{title}</p> {/* Title first */}
-          <p className={cn("font-semibold text-base", textColor)}>
-            {value}
-          </p>{" "}
-          {/* Value second */}
-        </div>
-        {/* **** END FIX **** */}
-      </div>
-    </Card>
-  );
-};
 
 interface UnifiedProfileDashboardProps {
   viewOnly?: boolean;
@@ -382,20 +308,6 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
             </Alert>
           )}
 
-          {profileData && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
-              {QUICK_STATS.map((stat) => (
-                <InspiredStatsCard
-                  key={stat.key}
-                  icon={stat.icon}
-                  title={stat.title}
-                  value={stat.getValue(profileData)}
-                  color={stat.color as "cyan" | "pink"}
-                />
-              ))}
-            </div>
-          )}
-
           <div className="flex justify-center my-6 md:my-8">
             <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
               <DialogTrigger asChild>
@@ -404,8 +316,8 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                   size="lg"
                   className="px-8 py-3 text-base sm:text-lg gap-2 rounded-full border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-300 transition-all duration-300 shadow-sm hover:shadow-md"
                 >
+                  תצוגה מקדימה של הפרופיל{" "}
                   <Eye className="w-5 h-5 sm:w-6 sm:h-6" />
-                  תצוגה מקדימה
                 </Button>
               </DialogTrigger>
               <DialogContent
@@ -470,14 +382,9 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                   value="overview"
                   className="px-4 sm:px-6 py-2 rounded-full text-sm sm:text-base font-medium text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-100 data-[state=active]:to-pink-100 data-[state=active]:text-cyan-700 data-[state=active]:shadow-inner transition-all duration-300"
                 >
-                  סקירה כללית
+                  פרטים כלליים
                 </TabsTrigger>
-                <TabsTrigger
-                  value="extended"
-                  className="px-4 sm:px-6 py-2 rounded-full text-sm sm:text-base font-medium text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-100 data-[state=active]:to-pink-100 data-[state=active]:text-cyan-700 data-[state=active]:shadow-inner transition-all duration-300"
-                >
-                  פרופיל מורחב
-                </TabsTrigger>
+
                 <TabsTrigger
                   value="photos"
                   className="px-4 sm:px-6 py-2 rounded-full text-sm sm:text-base font-medium text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-100 data-[state=active]:to-pink-100 data-[state=active]:text-cyan-700 data-[state=active]:shadow-inner transition-all duration-300"
@@ -522,29 +429,6 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                 ) : (
                   <p className="text-center text-gray-500 py-10">
                     טוען סקירה כללית...
-                  </p>
-                )}
-              </TabsContent>
-
-              <TabsContent
-                value="extended"
-                className="focus-visible:ring-0 focus-visible:ring-offset-0"
-              >
-                {profileData ? (
-                  <ExtendedProfileSection
-                    profile={profileData}
-                    isEditing={isEditing}
-                    setIsEditing={setIsEditing}
-                    onSave={handleSave}
-                    viewOnly={viewOnly}
-                    // **** FIX: Removed style props if not defined in ExtendedProfileSectionProps ****
-                    // saveButtonStyle="..."
-                    // editButtonStyle="..."
-                    // **** END FIX ****
-                  />
-                ) : (
-                  <p className="text-center text-gray-500 py-10">
-                    טוען פרופיל מורחב...
                   </p>
                 )}
               </TabsContent>

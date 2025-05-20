@@ -4,7 +4,6 @@
 export { default as ProfileCard } from './ProfileCard';
 
 // Sections
-export { default as ExtendedProfileSection } from './sections/ExtendedProfileSection';
 export { default as PhotosSection } from './sections/PhotosSection';
 export { default as PreferencesSection } from './sections/PreferencesSection';
 export { default as ProfileSection } from './sections/ProfileSection';

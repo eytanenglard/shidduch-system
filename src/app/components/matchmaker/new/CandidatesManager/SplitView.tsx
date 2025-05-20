@@ -262,11 +262,7 @@ const SplitView: React.FC<SplitViewProps> = ({
         return false;
       }
       // בדיקת המלצות
-      if (
-        filters.hasReferences &&
-        !candidate.profile.referenceName1 &&
-        !candidate.profile.referenceName2
-      ) {
+      if (filters.hasReferences) {
         return false;
       }
 
