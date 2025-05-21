@@ -91,7 +91,7 @@ export default function RegisterForm() {
     try {
       setIsGoogleLoading(true);
       setError("");
-      
+
       // ניסיון התחברות עם גוגל - הסרנו את callbackUrl
       // NextAuth יטפל בהפניה באמצעות פונקציית callback.redirect
       await signIn("google");
@@ -167,7 +167,7 @@ export default function RegisterForm() {
             id="phone"
             required
             pattern="[0-9]{10}"
-            placeholder="0501234567"
+            placeholder="0501234567 - לדוגמא"
             className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
           />
         </div>
@@ -192,8 +192,8 @@ export default function RegisterForm() {
             className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
           />
           <p className="mt-1 text-sm text-gray-500">
-            הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה באנגלית, אות קטנה באנגלית
-            ומספר
+            הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה באנגלית, אות קטנה
+            באנגלית ומספר
           </p>
           {passwordError && (
             <div className="text-red-500 text-sm">{passwordError}</div>
@@ -334,8 +334,8 @@ export default function RegisterForm() {
             <span>מתחבר...</span>
           ) : (
             <>
-              <svg 
-                className="h-5 w-5 ml-2" 
+              <svg
+                className="h-5 w-5 ml-2"
                 viewBox="0 0 24 24"
                 aria-hidden="true"
               >
