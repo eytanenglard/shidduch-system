@@ -250,9 +250,10 @@ export default function RegisterForm() {
             className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
           >
             <option value="">בחר מצב משפחתי</option>
-            <option value="רווק/ה">רווק/ה</option>
-            <option value="גרוש/ה">גרוש/ה</option>
-            <option value="אלמן/ה">אלמן/ה</option>
+            <option value="single">רווק/ה</option> {/* שונה ל- "single" */}
+            <option value="divorced">גרוש/ה</option> {/* שונה ל- "divorced" */}
+            <option value="widowed">אלמן/ה</option> {/* שונה ל- "widowed" */}
+            {/* אם יש צורך, אפשר להוסיף גם את "annulled" כאן, בהתאם ללוגיקה העסקית */}
           </select>
         </div>
 
