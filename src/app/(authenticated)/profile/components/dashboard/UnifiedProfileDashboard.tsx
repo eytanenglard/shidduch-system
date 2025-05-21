@@ -128,9 +128,24 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
       });
 
       const data = await response.json();
-      if (data.success) {
-        await updateSession();
-        setProfileData((prev) => ({ ...prev, ...formData } as UserProfile));
+      if (data.success && data.profile) {
+        // ודא ש-data.profile קיים
+        await updateSession(); // This might need to be called with the new user data if session structure depends on it
+
+        // חשוב: המר מחרוזות תאריך מהשרת לאובייקטי Date
+        const serverProfile = data.profile as UserProfile;
+        const processedProfile: UserProfile = {
+          ...serverProfile,
+          birthDate: ensureDateObject(serverProfile.birthDate)!, // Use ensureDateObject or new Date()
+          createdAt: ensureDateObject(serverProfile.createdAt)!,
+          updatedAt: ensureDateObject(serverProfile.updatedAt)!,
+          lastActive: ensureDateObject(serverProfile.lastActive),
+          availabilityUpdatedAt: ensureDateObject(
+            serverProfile.availabilityUpdatedAt
+          ),
+        };
+        setProfileData(processedProfile); // השתמש בפרופיל המעודכן מהשרת
+
         setIsEditing(false);
         toast.success("הפרופיל עודכן בהצלחה");
         setError("");
@@ -145,6 +160,19 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // פונקציית עזר (יכולה להיות מיובאת או מוגדרת כאן)
+  const ensureDateObject = (
+    value: string | number | Date | null | undefined
+  ): Date | undefined => {
+    if (!value) return undefined;
+    if (value instanceof Date && !isNaN(value.getTime())) return value;
+    if (typeof value === "string" || typeof value === "number") {
+      const date = new Date(value);
+      if (!isNaN(date.getTime())) return date;
+    }
+    return undefined;
   };
 
   const handleImageUpload = async (file: File) => {
