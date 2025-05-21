@@ -29,7 +29,7 @@ import type {
   QuestionnaireSubmission,
   QuestionnaireAnswer,
   AnswerValue,
-  WorldComponentProps, // Ensure this is imported if not implicitly available
+  WorldComponentProps,
 } from "./types/types";
 
 const worldLabels = {
@@ -38,7 +38,7 @@ const worldLabels = {
   RELATIONSHIP: "זוגיות",
   PARTNER: "פרטנר",
   RELIGION: "דת ומסורת",
-} as const; // Using 'as const' for better type safety
+} as const;
 enum OnboardingStep {
   WELCOME = "WELCOME",
   TRACK_SELECTION = "TRACK_SELECTION",
@@ -70,12 +70,11 @@ export default function MatchmakingQuestionnaire({
   const { language } = useLanguage();
   const sessionId = useMemo(() => `session_${Date.now()}`, []);
 
-  // Basic State
   const [currentStep, setCurrentStep] = useState<OnboardingStep>(
     OnboardingStep.WELCOME
   );
   const [currentWorld, setCurrentWorld] = useState<WorldId>(
-    initialWorld || "VALUES" // Default to VALUES if no initial world
+    initialWorld || "VALUES"
   );
   const [userTrack, setUserTrack] = useState<UserTrack>("SECULAR");
   const [answers, setAnswers] = useState<QuestionnaireAnswer[]>([]);
@@ -83,7 +82,6 @@ export default function MatchmakingQuestionnaire({
   const [startTime] = useState(() => new Date().toISOString());
   const [lastSavedTime, setLastSavedTime] = useState<Date | null>(null);
 
-  // --- New State for Managing Question Indices per World ---
   const [currentQuestionIndices, setCurrentQuestionIndices] = useState<
     Record<WorldId, number>
   >({
@@ -93,11 +91,9 @@ export default function MatchmakingQuestionnaire({
     PARTNER: 0,
     RELIGION: 0,
   });
-  // ----------------------------------------------------------
 
-  // Submission state
   const [isSaving, setIsSaving] = useState(false);
-  const [isLoading, setIsLoading] = useState(true); // Changed initial state to true for loading
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [toastState, setToastState] = useState<{
     message: string;
@@ -109,14 +105,9 @@ export default function MatchmakingQuestionnaire({
     isVisible: false,
   });
 
-  // Effect to handle initialWorld prop changes
   useEffect(() => {
     if (initialWorld) {
       setCurrentWorld(initialWorld);
-      // Optionally, you might want to ensure the user is in the WORLDS step
-      // if (currentStep !== OnboardingStep.COMPLETED) {
-      //   setCurrentStep(OnboardingStep.WORLDS);
-      // }
     }
   }, [initialWorld]);
 
@@ -125,7 +116,7 @@ export default function MatchmakingQuestionnaire({
       setToastState({ message, type, isVisible: true });
       setTimeout(() => {
         setToastState((prev) => ({ ...prev, isVisible: false }));
-      }, 3000);
+      }, 3000); // Toast visible for 3 seconds
     },
     []
   );
@@ -148,25 +139,28 @@ export default function MatchmakingQuestionnaire({
       startedAt: startTime,
       completedAt: isCompleted ? new Date().toISOString() : undefined,
       userTrack,
-      // Note: We are not saving currentQuestionIndices here, as it's UI state.
-      // If you need to save the current position, you'd add it here.
     };
   }, [answers, completedWorlds, sessionId, startTime, userId, userTrack]);
 
-  const handleQuestionnaireComplete = useCallback(
+  const handleQuestionnaireSave = useCallback(
     async (isAutoSave = false) => {
-      if (isSaving && !isAutoSave) return; // Allow auto-save even if manual save is in progress
+      // Prevent multiple simultaneous saves unless it's an auto-save trying to override a stuck manual save
+      if (isSaving && !isAutoSave) return;
 
       setIsSaving(true);
       setError(null);
+      if (!isAutoSave) {
+        // For manual save, show "Saving..." toast immediately.
+        // The button in QuestionnaireLayout already shows a spinner.
+        // This toast can be brief or integrated differently if a global spinner is preferred.
+        // For now, let's rely on the button's spinner and the success/error toast.
+      }
 
       try {
         const submissionData = prepareSubmissionData();
 
         const validateSubmission = (data: QuestionnaireSubmission): boolean => {
           if (!data.userId) return false;
-          // Allow saving even with no answers (e.g., just track selection)
-          // if (!Array.isArray(data.answers) || data.answers.length === 0) return false;
           if (!Array.isArray(data.worldsCompleted)) return false;
           if (typeof data.completed !== "boolean") return false;
           if (!data.startedAt) return false;
@@ -179,24 +173,30 @@ export default function MatchmakingQuestionnaire({
         }
 
         if (!userId) {
-          // Save to localStorage for anonymous users
+          // Anonymous user
           localStorage.setItem(
             "tempQuestionnaire",
             JSON.stringify(submissionData)
           );
+          setLastSavedTime(new Date());
           if (!isAutoSave) {
-            // Only redirect on explicit save/complete for anonymous users
-            router.push("/auth/signin?callbackUrl=/questionnaire/restore"); // Redirect to signin, then restore
+            // Only redirect on explicit manual save for anonymous users if they try to fully complete
+            // For a simple "Save Progress", we stay on the page.
+            showToast("ההתקדמות נשמרה בדפדפן (משתמש אנונימי)", "info");
+            // If they are on the *final* completion step (OnboardingStep.COMPLETED), then redirect.
+            if (currentStep === OnboardingStep.COMPLETED) {
+              router.push("/auth/signin?callbackUrl=/questionnaire/restore");
+            }
+          } else {
+            showToast("ההתקדמות נשמרה אוטומטית בדפדפן", "info");
           }
-          return; // Stop here for anonymous users
+          return;
         }
 
-        // Save to server for logged-in users
+        // Logged-in user
         const response = await fetch("/api/questionnaire", {
-          method: "PUT", // Use PUT to update existing or create new
-          headers: {
-            "Content-Type": "application/json",
-          },
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(submissionData),
         });
 
@@ -207,32 +207,52 @@ export default function MatchmakingQuestionnaire({
 
         setLastSavedTime(new Date());
 
-        if (!isAutoSave && onComplete) {
-          onComplete(); // Call the external completion handler
-        }
-
         if (!isAutoSave) {
           showToast("השאלון נשמר בהצלחה", "success");
-          if (submissionData.completed) {
-            setCurrentStep(OnboardingStep.COMPLETED); // Move to completed view if finished
+          // If it's a manual save AND the questionnaire is fully completed,
+          // AND the user is at the end (e.g. clicked "Send to Matching" from QuestionnaireCompletion component)
+          // then we can call onComplete and change step.
+          // Otherwise, for a simple "Save Progress" click, we just show the toast and stay.
+          if (
+            submissionData.completed &&
+            currentStep === OnboardingStep.COMPLETED
+          ) {
+            if (onComplete) onComplete();
+          } else if (
+            submissionData.completed &&
+            currentStep !== OnboardingStep.COMPLETED &&
+            currentStep !== OnboardingStep.WORLDS
+          ) {
+            // If completed but not explicitly on the final step (e.g. auto-save made it complete)
+            // and not in a world, maybe move to map or completed.
+            // For now, let's assume manual "Save Progress" keeps them in place unless they *finish* a world.
           }
+        } else {
+          showToast("ההתקדמות נשמרה אוטומטית", "info");
         }
       } catch (err) {
         console.error("Failed to save questionnaire:", err);
         const errorMessage =
-          err instanceof Error
-            ? err.message
-            : "אירעה שגיאה בשמירת השאלון. אנא נסה שוב.";
-        setError(errorMessage);
-
+          err instanceof Error ? err.message : "אירעה שגיאה בשמירת השאלון.";
+        setError(errorMessage); // Set global error state
         if (!isAutoSave) {
           showToast(errorMessage, "error");
+        } else {
+          showToast("שגיאה בשמירה אוטומטית", "error"); // More subtle for auto-save
         }
       } finally {
         setIsSaving(false);
       }
     },
-    [isSaving, prepareSubmissionData, userId, router, onComplete, showToast]
+    [
+      isSaving,
+      prepareSubmissionData,
+      userId,
+      router,
+      onComplete,
+      showToast,
+      currentStep, // Added currentStep
+    ]
   );
 
   // Auto-save effect
@@ -240,12 +260,12 @@ export default function MatchmakingQuestionnaire({
     let autoSaveInterval: NodeJS.Timeout;
 
     if (currentStep === OnboardingStep.WORLDS && userId) {
+      // Only auto-save for logged-in users in worlds
       autoSaveInterval = setInterval(() => {
         if (answers.length > 0 || completedWorlds.length > 0) {
-          handleQuestionnaireComplete(true);
+          handleQuestionnaireSave(true); // Pass true for isAutoSave
         }
-        // ----> שונה ל-5 דקות <----
-      }, 300000);
+      }, 300000); // 5 minutes
     }
 
     return () => {
@@ -256,7 +276,7 @@ export default function MatchmakingQuestionnaire({
     answers.length,
     completedWorlds.length,
     userId,
-    handleQuestionnaireComplete,
+    handleQuestionnaireSave, // Use the renamed save function
   ]);
 
   // Load existing answers effect
@@ -264,27 +284,22 @@ export default function MatchmakingQuestionnaire({
     const loadExistingAnswers = async () => {
       if (!userId) {
         setIsLoading(false);
-        // Check for temp data for anonymous users returning after login attempt
         const tempData = localStorage.getItem("tempQuestionnaire");
         if (tempData) {
-          // This case should ideally be handled by a dedicated restore page/logic
           console.warn(
-            "Found temp data but user ID is missing. Redirect or clear."
+            "Found temp data but user ID is missing. This should be handled by /questionnaire/restore."
           );
-          // localStorage.removeItem("tempQuestionnaire"); // Example cleanup
         }
         return;
       }
 
       setIsLoading(true);
       try {
-        const response = await fetch("/api/questionnaire"); // Assuming GET retrieves current user's data
+        const response = await fetch("/api/questionnaire");
         if (!response.ok) {
-          // Handle non-OK responses (e.g., 404 if no data exists yet)
           if (response.status === 404) {
             console.log("No existing questionnaire data found for user.");
-            // Set initial state or defaults if needed
-            setCurrentStep(OnboardingStep.WELCOME); // Start from beginning
+            setCurrentStep(OnboardingStep.WELCOME);
           } else {
             const errorData = await response.json();
             throw new Error(
@@ -294,21 +309,15 @@ export default function MatchmakingQuestionnaire({
         } else {
           const data = await response.json();
           if (data.success && data.data) {
-            // Combine answers from different possible structures (adjust as needed)
             const allAnswers = [
-              ...(data.data.answers || []), // Prefer a single 'answers' array if possible
-              // Fallbacks if structure is different
+              ...(data.data.answers || []),
               ...(data.data.valuesAnswers || []),
               ...(data.data.personalityAnswers || []),
               ...(data.data.relationshipAnswers || []),
               ...(data.data.partnerAnswers || []),
               ...(data.data.religionAnswers || []),
             ].filter(
-              (
-                answer,
-                index,
-                self // Deduplicate if necessary
-              ) =>
+              (answer, index, self) =>
                 index ===
                 self.findIndex((a) => a.questionId === answer.questionId)
             );
@@ -323,41 +332,43 @@ export default function MatchmakingQuestionnaire({
               loadedCompletedWorlds.length === WORLD_ORDER.length;
 
             if (isQuestionnaireComplete) {
-              setCurrentStep(OnboardingStep.COMPLETED);
+              // If it's complete, but the user is coming directly to questionnaire,
+              // they might want to edit, so we send them to the map.
+              // If `initialWorld` is set, we respect that.
+              if (initialWorld && WORLD_ORDER.includes(initialWorld)) {
+                setCurrentWorld(initialWorld);
+                setCurrentStep(OnboardingStep.WORLDS);
+              } else {
+                setCurrentWorld(WORLD_ORDER[0]); // Default to first world on map
+                setCurrentStep(OnboardingStep.MAP); // Go to map if complete and no specific initial world
+              }
             } else if (
               loadedCompletedWorlds.length > 0 ||
               allAnswers.length > 0 ||
               initialWorld
             ) {
-              // If progress exists or initial world is set, go to worlds/map
               const nextWorld = WORLD_ORDER.find(
                 (world) => !loadedCompletedWorlds.includes(world)
               );
-              // Set current world to initialWorld if provided and valid, otherwise find next incomplete
               const worldToSet =
                 initialWorld && WORLD_ORDER.includes(initialWorld)
                   ? initialWorld
-                  : nextWorld || WORLD_ORDER[0]; // Default to first if all else fails
+                  : nextWorld || WORLD_ORDER[0];
 
               setCurrentWorld(worldToSet);
-
-              // Decide whether to show MAP or go directly into the WORLD
               if (initialWorld && WORLD_ORDER.includes(initialWorld)) {
-                setCurrentStep(OnboardingStep.WORLDS); // Go directly into the specified world
+                setCurrentStep(OnboardingStep.WORLDS);
               } else {
-                setCurrentStep(OnboardingStep.MAP); // Show map by default if resuming
+                setCurrentStep(OnboardingStep.MAP);
               }
             } else {
-              // No significant progress, start from Welcome or Track Selection
               setCurrentStep(OnboardingStep.WELCOME);
             }
 
-            // Load saved question indices if available (add this to your API response/data model)
             if (data.data.currentQuestionIndices) {
               setCurrentQuestionIndices(data.data.currentQuestionIndices);
             }
           } else {
-            // Handle case where API call succeeded but data is missing/invalid
             console.log("Questionnaire data structure invalid or missing.");
             setCurrentStep(OnboardingStep.WELCOME);
           }
@@ -365,7 +376,6 @@ export default function MatchmakingQuestionnaire({
       } catch (err) {
         console.error("Failed to load existing answers:", err);
         setError("אירעה שגיאה בטעינת התשובות הקיימות");
-        // Decide how to proceed on error, e.g., start fresh or show error message
         setCurrentStep(OnboardingStep.WELCOME);
       } finally {
         setIsLoading(false);
@@ -373,118 +383,142 @@ export default function MatchmakingQuestionnaire({
     };
 
     loadExistingAnswers();
-  }, [userId, initialWorld]); // Rerun if userId or initialWorld changes
+  }, [userId, initialWorld]);
 
   const handleAnswer = useCallback(
     (questionId: string, value: AnswerValue) => {
-      setError(null); // Clear error on new answer
+      setError(null);
       const newAnswer: QuestionnaireAnswer = {
         questionId,
         worldId: currentWorld,
         value,
         answeredAt: new Date().toISOString(),
       };
-
       setAnswers((prev) => {
         const filtered = prev.filter((a) => a.questionId !== questionId);
         return [...filtered, newAnswer];
       });
-
-      // // Optionally trigger auto-save more frequently after an answer
-      // handleQuestionnaireComplete(true); // Be cautious with performance if saving too often
     },
     [currentWorld]
   );
 
   const handleWorldChange = useCallback((newWorld: WorldId) => {
     setCurrentWorld(newWorld);
-    setCurrentStep(OnboardingStep.WORLDS); // Ensure we are in the worlds step
+    setCurrentStep(OnboardingStep.WORLDS);
     setError(null);
-    // No need to reset index, the state `currentQuestionIndices` holds the last index for `newWorld`
   }, []);
 
   const handleWorldComplete = useCallback(
     async (worldId: WorldId) => {
-      try {
-        let updatedCompletedWorlds = completedWorlds;
-        if (!completedWorlds.includes(worldId)) {
-          updatedCompletedWorlds = [...completedWorlds, worldId];
-          setCompletedWorlds(updatedCompletedWorlds);
-        }
+      let updatedCompletedWorlds = completedWorlds;
+      if (!completedWorlds.includes(worldId)) {
+        updatedCompletedWorlds = [...completedWorlds, worldId];
+        setCompletedWorlds(updatedCompletedWorlds);
+      }
 
-        showToast(
-          `כל הכבוד! סיימת את עולם ה${
-            worldLabels[worldId] ?? worldId.toLowerCase()
-          }`,
-          "success"
+      showToast(
+        `כל הכבוד! סיימת את עולם ה${
+          worldLabels[worldId] ?? worldId.toLowerCase()
+        }`,
+        "success"
+      );
+
+      const isQuestionnaireNowFullyCompleted =
+        updatedCompletedWorlds.length === WORLD_ORDER.length;
+
+      // Prepare data for saving
+      const submissionDataForWorldComplete = {
+        ...prepareSubmissionData(), // Gets current answers, track etc.
+        worldsCompleted: updatedCompletedWorlds, // Crucially, use the updated list
+        completed: isQuestionnaireNowFullyCompleted, // Mark true if all worlds done
+        completedAt: isQuestionnaireNowFullyCompleted
+          ? new Date().toISOString()
+          : undefined,
+      };
+
+      // Save progress (this will use handleQuestionnaireSave)
+      if (userId) {
+        // For logged-in users, trigger a save.
+        // This save is treated like a "manual" save in terms of its effect if it's the *final* world.
+        // Otherwise, it's like an auto-save (stays on page).
+        try {
+          setIsSaving(true); // Show saving indicator
+          const response = await fetch("/api/questionnaire", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(submissionDataForWorldComplete),
+          });
+          if (!response.ok)
+            throw new Error("Failed to save after world completion");
+          setLastSavedTime(new Date());
+          showToast("התקדמות העולם נשמרה", "success");
+        } catch (e) {
+          console.error("Error saving after world complete:", e);
+          showToast("שגיאה בשמירת התקדמות העולם", "error");
+          setError("שגיאה בשמירת התקדמות העולם.");
+          setIsSaving(false); // Ensure saving is reset on error
+          return; // Don't proceed if save failed
+        } finally {
+          setIsSaving(false);
+        }
+      } else {
+        // Anonymous user: update localStorage
+        localStorage.setItem(
+          "tempQuestionnaire",
+          JSON.stringify(submissionDataForWorldComplete)
         );
+        setLastSavedTime(new Date()); // Show local save time
+        showToast("התקדמות העולם נשמרה בדפדפן", "info");
+      }
 
-        const nextWorld = getNextWorld(worldId);
-        if (
-          !nextWorld ||
-          updatedCompletedWorlds.length === WORLD_ORDER.length
-        ) {
-          // Prepare data and mark as complete before potentially navigating away
-          const finalSubmissionData = {
-            ...prepareSubmissionData(),
-            worldsCompleted: updatedCompletedWorlds, // Use updated list
-            completed: true, // Mark as completed
-            completedAt: new Date().toISOString(),
-          };
-
-          // Attempt final save
-          if (userId) {
-            await handleQuestionnaireComplete(false); // Trigger final manual save
-            // Check for errors after save before changing step
-            if (!error) {
-              setCurrentStep(OnboardingStep.COMPLETED);
-            }
-          } else {
-            // Anonymous user flow
-            localStorage.setItem(
-              "tempQuestionnaire",
-              JSON.stringify(finalSubmissionData)
-            );
-            router.push("/auth/signin?callbackUrl=/questionnaire/restore");
-          }
+      // Navigate based on completion status
+      if (isQuestionnaireNowFullyCompleted) {
+        if (!userId) {
+          router.push("/auth/signin?callbackUrl=/questionnaire/restore"); // Anon users go to sign in to finalize
         } else {
-          setCurrentWorld(nextWorld); // Move to the next world
-          setCurrentStep(OnboardingStep.MAP); // Show map between worlds
-
-          // Auto-save progress after completing a world (but not the last one)
-          if (userId) {
-            await handleQuestionnaireComplete(true); // Auto-save
-          }
+          // Logged-in users who completed the *last* world
+          setCurrentStep(OnboardingStep.COMPLETED); // Go to the "QuestionnaireCompletion" component view
+          if (onComplete) onComplete(); // This might navigate them further (e.g., to /dashboard or /questionnaire/complete)
         }
-      } catch (err) {
-        setError("אירעה שגיאה בשמירת ההתקדמות. אנא נסה שוב.");
-        console.error("Error completing world:", err);
+      } else {
+        // Not the last world, move to the next or map
+        const nextWorld = getNextWorld(worldId);
+        if (nextWorld) {
+          setCurrentWorld(nextWorld);
+          setCurrentStep(OnboardingStep.MAP); // Show map between worlds
+        } else {
+          // Should not happen if not fully completed, but as a fallback:
+          setCurrentStep(OnboardingStep.MAP);
+        }
       }
     },
     [
       completedWorlds,
       showToast,
       userId,
-      handleQuestionnaireComplete,
-      prepareSubmissionData,
+      prepareSubmissionData, // Use the main save function with autoSave=true for intermediate saves
       router,
-      error,
+      onComplete, // Propagate onComplete for final completion
+      // error, // Removed error from dependencies here as it might cause loops
     ]
   );
 
-  const handleExit = useCallback(() => {
-    // Save progress before showing the map? Optional.
-    // handleQuestionnaireComplete(true);
-    setCurrentStep(OnboardingStep.MAP);
-  }, []);
+  const handleExit = useCallback(
+    () => {
+      // Potentially auto-save before exiting to map
+      // handleQuestionnaireSave(true); // true for auto-save behavior (no navigation)
+      setCurrentStep(OnboardingStep.MAP);
+    },
+    [
+      /*handleQuestionnaireSave*/
+    ]
+  );
 
-  // --- Updated renderCurrentWorld to pass index state ---
   function renderCurrentWorld() {
-    // Explicitly define the props structure expected by WorldComponentProps
     const worldProps: WorldComponentProps = {
       onAnswer: handleAnswer,
       onComplete: () => handleWorldComplete(currentWorld),
-      onBack: handleExit, // Use handleExit to go back to the map
+      onBack: handleExit,
       answers: answers.filter((a) => a.worldId === currentWorld),
       isCompleted: completedWorlds.includes(currentWorld),
       language,
@@ -509,12 +543,10 @@ export default function MatchmakingQuestionnaire({
       case "RELIGION":
         return <ReligionWorld {...worldProps} />;
       default:
-        // Attempt to find the first world if currentWorld is somehow invalid
         setCurrentWorld(WORLD_ORDER[0]);
         return <div>טוען עולם...</div>;
     }
   }
-  // -----------------------------------------------------
 
   function renderCurrentStep() {
     if (isLoading) {
@@ -533,14 +565,14 @@ export default function MatchmakingQuestionnaire({
           <WorldsMap
             currentWorld={currentWorld}
             completedWorlds={completedWorlds}
-            onWorldChange={handleWorldChange} // Updated handler
+            onWorldChange={handleWorldChange}
           />
         );
       case OnboardingStep.WELCOME:
         return (
           <Welcome
             onStart={() => setCurrentStep(OnboardingStep.TRACK_SELECTION)}
-            onLearnMore={() => router.push("/profile")} // Example learn more destination
+            onLearnMore={() => router.push("/profile")}
             isLoggedIn={!!userId}
           />
         );
@@ -550,9 +582,8 @@ export default function MatchmakingQuestionnaire({
           <TrackSelection
             onSelect={(track: UserTrack) => {
               setUserTrack(track);
-              // Move to map or first world after track selection
-              setCurrentWorld(WORLD_ORDER[0]); // Start with the first world
-              setCurrentStep(OnboardingStep.MAP); // Show map first
+              setCurrentWorld(WORLD_ORDER[0]);
+              setCurrentStep(OnboardingStep.MAP);
             }}
             onBack={() => setCurrentStep(OnboardingStep.WELCOME)}
             selectedTrack={userTrack}
@@ -565,9 +596,9 @@ export default function MatchmakingQuestionnaire({
             currentWorld={currentWorld}
             userTrack={userTrack}
             completedWorlds={completedWorlds}
-            onWorldChange={handleWorldChange} // Pass map handler
-            onExit={handleExit} // Pass exit handler
-            onSaveProgress={() => handleQuestionnaireComplete(false)} // Manual save
+            onWorldChange={handleWorldChange}
+            onExit={handleExit}
+            onSaveProgress={() => handleQuestionnaireSave(false)} // false for manual save
             language={language}
           >
             {renderCurrentWorld()}
@@ -575,14 +606,16 @@ export default function MatchmakingQuestionnaire({
         );
 
       case OnboardingStep.COMPLETED:
+        // This view is shown AFTER all worlds are done and user is logged in.
         return (
           <QuestionnaireCompletion
-            onSendToMatching={() => {
-              // Resubmit data or navigate away
-              handleQuestionnaireComplete(false); // Resubmit potentially
-              // Or redirect:
-              if (onComplete) onComplete(); // Call external handler if provided
-              else router.push("/dashboard"); // Default redirect after completion
+            onSendToMatching={async () => {
+              // This is the final "send"
+              // It might re-trigger a save if we want to ensure latest data,
+              // or just proceed with navigation if confident data is saved.
+              // For now, let's assume data is saved by handleWorldComplete.
+              if (onComplete) onComplete(); // This usually navigates away
+              else router.push("/dashboard");
             }}
             isLoading={isSaving}
             isLoggedIn={!!userId}
@@ -600,12 +633,10 @@ export default function MatchmakingQuestionnaire({
     return (
       <div
         className={cn(
-          "fixed bottom-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-md transition-all duration-300",
-          type === "success"
-            ? "bg-green-500"
-            : type === "error"
-            ? "bg-red-500"
-            : "bg-blue-500",
+          "fixed bottom-4 right-4 z-[100] p-4 rounded-lg shadow-lg max-w-md transition-all duration-300", // Increased z-index
+          type === "success" && "bg-green-500",
+          type === "error" && "bg-red-500",
+          type === "info" && "bg-blue-500",
           "text-white"
         )}
       >
@@ -630,7 +661,6 @@ export default function MatchmakingQuestionnaire({
         language === "he" ? "dir-rtl" : "dir-ltr"
       )}
     >
-      {/* Display last saved time only when actively in a world */}
       {lastSavedTime && currentStep === OnboardingStep.WORLDS && userId && (
         <div className="fixed bottom-4 left-4 z-40 bg-white p-2 rounded-lg shadow-md text-xs text-gray-600 border">
           <div className="flex items-center">
@@ -640,18 +670,16 @@ export default function MatchmakingQuestionnaire({
         </div>
       )}
 
-      {/* Display global error messages */}
-      {error && (
-        <Alert variant="destructive" className="m-4 max-w-lg mx-auto">
-          <AlertTriangle className="h-4 w-4 mr-2" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
+      {error &&
+        currentStep !== OnboardingStep.WORLDS && ( // Show global error if not in a world (world layout might have its own)
+          <Alert variant="destructive" className="m-4 max-w-lg mx-auto">
+            <AlertTriangle className="h-4 w-4 mr-2" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
-      {/* Render the current step's content */}
       {renderCurrentStep()}
 
-      {/* Toast notifications */}
       <Toast
         message={toastState.message}
         type={toastState.type}

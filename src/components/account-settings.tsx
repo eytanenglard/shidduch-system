@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Card,
   CardContent,
@@ -37,12 +37,12 @@ import {
   Calendar,
   Bell,
   Settings,
-  Check,
   AlertCircle,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useSession } from "next-auth/react";
-import { UserRole, UserStatus } from "@prisma/client";
+import { useSession, signOut } from "next-auth/react";
+import { UserRole, UserStatus } from "@prisma/client"; // Assuming Prisma types are globally available or adjust path
 
 interface AccountSettingsProps {
   user: {
@@ -59,19 +59,21 @@ interface AccountSettingsProps {
 }
 
 const PASSWORD_MIN_LENGTH = 8;
+const DELETE_CONFIRMATION_PHRASE = "אני מאשר מחיקה";
 
-const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
-  const { update: updateSession } = useSession();
+const AccountSettings: React.FC<AccountSettingsProps> = ({
+  user: propUser,
+}) => {
+  const { data: session, status: sessionStatus } = useSession();
 
   // States for UI control
-  const [isEditingName, setIsEditingName] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isSendingVerification, setIsSendingVerification] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
-  // Form states
-  const [firstName, setFirstName] = useState(user?.firstName || "");
-  const [lastName, setLastName] = useState(user?.lastName || "");
+  // Form states for password change
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -96,7 +98,15 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
   // Animations and effects
   const [activeSection, setActiveSection] = useState<string | null>(null);
 
-  // Track password strength
+  const canChangePassword = useMemo(() => {
+    if (sessionStatus === "authenticated" && session?.user?.accounts) {
+      return session.user.accounts.some(
+        (acc) => acc.provider === "credentials"
+      );
+    }
+    return false;
+  }, [session, sessionStatus]);
+
   useEffect(() => {
     if (!newPassword) {
       setPasswordStrength(0);
@@ -117,10 +127,8 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
     };
 
     setPasswordRequirements(requirements);
-
-    // Calculate strength
     const metRequirements = Object.values(requirements).filter(Boolean).length;
-    setPasswordStrength(metRequirements * 25); // 25% for each requirement
+    setPasswordStrength(metRequirements * 25);
   }, [newPassword]);
 
   const validatePassword = (password: string) => {
@@ -157,7 +165,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
       const response = await fetch(`/api/auth/send-verification`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: user.email }),
+        body: JSON.stringify({ email: propUser.email }),
       });
 
       if (!response.ok) {
@@ -179,42 +187,6 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
       );
     } finally {
       setIsSendingVerification(false);
-    }
-  };
-
-  const handleNameUpdate = async () => {
-    if (!firstName.trim() || !lastName.trim()) {
-      toast.error("נא למלא את כל השדות", {
-        description: "שם פרטי ושם משפחה הם שדות חובה",
-        icon: <AlertCircle className="h-5 w-5 text-red-500" />,
-      });
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const response = await fetch(`/api/profile/${user.id}/name`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ firstName, lastName }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Failed to update name");
-
-      await updateSession();
-      toast.success("השם עודכן בהצלחה", {
-        description: `השם החדש שלך: ${firstName} ${lastName}`,
-        icon: <Check className="h-5 w-5 text-green-500" />,
-      });
-      setIsEditingName(false);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "שגיאה בעדכון השם", {
-        description: "נסה שוב מאוחר יותר או פנה לתמיכה",
-        icon: <AlertCircle className="h-5 w-5 text-red-500" />,
-      });
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -254,7 +226,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: user.id,
+          userId: propUser.id,
           currentPassword,
           newPassword,
         }),
@@ -279,7 +251,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
           icon: <AlertCircle className="h-5 w-5 text-red-500" />,
         }
       );
-      resetPasswordForm();
+      resetPasswordForm(); // Reset form but keep dialog open for retry
     } finally {
       setIsLoading(false);
     }
@@ -294,7 +266,6 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
       return;
     }
 
-    // Validate verification code format
     if (!/^\d{6}$/.test(verificationCode)) {
       toast.error("קוד אימות לא תקין", {
         description: "קוד האימות חייב להכיל 6 ספרות",
@@ -309,7 +280,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: user.id,
+          userId: propUser.id,
           token: verificationCode,
           newPassword,
         }),
@@ -338,7 +309,47 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
     }
   };
 
-  // Helper function to get color based on password strength
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== DELETE_CONFIRMATION_PHRASE) {
+      toast.error("אישור לא תקין", {
+        description: `נא להקליד "${DELETE_CONFIRMATION_PHRASE}" בדיוק כדי לאשר מחיקה.`,
+        icon: <AlertCircle className="h-5 w-5 text-red-500" />,
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/auth/delete`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to delete account");
+      }
+
+      toast.success("החשבון נמחק בהצלחה", {
+        description: "אנחנו מקווים לראותך שוב בעתיד. אתה מועבר לדף הבית.",
+        icon: <CheckCircle className="h-5 w-5 text-green-500" />,
+      });
+
+      await signOut({ callbackUrl: "/" });
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "שגיאה במחיקת החשבון",
+        {
+          description: "נסה שוב מאוחר יותר או פנה לתמיכה",
+          icon: <AlertCircle className="h-5 w-5 text-red-500" />,
+        }
+      );
+    } finally {
+      setIsLoading(false);
+      // Do not close dialog or reset text on error, allow retry.
+      // On success, signOut handles redirection.
+    }
+  };
+
   const getPasswordStrengthColor = () => {
     if (passwordStrength === 0) return "bg-gray-200";
     if (passwordStrength <= 25) return "bg-red-500";
@@ -347,7 +358,6 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
     return "bg-green-500";
   };
 
-  // Helper function to get status text based on password strength
   const getPasswordStrengthText = () => {
     if (passwordStrength === 0) return "";
     if (passwordStrength <= 25) return "חלשה מאוד";
@@ -356,15 +366,17 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
     return "חזקה";
   };
 
+  if (!propUser) {
+    return <div>טוען פרטי משתמש...</div>; // Or some loading indicator
+  }
+
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      {/* Main Account Card */}
       <Card
         className={`shadow-md hover:shadow-lg transition-all duration-300 border-t-4 border-blue-600 overflow-hidden relative`}
         onMouseEnter={() => setActiveSection("main")}
         onMouseLeave={() => setActiveSection(null)}
       >
-        {/* Gradient background effect */}
         <div
           className={`absolute inset-0 bg-gradient-to-r from-blue-50 to-blue-100 opacity-0 transition-opacity duration-500 ${
             activeSection === "main" ? "opacity-60" : ""
@@ -392,15 +404,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
                   השם והמייל המשמשים אותך באתר
                 </p>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsEditingName(true)}
-                disabled={isLoading}
-                className="border-blue-200 hover:bg-blue-50 hover:border-blue-300 transition-all duration-300"
-              >
-                עריכה
-              </Button>
+              {/* Edit Name button removed */}
             </div>
 
             <div className="grid gap-3">
@@ -409,7 +413,8 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
                 <div>
                   <p className="text-sm font-medium text-gray-700">שם מלא</p>
                   <p className="text-base text-gray-800">
-                    {user.firstName || "לא צוין"} {user.lastName || "לא צוין"}
+                    {propUser.firstName || "לא צוין"}{" "}
+                    {propUser.lastName || "לא צוין"}
                   </p>
                 </div>
               </div>
@@ -421,14 +426,14 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
                     <p className="text-sm font-medium text-gray-700">
                       כתובת מייל
                     </p>
-                    <p className="text-base text-gray-800">{user.email}</p>
+                    <p className="text-base text-gray-800">{propUser.email}</p>
                   </div>
-                  {!user.isVerified && (
+                  {!propUser.isVerified && (
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={sendVerificationEmail}
-                      disabled={isSendingVerification}
+                      disabled={isSendingVerification || isLoading}
                       className="self-start sm:self-center border-blue-200 hover:bg-blue-50 hover:border-blue-300 transition-all duration-300 whitespace-nowrap"
                     >
                       <Mail className="w-4 h-4 mr-2" />
@@ -456,37 +461,37 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
                       variant="outline"
                       className="bg-blue-50 text-blue-700 border-blue-200"
                     >
-                      {user.role === "ADMIN"
+                      {propUser.role === "ADMIN"
                         ? "מנהל"
-                        : user.role === "MATCHMAKER"
+                        : propUser.role === "MATCHMAKER"
                         ? "שדכן"
                         : "מועמד"}
                     </Badge>
                     <Badge
                       className={
-                        user.status === "ACTIVE"
+                        propUser.status === "ACTIVE"
                           ? "bg-green-100 text-green-800 hover:bg-green-200"
                           : "bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
                       }
                     >
-                      {user.status === "ACTIVE"
+                      {propUser.status === "ACTIVE"
                         ? "פעיל"
-                        : user.status == "PENDING_EMAIL_VERIFICATION"
+                        : propUser.status == "PENDING_EMAIL_VERIFICATION"
                         ? "ממתין לאישור אימייל"
-                        : user.status == "PENDING_PHONE_VERIFICATION"
+                        : propUser.status == "PENDING_PHONE_VERIFICATION"
                         ? "ממתין לאישור פלאפון"
-                        : user.status === "INACTIVE"
+                        : propUser.status === "INACTIVE"
                         ? "לא פעיל"
                         : "חסום"}
                     </Badge>
                     <Badge
                       className={
-                        user.isVerified
+                        propUser.isVerified
                           ? "bg-green-100 text-green-800 hover:bg-green-200"
                           : "bg-red-100 text-red-800 hover:bg-red-200"
                       }
                     >
-                      {user.isVerified ? "מאומת" : "לא מאומת"}
+                      {propUser.isVerified ? "מאומת" : "לא מאומת"}
                     </Badge>
                   </div>
                 </div>
@@ -501,15 +506,19 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
                       <Calendar className="w-4 h-4 text-gray-500" />
                       <p className="text-gray-800">
                         נוצר ב:{" "}
-                        {new Date(user.createdAt).toLocaleDateString("he-IL")}
+                        {new Date(propUser.createdAt).toLocaleDateString(
+                          "he-IL"
+                        )}
                       </p>
                     </div>
-                    {user.lastLogin && (
+                    {propUser.lastLogin && (
                       <div className="flex items-center gap-2">
                         <Clock className="w-4 h-4 text-gray-500" />
                         <p className="text-gray-800">
                           התחברות אחרונה:{" "}
-                          {new Date(user.lastLogin).toLocaleDateString("he-IL")}
+                          {new Date(propUser.lastLogin).toLocaleDateString(
+                            "he-IL"
+                          )}
                         </p>
                       </div>
                     )}
@@ -531,39 +540,85 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
                   הגדרות אבטחה וסיסמה
                 </p>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setIsChangingPassword(true);
-                  setPasswordChangeStep(1);
-                }}
-                disabled={isLoading}
-                className="border-blue-200 hover:bg-blue-50 hover:border-blue-300 transition-all duration-300"
-              >
-                <Key className="w-4 h-4 mr-2" />
-                שינוי סיסמה
-              </Button>
+              {sessionStatus !== "loading" && canChangePassword && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setIsChangingPassword(true);
+                    setPasswordChangeStep(1);
+                  }}
+                  disabled={isLoading}
+                  className="border-blue-200 hover:bg-blue-50 hover:border-blue-300 transition-all duration-300"
+                >
+                  <Key className="w-4 h-4 mr-2" />
+                  שינוי סיסמה
+                </Button>
+              )}
             </div>
 
-            <div className="bg-gray-50 p-3 rounded-lg flex items-start gap-3 transition-all hover:bg-gray-100 duration-300">
-              <Key className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+            <div className="grid gap-3">
+              <div className="bg-gray-50 p-3 rounded-lg flex items-start gap-3 transition-all hover:bg-gray-100 duration-300">
+                <Shield className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-gray-700">
+                    אימות חשבון
+                  </p>
+                  <p className="text-base text-gray-800 flex items-center gap-1">
+                    {propUser.isVerified ? (
+                      <>
+                        <CheckCircle className="w-4 h-4 text-green-600" />
+                        החשבון מאומת
+                      </>
+                    ) : (
+                      <>
+                        <XCircle className="w-4 h-4 text-red-600" />
+                        החשבון לא מאומת
+                      </>
+                    )}
+                  </p>
+                </div>
+              </div>
+              {sessionStatus !== "loading" && !canChangePassword && (
+                <div className="bg-gray-50 p-3 rounded-lg flex items-start gap-3 transition-all hover:bg-gray-100 duration-300">
+                  <Key className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">
+                      ניהול סיסמה
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {session?.user?.accounts &&
+                      session.user.accounts.length > 0
+                        ? `הסיסמה שלך מנוהלת באמצעות ${session.user.accounts[0].provider}.`
+                        : "הסיסמה שלך מנוהלת באמצעות ספק אימות חיצוני."}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Delete Account Section */}
+          <div className="py-4 border-t border-dashed border-red-200">
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-700">אימות חשבון</p>
-                <p className="text-base text-gray-800 flex items-center gap-1">
-                  {user.isVerified ? (
-                    <>
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                      החשבון מאומת
-                    </>
-                  ) : (
-                    <>
-                      <XCircle className="w-4 h-4 text-red-600" />
-                      החשבון לא מאומת
-                    </>
-                  )}
+                <h3 className="text-base font-semibold flex items-center text-red-600">
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  מחיקת חשבון
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  מחיקת החשבון היא פעולה בלתי הפיכה ותסיר את כל הנתונים שלך.
                 </p>
               </div>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => setIsDeletingAccount(true)}
+                disabled={isLoading}
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                מחק חשבון
+              </Button>
             </div>
           </div>
         </CardContent>
@@ -576,406 +631,434 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user }) => {
         </CardFooter>
       </Card>
 
-      {/* Edit Name Dialog */}
-      <Dialog open={isEditingName} onOpenChange={setIsEditingName}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-xl flex items-center gap-2">
-              <User className="h-5 w-5 text-blue-600" />
-              עריכת שם
-            </DialogTitle>
-            <DialogDescription>עדכן את שמך כפי שיוצג באתר</DialogDescription>
-          </DialogHeader>
+      {/* Change Password Dialog (only rendered if canChangePassword, but controlled by isChangingPassword state) */}
+      {canChangePassword && (
+        <Dialog
+          open={isChangingPassword}
+          onOpenChange={(open) => {
+            if (!open) resetPasswordForm();
+            else setIsChangingPassword(true); // Ensure it opens if button clicked
+          }}
+        >
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-xl flex items-center gap-2">
+                <Key className="h-5 w-5 text-blue-600" />
+                שינוי סיסמה
+              </DialogTitle>
+              <DialogDescription>עדכן את סיסמת החשבון שלך</DialogDescription>
+            </DialogHeader>
 
-          <div className="grid gap-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="firstName" className="text-gray-700">
-                שם פרטי
-              </Label>
-              <Input
-                id="firstName"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                disabled={isLoading}
-                className="border-gray-300 focus:border-blue-500"
-                placeholder="הזן שם פרטי"
+            <div className="mb-4">
+              <div className="flex justify-between mb-2">
+                <div className="flex items-center gap-1 text-sm font-medium">
+                  <div
+                    className={`rounded-full h-6 w-6 flex items-center justify-center ${
+                      passwordChangeStep >= 1
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-200 text-gray-500"
+                    }`}
+                  >
+                    1
+                  </div>
+                  <span
+                    className={
+                      passwordChangeStep >= 1
+                        ? "text-blue-600"
+                        : "text-gray-500"
+                    }
+                  >
+                    הזנת סיסמאות
+                  </span>
+                </div>
+                <div className="flex-grow border-t border-gray-300 mt-3 mx-2"></div>
+                <div className="flex items-center gap-1 text-sm font-medium">
+                  <div
+                    className={`rounded-full h-6 w-6 flex items-center justify-center ${
+                      passwordChangeStep >= 2
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-200 text-gray-500"
+                    }`}
+                  >
+                    2
+                  </div>
+                  <span
+                    className={
+                      passwordChangeStep >= 2
+                        ? "text-blue-600"
+                        : "text-gray-500"
+                    }
+                  >
+                    אימות
+                  </span>
+                </div>
+              </div>
+              <Progress
+                value={passwordChangeStep === 1 ? 50 : 100}
+                className="h-1"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="lastName" className="text-gray-700">
-                שם משפחה
-              </Label>
-              <Input
-                id="lastName"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
+
+            {!showVerificationInput ? (
+              <div className="grid gap-4 py-2">
+                <div className="space-y-2">
+                  <Label htmlFor="currentPassword" className="text-gray-700">
+                    סיסמה נוכחית
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="currentPassword"
+                      type={showCurrentPassword ? "text" : "password"}
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      disabled={isLoading}
+                      className="border-gray-300 focus:border-blue-500 pr-10"
+                      placeholder="הזן את הסיסמה הנוכחית"
+                    />
+                    <button
+                      type="button"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      onClick={() =>
+                        setShowCurrentPassword(!showCurrentPassword)
+                      }
+                    >
+                      {showCurrentPassword ? (
+                        <EyeOff size={18} />
+                      ) : (
+                        <Eye size={18} />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword" className="text-gray-700">
+                    סיסמה חדשה
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="newPassword"
+                      type={showNewPassword ? "text" : "password"}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      disabled={isLoading}
+                      className="border-gray-300 focus:border-blue-500 pr-10"
+                      placeholder="הזן סיסמה חדשה"
+                    />
+                    <button
+                      type="button"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                    >
+                      {showNewPassword ? (
+                        <EyeOff size={18} />
+                      ) : (
+                        <Eye size={18} />
+                      )}
+                    </button>
+                  </div>
+
+                  {newPassword && (
+                    <div className="mt-2">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-xs text-gray-600">
+                          חוזק הסיסמה:
+                        </span>
+                        <span
+                          className={`text-xs font-medium ${
+                            passwordStrength <= 25
+                              ? "text-red-600"
+                              : passwordStrength <= 50
+                              ? "text-orange-600"
+                              : passwordStrength <= 75
+                              ? "text-yellow-600"
+                              : "text-green-600"
+                          }`}
+                        >
+                          {getPasswordStrengthText()}
+                        </span>
+                      </div>
+                      <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full ${getPasswordStrengthColor()} transition-all duration-300`}
+                          style={{ width: `${passwordStrength}%` }}
+                        ></div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-x-2 gap-y-1 mt-3">
+                        <div className="flex items-center gap-1.5 text-xs">
+                          {passwordRequirements.length ? (
+                            <CheckCircle className="h-3.5 w-3.5 text-green-600" />
+                          ) : (
+                            <XCircle className="h-3.5 w-3.5 text-gray-400" />
+                          )}
+                          <span
+                            className={
+                              passwordRequirements.length
+                                ? "text-green-600"
+                                : "text-gray-500"
+                            }
+                          >
+                            לפחות {PASSWORD_MIN_LENGTH} תווים
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 text-xs">
+                          {passwordRequirements.uppercase ? (
+                            <CheckCircle className="h-3.5 w-3.5 text-green-600" />
+                          ) : (
+                            <XCircle className="h-3.5 w-3.5 text-gray-400" />
+                          )}
+                          <span
+                            className={
+                              passwordRequirements.uppercase
+                                ? "text-green-600"
+                                : "text-gray-500"
+                            }
+                          >
+                            אות גדולה באנגלית
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 text-xs">
+                          {passwordRequirements.lowercase ? (
+                            <CheckCircle className="h-3.5 w-3.5 text-green-600" />
+                          ) : (
+                            <XCircle className="h-3.5 w-3.5 text-gray-400" />
+                          )}
+                          <span
+                            className={
+                              passwordRequirements.lowercase
+                                ? "text-green-600"
+                                : "text-gray-500"
+                            }
+                          >
+                            אות קטנה באנגלית
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 text-xs">
+                          {passwordRequirements.number ? (
+                            <CheckCircle className="h-3.5 w-3.5 text-green-600" />
+                          ) : (
+                            <XCircle className="h-3.5 w-3.5 text-gray-400" />
+                          )}
+                          <span
+                            className={
+                              passwordRequirements.number
+                                ? "text-green-600"
+                                : "text-gray-500"
+                            }
+                          >
+                            מספר אחד לפחות
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword" className="text-gray-700">
+                    אימות סיסמה חדשה
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      disabled={isLoading}
+                      className={`border-gray-300 focus:border-blue-500 pr-10 ${
+                        confirmPassword && newPassword !== confirmPassword
+                          ? "border-red-300 focus:border-red-500"
+                          : ""
+                      }`}
+                      placeholder="הזן שוב את הסיסמה החדשה"
+                    />
+                    <button
+                      type="button"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff size={18} />
+                      ) : (
+                        <Eye size={18} />
+                      )}
+                    </button>
+                  </div>
+                  {confirmPassword && newPassword !== confirmPassword && (
+                    <p className="text-xs text-red-600 mt-1">
+                      הסיסמאות אינן תואמות
+                    </p>
+                  )}
+                </div>
+
+                <Alert className="bg-blue-50 border-blue-200">
+                  <Mail className="h-4 w-4 text-blue-600" />
+                  <AlertTitle className="text-blue-700 font-medium">
+                    שים לב
+                  </AlertTitle>
+                  <AlertDescription className="text-blue-600">
+                    לאחר אימות הסיסמה הנוכחית, יישלח קוד אימות בן 6 ספרות למייל
+                    שלך
+                  </AlertDescription>
+                </Alert>
+              </div>
+            ) : (
+              <div className="grid gap-4 py-2">
+                <div className="space-y-2">
+                  <Label htmlFor="verificationCode" className="text-gray-700">
+                    קוד אימות
+                  </Label>
+                  <Input
+                    id="verificationCode"
+                    value={verificationCode}
+                    onChange={(e) => {
+                      const value = e.target.value
+                        .replace(/\D/g, "")
+                        .slice(0, 6);
+                      setVerificationCode(value);
+                    }}
+                    placeholder="הזן את הקוד בן 6 הספרות שנשלח למייל"
+                    disabled={isLoading}
+                    className="text-center text-lg tracking-wider border-gray-300 focus:border-blue-500"
+                    maxLength={6}
+                  />
+                  <p className="text-xs text-gray-500 mt-1 text-center">
+                    קוד האימות תקף ל-24 שעות
+                  </p>
+                </div>
+
+                <Alert className="bg-blue-50 border-blue-200">
+                  <Mail className="h-4 w-4 text-blue-600" />
+                  <AlertTitle className="text-blue-700 font-medium">
+                    לא קיבלת את הקוד?
+                  </AlertTitle>
+                  <AlertDescription className="text-blue-600">
+                    בדוק את תיבת הדואר הנכנס והספאם. אם הקוד לא התקבל, נסה
+                    להתחיל את התהליך מחדש.
+                  </AlertDescription>
+                </Alert>
+              </div>
+            )}
+
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={resetPasswordForm}
                 disabled={isLoading}
-                className="border-gray-300 focus:border-blue-500"
-                placeholder="הזן שם משפחה"
-              />
-            </div>
-          </div>
+                className="border-gray-300"
+              >
+                ביטול
+              </Button>
+              <Button
+                onClick={
+                  showVerificationInput
+                    ? completePasswordChange
+                    : initiatePasswordChange
+                }
+                disabled={
+                  isLoading ||
+                  (showVerificationInput
+                    ? !/^\d{6}$/.test(verificationCode)
+                    : false)
+                }
+                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+              >
+                {isLoading ? (
+                  <span className="flex items-center gap-2">
+                    <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                    {showVerificationInput ? "מאמת..." : "שולח..."}
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1">
+                    {showVerificationInput ? "אישור" : "המשך"}
+                    {!showVerificationInput && (
+                      <ArrowRight className="h-4 w-4" />
+                    )}
+                  </span>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
 
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsEditingName(false)}
-              disabled={isLoading}
-              className="border-gray-300"
-            >
-              ביטול
-            </Button>
-            <Button
-              onClick={handleNameUpdate}
-              disabled={isLoading}
-              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
-            >
-              {isLoading ? (
-                <span className="flex items-center gap-2">
-                  <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                  מעדכן...
-                </span>
-              ) : (
-                "שמירה"
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Change Password Dialog */}
+      {/* Delete Account Dialog */}
       <Dialog
-        open={isChangingPassword}
+        open={isDeletingAccount}
         onOpenChange={(open) => {
-          if (!open) resetPasswordForm();
+          if (!open) {
+            setIsDeletingAccount(false);
+            setDeleteConfirmText(""); // Reset confirmation text when dialog is closed
+          } else {
+            setIsDeletingAccount(true);
+          }
         }}
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-xl flex items-center gap-2">
-              <Key className="h-5 w-5 text-blue-600" />
-              שינוי סיסמה
+            <DialogTitle className="text-xl flex items-center gap-2 text-red-600">
+              <AlertCircle className="h-5 w-5" />
+              אישור מחיקת חשבון
             </DialogTitle>
-            <DialogDescription>עדכן את סיסמת החשבון שלך</DialogDescription>
+            <DialogDescription>
+              פעולה זו תמחק את חשבונך לצמיתות, כולל כל הנתונים האישיים, הפרופיל
+              וההתאמות שלך. לא ניתן לשחזר חשבון שנמחק.
+            </DialogDescription>
           </DialogHeader>
 
-          {/* Step progress indicator */}
-          <div className="mb-4">
-            <div className="flex justify-between mb-2">
-              <div className="flex items-center gap-1 text-sm font-medium">
-                <div
-                  className={`rounded-full h-6 w-6 flex items-center justify-center ${
-                    passwordChangeStep >= 1
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-200 text-gray-500"
-                  }`}
-                >
-                  1
-                </div>
-                <span
-                  className={
-                    passwordChangeStep >= 1 ? "text-blue-600" : "text-gray-500"
-                  }
-                >
-                  הזנת סיסמאות
-                </span>
-              </div>
-              <div className="flex-grow border-t border-gray-300 mt-3 mx-2"></div>
-              <div className="flex items-center gap-1 text-sm font-medium">
-                <div
-                  className={`rounded-full h-6 w-6 flex items-center justify-center ${
-                    passwordChangeStep >= 2
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-200 text-gray-500"
-                  }`}
-                >
-                  2
-                </div>
-                <span
-                  className={
-                    passwordChangeStep >= 2 ? "text-blue-600" : "text-gray-500"
-                  }
-                >
-                  אימות
-                </span>
-              </div>
-            </div>
-            <Progress
-              value={passwordChangeStep === 1 ? 50 : 100}
-              className="h-1"
+          <div className="grid gap-4 py-4">
+            <Label htmlFor="deleteConfirm" className="text-gray-700">
+              לאישור המחיקה, אנא הקלד:{" "}
+              <strong className="text-red-700">
+                {DELETE_CONFIRMATION_PHRASE}
+              </strong>
+            </Label>
+            <Input
+              id="deleteConfirm"
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              disabled={isLoading}
+              className="border-gray-300 focus:border-red-500"
+              placeholder={DELETE_CONFIRMATION_PHRASE}
             />
+            {deleteConfirmText &&
+              deleteConfirmText !== DELETE_CONFIRMATION_PHRASE && (
+                <p className="text-xs text-red-600">הטקסט שהוקלד אינו תואם.</p>
+              )}
           </div>
-
-          {!showVerificationInput ? (
-            /* Step 1: Password Form */
-            <div className="grid gap-4 py-2">
-              <div className="space-y-2">
-                <Label htmlFor="currentPassword" className="text-gray-700">
-                  סיסמה נוכחית
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="currentPassword"
-                    type={showCurrentPassword ? "text" : "password"}
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    disabled={isLoading}
-                    className="border-gray-300 focus:border-blue-500 pr-10"
-                    placeholder="הזן את הסיסמה הנוכחית"
-                  />
-                  <button
-                    type="button"
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                  >
-                    {showCurrentPassword ? (
-                      <EyeOff size={18} />
-                    ) : (
-                      <Eye size={18} />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="newPassword" className="text-gray-700">
-                  סיסמה חדשה
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="newPassword"
-                    type={showNewPassword ? "text" : "password"}
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    disabled={isLoading}
-                    className="border-gray-300 focus:border-blue-500 pr-10"
-                    placeholder="הזן סיסמה חדשה"
-                  />
-                  <button
-                    type="button"
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                    onClick={() => setShowNewPassword(!showNewPassword)}
-                  >
-                    {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-
-                {/* Password strength indicator */}
-                {newPassword && (
-                  <div className="mt-2">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-xs text-gray-600">
-                        חוזק הסיסמה:
-                      </span>
-                      <span
-                        className={`text-xs font-medium ${
-                          passwordStrength <= 25
-                            ? "text-red-600"
-                            : passwordStrength <= 50
-                            ? "text-orange-600"
-                            : passwordStrength <= 75
-                            ? "text-yellow-600"
-                            : "text-green-600"
-                        }`}
-                      >
-                        {getPasswordStrengthText()}
-                      </span>
-                    </div>
-                    <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full ${getPasswordStrengthColor()} transition-all duration-300`}
-                        style={{ width: `${passwordStrength}%` }}
-                      ></div>
-                    </div>
-
-                    {/* Password requirements */}
-                    <div className="grid grid-cols-2 gap-x-2 gap-y-1 mt-3">
-                      <div className="flex items-center gap-1.5 text-xs">
-                        {passwordRequirements.length ? (
-                          <CheckCircle className="h-3.5 w-3.5 text-green-600" />
-                        ) : (
-                          <XCircle className="h-3.5 w-3.5 text-gray-400" />
-                        )}
-                        <span
-                          className={
-                            passwordRequirements.length
-                              ? "text-green-600"
-                              : "text-gray-500"
-                          }
-                        >
-                          לפחות {PASSWORD_MIN_LENGTH} תווים
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-1.5 text-xs">
-                        {passwordRequirements.uppercase ? (
-                          <CheckCircle className="h-3.5 w-3.5 text-green-600" />
-                        ) : (
-                          <XCircle className="h-3.5 w-3.5 text-gray-400" />
-                        )}
-                        <span
-                          className={
-                            passwordRequirements.uppercase
-                              ? "text-green-600"
-                              : "text-gray-500"
-                          }
-                        >
-                          אות גדולה באנגלית
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-1.5 text-xs">
-                        {passwordRequirements.lowercase ? (
-                          <CheckCircle className="h-3.5 w-3.5 text-green-600" />
-                        ) : (
-                          <XCircle className="h-3.5 w-3.5 text-gray-400" />
-                        )}
-                        <span
-                          className={
-                            passwordRequirements.lowercase
-                              ? "text-green-600"
-                              : "text-gray-500"
-                          }
-                        >
-                          אות קטנה באנגלית
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-1.5 text-xs">
-                        {passwordRequirements.number ? (
-                          <CheckCircle className="h-3.5 w-3.5 text-green-600" />
-                        ) : (
-                          <XCircle className="h-3.5 w-3.5 text-gray-400" />
-                        )}
-                        <span
-                          className={
-                            passwordRequirements.number
-                              ? "text-green-600"
-                              : "text-gray-500"
-                          }
-                        >
-                          מספר אחד לפחות
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-gray-700">
-                  אימות סיסמה חדשה
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="confirmPassword"
-                    type={showConfirmPassword ? "text" : "password"}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    disabled={isLoading}
-                    className={`border-gray-300 focus:border-blue-500 pr-10 ${
-                      confirmPassword && newPassword !== confirmPassword
-                        ? "border-red-300 focus:border-red-500"
-                        : ""
-                    }`}
-                    placeholder="הזן שוב את הסיסמה החדשה"
-                  />
-                  <button
-                    type="button"
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff size={18} />
-                    ) : (
-                      <Eye size={18} />
-                    )}
-                  </button>
-                </div>
-                {confirmPassword && newPassword !== confirmPassword && (
-                  <p className="text-xs text-red-600 mt-1">
-                    הסיסמאות אינן תואמות
-                  </p>
-                )}
-              </div>
-
-              <Alert className="bg-blue-50 border-blue-200">
-                <Mail className="h-4 w-4 text-blue-600" />
-                <AlertTitle className="text-blue-700 font-medium">
-                  שים לב
-                </AlertTitle>
-                <AlertDescription className="text-blue-600">
-                  לאחר אימות הסיסמה הנוכחית, יישלח קוד אימות בן 6 ספרות למייל
-                  שלך
-                </AlertDescription>
-              </Alert>
-            </div>
-          ) : (
-            /* Step 2: Verification code input */
-            <div className="grid gap-4 py-2">
-              <div className="space-y-2">
-                <Label htmlFor="verificationCode" className="text-gray-700">
-                  קוד אימות
-                </Label>
-                <Input
-                  id="verificationCode"
-                  value={verificationCode}
-                  onChange={(e) => {
-                    // Allow only numbers and limit to 6 digits
-                    const value = e.target.value.replace(/\D/g, "").slice(0, 6);
-                    setVerificationCode(value);
-                  }}
-                  placeholder="הזן את הקוד בן 6 הספרות שנשלח למייל"
-                  disabled={isLoading}
-                  className="text-center text-lg tracking-wider border-gray-300 focus:border-blue-500"
-                  maxLength={6}
-                />
-                <p className="text-xs text-gray-500 mt-1 text-center">
-                  קוד האימות תקף ל-24 שעות
-                </p>
-              </div>
-
-              <Alert className="bg-blue-50 border-blue-200">
-                <Mail className="h-4 w-4 text-blue-600" />
-                <AlertTitle className="text-blue-700 font-medium">
-                  לא קיבלת את הקוד?
-                </AlertTitle>
-                <AlertDescription className="text-blue-600">
-                  בדוק את תיבת הדואר הנכנס והספאם. אם הקוד לא התקבל, נסה להתחיל
-                  את התהליך מחדש.
-                </AlertDescription>
-              </Alert>
-            </div>
-          )}
 
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={resetPasswordForm}
+              onClick={() => {
+                setIsDeletingAccount(false);
+                setDeleteConfirmText("");
+              }}
               disabled={isLoading}
               className="border-gray-300"
             >
               ביטול
             </Button>
             <Button
-              onClick={
-                showVerificationInput
-                  ? completePasswordChange
-                  : initiatePasswordChange
+              variant="destructive"
+              onClick={handleDeleteAccount}
+              disabled={
+                isLoading || deleteConfirmText !== DELETE_CONFIRMATION_PHRASE
               }
-              disabled={isLoading}
-              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
             >
               {isLoading ? (
                 <span className="flex items-center gap-2">
                   <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                  {showVerificationInput ? "מאמת..." : "שולח..."}
+                  מוחק...
                 </span>
               ) : (
-                <span className="flex items-center gap-1">
-                  {showVerificationInput ? "אישור" : "המשך"}
-                  {!showVerificationInput && <ArrowRight className="h-4 w-4" />}
-                </span>
+                "מחק חשבון לצמיתות"
               )}
             </Button>
           </DialogFooter>
