@@ -17,7 +17,7 @@ model User {
   createdAt                       DateTime                @default(now())
   updatedAt                       DateTime                @updatedAt
   lastLogin                       DateTime?
-  status                          UserStatus              @default(PENDING_PHONE_VERIFICATION) // שינוי ברירת מחדל
+  status                          UserStatus              @default(PENDING_PHONE_VERIFICATION)
   role                            UserRole                @default(CANDIDATE)
   isVerified                      Boolean                 @default(false)
   isPhoneVerified                 Boolean                 @default(false)
@@ -64,7 +64,7 @@ model Account {
   id_token          String? @db.Text
   session_state     String?
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade) // ✅ היה קיים
 
   @@unique([provider, providerAccountId])
   @@index([userId])
@@ -72,10 +72,10 @@ model Account {
 
 model OneTimeAuthToken {
   id        String   @id @default(cuid())
-  token     String   @unique // הטוקן החד-פעמי
-  userId    String // מזהה המשתמש אליו הטוקן משויך
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expiresAt DateTime // תאריך ושעת תפוגה של הטוקן
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade) // ✅ היה קיים
+  expiresAt DateTime
   createdAt DateTime @default(now())
 
   @@index([userId])
@@ -86,7 +86,7 @@ model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade) // ✅ היה קיים
 
   @@index([userId])
 }
@@ -96,18 +96,18 @@ model Verification {
   userId      String?
   type        VerificationType
   token       String
-  target      String? // הוספת שדה למטרה (מספר טלפון/אימייל)
+  target      String?
   expiresAt   DateTime
   status      VerificationStatus @default(PENDING)
   attempts    Int                @default(0)
   metadata    Json?
   createdAt   DateTime           @default(now())
   completedAt DateTime?
-  user        User?              @relation(fields: [userId], references: [id])
+  user        User?              @relation(fields: [userId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
 
-  @@index([userId, type, status]) // אינדקס משופר
-  @@index([target, type, status]) // אינדקס לחיפוש לפי מטרה
-  @@index([token, type, status]) // אופציונלי: אינדקס גם על הטוקן אם החיפושים יתבצעו ישירות עליו
+  @@index([userId, type, status])
+  @@index([target, type, status])
+  @@index([token, type, status])
 }
 
 model Profile {
@@ -118,27 +118,24 @@ model Profile {
   nativeLanguage            String?
   additionalLanguages       String[]
   height                    Int?
-  maritalStatus             String?            // נשאר String, יטופל עם אופציות מוגדרות ב-UI
+  maritalStatus             String?
   occupation                String?
-  education                 String?            // השכלה - תיאור טקסטואלי
-  educationLevel            String?            // רמת השכלה - מבנה סגור (למשל, תיכונית, אקדמית)
+  education                 String?
+  educationLevel            String?
   city                      String?
   origin                    String?
-  religiousLevel            String?            // רמה דתית - יורחבו האופציות ב-UI
-  // --- שדות חדשים ---
-  shomerNegiah              Boolean?           // שמירת נגיעה
-  serviceType               ServiceType?       // סוג שירות - Enum
-  serviceDetails            String?            // פירוט על השירות (יחידה, תפקיד, שם ישיבה/מכינה)
-  headCovering              HeadCoveringType?  // כיסוי ראש (לנשים) - Enum
-  kippahType                KippahType?        // סוג כיפה (לגברים) - Enum
-  hasChildrenFromPrevious   Boolean?           @default(false) // האם יש ילדים מקשר קודם
-  profileCharacterTraits    String[]           @default([]) // תכונות אופי נבחרות
-  profileHobbies            String[]           @default([]) // תחביבים נבחרים
-  aliyaCountry              String?            // אם עלה, מאיזו מדינה
-  aliyaYear                 Int?               // שנת עלייה
-
-  // --- שדות קיימים (חלקם עם שינוי קטן בהבנה) ---
-  about                     String?            // תיאור חופשי
+  religiousLevel            String?
+  shomerNegiah              Boolean?
+  serviceType               ServiceType?
+  serviceDetails            String?
+  headCovering              HeadCoveringType?
+  kippahType                KippahType?
+  hasChildrenFromPrevious   Boolean?           @default(false)
+  profileCharacterTraits    String[]           @default([])
+  profileHobbies            String[]           @default([])
+  aliyaCountry              String?
+  aliyaYear                 Int?
+  about                     String?
   parentStatus              String?
   siblings                  Int?
   position                  Int?
@@ -154,7 +151,7 @@ model Profile {
   isProfileVisible          Boolean            @default(true)
   preferredMatchmakerGender Gender?
   matchingNotes             String?
-  verifiedBy                String?
+  verifiedBy                String? // Foreign key field for verifiedByMatchmaker
   availabilityStatus        AvailabilityStatus @default(AVAILABLE)
   availabilityNote          String?
   availabilityUpdatedAt     DateTime?
@@ -162,44 +159,10 @@ model Profile {
   updatedAt                 DateTime           @updatedAt
   lastActive                DateTime?
 
-  user                      User               @relation(fields: [userId], references: [id])
-  verifiedByMatchmaker      User?              @relation("VerifiedByMatchmaker", fields: [verifiedBy], references: [id])
+  user                 User  @relation(fields: [userId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
+  verifiedByMatchmaker User? @relation("VerifiedByMatchmaker", fields: [verifiedBy], references: [id], onDelete: SetNull) // ❗️ הוספתי/שיניתי (ודא ש-verifiedBy אופציונלי)
 }
 
-// --- Enums חדשים ---
-enum ServiceType {
-  MILITARY_COMBATANT
-  MILITARY_SUPPORT
-  MILITARY_OFFICER
-  MILITARY_INTELLIGENCE_CYBER_TECH
-  NATIONAL_SERVICE_ONE_YEAR
-  NATIONAL_SERVICE_TWO_YEARS
-  HESDER_YESHIVA
-  YESHIVA_ONLY_POST_HS
-  PRE_MILITARY_ACADEMY_AND_SERVICE // מכינה ואז שירות
-  EXEMPTED
-  CIVILIAN_SERVICE
-  OTHER
-}
-
-enum HeadCoveringType { // לנשים
-  FULL_COVERAGE // כיסוי מלא
-  PARTIAL_COVERAGE // כיסוי חלקי
-  HAT_BERET // כובע / ברט
-  SCARF_ONLY_SOMETIMES // מטפחת רק לפעמים/בית כנסת
-  NONE // ללא כיסוי ראש
-}
-
-enum KippahType { // לגברים
-  BLACK_VELVET // קטיפה שחורה
-  KNITTED_SMALL // סרוגה קטנה
-  KNITTED_LARGE // סרוגה גדולה
-  CLOTH // בד
-  BRESLEV // ברסלב (לבנה גדולה)
-  NONE_AT_WORK_OR_CASUAL // לא בעבודה / ביום-יום
-  NONE_USUALLY // לרוב לא חובש
-  OTHER // אחר
-}
 model Meeting {
   id            String          @id @default(cuid())
   suggestionId  String
@@ -210,7 +173,7 @@ model Meeting {
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
   feedback      DateFeedback[]  @relation("MeetingFeedback")
-  suggestion    MatchSuggestion @relation(fields: [suggestionId], references: [id])
+  suggestion    MatchSuggestion @relation(fields: [suggestionId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
 
   @@index([suggestionId])
   @@index([status])
@@ -243,9 +206,9 @@ model MatchSuggestion {
   createdAt             DateTime                  @default(now())
   updatedAt             DateTime                  @updatedAt
   feedback              DateFeedback[]            @relation("SuggestionFeedback")
-  firstParty            User                      @relation("FirstPartySuggestions", fields: [firstPartyId], references: [id], onDelete: Cascade)
-  matchmaker            User                      @relation("MatchmakerSuggestions", fields: [matchmakerId], references: [id], onDelete: Cascade)
-  secondParty           User                      @relation("SecondPartySuggestions", fields: [secondPartyId], references: [id], onDelete: Cascade)
+  firstParty            User                      @relation("FirstPartySuggestions", fields: [firstPartyId], references: [id], onDelete: Cascade) // ✅ היה קיים
+  matchmaker            User                      @relation("MatchmakerSuggestions", fields: [matchmakerId], references: [id], onDelete: Cascade) // ✅ היה קיים
+  secondParty           User                      @relation("SecondPartySuggestions", fields: [secondPartyId], references: [id], onDelete: Cascade) // ✅ היה קיים
   meetings              Meeting[]
   inquiries             SuggestionInquiry[]
   statusHistory         SuggestionStatusHistory[]
@@ -268,7 +231,7 @@ model SuggestionStatusHistory {
   reason       String?
   notes        String?
   createdAt    DateTime              @default(now())
-  suggestion   MatchSuggestion       @relation(fields: [suggestionId], references: [id], onDelete: Cascade)
+  suggestion   MatchSuggestion       @relation(fields: [suggestionId], references: [id], onDelete: Cascade) // ✅ היה קיים
 
   @@index([suggestionId])
 }
@@ -284,8 +247,8 @@ model Invitation {
   userId       String?          @unique
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
-  matchmaker   User             @relation("MatchmakerInvitations", fields: [matchmakerId], references: [id])
-  user         User?            @relation("ReceivedInvitation", fields: [userId], references: [id])
+  matchmaker   User             @relation("MatchmakerInvitations", fields: [matchmakerId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
+  user         User?            @relation("ReceivedInvitation", fields: [userId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
 
   @@index([matchmakerId])
   @@index([email])
@@ -300,7 +263,7 @@ model Video {
   status    VideoStatus @default(PENDING)
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
-  user      User        @relation(fields: [userId], references: [id])
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
 }
 
 model AvailabilityInquiry {
@@ -314,9 +277,9 @@ model AvailabilityInquiry {
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
   expiresAt           DateTime
-  firstParty          User     @relation("FirstPartyInquiries", fields: [firstPartyId], references: [id])
-  matchmaker          User     @relation("MatchmakerInquiries", fields: [matchmakerId], references: [id])
-  secondParty         User     @relation("SecondPartyInquiries", fields: [secondPartyId], references: [id])
+  firstParty          User     @relation("FirstPartyInquiries", fields: [firstPartyId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
+  matchmaker          User     @relation("MatchmakerInquiries", fields: [matchmakerId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
+  secondParty         User     @relation("SecondPartyInquiries", fields: [secondPartyId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
 
   @@index([matchmakerId])
   @@index([firstPartyId])
@@ -343,7 +306,7 @@ model QuestionnaireResponse {
   lastSaved             DateTime  @default(now())
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
-  user                  User      @relation(fields: [userId], references: [id])
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
 
   @@index([userId])
   @@index([completed])
@@ -362,7 +325,7 @@ model UserImage {
   userId             String
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
-  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade) // ✅ היה קיים
 
   @@index([userId])
 }
@@ -377,9 +340,9 @@ model DateFeedback {
   status        String
   nextSteps     String?
   createdAt     DateTime        @default(now())
-  meeting       Meeting         @relation("MeetingFeedback", fields: [meetingId], references: [id])
-  party         User            @relation("UserFeedback", fields: [partyId], references: [id])
-  suggestion    MatchSuggestion @relation("SuggestionFeedback", fields: [suggestionId], references: [id])
+  meeting       Meeting         @relation("MeetingFeedback", fields: [meetingId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
+  party         User            @relation("UserFeedback", fields: [partyId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
+  suggestion    MatchSuggestion @relation("SuggestionFeedback", fields: [suggestionId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
 
   @@index([suggestionId])
   @@index([partyId])
@@ -396,13 +359,48 @@ model SuggestionInquiry {
   status       InquiryStatus   @default(PENDING)
   createdAt    DateTime        @default(now())
   answeredAt   DateTime?
-  fromUser     User            @relation("SentSuggestionInquiries", fields: [fromUserId], references: [id])
-  suggestion   MatchSuggestion @relation(fields: [suggestionId], references: [id], onDelete: Cascade)
-  toUser       User            @relation("ReceivedSuggestionInquiries", fields: [toUserId], references: [id])
+  fromUser     User            @relation("SentSuggestionInquiries", fields: [fromUserId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
+  suggestion   MatchSuggestion @relation(fields: [suggestionId], references: [id], onDelete: Cascade) // ✅ היה קיים
+  toUser       User            @relation("ReceivedSuggestionInquiries", fields: [toUserId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
 
   @@index([suggestionId])
   @@index([fromUserId])
   @@index([toUserId])
+}
+
+// --- Enums ---
+enum ServiceType {
+  MILITARY_COMBATANT
+  MILITARY_SUPPORT
+  MILITARY_OFFICER
+  MILITARY_INTELLIGENCE_CYBER_TECH
+  NATIONAL_SERVICE_ONE_YEAR
+  NATIONAL_SERVICE_TWO_YEARS
+  HESDER_YESHIVA
+  YESHIVA_ONLY_POST_HS
+  PRE_MILITARY_ACADEMY_AND_SERVICE
+  EXEMPTED
+  CIVILIAN_SERVICE
+  OTHER
+}
+
+enum HeadCoveringType {
+  FULL_COVERAGE
+  PARTIAL_COVERAGE
+  HAT_BERET
+  SCARF_ONLY_SOMETIMES
+  NONE
+}
+
+enum KippahType {
+  BLACK_VELVET
+  KNITTED_SMALL
+  KNITTED_LARGE
+  CLOTH
+  BRESLEV
+  NONE_AT_WORK_OR_CASUAL
+  NONE_USUALLY
+  OTHER
 }
 
 enum MeetingStatus {
@@ -425,7 +423,7 @@ enum UserRole {
 
 enum UserStatus {
   PENDING_EMAIL_VERIFICATION
-  PENDING_PHONE_VERIFICATION // ממתין לאימות טלפון לאחר הרשמה
+  PENDING_PHONE_VERIFICATION
   ACTIVE
   INACTIVE
   BLOCKED
