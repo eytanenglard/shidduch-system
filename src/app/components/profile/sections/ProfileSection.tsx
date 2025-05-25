@@ -182,16 +182,6 @@ const hobbiesOptions = [
   { value: "photography", label: "צילום", icon: Palette },
 ];
 
-// Helper function to get label from options array
-const getLabel = (
-  value: string | undefined | null,
-  options: { value: string; label: string }[]
-): string => {
-  if (!value) return "";
-  const option = options.find((opt) => opt.value === value);
-  return option ? option.label : value; // Fallback to value if label not found
-};
-
 const preferredMatchmakerGenderOptions = [
   { value: "MALE", label: "משדך" },
   { value: "FEMALE", label: "שדכנית" },
