@@ -36,7 +36,6 @@ import {
   Smile,
   UserCircle, // אייקון חדש
   Info, // אייקון חדש
-  GraduationCap, // אייקון נוסף אפשרי
 } from "lucide-react";
 import { UserProfile } from "@/types/next-auth";
 import { cn } from "@/lib/utils";
