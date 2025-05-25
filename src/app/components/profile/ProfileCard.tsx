@@ -72,8 +72,7 @@ import {
   ExternalLink,
   Bot,
   ShieldQuestion,
-  Check,
-  Ban, // New icons for preferences
+
 } from "lucide-react";
 
 // Constants

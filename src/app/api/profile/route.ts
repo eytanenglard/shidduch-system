@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { AvailabilityStatus, Gender, HeadCoveringType, KippahType, ServiceType } from "@prisma/client"; // Import enums if needed for casting
+import { Gender, HeadCoveringType, KippahType, ServiceType } from "@prisma/client"; // Import enums if needed for casting
 import type { UserProfile } from "@/types/next-auth";
 
 export async function GET(req: Request) {

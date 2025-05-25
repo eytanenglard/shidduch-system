@@ -115,16 +115,7 @@ export interface FormattedAnswer {
   answeredAt: string | Date;
 }
 
-export interface UserImage extends PrismaUserImage {
-  // PrismaUserImage already defines these, but explicit definition is fine
-  // id: string;
-  // url: string;
-  // isMain: boolean;
-  // cloudinaryPublicId?: string | null;
-  // userId: string;
-  // createdAt: Date;
-  // updatedAt: Date;
-}
+export type UserImage = PrismaUserImage;
 
 export interface QuestionAnswers {
   [key: string]: Prisma.JsonValue;

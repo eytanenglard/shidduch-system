@@ -582,7 +582,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                   </div>
                   <div>
                     <Label className="block mb-1.5 text-xs font-medium text-gray-600">
-                      טווח גבהים מועדף (ס"מ)
+                      טווח גבהים מועדף (סמ)
                     </Label>
                     <div className="flex items-center gap-2">
                       <Input
