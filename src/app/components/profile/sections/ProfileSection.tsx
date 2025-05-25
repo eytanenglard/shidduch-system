@@ -7,7 +7,7 @@ import {
   ServiceType,
   HeadCoveringType,
   KippahType,
-} from "@prisma/client"; // הוספת Enums חדשים
+} from "@prisma/client";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox"; // לשימוש עבור שדות boolean
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Pencil,
   Save,
@@ -34,15 +34,18 @@ import {
   Languages,
   Palette,
   Smile,
+  UserCircle, // אייקון חדש
+  Info, // אייקון חדש
+  GraduationCap, // אייקון נוסף אפשרי
 } from "lucide-react";
 import { UserProfile } from "@/types/next-auth";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge"; // לשימוש בתצוגת מערכים
+import { Badge } from "@/components/ui/badge";
 
+// --- Options Arrays (נשארים כפי שהיו) ---
 const languageOptions = [
   { value: "hebrew", label: "עברית" },
   { value: "english", label: "אנגלית" },
-  // ... (שאר השפות נשארו כפי שהיו)
   { value: "yiddish", label: "יידיש" },
   { value: "russian", label: "רוסית" },
   { value: "arabic", label: "ערבית" },
@@ -68,7 +71,7 @@ const maritalStatusOptions = [
   { value: "single", label: "רווק/ה" },
   { value: "divorced", label: "גרוש/ה" },
   { value: "widowed", label: "אלמן/ה" },
-  { value: "annulled", label: "נישואין שבוטלו" }, // אופציה נוספת אם רלוונטי
+  { value: "annulled", label: "נישואין שבוטלו" },
 ];
 
 const religiousLevelOptions = [
@@ -124,7 +127,6 @@ const serviceTypeOptions = [
 ];
 
 const headCoveringOptions = [
-  // לנשים
   { value: HeadCoveringType.FULL_COVERAGE, label: "כיסוי ראש מלא" },
   { value: HeadCoveringType.PARTIAL_COVERAGE, label: "כיסוי ראש חלקי" },
   { value: HeadCoveringType.HAT_BERET, label: "כובע / ברט" },
@@ -136,7 +138,6 @@ const headCoveringOptions = [
 ];
 
 const kippahTypeOptions = [
-  // לגברים
   { value: KippahType.BLACK_VELVET, label: "קטיפה שחורה" },
   { value: KippahType.KNITTED_SMALL, label: "סרוגה קטנה" },
   { value: KippahType.KNITTED_LARGE, label: "סרוגה גדולה" },
@@ -153,7 +154,7 @@ const characterTraitsOptions = [
   { value: "optimistic", label: "אופטימי/ת", icon: Smile },
   { value: "family_oriented", label: "משפחתי/ת", icon: Users },
   { value: "intellectual", label: "אינטלקטואל/ית", icon: BookOpen },
-  { value: "organized", label: "מאורגנ/ת", icon: Palette }, // שיניתי אייקון
+  { value: "organized", label: "מאורגנ/ת", icon: Palette },
   { value: "calm", label: "רגוע/ה", icon: Heart },
   { value: "humorous", label: "בעל/ת חוש הומור", icon: Smile },
   { value: "sociable", label: "חברותי/ת", icon: Users },
@@ -167,10 +168,10 @@ const characterTraitsOptions = [
 
 const hobbiesOptions = [
   { value: "travel", label: "טיולים", icon: MapPin },
-  { value: "sports", label: "ספורט", icon: Briefcase }, // אייקון גנרי
+  { value: "sports", label: "ספורט", icon: Briefcase },
   { value: "reading", label: "קריאה", icon: BookOpen },
   { value: "cooking_baking", label: "בישול/אפיה", icon: Palette },
-  { value: "music_playing_instrument", label: "מוזיקה/נגינה", icon: Languages }, // אייקון שונה
+  { value: "music_playing_instrument", label: "מוזיקה/נגינה", icon: Languages },
   { value: "art_crafts", label: "אומנות/יצירה", icon: Palette },
   { value: "volunteering", label: "התנדבות", icon: Heart },
   { value: "learning_courses", label: "למידה/קורסים", icon: BookOpen },
@@ -181,6 +182,23 @@ const hobbiesOptions = [
   { value: "nature_hiking", label: "טבע/טיולים רגליים", icon: MapPin },
   { value: "photography", label: "צילום", icon: Palette },
 ];
+
+// Helper function to get label from options array
+const getLabel = (
+  value: string | undefined | null,
+  options: { value: string; label: string }[]
+): string => {
+  if (!value) return "";
+  const option = options.find((opt) => opt.value === value);
+  return option ? option.label : value; // Fallback to value if label not found
+};
+
+const preferredMatchmakerGenderOptions = [
+  { value: "MALE", label: "משדך" },
+  { value: "FEMALE", label: "שדכנית" },
+  { value: "NONE", label: "ללא העדפה" },
+];
+// --- End of Options Arrays ---
 
 interface ProfileSectionProps {
   profile: UserProfile | null;
@@ -207,17 +225,12 @@ const ensureDateObject = (
 };
 
 const ProfileSection: React.FC<ProfileSectionProps> = ({
-  profile: profileProp, // שינוי שם כדי למנוע התנגשות עם משתנה פנימי
+  profile: profileProp,
   isEditing,
   setIsEditing,
   viewOnly = false,
   onSave,
 }) => {
-  console.log(
-    "ProfileSection received profileProp:",
-    JSON.stringify(profileProp, null, 2)
-  ); // <--- בדוק כאן
-
   const [formData, setFormData] = useState<Partial<UserProfile>>({});
   const [loading, setLoading] = useState(true);
   const [initialData, setInitialData] = useState<Partial<UserProfile>>({});
@@ -230,13 +243,13 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
       additionalLanguages: profileData?.additionalLanguages || [],
       height: profileData?.height ?? undefined,
       maritalStatus: profileData?.maritalStatus || undefined,
-      occupation: profileData?.occupation || "", // ברירת מחדל למחרוזת ריקה אם null
-      education: profileData?.education || "", // ברירת מחדל למחרוזת ריקה
+      occupation: profileData?.occupation || "",
+      education: profileData?.education || "",
       educationLevel: profileData?.educationLevel || undefined,
-      city: profileData?.city || "", // ברירת מחדל למחרוזת ריקה
-      origin: profileData?.origin || "", // ברירת מחדל למחרוזת ריקה
+      city: profileData?.city || "",
+      origin: profileData?.origin || "",
       religiousLevel: profileData?.religiousLevel || undefined,
-      about: profileData?.about || "", // ברירת מחדל למחרוזת ריקה
+      about: profileData?.about || "",
       parentStatus: profileData?.parentStatus || undefined,
       siblings: profileData?.siblings ?? undefined,
       position: profileData?.position ?? undefined,
@@ -245,26 +258,22 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
         profileData?.preferredMatchmakerGender || undefined,
       availabilityStatus:
         profileData?.availabilityStatus || AvailabilityStatus.AVAILABLE,
-      availabilityNote: profileData?.availabilityNote || "", // ברירת מחדル למחרוזת ריקה
+      availabilityNote: profileData?.availabilityNote || "",
       availabilityUpdatedAt: ensureDateObject(
         profileData?.availabilityUpdatedAt
       ),
-      matchingNotes: profileData?.matchingNotes || "", // ברירת מחדל למחרוזת ריקה
-
-      // שדות חדשים
-      shomerNegiah: profileData?.shomerNegiah ?? undefined, // חשוב לטפל ב-undefined
+      matchingNotes: profileData?.matchingNotes || "",
+      shomerNegiah: profileData?.shomerNegiah ?? undefined,
       serviceType: profileData?.serviceType || undefined,
-      serviceDetails: profileData?.serviceDetails || "", // ברירת מחדל למחרוזת ריקה
+      serviceDetails: profileData?.serviceDetails || "",
       headCovering: profileData?.headCovering || undefined,
       kippahType: profileData?.kippahType || undefined,
       hasChildrenFromPrevious:
         profileData?.hasChildrenFromPrevious ?? undefined,
       profileCharacterTraits: profileData?.profileCharacterTraits || [],
       profileHobbies: profileData?.profileHobbies || [],
-      aliyaCountry: profileData?.aliyaCountry || "", // ברירת מחדל למחרוזת ריקה
+      aliyaCountry: profileData?.aliyaCountry || "",
       aliyaYear: profileData?.aliyaYear ?? undefined,
-
-      // שדות קיימים שערכי ברירת מחדל שלהם צריכים להיות מוגדרים
       preferredAgeMin: profileData?.preferredAgeMin ?? undefined,
       preferredAgeMax: profileData?.preferredAgeMax ?? undefined,
       preferredHeightMin: profileData?.preferredHeightMin ?? undefined,
@@ -274,8 +283,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
       preferredEducation: profileData?.preferredEducation || [],
       preferredOccupations: profileData?.preferredOccupations || [],
       contactPreference: profileData?.contactPreference || undefined,
-
-      // שדות טכניים שאינם נערכים ישירות אך נשמרים
       id: profileData?.id,
       userId: profileData?.userId,
       createdAt: ensureDateObject(profileData?.createdAt),
@@ -292,22 +299,15 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
       initializeFormData(profileProp);
       setLoading(false);
     } else {
-      // אם אין profileProp, אולי תרצה לקרוא מה-API כפי שעשית קודם
-      // לצורך הדוגמה כאן, אם אין profileProp, נאתחל עם אובייקט ריק יותר
       const fetchProfileAndInitialize = async () => {
         try {
-          const response = await fetch("/api/profile"); // ודא שהנתיב נכון
+          const response = await fetch("/api/profile");
           if (!response.ok) throw new Error("Failed to fetch profile");
           const data = await response.json();
           if (data.success && data.profile) {
-            console.log(
-              "Fetched profile data:",
-              JSON.stringify(data.profile, null, 2)
-            ); // <--- בדוק כאן
-
             initializeFormData(data.profile);
           } else {
-            initializeFormData(null); // או אובייקט ריק עם ברירות מחדל
+            initializeFormData(null);
           }
         } catch (error) {
           console.error("Failed to fetch profile:", error);
@@ -321,23 +321,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profileProp]);
 
-  useEffect(() => {
-    // אפקט זה נועד לאתחל מחדש את הטופס אם המצב עריכה מתבטל מבחוץ
-    // והנתונים בפרופ המקורי (profileProp) השתנו מאז הכניסה למצב עריכה.
-    // זה יכול לקרות פחות במבנה הנוכחי אבל טוב שיהיה.
-    if (!isEditing && profileProp) {
-      // משווה את ה-formData הנוכחי עם מה שהיה אמור להיות ה-initialData
-      // אם הם שונים, זה אומר שהיו שינויים שלא נשמרו והמשתמש יצא ממצב עריכה
-      // ואז כדאי לאפס ל-profileProp המעודכן.
-      // עם זאת, הלוגיקה ב-handleCancel כבר עושה זאת ל-initialData.
-      // השארתי את הלוגיקה של אתחול כאן למקרה שה-profileProp משתנה באופן אסינכרוני
-      // בזמן שהמשתמש לא במצב עריכה.
-      // כאן אפשר לבצע את ההמרות כמו ב-initializeFormData אם יש צורך
-      // ולהשוות עם ה-formData. אם שונה, לאפס.
-      // כרגע, הלוגיקה של initializeFormData תטפל בזה ב-useEffect הראשון.
-    }
-  }, [isEditing, profileProp]);
-
   const handleChange = (
     field: keyof UserProfile,
     value:
@@ -347,23 +330,26 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
       | boolean
       | Date
       | string[]
-      | null // מכסה את רוב הערכים הישירים
+      | null
   ) => {
     setFormData((prev) => {
       let finalValue: UserProfile[keyof UserProfile] | undefined = undefined;
 
-      // טיפול מיוחד לשדות מספריים
       if (
         field === "height" ||
         field === "siblings" ||
         field === "position" ||
-        field === "aliyaYear"
+        field === "aliyaYear" ||
+        field === "preferredAgeMin" || // Add preference fields
+        field === "preferredAgeMax" ||
+        field === "preferredHeightMin" ||
+        field === "preferredHeightMax"
       ) {
-        const rawValue = value as string | number; // יכול להגיע כמספר או כמחרוזת מ-input
+        const rawValue = value as string | number;
         if (rawValue === "" || rawValue === null || rawValue === undefined) {
           finalValue = undefined;
         } else {
-          const parsed = parseInt(String(rawValue), 10); // המר למחרוזת לפני parseInt לבטיחות
+          const parsed = parseInt(String(rawValue), 10);
           finalValue = !isNaN(parsed)
             ? (parsed as UserProfile[typeof field])
             : undefined;
@@ -372,13 +358,16 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
         finalValue = ensureDateObject(
           value as string | Date | null | undefined
         ) as UserProfile[typeof field];
-      } else if (typeof prev[field] === "boolean") {
-        // טיפול ב-checkbox
+      } else if (
+        typeof prev[field] === "boolean" ||
+        field === "shomerNegiah" || // Explicitly handle boolean fields
+        field === "hasChildrenFromPrevious" ||
+        field === "isProfileVisible"
+      ) {
         finalValue = value as boolean as UserProfile[typeof field];
       } else if (Array.isArray(prev[field])) {
-        finalValue = value as string[] as UserProfile[typeof field]; // אם זה מערך ישירות
+        finalValue = value as string[] as UserProfile[typeof field];
       } else if (value === "" || value === null) {
-        // עבור שדות טקסט, אם הריק הוא undefined או null
         const nullableStringFields: (keyof UserProfile)[] = [
           "nativeLanguage",
           "occupation",
@@ -394,7 +383,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
           "matchingNotes",
           "educationLevel",
           "maritalStatus",
-          "serviceType", // שדות Select יכולים להגיע כ-""
+          "serviceType",
           "headCovering",
           "kippahType",
           "preferredMatchmakerGender",
@@ -403,10 +392,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
         if (nullableStringFields.includes(field as keyof UserProfile)) {
           finalValue = undefined;
         } else {
-          finalValue = value as UserProfile[typeof field]; // אם זה לא nullable string, נשאר ""
+          finalValue = value as UserProfile[typeof field];
         }
       } else {
-        // לשאר המקרים, הערך כפי שהוא (או המרה קלה אם צריך)
         finalValue = value as UserProfile[typeof field];
       }
 
@@ -416,12 +404,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
       };
     });
   };
-
-  // בקוד ה-JSX:
-  // <Input onChange={handleDomInputChange} name="occupation" ... />
-  // <Select onValueChange={(val) => handleChange("gender", val as Gender)} ... />
-  // <Checkbox onCheckedChange={(checked) => handleChange("shomerNegiah", checked as boolean)} ... />
-  // <Input type="date" onChange={(e) => handleChange("birthDate", e.target.value)} ... />
 
   const handleMultiSelectToggle = (
     field: keyof UserProfile,
@@ -437,22 +419,56 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
   };
 
   const handleSave = () => {
-    // כאן אפשר להוסיף לוגיקה להמרת ערכים ריקים ל-null אם השרת דורש זאת
     const dataToSave = { ...formData };
-    // לדוגמה:
-    // Object.keys(dataToSave).forEach(key => {
-    //   if (dataToSave[key as keyof UserProfile] === "") {
-    //     dataToSave[key as keyof UserProfile] = null;
-    //   }
-    // });
     onSave(dataToSave);
     setIsEditing(false);
-    setInitialData(dataToSave); // עדכון ה-initialData למצב השמור
+    setInitialData(dataToSave);
   };
 
   const handleCancel = () => {
-    setFormData(initialData); // חזרה לנתונים ההתחלתיים של העריכה הנוכחית או לנתונים המקוריים
+    setFormData(initialData);
     setIsEditing(false);
+  };
+
+  const renderDisplayValue = (
+    value: string | number | Date | undefined | null,
+    placeholder: string = "לא צוין"
+  ) => {
+    if (value === undefined || value === null || value === "") {
+      return <span className="italic text-gray-500">{placeholder}</span>;
+    }
+    if (value instanceof Date && !isNaN(value.getTime())) {
+      return new Intl.DateTimeFormat("he-IL").format(value);
+    }
+    return String(value);
+  };
+
+  const renderSelectDisplayValue = (
+    value: string | undefined | null,
+    options: { value: string; label: string }[],
+    placeholder: string = "לא צוין"
+  ) => {
+    if (!value) {
+      return <span className="italic text-gray-500">{placeholder}</span>;
+    }
+    const option = options.find((opt) => opt.value === value);
+    return option ? (
+      option.label
+    ) : (
+      <span className="italic text-gray-500">{placeholder}</span>
+    );
+  };
+
+  const renderBooleanDisplayValue = (
+    value: boolean | undefined | null,
+    trueLabel: string = "כן",
+    falseLabel: string = "לא",
+    placeholder: string = "לא צוין"
+  ) => {
+    if (value === undefined || value === null) {
+      return <span className="italic text-gray-500">{placeholder}</span>;
+    }
+    return value ? trueLabel : falseLabel;
   };
 
   if (loading) {
@@ -461,9 +477,12 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
 
   const renderMultiSelectBadges = (
     fieldValues: string[] | undefined,
-    options: { value: string; label: string; icon?: React.ElementType }[]
+    options: { value: string; label: string; icon?: React.ElementType }[],
+    emptyPlaceholder: string = "לא נבחרו פריטים."
   ) => {
-    if (!fieldValues || fieldValues.length === 0) return null;
+    if (!fieldValues || fieldValues.length === 0) {
+      return <p className="text-sm text-gray-500 italic">{emptyPlaceholder}</p>;
+    }
     return fieldValues.map((value) => {
       const option = options.find((opt) => opt.value === value);
       return option ? (
@@ -481,16 +500,17 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
 
   return (
     <div className="relative" dir="rtl">
-      {/* Header and Edit/Save Buttons - copied from your original with minor adjustments */}
-      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-lg border-b border-gray-200/50">
-        <div className="container mx-auto py-3 px-4">
+      <div className="sticky top-0 z-10 bg-gradient-to-b from-white via-white/95 to-white/0 pt-4 pb-3 backdrop-blur-sm">
+        <div className="container mx-auto max-w-screen-xl px-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-lg md:text-xl font-semibold text-gray-800">
+              <h1 className="text-xl md:text-2xl font-bold text-slate-800">
                 פרופיל אישי
               </h1>
-              <p className="text-xs md:text-sm text-gray-500">
-                כאן תוכל/י לערוך את פרטי הפרופיל שלך.
+              <p className="text-sm text-slate-500">
+                {isEditing && !viewOnly
+                  ? "ערוך/י את פרטי הפרופיל שלך."
+                  : "פרטי הפרופיל של המועמד/ת."}
               </p>
             </div>
             {!viewOnly && (
@@ -500,7 +520,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     variant="outline"
                     size="sm"
                     onClick={() => setIsEditing(true)}
-                    className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-cyan-300 text-cyan-600 hover:bg-cyan-50"
+                    className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-cyan-400 text-cyan-700 hover:bg-cyan-50"
                   >
                     <Pencil className="w-3.5 h-3.5 ml-1.5" />
                     עריכה
@@ -533,739 +553,948 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
         </div>
       </div>
 
-      <div className="container mx-auto py-6 px-4 space-y-6">
-        {/* --- כרטיס פרטים אישיים ודמוגרפיים --- */}
-        <Card className="bg-white/70 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/30 overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-cyan-50/30 to-pink-50/30 border-b border-gray-200/50 p-4">
-            <CardTitle className="text-base font-semibold text-gray-700">
-              פרטים אישיים ודמוגרפיים
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 md:p-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
-              <div>
-                <Label className="block mb-1.5 text-xs font-medium text-gray-600">
-                  מגדר
-                </Label>
-                <Select
-                  value={formData.gender || ""}
-                  onValueChange={(value) =>
-                    handleChange("gender", value as Gender)
-                  }
-                  disabled={!isEditing || viewOnly}
-                >
-                  <SelectTrigger className="h-9 text-xs focus:ring-cyan-500">
-                    <SelectValue placeholder="בחר/י מגדר" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="MALE">זכר</SelectItem>
-                    <SelectItem value="FEMALE">נקבה</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="block mb-1.5 text-xs font-medium text-gray-600">
-                  תאריך לידה
-                </Label>
-                <Input
-                  type="date"
-                  value={
-                    formData.birthDate instanceof Date &&
-                    !isNaN(formData.birthDate.getTime())
-                      ? formData.birthDate.toISOString().split("T")[0]
-                      : ""
-                  }
-                  onChange={(e) =>
-                    handleChange("birthDate", e.target.value || undefined)
-                  }
-                  disabled={!isEditing || viewOnly}
-                  className="h-9 text-xs focus:ring-cyan-500"
-                  max={new Date().toISOString().split("T")[0]}
-                />
-              </div>
-              <div>
-                <Label className="block mb-1.5 text-xs font-medium text-gray-600">
-                  גובה (סמ)
-                </Label>
-                <Input
-                  type="number"
-                  value={formData.height ?? ""}
-                  onChange={(e) => handleChange("height", e.target.value)}
-                  disabled={!isEditing || viewOnly}
-                  className="h-9 text-xs focus:ring-cyan-500"
-                  placeholder="גובה בסמ"
-                  min="100"
-                  max="250"
-                />
-              </div>
-              <div>
-                <Label className="block mb-1.5 text-xs font-medium text-gray-600">
-                  עיר מגורים
-                </Label>
-                <Input
-                  value={formData.city || ""}
-                  onChange={(e) => handleChange("city", e.target.value)}
-                  disabled={!isEditing || viewOnly}
-                  placeholder="לדוגמה: ירושלים"
-                  className="h-9 text-xs focus:ring-cyan-500"
-                />
-              </div>
-              <div>
-                <Label className="block mb-1.5 text-xs font-medium text-gray-600">
-                  מוצא / עדה
-                </Label>
-                <Input
-                  value={formData.origin || ""}
-                  onChange={(e) => handleChange("origin", e.target.value)}
-                  disabled={!isEditing || viewOnly}
-                  placeholder="לדוגמה: אשכנזי, ספרדי, מעורב"
-                  className="h-9 text-xs focus:ring-cyan-500"
-                />
-              </div>
-              <div>
-                <Label className="block mb-1.5 text-xs font-medium text-gray-600">
-                  עלה/תה לארץ
-                </Label>
-                <Input
-                  value={formData.aliyaCountry || ""}
-                  onChange={(e) => handleChange("aliyaCountry", e.target.value)}
-                  disabled={!isEditing || viewOnly}
-                  placeholder="אם רלוונטי, מאיזו מדינה?"
-                  className="h-9 text-xs focus:ring-cyan-500"
-                />
-              </div>
-              <div>
-                <Label className="block mb-1.5 text-xs font-medium text-gray-600">
-                  שנת עליה
-                </Label>
-                <Input
-                  type="number"
-                  value={formData.aliyaYear ?? ""}
-                  onChange={(e) => handleChange("aliyaYear", e.target.value)}
-                  disabled={!isEditing || viewOnly || !formData.aliyaCountry}
-                  placeholder="אם רלוונטי"
-                  className="h-9 text-xs focus:ring-cyan-500"
-                  min="1900"
-                  max={new Date().getFullYear()}
-                />
-              </div>
-              <div>
-                <Label className="block mb-1.5 text-xs font-medium text-gray-600">
-                  שפת אם
-                </Label>
-                <Select
-                  value={formData.nativeLanguage || ""}
-                  onValueChange={(value) =>
-                    handleChange("nativeLanguage", value || undefined)
-                  }
-                  disabled={!isEditing || viewOnly}
-                >
-                  <SelectTrigger className="h-9 text-xs focus:ring-cyan-500">
-                    <SelectValue placeholder="בחר/י שפת אם" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[200px]">
-                    {languageOptions.map((lang) => (
-                      <SelectItem key={lang.value} value={lang.value}>
-                        {lang.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="sm:col-span-2 lg:col-span-1">
-                <Label className="block mb-1.5 text-xs font-medium text-gray-600">
-                  שפות נוספות
-                </Label>
-                {isEditing && !viewOnly ? (
-                  <Select
-                    onValueChange={(value) => {
-                      const currentLanguages =
-                        formData.additionalLanguages || [];
-                      if (!currentLanguages.includes(value)) {
-                        handleChange("additionalLanguages", [
-                          ...currentLanguages,
-                          value,
-                        ]);
-                      }
-                    }}
-                  >
-                    <SelectTrigger className="h-9 text-xs focus:ring-cyan-500">
-                      <SelectValue placeholder="הוסף/י שפה..." />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[200px]">
-                      {languageOptions
-                        .filter(
-                          (lang) =>
-                            !(formData.additionalLanguages || []).includes(
-                              lang.value
-                            )
-                        )
-                        .map((lang) => (
-                          <SelectItem key={lang.value} value={lang.value}>
-                            {lang.label}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                ) : null}
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {(formData.additionalLanguages || []).map((langValue) => {
-                    const lang = languageOptions.find(
-                      (l) => l.value === langValue
-                    );
-                    return lang ? (
-                      <Badge
-                        key={lang.value}
-                        variant="secondary"
-                        className="bg-cyan-100/60 text-cyan-800 px-2 py-0.5 rounded-full text-[10px] font-medium flex items-center"
+      <div className="container mx-auto max-w-screen-xl py-6 px-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* --- טור 1 --- */}
+          <div className="space-y-6">
+            {/* --- כרטיס פרטים אישיים ודמוגרפיים --- */}
+            <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-cyan-50/40 to-pink-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
+                <UserCircle className="w-5 h-5 text-cyan-700" />
+                <CardTitle className="text-base font-semibold text-gray-700">
+                  פרטים אישיים ודמוגרפיים
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 md:p-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
+                  <div>
+                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                      מגדר
+                    </Label>
+                    {isEditing && !viewOnly ? (
+                      <Select
+                        value={formData.gender || ""}
+                        onValueChange={(value) =>
+                          handleChange("gender", value as Gender)
+                        }
                       >
-                        {lang.label}
-                        {isEditing && !viewOnly && (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleChange(
-                                "additionalLanguages",
-                                (formData.additionalLanguages || []).filter(
-                                  (l) => l !== langValue
-                                )
-                              )
-                            }
-                            className="mr-1.5 text-cyan-600 hover:text-cyan-800 text-xs"
-                            aria-label={`הסר ${lang.label}`}
-                          >
-                            ×
-                          </button>
+                        <SelectTrigger className="h-9 text-sm focus:ring-cyan-500">
+                          <SelectValue placeholder="בחר/י מגדר" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="MALE">זכר</SelectItem>
+                          <SelectItem value="FEMALE">נקבה</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-sm text-gray-800 font-medium mt-1">
+                        {renderDisplayValue(
+                          formData.gender === "MALE"
+                            ? "זכר"
+                            : formData.gender === "FEMALE"
+                            ? "נקבה"
+                            : undefined
                         )}
-                      </Badge>
-                    ) : null;
-                  })}
-                  {!isEditing &&
-                    (!formData.additionalLanguages ||
-                      formData.additionalLanguages.length === 0) && (
-                      <p className="text-xs text-gray-500 italic">
-                        לא צוינו שפות נוספות.
                       </p>
                     )}
+                  </div>
+                  <div>
+                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                      תאריך לידה
+                    </Label>
+                    {isEditing && !viewOnly ? (
+                      <Input
+                        type="date"
+                        value={
+                          formData.birthDate instanceof Date &&
+                          !isNaN(formData.birthDate.getTime())
+                            ? formData.birthDate.toISOString().split("T")[0]
+                            : ""
+                        }
+                        onChange={(e) =>
+                          handleChange("birthDate", e.target.value || undefined)
+                        }
+                        className="h-9 text-sm focus:ring-cyan-500"
+                        max={new Date().toISOString().split("T")[0]}
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-800 font-medium mt-1">
+                        {renderDisplayValue(formData.birthDate)}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                      גובה (סמ)
+                    </Label>
+                    {isEditing && !viewOnly ? (
+                      <Input
+                        type="number"
+                        value={formData.height ?? ""}
+                        onChange={(e) => handleChange("height", e.target.value)}
+                        className="h-9 text-sm focus:ring-cyan-500"
+                        placeholder="גובה בסמ"
+                        min="100"
+                        max="250"
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-800 font-medium mt-1">
+                        {renderDisplayValue(
+                          formData.height ? `${formData.height} ס"מ` : undefined
+                        )}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                      עיר מגורים
+                    </Label>
+                    {isEditing && !viewOnly ? (
+                      <Input
+                        value={formData.city || ""}
+                        onChange={(e) => handleChange("city", e.target.value)}
+                        placeholder="לדוגמה: ירושלים"
+                        className="h-9 text-sm focus:ring-cyan-500"
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-800 font-medium mt-1">
+                        {renderDisplayValue(formData.city)}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                      מוצא / עדה
+                    </Label>
+                    {isEditing && !viewOnly ? (
+                      <Input
+                        value={formData.origin || ""}
+                        onChange={(e) => handleChange("origin", e.target.value)}
+                        placeholder="לדוגמה: אשכנזי, ספרדי"
+                        className="h-9 text-sm focus:ring-cyan-500"
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-800 font-medium mt-1">
+                        {renderDisplayValue(formData.origin)}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                      עלה/תה לארץ
+                    </Label>
+                    {isEditing && !viewOnly ? (
+                      <Input
+                        value={formData.aliyaCountry || ""}
+                        onChange={(e) =>
+                          handleChange("aliyaCountry", e.target.value)
+                        }
+                        placeholder="אם רלוונטי, מאיזו מדינה?"
+                        className="h-9 text-sm focus:ring-cyan-500"
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-800 font-medium mt-1">
+                        {renderDisplayValue(
+                          formData.aliyaCountry,
+                          "לא רלוונטי"
+                        )}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                      שנת עליה
+                    </Label>
+                    {isEditing && !viewOnly ? (
+                      <Input
+                        type="number"
+                        value={formData.aliyaYear ?? ""}
+                        onChange={(e) =>
+                          handleChange("aliyaYear", e.target.value)
+                        }
+                        disabled={!formData.aliyaCountry}
+                        placeholder="אם רלוונטי"
+                        className="h-9 text-sm focus:ring-cyan-500"
+                        min="1900"
+                        max={new Date().getFullYear()}
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-800 font-medium mt-1">
+                        {renderDisplayValue(
+                          formData.aliyaYear,
+                          formData.aliyaCountry ? "לא צוינה שנה" : "לא רלוונטי"
+                        )}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                      שפת אם
+                    </Label>
+                    {isEditing && !viewOnly ? (
+                      <Select
+                        value={formData.nativeLanguage || ""}
+                        onValueChange={(value) =>
+                          handleChange("nativeLanguage", value || undefined)
+                        }
+                      >
+                        <SelectTrigger className="h-9 text-sm focus:ring-cyan-500">
+                          <SelectValue placeholder="בחר/י שפת אם" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[200px]">
+                          {languageOptions.map((lang) => (
+                            <SelectItem key={lang.value} value={lang.value}>
+                              {lang.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-sm text-gray-800 font-medium mt-1">
+                        {renderSelectDisplayValue(
+                          formData.nativeLanguage,
+                          languageOptions
+                        )}
+                      </p>
+                    )}
+                  </div>
+                  <div className="sm:col-span-2 lg:col-span-1">
+                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                      שפות נוספות
+                    </Label>
+                    {isEditing && !viewOnly ? (
+                      <Select
+                        onValueChange={(value) => {
+                          const currentLanguages =
+                            formData.additionalLanguages || [];
+                          if (!currentLanguages.includes(value)) {
+                            handleChange("additionalLanguages", [
+                              ...currentLanguages,
+                              value,
+                            ]);
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="h-9 text-sm focus:ring-cyan-500">
+                          <SelectValue placeholder="הוסף/י שפה..." />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[200px]">
+                          {languageOptions
+                            .filter(
+                              (lang) =>
+                                !(formData.additionalLanguages || []).includes(
+                                  lang.value
+                                ) && lang.value !== formData.nativeLanguage
+                            )
+                            .map((lang) => (
+                              <SelectItem key={lang.value} value={lang.value}>
+                                {lang.label}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    ) : null}
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {(formData.additionalLanguages || []).map((langValue) => {
+                        const lang = languageOptions.find(
+                          (l) => l.value === langValue
+                        );
+                        return lang ? (
+                          <Badge
+                            key={lang.value}
+                            variant="secondary"
+                            className="bg-cyan-100/70 text-cyan-800 px-2 py-0.5 rounded-full text-[11px] font-medium flex items-center"
+                          >
+                            {lang.label}
+                            {isEditing && !viewOnly && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleChange(
+                                    "additionalLanguages",
+                                    (formData.additionalLanguages || []).filter(
+                                      (l) => l !== langValue
+                                    )
+                                  )
+                                }
+                                className="mr-1.5 text-cyan-600 hover:text-cyan-800 text-xs"
+                                aria-label={`הסר ${lang.label}`}
+                              >
+                                ×
+                              </button>
+                            )}
+                          </Badge>
+                        ) : null;
+                      })}
+                      {(!isEditing || viewOnly) &&
+                        (!formData.additionalLanguages ||
+                          formData.additionalLanguages.length === 0) && (
+                          <p className="text-sm text-gray-500 italic">
+                            לא צוינו שפות נוספות.
+                          </p>
+                        )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
 
-        {/* --- כרטיס מצב משפחתי ורקע --- */}
-        <Card className="bg-white/70 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/30 overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-purple-50/30 to-indigo-50/30 border-b border-gray-200/50 p-4">
-            <CardTitle className="text-base font-semibold text-gray-700">
-              מצב משפחתי ורקע
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 md:p-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
-              <div>
-                <Label className="block mb-1.5 text-xs font-medium text-gray-600">
-                  מצב משפחתי
-                </Label>
-                <Select
-                  value={formData.maritalStatus || ""}
-                  onValueChange={(value) =>
-                    handleChange("maritalStatus", value || undefined)
-                  }
-                  disabled={!isEditing || viewOnly}
-                >
-                  <SelectTrigger className="h-9 text-xs focus:ring-cyan-500">
-                    <SelectValue placeholder="בחר/י מצב" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {maritalStatusOptions.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              {(formData.maritalStatus === "divorced" ||
-                formData.maritalStatus === "widowed" ||
-                formData.maritalStatus === "annulled") && (
-                <div className="flex items-center space-x-2 rtl:space-x-reverse pt-4">
-                  <Checkbox
-                    id="hasChildrenFromPrevious"
-                    checked={formData.hasChildrenFromPrevious || false}
-                    onCheckedChange={(checked) =>
-                      handleChange(
-                        "hasChildrenFromPrevious",
-                        checked as boolean
-                      )
-                    }
-                    disabled={!isEditing || viewOnly}
-                  />
-                  <Label
-                    htmlFor="hasChildrenFromPrevious"
-                    className="text-xs font-medium text-gray-600 whitespace-nowrap"
-                  >
-                    יש ילדים מקשר קודם?
-                  </Label>
-                </div>
-              )}
-              <div>
-                <Label className="block mb-1.5 text-xs font-medium text-gray-600">
-                  מצב הורים
-                </Label>
-                <Input
-                  value={formData.parentStatus || ""}
-                  onChange={(e) => handleChange("parentStatus", e.target.value)}
-                  disabled={!isEditing || viewOnly}
-                  placeholder="לדוגמה: נשואים, גרושים"
-                  className="h-9 text-xs focus:ring-cyan-500"
-                />
-              </div>
-              <div>
-                <Label className="block mb-1.5 text-xs font-medium text-gray-600">
-                  מספר אחים/אחיות
-                </Label>
-                <Input
-                  type="number"
-                  value={formData.siblings ?? ""}
-                  onChange={(e) => handleChange("siblings", e.target.value)}
-                  disabled={!isEditing || viewOnly}
-                  className="h-9 text-xs focus:ring-cyan-500"
-                  placeholder="כולל אותך"
-                  min="0"
-                />
-              </div>
-              <div>
-                <Label className="block mb-1.5 text-xs font-medium text-gray-600">
-                  מיקום במשפחה (מתוך האחים)
-                </Label>
-                <Input
-                  type="number"
-                  value={formData.position ?? ""}
-                  onChange={(e) => handleChange("position", e.target.value)}
-                  disabled={!isEditing || viewOnly}
-                  className="h-9 text-xs focus:ring-cyan-500"
-                  placeholder="לדוגמה: 1 (בכור/ה)"
-                  min="0"
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* --- כרטיס השכלה, עיסוק ושירות --- */}
-        <Card className="bg-white/70 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/30 overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-teal-50/30 to-green-50/30 border-b border-gray-200/50 p-4">
-            <CardTitle className="text-base font-semibold text-gray-700">
-              השכלה, עיסוק ושירות
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 md:p-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
-              <div>
-                <Label className="block mb-1.5 text-xs font-medium text-gray-600">
-                  רמת השכלה
-                </Label>
-                <Select
-                  value={formData.educationLevel || ""}
-                  onValueChange={(value) =>
-                    handleChange("educationLevel", value || undefined)
-                  }
-                  disabled={!isEditing || viewOnly}
-                >
-                  <SelectTrigger className="h-9 text-xs focus:ring-cyan-500">
-                    <SelectValue placeholder="בחר/י רמה" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {educationLevelOptions.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="sm:col-span-2">
-                <Label className="block mb-1.5 text-xs font-medium text-gray-600">
-                  פירוט השכלה (מוסד, תחום)
-                </Label>
-                <Input
-                  value={formData.education || ""}
-                  onChange={(e) => handleChange("education", e.target.value)}
-                  disabled={!isEditing || viewOnly}
-                  placeholder="לדוגמה: אוני' בר אילן, משפטים"
-                  className="h-9 text-xs focus:ring-cyan-500"
-                />
-              </div>
-              <div className="lg:col-span-3">
-                <Label className="block mb-1.5 text-xs font-medium text-gray-600">
-                  עיסוק נוכחי
-                </Label>
-                <Input
-                  value={formData.occupation || ""}
-                  onChange={(e) => handleChange("occupation", e.target.value)}
-                  disabled={!isEditing || viewOnly}
-                  placeholder="לדוגמה: מורה, מהנדס תוכנה"
-                  className="h-9 text-xs focus:ring-cyan-500"
-                />
-              </div>
-              <div>
-                <Label className="block mb-1.5 text-xs font-medium text-gray-600">
-                  שירות (צבאי/לאומי/אחר)
-                </Label>
-                <Select
-                  value={formData.serviceType || ""}
-                  onValueChange={(value) =>
-                    handleChange(
-                      "serviceType",
-                      (value as ServiceType) || undefined
-                    )
-                  }
-                  disabled={!isEditing || viewOnly}
-                >
-                  <SelectTrigger className="h-9 text-xs focus:ring-cyan-500">
-                    <SelectValue placeholder="בחר/י סוג שירות" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[250px]">
-                    {serviceTypeOptions.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="sm:col-span-2">
-                <Label className="block mb-1.5 text-xs font-medium text-gray-600">
-                  פירוט על השירות (חיל, יחידה, תפקיד, שם ישיבה/מכינה)
-                </Label>
-                <Input
-                  value={formData.serviceDetails || ""}
-                  onChange={(e) =>
-                    handleChange("serviceDetails", e.target.value)
-                  }
-                  disabled={!isEditing || viewOnly}
-                  placeholder="לדוגמה: גולני, מורה חיילת, ישיבת הר עציון"
-                  className="h-9 text-xs focus:ring-cyan-500"
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* --- כרטיס דת ואורח חיים --- */}
-        <Card className="bg-white/70 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/30 overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-yellow-50/30 to-amber-50/30 border-b border-gray-200/50 p-4">
-            <CardTitle className="text-base font-semibold text-gray-700">
-              דת ואורח חיים
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 md:p-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
-              <div>
-                <Label className="block mb-1.5 text-xs font-medium text-gray-600">
-                  רמה דתית
-                </Label>
-                <Select
-                  value={formData.religiousLevel || ""}
-                  onValueChange={(value) =>
-                    handleChange("religiousLevel", value || undefined)
-                  }
-                  disabled={!isEditing || viewOnly}
-                >
-                  <SelectTrigger className="h-9 text-xs focus:ring-cyan-500">
-                    <SelectValue placeholder="בחר/י רמה" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[250px]">
-                    {religiousLevelOptions.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-center space-x-2 rtl:space-x-reverse pt-4">
-                <Checkbox
-                  id="shomerNegiah"
-                  checked={formData.shomerNegiah || false}
-                  onCheckedChange={(checked) =>
-                    handleChange("shomerNegiah", checked as boolean)
-                  }
-                  disabled={!isEditing || viewOnly}
-                />
-                <Label
-                  htmlFor="shomerNegiah"
-                  className="text-xs font-medium text-gray-600 whitespace-nowrap"
-                >
-                  שומר/ת נגיעה?
-                </Label>
-              </div>
-              {formData.gender === Gender.FEMALE && (
-                <div>
-                  <Label className="block mb-1.5 text-xs font-medium text-gray-600">
-                    כיסוי ראש
-                  </Label>
-                  <Select
-                    value={formData.headCovering || ""}
-                    onValueChange={(value) =>
-                      handleChange(
-                        "headCovering",
-                        (value as HeadCoveringType) || undefined
-                      )
-                    }
-                    disabled={!isEditing || viewOnly}
-                  >
-                    <SelectTrigger className="h-9 text-xs focus:ring-cyan-500">
-                      <SelectValue placeholder="בחר/י סוג כיסוי" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {headCoveringOptions.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-              {formData.gender === Gender.MALE && (
-                <div>
-                  <Label className="block mb-1.5 text-xs font-medium text-gray-600">
-                    סוג כיפה
-                  </Label>
-                  <Select
-                    value={formData.kippahType || ""}
-                    onValueChange={(value) =>
-                      handleChange(
-                        "kippahType",
-                        (value as KippahType) || undefined
-                      )
-                    }
-                    disabled={!isEditing || viewOnly}
-                  >
-                    <SelectTrigger className="h-9 text-xs focus:ring-cyan-500">
-                      <SelectValue placeholder="בחר/י סוג כיפה" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[200px]">
-                      {kippahTypeOptions.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-              <div>
-                <Label className="block mb-1.5 text-xs font-medium text-gray-600">
-                  מגדר שדכן/ית מועדף
-                </Label>
-                <Select
-                  value={formData.preferredMatchmakerGender || ""}
-                  onValueChange={(value) =>
-                    handleChange(
-                      "preferredMatchmakerGender",
-                      (value as Gender) || undefined
-                    )
-                  }
-                  disabled={!isEditing || viewOnly}
-                >
-                  <SelectTrigger className="h-9 text-xs focus:ring-cyan-500">
-                    <SelectValue placeholder="בחר/י העדפה (לא חובה)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="MALE">משדך</SelectItem>
-                    <SelectItem value="FEMALE">שדכנית</SelectItem>
-                    <SelectItem value="NONE">ללא העדפה</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* --- כרטיס תכונות אופי ותחביבים --- */}
-        <Card className="bg-white/70 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/30 overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-pink-50/30 to-rose-50/30 border-b border-gray-200/50 p-4">
-            <CardTitle className="text-base font-semibold text-gray-700">
-              תכונות אופי ותחביבים
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 md:p-6 space-y-6">
-            <div>
-              <Label className="block mb-2 text-sm font-medium text-gray-700">
-                תכונות אופי בולטות (עד 3)
-              </Label>
-              {isEditing && !viewOnly ? (
-                <div className="flex flex-wrap gap-2">
-                  {characterTraitsOptions.map((trait) => (
-                    <Button
-                      key={trait.value}
-                      type="button"
-                      variant={
-                        (formData.profileCharacterTraits || []).includes(
-                          trait.value
-                        )
-                          ? "default"
-                          : "outline"
-                      }
-                      size="sm"
-                      onClick={() =>
-                        handleMultiSelectToggle(
-                          "profileCharacterTraits",
-                          trait.value
-                        )
-                      }
-                      disabled={
-                        (formData.profileCharacterTraits || []).length >= 3 &&
-                        !(formData.profileCharacterTraits || []).includes(
-                          trait.value
-                        )
-                      }
+            {/* --- כרטיס מצב משפחתי ורקע --- */}
+            <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-purple-50/40 to-indigo-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
+                <Users className="w-5 h-5 text-purple-700" />
+                <CardTitle className="text-base font-semibold text-gray-700">
+                  מצב משפחתי ורקע
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 md:p-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5 items-start">
+                  <div>
+                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                      מצב משפחתי
+                    </Label>
+                    {isEditing && !viewOnly ? (
+                      <Select
+                        value={formData.maritalStatus || ""}
+                        onValueChange={(value) =>
+                          handleChange("maritalStatus", value || undefined)
+                        }
+                      >
+                        <SelectTrigger className="h-9 text-sm focus:ring-cyan-500">
+                          <SelectValue placeholder="בחר/י מצב" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {maritalStatusOptions.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-sm text-gray-800 font-medium mt-1">
+                        {renderSelectDisplayValue(
+                          formData.maritalStatus,
+                          maritalStatusOptions
+                        )}
+                      </p>
+                    )}
+                  </div>
+                  {(formData.maritalStatus === "divorced" ||
+                    formData.maritalStatus === "widowed" ||
+                    formData.maritalStatus === "annulled") && (
+                    <div
                       className={cn(
-                        "rounded-full text-xs px-3 py-1 transition-all",
-                        (formData.profileCharacterTraits || []).includes(
-                          trait.value
-                        )
-                          ? "bg-rose-500 hover:bg-rose-600 text-white"
-                          : "border-gray-300 text-gray-600 hover:bg-gray-50"
+                        "pt-1 sm:pt-0",
+                        isEditing && !viewOnly ? "sm:pt-5" : "sm:pt-0"
                       )}
                     >
-                      {trait.icon && (
-                        <trait.icon className="w-3.5 h-3.5 ml-1.5 rtl:mr-1.5 rtl:ml-0" />
+                      <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                        ילדים מקשר קודם?
+                      </Label>
+                      {isEditing && !viewOnly ? (
+                        <div className="flex items-center space-x-2 rtl:space-x-reverse mt-2">
+                          <Checkbox
+                            id="hasChildrenFromPrevious"
+                            checked={formData.hasChildrenFromPrevious || false}
+                            onCheckedChange={(checked) =>
+                              handleChange(
+                                "hasChildrenFromPrevious",
+                                checked as boolean
+                              )
+                            }
+                          />
+                          <Label
+                            htmlFor="hasChildrenFromPrevious"
+                            className="text-sm font-normal text-gray-700"
+                          >
+                            יש ילדים
+                          </Label>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-800 font-medium mt-1">
+                          {renderBooleanDisplayValue(
+                            formData.hasChildrenFromPrevious
+                          )}
+                        </p>
                       )}
-                      {trait.label}
-                    </Button>
-                  ))}
-                </div>
-              ) : (
-                <div className="mt-1 flex flex-wrap gap-1.5">
-                  {renderMultiSelectBadges(
-                    formData.profileCharacterTraits,
-                    characterTraitsOptions
+                    </div>
                   )}
-                  {(!formData.profileCharacterTraits ||
-                    formData.profileCharacterTraits.length === 0) && (
-                    <p className="text-xs text-gray-500 italic">
-                      לא נבחרו תכונות אופי.
-                    </p>
-                  )}
+                  <div>
+                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                      מצב הורים
+                    </Label>
+                    {isEditing && !viewOnly ? (
+                      <Input
+                        value={formData.parentStatus || ""}
+                        onChange={(e) =>
+                          handleChange("parentStatus", e.target.value)
+                        }
+                        placeholder="לדוגמה: נשואים, גרושים"
+                        className="h-9 text-sm focus:ring-cyan-500"
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-800 font-medium mt-1">
+                        {renderDisplayValue(formData.parentStatus)}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                      מספר אחים/אחיות
+                    </Label>
+                    {isEditing && !viewOnly ? (
+                      <Input
+                        type="number"
+                        value={formData.siblings ?? ""}
+                        onChange={(e) =>
+                          handleChange("siblings", e.target.value)
+                        }
+                        className="h-9 text-sm focus:ring-cyan-500"
+                        placeholder="כולל אותך"
+                        min="0"
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-800 font-medium mt-1">
+                        {renderDisplayValue(formData.siblings)}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                      מיקום במשפחה
+                    </Label>
+                    {isEditing && !viewOnly ? (
+                      <Input
+                        type="number"
+                        value={formData.position ?? ""}
+                        onChange={(e) =>
+                          handleChange("position", e.target.value)
+                        }
+                        className="h-9 text-sm focus:ring-cyan-500"
+                        placeholder="לדוגמה: 1 (בכור/ה)"
+                        min="0"
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-800 font-medium mt-1">
+                        {renderDisplayValue(formData.position)}
+                      </p>
+                    )}
+                  </div>
                 </div>
-              )}
-            </div>
-            <div>
-              <Label className="block mb-2 text-sm font-medium text-gray-700">
-                תחביבים עיקריים (עד 3)
-              </Label>
-              {isEditing && !viewOnly ? (
-                <div className="flex flex-wrap gap-2">
-                  {hobbiesOptions.map((hobby) => (
-                    <Button
-                      key={hobby.value}
-                      type="button"
-                      variant={
-                        (formData.profileHobbies || []).includes(hobby.value)
-                          ? "default"
-                          : "outline"
-                      }
-                      size="sm"
-                      onClick={() =>
-                        handleMultiSelectToggle("profileHobbies", hobby.value)
-                      }
-                      disabled={
-                        (formData.profileHobbies || []).length >= 3 &&
-                        !(formData.profileHobbies || []).includes(hobby.value)
-                      }
-                      className={cn(
-                        "rounded-full text-xs px-3 py-1 transition-all",
-                        (formData.profileHobbies || []).includes(hobby.value)
-                          ? "bg-sky-500 hover:bg-sky-600 text-white"
-                          : "border-gray-300 text-gray-600 hover:bg-gray-50"
-                      )}
-                    >
-                      {hobby.icon && (
-                        <hobby.icon className="w-3.5 h-3.5 ml-1.5 rtl:mr-1.5 rtl:ml-0" />
-                      )}
-                      {hobby.label}
-                    </Button>
-                  ))}
-                </div>
-              ) : (
-                <div className="mt-1 flex flex-wrap gap-1.5">
-                  {renderMultiSelectBadges(
-                    formData.profileHobbies,
-                    hobbiesOptions
-                  )}
-                  {(!formData.profileHobbies ||
-                    formData.profileHobbies.length === 0) && (
-                    <p className="text-xs text-gray-500 italic">
-                      לא נבחרו תחביבים.
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
 
-        {/* --- כרטיס אודות ומידע נוסף --- */}
-        <Card className="bg-white/70 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/30 overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-slate-50/30 to-gray-100/30 border-b border-gray-200/50 p-4">
-            <CardTitle className="text-base font-semibold text-gray-700">
-              קצת עלי ומידע נוסף
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 md:p-6">
-            <div className="space-y-5">
-              <div>
-                <Label className="block mb-1.5 text-sm font-medium text-gray-700">
-                  ספר/י קצת על עצמך (תיאור חופשי)
-                </Label>
-                {isEditing && !viewOnly ? (
-                  <Textarea
-                    value={formData.about || ""}
-                    onChange={(e) => handleChange("about", e.target.value)}
-                    className="text-xs focus:ring-cyan-500 min-h-[100px] rounded-lg"
-                    placeholder="תאר/י את עצמך, מה מאפיין אותך, מה חשוב לך..."
-                    rows={4}
-                  />
-                ) : (
-                  <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap min-h-[40px] bg-gray-50/50 p-3 rounded-lg">
-                    {formData.about || (
-                      <span className="text-gray-400 italic">
-                        לא הוזן תיאור אישי.
-                      </span>
+            {/* --- כרטיס דת ואורח חיים --- */}
+            <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-yellow-50/40 to-amber-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
+                <BookOpen className="w-5 h-5 text-amber-700" />
+                <CardTitle className="text-base font-semibold text-gray-700">
+                  דת ואורח חיים
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 md:p-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5 items-start">
+                  <div>
+                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                      רמה דתית
+                    </Label>
+                    {isEditing && !viewOnly ? (
+                      <Select
+                        value={formData.religiousLevel || ""}
+                        onValueChange={(value) =>
+                          handleChange("religiousLevel", value || undefined)
+                        }
+                      >
+                        <SelectTrigger className="h-9 text-sm focus:ring-cyan-500">
+                          <SelectValue placeholder="בחר/י רמה" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[250px]">
+                          {religiousLevelOptions.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-sm text-gray-800 font-medium mt-1">
+                        {renderSelectDisplayValue(
+                          formData.religiousLevel,
+                          religiousLevelOptions
+                        )}
+                      </p>
                     )}
-                  </p>
-                )}
-              </div>
-              <div>
-                <Label className="block mb-1.5 text-sm font-medium text-gray-700">
-                  הערות נוספות לשדכן/ית (לא יוצג לצד השני)
-                </Label>
-                {isEditing && !viewOnly ? (
-                  <Textarea
-                    value={formData.matchingNotes || ""}
-                    onChange={(e) =>
-                      handleChange("matchingNotes", e.target.value)
-                    }
-                    className="text-xs focus:ring-cyan-500 min-h-[80px] rounded-lg"
-                    placeholder="דברים נוספים שחשוב שהשדכן/ית יידעו עליך..."
-                    rows={3}
-                  />
-                ) : (
-                  <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap min-h-[40px] bg-gray-50/50 p-3 rounded-lg">
-                    {formData.matchingNotes || (
-                      <span className="text-gray-400 italic">
-                        אין הערות נוספות לשדכן/ית.
-                      </span>
+                  </div>
+                  <div
+                    className={cn(
+                      "pt-1 sm:pt-0",
+                      isEditing && !viewOnly ? "sm:pt-5" : "sm:pt-0"
                     )}
-                  </p>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+                  >
+                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                      שומר/ת נגיעה?
+                    </Label>
+                    {isEditing && !viewOnly ? (
+                      <div className="flex items-center space-x-2 rtl:space-x-reverse mt-2">
+                        <Checkbox
+                          id="shomerNegiah"
+                          checked={formData.shomerNegiah || false}
+                          onCheckedChange={(checked) =>
+                            handleChange("shomerNegiah", checked as boolean)
+                          }
+                        />
+                        <Label
+                          htmlFor="shomerNegiah"
+                          className="text-sm font-normal text-gray-700"
+                        >
+                          כן
+                        </Label>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-800 font-medium mt-1">
+                        {renderBooleanDisplayValue(formData.shomerNegiah)}
+                      </p>
+                    )}
+                  </div>
+                  {formData.gender === Gender.FEMALE && (
+                    <div>
+                      <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                        כיסוי ראש
+                      </Label>
+                      {isEditing && !viewOnly ? (
+                        <Select
+                          value={formData.headCovering || ""}
+                          onValueChange={(value) =>
+                            handleChange(
+                              "headCovering",
+                              (value as HeadCoveringType) || undefined
+                            )
+                          }
+                        >
+                          <SelectTrigger className="h-9 text-sm focus:ring-cyan-500">
+                            <SelectValue placeholder="בחר/י סוג כיסוי" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {headCoveringOptions.map((opt) => (
+                              <SelectItem key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <p className="text-sm text-gray-800 font-medium mt-1">
+                          {renderSelectDisplayValue(
+                            formData.headCovering,
+                            headCoveringOptions,
+                            "ללא"
+                          )}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  {formData.gender === Gender.MALE && (
+                    <div>
+                      <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                        סוג כיפה
+                      </Label>
+                      {isEditing && !viewOnly ? (
+                        <Select
+                          value={formData.kippahType || ""}
+                          onValueChange={(value) =>
+                            handleChange(
+                              "kippahType",
+                              (value as KippahType) || undefined
+                            )
+                          }
+                        >
+                          <SelectTrigger className="h-9 text-sm focus:ring-cyan-500">
+                            <SelectValue placeholder="בחר/י סוג כיפה" />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-[200px]">
+                            {kippahTypeOptions.map((opt) => (
+                              <SelectItem key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <p className="text-sm text-gray-800 font-medium mt-1">
+                          {renderSelectDisplayValue(
+                            formData.kippahType,
+                            kippahTypeOptions,
+                            "ללא"
+                          )}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  <div>
+                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                      מגדר שדכן/ית מועדף
+                    </Label>
+                    {isEditing && !viewOnly ? (
+                      <Select
+                        value={formData.preferredMatchmakerGender || ""}
+                        onValueChange={(value) =>
+                          handleChange(
+                            "preferredMatchmakerGender",
+                            (value as Gender) || undefined
+                          )
+                        }
+                      >
+                        <SelectTrigger className="h-9 text-sm focus:ring-cyan-500">
+                          <SelectValue placeholder="בחר/י העדפה (לא חובה)" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="MALE">משדך</SelectItem>
+                          <SelectItem value="FEMALE">שדכנית</SelectItem>
+                          <SelectItem value="NONE">ללא העדפה</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-sm text-gray-800 font-medium mt-1">
+                        {renderSelectDisplayValue(
+                          formData.preferredMatchmakerGender,
+                          preferredMatchmakerGenderOptions,
+                          "ללא העדפה"
+                        )}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* --- טור 2 --- */}
+          <div className="space-y-6">
+            {/* --- כרטיס אודות ומידע נוסף (עבר לכאן) --- */}
+            <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-slate-50/40 to-gray-100/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
+                <Info className="w-5 h-5 text-slate-600" />
+                <CardTitle className="text-base font-semibold text-gray-700">
+                  קצת עלי ומידע נוסף
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 md:p-6">
+                <div className="space-y-6">
+                  <div>
+                    <Label className="block mb-1.5 text-sm font-medium text-gray-700">
+                      ספר/י קצת על עצמך (תיאור חופשי)
+                    </Label>
+                    {isEditing && !viewOnly ? (
+                      <Textarea
+                        value={formData.about || ""}
+                        onChange={(e) => handleChange("about", e.target.value)}
+                        className="text-sm focus:ring-cyan-500 min-h-[120px] rounded-lg"
+                        placeholder="תאר/י את עצמך, מה מאפיין אותך, מה חשוב לך..."
+                        rows={5}
+                      />
+                    ) : (
+                      <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap min-h-[60px] bg-slate-50/70 p-3 rounded-lg border border-slate-200/50">
+                        {formData.about || (
+                          <span className="text-gray-500 italic">
+                            לא הוזן תיאור אישי.
+                          </span>
+                        )}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <Label className="block mb-1.5 text-sm font-medium text-gray-700">
+                      הערות נוספות לשדכן/ית (לא יוצג לצד השני)
+                    </Label>
+                    {isEditing && !viewOnly ? (
+                      <Textarea
+                        value={formData.matchingNotes || ""}
+                        onChange={(e) =>
+                          handleChange("matchingNotes", e.target.value)
+                        }
+                        className="text-sm focus:ring-cyan-500 min-h-[90px] rounded-lg"
+                        placeholder="דברים נוספים שחשוב שהשדכן/ית יידעו עליך..."
+                        rows={3}
+                      />
+                    ) : (
+                      <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap min-h-[50px] bg-slate-50/70 p-3 rounded-lg border border-slate-200/50">
+                        {formData.matchingNotes || (
+                          <span className="text-gray-500 italic">
+                            אין הערות נוספות לשדכן/ית.
+                          </span>
+                        )}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* --- כרטיס השכלה, עיסוק ושירות --- */}
+            <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-teal-50/40 to-green-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
+                <Briefcase className="w-5 h-5 text-teal-700" />
+                <CardTitle className="text-base font-semibold text-gray-700">
+                  השכלה, עיסוק ושירות
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 md:p-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
+                  <div>
+                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                      רמת השכלה
+                    </Label>
+                    {isEditing && !viewOnly ? (
+                      <Select
+                        value={formData.educationLevel || ""}
+                        onValueChange={(value) =>
+                          handleChange("educationLevel", value || undefined)
+                        }
+                      >
+                        <SelectTrigger className="h-9 text-sm focus:ring-cyan-500">
+                          <SelectValue placeholder="בחר/י רמה" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {educationLevelOptions.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-sm text-gray-800 font-medium mt-1">
+                        {renderSelectDisplayValue(
+                          formData.educationLevel,
+                          educationLevelOptions
+                        )}
+                      </p>
+                    )}
+                  </div>
+                  <div className="sm:col-span-2">
+                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                      פירוט השכלה (מוסד, תחום)
+                    </Label>
+                    {isEditing && !viewOnly ? (
+                      <Input
+                        value={formData.education || ""}
+                        onChange={(e) =>
+                          handleChange("education", e.target.value)
+                        }
+                        placeholder="לדוגמה: אוני' בר אילן, משפטים"
+                        className="h-9 text-sm focus:ring-cyan-500"
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-800 font-medium mt-1">
+                        {renderDisplayValue(formData.education)}
+                      </p>
+                    )}
+                  </div>
+                  <div className="sm:col-span-2">
+                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                      עיסוק נוכחי
+                    </Label>
+                    {isEditing && !viewOnly ? (
+                      <Input
+                        value={formData.occupation || ""}
+                        onChange={(e) =>
+                          handleChange("occupation", e.target.value)
+                        }
+                        placeholder="לדוגמה: מורה, מהנדס תוכנה"
+                        className="h-9 text-sm focus:ring-cyan-500"
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-800 font-medium mt-1">
+                        {renderDisplayValue(formData.occupation)}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                      שירות (צבאי/לאומי/אחר)
+                    </Label>
+                    {isEditing && !viewOnly ? (
+                      <Select
+                        value={formData.serviceType || ""}
+                        onValueChange={(value) =>
+                          handleChange(
+                            "serviceType",
+                            (value as ServiceType) || undefined
+                          )
+                        }
+                      >
+                        <SelectTrigger className="h-9 text-sm focus:ring-cyan-500">
+                          <SelectValue placeholder="בחר/י סוג שירות" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[250px]">
+                          {serviceTypeOptions.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-sm text-gray-800 font-medium mt-1">
+                        {renderSelectDisplayValue(
+                          formData.serviceType,
+                          serviceTypeOptions
+                        )}
+                      </p>
+                    )}
+                  </div>
+                  <div className="sm:col-span-2">
+                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                      פירוט על השירות
+                    </Label>
+                    {isEditing && !viewOnly ? (
+                      <Input
+                        value={formData.serviceDetails || ""}
+                        onChange={(e) =>
+                          handleChange("serviceDetails", e.target.value)
+                        }
+                        placeholder="חיל, יחידה, תפקיד, שם ישיבה/מכינה"
+                        className="h-9 text-sm focus:ring-cyan-500"
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-800 font-medium mt-1">
+                        {renderDisplayValue(formData.serviceDetails)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* --- כרטיס תכונות אופי ותחביבים --- */}
+            <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-pink-50/40 to-rose-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
+                <Smile className="w-5 h-5 text-rose-600" />
+                <CardTitle className="text-base font-semibold text-gray-700">
+                  תכונות אופי ותחביבים
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 md:p-6 space-y-6">
+                <div>
+                  <Label className="block mb-2 text-sm font-medium text-gray-700">
+                    תכונות אופי בולטות (עד 3)
+                  </Label>
+                  {isEditing && !viewOnly ? (
+                    <div className="flex flex-wrap gap-2">
+                      {characterTraitsOptions.map((trait) => (
+                        <Button
+                          key={trait.value}
+                          type="button"
+                          variant={
+                            (formData.profileCharacterTraits || []).includes(
+                              trait.value
+                            )
+                              ? "default"
+                              : "outline"
+                          }
+                          size="sm"
+                          onClick={() =>
+                            handleMultiSelectToggle(
+                              "profileCharacterTraits",
+                              trait.value
+                            )
+                          }
+                          disabled={
+                            !viewOnly &&
+                            (formData.profileCharacterTraits || []).length >=
+                              3 &&
+                            !(formData.profileCharacterTraits || []).includes(
+                              trait.value
+                            )
+                          }
+                          className={cn(
+                            "rounded-full text-xs px-3 py-1.5 transition-all", // Increased py for better touch
+                            (formData.profileCharacterTraits || []).includes(
+                              trait.value
+                            )
+                              ? "bg-rose-500 hover:bg-rose-600 text-white border-rose-500"
+                              : "border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400"
+                          )}
+                        >
+                          {trait.icon && (
+                            <trait.icon className="w-3.5 h-3.5 ml-1.5 rtl:mr-1.5 rtl:ml-0" />
+                          )}
+                          {trait.label}
+                        </Button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="mt-1 flex flex-wrap gap-1.5">
+                      {renderMultiSelectBadges(
+                        formData.profileCharacterTraits,
+                        characterTraitsOptions,
+                        "לא נבחרו תכונות אופי."
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <Label className="block mb-2 text-sm font-medium text-gray-700">
+                    תחביבים עיקריים (עד 3)
+                  </Label>
+                  {isEditing && !viewOnly ? (
+                    <div className="flex flex-wrap gap-2">
+                      {hobbiesOptions.map((hobby) => (
+                        <Button
+                          key={hobby.value}
+                          type="button"
+                          variant={
+                            (formData.profileHobbies || []).includes(
+                              hobby.value
+                            )
+                              ? "default"
+                              : "outline"
+                          }
+                          size="sm"
+                          onClick={() =>
+                            handleMultiSelectToggle(
+                              "profileHobbies",
+                              hobby.value
+                            )
+                          }
+                          disabled={
+                            !viewOnly &&
+                            (formData.profileHobbies || []).length >= 3 &&
+                            !(formData.profileHobbies || []).includes(
+                              hobby.value
+                            )
+                          }
+                          className={cn(
+                            "rounded-full text-xs px-3 py-1.5 transition-all", // Increased py
+                            (formData.profileHobbies || []).includes(
+                              hobby.value
+                            )
+                              ? "bg-sky-500 hover:bg-sky-600 text-white border-sky-500"
+                              : "border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400"
+                          )}
+                        >
+                          {hobby.icon && (
+                            <hobby.icon className="w-3.5 h-3.5 ml-1.5 rtl:mr-1.5 rtl:ml-0" />
+                          )}
+                          {hobby.label}
+                        </Button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="mt-1 flex flex-wrap gap-1.5">
+                      {renderMultiSelectBadges(
+                        formData.profileHobbies,
+                        hobbiesOptions,
+                        "לא נבחרו תחביבים."
+                      )}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     </div>
   );

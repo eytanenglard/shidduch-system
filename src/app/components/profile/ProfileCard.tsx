@@ -1,212 +1,299 @@
-import React, { useState } from "react";
+// src/app/components/profile/ProfileCard.tsx
+import React, { useState, useMemo, useCallback } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
 
 // UI Components
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogHeader,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Icons
 import {
-  User,
-  Heart,
-  FileText,
-  Image as ImageIcon,
-  Info,
-  Eye,
-  EyeOff,
-  Phone,
-  ChevronLeft,
-  ChevronRight,
-  Briefcase,
-  GraduationCap,
-  Users,
-  Book,
-  School,
-  Lock,
-  Languages,
-  Calendar,
-  Star,
-  MapPin,
-  Shield,
-  CheckCircle,
-  Clock,
+  User, Heart, FileText, Image as ImageIcon, Info as InfoIcon, Eye, Phone,
+  ChevronLeft, ChevronRight, Briefcase, GraduationCap, Users, BookOpen,
+  School, Lock, Languages, Calendar, Star, MapPin, CheckCircle, Clock, Cake,
+  Gem, Sparkles, Users2, Award, Palette, Smile, X, BookMarked, Maximize,
+  Minimize, GripVertical, Search, Target, UserCheck, Link, Handshake, Edit3, ExternalLink,
+  Bot
 } from "lucide-react";
 
-// Types (Assuming these are correctly defined in your project)
-import type {
-  UserProfile,
-  UserImage,
-  QuestionnaireResponse,
-  ContactPreference,
-  AvailabilityStatus,
-} from "@/types/next-auth"; // Make sure the path is correct
-
-// Types
-type ProfileActionType =
-  | "contact"
-  | "suggest"
-  | "hide"
-  | "report"
-  | "save"
-  | "verify"
-  | "update_status"
-  | "update_notes"
-  | "update_visibility";
-
-type ProfileActionData = {
-  profileId?: string;
-  userId?: string;
-  status?: AvailabilityStatus;
-  statusNote?: string;
-  matchingNotes?: string;
-  visibility?: boolean;
-  reportReason?: string;
-  reportDetails?: string;
-  contactPreference?: ContactPreference;
-  verificationDetails?: {
-    verifiedBy: string;
-    verificationDate: Date;
-    notes?: string;
-  };
+// Constants
+const WORLDS: { [key: string]: { label: string; icon: React.ElementType; color: string } } = {
+  values: { label: "ערכים ועקרונות", icon: BookOpen, color: "blue" },
+  personality: { label: "אישיות ותכונות", icon: Smile, color: "green" },
+  relationship: { label: "זוגיות ומשפחה", icon: Heart, color: "rose" },
+  partner: { label: "ציפיות מבן/בת הזוג", icon: Users, color: "indigo" },
+  religion: { label: "דת ואמונה", icon: BookMarked, color: "amber" },
+  general: { label: "שאלות כלליות", icon: FileText, color: "slate" },
 };
 
-// Interfaces
-interface WorldConfig {
-  key: string;
-  title: string;
-  icon: React.ElementType;
-  color: string; // e.g., 'cyan' or 'pink'
-  gradientFrom: string; // e.g., 'from-cyan-50'
-  gradientTo: string; // e.g., 'to-cyan-50/20'
-  border: string; // e.g., 'border-cyan-100/50'
-  text: string; // e.g., 'text-cyan-600'
-  iconBg: string; // e.g., 'bg-cyan-100'
-}
+// Types
+import type {
+  UserProfile,
+  UserImage as UserImageType,
+  QuestionnaireResponse,
+  FormattedAnswer,
+} from "@/types/next-auth";
 
-interface ProfileCardProps {
-  profile: UserProfile;
-  images?: UserImage[];
-  questionnaire?: QuestionnaireResponse | null;
-  viewMode?: "matchmaker" | "candidate";
-  className?: string;
-  onAction?: (type: ProfileActionType, data?: ProfileActionData) => void;
-}
+// --- Helper Functions ---
+const getInitials = (firstName?: string, lastName?: string): string => {
+  let initials = "";
+  if (firstName && firstName.length > 0) initials += firstName[0];
+  if (lastName && lastName.length > 0) initials += lastName[0];
+  if (initials.length === 0 && firstName && firstName.length > 0) {
+    initials = firstName.length > 1 ? firstName.substring(0, 2) : firstName[0];
+  }
+  return initials.toUpperCase() || "?";
+};
 
-// Constants
-const WORLDS: Record<string, WorldConfig> = {
-  values: {
-    key: "values",
-    title: "ערכים ואמונות",
-    icon: Heart,
-    color: "pink",
-    gradientFrom: "from-pink-50",
-    gradientTo: "to-pink-50/20",
-    border: "border-pink-100/50",
-    text: "text-pink-600",
-    iconBg: "bg-pink-100",
-  },
-  personality: {
-    key: "personality",
-    title: "אישיות",
-    icon: User,
-    color: "blue",
-    gradientFrom: "from-blue-50",
-    gradientTo: "to-blue-50/20",
-    border: "border-blue-100/50",
-    text: "text-blue-600",
-    iconBg: "bg-blue-100",
-  },
-  relationship: {
-    key: "relationship",
-    title: "זוגיות ומשפחה",
-    icon: Users,
-    color: "purple",
-    gradientFrom: "from-purple-50",
-    gradientTo: "to-purple-50/20",
-    border: "border-purple-100/50",
-    text: "text-purple-600",
-    iconBg: "bg-purple-100",
-  },
-  religion: {
-    key: "religion",
-    title: "דת ומסורת",
-    icon: Book,
-    color: "indigo",
-    gradientFrom: "from-indigo-50",
-    gradientTo: "to-indigo-50/20",
-    border: "border-indigo-100/50",
-    text: "text-indigo-600",
-    iconBg: "bg-indigo-100",
-  },
-  partner: {
-    key: "partner",
-    title: "העדפות בן/בת זוג",
-    icon: Heart, // Consider a different icon if needed
-    color: "red",
-    gradientFrom: "from-red-50",
-    gradientTo: "to-red-50/20",
-    border: "border-red-100/50",
-    text: "text-red-600",
-    iconBg: "bg-red-100",
-  },
+const calculateAge = (birthDate: Date | string | null | undefined): number => {
+  if (!birthDate) return 0;
+  try {
+    const today = new Date();
+    const birth = new Date(birthDate);
+    if (isNaN(birth.getTime())) return 0;
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age > 0 ? age : 0;
+  } catch (e) {
+    if (process.env.NODE_ENV === "development") console.error("Error calculating age:", e);
+    return 0;
+  }
+};
+
+const formatAvailabilityStatus = (status: UserProfile["availabilityStatus"] | undefined) => {
+  switch (status) {
+    case "AVAILABLE": return { text: "פנוי/ה להצעות", color: "bg-emerald-500", icon: CheckCircle };
+    case "UNAVAILABLE": return { text: "לא פנוי/ה כרגע", color: "bg-red-500", icon: X };
+    case "DATING": return { text: "בתהליך הכרות", color: "bg-amber-500", icon: Clock };
+    case "PAUSED": return { text: "בהפסקה מהצעות", color: "bg-sky-500", icon: Clock };
+    case "ENGAGED": return { text: "מאורס/ת", color: "bg-fuchsia-500", icon: Heart };
+    case "MARRIED": return { text: "נשוי/אה", color: "bg-rose-500", icon: Heart };
+    default: return { text: "סטטוס לא ידוע", color: "bg-slate-500", icon: InfoIcon };
+  }
+};
+
+const formatCategoryLabel = (
+  value: string | null | undefined,
+  placeholder: string = "לא צוין"
+): string => {
+  if (!value || value.trim() === "") return placeholder;
+  return value
+    .replace(/_/g, " ")
+    .replace(/\b(HS|HS)\b/g, (match) => match.toUpperCase())
+    .replace(/\b\w/g, (l) => l.toUpperCase())
+    .replace(/ Hs$/, " HS");
 };
 
 // --- Helper Components ---
-
-// Sensitive Info Wrapper (Matchmaker Only)
-const SensitiveInfo: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => (
-  <div className="relative border border-amber-300 rounded-xl p-4 sm:p-6 bg-gradient-to-br from-amber-50 to-white shadow-md">
-    <div className="flex items-center gap-2 mb-4 text-amber-700">
-      <Lock className="w-4 h-4 sm:w-5 sm:h-5" />
-      <span className="font-medium text-sm sm:text-base">
-        מידע לשדכנים בלבד
-      </span>
-    </div>
-    {children}
-  </div>
-);
-
-// Empty State Placeholder
-const EmptyState: React.FC<{ icon: React.ElementType; message: string }> = ({
-  icon: Icon,
-  message,
-}) => (
-  <div className="flex flex-col items-center justify-center py-8 sm:py-12 text-gray-400 bg-gray-50/30 rounded-xl border border-gray-100">
-    <Icon className="w-10 h-10 sm:w-14 sm:h-14 mb-3 sm:mb-4 opacity-50 text-gray-300" />
-    <p className="text-sm sm:text-base font-medium text-gray-500">{message}</p>
-  </div>
-);
-
-// Section Header Component
-const SectionHeader: React.FC<{
+const DetailItem: React.FC<{
   icon: React.ElementType;
-  title: string;
-  worldKey?: keyof typeof WORLDS;
-}> = ({ icon: Icon, title, worldKey }) => {
-  const config = worldKey ? WORLDS[worldKey] : null;
-  const iconColor = config ? config.text : "text-primary";
-  const iconBg = config ? config.iconBg : "bg-primary/10";
+  label: string;
+  value: React.ReactNode;
+  className?: string;
+  iconColorClass?: string;
+  valueClassName?: string;
+}> = ({ icon: Icon, label, value, className, iconColorClass = "text-gray-500", valueClassName }) => (
+  <div className={cn("flex items-start gap-2.5", className)}>
+    <Icon className={cn("w-4 h-4 mt-1 flex-shrink-0", iconColorClass)} />
+    <div>
+      <p className="text-xs font-medium text-gray-500">{label}</p>
+      <p className={cn("text-sm font-semibold text-gray-800 min-w-0 break-words", valueClassName)}>
+        {value || "לא צוין"}
+      </p>
+    </div>
+  </div>
+);
 
+const EmptyState: React.FC<{
+  icon: React.ElementType;
+  message: string;
+  description?: string;
+  className?: string;
+}> = ({ icon: Icon, message, description, className }) => (
+  <div className={cn("flex flex-col items-center justify-center py-10 sm:py-12 text-center", className)}>
+    <Icon className="w-12 h-12 sm:w-16 sm:h-16 mb-3 sm:mb-4 text-gray-400/70" />
+    <p className="text-base sm:text-lg font-semibold text-gray-600">{message}</p>
+    {description && <p className="text-sm text-gray-500 mt-1.5 max-w-xs">{description}</p>}
+  </div>
+);
+
+const SectionCard: React.FC<{
+  title: string;
+  icon?: React.ElementType;
+  children: React.ReactNode;
+  className?: string;
+  contentClassName?: string;
+  titleClassName?: string;
+  action?: React.ReactNode;
+  description?: string;
+}> = ({ title, icon: Icon, children, className, contentClassName, titleClassName, action, description }) => {
   return (
-    <div className="flex items-center gap-2 mb-3 sm:mb-4">
-      <div className={cn("p-1.5 sm:p-2 rounded-full", iconBg)}>
-        <Icon className={cn("w-4 h-4 sm:w-5 sm:h-5", iconColor)} />
+    <div className={cn(
+      "bg-white rounded-xl shadow-lg border border-gray-200/60 overflow-hidden",
+      "flex flex-col min-w-0",
+      className
+    )}>
+      <div className={cn("flex items-center justify-between gap-2.5 p-3.5 md:p-4 border-b border-gray-200/70 bg-slate-50/80 min-w-0", titleClassName)}>
+        <div className="flex items-center gap-2.5 min-w-0">
+          {Icon && <Icon className="w-5 h-5 text-cyan-600 flex-shrink-0" />}
+          <div className="min-w-0">
+            <h3 className="text-base md:text-lg font-semibold text-gray-700 truncate">{title}</h3>
+            {description && <p className="text-xs text-gray-500 mt-0.5 truncate">{description}</p>}
+          </div>
+        </div>
+        {action && <div className="ml-auto flex-shrink-0">{action}</div>}
       </div>
-      <h3 className="text-lg sm:text-xl font-semibold text-gray-800">
-        {title}
-      </h3>
+      <div className={cn("p-3.5 md:p-4 min-w-0", contentClassName)}>
+        {children}
+      </div>
     </div>
   );
 };
 
-// --- Main Profile Card Component ---
+// --- Profile Header Component ---
+const ProfileHeader: React.FC<{
+  profile: UserProfile;
+  age: number;
+  userInitials: string;
+  mainImageToDisplay: UserImageType | null;
+  availability: ReturnType<typeof formatAvailabilityStatus>;
+  viewMode: "matchmaker" | "candidate";
+}> = ({ profile, age, userInitials, mainImageToDisplay, availability, viewMode }) => {
+  const allProfileDetails = useMemo(() => [
+    { label: "גיל", value: age > 0 ? age.toString() : "-", icon: Cake, color: "pink-600", condition: age > 0 },
+    { label: "מצב משפחתי", value: profile.maritalStatus ? formatCategoryLabel(profile.maritalStatus, "-") : "-", icon: Heart, color: "rose-600", condition: !!profile.maritalStatus },
+    { label: "סטטוס", value: availability.text, icon: availability.icon, color: availability.color.replace('bg-',''), isBadge: true, badgeColor: availability.color, badgeTextColor: "text-white" },
+    { label: "עיר", value: profile.city, icon: MapPin, color: "teal-600", condition: !!profile.city },
+    { label: "מוצא", value: profile.origin, icon: Gem, color: "purple-600", condition: !!profile.origin },
+    { label: "רמה דתית", value: profile.religiousLevel ? formatCategoryLabel(profile.religiousLevel) : "-", icon: BookMarked, color: "indigo-600", condition: !!profile.religiousLevel },
+    { label: "עיסוק", value: profile.occupation, icon: Briefcase, color: "emerald-600", condition: !!profile.occupation },
+    { label: "השכלה", value: profile.educationLevel ? formatCategoryLabel(profile.educationLevel) : (profile.education || "-"), icon: GraduationCap, color: "sky-600", condition: !!(profile.educationLevel || profile.education) },
+    { label: "גובה", value: profile.height ? `${profile.height} ס״מ` : "-", icon: User, color: "slate-600", condition: !!profile.height },
+    { label: "שומר/ת נגיעה", value: profile.shomerNegiah ? "כן" : (profile.shomerNegiah === false ? "לא" : "-"), icon: Sparkles, color: "pink-600", condition: typeof profile.shomerNegiah === 'boolean' },
+    ...(profile.gender === "FEMALE" ? [{ label: "כיסוי ראש", value: profile.headCovering ? formatCategoryLabel(profile.headCovering) : "-", icon: UserCheck, color: "slate-600", condition: !!profile.headCovering }] : []),
+    ...(profile.gender === "MALE" ? [{ label: "סוג כיפה", value: profile.kippahType ? formatCategoryLabel(profile.kippahType) : "-", icon: UserCheck, color: "slate-600", condition: !!profile.kippahType }] : []),
+    { label: "שפת אם", value: profile.nativeLanguage ? formatCategoryLabel(profile.nativeLanguage) : "-", icon: Languages, color: "emerald-600", condition: !!profile.nativeLanguage },
+  ].filter(detail => detail.condition !== false && detail.value && detail.value !== "-"), [profile, age, availability]);
+
+  return (
+    <div className="p-4 md:p-5 bg-gradient-to-br from-slate-100 via-white to-sky-100/30 border-b border-slate-200/80">
+      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 md:gap-6">
+        <div className="relative h-24 w-24 md:h-32 md:w-32 rounded-full overflow-hidden border-2 border-white shadow-xl ring-2 ring-cyan-500/60 flex-shrink-0">
+          {mainImageToDisplay && mainImageToDisplay.url ? (
+            <Image src={mainImageToDisplay.url} alt={`תמונת פרופיל ראשית של ${profile.user?.firstName || "מועמד"}`} fill className="object-cover" sizes="128px" priority />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-200 to-slate-300">
+              <span className="text-4xl md:text-5xl font-medium text-slate-500">{userInitials}</span>
+            </div>
+          )}
+        </div>
+        <div className="flex-grow text-center sm:text-right space-y-3">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-800">
+              {profile.user?.firstName || "שם פרטי"} {profile.user?.lastName || "שם משפחה"}
+            </h1>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-3.5 pt-1">
+            {allProfileDetails.map((detail, index) => {
+              const IconComponent = detail.icon;
+              const valueContent = typeof detail.value === 'string' ? detail.value : React.isValidElement(detail.value) ? detail.value : '-';
+
+              if (detail.isBadge) {
+                return (
+                  <div key={index} className="flex items-center gap-1.5">
+                    <IconComponent className={cn("w-3.5 h-3.5 flex-shrink-0", detail.badgeTextColor ? detail.badgeTextColor.replace('text-','text-') : `text-${detail.color}`)} />
+                    <div>
+                      <span className="text-xs text-slate-500">{detail.label}:</span>
+                      <Badge className={cn("text-xs px-2 py-0.5 font-medium ml-1", detail.badgeColor, detail.badgeTextColor)}>
+                        {valueContent}
+                      </Badge>
+                    </div>
+                  </div>
+                );
+              }
+              return (
+                <div key={index} className="flex items-center gap-1.5 min-w-0">
+                  <IconComponent className={cn("w-3.5 h-3.5 flex-shrink-0", `text-${detail.color}`)} />
+                  <div className="min-w-0">
+                    <span className="text-xs text-slate-500">{detail.label}:</span>
+                    <span className="ml-1 text-sm font-medium text-slate-700 truncate" title={typeof valueContent === 'string' ? valueContent : undefined}>
+                      {valueContent}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          {profile.lastActive && viewMode === 'matchmaker' && (
+            <p className="text-xs text-slate-500 flex items-center gap-1 pt-2 justify-center sm:justify-start">
+              <Clock className="w-3 h-3" />
+              נצפה לאחרונה: {new Date(profile.lastActive).toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit", year: "2-digit" })}
+            </p>
+          )}
+          {viewMode === 'matchmaker' && (
+             <div className="pt-2 flex justify-center sm:justify-start">
+                <Button variant="outline" size="sm" className="text-cyan-600 border-cyan-500 hover:bg-cyan-50">
+                    <Link className="w-3.5 h-3.5 ml-1.5"/> הצע התאמה
+                </Button>
+             </div>
+           )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- Questionnaire Item Component ---
+const QuestionnaireItem: React.FC<{ answer: FormattedAnswer, worldColor?: string }> = ({ answer, worldColor = "slate" }) => {
+  return (
+    <div className={cn(
+      "p-3.5 rounded-lg border hover:shadow-md transition-shadow",
+      `bg-${worldColor}-50/50 border-${worldColor}-200/70`,
+      "flex flex-col min-w-0" // Ensures this container itself can shrink and won't overflow its parent if content is too wide.
+    )}>
+      <p className={cn(
+        "text-xs font-medium mb-1.5 min-w-0 break-words", // For the question text
+        `text-${worldColor}-700`
+      )}>
+        {answer.question}
+      </p>
+      <p className={cn(
+        "text-sm font-semibold text-slate-800 whitespace-pre-wrap min-w-0", // min-w-0 is crucial here
+        "break-all" // Changed from break-words to break-all for more aggressive breaking of long strings without spaces
+      )}>
+        {answer.displayText || answer.answer}
+      </p>
+    </div>
+  );
+};
+
+interface ProfileCardProps {
+  profile: UserProfile;
+  images?: UserImageType[];
+  questionnaire?: QuestionnaireResponse | null;
+  viewMode?: "matchmaker" | "candidate";
+  className?: string;
+}
 
 const ProfileCard: React.FC<ProfileCardProps> = ({
   profile,
@@ -214,977 +301,515 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   questionnaire,
   viewMode = "candidate",
   className,
-  // onAction // Assuming onAction implementation is needed later
 }) => {
-  // State
-  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(
-    null
+  const [selectedImageForDialog, setSelectedImageForDialog] = useState<UserImageType | null>(null);
+
+  const orderedImages = useMemo(() => {
+    if (!images || images.length === 0) return [];
+    const validImages = images.filter((img) => img.url);
+    const mainImg = validImages.find((img) => img.isMain);
+    const otherImages = validImages.filter((img) => !img.isMain);
+    return mainImg ? [mainImg, ...otherImages] : otherImages;
+  }, [images]);
+
+  const [activeMainImageIndex, setActiveMainImageIndex] = useState<number>(() => {
+    const mainIndex = orderedImages.findIndex((img) => img.isMain);
+    return mainIndex !== -1 ? mainIndex : orderedImages.length > 0 ? 0 : -1;
+  });
+
+  const [activeTab, setActiveTab] = useState("about_me");
+
+  const [mainContentPanelSize, setMainContentPanelSize] = useState(65);
+  const [sidePhotosPanelSize, setSidePhotosPanelSize] = useState(35);
+
+  const age = useMemo(() => calculateAge(profile.birthDate), [profile.birthDate]);
+  const userInitials = useMemo(() => getInitials(profile.user?.firstName, profile.user?.lastName), [profile.user?.firstName, profile.user?.lastName]);
+
+  const mainImageToDisplay = useMemo(() => {
+    if (activeMainImageIndex !== -1 && orderedImages[activeMainImageIndex]) {
+      return orderedImages[activeMainImageIndex];
+    }
+    return null;
+  }, [orderedImages, activeMainImageIndex]);
+
+  const availability = useMemo(() => formatAvailabilityStatus(profile.availabilityStatus), [profile.availabilityStatus]);
+
+  const handleOpenImageDialog = (image: UserImageType) => image.url && setSelectedImageForDialog(image);
+  const handleCloseImageDialog = () => setSelectedImageForDialog(null);
+
+  const currentDialogImageIndex = useMemo(() => {
+    if (!selectedImageForDialog || !selectedImageForDialog.url) return -1;
+    return orderedImages.findIndex((img) => img.id === selectedImageForDialog.id);
+  }, [selectedImageForDialog, orderedImages]);
+
+  const handleDialogNav = (direction: "next" | "prev") => {
+    if (currentDialogImageIndex === -1 || orderedImages.length <= 1) return;
+    let newIndex = direction === "next" ? currentDialogImageIndex + 1 : currentDialogImageIndex - 1;
+    newIndex = (newIndex + orderedImages.length) % orderedImages.length;
+    setSelectedImageForDialog(orderedImages[newIndex]);
+  };
+
+  const hasDisplayableQuestionnaireAnswers = useMemo(
+    () => questionnaire && questionnaire.formattedAnswers &&
+      Object.values(questionnaire.formattedAnswers).some(answers => {
+        const typedAnswers = (answers || []) as FormattedAnswer[];
+        return typedAnswers.some(a => a.isVisible !== false && (a.answer || a.displayText));
+      }),
+    [questionnaire]
   );
-  const [activeTab, setActiveTab] = useState("about");
 
-  // Calculate age from birthDate
-  const calculateAge = (birthDate: Date | string): number => {
-    try {
-      const today = new Date();
-      const birth = new Date(birthDate);
-      if (isNaN(birth.getTime())) {
-        console.error("Invalid birthDate:", birthDate);
-        return 0; // Or handle appropriately
-      }
-      let age = today.getFullYear() - birth.getFullYear();
-      const monthDiff = today.getMonth() - birth.getMonth();
+  const tabItems = useMemo(() => [
+    { value: "about_me", label: "קצת עליי", icon: User, activeColor: "cyan" },
+    { value: "background_worldview", label: "רקע והשקפה", icon: BookOpen, activeColor: "indigo" },
+    { value: "looking_for", label: "מה הם מחפשים?", icon: Target, activeColor: "green" },
+    ...(questionnaire ? [{ value: "questionnaire", label: "מהשאלון", icon: FileText, activeColor: "pink" }] : []),
+    { value: "photos_tab", label: "תמונות", icon: ImageIcon, activeColor: "slate", count: orderedImages.length },
+    ...(viewMode === "matchmaker" ? [{ value: "matchmaker_info", label: "מידע לשדכן", icon: Lock, activeColor: "amber" }] : []),
+  ], [orderedImages.length, questionnaire, viewMode]);
 
-      if (
-        monthDiff < 0 ||
-        (monthDiff === 0 && today.getDate() < birth.getDate())
-      ) {
-        age--;
-      }
-      return age;
-    } catch (e) {
-      console.error("Error calculating age:", e);
-      return 0;
+  const togglePanels = useCallback(() => {
+    if (mainContentPanelSize > 50) {
+      setMainContentPanelSize(30);
+      setSidePhotosPanelSize(70);
+    } else {
+      setMainContentPanelSize(65);
+      setSidePhotosPanelSize(35);
     }
-  };
-
-  // Derived values
-  const age = profile.birthDate ? calculateAge(profile.birthDate) : 0;
-  const mainImage = images?.find((img) => img.isMain);
-
-  // Image handlers
-  const handleImageClick = (index: number) => setSelectedImageIndex(index);
-  const handleCloseDialog = () => setSelectedImageIndex(null);
-
-  const handleNextImage = () => {
-    if (selectedImageIndex !== null && selectedImageIndex < images.length - 1) {
-      setSelectedImageIndex(selectedImageIndex + 1);
-    }
-  };
-
-  const handlePreviousImage = () => {
-    if (selectedImageIndex !== null && selectedImageIndex > 0) {
-      setSelectedImageIndex(selectedImageIndex - 1);
-    }
-  };
+  }, [mainContentPanelSize]);
 
   return (
+    <TooltipProvider>
     <Card
-      dir="rtl" // Ensure RTL direction for the entire card
-      className={cn(
-        "w-full bg-gradient-to-br from-white via-white to-blue-50/30 shadow-xl rounded-2xl overflow-hidden border-0", // Softer background, more pronounced shadow
-        className
-      )}
+      dir="rtl"
+      className={cn("w-full bg-slate-50 shadow-2xl rounded-2xl overflow-hidden border-0 flex flex-col max-h-[calc(100vh-2rem)] h-full", className)}
     >
-      {/* Header Section with Softer Gradient */}
-      <div className="relative p-4 sm:p-6 md:p-8 text-center overflow-hidden bg-gradient-to-br from-cyan-50 via-white to-pink-50">
-        {/* Background pattern like Hero */}
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:20px_20px]"></div>
+      <ProfileHeader
+        profile={profile}
+        age={age}
+        userInitials={userInitials}
+        mainImageToDisplay={mainImageToDisplay}
+        availability={availability}
+        viewMode={viewMode}
+      />
 
-        {/* Profile Summary */}
-        <div className="relative z-10 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 max-w-3xl mx-auto">
-          {/* Profile Image with enhanced border/shadow */}
-          <div className="relative h-28 w-28 sm:h-36 sm:w-36 md:h-44 md:w-44 rounded-full overflow-hidden border-4 border-white shadow-lg transition-transform hover:scale-105 duration-300 ring-2 ring-cyan-200/50 hover:ring-cyan-300">
-            {mainImage ? (
-              <Image
-                src={mainImage.url}
-                alt="תמונת פרופיל"
-                fill
-                className="object-cover"
-                sizes="(max-width: 640px) 112px, (max-width: 768px) 144px, 176px"
-                priority
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-                <User className="w-10 h-10 sm:w-16 sm:h-16 text-gray-400" />
-              </div>
-            )}
-          </div>
-
-          {/* Profile Info - RTL aligned, updated styles */}
-          <div className="space-y-2 sm:space-y-3 text-center sm:text-right mt-2 sm:mt-0">
-            <div>
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">
-                {" "}
-                {/* Removed font-serif */}
-                {profile?.user?.firstName} {profile?.user?.lastName}
-              </h2>
-              {/* Info Tags styled like Hero */}
-              <div className="flex flex-wrap justify-center sm:justify-start gap-1.5 sm:gap-3 mt-2">
-                <div className="flex items-center gap-1 text-xs sm:text-sm text-gray-700 bg-white/80 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full shadow-sm border border-gray-100">
-                  <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-cyan-500" />
-                  <span>{age > 0 ? `${age} שנים` : "גיל לא זמין"}</span>
+      <ResizablePanelGroup
+        direction="horizontal"
+        dir="rtl"
+        className="flex-grow min-h-0 border-t border-slate-200/80"
+        onLayout={(sizes: number[]) => {
+          setMainContentPanelSize(sizes[0]);
+          setSidePhotosPanelSize(sizes[1]);
+        }}
+      >
+        <ResizablePanel
+          defaultSize={mainContentPanelSize}
+          minSize={25}
+          maxSize={75}
+          id="main-content-panel"
+          order={1}
+          className="min-w-[320px] sm:min-w-[400px] bg-slate-100/40 flex flex-col" // min-w ensures it doesn't collapse too much
+        >
+          <ScrollArea className="h-full focus-visible:outline-none focus-visible:ring-0 flex-grow min-h-0">
+            <div className="p-3 md:p-4 h-full flex flex-col">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col flex-grow min-h-0">
+                <div className="bg-white/90 backdrop-blur-sm p-1.5 rounded-lg mb-4 sticky top-0 z-20 shadow-md border border-gray-200/80 flex-shrink-0">
+                  <ScrollArea dir="rtl" className="w-full">
+                    <TabsList className="h-auto inline-flex bg-transparent flex-nowrap justify-start p-0.5">
+                      {tabItems.map((tab) => (
+                        <TabsTrigger
+                          key={tab.value}
+                          value={tab.value}
+                          className={cn(
+                            "flex items-center gap-1.5 sm:gap-2 px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-md text-xs sm:text-sm whitespace-nowrap transition-all duration-200 border-b-2",
+                            "text-slate-500 hover:text-slate-700 hover:bg-slate-100",
+                            activeTab === tab.value
+                              ? cn(`font-semibold border-${tab.activeColor}-500 text-${tab.activeColor}-600 bg-white shadow-sm`, `hover:text-${tab.activeColor}-700 hover:bg-${tab.activeColor}-50/50`)
+                              : "border-transparent"
+                          )}
+                        >
+                          <tab.icon className={cn("w-4 h-4", activeTab === tab.value ? `text-${tab.activeColor}-500` : "text-slate-400")} />
+                          <span>{tab.label}</span>
+                          {tab.count !== undefined && tab.count > 0 && (
+                            <span className={cn(`text-xs rounded-full px-1.5 py-0.5 ml-1 hidden sm:inline-block font-mono`, activeTab === tab.value ? `bg-${tab.activeColor}-100 text-${tab.activeColor}-700` : `bg-slate-200 text-slate-600`)}>
+                              {tab.count}
+                            </span>
+                          )}
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
+                    <ScrollBar orientation="horizontal" />
+                  </ScrollArea>
                 </div>
 
-                {profile.city && (
-                  <div className="flex items-center gap-1 text-xs sm:text-sm text-gray-700 bg-white/80 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full shadow-sm border border-gray-100">
-                    <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-pink-500" />
-                    <span>{profile.city}</span>
-                  </div>
-                )}
-
-                {profile.religiousLevel && (
-                  <div className="flex items-center gap-1 text-xs sm:text-sm text-gray-700 bg-white/80 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full shadow-sm border border-gray-100">
-                    <Shield className="w-3 h-3 sm:w-4 sm:h-4 text-cyan-600" />
-                    <span>{profile.religiousLevel}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Status Badges with softer styling */}
-            <div className="flex flex-wrap gap-1.5 sm:gap-2 justify-center sm:justify-start mt-1 sm:mt-2">
-              {profile.isProfileVisible && (
-                <Badge className="bg-emerald-100 text-emerald-800 border-0 px-2 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm shadow-sm">
-                  <div className="flex items-center gap-1 sm:gap-1.5">
-                    <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    פנוי/ה להצעות
-                  </div>
-                </Badge>
-              )}
-
-              {profile.maritalStatus && (
-                <Badge
-                  variant="outline"
-                  className="bg-purple-100 border-purple-200/50 text-purple-700 px-2 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm shadow-sm"
-                >
-                  <Heart className="w-3 h-3 sm:w-3.5 sm:h-3.5 ml-1" />{" "}
-                  {/* Adjusted margin for RTL */}
-                  {profile.maritalStatus}
-                </Badge>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Stats Grid - Styled like Hero Trust Indicators */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 p-3 sm:p-6 bg-white/40 backdrop-blur-sm border-y border-gray-100">
-        {/* Age */}
-        <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-xl bg-white/60 shadow-md border border-cyan-100 hover:shadow-lg transition-all duration-300">
-          <div className="p-2 sm:p-2.5 rounded-full bg-cyan-100 text-cyan-600">
-            <Calendar className="w-4 h-4 sm:w-5 sm:h-5" />
-          </div>
-          <div>
-            <p className="text-xs font-medium text-cyan-600 mb-0.5">גיל</p>
-            <p className="text-base sm:text-lg font-semibold text-gray-800">
-              {age > 0 ? age : "-"}
-            </p>
-          </div>
-        </div>
-
-        {/* Marital Status */}
-        <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-xl bg-white/60 shadow-md border border-pink-100 hover:shadow-lg transition-all duration-300">
-          <div className="p-2 sm:p-2.5 rounded-full bg-pink-100 text-pink-600">
-            <Heart className="w-4 h-4 sm:w-5 sm:h-5" />
-          </div>
-          <div>
-            <p className="text-xs font-medium text-pink-600 mb-0.5">
-              מצב משפחתי
-            </p>
-            <p className="text-base sm:text-lg font-semibold text-gray-800">
-              {profile.maritalStatus || "-"}
-            </p>
-          </div>
-        </div>
-
-        {/* Education */}
-        <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-xl bg-white/60 shadow-md border border-indigo-100 hover:shadow-lg transition-all duration-300">
-          <div className="p-2 sm:p-2.5 rounded-full bg-indigo-100 text-indigo-600">
-            <School className="w-4 h-4 sm:w-5 sm:h-5" />
-          </div>
-          <div>
-            <p className="text-xs font-medium text-indigo-600 mb-0.5">השכלה</p>
-            <p className="text-base sm:text-lg font-semibold text-gray-800">
-              {profile.education || "-"}
-            </p>
-          </div>
-        </div>
-
-        {/* Native Language */}
-        <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-xl bg-white/60 shadow-md border border-emerald-100 hover:shadow-lg transition-all duration-300">
-          <div className="p-2 sm:p-2.5 rounded-full bg-emerald-100 text-emerald-600">
-            <Languages className="w-4 h-4 sm:w-5 sm:h-5" />
-          </div>
-          <div>
-            <p className="text-xs font-medium text-emerald-600 mb-0.5">
-              שפת אם
-            </p>
-            <p className="text-base sm:text-lg font-semibold text-gray-800">
-              {profile.nativeLanguage || "-"}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Photo Gallery Preview */}
-      <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-100">
-        <div className="flex items-center justify-between mb-3 sm:mb-4">
-          <h3 className="text-base sm:text-lg font-semibold flex items-center gap-1.5 sm:gap-2 text-gray-700">
-            <ImageIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
-            תמונות
-            <span className="text-xs sm:text-sm bg-gray-100 text-gray-700 rounded-full w-5 h-5 sm:w-6 sm:h-6 inline-flex items-center justify-center font-mono">
-              {images.length}
-            </span>
-          </h3>
-          {images.length > 0 && (
-            <Button
-              variant="link" // Changed to link for subtler appearance
-              size="sm"
-              onClick={() => setActiveTab("photos")}
-              className="text-xs text-cyan-600 hover:text-cyan-700 p-1 sm:p-2"
-            >
-              הצג הכל
-            </Button>
-          )}
-        </div>
-
-        {images.length > 0 ? (
-          <ScrollArea dir="rtl" className="w-full pb-2">
-            <div className="flex gap-1.5 sm:gap-3 pb-2">
-              {images.slice(0, 5).map((image, index) => (
-                <div
-                  key={image.id}
-                  className="relative flex-shrink-0 w-[90px] h-[90px] sm:w-28 sm:h-28 rounded-xl overflow-hidden bg-gray-100 shadow-sm cursor-pointer hover:opacity-90 transition-all duration-300 border border-gray-100"
-                  onClick={() => handleImageClick(index)}
-                >
-                  <Image
-                    src={image.url}
-                    alt={`תמונת פרופיל ${index + 1}`}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 640px) 90px, 112px"
-                  />
-                  {image.isMain && (
-                    <div className="absolute top-1.5 right-1.5 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-full p-1 shadow-md">
-                      <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" />
+                <div className="space-y-4 focus:outline-none flex-grow min-h-0 overflow-y-auto overflow-x-hidden">
+                  {/* Each TabsContent should take full width of this container */}
+                  <TabsContent value="about_me" className="min-h-0 w-full">
+                    <SectionCard title="אודותיי" icon={InfoIcon} contentClassName="space-y-3">
+                      {profile.about ? (
+                        <p className="text-slate-700 whitespace-pre-wrap break-words text-sm leading-relaxed p-2 bg-slate-50 rounded-md">
+                          {profile.about}
+                        </p>
+                      ) : ( <EmptyState icon={InfoIcon} message="לא הוזן תיאור אישי" className="py-6" /> )}
+                    </SectionCard>
+                    <div className="grid md:grid-cols-2 gap-4 mt-4">
+                      <SectionCard title="תכונות אופי" icon={Smile}>
+                        {profile.profileCharacterTraits && profile.profileCharacterTraits.length > 0 ? (
+                          <div className="flex flex-wrap gap-2">
+                            {profile.profileCharacterTraits.map((trait, index) => (
+                              <Badge key={index} variant="secondary" className="px-2.5 py-1 bg-purple-100 text-purple-700 border border-purple-200/70 shadow-xs text-xs">{trait}</Badge>
+                            ))}
+                          </div>
+                        ) : ( <EmptyState icon={Smile} message="לא צוינו תכונות" className="py-6" /> )}
+                      </SectionCard>
+                      <SectionCard title="תחביבים" icon={Palette}>
+                        {profile.profileHobbies && profile.profileHobbies.length > 0 ? (
+                          <div className="flex flex-wrap gap-2">
+                            {profile.profileHobbies.map((hobby, index) => (
+                              <Badge key={index} variant="secondary" className="px-2.5 py-1 bg-teal-100 text-teal-700 border border-teal-200/70 shadow-xs text-xs">{hobby}</Badge>
+                            ))}
+                          </div>
+                        ) : ( <EmptyState icon={Palette} message="לא צוינו תחביבים" className="py-6" /> )}
+                      </SectionCard>
                     </div>
+                    <SectionCard title="שפות" icon={Languages} contentClassName="space-y-3 mt-4">
+                        <DetailItem icon={Languages} label="שפת אם" value={formatCategoryLabel(profile.nativeLanguage, "-")} iconColorClass="text-emerald-600"/>
+                        <div>
+                          <p className="text-xs font-medium text-slate-500 mb-1.5 flex items-center gap-1.5">
+                            <Languages className="w-4 h-4 text-emerald-600" /> שפות נוספות
+                          </p>
+                          {profile.additionalLanguages && profile.additionalLanguages.length > 0 ? (
+                            <div className="flex flex-wrap gap-1.5">
+                              {profile.additionalLanguages.map((lang) => (
+                                <Badge key={lang} variant="outline" className="px-2 py-0.5 bg-emerald-50 text-emerald-800 border-emerald-200 text-xs shadow-xs">{lang}</Badge>
+                              ))}
+                            </div>
+                          ) : ( <p className="text-sm text-slate-500 italic">אין</p> )}
+                        </div>
+                    </SectionCard>
+                  </TabsContent>
+
+                  <TabsContent value="background_worldview" className="min-h-0 w-full">
+                    <SectionCard title="דת ואמונה" icon={BookMarked} contentClassName="space-y-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-3.5">
+                        <DetailItem icon={BookMarked} label="רמה דתית" value={formatCategoryLabel(profile.religiousLevel)} iconColorClass="text-indigo-600"/>
+                        <DetailItem icon={Sparkles} label="שמירת נגיעה" value={profile.shomerNegiah ? "כן" : (profile.shomerNegiah === false ? "לא" : "לא צוין")} iconColorClass="text-pink-600"/>
+                        {profile.gender === "FEMALE" && <DetailItem icon={UserCheck} label="כיסוי ראש" value={formatCategoryLabel(profile.headCovering)} iconColorClass="text-slate-600"/>}
+                        {profile.gender === "MALE" && <DetailItem icon={UserCheck} label="סוג כיפה" value={formatCategoryLabel(profile.kippahType)} iconColorClass="text-slate-600"/>}
+                      </div>
+                    </SectionCard>
+                    <SectionCard title="השכלה ותעסוקה" icon={GraduationCap} contentClassName="space-y-3 mt-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3.5">
+                        <DetailItem icon={GraduationCap} label="רמת השכלה" value={formatCategoryLabel(profile.educationLevel)} iconColorClass="text-sky-600"/>
+                        <DetailItem icon={School} label="פירוט השכלה" value={profile.education} iconColorClass="text-sky-600" valueClassName="whitespace-pre-wrap break-words"/>
+                        <DetailItem icon={Briefcase} label="עיסוק" value={profile.occupation} iconColorClass="text-emerald-600"/>
+                        <DetailItem icon={Award} label="שירות צבאי/לאומי" value={formatCategoryLabel(profile.serviceType)} iconColorClass="text-amber-600"/>
+                        {profile.serviceDetails && <DetailItem icon={InfoIcon} label="פרטי שירות" value={profile.serviceDetails} iconColorClass="text-amber-600" valueClassName="whitespace-pre-wrap break-words"/>}
+                      </div>
+                    </SectionCard>
+                    <SectionCard title="רקע משפחתי ואישי" icon={Users2} contentClassName="space-y-3 mt-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-3.5">
+                        <DetailItem icon={Users2} label="מצב הורים" value={formatCategoryLabel(profile.parentStatus)} iconColorClass="text-purple-600"/>
+                        <DetailItem icon={Users} label="מספר אחים/אחיות" value={profile.siblings?.toString()} iconColorClass="text-purple-600"/>
+                        <DetailItem icon={User} label="מיקום במשפחה" value={profile.position?.toString()} iconColorClass="text-purple-600"/>
+                        {(profile.maritalStatus?.toLowerCase() === "divorced" || profile.maritalStatus?.toLowerCase() === "widowed") && (
+                          <DetailItem icon={Users2} label="ילדים מקשר קודם" value={profile.hasChildrenFromPrevious ? "כן" : "לא"} iconColorClass="text-purple-600"/>
+                        )}
+                        {profile.aliyaCountry && <DetailItem icon={MapPin} label="ארץ עלייה" value={profile.aliyaCountry} iconColorClass="text-cyan-600"/>}
+                        {profile.aliyaYear && <DetailItem icon={Calendar} label="שנת עלייה" value={profile.aliyaYear.toString()} iconColorClass="text-cyan-600"/>}
+                      </div>
+                    </SectionCard>
+                  </TabsContent>
+
+                  <TabsContent value="looking_for" className="min-h-0 w-full">
+                    <SectionCard title="העדפות לבן/בת הזוג" icon={Target} contentClassName="space-y-4" description="מה המועמד/ת מחפש/ת בהתאמה">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+                            {(profile.preferredAgeMin || profile.preferredAgeMax) && (
+                                <DetailItem icon={Calendar} label="טווח גילאים מועדף" value={`${profile.preferredAgeMin || '?'} - ${profile.preferredAgeMax || '?'} שנים`} iconColorClass="text-blue-600" />
+                            )}
+                            {(profile.preferredHeightMin || profile.preferredHeightMax) && (
+                                <DetailItem icon={User} label="טווח גבהים מועדף" value={`${profile.preferredHeightMin || '?'} - ${profile.preferredHeightMax || '?'} ס״מ`} iconColorClass="text-blue-600" />
+                            )}
+                        </div>
+                        {profile.preferredReligiousLevels && profile.preferredReligiousLevels.length > 0 && (
+                            <div>
+                                <p className="text-xs font-medium text-slate-500 mb-1.5 flex items-center gap-1.5"><BookMarked className="w-4 h-4 text-indigo-600" /> רמות דתיות מועדפות</p>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {profile.preferredReligiousLevels.map(level => <Badge key={level} variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200">{formatCategoryLabel(level)}</Badge>)}
+                                </div>
+                            </div>
+                        )}
+                        {profile.preferredLocations && profile.preferredLocations.length > 0 && (
+                           <div>
+                                <p className="text-xs font-medium text-slate-500 mb-1.5 flex items-center gap-1.5"><MapPin className="w-4 h-4 text-teal-600" /> אזורי מגורים מועדפים</p>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {profile.preferredLocations.map(loc => <Badge key={loc} variant="outline" className="bg-teal-50 text-teal-700 border-teal-200">{loc}</Badge>)}
+                                </div>
+                            </div>
+                        )}
+                         {profile.preferredEducation && profile.preferredEducation.length > 0 && (
+                           <div>
+                                <p className="text-xs font-medium text-slate-500 mb-1.5 flex items-center gap-1.5"><GraduationCap className="w-4 h-4 text-sky-600" /> רקע השכלתי מועדף</p>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {profile.preferredEducation.map(edu => <Badge key={edu} variant="outline" className="bg-sky-50 text-sky-700 border-sky-200">{formatCategoryLabel(edu)}</Badge>)}
+                                </div>
+                            </div>
+                        )}
+                        {profile.preferredOccupations && profile.preferredOccupations.length > 0 && (
+                           <div>
+                                <p className="text-xs font-medium text-slate-500 mb-1.5 flex items-center gap-1.5"><Briefcase className="w-4 h-4 text-emerald-600" /> תחומי עיסוק מועדפים</p>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {profile.preferredOccupations.map(occ => <Badge key={occ} variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">{occ}</Badge>)}
+                                </div>
+                            </div>
+                        )}
+                        {(!profile.preferredAgeMin && !profile.preferredAgeMax &&
+                         (!profile.preferredReligiousLevels || profile.preferredReligiousLevels.length === 0) &&
+                         (!profile.preferredLocations || profile.preferredLocations.length === 0) &&
+                         (!profile.preferredEducation || profile.preferredEducation.length === 0) &&
+                         (!profile.preferredOccupations || profile.preferredOccupations.length === 0)
+                        ) && (
+                            <EmptyState icon={Search} message="לא צוינו העדפות ספציфиות" className="py-6"/>
+                        )}
+                    </SectionCard>
+                  </TabsContent>
+
+                  {tabItems.find(tab => tab.value === 'questionnaire') && (
+                     <TabsContent value="questionnaire" className="focus:outline-none min-h-0 w-full">
+                         {hasDisplayableQuestionnaireAnswers ? (
+                             <div className="space-y-4">
+                                 {Object.entries(questionnaire?.formattedAnswers || {}).map(
+                                     ([worldKey, answers]) => {
+                                         const worldConfig = WORLDS[worldKey] || WORLDS.general || {
+                                             label: formatCategoryLabel(worldKey, "שאלות נוספות"),
+                                             icon: FileText,
+                                             color: "slate",
+                                         };
+                                         const typedAnswers = (answers || []) as FormattedAnswer[];
+                                         const visibleAnswers = typedAnswers.filter(a => a.isVisible !== false && (a.answer || a.displayText));
+
+                                         if (visibleAnswers.length === 0) return null;
+
+                                         return (
+                                             <SectionCard
+                                                 key={worldKey}
+                                                 title={worldConfig.label}
+                                                 icon={worldConfig.icon}
+                                                 className="mb-4"
+                                                 contentClassName="space-y-3"
+                                             >
+                                                 {visibleAnswers.map((answer) => (
+                                                     <QuestionnaireItem key={answer.questionId} answer={answer} worldColor={worldConfig.color} />
+                                                 ))}
+                                             </SectionCard>
+                                         );
+                                     }
+                                 )}
+                             </div>
+                         ) : (
+                             <SectionCard title="מהשאלון" icon={FileText}>
+                                 <EmptyState
+                                     icon={FileText}
+                                     message="שאלון אינו זמין לצפייה כעת"
+                                     description={questionnaire?.completed ? "המועמד בחר לא להציג את תשובות השאלון, או שאין תשובות זמינות כעת." : "המועמד טרם מילא את השאלון במלואו."}
+                                     className="py-8"
+                                 />
+                             </SectionCard>
+                         )}
+                     </TabsContent>
                   )}
-                </div>
-              ))}
 
-              {images.length > 5 && (
-                <div
-                  className="relative flex-shrink-0 w-[90px] h-[90px] sm:w-28 sm:h-28 rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center cursor-pointer hover:shadow-md transition-all duration-300 border border-gray-200"
-                  onClick={() => setActiveTab("photos")}
-                >
-                  <div className="text-center">
-                    <span className="block text-base sm:text-lg font-bold text-gray-600">
-                      +{images.length - 5}
-                    </span>
-                    <span className="text-xs text-gray-500">עוד</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          </ScrollArea>
-        ) : (
-          <EmptyState icon={ImageIcon} message="אין תמונות בפרופיל" />
-        )}
-      </div>
-
-      {/* Main Tabs Navigation */}
-      <div className="p-4 sm:p-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          {/* Styled TabsList background */}
-          <div className="bg-gradient-to-r from-cyan-50/50 via-white to-pink-50/50 p-1 rounded-xl mb-4 sm:mb-6 sticky top-0 z-10 shadow-sm">
-            <ScrollArea className="w-full overflow-x-visible" dir="rtl">
-              <div className="flex pb-1 px-1">
-                {/* Removed explicit width, using flex-nowrap */}
-                <TabsList className="h-auto inline-flex bg-transparent flex-nowrap justify-start p-0">
-                  <TabsTrigger
-                    value="about"
-                    className="flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg text-xs sm:text-sm whitespace-nowrap data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-cyan-600 text-gray-600 hover:bg-white/60 hover:text-gray-800 transition-all"
-                  >
-                    <Info className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                    <span>אודות</span>
-                  </TabsTrigger>
-
-                  <TabsTrigger
-                    value="education"
-                    className="flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg text-xs sm:text-sm whitespace-nowrap data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-indigo-600 text-gray-600 hover:bg-white/60 hover:text-gray-800 transition-all"
-                  >
-                    <GraduationCap className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                    <span className="hidden xs:inline">השכלה ותעסוקה</span>
-                    <span className="xs:hidden">השכלה</span>
-                  </TabsTrigger>
-
-                  <TabsTrigger
-                    value="family"
-                    className="flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg text-xs sm:text-sm whitespace-nowrap data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-purple-600 text-gray-600 hover:bg-white/60 hover:text-gray-800 transition-all"
-                  >
-                    <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                    <span>משפחה</span>
-                  </TabsTrigger>
-
-                  <TabsTrigger
-                    value="photos"
-                    className="flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg text-xs sm:text-sm whitespace-nowrap data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-gray-700 text-gray-600 hover:bg-white/60 hover:text-gray-800 transition-all"
-                  >
-                    <ImageIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                    <span>תמונות</span>
-                    {images.length > 0 && (
-                      <span className="text-xs bg-gray-200 text-gray-600 rounded-full px-1.5 py-0.5 mr-1 hidden sm:inline-block font-mono">
-                        {" "}
-                        {/* Adjusted margin for RTL */}
-                        {images.length}
-                      </span>
-                    )}
-                  </TabsTrigger>
-
-                  {questionnaire && ( // Only show if questionnaire exists
-                    <TabsTrigger
-                      value="questionnaire"
-                      className="flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg text-xs sm:text-sm whitespace-nowrap data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-pink-600 text-gray-600 hover:bg-white/60 hover:text-gray-800 transition-all"
-                    >
-                      <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                      <span>שאלון</span>
-                    </TabsTrigger>
-                  )}
+                  <TabsContent value="photos_tab" className="min-h-0 w-full">
+                    <SectionCard title="גלריית תמונות מלאה" icon={ImageIcon}>
+                      {orderedImages.length > 0 ? (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                          {orderedImages.map((image) => (
+                            <div key={image.id} className="relative aspect-[4/5] rounded-lg overflow-hidden cursor-pointer group shadow-md border border-gray-200/80 hover:shadow-xl transition-all duration-300" onClick={() => handleOpenImageDialog(image)}>
+                              <Image src={image.url!} alt={`תמונה של ${profile.user?.firstName || "משתמש"}`} fill className="object-cover transition-transform duration-300 group-hover:scale-105" sizes="(max-width: 640px) 50vw, 33vw"/>
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2.5">
+                                <Eye className="w-5 h-5 text-white drop-shadow-md" />
+                              </div>
+                              {image.isMain && <Badge className="absolute top-1.5 right-1.5 bg-yellow-400 text-black border-0 shadow-lg text-xs px-1.5 py-0.5 flex items-center gap-1"><Star className="w-3 h-3 fill-black" /> ראשי</Badge>}
+                            </div>
+                          ))}
+                        </div>
+                      ) : ( <EmptyState icon={ImageIcon} message="לא הועלו תמונות" description="מומלץ להעלות מספר תמונות ברורות." className="py-8"/> )}
+                    </SectionCard>
+                  </TabsContent>
 
                   {viewMode === "matchmaker" && (
-                    <TabsTrigger
-                      value="sensitive"
-                      className="flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg text-xs sm:text-sm whitespace-nowrap data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-amber-600 bg-amber-50/80 text-amber-700 hover:bg-amber-100/80 transition-all"
-                    >
-                      <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                      <span className="hidden xs:inline">מידע רגיש</span>
-                      <span className="xs:hidden">רגיש</span>
-                    </TabsTrigger>
+                    <TabsContent value="matchmaker_info" className="min-h-0 w-full">
+                      <div className="bg-amber-50 border-2 border-amber-300/70 rounded-xl shadow-lg p-4 md:p-5 space-y-4">
+                        <div className="flex items-center gap-2.5 text-amber-700">
+                          <Lock className="w-6 h-6" /><h3 className="font-semibold text-lg">מידע רגיש לשדכנים בלבד</h3>
+                        </div>
+                        <DetailItem icon={Phone} label="העדפת יצירת קשר" value={formatCategoryLabel(profile.contactPreference, "-")} iconColorClass="text-amber-600"/>
+                        <DetailItem icon={Handshake} label="העדפת מגדר שדכן/ית" value={profile.preferredMatchmakerGender ? (profile.preferredMatchmakerGender === "MALE" ? "גבר" : "אישה") : "אין העדפה / לא צוין"} iconColorClass="text-amber-600"/>
+                        <div>
+                          <p className="text-xs font-medium text-amber-600 mb-1.5 flex items-center gap-1.5"><Edit3 className="w-4 h-4" /> הערות לשדכנים:</p>
+                          {profile.matchingNotes ? <p className="text-sm text-slate-700 whitespace-pre-wrap break-words bg-amber-100/70 p-3 rounded-md border border-amber-200/80">{profile.matchingNotes}</p> : <p className="text-sm text-slate-500 italic">לא הוזנו הערות.</p>}
+                        </div>
+                        {profile.availabilityNote && (
+                          <div>
+                            <p className="text-xs font-medium text-amber-600 mb-1.5 flex items-center gap-1.5"><Clock className="w-4 h-4" /> הערת זמינות:</p>
+                            <p className="text-sm text-slate-700 whitespace-pre-wrap break-words bg-amber-100/70 p-3 rounded-md border border-amber-200/80">{profile.availabilityNote}</p>
+                          </div>
+                        )}
+                      </div>
+                    </TabsContent>
                   )}
-                </TabsList>
+                </div>
+              </Tabs>
+            </div>
+          </ScrollArea>
+        </ResizablePanel>
+
+        <ResizableHandle withHandle className="bg-slate-200 hover:bg-slate-300 transition-colors hidden md:flex">
+          <GripVertical className="w-2.5 h-2.5 text-slate-500" />
+        </ResizableHandle>
+
+        {/* Side Photos Panel (Left Panel) */}
+        <ResizablePanel
+          defaultSize={sidePhotosPanelSize}
+          minSize={25}
+          maxSize={75}
+          id="side-photos-panel"
+          order={2}
+          className="min-w-[280px] sm:min-w-[320px] bg-white hidden md:block" // min-w ensures it doesn't collapse too much
+        >
+          {/* Main container for this panel, allowing AI section to be at the bottom */}
+          <div className="h-full flex flex-col">
+            {/* Photos Section */}
+            <div className="p-3 md:p-4 flex-grow flex flex-col min-h-0"> {/* Added flex-grow and min-h-0 */}
+              <div className="flex justify-between items-center mb-3 flex-shrink-0">
+                <h3 className="text-md font-semibold text-slate-700 flex items-center gap-2">
+                  <ImageIcon className="w-5 h-5 text-cyan-600" /> תמונות ({orderedImages.length})
+                </h3>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" onClick={togglePanels} className="text-slate-500 hover:text-cyan-600">
+                      {sidePhotosPanelSize > 50 ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">
+                    <p>{sidePhotosPanelSize > 50 ? "צמצם גלריה צדדית" : "הרחב גלריה צדדית"}</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
-            </ScrollArea>
-          </div>
 
-          {/* --- Tab Content Panes --- */}
-
-          {/* About Tab */}
-          <TabsContent
-            value="about"
-            className="mt-2 space-y-6 sm:space-y-8 focus:outline-none"
-          >
-            {/* Basic Description */}
-            <div className="rounded-xl sm:rounded-2xl p-4 sm:p-6 bg-gradient-to-br from-blue-50 to-white border border-blue-100/50 shadow-md">
-              <SectionHeader icon={User} title="אודות" worldKey="personality" />
-              {profile.about ? (
-                <p className="text-gray-700 whitespace-pre-wrap text-sm sm:text-base leading-relaxed">
-                  {profile.about}
-                </p>
-              ) : (
-                <EmptyState icon={User} message="לא הוזן תיאור" />
-              )}
-            </div>
-
-            {/* Hobbies */}
-            <div className="rounded-xl sm:rounded-2xl p-4 sm:p-6 bg-gradient-to-br from-pink-50 to-white border border-pink-100/50 shadow-md">
-              <SectionHeader icon={Heart} title="תחביבים" worldKey="values" />
-              {profile.profileHobbies ? (
-                <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-2 sm:mt-3">
-                  {profile.profileHobbies.map((hobby, index) => (
-                    <Badge
-                      key={index}
-                      className="px-2.5 py-1 sm:px-3 sm:py-1.5 bg-white text-pink-700 border border-pink-200 shadow-sm hover:bg-pink-50 transition-colors text-xs sm:text-sm font-medium"
-                    >
-                      {hobby.trim()}
-                    </Badge>
-                  ))}
-                </div>
-              ) : (
-                <EmptyState icon={Heart} message="לא הוזנו תחביבים" />
-              )}
-            </div>
-
-            {/* Languages */}
-            <div className="rounded-xl sm:rounded-2xl p-4 sm:p-6 bg-gradient-to-br from-emerald-50 to-white border border-emerald-100/50 shadow-md">
-              <SectionHeader icon={Languages} title="שפות" />{" "}
-              {/* Generic styling */}
-              <div className="space-y-3 sm:space-y-4 mt-2 sm:mt-3">
-                {/* Native Language */}
-                <div className="bg-white rounded-lg sm:rounded-xl shadow-sm p-3 sm:p-4 border border-emerald-100/80">
-                  <p className="text-xs sm:text-sm font-medium text-emerald-700 mb-1 sm:mb-2">
-                    שפת אם
-                  </p>
-                  <p className="text-base sm:text-lg font-medium text-gray-800">
-                    {profile.nativeLanguage || "-"}
-                  </p>
-                </div>
-
-                {/* Additional Languages */}
-                {profile.additionalLanguages &&
-                profile.additionalLanguages.length > 0 ? (
-                  <div className="bg-white rounded-lg sm:rounded-xl shadow-sm p-3 sm:p-4 border border-emerald-100/80">
-                    <p className="text-xs sm:text-sm font-medium text-emerald-700 mb-1 sm:mb-2">
-                      שפות נוספות
-                    </p>
-                    <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-1">
-                      {profile.additionalLanguages.map((lang) => (
-                        <Badge
-                          key={lang}
-                          className="px-2.5 py-1 sm:px-3 sm:py-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs sm:text-sm shadow-sm"
-                        >
-                          {lang}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="bg-white/80 rounded-lg sm:rounded-xl p-3 sm:p-4 text-center text-xs sm:text-sm text-gray-500 border border-gray-100">
-                    לא הוזנו שפות נוספות
-                  </div>
-                )}
-              </div>
-            </div>
-          </TabsContent>
-
-          {/* Education & Employment Tab */}
-          <TabsContent
-            value="education"
-            className="mt-2 space-y-6 sm:space-y-8 focus:outline-none"
-          >
-            <div className="rounded-xl sm:rounded-2xl bg-white border border-indigo-100/50 shadow-md overflow-hidden">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
-                {/* Education */}
-                <div className="p-4 sm:p-6 border-b md:border-b-0 md:border-l border-indigo-100/50 bg-gradient-to-br from-indigo-50 to-white">
-                  <SectionHeader
-                    icon={GraduationCap}
-                    title="השכלה"
-                    worldKey="religion"
-                  />{" "}
-                  {/* Assuming 'religion' theme fits best */}
-                  <div className="mt-3 sm:mt-4 space-y-4 sm:space-y-6">
-                    <div className="bg-white rounded-lg sm:rounded-xl shadow-sm p-4 sm:p-5 border border-indigo-100">
-                      <div className="flex items-start gap-3 sm:gap-4">
-                        <div className="p-2 sm:p-3 rounded-full bg-indigo-100 text-indigo-600 flex-shrink-0">
-                          <GraduationCap className="w-4 h-4 sm:w-6 sm:h-6" />
+              {orderedImages.length > 0 ? (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full mb-3 text-cyan-600 border-cyan-400/70 hover:bg-cyan-50 hover:text-cyan-700 flex-shrink-0"
+                    onClick={() => {
+                      setActiveTab("photos_tab");
+                      if (sidePhotosPanelSize > 50) {
+                          togglePanels();
+                      }
+                    }}>
+                    <ExternalLink className="w-3.5 h-3.5 ml-1.5"/>
+                    הצג את כל {orderedImages.length} התמונות בגלריה הראשית
+                  </Button>
+                  {/* Container for main image and thumbnails, allows this part to grow */}
+                  <div className="flex-grow flex flex-col gap-3 min-h-0">
+                    {mainImageToDisplay && (
+                      <div className="relative aspect-video rounded-lg overflow-hidden cursor-pointer group shadow-lg border border-gray-200/70 hover:shadow-xl transition-all flex-shrink-0" onClick={() => handleOpenImageDialog(mainImageToDisplay)}>
+                        <Image src={mainImageToDisplay.url} alt={`תמונה ראשית של ${profile.user?.firstName || "מועמד"}`} fill className="object-cover transition-transform duration-300 group-hover:scale-105" sizes="(max-width: 1024px) 40vw, 30vw" priority={activeMainImageIndex === orderedImages.findIndex((img) => img.isMain)}/>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-2">
+                          <Eye className="w-8 h-8 text-white drop-shadow-lg" />
                         </div>
-                        <div>
-                          <p className="text-xs sm:text-sm font-medium text-indigo-600 mb-0.5 sm:mb-1">
-                            רמת השכלה
-                          </p>
-                          <p className="text-base sm:text-lg font-medium text-gray-800">
-                            {profile.education || "לא צוין"}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Employment */}
-                <div className="p-4 sm:p-6 bg-gradient-to-br from-purple-50 to-white">
-                  <SectionHeader
-                    icon={Briefcase}
-                    title="תעסוקה"
-                    worldKey="relationship"
-                  />{" "}
-                  {/* Assuming 'relationship' theme fits best */}
-                  <div className="mt-3 sm:mt-4 space-y-4 sm:space-y-6">
-                    <div className="bg-white rounded-lg sm:rounded-xl shadow-sm p-4 sm:p-5 border border-purple-100">
-                      <div className="flex items-start gap-3 sm:gap-4">
-                        <div className="p-2 sm:p-3 rounded-full bg-purple-100 text-purple-600 flex-shrink-0">
-                          <Briefcase className="w-4 h-4 sm:w-6 sm:h-6" />
-                        </div>
-                        <div>
-                          <p className="text-xs sm:text-sm font-medium text-purple-600 mb-0.5 sm:mb-1">
-                            עיסוק נוכחי
-                          </p>
-                          <p className="text-base sm:text-lg font-medium text-gray-800">
-                            {profile.occupation || "לא צוין"}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-
-          {/* Family Tab */}
-          <TabsContent value="family" className="mt-2 focus:outline-none">
-            <div className="rounded-xl sm:rounded-2xl p-4 sm:p-6 bg-gradient-to-br from-purple-50 to-white border border-purple-100/50 shadow-md">
-              <SectionHeader
-                icon={Users}
-                title="מידע משפחתי"
-                worldKey="relationship"
-              />
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5 mt-3 sm:mt-4">
-                {/* Parent Status */}
-                <div className="bg-white rounded-lg sm:rounded-xl shadow-sm p-4 sm:p-5 border border-purple-100 transition-all hover:shadow-lg hover:border-purple-200 duration-300">
-                  <div className="flex items-start gap-3 sm:gap-4">
-                    <div className="p-2 sm:p-3 rounded-full bg-purple-100 text-purple-600 flex-shrink-0">
-                      <Users className="w-4 h-4 sm:w-5 sm:h-5" />
-                    </div>
-                    <div>
-                      <p className="text-xs sm:text-sm font-medium text-purple-600 mb-0.5 sm:mb-1">
-                        מצב הורים
-                      </p>
-                      <p className="text-base sm:text-lg font-medium text-gray-800">
-                        {profile.parentStatus || "לא צוין"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Siblings Count */}
-                <div className="bg-white rounded-lg sm:rounded-xl shadow-sm p-4 sm:p-5 border border-purple-100 transition-all hover:shadow-lg hover:border-purple-200 duration-300">
-                  <div className="flex items-start gap-3 sm:gap-4">
-                    <div className="p-2 sm:p-3 rounded-full bg-purple-100 text-purple-600 flex-shrink-0">
-                      <Users className="w-4 h-4 sm:w-5 sm:h-5" />
-                    </div>
-                    <div>
-                      <p className="text-xs sm:text-sm font-medium text-purple-600 mb-0.5 sm:mb-1">
-                        מספר אחים/אחיות
-                      </p>
-                      <p className="text-base sm:text-lg font-medium text-gray-800">
-                        {profile.siblings ?? "לא צוין"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Family Position */}
-                <div className="bg-white rounded-lg sm:rounded-xl shadow-sm p-4 sm:p-5 border border-purple-100 transition-all hover:shadow-lg hover:border-purple-200 duration-300">
-                  <div className="flex items-start gap-3 sm:gap-4">
-                    <div className="p-2 sm:p-3 rounded-full bg-purple-100 text-purple-600 flex-shrink-0">
-                      <Users className="w-4 h-4 sm:w-5 sm:h-5" />
-                    </div>
-                    <div>
-                      <p className="text-xs sm:text-sm font-medium text-purple-600 mb-0.5 sm:mb-1">
-                        מיקום במשפחה
-                      </p>
-                      <p className="text-base sm:text-lg font-medium text-gray-800">
-                        {profile.position ?? "לא צוין"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-
-          {/* Photos Tab */}
-          <TabsContent value="photos" className="mt-2 focus:outline-none">
-            <div className="rounded-xl sm:rounded-2xl p-4 sm:p-6 bg-gradient-to-br from-gray-50 to-white border border-gray-200/50 shadow-md">
-              <SectionHeader icon={ImageIcon} title="גלריית תמונות" />
-              {images.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 mt-3 sm:mt-4">
-                  {images.map((image, index) => (
-                    <div
-                      key={image.id}
-                      className="relative aspect-square rounded-xl overflow-hidden cursor-pointer group shadow-md border border-gray-100"
-                      onClick={() => handleImageClick(index)}
-                    >
-                      <Image
-                        src={image.url}
-                        alt={`תמונת פרופיל ${index + 1}`}
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-110"
-                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center p-2">
-                        <Eye className="w-6 h-6 text-white opacity-0 group-hover:opacity-80 transition-opacity duration-300" />
-                      </div>
-                      {image.isMain && (
-                        <div className="absolute top-2 right-2">
-                          <Badge className="bg-gradient-to-br from-yellow-400 to-amber-500 text-white border-0 shadow-md text-xs px-2 py-1">
-                            <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-1 fill-white" />{" "}
-                            {/* Adjusted margin for RTL */}
-                            ראשי
-                          </Badge>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <EmptyState icon={ImageIcon} message="לא הועלו תמונות" />
-              )}
-            </div>
-          </TabsContent>
-
-          {/* Questionnaire Tab */}
-          {questionnaire && (
-            <TabsContent
-              value="questionnaire"
-              className="mt-2 focus:outline-none"
-            >
-              <div className="space-y-4 sm:space-y-6">
-                {/* Questionnaire Status */}
-                <div className="rounded-lg sm:rounded-xl p-3 sm:p-4 bg-white border border-gray-200 shadow-md flex items-center justify-between">
-                  <div className="flex items-center gap-2 sm:gap-3">
-                    {questionnaire.completed ? (
-                      <div className="p-1.5 sm:p-2 rounded-full bg-emerald-100 text-emerald-600">
-                        <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
-                      </div>
-                    ) : (
-                      <div className="p-1.5 sm:p-2 rounded-full bg-blue-100 text-blue-600">
-                        <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
+                        {mainImageToDisplay.isMain && <Badge className="absolute top-2 right-2 bg-yellow-400 text-black border-0 shadow-md text-xs px-1.5 py-0.5 flex items-center gap-1"><Star className="w-3 h-3 fill-black" /> ראשי</Badge>}
                       </div>
                     )}
-                    <div>
-                      <h4 className="text-sm sm:text-base font-medium text-gray-900">
-                        {questionnaire.completed
-                          ? "שאלון הושלם"
-                          : "שאלון בתהליך"}
-                      </h4>
-                      <p className="text-xs sm:text-sm text-gray-500">
-                        עודכן לאחרונה:{" "}
-                        {new Date(questionnaire.lastSaved).toLocaleDateString(
-                          "he-IL"
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-xs sm:text-sm text-gray-500 font-mono">
-                    {`${questionnaire.worldsCompleted?.length || 0}/${
-                      Object.keys(WORLDS).length
-                    } הושלמו`}
-                  </div>
-                </div>
-
-                {/* Questionnaire Content by World */}
-                {Object.entries(questionnaire.formattedAnswers || {}).map(
-                  ([worldKey, answers]) => {
-                    if (!Array.isArray(answers) || answers.length === 0)
-                      return null;
-                    const worldConfig = WORLDS[worldKey as keyof typeof WORLDS];
-                    if (!worldConfig) return null; // Skip if world config not found
-
-                    const worldCompleted = questionnaire[
-                      `${worldKey}Completed` as keyof QuestionnaireResponse
-                    ] as boolean | undefined;
-
-                    return (
-                      <div
-                        key={worldKey}
-                        className={cn(
-                          "rounded-xl sm:rounded-2xl p-4 sm:p-6 border shadow-md transition-shadow hover:shadow-lg",
-                          `bg-gradient-to-br ${worldConfig.gradientFrom} ${worldConfig.gradientTo}`,
-                          worldConfig.border
-                        )}
-                      >
-                        <div className="flex items-center justify-between mb-4 sm:mb-6">
-                          <h3 className="text-base sm:text-xl font-semibold flex items-center gap-1.5 sm:gap-2">
-                            <div
-                              className={cn(
-                                "p-1.5 sm:p-2 rounded-full",
-                                worldConfig.iconBg
-                              )}
-                            >
-                              <worldConfig.icon
-                                className={cn(
-                                  "h-4 w-4 sm:h-5 sm:h-5",
-                                  worldConfig.text
-                                )}
-                              />
+                    {orderedImages.length > 1 && (
+                      <ScrollArea dir="rtl" className="w-full flex-shrink-0"> {/* Scroll for thumbnails */}
+                        <div className="flex gap-2 pb-1.5">
+                          {orderedImages.map((image, index) => (
+                            <div key={image.id} className={cn("relative flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-md overflow-hidden cursor-pointer border-2 transition-all duration-200 shadow-sm hover:shadow-md", activeMainImageIndex === index ? "border-cyan-500 ring-2 ring-cyan-500/30 scale-105" : "border-slate-200 hover:border-cyan-400 opacity-80 hover:opacity-100")}
+                              onClick={() => setActiveMainImageIndex(index)} onDoubleClick={() => handleOpenImageDialog(image)}>
+                              <Image src={image.url} alt={`תמונת פרופיל ${index + 1}`} fill className="object-cover" sizes="80px"/>
                             </div>
-                            <span className="text-gray-800">
-                              {worldConfig.title}
-                            </span>
-                          </h3>
-                          <Badge
-                            className={cn(
-                              "flex items-center gap-1 text-xs px-2 py-1 shadow-sm",
-                              worldCompleted
-                                ? "bg-emerald-100 text-emerald-800 border-emerald-200/50"
-                                : "bg-blue-100 text-blue-800 border-blue-200/50"
-                            )}
-                          >
-                            {worldCompleted ? (
-                              <>
-                                <CheckCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3 ml-0.5" />{" "}
-                                {/* Adjusted margin for RTL */}
-                                הושלם
-                              </>
-                            ) : (
-                              <>
-                                <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 ml-0.5" />{" "}
-                                {/* Adjusted margin for RTL */}
-                                בתהליך
-                              </>
-                            )}
-                          </Badge>
+                          ))}
                         </div>
-
-                        <div className="grid gap-3 sm:gap-4">
-                          {answers
-                            .filter(
-                              (answer) =>
-                                viewMode === "matchmaker" ||
-                                answer.isVisible !== false
-                            ) // Type guard for isVisible
-                            .map((answer) => (
-                              <div
-                                key={answer.questionId}
-                                className={cn(
-                                  "bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-sm border transition-shadow hover:shadow-md",
-                                  worldConfig.border.replace("/50", "") // Slightly stronger border for answers
-                                )}
-                              >
-                                <div className="flex justify-between items-start mb-2 sm:mb-3 gap-2">
-                                  <p className="text-xs sm:text-sm font-medium text-gray-700 flex-1 leading-snug">
-                                    {answer.question}
-                                  </p>
-                                  {/* Visibility Badge */}
-                                  {answer.isVisible === false ? ( // Explicitly check for false
-                                    <Badge
-                                      variant="outline"
-                                      className="bg-gray-100 text-gray-500 border-gray-200 text-xs py-0.5 px-1.5 whitespace-nowrap"
-                                    >
-                                      <EyeOff className="w-2.5 h-2.5 sm:w-3 sm:h-3 ml-1" />{" "}
-                                      {/* Adjusted margin for RTL */}
-                                      מוסתר
-                                    </Badge>
-                                  ) : (
-                                    <Badge
-                                      variant="outline"
-                                      className={cn(
-                                        "text-xs py-0.5 px-1.5 whitespace-nowrap",
-                                        `${worldConfig.text}/80 bg-${worldConfig.color}-50 border-${worldConfig.color}-200/50`
-                                      )}
-                                    >
-                                      <Eye className="w-2.5 h-2.5 sm:w-3 sm:h-3 ml-1" />{" "}
-                                      {/* Adjusted margin for RTL */}
-                                      מוצג
-                                    </Badge>
-                                  )}
-                                </div>
-                                {/* Answer Display */}
-                                <div
-                                  className={`bg-${worldConfig.color}-50/30 rounded-md sm:rounded-lg p-2.5 sm:p-4 mb-1.5 sm:mb-2`}
-                                >
-                                  <p className="text-sm sm:text-base font-medium text-gray-800">
-                                    {answer.displayText}
-                                  </p>
-                                </div>
-                                {/* Answer Date */}
-                                <div className="flex justify-end">
-                                  <p className="text-xs text-gray-400 flex items-center">
-                                    <Calendar className="w-2.5 h-2.5 sm:w-3 sm:h-3 ml-1" />{" "}
-                                    {/* Adjusted margin for RTL */}
-                                    {new Date(
-                                      answer.answeredAt
-                                    ).toLocaleDateString("he-IL")}
-                                  </p>
-                                </div>
-                              </div>
-                            ))}
-                        </div>
-                      </div>
-                    );
-                  }
-                )}
-              </div>
-            </TabsContent>
-          )}
-
-          {/* Fallback if questionnaire is missing */}
-          {!questionnaire && activeTab === "questionnaire" && (
-            <TabsContent
-              value="questionnaire"
-              className="mt-2 focus:outline-none"
-            >
-              <div className="rounded-xl sm:rounded-2xl p-4 sm:p-6 bg-gradient-to-br from-gray-50 to-white border border-gray-200/50 shadow-md text-center">
-                <EmptyState icon={FileText} message="שאלון אינו זמין לצפייה" />
-              </div>
-            </TabsContent>
-          )}
-
-          {/* Sensitive Information Tab (Matchmakers Only) */}
-          {viewMode === "matchmaker" && (
-            <TabsContent value="sensitive" className="mt-2 focus:outline-none">
-              <SensitiveInfo>
-                {/* Contact Preferences */}
-                <div className="space-y-4 sm:space-y-5 mb-6 sm:mb-8">
-                  <h3 className="text-base sm:text-lg font-semibold text-amber-800 flex items-center gap-1.5 sm:gap-2">
-                    <User className="w-4 h-4 sm:w-5 sm:h-5" />
-                    העדפות יצירת קשר
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-                    {/* Contact Method */}
-                    <div className="p-3 sm:p-4 bg-white rounded-lg sm:rounded-xl shadow-sm border border-amber-200">
-                      <div className="flex items-start gap-2 sm:gap-3">
-                        <div className="p-1.5 sm:p-2 rounded-full bg-amber-100 text-amber-700 flex-shrink-0">
-                          <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                        </div>
-                        <div>
-                          <p className="text-xs sm:text-sm font-medium text-amber-700 mb-1">
-                            אופן יצירת קשר מועדף
-                          </p>
-                          <p className="text-sm sm:text-base font-medium text-gray-800">
-                            {profile.contactPreference === "direct"
-                              ? "ישירות"
-                              : profile.contactPreference === "matchmaker"
-                              ? "דרך השדכן/ית"
-                              : profile.contactPreference === "both"
-                              ? "שתי האפשרויות"
-                              : "לא צוין"}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    {/* Preferred Matchmaker Gender */}
-                    <div className="p-3 sm:p-4 bg-white rounded-lg sm:rounded-xl shadow-sm border border-amber-200">
-                      <div className="flex items-start gap-2 sm:gap-3">
-                        <div className="p-1.5 sm:p-2 rounded-full bg-amber-100 text-amber-700 flex-shrink-0">
-                          <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                        </div>
-                        <div>
-                          <p className="text-xs sm:text-sm font-medium text-amber-700 mb-1">
-                            העדפת מגדר שדכן/ית
-                          </p>
-                          <p className="text-sm sm:text-base font-medium text-gray-800">
-                            {profile.preferredMatchmakerGender === "MALE"
-                              ? "גבר"
-                              : profile.preferredMatchmakerGender === "FEMALE"
-                              ? "אישה"
-                              : "אין העדפה / לא צוין"}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+                        <ScrollBar orientation="horizontal" />
+                      </ScrollArea>
+                    )}
                   </div>
+                </>
+              ) : (
+                <div className="flex-grow flex items-center justify-center"> {/* Takes remaining space if no images */}
+                  <EmptyState icon={ImageIcon} message="אין תמונות להצגה" className="py-6 w-full bg-slate-50 rounded-lg border border-slate-200/70"/>
                 </div>
+              )}
+            </div>
 
-                {/* Matching Notes */}
-                {profile.matchingNotes ? (
-                  <div className="space-y-3 sm:space-y-4">
-                    <h3 className="text-base sm:text-lg font-semibold text-amber-800 flex items-center gap-1.5 sm:gap-2">
-                      <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
-                      הערות לשדכנים
-                    </h3>
-                    <div className="p-3 sm:p-5 bg-white rounded-lg sm:rounded-xl shadow-sm border border-amber-200">
-                      <p className="whitespace-pre-wrap text-sm sm:text-base font-medium text-gray-800">
-                        {profile.matchingNotes}
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <div>
-                    <h3 className="text-base sm:text-lg font-semibold text-amber-800 flex items-center gap-1.5 sm:gap-2 mb-3 sm:mb-4">
-                      <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
-                      הערות לשדכנים
-                    </h3>
-                    <EmptyState icon={FileText} message="לא הוזנו הערות" />
-                  </div>
-                )}
-              </SensitiveInfo>
-            </TabsContent>
-          )}
-        </Tabs>
-      </div>
-
-      {/* Image Viewer Dialog */}
-      {selectedImageIndex !== null && images[selectedImageIndex] && (
-        <Dialog
-          open={selectedImageIndex !== null}
-          onOpenChange={handleCloseDialog}
-        >
-          <DialogContent className="max-w-4xl p-0 bg-black/90 backdrop-blur-md border-none shadow-2xl overflow-hidden rounded-lg">
-            <div className="p-3 sm:p-4 text-white flex justify-between items-center border-b border-gray-700/50">
-              <DialogTitle className="text-center text-base sm:text-xl font-semibold flex-grow">
-                גלריית תמונות ({selectedImageIndex + 1}/{images.length})
-              </DialogTitle>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-gray-300 hover:text-white hover:bg-white/10 h-8 w-8 rounded-full"
-                onClick={handleCloseDialog}
+            {/* AI Summary Section - Moved here and made smaller */}
+            <div className="p-2 md:p-3 border-t border-slate-200/80 bg-slate-50/70 flex-shrink-0">
+              <SectionCard
+                  title="ניתוח AI"
+                  icon={Bot}
+                  titleClassName="p-2 md:p-2.5 bg-slate-100/80 text-sm" // Smaller padding and text for title
+                  contentClassName="p-2 md:p-2.5" // Smaller padding for content
+                  className="shadow-md" // Less prominent shadow
               >
-                <span className="sr-only">סגור</span>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-5 h-5"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M6 18 18 6M6 6l12 12"
-                  />
-                </svg>
-              </Button>
+                  <div className="flex flex-col items-center gap-1.5 text-center"> {/* Reduced gap */}
+                      <Bot className="w-8 h-8 sm:w-10 sm:h-10 text-sky-500 opacity-70 mb-0.5" /> {/* Smaller icon */}
+                      <p className="text-[11px] sm:text-xs text-slate-600 max-w-md leading-tight sm:leading-snug"> {/* Smaller text, tighter leading */}
+                          קבל/י סיכום ותובנות מה-AI ונהל/י שיחת התייעצות.
+                      </p>
+                      <Button
+                          size="sm" // Extra small button
+                          className="mt-1.5 w-full bg-sky-500 hover:bg-sky-600 text-white font-medium py-1 px-2 rounded text-xs sm:text-sm shadow-sm hover:shadow-md transition-all duration-200"
+                          // onClick={() => { /* Future: Implement AI chat initiation */ }}
+                      >
+                          <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 ml-1 sm:ml-1.5" /> {/* Smaller icon */}
+                          התחל התייעצות
+                      </Button>
+                  </div>
+              </SectionCard>
             </div>
+          </div>
+        </ResizablePanel>
+      </ResizablePanelGroup>
 
-            <div className="relative h-[60vh] sm:h-[70vh] max-h-[700px] w-full overflow-hidden flex items-center justify-center bg-black">
-              <Image
-                key={images[selectedImageIndex].id} // Add key for potential re-renders
-                src={images[selectedImageIndex].url}
-                alt={`תמונת פרופיל ${selectedImageIndex + 1}`}
-                fill
-                className="object-contain"
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 70vw"
-                priority
-              />
-
-              {/* Navigation Buttons */}
-              {selectedImageIndex > 0 && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white rounded-full h-9 w-9 sm:h-12 sm:w-12 shadow-lg"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handlePreviousImage();
-                  }}
-                  aria-label="תמונה קודמת"
-                >
-                  <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" />{" "}
-                  {/* ChevronRight for previous in RTL */}
-                </Button>
-              )}
-              {selectedImageIndex < images.length - 1 && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white rounded-full h-9 w-9 sm:h-12 sm:w-12 shadow-lg"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleNextImage();
-                  }}
-                  aria-label="תמונה הבאה"
-                >
-                  <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" />{" "}
-                  {/* ChevronLeft for next in RTL */}
-                </Button>
+      {/* Image Viewer Dialog (no changes here) */}
+      {selectedImageForDialog && selectedImageForDialog.url && (
+        <Dialog open={!!selectedImageForDialog} onOpenChange={(isOpen) => !isOpen && handleCloseImageDialog()}>
+          <DialogContent className="max-w-5xl w-[95vw] h-[90vh] p-0 bg-black/95 backdrop-blur-md border-none shadow-2xl overflow-hidden rounded-lg flex flex-col" dir="rtl">
+            <DialogHeader className="p-3 text-white flex flex-row justify-between items-center border-b border-slate-700/50 flex-shrink-0">
+              <DialogTitle className="text-center text-base sm:text-lg font-semibold flex-grow">תמונה {currentDialogImageIndex + 1} מתוך {orderedImages.length}</DialogTitle>
+              <Button variant="ghost" size="icon" className="text-slate-300 hover:text-white hover:bg-white/10 rounded-full mr-auto" onClick={handleCloseImageDialog} aria-label="סגור"><X className="w-5 h-5" /></Button>
+            </DialogHeader>
+            <div className="relative flex-1 w-full min-h-0 flex items-center justify-center bg-black/80">
+              <Image key={selectedImageForDialog.id} src={selectedImageForDialog.url} alt={`תמונה מוגדלת ${currentDialogImageIndex + 1} של ${profile.user?.firstName || "מועמד"}`} fill className="object-contain" sizes="90vw" priority/>
+              {orderedImages.length > 1 && (
+                <>
+                  <Button variant="ghost" size="icon" className="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full h-10 w-10 sm:h-12 sm:w-12" onClick={() => handleDialogNav("prev")} aria-label="הקודם"><ChevronRight className="h-6 w-6" /></Button>
+                  <Button variant="ghost" size="icon" className="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full h-10 w-10 sm:h-12 sm:w-12" onClick={() => handleDialogNav("next")} aria-label="הבא"><ChevronLeft className="h-6 w-6" /></Button>
+                </>
               )}
             </div>
-
-            {/* Thumbnails */}
-            {images.length > 1 && (
-              <ScrollArea dir="rtl" className="w-full">
-                <div className="flex gap-1.5 sm:gap-2 p-2 sm:p-4 justify-center bg-black/80">
-                  {images.map((image, index) => (
-                    <div
-                      key={image.id}
-                      className={cn(
-                        "relative flex-shrink-0 w-12 h-12 sm:w-16 sm:h-16 rounded-md sm:rounded-lg overflow-hidden cursor-pointer border-2 transition-all duration-200 ease-in-out",
-                        selectedImageIndex === index
-                          ? "border-cyan-400 ring-2 ring-cyan-400/50 scale-105"
-                          : "border-transparent hover:border-gray-400 opacity-60 hover:opacity-100"
-                      )}
-                      onClick={() => setSelectedImageIndex(index)}
-                    >
-                      <Image
-                        src={image.url}
-                        alt={`תמונה ${index + 1}`}
-                        fill
-                        className="object-cover"
-                        sizes="64px" // Appropriate size for thumbnails
-                      />
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
+            {orderedImages.length > 1 && (
+              <DialogFooter className="border-t border-slate-700/50 bg-black/70 p-0 flex-shrink-0">
+                <ScrollArea dir="rtl" className="w-full">
+                  <div className="flex gap-1.5 p-2 justify-center">
+                    {orderedImages.map((img, idx) => (
+                      <div key={img.id} className={cn("relative flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded overflow-hidden cursor-pointer border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-black", img.id === selectedImageForDialog.id ? "border-cyan-400 scale-105 opacity-100 shadow-lg" : "border-transparent hover:border-slate-400 opacity-60 hover:opacity-100")}
+                        onClick={() => setSelectedImageForDialog(img)} onKeyDown={(e) => e.key === "Enter" && setSelectedImageForDialog(img)} tabIndex={0} role="button" aria-label={`הצג תמונה ${idx + 1}`}>
+                        <Image src={img.url} alt={`תמונה קטנה ${idx + 1}`} fill className="object-cover" sizes="56px"/>
+                      </div>
+                    ))}
+                  </div>
+                  <ScrollBar orientation="horizontal" />
+                </ScrollArea>
+              </DialogFooter>
             )}
           </DialogContent>
         </Dialog>
       )}
     </Card>
+    </TooltipProvider>
   );
 };
 

@@ -7,20 +7,7 @@ import { toast } from "sonner";
 
 // UI Components
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -58,7 +45,6 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   const [isEditing, setIsEditing] = useState(false); // Global editing state - consider per-section if needed
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
-  const [isMatchmaker, setIsMatchmaker] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
 
   const { update: updateSession } = useSession();
@@ -266,10 +252,11 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   ) => {
     setIsLoading(true);
     try {
-      const payload =
-        value.type === "answer"
-          ? { worldKey: world, questionId, value: value.value }
-          : { worldKey: world, questionId, isVisible: value.isVisible };
+      const payload = {
+        worldKey: world,
+        questionId: questionId,
+        value: value, // <<< פשוט להשתמש באובייקט value שהתקבל כפרמטר
+      };
 
       const response = await fetch("/api/profile/questionnaire", {
         method: "PATCH",
@@ -352,43 +339,11 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                 className="w-[95vw] max-w-6xl max-h-[90vh] overflow-y-auto p-6 bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl border-none"
                 dir="rtl"
               >
-                <DialogHeader className="mb-4">
-                  <DialogTitle className="text-xl sm:text-2xl font-bold text-gray-800">
-                    תצוגה מקדימה של הפרופיל
-                  </DialogTitle>
-                  <div className="pt-4">
-                    <Select
-                      value={isMatchmaker ? "matchmaker" : "candidate"}
-                      onValueChange={(value) =>
-                        setIsMatchmaker(value === "matchmaker")
-                      }
-                    >
-                      <SelectTrigger className="w-full sm:w-[200px] rounded-full border-gray-300 focus:border-cyan-500 focus:ring-cyan-500">
-                        <SelectValue placeholder="בחר תצוגה..." />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl">
-                        <SelectItem
-                          value="candidate"
-                          className="cursor-pointer"
-                        >
-                          תצוגת מועמד
-                        </SelectItem>
-                        <SelectItem
-                          value="matchmaker"
-                          className="cursor-pointer"
-                        >
-                          תצוגת שדכן
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </DialogHeader>
                 {profileData ? (
                   <ProfileCard
                     profile={profileData}
                     images={images}
                     questionnaire={questionnaireResponse}
-                    viewMode={isMatchmaker ? "matchmaker" : "candidate"}
                   />
                 ) : (
                   <p className="text-center text-gray-500 py-10">
@@ -513,10 +468,6 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                     questionnaire={questionnaireResponse}
                     onUpdate={handleQuestionnaireUpdate}
                     isEditable={!viewOnly}
-                    viewMode={isMatchmaker ? "matchmaker" : "candidate"}
-                    // **** FIX: Removed style prop not defined in QuestionnaireResponsesSectionProps ****
-                    // questionContainerStyle="mb-4 p-4 bg-white/50 rounded-xl shadow-sm"
-                    // **** END FIX ****
                   />
                 ) : (
                   <div className="text-center py-12 text-gray-500">

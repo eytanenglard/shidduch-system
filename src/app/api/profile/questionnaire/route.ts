@@ -1,9 +1,12 @@
+// --- START OF FILE route.ts ---
+
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { authOptions } from "@/lib/auth"; // ודא שהנתיב הזה נכון
+import prisma from "@/lib/prisma"; // ודא שהנתיב הזה נכון
 import { Prisma } from "@prisma/client";
 
+// ודא שהנתיבים האלה נכונים לקבצי השאלות שלך
 import { valuesQuestions } from "@/components/questionnaire/questions/values/valuesQuestions";
 import { personalityQuestions } from "@/components/questionnaire/questions/personality/personalityQuestions";
 import { relationshipQuestions } from "@/components/questionnaire/questions/relationship/relationshipQuestions";
@@ -12,15 +15,13 @@ import { religionQuestions } from "@/components/questionnaire/questions/religion
 
 
 // Combine all questions into a single array
-// --- UPDATED allQuestions ARRAY ---
 const allQuestions = [
   ...valuesQuestions,
   ...personalityQuestions,
   ...relationshipQuestions,
   ...partnerQuestions,
-  ...religionQuestions // Use the consolidated religion questions array
+  ...religionQuestions
 ];
-// --- END UPDATED allQuestions ARRAY ---
 
 // Define key types
 type WorldKey = 'values' | 'personality' | 'relationship' | 'partner' | 'religion';
@@ -48,7 +49,7 @@ type JsonAnswerData = {
 
 interface UpdateData {
   type: 'answer' | 'visibility';
-  value?: string;
+  value?: Prisma.JsonValue; // התאמה לשימוש ב- Prisma.JsonValue גם כאן
   isVisible?: boolean;
 }
 
@@ -83,15 +84,12 @@ const valueTranslations: Record<string, string> = {
 };
 
 function getQuestionLabel(questionId: string): string {
-  // Find question in the *updated* allQuestions array
   const question = allQuestions.find(q => q.id === questionId);
   return question?.question || questionId;
 }
 
 function getQuestionCategory(questionId: string): string {
-  // Find question in the *updated* allQuestions array
   const question = allQuestions.find(q => q.id === questionId);
-  // Ensure category exists, fallback to worldId or empty string if needed
   return question?.category || question?.worldId.toLowerCase() || '';
 }
 
@@ -102,21 +100,17 @@ function formatValue(value: Prisma.JsonValue): string {
   }
 
   if (Array.isArray(value)) {
-    // Map each value in the array using translations or the value itself
     return value.map(v => valueTranslations[String(v)] || String(v)).join(', ');
   }
 
   if (typeof value === 'object' && value !== null) {
-    // Basic stringification for objects, consider more specific formatting if needed
     return JSON.stringify(value);
   }
 
-  // Handle strings and numbers
   const stringValue = String(value);
   return valueTranslations[stringValue] || stringValue;
 }
 
-// Type guard to check if a value is a valid answer object
 function isValidAnswerObject(item: Prisma.JsonValue): item is Prisma.JsonObject & {
   questionId: string | number;
   value: Prisma.JsonValue;
@@ -127,22 +121,21 @@ function isValidAnswerObject(item: Prisma.JsonValue): item is Prisma.JsonObject 
          item !== null &&
          'questionId' in item &&
          'value' in item &&
-         item.value !== undefined && // Ensure value exists
+         item.value !== undefined &&
          'answeredAt' in item;
 }
 
 function safeParseJson(value: Prisma.JsonValue | null): JsonAnswerData[] {
    if (Array.isArray(value)) {
      return value
-       .filter(isValidAnswerObject) // Use the type guard
+       .filter(isValidAnswerObject)
        .map(item => ({
          questionId: String(item.questionId),
          value: item.value,
          answeredAt: String(item.answeredAt),
-         isVisible: Boolean(item.isVisible ?? true) // Default isVisible to true if missing
+         isVisible: Boolean(item.isVisible ?? true)
        }));
    }
-   // If value is not an array or null/undefined, return empty array
    return [];
 }
 
@@ -158,7 +151,7 @@ function formatAnswers(answers: Prisma.JsonValue | null): FormattedAnswer[] {
       question: getQuestionLabel(answer.questionId),
       value: answer.value,
       displayText,
-      category, // Include category if needed elsewhere
+      category,
       isVisible: answer.isVisible,
       answeredAt: new Date(answer.answeredAt).toLocaleDateString('he-IL', {
         year: 'numeric',
@@ -166,7 +159,7 @@ function formatAnswers(answers: Prisma.JsonValue | null): FormattedAnswer[] {
         day: 'numeric',
       })
     };
-  }).sort((a, b) => a.questionId.localeCompare(b.questionId)); // Sort for consistency
+  }).sort((a, b) => a.questionId.localeCompare(b.questionId));
 }
 
 
@@ -186,28 +179,23 @@ export async function GET(req: Request) {
     });
 
     if (!questionnaireResponse) {
-       // Return success but with null data if no questionnaire found
        return NextResponse.json({
           success: true,
           questionnaireResponse: null
        });
     }
 
-    // Create formatted answers with correct typing
     const formattedAnswers: Partial<FormattedAnswersType> = {};
 
-    // Iterate through the world keys defined in KEY_MAPPING
     (Object.keys(KEY_MAPPING) as WorldKey[]).forEach(worldKey => {
        const dbKey = getDbKey(worldKey);
-       // Check if the key exists on the response before formatting
        if (questionnaireResponse[dbKey]) {
            formattedAnswers[worldKey] = formatAnswers(questionnaireResponse[dbKey]);
        } else {
-           formattedAnswers[worldKey] = []; // Initialize with empty array if no data
+           formattedAnswers[worldKey] = [];
        }
     });
 
-    // Explicitly cast formattedAnswers to the full type
     const completeFormattedAnswers = formattedAnswers as FormattedAnswersType;
 
     const formattedResponse = {
@@ -215,11 +203,9 @@ export async function GET(req: Request) {
       formattedAnswers: completeFormattedAnswers
     };
 
-    // Filter out non-visible answers if viewing another user's profile
     if (userId !== session.user.id) {
        Object.keys(formattedResponse.formattedAnswers).forEach((worldKey) => {
            const key = worldKey as WorldKey;
-           // Ensure the key exists before filtering
            if (formattedResponse.formattedAnswers[key]) {
                formattedResponse.formattedAnswers[key] =
                  formattedResponse.formattedAnswers[key].filter(answer => answer.isVisible !== false);
@@ -233,7 +219,7 @@ export async function GET(req: Request) {
     });
 
   } catch (error) {
-    console.error('Error in GET /api/questionnaire:', error); // Log the actual error
+    console.error('Error in GET /api/profile/questionnaire:', error);
     return NextResponse.json({ success: false, error: "Failed to fetch questionnaire" }, { status: 500 });
   }
 }
@@ -243,35 +229,66 @@ export async function PATCH(req: Request) {
    try {
      const session = await getServerSession(authOptions);
      if (!session?.user?.id) {
+       console.log("PATCH /api/profile/questionnaire - Unauthorized: No session or user ID.");
        return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
      }
+     console.log(`PATCH /api/profile/questionnaire - Authorized for user: ${session.user.id}`);
 
      const body = await req.json();
+     // =================================================================
+     // === לוג עיקרי לבדיקת גוף הבקשה שהשרת מקבל ===
+     console.log("PATCH /api/profile/questionnaire - Received body:", JSON.stringify(body, null, 2));
+     // =================================================================
+
+     // ננסה לגשת לשדות ישירות מ-body לצורך הלוגים, לפני ה-destructuring
+     const receivedWorldKey = body.worldKey;
+     const receivedQuestionId = body.questionId;
+     const receivedValueObject = body.value;
+     const receivedValueType = body.value?.type;
+
+     // Destructuring and type assertion (assuming body structure is correct)
      const { worldKey, questionId, value } = body as {
        worldKey: WorldKey;
        questionId: string;
-       value: UpdateData; // value is now { type: 'answer'|'visibility', value?: string, isVisible?: boolean }
+       value: UpdateData;
      };
 
      // Validate input
      if (!worldKey || !questionId || !value || !value.type) {
+        // === לוג מפורט יותר אם הבדיקה הזו נכשלת ===
+        console.error("PATCH /api/profile/questionnaire - Invalid request body. Validation failed. Details:", {
+            rawReceivedBody: body, // מדפיס את כל מה שהתקבל
+            expectedWorldKey: worldKey, // הערך לאחר destructuring
+            expectedQuestionId: questionId, // הערך לאחר destructuring
+            expectedValueObject: value, // הערך לאחר destructuring
+            isWorldKeyTruthyInBody: !!receivedWorldKey,
+            isQuestionIdTruthyInBody: !!receivedQuestionId,
+            isValueObjectTruthyInBody: !!receivedValueObject,
+            isValueTypeTruthyInBody: !!receivedValueType,
+        });
+        // =====================================================
         return NextResponse.json({ success: false, error: "Invalid request body" }, { status: 400 });
      }
+
      if (!KEY_MAPPING[worldKey]) {
+         console.error(`PATCH /api/profile/questionnaire - Invalid world key: ${worldKey}`);
          return NextResponse.json({ success: false, error: "Invalid world key" }, { status: 400 });
      }
 
-
      const dbKey = getDbKey(worldKey);
+
+     console.log(`PATCH /api/profile/questionnaire - Processing update for worldKey: ${worldKey}, questionId: ${questionId}, dbKey: ${dbKey}, updateType: ${value.type}`);
 
      const questionnaire = await prisma.questionnaireResponse.findFirst({
        where: { userId: session.user.id },
-       orderBy: { createdAt: 'desc' } // Get the latest questionnaire for the user
+       orderBy: { createdAt: 'desc' }
      });
 
      if (!questionnaire) {
+       console.error(`PATCH /api/profile/questionnaire - Questionnaire not found for user ID: ${session.user.id}`);
        return NextResponse.json({ success: false, error: "שאלון לא נמצא" }, { status: 404 });
      }
+     console.log(`PATCH /api/profile/questionnaire - Found questionnaire ID: ${questionnaire.id} for user.`);
 
      const currentAnswers = safeParseJson(questionnaire[dbKey]);
      const existingAnswerIndex = currentAnswers.findIndex((a) => a.questionId === questionId);
@@ -280,60 +297,69 @@ export async function PATCH(req: Request) {
      let updatedAnswer: JsonAnswerData;
 
      if (value.type === 'visibility') {
-        // Handle visibility update
+        console.log(`PATCH /api/profile/questionnaire - Handling 'visibility' update.`);
         if (!existingAnswer) {
-          // Cannot update visibility for a non-existent answer
+          console.error(`PATCH /api/profile/questionnaire - Cannot update visibility for non-existent answer. Question ID: ${questionId}`);
           return NextResponse.json({ success: false, error: "לא נמצאה תשובה לעדכון נראות" }, { status: 404 });
         }
         if (typeof value.isVisible !== 'boolean') {
+             console.error(`PATCH /api/profile/questionnaire - Invalid visibility value: ${value.isVisible}. Must be boolean.`);
              return NextResponse.json({ success: false, error: "ערך נראות לא תקין" }, { status: 400 });
         }
         updatedAnswer = {
           ...existingAnswer,
           isVisible: value.isVisible,
-          answeredAt: new Date().toISOString() // Update timestamp on visibility change too
+          answeredAt: new Date().toISOString()
         };
+        console.log(`PATCH /api/profile/questionnaire - Visibility updated for question ${questionId} to ${value.isVisible}.`);
      } else if (value.type === 'answer') {
-       // Handle answer update
-       // Validate the actual answer value if needed (basic check here)
-       if (value.value === undefined) {
+       console.log(`PATCH /api/profile/questionnaire - Handling 'answer' update.`);
+       if (value.value === undefined) { // אפשר להוסיף בדיקה יותר מחמירה אם value.value הוא null או מחרוזת ריקה, תלוי בדרישות
+            console.error(`PATCH /api/profile/questionnaire - Answer value is missing.`);
             return NextResponse.json({ success: false, error: "ערך תשובה חסר" }, { status: 400 });
        }
        updatedAnswer = {
          questionId,
-         value: value.value as Prisma.JsonValue, // Cast the value appropriately
-         isVisible: existingAnswer?.isVisible ?? true, // Preserve existing visibility or default to true
+         value: value.value, // ה-type של value.value כבר אמור להיות Prisma.JsonValue לפי UpdateData
+         isVisible: existingAnswer?.isVisible ?? true,
          answeredAt: new Date().toISOString()
        };
+       console.log(`PATCH /api/profile/questionnaire - Answer updated for question ${questionId}. New value (type ${typeof value.value}): ${JSON.stringify(value.value)}`);
      } else {
+         console.error(`PATCH /api/profile/questionnaire - Invalid update type: ${value.type}`);
          return NextResponse.json({ success: false, error: "סוג עדכון לא תקין" }, { status: 400 });
      }
 
-     // Create the updated answers array
-     const updatedAnswers = [...currentAnswers]; // Create a mutable copy
+     const updatedAnswers = [...currentAnswers];
      if (existingAnswerIndex !== -1) {
-         updatedAnswers[existingAnswerIndex] = updatedAnswer; // Replace existing
-     } else if (value.type === 'answer') { // Only add if it's an answer update and didn't exist
-         updatedAnswers.push(updatedAnswer); // Add new answer
+         updatedAnswers[existingAnswerIndex] = updatedAnswer;
+     } else if (value.type === 'answer') {
+         updatedAnswers.push(updatedAnswer);
+         console.log(`PATCH /api/profile/questionnaire - New answer added for question ${questionId}.`);
+     } else if (value.type === 'visibility' && existingAnswerIndex === -1) {
+        // זה לא אמור לקרות כי כבר בדקנו !existingAnswer למעלה עבור visibility
+        console.error(`PATCH /api/profile/questionnaire - Logic error: Trying to update visibility for a new answer that wasn't added.`);
+        return NextResponse.json({ success: false, error: "שגיאה לוגית בעדכון נראות" }, { status: 500 });
      }
 
+
+     console.log(`PATCH /api/profile/questionnaire - Attempting to update database with new answers for dbKey ${dbKey}.`);
      const updated = await prisma.questionnaireResponse.update({
        where: { id: questionnaire.id },
        data: {
-         [dbKey]: updatedAnswers as Prisma.JsonValue, // Ensure the array is treated as JSON
+         [dbKey]: updatedAnswers as Prisma.JsonValue,
          lastSaved: new Date()
        }
      });
+     console.log(`PATCH /api/profile/questionnaire - Database update successful for questionnaire ID: ${updated.id}.`);
 
-     // --- Reformat response after update ---
      const formattedAnswers: Partial<FormattedAnswersType> = {};
      (Object.keys(KEY_MAPPING) as WorldKey[]).forEach(key => {
        const currentDbKey = getDbKey(key);
-       // Check if the key exists on the updated response before formatting
         if (updated[currentDbKey]) {
             formattedAnswers[key] = formatAnswers(updated[currentDbKey]);
         } else {
-            formattedAnswers[key] = []; // Initialize with empty array if no data
+            formattedAnswers[key] = [];
         }
      });
 
@@ -343,24 +369,27 @@ export async function PATCH(req: Request) {
        ...updated,
        formattedAnswers: completeFormattedAnswers
      };
-     // --- End Reformat response ---
 
-
+     console.log("PATCH /api/profile/questionnaire - Update process completed successfully. Returning formatted response.");
      return NextResponse.json({
        success: true,
-       data: formattedResponse // Return the updated and formatted data
+       data: formattedResponse
      });
 
    } catch (error) {
-       console.error('Error in PATCH /api/questionnaire:', error);
+       console.error('FATAL Error in PATCH /api/profile/questionnaire:', error);
        if (error instanceof Prisma.PrismaClientKnownRequestError) {
-            // Handle specific Prisma errors if needed
+            console.error('Prisma Error Details:', { code: error.code, meta: error.meta, clientVersion: error.clientVersion });
             return NextResponse.json({ success: false, error: "שגיאת מסד נתונים" }, { status: 500 });
        }
+       if (error instanceof SyntaxError && error.message.includes("JSON")) {
+           console.error('JSON Parsing Error in PATCH request body:', error.message);
+           return NextResponse.json({ success: false, error: "גוף הבקשה אינו JSON תקין" }, { status: 400 });
+       }
        if (error instanceof Error) {
-         // Return specific error messages if thrown explicitly
          return NextResponse.json({ success: false, error: error.message }, { status: 500 });
        }
        return NextResponse.json({ success: false, error: "שגיאה בעדכון השאלון" }, { status: 500 });
    }
 }
+// --- END OF FILE route.ts ---

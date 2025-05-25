@@ -1,6 +1,6 @@
 // src/app/components/profile/sections/QuestionnaireResponsesSection.tsx
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react"; // Added useEffect
 import Link from "next/link";
 import {
   Card,
@@ -19,6 +19,7 @@ import {
   Clock,
   Pencil,
   X,
+  Save,
   Eye,
   EyeOff,
   Loader2,
@@ -45,7 +46,6 @@ const QUESTIONNAIRE_URL = "/questionnaire"; // שימוש בנתיב יחסי א
 // אם אתה צריך את הכתובת המלאה (פחות מומלץ אם זה באותו אתר):
 // const QUESTIONNAIRE_URL = "http://localhost:3000/questionnaire";
 
-
 interface QuestionnaireResponsesSectionProps {
   questionnaire: QuestionnaireResponse | null;
   onUpdate?: (
@@ -55,11 +55,9 @@ interface QuestionnaireResponsesSectionProps {
   ) => Promise<void>;
   isEditable?: boolean;
   viewMode?: "matchmaker" | "candidate";
-  // questionnaireUrl?: string; // <-- מחיקת ה-prop הזה
 }
 
 // --- QuestionCard Component ---
-// (ללא שינוי)
 interface QuestionCardProps {
   question: string;
   answer: FormattedAnswer;
@@ -83,6 +81,18 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
   const [editValue, setEditValue] = useState(answer.displayText);
   const [isSavingText, setIsSavingText] = useState(false);
   const [isSavingVisibility, setIsSavingVisibility] = useState(false);
+
+  // --- START OF MODIFIED SECTION ---
+  // Local state for optimistic UI update of visibility
+  const [currentIsVisible, setCurrentIsVisible] = useState(
+    answer.isVisible ?? true
+  );
+
+  // Sync local state if the prop changes (e.g., due to parent update or initial load)
+  useEffect(() => {
+    setCurrentIsVisible(answer.isVisible ?? true);
+  }, [answer.isVisible]);
+  // --- END OF MODIFIED SECTION ---
 
   const isSaving = isSavingText || isSavingVisibility;
 
@@ -110,6 +120,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
       });
       toast.success("התשובה עודכנה בהצלחה");
       setIsEditingText(false);
+      // No need to update editValue here, as parent will re-render with new answer prop
     } catch (error) {
       console.error("Error updating answer:", error);
       toast.error("שגיאה בעדכון התשובה");
@@ -123,25 +134,38 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
     setEditValue(answer.displayText);
   };
 
-  const handleVisibilityChange = async (isVisible: boolean) => {
+  const handleVisibilityChange = async (newIsVisibleState: boolean) => {
+    // --- START OF MODIFIED SECTION ---
+    // Optimistically update the local UI state
+    setCurrentIsVisible(newIsVisibleState);
+    // --- END OF MODIFIED SECTION ---
     setIsSavingVisibility(true);
     try {
       await onUpdate(worldKey, answer.questionId, {
         type: "visibility",
-        isVisible,
+        isVisible: newIsVisibleState,
       });
       toast.success("הגדרות הנראות עודכנו");
+      // If successful, the parent should eventually re-render with the updated answer.isVisible,
+      // and the useEffect will sync if needed, but currentIsVisible is already correct.
     } catch (error) {
       console.error("Error updating visibility:", error);
       toast.error("שגיאה בעדכון הנראות");
+      // --- START OF MODIFIED SECTION ---
+      // Revert optimistic update on error
+      setCurrentIsVisible(answer.isVisible ?? true);
+      // --- END OF MODIFIED SECTION ---
     } finally {
       setIsSavingVisibility(false);
     }
   };
 
+  // --- START OF MODIFIED SECTION ---
+  // Update visibilityLabel to use currentIsVisible
   const visibilityLabel = `הצג תשובה זו למועמדים: ${
-    answer.isVisible ? "מופעל" : "כבוי"
+    currentIsVisible ? "מופעל" : "כבוי"
   }`;
+  // --- END OF MODIFIED SECTION ---
 
   return (
     <div className="rounded-lg border bg-card p-4 shadow-sm transition-shadow duration-300 hover:shadow-md">
@@ -165,25 +189,31 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                       className={cn(
                         "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs shrink-0 flex-row-reverse",
                         "transition-colors duration-200",
-                        answer.isVisible
-                          ? "bg-emerald-100/70 text-emerald-800"
+                        // --- START OF MODIFIED SECTION ---
+                        currentIsVisible // Use currentIsVisible for styling
+                          ? // --- END OF MODIFIED SECTION ---
+                            "bg-emerald-100/70 text-emerald-800"
                           : "bg-gray-100 text-gray-600"
                       )}
                     >
-                      {answer.isVisible ? (
+                      {/* --- START OF MODIFIED SECTION --- */}
+                      {currentIsVisible ? ( // Use currentIsVisible for icon and text
                         <Eye className="h-3.5 w-3.5" />
                       ) : (
                         <EyeOff className="h-3.5 w-3.5" />
                       )}
                       <span className="font-medium whitespace-nowrap" dir="rtl">
-                        {answer.isVisible ? "גלוי למועמדים" : "מוסתר"}
+                        {currentIsVisible ? "גלוי למועמדים" : "מוסתר"}
                       </span>
+                      {/* --- END OF MODIFIED SECTION --- */}
                     </div>
                   </TooltipTrigger>
                   <TooltipContent side="top" dir="rtl">
                     <p>
-                      {answer.isVisible
-                        ? "תשובה זו גלויה למועמדים פוטנציאליים"
+                      {/* --- START OF MODIFIED SECTION --- */}
+                      {currentIsVisible // Use currentIsVisible for tooltip content
+                        ? // --- END OF MODIFIED SECTION ---
+                          "תשובה זו גלויה למועמדים פוטנציאליים"
                         : "תשובה זו מוסתרת וגלויה רק לך ולשדכנים"}
                     </p>
                   </TooltipContent>
@@ -192,7 +222,9 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
 
               {isEditingGlobally && (
                 <Switch
-                  checked={answer.isVisible ?? true}
+                  // --- START OF MODIFIED SECTION ---
+                  checked={currentIsVisible} // Control Switch with local state
+                  // --- END OF MODIFIED SECTION ---
                   onCheckedChange={handleVisibilityChange}
                   disabled={isSaving}
                   className="data-[state=checked]:bg-emerald-500 data-[state=unchecked]:bg-gray-300 transform scale-90"
@@ -384,12 +416,7 @@ const WorldSection: React.FC<WorldSectionProps> = ({
 // --- QuestionnaireResponsesSection Component ---
 const QuestionnaireResponsesSection: React.FC<
   QuestionnaireResponsesSectionProps
-> = ({
-  questionnaire,
-  onUpdate,
-  isEditable = false,
-  // questionnaireUrl, // <-- אין צורך לקבל את ה-prop הזה יותר
-}) => {
+> = ({ questionnaire, onUpdate, isEditable = false }) => {
   const [isEditingGlobally, setIsEditingGlobally] = useState(false);
 
   const worldsWithAnswers = useMemo(() => {
@@ -416,16 +443,21 @@ const QuestionnaireResponsesSection: React.FC<
         <Book className="h-10 w-10 mx-auto mb-3 opacity-50 text-gray-400" />
         <p className="font-medium">לא מולא שאלון עבור פרופיל זה.</p>
         <p className="text-sm mt-1">אין תשובות להציג.</p>
-        {/* --- START OF MODIFIED SECTION --- */}
         <div className="mt-6">
-          <Button asChild variant="default" className="bg-cyan-600 hover:bg-cyan-700">
-            <Link href={QUESTIONNAIRE_URL} className="flex items-center gap-1.5">
+          <Button
+            asChild
+            variant="default"
+            className="bg-cyan-600 hover:bg-cyan-700"
+          >
+            <Link
+              href={QUESTIONNAIRE_URL}
+              className="flex items-center gap-1.5"
+            >
               מלא את השאלון
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
         </div>
-        {/* --- END OF MODIFIED SECTION --- */}
       </Card>
     );
   }
@@ -458,41 +490,40 @@ const QuestionnaireResponsesSection: React.FC<
             </div>
 
             <div className="flex flex-col sm:flex-row items-center gap-2 self-end sm:self-center">
-              {/* --- START OF MODIFIED SECTION --- */}
               <Button
                 asChild
                 variant="outline"
                 size="sm"
                 className="rounded-full px-4 py-2 text-xs sm:text-sm"
               >
-                <Link href={QUESTIONNAIRE_URL} className="flex items-center gap-1.5">
+                <Link
+                  href={QUESTIONNAIRE_URL}
+                  className="flex items-center gap-1.5"
+                >
                   עבור לשאלון
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
-              {/* --- END OF MODIFIED SECTION --- */}
-              {isEditable &&
-                hasAnyAnswers &&
-                onUpdate && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsEditingGlobally(!isEditingGlobally)}
-                    className="gap-1.5 rounded-full px-4 py-2 text-xs sm:text-sm"
-                  >
-                    {isEditingGlobally ? (
-                      <>
-                        <X className="h-4 w-4" />
-                        סיום עריכה
-                      </>
-                    ) : (
-                      <>
-                        <Pencil className="h-4 w-4" />
-                        עריכת תשובות
-                      </>
-                    )}
-                  </Button>
-                )}
+              {isEditable && hasAnyAnswers && onUpdate && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsEditingGlobally(!isEditingGlobally)}
+                  className="gap-1.5 rounded-full px-4 py-2 text-xs sm:text-sm"
+                >
+                  {isEditingGlobally ? (
+                    <>
+                      <Save className="h-4 w-4" />
+                      סיום עריכה
+                    </>
+                  ) : (
+                    <>
+                      <Pencil className="h-4 w-4" />
+                      עריכת תשובות
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
           </div>
         </CardHeader>
@@ -519,16 +550,21 @@ const QuestionnaireResponsesSection: React.FC<
           <p className="text-sm mt-1 text-gray-600">
             עדיין אין תשובות להציג, אך ניתן להמשיך למלא את השאלון.
           </p>
-          {/* --- START OF MODIFIED SECTION --- */}
           <div className="mt-6">
-            <Button asChild variant="default" className="bg-cyan-600 hover:bg-cyan-700 text-white">
-              <Link href={QUESTIONNAIRE_URL} className="flex items-center gap-1.5 px-6 py-2">
+            <Button
+              asChild
+              variant="default"
+              className="bg-cyan-600 hover:bg-cyan-700 text-white"
+            >
+              <Link
+                href={QUESTIONNAIRE_URL}
+                className="flex items-center gap-1.5 px-6 py-2"
+              >
                 המשך מילוי השאלון
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
           </div>
-          {/* --- END OF MODIFIED SECTION --- */}
         </div>
       )}
     </div>

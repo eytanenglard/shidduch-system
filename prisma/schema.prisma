@@ -483,6 +483,7 @@ enum AvailabilityStatus {
   AVAILABLE
   UNAVAILABLE
   DATING
+  PAUSED
   ENGAGED
   MARRIED
 }
