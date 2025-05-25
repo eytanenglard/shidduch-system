@@ -2,17 +2,18 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth"; // ודא שהנתיב נכון
-import prisma from "@/lib/prisma"; // ודא שהנתיב נכון
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
 import {
   Prisma,
   Gender,
   ServiceType,
   HeadCoveringType,
   KippahType,
-  AvailabilityStatus, // זה הטיפוס Enum
+  AvailabilityStatus,
+  Profile, // Import Prisma's Profile type
 } from "@prisma/client";
-import type { UserProfile } from "@/types/next-auth"; // ודא שהנתיב והטיפוס נכונים
+import type { UserProfile } from "@/types/next-auth";
 
 // Helper to convert to number or null
 const toNumberOrNull = (value: string | number | null | undefined): number | null => {
@@ -23,7 +24,24 @@ const toNumberOrNull = (value: string | number | null | undefined): number | nul
   return isNaN(num) ? null : num;
 };
 
-// Helper to convert to Date or null
+// Helper to convert to Date or error if invalid for required fields
+const toRequiredDate = (value: string | number | Date | null | undefined, fieldName: string): Date => {
+  if (value === null || value === undefined || String(value).trim() === "") {
+    throw new Error(`Required date field '${fieldName}' is missing or empty.`);
+  }
+  let date: Date;
+  if (value instanceof Date) {
+    date = value;
+  } else {
+    date = new Date(value);
+  }
+  if (isNaN(date.getTime())) {
+    throw new Error(`Invalid date value for required field '${fieldName}'.`);
+  }
+  return date;
+};
+
+// Helper to convert to Date or null for optional fields
 const toDateOrNull = (value: string | number | Date | null | undefined): Date | null => {
   if (value === null || value === undefined || String(value).trim() === "") {
     return null;
@@ -66,9 +84,10 @@ export async function PUT(req: NextRequest) {
       );
     }
 
+    // Ensure all fields from UserProfile that can be updated are destructured
     const {
       gender,
-      birthDate, // שים לב: birthDate הוא חובה (DateTime) בסכמה שלך
+      birthDate,
       nativeLanguage,
       additionalLanguages,
       height,
@@ -94,9 +113,9 @@ export async function PUT(req: NextRequest) {
       serviceDetails,
       headCovering,
       kippahType,
-      hasChildrenFromPrevious,
+      hasChildrenFromPrevious, // This is for the user themselves
       profileCharacterTraits,
-      profileHobbies,
+      profileHobbies, // User's own hobbies
       aliyaCountry,
       aliyaYear,
       preferredAgeMin,
@@ -108,21 +127,31 @@ export async function PUT(req: NextRequest) {
       preferredEducation,
       preferredOccupations,
       contactPreference,
+      preferredMaritalStatuses,
+      preferredOrigins,
+      preferredServiceTypes,
+      preferredHeadCoverings,
+      preferredKippahTypes,
+      preferredShomerNegiah,
+      // This is the preference about the partner's children status
+      preferredHasChildrenFromPrevious, // This field should now exist in Prisma schema
+      preferredCharacterTraits, // Preference for partner's traits
+      preferredHobbies,         // Preference for partner's hobbies (ensure distinct from profileHobbies if needed)
+      preferredAliyaStatus, // If you have this field for preferences
     } = body as Partial<UserProfile>;
 
     const dataToUpdate: Prisma.ProfileUpdateInput = {};
 
     // --- Personal & Demographic ---
     if (gender !== undefined) dataToUpdate.gender = gender as Gender;
-
     if (birthDate !== undefined) {
-      const bdValue = toDateOrNull(birthDate);
-      if (bdValue instanceof Date) { // `birthDate` הוא חובה בסכמה, אז נעדכן רק אם הערך תקין
-        dataToUpdate.birthDate = bdValue;
+      try {
+        dataToUpdate.birthDate = toRequiredDate(birthDate, "birthDate");
+      } catch (e) {
+         if (e instanceof Error) return NextResponse.json({ success: false, message: e.message }, { status: 400 });
+         return NextResponse.json({ success: false, message: "Invalid birthDate provided." }, { status: 400 });
       }
-      // אם bdValue הוא null (קלט לא תקין), השדה לא יתעדכן. אפשר להוסיף החזרת שגיאה אם רוצים.
     }
-
     if (nativeLanguage !== undefined) dataToUpdate.nativeLanguage = emptyStringToNull(nativeLanguage);
     if (additionalLanguages !== undefined) dataToUpdate.additionalLanguages = additionalLanguages || [];
     if (height !== undefined) dataToUpdate.height = toNumberOrNull(height);
@@ -131,61 +160,54 @@ export async function PUT(req: NextRequest) {
     if (aliyaCountry !== undefined) dataToUpdate.aliyaCountry = emptyStringToNull(aliyaCountry);
     if (aliyaYear !== undefined) dataToUpdate.aliyaYear = toNumberOrNull(aliyaYear);
 
-    // --- Marital Status & Background ---
+    // --- Marital Status & Background (User's own) ---
     if (maritalStatus !== undefined) dataToUpdate.maritalStatus = emptyStringToNull(maritalStatus);
-    if (hasChildrenFromPrevious !== undefined) dataToUpdate.hasChildrenFromPrevious = hasChildrenFromPrevious;
+    if (hasChildrenFromPrevious !== undefined) dataToUpdate.hasChildrenFromPrevious = hasChildrenFromPrevious; // User's own
     if (parentStatus !== undefined) dataToUpdate.parentStatus = emptyStringToNull(parentStatus);
     if (siblings !== undefined) dataToUpdate.siblings = toNumberOrNull(siblings);
     if (position !== undefined) dataToUpdate.position = toNumberOrNull(position);
 
-    // --- Education, Occupation & Service ---
+    // --- Education, Occupation & Service (User's own) ---
     if (educationLevel !== undefined) dataToUpdate.educationLevel = emptyStringToNull(educationLevel);
     if (education !== undefined) dataToUpdate.education = emptyStringToNull(education);
     if (occupation !== undefined) dataToUpdate.occupation = emptyStringToNull(occupation);
     if (serviceType !== undefined) dataToUpdate.serviceType = emptyStringToNull(serviceType) as ServiceType | null;
     if (serviceDetails !== undefined) dataToUpdate.serviceDetails = emptyStringToNull(serviceDetails);
 
-    // --- Religion & Lifestyle ---
+    // --- Religion & Lifestyle (User's own) ---
     if (religiousLevel !== undefined) dataToUpdate.religiousLevel = emptyStringToNull(religiousLevel);
     if (shomerNegiah !== undefined) dataToUpdate.shomerNegiah = shomerNegiah;
 
-    const currentGenderForLogic = gender !== undefined ? gender : (await prisma.profile.findUnique({ where: { userId }, select: { gender: true } }))?.gender;
+    const existingProfileMinimal = await prisma.profile.findUnique({ where: { userId }, select: { gender: true }});
+    const currentGenderForLogic = gender !== undefined ? gender : existingProfileMinimal?.gender;
 
     if (currentGenderForLogic === Gender.FEMALE) {
         if (headCovering !== undefined) dataToUpdate.headCovering = emptyStringToNull(headCovering) as HeadCoveringType | null;
-        if (gender !== undefined && gender === Gender.FEMALE) {
-            dataToUpdate.kippahType = null;
-        } else if (body.hasOwnProperty('kippahType') && kippahType === null) {
-            dataToUpdate.kippahType = null;
-        }
+        if (gender !== undefined && gender === Gender.FEMALE) dataToUpdate.kippahType = null;
+        else if (body.hasOwnProperty('kippahType') && kippahType === null) dataToUpdate.kippahType = null;
     } else if (currentGenderForLogic === Gender.MALE) {
         if (kippahType !== undefined) dataToUpdate.kippahType = emptyStringToNull(kippahType) as KippahType | null;
-        if (gender !== undefined && gender === Gender.MALE) {
-            dataToUpdate.headCovering = null;
-        } else if (body.hasOwnProperty('headCovering') && headCovering === null) {
-            dataToUpdate.headCovering = null;
-        }
+        if (gender !== undefined && gender === Gender.MALE) dataToUpdate.headCovering = null;
+        else if (body.hasOwnProperty('headCovering') && headCovering === null) dataToUpdate.headCovering = null;
     } else {
         if (gender !== undefined && gender === null) {
-           dataToUpdate.headCovering = null;
-           dataToUpdate.kippahType = null;
+           dataToUpdate.headCovering = null; dataToUpdate.kippahType = null;
         } else {
             if (headCovering !== undefined) dataToUpdate.headCovering = emptyStringToNull(headCovering) as HeadCoveringType | null;
             if (kippahType !== undefined) dataToUpdate.kippahType = emptyStringToNull(kippahType) as KippahType | null;
         }
     }
-    
     if (preferredMatchmakerGender !== undefined) dataToUpdate.preferredMatchmakerGender = emptyStringToNull(preferredMatchmakerGender) as Gender | null;
 
-    // --- Traits & Hobbies ---
+    // --- Traits & Hobbies (User's own) ---
     if (profileCharacterTraits !== undefined) dataToUpdate.profileCharacterTraits = profileCharacterTraits || [];
-    if (profileHobbies !== undefined) dataToUpdate.profileHobbies = profileHobbies || [];
+    if (profileHobbies !== undefined) dataToUpdate.profileHobbies = profileHobbies || []; // User's own hobbies
 
     // --- About & Additional Info ---
     if (about !== undefined) dataToUpdate.about = emptyStringToNull(about);
     if (matchingNotes !== undefined) dataToUpdate.matchingNotes = emptyStringToNull(matchingNotes);
     
-    // --- Preferences (related to matching) ---
+    // --- Preferences (related to matching partner) ---
     if (preferredAgeMin !== undefined) dataToUpdate.preferredAgeMin = toNumberOrNull(preferredAgeMin);
     if (preferredAgeMax !== undefined) dataToUpdate.preferredAgeMax = toNumberOrNull(preferredAgeMax);
     if (preferredHeightMin !== undefined) dataToUpdate.preferredHeightMin = toNumberOrNull(preferredHeightMin);
@@ -195,45 +217,42 @@ export async function PUT(req: NextRequest) {
     if (preferredEducation !== undefined) dataToUpdate.preferredEducation = preferredEducation || [];
     if (preferredOccupations !== undefined) dataToUpdate.preferredOccupations = preferredOccupations || [];
     if (contactPreference !== undefined) dataToUpdate.contactPreference = emptyStringToNull(contactPreference);
+    if (preferredMaritalStatuses !== undefined) dataToUpdate.preferredMaritalStatuses = preferredMaritalStatuses || [];
+    if (preferredOrigins !== undefined) dataToUpdate.preferredOrigins = preferredOrigins || [];
+    if (preferredServiceTypes !== undefined) dataToUpdate.preferredServiceTypes = preferredServiceTypes || [];
+    if (preferredHeadCoverings !== undefined) dataToUpdate.preferredHeadCoverings = preferredHeadCoverings || [];
+    if (preferredKippahTypes !== undefined) dataToUpdate.preferredKippahTypes = preferredKippahTypes || [];
+    if (preferredShomerNegiah !== undefined) dataToUpdate.preferredShomerNegiah = emptyStringToNull(preferredShomerNegiah); // Assuming it's a string like "yes", "no" that needs to be nullable
     
+    // This is the CRITICAL FIX: Use the correct field name that exists in Prisma schema
+    if (preferredHasChildrenFromPrevious !== undefined) {
+      dataToUpdate.preferredHasChildrenFromPrevious = preferredHasChildrenFromPrevious; // This should now work if field added to schema
+    }
+
+    if (preferredCharacterTraits !== undefined) dataToUpdate.preferredCharacterTraits = preferredCharacterTraits || []; // Preference for partner
+    if (preferredHobbies !== undefined) dataToUpdate.preferredHobbies = preferredHobbies || []; // Preference for partner's hobbies
+    if (preferredAliyaStatus !== undefined) dataToUpdate.preferredAliyaStatus = emptyStringToNull(preferredAliyaStatus);
+
     // --- Profile Management ---
     if (isProfileVisible !== undefined) dataToUpdate.isProfileVisible = isProfileVisible;
-
     if (availabilityStatus !== undefined) {
       const statusValue = emptyStringToNull(availabilityStatus);
-      if (statusValue === null) {
-        // ברירת מחדל אם נשלח ריק או null
-        dataToUpdate.availabilityStatus = "AVAILABLE" as AvailabilityStatus; // השתמש במחרוזת ישירות
-      } else {
-        // ודא שהערך הוא אחד מהערכים החוקיים של ה-enum (אופציונלי, לחיזוק הוולידציה)
-        // const validStatuses: string[] = Object.values(AvailabilityStatus); // זה לא יעבוד ישירות עם הטיפוס
-        // אם אתה רוצה ולידציה, תצטרך להגדיר מערך של מחרוזות חוקיות
-        dataToUpdate.availabilityStatus = statusValue as AvailabilityStatus;
-      }
-      // עדכן availabilityUpdatedAt אם availabilityStatus משתנה, אלא אם הקליינט שלח תאריך ספציפי
+      dataToUpdate.availabilityStatus = (statusValue === null ? "AVAILABLE" : statusValue) as AvailabilityStatus;
       if (!body.hasOwnProperty('availabilityUpdatedAt') || availabilityUpdatedAt === undefined) {
         dataToUpdate.availabilityUpdatedAt = new Date();
       }
     }
-
     if (availabilityNote !== undefined) dataToUpdate.availabilityNote = emptyStringToNull(availabilityNote);
-
-    // עדכן availabilityUpdatedAt אם נשלח במפורש מהקליינט
-    // (הלוגיקה למעלה כבר מכסה את המקרה שבו הוא משתנה עקב שינוי ב-availabilityStatus)
     if (body.hasOwnProperty('availabilityUpdatedAt') && availabilityUpdatedAt !== undefined) {
-        const auDate = toDateOrNull(availabilityUpdatedAt);
-        // עבור שדה DateTime?, הקצאת null היא תקינה כדי לאפס אותו.
-        dataToUpdate.availabilityUpdatedAt = auDate;
+        dataToUpdate.availabilityUpdatedAt = toDateOrNull(availabilityUpdatedAt);
     }
-    
-    // עדכון lastActive (DateTime?)
-    dataToUpdate.lastActive = new Date(); // תמיד יהיה Date תקין, לא null.
+    dataToUpdate.lastActive = new Date();
 
     // --- Perform the database update ---
-    let updatedProfileFromDb;
+    let updatedProfileRecord: Profile | null = null;
     if (Object.keys(dataToUpdate).length > 0) {
       try {
-        updatedProfileFromDb = await prisma.profile.update({
+        updatedProfileRecord = await prisma.profile.update({
           where: { userId: userId },
           data: dataToUpdate,
         });
@@ -245,42 +264,88 @@ export async function PUT(req: NextRequest) {
         throw dbError;
       }
     } else {
-      updatedProfileFromDb = await prisma.profile.findUnique({ where: { userId } });
-      if (!updatedProfileFromDb) {
-        return NextResponse.json({ success: false, message: "Profile not found." }, { status: 404 });
-      }
+      updatedProfileRecord = await prisma.profile.findUnique({ where: { userId } });
     }
 
-    const refreshedUser = await prisma.user.findUnique({
+    if (!updatedProfileRecord) {
+      return NextResponse.json({ success: false, message: "Profile not found or no update performed." }, { status: 404 });
+    }
+
+    const refreshedUserWithProfile = await prisma.user.findUnique({
       where: { id: userId },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        profile: true,
-      }
+      include: { profile: true }
     });
 
-    if (!refreshedUser || !refreshedUser.profile) {
+    if (!refreshedUserWithProfile || !refreshedUserWithProfile.profile) {
       console.error("Failed to retrieve user or profile after update for userId:", userId);
-      return NextResponse.json(
-        { success: false, message: "Failed to retrieve updated profile after update." },
-        { status: 500 }
-      );
+      return NextResponse.json({ success: false, message: "Failed to retrieve updated profile after update." }, { status: 500 });
     }
+    
+    const dbProfile = refreshedUserWithProfile.profile;
 
+    // Construct the response, ensuring all UserProfile fields are mapped
     const responseUserProfile: UserProfile = {
-      ...refreshedUser.profile,
-      birthDate: new Date(refreshedUser.profile.birthDate), // Prisma מחזיר Date, המרה ל-Date מבטיחה שזה אכן אובייקט Date
-      createdAt: new Date(refreshedUser.profile.createdAt),
-      updatedAt: new Date(refreshedUser.profile.updatedAt),
-      lastActive: refreshedUser.profile.lastActive ? new Date(refreshedUser.profile.lastActive) : null,
-      availabilityUpdatedAt: refreshedUser.profile.availabilityUpdatedAt ? new Date(refreshedUser.profile.availabilityUpdatedAt) : null,
+      id: dbProfile.id,
+      userId: dbProfile.userId,
+      gender: dbProfile.gender, // Assuming Prisma.Profile.gender is Gender, not Gender | null
+      birthDate: new Date(dbProfile.birthDate),
+      nativeLanguage: dbProfile.nativeLanguage || undefined,
+      additionalLanguages: dbProfile.additionalLanguages || [],
+      height: dbProfile.height ?? null,
+      maritalStatus: dbProfile.maritalStatus || undefined,
+      occupation: dbProfile.occupation || "",
+      education: dbProfile.education || "",
+      educationLevel: dbProfile.educationLevel || undefined,
+      city: dbProfile.city || "",
+      origin: dbProfile.origin || "",
+      religiousLevel: dbProfile.religiousLevel || undefined,
+      about: dbProfile.about || "",
+      parentStatus: dbProfile.parentStatus || undefined,
+      siblings: dbProfile.siblings ?? null,
+      position: dbProfile.position ?? null,
+      isProfileVisible: dbProfile.isProfileVisible,
+      preferredMatchmakerGender: dbProfile.preferredMatchmakerGender || undefined,
+      availabilityStatus: dbProfile.availabilityStatus,
+      availabilityNote: dbProfile.availabilityNote || "",
+      availabilityUpdatedAt: dbProfile.availabilityUpdatedAt ? new Date(dbProfile.availabilityUpdatedAt) : null,
+      matchingNotes: dbProfile.matchingNotes || "",
+      shomerNegiah: dbProfile.shomerNegiah ?? undefined,
+      serviceType: dbProfile.serviceType || undefined,
+      serviceDetails: dbProfile.serviceDetails || "",
+      headCovering: dbProfile.headCovering || undefined,
+      kippahType: dbProfile.kippahType || undefined,
+      hasChildrenFromPrevious: dbProfile.hasChildrenFromPrevious ?? undefined, // User's own
+      profileCharacterTraits: dbProfile.profileCharacterTraits || [], // User's own
+      profileHobbies: dbProfile.profileHobbies || [],                 // User's own
+      aliyaCountry: dbProfile.aliyaCountry || "",
+      aliyaYear: dbProfile.aliyaYear ?? null,
+      preferredAgeMin: dbProfile.preferredAgeMin ?? null,
+      preferredAgeMax: dbProfile.preferredAgeMax ?? null,
+      preferredHeightMin: dbProfile.preferredHeightMin ?? null,
+      preferredHeightMax: dbProfile.preferredHeightMax ?? null,
+      preferredReligiousLevels: dbProfile.preferredReligiousLevels || [],
+      preferredLocations: dbProfile.preferredLocations || [],
+      preferredEducation: dbProfile.preferredEducation || [],
+      preferredOccupations: dbProfile.preferredOccupations || [],
+      contactPreference: dbProfile.contactPreference || undefined,
+      preferredMaritalStatuses: dbProfile.preferredMaritalStatuses || [],
+      preferredOrigins: dbProfile.preferredOrigins || [],
+      preferredServiceTypes: (dbProfile.preferredServiceTypes as ServiceType[]) || [], // Cast if Prisma returns string[] but UserProfile expects ServiceType[]
+      preferredHeadCoverings: (dbProfile.preferredHeadCoverings as HeadCoveringType[]) || [],
+      preferredKippahTypes: (dbProfile.preferredKippahTypes as KippahType[]) || [],
+      preferredShomerNegiah: dbProfile.preferredShomerNegiah || undefined, // Assuming it's string in Prisma (like "yes", "no")
+      preferredHasChildrenFromPrevious: dbProfile.preferredHasChildrenFromPrevious ?? undefined, // Preference, should exist now
+      preferredCharacterTraits: dbProfile.preferredCharacterTraits || [], // Partner preference
+      preferredHobbies: dbProfile.preferredHobbies || [],                 // Partner preference
+      preferredAliyaStatus: dbProfile.preferredAliyaStatus || undefined,
+      createdAt: new Date(dbProfile.createdAt),
+      updatedAt: new Date(dbProfile.updatedAt),
+      lastActive: dbProfile.lastActive ? new Date(dbProfile.lastActive) : null,
       user: {
-        firstName: refreshedUser.firstName,
-        lastName: refreshedUser.lastName,
-        email: refreshedUser.email,
+        id: refreshedUserWithProfile.id,
+        firstName: refreshedUserWithProfile.firstName,
+        lastName: refreshedUserWithProfile.lastName,
+        email: refreshedUserWithProfile.email,
       },
     };
 
@@ -291,10 +356,9 @@ export async function PUT(req: NextRequest) {
 
   } catch (error) {
     console.error('Profile update route error:', error);
-    
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === 'P2002' && error.meta?.target) {
-         return NextResponse.json({ success: false, message: `Error: A field violates a unique constraint (${error.meta.target}).` }, { status: 409 });
+         return NextResponse.json({ success: false, message: `Error: A field violates a unique constraint (${JSON.stringify(error.meta.target)}).` }, { status: 409 });
       }
       if (error.code === 'P2025') { 
         return NextResponse.json({ success: false, message: 'Record to update or affect not found.' }, { status: 404 });

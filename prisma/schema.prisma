@@ -110,6 +110,8 @@ model Verification {
   @@index([token, type, status])
 }
 
+// model Profile in your schema.prisma
+
 model Profile {
   id                        String             @id @default(cuid())
   userId                    String             @unique
@@ -118,40 +120,56 @@ model Profile {
   nativeLanguage            String?
   additionalLanguages       String[]
   height                    Int?
-  maritalStatus             String?
+  maritalStatus             String? // Marital status of the user
   occupation                String?
   education                 String?
   educationLevel            String?
   city                      String?
-  origin                    String?
-  religiousLevel            String?
+  origin                    String? // Origin of the user
+  religiousLevel            String? // Religious level of the user
   shomerNegiah              Boolean?
-  serviceType               ServiceType?
+  serviceType               ServiceType? // Service type of the user
   serviceDetails            String?
   headCovering              HeadCoveringType?
   kippahType                KippahType?
   hasChildrenFromPrevious   Boolean?           @default(false)
-  profileCharacterTraits    String[]           @default([])
-  profileHobbies            String[]           @default([])
+  profileCharacterTraits    String[]           @default([]) // User's own traits
+  profileHobbies            String[]           @default([]) // User's own hobbies
   aliyaCountry              String?
   aliyaYear                 Int?
   about                     String?
   parentStatus              String?
   siblings                  Int?
   position                  Int?
+
+  // --- Existing Preference Fields ---
   preferredAgeMin           Int?
   preferredAgeMax           Int?
   preferredHeightMin        Int?
   preferredHeightMax        Int?
   preferredReligiousLevels  String[]           @default([])
   preferredLocations        String[]           @default([])
-  preferredEducation        String[]           @default([])
-  preferredOccupations      String[]           @default([])
+  preferredEducation        String[]           @default([]) // Corresponds to educationPreferenceOptions
+  preferredOccupations      String[]           @default([]) // Corresponds to occupationPreferenceOptions
   contactPreference         String?
+ preferredHasChildrenFromPrevious   Boolean? @map("preferred_has_children_from_previous")
+ 
+  // --- New Preference Fields ---
+  preferredMaritalStatuses  String[]           @default([]) // Preferred marital status(es) of the partner
+  preferredShomerNegiah     String?            // e.g., "yes", "no", "flexible"
+  preferredPartnerHasChildren String?          // e.g., "yes_ok", "no_preferred", "does_not_matter"
+  preferredOrigins          String[]           @default([]) // Preferred origin(s) of the partner
+  preferredServiceTypes     ServiceType[]      @default([]) // Preferred service type(s) of the partner
+  preferredHeadCoverings    HeadCoveringType[] @default([]) // Preferred head covering(s) if partner is female
+  preferredKippahTypes      KippahType[]       @default([]) // Preferred kippah type(s) if partner is male
+  preferredCharacterTraits  String[]           @default([]) // Preferred character trait(s) of the partner
+  preferredHobbies          String[]           @default([]) // Preferred hobbies of the partner
+  preferredAliyaStatus      String?            // e.g., "oleh", "tzabar", "no_preference"
+
   isProfileVisible          Boolean            @default(true)
   preferredMatchmakerGender Gender?
-  matchingNotes             String?
-  verifiedBy                String? // Foreign key field for verifiedByMatchmaker
+  matchingNotes             String? // General notes about the desired match
+  verifiedBy                String?
   availabilityStatus        AvailabilityStatus @default(AVAILABLE)
   availabilityNote          String?
   availabilityUpdatedAt     DateTime?
@@ -159,8 +177,8 @@ model Profile {
   updatedAt                 DateTime           @updatedAt
   lastActive                DateTime?
 
-  user                 User  @relation(fields: [userId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
-  verifiedByMatchmaker User? @relation("VerifiedByMatchmaker", fields: [verifiedBy], references: [id], onDelete: SetNull) // ❗️ הוספתי/שיניתי (ודא ש-verifiedBy אופציונלי)
+  user                 User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verifiedByMatchmaker User? @relation("VerifiedByMatchmaker", fields: [verifiedBy], references: [id], onDelete: SetNull)
 }
 
 model Meeting {

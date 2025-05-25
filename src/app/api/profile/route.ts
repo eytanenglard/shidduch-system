@@ -1,13 +1,11 @@
-// --- START OF FILE route.ts (Updated) ---
+// File: app/api/profile/route.ts (GET handler)
+
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { AvailabilityStatus } from "@prisma/client"; // Using Prisma enums directly if possible, or your defined types
-import { UserProfile } from "@/types/next-auth";
-// It's often better to use Prisma's generated types for UserProfile if it includes relations
-// or define a more specific type for the response payload.
-// For this example, I'll assume your imported UserProfile type is sufficient for the structure.
+import { AvailabilityStatus, Gender, HeadCoveringType, KippahType, ServiceType } from "@prisma/client"; // Import enums if needed for casting
+import type { UserProfile } from "@/types/next-auth";
 
 export async function GET(req: Request) {
   try {
@@ -18,38 +16,36 @@ export async function GET(req: Request) {
     
     if (!session?.user?.email) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { success: false, message: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    // Determine the target user for the query
     let targetUserId: string;
     if (requestedUserId) {
-      // If a specific userId is requested (e.g., by a matchmaker)
-      // Here you might add authorization logic to check if the session.user has permission
-      // to view requestedUserId's profile. For now, assuming it's allowed.
       targetUserId = requestedUserId;
     } else if (session.user.id) {
-      // If no specific userId, fetch the profile of the logged-in user
       targetUserId = session.user.id;
     } else {
-      // Fallback if session.user.id is not available for some reason (should not happen with proper auth)
        return NextResponse.json(
-        { error: 'User ID not found in session' },
+        { success: false, message: 'User ID not found in session' },
         { status: 400 }
       );
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: targetUserId }, // Query by the determined target user's ID
-      include: {
-        profile: { // Select only the necessary fields from the profile
+    const userWithProfile = await prisma.user.findUnique({
+      where: { id: targetUserId },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        profile: {
           select: {
             id: true,
-            // Personal Information & Demographics
+            userId: true,
             gender: true,
-            birthDate: true,
+            birthDate: true, // This is DateTime in Prisma
             nativeLanguage: true,
             additionalLanguages: true,
             height: true,
@@ -57,191 +53,180 @@ export async function GET(req: Request) {
             origin: true,
             aliyaCountry: true,
             aliyaYear: true,
-            
-            // Marital Status & Background
             maritalStatus: true,
             hasChildrenFromPrevious: true,
             parentStatus: true,
             siblings: true,
             position: true,
-
-            // Education, Occupation & Service
             educationLevel: true,
-            education: true, // Details of education
+            education: true,
             occupation: true,
             serviceType: true,
             serviceDetails: true,
-
-            // Religion & Lifestyle
             religiousLevel: true,
             shomerNegiah: true,
-            headCovering: true, // For women
-            kippahType: true,   // For men
-            
-            // Character Traits & Hobbies
+            headCovering: true,
+            kippahType: true,
             profileCharacterTraits: true,
             profileHobbies: true,
-
-            // About & Additional Info
             about: true,
-            matchingNotes: true, // Notes for matchmaker
-
-            // Preferences (Assuming these are part of UserProfile model)
+            matchingNotes: true,
             preferredAgeMin: true,
             preferredAgeMax: true,
             preferredHeightMin: true,
             preferredHeightMax: true,
             preferredReligiousLevels: true,
             preferredLocations: true,
-            preferredEducation: true, // This was an array of strings in your ProfileSection
-            preferredOccupations: true, // This was an array of strings
-
-            // Contact & Profile Settings
-            contactPreference: true, // This was a single string/enum in ProfileSection
+            preferredEducation: true,
+            preferredOccupations: true,
+            contactPreference: true,
             isProfileVisible: true,
             preferredMatchmakerGender: true,
-            
-            // Availability
             availabilityStatus: true,
             availabilityNote: true,
             availabilityUpdatedAt: true,
-            
-            // System Fields
-            userId: true, // Foreign key to user
+            preferredMaritalStatuses: true,
+            preferredOrigins: true,
+            preferredServiceTypes: true,
+            preferredHeadCoverings: true,
+            preferredKippahTypes: true,
+            preferredShomerNegiah: true,
+            preferredHasChildrenFromPrevious: true,
+            preferredCharacterTraits: true, // Assuming this is for partner preferences in Prisma model
+            preferredHobbies: true,         // Assuming this is for partner preferences in Prisma model
+            preferredAliyaStatus: true,     // Assuming this is for partner preferences in Prisma model
             createdAt: true,
             updatedAt: true,
             lastActive: true,
-
+            verifiedBy: true, // Added this field as it was in UserProfile Omit
           }
         },
-        images: { // Select fields for images if needed, or true if all are needed
+        images: {
           select: {
             id: true,
             url: true,
             isMain: true,
             createdAt: true,
-            // Add other image fields you need
+            cloudinaryPublicId: true, // Ensure all UserImage fields are selected
+            updatedAt: true,
           }
         }
       }
     });
 
-    if (!user) {
+    if (!userWithProfile) {
       return NextResponse.json(
-        { error: 'User not found' },
+        { success: false, message: 'User not found' },
         { status: 404 }
       );
     }
 
-    // user.profile will now only contain the fields selected above.
-    // The type assertion might still be needed if Prisma's inferred type for `user.profile`
-    // (after select) doesn't perfectly match your `UserProfile` type from `@/types/next-auth`.
-    // However, with a `select` clause, user.profile should be much closer to what you need.
-    const rawProfileData = user.profile;
+    const dbProfile = userWithProfile.profile;
 
-    if (!rawProfileData) {
+    if (!dbProfile) { // If dbProfile is null, it means no profile record exists.
+        // This is a critical data issue if a profile is expected.
+        // Depending on your logic, you might return an error or a UserProfile with defaults for a non-existent profile.
+        // For now, let's assume if birthDate is required in UserProfile, dbProfile must exist and have it.
+        console.error(`Profile data not found for user ID: ${targetUserId}, but UserProfile type requires fields like birthDate.`);
         return NextResponse.json(
-            { error: 'Profile data not found for this user' },
-            { status: 404 }
+            { success: false, message: 'Profile data integrity issue: Core profile data missing.' },
+            { status: 500 } // Or 404 if it's acceptable for a profile to not exist
         );
     }
 
-    // Construct the final profile object to be sent to the client.
-    // This ensures that even if a field is null/undefined from DB,
-    // it gets a default value expected by the client if necessary.
-    // It also attaches the basic user info.
+    // If birthDate is NOT nullable in Prisma (DateTime, not DateTime?), then dbProfile.birthDate will be a Date object.
+    // If it IS nullable in Prisma (DateTime?), then you need to decide if UserProfile.birthDate can be null.
+    // Given the error, UserProfile.birthDate CANNOT be null.
+    // So, dbProfile.birthDate from Prisma MUST be a non-null Date.
+    if (!dbProfile.birthDate) {
+        // This case should ideally not happen if birthDate is non-nullable in Prisma's Profile model
+        // and a profile record exists.
+        console.error(`birthDate is null or undefined for profile ID: ${dbProfile.id}, which is not allowed by UserProfile type.`);
+        return NextResponse.json(
+            { success: false, message: 'Data integrity issue: birthDate is missing for the profile.' },
+            { status: 500 }
+        );
+    }
+
+
     const profileResponseData: UserProfile = {
-      ...rawProfileData, // Spread all selected fields from rawProfileData
-      
-      // Explicitly set defaults or transformations if needed, though `select` handles missing fields well.
-      // Most of these will come directly from rawProfileData due to the `select`
-      gender: rawProfileData.gender || undefined, // Or null, depending on your type
-      birthDate: rawProfileData.birthDate || null,
-      nativeLanguage: rawProfileData.nativeLanguage || undefined,
-      additionalLanguages: rawProfileData.additionalLanguages || [],
-      height: rawProfileData.height ?? null,
-      city: rawProfileData.city || "", // Default to empty string if client expects string
-      origin: rawProfileData.origin || "",
-      aliyaCountry: rawProfileData.aliyaCountry || "",
-      aliyaYear: rawProfileData.aliyaYear || undefined,
-
-      maritalStatus: rawProfileData.maritalStatus || undefined,
-      hasChildrenFromPrevious: rawProfileData.hasChildrenFromPrevious ?? undefined, // Use ?? for booleans if null means undefined
-      parentStatus: rawProfileData.parentStatus || undefined,
-      siblings: rawProfileData.siblings || undefined,
-      position: rawProfileData.position || undefined,
-
-      educationLevel: rawProfileData.educationLevel || undefined,
-      education: rawProfileData.education || "",
-      occupation: rawProfileData.occupation || "",
-      serviceType: rawProfileData.serviceType || undefined,
-      serviceDetails: rawProfileData.serviceDetails || "",
-
-      religiousLevel: rawProfileData.religiousLevel || undefined,
-      shomerNegiah: rawProfileData.shomerNegiah ?? undefined,
-      headCovering: rawProfileData.headCovering || undefined,
-      kippahType: rawProfileData.kippahType || undefined,
-
-      profileCharacterTraits: rawProfileData.profileCharacterTraits || [],
-      profileHobbies: rawProfileData.profileHobbies || [],
-
-      about: rawProfileData.about || "",
-      matchingNotes: rawProfileData.matchingNotes || "",
-
-      preferredAgeMin: rawProfileData.preferredAgeMin || undefined,
-      preferredAgeMax: rawProfileData.preferredAgeMax || undefined,
-      preferredHeightMin: rawProfileData.preferredHeightMin || undefined,
-      preferredHeightMax: rawProfileData.preferredHeightMax || undefined,
-      preferredReligiousLevels: rawProfileData.preferredReligiousLevels || [],
-      preferredLocations: rawProfileData.preferredLocations || [],
-      preferredEducation: rawProfileData.preferredEducation || [],
-      preferredOccupations: rawProfileData.preferredOccupations || [],
-
-      contactPreference: rawProfileData.contactPreference || undefined,
-      isProfileVisible: rawProfileData.isProfileVisible ?? true, // Default to true if null/undefined
-      preferredMatchmakerGender: rawProfileData.preferredMatchmakerGender || undefined,
-      
-      availabilityStatus: rawProfileData.availabilityStatus || AvailabilityStatus.AVAILABLE,
-      availabilityNote: rawProfileData.availabilityNote || "",
-      availabilityUpdatedAt: rawProfileData.availabilityUpdatedAt || null,
-      
-      // System and relational fields are already from rawProfileData
-      id: rawProfileData.id,
-      userId: rawProfileData.userId,
-      createdAt: rawProfileData.createdAt,
-      updatedAt: rawProfileData.updatedAt,
-      lastActive: rawProfileData.lastActive || null,
-
-      // User Information from the parent 'user' object
+      id: dbProfile.id,
+      userId: dbProfile.userId,
+      gender: dbProfile.gender, // Assuming dbProfile.gender is Gender, not Gender | null
+      birthDate: new Date(dbProfile.birthDate), // Directly use new Date() as dbProfile.birthDate is now guaranteed to be non-null
+      nativeLanguage: dbProfile.nativeLanguage || undefined,
+      additionalLanguages: dbProfile.additionalLanguages || [],
+      height: dbProfile.height ?? null,
+      city: dbProfile.city || "",
+      origin: dbProfile.origin || "",
+      aliyaCountry: dbProfile.aliyaCountry || "",
+      aliyaYear: dbProfile.aliyaYear ?? null,
+      maritalStatus: dbProfile.maritalStatus || undefined,
+      hasChildrenFromPrevious: dbProfile.hasChildrenFromPrevious ?? undefined,
+      parentStatus: dbProfile.parentStatus || undefined,
+      siblings: dbProfile.siblings ?? null,
+      position: dbProfile.position ?? null,
+      educationLevel: dbProfile.educationLevel || undefined,
+      education: dbProfile.education || "",
+      occupation: dbProfile.occupation || "",
+      serviceType: dbProfile.serviceType as ServiceType | null || undefined, // Cast if necessary
+      serviceDetails: dbProfile.serviceDetails || "",
+      religiousLevel: dbProfile.religiousLevel || undefined,
+      shomerNegiah: dbProfile.shomerNegiah ?? undefined,
+      headCovering: dbProfile.headCovering as HeadCoveringType | null || undefined, // Cast
+      kippahType: dbProfile.kippahType as KippahType | null || undefined,       // Cast
+      profileCharacterTraits: dbProfile.profileCharacterTraits || [],
+      profileHobbies: dbProfile.profileHobbies || [],
+      about: dbProfile.about || "",
+      matchingNotes: dbProfile.matchingNotes || "",
+      preferredAgeMin: dbProfile.preferredAgeMin ?? null,
+      preferredAgeMax: dbProfile.preferredAgeMax ?? null,
+      preferredHeightMin: dbProfile.preferredHeightMin ?? null,
+      preferredHeightMax: dbProfile.preferredHeightMax ?? null,
+      preferredReligiousLevels: dbProfile.preferredReligiousLevels || [],
+      preferredLocations: dbProfile.preferredLocations || [],
+      preferredEducation: dbProfile.preferredEducation || [],
+      preferredOccupations: dbProfile.preferredOccupations || [],
+      contactPreference: dbProfile.contactPreference || undefined,
+      isProfileVisible: dbProfile.isProfileVisible, // Assuming non-nullable boolean from Prisma
+      preferredMatchmakerGender: dbProfile.preferredMatchmakerGender as Gender | null || undefined, // Cast
+      availabilityStatus: dbProfile.availabilityStatus, // Assuming non-nullable enum from Prisma
+      availabilityNote: dbProfile.availabilityNote || "",
+      availabilityUpdatedAt: dbProfile.availabilityUpdatedAt ? new Date(dbProfile.availabilityUpdatedAt) : null,
+      preferredMaritalStatuses: dbProfile.preferredMaritalStatuses || [],
+      preferredOrigins: dbProfile.preferredOrigins || [],
+      preferredServiceTypes: (dbProfile.preferredServiceTypes as ServiceType[]) || [],
+      preferredHeadCoverings: (dbProfile.preferredHeadCoverings as HeadCoveringType[]) || [],
+      preferredKippahTypes: (dbProfile.preferredKippahTypes as KippahType[]) || [],
+      preferredShomerNegiah: dbProfile.preferredShomerNegiah || undefined, // This was string in your old UserProfile
+      preferredHasChildrenFromPrevious: dbProfile.preferredHasChildrenFromPrevious ?? undefined,
+      preferredCharacterTraits: dbProfile.preferredCharacterTraits || [], // Partner preference
+      preferredHobbies: dbProfile.preferredHobbies || [],                 // Partner preference
+      preferredAliyaStatus: dbProfile.preferredAliyaStatus || undefined,
+      verifiedBy: dbProfile.verifiedBy || undefined, // Added from Omit
+      createdAt: new Date(dbProfile.createdAt),
+      updatedAt: new Date(dbProfile.updatedAt),
+      lastActive: dbProfile.lastActive ? new Date(dbProfile.lastActive) : null,
       user: {
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        // Add other user fields if they exist and are needed, e.g., user.id
-        id: user.id, // Assuming user object has an id
+        id: userWithProfile.id,
+        firstName: userWithProfile.firstName,
+        lastName: userWithProfile.lastName,
+        email: userWithProfile.email,
       }
     };
     
-    // Ensure that the structure of profileResponseData matches your UserProfile type.
-    // The type assertion below is a safeguard, but ideally, the construction above ensures compatibility.
-    // const typedProfileResponseData = profileResponseData as UserProfile;
-
-
     return NextResponse.json({
       success: true,
-      profile: profileResponseData, // Send the carefully constructed profile
-      images: user.images // Images are already selected as needed
+      profile: profileResponseData,
+      images: userWithProfile.images || []
     });
 
   } catch (error) {
     console.error('Profile fetch error:', error);
-    // It's good practice to log the full error in development
-    // In production, you might want a more generic message or structured logging
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred while fetching profile.';
     return NextResponse.json(
-      { error: 'Internal server error', details: errorMessage },
+      { success: false, message: 'Internal server error', details: errorMessage },
       { status: 500 }
     );
   }
 }
-// --- END OF FILE route.ts (Updated) ---
