@@ -74,12 +74,11 @@ interface RegistrationContextType {
     lastName?: string;
   }) => void;
   initializeForCompletion: (userData: {
-    // Kept for explicit calls if needed
     email: string;
     firstName?: string | null;
     lastName?: string | null;
   }) => void;
-  initializeFromSession: (sessionUser: Session["user"]) => void; // New function
+  initializeFromSession: (sessionUser: Session["user"]) => void; // Uses Session["user"] type from next-auth
   proceedToEmailVerification: (email: string) => void;
   completeEmailVerification: () => void;
   exitEmailVerification: () => void;
@@ -159,6 +158,8 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
         console.log(
           "RegistrationContext: At BasicInfo (step 1). UI should trigger 'proceedToEmailVerification'."
         );
+        // If proceedToEmailVerification is called, it sets isVerifyingEmailCode to true.
+        // The UI then renders the verification step. nextStep should not advance the step counter here.
         return prev;
       }
 
@@ -182,10 +183,7 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
         };
       }
       if (prev.step > 0) {
-        // If coming back from CompleteStep (step 4)
         if (prev.step === 4) {
-          // If completing profile, previous step is OptionalInfo (3)
-          // If new registration, previous step is OptionalInfo (3)
           return { ...prev, step: 3 };
         }
         return { ...prev, step: prev.step - 1 };
@@ -198,7 +196,7 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
     setData((prev) => ({
       ...prev,
       step: stepNum,
-      isVerifyingEmailCode: false,
+      isVerifyingEmailCode: false, // Ensure email verification state is reset when jumping steps
       emailForVerification: null,
     }));
   }, []);
@@ -213,14 +211,13 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
       firstName?: string;
       lastName?: string;
     }) => {
-      // This is for NEW Google sign-ups that need to complete their profile
       setData({
         ...initialRegistrationData,
         email: googleUserData.email,
         firstName: googleUserData.firstName || "",
         lastName: googleUserData.lastName || "",
-        isGoogleSignup: true, // Mark as Google signup initiated flow
-        isCompletingProfile: true, // Google users need to complete profile details
+        isGoogleSignup: true,
+        isCompletingProfile: true,
         step: 2, // Start at PersonalDetails (step 2)
         isVerifyingEmailCode: false,
         emailForVerification: null,
@@ -235,18 +232,15 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
       firstName?: string | null;
       lastName?: string | null;
     }) => {
-      // Generic function to start profile completion, e.g., for existing email users
-      // after email verification, or if middleware sends an existing user here.
       setData((prevData) => ({
-        // Keep existing context data if any, then override
-        ...prevData,
-        ...initialRegistrationData, // Reset most things but allow some overrides
+        ...prevData, // Keep existing context data if any, then override
+        ...initialRegistrationData,
         email: userData.email,
         firstName: userData.firstName || "",
         lastName: userData.lastName || "",
         isCompletingProfile: true,
-        isGoogleSignup: false, // Assume not Google unless setGoogleSignup was called
-        step: 2, // Start profile completion at PersonalDetails (step 2)
+        isGoogleSignup: prevData.isGoogleSignup, // Preserve if it was already set by setGoogleSignup
+        step: 2,
         isVerifyingEmailCode: false,
         emailForVerification: null,
       }));
@@ -257,60 +251,70 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
   const initializeFromSession = useCallback(
     (sessionUser: Session["user"]) => {
       setData(() => {
-        // Always start from a predictable base, then apply session specifics
-        const isGoogleAccount =
-          sessionUser.accounts?.some((acc) => acc.provider === "google") ||
-          false;
+        // `sessionUser.accounts` is not available on the Session["user"] type
+        // as defined in your next-auth.d.ts.
+        // The determination of `isGoogleAccount` needs to be handled differently,
+        // e.g., by adding a specific flag to Session["user"] in your NextAuth session callback
+        // (based on token.accounts or token.provider in the JWT callback).
+        // For now, this is a placeholder. If this function is critical for Google users
+        // who have an existing session, this logic needs enhancement.
+        const isGoogleAccount = false; // Placeholder - adjust if you have another way to determine this
 
-        let baseState: RegistrationData = {
+        const baseState: RegistrationData = {
           ...initialRegistrationData,
-          email: sessionUser.email || "",
-          firstName: sessionUser.firstName || "",
-          lastName: sessionUser.lastName || "",
-          phone: sessionUser.phone || "",
+          email: sessionUser.email, // email is required on Session["user"]
+          firstName: sessionUser.firstName, // firstName is required
+          lastName: sessionUser.lastName, // lastName is required
+          phone: sessionUser.phone || "", // phone is optional (string | null | undefined)
         };
 
-        if (sessionUser.profile) {
+        // `sessionUser.profile` is not available on the Session["user"] type
+        // as defined in your next-auth.d.ts.
+        // Therefore, profile-specific fields (gender, birthDate, etc.)
+        // cannot be pre-filled from sessionUser here. They will retain
+        // their default values from initialRegistrationData.
+        // If you need to pre-fill these, `sessionUser` (i.e., Session["user"]) needs to include
+        // profile data. This requires updating `next-auth.d.ts` and your NextAuth `session` callback.
+        /*
+        // Example of how it would look IF profile was on sessionUser:
+        if (sessionUser.profile) { // This would require sessionUser.profile to exist and be typed
           baseState = {
             ...baseState,
-            gender: sessionUser.profile.gender || "",
-            birthDate: sessionUser.profile.birthDate
-              ? new Date(sessionUser.profile.birthDate)
-                  .toISOString()
-                  .split("T")[0]
-              : "",
-            maritalStatus: sessionUser.profile.maritalStatus || "",
-            height: sessionUser.profile.height ?? undefined,
-            occupation: sessionUser.profile.occupation || "",
-            education: sessionUser.profile.education || "",
+            // Ensure sessionUser.profile fields are accessed safely, e.g. sessionUser.profile.gender
+            // gender: sessionUser.profile.gender || "",
+            // birthDate: sessionUser.profile.birthDate
+            //   ? new Date(sessionUser.profile.birthDate).toISOString().split("T")[0]
+            //   : "",
+            // maritalStatus: sessionUser.profile.maritalStatus || "",
+            // height: sessionUser.profile.height ?? undefined,
+            // occupation: sessionUser.profile.occupation || "",
+            // education: sessionUser.profile.education || "",
           };
         }
+        */
 
         // Case 1: Email not verified (specific to Email/Password users)
-        // UserStatus.PENDING_EMAIL_VERIFICATION comes from your Prisma enum
         if (
           sessionUser.status === UserStatus.PENDING_EMAIL_VERIFICATION &&
-          !isGoogleAccount
+          !isGoogleAccount // This check depends on the accuracy of isGoogleAccount
         ) {
           return {
             ...baseState,
             isVerifyingEmailCode: true,
             emailForVerification: sessionUser.email,
             step: 1, // BasicInfo step leads to email verification
-            isCompletingProfile: false, // Not yet completing full profile
-            isGoogleSignup: false,
+            isCompletingProfile: false,
+            isGoogleSignup: false, // Consistent with isGoogleAccount being false here
           };
         }
 
         // Case 2: Profile not complete
-        // This applies to Google users needing to fill details, or Email/Pass users after email verification.
-        // UserStatus.PENDING_PHONE_VERIFICATION might imply profile is filled or partially filled.
-        // isProfileComplete is the more direct flag.
+        // This applies to users (Google or Email/Pass after email verification) needing to fill details.
         if (!sessionUser.isProfileComplete) {
           return {
             ...baseState,
             isCompletingProfile: true,
-            isGoogleSignup: isGoogleAccount, // Reflects if the session user is from Google
+            isGoogleSignup: isGoogleAccount, // Reflects the placeholder value
             step: 2, // Start at PersonalDetailsStep
             isVerifyingEmailCode: false,
           };
@@ -321,25 +325,22 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
           return {
             ...baseState,
             isCompletingProfile: true, // Still part of the overall "completion" journey
-            isGoogleSignup: isGoogleAccount,
+            isGoogleSignup: isGoogleAccount, // Reflects the placeholder value
             step: 4, // Go to CompleteStep, which should guide to phone verification
             isVerifyingEmailCode: false,
           };
         }
 
-        // If user is fully verified (profile complete AND phone verified),
-        // they shouldn't be on this page. Middleware/RegisterSteps should redirect.
-        // If somehow they land here, reset to a safe default (Welcome).
         console.warn(
           "[RegistrationContext] initializeFromSession called for a user who seems fully verified or in an unexpected state. Resetting to WelcomeStep."
         );
         return {
-          ...initialRegistrationData, // Reset to welcome
-          email: sessionUser.email || "", // Keep email at least
+          ...initialRegistrationData,
+          email: sessionUser.email, // Keep email at least
         };
       });
     },
-    [setData]
+    [setData] // initialRegistrationData is stable, UserStatus is an enum.
   );
 
   const proceedToEmailVerification = useCallback((emailToVerify: string) => {
@@ -352,13 +353,14 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
   }, []);
 
   const completeEmailVerification = useCallback(() => {
-    // Called after email code is successfully verified AND user is auto-signed in.
-    // The goal is to move to the next step in the registration flow.
     setData((prev) => ({
       ...prev,
       isVerifyingEmailCode: false,
       emailForVerification: null,
-      isCompletingProfile: false, // This might need to be true if going straight to profile filling
+      // After email verification, user typically needs to complete their profile.
+      // isCompletingProfile could be set to true here if that's the immediate next phase.
+      // The step determines which form is shown.
+      isCompletingProfile: true, // Assuming profile completion follows.
       step: 2, // Move to PersonalDetails (step 2)
     }));
   }, []);
@@ -382,7 +384,7 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
     resetForm,
     setGoogleSignup,
     initializeForCompletion,
-    initializeFromSession, // Added
+    initializeFromSession,
     proceedToEmailVerification,
     completeEmailVerification,
     exitEmailVerification,

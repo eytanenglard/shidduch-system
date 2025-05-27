@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Clock, CheckCircle, XCircle, Loader2, Users } from "lucide-react";
 import type { ExtendedInquiry } from "@/types/messages";
-import type { Session } from "@/types/next-auth";
+import { Session } from "next-auth";
 
 export default function MessagesPage() {
   const { data: session } = useSession() as { data: Session | null };

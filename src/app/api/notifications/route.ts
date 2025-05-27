@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { Session } from "@/types/next-auth";
+import { Session } from "next-auth";
 
 export async function GET() {
   try {
+    // ההמרה לטיפוס Session תשתמש כעת בטיפוס המורחב מ-next-auth
     const session = await getServerSession(authOptions) as Session | null;
     
     if (!session?.user?.id) {

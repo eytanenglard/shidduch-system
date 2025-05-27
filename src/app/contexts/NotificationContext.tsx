@@ -9,7 +9,7 @@ import React, {
   useCallback, // הוסף useCallback
 } from "react";
 import { useSession } from "next-auth/react";
-import type { Session } from "@/types/next-auth"; // ודא שהנתיב לטיפוסים שלך נכון
+import type { Session } from "next-auth"; // Import Session type
 import type { NotificationCount } from "@/types/messages"; // ודא שהנתיב לטיפוסים שלך נכון
 
 interface NotificationContextType {

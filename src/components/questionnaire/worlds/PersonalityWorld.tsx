@@ -202,7 +202,7 @@ export default function PersonalityWorld({
         worldId="PERSONALITY"
         title="עולם האישיות"
         description="בואו נגלה יחד את התכונות, הערכים, סגנון החיים והשאיפות הייחודיים שלך"
-        estimatedTime={40} // Update estimate
+        estimatedTime={15} // Update estimate
         totalQuestions={allQuestions.length}
         requiredQuestions={allQuestions.filter((q) => q.isRequired).length}
         depths={["BASIC", "ADVANCED"]} // Update based on questions

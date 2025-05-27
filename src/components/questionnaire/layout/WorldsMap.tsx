@@ -1,6 +1,16 @@
-import React, { useState } from "react";
+// WorldsMap.tsx
+import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import {
   Scroll,
   Heart,
@@ -12,20 +22,14 @@ import {
   Info,
   Star,
   Play,
-  UserCheck, // Added UserCheck icon
+  UserCheck,
+  Sparkles, // For recommended
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
-import type { WorldId } from "../types/types";
+import type { WorldId } from "../types/types"; // Assuming types.ts is in ../types/
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Progress } from "@/components/ui/progress";
-import { useMediaQuery } from "../hooks/useMediaQuery";
-import { Badge } from "@/components/ui/badge"; // Added Badge import
+import { useMediaQuery } from "../hooks/useMediaQuery"; // Assuming useMediaQuery.ts is in ../hooks/
 
 interface WorldsMapProps {
   currentWorld: WorldId;
@@ -34,74 +38,65 @@ interface WorldsMapProps {
   className?: string;
 }
 
-// Updated config with UserCheck for Partner
+// Enhanced worldsConfig for a more "Apple-like" aesthetic
+// Using a more cohesive and modern color palette.
+// Added specific colors for states like completed, recommended.
 const worldsConfig = {
-  RELATIONSHIP: {
-    icon: Users,
-    color: "bg-purple-100",
-    activeColor: "bg-purple-600",
-    hoverColor: "hover:bg-purple-200",
-    borderColor: "border-purple-300",
-    textColor: "text-purple-700",
-    activeTextColor: "text-white",
-    label: "זוגיות",
-    description: "תפיסת הזוגיות והציפיות ממערכת היחסים",
-    order: 3,
+  PERSONALITY: {
+    icon: User,
+    baseBg: "bg-sky-50 dark:bg-sky-900/30",
+    iconBg: "bg-sky-100 dark:bg-sky-800/50",
+    iconColor: "text-sky-600 dark:text-sky-400",
+    activeRing: "ring-sky-500",
+    label: "אישיות",
+    description: "המאפיינים האישיותיים שלך וכיצד הם משפיעים על תפיסתך.",
+    order: 1,
   },
   VALUES: {
     icon: Heart,
-    color: "bg-pink-100",
-    activeColor: "bg-pink-600",
-    hoverColor: "hover:bg-pink-200",
-    borderColor: "border-pink-300",
-    textColor: "text-pink-700",
-    activeTextColor: "text-white",
+    baseBg: "bg-rose-50 dark:bg-rose-900/30",
+    iconBg: "bg-rose-100 dark:bg-rose-800/50",
+    iconColor: "text-rose-600 dark:text-rose-400",
+    activeRing: "ring-rose-500",
     label: "ערכים ואמונות",
-    description: "עולם הערכים והאמונות שלך",
+    description: "עולם הערכים המרכזי שלך והאמונות שמנחות אותך בחיים.",
     order: 2,
   },
-  PERSONALITY: {
-    icon: User,
-    color: "bg-blue-100",
-    activeColor: "bg-blue-600",
-    hoverColor: "hover:bg-blue-200",
-    borderColor: "border-blue-300",
-    textColor: "text-blue-700",
-    activeTextColor: "text-white",
-    label: "אישיות",
-    description: "המאפיינים האישיותיים שלך",
-    order: 1,
+  RELATIONSHIP: {
+    icon: Users,
+    baseBg: "bg-purple-50 dark:bg-purple-900/30",
+    iconBg: "bg-purple-100 dark:bg-purple-800/50",
+    iconColor: "text-purple-600 dark:text-purple-400",
+    activeRing: "ring-purple-500",
+    label: "זוגיות",
+    description: "תפיסת הזוגיות שלך, ציפיות ומה חשוב לך במערכת יחסים.",
+    order: 3,
   },
   PARTNER: {
-    icon: UserCheck, // Changed icon
-    color: "bg-pink-100", // Adjusted color to match Values for example, change if needed
-    activeColor: "bg-pink-600",
-    hoverColor: "hover:bg-pink-200",
-    borderColor: "border-pink-300",
-    textColor: "text-pink-700",
-    activeTextColor: "text-white",
-    label: "פרטנר",
-    description: "מה חשוב לך בבן/בת הזוג",
+    icon: UserCheck,
+    baseBg: "bg-teal-50 dark:bg-teal-900/30",
+    iconBg: "bg-teal-100 dark:bg-teal-800/50",
+    iconColor: "text-teal-600 dark:text-teal-400",
+    activeRing: "ring-teal-500",
+    label: "העדפות לפרטנר",
+    description: "העדפותיך ותכונות שחשובות לך בבן/בת הזוג האידיאליים.",
     order: 4,
   },
   RELIGION: {
     icon: Scroll,
-    color: "bg-indigo-100",
-    activeColor: "bg-indigo-600",
-    hoverColor: "hover:bg-indigo-200",
-    borderColor: "border-indigo-300",
-    textColor: "text-indigo-700",
-    activeTextColor: "text-white",
+    baseBg: "bg-amber-50 dark:bg-amber-900/30",
+    iconBg: "bg-amber-100 dark:bg-amber-800/50",
+    iconColor: "text-amber-600 dark:text-amber-400",
+    activeRing: "ring-amber-500",
     label: "דת ומסורת",
-    description: "חיבור לדת, אמונה ומסורת ישראל",
+    description:
+      "חיבורך לדת, אמונה ומסורת ישראל, וכיצד זה בא לידי ביטוי בחייך.",
     order: 5,
   },
 } as const;
 
-// Define the keys of worldsConfig as a specific type
 type WorldConfigKey = keyof typeof worldsConfig;
 
-// Define the order using the specific type
 const WORLD_ORDER: WorldConfigKey[] = [
   "PERSONALITY",
   "VALUES",
@@ -110,18 +105,31 @@ const WORLD_ORDER: WorldConfigKey[] = [
   "RELIGION",
 ];
 
-// Define Badge variants (add to your theme or global CSS if needed)
-// Assuming your Badge component accepts these variant names as strings
-const badgeVariants = {
-  default: "border-transparent bg-blue-100 text-blue-800",
-  success: "border-transparent bg-green-100 text-green-800",
-  warning: "border-transparent bg-yellow-100 text-yellow-800",
-  secondary: "border-transparent bg-gray-100 text-gray-800",
-  outline: "text-foreground", // Default outline style
+// Common styling for status colors (can be centralized or part of theme)
+const statusColors = {
+  completed: {
+    bg: "bg-green-500 dark:bg-green-600",
+    text: "text-white",
+    ring: "ring-green-500",
+    iconBg: "bg-green-100 dark:bg-green-800/50",
+    iconColor: "text-green-600 dark:text-green-400",
+  },
+  recommended: {
+    bg: "bg-indigo-500 dark:bg-indigo-600",
+    text: "text-white",
+    ring: "ring-indigo-500",
+    iconBg: "bg-indigo-100 dark:bg-indigo-800/50",
+    iconColor: "text-indigo-600 dark:text-indigo-400",
+  },
+  locked: {
+    bg: "bg-slate-200 dark:bg-slate-700",
+    text: "text-slate-500 dark:text-slate-400",
+    ring: "ring-slate-400",
+    iconBg: "bg-slate-100 dark:bg-slate-800",
+    iconColor: "text-slate-400 dark:text-slate-500",
+  },
+  defaultBg: "bg-slate-100 dark:bg-slate-800",
 };
-
-// Define the type for the badge variant keys
-type BadgeVariant = keyof typeof badgeVariants;
 
 export default function WorldsMap({
   currentWorld,
@@ -129,195 +137,250 @@ export default function WorldsMap({
   onWorldChange,
   className = "",
 }: WorldsMapProps) {
-  const [hoveredWorld, setHoveredWorld] = useState<WorldId | null>(null);
-  const [expanded, setExpanded] = useState<WorldId | null>(null);
-  const isMobile = useMediaQuery("(max-width: 640px)");
-
-  // Type safety: Ensure WorldId is compatible with WorldConfigKey if needed elsewhere
-  // This check is usually implicit if WorldId is defined as keyof typeof worldsConfig
-  // Example assertion if types were potentially incompatible:
-  // const currentWorldTyped: WorldConfigKey = currentWorld;
+  const [expandedWorldId, setExpandedWorldId] = useState<WorldId | null>(null);
+  const isMobile = useMediaQuery("(max-width: 768px)");
 
   const isWorldAccessible = (): boolean => {
-    // Implement logic here if some worlds should be locked initially
-    // For now, all worlds are accessible
     return true;
   };
 
-  const completionPercent =
-    completedWorlds.length > 0
+  const completionPercent = useMemo(() => {
+    return WORLD_ORDER.length > 0
       ? Math.round((completedWorlds.length / WORLD_ORDER.length) * 100)
       : 0;
+  }, [completedWorlds]);
 
-  // Find the next recommended world
-  const nextRecommendedWorld = WORLD_ORDER.find(
-    (world) => !completedWorlds.includes(world)
-  );
+  const nextRecommendedWorld = useMemo(() => {
+    return WORLD_ORDER.find((world) => !completedWorlds.includes(world));
+  }, [completedWorlds]);
 
   const cardVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
-    hover: { scale: 1.03, transition: { duration: 0.2 } },
-    tap: { scale: 0.98, transition: { duration: 0.1 } },
+    initial: { opacity: 0, y: 20 },
+    animate: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.4, ease: "easeOut" },
+    },
+    hover: { scale: 1.02, transition: { duration: 0.2 } },
+    tap: { scale: 0.99, transition: { duration: 0.1 } },
   };
 
   const contentVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { duration: 0.2 } },
+    hidden: {
+      opacity: 0,
+      height: 0,
+      marginTop: 0,
+      paddingTop: 0,
+      transition: { duration: 0.3, ease: "easeInOut" },
+    },
+    visible: {
+      opacity: 1,
+      height: "auto",
+      marginTop: "1rem",
+      paddingTop: "1rem",
+      transition: { duration: 0.3, ease: "easeInOut" },
+    },
   };
 
+  // Main render
   return (
-    <div className="space-y-6">
-      {/* Status Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-center bg-white p-4 rounded-lg shadow-sm border mb-4">
-        <div className="text-center sm:text-right mb-4 sm:mb-0">
-          <h3 className="font-medium text-lg">מפת העולמות</h3>
-          <div className="text-sm text-gray-500 mt-1">
-            השלמת {completedWorlds.length} מתוך {WORLD_ORDER.length} עולמות
+    <div className={cn("space-y-8 font-sans", className)}>
+      {/* Header Section */}
+      <header className="bg-white dark:bg-slate-800/50 p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div>
+            <h2 className="text-xl sm:text-2xl font-semibold text-slate-800 dark:text-slate-100">
+              מפת העולמות שלך
+            </h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+              השלמת {completedWorlds.length} מתוך {WORLD_ORDER.length} עולמות (
+              {completionPercent}%)
+            </p>
+            <div className="mt-3 w-full sm:max-w-xs">
+              <Progress
+                value={completionPercent}
+                className="h-2.5 rounded-full"
+              />
+            </div>
           </div>
 
-          <div className="mt-2 w-full sm:max-w-[200px]">
-            {/* Progress bar - simple version */}
-            <Progress value={completionPercent} className="h-2" />
-          </div>
-        </div>
-
-        {/* Recommended World Button */}
-        {nextRecommendedWorld && nextRecommendedWorld !== currentWorld && (
-          <TooltipProvider delayDuration={200}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  size="sm"
-                  onClick={() => onWorldChange?.(nextRecommendedWorld)}
-                  className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white gap-1 shadow-md hover:shadow-lg transition-shadow animate-pulse-slow" // Added animation
+          {nextRecommendedWorld && nextRecommendedWorld !== currentWorld && (
+            <TooltipProvider delayDuration={100}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="lg"
+                    onClick={() => onWorldChange?.(nextRecommendedWorld)}
+                    className="bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 ease-in-out transform hover:-translate-y-0.5 w-full sm:w-auto animate-pulse-slow"
+                  >
+                    <Sparkles className="h-5 w-5 mr-2 fill-current" />
+                    לעולם המומלץ: {worldsConfig[nextRecommendedWorld].label}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="bottom"
+                  className="bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-800"
                 >
-                  <Star className="h-4 w-4 ml-1 fill-current" />{" "}
-                  {/* Filled star */}
-                  עבור לעולם המומלץ: {worldsConfig[nextRecommendedWorld].label}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>המשך בסדר המומלץ לחוויה מיטבית</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
-      </div>
+                  <p>המשך בסדר המומלץ לחוויה מיטבית והבנה מעמיקה.</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
+      </header>
 
-      {/* Progress Visual Tracker */}
-      <div className="flex items-center justify-center mb-6 overflow-x-auto py-2">
-        <div className="flex items-center max-w-lg w-full relative">
-          {/* Connection Lines */}
-          <div className="absolute h-1 bg-gray-200 top-1/2 left-5 right-5 -translate-y-1/2 z-0"></div>
-
-          {/* World Circles */}
-          {WORLD_ORDER.map((worldId, index) => {
+      {/* Progress Visual Tracker - Enhanced "Apple-like" map */}
+      <div className="relative px-4 py-8 bg-slate-50 dark:bg-slate-800/30 rounded-xl shadow-inner">
+        <div className="absolute top-1/2 left-0 right-0 h-1 bg-slate-200 dark:bg-slate-700 -translate-y-1/2"></div>
+        <div className="relative flex justify-between items-start w-full max-w-3xl mx-auto">
+          {WORLD_ORDER.map((worldId) => {
             const config = worldsConfig[worldId];
-            const isActive = currentWorld === worldId;
+            const Icon = config.icon;
+            const isCurrent = currentWorld === worldId;
             const isCompleted = completedWorlds.includes(worldId);
-            const isAccessible = isWorldAccessible();
+            const accessible = isWorldAccessible();
             const isRecommended =
-              worldId === nextRecommendedWorld && !isCompleted; // Is this the next recommended?
+              worldId === nextRecommendedWorld && !isCompleted;
 
-            const progressClass = isCompleted
-              ? "bg-green-500"
-              : isActive
-              ? config.activeColor
-              : isRecommended // Highlight recommended world
-              ? "bg-gradient-to-r from-blue-400 to-cyan-400"
-              : "bg-gray-200";
+            let circleBg: string = config.baseBg;
+            let iconColor: string = config.iconColor;
+            let ringClass = "";
+            // *** FIX START: Explicitly type statusIcon and statusText ***
+            let statusIcon: JSX.Element | null = null;
+            let statusText: string = config.label;
+            // *** FIX END ***
 
-            const circleContent = isCompleted ? (
-              <CheckCircle2 className="h-5 w-5 text-white" />
-            ) : isAccessible ? (
-              <span className="text-sm font-medium">{index + 1}</span>
-            ) : (
-              <Lock className="h-3.5 w-3.5 text-gray-400" />
-            );
+            if (!accessible) {
+              circleBg = statusColors.locked.bg;
+              iconColor = statusColors.locked.iconColor;
+              statusIcon = (
+                <Lock className="h-4 w-4 text-slate-400 dark:text-slate-500" />
+              );
+              statusText = `${config.label} (נעול)`;
+            } else if (isCompleted) {
+              circleBg = statusColors.completed.iconBg;
+              iconColor = statusColors.completed.iconColor;
+              ringClass = `ring-2 ${statusColors.completed.ring} ring-offset-2 ring-offset-slate-50 dark:ring-offset-slate-800/30`;
+              statusIcon = (
+                <CheckCircle2 className="h-5 w-5 text-green-500 dark:text-green-400" />
+              );
+              statusText = `${config.label} (הושלם)`;
+            } else if (isCurrent) {
+              circleBg = config.iconBg;
+              iconColor = config.iconColor;
+              ringClass = `ring-2 ${config.activeRing} ring-offset-2 ring-offset-slate-50 dark:ring-offset-slate-800/30`;
+              statusText = `${config.label} (פעיל)`; // This is fine as statusText is now string
+            } else if (isRecommended) {
+              circleBg = statusColors.recommended.iconBg;
+              iconColor = statusColors.recommended.iconColor;
+              ringClass = `ring-2 ${statusColors.recommended.ring} ring-offset-2 ring-offset-slate-50 dark:ring-offset-slate-800/30`;
+              statusIcon = (
+                <Star className="h-4 w-4 text-indigo-500 dark:text-indigo-400 fill-current" />
+              );
+              statusText = `${config.label} (מומלץ)`;
+            }
 
             return (
-              <TooltipProvider key={worldId} delayDuration={300}>
+              <TooltipProvider key={worldId} delayDuration={150}>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <motion.div
-                      className="relative z-10 flex-1 flex justify-center"
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.95 }}
-                      transition={{ duration: 0.2 }}
+                    <motion.button
+                      onClick={() => accessible && onWorldChange?.(worldId)}
+                      disabled={!accessible}
+                      className={cn(
+                        "relative z-10 flex flex-col items-center gap-2 cursor-pointer disabled:cursor-not-allowed group",
+                        !accessible && "opacity-60"
+                      )}
+                      whileHover={accessible ? { scale: 1.05 } : {}}
+                      whileTap={accessible ? { scale: 0.98 } : {}}
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 15,
+                      }}
                     >
-                      <motion.button
+                      <div
                         className={cn(
-                          "w-10 h-10 rounded-full flex items-center justify-center",
-                          "border-2 border-white shadow-sm transition-all",
-                          isActive
-                            ? "ring-2 ring-offset-2 ring-blue-500" // Simpler active indicator
-                            : isRecommended // Highlight recommended
-                            ? "ring-2 ring-offset-1 ring-cyan-400"
-                            : "",
-                          progressClass,
-                          isActive || isCompleted
-                            ? "text-white"
-                            : "text-gray-600",
-                          !isAccessible
-                            ? "cursor-not-allowed opacity-70"
-                            : "hover:shadow-md"
+                          "w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center shadow-md transition-all duration-200 ease-in-out",
+                          circleBg,
+                          ringClass,
+                          "group-hover:shadow-lg"
                         )}
-                        onClick={() => isAccessible && onWorldChange?.(worldId)}
-                        disabled={!isAccessible}
                       >
-                        {/* Recommended Star Indicator */}
-                        {isRecommended && (
-                          <Star className="absolute -top-1 -right-1 h-3 w-3 text-yellow-400 fill-current" />
+                        {statusIcon ? (
+                          <div className="relative">
+                            {statusIcon}
+                            {isRecommended && !isCompleted && (
+                              <Sparkles className="absolute -top-1 -right-1 h-3 w-3 text-yellow-400 fill-yellow-400" />
+                            )}
+                          </div>
+                        ) : (
+                          <Icon
+                            className={cn("w-6 h-6 sm:w-7 sm:h-7", iconColor)}
+                          />
                         )}
-                        {circleContent}
-                      </motion.button>
-                      {/* World Label Below Circle */}
-                      <div className="absolute -bottom-6 text-xs font-medium whitespace-nowrap">
-                        {config.label}
                       </div>
-                    </motion.div>
+                      <span className="text-xs sm:text-sm font-medium text-center text-slate-700 dark:text-slate-300 group-hover:text-sky-600 dark:group-hover:text-sky-400 w-20 whitespace-normal">
+                        {config.label}{" "}
+                        {/* Displaying original label here, statusText is for tooltip */}
+                      </span>
+                    </motion.button>
                   </TooltipTrigger>
-                  {/* Enhanced Tooltip Content */}
                   <TooltipContent
-                    side="top"
-                    className="p-2 max-w-[200px] text-center"
+                    side="bottom"
+                    className="bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-800 p-3 rounded-md shadow-lg max-w-xs"
                   >
-                    <p className="font-medium text-base mb-1">{config.label}</p>
-                    <p className="text-xs text-gray-600">
-                      {config.description}
-                    </p>
-                    <div className="mt-2 flex justify-center">
+                    <h4 className="font-semibold text-base mb-1">
+                      {statusText}
+                    </h4>{" "}
+                    {/* Using the full statusText here */}
+                    <p className="text-xs">{config.description}</p>
+                    <div className="mt-2">
                       {isCompleted && (
-                        <Badge className={cn("text-xs", badgeVariants.success)}>
+                        <Badge
+                          variant="default"
+                          className="bg-green-500 hover:bg-green-600 text-white"
+                        >
                           ✓ הושלם
                         </Badge>
                       )}
-                      {isActive && (
-                        <Badge className={cn("text-xs", badgeVariants.default)}>
-                          ◉ פעיל כעת
+                      {isCurrent && !isCompleted && (
+                        <Badge
+                          variant="default"
+                          className={cn(
+                            config.activeRing.replace("ring-", "bg-"),
+                            "text-white"
+                          )}
+                        >
+                          ◉ פעיל
                         </Badge>
                       )}
-                      {isRecommended && (
-                        <Badge className={cn("text-xs", badgeVariants.warning)}>
-                          ★ מומלץ הבא
+                      {isRecommended && !isCompleted && (
+                        <Badge
+                          variant="default"
+                          className="bg-indigo-500 hover:bg-indigo-600 text-white"
+                        >
+                          ★ מומלץ
                         </Badge>
                       )}
                       {!isCompleted &&
-                        !isActive &&
+                        !isCurrent &&
                         !isRecommended &&
-                        isAccessible && (
+                        accessible && (
                           <Badge
-                            className={cn("text-xs", badgeVariants.outline)}
+                            variant="outline"
+                            className="border-slate-400 text-slate-600 dark:border-slate-500 dark:text-slate-300"
                           >
                             ○ זמין
                           </Badge>
                         )}
-                      {!isAccessible && (
+                      {!accessible && (
                         <Badge
-                          className={cn("text-xs", badgeVariants.secondary)}
+                          variant="secondary"
+                          className="bg-slate-500 text-white"
                         >
-                          <Lock className="h-3 w-3 mr-1" /> נעול
+                          <Lock className="h-3 w-3 mr-1 inline" />
+                          נעול
                         </Badge>
                       )}
                     </div>
@@ -329,228 +392,188 @@ export default function WorldsMap({
         </div>
       </div>
 
-      {/* World Cards */}
+      {/* World Cards Section */}
       <div
         className={cn(
-          "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4",
+          "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6",
           className
         )}
       >
         {WORLD_ORDER.map((worldId) => {
           const config = worldsConfig[worldId];
           const Icon = config.icon;
-          const isActive = currentWorld === worldId;
+          const isCurrent = currentWorld === worldId;
           const isCompleted = completedWorlds.includes(worldId);
-          const isAccessible = isWorldAccessible();
+          const accessible = isWorldAccessible();
           const isRecommended =
             worldId === nextRecommendedWorld && !isCompleted;
-          const isHovered = hoveredWorld === worldId;
-          const isExpanded = expanded === worldId;
+          const isExpanded = expandedWorldId === worldId;
 
-          let statusText = "";
-          // *** FIX START ***
-          // Declare badgeVariant with the specific BadgeVariant type
-          let badgeVariant: BadgeVariant = "outline";
+          let cardBorderColor: string =
+            "border-slate-200 dark:border-slate-700";
+          let topBarBg: string = statusColors.defaultBg;
+          let statusIconColor: string = "text-slate-500 dark:text-slate-400";
+          let actionButtonClass: string =
+            "bg-sky-600 hover:bg-sky-700 dark:bg-sky-500 dark:hover:bg-sky-600";
+
+          // *** FIX START: Explicitly type statusTextCard and StatusIconComponentType ***
+          let statusTextCard: string = "זמין";
+          let StatusIconComponent: React.ElementType = Info; // Use React.ElementType for component types
           // *** FIX END ***
 
-          if (isCompleted) {
-            statusText = "הושלם";
-            badgeVariant = "success";
-          } else if (!isAccessible) {
-            statusText = "נעול";
-            badgeVariant = "secondary";
-          } else if (isActive) {
-            statusText = "פעיל כעת";
-            badgeVariant = "default";
+          let actionButtonText = "התחל עולם זה";
+          let ActionButtonIcon = ArrowRight;
+
+          if (!accessible) {
+            statusTextCard = "נעול";
+            StatusIconComponent = Lock;
+            statusIconColor = statusColors.locked.iconColor;
+            topBarBg = statusColors.locked.bg;
+            actionButtonText = "נעול";
+          } else if (isCompleted) {
+            statusTextCard = "הושלם";
+            StatusIconComponent = CheckCircle2;
+            statusIconColor = statusColors.completed.iconColor;
+            topBarBg = statusColors.completed.bg;
+            cardBorderColor = "border-green-500 dark:border-green-600";
+            actionButtonText = "ערוך תשובות";
+            ActionButtonIcon = CheckCircle2;
+            actionButtonClass =
+              "bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600";
+          } else if (isCurrent) {
+            statusTextCard = "פעיל כעת";
+            StatusIconComponent = Play;
+            statusIconColor = config.iconColor;
+            topBarBg = config.iconBg
+              .replace("100", "500")
+              .replace("dark:bg-sky-800/50", "dark:bg-sky-600");
+            cardBorderColor = `${config.activeRing.replace(
+              "ring-",
+              "border-"
+            )} dark:${config.activeRing.replace("ring-", "border-")}`;
+            actionButtonText = "המשך בעולם זה";
+            ActionButtonIcon = Play;
+            actionButtonClass = `${config.iconBg
+              .replace("100", "600")
+              .replace(
+                "dark:bg-sky-800/50",
+                "dark:bg-sky-500"
+              )} hover:${config.iconBg
+              .replace("100", "700")
+              .replace("dark:bg-sky-800/50", "dark:bg-sky-600")} text-white`;
           } else if (isRecommended) {
-            statusText = "מומלץ הבא";
-            badgeVariant = "warning";
-          } else {
-            statusText = "זמין";
-            badgeVariant = "outline"; // Explicitly setting default
+            statusTextCard = "מומלץ הבא";
+            StatusIconComponent = Star;
+            statusIconColor = statusColors.recommended.iconColor;
+            topBarBg = statusColors.recommended.bg;
+            cardBorderColor = "border-indigo-500 dark:border-indigo-600";
+            actionButtonText = "התחל עולם מומלץ";
+            ActionButtonIcon = Sparkles;
+            actionButtonClass =
+              "bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600";
           }
 
           return (
             <motion.div
               key={worldId}
-              initial="hidden"
-              animate="visible"
-              whileHover={isAccessible ? "hover" : ""}
-              whileTap={isAccessible ? "tap" : ""}
               variants={cardVariants}
-              onClick={() => {
-                if (!isAccessible) return; // Prevent action on locked cards
-                if (isExpanded) {
-                  setExpanded(null); // Close if already expanded
-                } else {
-                  setExpanded(worldId); // Expand this card
-                }
-                // Optionally navigate immediately on click if not expanded
-                // if (!isExpanded && onWorldChange) {
-                //    onWorldChange(worldId);
-                // }
-              }}
+              initial="initial"
+              animate="animate"
+              whileHover={accessible ? "hover" : ""}
+              whileTap={accessible ? "tap" : ""}
+              layout
             >
               <Card
                 className={cn(
-                  "transition-all duration-200 overflow-hidden h-full cursor-pointer", // Added cursor-pointer
-                  isActive
-                    ? "ring-2 ring-blue-500 shadow-md"
-                    : "hover:shadow-md",
-                  isRecommended ? "ring-2 ring-cyan-400 shadow-md" : "", // Recommended highlight
-                  !isAccessible && "cursor-not-allowed opacity-90 bg-gray-50" // Style locked cards
+                  "transition-all duration-300 ease-in-out overflow-hidden h-full shadow-lg hover:shadow-xl dark:bg-slate-800",
+                  "border-2",
+                  cardBorderColor,
+                  !accessible &&
+                    "opacity-70 bg-slate-50 dark:bg-slate-800/60 cursor-not-allowed"
                 )}
-                onMouseEnter={() => setHoveredWorld(worldId)}
-                onMouseLeave={() => setHoveredWorld(null)}
               >
-                {/* Top color bar */}
-                <div
-                  className={cn(
-                    "h-2",
-                    isActive
-                      ? config.activeColor
-                      : isCompleted
-                      ? "bg-green-500"
-                      : isRecommended
-                      ? "bg-gradient-to-r from-blue-400 to-cyan-400"
-                      : "bg-gray-200"
-                  )}
-                ></div>
+                <div className={cn("h-1.5", topBarBg)}></div>
 
-                <CardContent
-                  className={cn("p-4", isExpanded ? "pb-8" : "pb-4")}
-                >
-                  <div className="flex items-center gap-3">
-                    {/* Icon */}
+                <CardContent className="p-5 sm:p-6">
+                  <div className="flex items-start gap-4">
                     <div
                       className={cn(
-                        "p-2 rounded-full",
-                        isActive ? config.activeColor : config.color
+                        "p-3 rounded-lg flex-shrink-0",
+                        config.iconBg
                       )}
                     >
-                      <Icon
-                        className={cn(
-                          "w-5 h-5",
-                          isActive ? config.activeTextColor : config.textColor
-                        )}
-                      />
+                      <Icon className={cn("w-6 h-6", config.iconColor)} />
                     </div>
-
-                    {/* Title and Status Badge */}
                     <div className="flex-1">
-                      <h3 className="font-medium flex items-center">
+                      <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
                         {config.label}
-                        {/* *** FIX START *** */}
-                        {/* Remove 'as any'. The type of badgeVariant is now correctly inferred */}
-                        <Badge
-                          variant={badgeVariant}
-                          className="ml-2 text-xs px-1.5 py-0.5"
-                        >
-                          {/* *** FIX END *** */}
-                          {/* Icons for badges */}
-                          {badgeVariant === "success" && (
-                            <CheckCircle2 className="h-3 w-3 mr-1" />
-                          )}
-                          {badgeVariant === "warning" && (
-                            <Star className="h-3 w-3 mr-1" />
-                          )}
-                          {badgeVariant === "default" && (
-                            <Play className="h-3 w-3 mr-1" />
-                          )}
-                          {badgeVariant === "secondary" && (
-                            <Lock className="h-3 w-3 mr-1" />
-                          )}
-                          {statusText}
-                        </Badge>
                       </h3>
-
-                      {/* Description (shown on hover/expand) */}
-                      <AnimatePresence mode="wait">
-                        {(isHovered ||
-                          isExpanded ||
-                          (isMobile && isActive)) && (
-                          <motion.p
-                            initial="hidden"
-                            animate="visible"
-                            exit="hidden"
-                            variants={contentVariants}
-                            className="text-xs text-gray-500 mt-1"
-                          >
-                            {config.description}
-                          </motion.p>
-                        )}
-                      </AnimatePresence>
+                      <div className="flex items-center text-xs mt-1">
+                        <StatusIconComponent
+                          className={cn("w-3.5 h-3.5 mr-1.5", statusIconColor)}
+                        />
+                        <span className={cn("font-medium", statusIconColor)}>
+                          {statusTextCard}
+                        </span>
+                      </div>
                     </div>
+                    {accessible && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() =>
+                          setExpandedWorldId(isExpanded ? null : worldId)
+                        }
+                        className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                        aria-label={isExpanded ? "הצג פחות" : "הצג יותר"}
+                      >
+                        {isExpanded ? (
+                          <ChevronUp className="w-5 h-5" />
+                        ) : (
+                          <ChevronDown className="w-5 h-5" />
+                        )}
+                      </Button>
+                    )}
                   </div>
 
-                  {/* Expanded Content */}
-                  <AnimatePresence>
-                    {isExpanded && (
+                  <AnimatePresence initial={false}>
+                    {isExpanded && accessible && (
                       <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="mt-4 pt-4 border-t"
+                        key="content"
+                        initial="hidden"
+                        animate="visible"
+                        exit="hidden"
+                        variants={contentVariants}
+                        className="border-t border-slate-200 dark:border-slate-700"
                       >
-                        <p className="text-sm text-gray-600 mb-3">
+                        <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
                           {config.description}
                         </p>
-
-                        {/* Action Button */}
                         <Button
                           className={cn(
-                            "w-full",
-                            isCompleted
-                              ? "bg-green-600 hover:bg-green-700"
-                              : isRecommended
-                              ? "bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600"
-                              : "bg-blue-600 hover:bg-blue-700"
+                            "w-full mt-4 text-white font-medium py-2.5 px-4 rounded-md shadow-sm hover:shadow-md transition-shadow",
+                            actionButtonClass,
+                            !accessible && "opacity-50 cursor-not-allowed"
                           )}
                           onClick={(e) => {
-                            e.stopPropagation(); // Prevent card click when button is clicked
-                            if (isAccessible && onWorldChange) {
+                            e.stopPropagation();
+                            if (accessible && onWorldChange) {
                               onWorldChange(worldId);
+                              setExpandedWorldId(null);
                             }
                           }}
-                          disabled={!isAccessible}
+                          disabled={!accessible}
                         >
-                          {isCompleted ? (
-                            <>
-                              <CheckCircle2 className="w-4 h-4 mr-2" />
-                              ערוך תשובות
-                            </>
-                          ) : isActive ? (
-                            <>
-                              <Play className="w-4 h-4 mr-2" />
-                              המשך בעולם זה
-                            </>
-                          ) : isRecommended ? (
-                            <>
-                              <Star className="w-4 h-4 mr-2 fill-current" />
-                              התחל עולם מומלץ
-                            </>
-                          ) : (
-                            <>
-                              <ArrowRight className="w-4 h-4 mr-2" />
-                              התחל עולם זה
-                            </>
-                          )}
+                          <ActionButtonIcon className="w-4 h-4 mr-2" />
+                          {actionButtonText}
                         </Button>
                       </motion.div>
                     )}
                   </AnimatePresence>
-
-                  {/* Indicator for active world (when not expanded) */}
-                  {isActive && !isExpanded && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="mt-3 pt-3 border-t text-xs text-gray-600 flex items-center"
-                    >
-                      <Info className="h-3 w-3 text-blue-500 mr-1" />
-                      אתה נמצא כעת בעולם זה
-                    </motion.div>
+                  {!isExpanded && !isMobile && !isCurrent && accessible && (
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed line-clamp-2">
+                      {config.description}
+                    </p>
                   )}
                 </CardContent>
               </Card>
@@ -558,18 +581,17 @@ export default function WorldsMap({
           );
         })}
       </div>
+      <style jsx global>{`
+        @keyframes pulse-slow {
+          50% {
+            opacity: 0.85;
+            transform: scale(1.02);
+          }
+        }
+        .animate-pulse-slow {
+          animation: pulse-slow 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+      `}</style>
     </div>
   );
 }
-
-// Remember to add the animation if needed:
-/*
-@layer utilities {
-  @keyframes pulse-slow {
-    50% { opacity: .7; }
-  }
-  .animate-pulse-slow {
-    animation: pulse-slow 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  }
-}
-*/

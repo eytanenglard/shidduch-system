@@ -232,7 +232,7 @@ WorldComponentProps) {
         worldId="RELATIONSHIP"
         title="עולם הזוגיות"
         description="בואו נבין יחד מה חשוב לך בקשר זוגי, בתקשורת, בשותפות ובחזון המשפחתי"
-        estimatedTime={40} // Update estimate
+        estimatedTime={15} // Update estimate
         totalQuestions={allQuestions.length}
         requiredQuestions={allQuestions.filter((q) => q.isRequired).length}
         depths={["BASIC", "ADVANCED"]} // Update based on questions

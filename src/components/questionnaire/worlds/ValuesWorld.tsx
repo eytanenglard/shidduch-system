@@ -261,7 +261,7 @@ WorldComponentProps) {
         worldId="VALUES"
         title="עולם הערכים והאמונות"
         description="בואו נברר יחד מהם הערכים והעקרונות המנחים בחייך, מה חשוב לך במשפחה, בקהילה ובהשקפת העולם שלך."
-        estimatedTime={35} // Update with actual estimate
+        estimatedTime={15} // Update with actual estimate
         totalQuestions={allQuestions.length}
         requiredQuestions={allQuestions.filter((q) => q.isRequired).length}
         depths={["BASIC", "ADVANCED"]} // Adjust based on actual depths used

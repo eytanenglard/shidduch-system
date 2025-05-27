@@ -232,7 +232,7 @@ WorldComponentProps) {
         worldId="RELIGION"
         title="עולם הדת והמסורת"
         description="בואו נבין יחד את מקומם של האמונה, ההלכה, הקהילה והרוחניות בחייך"
-        estimatedTime={45} // Update estimate
+        estimatedTime={15} // Update estimate
         totalQuestions={allQuestions.length}
         requiredQuestions={allQuestions.filter((q) => q.isRequired).length}
         depths={["BASIC", "ADVANCED"]} // Update based on questions

@@ -1,3 +1,4 @@
+
 // src/types/next-auth.d.ts
 
 import type {
@@ -82,7 +83,7 @@ export interface UserProfile extends Omit<PrismaProfile, 'gender' | 'birthDate' 
   preferredCharacterTraits: string[]; // UserProfile was missing this
   preferredHobbies: string[]; // UserProfile was missing this
   preferredAliyaStatus?: string | null;
-  preferredHasChildrenFromPrevious?: boolean; // Added this as it was in the error message from before
+ preferredHasChildrenFromPrevious?: boolean | null; // Added this as it was in the error message from before
 
   // Management fields
   isProfileVisible: boolean; // from PrismaProfile
@@ -148,15 +149,14 @@ export interface QuestionnaireResponse extends Omit<PrismaQuestionnaireResponse,
   // etc.
 }
 
-
 export interface User extends DefaultUser {
   id: string;
   email: string; // DefaultUser has email? (optional), making it required here
   firstName: string;
   lastName: string;
   phone?: string | null;
-  // name: string | null; // from DefaultUser, if you use it, ensure consistency
-  // image: string | null; // from DefaultUser, if you use it
+  name: string | null; // from DefaultUser, if you use it, ensure consistency
+  image: string | null; // from DefaultUser, if you use it
   role: UserRole;
   status: UserStatus;
   isVerified: boolean;
@@ -191,8 +191,8 @@ declare module 'next-auth' {
       firstName: string;
       lastName: string;
       phone?: string | null;
-      // name: string | null; // from DefaultUser, keep if used
-      // image: string | null; // from DefaultUser, keep if used
+       name: string | null; // from DefaultUser, keep if used
+      image: string | null; // from DefaultUser, keep if used
       role: UserRole;
       status: UserStatus;
       isVerified: boolean;
@@ -201,11 +201,10 @@ declare module 'next-auth' {
       lastLogin?: Date | null; // Changed to optional
       createdAt: Date;
       updatedAt: Date;
-      // Consider not putting the entire profile/images/questionnaires in session for size reasons
-      // profile: UserProfile | null;
-      // images: UserImage[];
-      // questionnaireResponses: QuestionnaireResponse[];
-      // accounts?: PrismaAccount[];
+       profile: UserProfile | null;
+       images: UserImage[];
+       questionnaireResponses: QuestionnaireResponse[];
+       accounts?: PrismaAccount[];
     } & Omit<DefaultSession['user'], 'id' | 'email' | 'name' | 'image'>; // Omit to avoid type conflicts if DefaultSession changes
 
     redirectUrl?: string;
@@ -252,18 +251,18 @@ declare module 'next-auth/jwt' {
     isProfileComplete: boolean;
     isPhoneVerified: boolean;
     lastLogin?: Date | null; // Changed to optional
-    createdAt?: Date; // Optional as JWT might be created before user is fully in DB
-    updatedAt?: Date; // Optional
-    // Storing large objects like profile in JWT is generally discouraged.
-    // Consider storing only IDs or essential flags.
-    // profile: UserProfile | null;
-    // images: UserImage[];
-    // questionnaireResponses: QuestionnaireResponse[];
-    // accounts?: PrismaAccount[];
+    createdAt: Date; // Optional as JWT might be created before user is fully in DB
+    updatedAt: Date; // Optional
+    profile: UserProfile | null;
+    images: UserImage[];
+    questionnaireResponses: QuestionnaireResponse[];
+    accounts?: PrismaAccount[];
     redirectUrl?: string;
     newlyCreated?: boolean;
     requiresCompletion?: boolean;
     error?: string; // For JWT-based error propagation
+    
+
   }
 }
 

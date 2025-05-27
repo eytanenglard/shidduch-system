@@ -1,3 +1,4 @@
+// src/components/ui/button.tsx
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
@@ -25,6 +26,8 @@ const buttonVariants = cva(
         sm: "h-8 rounded-md px-3 text-xs",
         lg: "h-10 rounded-md px-8",
         icon: "h-9 w-9",
+        // הוספת האפשרות xs
+        xs: "h-7 rounded-md px-2.5 text-xs", // אפשר להתאים את הערכים לפי הצורך
       },
     },
     defaultVariants: {

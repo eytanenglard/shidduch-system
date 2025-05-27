@@ -8,12 +8,12 @@ import prisma from "./prisma";
 import { compare } from "bcryptjs";
 import type {
   User as ExtendedUser,
-  JWT as ExtendedUserJWT,
-  Session as ExtendedSession,
   UserProfile,
   UserImage,
   QuestionnaireResponse
 } from "@/types/next-auth"; // ודא שהנתיב נכון
+import {  JWT as ExtendedUserJWT,} from "next-auth/jwt";
+import {   Session as ExtendedSession} from "next-auth";
 import { UserRole, UserStatus } from "@prisma/client";
 
 console.log("Auth options file loaded");
@@ -377,7 +377,9 @@ export const authOptions: NextAuthOptions = {
         typedToken.requiresCompletion = typedUserFromCallback.requiresCompletion;
         typedToken.redirectUrl = typedUserFromCallback.redirectUrl;
         typedToken.newlyCreated = typedUserFromCallback.newlyCreated;
-        
+          typedToken.createdAt = typedUserFromCallback.createdAt; // ודא שזה תמיד Date
+  typedToken.updatedAt = typedUserFromCallback.updatedAt; // ודא שזה תמיד Date
+  
         console.log("[JWT Callback - Initial Population] Token populated from user callback object:", {
             tokenId: typedToken.id,
             tokenEmail: typedToken.email,
@@ -477,9 +479,8 @@ export const authOptions: NextAuthOptions = {
         typedSession.user.email = typedToken.email;
         typedSession.user.firstName = typedToken.firstName;
         typedSession.user.lastName = typedToken.lastName;
-        typedSession.user.name = typedToken.name;
-        typedSession.user.image = typedToken.picture; 
-        typedSession.user.role = typedToken.role;
+    typedSession.user.name = typedToken.name ?? null; // מטפל ב-undefined מ-DefaultJWT.name
+ typedSession.user.image = typedToken.picture ?? null; // מטפל ב-undefined מ-        typedSession.user.role = typedToken.role;
         typedSession.user.status = typedToken.status;
         typedSession.user.isVerified = typedToken.isVerified;
         typedSession.user.isProfileComplete = typedToken.isProfileComplete;

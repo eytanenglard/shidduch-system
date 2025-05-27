@@ -202,7 +202,7 @@ export default function PartnerWorld({
         worldId="PARTNER"
         title="עולם הפרטנר"
         description="בואו נגדיר יחד מהן התכונות, הערכים והציפיות החשובים לך ביותר בבן/בת הזוג האידיאלי/ת"
-        estimatedTime={45} // Update estimate
+        estimatedTime={15} // Update estimate
         totalQuestions={allQuestions.length}
         requiredQuestions={allQuestions.filter((q) => q.isRequired).length}
         depths={["BASIC", "ADVANCED"]} // Update based on questions
