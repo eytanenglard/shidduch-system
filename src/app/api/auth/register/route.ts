@@ -1,7 +1,7 @@
 // app/api/auth/register/route.ts
 
 import { NextResponse } from 'next/server';
-import { PrismaClient, UserRole, UserStatus, Prisma, VerificationType } from '@prisma/client';
+import { PrismaClient, UserRole, UserStatus, Prisma, VerificationType, UserSource  } from '@prisma/client';
 import { hash } from 'bcryptjs';
 import { emailService } from '@/lib/email/emailService';
 import { VerificationService } from '@/lib/services/verificationService'; 
@@ -191,6 +191,7 @@ export async function POST(req: Request) {
             isVerified: false, 
             isProfileComplete: false, 
             isPhoneVerified: false, 
+              source: UserSource.REGISTRATION,
           },
       });
       logger.info('User created successfully within transaction', { userId: user.id });
