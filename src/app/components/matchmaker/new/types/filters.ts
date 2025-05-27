@@ -1,6 +1,6 @@
 // src/app/components/matchmaker/new/types/filters.ts
 
-import { Gender, AvailabilityStatus, UserStatus } from '@prisma/client';
+import { Gender, AvailabilityStatus, UserStatus, UserSource  } from '@prisma/client';
 
 // הגדרת טווח ערכים מספריים
 export interface RangeFilter {
@@ -20,7 +20,7 @@ export interface SavedFilter {
 export interface FilterState {
   // הוספת מצב תצוגה נפרדת
   separateFiltering: boolean;
-  
+    source?: UserSource | undefined;
   // הוספת שדות חיפוש נפרדים
   maleSearchQuery?: string;
   femaleSearchQuery?: string;
@@ -137,6 +137,7 @@ export const DEFAULT_FILTER_STATE: FilterState = {
   educationLevel: undefined,
   maritalStatus: undefined,
   availabilityStatus: undefined,
+    source: undefined,
   userStatus: undefined,
   isVerified: undefined,
   hasReferences: undefined,

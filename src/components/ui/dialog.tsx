@@ -1,28 +1,15 @@
+// components/ui/dialog.tsx
+
 "use client";
 
 import * as React from "react";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
+import * as DialogPrimitive from "@radix-ui/react-dialog"; // ייבוא כל המודול
 import { cn } from "@/lib/utils";
-import { X } from "lucide-react";
 
 const Dialog = DialogPrimitive.Root;
 const DialogTrigger = DialogPrimitive.Trigger;
-
-const DialogPortal = ({
-  children,
-  ...props
-}: DialogPrimitive.DialogPortalProps) => (
-  <DialogPrimitive.Portal {...props}>
-    <div className="fixed inset-0 z-50 overflow-y-auto py-6">
-      <div className="min-h-full flex items-center justify-center">
-        {children}
-      </div>
-    </div>
-  </DialogPrimitive.Portal>
-);
-DialogPortal.displayName = DialogPrimitive.Portal.displayName;
-
-const DialogOverlay = React.forwardRef<
+const DialogPortal = DialogPrimitive.Portal; // אפשר להשתמש ישירות
+const DialogOverlay = React.forwardRef< // Overlay ו-Content צריכים עיטוף עם forwardRef ו-styling
   React.ElementRef<typeof DialogPrimitive.Overlay>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
 >(({ className, ...props }, ref) => (
@@ -41,26 +28,27 @@ const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
 >(({ className, children, ...props }, ref) => (
-  <DialogPortal>
+  // ה-DialogPortal הקודם שכתבת היה מעט מיותר כי DialogPrimitive.Portal כבר קיים
+  // אבל אם אתה רוצה את העיטוף הנוסף ל-centering, אפשר להשאיר אותו או להטמיע את הלוגיקה כאן.
+  // לצורך הפשטות וההתאמה ל-shadcn, נשתמש ב-DialogPrimitive.Portal ישירות עם Content.
+  <DialogPrimitive.Portal>
     <DialogOverlay />
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed z-50 grid w-full gap-4 rounded-lg border bg-background shadow-lg animate-in data-[state=open]:fade-in-90 data-[state=open]:slide-in-from-bottom-10 sm:zoom-in-90 data-[state=open]:sm:slide-in-from-bottom-0",
-        "max-h-[85vh] overflow-y-auto mx-auto",
-        className
+        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg",
+        "max-h-[85vh] overflow-y-auto", // הוספתי גלילה אם התוכן ארוך
+        className // מאפשר דריסה של קלאסים
       )}
       {...props}
     >
       {children}
-      <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-        <X className="h-4 w-4" />
-        <span className="sr-only">Close</span>
-      </DialogPrimitive.Close>
+      {/* אין צורך ב-X כאן, DialogPrimitive.Close משמש לסגירה מכל מקום */}
     </DialogPrimitive.Content>
-  </DialogPortal>
+  </DialogPrimitive.Portal>
 ));
 DialogContent.displayName = DialogPrimitive.Content.displayName;
+
 
 const DialogHeader = ({
   className,
@@ -68,7 +56,7 @@ const DialogHeader = ({
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      "flex flex-col space-y-1.5 text-center sm:text-left",
+      "flex flex-col space-y-1.5 text-center sm:text-right", // שיניתי ל-text-right כברירת מחדל
       className
     )}
     {...props}
@@ -82,7 +70,7 @@ const DialogFooter = ({
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2",
+      "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 sm:space-x-reverse", // הוספתי space-x-reverse לכיווניות
       className
     )}
     {...props}
@@ -97,7 +85,7 @@ const DialogTitle = React.forwardRef<
   <DialogPrimitive.Title
     ref={ref}
     className={cn(
-      "text-lg font-semibold leading-none tracking-tight text-center w-full",
+      "text-lg font-semibold leading-none tracking-tight text-right", // שיניתי ל-text-right
       className
     )}
     {...props}
@@ -111,15 +99,18 @@ const DialogDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Description
     ref={ref}
-    className={cn("text-sm text-muted-foreground", className)}
+    className={cn("text-sm text-muted-foreground text-right", className)} // שיניתי ל-text-right
     {...props}
   />
 ));
 DialogDescription.displayName = DialogPrimitive.Description.displayName;
 
+// זהו החלק החשוב לתיקון השגיאה שלך:
+const DialogClose = DialogPrimitive.Close; // הקצאה פשוטה של הקומפוננטה
+
 export {
   Dialog,
-  DialogPortal,
+  DialogPortal, // אם אתה עדיין רוצה את העיטוף המותאם אישית שלך
   DialogOverlay,
   DialogTrigger,
   DialogContent,
@@ -127,4 +118,6 @@ export {
   DialogFooter,
   DialogTitle,
   DialogDescription,
+  DialogClose, // עכשיו DialogClose מיוצא כראוי
+  DialogPrimitive, // אופציונלי: אם אתה רוצה גישה לכל DialogPrimitive במקומות אחרים
 };

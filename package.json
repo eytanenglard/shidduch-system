@@ -14,6 +14,7 @@
     "postinstall": "npx prisma generate"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.817.0",
     "@faker-js/faker": "^9.5.0",
     "@google-cloud/recaptcha-enterprise": "^5.13.0",
     "@handlebars/allow-prototype-access": "^1.0.5",

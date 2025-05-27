@@ -1,5 +1,5 @@
 // candidates.ts
-import { Gender, AvailabilityStatus, UserStatus } from '@prisma/client';
+import { Gender, AvailabilityStatus, UserStatus, UserSource  } from '@prisma/client';
 import type { UserProfile, UserImage, QuestionnaireResponse} from '@/types/next-auth';
 
 // Base API Response Type
@@ -25,9 +25,12 @@ export interface Candidate {
   isVerified: boolean;
   images: CandidateImage[];
   isProfileComplete: boolean;
-  profile: CandidateProfile;
+  source: UserSource; // Add new field
+  addedByMatchmakerId?: string | null; // Add new field
+  profile: CandidateProfile; // Ensure this uses the updated CandidateProfile
 }
 export interface CandidatesFilter {
+   source?: UserSource;
   gender?: Gender;
   ageRange?: {
     min: number;

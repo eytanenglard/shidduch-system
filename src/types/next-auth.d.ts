@@ -14,6 +14,7 @@ import type {
   HeadCoveringType, // Ensure this is imported
   KippahType, // Ensure this is imported
   Prisma,
+  UserSource,
 } from '@prisma/client';
 import { DefaultSession, DefaultUser } from 'next-auth';
 import { DefaultJWT } from 'next-auth/jwt';
@@ -52,7 +53,7 @@ export interface UserProfile extends Omit<PrismaProfile, 'gender' | 'birthDate' 
   parentStatus?: string | null;
   siblings?: number | null;
   position?: number | null;
-
+ manualEntryText?: string | null; 
   // Array fields - ensure they default to empty arrays if not present
   additionalLanguages: string[];
   profileCharacterTraits: string[];
@@ -172,6 +173,8 @@ export interface User extends DefaultUser {
   redirectUrl?: string;
   newlyCreated?: boolean;
   requiresCompletion?: boolean;
+    source: UserSource; // Add new field
+  addedByMatchmakerId?: string | null; // Add new field
 }
 
 export interface Verification {
@@ -205,6 +208,8 @@ declare module 'next-auth' {
        images: UserImage[];
        questionnaireResponses: QuestionnaireResponse[];
        accounts?: PrismaAccount[];
+        source: UserSource; // Add new field
+      addedByMatchmakerId?: string | null; // Add new field
     } & Omit<DefaultSession['user'], 'id' | 'email' | 'name' | 'image'>; // Omit to avoid type conflicts if DefaultSession changes
 
     redirectUrl?: string;
@@ -234,6 +239,8 @@ declare module 'next-auth' {
     redirectUrl?: string;
     newlyCreated?: boolean;
     requiresCompletion?: boolean;
+     source: UserSource; // Add new field
+    addedByMatchmakerId?: string | null; // Add new field
   }
 }
 
@@ -261,7 +268,8 @@ declare module 'next-auth/jwt' {
     newlyCreated?: boolean;
     requiresCompletion?: boolean;
     error?: string; // For JWT-based error propagation
-    
+     source: UserSource; // Add new field
+    addedByMatchmakerId?: string | null; // Add new field
 
   }
 }

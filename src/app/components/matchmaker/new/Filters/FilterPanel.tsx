@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
+import { UserSource } from "@prisma/client"; // At the top
+
 import {
   Collapsible,
   CollapsibleContent,
@@ -18,6 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { UserPlus } from "lucide-react"; // Add UserPlus for the button
+
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -565,7 +569,35 @@ const GenderFilterPanel = ({
             }}
           />
         </div>
-
+        <FilterSection
+          title="מקור המועמד"
+          icon={<UserPlus className="w-4 h-4" />}
+        >
+          <div className="pt-2">
+            <Select
+              value={filters.source || ""}
+              onValueChange={(value) =>
+                onFiltersChange({
+                  ...filters,
+                  source: value ? (value as UserSource) : undefined,
+                })
+              }
+            >
+              <SelectTrigger className="w-full bg-white">
+                <SelectValue placeholder="בחר מקור המועמד" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">הכל</SelectItem>
+                <SelectItem value={UserSource.REGISTRATION}>
+                  רישום עצמי
+                </SelectItem>
+                <SelectItem value={UserSource.MANUAL_ENTRY}>
+                  הוספה ידנית
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </FilterSection>
         <div className="flex items-center justify-between px-2">
           <span className="text-xs font-medium">פרופיל מלא</span>
           <Switch

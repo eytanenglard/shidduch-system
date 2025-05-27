@@ -14,6 +14,7 @@ import {
   FileText,
   CalendarClock,
   Edit,
+  Info, // For manual entry text section
 } from "lucide-react";
 
 // פונקציה לחישוב גיל
@@ -30,6 +31,7 @@ const calculateAge = (birthDate: Date): number => {
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import type { Candidate } from "../types/candidates";
+import { UserSource } from "@prisma/client"; // Import UserSource
 
 interface QuickViewProps {
   candidate: Candidate;
@@ -44,6 +46,7 @@ const QuickView: React.FC<QuickViewProps> = ({ candidate, onAction }) => {
   };
 
   const profile = candidate.profile;
+  const isManualEntry = candidate.source === UserSource.MANUAL_ENTRY;
 
   return (
     <div
@@ -53,9 +56,22 @@ const QuickView: React.FC<QuickViewProps> = ({ candidate, onAction }) => {
       {/* Header with name and avatar */}
       <div className="px-6 py-4 bg-gradient-to-r from-blue-500 to-blue-600 border-b text-white">
         <div className="flex items-center justify-between">
-          <Badge className="bg-white text-blue-700 border-0 font-medium shadow-sm px-3 py-1">
-            {profile.availabilityStatus === "AVAILABLE" ? "פנוי/ה" : "בתהליך"}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge className="bg-white text-blue-700 border-0 font-medium shadow-sm px-3 py-1">
+              {profile.availabilityStatus === "AVAILABLE"
+                ? "פנוי/ה"
+                : profile.availabilityStatus === "DATING"
+                ? "בתהליך הכרות"
+                : profile.availabilityStatus === "UNAVAILABLE"
+                ? "לא פנוי/ה"
+                : "לא ידוע"}
+            </Badge>
+            {isManualEntry && (
+              <Badge className="bg-purple-200 text-purple-800 border-0 font-medium shadow-sm px-3 py-1">
+                מועמד ידני
+              </Badge>
+            )}
+          </div>
           <h3 className="text-lg font-bold">
             {candidate.firstName} {candidate.lastName}
           </h3>
@@ -99,38 +115,57 @@ const QuickView: React.FC<QuickViewProps> = ({ candidate, onAction }) => {
 
         <Separator className="my-4 bg-gray-200" />
 
-        {/* Education & Occupation */}
-        <div className="space-y-4">
-          <h4 className="text-sm font-bold text-gray-600 mb-3">מידע נוסף</h4>
-          {profile.education && (
-            <div className="flex items-center justify-end gap-3 text-sm bg-blue-50 p-3 rounded-md">
-              <span className="font-medium">{profile.education}</span>
-              <GraduationCap className="w-5 h-5 text-blue-500" />
+        {/* Manual Entry Text (if applicable) */}
+        {isManualEntry && profile.manualEntryText && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-end gap-2">
+              <h4 className="text-sm font-bold text-gray-600">
+                תיאור ידני מהשדכן
+              </h4>
+              <Info className="w-5 h-5 text-purple-500" />
             </div>
-          )}
+            <p className="text-sm leading-relaxed py-3 px-4 bg-purple-50 rounded-md border border-purple-200 shadow-sm whitespace-pre-wrap">
+              {profile.manualEntryText}
+            </p>
+          </div>
+        )}
 
-          {profile.occupation && (
-            <div className="flex items-center justify-end gap-3 text-sm bg-blue-50 p-3 rounded-md mt-2">
-              <span className="font-medium">{profile.occupation}</span>
-              <Briefcase className="w-5 h-5 text-blue-500" />
-            </div>
-          )}
+        {/* Education & Occupation (if not manual entry, or if manual entry but these fields are filled) */}
+        {(!isManualEntry ||
+          (isManualEntry &&
+            (profile.education || profile.occupation || profile.city))) && (
+          <div className="space-y-4">
+            <h4 className="text-sm font-bold text-gray-600 mb-3">מידע נוסף</h4>
+            {profile.education && (
+              <div className="flex items-center justify-end gap-3 text-sm bg-blue-50 p-3 rounded-md">
+                <span className="font-medium">{profile.education}</span>
+                <GraduationCap className="w-5 h-5 text-blue-500" />
+              </div>
+            )}
 
-          {profile.city && (
-            <div className="flex items-center justify-end gap-3 text-sm bg-blue-50 p-3 rounded-md mt-2">
-              <span className="font-medium">{profile.city}</span>
-              <MapPin className="w-5 h-5 text-blue-500" />
-            </div>
-          )}
-        </div>
+            {profile.occupation && (
+              <div className="flex items-center justify-end gap-3 text-sm bg-blue-50 p-3 rounded-md mt-2">
+                <span className="font-medium">{profile.occupation}</span>
+                <Briefcase className="w-5 h-5 text-blue-500" />
+              </div>
+            )}
 
-        {/* About section with improved styling */}
-        {profile.about && (
+            {profile.city && (
+              <div className="flex items-center justify-end gap-3 text-sm bg-blue-50 p-3 rounded-md mt-2">
+                <span className="font-medium">{profile.city}</span>
+                <MapPin className="w-5 h-5 text-blue-500" />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* About section (if not manual entry with text, or if manual entry but 'about' is also filled) */}
+        {(!isManualEntry || !profile.manualEntryText) && profile.about && (
           <>
             <Separator className="my-4 bg-gray-200" />
             <div className="space-y-3">
               <h4 className="text-sm font-bold text-gray-600">אודות</h4>
-              <p className="text-sm leading-relaxed py-3 px-4 bg-gray-50 rounded-md border border-gray-200 shadow-sm">
+              <p className="text-sm leading-relaxed py-3 px-4 bg-gray-50 rounded-md border border-gray-200 shadow-sm whitespace-pre-wrap">
                 {profile.about}
               </p>
             </div>

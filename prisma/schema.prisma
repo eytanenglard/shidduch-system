@@ -22,6 +22,11 @@ model User {
   isVerified                      Boolean                 @default(false)
   isPhoneVerified                 Boolean                 @default(false)
   isProfileComplete               Boolean                 @default(false)
+  
+  source                          UserSource              @default(REGISTRATION) // New field
+  addedByMatchmakerId             String?                 // Optional: ID of matchmaker who added this manual user
+  matchmakerWhoAdded              User?                   @relation("ManuallyAddedBy", fields: [addedByMatchmakerId], references: [id]) // New relation
+
   firstPartyInquiries             AvailabilityInquiry[]   @relation("FirstPartyInquiries")
   matchmakerAvailabilityInquiries AvailabilityInquiry[]   @relation("MatchmakerInquiries")
   secondPartyInquiries            AvailabilityInquiry[]   @relation("SecondPartyInquiries")
@@ -44,12 +49,14 @@ model User {
   approvedSuggestions             MatchSuggestion[]       @relation("ApprovedSuggestions")
   reviewedSuggestions             MatchSuggestion[]       @relation("ReviewedSuggestions")
   oneTimeAuthTokens               OneTimeAuthToken[]
+  manuallyAddedCandidates         User[]                  @relation("ManuallyAddedBy") // New relation back to matchmaker
 
   @@index([email])
   @@index([role])
   @@index([status])
+  @@index([source]) // Index the new field
+  @@index([addedByMatchmakerId])
 }
-
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -130,6 +137,7 @@ model Profile {
   shomerNegiah              Boolean?
   serviceType               ServiceType? // Service type of the user
   serviceDetails            String?
+    manualEntryText           String?
   headCovering              HeadCoveringType?
   kippahType                KippahType?
   hasChildrenFromPrevious   Boolean?           @default(false)
@@ -153,7 +161,7 @@ model Profile {
   preferredOccupations      String[]           @default([]) // Corresponds to occupationPreferenceOptions
   contactPreference         String?
  preferredHasChildrenFromPrevious   Boolean? @map("preferred_has_children_from_previous")
- 
+
   // --- New Preference Fields ---
   preferredMaritalStatuses  String[]           @default([]) // Preferred marital status(es) of the partner
   preferredShomerNegiah     String?            // e.g., "yes", "no", "flexible"
@@ -497,6 +505,11 @@ enum SuggestionCategory {
   HISTORY
 }
 
+enum UserSource {
+  REGISTRATION // User registered themselves
+  MANUAL_ENTRY // User added manually by a matchmaker
+  IMPORTED     // Future: User imported from another system
+}
 enum AvailabilityStatus {
   AVAILABLE
   UNAVAILABLE

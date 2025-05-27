@@ -2,6 +2,8 @@
 
 import React, { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { UserPlus } from "lucide-react"; // Add UserPlus for the button
+import { AddManualCandidateDialog } from "../dialogs/AddManualCandidateDialog"; // Import the new dialog
 import { Badge } from "@/components/ui/badge";
 import {
   Filter,
@@ -74,6 +76,7 @@ const CandidatesManager: React.FC = () => {
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [showFiltersMobile, setShowFiltersMobile] = useState(false);
   const [showExportConfirm, setShowExportConfirm] = useState(false);
+  const [showManualAddDialog, setShowManualAddDialog] = useState(false); // State for the dialog
 
   // Custom Hooks
   const {
@@ -87,6 +90,7 @@ const CandidatesManager: React.FC = () => {
     sorting,
     setSorting,
     setFilters,
+    refresh, // Destructure refresh from the main useCandidates call
   } = useCandidates();
 
   const {
@@ -102,26 +106,27 @@ const CandidatesManager: React.FC = () => {
     updateMaleFilters,
     updateFemaleFilters,
     copyFilters,
-    // פונקציות חדשות לחיפוש נפרד
     updateMaleSearchQuery,
     updateFemaleSearchQuery,
   } = useFilterLogic({
     onFilterChange: (newFilters) => {
       setLocalFilters(newFilters);
-      // עדכון הפילטרים ב-useCandidates
       setFilters(newFilters);
     },
   });
+
+  // Callback for when a manual candidate is added
+  const handleCandidateAdded = useCallback(() => {
+    refresh(); // Refresh the candidates list
+  }, [refresh]);
 
   // Check for mobile view
   useEffect(() => {
     const checkMobile = () => {
       setIsMobileView(window.innerWidth < 768);
     };
-
     checkMobile();
     window.addEventListener("resize", checkMobile);
-
     return () => {
       window.removeEventListener("resize", checkMobile);
     };
@@ -135,37 +140,25 @@ const CandidatesManager: React.FC = () => {
   // Search handlers
   const handleSearch = useCallback(
     (value: string) => {
-      // עדכון חיפוש - אם במצב סינון נפרד, החיפוש משפיע רק על שדה החיפוש הכללי
       if (!filters.separateFiltering) {
-        // Update local UI state
-        setLocalFilters((prev) => ({
-          ...prev,
-          searchQuery: value,
-        }));
-
-        // Update filter state in useCandidates hook
-        setFilters((prev) => ({
-          ...prev,
-          searchQuery: value,
-        }));
-
+        setLocalFilters((prev) => ({ ...prev, searchQuery: value }));
+        setFilters((prev) => ({ ...prev, searchQuery: value }));
         setShowSearchResults(!!value);
       }
     },
     [setFilters, filters.separateFiltering]
   );
+
   const handleMaleSearch = useCallback(
     (value: string) => {
-      // תמיד מעדכנים את החיפוש הנפרד לגברים, גם ללא מצב סינון נפרד
       updateMaleSearchQuery(value);
       setShowSearchResults(!!value);
     },
     [updateMaleSearchQuery]
   );
-  // חיפוש נפרד לנשים
+
   const handleFemaleSearch = useCallback(
     (value: string) => {
-      // תמיד מעדכנים את החיפוש הנפרד לנשים, גם ללא מצב סינון נפרד
       updateFemaleSearchQuery(value);
       setShowSearchResults(!!value);
     },
@@ -176,53 +169,25 @@ const CandidatesManager: React.FC = () => {
     (key: keyof CandidatesFilter, value?: string) => {
       setLocalFilters((prev) => {
         const newFilters = { ...prev };
-
         if (key === "cities" && value) {
-          return {
-            ...newFilters,
-            cities: prev.cities?.filter((city) => city !== value),
-          };
+          newFilters.cities = prev.cities?.filter((city) => city !== value);
+        } else if (key === "occupations" && value) {
+          newFilters.occupations = prev.occupations?.filter(
+            (occ) => occ !== value
+          );
+        } else if (key === "separateFiltering") {
+          newFilters.separateFiltering = false;
+        } else if (key === "maleSearchQuery") {
+          newFilters.maleSearchQuery = "";
+          if (newFilters.maleFilters) newFilters.maleFilters.searchQuery = "";
+        } else if (key === "femaleSearchQuery") {
+          newFilters.femaleSearchQuery = "";
+          if (newFilters.femaleFilters)
+            newFilters.femaleFilters.searchQuery = "";
+        } else {
+          delete newFilters[key];
         }
-
-        if (key === "occupations" && value) {
-          return {
-            ...newFilters,
-            occupations: prev.occupations?.filter((occ) => occ !== value),
-          };
-        }
-
-        if (key === "separateFiltering") {
-          return {
-            ...newFilters,
-            separateFiltering: false,
-          };
-        }
-
-        // טיפול בשדות החיפוש הנפרדים
-        if (key === "maleSearchQuery") {
-          return {
-            ...newFilters,
-            maleSearchQuery: "",
-            maleFilters: {
-              ...newFilters.maleFilters,
-              searchQuery: "",
-            },
-          };
-        }
-
-        if (key === "femaleSearchQuery") {
-          return {
-            ...newFilters,
-            femaleSearchQuery: "",
-            femaleFilters: {
-              ...newFilters.femaleFilters,
-              searchQuery: "",
-            },
-          };
-        }
-
-        delete newFilters[key];
-        setFilters(newFilters); // עדכון גם ב-useCandidates
+        setFilters(newFilters);
         return newFilters;
       });
     },
@@ -232,17 +197,14 @@ const CandidatesManager: React.FC = () => {
   const handleCandidateAction = useCallback(
     async (type: CandidateAction, candidate: Candidate) => {
       if (isProcessing) return;
-
       setIsProcessing(true);
       try {
         switch (type) {
           case "suggest":
-            // Handled by NewSuggestionForm
             toast.success("הצעת השידוך נוצרה בהצלחה", {
               description: `נוצרה הצעת שידוך עבור ${candidate.firstName} ${candidate.lastName}`,
             });
             break;
-
           case "invite":
             await fetch("/api/matchmaker/invitations", {
               method: "POST",
@@ -253,13 +215,11 @@ const CandidatesManager: React.FC = () => {
               description: `ההזמנה נשלחה ל${candidate.firstName} ${candidate.lastName}`,
             });
             break;
-
           case "contact":
             toast.success("בקשת יצירת הקשר נשלחה", {
               description: `בקשה ליצירת קשר נשלחה ל${candidate.firstName} ${candidate.lastName}`,
             });
             break;
-
           case "favorite":
             await fetch("/api/matchmaker/favorites", {
               method: "POST",
@@ -270,9 +230,7 @@ const CandidatesManager: React.FC = () => {
               description: `${candidate.firstName} ${candidate.lastName} נוספ/ה למועדפים שלך`,
             });
             break;
-
           case "edit":
-            // Handled by specific component
             break;
         }
       } catch (error) {
@@ -306,7 +264,6 @@ const CandidatesManager: React.FC = () => {
 
   const handleExport = useCallback(async () => {
     if (isProcessing) return;
-
     setIsProcessing(true);
     try {
       await exportCandidates(filteredCandidates, localFilters);
@@ -325,14 +282,7 @@ const CandidatesManager: React.FC = () => {
   }, [filteredCandidates, localFilters, exportCandidates, isProcessing]);
 
   const renderSearchSummary = () => {
-    // עדכון - תצוגת סיכום חיפוש תלויה במצב הסינון
-    if (!searchResults) return null;
-
-    // אם במצב סינון נפרד, הסיכום יוצג בצורה שונה
-    if (filters.separateFiltering) {
-      return null; // במצב סינון נפרד, כל צד מציג את הסיכום שלו בנפרד
-    }
-
+    if (!searchResults || filters.separateFiltering) return null;
     return (
       <div className="bg-blue-50/50 p-3 border rounded-lg mb-4">
         <div className="flex items-center justify-between">
@@ -363,15 +313,12 @@ const CandidatesManager: React.FC = () => {
     );
   };
 
-  // חישוב ספירת הפילטרים הפעילים
   const countActiveFilters = () => {
     return activeFilters.length;
   };
 
-  // הצגת באנר הסבר על מצב סינון נפרד
   const renderSeparateFilteringInfo = () => {
     if (!filters.separateFiltering) return null;
-
     return (
       <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg mb-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
@@ -401,17 +348,23 @@ const CandidatesManager: React.FC = () => {
       {/* Header */}
       <div className="sticky top-0 z-10 bg-white border-b shadow-sm">
         <div className="container mx-auto py-4">
+          {/* Title and Add Button */}
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-2xl font-bold text-primary/90">
+              ניהול מועמדים
+            </h1>
+            <Button onClick={() => setShowManualAddDialog(true)}>
+              <UserPlus className="w-4 h-4 ml-2" />
+              הוסף מועמד ידנית
+            </Button>
+          </div>
           {/* Search and Filters Bar */}
           <div className="mt-4 flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
-              {/* שדה חיפוש ראשי - נראה רק אם לא במצב סינון נפרד */}
               {!filters.separateFiltering && (
                 <SearchBar
                   value={localFilters.searchQuery || ""}
                   onChange={handleSearch}
-                  onSelect={() => {
-                    /* Handle candidate selection */
-                  }}
                   recentSearches={recentSearches}
                   onSaveSearch={(term) => handleSearch(term)}
                   onClearRecentSearches={clearRecentSearches}
@@ -424,7 +377,6 @@ const CandidatesManager: React.FC = () => {
             </div>
 
             <div className="flex gap-2">
-              {/* Sort Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" disabled={isProcessing}>
@@ -463,7 +415,6 @@ const CandidatesManager: React.FC = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {/* Filter Button - desktop */}
               <Button
                 variant="outline"
                 onClick={() => setShowFilters((prev) => !prev)}
@@ -476,7 +427,6 @@ const CandidatesManager: React.FC = () => {
                 {showFilters ? "הסתר סינון" : "הצג סינון"}
               </Button>
 
-              {/* Filter Button - mobile sheet */}
               <Sheet
                 open={showFiltersMobile}
                 onOpenChange={setShowFiltersMobile}
@@ -507,7 +457,6 @@ const CandidatesManager: React.FC = () => {
                     <FilterPanel
                       filters={localFilters}
                       onFiltersChange={(newFilters) => {
-                        // עדכון הפילטרים המקומיים והגלובליים
                         setLocalFilters(newFilters);
                         setFilters(newFilters);
                       }}
@@ -550,14 +499,12 @@ const CandidatesManager: React.FC = () => {
             </div>
           </div>
 
-          {/* Active Filters */}
           <div className="mt-4">
             <ActiveFilters
               filters={localFilters}
               onRemoveFilter={handleRemoveFilter}
               onResetAll={resetFilters}
               onSuggestFilter={() => {
-                /* Intelligent filter suggestion logic */
                 toast.info("מציע פילטרים חכמים...");
               }}
             />
@@ -566,25 +513,18 @@ const CandidatesManager: React.FC = () => {
       </div>
 
       <div className="container mx-auto py-6">
-        {/* Search Results Summary */}
         {showSearchResults && renderSearchSummary()}
-
-        {/* Separate Filtering Banner */}
         {renderSeparateFilteringInfo()}
-
-        {/* Statistics Overview */}
         {showStats && (
           <CandidatesStats candidates={filteredCandidates} className="mb-6" />
         )}
 
         <div className="flex gap-6">
-          {/* Filters Panel - Desktop */}
           {showFilters && (
             <div className="hidden md:block w-80">
               <FilterPanel
                 filters={localFilters}
                 onFiltersChange={(newFilters) => {
-                  // עדכון הפילטרים המקומיים והגלובליים
                   setLocalFilters(newFilters);
                   setFilters(newFilters);
                 }}
@@ -604,7 +544,6 @@ const CandidatesManager: React.FC = () => {
               />
             </div>
           )}
-          {/* Main Content */}
           <div className="flex-1">
             {loading ? (
               <LoadingContainer>
@@ -620,7 +559,6 @@ const CandidatesManager: React.FC = () => {
                   onMaleFiltersChange={updateMaleFilters}
                   onFemaleFiltersChange={updateFemaleFilters}
                   onCopyFilters={copyFilters}
-                  // תמיד מעבירים את props לחיפוש נפרד
                   maleSearchQuery={filters.maleSearchQuery || ""}
                   femaleSearchQuery={filters.femaleSearchQuery || ""}
                   onMaleSearchChange={handleMaleSearch}
@@ -640,7 +578,6 @@ const CandidatesManager: React.FC = () => {
                 onMaleFiltersChange={updateMaleFilters}
                 onFemaleFiltersChange={updateFemaleFilters}
                 onCopyFilters={copyFilters}
-                // תמיד מעבירים את props לחיפוש נפרד
                 maleSearchQuery={filters.maleSearchQuery || ""}
                 femaleSearchQuery={filters.femaleSearchQuery || ""}
                 onMaleSearchChange={handleMaleSearch}
@@ -651,7 +588,6 @@ const CandidatesManager: React.FC = () => {
         </div>
       </div>
 
-      {/* Export Confirmation Dialog */}
       {showExportConfirm && (
         <AlertDialog>
           <AlertDialogContent>
@@ -675,6 +611,13 @@ const CandidatesManager: React.FC = () => {
           </AlertDialogContent>
         </AlertDialog>
       )}
+
+      {/* Add Manual Candidate Dialog - Moved inside the main return */}
+      <AddManualCandidateDialog
+        isOpen={showManualAddDialog}
+        onClose={() => setShowManualAddDialog(false)}
+        onCandidateAdded={handleCandidateAdded}
+      />
     </div>
   );
 };

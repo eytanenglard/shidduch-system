@@ -29,7 +29,7 @@ const Navbar = () => {
   const { data: session } = useSession() as {
     data: (Session & { user?: { images?: UserImage[] } }) | null;
   };
-   const pathname = usePathname();
+  const pathname = usePathname();
 
   // DEBUGGING:
   useEffect(() => {
@@ -39,8 +39,8 @@ const Navbar = () => {
     }
   }, [session]);
 
-  const isMatchmaker = session?.user?.role === "MATCHMAKER";
-  // DEBUGGING:
+  const isMatchmaker =
+    session?.user?.role === "MATCHMAKER" || session?.user?.role === "ADMIN"; // DEBUGGING:
   useEffect(() => {
     if (session) {
       console.log("isMatchmaker evaluated to:", isMatchmaker);

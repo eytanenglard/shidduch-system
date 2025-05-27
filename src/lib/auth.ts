@@ -12,9 +12,9 @@ import type {
   UserImage,
   QuestionnaireResponse
 } from "@/types/next-auth"; // ודא שהנתיב נכון
-import {  JWT as ExtendedUserJWT,} from "next-auth/jwt";
-import {   Session as ExtendedSession} from "next-auth";
-import { UserRole, UserStatus } from "@prisma/client";
+import { JWT as ExtendedUserJWT } from "next-auth/jwt";
+import { Session as ExtendedSession } from "next-auth";
+import { UserRole, UserStatus, UserSource } from "@prisma/client"; // Added UserSource
 
 console.log("Auth options file loaded");
 
@@ -48,14 +48,16 @@ export const authOptions: NextAuthOptions = {
         const firstName = profile.given_name || profile.name?.split(' ')[0] || "";
         const lastName = profile.family_name || profile.name?.split(' ').slice(1).join(' ') || "";
 
+        // For new users via Google, source will default to REGISTRATION in Prisma schema.
+        // addedByMatchmakerId will be null.
         const userForAdapter: ExtendedUser = {
-          id: profile.sub, // Temporary ID; Prisma will generate a cuid if this user is new to the adapter
+          id: profile.sub, 
           email: profile.email.toLowerCase(),
           firstName: firstName,
           lastName: lastName,
-          name: profile.name || `${firstName} ${lastName}`.trim(), // 'name' is part of ExtendedUser, not directly Prisma User model
+          name: profile.name || `${firstName} ${lastName}`.trim(), 
           phone: null, 
-          image: profile.picture || null, // 'image' is part of ExtendedUser, will be derived from UserImage in JWT/Session
+          image: profile.picture || null, 
           role: UserRole.CANDIDATE,
           status: UserStatus.PENDING_PHONE_VERIFICATION,
           isVerified: !!profile.email_verified,
@@ -64,6 +66,8 @@ export const authOptions: NextAuthOptions = {
           lastLogin: null, 
           createdAt: now,
           updatedAt: now,
+          source: UserSource.REGISTRATION, // Explicitly set for clarity, though schema has default
+          addedByMatchmakerId: null,     // Not applicable for Google sign-up
           profile: null, 
           images: [], 
           questionnaireResponses: [], 
@@ -73,7 +77,7 @@ export const authOptions: NextAuthOptions = {
         };
     
         console.log("[GoogleProvider Profile Fn] User object for adapter:", userForAdapter);
-        return userForAdapter; // This object structure is for NextAuth's internal User, not directly for Prisma.create
+        return userForAdapter;
       }
     }),
     CredentialsProvider({
@@ -119,10 +123,12 @@ export const authOptions: NextAuthOptions = {
         return {
           ...restOfUser,
           name: `${userFromDb.firstName} ${userFromDb.lastName}`,
-          image: images?.[0]?.url || null, // Use the URL from the UserImage relation
+          image: images?.[0]?.url || null, 
           profile: profile as UserProfile | null,
           images: images as UserImage[],
           questionnaireResponses: questionnaireResponses as QuestionnaireResponse[],
+          source: userFromDb.source, // Add source
+          addedByMatchmakerId: userFromDb.addedByMatchmakerId, // Add addedByMatchmakerId
         } as ExtendedUser;
       }
     }),
@@ -176,10 +182,12 @@ export const authOptions: NextAuthOptions = {
         return {
           ...restOfUser,
           name: `${userFromDb.firstName} ${userFromDb.lastName}`,
-          image: images?.[0]?.url || null, // Use the URL from the UserImage relation
+          image: images?.[0]?.url || null,
           profile: profile as UserProfile | null,
           images: images as UserImage[],
           questionnaireResponses: questionnaireResponses as QuestionnaireResponse[],
+          source: userFromDb.source, // Add source
+          addedByMatchmakerId: userFromDb.addedByMatchmakerId, // Add addedByMatchmakerId
         } as ExtendedUser;
       },
     }),
@@ -217,23 +225,21 @@ export const authOptions: NextAuthOptions = {
         if (!dbUser) {
             try {
                 console.log(`[signIn Callback] User ${userEmail} not found after Google sign-in via adapter. Attempting to create directly.`);
-                // Create user using only fields present in Prisma's User model
                 const createdDbUser = await prisma.user.create({
                     data: {
-                        // id: typedUser.id, // Prisma generates ID by default, unless typedUser.id is a stable provider ID you want to use
                         email: userEmail,
-                        firstName: typedUser.firstName || "", // from GoogleProvider.profile mapping
-                        lastName: typedUser.lastName || "",  // from GoogleProvider.profile mapping
-                        // 'name' is not a field in Prisma User model
-                        // 'image' from typedUser (profile.picture) is not stored directly on User model
+                        firstName: typedUser.firstName || "", 
+                        lastName: typedUser.lastName || "",  
                         role: typedUser.role || UserRole.CANDIDATE,
                         status: typedUser.status || UserStatus.PENDING_PHONE_VERIFICATION,
                         isVerified: typedUser.isVerified === undefined ? (!!oauthProfile?.email_verified) : typedUser.isVerified,
                         isProfileComplete: typedUser.isProfileComplete || false,
                         isPhoneVerified: typedUser.isPhoneVerified || false,
+                        source: UserSource.REGISTRATION, // New users via Google are REGISTRATION
+                        // addedByMatchmakerId will be null by default
                     },
                 });
-                dbUser = createdDbUser; // Assign the newly created user
+                dbUser = createdDbUser; 
                 console.log(`[signIn Callback] Created new user ${dbUser.email} during signIn.`);
 
                 if (account && account.providerAccountId) {
@@ -259,12 +265,11 @@ export const authOptions: NextAuthOptions = {
                         console.log(`[signIn Callback] Linked Google account for ${dbUser.email}`);
                     }
                 }
-              } catch (error: unknown) { // השתמש ב-unknown
+              } catch (error: unknown) { 
                 console.error("[signIn Callback] Failed to create user or link account:", error);
                 
-                // בדוק אם השגיאה היא אובייקט עם המאפיינים שאתה מצפה להם
                 if (typeof error === 'object' && error !== null && 'code' in error && 'meta' in error) {
-                    const prismaError = error as { code?: string; meta?: { target?: string[] } }; // בצע type assertion בטוח
+                    const prismaError = error as { code?: string; meta?: { target?: string[] } }; 
                     if (prismaError.code === 'P2002' && prismaError.meta?.target?.includes('email')) {
                         console.log("[signIn Callback] User likely created by adapter in parallel. Attempting to re-fetch.");
                         dbUser = await prisma.user.findUnique({ where: { email: userEmail }});
@@ -273,10 +278,9 @@ export const authOptions: NextAuthOptions = {
                             return false;
                         }
                     } else {
-                        return false; // Block sign-in if user creation fails for other reasons
+                        return false; 
                     }
                 } else {
-                  // אם השגיאה אינה במבנה הצפוי, החזר false או טפל בהתאם
                   console.error("[signIn Callback] An unexpected error type occurred:", error);
                   return false;
                 }
@@ -293,19 +297,20 @@ export const authOptions: NextAuthOptions = {
       typedUser.email = dbUser.email;
       typedUser.firstName = dbUser.firstName;
       typedUser.lastName = dbUser.lastName;
-      typedUser.name = `${dbUser.firstName} ${dbUser.lastName}`.trim(); // Construct name for ExtendedUser
+      typedUser.name = `${dbUser.firstName} ${dbUser.lastName}`.trim(); 
       typedUser.role = dbUser.role;
       typedUser.status = dbUser.status;
       typedUser.isVerified = dbUser.isVerified;
       typedUser.isProfileComplete = dbUser.isProfileComplete;
       typedUser.isPhoneVerified = dbUser.isPhoneVerified;
-      // `typedUser.image` will be populated in JWT from DB images if available, or from Google's profile.picture if it was set
-    console.log("[signIn Callback] Processed user. Flags:", {
-  // ...
-  roleFromDbUser: dbUser.role, // הוסף לוג
-  roleSetOnTypedUser: typedUser.role, // הוסף לוג
-  // ...
-});
+      typedUser.source = dbUser.source; // Pass source from DB
+      typedUser.addedByMatchmakerId = dbUser.addedByMatchmakerId; // Pass addedByMatchmakerId from DB
+      
+      console.log("[signIn Callback] Processed user. Flags:", {
+        roleFromDbUser: dbUser.role, 
+        roleSetOnTypedUser: typedUser.role, 
+      });
+
       if (account?.provider === "google") {
         if (dbUser.isVerified === false && oauthProfile?.email_verified === true) {
           console.log(`[signIn Callback] Google User ${dbUser.email} was not email-verified, but Google says it is. Updating DB.`);
@@ -349,7 +354,8 @@ export const authOptions: NextAuthOptions = {
         requiresCompletion: typedUser.requiresCompletion,
         newlyCreated: typedUser.newlyCreated,
         redirectUrl: typedUser.redirectUrl,
-        status: typedUser.status
+        status: typedUser.status,
+        source: typedUser.source, // Log source
       });
       return true;
     },
@@ -379,18 +385,21 @@ export const authOptions: NextAuthOptions = {
         typedToken.isProfileComplete = typedUserFromCallback.isProfileComplete || false;
         typedToken.isPhoneVerified = typedUserFromCallback.isPhoneVerified || false;
         
+        typedToken.source = typedUserFromCallback.source; // Add source
+        typedToken.addedByMatchmakerId = typedUserFromCallback.addedByMatchmakerId; // Add addedByMatchmakerId
+
         typedToken.requiresCompletion = typedUserFromCallback.requiresCompletion;
         typedToken.redirectUrl = typedUserFromCallback.redirectUrl;
         typedToken.newlyCreated = typedUserFromCallback.newlyCreated;
-          typedToken.createdAt = typedUserFromCallback.createdAt; // ודא שזה תמיד Date
-  typedToken.updatedAt = typedUserFromCallback.updatedAt; // ודא שזה תמיד Date
+        typedToken.createdAt = typedUserFromCallback.createdAt; 
+        typedToken.updatedAt = typedUserFromCallback.updatedAt; 
 
         console.log("[JWT Callback - Initial Population] Token populated from user callback object:", {
             tokenId: typedToken.id,
             tokenEmail: typedToken.email,
             tokenStatus: typedToken.status,
+            tokenSource: typedToken.source,
         });
-      
       }
       
       if (typedToken.id && (trigger === "signIn" || trigger === "signUp" || trigger === "update" || !typedToken.profile || !typedToken.images)) {
@@ -398,7 +407,7 @@ export const authOptions: NextAuthOptions = {
           const dbUserForJwt = await prisma.user.findUnique({
             where: { id: typedToken.id },
             include: {
-              profile: true,
+              profile: true, // This will include manualEntryText
               images: { where: { isMain: true }, take: 1 },
               questionnaireResponses: { orderBy: { createdAt: 'desc' }, take: 1 }
             }
@@ -409,21 +418,24 @@ export const authOptions: NextAuthOptions = {
             typedToken.firstName = dbUserForJwt.firstName;
             typedToken.lastName = dbUserForJwt.lastName;
             typedToken.name = `${dbUserForJwt.firstName} ${dbUserForJwt.lastName}`.trim();
-            typedToken.picture = dbUserForJwt.images?.[0]?.url || typedToken.picture; // Prioritize DB image
+            typedToken.picture = dbUserForJwt.images?.[0]?.url || typedToken.picture; 
             typedToken.role = dbUserForJwt.role;
             typedToken.status = dbUserForJwt.status;
             typedToken.isVerified = dbUserForJwt.isVerified;
             typedToken.isProfileComplete = dbUserForJwt.isProfileComplete;
             typedToken.isPhoneVerified = dbUserForJwt.isPhoneVerified;
             
+            typedToken.source = dbUserForJwt.source; // Refresh source
+            typedToken.addedByMatchmakerId = dbUserForJwt.addedByMatchmakerId; // Refresh addedByMatchmakerId
+
             typedToken.profile = dbUserForJwt.profile as UserProfile | null;
-            typedToken.images = dbUserForJwt.images as UserImage[]; // Ensure this is UserImage[]
+            typedToken.images = dbUserForJwt.images as UserImage[]; 
             typedToken.questionnaireResponses = dbUserForJwt.questionnaireResponses as QuestionnaireResponse[];
             
             typedToken.lastLogin = dbUserForJwt.lastLogin;
             typedToken.createdAt = dbUserForJwt.createdAt;
             typedToken.updatedAt = dbUserForJwt.updatedAt;
-              console.log("[JWT Callback - DB Refresh] dbUserForJwt.role:", dbUserForJwt.role); // הוסף לוג
+            console.log("[JWT Callback - DB Refresh] dbUserForJwt.role:", dbUserForJwt.role); 
 
             const requiresCompletionFromDb = (!dbUserForJwt.isProfileComplete || !dbUserForJwt.isPhoneVerified);
             if (trigger !== "update" || session === undefined ) { 
@@ -432,12 +444,11 @@ export const authOptions: NextAuthOptions = {
                  if ((dbUserForJwt.status === UserStatus.PENDING_PHONE_VERIFICATION || 
                      dbUserForJwt.status === UserStatus.PENDING_EMAIL_VERIFICATION) && 
                     !dbUserForJwt.isProfileComplete) {
-                    // Only set newlyCreated to true if it wasn't already set to true by signIn
                     if (typedToken.newlyCreated !== true) {
                        typedToken.newlyCreated = true;
                     }
                 } else {
-                    if (typedToken.newlyCreated !== true) { // Avoid overriding if signIn set it
+                    if (typedToken.newlyCreated !== true) { 
                          typedToken.newlyCreated = false;
                     }
                 }
@@ -447,6 +458,7 @@ export const authOptions: NextAuthOptions = {
                 tokenId: typedToken.id,
                 tokenEmail: typedToken.email,
                 tokenStatus: typedToken.status,
+                tokenSource: typedToken.source,
             });
           } else {
               console.warn(`[JWT Callback - DB Refresh] User with ID ${typedToken.id} not found in DB during refresh. Token might be stale.`);
@@ -455,30 +467,16 @@ export const authOptions: NextAuthOptions = {
       
       if (trigger === "update" && session) {
         console.log("[JWT Callback - Client Update] Processing 'update' trigger with session data:", session);
-        // The primary purpose of `trigger: "update"` is often to force a re-fetch of the JWT,
-        // which is handled by the DB refresh logic above.
-        // If you need to merge specific fields from `session` (the data passed to `useSession().update()`),
-        // you can do it here. For example:
-        // const sessionUpdateData = session as Partial<ExtendedUserJWT>;
-        // if (sessionUpdateData.someCustomFlag !== undefined) {
-        //   typedToken.someCustomFlag = sessionUpdateData.someCustomFlag;
-        // }
-        // For now, we rely on the DB refresh to get the latest state.
       }
 
       console.log("[JWT Callback] Returning final token:", { 
         tokenId: typedToken.id,
         email: typedToken.email, 
+        role: typedToken.role, 
         requiresCompletion: typedToken.requiresCompletion,
         redirectUrl: typedToken.redirectUrl,
+        source: typedToken.source,
       });
-      console.log("[JWT Callback] Returning final token:", {
-  tokenId: typedToken.id,
-  email: typedToken.email,
-  role: typedToken.role, // ודא שהלוג הזה קיים ומה הוא מראה
-  requiresCompletion: typedToken.requiresCompletion,
-  redirectUrl: typedToken.redirectUrl,
-});
       return typedToken;
     },
 
@@ -493,16 +491,20 @@ export const authOptions: NextAuthOptions = {
         typedSession.user.email = typedToken.email;
         typedSession.user.firstName = typedToken.firstName;
         typedSession.user.lastName = typedToken.lastName;
-    typedSession.user.name = typedToken.name ?? null; // מטפל ב-undefined מ-DefaultJWT.name
- typedSession.user.image = typedToken.picture ?? null; // מטפל ב-undefined מ-        typedSession.user.role = typedToken.role;
+        typedSession.user.name = typedToken.name ?? null; 
+        typedSession.user.image = typedToken.picture ?? null; 
+        typedSession.user.role = typedToken.role;
         typedSession.user.status = typedToken.status;
         typedSession.user.isVerified = typedToken.isVerified;
         typedSession.user.isProfileComplete = typedToken.isProfileComplete;
         typedSession.user.isPhoneVerified = typedToken.isPhoneVerified;
-        typedSession.user.role = typedToken.role;
-        typedSession.user.profile = typedToken.profile; // Already UserProfile | null from token
-        typedSession.user.images = typedToken.images; // Already UserImage[] from token
-        typedSession.user.questionnaireResponses = typedToken.questionnaireResponses; // Already QuestionnaireResponse[]
+        
+        typedSession.user.source = typedToken.source; // Pass source to session
+        typedSession.user.addedByMatchmakerId = typedToken.addedByMatchmakerId; // Pass to session
+
+        typedSession.user.profile = typedToken.profile; 
+        typedSession.user.images = typedToken.images; 
+        typedSession.user.questionnaireResponses = typedToken.questionnaireResponses; 
 
         typedSession.user.lastLogin = typedToken.lastLogin;
         typedSession.user.createdAt = typedToken.createdAt;
@@ -519,34 +521,33 @@ export const authOptions: NextAuthOptions = {
         userId: typedSession.user?.id,
         email: typedSession.user?.email, 
         requiresCompletion: typedSession.requiresCompletion, 
+        source: typedSession.user?.source,
       });
       return typedSession;
     },
 
 
-    async redirect(params: { url: string; baseUrl: string; token?: unknown }) { // התחל עם unknown
-      const { url, baseUrl, token: unknownToken } = params; // בצע פירוק מפורש
-      const typedToken = unknownToken as ExtendedUserJWT | undefined; // בצע type assertion
+    async redirect(params: { url: string; baseUrl: string; token?: unknown }) { 
+      const { url, baseUrl, token: unknownToken } = params; 
+      const typedToken = unknownToken as ExtendedUserJWT | undefined; 
 
       console.log("[Redirect Callback] Triggered.", {
           url,
           baseUrl,
-          tokenId: typedToken?.id, // השתמש ב-typedToken
+          tokenId: typedToken?.id, 
           tokenEmail: typedToken?.email,
           tokenRequiresCompletion: typedToken?.requiresCompletion,
           tokenRedirectUrl: typedToken?.redirectUrl,
           isPhoneVerifiedInToken: typedToken?.isPhoneVerified
       });
 
-      // Default behavior: if URL is relative, make it absolute. Otherwise, use it.
       const defaultRedirectTarget = url.startsWith("/")
         ? `${baseUrl}${url}`
         : url.startsWith(baseUrl)
         ? url
-        : baseUrl; // Fallback to baseUrl if url is not valid or needs a default
+        : baseUrl; 
 
       if (typedToken) {
-        // 1. If a specific redirectUrl is set in the token
         if (typedToken.redirectUrl) {
           const finalRedirectUrl = typedToken.redirectUrl.startsWith("/")
             ? `${baseUrl}${typedToken.redirectUrl}`
@@ -555,7 +556,6 @@ export const authOptions: NextAuthOptions = {
           return finalRedirectUrl;
         }
 
-        // 2. If user requires completion
         if (typedToken.requiresCompletion) {
           const completionPage = `${baseUrl}/auth/register`;
           const allowedCompletionPaths = [
@@ -575,18 +575,13 @@ export const authOptions: NextAuthOptions = {
           console.log(`[Redirect Callback] User requires completion, but current URL ${url} is allowed or is the target.`);
         }
         
-        // 3. Default for authenticated users if no specific redirect logic above applied
         if ((url === `${baseUrl}/auth/signin` || url === baseUrl || url === `${baseUrl}/`) && !typedToken.requiresCompletion) {
             const loggedInDefault = typedToken.role === UserRole.MATCHMAKER || typedToken.role === UserRole.ADMIN ? `${baseUrl}/dashboard` : `${baseUrl}/profile`;
             console.log(`[Redirect Callback] Authenticated user on sign-in/base page. Redirecting to ${loggedInDefault}`);
             return loggedInDefault;
         }
-        // If token exists but no special conditions, defaultRedirectTarget remains as calculated
       } else {
-          // No token - user is not logged in.
           console.log("[Redirect Callback] No token present. Defaulting to original URL or baseUrl.");
-          // If trying to access a protected page, `url` will be that page, and they'll be sent to signIn.
-          // If `url` is an auth page (e.g. error page), let it through.
       }
       
       console.log(`[Redirect Callback] No overriding conditions met or no token. Returning default target: ${defaultRedirectTarget}`);

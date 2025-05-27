@@ -201,7 +201,9 @@ export const useCandidates = (initialFilters: CandidatesFilter = {}): UseCandida
       if (!filters.separateFiltering && currentFilters.gender && candidate.profile.gender !== currentFilters.gender) {
         return false;
       }
-      
+      if (currentFilters.source && candidate.source !== currentFilters.source) {
+    return false;
+}
       // בדיקת גיל מותאמת
       if (currentFilters.ageRange) {
         try {
