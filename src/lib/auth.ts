@@ -300,7 +300,12 @@ export const authOptions: NextAuthOptions = {
       typedUser.isProfileComplete = dbUser.isProfileComplete;
       typedUser.isPhoneVerified = dbUser.isPhoneVerified;
       // `typedUser.image` will be populated in JWT from DB images if available, or from Google's profile.picture if it was set
-    
+    console.log("[signIn Callback] Processed user. Flags:", {
+  // ...
+  roleFromDbUser: dbUser.role, // הוסף לוג
+  roleSetOnTypedUser: typedUser.role, // הוסף לוג
+  // ...
+});
       if (account?.provider === "google") {
         if (dbUser.isVerified === false && oauthProfile?.email_verified === true) {
           console.log(`[signIn Callback] Google User ${dbUser.email} was not email-verified, but Google says it is. Updating DB.`);
@@ -379,12 +384,13 @@ export const authOptions: NextAuthOptions = {
         typedToken.newlyCreated = typedUserFromCallback.newlyCreated;
           typedToken.createdAt = typedUserFromCallback.createdAt; // ודא שזה תמיד Date
   typedToken.updatedAt = typedUserFromCallback.updatedAt; // ודא שזה תמיד Date
-  
+
         console.log("[JWT Callback - Initial Population] Token populated from user callback object:", {
             tokenId: typedToken.id,
             tokenEmail: typedToken.email,
             tokenStatus: typedToken.status,
         });
+      
       }
       
       if (typedToken.id && (trigger === "signIn" || trigger === "signUp" || trigger === "update" || !typedToken.profile || !typedToken.images)) {
@@ -417,7 +423,8 @@ export const authOptions: NextAuthOptions = {
             typedToken.lastLogin = dbUserForJwt.lastLogin;
             typedToken.createdAt = dbUserForJwt.createdAt;
             typedToken.updatedAt = dbUserForJwt.updatedAt;
-            
+              console.log("[JWT Callback - DB Refresh] dbUserForJwt.role:", dbUserForJwt.role); // הוסף לוג
+
             const requiresCompletionFromDb = (!dbUserForJwt.isProfileComplete || !dbUserForJwt.isPhoneVerified);
             if (trigger !== "update" || session === undefined ) { 
                 typedToken.requiresCompletion = requiresCompletionFromDb;
@@ -465,6 +472,13 @@ export const authOptions: NextAuthOptions = {
         requiresCompletion: typedToken.requiresCompletion,
         redirectUrl: typedToken.redirectUrl,
       });
+      console.log("[JWT Callback] Returning final token:", {
+  tokenId: typedToken.id,
+  email: typedToken.email,
+  role: typedToken.role, // ודא שהלוג הזה קיים ומה הוא מראה
+  requiresCompletion: typedToken.requiresCompletion,
+  redirectUrl: typedToken.redirectUrl,
+});
       return typedToken;
     },
 
@@ -485,7 +499,7 @@ export const authOptions: NextAuthOptions = {
         typedSession.user.isVerified = typedToken.isVerified;
         typedSession.user.isProfileComplete = typedToken.isProfileComplete;
         typedSession.user.isPhoneVerified = typedToken.isPhoneVerified;
-        
+        typedSession.user.role = typedToken.role;
         typedSession.user.profile = typedToken.profile; // Already UserProfile | null from token
         typedSession.user.images = typedToken.images; // Already UserImage[] from token
         typedSession.user.questionnaireResponses = typedToken.questionnaireResponses; // Already QuestionnaireResponse[]

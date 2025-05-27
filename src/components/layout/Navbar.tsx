@@ -29,10 +29,25 @@ const Navbar = () => {
   const { data: session } = useSession() as {
     data: (Session & { user?: { images?: UserImage[] } }) | null;
   };
-  const pathname = usePathname();
+   const pathname = usePathname();
+
+  // DEBUGGING:
+  useEffect(() => {
+    if (session) {
+      console.log("Full session object:", session);
+      console.log("Session user role:", session.user?.role);
+    }
+  }, [session]);
+
+  const isMatchmaker = session?.user?.role === "MATCHMAKER";
+  // DEBUGGING:
+  useEffect(() => {
+    if (session) {
+      console.log("isMatchmaker evaluated to:", isMatchmaker);
+    }
+  }, [session, isMatchmaker]);
   const { notifications } = useNotifications();
   const isActive = (path: string) => pathname === path;
-  const isMatchmaker = session?.user?.role === "MATCHMAKER";
   const { language, setLanguage } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
