@@ -20,7 +20,7 @@ import {
   DialogHeader,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"; // <--- ודא שזה מיובא
 import {
   Tooltip,
   TooltipContent,
@@ -28,7 +28,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-// Icons (same as before)
+// Icons
 import {
   User,
   Heart,
@@ -74,7 +74,7 @@ import {
   ShieldQuestion,
 } from "lucide-react";
 
-// Constants (same as before)
+// Constants
 const WORLDS: {
   [key: string]: { label: string; icon: React.ElementType; color: string };
 } = {
@@ -86,7 +86,7 @@ const WORLDS: {
   general: { label: "שאלות כלליות", icon: FileText, color: "slate" },
 };
 
-// Types (same as before)
+// Types
 import type {
   UserProfile,
   UserImage as UserImageType,
@@ -97,7 +97,7 @@ import type {
   KippahType,
 } from "@/types/next-auth";
 
-// --- Helper Functions (same as before, ensure they are robust) ---
+// --- Helper Functions ---
 const getInitials = (firstName?: string, lastName?: string): string => {
   let initials = "";
   if (firstName && firstName.length > 0) initials += firstName[0];
@@ -160,11 +160,14 @@ const formatCategoryLabel = (
   placeholder: string = "לא צוין"
 ): string => {
   if (!value || value.trim() === "") return placeholder;
+  // Enhanced formatter for mixed case and specific abbreviations if needed
+  // For now, keeping the existing logic which is generally good.
+  // Example of more complex: value.replace(/_/g, ' ').replace(/\b(HS|BA|MA|PhD)\b/g, match => match.toUpperCase()).replace(/\b\w/g, l => l.toUpperCase());
   return value
     .replace(/_/g, " ")
-    .replace(/\b(hs)\b/gi, (match) => match.toUpperCase())
+    .replace(/\b(hs)\b/gi, (match) => match.toUpperCase()) // Example for HS
     .replace(/\b\w/g, (l) => l.toUpperCase())
-    .replace(/ Hs$/, " HS")
+    .replace(/ Hs$/, " HS") // Corrects trailing "Hs"
     .replace(/ Yes$/, " Yes")
     .replace(/ No$/, " No");
 };
@@ -195,7 +198,7 @@ const formatStringBooleanPreference = (
   return notSpecifiedLabel;
 };
 
-// --- Helper Components (Adjusted for responsiveness) ---
+// --- Helper Components ---
 const DetailItem: React.FC<{
   icon: React.ElementType;
   label: string;
@@ -214,12 +217,10 @@ const DetailItem: React.FC<{
   tooltip,
 }) => {
   const content = (
-    <div className={cn("flex items-start gap-2", className)}>
-      {" "}
-      {/* Reduced gap slightly for mobile */}
+    <div className={cn("flex items-start gap-1.5 sm:gap-2", className)}>
       <Icon
         className={cn(
-          "w-3.5 h-3.5 mt-1 flex-shrink-0 sm:w-4 sm:h-4",
+          "w-3.5 h-3.5 mt-0.5 sm:mt-1 flex-shrink-0 sm:w-4 sm:h-4",
           iconColorClass
         )}
       />
@@ -260,7 +261,7 @@ const EmptyState: React.FC<{
 }> = ({ icon: Icon, message, description, className }) => (
   <div
     className={cn(
-      "flex flex-col items-center justify-center py-8 sm:py-10 text-center",
+      "flex flex-col items-center justify-center py-6 sm:py-10 text-center",
       className
     )}
   >
@@ -304,11 +305,11 @@ const SectionCard: React.FC<{
     >
       <div
         className={cn(
-          "flex items-center justify-between gap-2 p-3 md:p-3.5 border-b border-gray-200/70 bg-slate-50/80 min-w-0",
+          "flex items-center justify-between gap-2 p-2.5 sm:p-3 md:p-3.5 border-b border-gray-200/70 bg-slate-50/80 min-w-0",
           titleClassName
         )}
       >
-        <div className="flex items-center gap-2 min-w-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
           {Icon && (
             <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-600 flex-shrink-0" />
           )}
@@ -325,14 +326,14 @@ const SectionCard: React.FC<{
         </div>
         {action && <div className="ml-auto flex-shrink-0">{action}</div>}
       </div>
-      <div className={cn("p-3 md:p-4 min-w-0", contentClassName)}>
+      <div className={cn("p-2.5 sm:p-3 md:p-4 min-w-0", contentClassName)}>
         {children}
       </div>
     </div>
   );
 };
 
-// --- Profile Header Component (Adjusted for responsiveness) ---
+// --- Profile Header Component ---
 const ProfileHeader: React.FC<{
   profile: UserProfile;
   age: number;
@@ -351,7 +352,6 @@ const ProfileHeader: React.FC<{
   const allProfileDetails = useMemo(
     () =>
       [
-        // Details array remains the same, styling will be handled in JSX
         {
           label: "גיל",
           value: age > 0 ? age.toString() : "-",
@@ -372,10 +372,10 @@ const ProfileHeader: React.FC<{
           label: "סטטוס",
           value: availability.text,
           icon: availability.icon,
-          color: availability.color.replace("bg-", ""),
+          color: availability.color.replace("bg-", ""), // for text color if needed
           isBadge: true,
           badgeColor: availability.color,
-          badgeTextColor: "text-white",
+          badgeTextColor: "text-white", // Example: "text-white" for dark badges
         },
         {
           label: "עיר",
@@ -426,11 +426,11 @@ const ProfileHeader: React.FC<{
         {
           label: "שומר/ת נגיעה",
           value: formatBooleanPreference(profile.shomerNegiah),
-          icon: Sparkles,
-          color: "pink-600",
+          icon: Sparkles, // Example icon
+          color: "pink-600", // Example color
           condition:
             typeof profile.shomerNegiah === "boolean" ||
-            profile.shomerNegiah === null,
+            profile.shomerNegiah === null, // Display if explicitly set or null
         },
         ...(profile.gender === "FEMALE"
           ? [
@@ -439,8 +439,8 @@ const ProfileHeader: React.FC<{
                 value: profile.headCovering
                   ? formatCategoryLabel(profile.headCovering)
                   : "-",
-                icon: UserCheck,
-                color: "slate-600",
+                icon: UserCheck, // Example icon
+                color: "slate-600", // Example color
                 condition: !!profile.headCovering,
               },
             ]
@@ -452,8 +452,8 @@ const ProfileHeader: React.FC<{
                 value: profile.kippahType
                   ? formatCategoryLabel(profile.kippahType)
                   : "-",
-                icon: UserCheck,
-                color: "slate-600",
+                icon: UserCheck, // Example icon
+                color: "slate-600", // Example color
                 condition: !!profile.kippahType,
               },
             ]
@@ -497,14 +497,14 @@ const ProfileHeader: React.FC<{
             </div>
           )}
         </div>
-        <div className="flex-grow text-center sm:text-right space-y-2 sm:space-y-3">
+        <div className="flex-grow text-center sm:text-right space-y-2 sm:space-y-2.5">
           <div>
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-800">
               {profile.user?.firstName || "שם פרטי"}{" "}
               {profile.user?.lastName || "שם משפחה"}
             </h1>
           </div>
-          <div className="grid grid-cols-2 gap-x-3 gap-y-2 pt-1 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 sm:gap-x-4 sm:gap-y-3">
+          <div className="grid grid-cols-2 gap-x-2 gap-y-1.5 pt-1 sm:grid-cols-3 sm:gap-x-3 sm:gap-y-2 md:grid-cols-3 lg:grid-cols-4">
             {allProfileDetails.map((detail, index) => {
               const IconComponent = detail.icon;
               const valueContent =
@@ -520,18 +520,18 @@ const ProfileHeader: React.FC<{
                     <IconComponent
                       className={cn(
                         "w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0",
-                        detail.badgeTextColor
-                          ? detail.badgeTextColor.replace("text-", "text-")
-                          : `text-${detail.color}`
+                        detail.badgeTextColor // Use this directly
+                          ? detail.badgeTextColor
+                          : `text-${detail.color}` // Fallback if badgeTextColor not specified
                       )}
                     />
-                    <div>
-                      <span className="text-[10px] sm:text-xs text-slate-500">
+                    <div className="min-w-0">
+                      <span className="text-[10px] sm:text-xs text-slate-500 whitespace-nowrap">
                         {detail.label}:
                       </span>
                       <Badge
                         className={cn(
-                          "text-[10px] sm:text-xs px-1.5 py-0.5 font-medium ml-1",
+                          "text-[9px] sm:text-[10px] px-1 py-px sm:px-1.5 sm:py-0.5 font-medium ml-0.5 sm:ml-1",
                           detail.badgeColor,
                           detail.badgeTextColor
                         )}
@@ -551,11 +551,11 @@ const ProfileHeader: React.FC<{
                     )}
                   />
                   <div className="min-w-0">
-                    <span className="text-[10px] sm:text-xs text-slate-500">
+                    <span className="text-[10px] sm:text-xs text-slate-500 whitespace-nowrap">
                       {detail.label}:
                     </span>
                     <span
-                      className="ml-1 text-xs sm:text-sm font-medium text-slate-700 truncate"
+                      className="ml-0.5 sm:ml-1 text-xs sm:text-sm font-medium text-slate-700 truncate"
                       title={
                         typeof valueContent === "string"
                           ? valueContent
@@ -570,7 +570,7 @@ const ProfileHeader: React.FC<{
             })}
           </div>
           {profile.lastActive && viewMode === "matchmaker" && (
-            <p className="text-[10px] sm:text-xs text-slate-500 flex items-center gap-1 pt-1 sm:pt-2 justify-center sm:justify-start">
+            <p className="text-[10px] sm:text-xs text-slate-500 flex items-center gap-1 pt-1 sm:pt-1.5 justify-center sm:justify-start">
               <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
               נצפה לאחרונה:{" "}
               {new Date(profile.lastActive).toLocaleDateString("he-IL", {
@@ -581,15 +581,13 @@ const ProfileHeader: React.FC<{
             </p>
           )}
           {viewMode === "matchmaker" && (
-            <div className="pt-1.5 sm:pt-2 flex justify-center sm:justify-start">
+            <div className="pt-1 sm:pt-2 flex justify-center sm:justify-start">
               <Button
                 variant="outline"
-                size="xs"
-                className="text-cyan-600 border-cyan-500 hover:bg-cyan-50 text-[11px] sm:text-xs"
+                size="xs" // ensures it's small
+                className="text-cyan-600 border-cyan-500 hover:bg-cyan-50 text-[10px] sm:text-xs px-2 py-1"
               >
-                {" "}
-                {/* size="xs" or custom padding */}
-                <Link className="w-3 h-3 sm:w-3.5 sm:h-3.5 ml-1 sm:ml-1.5" />{" "}
+                <Link className="w-3 h-3 sm:w-3.5 sm:h-3.5 ml-1 sm:ml-1.5" />
                 הצע התאמה
               </Button>
             </div>
@@ -600,7 +598,9 @@ const ProfileHeader: React.FC<{
   );
 };
 
-// --- Questionnaire Item Component (Adjusted for responsiveness) ---
+
+// ProfileCard.tsx - QuestionnaireItem component
+
 const QuestionnaireItem: React.FC<{
   answer: FormattedAnswer;
   worldColor?: string;
@@ -608,22 +608,23 @@ const QuestionnaireItem: React.FC<{
   return (
     <div
       className={cn(
-        "p-3 sm:p-3.5 rounded-md sm:rounded-lg border hover:shadow-md transition-shadow",
+        "p-2.5 sm:p-3.5 rounded-md sm:rounded-lg border hover:shadow-md transition-shadow",
         `bg-${worldColor}-50/50 border-${worldColor}-200/70`,
-        "flex flex-col min-w-0"
+        "flex flex-col min-w-0" // min-w-0 חשוב למניעת גלישה של האלמנט עצמו
       )}
     >
-      <p
+      <p // Question
         className={cn(
-          "text-xs sm:text-sm font-medium mb-1 sm:mb-1.5 min-w-0 break-words",
+          "text-xs sm:text-sm font-medium mb-1 sm:mb-1.5 min-w-0 break-words", // break-words לשאלה (בדרך כלל מספיק)
           `text-${worldColor}-700`
         )}
       >
         {answer.question}
       </p>
-      <p
+      <p // Answer
         className={cn(
-          "text-sm sm:text-base font-semibold text-slate-800 whitespace-pre-wrap min-w-0 break-all"
+          "text-sm sm:text-base font-semibold text-slate-800 whitespace-pre-wrap min-w-0",
+          "break-all" // <--- שינוי: מ-break-words ל-break-all
         )}
       >
         {answer.displayText || answer.answer}
@@ -648,14 +649,14 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   className,
 }) => {
   const [isClient, setIsClient] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(true); // Default to true for SSR, will be updated on client
+  const [isDesktop, setIsDesktop] = useState(true);
 
   useEffect(() => {
-    setIsClient(true); // Indicates component has mounted on client
+    setIsClient(true);
     const checkScreenSize = () => {
-      setIsDesktop(window.innerWidth >= 768); // md breakpoint (768px)
+      setIsDesktop(window.innerWidth >= 768); // md breakpoint
     };
-    checkScreenSize(); // Initial check
+    checkScreenSize();
     window.addEventListener("resize", checkScreenSize);
     return () => window.removeEventListener("resize", checkScreenSize);
   }, []);
@@ -679,7 +680,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
   const [activeTab, setActiveTab] = useState("about_me");
 
-  // Resizable panel states (only relevant for desktop)
   const [mainContentPanelSize, setMainContentPanelSize] = useState(65);
   const [sidePhotosPanelSize, setSidePhotosPanelSize] = useState(35);
 
@@ -785,7 +785,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   );
 
   const togglePanels = useCallback(() => {
-    // Only for desktop
     if (mainContentPanelSize > 50) {
       setMainContentPanelSize(30);
       setSidePhotosPanelSize(70);
@@ -796,7 +795,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   }, [mainContentPanelSize]);
 
   const renderPreferenceBadges = (
-    /* ... same as before ... */
     label: string,
     icon: React.ElementType,
     iconColorClass: string,
@@ -815,7 +813,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       <div>
         <p
           className={cn(
-            "text-xs font-medium text-slate-500 mb-1.5 flex items-center gap-1 sm:gap-1.5",
+            "text-xs font-medium text-slate-500 mb-1 sm:mb-1.5 flex items-center gap-1 sm:gap-1.5",
             iconColorClass
           )}
         >
@@ -826,7 +824,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             <Badge
               key={val}
               variant="outline"
-              className={cn("text-[10px] sm:text-xs", badgeColorClass)}
+              className={cn(
+                "text-[10px] sm:text-xs px-1.5 py-0.5 sm:px-2",
+                badgeColorClass
+              )}
             >
               {formatter(val)}
             </Badge>
@@ -848,20 +849,23 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     >
       <div
         className={cn(
-          "bg-white/90 backdrop-blur-sm p-1 sm:p-1.5 rounded-md sm:rounded-lg mb-3 sm:mb-4 shadow-md border border-gray-200/80 flex-shrink-0",
-          inScrollArea ? "sticky top-0 z-20" : "" // Sticky only if inside a scroll area (like the main panel one)
+          "bg-white/90 backdrop-blur-sm p-1 sm:p-1.5 rounded-md sm:rounded-lg mb-2.5 sm:mb-3 shadow-md border border-gray-200/80 flex-shrink-0",
+          inScrollArea ? "sticky top-0 z-20" : ""
         )}
       >
         <ScrollArea dir="rtl" className="w-full">
-          <TabsList className="h-auto inline-flex bg-transparent flex-nowrap justify-start p-0.5">
+          {" "}
+          {/* ודא שזה כאן */}
+          <TabsList className="h-auto inline-flex bg-transparent flex-nowrap justify-start p-0.5 sm:p-1">
             {tabItems.map((tab) => (
               <TabsTrigger
                 key={tab.value}
                 value={tab.value}
                 className={cn(
-                  "flex items-center gap-1 sm:gap-1.5 px-2 py-1 text-[11px] rounded-sm", // Mobile base
-                  "sm:px-2.5 sm:py-1.5 sm:text-xs sm:rounded-md", // SM breakpoint
-                  "md:px-3 md:py-1.5 md:text-sm", // MD breakpoint (for desktop panel)
+                  // הקטנתי ריווחים ופונטים למובייל עוד קצת
+                  "flex items-center gap-0.5 px-1 py-0.5 text-[9px] rounded-sm", // Mobile base (very compact)
+                  "sm:gap-1 sm:px-1.5 sm:py-1 sm:text-[10px] sm:rounded-md", // SM breakpoint
+                  "md:gap-1.5 md:px-2 md:py-1.5 md:text-xs", // MD breakpoint
                   "whitespace-nowrap transition-all duration-200 border-b-2",
                   "text-slate-500 hover:text-slate-700 hover:bg-slate-100",
                   activeTab === tab.value
@@ -874,7 +878,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               >
                 <tab.icon
                   className={cn(
-                    "w-3.5 h-3.5 sm:w-4 sm:h-4",
+                    "w-2.5 h-2.5 sm:w-3 sm:h-3", // Smaller base icon
                     activeTab === tab.value
                       ? `text-${tab.activeColor}-500`
                       : "text-slate-400"
@@ -884,7 +888,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 {tab.count !== undefined && tab.count > 0 && (
                   <span
                     className={cn(
-                      `text-[10px] sm:text-xs rounded-full px-1.5 py-0.5 ml-1 hidden sm:inline-block font-mono`,
+                      `text-[8px] sm:text-[9px] rounded-full px-1 py-px ml-0.5 hidden sm:inline-block font-mono`, // Smaller badge
                       activeTab === tab.value
                         ? `bg-${tab.activeColor}-100 text-${tab.activeColor}-700`
                         : `bg-slate-200 text-slate-600`
@@ -896,14 +900,13 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               </TabsTrigger>
             ))}
           </TabsList>
-          <ScrollBar orientation="horizontal" />
+          <ScrollBar orientation="horizontal" /> {/* ודא שזה כאן */}
         </ScrollArea>
       </div>
 
-      {/* Tab Contents - ensure grids are responsive */}
       <div
         className={cn(
-          "space-y-3 sm:space-y-4 focus:outline-none",
+          "space-y-2.5 sm:space-y-3 focus:outline-none",
           !inScrollArea && "flex-grow min-h-0 overflow-y-auto overflow-x-hidden"
         )}
       >
@@ -911,10 +914,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           <SectionCard
             title="אודותיי"
             icon={InfoIcon}
-            contentClassName="space-y-3"
+            contentClassName="space-y-2.5 sm:space-y-3"
           >
             {profile.about ? (
-              <p className="text-slate-700 whitespace-pre-wrap break-words text-xs sm:text-sm leading-relaxed p-1.5 sm:p-2 bg-slate-50 rounded-md">
+              // === MODIFICATION HERE ===
+              <p className="text-slate-700 whitespace-pre-wrap break-words text-xs sm:text-sm leading-relaxed p-1.5 sm:p-2 bg-slate-50 rounded-md min-w-0">
+                {/* Added min-w-0 and ensured break-words */}
                 {profile.about}
               </p>
             ) : (
@@ -925,16 +930,16 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               />
             )}
           </SectionCard>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mt-3 sm:mt-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 mt-2.5 sm:mt-3">
             <SectionCard title="תכונות אופי (שלי)" icon={Smile}>
               {profile.profileCharacterTraits &&
               profile.profileCharacterTraits.length > 0 ? (
-                <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                <div className="flex flex-wrap gap-1 sm:gap-1.5">
                   {profile.profileCharacterTraits.map((trait, index) => (
                     <Badge
                       key={index}
                       variant="secondary"
-                      className="px-2 py-0.5 sm:px-2.5 sm:py-1 bg-purple-100 text-purple-700 border border-purple-200/70 shadow-xs text-[10px] sm:text-xs"
+                      className="px-1.5 py-0.5 sm:px-2 sm:py-1 bg-purple-100 text-purple-700 border border-purple-200/70 shadow-xs text-[10px] sm:text-xs"
                     >
                       {trait}
                     </Badge>
@@ -950,12 +955,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             </SectionCard>
             <SectionCard title="תחביבים (שלי)" icon={Palette}>
               {profile.profileHobbies && profile.profileHobbies.length > 0 ? (
-                <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                <div className="flex flex-wrap gap-1 sm:gap-1.5">
                   {profile.profileHobbies.map((hobby, index) => (
                     <Badge
                       key={index}
                       variant="secondary"
-                      className="px-2 py-0.5 sm:px-2.5 sm:py-1 bg-teal-100 text-teal-700 border border-teal-200/70 shadow-xs text-[10px] sm:text-xs"
+                      className="px-1.5 py-0.5 sm:px-2 sm:py-1 bg-teal-100 text-teal-700 border border-teal-200/70 shadow-xs text-[10px] sm:text-xs"
                     >
                       {hobby}
                     </Badge>
@@ -973,11 +978,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           <SectionCard
             title="רקע משפחתי ואישי"
             icon={Users2}
-            contentClassName="space-y-3"
-            className="mt-3 sm:mt-4"
+            contentClassName="space-y-2.5 sm:space-y-3"
+            className="mt-2.5 sm:mt-3"
           >
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-x-3 sm:gap-x-4 gap-y-2.5 sm:gap-y-3.5">
-              {/* DetailItem components already adjusted */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-2.5 sm:gap-x-3 gap-y-2 sm:gap-y-2.5">
               <DetailItem
                 icon={Users2}
                 label="מצב הורים"
@@ -1026,7 +1030,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             </div>
             {profile.additionalLanguages &&
               profile.additionalLanguages.length > 0 && (
-                <div className="pt-2 sm:pt-3 border-t border-slate-200/60 mt-2 sm:mt-3">
+                <div className="pt-2 sm:pt-2.5 border-t border-slate-200/60 mt-2 sm:mt-2.5">
                   <p className="text-xs font-medium text-slate-500 mb-1 sm:mb-1.5 flex items-center gap-1 sm:gap-1.5">
                     <Languages className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600" />{" "}
                     שפות נוספות
@@ -1036,7 +1040,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       <Badge
                         key={lang}
                         variant="outline"
-                        className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 bg-emerald-50 text-emerald-800 border-emerald-200 text-[10px] sm:text-xs shadow-xs"
+                        className="px-1.5 py-0.5 bg-emerald-50 text-emerald-800 border-emerald-200 text-[10px] sm:text-xs shadow-xs"
                       >
                         {formatCategoryLabel(lang)}
                       </Badge>
@@ -1051,10 +1055,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           <SectionCard
             title="דת ואמונה"
             icon={BookMarked}
-            contentClassName="space-y-3"
+            contentClassName="space-y-2.5 sm:space-y-3"
           >
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-x-3 sm:gap-x-4 gap-y-2.5 sm:gap-y-3.5">
-              {/* DetailItems */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-2.5 sm:gap-x-3 gap-y-2 sm:gap-y-2.5">
               <DetailItem
                 icon={BookMarked}
                 label="רמה דתית"
@@ -1088,10 +1091,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           <SectionCard
             title="השכלה ותעסוקה"
             icon={GraduationCap}
-            contentClassName="space-y-3 mt-3 sm:mt-4"
+            contentClassName="space-y-2.5 sm:space-y-3 mt-2.5 sm:mt-3"
           >
-            <div className="grid grid-cols-2 sm:grid-cols-2 gap-x-3 sm:gap-x-4 gap-y-2.5 sm:gap-y-3.5">
-              {/* DetailItems */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-2.5 sm:gap-x-3 gap-y-2 sm:gap-y-2.5">
               <DetailItem
                 icon={GraduationCap}
                 label="רמת השכלה"
@@ -1134,7 +1136,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           <SectionCard
             title="העדפות לבן/בת הזוג"
             icon={Target}
-            contentClassName="space-y-4 sm:space-y-5"
+            contentClassName="space-y-3 sm:space-y-4"
             description="מה המועמד/ת מחפש/ת בהתאמה"
           >
             {profile.matchingNotes && (
@@ -1143,13 +1145,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-500" />{" "}
                   תיאור כללי על המבוקש/ת:
                 </p>
-                <p className="text-xs sm:text-sm text-slate-700 whitespace-pre-wrap break-words bg-slate-100 p-2 sm:p-3 rounded-md border border-slate-200">
+                <p className="text-xs sm:text-sm text-slate-700 whitespace-pre-wrap break-words bg-slate-100 p-2 sm:p-2.5 rounded-md border border-slate-200">
                   {profile.matchingNotes}
                 </p>
               </div>
             )}
-            <div className="grid grid-cols-2 sm:grid-cols-2 gap-x-3 sm:gap-x-4 gap-y-3 sm:gap-y-4">
-              {/* DetailItems and renderPreferenceBadges */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-2.5 sm:gap-x-3 gap-y-2.5 sm:gap-y-3">
               {(profile.preferredAgeMin || profile.preferredAgeMax) && (
                 <DetailItem
                   icon={Calendar}
@@ -1183,12 +1184,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 icon={Users2}
                 label="ילדים מקשר קודם"
                 value={formatBooleanPreference(
-                  profile.preferredHasChildrenFromPrevious
+                  profile.preferredHasChildrenFromPrevious // Note: In your type this is boolean, should be string 'yes_ok', 'no_preferred', etc.
+                  // Assuming it's string from context, if boolean, adjust formatStringBooleanPreference.
                 )}
                 iconColorClass="text-purple-600"
                 tooltip="העדפה לגבי ילדים מקשר קודם של בן/בת הזוג"
               />
-              {/* ... other renderPreferenceBadges calls, ensure responsive badges from helper component */}
               {renderPreferenceBadges(
                 "סטטוסים משפחתיים מועדפים",
                 Heart,
@@ -1203,7 +1204,13 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 profile.preferredOrigins,
                 "bg-purple-50 text-purple-700 border-purple-200"
               )}
-              {/* ... and so on for all preference badges */}
+              {renderPreferenceBadges(
+                "רמות דתיות מועדפות",
+                BookMarked,
+                "text-indigo-600",
+                profile.preferredReligiousLevels,
+                "bg-indigo-50 text-indigo-700 border-indigo-200"
+              )}
               {profile.preferredAliyaStatus && (
                 <DetailItem
                   icon={MapPin}
@@ -1215,7 +1222,18 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             </div>
             {!profile.matchingNotes &&
               !profile.preferredAgeMin &&
-              /* ... other checks ... */ !profile.preferredAliyaStatus && (
+              !profile.preferredAgeMax &&
+              !profile.preferredHeightMin &&
+              !profile.preferredHeightMax &&
+              !profile.preferredShomerNegiah &&
+              typeof profile.preferredHasChildrenFromPrevious !== "boolean" && // or check for undefined string
+              (!profile.preferredMaritalStatuses ||
+                profile.preferredMaritalStatuses.length === 0) &&
+              (!profile.preferredOrigins ||
+                profile.preferredOrigins.length === 0) &&
+              (!profile.preferredReligiousLevels ||
+                profile.preferredReligiousLevels.length === 0) &&
+              !profile.preferredAliyaStatus && (
                 <EmptyState
                   icon={Search}
                   message="לא צוינו העדפות ספציפיות לחיפוש"
@@ -1231,7 +1249,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             className="focus:outline-none min-h-0 w-full"
           >
             {hasDisplayableQuestionnaireAnswers ? (
-              <div className="space-y-3 sm:space-y-4">
+              <div className="space-y-2.5 sm:space-y-3">
                 {Object.entries(questionnaire?.formattedAnswers || {}).map(
                   ([worldKey, answers]) => {
                     const worldConfig = WORLDS[worldKey] ||
@@ -1251,7 +1269,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         key={worldKey}
                         title={worldConfig.label}
                         icon={worldConfig.icon}
-                        contentClassName="space-y-2.5 sm:space-y-3"
+                        contentClassName="space-y-2 sm:space-y-2.5"
                       >
                         {visibleAnswers.map((answer) => (
                           <QuestionnaireItem
@@ -1285,7 +1303,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         <TabsContent value="photos_tab" className="min-h-0 w-full">
           <SectionCard title="גלריית תמונות" icon={ImageIcon}>
             {orderedImages.length > 0 ? (
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-2.5">
                 {orderedImages.map((image) => (
                   <div
                     key={image.id}
@@ -1297,9 +1315,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       alt={`תמונה של ${profile.user?.firstName || "משתמש"}`}
                       fill
                       className="object-cover transition-transform duration-300 group-hover:scale-105"
-                      sizes="(max-width: 640px) 50vw, 33vw"
+                      sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-1.5 sm:p-2.5">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-1.5 sm:p-2">
                       <Eye className="w-4 h-4 sm:w-5 sm:h-5 text-white drop-shadow-md" />
                     </div>
                     {image.isMain && (
@@ -1324,9 +1342,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
         {viewMode === "matchmaker" && (
           <TabsContent value="matchmaker_info" className="min-h-0 w-full">
-            <div className="bg-amber-50 border-2 border-amber-300/70 rounded-lg sm:rounded-xl shadow-lg p-3 sm:p-4 md:p-5 space-y-3 sm:space-y-4">
-              <div className="flex items-center gap-2 sm:gap-2.5 text-amber-700">
-                <Lock className="w-5 h-5 sm:w-6 sm:h-6" />
+            <div className="bg-amber-50 border-2 border-amber-300/70 rounded-lg sm:rounded-xl shadow-lg p-2.5 sm:p-3 md:p-4 space-y-2.5 sm:space-y-3">
+              <div className="flex items-center gap-1.5 sm:gap-2 text-amber-700">
+                <Lock className="w-4 h-4 sm:w-5 sm:h-5" />
                 <h3 className="font-semibold text-base sm:text-lg">
                   מידע רגיש לשדכנים בלבד
                 </h3>
@@ -1353,8 +1371,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 <p className="text-xs font-medium text-amber-600 mb-1 sm:mb-1.5 flex items-center gap-1 sm:gap-1.5">
                   <Edit3 className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> הערות לשדכנים:
                 </p>
-                {profile.matchingNotes ? (
-                  <p className="text-xs sm:text-sm text-slate-700 whitespace-pre-wrap break-words bg-amber-100/70 p-2 sm:p-3 rounded-md border border-amber-200/80">
+                {profile.matchingNotes ? ( // Reusing matchingNotes here; might need a specific field
+                  <p className="text-xs sm:text-sm text-slate-700 whitespace-pre-wrap break-words bg-amber-100/70 p-2 sm:p-2.5 rounded-md border border-amber-200/80">
                     {profile.matchingNotes}
                   </p>
                 ) : (
@@ -1368,7 +1386,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   <p className="text-xs font-medium text-amber-600 mb-1 sm:mb-1.5 flex items-center gap-1 sm:gap-1.5">
                     <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> הערת זמינות:
                   </p>
-                  <p className="text-xs sm:text-sm text-slate-700 whitespace-pre-wrap break-words bg-amber-100/70 p-2 sm:p-3 rounded-md border border-amber-200/80">
+                  <p className="text-xs sm:text-sm text-slate-700 whitespace-pre-wrap break-words bg-amber-100/70 p-2 sm:p-2.5 rounded-md border border-amber-200/80">
                     {profile.availabilityNote}
                   </p>
                 </div>
@@ -1381,16 +1399,15 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   );
 
   if (!isClient) {
-    // Fallback for SSR or before hydration, can be a loader
     return (
       <Card
         dir="rtl"
         className={cn(
-          "w-full bg-slate-50 shadow-2xl rounded-xl sm:rounded-2xl overflow-hidden border-0 flex flex-col max-h-[calc(100vh-2rem)] h-full",
+          "w-full bg-slate-50 shadow-2xl rounded-xl sm:rounded-2xl overflow-hidden border-0 flex flex-col max-h-[calc(100vh-1rem)] sm:max-h-[calc(100vh-2rem)] h-full",
           className
         )}
       >
-        <div className="p-4 animate-pulse bg-gray-200 h-48 w-full"></div>
+        <div className="p-4 animate-pulse bg-gray-200 h-40 sm:h-48 w-full"></div>
         <div className="p-4 animate-pulse bg-gray-100 flex-grow"></div>
       </Card>
     );
@@ -1454,8 +1471,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             >
               <div className="h-full flex flex-col">
                 <div className="p-3 md:p-4 flex-grow flex flex-col min-h-0">
-                  <div className="flex justify-between items-center mb-3 flex-shrink-0">
-                    <h3 className="text-base md:text-md font-semibold text-slate-700 flex items-center gap-2">
+                  <div className="flex justify-between items-center mb-2.5 sm:mb-3 flex-shrink-0">
+                    <h3 className="text-base md:text-md font-semibold text-slate-700 flex items-center gap-1.5 sm:gap-2">
                       <ImageIcon className="w-4 h-4 md:w-5 md:h-5 text-cyan-600" />{" "}
                       תמונות ({orderedImages.length})
                     </h3>
@@ -1465,7 +1482,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           variant="ghost"
                           size="icon"
                           onClick={togglePanels}
-                          className="text-slate-500 hover:text-cyan-600"
+                          className="text-slate-500 hover:text-cyan-600 w-7 h-7 sm:w-8 sm:h-8"
                         >
                           {sidePhotosPanelSize > 50 ? (
                             <Minimize className="w-3.5 h-3.5 md:w-4 md:h-4" />
@@ -1488,7 +1505,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       <Button
                         variant="outline"
                         size="sm"
-                        className="w-full mb-3 text-cyan-600 border-cyan-400/70 hover:bg-cyan-50 hover:text-cyan-700 flex-shrink-0 text-xs md:text-sm"
+                        className="w-full mb-2.5 sm:mb-3 text-cyan-600 border-cyan-400/70 hover:bg-cyan-50 hover:text-cyan-700 flex-shrink-0 text-xs md:text-sm"
                         onClick={() => {
                           setActiveTab("photos_tab");
                           if (sidePhotosPanelSize > 50) togglePanels();
@@ -1497,7 +1514,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         <ExternalLink className="w-3 h-3 md:w-3.5 md:h-3.5 ml-1.5" />{" "}
                         הצג את כל {orderedImages.length} התמונות בגלריה הראשית
                       </Button>
-                      <div className="flex-grow flex flex-col gap-3 min-h-0">
+                      <div className="flex-grow flex flex-col gap-2.5 sm:gap-3 min-h-0">
                         {mainImageToDisplay && (
                           <div
                             className="relative aspect-video rounded-lg overflow-hidden cursor-pointer group shadow-lg border border-gray-200/70 hover:shadow-xl transition-all flex-shrink-0"
@@ -1534,7 +1551,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                             dir="rtl"
                             className="w-full flex-shrink-0"
                           >
-                            <div className="flex gap-2 pb-1.5">
+                            <div className="flex gap-1.5 sm:gap-2 pb-1.5">
                               {orderedImages.map((image, index) => (
                                 <div
                                   key={image.id}
@@ -1574,16 +1591,16 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     </div>
                   )}
                 </div>
-                <div className="p-2 md:p-3 border-t border-slate-200/80 bg-slate-50/70 flex-shrink-0">
+                <div className="p-2 md:p-2.5 border-t border-slate-200/80 bg-slate-50/70 flex-shrink-0">
                   <SectionCard
                     title="ניתוח AI"
                     icon={Bot}
-                    titleClassName="p-2 md:p-2.5 bg-slate-100/80 text-sm"
-                    contentClassName="p-2 md:p-2.5"
+                    titleClassName="p-1.5 sm:p-2 md:p-2.5 bg-slate-100/80 text-sm"
+                    contentClassName="p-1.5 sm:p-2 md:p-2.5"
                     className="shadow-md"
                   >
                     <div className="flex flex-col items-center gap-1 text-center">
-                      <Bot className="w-6 h-6 sm:w-8 sm:h-8 text-sky-500 opacity-70 mb-0.5" />
+                      <Bot className="w-5 h-5 sm:w-6 sm:h-6 text-sky-500 opacity-70 mb-0.5" />
                       <p className="text-[10px] sm:text-xs text-slate-600 max-w-md leading-tight">
                         קבל/י סיכום ותובנות מה-AI ונהל/י שיחת התייעצות.
                       </p>
@@ -1601,11 +1618,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             </ResizablePanel>
           </ResizablePanelGroup>
         ) : (
-          // Mobile Layout: Tabs take full width
+          // Mobile Layout
           <ScrollArea className="flex-grow min-h-0 w-full">
-            <div className="p-2.5 sm:p-3">
+            {/* === MODIFIED HERE === */}
+            <div className="p-2 sm:p-2.5">
               {" "}
-              {/* Padding for mobile content */}
+              {/* Was p-2.5 sm:p-3. Reduced base padding */}
               <MainContentTabs />
             </div>
           </ScrollArea>
@@ -1621,14 +1639,14 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               dir="rtl"
             >
               <DialogHeader className="p-2 sm:p-3 text-white flex flex-row justify-between items-center border-b border-slate-700/50 flex-shrink-0">
-                <DialogTitle className="text-center text-sm sm:text-base md:text-lg font-semibold flex-grow">
+                <DialogTitle className="text-center text-sm sm:text-base md:text-lg font-semibold flex-grow truncate px-2">
                   תמונה {currentDialogImageIndex + 1} מתוך{" "}
                   {orderedImages.length}
                 </DialogTitle>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-slate-300 hover:text-white hover:bg-white/10 rounded-full mr-auto w-7 h-7 sm:w-8 sm:h-8"
+                  className="text-slate-300 hover:text-white hover:bg-white/10 rounded-full mr-auto w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0"
                   onClick={handleCloseImageDialog}
                   aria-label="סגור"
                 >

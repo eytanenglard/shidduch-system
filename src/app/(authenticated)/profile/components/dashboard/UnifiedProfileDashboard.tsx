@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react"; // Added Dispatch, SetStateA
 import { useSession } from "next-auth/react";
 import { Eye } from "lucide-react";
 import { toast } from "sonner";
-
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 // UI Components
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -360,33 +360,42 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
             className="w-full"
           >
             <div className="flex justify-center mb-6 md:mb-8">
-              <TabsList className="h-auto p-1.5 bg-white/70 backdrop-blur-sm rounded-full shadow-md gap-1">
-                <TabsTrigger
-                  value="overview"
-                  className="px-4 sm:px-6 py-2 rounded-full text-sm sm:text-base font-medium text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-100 data-[state=active]:to-pink-100 data-[state=active]:text-cyan-700 data-[state=active]:shadow-inner transition-all duration-300"
-                >
-                  פרטים כלליים
-                </TabsTrigger>
-
-                <TabsTrigger
-                  value="photos"
-                  className="px-4 sm:px-6 py-2 rounded-full text-sm sm:text-base font-medium text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-100 data-[state=active]:to-pink-100 data-[state=active]:text-cyan-700 data-[state=active]:shadow-inner transition-all duration-300"
-                >
-                  תמונות
-                </TabsTrigger>
-                <TabsTrigger
-                  value="preferences"
-                  className="px-4 sm:px-6 py-2 rounded-full text-sm sm:text-base font-medium text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-100 data-[state=active]:to-pink-100 data-[state=active]:text-cyan-700 data-[state=active]:shadow-inner transition-all duration-300"
-                >
-                  העדפות
-                </TabsTrigger>
-                <TabsTrigger
-                  value="questionnaire"
-                  className="px-4 sm:px-6 py-2 rounded-full text-sm sm:text-base font-medium text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-100 data-[state=active]:to-pink-100 data-[state=active]:text-cyan-700 data-[state=active]:shadow-inner transition-all duration-300"
-                >
-                  שאלון
-                </TabsTrigger>
-              </TabsList>
+              {/* === START OF MODIFICATION FOR MAIN TABS === */}
+              <ScrollArea dir="rtl" className="w-auto max-w-full">
+                {" "}
+                {/* Allow it to take necessary width and scroll */}
+                <TabsList className="h-auto p-1.5 bg-white/70 backdrop-blur-sm rounded-full shadow-md gap-1 inline-flex flex-nowrap">
+                  {" "}
+                  {/* Added inline-flex and flex-nowrap */}
+                  <TabsTrigger
+                    value="overview"
+                    className="px-3 sm:px-6 py-1.5 sm:py-2 rounded-full text-xs sm:text-base font-medium text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-100 data-[state=active]:to-pink-100 data-[state=active]:text-cyan-700 data-[state=active]:shadow-inner transition-all duration-300 whitespace-nowrap" // Added whitespace-nowrap, reduced mobile padding/text
+                  >
+                    פרטים כלליים
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="photos"
+                    className="px-3 sm:px-6 py-1.5 sm:py-2 rounded-full text-xs sm:text-base font-medium text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-100 data-[state=active]:to-pink-100 data-[state=active]:text-cyan-700 data-[state=active]:shadow-inner transition-all duration-300 whitespace-nowrap" // Added whitespace-nowrap, reduced mobile padding/text
+                  >
+                    תמונות
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="preferences"
+                    className="px-3 sm:px-6 py-1.5 sm:py-2 rounded-full text-xs sm:text-base font-medium text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-100 data-[state=active]:to-pink-100 data-[state=active]:text-cyan-700 data-[state=active]:shadow-inner transition-all duration-300 whitespace-nowrap" // Added whitespace-nowrap, reduced mobile padding/text
+                  >
+                    העדפות
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="questionnaire"
+                    className="px-3 sm:px-6 py-1.5 sm:py-2 rounded-full text-xs sm:text-base font-medium text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-100 data-[state=active]:to-pink-100 data-[state=active]:text-cyan-700 data-[state=active]:shadow-inner transition-all duration-300 whitespace-nowrap" // Added whitespace-nowrap, reduced mobile padding/text
+                  >
+                    שאלון
+                  </TabsTrigger>
+                </TabsList>
+                <ScrollBar orientation="horizontal" className="mt-1" />{" "}
+                {/* Optional: visual scrollbar */}
+              </ScrollArea>
+              {/* === END OF MODIFICATION FOR MAIN TABS === */}
             </div>
 
             <div
