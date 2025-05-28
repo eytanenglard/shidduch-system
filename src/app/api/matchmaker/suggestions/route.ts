@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { Session } from "next-auth"; // Be careful with direct Session import if using JWT strategy
 import { MatchSuggestionStatus, Prisma, UserRole } from "@prisma/client"; // Added UserRole
 import { suggestionService } from "@/app/components/matchmaker/suggestions/services/suggestions/SuggestionService";
 import type { CreateSuggestionData } from "@/app/types/suggestions";
