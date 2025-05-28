@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { UserRole } from "@prisma/client";
+import { UserRole } from "@prisma/client"; // ודא ש-ADMIN מוגדר כאן ב-enum שלך
 import { v2 as cloudinary } from 'cloudinary';
 
 // Configure Cloudinary
@@ -37,18 +37,22 @@ export async function DELETE(
       );
     }
 
-    // Verify that the user is a matchmaker
+    // Verify that the user is a matchmaker OR an admin
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { role: true }
     });
 
-    if (!user || user.role !== UserRole.MATCHMAKER) {
+    // ---- START OF CORRECTED CODE ----
+    const allowedRoles: UserRole[] = [UserRole.MATCHMAKER, UserRole.ADMIN]; // Explicitly type the array
+
+    if (!user || !allowedRoles.includes(user.role)) {
       return NextResponse.json(
-        { success: false, error: "Unauthorized - Matchmaker access required" },
+        { success: false, error: "Unauthorized - Matchmaker or Admin access required" },
         { status: 403 }
       );
     }
+    // ---- END OF CORRECTED CODE ----
 
     // Get params
     const { id, imageId } = params;

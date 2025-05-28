@@ -18,18 +18,21 @@ export async function PATCH(
       );
     }
 
-    // Verify that the user is a matchmaker
+    // Verify that the user is a matchmaker OR an admin
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { role: true }
     });
 
-    if (!user || user.role !== UserRole.MATCHMAKER) {
+    // ---- START OF CHANGE ----
+    const allowedRoles: UserRole[] = [UserRole.MATCHMAKER, UserRole.ADMIN];
+    if (!user || !allowedRoles.includes(user.role)) {
       return NextResponse.json(
-        { success: false, error: "Unauthorized - Matchmaker access required" },
+        { success: false, error: "Unauthorized - Matchmaker or Admin access required" },
         { status: 403 }
       );
     }
+    // ---- END OF CHANGE ----
 
     // Get params
     const { id, imageId } = params;
@@ -48,14 +51,14 @@ export async function PATCH(
     }
 
     // Verify image exists and belongs to candidate
-    const image = await prisma.userImage.findFirst({
+    const imageToSetMain = await prisma.userImage.findFirst({ // Renamed variable for clarity
       where: {
         id: imageId,
         userId: id
       }
     });
 
-    if (!image) {
+    if (!imageToSetMain) { // Used the new variable name
       return NextResponse.json(
         { success: false, error: "Image not found" },
         { status: 404 }
@@ -64,9 +67,12 @@ export async function PATCH(
 
     // Start a transaction to update main image
     await prisma.$transaction([
-      // First, unset all images as main
+      // First, unset all other images as main for this user
       prisma.userImage.updateMany({
-        where: { userId: id },
+        where: { 
+            userId: id,
+            id: { not: imageId } // Don't unset the one we are about to set
+        },
         data: { isMain: false }
       }),
       

@@ -63,7 +63,8 @@ async function uploadImageToCloudinary(file: File, userId: string): Promise<{ ur
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session || !session.user || session.user.role !== UserRole.MATCHMAKER) {
+if (!session || !session.user || 
+    (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
     const matchmakerId = session.user.id;

@@ -2,17 +2,34 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { UserRole } from "@prisma/client"; // Added UserRole
 
-export async function GET() {  // Removed unused req parameter
+export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     
-    if (!session?.user?.email) {
+    // ---- START OF CHANGE ----
+    if (!session?.user?.id) { // Check for user ID as well
       return new NextResponse(
-        JSON.stringify({ error: 'Unauthorized' }),
+        JSON.stringify({ error: 'Unauthorized - Not logged in' }),
         { status: 401 }
       );
     }
+
+    // Fetch user role for permission check
+    const performingUser = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { role: true }
+    });
+
+    const allowedRoles: UserRole[] = [UserRole.MATCHMAKER, UserRole.ADMIN];
+    if (!performingUser || !allowedRoles.includes(performingUser.role)) {
+        return new NextResponse(
+            JSON.stringify({ error: 'Unauthorized - Matchmaker or Admin access required' }),
+            { status: 403 }
+        );
+    }
+    // ---- END OF CHANGE ----
 
     // שליפת כל המועמדים הפעילים שיש להם פרופיל
     const users = await prisma.user.findMany({
@@ -35,7 +52,8 @@ export async function GET() {  // Removed unused req parameter
             id: true,
             url: true,
             isMain: true
-          }
+          },
+          orderBy: [{isMain: 'desc'}, {createdAt: 'asc'}] // Main image first
         },
         profile: {
           select: {
@@ -47,27 +65,22 @@ export async function GET() {  // Removed unused req parameter
             height: true,
             maritalStatus: true,
             occupation: true,
-            education: true, // תיאור טקסטואלי
-            educationLevel: true, // רמת השכלה מובנית
-            // address: true, // הוסר מ-UserProfile
+            education: true, 
+            educationLevel: true, 
             city: true,
             origin: true,
             religiousLevel: true,
             about: true,
-            // hobbies: true, // הוסר (הוחלף ב-profileHobbies)
-
-            // --- שדות חדשים מ-UserProfile ---
             shomerNegiah: true,
             serviceType: true,
             serviceDetails: true,
-            headCovering: true, // לנשים
-            kippahType: true, // לגברים
+            headCovering: true, 
+            kippahType: true, 
             hasChildrenFromPrevious: true,
             profileCharacterTraits: true,
             profileHobbies: true,
             aliyaCountry: true,
             aliyaYear: true,
-            
             parentStatus: true,
             siblings: true,
             position: true,
@@ -96,7 +109,6 @@ export async function GET() {  // Removed unused req parameter
     });
 
     const formattedUsers = users.map(user => {
-      // Since profile is guaranteed by `isNot: null`, user.profile will exist.
       const profile = user.profile!; 
 
       return {
@@ -109,16 +121,16 @@ export async function GET() {  // Removed unused req parameter
         images: user.images,
         profile: {
           ...profile,
-          birthDate: profile.birthDate.toISOString(), // birthDate is Date, non-null in UserProfile
+          birthDate: profile.birthDate.toISOString(), 
           lastActive: profile.lastActive?.toISOString(),
           availabilityUpdatedAt: profile.availabilityUpdatedAt?.toISOString(),
-          createdAt: profile.createdAt.toISOString(), // createdAt is Date, non-null in UserProfile
-          updatedAt: profile.updatedAt.toISOString(), // updatedAt is Date, non-null in UserProfile
-          user: { // This field is part of the UserProfile type definition
-            firstName: user.firstName,
-            lastName: user.lastName,
-            email: user.email
-          }
+          createdAt: profile.createdAt.toISOString(), 
+          updatedAt: profile.updatedAt.toISOString(), 
+          // user: { // This field is part of the UserProfile type definition - consider if needed client-side
+          //   firstName: user.firstName,
+          //   lastName: user.lastName,
+          //   email: user.email
+          // }
         }
       };
     });
@@ -132,7 +144,7 @@ export async function GET() {  // Removed unused req parameter
       { status: 200 }
     );
 
-  } catch (error: Error | unknown) {  // Added proper type annotation
+  } catch (error: Error | unknown) {  
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('Profile fetch error:', errorMessage);
     

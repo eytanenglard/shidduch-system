@@ -43,18 +43,21 @@ export async function POST(
       );
     }
 
-    // Verify that the user is a matchmaker
+    // Verify that the user is a matchmaker OR an admin
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { role: true }
     });
 
-    if (!user || user.role !== UserRole.MATCHMAKER) {
+    // ---- START OF CHANGE ----
+    const allowedRoles: UserRole[] = [UserRole.MATCHMAKER, UserRole.ADMIN];
+    if (!user || !allowedRoles.includes(user.role)) {
       return NextResponse.json(
-        { success: false, error: "Unauthorized - Matchmaker access required" },
+        { success: false, error: "Unauthorized - Matchmaker or Admin access required" },
         { status: 403 }
       );
     }
+    // ---- END OF CHANGE ----
 
     // Get candidate ID from params
     const { id } = params;
