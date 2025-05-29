@@ -67,7 +67,8 @@ export const authOptions: NextAuthOptions = {
           createdAt: now,
           updatedAt: now,
           source: UserSource.REGISTRATION, // Explicitly set for clarity, though schema has default
-          addedByMatchmakerId: null,     // Not applicable for Google sign-up
+          addedByMatchmakerId: null,  
+           termsAndPrivacyAcceptedAt: null,   // Not applicable for Google sign-up
           profile: null, 
           images: [], 
           questionnaireResponses: [], 
@@ -128,7 +129,8 @@ export const authOptions: NextAuthOptions = {
           images: images as UserImage[],
           questionnaireResponses: questionnaireResponses as QuestionnaireResponse[],
           source: userFromDb.source, // Add source
-          addedByMatchmakerId: userFromDb.addedByMatchmakerId, // Add addedByMatchmakerId
+          addedByMatchmakerId: userFromDb.addedByMatchmakerId,
+           termsAndPrivacyAcceptedAt: userFromDb.termsAndPrivacyAcceptedAt, // Add addedByMatchmakerId
         } as ExtendedUser;
       }
     }),
@@ -187,7 +189,8 @@ export const authOptions: NextAuthOptions = {
           images: images as UserImage[],
           questionnaireResponses: questionnaireResponses as QuestionnaireResponse[],
           source: userFromDb.source, // Add source
-          addedByMatchmakerId: userFromDb.addedByMatchmakerId, // Add addedByMatchmakerId
+          addedByMatchmakerId: userFromDb.addedByMatchmakerId,
+           termsAndPrivacyAcceptedAt: userFromDb.termsAndPrivacyAcceptedAt, // Add addedByMatchmakerId
         } as ExtendedUser;
       },
     }),
@@ -215,6 +218,10 @@ export const authOptions: NextAuthOptions = {
         where: { email: userEmail },
       });
     
+      if (dbUser) { // לאחר מציאה או יצירה של dbUser
+        typedUser.termsAndPrivacyAcceptedAt = dbUser.termsAndPrivacyAcceptedAt; // <--- העבר את הערך
+      }
+
       if (!dbUser && account?.provider === 'google') {
         console.log(`[signIn Callback] Google sign-in for potentially new user: ${userEmail}.`);
         
@@ -387,7 +394,7 @@ export const authOptions: NextAuthOptions = {
         
         typedToken.source = typedUserFromCallback.source; // Add source
         typedToken.addedByMatchmakerId = typedUserFromCallback.addedByMatchmakerId; // Add addedByMatchmakerId
-
+ typedToken.termsAndPrivacyAcceptedAt = typedUserFromCallback.termsAndPrivacyAcceptedAt;
         typedToken.requiresCompletion = typedUserFromCallback.requiresCompletion;
         typedToken.redirectUrl = typedUserFromCallback.redirectUrl;
         typedToken.newlyCreated = typedUserFromCallback.newlyCreated;
@@ -427,7 +434,7 @@ export const authOptions: NextAuthOptions = {
             
             typedToken.source = dbUserForJwt.source; // Refresh source
             typedToken.addedByMatchmakerId = dbUserForJwt.addedByMatchmakerId; // Refresh addedByMatchmakerId
-
+ typedToken.termsAndPrivacyAcceptedAt = dbUserForJwt.termsAndPrivacyAcceptedAt;
             typedToken.profile = dbUserForJwt.profile as UserProfile | null;
             typedToken.images = dbUserForJwt.images as UserImage[]; 
             typedToken.questionnaireResponses = dbUserForJwt.questionnaireResponses as QuestionnaireResponse[];
@@ -501,6 +508,7 @@ export const authOptions: NextAuthOptions = {
         
         typedSession.user.source = typedToken.source; // Pass source to session
         typedSession.user.addedByMatchmakerId = typedToken.addedByMatchmakerId; // Pass to session
+        typedSession.user.termsAndPrivacyAcceptedAt = typedToken.termsAndPrivacyAcceptedAt; // <--- הוספה
 
         typedSession.user.profile = typedToken.profile; 
         typedSession.user.images = typedToken.images; 

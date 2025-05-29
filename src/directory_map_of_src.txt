@@ -1,0 +1,476 @@
+Directory Map for: C:\Users\user\Desktop\eytan\shidduch-system\src
+===================================================================
+
+src/
+    ├── code.py  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\code.py)
+    ├── middleware.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\middleware.ts)
+└── app/
+        ├── favicon.ico  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\favicon.ico)
+        ├── globals.css  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\globals.css)
+        ├── layout.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\layout.tsx)
+        ├── metadata.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\metadata.ts)
+        └── page.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\page.tsx)
+    └── (authenticated)/
+            └── directory_analysis.txt  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\(authenticated)\directory_analysis.txt)
+        └── matches/
+                └── page.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\(authenticated)\matches\page.tsx)
+        └── matchmaker/
+            └── clients/
+                    └── page.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\(authenticated)\matchmaker\clients\page.tsx)
+            └── suggestions/
+                    └── page.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\(authenticated)\matchmaker\suggestions\page.tsx)
+        └── messages/
+                └── page.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\(authenticated)\messages\page.tsx)
+        └── profile/
+                └── page.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\(authenticated)\profile\page.tsx)
+            └── components/
+                └── dashboard/
+                        └── UnifiedProfileDashboard.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\(authenticated)\profile\components\dashboard\UnifiedProfileDashboard.tsx)
+        └── settings/
+                └── page.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\(authenticated)\settings\page.tsx)
+    └── api/
+        └── auth/
+            └── complete-password-change/
+                    └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\auth\complete-password-change\route.ts)
+            └── complete-profile/
+                    └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\auth\complete-profile\route.ts)
+            └── delete/
+                    └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\auth\delete\route.ts)
+            └── initiate-password-change/
+                    └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\auth\initiate-password-change\route.ts)
+            └── register/
+                    └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\auth\register\route.ts)
+            └── resend-phone-code/
+                    └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\auth\resend-phone-code\route.ts)
+            └── resend-verification/
+                    └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\auth\resend-verification\route.ts)
+            └── resend-verification-code/
+                    └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\auth\resend-verification-code\route.ts)
+            └── send-phone-code/
+                    └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\auth\send-phone-code\route.ts)
+            └── send-verification/
+                    └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\auth\send-verification\route.ts)
+            └── update-and-resend-code/
+                    └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\auth\update-and-resend-code\route.ts)
+            └── verify-email-code/
+                    └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\auth\verify-email-code\route.ts)
+            └── verify-phone-code/
+                    └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\auth\verify-phone-code\route.ts)
+            └── [...nextauth]/
+                    └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\auth\[...nextauth]\route.ts)
+        └── availability/
+            └── check/
+                    └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\availability\check\route.ts)
+        └── matchmaker/
+                └── directory_analysis.txt  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\matchmaker\directory_analysis.txt)
+            └── candidates/
+                └── manual/
+                        └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\matchmaker\candidates\manual\route.ts)
+                └── [id]/
+                        └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\matchmaker\candidates\[id]\route.ts)
+                    └── images/
+                            └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\matchmaker\candidates\[id]\images\route.ts)
+                        └── [imageId]/
+                                └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\matchmaker\candidates\[id]\images\[imageId]\route.ts)
+                            └── main/
+                                    └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\matchmaker\candidates\[id]\images\[imageId]\main\route.ts)
+            └── clients/
+                    └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\matchmaker\clients\route.ts)
+            └── dashbord/
+                    └── ClientCard.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\matchmaker\dashbord\ClientCard.tsx)
+            └── inquiries/
+                └── [id]/
+                        └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\matchmaker\inquiries\[id]\route.ts)
+                    └── respond/
+                            └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\matchmaker\inquiries\[id]\respond\route.ts)
+            └── suggestions/
+                    └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\matchmaker\suggestions\route.ts)
+                └── [id]/
+                        └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\matchmaker\suggestions\[id]\route.ts)
+                    └── delete/
+                            └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\matchmaker\suggestions\[id]\delete\route.ts)
+                    └── message/
+                            └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\matchmaker\suggestions\[id]\message\route.ts)
+                    └── remind/
+                            └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\matchmaker\suggestions\[id]\remind\route.ts)
+                    └── resend/
+                            └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\matchmaker\suggestions\[id]\resend\route.ts)
+                    └── share-contact/
+                            └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\matchmaker\suggestions\[id]\share-contact\route.ts)
+                    └── status/
+                            └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\matchmaker\suggestions\[id]\status\route.ts)
+        └── notifications/
+                └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\notifications\route.ts)
+        └── profile/
+                ├── directory_analysis.txt  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\profile\directory_analysis.txt)
+                └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\profile\route.ts)
+            └── availability/
+                    └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\profile\availability\route.ts)
+            └── images/
+                    └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\profile\images\route.ts)
+                └── [imageId]/
+                        └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\profile\images\[imageId]\route.ts)
+            └── questionnaire/
+                    └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\profile\questionnaire\route.ts)
+            └── update/
+                    └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\profile\update\route.ts)
+        └── questionnaire/
+                └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\questionnaire\route.ts)
+            └── complete/
+                    └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\questionnaire\complete\route.ts)
+            └── world/
+                    └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\questionnaire\world\route.ts)
+        └── suggestions/
+                ├── directory_analysis.txt  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\suggestions\directory_analysis.txt)
+                └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\suggestions\route.ts)
+            └── active/
+                    └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\suggestions\active\route.ts)
+            └── history/
+                    └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\suggestions\history\route.ts)
+            └── [id]/
+                └── delete/
+                        └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\suggestions\[id]\delete\route.ts)
+                └── inquiries/
+                        └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\suggestions\[id]\inquiries\route.ts)
+                └── status/
+                        └── route.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\api\suggestions\[id]\status\route.ts)
+    └── auth/
+        └── error/
+                └── page.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\auth\error\page.tsx)
+        └── google-callback/
+                └── page.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\auth\google-callback\page.tsx)
+        └── register/
+                └── page.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\auth\register\page.tsx)
+        └── signin/
+                └── page.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\auth\signin\page.tsx)
+        └── update-phone/
+                └── page.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\auth\update-phone\page.tsx)
+        └── verify-email/
+                └── page.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\auth\verify-email\page.tsx)
+        └── verify-phone/
+                └── page.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\auth\verify-phone\page.tsx)
+    └── components/
+        └── auth/
+                ├── ConsentCheckbox.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\auth\ConsentCheckbox.tsx)
+                ├── ProgressBar.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\auth\ProgressBar.tsx)
+                ├── RegisterForm.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\auth\RegisterForm.tsx)
+                ├── RegisterSteps.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\auth\RegisterSteps.tsx)
+                ├── RegistrationContext.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\auth\RegistrationContext.tsx)
+                ├── SignInForm.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\auth\SignInForm.tsx)
+                └── auth_contents.txt  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\auth\auth_contents.txt)
+            └── steps/
+                    ├── BasicInfoStep.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\auth\steps\BasicInfoStep.tsx)
+                    ├── CompleteStep.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\auth\steps\CompleteStep.tsx)
+                    ├── EmailVerificationCodeStep.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\auth\steps\EmailVerificationCodeStep.tsx)
+                    ├── OptionalInfoStep.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\auth\steps\OptionalInfoStep.tsx)
+                    ├── PersonalDetailsStep.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\auth\steps\PersonalDetailsStep.tsx)
+                    └── WelcomeStep.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\auth\steps\WelcomeStep.tsx)
+        └── matchmaker/
+            └── new/
+                    ├── MatchmakerEditProfile.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\new\MatchmakerEditProfile.tsx)
+                    └── directory_analysis.txt  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\new\directory_analysis.txt)
+                └── CandidateCard/
+                        ├── Actions.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\new\CandidateCard\Actions.tsx)
+                        ├── MinimalCard.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\new\CandidateCard\MinimalCard.tsx)
+                        └── QuickView.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\new\CandidateCard\QuickView.tsx)
+                └── CandidatesManager/
+                        ├── CandidatesList.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\new\CandidatesManager\CandidatesList.tsx)
+                        ├── CandidatesStats.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\new\CandidatesManager\CandidatesStats.tsx)
+                        ├── SplitView.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\new\CandidatesManager\SplitView.tsx)
+                        ├── StatsCard.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\new\CandidatesManager\StatsCard.tsx)
+                        └── index.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\new\CandidatesManager\index.tsx)
+                └── constants/
+                        ├── filterOptions.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\new\constants\filterOptions.ts)
+                        └── matchingCriteria.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\new\constants\matchingCriteria.ts)
+                └── dialogs/
+                        ├── ActionDialogs.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\new\dialogs\ActionDialogs.tsx)
+                        └── AddManualCandidateDialog.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\new\dialogs\AddManualCandidateDialog.tsx)
+                └── Filters/
+                        ├── ActiveFilters.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\new\Filters\ActiveFilters.tsx)
+                        ├── FilterPanel.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\new\Filters\FilterPanel.tsx)
+                        ├── SavedFilters.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\new\Filters\SavedFilters.tsx)
+                        └── SearchBar.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\new\Filters\SearchBar.tsx)
+                └── hooks/
+                        ├── filterUtils  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\new\hooks\filterUtils)
+                        ├── useCandidates.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\new\hooks\useCandidates.ts)
+                        ├── useFilterLogic.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\new\hooks\useFilterLogic.ts)
+                        └── useStatistics.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\new\hooks\useStatistics.ts)
+                └── shared/
+                        ├── LoadingStates.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\new\shared\LoadingStates.tsx)
+                        ├── Pagination.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\new\shared\Pagination.tsx)
+                        └── StatusBadge.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\new\shared\StatusBadge.tsx)
+                └── types/
+                        ├── candidates.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\new\types\candidates.ts)
+                        └── filters.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\new\types\filters.ts)
+            └── suggestions/
+                    ├── EditSuggestionForm.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\suggestions\EditSuggestionForm.tsx)
+                    └── MessageForm.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\suggestions\MessageForm.tsx)
+                └── cards/
+                        └── SuggestionCard.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\suggestions\cards\SuggestionCard.tsx)
+                └── container/
+                        ├── MatchmakerDashboard.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\suggestions\container\MatchmakerDashboard.tsx)
+                        ├── MonthlyTrendModal.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\suggestions\container\MonthlyTrendModal.tsx)
+                        ├── SuggestionActionBar.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\suggestions\container\SuggestionActionBar.tsx)
+                        └── SuggestionsStats.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\suggestions\container\SuggestionsStats.tsx)
+                └── details/
+                        └── SuggestionDetailsDialog.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\suggestions\details\SuggestionDetailsDialog.tsx)
+                └── hooks/
+                        └── useMatchmaking.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\suggestions\hooks\useMatchmaking.ts)
+                └── list/
+                        ├── ManagerSuggestionsList.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\suggestions\list\ManagerSuggestionsList.tsx)
+                        └── SuggestionsList.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\suggestions\list\SuggestionsList.tsx)
+                └── NewSuggestionForm/
+                        ├── CandidateSelector.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\suggestions\NewSuggestionForm\CandidateSelector.tsx)
+                        ├── MatchPreview.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\suggestions\NewSuggestionForm\MatchPreview.tsx)
+                        ├── SuggestionDetails.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\suggestions\NewSuggestionForm\SuggestionDetails.tsx)
+                        ├── index.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\suggestions\NewSuggestionForm\index.tsx)
+                        └── schema.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\suggestions\NewSuggestionForm\schema.ts)
+                └── services/
+                    └── notification/
+                            ├── NotificationService.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\suggestions\services\notification\NotificationService.ts)
+                            └── initNotifications.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\suggestions\services\notification\initNotifications.ts)
+                        └── adapters/
+                                ├── EmailAdapter.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\suggestions\services\notification\adapters\EmailAdapter.ts)
+                                └── WhatsAppAdapter.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\suggestions\services\notification\adapters\WhatsAppAdapter.ts)
+                    └── suggestions/
+                            ├── StatusTransitionService.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\suggestions\services\suggestions\StatusTransitionService.ts)
+                            └── SuggestionService.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\suggestions\services\suggestions\SuggestionService.ts)
+                └── utils/
+                        ├── matchingAlgorithm.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\suggestions\utils\matchingAlgorithm.ts)
+                        └── statisticsCalculator.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\matchmaker\suggestions\utils\statisticsCalculator.ts)
+        └── meetings/
+                └── MeetingFeedbackDialog.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\meetings\MeetingFeedbackDialog.tsx)
+        └── messages/
+                ├── AvailabilityRequestCard.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\messages\AvailabilityRequestCard.tsx)
+                └── MessagesPage.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\messages\MessagesPage.tsx)
+        └── profile/
+                ├── ProfileCard.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\profile\ProfileCard.tsx)
+                ├── constants.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\profile\constants.ts)
+                ├── index.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\profile\index.ts)
+                └── utils.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\profile\utils.ts)
+            └── elements/
+                    ├── MinimalCard.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\profile\elements\MinimalCard.tsx)
+                    ├── StatsCard.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\profile\elements\StatsCard.tsx)
+                    └── VisibilityControl.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\profile\elements\VisibilityControl.tsx)
+            └── sections/
+                    ├── PhotosSection.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\profile\sections\PhotosSection.tsx)
+                    ├── PreferencesSection.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\profile\sections\PreferencesSection.tsx)
+                    ├── ProfileSection.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\profile\sections\ProfileSection.tsx)
+                    └── QuestionnaireResponsesSection.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\profile\sections\QuestionnaireResponsesSection.tsx)
+            └── types/
+                    ├── profile.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\profile\types\profile.ts)
+                    └── questionnaire.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\profile\types\questionnaire.ts)
+        └── suggestions/
+                └── MatchSuggestionsContainer.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\suggestions\MatchSuggestionsContainer.tsx)
+            └── cards/
+                    ├── MinimalSuggestionCard.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\suggestions\cards\MinimalSuggestionCard.tsx)
+                    └── SuggestionQuickView.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\suggestions\cards\SuggestionQuickView.tsx)
+            └── compatibility/
+                    └── MatchCompatibilityView.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\suggestions\compatibility\MatchCompatibilityView.tsx)
+            └── dialogs/
+                    └── AskMatchmakerDialog.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\suggestions\dialogs\AskMatchmakerDialog.tsx)
+            └── inquiries/
+                    └── InquiryThreadView.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\suggestions\inquiries\InquiryThreadView.tsx)
+            └── list/
+                    └── SuggestionsList.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\suggestions\list\SuggestionsList.tsx)
+            └── modals/
+                    └── SuggestionDetailsModal.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\suggestions\modals\SuggestionDetailsModal.tsx)
+            └── timeline/
+                    └── SuggestionTimeline.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\suggestions\timeline\SuggestionTimeline.tsx)
+    └── config/
+            └── fonts.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\config\fonts.ts)
+    └── contexts/
+            ├── LanguageContext.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\contexts\LanguageContext.tsx)
+            └── NotificationContext.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\contexts\NotificationContext.tsx)
+    └── fonts/
+            ├── GeistMonoVF.woff2  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\fonts\GeistMonoVF.woff2)
+            └── GeistVF.woff2  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\fonts\GeistVF.woff2)
+    └── legal/
+        └── privacy-policy/
+                └── page.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\legal\privacy-policy\page.tsx)
+        └── terms-of-service/
+                └── page.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\legal\terms-of-service\page.tsx)
+    └── questionnaire/
+            └── page.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\questionnaire\page.tsx)
+        └── complete/
+                └── page.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\questionnaire\complete\page.tsx)
+        └── restore/
+                └── page.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\questionnaire\restore\page.tsx)
+    └── types/
+            └── suggestions.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\app\types\suggestions.ts)
+└── components/
+        ├── AvailabilityStatus.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\AvailabilityStatus.tsx)
+        ├── Providers.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\Providers.tsx)
+        └── account-settings.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\account-settings.tsx)
+    └── HomePage/
+            └── HomePage.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\HomePage\HomePage.tsx)
+        └── components/
+                ├── ComparisonItem.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\HomePage\components\ComparisonItem.tsx)
+                ├── FAQItem.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\HomePage\components\FAQItem.tsx)
+                ├── FeatureCard.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\HomePage\components\FeatureCard.tsx)
+                ├── FooterComponents.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\HomePage\components\FooterComponents.tsx)
+                ├── MatchmakerCard.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\HomePage\components\MatchmakerCard.tsx)
+                ├── Step.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\HomePage\components\Step.tsx)
+                └── TestimonialCard.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\HomePage\components\TestimonialCard.tsx)
+        └── sections/
+                ├── AlgorithmSection.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\HomePage\sections\AlgorithmSection.tsx)
+                ├── CTASection.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\HomePage\sections\CTASection.tsx)
+                ├── FAQSection.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\HomePage\sections\FAQSection.tsx)
+                ├── FeaturesSection.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\HomePage\sections\FeaturesSection.tsx)
+                ├── FooterSection.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\HomePage\sections\FooterSection.tsx)
+                ├── HeroSection.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\HomePage\sections\HeroSection.tsx)
+                ├── HowItWorksSection.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\HomePage\sections\HowItWorksSection.tsx)
+                ├── MatchmakerTeamSection.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\HomePage\sections\MatchmakerTeamSection.tsx)
+                ├── PrivacyAssuranceSection.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\HomePage\sections\PrivacyAssuranceSection.tsx)
+                ├── SuccessStoriesSection.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\HomePage\sections\SuccessStoriesSection.tsx)
+                └── ValuePropositionSection.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\HomePage\sections\ValuePropositionSection.tsx)
+    └── layout/
+            └── Navbar.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\layout\Navbar.tsx)
+    └── matching/
+            ├── MatchPreferencesForm.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\matching\MatchPreferencesForm.tsx)
+            └── MatchingSystem.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\matching\MatchingSystem.tsx)
+    └── matchmaker/
+            ├── AvailabilityCheckButton.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\matchmaker\AvailabilityCheckButton.tsx)
+            ├── AvailabilityInquiryResponse.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\matchmaker\AvailabilityInquiryResponse.tsx)
+            └── InquiriesDashboard.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\matchmaker\InquiriesDashboard.tsx)
+    └── questionnaire/
+            ├── MatchmakingQuestionnaire.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\MatchmakingQuestionnaire.tsx)
+            ├── QuestionnaireComplete.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\QuestionnaireComplete.tsx)
+            ├── QuestionnairePage.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\QuestionnairePage.tsx)
+            ├── QuestionnaireRestore.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\QuestionnaireRestore.tsx)
+            └── directory_analysis.txt  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\directory_analysis.txt)
+        └── common/
+                ├── AnswerInput.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\common\AnswerInput.tsx)
+                ├── InteractiveScale.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\common\InteractiveScale.tsx)
+                ├── QuestionCard.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\common\QuestionCard.tsx)
+                ├── QuestionnaireCompletion.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\common\QuestionnaireCompletion.tsx)
+                ├── QuestionsList.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\common\QuestionsList.tsx)
+                └── WorldIntro.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\common\WorldIntro.tsx)
+        └── components/
+                ├── AccessibilityFeatures.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\components\AccessibilityFeatures.tsx)
+                ├── FAQ.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\components\FAQ.tsx)
+                ├── InteractiveScale.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\components\InteractiveScale.tsx)
+                ├── MatchResultCard.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\components\MatchResultCard.tsx)
+                ├── QuestionnaireProgress.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\components\QuestionnaireProgress.tsx)
+                └── UserStats.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\components\UserStats.tsx)
+        └── hooks/
+                └── useMediaQuery.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\hooks\useMediaQuery.ts)
+        └── layout/
+                ├── QuestionnaireLayout.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\layout\QuestionnaireLayout.tsx)
+                └── WorldsMap.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\layout\WorldsMap.tsx)
+        └── onboarding/
+                ├── TrackSelection.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\onboarding\TrackSelection.tsx)
+                └── Welcome.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\onboarding\Welcome.tsx)
+        └── pages/
+                └── QuestionnaireLandingPage.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\pages\QuestionnaireLandingPage.tsx)
+            └── questionnaire/
+                    └── map.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\pages\questionnaire\map.tsx)
+        └── questions/
+            └── partner/
+                    └── partnerQuestions.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\questions\partner\partnerQuestions.tsx)
+            └── personality/
+                    └── personalityQuestions.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\questions\personality\personalityQuestions.tsx)
+            └── relationship/
+                    └── relationshipQuestions.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\questions\relationship\relationshipQuestions.tsx)
+            └── religion/
+                    ├── faithQuestions.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\questions\religion\faithQuestions.tsx)
+                    ├── practicalReligionQuestions.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\questions\religion\practicalReligionQuestions.tsx)
+                    └── religionQuestions.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\questions\religion\religionQuestions.tsx)
+            └── values/
+                    └── valuesQuestions.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\questions\values\valuesQuestions.tsx)
+        └── types/
+                └── types.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\types\types.ts)
+        └── worlds/
+                ├── PartnerWorld.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\worlds\PartnerWorld.tsx)
+                ├── PersonalityWorld.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\worlds\PersonalityWorld.tsx)
+                ├── RelationshipWorld.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\worlds\RelationshipWorld.tsx)
+                ├── ReligionWorld.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\worlds\ReligionWorld.tsx)
+                └── ValuesWorld.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\questionnaire\worlds\ValuesWorld.tsx)
+    └── ui/
+            ├── ProfileModal.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\ProfileModal.tsx)
+            ├── SimpleToast.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\SimpleToast.tsx)
+            ├── accordion.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\accordion.tsx)
+            ├── alert-dialog.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\alert-dialog.tsx)
+            ├── alert.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\alert.tsx)
+            ├── avatar.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\avatar.tsx)
+            ├── badge.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\badge.tsx)
+            ├── button.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\button.tsx)
+            ├── calendar.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\calendar.tsx)
+            ├── card.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\card.tsx)
+            ├── checkbox.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\checkbox.tsx)
+            ├── collapsible.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\collapsible.tsx)
+            ├── command.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\command.tsx)
+            ├── date-picker.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\date-picker.tsx)
+            ├── dialog-provider.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\dialog-provider.tsx)
+            ├── dialog.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\dialog.tsx)
+            ├── dropdown-menu.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\dropdown-menu.tsx)
+            ├── image-viewer.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\image-viewer.tsx)
+            ├── input.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\input.tsx)
+            ├── label.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\label.tsx)
+            ├── loading-spinner.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\loading-spinner.tsx)
+            ├── multi-select.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\multi-select.tsx)
+            ├── popover.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\popover.tsx)
+            ├── progress-indicator.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\progress-indicator.tsx)
+            ├── progress.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\progress.tsx)
+            ├── radio-group.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\radio-group.tsx)
+            ├── resizable.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\resizable.tsx)
+            ├── scroll-area.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\scroll-area.tsx)
+            ├── select.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\select.tsx)
+            ├── separator.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\separator.tsx)
+            ├── sheet.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\sheet.tsx)
+            ├── skeleton.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\skeleton.tsx)
+            ├── slider.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\slider.tsx)
+            ├── split-pane.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\split-pane.tsx)
+            ├── stats-card.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\stats-card.tsx)
+            ├── steps.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\steps.tsx)
+            ├── switch.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\switch.tsx)
+            ├── tabs.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\tabs.tsx)
+            ├── textarea.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\textarea.tsx)
+            ├── timeline.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\timeline.tsx)
+            ├── tooltip.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\tooltip.tsx)
+            ├── virtual-grid.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\virtual-grid.tsx)
+            └── visually-hidden.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\visually-hidden.tsx)
+        └── form/
+                └── form.tsx  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\form\form.tsx)
+        └── toast/
+                ├── toast.d.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\toast\toast.d.ts)
+                └── use-toast.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\components\ui\toast\use-toast.ts)
+└── hooks/
+        └── useInterval.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\hooks\useInterval.ts)
+└── lib/
+        ├── auth.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\lib\auth.ts)
+        ├── db.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\lib\db.ts)
+        ├── phoneVerificationService.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\lib\phoneVerificationService.ts)
+        ├── prisma.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\lib\prisma.ts)
+        ├── tokens.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\lib\tokens.ts)
+        └── utils.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\lib\utils.ts)
+    └── email/
+            └── emailService.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\lib\email\emailService.ts)
+        └── templates/
+                ├── availability-check.hbs  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\lib\email\templates\availability-check.hbs)
+                ├── email-verification.hbs  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\lib\email\templates\email-verification.hbs)
+                ├── emailTemplates.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\lib\email\templates\emailTemplates.ts)
+                ├── invitation.hbs  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\lib\email\templates\invitation.hbs)
+                ├── password-reset.hbs  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\lib\email\templates\password-reset.hbs)
+                ├── share-contact-details.hbs  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\lib\email\templates\share-contact-details.hbs)
+                ├── suggestion.hbs  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\lib\email\templates\suggestion.hbs)
+                └── welcome.hbs  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\lib\email\templates\welcome.hbs)
+    └── services/
+            ├── availabilityService.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\lib\services\availabilityService.ts)
+            └── verificationService.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\lib\services\verificationService.ts)
+└── services/
+        ├── storageService.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\services\storageService.ts)
+        └── suggestions.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\services\suggestions.ts)
+└── types/
+        ├── api.d.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\types\api.d.ts)
+        ├── availability.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\types\availability.ts)
+        ├── cloudinary.d.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\types\cloudinary.d.ts)
+        ├── invitation.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\types\invitation.ts)
+        ├── meetings.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\types\meetings.ts)
+        ├── messages.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\types\messages.ts)
+        ├── next-auth.d.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\types\next-auth.d.ts)
+        ├── next.d.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\types\next.d.ts)
+        ├── profile-extended.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\types\profile-extended.ts)
+        ├── profile.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\types\profile.ts)
+        ├── route.d.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\types\route.d.ts)
+        └── suggestions.ts  (Full Path: C:\Users\user\Desktop\eytan\shidduch-system\src\types\suggestions.ts)

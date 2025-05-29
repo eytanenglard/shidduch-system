@@ -175,6 +175,7 @@ export interface User extends DefaultUser {
   requiresCompletion?: boolean;
     source: UserSource; // Add new field
   addedByMatchmakerId?: string | null; // Add new field
+   termsAndPrivacyAcceptedAt?: Date | null;
 }
 
 export interface Verification {
@@ -210,6 +211,7 @@ declare module 'next-auth' {
        accounts?: PrismaAccount[];
         source: UserSource; // Add new field
       addedByMatchmakerId?: string | null; // Add new field
+       termsAndPrivacyAcceptedAt?: Date | null;
     } & Omit<DefaultSession['user'], 'id' | 'email' | 'name' | 'image'>; // Omit to avoid type conflicts if DefaultSession changes
 
     redirectUrl?: string;
@@ -241,6 +243,7 @@ declare module 'next-auth' {
     requiresCompletion?: boolean;
      source: UserSource; // Add new field
     addedByMatchmakerId?: string | null; // Add new field
+     termsAndPrivacyAcceptedAt?: Date | null;
   }
 }
 
@@ -270,6 +273,8 @@ declare module 'next-auth/jwt' {
     error?: string; // For JWT-based error propagation
      source: UserSource; // Add new field
     addedByMatchmakerId?: string | null; // Add new field
+        termsAndPrivacyAcceptedAt?: Date | null; // <--- הוספה
+
 
   }
 }

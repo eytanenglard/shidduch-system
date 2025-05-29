@@ -26,6 +26,7 @@ model User {
   source                          UserSource              @default(REGISTRATION) // New field
   addedByMatchmakerId             String?                 // Optional: ID of matchmaker who added this manual user
   matchmakerWhoAdded              User?                   @relation("ManuallyAddedBy", fields: [addedByMatchmakerId], references: [id]) // New relation
+  termsAndPrivacyAcceptedAt       DateTime?               // מתי המשתמש אישר את התנאים ומדיניות הפרטיות
 
   firstPartyInquiries             AvailabilityInquiry[]   @relation("FirstPartyInquiries")
   matchmakerAvailabilityInquiries AvailabilityInquiry[]   @relation("MatchmakerInquiries")

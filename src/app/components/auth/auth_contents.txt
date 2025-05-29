@@ -1,0 +1,3567 @@
+################################################################################
+# Directory Content Map For: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\auth
+# Generated on: 2025-05-29 15:04:53
+################################################################################
+
+================================================================================
+Directory: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\auth
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\auth\ProgressBar.tsx
+--------------------------------------------------------------------------------
+Content:
+"use client";
+
+import React from "react";
+import { motion } from "framer-motion";
+
+interface ProgressBarProps {
+  currentStep: number;
+  totalSteps: number;
+}
+
+const ProgressBar: React.FC<ProgressBarProps> = ({
+  currentStep,
+  totalSteps,
+}) => {
+  // Calculate percentage
+  const percentage = (currentStep / totalSteps) * 100;
+
+  // Generate step markers
+  const steps = Array.from({ length: totalSteps }, (_, i) => i + 1);
+
+  return (
+    <div className="w-full relative">
+      {/* Step labels */}
+      <div className="flex justify-between mb-2">
+        {steps.map((step) => (
+          <div
+            key={step}
+            className={`text-xs font-medium transition-colors duration-300 ${
+              step <= currentStep ? "text-gray-800" : "text-gray-400"
+            }`}
+          >
+            שלב {step}
+          </div>
+        ))}
+      </div>
+
+      {/* Progress bar track */}
+      <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+        {/* Animated progress fill */}
+        <motion.div
+          className="h-full bg-gradient-to-r from-cyan-500 to-pink-500"
+          initial={{ width: `${((currentStep - 1) / totalSteps) * 100}%` }}
+          animate={{ width: `${percentage}%` }}
+          transition={{ duration: 0.5, ease: "easeInOut" }}
+        />
+      </div>
+
+      {/* Step markers */}
+      <div className="relative flex justify-between mt-1">
+        {steps.map((step) => (
+          <motion.div
+            key={step}
+            className={`w-6 h-6 rounded-full flex items-center justify-center -mt-4 z-10 transition-all duration-300
+              ${
+                step <= currentStep
+                  ? "bg-gradient-to-r from-cyan-500 to-pink-500 shadow-md text-white"
+                  : "bg-white border-2 border-gray-300 text-gray-500"
+              }`}
+            initial={{ scale: step === currentStep ? 0.8 : 1 }}
+            animate={{ scale: step === currentStep ? 1.1 : 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <span className="text-xs font-semibold">{step}</span>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default ProgressBar;
+--- End of Content for ProgressBar.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\auth\RegisterForm.tsx
+--------------------------------------------------------------------------------
+Content:
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Gender } from "@prisma/client";
+import { signIn } from "next-auth/react";
+
+interface RegistrationFormData {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  gender: Gender;
+  birthDate: string;
+  maritalStatus?: string;
+  height?: number;
+  occupation?: string;
+  education?: string;
+}
+
+export default function RegisterForm() {
+  const router = useRouter();
+  const [error, setError] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [password, setPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+
+  const validatePassword = (value: string) => {
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+    if (!passwordRegex.test(value)) {
+      setPasswordError(
+        "הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר"
+      );
+      return false;
+    }
+    setPasswordError("");
+    return true;
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
+
+    if (!validatePassword(password)) {
+      setIsLoading(false);
+      return;
+    }
+
+    const formData = new FormData(e.currentTarget);
+    const data: RegistrationFormData = {
+      email: formData.get("email") as string,
+      password: password,
+      firstName: formData.get("firstName") as string,
+      lastName: formData.get("lastName") as string,
+      phone: formData.get("phone") as string,
+      gender: formData.get("gender") as Gender,
+      birthDate: formData.get("birthDate") as string,
+      maritalStatus: formData.get("maritalStatus") as string,
+      height: formData.get("height")
+        ? Number(formData.get("height"))
+        : undefined,
+      occupation: formData.get("occupation") as string,
+      education: formData.get("education") as string,
+    };
+
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "אירעה שגיאה בהרשמה");
+      }
+
+      // העברה לדף אימות המייל
+      router.push(`/auth/verify-email?email=${encodeURIComponent(data.email)}`);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "אירעה שגיאה בהרשמה");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setIsGoogleLoading(true);
+      setError("");
+
+      // ניסיון התחברות עם גוגל - הסרנו את callbackUrl
+      // NextAuth יטפל בהפניה באמצעות פונקציית callback.redirect
+      await signIn("google");
+    } catch (error) {
+      console.error("Google sign-in error:", error);
+      setError("אירעה שגיאה בהתחברות עם גוגל");
+      setIsGoogleLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6 max-w-sm mx-auto">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* השארנו את כל השדות הקיימים */}
+        <div>
+          <label
+            htmlFor="firstName"
+            className="block text-sm font-medium text-gray-700"
+          >
+            שם פרטי
+          </label>
+          <input
+            type="text"
+            name="firstName"
+            id="firstName"
+            required
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="lastName"
+            className="block text-sm font-medium text-gray-700"
+          >
+            שם משפחה
+          </label>
+          <input
+            type="text"
+            name="lastName"
+            id="lastName"
+            required
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium text-gray-700"
+          >
+            אימייל
+          </label>
+          <input
+            type="email"
+            name="email"
+            id="email"
+            required
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="phone"
+            className="block text-sm font-medium text-gray-700"
+          >
+            טלפון נייד
+          </label>
+          <input
+            type="tel"
+            name="phone"
+            id="phone"
+            required
+            pattern="[0-9]{10}"
+            placeholder="0501234567 - לדוגמא"
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="password"
+            className="block text-sm font-medium text-gray-700"
+          >
+            סיסמה
+          </label>
+          <input
+            type="password"
+            name="password"
+            id="password"
+            required
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              validatePassword(e.target.value);
+            }}
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+          />
+          <p className="mt-1 text-sm text-gray-500">
+            הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה באנגלית, אות קטנה
+            באנגלית ומספר
+          </p>
+          {passwordError && (
+            <div className="text-red-500 text-sm">{passwordError}</div>
+          )}
+        </div>
+
+        {/* שאר השדות */}
+        <div>
+          <label
+            htmlFor="gender"
+            className="block text-sm font-medium text-gray-700"
+          >
+            מגדר
+          </label>
+          <select
+            name="gender"
+            id="gender"
+            required
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+          >
+            <option value="">בחר מגדר</option>
+            <option value="MALE">זכר</option>
+            <option value="FEMALE">נקבה</option>
+          </select>
+        </div>
+
+        <div>
+          <label
+            htmlFor="birthDate"
+            className="block text-sm font-medium text-gray-700"
+          >
+            תאריך לידה
+          </label>
+          <input
+            type="date"
+            name="birthDate"
+            id="birthDate"
+            required
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="maritalStatus"
+            className="block text-sm font-medium text-gray-700"
+          >
+            מצב משפחתי
+          </label>
+          <select
+            name="maritalStatus"
+            id="maritalStatus"
+            required
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+          >
+            <option value="">בחר מצב משפחתי</option>
+            <option value="single">רווק/ה</option> {/* שונה ל- "single" */}
+            <option value="divorced">גרוש/ה</option> {/* שונה ל- "divorced" */}
+            <option value="widowed">אלמן/ה</option> {/* שונה ל- "widowed" */}
+            {/* אם יש צורך, אפשר להוסיף גם את "annulled" כאן, בהתאם ללוגיקה העסקית */}
+          </select>
+        </div>
+
+        <div>
+          <label
+            htmlFor="height"
+            className="block text-sm font-medium text-gray-700"
+          >
+            גובה (בסמ)
+          </label>
+          <input
+            type="number"
+            name="height"
+            id="height"
+            min="120"
+            max="220"
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="occupation"
+            className="block text-sm font-medium text-gray-700"
+          >
+            עיסוק
+          </label>
+          <input
+            type="text"
+            name="occupation"
+            id="occupation"
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="education"
+            className="block text-sm font-medium text-gray-700"
+          >
+            השכלה
+          </label>
+          <input
+            type="text"
+            name="education"
+            id="education"
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+          />
+        </div>
+
+        {error && <div className="text-red-500 text-sm">{error}</div>}
+
+        <button
+          type="submit"
+          disabled={isLoading || !!passwordError}
+          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+        >
+          {isLoading ? "נרשם..." : "הרשמה"}
+        </button>
+      </form>
+
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-300" />
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="px-2 bg-white text-gray-500">או</span>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={handleGoogleSignIn}
+        disabled={isGoogleLoading}
+        className="w-full flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+      >
+        <div className="mr-2">
+          {isGoogleLoading ? (
+            <span>מתחבר...</span>
+          ) : (
+            <>
+              <svg
+                className="h-5 w-5 ml-2"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  fill="#4285F4"
+                />
+                <path
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  fill="#34A853"
+                />
+                <path
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                  fill="#FBBC05"
+                />
+                <path
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                  fill="#EA4335"
+                />
+              </svg>
+              הרשמה עם גוגל
+            </>
+          )}
+        </div>
+      </button>
+    </div>
+  );
+}
+--- End of Content for RegisterForm.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\auth\RegisterSteps.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/app/components/auth/RegisterSteps.tsx
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { RegistrationProvider, useRegistration } from "./RegistrationContext";
+import WelcomeStep from "./steps/WelcomeStep";
+import BasicInfoStep from "./steps/BasicInfoStep";
+import EmailVerificationCodeStep from "./steps/EmailVerificationCodeStep";
+import PersonalDetailsStep from "./steps/PersonalDetailsStep";
+import OptionalInfoStep from "./steps/OptionalInfoStep";
+import CompleteStep from "./steps/CompleteStep";
+import ProgressBar from "./ProgressBar";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ArrowRight, Info, Loader2 } from "lucide-react";
+
+const RegisterStepsContent: React.FC = () => {
+  const {
+    data: registrationContextData,
+    initializeFromSession,
+    resetForm,
+    goToStep,
+  } = useRegistration();
+  const router = useRouter();
+  const { data: session, status: sessionStatus } = useSession();
+  const searchParams = useSearchParams();
+
+  const [showIncompleteProfileMessage, setShowIncompleteProfileMessage] =
+    useState(false);
+  const [initializationAttempted, setInitializationAttempted] = useState(false);
+
+  useEffect(() => {
+    const reason = searchParams.get("reason");
+    if (
+      reason === "complete_profile" &&
+      !registrationContextData.isCompletingProfile
+    ) {
+      setShowIncompleteProfileMessage(true);
+    } else if (
+      reason === "verify_phone" &&
+      !registrationContextData.isCompletingProfile
+    ) {
+      setShowIncompleteProfileMessage(true);
+    } else {
+      setShowIncompleteProfileMessage(false);
+    }
+  }, [searchParams, registrationContextData.isCompletingProfile]);
+
+  useEffect(() => {
+    console.log(
+      "[RegisterSteps] Effect triggered. Session Status:",
+      sessionStatus,
+      "Context Data:",
+      registrationContextData,
+      "Session User:",
+      session?.user,
+      "Initialization Attempted:",
+      initializationAttempted
+    );
+
+    if (sessionStatus === "loading") {
+      console.log("[RegisterSteps] Session is loading. Waiting...");
+      return; // Wait for session to load
+    }
+
+    if (sessionStatus === "authenticated" && session?.user) {
+      const user = session.user;
+      console.log("[RegisterSteps] Session authenticated. User:", user);
+
+      // Scenario 1: Fully complete and verified. Redirect away.
+      if (user.isProfileComplete && user.isPhoneVerified) {
+        console.log(
+          "[RegisterSteps] User fully verified and profile complete. Redirecting to /profile."
+        );
+        router.push("/profile");
+        return;
+      }
+
+      // Scenario 2: User is authenticated but not fully set up.
+      // Initialize context from session if not already done or if context is still at step 0 (Welcome)
+      // and not in a special state like email verification.
+      if (
+        !initializationAttempted ||
+        (registrationContextData.step === 0 &&
+          !registrationContextData.isVerifyingEmailCode)
+      ) {
+        console.log(
+          "[RegisterSteps] Authenticated. Initializing registration context from session data."
+        );
+        initializeFromSession(user);
+        setInitializationAttempted(true);
+        return; // Allow context to update and re-render
+      }
+      console.log(
+        "[RegisterSteps] Initialization already attempted for this session user or context state does not require re-init."
+      );
+    } else if (sessionStatus === "unauthenticated") {
+      console.log(
+        "[RegisterSteps] User unauthenticated. Context data:",
+        registrationContextData
+      );
+      setInitializationAttempted(false); // Reset for next potential login
+
+      let shouldReset = false;
+      let resetReason = "";
+
+      // Case 1: User was explicitly trying to complete an existing profile but became unauthenticated.
+      if (registrationContextData.isCompletingProfile) {
+        shouldReset = true;
+        resetReason = "Unauthenticated while explicitly completing profile.";
+      }
+      // Case 2: It's a NEW registration flow (NOT completing profile).
+      else if (!registrationContextData.isCompletingProfile) {
+        // Subcase 2a: User is on the EmailVerificationCodeStep for a new registration.
+        // This is an EXPECTED state for an unauthenticated new user. DO NOT RESET.
+        if (registrationContextData.isVerifyingEmailCode) {
+          console.log(
+            "[RegisterSteps] User unauthenticated and isVerifyingEmailCode for NEW registration. This is expected. No reset."
+          );
+        }
+        // Subcase 2b: User was past BasicInfo (e.g., on PersonalDetails, step > 1)
+        // for a new registration, and somehow became unauthenticated (and not on email verification). This is unexpected. RESET.
+        else if (
+          registrationContextData.step > 1 &&
+          !registrationContextData.isVerifyingEmailCode
+        ) {
+          shouldReset = true;
+          resetReason =
+            "Unauthenticated in new registration flow, past BasicInfo (step > 1) and not on email verification screen.";
+        }
+        // Other new registration states (Welcome - step 0, BasicInfo - step 1 before submitting)
+        // also don't need a reset triggered by unauthentication if not verifying email.
+      }
+
+      if (shouldReset) {
+        console.log(
+          `[RegisterSteps] Resetting registration. Reason: ${resetReason}`,
+          "Context data before reset:",
+          JSON.parse(JSON.stringify(registrationContextData)) // Deep copy for logging
+        );
+        resetForm();
+      } else {
+        console.log(
+          "[RegisterSteps] Conditions for reset due to unauthentication not met."
+        );
+      }
+    }
+  }, [
+    sessionStatus,
+    session,
+    router,
+    registrationContextData,
+    initializeFromSession,
+    resetForm,
+    initializationAttempted,
+    // setData and goToStep are not directly used in this effect's logic flow for now
+    // but are good to keep if future changes might need them.
+    // setData,
+    // goToStep,
+  ]);
+
+  const renderStep = (): React.ReactNode => {
+    if (sessionStatus === "loading") {
+      return (
+        <div className="flex flex-col items-center justify-center p-10 min-h-[300px]">
+          <Loader2 className="h-8 w-8 animate-spin text-cyan-600 mb-4" />
+          <p className="text-gray-600">טוען סשן...</p>
+        </div>
+      );
+    }
+
+    // If session is authenticated, but context hasn't been initialized from session yet
+    if (
+      sessionStatus === "authenticated" &&
+      session?.user &&
+      !initializationAttempted &&
+      registrationContextData.step === 0 // Added check to ensure we only show this if context is truly at start
+    ) {
+      if (!session.user.isProfileComplete || !session.user.isPhoneVerified) {
+        return (
+          <div className="flex flex-col items-center justify-center p-10 min-h-[300px]">
+            <Loader2 className="h-8 w-8 animate-spin text-cyan-600 mb-4" />
+            <p className="text-gray-600">מכין את תהליך ההרשמה...</p>
+          </div>
+        );
+      }
+    }
+
+    // Email Verification for new Email/Password users
+    // Check this BEFORE isCompletingProfile, as verifying email is a sub-step of new registration.
+    if (
+      registrationContextData.isVerifyingEmailCode &&
+      !registrationContextData.isCompletingProfile // Ensures this is for new registration email verification
+    ) {
+      console.log(
+        "[RegisterSteps] Rendering EmailVerificationCodeStep. Current step in context:",
+        registrationContextData.step,
+        "isVerifyingEmailCode:",
+        registrationContextData.isVerifyingEmailCode
+      );
+      return <EmailVerificationCodeStep />;
+    }
+
+    // Profile Completion Flow (isCompletingProfile is true)
+    // This covers Google Signups needing completion, or Email/Pass users post-email-verification,
+    // or users returning to complete profile/phone.
+    if (registrationContextData.isCompletingProfile) {
+      console.log(
+        "[RegisterSteps] (Profile Completion Flow) Current step:",
+        registrationContextData.step
+      );
+      switch (registrationContextData.step) {
+        case 2: // Personal Details (first step of completion or resume here)
+          return <PersonalDetailsStep />;
+        case 3: // Optional Info
+          return <OptionalInfoStep />;
+        case 4: // Complete Confirmation Screen (guides to phone verification if needed)
+          return <CompleteStep />;
+        default:
+          console.warn(
+            `[RegisterSteps] (Completion) Unexpected step ${registrationContextData.step}. Session:`,
+            session?.user
+          );
+          // Attempt recovery if session exists and initialization was not attempted or failed
+          if (session?.user && !initializationAttempted) {
+            console.log(
+              "[RegisterSteps] (Completion) Re-attempting initialization from session."
+            );
+            initializeFromSession(session.user);
+            setInitializationAttempted(true);
+            return (
+              <div className="flex flex-col items-center justify-center p-10 min-h-[300px]">
+                <Loader2 className="h-8 w-8 animate-spin text-cyan-600 mb-4" />
+                <p className="text-gray-600">מאפס שלב...</p>
+              </div>
+            );
+          } else if (
+            (session?.user && registrationContextData.step < 2) ||
+            registrationContextData.step > 4
+          ) {
+            // If init was attempted, and step is still out of bounds for completion, force to step 2.
+            console.log(
+              "[RegisterSteps] (Completion) Forcing to step 2 for profile completion."
+            );
+            if (goToStep) goToStep(2); // Ensure goToStep is available from context
+            return <PersonalDetailsStep />;
+          }
+          // If no session, and in completion mode, reset everything.
+          console.log(
+            "[RegisterSteps] (Completion) No session or unrecoverable state, resetting form."
+          );
+          resetForm();
+          return <WelcomeStep />;
+      }
+    }
+
+    // Regular New Registration Flow (isCompletingProfile is false, not verifying email code on screen)
+    console.log(
+      "[RegisterSteps] (New Registration Flow) Current step:",
+      registrationContextData.step
+    );
+    switch (registrationContextData.step) {
+      case 0: // Welcome
+        return <WelcomeStep />;
+      case 1: // Basic Info (Email, Password). EmailVerification is handled by the 'isVerifyingEmailCode' block above.
+        return <BasicInfoStep />;
+      // Steps 2, 3, 4 for new registration are after email verification.
+      // `completeEmailVerification` in context moves to step 2 and sets isCompletingProfile to true.
+      // So, if isCompletingProfile is false, user should NOT be on steps 2,3,4 here.
+      // This indicates a logic mismatch if reached.
+      case 2:
+      case 3:
+      case 4:
+        console.warn(
+          `[RegisterSteps] (New Registration) Unexpectedly on step ${registrationContextData.step} while isCompletingProfile is false and not verifying email. This may indicate an issue with state transition after email verification. Resetting to WelcomeStep.`
+        );
+        // If the session *is* authenticated and profile *is not* complete, it should have been caught by initializeFromSession.
+        // If still here, it implies a state inconsistency.
+        if (
+          session?.user &&
+          (!session.user.isProfileComplete || !session.user.isPhoneVerified)
+        ) {
+          console.log(
+            "[RegisterSteps] (New Registration) Session exists but profile incomplete, re-initializing."
+          );
+          if (!initializationAttempted) {
+            // Prevent re-init loops
+            initializeFromSession(session.user);
+            setInitializationAttempted(true);
+            return (
+              <Loader2 className="h-8 w-8 animate-spin text-cyan-600 mb-4" />
+            );
+          }
+        }
+        // Default to reset if state is truly unexpected for new registration
+        resetForm();
+        return <WelcomeStep />;
+      default:
+        console.warn(
+          `[RegisterSteps] (Registration) Unexpected step ${registrationContextData.step}. Defaulting to WelcomeStep (step 0).`
+        );
+        if (registrationContextData.step !== 0 && goToStep) goToStep(0); // Try to recover
+        return <WelcomeStep />;
+    }
+  };
+
+  const stepContent = renderStep();
+
+  let pageTitle = "הרשמה למערכת";
+  let stepDescription = "ברוכים הבאים! בואו נתחיל.";
+  let currentProgressBarStep = 0;
+  let totalProgressBarSteps = 3; // Default for new: Basic (1), Personal (2), Optional (3) -> then CompleteScreen
+  let showProgressBar = false;
+
+  // Logic for page titles, descriptions, and progress bar visibility
+  if (
+    registrationContextData.isVerifyingEmailCode &&
+    !registrationContextData.isCompletingProfile // New reg email verification
+  ) {
+    pageTitle = "אימות כתובת מייל";
+    stepDescription = `הזן את הקוד שנשלח ל: ${
+      registrationContextData.emailForVerification ||
+      registrationContextData.email
+    }.`;
+    showProgressBar = true;
+    currentProgressBarStep = 1; // Part of "Basic Info" stage (which is stage 1 of 3 before completion)
+    totalProgressBarSteps = 3;
+  } else if (registrationContextData.isCompletingProfile) {
+    pageTitle = "השלמת פרטים";
+    // Progress bar for completion: Personal (1), Optional (2) -> then CompleteScreen
+    totalProgressBarSteps = 2;
+    if (registrationContextData.step === 2) {
+      // PersonalDetails
+      stepDescription = "שלב 1 מתוך 2: פרטים אישיים.";
+      currentProgressBarStep = 1;
+      showProgressBar = true;
+    } else if (registrationContextData.step === 3) {
+      // OptionalInfo
+      stepDescription = "שלב 2 מתוך 2: מידע נוסף (מומלץ).";
+      currentProgressBarStep = 2;
+      showProgressBar = true;
+    } else if (registrationContextData.step === 4) {
+      // CompleteStep for completion
+      stepDescription = session?.user?.isPhoneVerified
+        ? "הפרופיל שלך מוכן!"
+        : "הפרטים הושלמו! השלב הבא: אימות טלפון.";
+      showProgressBar = false; // Or show full progress at the end if desired
+    } else {
+      stepDescription = "טוען שלב השלמת פרופיל...";
+      showProgressBar = false;
+    }
+  } else {
+    // New Registration Flow (not verifying email on screen, not completing profile yet)
+    if (registrationContextData.step === 0) {
+      /* Welcome */
+      pageTitle = "ברוכים הבאים";
+      stepDescription = "בואו נתחיל את המסע יחד.";
+      showProgressBar = false;
+    } else if (registrationContextData.step === 1) {
+      /* BasicInfo */
+      pageTitle = "יצירת חשבון";
+      stepDescription = "שלב 1 מתוך 3: פרטי התחברות.";
+      currentProgressBarStep = 1;
+      showProgressBar = true;
+    } else if (registrationContextData.step === 2) {
+      /* PersonalDetails (should be handled by isCompletingProfile) */
+      pageTitle = "פרטים אישיים";
+      stepDescription = "שלב 2 מתוך 3: קצת עליך.";
+      currentProgressBarStep = 2;
+      showProgressBar = true;
+    } else if (registrationContextData.step === 3) {
+      /* OptionalInfo (should be handled by isCompletingProfile) */
+      pageTitle = "מידע נוסף";
+      stepDescription = "שלב 3 מתוך 3: עוד קצת פרטים (אופציונלי).";
+      currentProgressBarStep = 3;
+      showProgressBar = true;
+    } else if (registrationContextData.step === 4) {
+      /* CompleteStep for new registration (should be handled by isCompletingProfile) */
+      pageTitle = "סיום הרשמה ראשונית";
+      stepDescription = "הפרטים נשמרו! השלב הבא: אימות טלפון.";
+      showProgressBar = false;
+    }
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-cyan-50 via-white to-pink-50 p-4 sm:p-8">
+      <button
+        onClick={() => router.push("/")}
+        className="absolute top-4 left-4 rtl:right-4 rtl:left-auto text-gray-600 hover:text-gray-800 transition-colors flex items-center gap-1 text-sm z-20"
+      >
+        <ArrowRight className="h-4 w-4" />
+        חזרה לדף הבית
+      </button>
+
+      <div className="mb-6 text-center">
+        <h1 className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-pink-500 text-3xl font-bold mb-2">
+          {pageTitle}
+        </h1>
+        <p className="text-gray-600 max-w-md mx-auto">{stepDescription}</p>
+      </div>
+
+      {showIncompleteProfileMessage && (
+        <Alert className="mb-6 w-full max-w-md bg-yellow-50 border-yellow-200 text-yellow-800 shadow-md">
+          <Info className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-1" />
+          <div className="ml-3 rtl:mr-3 rtl:ml-0">
+            <AlertTitle className="font-semibold mb-1">
+              נדרשת פעולה להשלמת החשבון
+            </AlertTitle>
+            <AlertDescription className="text-sm">
+              {searchParams.get("reason") === "verify_phone"
+                ? "הפרופיל שלך כמעט מוכן! נדרש אימות טלפון כדי להמשיך."
+                : "כדי לגשת לאזור האישי ולשאר חלקי האתר, יש להשלים תחילה את פרטי הפרופיל ואימותים נדרשים."}
+            </AlertDescription>
+          </div>
+        </Alert>
+      )}
+
+      {showProgressBar && (
+        <div className="w-full max-w-md mb-6">
+          <ProgressBar
+            currentStep={currentProgressBarStep}
+            totalSteps={totalProgressBarSteps}
+          />
+        </div>
+      )}
+
+      <div className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden relative">
+        {!(
+          (
+            registrationContextData.isVerifyingEmailCode ||
+            (registrationContextData.step === 0 &&
+              !registrationContextData.isCompletingProfile) || // Welcome step for new registration
+            registrationContextData.step === 4
+          ) // Complete step for any flow
+        ) && (
+          <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-cyan-500 to-pink-500"></div>
+        )}
+        <div className="p-6 sm:p-8">{stepContent}</div>
+      </div>
+
+      <div className="mt-8 text-center text-sm text-gray-500">
+        יש לך שאלות?{" "}
+        <a href="/contact" className="text-cyan-600 hover:underline">
+          צור קשר
+        </a>
+      </div>
+    </div>
+  );
+};
+
+export default function RegisterSteps() {
+  return (
+    <RegistrationProvider>
+      <RegisterStepsContent />
+    </RegistrationProvider>
+  );
+}
+--- End of Content for RegisterSteps.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\auth\RegistrationContext.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/app/components/auth/RegistrationContext.tsx
+"use client";
+
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useCallback,
+} from "react";
+import { Gender, UserStatus } from "@prisma/client"; // Assuming you have these types from Prisma
+import type { Session } from "next-auth"; // Import Session type
+
+// Define the structure of the registration data
+export interface RegistrationData {
+  // Basic info (Step 1 for new registration)
+  email: string;
+  password: string; // Only for new email/password registration
+  // Personal details (Step 2 for new reg / Step 1 for completion)
+  firstName: string;
+  lastName: string;
+  phone: string;
+  gender: Gender | "";
+  birthDate: string; // "YYYY-MM-DD"
+  maritalStatus: string;
+  // Optional info (Step 3 for new reg / Step 2 for completion)
+  height?: number;
+  occupation?: string;
+  education?: string;
+
+  // Internal state for managing the flow
+  step: number;
+  isGoogleSignup: boolean; // True if the current flow initiated from a Google sign-up action
+  isCompletingProfile: boolean; // True if user is completing an existing partial profile
+  isVerifyingEmailCode: boolean; // True if user is in email OTP verification step
+  emailForVerification: string | null;
+}
+
+// Default initial state
+const initialRegistrationData: RegistrationData = {
+  email: "",
+  password: "",
+  firstName: "",
+  lastName: "",
+  phone: "",
+  gender: "",
+  birthDate: "",
+  maritalStatus: "",
+  height: undefined,
+  occupation: "",
+  education: "",
+  step: 0, // Start at WelcomeStep (step 0) by default
+  isGoogleSignup: false,
+  isCompletingProfile: false,
+  isVerifyingEmailCode: false,
+  emailForVerification: null,
+};
+
+// Define context type
+interface RegistrationContextType {
+  data: RegistrationData;
+  setData: React.Dispatch<React.SetStateAction<RegistrationData>>;
+  updateField: <K extends keyof RegistrationData>(
+    field: K,
+    value: RegistrationData[K]
+  ) => void;
+  nextStep: () => void;
+  prevStep: () => void;
+  goToStep: (step: number) => void;
+  resetForm: () => void;
+  setGoogleSignup: (googleUserData: {
+    email: string;
+    firstName?: string;
+    lastName?: string;
+  }) => void;
+  initializeForCompletion: (userData: {
+    email: string;
+    firstName?: string | null;
+    lastName?: string | null;
+  }) => void;
+  initializeFromSession: (sessionUser: Session["user"]) => void; // Uses Session["user"] type from next-auth
+  proceedToEmailVerification: (email: string) => void;
+  completeEmailVerification: () => void;
+  exitEmailVerification: () => void;
+}
+
+const RegistrationContext = createContext<RegistrationContextType>({
+  data: initialRegistrationData,
+  setData: () => {
+    console.warn("RegistrationProvider not found");
+  },
+  updateField: () => {
+    console.warn("RegistrationProvider not found");
+  },
+  nextStep: () => {
+    console.warn("RegistrationProvider not found");
+  },
+  prevStep: () => {
+    console.warn("RegistrationProvider not found");
+  },
+  goToStep: () => {
+    console.warn("RegistrationProvider not found");
+  },
+  resetForm: () => {
+    console.warn("RegistrationProvider not found");
+  },
+  setGoogleSignup: () => {
+    console.warn("RegistrationProvider not found");
+  },
+  initializeForCompletion: () => {
+    console.warn("RegistrationProvider not found");
+  },
+  initializeFromSession: () => {
+    console.warn("RegistrationProvider not found");
+  },
+  proceedToEmailVerification: () => {
+    console.warn("RegistrationProvider not found");
+  },
+  completeEmailVerification: () => {
+    console.warn("RegistrationProvider not found");
+  },
+  exitEmailVerification: () => {
+    console.warn("RegistrationProvider not found");
+  },
+});
+
+export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
+  const [data, setData] = useState<RegistrationData>(initialRegistrationData);
+
+  const updateField = useCallback(
+    <K extends keyof RegistrationData>(
+      field: K,
+      value: RegistrationData[K]
+    ) => {
+      setData((prev) => ({ ...prev, [field]: value }));
+    },
+    []
+  );
+
+  const nextStep = useCallback(() => {
+    setData((prev) => {
+      if (prev.isVerifyingEmailCode) {
+        console.warn(
+          "RegistrationContext: nextStep called during email verification. Use completeEmailVerification."
+        );
+        return prev;
+      }
+
+      const currentMaxStep = 3; // Basic(1)->EmailVerify->Personal(2)->Optional(3) -> CompleteScreen(4)
+
+      if (
+        prev.step === 1 &&
+        !prev.isCompletingProfile &&
+        !prev.isGoogleSignup
+      ) {
+        console.log(
+          "RegistrationContext: At BasicInfo (step 1). UI should trigger 'proceedToEmailVerification'."
+        );
+        // If proceedToEmailVerification is called, it sets isVerifyingEmailCode to true.
+        // The UI then renders the verification step. nextStep should not advance the step counter here.
+        return prev;
+      }
+
+      if (prev.step < currentMaxStep) {
+        return { ...prev, step: prev.step + 1 };
+      } else if (prev.step === currentMaxStep) {
+        return { ...prev, step: 4 }; // Go to Complete screen
+      }
+      return prev;
+    });
+  }, []);
+
+  const prevStep = useCallback(() => {
+    setData((prev) => {
+      if (prev.isVerifyingEmailCode) {
+        return {
+          ...prev,
+          isVerifyingEmailCode: false,
+          emailForVerification: null,
+          step: 1, // Go back to BasicInfo
+        };
+      }
+      if (prev.step > 0) {
+        if (prev.step === 4) {
+          return { ...prev, step: 3 };
+        }
+        return { ...prev, step: prev.step - 1 };
+      }
+      return prev;
+    });
+  }, []);
+
+  const goToStep = useCallback((stepNum: number) => {
+    setData((prev) => ({
+      ...prev,
+      step: stepNum,
+      isVerifyingEmailCode: false, // Ensure email verification state is reset when jumping steps
+      emailForVerification: null,
+    }));
+  }, []);
+
+  const resetForm = useCallback(() => {
+    setData(initialRegistrationData);
+  }, []);
+
+  const setGoogleSignup = useCallback(
+    (googleUserData: {
+      email: string;
+      firstName?: string;
+      lastName?: string;
+    }) => {
+      setData({
+        ...initialRegistrationData,
+        email: googleUserData.email,
+        firstName: googleUserData.firstName || "",
+        lastName: googleUserData.lastName || "",
+        isGoogleSignup: true,
+        isCompletingProfile: true,
+        step: 2, // Start at PersonalDetails (step 2)
+        isVerifyingEmailCode: false,
+        emailForVerification: null,
+      });
+    },
+    []
+  );
+
+  const initializeForCompletion = useCallback(
+    (userData: {
+      email: string;
+      firstName?: string | null;
+      lastName?: string | null;
+    }) => {
+      setData((prevData) => ({
+        ...prevData, // Keep existing context data if any, then override
+        ...initialRegistrationData,
+        email: userData.email,
+        firstName: userData.firstName || "",
+        lastName: userData.lastName || "",
+        isCompletingProfile: true,
+        isGoogleSignup: prevData.isGoogleSignup, // Preserve if it was already set by setGoogleSignup
+        step: 2,
+        isVerifyingEmailCode: false,
+        emailForVerification: null,
+      }));
+    },
+    []
+  );
+
+  const initializeFromSession = useCallback(
+    (sessionUser: Session["user"]) => {
+      setData(() => {
+        // `sessionUser.accounts` is not available on the Session["user"] type
+        // as defined in your next-auth.d.ts.
+        // The determination of `isGoogleAccount` needs to be handled differently,
+        // e.g., by adding a specific flag to Session["user"] in your NextAuth session callback
+        // (based on token.accounts or token.provider in the JWT callback).
+        // For now, this is a placeholder. If this function is critical for Google users
+        // who have an existing session, this logic needs enhancement.
+        const isGoogleAccount = false; // Placeholder - adjust if you have another way to determine this
+
+        const baseState: RegistrationData = {
+          ...initialRegistrationData,
+          email: sessionUser.email, // email is required on Session["user"]
+          firstName: sessionUser.firstName, // firstName is required
+          lastName: sessionUser.lastName, // lastName is required
+          phone: sessionUser.phone || "", // phone is optional (string | null | undefined)
+        };
+
+        // `sessionUser.profile` is not available on the Session["user"] type
+        // as defined in your next-auth.d.ts.
+        // Therefore, profile-specific fields (gender, birthDate, etc.)
+        // cannot be pre-filled from sessionUser here. They will retain
+        // their default values from initialRegistrationData.
+        // If you need to pre-fill these, `sessionUser` (i.e., Session["user"]) needs to include
+        // profile data. This requires updating `next-auth.d.ts` and your NextAuth `session` callback.
+        /*
+        // Example of how it would look IF profile was on sessionUser:
+        if (sessionUser.profile) { // This would require sessionUser.profile to exist and be typed
+          baseState = {
+            ...baseState,
+            // Ensure sessionUser.profile fields are accessed safely, e.g. sessionUser.profile.gender
+            // gender: sessionUser.profile.gender || "",
+            // birthDate: sessionUser.profile.birthDate
+            //   ? new Date(sessionUser.profile.birthDate).toISOString().split("T")[0]
+            //   : "",
+            // maritalStatus: sessionUser.profile.maritalStatus || "",
+            // height: sessionUser.profile.height ?? undefined,
+            // occupation: sessionUser.profile.occupation || "",
+            // education: sessionUser.profile.education || "",
+          };
+        }
+        */
+
+        // Case 1: Email not verified (specific to Email/Password users)
+        if (
+          sessionUser.status === UserStatus.PENDING_EMAIL_VERIFICATION &&
+          !isGoogleAccount // This check depends on the accuracy of isGoogleAccount
+        ) {
+          return {
+            ...baseState,
+            isVerifyingEmailCode: true,
+            emailForVerification: sessionUser.email,
+            step: 1, // BasicInfo step leads to email verification
+            isCompletingProfile: false,
+            isGoogleSignup: false, // Consistent with isGoogleAccount being false here
+          };
+        }
+
+        // Case 2: Profile not complete
+        // This applies to users (Google or Email/Pass after email verification) needing to fill details.
+        if (!sessionUser.isProfileComplete) {
+          return {
+            ...baseState,
+            isCompletingProfile: true,
+            isGoogleSignup: isGoogleAccount, // Reflects the placeholder value
+            step: 2, // Start at PersonalDetailsStep
+            isVerifyingEmailCode: false,
+          };
+        }
+
+        // Case 3: Profile complete, but phone not verified
+        if (sessionUser.isProfileComplete && !sessionUser.isPhoneVerified) {
+          return {
+            ...baseState,
+            isCompletingProfile: true, // Still part of the overall "completion" journey
+            isGoogleSignup: isGoogleAccount, // Reflects the placeholder value
+            step: 4, // Go to CompleteStep, which should guide to phone verification
+            isVerifyingEmailCode: false,
+          };
+        }
+
+        console.warn(
+          "[RegistrationContext] initializeFromSession called for a user who seems fully verified or in an unexpected state. Resetting to WelcomeStep."
+        );
+        return {
+          ...initialRegistrationData,
+          email: sessionUser.email, // Keep email at least
+        };
+      });
+    },
+    [setData] // initialRegistrationData is stable, UserStatus is an enum.
+  );
+
+  const proceedToEmailVerification = useCallback((emailToVerify: string) => {
+    setData((prev) => ({
+      ...prev,
+      isVerifyingEmailCode: true,
+      emailForVerification: emailToVerify,
+      // step remains (e.g., 1 for BasicInfo). RegisterSteps renders based on isVerifyingEmailCode.
+    }));
+  }, []);
+
+  const completeEmailVerification = useCallback(() => {
+    setData((prev) => ({
+      ...prev,
+      isVerifyingEmailCode: false,
+      emailForVerification: null,
+      // After email verification, user typically needs to complete their profile.
+      // isCompletingProfile could be set to true here if that's the immediate next phase.
+      // The step determines which form is shown.
+      isCompletingProfile: true, // Assuming profile completion follows.
+      step: 2, // Move to PersonalDetails (step 2)
+    }));
+  }, []);
+
+  const exitEmailVerification = useCallback(() => {
+    setData((prev) => ({
+      ...prev,
+      isVerifyingEmailCode: false,
+      emailForVerification: null,
+      step: 1, // Go back to BasicInfo
+    }));
+  }, []);
+
+  const value: RegistrationContextType = {
+    data,
+    setData,
+    updateField,
+    nextStep,
+    prevStep,
+    goToStep,
+    resetForm,
+    setGoogleSignup,
+    initializeForCompletion,
+    initializeFromSession,
+    proceedToEmailVerification,
+    completeEmailVerification,
+    exitEmailVerification,
+  };
+
+  return (
+    <RegistrationContext.Provider value={value}>
+      {children}
+    </RegistrationContext.Provider>
+  );
+};
+
+export const useRegistration = (): RegistrationContextType => {
+  const context = useContext(RegistrationContext);
+  if (
+    context === undefined ||
+    Object.keys(context).every(
+      (key) =>
+        typeof context[key as keyof RegistrationContextType] === "function" &&
+        context[key as keyof RegistrationContextType]
+          .toString()
+          .includes("RegistrationProvider not found")
+    )
+  ) {
+    throw new Error(
+      "useRegistration must be used within a RegistrationProvider"
+    );
+  }
+  return context;
+};
+--- End of Content for RegistrationContext.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\auth\SignInForm.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/app/components/auth/SignInForm.tsx
+"use client";
+
+import { useState, useEffect, FormEvent } from "react";
+import { useSearchParams } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { Button } from "@/components/ui/button";
+import { Mail, Lock, AlertCircle } from "lucide-react";
+import Link from "next/link";
+
+export default function SignInForm() {
+  const searchParams = useSearchParams();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+  // בדיקה אם יש שגיאה מה-URL
+  useEffect(() => {
+    const errorMessage = searchParams.get("error");
+    if (errorMessage) {
+      switch (errorMessage) {
+        case "CredentialsSignin":
+          setError("אימייל או סיסמה אינם נכונים");
+          break;
+        case "OAuthAccountNotLinked":
+          setError(
+            "חשבון זה כבר מקושר באמצעות ספק אחר. אנא התחבר באמצעות הספק המקורי."
+          );
+          break;
+        // Add more specific error messages as needed
+        default:
+          setError("אירעה שגיאה, נסה שנית");
+      }
+    }
+  }, [searchParams]);
+
+  // בדיקה אם יש אימייל בפרמטרים של ה-URL (למשל, לאחר הרשמה)
+  useEffect(() => {
+    const emailParam = searchParams.get("email");
+    if (emailParam) {
+      setEmail(emailParam);
+      // אין צורך לשמור ל-localStorage כאן אם זה רק לאכלוס ראשוני
+    }
+  }, [searchParams]);
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!email || !password) {
+      setError("אנא הזן אימייל וסיסמה");
+      return;
+    }
+
+    try {
+      setError("");
+      setIsLoading(true);
+
+      // שמירת האימייל ב-localStorage לשימוש אפשרי בהמשך (למשל, אם משתמש חוזר)
+      localStorage.setItem("last_user_email", email);
+
+      const result = await signIn("credentials", {
+        email,
+        password,
+        // callbackUrl: "/profile", // אפשר להגדיר יעד ברירת מחדל, אבל ה-redirect callback יקבע את הסופי
+        // אם הטלפון לא מאומת, הוא יופנה ל /auth/register
+      });
+
+      // אם ההתחברות נכשלה (result.error קיים), ה-redirect callback לא יופעל.
+      // NextAuth עשוי להפנות לדף השגיאה או להישאר כאן עם שגיאה ב-URL.
+      if (result?.error) {
+        if (result.error === "CredentialsSignin") {
+          setError("אימייל או סיסמה אינם נכונים");
+        } else {
+          // אתה יכול להוסיף טיפול ספציפי לשגיאות אחרות כאן
+          console.error("Sign-in error from NextAuth:", result.error);
+          setError(result.error || "אירעה שגיאה בהתחברות, נסה שנית");
+        }
+      } else if (result && result.ok && result.url) {
+        // ההתחברות הצליחה ו-NextAuth מנהל את ההפניה.
+        // result.url הוא היעד הסופי.
+        // אין צורך ב-router.push ידני מכאן.
+        // לוגיקת tempQuestionnaire תטופל בדף שאליו המשתמש מופנה (למשל /profile או דף סיום הרשמה).
+        console.log("Sign-in successful, NextAuth redirecting to:", result.url);
+      } else if (result && !result.ok && !result.error) {
+        // מקרה פחות שכיח, כאשר אין שגיאה מפורשת אבל גם לא הצלחה עם URL.
+        console.warn(
+          "Sign-in attempt did not result in an error or a redirect URL:",
+          result
+        );
+        setError("תהליך ההתחברות לא הושלם כראוי. נסה שנית.");
+      }
+    } catch (err) {
+      // שגיאות רשת או אחרות שלא נתפסו על ידי signIn
+      console.error("Unexpected sign-in error in handleSubmit:", err);
+      setError("אירעה שגיאה לא צפויה בהתחברות, נסה שנית");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setIsGoogleLoading(true);
+      setError("");
+
+      localStorage.setItem("google_auth_in_progress", "true");
+      localStorage.setItem("auth_method", "google");
+
+      // NextAuth יטפל בהפניה. ה-callbackUrl הוא היעד *לאחר* ש-Google מחזיר את המשתמש לאפליקציה שלך.
+      // לאחר מכן, ה-redirect callback של NextAuth (ב-auth.ts) יקבע את ההפניה הסופית.
+      await signIn("google", { callbackUrl: "/auth/google-callback" });
+      // אם signIn מוצלח, הדפדפן יופנה ולא יגיע לקוד שאחרי ה-await הזה.
+      // setIsGoogleLoading(false); // לא יתבצע אם ההפניה קרתה
+    } catch (error) {
+      console.error("Google sign-in error:", error);
+      setError("אירעה שגיאה בהתחברות עם גוגל");
+      setIsGoogleLoading(false); // חשוב במקרה של שגיאה לפני ההפניה
+    }
+  };
+
+  return (
+    <div className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden relative">
+      <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-cyan-500 to-pink-500"></div>
+
+      <div className="p-6 sm:p-8">
+        <div className="text-center mb-6">
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">
+            התחברות למערכת
+          </h1>
+          <p className="text-gray-600">
+            ברוכים השבים! המשיכו למצוא את השידוך המושלם
+          </p>
+        </div>
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
+            <p className="text-red-600 text-sm">{error}</p>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4 mb-6">
+          <div className="space-y-1">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700"
+            >
+              אימייל
+            </label>
+            <div className="relative">
+              <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <input
+                type="email"
+                id="email"
+                name="email" // חשוב עבור שימוש ב-FormData אם תרצה, למרות שכאן אתה לוקח מה-state
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full pr-10 pl-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
+                placeholder="you@example.com"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700"
+            >
+              סיסמה
+            </label>
+            <div className="relative">
+              <Lock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <input
+                type="password"
+                id="password"
+                name="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full pr-10 pl-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
+                placeholder="הסיסמה שלך"
+                required
+              />
+            </div>
+            <div className="flex justify-end">
+              <Link
+                href="/auth/forgot-password"
+                className="text-sm text-cyan-600 hover:text-cyan-700 hover:underline mt-1"
+              >
+                שכחת סיסמה?
+              </Link>
+            </div>
+          </div>
+
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="w-full py-3 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 shadow-lg flex items-center justify-center gap-2 relative overflow-hidden group" // Added group for shimmer
+          >
+            {isLoading ? (
+              <>
+                <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>מתחבר...</span>
+              </>
+            ) : (
+              <>
+                <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
+                <span>התחברות</span>
+              </>
+            )}
+          </Button>
+        </form>
+
+        <div className="relative mb-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-300" />
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-white text-gray-500">או</span>
+          </div>
+        </div>
+
+        <Button
+          type="button" // חשוב type="button" כדי לא לשלוח את הטופס
+          onClick={handleGoogleSignIn}
+          disabled={isGoogleLoading}
+          variant="outline"
+          size="lg"
+          className="w-full relative border-2 border-gray-300 hover:border-gray-400 py-3 rounded-xl flex items-center justify-center gap-3 group"
+        >
+          {isGoogleLoading ? (
+            <div className="animate-spin h-5 w-5 border-2 border-gray-500 rounded-full border-t-transparent" />
+          ) : (
+            <>
+              <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  fill="#4285F4"
+                />
+                <path
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  fill="#34A853"
+                />
+                <path
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                  fill="#FBBC05"
+                />
+                <path
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                  fill="#EA4335"
+                />
+              </svg>
+              <span className="text-gray-700 font-medium">
+                התחברות עם Google
+              </span>
+            </>
+          )}
+        </Button>
+
+        <div className="mt-6 text-center">
+          <p className="text-gray-600 text-sm">
+            אין לך חשבון עדיין?{" "}
+            <Link
+              href="/auth/register" // זה צריך להפנות לדף התחלת תהליך ההרשמה שלך
+              className="text-cyan-600 font-medium hover:text-cyan-700 hover:underline"
+            >
+              הרשמה עכשיו
+            </Link>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+--- End of Content for SignInForm.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\auth\auth_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+
+================================================================================
+Directory: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\auth\steps
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\auth\steps\BasicInfoStep.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/app/components/auth/steps/BasicInfoStep.tsx
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRegistration } from "../RegistrationContext";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  ArrowLeft,
+  ArrowRight,
+  User,
+  Mail,
+  Lock,
+  AlertCircle,
+  Loader2,
+} from "lucide-react";
+import { motion } from "framer-motion";
+
+const isValidEmail = (email: string): boolean => {
+  const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+  return email.trim() !== "" && emailRegex.test(email);
+};
+const isValidPassword = (password: string): boolean => {
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+  return passwordRegex.test(password);
+};
+
+const BasicInfoStep: React.FC = () => {
+  const { data, updateField, prevStep, proceedToEmailVerification } =
+    useRegistration();
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [isFormValid, setIsFormValid] = useState(false);
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const isEmailValid = isValidEmail(data.email);
+    const isPasswordValid = isValidPassword(data.password);
+    const isNameValid =
+      data.firstName.trim().length > 0 && data.lastName.trim().length > 0;
+
+    setEmailError(
+      data.email.trim() !== "" && !isEmailValid ? "כתובת אימייל לא תקינה" : ""
+    );
+    setPasswordError(
+      data.password.trim() !== "" && !isPasswordValid
+        ? "הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר"
+        : ""
+    );
+
+    setIsFormValid(
+      isEmailValid && isPasswordValid && isNameValid && !isLoading
+    );
+  }, [data.email, data.password, data.firstName, data.lastName, isLoading]);
+
+  const handleEmailBlur = () => {
+    if (data.email.trim() === "") {
+      setEmailError(""); // No error if empty, required handled by form submit
+    } else if (!isValidEmail(data.email)) {
+      setEmailError("כתובת אימייל לא תקינה");
+    } else {
+      setEmailError("");
+    }
+  };
+  const handlePasswordBlur = () => {
+    if (data.password.trim() === "") {
+      setPasswordError(""); // No error if empty
+    } else if (!isValidPassword(data.password)) {
+      setPasswordError(
+        "הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר"
+      );
+    } else {
+      setPasswordError("");
+    }
+  };
+
+  const handleRegisterSubmit = async () => {
+    // Final validation check before submission
+    const isEmailValid = isValidEmail(data.email);
+    const isPasswordValid = isValidPassword(data.password);
+    const isFirstNameValid = data.firstName.trim().length > 0;
+    const isLastNameValid = data.lastName.trim().length > 0;
+
+    if (
+      !isEmailValid ||
+      !isPasswordValid ||
+      !isFirstNameValid ||
+      !isLastNameValid
+    ) {
+      setApiError("אנא מלא את כל השדות הנדרשים בצורה תקינה.");
+      // Trigger blur to show individual field errors if not already shown
+      if (!isEmailValid && data.email.trim() !== "") handleEmailBlur();
+      else if (data.email.trim() === "") setEmailError("שדה אימייל הוא חובה");
+      if (!isPasswordValid && data.password.trim() !== "") handlePasswordBlur();
+      else if (data.password.trim() === "")
+        setPasswordError("שדה סיסמה הוא חובה");
+      if (!isFirstNameValid) setApiError((prev) => prev + " שם פרטי חסר."); // Example, better to highlight field
+      if (!isLastNameValid) setApiError((prev) => prev + " שם משפחה חסר.");
+      return;
+    }
+    if (emailError || passwordError) {
+      // If there are specific field errors, don't submit
+      setApiError("אנא תקן את השגיאות המסומנות.");
+      return;
+    }
+
+    setIsLoading(true);
+    setApiError(null);
+
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password,
+          firstName: data.firstName,
+          lastName: data.lastName,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result.error || `שגיאה ${response.status}: ${response.statusText}`
+        );
+      }
+
+      if (result.success && result.email) {
+        proceedToEmailVerification(result.email);
+      } else {
+        console.error(
+          "Registration API success but no email returned or success false:",
+          result
+        );
+        setApiError(
+          result.error || "אירעה שגיאה במעבר לשלב אימות המייל. אנא נסה שנית."
+        );
+      }
+    } catch (error) {
+      console.error("Registration API error:", error);
+      setApiError(
+        error instanceof Error ? error.message : "אירעה שגיאה בלתי צפויה בהרשמה"
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
+  };
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+  };
+
+  return (
+    <motion.div
+      className="space-y-5"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      {apiError && (
+        <motion.div variants={itemVariants}>
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>שגיאה בהרשמה</AlertTitle>
+            <AlertDescription>{apiError}</AlertDescription>
+          </Alert>
+        </motion.div>
+      )}
+
+      <motion.h2
+        className="text-xl font-bold text-gray-800 mb-4"
+        variants={itemVariants}
+      >
+        פרטי חשבון
+      </motion.h2>
+
+      <motion.div variants={itemVariants} className="space-y-4">
+        {/* Email Field */}
+        <div className="space-y-1">
+          <label
+            htmlFor="emailBasic"
+            className="block text-sm font-medium text-gray-700"
+          >
+            אימייל <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <input
+              type="email"
+              id="emailBasic"
+              value={data.email}
+              onChange={(e) => updateField("email", e.target.value)}
+              onBlur={handleEmailBlur}
+              placeholder="you@example.com"
+              disabled={isLoading}
+              required
+              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${
+                isLoading ? "bg-gray-100" : ""
+              } ${
+                emailError
+                  ? "border-red-500 focus:ring-red-200"
+                  : "border-gray-300 focus:ring-cyan-200 focus:border-cyan-500"
+              }`}
+            />
+            {emailError && !isLoading && (
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <AlertCircle className="h-5 w-5 text-red-500" />
+              </div>
+            )}
+          </div>
+          {emailError && (
+            <p className="text-red-500 text-xs mt-1">{emailError}</p>
+          )}
+        </div>
+
+        {/* Password Field */}
+        <motion.div variants={itemVariants} className="space-y-1">
+          <label
+            htmlFor="passwordBasic"
+            className="block text-sm font-medium text-gray-700"
+          >
+            סיסמה <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <Lock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <input
+              type={passwordVisible ? "text" : "password"}
+              id="passwordBasic"
+              value={data.password}
+              onChange={(e) => updateField("password", e.target.value)}
+              onBlur={handlePasswordBlur}
+              placeholder="לפחות 8 תווים"
+              disabled={isLoading}
+              required
+              className={`w-full pr-10 pl-10 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${
+                isLoading ? "bg-gray-100" : ""
+              } ${
+                passwordError
+                  ? "border-red-300 focus:ring-red-200"
+                  : "border-gray-300 focus:ring-cyan-200 focus:border-cyan-500"
+              }`}
+            />
+            <button
+              type="button"
+              onClick={() => setPasswordVisible(!passwordVisible)}
+              className="absolute inset-y-0 left-0 flex items-center pl-3 focus:outline-none"
+              aria-label={passwordVisible ? "הסתר סיסמה" : "הצג סיסמה"}
+            >
+              <span className="text-gray-500">
+                {passwordVisible ? "🙈" : "👁️"}
+              </span>
+            </button>
+            {passwordError && !isLoading && (
+              <div className="absolute inset-y-0 left-10 flex items-center pl-3 pointer-events-none">
+                <AlertCircle className="h-5 w-5 text-red-500" />
+              </div>
+            )}
+          </div>
+          {passwordError && (
+            <p className="text-red-500 text-xs mt-1">{passwordError}</p>
+          )}
+          {!passwordError && (
+            <p className="text-gray-500 text-xs mt-1">
+              הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה באנגלית, אות קטנה
+              באנגלית ומספר.
+            </p>
+          )}
+        </motion.div>
+
+        {/* First Name Field */}
+        <motion.div variants={itemVariants} className="space-y-1">
+          <label
+            htmlFor="firstNameBasic"
+            className="block text-sm font-medium text-gray-700"
+          >
+            שם פרטי <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <User className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <input
+              type="text"
+              id="firstNameBasic"
+              value={data.firstName}
+              onChange={(e) => updateField("firstName", e.target.value)}
+              placeholder="ישראל"
+              disabled={isLoading}
+              required
+              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${
+                isLoading ? "bg-gray-100" : ""
+              } border-gray-300 focus:ring-cyan-200 focus:border-cyan-500`}
+            />
+          </div>
+        </motion.div>
+
+        {/* Last Name Field */}
+        <motion.div variants={itemVariants} className="space-y-1">
+          <label
+            htmlFor="lastNameBasic"
+            className="block text-sm font-medium text-gray-700"
+          >
+            שם משפחה <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <User className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <input
+              type="text"
+              id="lastNameBasic"
+              value={data.lastName}
+              onChange={(e) => updateField("lastName", e.target.value)}
+              placeholder="ישראלי"
+              disabled={isLoading}
+              required
+              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${
+                isLoading ? "bg-gray-100" : ""
+              } border-gray-300 focus:ring-cyan-200 focus:border-cyan-500`}
+            />
+          </div>
+        </motion.div>
+      </motion.div>
+
+      <motion.div
+        variants={itemVariants}
+        className="flex justify-between pt-4 mt-4"
+      >
+        <Button
+          type="button"
+          onClick={prevStep}
+          variant="outline"
+          className="flex items-center gap-2 border-gray-300"
+          disabled={isLoading}
+        >
+          <ArrowRight className="h-4 w-4" /> חזרה
+        </Button>
+
+        <Button
+          type="button"
+          onClick={handleRegisterSubmit}
+          disabled={!isFormValid || isLoading} // isFormValid כבר כולל את isLoading
+          className={`flex items-center gap-2 min-w-[200px] justify-center ${
+            isFormValid && !isLoading // בדוק שוב את התנאי כאן, כי isFormValid כבר תלוי ב-isLoading
+              ? "bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600"
+              : "bg-gray-300 cursor-not-allowed"
+          }`}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              <span>יוצר חשבון...</span>
+            </>
+          ) : (
+            <>
+              <span>צור חשבון והמשך לאימות</span>
+              <ArrowLeft className="h-4 w-4" />
+            </>
+          )}
+        </Button>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+export default BasicInfoStep;
+--- End of Content for BasicInfoStep.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\auth\steps\CompleteStep.tsx
+--------------------------------------------------------------------------------
+Content:
+"use client";
+
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import {
+  ArrowLeft,
+  CheckCircle,
+  Mail,
+  User,
+  Phone,
+  ShieldQuestion,
+} from "lucide-react";
+import { motion } from "framer-motion";
+import Link from "next/link";
+import { useSession } from "next-auth/react";
+// ודא שהנתיב לייבוא נכון. יכול להיות שזה ישירות מ-@prisma/client אם ייצאת אותו משם
+import { UserStatus } from "@prisma/client"; // אם זה הנתיב שבו UserStatus מוגדר
+import type { User as SessionUserType } from "@/types/next-auth"; // ... (variants נשארים אותו דבר) ...
+const containerVariants = {
+  /* ... */
+};
+const itemVariants = {
+  /* ... */
+};
+const circleVariants = {
+  /* ... */
+};
+
+const CompleteStep: React.FC = () => {
+  const router = useRouter();
+  const { data: session, status: sessionStatus } = useSession();
+
+  const navigateToProfile = () => router.push("/profile/me");
+  const navigateToQuestionnaire = () => router.push("/questionnaire");
+  const navigateToVerifyPhone = () => router.push("/auth/verify-phone");
+  const navigateToCompleteProfile = () => router.push("/auth/complete-profile");
+
+  if (sessionStatus === "loading") {
+    return (
+      <div className="flex justify-center items-center h-40">
+        <p className="text-lg text-gray-600">טוען נתונים...</p>
+      </div>
+    );
+  }
+
+  if (!session?.user) {
+    router.push("/auth/signin");
+    return null;
+  }
+
+  const user = session.user as SessionUserType; // ודא ש-SessionUserType מיובא נכון
+
+  // תרחיש 1: צריך לאמת אימייל (ורק אם ההרשמה היא עם אימייל/סיסמה)
+  // נניח ש-user.accounts הוא מערך של PrismaAccount
+  const isCredentialsUser = user.accounts?.every(
+    (acc) => acc.provider === "credentials"
+  );
+
+  // *******************************************************************
+  // כאן השינוי: השתמש בערכים מה-enum UserStatus שלך
+  // *******************************************************************
+  if (
+    !user.isVerified &&
+    isCredentialsUser &&
+    user.status === UserStatus.PENDING_EMAIL_VERIFICATION
+  ) {
+    return (
+      <motion.div
+        className="space-y-6 text-center"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        {/* ... תוכן לאימות מייל ... */}
+        <motion.div
+          className="flex justify-center mb-6"
+          variants={circleVariants}
+        >
+          <div className="relative w-28 h-28 rounded-full bg-gradient-to-r from-cyan-500 to-pink-500 flex items-center justify-center">
+            <motion.div
+              className="absolute inset-1 bg-white rounded-full flex items-center justify-center"
+              animate={{ scale: [0.6, 1] }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+            >
+              <Mail className="h-14 w-14 text-cyan-500" />
+            </motion.div>
+          </div>
+        </motion.div>
+        <motion.h2
+          className="text-2xl font-bold text-gray-800"
+          variants={itemVariants}
+        >
+          אימות כתובת המייל
+        </motion.h2>
+        <motion.div variants={itemVariants}>
+          <div className="p-4 bg-cyan-50 rounded-lg mb-5">
+            <div className="flex items-center gap-2 text-cyan-700 mb-2 justify-center">
+              <Mail className="h-5 w-5" />
+              <h3 className="font-medium">אנא אמת את כתובת המייל שלך</h3>
+            </div>
+            <p className="text-sm text-cyan-600">
+              שלחנו לך מייל לכתובת{" "}
+              <span className="font-bold">{user.email}</span>.
+              <br />
+              אנא לחץ על הקישור במייל כדי להשלים את תהליך האימות.
+            </p>
+          </div>
+        </motion.div>
+      </motion.div>
+    );
+  }
+
+  // תרחיש 2: צריך להשלים פרופיל
+  if (user.isVerified && !user.isProfileComplete) {
+    return (
+      <motion.div
+        className="space-y-6 text-center"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        {/* ... תוכן להשלמת פרופיל ... */}
+        <motion.div
+          className="flex justify-center mb-6"
+          variants={circleVariants}
+        >
+          <div className="relative w-28 h-28 rounded-full bg-gradient-to-r from-cyan-500 to-pink-500 flex items-center justify-center">
+            <motion.div
+              className="absolute inset-1 bg-white rounded-full flex items-center justify-center"
+              animate={{ scale: [0.6, 1] }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+            >
+              <User className="h-14 w-14 text-cyan-500" />
+            </motion.div>
+          </div>
+        </motion.div>
+        <motion.h2
+          className="text-2xl font-bold text-gray-800"
+          variants={itemVariants}
+        >
+          השלמת פרטי פרופיל
+        </motion.h2>
+        <motion.p className="text-gray-600 mb-6" variants={itemVariants}>
+          כדי שנוכל להתאים לך את השידוכים הטובים ביותר, אנא השלם את פרטי הפרופיל
+          שלך.
+        </motion.p>
+        <motion.div variants={itemVariants} className="flex flex-col gap-4">
+          <Button
+            onClick={navigateToCompleteProfile}
+            className="w-full py-3 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 rounded-lg shadow-lg flex items-center justify-center gap-2"
+          >
+            <User className="h-5 w-5 text-white" />
+            <span className="text-white">להשלמת הפרופיל</span>
+          </Button>
+        </motion.div>
+      </motion.div>
+    );
+  }
+
+  // תרחיש 3: צריך לאמת טלפון
+  // *******************************************************************
+  // כאן השינוי: השתמש בערכים מה-enum UserStatus שלך
+  // יכול להיות שגם תרצה לבדוק user.status === UserStatus.PENDING_PHONE_VERIFICATION
+  // *******************************************************************
+  if (
+    user.isVerified &&
+    user.isProfileComplete &&
+    !user.isPhoneVerified &&
+    user.status === UserStatus.PENDING_PHONE_VERIFICATION
+  ) {
+    return (
+      <motion.div /* ... */>
+        {/* ... הצגת אייקון, כותרת, וטקסט ... */}
+        <motion.div variants={itemVariants} className="flex flex-col gap-4">
+          <Button
+            onClick={navigateToVerifyPhone} // הפונקציה הזו עושה router.push('/auth/verify-phone')
+            className="w-full py-3 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 rounded-lg shadow-lg flex items-center justify-center gap-2"
+          >
+            <Phone className="h-5 w-5 text-white" />
+            <span className="text-white">לאימות מספר הטלפון</span>
+          </Button>
+        </motion.div>
+      </motion.div>
+    );
+  }
+
+  // תרחיש 4: הכל הושלם! (או user.status === UserStatus.ACTIVE)
+  return (
+    <motion.div
+      className="space-y-6 text-center"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      {/* ... תוכן להכל הושלם ... */}
+      <motion.div
+        className="flex justify-center mb-6"
+        variants={circleVariants}
+      >
+        <div className="relative w-28 h-28 rounded-full bg-gradient-to-r from-cyan-500 to-pink-500 flex items-center justify-center">
+          <motion.div
+            className="absolute inset-1 bg-white rounded-full flex items-center justify-center"
+            animate={{ scale: [0.6, 1] }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+          >
+            <CheckCircle className="h-14 w-14 text-green-500" />
+          </motion.div>
+        </div>
+      </motion.div>
+      <motion.h2
+        className="text-2xl font-bold text-gray-800"
+        variants={itemVariants}
+      >
+        ההרשמה והפרופיל הושלמו בהצלחה!
+      </motion.h2>
+      <motion.div variants={itemVariants}>
+        <p className="text-gray-600 mb-6">
+          מעולה! כל הפרטים שלך מאומתים ומוכנים.
+          <br />
+          עכשיו תוכל להתחיל בתהליך מציאת השידוך.
+        </p>
+      </motion.div>
+      <motion.div variants={itemVariants} className="flex flex-col gap-4">
+        <Button
+          onClick={navigateToProfile}
+          className="w-full py-3 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 rounded-lg shadow-lg flex items-center justify-center gap-2 group relative overflow-hidden"
+        >
+          <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
+          <User className="h-5 w-5 text-white" />
+          <span className="text-white">לפרופיל שלי</span>
+          <ArrowLeft className="h-4 w-4 text-white opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-300" />
+        </Button>
+        <Button
+          onClick={navigateToQuestionnaire}
+          variant="outline"
+          className="w-full py-3 border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-300 flex items-center justify-center gap-2"
+        >
+          <ShieldQuestion className="h-5 w-5" />
+          <span>למילוי שאלון התאמה</span>
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <Link
+          href="/"
+          className="text-sm text-gray-500 hover:text-gray-700 hover:underline mt-2"
+        >
+          חזרה לדף הבית
+        </Link>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+export default CompleteStep;
+--- End of Content for CompleteStep.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\auth\steps\EmailVerificationCodeStep.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/app/components/auth/steps/EmailVerificationCodeStep.tsx
+"use client";
+
+import { useState, useRef, KeyboardEvent, useEffect, FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react"; // נשאר רק signIn, useSession לא בשימוש ישיר כאן
+import { useRegistration } from "../RegistrationContext";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Loader2, AlertCircle, MailCheck, ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
+import { Input } from "@/components/ui/input";
+
+const OTP_LENGTH = 6;
+
+const EmailVerificationCodeStep: React.FC = () => {
+  const {
+    data: registrationData,
+    exitEmailVerification: goBackToBasicInfo,
+    completeEmailVerification, // הוספת הפונקציה מהקונטקסט
+  } = useRegistration();
+
+  const router = useRouter();
+
+  const [otp, setOtp] = useState<string[]>(new Array(OTP_LENGTH).fill(""));
+  const [isLoading, setIsLoading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [resendMessage, setResendMessage] = useState<string | null>(null);
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  useEffect(() => {
+    if (inputRefs.current[0]) {
+      inputRefs.current[0]?.focus();
+    }
+  }, []);
+
+  const handleChange = (element: HTMLInputElement, index: number) => {
+    const value = element.value.replace(/[^0-9]/g, "");
+
+    if (value.length > 1 && index < OTP_LENGTH) {
+      const chars = value.split("");
+      let currentIdx = index;
+      const newOtp = [...otp];
+
+      for (
+        let i = 0;
+        i < chars.length && currentIdx < OTP_LENGTH;
+        i++, currentIdx++
+      ) {
+        newOtp[currentIdx] = chars[i];
+      }
+      setOtp(newOtp);
+      const nextFocusIndex = Math.min(index + chars.length, OTP_LENGTH - 1);
+      if (inputRefs.current[nextFocusIndex] && chars.length > 0) {
+        setTimeout(() => inputRefs.current[nextFocusIndex]?.focus(), 0);
+      }
+      return;
+    }
+
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+
+    if (value && index < OTP_LENGTH - 1) {
+      if (inputRefs.current[index + 1]) {
+        inputRefs.current[index + 1]?.focus();
+      }
+    }
+  };
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>, index: number) => {
+    if (e.key === "Backspace") {
+      e.preventDefault();
+      const newOtp = [...otp];
+      if (newOtp[index]) {
+        newOtp[index] = "";
+        setOtp(newOtp);
+      } else if (index > 0) {
+        if (inputRefs.current[index - 1]) {
+          inputRefs.current[index - 1]?.focus();
+        }
+      }
+    } else if (e.key === "ArrowLeft" && index > 0) {
+      e.preventDefault();
+      if (inputRefs.current[index - 1]) {
+        inputRefs.current[index - 1]?.focus();
+      }
+    } else if (e.key === "ArrowRight" && index < OTP_LENGTH - 1) {
+      e.preventDefault();
+      if (inputRefs.current[index + 1]) {
+        inputRefs.current[index + 1]?.focus();
+      }
+    }
+  };
+
+  const handleFormSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    const enteredCode = otp.join("");
+    if (enteredCode.length !== OTP_LENGTH) {
+      setApiError(`הקוד חייב להכיל ${OTP_LENGTH} ספרות.`);
+      return;
+    }
+
+    setIsLoading(true);
+    setApiError(null);
+    setResendMessage(null);
+
+    try {
+      // 1. Verify the code with the backend
+      console.log(
+        "CLIENT LOG: Submitting OTP to API. Email:",
+        registrationData.emailForVerification
+      );
+      const response = await fetch("/api/auth/verify-email-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: registrationData.emailForVerification,
+          code: enteredCode,
+        }),
+      });
+
+      const result = await response.json();
+      console.log("CLIENT LOG: API response for /verify-email-code:", result);
+
+      if (!response.ok || !result.success || !result.authToken) {
+        throw new Error(
+          result.error || "שגיאה באימות הקוד מה-API או שלא הוחזר טוקן התחברות."
+        );
+      }
+
+      const authToken = result.authToken;
+      console.log(
+        "CLIENT LOG: Email code verified with API. AuthToken received. Attempting auto-signin..."
+      );
+
+      // 2. Attempt auto-signin with the received authToken
+      const signInResult = await signIn("email-verified-autologin", {
+        authToken: authToken,
+        redirect: false, // חשוב! אנחנו נטפל בהפניה ידנית
+      });
+
+      console.log("CLIENT LOG: Auto-signin attempt result:", signInResult);
+
+      if (signInResult?.ok) {
+        // ההתחברות האוטומטית הצליחה, והסשן נוצר/עודכן
+        console.log(
+          "CLIENT LOG: Auto-signin successful. Calling completeEmailVerification and navigating to /auth/register."
+        );
+        completeEmailVerification(); // <-- קריאה לפונקציה מהקונטקסט
+        router.push("/auth/register");
+        // אין צורך לקרוא ל-setIsLoading(false) כאן כי הקומפוננטה תעשה unmount
+      } else {
+        // ההתחברות האוטומטית נכשלה
+        console.error("CLIENT LOG: Auto-signin failed.", signInResult?.error);
+        setApiError(
+          `אימות המייל הצליח, אך נתקלנו בבעיה בהתחברות האוטומטית: ${
+            signInResult?.error || "שגיאה לא ידועה"
+          }. אנא נסה להתחבר ידנית.`
+        );
+        setIsLoading(false); // אפשר למשתמש לנסות שוב או לנקוט פעולה אחרת
+      }
+    } catch (error) {
+      console.error(
+        "CLIENT LOG: Error during email verification process or auto-signin:",
+        error
+      );
+      setApiError(
+        error instanceof Error
+          ? error.message
+          : "אירעה שגיאה בלתי צפויה בתהליך האימות"
+      );
+      setOtp(new Array(OTP_LENGTH).fill(""));
+      if (inputRefs.current[0]) {
+        inputRefs.current[0]?.focus();
+      }
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendCode = async () => {
+    setIsResending(true);
+    setApiError(null);
+    setResendMessage(null);
+
+    try {
+      console.log(
+        "CLIENT LOG: Requesting to resend verification code for email:",
+        registrationData.emailForVerification
+      );
+      const response = await fetch("/api/auth/resend-verification-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: registrationData.emailForVerification }),
+      });
+      const result = await response.json();
+      console.log(
+        "CLIENT LOG: API response for /resend-verification-code:",
+        result
+      );
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || "שגיאה בשליחה חוזרת של הקוד");
+      }
+      setResendMessage(result.message || "קוד חדש נשלח בהצלחה.");
+      setOtp(new Array(OTP_LENGTH).fill(""));
+      if (inputRefs.current[0]) {
+        inputRefs.current[0]?.focus();
+      }
+    } catch (error) {
+      console.error("CLIENT LOG: Error during resend code:", error);
+      setApiError(
+        error instanceof Error ? error.message : "אירעה שגיאה בשליחה חוזרת"
+      );
+    } finally {
+      setIsResending(false);
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
+    const pasteData = e.clipboardData
+      .getData("text")
+      .replace(/[^0-9]/g, "")
+      .slice(0, OTP_LENGTH);
+
+    if (pasteData.length > 0) {
+      e.preventDefault();
+      const newOtp = new Array(OTP_LENGTH).fill("");
+      for (let i = 0; i < pasteData.length; i++) {
+        newOtp[i] = pasteData[i];
+      }
+      setOtp(newOtp);
+      const focusIndex = Math.min(pasteData.length, OTP_LENGTH - 1);
+      if (inputRefs.current[focusIndex]) {
+        setTimeout(() => inputRefs.current[focusIndex]?.focus(), 0);
+      }
+    }
+  };
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
+  };
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+  };
+
+  return (
+    <motion.div
+      className="space-y-6 text-center p-4 sm:p-6"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div variants={itemVariants}>
+        <MailCheck className="h-12 w-12 text-cyan-500 mx-auto mb-3" />
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
+          אימות כתובת מייל
+        </h2>
+        <p className="text-gray-600 mt-2 text-sm sm:text-base">
+          שלחנו קוד אימות בן {OTP_LENGTH} ספרות לכתובת{" "}
+          <strong className="font-semibold text-gray-700">
+            {registrationData.emailForVerification || "האימייל שלך"}
+          </strong>
+          .
+          <br />
+          אנא הזן את הקוד שקיבלת.
+        </p>
+      </motion.div>
+
+      {apiError && (
+        <motion.div variants={itemVariants}>
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>שגיאה</AlertTitle>
+            <AlertDescription>{apiError}</AlertDescription>
+          </Alert>
+        </motion.div>
+      )}
+      {resendMessage && !apiError && (
+        <motion.div variants={itemVariants}>
+          <Alert
+            variant="default"
+            className="bg-green-50 border-green-300 text-green-700"
+          >
+            <MailCheck className="h-4 w-4 text-green-600" />
+            <AlertTitle>הודעה</AlertTitle>
+            <AlertDescription>{resendMessage}</AlertDescription>
+          </Alert>
+        </motion.div>
+      )}
+
+      <form onSubmit={handleFormSubmit}>
+        <motion.div
+          variants={itemVariants}
+          className="flex justify-center space-x-2 sm:space-x-3 rtl:space-x-reverse"
+          dir="ltr"
+          onPaste={handlePaste}
+        >
+          {otp.map((digit, index) => (
+            <Input
+              key={index}
+              type="text"
+              maxLength={1}
+              value={digit}
+              onChange={(e) =>
+                handleChange(e.target as HTMLInputElement, index)
+              }
+              onKeyDown={(e) =>
+                handleKeyDown(e as KeyboardEvent<HTMLInputElement>, index)
+              }
+              ref={(el) => {
+                inputRefs.current[index] = el;
+              }}
+              className="w-10 h-12 sm:w-12 sm:h-14 text-center text-lg sm:text-xl font-semibold border-2 border-gray-300 rounded-md focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none transition-colors disabled:bg-gray-100 appearance-none"
+              disabled={isLoading || isResending}
+              aria-label={`OTP digit ${index + 1}`}
+              autoComplete="one-time-code"
+              inputMode="numeric"
+            />
+          ))}
+        </motion.div>
+
+        <motion.div variants={itemVariants} className="space-y-4 mt-6">
+          <Button
+            type="submit"
+            disabled={
+              isLoading || isResending || otp.join("").length !== OTP_LENGTH
+            }
+            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="h-5 w-5 animate-spin" />
+                <span>מאמת ומתחבר...</span>
+              </>
+            ) : (
+              "אמת קוד והמשך להשלמת פרופיל"
+            )}
+          </Button>
+        </motion.div>
+      </form>
+
+      <motion.div
+        variants={itemVariants}
+        className="text-sm text-gray-500 mt-2"
+      >
+        לא קיבלת קוד?{" "}
+        <Button
+          type="button"
+          variant="link"
+          onClick={handleResendCode}
+          disabled={isLoading || isResending}
+          className="p-0 h-auto text-cyan-600 hover:text-cyan-700 disabled:text-gray-400"
+        >
+          {isResending ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin ml-1 rtl:mr-1 rtl:ml-0" />
+              <span>שולח קוד חדש...</span>
+            </>
+          ) : (
+            "שלח קוד חדש"
+          )}
+        </Button>
+      </motion.div>
+
+      <motion.div variants={itemVariants} className="mt-6">
+        <Button
+          type="button"
+          onClick={goBackToBasicInfo}
+          variant="outline"
+          className="flex items-center gap-2 border-gray-300 text-sm"
+          disabled={isLoading || isResending}
+        >
+          <ArrowRight className="h-4 w-4" /> חזור למילוי פרטים
+        </Button>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+export default EmailVerificationCodeStep;
+--- End of Content for EmailVerificationCodeStep.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\auth\steps\OptionalInfoStep.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/app/components/auth/steps/OptionalInfoStep.tsx
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useRegistration } from "../RegistrationContext";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Input } from "@/components/ui/input";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Ruler,
+  Briefcase,
+  GraduationCap,
+  Loader2,
+  AlertCircle,
+} from "lucide-react";
+import { motion } from "framer-motion";
+
+// Define the possible states during form submission
+type SubmissionStatus = "idle" | "savingProfile" | "sendingCode" | "error"; // שינוי saving ל-savingProfile
+
+const OptionalInfoStep: React.FC = () => {
+  const { data, updateField, prevStep } = useRegistration();
+  const router = useRouter();
+
+  const [submissionStatus, setSubmissionStatus] =
+    useState<SubmissionStatus>("idle");
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async () => {
+    setSubmissionStatus("savingProfile"); // Start saving profile data
+    setError(null);
+
+    try {
+      // --- Step 1: Save Profile Data ---
+   // Inside OptionalInfoStep.tsx, in handleSubmit:
+const profileData = {
+  firstName: data.firstName, // Add this
+  lastName: data.lastName,   // Add this
+  phone: data.phone,
+  gender: data.gender,
+  birthDate: data.birthDate,
+  maritalStatus: data.maritalStatus,
+  height: data.height,
+  occupation: data.occupation,
+  education: data.education,
+};
+// ... rest of the fetch call to /api/auth/complete-profile
+
+      console.log("OptionalInfoStep: Submitting profile data:", profileData);
+
+      const profileResponse = await fetch("/api/auth/complete-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(profileData),
+        credentials: "include", // <-- *** הוספנו את זה ***
+      });
+
+      if (!profileResponse.ok) {
+        let errorMessage = `שגיאה ${profileResponse.status}`;
+        try {
+          const errorData = await profileResponse.json();
+          errorMessage =
+            errorData.error ||
+            `שגיאה ${profileResponse.status}: נתונים לא תקינים או בעיית שרת.`;
+          console.error(
+            "OptionalInfoStep: API Error Details (complete-profile):",
+            errorData
+          );
+        } catch (parseError) {
+          errorMessage = `שגיאה ${profileResponse.status}: ${profileResponse.statusText}`;
+          console.error(
+            "OptionalInfoStep: Failed to parse error response (complete-profile):",
+            parseError
+          );
+        }
+        throw new Error(errorMessage); // זרוק שגיאה כדי להפסיק את התהליך
+      }
+
+      const profileResult = await profileResponse.json();
+      console.log(
+        "OptionalInfoStep: Profile data saved successfully:",
+        profileResult
+      );
+
+      // --- Step 2: Send Phone Verification Code ---
+      setSubmissionStatus("sendingCode");
+      console.log(
+        "OptionalInfoStep: Attempting to send phone verification code..."
+      );
+
+      const sendCodeResponse = await fetch("/api/auth/send-phone-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" }, // Content-Type עדיין חשוב, גם אם אין body
+        // body: JSON.stringify({}), // שלח אובייקט ריק אם ה-API דורש body כלשהו
+        credentials: "include", // <-- *** הוספנו את זה ***
+      });
+
+      if (!sendCodeResponse.ok) {
+        let errorMessage = `שגיאה ${sendCodeResponse.status}`;
+        try {
+          const errorData = await sendCodeResponse.json();
+          errorMessage =
+            errorData.error ||
+            `שגיאה ${sendCodeResponse.status}: לא ניתן היה לשלוח קוד אימות.`;
+          console.error(
+            "OptionalInfoStep: API Error Details (send-phone-code):",
+            errorData
+          );
+        } catch (parseError) {
+          errorMessage = `שגיאה ${sendCodeResponse.status}: ${sendCodeResponse.statusText}`;
+          console.error(
+            "OptionalInfoStep: Failed to parse error response (send-phone-code):",
+            parseError
+          );
+        }
+        throw new Error(errorMessage); // זרוק שגיאה
+      }
+
+      const sendCodeResult = await sendCodeResponse.json();
+      console.log(
+        "OptionalInfoStep: Verification code sent successfully:",
+        sendCodeResult
+      );
+
+      // --- Step 3: Redirect to Verification Page ---
+      console.log("OptionalInfoStep: Redirecting to /auth/verify-phone...");
+      router.push("/auth/verify-phone"); // נווט לדף אימות הטלפון
+    } catch (err) {
+      console.error(
+        "OptionalInfoStep: Error during profile completion or OTP sending:",
+        err
+      );
+      setError(err instanceof Error ? err.message : "אירעה שגיאה לא צפויה");
+      setSubmissionStatus("error"); // עדכן סטטוס לשגיאה
+    }
+    // אין צורך ב-finally להחזרת סטטוס ל-idle אם יש ניווט,
+    // אבל אם נשארים בדף עקב שגיאה, הכפתור צריך להיות פעיל שוב.
+    // הסטטוס 'error' יאפשר להציג את השגיאה, אבל לא ימנע לחיצה חוזרת אם צריך.
+  };
+
+  // --- Animation Variants ---
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5 },
+    },
+  };
+  // --- End Animation Variants ---
+
+  // --- Helper to get button text based on status ---
+  const getButtonText = (): string => {
+    switch (submissionStatus) {
+      case "savingProfile":
+        return "שומר פרטים...";
+      case "sendingCode":
+        return "שולח קוד אימות...";
+      case "error":
+        // במקרה של שגיאה, חזור לטקסט המקורי כדי לאפשר ניסיון חוזר
+        return data.isCompletingProfile ? "סיום והמשך לאימות" : "סיום והרשמה";
+      case "idle":
+      default:
+        return data.isCompletingProfile ? "סיום והמשך לאימות" : "סיום והרשמה"; // טקסט דינמי בהתאם למצב
+    }
+  };
+  // --- End Helper ---
+
+  const isSubmitting =
+    submissionStatus === "savingProfile" || submissionStatus === "sendingCode";
+
+  // --- Render Component ---
+  return (
+    <motion.div
+      className="space-y-5"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      {/* Title and Description */}
+      <motion.h2
+        className="text-xl font-bold text-gray-800 mb-1"
+        variants={itemVariants}
+      >
+        מידע נוסף (אופציונלי)
+      </motion.h2>
+      <motion.p className="text-gray-600 text-sm mb-4" variants={itemVariants}>
+        מידע זה יעזור לנו להתאים לך שידוכים מדויקים יותר. כל השדות הבאים הם
+        אופציונליים אך מומלצים.
+      </motion.p>
+
+      {/* Display Error Alert if exists */}
+      {error &&
+        submissionStatus === "error" && ( // הצג שגיאה רק אם הסטטוס הוא error
+          <motion.div variants={itemVariants}>
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>שגיאה</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          </motion.div>
+        )}
+
+      {/* Form Fields Container */}
+      <motion.div variants={itemVariants} className="space-y-4">
+        {/* Height Field */}
+        <div className="space-y-1">
+          <label
+            htmlFor="heightOptional"
+            className="block text-sm font-medium text-gray-700 flex items-center gap-1"
+          >
+            <Ruler className="h-4 w-4 text-gray-400" />
+            גובה (בסמ)
+          </label>
+          <Input
+            type="number"
+            id="heightOptional"
+            min="120"
+            max="220"
+            value={data.height ?? ""}
+            onChange={(e) =>
+              updateField(
+                "height",
+                e.target.value
+                  ? parseInt(e.target.value, 10) || undefined
+                  : undefined
+              )
+            }
+            placeholder="לדוגמה: 175"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none disabled:bg-gray-100"
+            disabled={isSubmitting} // Disable during submission
+          />
+        </div>
+
+        {/* Occupation Field */}
+        <div className="space-y-1">
+          <label
+            htmlFor="occupationOptional"
+            className="block text-sm font-medium text-gray-700 flex items-center gap-1"
+          >
+            <Briefcase className="h-4 w-4 text-gray-400" />
+            עיסוק
+          </label>
+          <Input
+            type="text"
+            id="occupationOptional"
+            value={data.occupation ?? ""}
+            onChange={(e) => updateField("occupation", e.target.value)}
+            placeholder="לדוגמה: מהנדס תוכנה, מורה, סטודנט/ית"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none disabled:bg-gray-100"
+            disabled={isSubmitting} // Disable during submission
+          />
+        </div>
+
+        {/* Education Field */}
+        <div className="space-y-1">
+          <label
+            htmlFor="educationOptional"
+            className="block text-sm font-medium text-gray-700 flex items-center gap-1"
+          >
+            <GraduationCap className="h-4 w-4 text-gray-400" />
+            השכלה
+          </label>
+          <Input
+            type="text"
+            id="educationOptional"
+            value={data.education ?? ""}
+            onChange={(e) => updateField("education", e.target.value)}
+            placeholder="לדוגמה: תואר ראשון במדעי המחשב"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none disabled:bg-gray-100"
+            disabled={isSubmitting} // Disable during submission
+          />
+        </div>
+      </motion.div>
+      {/* End Form Fields Container */}
+
+      {/* Navigation Buttons */}
+      <motion.div
+        variants={itemVariants}
+        className="flex justify-between pt-4 mt-6"
+      >
+        {/* Back Button */}
+        <Button
+          type="button"
+          onClick={prevStep}
+          variant="outline"
+          className="flex items-center gap-2 border-gray-300"
+          disabled={isSubmitting} // Disable button while submitting
+        >
+          <ArrowRight className="h-4 w-4" /> {/* RTL: Right arrow for back */}
+          חזרה
+        </Button>
+
+        {/* Submit/Complete Button */}
+        <Button
+          type="button"
+          onClick={handleSubmit}
+          disabled={isSubmitting} // Disable button while submitting
+          className="bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 flex items-center gap-2 min-w-[180px] justify-center px-4 py-2 disabled:opacity-70"
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              <span>{getButtonText()}</span> {/* טקסט דינמי */}
+            </>
+          ) : (
+            <>
+              <span>{getButtonText()}</span> {/* טקסט דינמי */}
+              <ArrowLeft className="h-4 w-4 ml-2" />{" "}
+              {/* RTL: Left arrow for continue */}
+            </>
+          )}
+        </Button>
+      </motion.div>
+      {/* End Navigation Buttons */}
+    </motion.div>
+  );
+};
+
+export default OptionalInfoStep;
+--- End of Content for OptionalInfoStep.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\auth\steps\PersonalDetailsStep.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/app/components/auth/steps/PersonalDetailsStep.tsx
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRegistration } from "../RegistrationContext";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input"; // Shadcn Input
+import {
+  ArrowLeft,
+  ArrowRight,
+  Phone,
+  Calendar,
+  Users, // Icon for Marital Status, User is also good
+  Edit3, // Icon for name fields
+} from "lucide-react";
+import { Gender } from "@prisma/client";
+import { motion } from "framer-motion";
+
+const PersonalDetailsStep: React.FC = () => {
+  const { data, updateField, nextStep, prevStep } = useRegistration();
+
+  // State for field-specific errors
+  const [firstNameError, setFirstNameError] = useState("");
+  const [lastNameError, setLastNameError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
+  const [ageError, setAgeError] = useState("");
+  // General form validity
+  const [isFormValid, setIsFormValid] = useState(false);
+
+  // --- Validation Functions ---
+  const validateFirstName = (name: string): boolean => {
+    const isValid = name.trim() !== "";
+    if (!isValid && name.trim() === "") {
+      setFirstNameError("שם פרטי הוא שדה חובה");
+    } else if (!isValid) {
+      setFirstNameError("שם פרטי לא תקין"); // Generic, can be more specific
+    } else {
+      setFirstNameError("");
+    }
+    return isValid;
+  };
+
+  const validateLastName = (name: string): boolean => {
+    const isValid = name.trim() !== "";
+    if (!isValid && name.trim() === "") {
+      setLastNameError("שם משפחה הוא שדה חובה");
+    } else if (!isValid) {
+      setLastNameError("שם משפחה לא תקין");
+    } else {
+      setLastNameError("");
+    }
+    return isValid;
+  };
+
+  const validatePhone = (phone: string): boolean => {
+    const phoneRegex = /^0\d{9}$/; // Starts with 0, exactly 10 digits
+    const isValid = phoneRegex.test(phone);
+    if (phone.trim() !== "" && !isValid) {
+      setPhoneError("מספר טלפון לא תקין (צריך להתחיל ב-0 ולהכיל 10 ספרות)");
+    } else if (phone.trim() === "") {
+      setPhoneError("מספר טלפון הוא שדה חובה");
+    } else {
+      setPhoneError("");
+    }
+    return isValid;
+  };
+
+  const validateAge = (birthDate: string): boolean => {
+    if (!birthDate) {
+      setAgeError("תאריך לידה הוא שדה חובה");
+      return false;
+    }
+    const birthDateObj = new Date(birthDate);
+    const today = new Date();
+    let age = today.getFullYear() - birthDateObj.getFullYear();
+    const monthDifference = today.getMonth() - birthDateObj.getMonth();
+    if (
+      monthDifference < 0 ||
+      (monthDifference === 0 && today.getDate() < birthDateObj.getDate())
+    ) {
+      age--;
+    }
+
+    if (age < 18) {
+      setAgeError("גיל מינימלי להרשמה הוא 18");
+      return false;
+    } else if (age > 120) {
+      setAgeError("נראה שתאריך הלידה שהזנת אינו תקין");
+      return false;
+    } else {
+      setAgeError("");
+      return true;
+    }
+  };
+
+  // --- Form Validation Effect ---
+  useEffect(() => {
+    // Trigger validation on initial load or when data changes, to correctly set isFormValid
+    const isFirstNameCurrentlyValid =
+      data.firstName.trim() !== "" && !firstNameError;
+    const isLastNameCurrentlyValid =
+      data.lastName.trim() !== "" && !lastNameError;
+    const isPhoneCurrentlyValid =
+      data.phone.trim() !== "" && /^0\d{9}$/.test(data.phone) && !phoneError;
+    const isBirthDateCurrentlyValid = data.birthDate !== "" && !ageError; // Age validation updates ageError
+    const isGenderValid = data.gender !== "";
+    const isMaritalStatusValid = data.maritalStatus !== "";
+
+    setIsFormValid(
+      isFirstNameCurrentlyValid &&
+        isLastNameCurrentlyValid &&
+        isPhoneCurrentlyValid &&
+        isBirthDateCurrentlyValid &&
+        isGenderValid &&
+        isMaritalStatusValid
+    );
+  }, [
+    data.firstName,
+    data.lastName,
+    data.phone,
+    data.birthDate,
+    data.gender,
+    data.maritalStatus,
+    firstNameError,
+    lastNameError,
+    phoneError,
+    ageError,
+  ]);
+
+  const handleContinue = () => {
+    // Run all validations before proceeding
+    const fnValid = validateFirstName(data.firstName);
+    const lnValid = validateLastName(data.lastName);
+    const pValid = validatePhone(data.phone);
+    const ageValid = validateAge(data.birthDate);
+    const genderValid = data.gender !== "";
+    const maritalValid = data.maritalStatus !== "";
+
+    if (
+      fnValid &&
+      lnValid &&
+      pValid &&
+      ageValid &&
+      genderValid &&
+      maritalValid
+    ) {
+      nextStep();
+    } else {
+      // Optionally, scroll to the first error or set a general form error message
+      console.log("Form is not valid. Please check the fields.");
+    }
+  };
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.07 } },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 15 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
+  };
+
+  return (
+    <motion.div
+      className="space-y-5"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.h2
+        className="text-xl font-semibold text-gray-800 mb-4"
+        variants={itemVariants}
+      >
+        פרטים אישיים חיוניים
+      </motion.h2>
+      <motion.p className="text-sm text-gray-500 mb-5" variants={itemVariants}>
+        אנו צריכים פרטים אלו כדי להמשיך בתהליך ההרשמה שלך.
+      </motion.p>
+
+      <motion.div variants={itemVariants} className="space-y-4">
+        {/* First Name Field */}
+        <div className="space-y-1">
+          <label
+            htmlFor="firstNamePersonal"
+            className="block text-sm font-medium text-gray-700"
+          >
+            שם פרטי <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <Edit3 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <Input
+              type="text"
+              id="firstNamePersonal"
+              value={data.firstName}
+              onChange={(e) => updateField("firstName", e.target.value)}
+              onBlur={() => validateFirstName(data.firstName)}
+              placeholder="לדוגמה: ישראל"
+              required
+              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors
+                ${
+                  firstNameError
+                    ? "border-red-400 focus:ring-red-200"
+                    : "border-gray-300 focus:ring-cyan-200 focus:border-cyan-500"
+                }`}
+            />
+          </div>
+          {firstNameError && (
+            <p className="text-red-500 text-xs mt-1">{firstNameError}</p>
+          )}
+        </div>
+
+        {/* Last Name Field */}
+        <div className="space-y-1">
+          <label
+            htmlFor="lastNamePersonal"
+            className="block text-sm font-medium text-gray-700"
+          >
+            שם משפחה <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <Edit3 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <Input
+              type="text"
+              id="lastNamePersonal"
+              value={data.lastName}
+              onChange={(e) => updateField("lastName", e.target.value)}
+              onBlur={() => validateLastName(data.lastName)}
+              placeholder="לדוגמה: ישראלי"
+              required
+              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors
+                ${
+                  lastNameError
+                    ? "border-red-400 focus:ring-red-200"
+                    : "border-gray-300 focus:ring-cyan-200 focus:border-cyan-500"
+                }`}
+            />
+          </div>
+          {lastNameError && (
+            <p className="text-red-500 text-xs mt-1">{lastNameError}</p>
+          )}
+        </div>
+
+        {/* Phone Field */}
+        <div className="space-y-1">
+          <label
+            htmlFor="phonePersonal"
+            className="block text-sm font-medium text-gray-700"
+          >
+            טלפון נייד <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <Phone className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <Input
+              type="tel"
+              id="phonePersonal"
+              value={data.phone}
+              onChange={(e) => updateField("phone", e.target.value)}
+              onBlur={() => validatePhone(data.phone)}
+              placeholder="0501234567"
+              required
+              maxLength={10}
+              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors
+                ${
+                  phoneError
+                    ? "border-red-400 focus:ring-red-200"
+                    : "border-gray-300 focus:ring-cyan-200 focus:border-cyan-500"
+                }`}
+            />
+          </div>
+          {phoneError && (
+            <p className="text-red-500 text-xs mt-1">{phoneError}</p>
+          )}
+        </div>
+
+        {/* Gender Field */}
+        <div className="space-y-1">
+          <label className="block text-sm font-medium text-gray-700">
+            מגדר <span className="text-red-500">*</span>
+          </label>
+          <div className="grid grid-cols-2 gap-3 mt-1">
+            {(
+              [
+                { value: Gender.MALE, label: "זכר", icon: "👨" },
+                { value: Gender.FEMALE, label: "נקבה", icon: "👩" },
+              ] as const
+            ).map((genderOption) => (
+              <button
+                key={genderOption.value}
+                type="button"
+                onClick={() => updateField("gender", genderOption.value)}
+                className={`flex items-center justify-center gap-2 py-3 rounded-lg border-2 transition-all duration-200 ease-in-out transform hover:scale-105
+                  ${
+                    data.gender === genderOption.value
+                      ? genderOption.value === Gender.MALE
+                        ? "border-cyan-500 bg-cyan-50 text-cyan-700 shadow-md"
+                        : "border-pink-500 bg-pink-50 text-pink-700 shadow-md"
+                      : "border-gray-200 hover:border-gray-300 text-gray-700 bg-white"
+                  }`}
+              >
+                <span className="text-xl">{genderOption.icon}</span>
+                <span className="font-medium">{genderOption.label}</span>
+              </button>
+            ))}
+          </div>
+          {data.gender === "" && ( // Simple check if gender not selected, for general form guidance
+            <p className="text-red-500 text-xs mt-1">יש לבחור מגדר</p>
+          )}
+        </div>
+
+        {/* Birth Date Field */}
+        <div className="space-y-1">
+          <label
+            htmlFor="birthDatePersonal"
+            className="block text-sm font-medium text-gray-700"
+          >
+            תאריך לידה <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <Input
+              type="date"
+              id="birthDatePersonal"
+              value={data.birthDate}
+              onChange={(e) => {
+                updateField("birthDate", e.target.value);
+                validateAge(e.target.value); // Validate on change for immediate feedback
+              }}
+              onBlur={() => validateAge(data.birthDate)} // Also validate on blur
+              max={
+                new Date(new Date().setFullYear(new Date().getFullYear() - 18))
+                  .toISOString()
+                  .split("T")[0]
+              } // Minimum age 18
+              required
+              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors
+                ${
+                  ageError
+                    ? "border-red-400 focus:ring-red-200"
+                    : "border-gray-300 focus:ring-cyan-200 focus:border-cyan-500"
+                }`}
+            />
+          </div>
+          {ageError && <p className="text-red-500 text-xs mt-1">{ageError}</p>}
+        </div>
+
+        {/* Marital Status Field */}
+        <div className="space-y-1">
+          <label
+            htmlFor="maritalStatusPersonal"
+            className="block text-sm font-medium text-gray-700"
+          >
+            מצב משפחתי <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <Users className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <select
+              id="maritalStatusPersonal"
+              value={data.maritalStatus}
+              onChange={(e) => updateField("maritalStatus", e.target.value)}
+              required
+              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none appearance-none bg-white transition-colors
+                ${
+                  data.maritalStatus === "" && false // Could add specific error state if needed
+                    ? "border-red-400 focus:ring-red-200"
+                    : "border-gray-300 focus:ring-cyan-200 focus:border-cyan-500"
+                }`}
+            >
+              <option value="" disabled>
+                בחר/י מצב משפחתי...
+              </option>
+              <option value="רווק/ה">רווק/ה</option>
+              <option value="גרוש/ה">גרוש/ה</option>
+              <option value="אלמן/ה">אלמן/ה</option>
+              {/* Consider adding 'לא רלוונטי' or other options if applicable */}
+            </select>
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+              <svg
+                className="h-5 w-5 text-gray-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </div>
+          </div>
+          {data.maritalStatus === "" && ( // Simple check if marital status not selected
+            <p className="text-red-500 text-xs mt-1">יש לבחור מצב משפחתי</p>
+          )}
+        </div>
+      </motion.div>
+
+      <motion.div
+        variants={itemVariants}
+        className="flex justify-between items-center pt-5 mt-6 border-t border-gray-200"
+      >
+        <Button
+          onClick={prevStep}
+          variant="outline"
+          className="flex items-center gap-2 border-gray-300 text-gray-700 hover:bg-gray-50"
+          disabled={data.step === 0 && !data.isCompletingProfile} // Disable if it's the very first step (WelcomeStep leads here for completion)
+        >
+          <ArrowRight className="h-4 w-4" />
+          חזרה
+        </Button>
+
+        <Button
+          onClick={handleContinue}
+          disabled={!isFormValid}
+          className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-white transition-all duration-300
+            ${
+              isFormValid
+                ? "bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 shadow-lg hover:shadow-xl transform hover:scale-105"
+                : "bg-gray-300 cursor-not-allowed"
+            }`}
+        >
+          המשך לשלב הבא
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+export default PersonalDetailsStep;
+--- End of Content for PersonalDetailsStep.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\eytan\shidduch-system\src\app\components\auth\steps\WelcomeStep.tsx
+--------------------------------------------------------------------------------
+Content:
+"use client";
+
+import { useState } from "react";
+import { useRegistration } from "../RegistrationContext";
+import { signIn } from "next-auth/react";
+import { Button } from "@/components/ui/button";
+import { Heart, ArrowLeft, Mail } from "lucide-react";
+import Link from "next/link";
+
+const WelcomeStep: React.FC = () => {
+  const { nextStep,  } = useRegistration();
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setIsGoogleLoading(true);
+
+      // Store this information for potential fallback
+      localStorage.setItem("registration_started", "true");
+
+      // Use NextAuth to handle Google sign-in
+      // The redirect/callback will be handled by NextAuth
+      await signIn("google", { callbackUrl: "/auth/google-callback" });
+    } catch (error) {
+      console.error("Google sign-in error:", error);
+      setIsGoogleLoading(false);
+    }
+  };
+
+  const handleEmailSignUp = () => {
+    nextStep();
+  };
+
+  return (
+    <div className="space-y-6 text-center">
+      {/* Welcome animation */}
+      <div className="flex justify-center mb-4">
+        <div className="relative">
+          <div className="w-20 h-20 rounded-full bg-pink-100 flex items-center justify-center animate-pulse">
+            <Heart className="h-10 w-10 text-pink-500 fill-pink-500" />
+          </div>
+          <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-cyan-500 flex items-center justify-center text-white font-bold animate-bounce">
+            <span className="text-sm">👋</span>
+          </div>
+        </div>
+      </div>
+
+      <h2 className="text-2xl font-bold text-gray-800">ברוכים הבאים!</h2>
+
+      <p className="text-gray-600 max-w-sm mx-auto">
+        אנחנו שמחים שבחרת להצטרף אלינו. בואו נתחיל בתהליך הרשמה קצר ופשוט שיאפשר
+        לנו להכיר אותך טוב יותר.
+      </p>
+
+      {/* Buttons */}
+      <div className="space-y-4 mt-8">
+        <Button
+          onClick={handleGoogleSignIn}
+          disabled={isGoogleLoading}
+          variant="outline"
+          size="lg"
+          className="w-full relative border-2 border-gray-300 hover:border-gray-400 py-6 rounded-xl flex items-center justify-center gap-3 group"
+        >
+          {isGoogleLoading ? (
+            <div className="animate-spin h-5 w-5 border-2 border-gray-500 rounded-full border-t-transparent" />
+          ) : (
+            <>
+              <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  fill="#4285F4"
+                />
+                <path
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  fill="#34A853"
+                />
+                <path
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                  fill="#FBBC05"
+                />
+                <path
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                  fill="#EA4335"
+                />
+              </svg>
+              <span className="text-gray-700 font-medium">המשך עם Google</span>
+            </>
+          )}
+        </Button>
+
+        <Button
+          onClick={handleEmailSignUp}
+          size="lg"
+          className="w-full py-6 rounded-xl bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 shadow-lg flex items-center justify-center gap-3 group relative overflow-hidden"
+        >
+          {/* Button background shimmer effect */}
+          <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
+          <Mail className="h-5 w-5 text-white" />
+          <span className="text-white font-medium">המשך עם אימייל</span>
+          <ArrowLeft className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+        </Button>
+      </div>
+
+      {/* Already have an account link */}
+      <div className="mt-8 pt-4 border-t border-gray-200">
+        <p className="text-gray-600 text-sm">
+          כבר יש לך חשבון?{" "}
+          <Link
+            href="/auth/signin"
+            className="text-cyan-600 font-medium hover:text-cyan-700 hover:underline"
+          >
+            התחברות
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default WelcomeStep;
+--- End of Content for WelcomeStep.tsx ---
+

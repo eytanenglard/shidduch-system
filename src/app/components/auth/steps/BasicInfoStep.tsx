@@ -15,6 +15,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import ConsentCheckbox from "../ConsentCheckbox"; // <-- ייבוא הקומפוננטה החדשה
 
 const isValidEmail = (email: string): boolean => {
   const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
@@ -36,6 +37,10 @@ const BasicInfoStep: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
+  // --- הוספת State עבור תיבת ההסכמה ---
+  const [consentChecked, setConsentChecked] = useState(false);
+  const [consentError, setConsentError] = useState<string | null>(null);
+
   useEffect(() => {
     const isEmailValid = isValidEmail(data.email);
     const isPasswordValid = isValidPassword(data.password);
@@ -51,14 +56,26 @@ const BasicInfoStep: React.FC = () => {
         : ""
     );
 
+    // --- עדכון תנאי תקינות הטופס ---
     setIsFormValid(
-      isEmailValid && isPasswordValid && isNameValid && !isLoading
+      isEmailValid &&
+        isPasswordValid &&
+        isNameValid &&
+        consentChecked && // <-- הוספת בדיקת הסכמה
+        !isLoading
     );
-  }, [data.email, data.password, data.firstName, data.lastName, isLoading]);
+  }, [
+    data.email,
+    data.password,
+    data.firstName,
+    data.lastName,
+    consentChecked, // <-- הוספת תלות
+    isLoading,
+  ]);
 
   const handleEmailBlur = () => {
     if (data.email.trim() === "") {
-      setEmailError(""); // No error if empty, required handled by form submit
+      setEmailError("");
     } else if (!isValidEmail(data.email)) {
       setEmailError("כתובת אימייל לא תקינה");
     } else {
@@ -67,7 +84,7 @@ const BasicInfoStep: React.FC = () => {
   };
   const handlePasswordBlur = () => {
     if (data.password.trim() === "") {
-      setPasswordError(""); // No error if empty
+      setPasswordError("");
     } else if (!isValidPassword(data.password)) {
       setPasswordError(
         "הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר"
@@ -78,7 +95,13 @@ const BasicInfoStep: React.FC = () => {
   };
 
   const handleRegisterSubmit = async () => {
-    // Final validation check before submission
+    setConsentError(null); // איפוס שגיאת הסכמה
+    if (!consentChecked) {
+      setConsentError("חובה לאשר את תנאי השימוש ומדיניות הפרטיות.");
+      setIsFormValid(false); // ודא שהטופס לא יישלח
+      return;
+    }
+
     const isEmailValid = isValidEmail(data.email);
     const isPasswordValid = isValidPassword(data.password);
     const isFirstNameValid = data.firstName.trim().length > 0;
@@ -91,18 +114,14 @@ const BasicInfoStep: React.FC = () => {
       !isLastNameValid
     ) {
       setApiError("אנא מלא את כל השדות הנדרשים בצורה תקינה.");
-      // Trigger blur to show individual field errors if not already shown
       if (!isEmailValid && data.email.trim() !== "") handleEmailBlur();
       else if (data.email.trim() === "") setEmailError("שדה אימייל הוא חובה");
       if (!isPasswordValid && data.password.trim() !== "") handlePasswordBlur();
       else if (data.password.trim() === "")
         setPasswordError("שדה סיסמה הוא חובה");
-      if (!isFirstNameValid) setApiError((prev) => prev + " שם פרטי חסר."); // Example, better to highlight field
-      if (!isLastNameValid) setApiError((prev) => prev + " שם משפחה חסר.");
       return;
     }
     if (emailError || passwordError) {
-      // If there are specific field errors, don't submit
       setApiError("אנא תקן את השגיאות המסומנות.");
       return;
     }
@@ -111,6 +130,7 @@ const BasicInfoStep: React.FC = () => {
     setApiError(null);
 
     try {
+      // כאן, ה-API /api/auth/register אמור לשמור את termsAndPrivacyAcceptedAt: new Date()
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -119,6 +139,8 @@ const BasicInfoStep: React.FC = () => {
           password: data.password,
           firstName: data.firstName,
           lastName: data.lastName,
+          // אין צורך לשלוח את סטטוס ההסכמה, עצם השליחה מפה (לאחר שהכפתור הופעל) מעידה על הסכמה.
+          // ה-API בצד השרת יקבע את חתימת הזמן.
         }),
       });
 
@@ -328,9 +350,21 @@ const BasicInfoStep: React.FC = () => {
         </motion.div>
       </motion.div>
 
+      {/* --- הוספת תיבת ההסכמה --- */}
+      <motion.div variants={itemVariants} className="mt-6">
+        <ConsentCheckbox
+          checked={consentChecked}
+          onChange={(isChecked) => {
+            setConsentChecked(isChecked);
+            if (isChecked) setConsentError(null);
+          }}
+          error={consentError}
+        />
+      </motion.div>
+
       <motion.div
         variants={itemVariants}
-        className="flex justify-between pt-4 mt-4"
+        className="flex justify-between pt-4 mt-6 border-t border-gray-200"
       >
         <Button
           type="button"
@@ -345,16 +379,17 @@ const BasicInfoStep: React.FC = () => {
         <Button
           type="button"
           onClick={handleRegisterSubmit}
-          disabled={!isFormValid || isLoading} // isFormValid כבר כולל את isLoading
-          className={`flex items-center gap-2 min-w-[200px] justify-center ${
-            isFormValid && !isLoading // בדוק שוב את התנאי כאן, כי isFormValid כבר תלוי ב-isLoading
-              ? "bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600"
-              : "bg-gray-300 cursor-not-allowed"
-          }`}
+          disabled={!isFormValid || isLoading}
+          className={`flex items-center gap-2 min-w-[200px] justify-center text-white font-medium px-4 py-2.5 rounded-lg transition-opacity
+            ${
+              isFormValid && !isLoading
+                ? "bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 shadow-md hover:shadow-lg"
+                : "bg-gray-300 cursor-not-allowed"
+            }`}
         >
           {isLoading ? (
             <>
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              <Loader2 className="h-5 w-5 animate-spin mr-2" />
               <span>יוצר חשבון...</span>
             </>
           ) : (

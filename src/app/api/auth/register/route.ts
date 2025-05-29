@@ -192,6 +192,7 @@ export async function POST(req: Request) {
             isProfileComplete: false, 
             isPhoneVerified: false, 
               source: UserSource.REGISTRATION,
+               termsAndPrivacyAcceptedAt: new Date(), 
           },
       });
       logger.info('User created successfully within transaction', { userId: user.id });
