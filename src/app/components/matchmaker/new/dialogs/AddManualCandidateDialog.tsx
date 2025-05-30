@@ -8,8 +8,8 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-  DialogClose, // ייבוא DialogClose מהקובץ dialog.tsx שלנו
-} from "@/components/ui/dialog"; // ודא שהנתיב הזה נכון לקובץ ה-dialog.tsx שלך
+  DialogClose,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,15 +25,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DatePicker } from "@/components/ui/date-picker"; // ודא שהנתיב הזה נכון
+import { DatePicker } from "@/components/ui/date-picker";
+import {
+  RadioGroup,
+  RadioGroupItem,
+} from "@/components/ui/radio-group"; // הוספת ייבוא לרכיבי הרדיו
 
 interface AddManualCandidateDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onCandidateAdded: () => void; // Callback to refresh list or similar
+  onCandidateAdded: () => void;
 }
-
-// אין יותר צורך ב-ManualCandidateData interface כאן, מחקנו אותו קודם
 
 const MAX_IMAGES = 5;
 const MAX_IMAGE_SIZE_MB = 5;
@@ -51,6 +53,12 @@ export const AddManualCandidateDialog: React.FC<
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
+  // מצבים חדשים עבור בחירת אופן הזנת גיל
+  const [birthDateInputMode, setBirthDateInputMode] = useState<"date" | "age">(
+    "date"
+  );
+  const [ageInput, setAgeInput] = useState<string>(""); // קלט הגיל כשדה טקסט
+
   const resetForm = useCallback(() => {
     setFirstName("");
     setLastName("");
@@ -61,6 +69,8 @@ export const AddManualCandidateDialog: React.FC<
     setImages([]);
     setImagePreviews([]);
     setIsSaving(false);
+    setBirthDateInputMode("date"); // איפוס מצב בחירת הזנת גיל
+    setAgeInput(""); // איפוס שדה הגיל
   }, []);
 
   const handleClose = () => {
@@ -95,31 +105,66 @@ export const AddManualCandidateDialog: React.FC<
   };
 
   const removeImage = (index: number) => {
-    setImages((prev) => prev.filter((_, i) => i !== index));
-    setImagePreviews((prev) => {
-      const newPreviews = prev.filter((_, i) => i !== index);
-      // אין צורך לבצע revokeObjectURL כאן, מכיוון שהתמונות עדיין בשימוש בתצוגה המקדימה.
-      // אם תרצה, תוכל לעשות revoke כשהקומפוננטה יורדת מהמסך (ב-useEffect cleanup).
-      return newPreviews;
-    });
+    const newImages = images.filter((_, i) => i !== index);
+    const newImagePreviews = imagePreviews.filter((_, i) => i !== index);
+    // URL.revokeObjectURL(imagePreviews[index]); // Consider implications
+    setImages(newImages);
+    setImagePreviews(newImagePreviews);
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!firstName || !lastName || !gender || !birthDate || !manualEntryText) {
+    setIsSaving(true);
+
+    // בדיקת שדות חובה בסיסיים
+    if (!firstName || !lastName || !gender || !manualEntryText) {
       toast.error(
-        "נא למלא את כל שדות החובה: שם פרטי, שם משפחה, מין, תאריך לידה וטקסט חופשי."
+        "נא למלא את כל שדות החובה: שם פרטי, שם משפחה, מין וטקסט חופשי."
       );
+      setIsSaving(false);
       return;
     }
-    setIsSaving(true);
+
+    let finalBirthDate: Date | undefined;
+    let isBirthDateApproximate: boolean = false;
+
+    if (birthDateInputMode === "date") {
+      if (!birthDate) {
+        toast.error("נא לבחור תאריך לידה.");
+        setIsSaving(false);
+        return;
+      }
+      finalBirthDate = birthDate;
+      isBirthDateApproximate = false;
+    } else { // birthDateInputMode === "age"
+      const ageNum = parseInt(ageInput, 10);
+      if (isNaN(ageNum) || ageNum <= 0 || ageNum > 120) {
+        toast.error("נא להזין גיל תקין (בין 1 ל-120).");
+        setIsSaving(false);
+        return;
+      }
+      // חישוב תאריך לידה משוער: 1 בינואר של (השנה הנוכחית - הגיל)
+      const currentYear = new Date().getFullYear();
+      const birthYear = currentYear - ageNum;
+      finalBirthDate = new Date(birthYear, 0, 1); // חודש ינואר הוא 0
+      isBirthDateApproximate = true;
+    }
+
+    if (!finalBirthDate) {
+        // מקרה זה לא אמור לקרות אם הלוגיקה למעלה נכונה
+        toast.error("שגיאה בקביעת תאריך לידה. נא לבדוק את הקלט.");
+        setIsSaving(false);
+        return;
+    }
 
     const formData = new FormData();
     formData.append("firstName", firstName);
     formData.append("lastName", lastName);
     if (email) formData.append("email", email);
     formData.append("gender", gender);
-    formData.append("birthDate", birthDate.toISOString());
+    formData.append("birthDate", finalBirthDate.toISOString());
+    // הוספת השדה החדש לטופס. השרת יצטרך לטפל בו.
+    formData.append("birthDateIsApproximate", String(isBirthDateApproximate));
     formData.append("manualEntryText", manualEntryText);
     images.forEach((image) => {
       formData.append("images", image);
@@ -152,12 +197,13 @@ export const AddManualCandidateDialog: React.FC<
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) handleClose(); }}>
       <DialogContent className="max-w-2xl">
-        {/* כפתור סגירה סטנדרטי בפינה */}
-        <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-          <X className="h-4 w-4" />
-          <span className="sr-only">סגור</span>
+        <DialogClose asChild>
+          <button className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground p-1">
+            <X className="h-4 w-4" />
+            <span className="sr-only">סגור</span>
+          </button>
         </DialogClose>
 
         <DialogHeader>
@@ -172,7 +218,7 @@ export const AddManualCandidateDialog: React.FC<
 
         <form
           onSubmit={handleSubmit}
-          className="space-y-6 py-4 max-h-[70vh] overflow-y-auto pr-2"
+          className="space-y-6 py-4 max-h-[70vh] overflow-y-auto pr-2 pl-1"
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -213,7 +259,7 @@ export const AddManualCandidateDialog: React.FC<
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="לדוגמה: user@example.com"
-              dir="ltr" // Email is typically LTR
+              dir="ltr"
             />
             <p className="text-xs text-gray-500 mt-1 text-right">
               אם לא תסופק כתובת אימייל, תיווצר כתובת פנימית עבור המערכת.
@@ -228,7 +274,6 @@ export const AddManualCandidateDialog: React.FC<
               <Select
                 value={gender}
                 onValueChange={(value) => setGender(value as Gender)}
-                // required is not a prop for Select, validation handled in handleSubmit
               >
                 <SelectTrigger id="gender" dir="rtl">
                   <SelectValue placeholder="בחר/י מין" />
@@ -239,19 +284,73 @@ export const AddManualCandidateDialog: React.FC<
                 </SelectContent>
               </Select>
             </div>
+
+            {/* חלק הזנת תאריך לידה / גיל */}
             <div>
-              <Label htmlFor="birthDate" className="text-right block">
-                תאריך לידה <span className="text-red-500">*</span>
-              </Label>
-              <DatePicker
-                value={
-                  birthDate ? { from: birthDate, to: undefined } : undefined
-                }
-                onChange={({ from }) => setBirthDate(from)}
-                isRange={false}
-                placeholder="בחר תאריך לידה"
-                className="w-full" // Ensure DatePicker takes full width if needed
-              />
+              <div>
+                <Label className="text-right block mb-2">
+                  אופן הזנת גיל/תאריך לידה <span className="text-red-500">*</span>
+                </Label>
+                <RadioGroup
+                  dir="rtl"
+                  value={birthDateInputMode}
+                  onValueChange={(value: "date" | "age") => {
+                    setBirthDateInputMode(value);
+                    if (value === "date") {
+                      setAgeInput(""); // נקה גיל אם עוברים לתאריך
+                    } else {
+                      setBirthDate(undefined); // נקה תאריך אם עוברים לגיל
+                    }
+                  }}
+                  className="flex space-x-4 rtl:space-x-reverse mb-3"
+                >
+                  <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                    <RadioGroupItem value="date" id="r-date" />
+                    <Label htmlFor="r-date" className="cursor-pointer">לפי תאריך לידה</Label>
+                  </div>
+                  <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                    <RadioGroupItem value="age" id="r-age" />
+                    <Label htmlFor="r-age" className="cursor-pointer">לפי גיל</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              {birthDateInputMode === "date" ? (
+                <div>
+                  <Label htmlFor="birthDate" className="text-right block">
+                    תאריך לידה <span className="text-red-500">*</span>
+                  </Label>
+                  <DatePicker
+                    value={
+                      birthDate ? { from: birthDate, to: undefined } : undefined
+                    }
+                    onChange={({ from }) => setBirthDate(from)}
+                    isRange={false}
+                    placeholder="בחר תאריך לידה"
+                    className="w-full"
+                  />
+                </div>
+              ) : (
+                <div>
+                  <Label htmlFor="ageInput" className="text-right block">
+                    גיל (משוער) <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="ageInput"
+                    type="number"
+                    value={ageInput}
+                    onChange={(e) => setAgeInput(e.target.value)}
+                    placeholder="לדוגמה: 25"
+                    required={birthDateInputMode === "age"}
+                    dir="rtl"
+                    min="1"
+                    max="120"
+                  />
+                   <p className="text-xs text-gray-500 mt-1 text-right">
+                    יוזן תאריך לידה משוער (1 בינואר של שנת הלידה) בהתאם לגיל שהוזן.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -301,7 +400,7 @@ export const AddManualCandidateDialog: React.FC<
               </label>
             </div>
             {imagePreviews.length > 0 && (
-              <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 {imagePreviews.map((preview, index) => (
                   <div key={index} className="relative group">
                     <Image
@@ -315,10 +414,11 @@ export const AddManualCandidateDialog: React.FC<
                       type="button"
                       variant="destructive"
                       size="icon"
-                      className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity p-0"
                       onClick={() => removeImage(index)}
                     >
                       <Trash2 className="h-3 w-3" />
+                      <span className="sr-only">הסר תמונה</span>
                     </Button>
                   </div>
                 ))}
@@ -326,21 +426,21 @@ export const AddManualCandidateDialog: React.FC<
             )}
           </div>
 
-          <DialogFooter className="pt-4">
-            <DialogClose asChild>
-              <Button variant="outline" type="button">
-                <X className="w-4 h-4 ml-1" />
-                ביטול
-              </Button>
-            </DialogClose>
-            <Button type="submit" disabled={isSaving}>
+          <DialogFooter className="pt-4 sm:justify-start">
+            <Button type="submit" disabled={isSaving} className="w-full sm:w-auto">
               {isSaving ? (
-                <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               ) : (
-                <UserPlus className="w-4 h-4 ml-1" />
+                <UserPlus className="w-4 h-4 mr-2" />
               )}
               {isSaving ? "שומר..." : "הוסף מועמד"}
             </Button>
+            <DialogClose asChild>
+              <Button variant="outline" type="button" className="w-full sm:w-auto mt-2 sm:mt-0">
+                <X className="w-4 h-4 mr-2" />
+                ביטול
+              </Button>
+            </DialogClose>
           </DialogFooter>
         </form>
       </DialogContent>

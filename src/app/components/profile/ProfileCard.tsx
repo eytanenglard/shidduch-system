@@ -354,8 +354,26 @@ const ProfileHeader: React.FC<{
       [
         {
           label: "גיל",
-          value: age > 0 ? age.toString() : "-",
-          icon: Cake,
+value: age > 0
+  ? (
+    <>
+      {age}
+      {profile.birthDateIsApproximate && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="text-xs text-gray-500 cursor-help"> (משוער)</span>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p className="text-xs max-w-xs text-center">
+               הגיל הוזן על ידי השדכן והוא הערכה בלבד,
+              ולא תאריך לידה מדויק מהמועמד.
+            </p>
+          </TooltipContent>
+        </Tooltip>
+      )}
+    </>
+  )
+  : "-",          icon: Cake,
           color: "pink-600",
           condition: age > 0,
         },

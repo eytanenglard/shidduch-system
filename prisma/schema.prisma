@@ -125,6 +125,8 @@ model Profile {
   userId                    String             @unique
   gender                    Gender
   birthDate                 DateTime
+    birthDateIsApproximate    Boolean?           @default(false) // <--- הוסף שדה זה
+
   nativeLanguage            String?
   additionalLanguages       String[]
   height                    Int?

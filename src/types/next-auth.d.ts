@@ -21,7 +21,7 @@ import { DefaultJWT } from 'next-auth/jwt';
 
 // --- Standalone Interface Definitions ---
 
-export interface UserProfile extends Omit<PrismaProfile, 'gender' | 'birthDate' | 'height' | 'additionalLanguages' | 'profileCharacterTraits' | 'profileHobbies' | 'preferredReligiousLevels' | 'preferredLocations' | 'preferredEducation' | 'preferredOccupations' | 'preferredMaritalStatuses' | 'preferredOrigins' | 'preferredServiceTypes' | 'preferredHeadCoverings' | 'preferredKippahTypes' | 'preferredCharacterTraits' | 'preferredHobbies' | 'availabilityStatus' | 'isProfileVisible' | 'createdAt' | 'updatedAt'> {
+export interface UserProfile extends Omit<PrismaProfile, 'gender' | 'birthDate' | 'height' | 'additionalLanguages' | 'profileCharacterTraits' | 'profileHobbies' | 'preferredReligiousLevels' | 'preferredLocations' | 'preferredEducation' | 'preferredOccupations' | 'preferredMaritalStatuses' | 'preferredOrigins' | 'preferredServiceTypes' | 'preferredHeadCoverings' | 'preferredKippahTypes' | 'preferredCharacterTraits' | 'preferredHobbies' | 'availabilityStatus' | 'isProfileVisible' | 'createdAt' | 'updatedAt'| 'birthDateIsApproximate'> {
   // Overriding PrismaProfile fields with more specific or frontend-friendly types
   // Fields that are identical to PrismaProfile are inherited via Omit and don't need re-declaration unless type needs refinement.
 
@@ -30,6 +30,7 @@ export interface UserProfile extends Omit<PrismaProfile, 'gender' | 'birthDate' 
 
   gender: Gender; // User's own gender - Kept as required as per your old file
   birthDate: Date; // Kept as required
+  birthDateIsApproximate?: boolean | null; // <--- הוסף שדה זה
 
   // Optional fields that might be null or undefined
   nativeLanguage?: string | null;
