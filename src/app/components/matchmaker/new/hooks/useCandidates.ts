@@ -73,7 +73,7 @@ export const useCandidates = (initialFilters: CandidatesFilter = {}): UseCandida
       setLoading(true);
       setError(null);
       
-      const response = await fetch('/api/matchmaker/clients');
+      const response = await fetch('/api/matchmaker/candidates');
       if (!response.ok) {
         throw new Error(await response.text());
       }

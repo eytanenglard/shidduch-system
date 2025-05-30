@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { MatchSuggestionStatus, Prisma, UserRole } from "@prisma/client"; // Added UserRole
 import { suggestionService } from "@/app/components/matchmaker/suggestions/services/suggestions/SuggestionService";
-import type { CreateSuggestionData } from "@/app/types/suggestions";
+import type { CreateSuggestionData } from "@/types/suggestions";
 
 // פונקציית עזר שמגדירה את הקטגוריה של ההצעה לפי הסטטוס שלה
 const getSuggestionCategory = (status: MatchSuggestionStatus) => {
