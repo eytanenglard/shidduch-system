@@ -1,0 +1,2334 @@
+################################################################################
+# Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage
+# Generated on: 2025-06-03 11:04:44
+################################################################################
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\HomePage.tsx
+--------------------------------------------------------------------------------
+Content:
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import { Button } from "@/components/ui/button";
+
+// Import all sections
+import HeroSection from "./sections/HeroSection";
+import ValuePropositionSection from "./sections/ValuePropositionSection";
+import FeaturesSection from "./sections/FeaturesSection";
+import AlgorithmSection from "./sections/AlgorithmSection";
+import HowItWorksSection from "./sections/HowItWorksSection";
+import MatchmakerTeamSection from "./sections/MatchmakerTeamSection";
+import SuccessStoriesSection from "./sections/SuccessStoriesSection";
+import FAQSection from "./sections/FAQSection";
+import PrivacyAssuranceSection from "./sections/PrivacyAssuranceSection";
+import CTASection from "./sections/CTASection";
+import FooterSection from "./sections/FooterSection";
+import { MessageCircle } from "lucide-react";
+
+export default function HomePage() {
+  const { data: session } = useSession();
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
+
+  return (
+    <div className="min-h-screen w-full overflow-x-hidden">
+      <HeroSection session={session} isVisible={isVisible} />
+      <ValuePropositionSection />
+      <HowItWorksSection />
+      <MatchmakerTeamSection />
+      <FeaturesSection />
+      <AlgorithmSection />
+      <SuccessStoriesSection />
+      <FAQSection />
+      <PrivacyAssuranceSection />
+      <CTASection />
+      <FooterSection />
+
+      {/* Floating Contact Button - Enhanced with animation */}
+      <div className="fixed bottom-8 left-8 z-50 animate-bounce-slow">
+        <Button
+          size="lg"
+          className="rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800 group"
+        >
+          <MessageCircle className="w-5 h-5 ml-2 group-hover:scale-110 transition-transform" />
+          <span className="group-hover:mr-1 transition-all">דברו איתנו</span>
+        </Button>
+      </div>
+    </div>
+  );
+}
+--- End of Content for HomePage.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\HomePage_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\components
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\components\ComparisonItem.tsx
+--------------------------------------------------------------------------------
+Content:
+import React from "react";
+
+export interface ComparisonItemProps {
+  children: React.ReactNode;
+  isNegative?: boolean;
+}
+
+// Helper component for the comparison items
+const ComparisonItem: React.FC<ComparisonItemProps> = ({
+  children,
+  isNegative = false,
+}) => (
+  <li className="flex items-start">
+    <div
+      className={`p-1 rounded-full ${
+        isNegative ? "bg-red-100 text-red-600" : "bg-cyan-100 text-cyan-600"
+      } mr-3 mt-1 flex-shrink-0`}
+    >
+      {isNegative ? (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-4 w-4"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fillRule="evenodd"
+            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+            clipRule="evenodd"
+          />
+        </svg>
+      ) : (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-4 w-4"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fillRule="evenodd"
+            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+            clipRule="evenodd"
+          />
+        </svg>
+      )}
+    </div>
+    <span
+      className={`text-sm ${isNegative ? "text-gray-700" : "text-gray-700"}`}
+    >
+      {children}
+    </span>
+  </li>
+);
+
+export default ComparisonItem;
+--- End of Content for ComparisonItem.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\components\FAQItem.tsx
+--------------------------------------------------------------------------------
+Content:
+import React, { useState } from "react";
+import { ChevronDown } from "lucide-react";
+
+export interface FAQItemProps {
+  question: string;
+  answer: string;
+}
+
+// FAQ Item Component
+const FAQItem: React.FC<FAQItemProps> = ({ question, answer }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="border-b border-gray-200 last:border-0">
+      <button
+        className="flex justify-between items-center w-full py-4 text-right text-gray-800 hover:text-cyan-600 focus:outline-none transition-colors duration-300"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span className="font-medium text-lg">{question}</span>
+        <span
+          className={`transform transition-transform duration-300 ${
+            isOpen ? "rotate-180" : ""
+          }`}
+        >
+          <ChevronDown />
+        </span>
+      </button>
+      <div
+        className={`overflow-hidden transition-all duration-300 ${
+          isOpen ? "max-h-96 pb-4" : "max-h-0"
+        }`}
+      >
+        <p className="text-gray-600">{answer}</p>
+      </div>
+    </div>
+  );
+};
+
+export default FAQItem;
+--- End of Content for FAQItem.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\components\FeatureCard.tsx
+--------------------------------------------------------------------------------
+Content:
+import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
+
+// Type definitions
+export interface FeatureCardProps {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  color: "cyan" | "green" | "orange" | "pink";
+}
+
+// Component for feature cards with improved hover effects
+const FeatureCard: React.FC<FeatureCardProps> = ({
+  icon,
+  title,
+  description,
+  color,
+}) => {
+  const colorClasses = {
+    cyan: {
+      gradient: "from-cyan-500/10 to-cyan-700/10",
+      bg: "from-cyan-50 to-cyan-100",
+      text: "text-cyan-600 group-hover:text-cyan-700",
+      title: "group-hover:text-cyan-700",
+      shadow: "shadow-cyan-200/50",
+    },
+    green: {
+      gradient: "from-green-500/10 to-green-700/10",
+      bg: "from-green-50 to-green-100",
+      text: "text-green-600 group-hover:text-green-700",
+      title: "group-hover:text-green-700",
+      shadow: "shadow-green-200/50",
+    },
+    orange: {
+      gradient: "from-orange-500/10 to-orange-700/10",
+      bg: "from-orange-50 to-orange-100",
+      text: "text-orange-600 group-hover:text-orange-700",
+      title: "group-hover:text-orange-700",
+      shadow: "shadow-orange-200/50",
+    },
+    pink: {
+      gradient: "from-pink-500/10 to-pink-700/10",
+      bg: "from-pink-50 to-pink-100",
+      text: "text-pink-600 group-hover:text-pink-700",
+      title: "group-hover:text-pink-700",
+      shadow: "shadow-pink-200/50",
+    },
+  };
+
+  return (
+    <Card className="group relative overflow-hidden border-none shadow-lg transition-all duration-500 hover:shadow-2xl hover:-translate-y-2">
+      <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-50 opacity-100 transition-opacity duration-500" />
+      <div
+        className={`absolute -inset-1 bg-gradient-to-br ${colorClasses[color].gradient} opacity-0 group-hover:opacity-100 rounded-xl blur-md transition-all duration-500`}
+      />
+      <CardContent className="relative p-8 backdrop-blur-sm">
+        <div className="mb-6 flex justify-center transform transition-transform duration-500 group-hover:scale-110">
+          <div
+            className={`p-4 rounded-2xl bg-gradient-to-br ${colorClasses[color].bg} shadow-md group-hover:shadow-lg transition-all duration-500 ${colorClasses[color].shadow}`}
+          >
+            {React.cloneElement(icon as React.ReactElement, {
+              className: `w-8 h-8 ${colorClasses[color].text} transition-colors duration-500`,
+            })}
+          </div>
+        </div>
+        <h3
+          className={`text-xl font-bold mb-3 text-gray-800 ${colorClasses[color].title} transition-colors duration-300 text-center`}
+        >
+          {title}
+        </h3>
+        <p className="text-gray-600 leading-relaxed group-hover:text-gray-700 transition-colors duration-300 text-center">
+          {description}
+        </p>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default FeatureCard;
+--- End of Content for FeatureCard.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\components\FooterComponents.tsx
+--------------------------------------------------------------------------------
+Content:
+import React from "react";
+import Link from "next/link";
+
+// Helper component for footer links
+export const FooterLink: React.FC<{
+  href: string;
+  children: React.ReactNode;
+}> = ({ href, children }) => (
+  <li className="transition-transform hover:translate-x-1">
+    <Link
+      href={href}
+      className="text-gray-300 hover:text-white transition-colors duration-300 flex items-center"
+    >
+      <span className="ml-2">›</span>
+      {children}
+    </Link>
+  </li>
+);
+
+// Helper component for footer items with icons
+export const FooterItem: React.FC<{ icon: string; text: string }> = ({
+  icon,
+  text,
+}) => (
+  <li className="flex items-center transition-transform hover:translate-x-1">
+    <span className="ml-2">{icon}</span>
+    <span className="text-gray-300 hover:text-white transition-colors duration-300">
+      {text}
+    </span>
+  </li>
+);
+--- End of Content for FooterComponents.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\components\MatchmakerCard.tsx
+--------------------------------------------------------------------------------
+Content:
+import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
+
+export interface MatchmakerCardProps {
+  name: string;
+  role: string;
+  description: string;
+  color: "cyan" | "green" | "orange" | "pink";
+}
+
+// Matchmaker Card Component
+const MatchmakerCard: React.FC<MatchmakerCardProps> = ({
+  name,
+  role,
+  description,
+  color,
+}) => {
+  const colorClasses = {
+    cyan: {
+      gradient: "from-cyan-500/10 to-cyan-700/10",
+      bg: "from-cyan-100 to-cyan-200",
+      border: "border-cyan-100",
+      shadow: "shadow-cyan-100/50",
+    },
+    green: {
+      gradient: "from-green-500/10 to-green-700/10",
+      bg: "from-green-100 to-green-200",
+      border: "border-green-100",
+      shadow: "shadow-green-100/50",
+    },
+    orange: {
+      gradient: "from-orange-500/10 to-orange-700/10",
+      bg: "from-orange-100 to-orange-200",
+      border: "border-orange-100",
+      shadow: "shadow-orange-100/50",
+    },
+    pink: {
+      gradient: "from-pink-500/10 to-pink-700/10",
+      bg: "from-pink-100 to-pink-200",
+      border: "border-pink-100",
+      shadow: "shadow-pink-100/50",
+    },
+  };
+
+  return (
+    <Card className="group relative overflow-hidden border border-gray-100 hover:border-transparent shadow-sm hover:shadow-xl transition-all duration-500">
+      <div
+        className={`absolute -inset-1 bg-gradient-to-br ${colorClasses[color].gradient} opacity-0 group-hover:opacity-100 rounded-xl blur-md transition-all duration-500`}
+      />
+      <CardContent className="relative p-6 flex flex-col items-center text-center">
+        <div
+          className={`w-20 h-20 rounded-full bg-gradient-to-br ${colorClasses[color].bg} flex items-center justify-center text-white text-2xl font-bold mb-4 ${colorClasses[color].shadow} group-hover:scale-110 transition-all duration-300`}
+        >
+          {name.charAt(0)}
+        </div>
+        <h3 className="text-xl font-bold mb-1 text-gray-800">{name}</h3>
+        <p className="text-sm text-gray-500 mb-3">{role}</p>
+        <div className={`w-12 h-0.5 ${colorClasses[color].border} mb-3`}></div>
+        <p className="text-gray-600 text-sm">{description}</p>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default MatchmakerCard;
+--- End of Content for MatchmakerCard.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\components\Step.tsx
+--------------------------------------------------------------------------------
+Content:
+import React from "react";
+
+export interface StepProps {
+  number: string;
+  title: string;
+  description: string;
+  isLast?: boolean;
+  color: "cyan" | "green" | "orange" | "pink";
+}
+
+// Modernized Step Component with enhanced visuals
+const Step: React.FC<StepProps> = ({
+  number,
+  title,
+  description,
+  isLast = false,
+  color,
+}) => {
+  const colorClasses = {
+    cyan: {
+      gradient: "from-cyan-500 to-cyan-600",
+      hover: "group-hover:text-cyan-600",
+      border: "group-hover:border-cyan-100",
+      shadow: "group-hover:shadow-cyan-100",
+      line: "from-cyan-500 to-cyan-200",
+    },
+    green: {
+      gradient: "from-green-500 to-green-600",
+      hover: "group-hover:text-green-600",
+      border: "group-hover:border-green-100",
+      shadow: "group-hover:shadow-green-100",
+      line: "from-green-500 to-green-200",
+    },
+    orange: {
+      gradient: "from-orange-500 to-orange-600",
+      hover: "group-hover:text-orange-600",
+      border: "group-hover:border-orange-100",
+      shadow: "group-hover:shadow-orange-100",
+      line: "from-orange-500 to-orange-200",
+    },
+    pink: {
+      gradient: "from-pink-500 to-pink-600",
+      hover: "group-hover:text-pink-600",
+      border: "group-hover:border-pink-100",
+      shadow: "group-hover:shadow-pink-100",
+      line: "from-pink-500 to-pink-200",
+    },
+  };
+
+  return (
+    <div className="flex gap-6 items-start group relative">
+      {/* Connecting line between steps */}
+      {!isLast && (
+        <div
+          className={`absolute top-12 bottom-0 right-6 w-0.5 bg-gradient-to-b ${colorClasses[color].line} rounded-full`}
+        />
+      )}
+
+      <div
+        className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${colorClasses[color].gradient} text-white flex items-center justify-center flex-shrink-0 text-lg font-bold shadow-lg group-hover:scale-110 ${colorClasses[color].shadow} transition-all duration-500 z-10`}
+      >
+        {number}
+      </div>
+      <div
+        className={`flex-1 bg-white/80 backdrop-blur-sm p-5 rounded-lg shadow-sm group-hover:shadow-md transition-all duration-300 border border-gray-50 ${colorClasses[color].border}`}
+      >
+        <h3
+          className={`text-xl font-bold mb-2 text-gray-800 ${colorClasses[color].hover} transition-colors duration-300`}
+        >
+          {title}
+        </h3>
+        <p className="text-gray-600 leading-relaxed group-hover:text-gray-700">
+          {description}
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default Step;
+--- End of Content for Step.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\components\TestimonialCard.tsx
+--------------------------------------------------------------------------------
+Content:
+import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Heart } from "lucide-react";
+
+export interface TestimonialCardProps {
+  text: string;
+  author: string;
+  result?: string;
+  color: "cyan" | "green" | "orange" | "pink";
+}
+
+// Modernized Testimonial Card with enhanced aesthetics
+const TestimonialCard: React.FC<TestimonialCardProps> = ({
+  text,
+  author,
+  result,
+  color,
+}) => {
+  const colorClasses = {
+    cyan: {
+      gradient1: "from-cyan-100 to-cyan-50",
+      gradient2: "from-cyan-50 to-cyan-100",
+      avatar: "from-cyan-500 to-cyan-600",
+      result: "text-cyan-600",
+    },
+    green: {
+      gradient1: "from-green-100 to-green-50",
+      gradient2: "from-green-50 to-green-100",
+      avatar: "from-green-500 to-green-600",
+      result: "text-green-600",
+    },
+    orange: {
+      gradient1: "from-orange-100 to-orange-50",
+      gradient2: "from-orange-50 to-orange-100",
+      avatar: "from-orange-500 to-orange-600",
+      result: "text-orange-600",
+    },
+    pink: {
+      gradient1: "from-pink-100 to-pink-50",
+      gradient2: "from-pink-50 to-pink-100",
+      avatar: "from-pink-500 to-pink-600",
+      result: "text-pink-600",
+    },
+  };
+
+  return (
+    <Card className="group relative overflow-hidden border-none shadow-lg hover:shadow-2xl transition-all duration-500 h-full">
+      {/* Improved decorative elements */}
+      <div
+        className={`absolute -top-8 -right-8 w-32 h-32 bg-gradient-to-br ${colorClasses[color].gradient1} opacity-50 rounded-full`}
+      />
+      <div
+        className={`absolute -bottom-8 -left-8 w-24 h-24 bg-gradient-to-br ${colorClasses[color].gradient2} opacity-30 rounded-full`}
+      />
+
+      {/* Content with enhanced styling */}
+      <CardContent className="relative p-8 h-full flex flex-col backdrop-blur-sm">
+        <div className="mb-4 text-4xl text-gray-300 font-serif opacity-80 group-hover:opacity-100 transition-opacity duration-300">
+          ❝
+        </div>
+        <p className="text-gray-700 leading-relaxed text-lg mb-6 flex-grow">
+          {text}
+        </p>
+        <div className="flex flex-col mt-auto">
+          <div className="flex items-center">
+            <div
+              className={`w-10 h-10 rounded-full bg-gradient-to-br ${colorClasses[color].avatar} flex items-center justify-center text-white font-bold shadow-md transform group-hover:scale-110 transition-transform duration-300`}
+            >
+              {author[0]}
+            </div>
+            <p className="mr-4 font-semibold text-gray-800">{author}</p>
+          </div>
+          {result && (
+            <div
+              className={`mt-3 pt-3 border-t border-gray-100 ${colorClasses[color].result} font-medium text-sm flex items-center`}
+            >
+              <Heart className="w-4 h-4 ml-1" fill="currentColor" /> {result}
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default TestimonialCard;
+--- End of Content for TestimonialCard.tsx ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\AlgorithmSection.tsx
+--------------------------------------------------------------------------------
+Content:
+import React from "react";
+import { Cpu, UserCheck, Lock } from "lucide-react";
+
+const AlgorithmSection: React.FC = () => {
+  return (
+    <section className="py-16 md:py-20 px-4 bg-gray-50 relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-white opacity-70"></div>
+
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
+        <div className="absolute left-0 top-1/3 w-40 h-40 bg-cyan-200/20 rounded-full blur-3xl"></div>
+        <div className="absolute right-0 bottom-1/4 w-60 h-60 bg-orange-200/20 rounded-full blur-3xl"></div>
+      </div>
+
+      <div className="max-w-6xl mx-auto relative">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div>
+            <div className="mb-8">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-cyan-700">
+                  הטכנולוגיה
+                </span>{" "}
+                שמאחורי ההתאמה המושלמת
+              </h2>
+              <div className="w-24 h-1 bg-gradient-to-r from-cyan-600 to-cyan-700 rounded-full mb-6"></div>
+              <p className="text-lg text-gray-600 mb-8">
+                במערכת Match Point אנו משלבים בינה מלאכותית מתקדמת עם ההבנה
+                האנושית העמוקה של שדכנים מקצועיים
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              <div className="bg-white rounded-lg p-5 shadow-md hover:shadow-lg transition-shadow duration-300 border border-gray-100">
+                <div className="flex items-start">
+                  <div className="p-3 rounded-full bg-gradient-to-br from-cyan-50 to-cyan-100 text-cyan-600 mr-4">
+                    <Cpu className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-800 mb-2">
+                      התאמה עם 27 ממדים
+                    </h3>
+                    <p className="text-gray-600">
+                      האלגוריתם שלנו מנתח את הפרופילים ומייצר התאמות פוטנציאליות
+                      על בסיס 27 ממדי התאמה שונים - הרבה מעבר למה שעין אנושית
+                      יכולה לעבד
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-lg p-5 shadow-md hover:shadow-lg transition-shadow duration-300 border border-gray-100">
+                <div className="flex items-start">
+                  <div className="p-3 rounded-full bg-gradient-to-br from-green-50 to-green-100 text-green-600 mr-4">
+                    <UserCheck className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-800 mb-2">
+                      שיפור מתמיד מהמשוב
+                    </h3>
+                    <p className="text-gray-600">
+                      המערכת לומדת ומשתפרת באופן מתמיד מהמשוב של המשתמשים
+                      והשדכנים, מה שמוביל להתאמות טובות יותר עם הזמן
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-lg p-5 shadow-md hover:shadow-lg transition-shadow duration-300 border border-gray-100">
+                <div className="flex items-start">
+                  <div className="p-3 rounded-full bg-gradient-to-br from-orange-50 to-orange-100 text-orange-600 mr-4">
+                    <Lock className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-800 mb-2">
+                      ארכיטקטורת פרטיות
+                    </h3>
+                    <p className="text-gray-600">
+                      הצפנה מקצה לקצה ואבטחת מידע ברמה הגבוהה ביותר מבטיחים
+                      שהפרטים האישיים שלך נשארים פרטיים לחלוטין
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-cyan-700/5 rounded-2xl transform rotate-3"></div>
+            <div className="relative bg-white p-8 rounded-2xl shadow-xl border border-cyan-100">
+              <div className="flex justify-between mb-6">
+                <div className="flex space-x-2 rtl:space-x-reverse">
+                  <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                  <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                </div>
+                <div className="text-xs text-gray-500">match-algorithm.js</div>
+              </div>
+
+              <div
+                className="font-mono text-sm text-left overflow-hidden"
+                dir="ltr"
+              >
+                <div className="mb-1">
+                  <span className="text-purple-600">const</span>{" "}
+                  <span className="text-cyan-600">computeCompatibility</span>{" "}
+                  <span className="text-gray-500">=</span>{" "}
+                  <span className="text-purple-600">(</span>
+                  <span className="text-orange-600">profile1</span>,{" "}
+                  <span className="text-orange-600">profile2</span>
+                  <span className="text-purple-600">)</span>{" "}
+                  <span className="text-purple-600">{`=>`}</span>{" "}
+                  <span className="text-purple-600">{"{"}</span>
+                </div>
+                <div className="mb-1 pl-4">
+                  <span className="text-purple-600">let</span>{" "}
+                  compatibilityScore <span className="text-gray-500">=</span>{" "}
+                  <span className="text-cyan-600">0</span>;
+                </div>
+                <div className="mb-1 pl-4 text-gray-500">
+                  {"// Core values compatibility (weighted x3)"}
+                </div>
+                <div className="mb-1 pl-4">
+                  compatibilityScore <span className="text-gray-500">+=</span>{" "}
+                  <span className="text-cyan-600">valueCompatibility</span>
+                  <span className="text-purple-600">(</span>profile1, profile2
+                  <span className="text-purple-600">)</span>{" "}
+                  <span className="text-gray-500">*</span>{" "}
+                  <span className="text-cyan-600">3</span>;
+                </div>
+                <div className="mb-1 pl-4 text-gray-500">
+                  {"// Lifestyle compatibility (weighted x2)"}
+                </div>
+                <div className="mb-1 pl-4">
+                  compatibilityScore <span className="text-gray-500">+=</span>{" "}
+                  <span className="text-cyan-600">lifestyleCompatibility</span>
+                  <span className="text-purple-600">(</span>profile1, profile2
+                  <span className="text-purple-600">)</span>{" "}
+                  <span className="text-gray-500">*</span>{" "}
+                  <span className="text-cyan-600">2</span>;
+                </div>
+                <div className="mb-1 pl-4 text-gray-500">
+                  {"// Family background compatibility"}
+                </div>
+                <div className="mb-1 pl-4">
+                  compatibilityScore <span className="text-gray-500">+=</span>{" "}
+                  <span className="text-cyan-600">familyCompatibility</span>
+                  <span className="text-purple-600">(</span>profile1, profile2
+                  <span className="text-purple-600">)</span>;
+                </div>
+                <div className="mb-1 pl-4 text-gray-500">
+                  {"// Goals and aspirations alignment"}
+                </div>
+                <div className="mb-1 pl-4">
+                  compatibilityScore <span className="text-gray-500">+=</span>{" "}
+                  <span className="text-cyan-600">goalsCompatibility</span>
+                  <span className="text-purple-600">(</span>profile1, profile2
+                  <span className="text-purple-600">)</span>{" "}
+                  <span className="text-gray-500">*</span>{" "}
+                  <span className="text-cyan-600">1.5</span>;
+                </div>
+                <div className="mb-1 pl-4 text-gray-500">
+                  {"// Additional dimensions..."}
+                </div>
+                <div className="mb-1 pl-4">
+                  <span className="text-purple-600">return</span>{" "}
+                  compatibilityScore <span className="text-gray-500">/</span>{" "}
+                  <span className="text-cyan-600">maxPossibleScore</span>;
+                </div>
+                <div>
+                  <span className="text-purple-600">{"}"}</span>;
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default AlgorithmSection;
+--- End of Content for AlgorithmSection.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\CTASection.tsx
+--------------------------------------------------------------------------------
+Content:
+import React from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Sparkles } from "lucide-react";
+
+const CTASection: React.FC = () => {
+  return (
+    <section className="py-16 md:py-20 px-4 bg-white relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-cyan-50 to-white opacity-70"></div>
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
+        <svg
+          className="absolute left-0 top-0 h-full opacity-5"
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+        >
+          <path
+            d="M0,0 C40,100 60,100 100,0 L100,100 L0,100 Z"
+            fill="url(#grad1)"
+          ></path>
+          <defs>
+            <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#06b6d4" />
+              <stop offset="100%" stopColor="#0891b2" />
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+
+      <div className="max-w-4xl mx-auto text-center relative">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 md:p-12 shadow-xl border border-cyan-100">
+          <div className="inline-block mb-6 p-3 bg-cyan-100 rounded-full text-cyan-600">
+            <Sparkles className="w-8 h-8" />
+          </div>
+
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+            מוכנים להתחיל את
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-cyan-700">
+              {" "}
+              המסע שלכם?{" "}
+            </span>
+          </h2>
+
+          <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+            הצטרפו היום למערכת Match Point המובילה והתקדמו צעד אחד קדימה במציאת
+            הזיווג המושלם עבורכם
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/auth/register">
+              <Button
+                size="lg"
+                className="bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl group"
+              >
+                <span>להרשמה מיידית</span>
+                <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
+
+            <Link href="/about">
+              <Button
+                variant="outline"
+                size="lg"
+                className="border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-300 transition-all duration-300 rounded-xl"
+              >
+                למידע נוסף
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default CTASection;
+--- End of Content for CTASection.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\FAQSection.tsx
+--------------------------------------------------------------------------------
+Content:
+import React from "react";
+import FAQItem from "../components/FAQItem";
+
+const FAQSection: React.FC = () => {
+  return (
+    <section className="py-16 md:py-20 px-4 bg-white relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-white opacity-50"></div>
+
+      <div className="max-w-4xl mx-auto relative">
+        <div className="text-center mb-12">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+            שאלות
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-cyan-700">
+              {" "}
+              נפוצות{" "}
+            </span>
+          </h2>
+          <div className="w-24 h-1 bg-gradient-to-r from-cyan-600 to-cyan-700 mx-auto rounded-full mb-6" />
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-8">
+            אלו התשובות לשאלות הנפוצות ביותר על שירות Match Point שלנו
+          </p>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-lg p-6 md:p-8">
+          <div className="space-y-2">
+            <FAQItem
+              question="מה המחיר של השירות?"
+              answer="אנו מציעים מספר תוכניות: רישום בסיסי בחינם הכולל פרופיל ראשוני ו-3 הצעות התאמה. מנוי סטנדרטי ב-95₪ לשנה המעניק גישה להצעות התאמה מתמשכות, ומנוי פרימיום ב-270₪ לשנה הכולל התאמה ותמיכה מועדפת. בנוסף, ישנה עמלת הצלחה של 1,000₪ מכל צד (2,000₪ בסך הכל) במקרה של אירוסין."
+            />
+            <FAQItem
+              question="האם השירות מתאים לכל הזרמים ביהדות?"
+              answer="כן! המערכת שלנו מתוכננת להתאים לכל הקהילות היהודיות, עם אפשרויות להתאמה מדויקת לפי רמת הדתיות והמסורות הספציפיות. אנו משרתים כרגע את הקהילה הדתית-לאומית בישראל, יהדות אורתודוכסית מודרנית בחו״ל, וקהילות חרדיות, עם תוכניות להרחבה לקהילות יהודיות נוספות."
+            />
+            <FAQItem
+              question="כיצד נשמרת הפרטיות שלי במערכת?"
+              answer="פרטיות המשתמשים היא בראש סדר העדיפויות שלנו. הפרופילים נראים רק לשדכנים מורשים ולא לשאר המשתמשים. אנו משתמשים בהצפנה מקצה לקצה וארכיטקטורת אפס-ידע להגנה על המידע האישי שלך. התמונות והפרטים האישיים שלך לעולם לא יהיו חשופים ללא הסכמתך המפורשת."
+            />
+            <FAQItem
+              question="כמה זמן בממוצע לוקח למצוא התאמה?"
+              answer="בעוד שהזמן משתנה בהתאם לגורמים רבים, המשתמשים שלנו מוצאים התאמות משמעותיות בזמן קצר משמעותית מהממוצע בשוק. בעוד הממוצע בשוק עומד על כ-2.5 שנים, מרבית המשתמשים שלנו מוצאים התאמות מוצלחות תוך 6-12 חודשים, הודות לשילוב הייחודי של טכנולוגיה וליווי אישי."
+            />
+            <FAQItem
+              question="האם יש אירועים או מפגשים קהילתיים?"
+              answer="בהחלט! אנו מארגנים מגוון אירועים קהילתיים כולל מפגשים חברתיים, סדנאות, והרצאות. אירועים אלה מספקים הזדמנויות טבעיות להיכרות בסביבה נעימה ותומכת. לחברי המנוי שלנו ניתנת גישה מועדפת לאירועים אלה, עם מחירים הנעים בין 15₪-30₪ למפגשים חברתיים, 30₪-60₪ לסדנאות, ו-300₪-600₪ לסופי שבוע מיוחדים."
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default FAQSection;
+--- End of Content for FAQSection.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\FeaturesSection.tsx
+--------------------------------------------------------------------------------
+Content:
+import React from "react";
+import FeatureCard from "../components/FeatureCard";
+import { Shield, Users, Heart, MessageCircle } from "lucide-react";
+
+const FeaturesSection: React.FC = () => {
+  return (
+    <section className="py-16 md:py-20 px-4 bg-white relative">
+      {/* Subtle background pattern */}
+      <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:20px_20px]"></div>
+
+      <div className="max-w-6xl mx-auto relative">
+        <div className="text-center mb-12 md:mb-16">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+            למה
+            <span
+              className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-cyan-700 animate-gradient"
+              style={{ backgroundSize: "200% 200%" }}
+            >
+              {" "}
+              לבחור{" "}
+            </span>
+            במערכת שלנו?
+          </h2>
+          <div className="w-24 h-1 bg-gradient-to-r from-cyan-600 to-cyan-700 mx-auto rounded-full" />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+          <FeatureCard
+            icon={<Shield className="w-8 h-8" />}
+            title="פרטיות מלאה"
+            description="שמירה קפדנית על פרטיות המשתמשים ואבטחת מידע מתקדמת"
+            color="cyan"
+          />
+          <FeatureCard
+            icon={<Users className="w-8 h-8" />}
+            title="התאמה מדויקת"
+            description="מערכת חכמה המתאימה בין מועמדים על בסיס ערכים ושאיפות משותפות"
+            color="green"
+          />
+          <FeatureCard
+            icon={<Heart className="w-8 h-8" />}
+            title="ליווי אישי"
+            description="צוות שדכנים מקצועי ומנוסה לאורך כל התהליך"
+            color="orange"
+          />
+          <FeatureCard
+            icon={<MessageCircle className="w-8 h-8" />}
+            title="תקשורת בטוחה"
+            description="פלטפורמה מאובטחת ליצירת קשר ראשוני בין המועמדים"
+            color="pink"
+          />
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default FeaturesSection;
+--- End of Content for FeaturesSection.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\FooterSection.tsx
+--------------------------------------------------------------------------------
+Content:
+import React from "react";
+import Link from "next/link";
+import { Heart } from "lucide-react";
+import { FooterLink, FooterItem } from "../components/FooterComponents";
+
+const FooterSection: React.FC = () => {
+  return (
+    <footer className="bg-gradient-to-br from-gray-900 to-gray-800 text-white py-12 md:py-16 px-4 relative overflow-hidden">
+      {/* Enhanced background effects */}
+      <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTAgMGg0MHY0MEgwVjB6bTEwIDEwaDIwdjIwSDEwVjEweiIvPjwvZz48L2c+PC9zdmc+')]"></div>
+
+      <div className="max-w-6xl mx-auto relative">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12">
+          <div className="md:col-span-1">
+            <Link href="/" className="flex items-center gap-2 group mb-6">
+              <div className="relative overflow-hidden rounded-full p-1 transition-all duration-300 group-hover:scale-110">
+                <Heart
+                  className="h-7 w-7 text-cyan-400 transition-all duration-300 group-hover:text-cyan-300"
+                  fill="#1e293b"
+                />
+              </div>
+              <span className="text-xl font-bold text-white group-hover:text-cyan-300 transition-all duration-300">
+                Match Point
+              </span>
+            </Link>
+
+            <p className="text-gray-400 mb-6">
+              משלבים טכנולוגיה מתקדמת וליווי אישי ליצירת קשרים משמעותיים ארוכי
+              טווח.
+            </p>
+
+            <div className="flex space-x-4 rtl:space-x-reverse">
+              <a
+                href="#"
+                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-cyan-600/20 transition-colors duration-300"
+              >
+                <svg
+                  className="w-5 h-5 text-white"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"
+                    clipRule="evenodd"
+                  ></path>
+                </svg>
+              </a>
+              <a
+                href="#"
+                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-cyan-400/20 transition-colors duration-300"
+              >
+                <svg
+                  className="w-5 h-5 text-white"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84"></path>
+                </svg>
+              </a>
+              <a
+                href="#"
+                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-gradient-to-br from-purple-600/20 to-pink-600/20 transition-colors duration-300"
+              >
+                <svg
+                  className="w-5 h-5 text-white"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.45 2.525c.636-.247 1.363-.416 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.467.182-.8.398-1.15.748-.35.35-.566.683-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.399.8.748 1.15.35.35.683.566 1.15.748.353.137.882.3 1.857.344 1.054.048 1.37.058 4.041.058h.08c2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.566-.683.748-1.15.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z"
+                    clipRule="evenodd"
+                  ></path>
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="font-bold text-xl mb-4 md:mb-6 relative">
+              <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-cyan-300">
+                ניווט מהיר
+              </span>
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-400/30 to-cyan-300/30" />
+            </h3>
+            <ul className="space-y-3 md:space-y-4">
+              <FooterLink href="/">דף הבית</FooterLink>
+              <FooterLink href="/about">אודות</FooterLink>
+              <FooterLink href="/faq">שאלות נפוצות</FooterLink>
+              <FooterLink href="/matches">שידוכים זמינים</FooterLink>
+              <FooterLink href="/success-stories">סיפורי הצלחה</FooterLink>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="font-bold text-xl mb-4 md:mb-6 relative">
+              <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-cyan-300">
+                מידע שימושי
+              </span>
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-400/30 to-cyan-300/30" />
+            </h3>
+            <ul className="space-y-3 md:space-y-4">
+              <FooterLink href="/privacy">פרטיות</FooterLink>
+              <FooterLink href="/terms">תנאי שימוש</FooterLink>
+              <FooterLink href="/help">עזרה ותמיכה</FooterLink>
+              <FooterLink href="/blog">בלוג</FooterLink>
+              <FooterLink href="/pricing">תוכניות ומחירים</FooterLink>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="font-bold text-xl mb-4 md:mb-6 relative">
+              <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-cyan-300">
+                יצירת קשר
+              </span>
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-400/30 to-cyan-300/30" />
+            </h3>
+            <ul className="space-y-3 md:space-y-4">
+              <FooterItem icon="📱" text="054-321-0040" />
+              <FooterItem icon="✉️" text="matchpoint.center@gmail.com" />
+              <FooterItem icon="📍" text="רעננה" />
+              <FooterItem icon="🕒" text="א'-ה' 9:00-18:00, ו' 9:00-13:00" />
+            </ul>
+          </div>
+        </div>
+
+        <div className="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-gray-700/50">
+          <div className="text-center">
+            <div className="mb-4">
+              <span className="inline-block px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/10 to-cyan-400/10 text-cyan-400 hover:from-cyan-500/20 hover:to-cyan-400/20 transition-colors duration-300">
+                מחברים לבבות בדרך הנכונה
+              </span>
+            </div>
+            <p className="text-gray-400">
+              © כל הזכויות שמורות Match Point 2025
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+};
+
+export default FooterSection;
+--- End of Content for FooterSection.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\HeroSection.tsx
+--------------------------------------------------------------------------------
+Content:
+import React, { useEffect, useState, useRef } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  ArrowLeft,
+  ClipboardList,
+  Heart,
+  Shield,
+  User,
+  BookOpen,
+  Users,
+  Sparkles,
+} from "lucide-react";
+import { Session } from "next-auth";
+
+interface HeroSectionProps {
+  session: Session | null;
+  isVisible: boolean;
+}
+
+const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
+  const [scrollY, setScrollY] = useState(0);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const puzzleContainerRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  // Handle scroll events for puzzle animation
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Track mouse movement for parallax effects
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (sectionRef.current) {
+        const { left, top, width, height } =
+          sectionRef.current.getBoundingClientRect();
+        const x = (e.clientX - left) / width;
+        const y = (e.clientY - top) / height;
+        setMousePosition({ x, y });
+      }
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
+
+  // Calculate puzzle animation based on scroll position
+  const getPuzzleAnimation = () => {
+    if (!puzzleContainerRef.current) return { progress: 0 };
+
+    const startPosition = 50; // Start animation earlier
+    const endPosition = 300;
+    const progress = Math.min(
+      Math.max((scrollY - startPosition) / (endPosition - startPosition), 0),
+      1
+    );
+
+    return { progress };
+  };
+
+  const puzzleAnim = getPuzzleAnimation();
+
+  // Calculate parallax positions based on mouse movement
+  const getParallaxStyle = (depth = 1) => {
+    // Disable parallax on mobile for better performance
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      return {};
+    }
+
+    const moveX = (mousePosition.x - 0.5) * 30 * depth;
+    const moveY = (mousePosition.y - 0.5) * 30 * depth;
+    return {
+      transform: `translate(${moveX}px, ${moveY}px)`,
+    };
+  };
+
+  // Animation variants for staggered elements
+  const getStaggerDelay = (index: number) => ({
+    transitionDelay: `${200 + index * 150}ms`,
+  });
+
+  return (
+    <section
+      ref={sectionRef}
+      className="relative min-h-screen pt-0 overflow-hidden flex flex-col -mt-0.25 w-full"
+    >
+      {/* Enhanced gradient background with animated gradient */}
+      <div
+        className="absolute inset-0 bg-gradient-to-br from-cyan-50 via-white to-pink-50 animate-gradient-slow"
+        style={{ backgroundSize: "400% 400%" }}
+      />
+
+      {/* Enhanced background patterns and effects */}
+      <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:20px_20px]"></div>
+
+      {/* Animated floating orbs with parallax effect - reduced on mobile */}
+      <div
+        className="absolute top-20 right-[15%] w-20 md:w-32 h-20 md:h-32 rounded-full bg-gradient-to-br from-cyan-200/20 to-cyan-300/10 animate-float-slow backdrop-blur-sm"
+        style={{
+          ...getParallaxStyle(0.5),
+          animationDuration: "15s",
+        }}
+      ></div>
+      <div
+        className="absolute -bottom-10 left-[10%] w-24 md:w-40 h-24 md:h-40 rounded-full bg-gradient-to-br from-pink-200/20 to-pink-300/10 animate-float-slow backdrop-blur-sm"
+        style={{
+          ...getParallaxStyle(0.3),
+          animationDuration: "18s",
+          animationDelay: "1s",
+        }}
+      ></div>
+      <div
+        className="absolute top-1/3 left-[20%] w-16 md:w-20 h-16 md:h-20 rounded-full bg-gradient-to-br from-cyan-200/20 to-cyan-300/10 animate-float-slow backdrop-blur-sm"
+        style={{
+          ...getParallaxStyle(0.7),
+          animationDuration: "12s",
+          animationDelay: "2s",
+        }}
+      ></div>
+      <div
+        className="absolute bottom-1/4 right-[20%] w-20 md:w-28 h-20 md:h-28 rounded-full bg-gradient-to-br from-pink-200/20 to-pink-300/10 animate-float-slow backdrop-blur-sm"
+        style={{
+          ...getParallaxStyle(0.4),
+          animationDuration: "20s",
+          animationDelay: "3s",
+        }}
+      ></div>
+
+      {/* Sacred geometry pattern for spiritual dimension */}
+      <div className="absolute inset-0 opacity-5 overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200%] aspect-square border-[1px] border-cyan-500/20 rounded-full"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] aspect-square border-[1px] border-pink-500/20 rounded-full"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100%] aspect-square border-[1px] border-cyan-500/20 rounded-full"></div>
+      </div>
+
+      <div className="relative w-full mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl flex flex-col">
+        {/* Mobile layout order: 1. Title */}
+        <div
+          className={`text-center mb-6 sm:mb-4 md:mb-[-50px] transition-all duration-1000 transform ${
+            isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
+          }`}
+          style={getStaggerDelay(0)}
+        >
+          <div className="inline-block mb-3">
+            <div className="flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500/10 to-pink-500/10 px-4 py-2 rounded-full">
+              <Heart className="h-4 w-4 text-pink-500 fill-pink-500 animate-pulse" />
+              <span className="text-sm font-medium text-gray-600">
+                שידוכים לציבור הדתי
+              </span>
+            </div>
+          </div>
+
+          <div className="relative w-full max-w-lg mx-auto">
+            <div className="h-1 bg-gradient-to-r from-cyan-500/30 to-pink-500/30 rounded-full"></div>
+          </div>
+        </div>
+
+        {/* Mobile layout: Different column order for mobile and desktop */}
+        <div className="flex flex-col lg:flex-row lg:grid lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-8 items-center">
+          {/* Mobile-first reordering */}
+          <div className="w-full lg:col-span-5 text-center lg:text-right mt-4 lg:mt-0 flex flex-col">
+            {/* Mobile layout order: 2. Buttons */}
+            <div className="order-1 lg:order-3">
+              {/* Questionnaire card */}
+              <div
+                className={`mb-6 transition-all duration-1000 transform ${
+                  isVisible
+                    ? "translate-y-0 opacity-100"
+                    : "translate-y-10 opacity-0"
+                }`}
+                style={getStaggerDelay(1)}
+              >
+                <Link href="/questionnaire">
+                  <Card className="group relative overflow-hidden border-none shadow-lg hover:shadow-xl transition-all duration-500 hover:-translate-y-2 rounded-xl max-w-md mx-auto lg:mr-0 lg:ml-auto">
+                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-50 via-white to-pink-50 opacity-80" />
+                    <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 via-pink-500/20 to-cyan-500/20 opacity-0 group-hover:opacity-100 rounded-xl blur-md transition-all duration-500" />
+                    <CardContent className="relative p-4 sm:p-6 flex items-center">
+                      <div className="relative p-3 sm:p-4 mr-3 sm:mr-5 rounded-full bg-gradient-to-r from-cyan-500 to-pink-500 shadow-lg group-hover:shadow-xl transition-all duration-500 group-hover:scale-110 overflow-hidden">
+                        {/* Inner shimmer effect */}
+                        <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
+                        <ClipboardList className="relative z-10 w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-base sm:text-lg font-bold text-gray-800 group-hover:text-cyan-700 transition-colors duration-300">
+                          שאלון התאמה
+                        </h3>
+                        <p className="text-xs sm:text-sm text-gray-600">
+                          מלא/י שאלון מקיף לקבלת הצעות שידוך מותאמות אישית
+                        </p>
+                      </div>
+                      <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6 mr-auto text-pink-500 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-500" />
+                    </CardContent>
+                  </Card>
+                </Link>
+              </div>
+
+              {/* Authentication buttons */}
+              <div
+                className={`transition-all duration-1000 transform ${
+                  isVisible
+                    ? "translate-y-0 opacity-100"
+                    : "translate-y-10 opacity-0"
+                }`}
+                style={getStaggerDelay(2)}
+              >
+                {!session ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-md mx-auto lg:mr-0 lg:ml-auto">
+                    <Link href="/auth/register" className="w-full">
+                      <Button
+                        size="lg"
+                        className="text-sm sm:text-base w-full md:text-lg px-4 sm:px-8 py-5 sm:py-6 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden"
+                      >
+                        {/* Button background shimmer effect */}
+                        <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full animate-shimmer"></span>
+
+                        <span className="relative z-10">הרשמה למערכת</span>
+                        <ArrowLeft className="relative z-10 mr-2 h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" />
+                      </Button>
+                    </Link>
+
+                    <Link href="/auth/signin" className="w-full">
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        className="text-sm sm:text-base w-full md:text-lg px-4 sm:px-8 py-5 sm:py-6 border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-300 rounded-full transition-all duration-300"
+                      >
+                        התחברות
+                      </Button>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="flex justify-center lg:justify-end">
+                    <Link href="/profile" className="w-full sm:w-auto">
+                      <Button
+                        size="lg"
+                        className="text-sm sm:text-base w-full md:text-lg px-4 sm:px-8 py-5 sm:py-6 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden"
+                      >
+                        {/* Button background shimmer effect */}
+                        <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full animate-shimmer"></span>
+
+                        <span className="relative z-10">לאזור האישי</span>
+                        <ArrowLeft className="relative z-10 mr-2 h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" />
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Mobile layout order: 4. Text content */}
+            <div
+              className={`order-3 lg:order-1 mt-6 lg:mt-0 transition-all duration-1000 transform ${
+                isVisible
+                  ? "translate-y-0 opacity-100"
+                  : "translate-y-10 opacity-0"
+              }`}
+              style={getStaggerDelay(4)}
+            >
+              <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 mb-6 md:mb-8 lg:mb-10 max-w-xl mx-auto lg:mr-0 lg:ml-auto leading-relaxed">
+                אנחנו שדכנים שעובדים ביחד עם{" "}
+                <span className="font-bold text-cyan-500">AI</span> ש
+                <span className="font-bold bg-gradient-to-r from-cyan-500 to-pink-500 text-transparent bg-clip-text">
+                  החלום שלנו זה להגשים לך את החלום
+                </span>{" "}
+                ולחבר אותך עם{" "}
+                <span className="font-bold text-cyan-500">
+                  בן או בת הזוג שלך
+                </span>{" "}
+                כמה שיותר מהר, כדי שתוכל/י לחיות את{" "}
+                <span className="font-bold text-pink-500">
+                  החיים שתמיד רצית
+                </span>
+                .
+                <br />
+                <span className="mt-2 inline-block font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-pink-500 animate-gradient">
+                  אז למה את/ה מחכה? קדימה בוא/י נתחיל!
+                </span>
+              </p>
+            </div>
+          </div>
+
+          {/* Central spacing column for larger screens */}
+          <div className="hidden lg:block lg:col-span-1"></div>
+
+          {/* Mobile layout order: 3. Puzzle Animation */}
+          <div
+            ref={puzzleContainerRef}
+            className={`order-2 w-full lg:col-span-6 relative h-[300px] sm:h-[400px] md:h-[500px] lg:h-[650px] transition-all duration-1000 transform ${
+              isVisible
+                ? "translate-y-0 opacity-100"
+                : "translate-y-10 opacity-0"
+            }`}
+            style={{ transitionDelay: "350ms" }}
+          >
+            {/* Modernized, more spiritual puzzle visualization */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="relative w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-2xl aspect-square">
+                {/* Sacred geometry background elements - simplified on mobile */}
+                <div className="absolute inset-0 flex items-center justify-center opacity-20">
+                  <div className="w-full h-full border-[1px] border-dashed border-gray-400 rounded-full animate-spin-slow"></div>
+                  <div className="absolute w-3/4 h-3/4 border-[1px] border-dashed border-gray-400 rounded-full animate-spin-reverse-slow"></div>
+                </div>
+
+                {/* Left Piece (Tradition) - Smaller on mobile */}
+                <div
+                  className="absolute top-1/2 left-1/4 transform -translate-y-1/2 -translate-x-1/2 transition-all duration-700 ease-out"
+                  style={{
+                    transform: `translate(calc(-50% + ${
+                      puzzleAnim.progress * 50
+                    }px), -50%)`,
+                  }}
+                >
+                  <div className="relative">
+                    <div className="w-36 h-36 sm:w-48 sm:h-48 md:w-72 md:h-72 lg:w-96 lg:h-96 rounded-3xl bg-gradient-to-br from-cyan-400 to-cyan-600 shadow-xl flex items-center justify-center transform -rotate-3 hover:rotate-0 transition-transform duration-500">
+                      {/* Background pattern */}
+                      <div className="absolute inset-0 overflow-hidden rounded-3xl opacity-10">
+                        <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJ3aGl0ZSIgZmlsbC1vcGFjaXR5PSIwLjIiIGZpbGwtcnVsZT0iZXZlbm9kZCI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iNCIvPjwvZz48L3N2Zz4=')]"></div>
+                      </div>
+
+                      {/* Inner glow */}
+                      <div className="absolute inset-4 bg-cyan-300/20 rounded-2xl filter blur-md"></div>
+
+                      {/* Connector - enhanced with depth */}
+                      <div className="absolute right-0 top-1/2 transform translate-x-1/4 -translate-y-1/2 w-8 sm:w-12 md:w-16 h-20 sm:h-28 md:h-40 overflow-visible z-10">
+                        <div className="absolute inset-0 bg-cyan-500 rounded-l-2xl shadow-lg"></div>
+                        <div className="absolute top-1/2 right-0 transform translate-x-1/2 -translate-y-1/2 w-7 sm:w-10 md:w-14 h-7 sm:h-10 md:h-14 bg-white rounded-full border-4 sm:border-8 border-cyan-500/80 shadow-lg z-20"></div>
+                      </div>
+
+                      {/* Content */}
+                      <div className="relative flex flex-col items-center justify-center p-2 sm:p-3 md:p-5 mr-3 sm:mr-4 md:mr-6 z-10">
+                        {/* Traditional symbols */}
+                        <div className="absolute opacity-10 inset-0 flex items-center justify-center">
+                          <svg
+                            width="70"
+                            height="70"
+                            viewBox="0 0 100 100"
+                            className="text-white/30 fill-current"
+                          >
+                            <path d="M50,10 L90,90 L10,90 Z" />
+                          </svg>
+                        </div>
+
+                        <span className="text-white text-lg sm:text-2xl md:text-4xl lg:text-5xl font-bold drop-shadow-md mb-1 sm:mb-2 md:mb-4">
+                          מסורת
+                        </span>
+                        <p className="text-cyan-100 text-xs sm:text-sm md:text-base lg:text-lg text-center mb-2 md:mb-5">
+                          ערכים, משפחה ומורשת
+                        </p>
+                        <div className="mt-1 sm:mt-2 flex flex-wrap justify-center gap-1 sm:gap-2">
+                          <span className="px-2 py-0.5 sm:px-3 sm:py-1 bg-white/20 rounded-full text-xs sm:text-sm text-white">
+                            קהילה
+                          </span>
+                          <span className="px-2 py-0.5 sm:px-3 sm:py-1 bg-white/20 rounded-full text-xs sm:text-sm text-white">
+                            ערכים
+                          </span>
+                          <span className="px-2 py-0.5 sm:px-3 sm:py-1 bg-white/20 rounded-full text-xs sm:text-sm text-white">
+                            אמונה
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Piece (Technology) */}
+                <div
+                  className="absolute top-1/2 right-1/4 transform -translate-y-1/2 translate-x-1/2 transition-all duration-700 ease-out"
+                  style={{
+                    transform: `translate(calc(50% - ${
+                      puzzleAnim.progress * 50
+                    }px), -50%)`,
+                  }}
+                >
+                  <div className="relative">
+                    <div className="w-36 h-36 sm:w-48 sm:h-48 md:w-72 md:h-72 lg:w-96 lg:h-96 rounded-3xl bg-gradient-to-br from-pink-400 to-pink-600 shadow-xl flex items-center justify-center transform rotate-3 hover:rotate-0 transition-transform duration-500">
+                      {/* Background pattern */}
+                      <div className="absolute inset-0 overflow-hidden rounded-3xl opacity-10">
+                        <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJ3aGl0ZSIgZmlsbC1vcGFjaXR5PSIwLjIiIGZpbGwtcnVsZT0iZXZlbm9kZCI+PHBhdGggZD0iTTIwIDIwaDIwdjIwSDIweiIvPjwvZz48L3N2Zz4=')]"></div>
+                      </div>
+
+                      {/* Inner glow */}
+                      <div className="absolute inset-4 bg-pink-300/20 rounded-2xl filter blur-md"></div>
+
+                      {/* Connector - enhanced with depth */}
+                      <div className="absolute left-0 top-1/2 transform -translate-x-1/4 -translate-y-1/2 w-8 sm:w-12 md:w-16 h-20 sm:h-28 md:h-40 overflow-visible z-10">
+                        <div className="absolute inset-0 bg-pink-500 rounded-r-2xl shadow-lg"></div>
+                        <div className="absolute top-1/2 left-0 transform -translate-x-1/2 -translate-y-1/2 w-7 sm:w-10 md:w-14 h-7 sm:h-10 md:h-14 bg-white rounded-full border-4 sm:border-8 border-pink-500/80 shadow-lg z-20"></div>
+                      </div>
+
+                      {/* Content */}
+                      <div className="relative flex flex-col items-center justify-center p-2 sm:p-3 md:p-5 ml-3 sm:ml-4 md:ml-6 z-10">
+                        {/* Tech symbols */}
+                        <div className="absolute opacity-10 inset-0 flex items-center justify-center">
+                          <svg
+                            width="70"
+                            height="70"
+                            viewBox="0 0 100 100"
+                            className="text-white/30 fill-current"
+                          >
+                            <circle cx="50" cy="50" r="40" />
+                          </svg>
+                        </div>
+
+                        <span className="text-white text-lg sm:text-2xl md:text-4xl lg:text-5xl font-bold drop-shadow-md mb-1 sm:mb-2 md:mb-4">
+                          טכנולוגיה
+                        </span>
+                        <p className="text-pink-100 text-xs sm:text-sm md:text-base lg:text-lg text-center mb-2 md:mb-5">
+                          חדשנות, יעילות ודיוק
+                        </p>
+                        <div className="mt-1 sm:mt-2 flex flex-wrap justify-center gap-1 sm:gap-2">
+                          <span className="px-2 py-0.5 sm:px-3 sm:py-1 bg-white/20 rounded-full text-xs sm:text-sm text-white">
+                            AI
+                          </span>
+                          <span className="px-2 py-0.5 sm:px-3 sm:py-1 bg-white/20 rounded-full text-xs sm:text-sm text-white">
+                            התאמה
+                          </span>
+                          <span className="px-2 py-0.5 sm:px-3 sm:py-1 bg-white/20 rounded-full text-xs sm:text-sm text-white">
+                            פרטיות
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Connection Animation */}
+                <div
+                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-30"
+                  style={{
+                    opacity: puzzleAnim.progress,
+                    scale: 0.5 + puzzleAnim.progress * 1.2,
+                    transition: "opacity 0.7s ease-out, scale 0.7s ease-out",
+                  }}
+                >
+                  {/* Connection Effects */}
+                  <div className="relative">
+                    {/* Glow effect */}
+                    <div
+                      className="absolute inset-0 rounded-full bg-white"
+                      style={{
+                        filter: `blur(${8 + puzzleAnim.progress * 10}px)`,
+                        opacity: 0.8,
+                      }}
+                    ></div>
+
+                    {/* Particles - reduced count on mobile */}
+                    <div className="absolute inset-0">
+                      <div
+                        className="absolute top-1/2 left-1/2 w-2 h-2 sm:w-3 sm:h-3 bg-cyan-400 rounded-full animate-ping"
+                        style={{
+                          animationDuration: "1.5s",
+                          marginTop: "-5px",
+                          marginLeft: "-10px",
+                        }}
+                      ></div>
+                      <div
+                        className="absolute top-1/2 left-1/2 w-2 h-2 sm:w-3 sm:h-3 bg-pink-400 rounded-full animate-ping"
+                        style={{
+                          animationDuration: "1.8s",
+                          marginTop: "5px",
+                          marginLeft: "10px",
+                        }}
+                      ></div>
+                    </div>
+
+                    {/* Connected message */}
+                    <div className="relative bg-gradient-to-r from-cyan-500 to-pink-500 text-white px-3 sm:px-6 py-2 sm:py-3 rounded-full shadow-lg whitespace-nowrap flex items-center gap-1 sm:gap-2">
+                      <Heart className="w-3 h-3 sm:w-5 sm:h-5 fill-white animate-pulse" />
+                      <span className="font-bold text-sm sm:text-lg md:text-xl">
+                        החיבור המושלם
+                      </span>
+                    </div>
+
+                    {/* Ring effect around connection - smaller on mobile */}
+                    <div
+                      className="absolute -inset-2 sm:-inset-4 border-2 border-white/20 rounded-full animate-ping"
+                      style={{ animationDuration: "3s" }}
+                    ></div>
+                    <div
+                      className="absolute -inset-4 sm:-inset-8 border-2 border-white/10 rounded-full animate-ping"
+                      style={{ animationDuration: "4s" }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Trust indicators */}
+        <div
+          className={`mt-6 sm:mt-8 transition-all duration-1000 transform ${
+            isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
+          }`}
+          style={getStaggerDelay(5)}
+        >
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:flex lg:flex-wrap lg:flex-row items-center justify-between gap-3 sm:gap-4 bg-white/40 backdrop-blur-sm py-4 sm:py-5 px-4 sm:px-8 rounded-2xl shadow-lg">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 sm:p-2 rounded-full bg-cyan-100">
+                <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-cyan-600" />
+              </div>
+              <div>
+                <span className="font-semibold text-sm sm:text-base text-cyan-600">
+                  100%
+                </span>
+                <br />
+                <span className="text-xs sm:text-sm text-gray-600">
+                  אבטחת פרטיות
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 sm:p-2 rounded-full bg-pink-100">
+                <Heart className="h-4 w-4 sm:h-5 sm:w-5 text-pink-500" />
+              </div>
+              <div>
+                <span className="font-semibold text-sm sm:text-base text-pink-500">
+                  50+
+                </span>
+                <br />
+                <span className="text-xs sm:text-sm text-gray-600">
+                  מדדי תאימות
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 sm:p-2 rounded-full bg-cyan-100">
+                <User className="h-4 w-4 sm:h-5 sm:w-5 text-cyan-600" />
+              </div>
+              <div>
+                <span className="font-semibold text-sm sm:text-base text-cyan-600">
+                  24/6
+                </span>
+                <br />
+                <span className="text-xs sm:text-sm text-gray-600">
+                  ליווי אישי
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 sm:p-2 rounded-full bg-pink-100">
+                <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-pink-500" />
+              </div>
+              <div>
+                <span className="font-semibold text-sm sm:text-base text-pink-500">
+                  20+
+                </span>
+                <br />
+                <span className="text-xs sm:text-sm text-gray-600">
+                  שת״פ עם קהילות
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 sm:p-2 rounded-full bg-cyan-100">
+                <Users className="h-4 w-4 sm:h-5 sm:w-5 text-cyan-600" />
+              </div>
+              <div>
+                <span className="font-semibold text-sm sm:text-base text-cyan-600">
+                  מקצועי
+                </span>
+                <br />
+                <span className="text-xs sm:text-sm text-gray-600">
+                  צוות שדכנים
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 sm:p-2 rounded-full bg-pink-100">
+                <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-pink-500" />
+              </div>
+              <div>
+                <span className="font-semibold text-sm sm:text-base text-pink-500">
+                  מושלם
+                </span>
+                <br />
+                <span className="text-xs sm:text-sm text-gray-600">
+                  מסורת וחדשנות
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// Add these animations to your global CSS or tailwind config:
+//
+// .animate-float-slow {
+//   animation: float 6s ease-in-out infinite;
+// }
+// @keyframes float {
+//   0%, 100% { transform: translateY(0); }
+//   50% { transform: translateY(-20px); }
+// }
+//
+// .animate-gradient-slow {
+//   animation: gradient-anim 15s ease infinite;
+// }
+// @keyframes gradient-anim {
+//   0% { background-position: 0% 50%; }
+//   50% { background-position: 100% 50%; }
+//   100% { background-position: 0% 50%; }
+// }
+//
+// .animate-spin-slow {
+//   animation: spin 20s linear infinite;
+// }
+// @keyframes spin {
+//   from { transform: rotate(0deg); }
+//   to { transform: rotate(360deg); }
+// }
+//
+// .animate-spin-reverse-slow {
+//   animation: spin-reverse 15s linear infinite;
+// }
+// @keyframes spin-reverse {
+//   from { transform: rotate(360deg); }
+//   to { transform: rotate(0deg); }
+// }
+//
+// .animate-shimmer {
+//   animation: shimmer 2.5s infinite;
+// }
+// @keyframes shimmer {
+//   100% { transform: translateX(100%); }
+// }
+//
+// .animate-gradient {
+//   animation: gradient-text 3s ease infinite;
+// }
+// @keyframes gradient-text {
+//   0%, 100% { background-position: 0% 50%; }
+//   50% { background-position: 100% 50%; }
+// }
+
+export default HeroSection;
+--- End of Content for HeroSection.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\HowItWorksSection.tsx
+--------------------------------------------------------------------------------
+Content:
+import React from "react";
+import Step from "../components/Step";
+
+const HowItWorksSection: React.FC = () => {
+  return (
+    <section className="py-16 md:py-20 px-4 bg-white relative overflow-hidden">
+      {/* Enhanced background effects */}
+      <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:20px_20px]"></div>
+
+      <div className="relative max-w-4xl mx-auto">
+        <div className="text-center mb-12 md:mb-16">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+            <span
+              className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-cyan-700 animate-gradient"
+              style={{ backgroundSize: "200% 200%" }}
+            >
+              איך זה{" "}
+            </span>
+            עובד?
+          </h2>
+          <div className="w-24 h-1 bg-gradient-to-r from-cyan-600 to-cyan-700 mx-auto rounded-full" />
+        </div>
+
+        <div className="space-y-12 md:space-y-16 lg:space-y-20">
+          <Step
+            number="1"
+            title="הרשמה למערכת"
+            description="מילוי פרופיל אישי מפורט והגדרת העדפות לחיפוש לאחר תהליך רישום פשוט וידידותי"
+            color="cyan"
+          />
+
+          <Step
+            number="2"
+            title="שאלון ערכים מקיף"
+            description="מיפוי אישיות, רקע משפחתי ומסורות, והשקפות עולם שיאפשרו למערכת להכיר אותך לעומק"
+            color="green"
+          />
+
+          <Step
+            number="3"
+            title="שיפור פרופיל בעזרת AI"
+            description="המערכת מציעה שאלות ממוקדות להרחבת הפרופיל ומספקת תובנות להדגשת האיכויות הייחודיות שלך"
+            color="orange"
+          />
+
+          <Step
+            number="4"
+            title="סקירה אישית של שדכן"
+            description="שדכן מקצועי סוקר את הפרופיל שלך באופן אישי, מוסיף הערות והמלצות, ומכין אסטרטגיית התאמה מותאמת"
+            color="pink"
+          />
+
+          <Step
+            number="5"
+            title="ניתוח התאמה חכם"
+            description="האלגוריתם מנתח עשרות אלפי פרופילים לפי 27 ממדי התאמה ומייצר רשימת מועמדים פוטנציאליים"
+            color="cyan"
+          />
+
+          <Step
+            number="6"
+            title="התאמה אישית מהשדכן"
+            description="השדכן בוחר את ההתאמות האופטימליות מתוך הצעות האלגוריתם, תוך שקילת גורמי התאמה מעודנים"
+            color="green"
+          />
+
+          <Step
+            number="7"
+            title="הצעת התאמה וקבלת משוב"
+            description="הצגת הצעת ההתאמה, איסוף משוב מפורט במקרה של דחייה, ולמידה מתמדת לשיפור התאמות עתידיות"
+            color="orange"
+          />
+
+          <Step
+            number="8"
+            title="יצירת קשר ראשוני"
+            description="תקשורת מאובטחת וליווי מהשדכן המקצועי לאורך כל שלבי ההיכרות הראשונית"
+            color="pink"
+          />
+
+          <Step
+            number="9"
+            title="בניית קשר משמעותי"
+            description="ליווי מקצועי לאורך התהליך עד ליצירת הקשר המיוחל והמשמעותי"
+            isLast={true}
+            color="cyan"
+          />
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default HowItWorksSection;
+--- End of Content for HowItWorksSection.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\MatchmakerTeamSection.tsx
+--------------------------------------------------------------------------------
+Content:
+import React from "react";
+import Image from "next/image";
+
+// עדכון רכיב הכרטיס עם תצוגה מרכזית ומקצועית
+interface MatchmakerCardProps {
+  name: string;
+  role: string;
+  description: string;
+  tags: string[];
+  color: string;
+  imageSrc?: string;
+}
+
+const MatchmakerCard: React.FC<MatchmakerCardProps> = ({
+  name,
+  role,
+  description,
+  tags,
+  color,
+  imageSrc,
+}) => {
+  const getGradientByColor = () => {
+    switch (color) {
+      case "cyan":
+        return "from-cyan-500 to-cyan-700";
+      case "green":
+        return "from-teal-500 to-teal-700";
+      default:
+        return "from-cyan-500 to-cyan-700";
+    }
+  };
+
+  const getButtonColorByColor = () => {
+    switch (color) {
+      case "cyan":
+        return "bg-cyan-600 hover:bg-cyan-700";
+      case "green":
+        return "bg-teal-600 hover:bg-teal-700";
+      default:
+        return "bg-cyan-600 hover:bg-cyan-700";
+    }
+  };
+
+  const getTagColorByColor = () => {
+    switch (color) {
+      case "cyan":
+        return "bg-cyan-100 text-cyan-800";
+      case "green":
+        return "bg-teal-100 text-teal-800";
+      default:
+        return "bg-cyan-100 text-cyan-800";
+    }
+  };
+
+  return (
+    <div className="rounded-xl shadow-lg overflow-hidden bg-white border border-gray-100 flex flex-col h-full transition-all duration-300 hover:shadow-xl">
+      <div className="p-8 flex flex-col items-center">
+        {/* תמונה מעוגלת */}
+        <div className="w-48 h-48 mb-6 overflow-hidden rounded-full border-4 border-white shadow-md relative">
+          {imageSrc ? (
+            <Image
+              src={imageSrc}
+              alt={name}
+              fill
+              sizes="(max-width: 768px) 100vw, 192px"
+              className="object-cover object-center"
+              priority
+            />
+          ) : (
+            <div
+              className={`h-full w-full flex items-center justify-center bg-gradient-to-br ${getGradientByColor()}`}
+            >
+              <span className="text-white text-6xl font-bold opacity-30">
+                {name.charAt(0)}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* פרטי השדכן */}
+        <h3 className="text-2xl font-bold text-gray-800 mb-1 text-center">
+          {name}
+        </h3>
+        <p
+          className={`text-lg font-medium mb-4 text-transparent bg-clip-text bg-gradient-to-r ${getGradientByColor()} text-center`}
+        >
+          {role}
+        </p>
+
+        {/* תגיות התמחות */}
+        <div className="flex flex-wrap gap-2 justify-center mb-5">
+          {tags.map((tag, index) => (
+            <span
+              key={index}
+              className={`text-sm px-3 py-1 rounded-full ${getTagColorByColor()}`}
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+
+        {/* תיאור */}
+        <p className="text-gray-600 mb-6 text-center leading-relaxed">
+          {description}
+        </p>
+
+        {/* כפתור */}
+        <button
+          className={`px-8 py-3 rounded-lg text-white ${getButtonColorByColor()} transition-colors duration-300 font-medium`}
+        >
+          קבע פגישה
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const MatchmakerTeamSection: React.FC = () => {
+  return (
+    <section className="py-16 md:py-24 px-4 bg-gradient-to-b from-blue-50 to-white relative overflow-hidden">
+      {/* רקע דקורטיבי */}
+      <div className="absolute top-0 left-0 w-64 h-64 bg-cyan-100/30 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-100/30 rounded-full blur-3xl"></div>
+
+      <div className="max-w-6xl mx-auto relative">
+        {/* כותרת מרכזית */}
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+            הכירו את
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-teal-600">
+              {" "}
+              המייסדים{" "}
+            </span>
+            שלנו
+          </h2>
+          <div className="w-32 h-1 bg-gradient-to-r from-cyan-500 to-teal-500 mx-auto rounded-full mb-6" />
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            המייסדים שלנו מביאים ניסיון עשיר וגישה ייחודית לעולם השידוכים,
+            בשילוב טכנולוגיה מתקדמת וראייה אישית
+          </p>
+        </div>
+
+        {/* כרטיסי השדכנים */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-12 max-w-5xl mx-auto">
+          <MatchmakerCard
+            name="דינה אנגלרד"
+            role="שדכנית ראשית"
+            description="עם ניסיון של 8 שנים בתחום השידוכים, דינה מביאה כישורים בינאישיים יוצאי דופן והבנה עמוקה של צרכי המועמדים. הגישה האישית והאמפתית שלה יצרה עשרות זוגות מאושרים והיא מלווה כל מועמד בדרך מותאמת אישית."
+            color="cyan"
+            tags={["מומחית התאמה", "ליווי אישי", "2+ שנות ניסיון"]}
+            imageSrc="/images/team/dina4.jpg"
+          />
+          <MatchmakerCard
+            name="איתן אנגלרד"
+            role="מייסד ומנכ״ל"
+            description="יזם טכנולוגי עם התמחות בשידוכים. איתן פיתח את פלטפורמת התוכנה הייחודית שלנו ומשלב ידע טכנולוגי עם הבנה עמוקה של פסיכולוגיה חברתית. הגישה החדשנית שלו יצרה את השיטה הייחודית שמאפיינת את המשרד שלנו."
+            color="green"
+            tags={["חדשנות טכנולוגית", "אלגוריתם התאמה", "יזמות"]}
+            imageSrc="/images/team/eitan.jpg"
+          />
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default MatchmakerTeamSection;
+--- End of Content for MatchmakerTeamSection.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\PrivacyAssuranceSection.tsx
+--------------------------------------------------------------------------------
+Content:
+import React from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { CheckCircle, Lock } from "lucide-react";
+
+const PrivacyAssuranceSection: React.FC = () => {
+  return (
+    <section className="py-16 md:py-20 px-4 bg-gradient-to-br from-cyan-600 to-cyan-700 text-white relative overflow-hidden">
+      <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgdmlld0JveD0iMCAwIDIwIDIwIj48Y2lyY2xlIGN4PSIxMCIgY3k9IjEwIiByPSIxIiBmaWxsPSIjZmZmZmZmIi8+PC9zdmc+')]"></div>
+
+      <div className="absolute top-0 left-0 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 right-0 w-60 h-60 bg-white/10 rounded-full blur-3xl"></div>
+
+      <div className="max-w-5xl mx-auto relative">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+          <div>
+            <div className="mb-8 text-center">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
+                הפרטיות שלך חשובה לנו
+              </h2>
+              <div className="w-24 h-1 bg-white/30 rounded-full mb-6 mx-auto"></div>
+              <p className="text-lg text-white/90 mb-6 mx-auto max-w-md">
+                בעולם השידוכים, הדיסקרטיות והפרטיות הן קריטיות. ב-Match Point
+                פיתחנו מערכת שמתעדפת את האבטחה והפרטיות שלך בכל שלב.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-start">
+                <div className="bg-white/20 rounded-full p-2 mr-3 mt-1">
+                  <CheckCircle className="w-4 h-4 text-white" />
+                </div>
+                <p className="text-white/90">
+                  פרופילים גלויים רק לשדכנים מורשים, מבטיחים דיסקרטיות מלאה
+                </p>
+              </div>
+
+              <div className="flex items-start">
+                <div className="bg-white/20 rounded-full p-2 mr-3 mt-1">
+                  <CheckCircle className="w-4 h-4 text-white" />
+                </div>
+                <p className="text-white/90">
+                  הצפנת מידע מקצה לקצה להגנה על כל הנתונים האישיים
+                </p>
+              </div>
+
+              <div className="flex items-start">
+                <div className="bg-white/20 rounded-full p-2 mr-3 mt-1">
+                  <CheckCircle className="w-4 h-4 text-white" />
+                </div>
+                <p className="text-white/90">
+                  בדיקות אבטחה קבועות וביקורות חיצוניות לוודא עמידה בסטנדרטים
+                  המחמירים ביותר
+                </p>
+              </div>
+
+              <div className="flex items-start">
+                <div className="bg-white/20 rounded-full p-2 mr-3 mt-1">
+                  <CheckCircle className="w-4 h-4 text-white" />
+                </div>
+                <p className="text-white/90">
+                  מדיניות אפס-שיתוף - המידע שלך לעולם לא נמכר או משותף עם צדדים
+                  שלישיים
+                </p>
+              </div>
+
+              <div className="flex items-start">
+                <div className="bg-white/20 rounded-full p-2 mr-3 mt-1">
+                  <CheckCircle className="w-4 h-4 text-white" />
+                </div>
+                <p className="text-white/90">
+                  יכולת שליטה מלאה בנתונים שלך בכל עת
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-center">
+            <div className="relative max-w-sm">
+              <div className="absolute inset-0 bg-white/10 rounded-2xl blur-lg transform rotate-6"></div>
+              <div className="relative bg-white/20 backdrop-blur-sm p-8 rounded-2xl border border-white/30">
+                <div className="w-16 h-16 mx-auto mb-6 bg-white/30 rounded-full flex items-center justify-center">
+                  <Lock className="w-8 h-8 text-white" />
+                </div>
+
+                <h3 className="text-xl font-bold mb-4 text-center">
+                  הבטחת הפרטיות שלנו
+                </h3>
+
+                <p className="text-white/90 text-center mb-6">
+                אנו מתחייבים לשמור על הפרטיות והכבוד של כל משתמש במערכת
+                  שלנו, תוך יצירת סביבה בטוחה ומכבדת למציאת הזיווג המושלם
+                </p>
+
+                <div className="text-center">
+                  <Link href="/privacy">
+                    <Button
+                      variant="outline"
+                      className="border-2 border-white/50 bg-white text-cyan-600 hover:bg-white/90 transition-all duration-300 rounded-xl"
+                    >
+                      קראו את מדיניות הפרטיות
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default PrivacyAssuranceSection;
+--- End of Content for PrivacyAssuranceSection.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\SuccessStoriesSection.tsx
+--------------------------------------------------------------------------------
+Content:
+import React from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import TestimonialCard from "../components/TestimonialCard";
+
+const SuccessStoriesSection: React.FC = () => {
+  return (
+    <section className="py-16 md:py-20 px-4 relative">
+      {/* Subtle background pattern */}
+      <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:20px_20px]"></div>
+
+      <div className="max-w-6xl mx-auto relative">
+        <div className="text-center mb-12 md:mb-16">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+            סיפורי
+            <span
+              className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-cyan-700 animate-gradient"
+              style={{ backgroundSize: "200% 200%" }}
+            >
+              {" "}
+              הצלחה{" "}
+            </span>
+          </h2>
+          <div className="w-24 h-1 bg-gradient-to-r from-cyan-600 to-cyan-700 mx-auto rounded-full" />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+          <TestimonialCard
+            text="בזכות Match Point הכרתי את בן זוגי. ההתאמה הייתה מדויקת מעבר למה שציפיתי! הליווי המקצועי של דינה היה חם ורגיש לאורך כל התהליך."
+            author="רחל, ירושלים"
+            result="נשואה 8 חודשים"
+            color="cyan"
+          />
+          <TestimonialCard
+            text="אחרי שניסיתי כמה אפליקציות היכרויות רגילות, השדכנית שליוותה אותי ב-Match Point הבינה בדיוק מה אני מחפש והצליחה להתאים לי את שידוך חיי"
+            author="משה, בני ברק"
+            result="מאורס"
+            color="orange"
+          />
+          <TestimonialCard
+            text="המערכת עזרה לי למצוא את האחת בצורה צנועה ומכבדת. ממליץ בחום לכל מי שרציני לגבי מציאת זיווג אמיתי שמתאים לערכים שלו!"
+            author="דוד, פתח תקווה"
+            result="נשוי שנה וחצי"
+            color="green"
+          />
+        </div>
+
+        <div className="mt-12 text-center">
+          <Link href="/success-stories">
+            <Button
+              variant="outline"
+              className="border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-300 transition-all duration-300 rounded-xl group"
+            >
+              <span>לעוד סיפורי הצלחה</span>
+              <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default SuccessStoriesSection;
+--- End of Content for SuccessStoriesSection.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\ValuePropositionSection.tsx
+--------------------------------------------------------------------------------
+Content:
+import React from "react";
+import ComparisonItem from "../components/ComparisonItem";
+
+const ValuePropositionSection: React.FC = () => {
+  return (
+    <section className="py-16 md:py-20 px-4 bg-cyan-50 relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-cyan-50 to-white opacity-70"></div>
+      <div className="absolute top-0 right-0 w-full h-full overflow-hidden">
+        <svg
+          className="absolute right-0 top-0 h-full opacity-10"
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+        >
+          <path
+            d="M0,0 C40,100 60,100 100,0 L100,100 L0,100 Z"
+            fill="url(#grad2)"
+          ></path>
+          <defs>
+            <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#06b6d4" />
+              <stop offset="100%" stopColor="#22d3ee" />
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+
+      <div className="max-w-6xl mx-auto relative">
+        <div className="text-center mb-12">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+            מה הופך את
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-cyan-700">
+              {" "}
+              Match Point{" "}
+            </span>
+            לייחודית?
+          </h2>
+          <div className="w-24 h-1 bg-gradient-to-r from-cyan-600 to-cyan-700 mx-auto rounded-full mb-6" />
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            השילוב המושלם בין טכנולוגיה מתקדמת לבין הנגיעה האנושית והמסורתית
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+          <div className="bg-white rounded-2xl shadow-xl p-8 transform md:translate-x-4 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-cyan-100 to-cyan-50 opacity-50 rounded-full transform translate-x-20 -translate-y-20"></div>
+
+            <h3 className="text-xl font-bold mb-4 text-gray-800 relative">
+              האתגר במערכות קיימות
+            </h3>
+
+            <ul className="space-y-3 relative">
+              <ComparisonItem isNegative>
+                חוסר פרטיות ודיסקרטיות באפליקציות היכרויות רגילות
+              </ComparisonItem>
+              <ComparisonItem isNegative>
+                פתרונות שאינם מותאמים לערכי הקהילה המסורתית והדתית
+              </ComparisonItem>
+              <ComparisonItem isNegative>
+                שיעור גבוה של אכזבות וחוסר התאמה אמיתית
+              </ComparisonItem>
+              <ComparisonItem isNegative>
+                מוגבלות לחוגים חברתיים קיימים בלבד
+              </ComparisonItem>
+              <ComparisonItem isNegative>
+                שדכנים מסורתיים: עלויות גבוהות, רשת קשרים מוגבלת ותהליך ממושך
+              </ComparisonItem>
+            </ul>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-xl p-8 transform md:-translate-x-4 relative overflow-hidden">
+            <div className="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-br from-cyan-100 to-cyan-50 opacity-50 rounded-full transform -translate-x-20 translate-y-20"></div>
+
+            <h3 className="text-xl font-bold mb-4 text-gray-800 relative">
+              הפתרון של Match Point
+            </h3>
+
+            <ul className="space-y-3 relative">
+              <ComparisonItem>
+                יעילות ומידה לקנה: שדכנים מנהלים פי 7 יותר לקוחות בעזרת
+                הטכנולוגיה שלנו
+              </ComparisonItem>
+              <ComparisonItem>
+                ליווי אנושי: הדרכה אישית משדכנים מקצועיים לאורך כל התהליך
+              </ComparisonItem>
+              <ComparisonItem>
+                התאמה מדויקת יותר: אלגוריתם AI עם 27 ממדי התאמה
+              </ComparisonItem>
+              <ComparisonItem>
+                פרטיות מלאה: פרופילים נראים רק לשדכנים מורשים
+              </ComparisonItem>
+              <ComparisonItem>
+                מחוייבות לערכים: מערכת המכבדת את המסורת תוך שימוש בטכנולוגיה
+                מתקדמת
+              </ComparisonItem>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default ValuePropositionSection;
+--- End of Content for ValuePropositionSection.tsx ---
+
