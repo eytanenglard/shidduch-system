@@ -21,9 +21,10 @@ interface HeroSectionProps {
 
 const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
   const [scrollY, setScrollY] = useState(0);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  // Mouse position state is kept in case we want to re-introduce subtle parallax later
+  // const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const puzzleContainerRef = useRef<HTMLDivElement>(null);
-  const sectionRef = useRef<HTMLElement>(null);
+  // const sectionRef = useRef<HTMLElement>(null); // Kept for potential future use
 
   // Handle scroll events for puzzle animation
   useEffect(() => {
@@ -35,21 +36,21 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Track mouse movement for parallax effects
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (sectionRef.current) {
-        const { left, top, width, height } =
-          sectionRef.current.getBoundingClientRect();
-        const x = (e.clientX - left) / width;
-        const y = (e.clientY - top) / height;
-        setMousePosition({ x, y });
-      }
-    };
+  // Track mouse movement for parallax effects - Disabling for now to simplify
+  // useEffect(() => {
+  //   const handleMouseMove = (e: MouseEvent) => {
+  //     if (sectionRef.current) {
+  //       const { left, top, width, height } =
+  //         sectionRef.current.getBoundingClientRect();
+  //       const x = (e.clientX - left) / width;
+  //       const y = (e.clientY - top) / height;
+  //       setMousePosition({ x, y });
+  //     }
+  //   };
 
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, []);
+  //   window.addEventListener("mousemove", handleMouseMove);
+  //   return () => window.removeEventListener("mousemove", handleMouseMove);
+  // }, []);
 
   // Calculate puzzle animation based on scroll position
   const getPuzzleAnimation = () => {
@@ -67,19 +68,17 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
 
   const puzzleAnim = getPuzzleAnimation();
 
-  // Calculate parallax positions based on mouse movement
-  const getParallaxStyle = (depth = 1) => {
-    // Disable parallax on mobile for better performance
-    if (typeof window !== "undefined" && window.innerWidth < 768) {
-      return {};
-    }
-
-    const moveX = (mousePosition.x - 0.5) * 30 * depth;
-    const moveY = (mousePosition.y - 0.5) * 30 * depth;
-    return {
-      transform: `translate(${moveX}px, ${moveY}px)`,
-    };
-  };
+  // Calculate parallax positions based on mouse movement - Disabling for now
+  // const getParallaxStyle = (depth = 1) => {
+  //   if (typeof window !== "undefined" && window.innerWidth < 768) {
+  //     return {};
+  //   }
+  //   const moveX = (mousePosition.x - 0.5) * 30 * depth;
+  //   const moveY = (mousePosition.y - 0.5) * 30 * depth;
+  //   return {
+  //     transform: `translate(${moveX}px, ${moveY}px)`,
+  //   };
+  // };
 
   // Animation variants for staggered elements
   const getStaggerDelay = (index: number) => ({
@@ -88,49 +87,29 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
 
   return (
     <section
-      ref={sectionRef}
+      // ref={sectionRef} // Kept for potential future use
       className="relative min-h-screen pt-0 overflow-hidden flex flex-col -mt-0.25 w-full"
     >
-      {/* Enhanced gradient background with animated gradient */}
+      {/* Enhanced gradient background - animation removed */}
       <div
-        className="absolute inset-0 bg-gradient-to-br from-cyan-50 via-white to-pink-50 animate-gradient-slow"
-        style={{ backgroundSize: "400% 400%" }}
+        className="absolute inset-0 bg-gradient-to-br from-cyan-50 via-white to-pink-50"
       />
 
       {/* Enhanced background patterns and effects */}
       <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:20px_20px]"></div>
 
-      {/* Animated floating orbs with parallax effect - reduced on mobile */}
+      {/* Decorative orbs - animations and parallax removed */}
       <div
-        className="absolute top-20 right-[15%] w-20 md:w-32 h-20 md:h-32 rounded-full bg-gradient-to-br from-cyan-200/20 to-cyan-300/10 animate-float-slow backdrop-blur-sm"
-        style={{
-          ...getParallaxStyle(0.5),
-          animationDuration: "15s",
-        }}
+        className="absolute top-20 right-[15%] w-20 md:w-32 h-20 md:h-32 rounded-full bg-gradient-to-br from-cyan-200/20 to-cyan-300/10 backdrop-blur-sm"
       ></div>
       <div
-        className="absolute -bottom-10 left-[10%] w-24 md:w-40 h-24 md:h-40 rounded-full bg-gradient-to-br from-pink-200/20 to-pink-300/10 animate-float-slow backdrop-blur-sm"
-        style={{
-          ...getParallaxStyle(0.3),
-          animationDuration: "18s",
-          animationDelay: "1s",
-        }}
+        className="absolute -bottom-10 left-[10%] w-24 md:w-40 h-24 md:h-40 rounded-full bg-gradient-to-br from-pink-200/20 to-pink-300/10 backdrop-blur-sm"
       ></div>
       <div
-        className="absolute top-1/3 left-[20%] w-16 md:w-20 h-16 md:h-20 rounded-full bg-gradient-to-br from-cyan-200/20 to-cyan-300/10 animate-float-slow backdrop-blur-sm"
-        style={{
-          ...getParallaxStyle(0.7),
-          animationDuration: "12s",
-          animationDelay: "2s",
-        }}
+        className="absolute top-1/3 left-[20%] w-16 md:w-20 h-16 md:h-20 rounded-full bg-gradient-to-br from-cyan-200/20 to-cyan-300/10 backdrop-blur-sm"
       ></div>
       <div
-        className="absolute bottom-1/4 right-[20%] w-20 md:w-28 h-20 md:h-28 rounded-full bg-gradient-to-br from-pink-200/20 to-pink-300/10 animate-float-slow backdrop-blur-sm"
-        style={{
-          ...getParallaxStyle(0.4),
-          animationDuration: "20s",
-          animationDelay: "3s",
-        }}
+        className="absolute bottom-1/4 right-[20%] w-20 md:w-28 h-20 md:h-28 rounded-full bg-gradient-to-br from-pink-200/20 to-pink-300/10 backdrop-blur-sm"
       ></div>
 
       {/* Sacred geometry pattern for spiritual dimension */}
@@ -183,8 +162,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                     <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 via-pink-500/20 to-cyan-500/20 opacity-0 group-hover:opacity-100 rounded-xl blur-md transition-all duration-500" />
                     <CardContent className="relative p-4 sm:p-6 flex items-center">
                       <div className="relative p-3 sm:p-4 mr-3 sm:mr-5 rounded-full bg-gradient-to-r from-cyan-500 to-pink-500 shadow-lg group-hover:shadow-xl transition-all duration-500 group-hover:scale-110 overflow-hidden">
-                        {/* Inner shimmer effect */}
-                        <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
+                        {/* Inner shimmer effect - REMOVED */}
                         <ClipboardList className="relative z-10 w-5 h-5 sm:w-6 sm:h-6 text-white" />
                       </div>
                       <div>
@@ -217,9 +195,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                         size="lg"
                         className="text-sm sm:text-base w-full md:text-lg px-4 sm:px-8 py-5 sm:py-6 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden"
                       >
-                        {/* Button background shimmer effect */}
-                        <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full animate-shimmer"></span>
-
+                        {/* Button background shimmer effect - REMOVED */}
                         <span className="relative z-10">הרשמה למערכת</span>
                         <ArrowLeft className="relative z-10 mr-2 h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" />
                       </Button>
@@ -242,9 +218,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                         size="lg"
                         className="text-sm sm:text-base w-full md:text-lg px-4 sm:px-8 py-5 sm:py-6 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden"
                       >
-                        {/* Button background shimmer effect */}
-                        <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full animate-shimmer"></span>
-
+                        {/* Button background shimmer effect - REMOVED */}
                         <span className="relative z-10">לאזור האישי</span>
                         <ArrowLeft className="relative z-10 mr-2 h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" />
                       </Button>
@@ -430,46 +404,28 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                   </div>
                 </div>
 
-                {/* Connection Animation */}
+                {/* Connection Animation - Simplified */}
                 <div
                   className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-30"
                   style={{
                     opacity: puzzleAnim.progress,
-                    scale: 0.5 + puzzleAnim.progress * 1.2,
+                    scale: 0.5 + puzzleAnim.progress * 1.2, // Keep scale for impact
                     transition: "opacity 0.7s ease-out, scale 0.7s ease-out",
                   }}
                 >
-                  {/* Connection Effects */}
+                  {/* Connection Effects - Simplified */}
                   <div className="relative">
                     {/* Glow effect */}
                     <div
                       className="absolute inset-0 rounded-full bg-white"
                       style={{
-                        filter: `blur(${8 + puzzleAnim.progress * 10}px)`,
-                        opacity: 0.8,
+                        filter: `blur(${6 + puzzleAnim.progress * 8}px)`, // Slightly reduced blur
+                        opacity: 0.7, // Slightly reduced opacity
                       }}
                     ></div>
 
-                    {/* Particles - reduced count on mobile */}
-                    <div className="absolute inset-0">
-                      <div
-                        className="absolute top-1/2 left-1/2 w-2 h-2 sm:w-3 sm:h-3 bg-cyan-400 rounded-full animate-ping"
-                        style={{
-                          animationDuration: "1.5s",
-                          marginTop: "-5px",
-                          marginLeft: "-10px",
-                        }}
-                      ></div>
-                      <div
-                        className="absolute top-1/2 left-1/2 w-2 h-2 sm:w-3 sm:h-3 bg-pink-400 rounded-full animate-ping"
-                        style={{
-                          animationDuration: "1.8s",
-                          marginTop: "5px",
-                          marginLeft: "10px",
-                        }}
-                      ></div>
-                    </div>
-
+                    {/* Particles & Rings - REMOVED */}
+                    
                     {/* Connected message */}
                     <div className="relative bg-gradient-to-r from-cyan-500 to-pink-500 text-white px-3 sm:px-6 py-2 sm:py-3 rounded-full shadow-lg whitespace-nowrap flex items-center gap-1 sm:gap-2">
                       <Heart className="w-3 h-3 sm:w-5 sm:h-5 fill-white animate-pulse" />
@@ -477,16 +433,6 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                         החיבור המושלם
                       </span>
                     </div>
-
-                    {/* Ring effect around connection - smaller on mobile */}
-                    <div
-                      className="absolute -inset-2 sm:-inset-4 border-2 border-white/20 rounded-full animate-ping"
-                      style={{ animationDuration: "3s" }}
-                    ></div>
-                    <div
-                      className="absolute -inset-4 sm:-inset-8 border-2 border-white/10 rounded-full animate-ping"
-                      style={{ animationDuration: "4s" }}
-                    ></div>
                   </div>
                 </div>
               </div>
@@ -599,23 +545,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
 };
 
 // Add these animations to your global CSS or tailwind config:
-//
-// .animate-float-slow {
-//   animation: float 6s ease-in-out infinite;
-// }
-// @keyframes float {
-//   0%, 100% { transform: translateY(0); }
-//   50% { transform: translateY(-20px); }
-// }
-//
-// .animate-gradient-slow {
-//   animation: gradient-anim 15s ease infinite;
-// }
-// @keyframes gradient-anim {
-//   0% { background-position: 0% 50%; }
-//   50% { background-position: 100% 50%; }
-//   100% { background-position: 0% 50%; }
-// }
+// (Removed definitions for animate-float-slow, animate-gradient-slow, animate-shimmer)
 //
 // .animate-spin-slow {
 //   animation: spin 20s linear infinite;
@@ -633,14 +563,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
 //   to { transform: rotate(0deg); }
 // }
 //
-// .animate-shimmer {
-//   animation: shimmer 2.5s infinite;
-// }
-// @keyframes shimmer {
-//   100% { transform: translateX(100%); }
-// }
-//
-// .animate-gradient {
+// .animate-gradient { /* This is for the text gradient, still in use */
 //   animation: gradient-text 3s ease infinite;
 // }
 // @keyframes gradient-text {

@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import Image from "next/image"; // Import next/image
+import Image from "next/image";
 import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -10,66 +10,131 @@ import AvailabilityStatus from "@/components/AvailabilityStatus";
 import { useLanguage } from "@/app/contexts/LanguageContext";
 import { useNotifications } from "@/app/contexts/NotificationContext";
 import {
-  Users,
   User,
   LogOut,
   LogIn,
   UserPlus,
-  MessageCircle,
   Settings,
   Heart,
   Menu,
   X,
+  Languages, // Icon for language
 } from "lucide-react";
-import type { Session } from "next-auth"; // ודא שהטיפוס Session מיובא נכון
-import type { UserImage } from "@/types/next-auth"; // ייבא את טיפוס UserImage
+import type { Session as NextAuthSession } from "next-auth"; // Renamed to avoid conflict
+import type { UserImage } from "@/types/next-auth";
+
+// User Dropdown Menu Component
+const UserDropdown = ({
+  session,
+  mainProfileImage,
+  getInitials,
+  handleSignOut,
+  profileIconSize,
+}: {
+  session: (NextAuthSession & { user?: { images?: UserImage[] } }) | null;
+  mainProfileImage: UserImage | null;
+  getInitials: () => string;
+  handleSignOut: () => void;
+  profileIconSize: string;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  if (!session) return null;
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={`relative ${profileIconSize} rounded-full flex items-center justify-center text-sm shadow-md transition-all duration-300 cursor-pointer group overflow-hidden hover:ring-2 hover:ring-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400`}
+        title={session.user?.name || "פרופיל"}
+      >
+        {mainProfileImage ? (
+          <Image
+            src={mainProfileImage.url}
+            alt={session.user?.name || "תמונת פרופיל"}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 40px, 40px"
+          />
+        ) : (
+          <span className="font-semibold text-base text-cyan-700 bg-cyan-100 w-full h-full flex items-center justify-center">
+            {getInitials()}
+          </span>
+        )}
+      </button>
+
+      {isOpen && (
+        <div className="absolute left-0 mt-2 w-56 origin-top-left bg-white rounded-md shadow-xl z-20 border border-gray-100">
+          <div className="py-1">
+            <div className="px-4 py-3 border-b border-gray-100">
+              <p className="text-sm font-semibold text-gray-800 truncate">{session.user?.name}</p>
+              <p className="text-xs text-gray-500 truncate">{session.user?.email}</p>
+            </div>
+            <Link
+              href="/profile"
+              className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-cyan-50 hover:text-cyan-700"
+              onClick={() => setIsOpen(false)}
+            >
+              <User className="mr-2 h-4 w-4" />
+              פרופיל אישי
+            </Link>
+            <Link
+              href="/settings"
+              className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-cyan-50 hover:text-cyan-700"
+              onClick={() => setIsOpen(false)}
+            >
+              <Settings className="mr-2 h-4 w-4" />
+              הגדרות חשבון
+            </Link>
+            <button
+              onClick={() => {
+                setIsOpen(false);
+                handleSignOut();
+              }}
+              className="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              התנתקות
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 
 const Navbar = () => {
-  // ודא שהטיפוס Session כאן כולל את שדה images
   const { data: session } = useSession() as {
-    data: (Session & { user?: { images?: UserImage[] } }) | null;
+    data: (NextAuthSession & { user?: { images?: UserImage[] } }) | null;
   };
   const pathname = usePathname();
-
-  // DEBUGGING:
-  useEffect(() => {
-    if (session) {
-      console.log("Full session object:", session);
-      console.log("Session user role:", session.user?.role);
-    }
-  }, [session]);
-
-  const isMatchmaker =
-    session?.user?.role === "MATCHMAKER" || session?.user?.role === "ADMIN"; // DEBUGGING:
-  useEffect(() => {
-    if (session) {
-      console.log("isMatchmaker evaluated to:", isMatchmaker);
-    }
-  }, [session, isMatchmaker]);
+  const isMatchmaker = session?.user?.role === "MATCHMAKER" || session?.user?.role === "ADMIN";
   const { notifications } = useNotifications();
-  const isActive = (path: string) => pathname === path;
   const { language, setLanguage } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => {
-      const scrollPosition = window.scrollY;
-      const scrollThreshold = 300;
-      const progress = Math.min(scrollPosition / scrollThreshold, 1);
-
-      setScrollProgress(progress);
-      setScrolled(scrollPosition > 20);
+      setScrolled(window.scrollY > 20);
     };
-
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const toggleMobileMenu = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
-  };
+  const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
 
   const handleSignOut = () => {
     setMobileMenuOpen(false);
@@ -78,267 +143,136 @@ const Navbar = () => {
 
   const getInitials = () => {
     const fullName = session?.user?.name;
-    if (!fullName) return "";
-
-    const [firstName, lastName] = fullName.split(" ");
-    return `${firstName?.[0] || ""}${lastName?.[0] || ""}`.toUpperCase();
+    if (!fullName) return "P"; // Default placeholder
+    const names = fullName.split(" ");
+    return (
+      (names[0]?.[0] || "") + (names.length > 1 ? names[names.length - 1]?.[0] || "" : "")
+    ).toUpperCase();
   };
 
-  // פונקציה חדשה לקבלת תמונת פרופיל ראשית
   const getMainProfileImage = (): UserImage | null => {
-    if (session?.user?.images && Array.isArray(session.user.images)) {
-      return session.user.images.find((img) => img.isMain) || null;
-    }
-    return null;
+    return session?.user?.images?.find((img) => img.isMain) || null;
   };
-
   const mainProfileImage = getMainProfileImage();
 
-  const LanguageToggle = () => (
-    <Button
-      variant="default"
-      size="sm"
-      onClick={() => setLanguage(language === "he" ? "en" : "he")}
-      className={`min-w-[2.5rem] font-medium transition-all duration-300 rounded-xl ${gradientButtonStyle}`}
-    >
-      {language === "he" ? "EN" : "עב"}
-    </Button>
-  );
+  const navbarBaseClass = "sticky top-0 z-50 w-full transition-colors duration-300";
+  const navbarScrolledClass = "bg-white/90 backdrop-blur-md shadow-md border-b border-gray-200";
+  const navbarTopClass = "bg-cyan-50/80 backdrop-blur-sm border-b border-transparent"; // Example: slightly transparent cyan
 
-  const navbarStyle = {
-    background: scrolled
-      ? `rgba(255, 255, 255, ${scrollProgress * 0.9})`
-      : `rgb(236, 254, 255)`,
-    backdropFilter: `blur(${5 + scrollProgress * 10}px)`,
-    borderBottom: scrolled
-      ? "1px solid rgba(6, 182, 212, 0.2)"
-      : "1px solid rgba(255, 255, 255, 0.1)",
-    boxShadow: scrolled ? "0 4px 20px rgba(6, 182, 212, 0.1)" : "none",
-  };
-
-  const gradientButtonStyle = scrolled
-    ? "bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white shadow-md hover:shadow-lg rounded-xl"
-    : "bg-gradient-to-r from-cyan-500/70 via-pink-500/30 to-cyan-500/70 hover:from-cyan-500/90 hover:via-pink-500/40 hover:to-cyan-500/90 text-white backdrop-filter backdrop-blur-sm shadow-md hover:shadow-lg rounded-xl";
-
-  const profileIconSize = "w-9 h-9 md:w-10 md:h-10"; // גודל אחיד לתמונה/ראשי תיבות
+  const profileIconSize = "w-9 h-9 md:w-10 md:h-10";
 
   return (
     <>
-      <nav
-        className="sticky top-0 z-50 w-full transition-all duration-500"
-        style={navbarStyle}
-      >
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-cyan-400 via-pink-300 to-cyan-400 animate-gradient-x"></div>
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+      <nav className={`${navbarBaseClass} ${scrolled ? navbarScrolledClass : navbarTopClass}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <Link
-              href="/"
-              className="flex items-center gap-2 group relative z-10"
-            >
-              <div className="relative overflow-hidden rounded-full p-1 transition-all duration-500">
+            {/* Left Side (Logo & Main Nav for LTR, will be right for RTL) */}
+            <div className="flex items-center gap-6">
+              <Link href="/" className="flex items-center gap-2 group shrink-0">
                 <Heart
-                  className="h-7 w-7 transition-all duration-500 text-pink-500"
-                  fill="#f0faff"
+                  className="h-7 w-7 text-pink-500 group-hover:text-pink-600 transition-colors"
+                  fill={scrolled ? "#fff" : "#f0faff"} // Fill changes slightly if needed
                 />
-                <div className="absolute inset-0 rounded-full animate-ping-slow bg-gradient-to-r from-cyan-200/40 to-pink-200/40"></div>
-              </div>
-              <span
-                className={`text-xl font-bold transition-all duration-500 
-  text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-pink-500
-  group-hover:from-cyan-600 group-hover:to-pink-600 group-hover:scale-105`}
-              >
-                Match Point
-              </span>
-              <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/0 via-pink-500/0 to-cyan-500/0 group-hover:from-cyan-500/10 group-hover:via-pink-500/10 group-hover:to-cyan-500/10 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
-            </Link>
+                <span
+                  className={`text-xl font-bold 
+                    text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-pink-600
+                    group-hover:from-cyan-700 group-hover:to-pink-700 transition-all`}
+                >
+                  Match Point
+                </span>
+              </Link>
 
-            {/* Desktop Navigation Links */}
-            <div className="hidden md:flex items-center gap-1 md:gap-2">
-              {session && (
-                <>
-                  {isMatchmaker ? (
-                    <>
-                      <NavItem
-                        href="/matchmaker/suggestions"
-                        isActive={isActive("/matchmaker/suggestions")}
-                        icon={<Heart className="ml-2 h-4 w-4" />}
-                        text="הצעות שידוך"
-                        scrolled={scrolled}
-                        gradientStyle={gradientButtonStyle}
-                      />
-                      <NavItem
-                        href="/matchmaker/clients"
-                        isActive={isActive("/matchmaker/clients")}
-                        icon={<Users className="ml-2 h-4 w-4" />}
-                        text="מועמדים"
-                        scrolled={scrolled}
-                        gradientStyle={gradientButtonStyle}
-                      />
-                    </>
-                  ) : (
+              {/* Desktop Navigation Links */}
+              <div className="hidden md:flex items-center gap-2">
+                {session && (
+                  <>
+                    {isMatchmaker ? (
+                      <>
+                        <NavItem href="/matchmaker/suggestions" text="הצעות שידוך" pathname={pathname} />
+                        <NavItem href="/matchmaker/clients" text="מועמדים" pathname={pathname} />
+                      </>
+                    ) : (
+                      <NavItem href="/matches" text="ההצעות שלי" pathname={pathname} />
+                    )}
                     <NavItem
-                      href="/matches"
-                      isActive={isActive("/matches")}
-                      icon={<Users className="ml-2 h-4 w-4" />}
-                      text="ההצעות שלי"
-                      scrolled={scrolled}
-                      gradientStyle={gradientButtonStyle}
+                      href="/messages"
+                      text="הודעות"
+                      badge={notifications.total > 0 ? notifications.total : undefined}
+                      pathname={pathname}
                     />
-                  )}
-
-                  <NavItem
-                    href="/messages"
-                    isActive={isActive("/messages")}
-                    icon={<MessageCircle className="ml-2 h-4 w-4" />}
-                    text="הודעות"
-                    badge={
-                      notifications.total > 0 ? notifications.total : undefined
-                    }
-                    scrolled={scrolled}
-                    gradientStyle={gradientButtonStyle}
-                  />
-                  {/* ה-NavItem של פרופיל והגדרות הוסרו מכאן ויופיעו ליד התמונה/התנתקות */}
-                </>
-              )}
+                  </>
+                )}
+              </div>
             </div>
 
-            {/* Right side items: Language, Mobile Menu, Auth */}
-            <div className="flex items-center gap-1 md:gap-2">
-              <LanguageToggle />
-
+            {/* Right Side (Actions & User for LTR, will be left for RTL) */}
+            <div className="flex items-center gap-3 md:gap-4">
               <Button
                 variant="ghost"
-                size="sm"
-                className={`p-1 md:hidden transition-colors duration-300 rounded-xl ${
-                  scrolled
-                    ? "text-cyan-600 hover:text-pink-500"
-                    : "text-cyan-700 hover:text-pink-600 hover:bg-cyan-500/10"
-                }`}
+                size="icon"
+                onClick={() => setLanguage(language === "he" ? "en" : "he")}
+                className="text-gray-600 hover:text-cyan-600 hover:bg-cyan-50 rounded-full"
+                title={language === "he" ? "Switch to English" : "עבור לעברית"}
+              >
+                <Languages className="h-5 w-5" />
+              </Button>
+
+              {session && (
+                <div className="hidden md:block">
+                  <AvailabilityStatus />
+                </div>
+              )}
+
+              {session ? (
+                <UserDropdown
+                  session={session}
+                  mainProfileImage={mainProfileImage}
+                  getInitials={getInitials}
+                  handleSignOut={handleSignOut}
+                  profileIconSize={profileIconSize}
+                />
+              ) : (
+                <div className="hidden md:flex items-center gap-2">
+                  <Link href="/auth/signin">
+                    <Button variant="ghost" className="text-gray-700 hover:text-cyan-600 hover:bg-cyan-50 rounded-md px-3 py-1.5">
+                      <LogIn className="mr-1.5 h-4 w-4" />
+                      התחברות
+                    </Button>
+                  </Link>
+                  <Link href="/auth/register">
+                    <Button className="bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 text-white rounded-md px-3 py-1.5 shadow-sm hover:shadow-md transition-all">
+                      <UserPlus className="mr-1.5 h-4 w-4" />
+                      הרשמה
+                    </Button>
+                  </Link>
+                </div>
+              )}
+
+              {/* Mobile Menu Button */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden text-gray-600 hover:text-cyan-600 hover:bg-cyan-50 rounded-full"
                 onClick={toggleMobileMenu}
               >
                 <Menu className="h-6 w-6" />
               </Button>
-
-              {session ? (
-                <>
-                  <div className="hidden md:block">
-                    <AvailabilityStatus />
-                  </div>
-                  <div
-                    className={`border-l h-6 mx-1 md:mx-2 hidden md:block ${
-                      scrolled ? "border-gray-200" : "border-white/20"
-                    }`}
-                  />
-                  {/* User actions - Desktop */}
-                  <div className="hidden md:flex items-center gap-1 md:gap-2">
-                    {/* ה-NavItem שהיו קודם כאן: פרופיל, הגדרות, הועברו להיות ליד התמונה/התנתקות */}
-                    <NavItem
-                      href="/profile"
-                      isActive={isActive("/profile")}
-                      icon={<User className="ml-2 h-4 w-4" />}
-                      text="פרופיל אישי"
-                      scrolled={scrolled}
-                      gradientStyle={gradientButtonStyle}
-                    />
-                    <NavItem
-                      href="/settings"
-                      isActive={isActive("/settings")}
-                      icon={<Settings className="ml-2 h-4 w-4" />}
-                      text="הגדרות חשבון"
-                      scrolled={scrolled}
-                      gradientStyle={gradientButtonStyle}
-                    />
-                    <Button
-                      variant="default"
-                      onClick={handleSignOut}
-                      className={`whitespace-nowrap text-sm transition-all duration-300 ${gradientButtonStyle}`}
-                    >
-                      <LogOut className="ml-2 h-4 w-4" />
-                      <span>התנתקות</span>
-                    </Button>
-                    {/* Profile Image / Initials - Moved to be the most right element */}
-                    <Link href="/profile" passHref>
-                      <div
-                        className={`relative ${profileIconSize} rounded-full flex items-center justify-center text-sm shadow-md transition-all duration-300 cursor-pointer group overflow-hidden`}
-                        title={session.user?.name || "פרופיל"}
-                      >
-                        {mainProfileImage ? (
-                          <Image
-                            src={mainProfileImage.url}
-                            alt={session.user?.name || "תמונת פרופיל"}
-                            fill
-                            className="object-cover"
-                            sizes="(max-width: 768px) 40px, 40px" // גודל תמונה בהתאם ל-profileIconSize
-                          />
-                        ) : (
-                          <span
-                            className={`font-semibold text-base ${
-                              scrolled ? "text-cyan-700" : "text-cyan-600" // <--- השינוי כאן
-                            }`}
-                          >
-                            {getInitials()}
-                          </span>
-                        )}
-                        {/* רקע שמשתנה עם הגלילה, אם אין תמונה */}
-                        {!mainProfileImage && (
-                          <div
-                            className={`absolute inset-0 -z-10 ${
-                              scrolled
-                                ? "bg-gradient-to-br from-cyan-100 to-cyan-200"
-                                : "bg-gradient-to-br from-white/10 to-pink-300/10 backdrop-filter backdrop-blur-sm"
-                            }`}
-                          ></div>
-                        )}
-                        {/* אפקט hover עדין */}
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-200"></div>
-                      </div>
-                    </Link>
-                  </div>
-                </>
-              ) : (
-                <>
-                  {/* Auth links for non-logged in users - Desktop */}
-                  <div className="hidden md:flex items-center gap-2">
-                    <Link href="/auth/signin">
-                      <Button
-                        variant="default"
-                        className={`text-sm transition-all duration-300 ${gradientButtonStyle}`}
-                      >
-                        <LogIn className="ml-2 h-4 w-4" />
-                        <span>התחברות</span>
-                      </Button>
-                    </Link>
-                    <Link href="/auth/register">
-                      <Button
-                        variant="default"
-                        className={`whitespace-nowrap text-sm transition-all duration-300 ${gradientButtonStyle}`}
-                      >
-                        <UserPlus className="ml-2 h-4 w-4" />
-                        <span>הרשמה למערכת</span>
-                      </Button>
-                    </Link>
-                  </div>
-                </>
-              )}
             </div>
           </div>
         </div>
       </nav>
 
-      {/* Mobile Menu Overlay */}
+      {/* Mobile Menu Overlay & Panel */}
       {mobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-gradient-to-br from-cyan-900/30 via-gray-900/50 to-pink-900/30 z-50 backdrop-blur-md transition-opacity duration-300"
+          className="fixed inset-0 bg-black/20 z-40 backdrop-blur-sm md:hidden"
           onClick={toggleMobileMenu}
         />
       )}
-
-      {/* Mobile Menu Panel */}
       <div
         className={`fixed top-0 ${
-          language === "he" ? "right-0" : "left-0"
-        } z-[60] h-full w-3/4 max-w-xs bg-gradient-to-br from-white to-cyan-50 shadow-2xl transform transition-transform duration-300 ease-in-out ${
+          language === "he" ? "right-0" : "left-0" // Correct for RTL
+        } z-50 h-full w-3/4 max-w-xs bg-white shadow-2xl transform transition-transform duration-300 ease-in-out md:hidden ${
           mobileMenuOpen
             ? "translate-x-0"
             : language === "he"
@@ -346,150 +280,65 @@ const Navbar = () => {
             : "-translate-x-full"
         }`}
       >
-        <div className="flex justify-between items-center p-4 border-b border-cyan-100 bg-gradient-to-r from-cyan-50 to-white">
-          <div className="relative">
-            <Heart className="h-6 w-6 text-pink-500" fill="#f0faff" />
-            <div className="absolute inset-0 rounded-full animate-ping-slow bg-gradient-to-r from-cyan-200/40 to-pink-200/40"></div>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="p-1 text-cyan-600 hover:text-pink-500 hover:bg-cyan-50"
-            onClick={toggleMobileMenu}
-          >
-            <X className="h-6 w-6" />
+        <div className="flex justify-between items-center p-4 border-b">
+          <span className="font-semibold text-lg text-cyan-700">תפריט</span>
+          <Button variant="ghost" size="icon" onClick={toggleMobileMenu} className="text-gray-500 hover:text-red-500">
+            <X className="h-5 w-5" />
           </Button>
         </div>
 
-        <div className="overflow-y-auto h-full pb-20">
+        <div className="overflow-y-auto h-full pb-20 p-2">
           {session && (
-            <div className="flex items-center gap-3 p-4 border-b border-cyan-100 bg-gradient-to-r from-cyan-50 to-white">
-              {/* Mobile Menu Profile Image / Initials */}
-              <div
-                className={`relative ${profileIconSize} rounded-full flex items-center justify-center text-lg shadow-sm overflow-hidden`}
-              >
+            <div className="flex items-center gap-3 p-3 mb-3 border-b rounded-lg bg-cyan-50/50">
+              <div className={`relative ${profileIconSize} rounded-full flex items-center justify-center text-lg shadow-sm overflow-hidden`}>
                 {mainProfileImage ? (
                   <Image
                     src={mainProfileImage.url}
                     alt={session.user?.name || "תמונת פרופיל"}
                     fill
                     className="object-cover"
-                    sizes="(max-width: 768px) 48px, 48px" // קצת יותר גדול במובייל
                   />
                 ) : (
-                  <span className="font-semibold text-cyan-700">
+                  <span className="font-semibold text-cyan-700 bg-cyan-100 w-full h-full flex items-center justify-center">
                     {getInitials()}
                   </span>
                 )}
-                {!mainProfileImage && (
-                  <div className="absolute inset-0 -z-10 bg-gradient-to-br from-cyan-100 to-pink-100"></div>
-                )}
               </div>
               <div>
-                <div className="font-semibold text-gray-900">
-                  {session.user?.name}
-                </div>
-                <div className="text-sm text-gray-500">
-                  {session.user?.email}
-                </div>
+                <div className="font-semibold text-gray-800 truncate">{session.user?.name}</div>
+                <div className="text-xs text-gray-500 truncate">{session.user?.email}</div>
               </div>
             </div>
           )}
-
-          <nav className="p-2">
-            <ul className="space-y-1">
-              {session ? (
-                <>
-                  {isMatchmaker ? (
-                    <>
-                      <MobileNavItem
-                        href="/matchmaker/suggestions"
-                        onClick={() => setMobileMenuOpen(false)}
-                        isActive={isActive("/matchmaker/suggestions")}
-                        icon={<Heart className="ml-2 h-5 w-5" />}
-                        text="הצעות שידוך"
-                        gradientStyle="bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-600 hover:from-cyan-700 hover:via-blue-700 hover:to-cyan-700 rounded-xl"
-                      />
-                      <MobileNavItem
-                        href="/matchmaker/clients"
-                        onClick={() => setMobileMenuOpen(false)}
-                        isActive={isActive("/matchmaker/clients")}
-                        icon={<Users className="ml-2 h-5 w-5" />}
-                        text="מועמדים"
-                        gradientStyle="bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-600 hover:from-cyan-700 hover:via-blue-700 hover:to-cyan-700"
-                      />
-                    </>
-                  ) : (
-                    <MobileNavItem
-                      href="/matches"
-                      onClick={() => setMobileMenuOpen(false)}
-                      isActive={isActive("/matches")}
-                      icon={<Users className="ml-2 h-5 w-5" />}
-                      text="ההצעות שלי"
-                      gradientStyle="bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-600 hover:from-cyan-700 hover:via-blue-700 hover:to-cyan-700"
-                    />
-                  )}
-
-                  <MobileNavItem
-                    href="/messages"
-                    onClick={() => setMobileMenuOpen(false)}
-                    isActive={isActive("/messages")}
-                    icon={<MessageCircle className="ml-2 h-5 w-5" />}
-                    text="הודעות"
-                    badge={
-                      notifications.total > 0 ? notifications.total : undefined
-                    }
-                    gradientStyle="bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-600 hover:from-cyan-700 hover:via-blue-700 hover:to-cyan-700"
-                  />
-                  <li className="pt-2 mt-2 border-t border-gray-100" />
-
-                  <MobileNavItem
-                    href="/profile"
-                    onClick={() => setMobileMenuOpen(false)}
-                    isActive={isActive("/profile")}
-                    icon={<User className="ml-2 h-5 w-5" />}
-                    text="פרופיל אישי"
-                    gradientStyle="bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-600 hover:from-cyan-700 hover:via-blue-700 hover:to-cyan-700"
-                  />
-                  <MobileNavItem
-                    href="/settings"
-                    onClick={() => setMobileMenuOpen(false)}
-                    isActive={isActive("/settings")}
-                    icon={<Settings className="ml-2 h-5 w-5" />}
-                    text="הגדרות חשבון"
-                    gradientStyle="bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-600 hover:from-cyan-700 hover:via-blue-700 hover:to-cyan-700"
-                  />
-                  <MobileNavItem
-                    href="#"
-                    onClick={handleSignOut}
-                    isActive={false}
-                    icon={<LogOut className="ml-2 h-5 w-5" />}
-                    text="התנתקות"
-                    gradientStyle="bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-600 hover:from-cyan-700 hover:via-blue-700 hover:to-cyan-700 rounded-xl"
-                  />
-                </>
-              ) : (
-                <>
-                  <li className="pt-2 mt-2 border-t border-gray-100" />
-                  <MobileNavItem
-                    href="/auth/signin"
-                    onClick={() => setMobileMenuOpen(false)}
-                    isActive={isActive("/auth/signin")}
-                    icon={<LogIn className="ml-2 h-5 w-5" />}
-                    text="התחברות"
-                    gradientStyle="bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-600 hover:from-cyan-700 hover:via-blue-700 hover:to-cyan-700"
-                  />
-                  <MobileNavItem
-                    href="/auth/register"
-                    onClick={() => setMobileMenuOpen(false)}
-                    isActive={isActive("/auth/register")}
-                    icon={<UserPlus className="ml-2 h-5 w-5" />}
-                    text="הרשמה למערכת"
-                    gradientStyle="bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-600 hover:from-cyan-700 hover:via-blue-700 hover:to-cyan-700"
-                  />
-                </>
-              )}
-            </ul>
+          <nav className="space-y-1">
+            {session ? (
+              <>
+                {isMatchmaker ? (
+                  <>
+                    <MobileNavItem href="/matchmaker/suggestions" text="הצעות שידוך" onClick={toggleMobileMenu} pathname={pathname} />
+                    <MobileNavItem href="/matchmaker/clients" text="מועמדים" onClick={toggleMobileMenu} pathname={pathname} />
+                  </>
+                ) : (
+                  <MobileNavItem href="/matches" text="ההצעות שלי" onClick={toggleMobileMenu} pathname={pathname} />
+                )}
+                <MobileNavItem href="/messages" text="הודעות" badge={notifications.total > 0 ? notifications.total : undefined} onClick={toggleMobileMenu} pathname={pathname} />
+                <hr className="my-2"/>
+                <MobileNavItem href="/profile" text="פרופיל אישי" onClick={toggleMobileMenu} pathname={pathname} />
+                <MobileNavItem href="/settings" text="הגדרות חשבון" onClick={toggleMobileMenu} pathname={pathname} />
+                <button
+                  onClick={handleSignOut}
+                  className="w-full flex items-center text-left px-3 py-2.5 rounded-md text-sm font-medium text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  התנתקות
+                </button>
+              </>
+            ) : (
+              <>
+                <MobileNavItem href="/auth/signin" text="התחברות" icon={<LogIn className="mr-2 h-4 w-4"/>} onClick={toggleMobileMenu} pathname={pathname} />
+                <MobileNavItem href="/auth/register" text="הרשמה" icon={<UserPlus className="mr-2 h-4 w-4"/>} onClick={toggleMobileMenu} pathname={pathname} />
+              </>
+            )}
           </nav>
         </div>
       </div>
@@ -499,76 +348,65 @@ const Navbar = () => {
 
 const NavItem = ({
   href,
-  icon,
   text,
   badge,
-  gradientStyle,
+  pathname,
 }: {
   href: string;
-  isActive: boolean;
-  icon: React.ReactNode;
   text: string;
   badge?: number;
-  scrolled: boolean; // scrolled נשאר כאן כי הוא משפיע על gradientStyle שמגיע מבחוץ
-  gradientStyle: string;
-}) => (
-  <Link href={href}>
-    <Button
-      variant="default"
-      className={`text-sm transition-all duration-300 relative group overflow-hidden ${gradientStyle}`}
+  pathname: string;
+}) => {
+  const isActive = pathname === href;
+  return (
+    <Link
+      href={href}
+      className={`relative px-3 py-2 rounded-md text-sm font-medium transition-colors
+        ${isActive ? "text-cyan-600 font-semibold" : "text-gray-600 hover:text-cyan-600 hover:bg-cyan-50/70"}`}
     >
-      <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
-      <span className="relative z-10 flex items-center">
-        {icon}
-        {text}
-      </span>
-      {badge !== undefined && (
-        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center animate-pulse">
+      {text}
+      {isActive && <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-2/3 h-0.5 bg-cyan-500 rounded-full"></span>}
+      {badge !== undefined && badge > 0 && (
+        <span className="absolute -top-1.5 -right-1.5 bg-pink-500 text-white text-xs w-4.5 h-4.5 rounded-full flex items-center justify-center px-1">
           {badge}
         </span>
       )}
-    </Button>
-  </Link>
-);
+    </Link>
+  );
+};
 
 const MobileNavItem = ({
   href,
-  onClick,
-  icon,
   text,
+  icon,
   badge,
-  gradientStyle, // gradientStyle מגיע עכשיו ישירות כ className עם כל העיצוב הדרוש
-  isActive, // isActive עדיין יכול להיות שימושי להדגשה נוספת אם צריך
+  onClick,
+  pathname,
 }: {
   href: string;
-  onClick: () => void;
-  isActive: boolean;
-  icon: React.ReactNode;
   text: string;
+  icon?: React.ReactNode; // Icon is now optional
   badge?: number;
-  gradientStyle: string;
-}) => (
-  <li>
-    <Link href={href} onClick={onClick} passHref>
-      <Button
-        variant="default"
-        className={`w-full justify-start transition-all duration-300 relative overflow-hidden group text-white shadow-md ${gradientStyle} ${
-          isActive ? "ring-2 ring-pink-300/70" : ""
-        }`} // ניתן להוסיף הדגשה על בסיס isActive
-      >
-        <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
-        <span className="relative z-10 flex items-center">
-          {icon}
-          {text}
+  onClick: () => void;
+  pathname: string;
+}) => {
+  const isActive = pathname === href;
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className={`flex items-center px-3 py-2.5 rounded-md text-sm font-medium transition-colors
+        ${isActive ? "bg-cyan-100 text-cyan-700 font-semibold" : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"}`}
+    >
+      {icon && <span className="mr-2">{icon}</span>}
+      {text}
+      {badge !== undefined && badge > 0 && (
+        <span className="mr-auto bg-pink-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+          {badge}
         </span>
-        {badge !== undefined && (
-          <span className="absolute top-1 right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center animate-pulse">
-            {badge}
-          </span>
-        )}
-      </Button>
+      )}
     </Link>
-  </li>
-);
+  );
+};
 
 export default Navbar;
