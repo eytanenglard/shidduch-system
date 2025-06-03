@@ -336,7 +336,7 @@ const SectionCard: React.FC<{
 // --- Profile Header Component ---
 const ProfileHeader: React.FC<{
   profile: UserProfile;
-  age: number;
+  age: number; // This is already calculated
   userInitials: string;
   mainImageToDisplay: UserImageType | null;
   availability: ReturnType<typeof formatAvailabilityStatus>;
@@ -349,34 +349,86 @@ const ProfileHeader: React.FC<{
   availability,
   viewMode,
 }) => {
+  // Log 1: Check incoming props and calculated age at the component level
+  console.log(
+    "[ProfileHeader] Props:",
+    {
+      birthDate: profile.birthDate,
+      birthDateIsApproximate: profile.birthDateIsApproximate,
+      calculatedAge: age,
+      firstName: profile.user?.firstName, // For identification
+    }
+  );
+
   const allProfileDetails = useMemo(
-    () =>
-      [
+    () => {
+      // Log 2: Inside useMemo, before defining the age detail object
+      console.log(
+        "[ProfileHeader useMemo] Values for age calculation:",
+        {
+          age, // Calculated age passed to useMemo
+          birthDateIsApproximate: profile.birthDateIsApproximate,
+        }
+      );
+
+      return [
         {
           label: "גיל",
-value: age > 0
-  ? (
-    <>
-      {age}
-      {profile.birthDateIsApproximate && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className="text-xs text-gray-500 cursor-help"> (משוער)</span>
-          </TooltipTrigger>
-          <TooltipContent side="top">
-            <p className="text-xs max-w-xs text-center">
-               הגיל הוזן על ידי השדכן והוא הערכה בלבד,
-              ולא תאריך לידה מדויק מהמועמד.
-            </p>
-          </TooltipContent>
-        </Tooltip>
-      )}
-    </>
-  )
-  : "-",          icon: Cake,
+          value: (() => {
+            // Log 3: Inside the IIFE for age value
+            console.log(
+              "[ProfileHeader Age IIFE] Checking conditions:",
+              {
+                currentAge: age,
+                isApprox: profile.birthDateIsApproximate,
+              }
+            );
+
+            if (age > 0) {
+              console.log("[ProfileHeader Age IIFE] Condition: age > 0 is TRUE");
+              return (
+                <>
+                  {age}
+                  {profile.birthDateIsApproximate && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="text-xs text-gray-500 cursor-help"> (משוער)</span>
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        <p className="text-xs max-w-xs text-center">
+                          הגיל הוזן על ידי השדכן והוא משקף את הגיל בקירוב
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                </>
+              );
+            }
+
+            console.log("[ProfileHeader Age IIFE] Condition: age > 0 is FALSE");
+            if (profile.birthDateIsApproximate === true) {
+              console.log("[ProfileHeader Age IIFE] Condition: profile.birthDateIsApproximate === true is TRUE");
+              return (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span>משוער (לא צוין ערך)</span>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">
+                    <p className="text-xs max-w-xs text-center">
+                      צוין שהגיל הוא הערכה, אך לא הוזן תאריך לידה ספציפי.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              );
+            }
+            console.log("[ProfileHeader Age IIFE] Condition: profile.birthDateIsApproximate === true is FALSE, returning '-'");
+            return "-";
+          })(),
+          icon: Cake,
           color: "pink-600",
-          condition: age > 0,
+          condition: age > 0 || profile.birthDateIsApproximate === true,
         },
+        // ... (rest of allProfileDetails objects)
         {
           label: "מצב משפחתי",
           value: profile.maritalStatus
@@ -390,10 +442,10 @@ value: age > 0
           label: "סטטוס",
           value: availability.text,
           icon: availability.icon,
-          color: availability.color.replace("bg-", ""), // for text color if needed
+          color: availability.color.replace("bg-", ""),
           isBadge: true,
           badgeColor: availability.color,
-          badgeTextColor: "text-white", // Example: "text-white" for dark badges
+          badgeTextColor: "text-white",
         },
         {
           label: "עיר",
@@ -444,11 +496,11 @@ value: age > 0
         {
           label: "שומר/ת נגיעה",
           value: formatBooleanPreference(profile.shomerNegiah),
-          icon: Sparkles, // Example icon
-          color: "pink-600", // Example color
+          icon: Sparkles,
+          color: "pink-600",
           condition:
             typeof profile.shomerNegiah === "boolean" ||
-            profile.shomerNegiah === null, // Display if explicitly set or null
+            profile.shomerNegiah === null,
         },
         ...(profile.gender === "FEMALE"
           ? [
@@ -457,8 +509,8 @@ value: age > 0
                 value: profile.headCovering
                   ? formatCategoryLabel(profile.headCovering)
                   : "-",
-                icon: UserCheck, // Example icon
-                color: "slate-600", // Example color
+                icon: UserCheck,
+                color: "slate-600",
                 condition: !!profile.headCovering,
               },
             ]
@@ -470,8 +522,8 @@ value: age > 0
                 value: profile.kippahType
                   ? formatCategoryLabel(profile.kippahType)
                   : "-",
-                icon: UserCheck, // Example icon
-                color: "slate-600", // Example color
+                icon: UserCheck,
+                color: "slate-600",
                 condition: !!profile.kippahType,
               },
             ]
@@ -488,10 +540,13 @@ value: age > 0
       ].filter(
         (detail) =>
           detail.condition !== false && detail.value && detail.value !== "-"
-      ),
-    [profile, age, availability]
+      );
+    },
+    // Dependencies for useMemo
+    [profile, age, availability] // profile includes birthDate, birthDateIsApproximate
   );
 
+  // ... (rest of ProfileHeader JSX)
   return (
     <div className="p-3 sm:p-4 md:p-5 bg-gradient-to-br from-slate-100 via-white to-sky-100/30 border-b border-slate-200/80">
       <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-4 md:gap-6">
@@ -538,9 +593,9 @@ value: age > 0
                     <IconComponent
                       className={cn(
                         "w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0",
-                        detail.badgeTextColor // Use this directly
+                        detail.badgeTextColor
                           ? detail.badgeTextColor
-                          : `text-${detail.color}` // Fallback if badgeTextColor not specified
+                          : `text-${detail.color}`
                       )}
                     />
                     <div className="min-w-0">
@@ -570,12 +625,12 @@ value: age > 0
                   />
                   <div className="min-w-0">
                     <span className="text-[10px] sm:text-xs text-slate-500 whitespace-nowrap">
-                      {detail.label}:
+                        {detail.label}:
                     </span>
                     <span
                       className="ml-0.5 sm:ml-1 text-xs sm:text-sm font-medium text-slate-700 truncate"
                       title={
-                        typeof valueContent === "string"
+                        typeof valueContent === "string" && valueContent.length > 20
                           ? valueContent
                           : undefined
                       }

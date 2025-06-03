@@ -60,6 +60,7 @@ export async function GET() {
             id: true,
             gender: true,
             birthDate: true,
+             birthDateIsApproximate: true,
             nativeLanguage: true,
             additionalLanguages: true,
             height: true,
