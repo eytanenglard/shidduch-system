@@ -57,6 +57,22 @@ export interface QuestionMetadata {
   // Icon is NOT part of metadata
 }
 
+// --- הוספנו כאן הגדרות לתוויות ותיאורים של סולם ---
+export interface ScaleLabels {
+  min: string;
+  max: string;
+  middle?: string;
+}
+
+export interface ScaleDescriptions { // זה מתאים ל-descriptions ב-InteractiveScale
+  min?: string;
+  max?: string;
+  middle?: string;
+  [key: number]: string; // אפשרות לתיאורים לערכים ספציפיים
+}
+// --- סוף ההוספה ---
+
+
 export interface Question {
   worldId: string;
   id: string;
@@ -72,10 +88,14 @@ export interface Question {
   maxLength?: number;
   minSelections?: number;
   maxSelections?: number;
-  description?: string;
+  description?: string; // תיאור כללי לשאלה
   min?: number; // for scale
   max?: number; // for scale
   step?: number; // for scale
+  // --- הוספנו כאן את המאפיינים החדשים לשאלות סולם ---
+  labels?: ScaleLabels; // תוויות קצה (ומידל) לשאלות סולם
+  scaleDescriptions?: ScaleDescriptions; // תיאורים ספציפיים לערכים בסולם (אם InteractiveScale תומך בזה בצורה זו)
+  // --- סוף ההוספה ---
   categories?: BudgetCategory[]; // for budgetAllocation
   totalPoints?: number; // for budgetAllocation
   metadata?: QuestionMetadata;

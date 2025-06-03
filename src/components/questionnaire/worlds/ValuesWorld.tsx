@@ -1,5 +1,5 @@
 // src/components/questionnaire/worlds/ValuesWorld.tsx
-import React, { useState, useEffect } from "react"; // No longer need useState for index
+import React, { useState, useEffect } from "react";
 import WorldIntro from "../common/WorldIntro";
 import QuestionCard from "../common/QuestionCard";
 import AnswerInput from "../common/AnswerInput";
@@ -33,7 +33,7 @@ import type {
   AnswerValue,
   Question,
 } from "../types/types";
-import { valuesQuestions } from "../questions/values/valuesQuestions"; // Make sure this path is correct
+import { valuesQuestions } from "../questions/values/valuesQuestions";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import { motion, AnimatePresence } from "framer-motion";
@@ -44,7 +44,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-// --- Fetch questions for this world ---
 const allQuestions = valuesQuestions;
 
 export default function ValuesWorld({
@@ -53,37 +52,26 @@ export default function ValuesWorld({
   onBack,
   answers,
   language = "he",
-  // --- Receiving props from parent ---
   currentQuestionIndex,
   setCurrentQuestionIndex,
-}: // -----------------------------------
-WorldComponentProps) {
-  // --- Local state for intro and validation, index state is removed ---
+}: WorldComponentProps) {
   const [isIntroComplete, setIsIntroComplete] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<
-    Record<string, string>
-  >({});
-  const [, setAnimateDirection] = useState<"left" | "right" | null>(null); // For animation direction
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [, setAnimateDirection] = useState<"left" | "right" | null>(null);
   const isDesktop = useMediaQuery("(min-width: 1024px)");
   const isRTL = language === "he";
-  const [isListVisible, setIsListVisible] = useState(true); // For desktop sidebar toggle
+  const [isListVisible, setIsListVisible] = useState(true);
 
-  // Effect for animation timing (uses the prop currentQuestionIndex now)
   useEffect(() => {
     const timer = setTimeout(() => setAnimateDirection(null), 300);
     return () => clearTimeout(timer);
-  }, [currentQuestionIndex]); // Dependency is now the prop
+  }, [currentQuestionIndex]);
 
-  // --- Helper function to find answer value ---
   const findAnswer = (questionId: string) => {
     return answers.find((a) => a.questionId === questionId)?.value;
   };
 
-  // --- Validation function (no changes needed here) ---
-  const validateAnswer = (
-    question: Question,
-    value: AnswerValue
-  ): string | null => {
+  const validateAnswer = (question: Question, value: AnswerValue): string | null => {
     const isValueEmpty =
       value === undefined ||
       value === null ||
@@ -96,21 +84,15 @@ WorldComponentProps) {
     if (question.isRequired && isValueEmpty) {
       return "נדרשת תשובה לשאלה זו";
     }
-    // No error if not required and empty
     if (!question.isRequired && isValueEmpty) {
       return null;
     }
 
-    // Type-specific validations
     switch (question.type) {
       case "openText": {
         const textValue = value as string;
         const trimmedLength = textValue?.trim().length || 0;
-        if (
-          question.minLength &&
-          trimmedLength < question.minLength &&
-          question.isRequired
-        ) {
+        if (question.minLength && trimmedLength < question.minLength && question.isRequired) {
           return `התשובה חייבת להכיל לפחות ${question.minLength} תווים`;
         }
         if (question.maxLength && trimmedLength > question.maxLength) {
@@ -121,7 +103,7 @@ WorldComponentProps) {
       case "multiSelect":
       case "multiChoice":
       case "multiSelectWithOther": {
-        const selectedValues = value as string[] | undefined; // Allow undefined
+        const selectedValues = value as string[] | undefined;
         const count = selectedValues?.length ?? 0;
         if (question.minSelections && count < question.minSelections) {
           return `יש לבחור לפחות ${question.minSelections} אפשרויות`;
@@ -132,41 +114,25 @@ WorldComponentProps) {
         break;
       }
       case "budgetAllocation": {
-        const allocationValue = value as Record<string, number> | undefined; // Allow undefined
+        const allocationValue = value as Record<string, number> | undefined;
         if (allocationValue) {
-          const totalAllocated = Object.values(allocationValue).reduce(
-            (sum, val) => sum + (val || 0),
-            0
-          );
-          if (
-            question.totalPoints &&
-            totalAllocated !== question.totalPoints &&
-            question.isRequired
-          ) {
-            if (totalAllocated < question.totalPoints) {
-              return `יש להקצות בדיוק ${question.totalPoints} נקודות. חסרות ${
-                question.totalPoints - totalAllocated
-              } נקודות.`;
-            } else {
-              return `יש להקצות בדיוק ${
-                question.totalPoints
-              } נקודות. יש עודף של ${
-                totalAllocated - question.totalPoints
-              } נקודות.`;
+            const totalAllocated = Object.values(allocationValue).reduce((sum, val) => sum + (val || 0), 0);
+            if (question.totalPoints && totalAllocated !== question.totalPoints && question.isRequired) {
+                 if (totalAllocated < question.totalPoints) {
+                    return `יש להקצות בדיוק ${question.totalPoints} נקודות. חסרות ${question.totalPoints - totalAllocated} נקודות.`;
+                 } else {
+                    return `יש להקצות בדיוק ${question.totalPoints} נקודות. יש עודף של ${totalAllocated - question.totalPoints} נקודות.`;
+                 }
             }
-          }
         } else if (question.isRequired && !isValueEmpty) {
-          // Handle case where budget is required but value is somehow invalid (though isValueEmpty should catch it)
-          return "נדרשת הקצאת תקציב.";
-        }
+             return "נדרשת הקצאת תקציב.";
+         }
         break;
       }
-      // Add other cases if needed (scale, ranking, etc.)
     }
-    return null; // No error
+    return null;
   };
 
-  // --- Navigation handlers using props ---
   const handleNext = () => {
     const currentQuestion = allQuestions[currentQuestionIndex];
     const value = findAnswer(currentQuestion.id);
@@ -174,11 +140,9 @@ WorldComponentProps) {
 
     if (error && currentQuestion.isRequired) {
       setValidationErrors({ ...validationErrors, [currentQuestion.id]: error });
-      return; // Stop if required question has validation error
+      return;
     }
-
-    // Clear error for the current question if validation passes
-    setValidationErrors((prev) => {
+    setValidationErrors(prev => {
       const newErrors = { ...prev };
       delete newErrors[currentQuestion.id];
       return newErrors;
@@ -186,150 +150,102 @@ WorldComponentProps) {
 
     if (currentQuestionIndex < allQuestions.length - 1) {
       setAnimateDirection("left");
-      setCurrentQuestionIndex(currentQuestionIndex + 1); // Use prop function
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-      // Last question, check all required questions in this world are answered
-      const firstUnansweredRequired = allQuestions.find(
-        (q) => q.isRequired && validateAnswer(q, findAnswer(q.id)) !== null // Check if validation fails (means unanswered/invalid)
-      );
-
-      if (firstUnansweredRequired) {
-        // Find the index of the first unanswered required question
-        const errorIndex = allQuestions.findIndex(
-          (q) => q.id === firstUnansweredRequired.id
+        const firstUnansweredRequired = allQuestions.find(q =>
+            q.isRequired && validateAnswer(q, findAnswer(q.id)) !== null
         );
-        if (errorIndex !== -1) {
-          setCurrentQuestionIndex(errorIndex); // Navigate to the first error
-          setValidationErrors({
-            ...validationErrors,
-            [firstUnansweredRequired.id]:
-              validateAnswer(
-                firstUnansweredRequired,
-                findAnswer(firstUnansweredRequired.id)
-              ) || "נדרשת תשובה לשאלה זו",
-          });
-          // Optionally show a toast message here indicating required questions are missing
+        if (firstUnansweredRequired) {
+            const errorIndex = allQuestions.findIndex(q => q.id === firstUnansweredRequired.id);
+            if (errorIndex !== -1) {
+                setCurrentQuestionIndex(errorIndex);
+                setValidationErrors({
+                    ...validationErrors,
+                    [firstUnansweredRequired.id]: validateAnswer(firstUnansweredRequired, findAnswer(firstUnansweredRequired.id)) || "נדרשת תשובה לשאלה זו"
+                });
+            }
+        } else {
+            onComplete();
         }
-      } else {
-        onComplete(); // All good, complete the world
-      }
     }
   };
 
   const handlePrevious = () => {
     if (currentQuestionIndex > 0) {
       setAnimateDirection("right");
-      setCurrentQuestionIndex(currentQuestionIndex - 1); // Use prop function
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
     } else {
-      onBack(); // Go back to the map or previous step
+      onBack();
     }
   };
 
-  // --- Clear answer handler ---
   const handleClearAnswer = () => {
     const currentQuestion = allQuestions[currentQuestionIndex];
     let emptyValue: AnswerValue;
-    // Determine empty value based on question type
     switch (currentQuestion.type) {
-      case "multiChoice":
-      case "multiSelect":
-      case "multiSelectWithOther":
-        emptyValue = [];
-        break;
-      case "budgetAllocation":
-        emptyValue = {};
-        break;
-      case "scale":
-        emptyValue = undefined; // Or null, depending on preference
-        break;
-      default: // openText, singleChoice, etc.
-        emptyValue = ""; // Or undefined/null
+      case "multiChoice": case "multiSelect": case "multiSelectWithOther": emptyValue = []; break;
+      case "budgetAllocation": emptyValue = {}; break;
+      case "scale": emptyValue = undefined; break;
+      default: emptyValue = "";
     }
-    onAnswer(currentQuestion.id, emptyValue); // Call parent's onAnswer
-    // Clear validation error for this question
-    setValidationErrors((prev) => {
+    onAnswer(currentQuestion.id, emptyValue);
+    setValidationErrors(prev => {
       const newErrors = { ...prev };
       delete newErrors[currentQuestion.id];
       return newErrors;
     });
   };
 
-  // --- Render Intro Screen ---
   if (!isIntroComplete) {
     return (
       <WorldIntro
         worldId="VALUES"
-        title="עולם הערכים והאמונות"
-        description="בואו נברר יחד מהם הערכים והעקרונות המנחים בחייך, מה חשוב לך במשפחה, בקהילה ובהשקפת העולם שלך."
-        estimatedTime={15} // Update with actual estimate
+        title="עולם הערכים: מה באמת מניע אותך?" // עדכון כותרת
+        description="כאן נצלול יחד אל מה שבאמת חשוב לך: העקרונות שמנחים אותך בחיים, האיזון הרצוי בין משפחה, קריירה ורוחניות, והשקפת עולמך. הבנה מעמיקה של ערכי הליבה שלך היא צעד קריטי בדרך למציאת בן/בת זוג שחולק/ת איתך את מה שבאמת משמעותי ובונה חיים משותפים." // עדכון תיאור
+        estimatedTime={allQuestions.reduce((sum, q) => sum + (q.metadata?.estimatedTime || 1), 0)}
         totalQuestions={allQuestions.length}
         requiredQuestions={allQuestions.filter((q) => q.isRequired).length}
-        depths={["BASIC", "ADVANCED"]} // Adjust based on actual depths used
+        depths={Array.from(new Set(allQuestions.map(q => q.depth)))} // דינמי
         onStart={() => setIsIntroComplete(true)}
       />
     );
   }
 
-  // --- Handle Loading Error ---
   if (allQuestions.length === 0) {
     return (
       <div className="p-4 bg-red-50 rounded-lg border border-red-300 text-red-800 text-center">
         <h3 className="font-bold text-lg mb-2">שגיאה בטעינת השאלות</h3>
         <p>לא ניתן היה לטעון את השאלות עבור עולם זה.</p>
-        <p>אנא נסה לרענן את הדף או לחזור מאוחר יותר.</p>
-        <Button className="mt-4" variant="outline" onClick={onBack}>
-          חזרה למפה
-        </Button>
+        <Button className="mt-4" variant="outline" onClick={onBack}>חזרה למפה</Button>
       </div>
     );
   }
 
-  // --- Get Current Question (using prop index) ---
   const currentQuestion = allQuestions[currentQuestionIndex];
   if (!currentQuestion) {
-    // This should ideally not happen if index is managed correctly, but good to handle
-    console.error(
-      `Error: Invalid question index ${currentQuestionIndex} for ValuesWorld.`
-    );
-    // Attempt to recover or show error
-    setCurrentQuestionIndex(0); // Reset to first question
-    return (
+     console.error(`Error: Invalid question index ${currentQuestionIndex} for ValuesWorld.`);
+     setCurrentQuestionIndex(0);
+     return (
       <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-300 text-yellow-800 text-center">
         <p>אירעה שגיאה בטעינת השאלה. מחזיר לשאלה הראשונה...</p>
-        <Button
-          className="mt-2"
-          variant="outline"
-          onClick={() => setCurrentQuestionIndex(0)}
-        >
-          אישור
-        </Button>
+        <Button className="mt-2" variant="outline" onClick={() => setCurrentQuestionIndex(0)}>אישור</Button>
       </div>
     );
   }
 
-  // --- Calculate Progress ---
   const progress = ((currentQuestionIndex + 1) / allQuestions.length) * 100;
   const currentValue = findAnswer(currentQuestion.id);
   const answeredQuestionsCount = allQuestions.filter((q) => {
-    const answerValue = findAnswer(q.id);
-    return (
-      answerValue !== undefined &&
-      answerValue !== null &&
-      (typeof answerValue !== "string" || answerValue.trim() !== "") &&
-      (!Array.isArray(answerValue) || answerValue.length > 0) &&
-      (typeof answerValue !== "object" ||
-        Array.isArray(answerValue) ||
-        Object.keys(answerValue).length > 0)
-    );
-  }).length;
-
+        const answerValue = findAnswer(q.id);
+        return answerValue !== undefined && answerValue !== null &&
+               (typeof answerValue !== 'string' || answerValue.trim() !== '') &&
+               (!Array.isArray(answerValue) || answerValue.length > 0) &&
+               (typeof answerValue !== 'object' || Array.isArray(answerValue) || Object.keys(answerValue).length > 0);
+   }).length;
   const completionPercentage = Math.round(
     (answeredQuestionsCount / allQuestions.length) * 100
   );
 
-  // --- Helper Components for Rendering ---
-
-  // Renders the header section with progress and list button
   const renderHeader = (showSheetButton: boolean) => (
     <div className="bg-white p-3 rounded-lg shadow-sm border space-y-2 mb-6">
       <div className="flex items-center justify-between">
@@ -340,73 +256,25 @@ WorldComponentProps) {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {/* Completion Percentage */}
-          <div
-            className={cn(
-              "hidden sm:flex items-center text-sm",
-              completionPercentage === 100 ? "text-green-600" : "text-gray-600"
-            )}
-          >
-            <CheckCircle
-              className={cn(
-                "h-4 w-4 me-1",
-                completionPercentage === 100
-                  ? "text-green-500"
-                  : "text-gray-400"
-              )}
-            />
+          <div className={cn("hidden sm:flex items-center text-sm", completionPercentage === 100 ? "text-green-600" : "text-gray-600")}>
+            <CheckCircle className={cn("h-4 w-4 me-1", completionPercentage === 100 ? "text-green-500" : "text-gray-400")} />
             <span>{completionPercentage}% הושלם</span>
           </div>
-          {/* Mobile/Sheet Button */}
           {showSheetButton && (
             <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-1">
-                  <List className="h-4 w-4" />
-                  <span className="hidden sm:inline">רשימת שאלות</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent
-                side={isRTL ? "left" : "right"}
-                className="w-[300px] sm:w-[400px]"
-              >
+              <SheetTrigger asChild><Button variant="outline" size="sm" className="gap-1"><List className="h-4 w-4" /><span className="hidden sm:inline">רשימת שאלות</span></Button></SheetTrigger>
+              <SheetContent side={isRTL ? "left" : "right"} className="w-[300px] sm:w-[400px]">
                 <SheetHeader>
-                  <SheetTitle>
-                    <div className="flex items-center gap-2">
-                      <ListChecks className="h-5 w-5 text-blue-600" />
-                      <span>כל השאלות בעולם הערכים</span>
-                    </div>
-                  </SheetTitle>
-                  <SheetDescription>
-                    לחץ על שאלה כדי לעבור אליה ישירות.
-                    {/* Legend */}
-                    <div className="mt-3 pt-3 border-t space-y-1">
-                      <div className="flex items-center text-xs text-gray-600">
-                        <CheckCircle className="h-3 w-3 text-green-500 me-1.5" />
-                        <span>הושלם</span>
-                      </div>
-                      <div className="flex items-center text-xs text-gray-600">
-                        <AlertCircle className="h-3 w-3 text-red-500 me-1.5" />
-                        <span>חובה (לא נענה)</span>
-                      </div>
-                      <div className="flex items-center text-xs text-gray-600">
-                        <CircleDot className="h-3 w-3 text-gray-400 me-1.5" />
-                        <span>לא נענה</span>
-                      </div>
-                    </div>
+                  <SheetTitle><div className="flex items-center gap-2"><ListChecks className="h-5 w-5 text-blue-600" /><span>כל השאלות בעולם הערכים</span></div></SheetTitle>
+                   <SheetDescription>לחץ על שאלה כדי לעבור אליה ישירות.
+                     <div className="mt-3 pt-3 border-t space-y-1">
+                       <div className="flex items-center text-xs text-gray-600"><CheckCircle className="h-3 w-3 text-green-500 me-1.5" /><span>הושלם</span></div>
+                       <div className="flex items-center text-xs text-gray-600"><AlertCircle className="h-3 w-3 text-red-500 me-1.5" /><span>חובה (לא נענה)</span></div>
+                       <div className="flex items-center text-xs text-gray-600"><CircleDot className="h-3 w-3 text-gray-400 me-1.5" /><span>לא נענה</span></div>
+                     </div>
                   </SheetDescription>
                 </SheetHeader>
-                <div className="mt-4">
-                  <QuestionsList
-                    allQuestions={allQuestions}
-                    currentQuestionIndex={currentQuestionIndex} // Use prop
-                    setCurrentQuestionIndex={setCurrentQuestionIndex} // Use prop
-                    answers={answers}
-                    language={language}
-                    // Example: Pass function to close sheet on selection
-                    // onClose={() => document.querySelector('[data-radix-sheet-close]')?.click()}
-                  />
-                </div>
+                <div className="mt-4"><QuestionsList allQuestions={allQuestions} currentQuestionIndex={currentQuestionIndex} setCurrentQuestionIndex={setCurrentQuestionIndex} answers={answers} language={language} /></div>
               </SheetContent>
             </Sheet>
           )}
@@ -416,192 +284,62 @@ WorldComponentProps) {
     </div>
   );
 
-  // Renders the main question card with animation
   const renderQuestionCard = () => (
-    <motion.div
-      className={cn("transition-opacity duration-300")}
-      key={currentQuestionIndex} // Key ensures re-render on index change
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-    >
-      <QuestionCard
-        question={currentQuestion}
-        depth={currentQuestion.depth}
-        isRequired={currentQuestion.isRequired}
-        validationError={validationErrors[currentQuestion.id]}
-        language={language}
-      >
-        <AnswerInput
-          question={currentQuestion}
-          value={currentValue}
-          onChange={(value) => {
-            // Clear validation on change
-            setValidationErrors((prev) => ({
-              ...prev,
-              [currentQuestion.id]: "",
-            }));
-            onAnswer(currentQuestion.id, value); // Pass to parent
-          }}
-          onClear={handleClearAnswer} // Use clear handler
-          language={language}
-          showValidation={!!validationErrors[currentQuestion.id]}
-        />
+    <motion.div className={cn("transition-opacity duration-300")} key={currentQuestionIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+      <QuestionCard question={currentQuestion} depth={currentQuestion.depth} isRequired={currentQuestion.isRequired} validationError={validationErrors[currentQuestion.id]} language={language}>
+        <AnswerInput question={currentQuestion} value={currentValue} onChange={(value) => { setValidationErrors(prev => ({ ...prev, [currentQuestion.id]: '' })); onAnswer(currentQuestion.id, value); }} onClear={handleClearAnswer} language={language} showValidation={!!validationErrors[currentQuestion.id]} />
       </QuestionCard>
     </motion.div>
   );
 
-  // Renders the navigation buttons (Prev/Next/Finish)
   const renderNavigationButtons = () => (
     <div className="flex justify-between pt-4 mt-6 border-t">
-      <Button
-        variant="outline"
-        onClick={handlePrevious}
-        className="flex items-center gap-2"
-      >
-        <ArrowRight className="h-4 w-4" />
-        <span>{currentQuestionIndex === 0 ? "חזור למפה" : "שאלה קודמת"}</span>
-      </Button>
+      <Button variant="outline" onClick={handlePrevious} className="flex items-center gap-2"><ArrowRight className="h-4 w-4" /><span>{currentQuestionIndex === 0 ? "חזור למפה" : "שאלה קודמת"}</span></Button>
       {currentQuestionIndex < allQuestions.length - 1 ? (
-        <Button
-          variant="default"
-          onClick={handleNext}
-          className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2"
-        >
-          <span>שאלה הבאה</span>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
+        <Button variant="default" onClick={handleNext} className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2"><span>שאלה הבאה</span><ArrowLeft className="h-4 w-4" /></Button>
       ) : (
-        <Button
-          onClick={handleNext}
-          className="bg-green-600 hover:bg-green-700 flex items-center gap-2"
-        >
-          <span>סיים עולם זה</span>
-          <CheckCircle className="h-4 w-4" />
-        </Button>
+        <Button onClick={handleNext} className="bg-green-600 hover:bg-green-700 flex items-center gap-2"><span>סיים עולם זה</span><CheckCircle className="h-4 w-4" /></Button>
       )}
     </div>
   );
 
-  // Renders the button to toggle the questions list sidebar on desktop
   const ListToggleButton = () => (
     <TooltipProvider delayDuration={100}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setIsListVisible(!isListVisible)}
-            className="fixed top-[80px] z-30 bg-white/80 backdrop-blur-sm shadow-md hover:bg-gray-100 rounded-full w-10 h-10"
-            style={isRTL ? { left: "1.5rem" } : { right: "1.5rem" }}
-          >
-            {isListVisible ? (
-              isRTL ? (
-                <PanelRightClose className="h-5 w-5" />
-              ) : (
-                <PanelLeftClose className="h-5 w-5" />
-              )
-            ) : isRTL ? (
-              <PanelRightOpen className="h-5 w-5" />
-            ) : (
-              <PanelLeftOpen className="h-5 w-5" />
-            )}
-            <span className="sr-only">
-              {isListVisible ? "הסתר רשימה" : "הצג רשימה"}
-            </span>
+          <Button variant="outline" size="icon" onClick={() => setIsListVisible(!isListVisible)} className="fixed top-[80px] z-30 bg-white/80 backdrop-blur-sm shadow-md hover:bg-gray-100 rounded-full w-10 h-10" style={isRTL ? { left: "1.5rem" } : { right: "1.5rem" }}>
+            {isListVisible ? (isRTL ? <PanelRightClose className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />) : (isRTL ? <PanelRightOpen className="h-5 w-5" /> : <PanelLeftOpen className="h-5 w-5" />)}
+            <span className="sr-only">{isListVisible ? "הסתר רשימה" : "הצג רשימה"}</span>
           </Button>
         </TooltipTrigger>
-        <TooltipContent side={isRTL ? "right" : "left"}>
-          <p>{isListVisible ? "הסתר רשימת שאלות" : "הצג רשימת שאלות"}</p>
-        </TooltipContent>
+        <TooltipContent side={isRTL ? "right" : "left"}><p>{isListVisible ? "הסתר רשימת שאלות" : "הצג רשימת שאלות"}</p></TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );
 
-  // --- Conditional Layout Rendering ---
   if (isDesktop) {
-    // --- Desktop Layout ---
     return (
       <div className="w-full relative" dir={isRTL ? "rtl" : "ltr"}>
         <ListToggleButton />
-        {renderHeader(false)} {/* Header without sheet button */}
-        <div
-          className={cn(
-            "transition-all duration-300 ease-in-out",
-            isListVisible ? "grid grid-cols-12 gap-8" : "flex justify-center"
-          )}
-        >
-          {/* Main Question Area */}
-          <div
-            className={cn(
-              "space-y-6",
-              isListVisible
-                ? "col-span-12 lg:col-span-7 xl:col-span-8"
-                : "w-full max-w-4xl"
-            )}
-          >
+        {renderHeader(false)}
+        <div className={cn("transition-all duration-300 ease-in-out", isListVisible ? "grid grid-cols-12 gap-8" : "flex justify-center")}>
+          <div className={cn("space-y-6", isListVisible ? "col-span-12 lg:col-span-7 xl:col-span-8" : "w-full max-w-4xl")}>
             {renderQuestionCard()}
             {renderNavigationButtons()}
           </div>
-
-          {/* Questions List Sidebar */}
           <AnimatePresence>
             {isListVisible && (
-              <motion.div
-                className="col-span-12 lg:col-span-5 xl:col-span-4"
-                initial={{
-                  opacity: 0,
-                  width: 0,
-                  marginInlineStart: isRTL ? "-2rem" : undefined,
-                  marginInlineEnd: isRTL ? undefined : "-2rem",
-                }}
-                animate={{
-                  opacity: 1,
-                  width: "auto",
-                  marginInlineStart: 0,
-                  marginInlineEnd: 0,
-                }}
-                exit={{
-                  opacity: 0,
-                  width: 0,
-                  marginInlineStart: isRTL ? "-2rem" : undefined,
-                  marginInlineEnd: isRTL ? undefined : "-2rem",
-                }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
-                layout // Animate layout changes for the sidebar itself
-              >
+              <motion.div className="col-span-12 lg:col-span-5 xl:col-span-4" initial={{ opacity: 0, width: 0, marginInlineStart: isRTL ? "-2rem" : undefined, marginInlineEnd: isRTL ? undefined : "-2rem" }} animate={{ opacity: 1, width: "auto", marginInlineStart: 0, marginInlineEnd: 0 }} exit={{ opacity: 0, width: 0, marginInlineStart: isRTL ? "-2rem" : undefined, marginInlineEnd: isRTL ? undefined : "-2rem" }} transition={{ duration: 0.3, ease: "easeInOut" }} layout>
                 <Card className="sticky top-6 shadow-lg border border-gray-200 h-[calc(100vh-5rem)] overflow-hidden flex flex-col">
-                  <CardHeader className="pb-3 pt-4 border-b bg-gray-50/50 flex-shrink-0">
-                    <CardTitle className="text-lg font-semibold flex items-center gap-2 text-gray-800">
-                      <ListChecks className="h-5 w-5 text-blue-600" />
-                      <span>שאלות בעולם זה</span>
-                    </CardTitle>
-                    {/* Legend */}
+                   <CardHeader className="pb-3 pt-4 border-b bg-gray-50/50 flex-shrink-0">
+                    <CardTitle className="text-lg font-semibold flex items-center gap-2 text-gray-800"><ListChecks className="h-5 w-5 text-blue-600" /><span>שאלות בעולם זה</span></CardTitle>
                     <div className="pt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
-                      <div className="flex items-center">
-                        <CheckCircle className="h-3 w-3 text-green-500 me-1.5" />
-                        <span>הושלם</span>
-                      </div>
-                      <div className="flex items-center">
-                        <AlertCircle className="h-3 w-3 text-red-500 me-1.5" />
-                        <span>חובה</span>
-                      </div>
-                      <div className="flex items-center">
-                        <CircleDot className="h-3 w-3 text-gray-400 me-1.5" />
-                        <span>לא נענה</span>
-                      </div>
+                       <div className="flex items-center"><CheckCircle className="h-3 w-3 text-green-500 me-1.5" /><span>הושלם</span></div>
+                       <div className="flex items-center"><AlertCircle className="h-3 w-3 text-red-500 me-1.5" /><span>חובה</span></div>
+                       <div className="flex items-center"><CircleDot className="h-3 w-3 text-gray-400 me-1.5" /><span>לא נענה</span></div>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-2 flex-grow overflow-hidden">
-                    <QuestionsList
-                      allQuestions={allQuestions}
-                      currentQuestionIndex={currentQuestionIndex} // Use prop
-                      setCurrentQuestionIndex={setCurrentQuestionIndex} // Use prop
-                      answers={answers}
-                      language={language}
-                      className="h-full" // Ensure list takes full height
-                    />
-                  </CardContent>
+                  <CardContent className="p-2 flex-grow overflow-hidden"><QuestionsList allQuestions={allQuestions} currentQuestionIndex={currentQuestionIndex} setCurrentQuestionIndex={setCurrentQuestionIndex} answers={answers} language={language} className="h-full" /></CardContent>
                 </Card>
               </motion.div>
             )}
@@ -610,13 +348,9 @@ WorldComponentProps) {
       </div>
     );
   } else {
-    // --- Mobile Layout ---
     return (
-      <div
-        className="max-w-2xl mx-auto p-2 sm:p-4 space-y-6"
-        dir={isRTL ? "rtl" : "ltr"}
-      >
-        {renderHeader(true)} {/* Header with sheet button */}
+      <div className="max-w-2xl mx-auto p-2 sm:p-4 space-y-6" dir={isRTL ? "rtl" : "ltr"}>
+        {renderHeader(true)}
         {renderQuestionCard()}
         {renderNavigationButtons()}
       </div>

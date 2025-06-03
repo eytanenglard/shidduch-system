@@ -17,32 +17,33 @@ import {
   HelpCircle,
   CheckCircle2,
 } from "lucide-react";
-import type { WorldId, QuestionDepth } from "../types/types"; // Assuming QuestionDepth is exported
+import type { WorldId, QuestionDepth } from "../types/types";
 import { cn } from "@/lib/utils";
 
 interface WorldIntroProps {
   worldId: WorldId;
   title: string;
   description: string;
+  // estimatedTime עדיין יכול להתקבל, אך לא נשתמש בו ישירות לתצוגה אם נרצה טווח קבוע
   estimatedTime: number;
   totalQuestions: number;
   requiredQuestions: number;
-  depths: Array<QuestionDepth>; // Use QuestionDepth type
+  depths: Array<QuestionDepth>;
   onStart: () => void;
   className?: string;
 }
 
-// --- Configuration for World Icons and Styles ---
+// --- Configuration for World Icons and Styles (נשאר כפי שהוא) ---
 const worldDisplayConfig: Record<
   WorldId,
   {
     Icon: React.ElementType;
-    primaryColor: string; // e.g., 'blue-500' for Tailwind
-    gradientFrom: string; // e.g., 'from-blue-500'
-    gradientTo: string; // e.g., 'to-blue-400'
-    bgLight: string; // e.g., 'bg-blue-50 dark:bg-blue-900/30'
-    textLight: string; // e.g., 'text-blue-700 dark:text-blue-300'
-    iconBg: string; // e.g., 'bg-blue-100 dark:bg-blue-800/50'
+    primaryColor: string;
+    gradientFrom: string;
+    gradientTo: string;
+    bgLight: string;
+    textLight: string;
+    iconBg: string;
   }
 > = {
   RELIGION: {
@@ -82,7 +83,7 @@ const worldDisplayConfig: Record<
     iconBg: "bg-sky-100 dark:bg-sky-800/50",
   },
   PARTNER: {
-    Icon: CheckCircle2, // Changed to CheckCircle2 for distinctness
+    Icon: CheckCircle2,
     primaryColor: "teal-500",
     gradientFrom: "from-teal-500",
     gradientTo: "to-emerald-500",
@@ -92,16 +93,16 @@ const worldDisplayConfig: Record<
   },
 };
 
-// --- Configuration for Depth Levels ---
+// --- Configuration for Depth Levels (נשאר כפי שהוא) ---
 const depthDisplayConfig: Record<
   QuestionDepth,
   {
     label: string;
     description: string;
     Icon: React.ElementType;
-    iconColor: string; // e.g., 'text-blue-500'
-    bgColor: string; // e.g., 'bg-blue-50'
-    borderColor: string; // e.g., 'border-blue-200'
+    iconColor: string;
+    bgColor: string;
+    borderColor: string;
   }
 > = {
   BASIC: {
@@ -121,7 +122,7 @@ const depthDisplayConfig: Record<
     borderColor: "border-purple-200 dark:border-purple-700",
   },
   EXPERT: {
-    label: "מומחיות",
+    label: "מומחיות", // אפשר לשנות ל"התבוננות" או "רפלקציה"
     description: "שאלות רפלקטיביות הדורשות התבוננות פנימית עמוקה במיוחד.",
     Icon: Award,
     iconColor: "text-amber-500",
@@ -135,7 +136,7 @@ export default function WorldIntro({
   worldId,
   title,
   description,
-  estimatedTime,
+  // estimatedTime, // לא נשתמש בו ישירות לתצוגה
   totalQuestions,
   requiredQuestions,
   depths,
@@ -145,7 +146,10 @@ export default function WorldIntro({
   const config = worldDisplayConfig[worldId];
   const { Icon, gradientFrom, gradientTo, bgLight, textLight, iconBg } = config;
 
-  // Framer Motion Variants
+  // קביעת טווח הזמן לתצוגה
+  const displayEstimatedTime = "10-20 דקות"; // <-- שינוי כאן
+
+  // Framer Motion Variants (נשאר כפי שהוא)
   const containerVariants = {
     hidden: { opacity: 0, scale: 0.98 },
     visible: {
@@ -219,7 +223,7 @@ export default function WorldIntro({
               {[
                 {
                   label: "זמן משוער",
-                  value: `${estimatedTime} דקות`,
+                  value: displayEstimatedTime, // <-- שימוש במשתנה החדש
                   IconComp: Clock,
                 },
                 {
@@ -255,7 +259,7 @@ export default function WorldIntro({
               ))}
             </motion.div>
 
-            {/* Depth Levels Information */}
+            {/* Depth Levels Information (נשאר כפי שהוא) */}
             <motion.div variants={itemVariants} className="space-y-4">
               <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200 flex items-center">
                 <Sparkles className={cn("w-5 h-5 mr-2", textLight)} />
@@ -263,6 +267,10 @@ export default function WorldIntro({
               </h3>
               {depths.map((depthKey) => {
                 const depthConfig = depthDisplayConfig[depthKey];
+                if (!depthConfig) { // הוספת בדיקה למקרה שרמת עומק לא מוגדרת
+                    console.warn(`Depth configuration for "${depthKey}" not found.`);
+                    return null;
+                }
                 return (
                   <motion.div
                     key={depthKey}
@@ -300,7 +308,7 @@ export default function WorldIntro({
               })}
             </motion.div>
 
-            {/* Start Button */}
+            {/* Start Button (נשאר כפי שהוא) */}
             <motion.div variants={itemVariants} className="pt-4">
               <Button
                 onClick={onStart}
@@ -315,7 +323,7 @@ export default function WorldIntro({
               </Button>
             </motion.div>
 
-            {/* Subtle Footer/Hint */}
+            {/* Subtle Footer/Hint (נשאר כפי שהוא) */}
             <motion.p
               variants={itemVariants}
               className="text-center text-xs text-slate-400 dark:text-slate-500 pt-2"

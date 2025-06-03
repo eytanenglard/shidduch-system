@@ -1,5 +1,5 @@
 // src/components/questionnaire/worlds/PartnerWorld.tsx
-import React, { useState, useEffect } from "react"; // No longer need useState for index
+import React, { useState, useEffect } from "react";
 import WorldIntro from "../common/WorldIntro";
 import QuestionCard from "../common/QuestionCard";
 import AnswerInput from "../common/AnswerInput";
@@ -33,7 +33,7 @@ import type {
   AnswerValue,
   Question,
 } from "../types/types";
-import { partnerQuestions } from "../questions/partner/partnerQuestions"; // Correct import
+import { partnerQuestions } from "../questions/partner/partnerQuestions";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import { motion, AnimatePresence } from "framer-motion";
@@ -44,7 +44,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-// --- Fetch questions for this world ---
 const allQuestions = partnerQuestions;
 
 export default function PartnerWorld({
@@ -53,13 +52,10 @@ export default function PartnerWorld({
   onBack,
   answers,
   language = "he",
-  // --- Receiving props from parent ---
   currentQuestionIndex,
   setCurrentQuestionIndex,
-  // -----------------------------------
 }: WorldComponentProps) {
 
-  // --- Local state for intro and validation, index state is removed ---
   const [isIntroComplete, setIsIntroComplete] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [, setAnimateDirection] = useState<"left" | "right" | null>(null);
@@ -67,18 +63,15 @@ export default function PartnerWorld({
   const isRTL = language === "he";
   const [isListVisible, setIsListVisible] = useState(true);
 
-  // Effect for animation timing (uses the prop currentQuestionIndex now)
   useEffect(() => {
     const timer = setTimeout(() => setAnimateDirection(null), 300);
     return () => clearTimeout(timer);
-  }, [currentQuestionIndex]); // Dependency is now the prop
+  }, [currentQuestionIndex]);
 
-  // --- Helper function to find answer value ---
   const findAnswer = (questionId: string) => {
     return answers.find((a) => a.questionId === questionId)?.value;
   };
 
-  // --- Validation function ---
   const validateAnswer = (question: Question, value: AnswerValue): string | null => {
     const isValueEmpty =
       value === undefined ||
@@ -137,7 +130,6 @@ export default function PartnerWorld({
     return null;
   };
 
-  // --- Navigation handlers using props ---
   const handleNext = () => {
     const currentQuestion = allQuestions[currentQuestionIndex];
     const value = findAnswer(currentQuestion.id);
@@ -151,9 +143,8 @@ export default function PartnerWorld({
 
     if (currentQuestionIndex < allQuestions.length - 1) {
       setAnimateDirection("left");
-      setCurrentQuestionIndex(currentQuestionIndex + 1); // Use prop function
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-         // Check all required before completing
         const firstUnansweredRequired = allQuestions.find(q =>
             q.isRequired && validateAnswer(q, findAnswer(q.id)) !== null
         );
@@ -167,7 +158,7 @@ export default function PartnerWorld({
                 });
             }
         } else {
-            onComplete(); // All required answered
+            onComplete();
         }
     }
   };
@@ -175,13 +166,12 @@ export default function PartnerWorld({
   const handlePrevious = () => {
     if (currentQuestionIndex > 0) {
       setAnimateDirection("right");
-      setCurrentQuestionIndex(currentQuestionIndex - 1); // Use prop function
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
     } else {
       onBack();
     }
   };
 
-  // --- Clear answer handler ---
   const handleClearAnswer = () => {
     const currentQuestion = allQuestions[currentQuestionIndex];
     let emptyValue: AnswerValue;
@@ -195,24 +185,22 @@ export default function PartnerWorld({
     setValidationErrors(prev => ({ ...prev, [currentQuestion.id]: '' }));
   };
 
-  // --- Render Intro Screen ---
   if (!isIntroComplete) {
     return (
       <WorldIntro
         worldId="PARTNER"
-        title="עולם הפרטנר"
-        description="בואו נגדיר יחד מהן התכונות, הערכים והציפיות החשובים לך ביותר בבן/בת הזוג האידיאלי/ת"
-        estimatedTime={15} // Update estimate
+        title="עולם הפרטנר: במי תרצה/י לבחור?" // עדכון כותרת
+        description="בעולם זה נגדיר יחד את התכונות, הערכים, סגנון החיים והציפיות החשובים לך ביותר בבן/בת הזוג האידיאלי/ת. ככל שתהיי/ה מדויק/ת יותר, כך נוכל לכוון אותך להתאמות בעלות פוטנציאל גבוה יותר להצלחה ואושר." // עדכון תיאור
+        estimatedTime={allQuestions.reduce((sum, q) => sum + (q.metadata?.estimatedTime || 1), 0)}
         totalQuestions={allQuestions.length}
         requiredQuestions={allQuestions.filter((q) => q.isRequired).length}
-        depths={["BASIC", "ADVANCED"]} // Update based on questions
+        depths={Array.from(new Set(allQuestions.map(q => q.depth)))} // דינמי
         onStart={() => setIsIntroComplete(true)}
       />
     );
   }
 
-  // --- Handle Loading Error ---
-   if (allQuestions.length === 0) {
+  if (allQuestions.length === 0) {
     return (
       <div className="p-4 bg-red-50 rounded-lg border border-red-300 text-red-800 text-center">
         <h3 className="font-bold text-lg mb-2">שגיאה בטעינת השאלות</h3>
@@ -222,16 +210,13 @@ export default function PartnerWorld({
     );
   }
 
-  // --- Get Current Question (using prop index) ---
   const currentQuestion = allQuestions[currentQuestionIndex];
   if (!currentQuestion) {
      console.error(`Error: Invalid question index ${currentQuestionIndex} for PartnerWorld.`);
-     setCurrentQuestionIndex(0); // Attempt recovery
+     setCurrentQuestionIndex(0);
      return <div>שגיאה בטעינת השאלה...</div>;
   }
 
-
-  // --- Calculate Progress ---
   const progress = ((currentQuestionIndex + 1) / allQuestions.length) * 100;
   const currentValue = findAnswer(currentQuestion.id);
    const answeredQuestionsCount = allQuestions.filter((q) => {
@@ -245,12 +230,11 @@ export default function PartnerWorld({
     (answeredQuestionsCount / allQuestions.length) * 100
   );
 
-  // --- Helper Components for Rendering ---
    const renderHeader = (showSheetButton: boolean) => (
     <div className="bg-white p-3 rounded-lg shadow-sm border space-y-2 mb-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-medium">עולם הפרטנר</h2> {/* Correct Title */}
+          <h2 className="text-lg font-medium">עולם הפרטנר</h2>
           <div className="text-sm text-gray-500">
             שאלה {currentQuestionIndex + 1} מתוך {allQuestions.length}
           </div>
@@ -267,7 +251,7 @@ export default function PartnerWorld({
                 <SheetHeader>
                   <SheetTitle><div className="flex items-center gap-2"><ListChecks className="h-5 w-5 text-blue-600" /><span>כל השאלות בעולם הפרטנר</span></div></SheetTitle>
                    <SheetDescription>לחץ על שאלה כדי לעבור אליה ישירות.
-                     <div className="mt-3 pt-3 border-t space-y-1"> {/* Legend */}
+                     <div className="mt-3 pt-3 border-t space-y-1">
                        <div className="flex items-center text-xs text-gray-600"><CheckCircle className="h-3 w-3 text-green-500 me-1.5" /><span>הושלם</span></div>
                        <div className="flex items-center text-xs text-gray-600"><AlertCircle className="h-3 w-3 text-red-500 me-1.5" /><span>חובה (לא נענה)</span></div>
                        <div className="flex items-center text-xs text-gray-600"><CircleDot className="h-3 w-3 text-gray-400 me-1.5" /><span>לא נענה</span></div>
@@ -317,7 +301,6 @@ export default function PartnerWorld({
     </TooltipProvider>
   );
 
-  // --- Conditional Layout Rendering ---
   if (isDesktop) {
      return (
       <div className="w-full relative" dir={isRTL ? "rtl" : "ltr"}>
@@ -334,7 +317,7 @@ export default function PartnerWorld({
                 <Card className="sticky top-6 shadow-lg border border-gray-200 h-[calc(100vh-5rem)] overflow-hidden flex flex-col">
                    <CardHeader className="pb-3 pt-4 border-b bg-gray-50/50 flex-shrink-0">
                     <CardTitle className="text-lg font-semibold flex items-center gap-2 text-gray-800"><ListChecks className="h-5 w-5 text-blue-600" /><span>שאלות בעולם זה</span></CardTitle>
-                    <div className="pt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500"> {/* Legend */}
+                     <div className="pt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
                        <div className="flex items-center"><CheckCircle className="h-3 w-3 text-green-500 me-1.5" /><span>הושלם</span></div>
                        <div className="flex items-center"><AlertCircle className="h-3 w-3 text-red-500 me-1.5" /><span>חובה</span></div>
                        <div className="flex items-center"><CircleDot className="h-3 w-3 text-gray-400 me-1.5" /><span>לא נענה</span></div>

@@ -1,5 +1,5 @@
 // src/components/questionnaire/worlds/PersonalityWorld.tsx
-import React, { useState, useEffect } from "react"; // No longer need useState for index
+import React, { useState, useEffect } from "react";
 import WorldIntro from "../common/WorldIntro";
 import QuestionCard from "../common/QuestionCard";
 import AnswerInput from "../common/AnswerInput";
@@ -33,7 +33,7 @@ import type {
   AnswerValue,
   Question,
 } from "../types/types";
-import { personalityQuestions } from "../questions/personality/personalityQuestions"; // Correct import
+import { personalityQuestions } from "../questions/personality/personalityQuestions";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import { motion, AnimatePresence } from "framer-motion";
@@ -44,7 +44,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-// --- Fetch questions for this world ---
 const allQuestions = personalityQuestions;
 
 export default function PersonalityWorld({
@@ -53,13 +52,9 @@ export default function PersonalityWorld({
   onBack,
   answers,
   language = "he",
-  // --- Receiving props from parent ---
   currentQuestionIndex,
   setCurrentQuestionIndex,
-  // -----------------------------------
 }: WorldComponentProps) {
-
-  // --- Local state for intro and validation, index state is removed ---
   const [isIntroComplete, setIsIntroComplete] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [, setAnimateDirection] = useState<"left" | "right" | null>(null);
@@ -67,18 +62,15 @@ export default function PersonalityWorld({
   const isRTL = language === "he";
   const [isListVisible, setIsListVisible] = useState(true);
 
-  // Effect for animation timing (uses the prop currentQuestionIndex now)
   useEffect(() => {
     const timer = setTimeout(() => setAnimateDirection(null), 300);
     return () => clearTimeout(timer);
-  }, [currentQuestionIndex]); // Dependency is now the prop
+  }, [currentQuestionIndex]);
 
-  // --- Helper function to find answer value ---
   const findAnswer = (questionId: string) => {
     return answers.find((a) => a.questionId === questionId)?.value;
   };
 
-  // --- Validation function ---
   const validateAnswer = (question: Question, value: AnswerValue): string | null => {
     const isValueEmpty =
       value === undefined ||
@@ -126,7 +118,7 @@ export default function PersonalityWorld({
         if (allocationValue) {
             const totalAllocated = Object.values(allocationValue).reduce((sum, val) => sum + (val || 0), 0);
             if (question.totalPoints && totalAllocated !== question.totalPoints && question.isRequired) {
-                return `יש להקצות בדיוק ${question.totalPoints} נקודות.`; // Simplified message
+                return `יש להקצות בדיוק ${question.totalPoints} נקודות.`;
             }
         } else if (question.isRequired && !isValueEmpty) {
              return "נדרשת הקצאת תקציב.";
@@ -137,7 +129,6 @@ export default function PersonalityWorld({
     return null;
   };
 
-  // --- Navigation handlers using props ---
   const handleNext = () => {
     const currentQuestion = allQuestions[currentQuestionIndex];
     const value = findAnswer(currentQuestion.id);
@@ -147,13 +138,12 @@ export default function PersonalityWorld({
       setValidationErrors({ ...validationErrors, [currentQuestion.id]: error });
       return;
     }
-    setValidationErrors(prev => ({ ...prev, [currentQuestion.id]: '' })); // Clear error on success or if not required
+    setValidationErrors(prev => ({ ...prev, [currentQuestion.id]: '' }));
 
     if (currentQuestionIndex < allQuestions.length - 1) {
       setAnimateDirection("left");
-      setCurrentQuestionIndex(currentQuestionIndex + 1); // Use prop function
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-        // Check all required before completing
         const firstUnansweredRequired = allQuestions.find(q =>
             q.isRequired && validateAnswer(q, findAnswer(q.id)) !== null
         );
@@ -167,7 +157,7 @@ export default function PersonalityWorld({
                 });
             }
         } else {
-            onComplete(); // All required answered
+            onComplete();
         }
     }
   };
@@ -175,13 +165,12 @@ export default function PersonalityWorld({
   const handlePrevious = () => {
     if (currentQuestionIndex > 0) {
       setAnimateDirection("right");
-      setCurrentQuestionIndex(currentQuestionIndex - 1); // Use prop function
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
     } else {
       onBack();
     }
   };
 
-  // --- Clear answer handler ---
   const handleClearAnswer = () => {
     const currentQuestion = allQuestions[currentQuestionIndex];
     let emptyValue: AnswerValue;
@@ -192,26 +181,24 @@ export default function PersonalityWorld({
       default: emptyValue = "";
     }
     onAnswer(currentQuestion.id, emptyValue);
-    setValidationErrors(prev => ({ ...prev, [currentQuestion.id]: '' })); // Clear validation
+    setValidationErrors(prev => ({ ...prev, [currentQuestion.id]: '' }));
   };
 
-  // --- Render Intro Screen ---
   if (!isIntroComplete) {
     return (
       <WorldIntro
         worldId="PERSONALITY"
-        title="עולם האישיות"
-        description="בואו נגלה יחד את התכונות, הערכים, סגנון החיים והשאיפות הייחודיים שלך"
-        estimatedTime={15} // Update estimate
+        title="עולם האישיות: מי אני באמת?" // עדכון כותרת
+        description="המסע שלך מתחיל כאן! בעולם זה נצא יחד לגלות את התכונות, סגנון החיים, החוזקות והשאיפות המיוחדות שלך. ככל שנכיר אותך טוב יותר, כך נוכל לסייע במציאת התאמה שמבינה ומעריכה את מי שאת/ה." // עדכון תיאור
+        estimatedTime={allQuestions.reduce((sum, q) => sum + (q.metadata?.estimatedTime || 1), 0)} // סכום זמנים מהשאלות
         totalQuestions={allQuestions.length}
         requiredQuestions={allQuestions.filter((q) => q.isRequired).length}
-        depths={["BASIC", "ADVANCED"]} // Update based on questions
+        depths={["BASIC", "ADVANCED"]} // יש לוודא שאלו רמות העומק הקיימות בשאלות האישיות
         onStart={() => setIsIntroComplete(true)}
       />
     );
   }
 
-  // --- Handle Loading Error ---
   if (allQuestions.length === 0) {
     return (
       <div className="p-4 bg-red-50 rounded-lg border border-red-300 text-red-800 text-center">
@@ -222,18 +209,16 @@ export default function PersonalityWorld({
     );
   }
 
-  // --- Get Current Question (using prop index) ---
   const currentQuestion = allQuestions[currentQuestionIndex];
   if (!currentQuestion) {
      console.error(`Error: Invalid question index ${currentQuestionIndex} for PersonalityWorld.`);
-     setCurrentQuestionIndex(0); // Attempt recovery
+     setCurrentQuestionIndex(0);
      return <div>שגיאה בטעינת השאלה...</div>;
   }
 
-  // --- Calculate Progress ---
   const progress = ((currentQuestionIndex + 1) / allQuestions.length) * 100;
   const currentValue = findAnswer(currentQuestion.id);
-    const answeredQuestionsCount = allQuestions.filter((q) => {
+  const answeredQuestionsCount = allQuestions.filter((q) => {
         const answerValue = findAnswer(q.id);
         return answerValue !== undefined && answerValue !== null &&
                (typeof answerValue !== 'string' || answerValue.trim() !== '') &&
@@ -244,13 +229,11 @@ export default function PersonalityWorld({
     (answeredQuestionsCount / allQuestions.length) * 100
   );
 
-
-  // --- Helper Components for Rendering ---
   const renderHeader = (showSheetButton: boolean) => (
     <div className="bg-white p-3 rounded-lg shadow-sm border space-y-2 mb-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-medium">עולם האישיות</h2> {/* Correct Title */}
+          <h2 className="text-lg font-medium">עולם האישיות</h2>
           <div className="text-sm text-gray-500">
             שאלה {currentQuestionIndex + 1} מתוך {allQuestions.length}
           </div>
@@ -266,8 +249,8 @@ export default function PersonalityWorld({
               <SheetContent side={isRTL ? "left" : "right"} className="w-[300px] sm:w-[400px]">
                 <SheetHeader>
                   <SheetTitle><div className="flex items-center gap-2"><ListChecks className="h-5 w-5 text-blue-600" /><span>כל השאלות בעולם האישיות</span></div></SheetTitle>
-                  <SheetDescription>לחץ על שאלה כדי לעבור אליה ישירות.
-                     <div className="mt-3 pt-3 border-t space-y-1"> {/* Legend */}
+                   <SheetDescription>לחץ על שאלה כדי לעבור אליה ישירות.
+                     <div className="mt-3 pt-3 border-t space-y-1">
                        <div className="flex items-center text-xs text-gray-600"><CheckCircle className="h-3 w-3 text-green-500 me-1.5" /><span>הושלם</span></div>
                        <div className="flex items-center text-xs text-gray-600"><AlertCircle className="h-3 w-3 text-red-500 me-1.5" /><span>חובה (לא נענה)</span></div>
                        <div className="flex items-center text-xs text-gray-600"><CircleDot className="h-3 w-3 text-gray-400 me-1.5" /><span>לא נענה</span></div>
@@ -317,7 +300,6 @@ export default function PersonalityWorld({
     </TooltipProvider>
   );
 
-  // --- Conditional Layout Rendering ---
   if (isDesktop) {
     return (
       <div className="w-full relative" dir={isRTL ? "rtl" : "ltr"}>
@@ -334,7 +316,7 @@ export default function PersonalityWorld({
                 <Card className="sticky top-6 shadow-lg border border-gray-200 h-[calc(100vh-5rem)] overflow-hidden flex flex-col">
                    <CardHeader className="pb-3 pt-4 border-b bg-gray-50/50 flex-shrink-0">
                     <CardTitle className="text-lg font-semibold flex items-center gap-2 text-gray-800"><ListChecks className="h-5 w-5 text-blue-600" /><span>שאלות בעולם זה</span></CardTitle>
-                    <div className="pt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500"> {/* Legend */}
+                    <div className="pt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
                        <div className="flex items-center"><CheckCircle className="h-3 w-3 text-green-500 me-1.5" /><span>הושלם</span></div>
                        <div className="flex items-center"><AlertCircle className="h-3 w-3 text-red-500 me-1.5" /><span>חובה</span></div>
                        <div className="flex items-center"><CircleDot className="h-3 w-3 text-gray-400 me-1.5" /><span>לא נענה</span></div>
