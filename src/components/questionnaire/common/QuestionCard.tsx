@@ -130,20 +130,15 @@ export default function QuestionCard({
   // הרנדור משתנה בהתאם למכשיר
   const renderFooter = () => {
     if (isMobile) {
-      // למובייל - השאר רק את המידע ללא כפתורים
+      // למובייל - לאחר הסרת הזמן המוערך, אין תוכן להציג
       return (
         <div className="text-center text-xs text-gray-500">
-          {question.metadata?.estimatedTime && (
-            <div className="flex items-center justify-center">
-              <Info className="h-3 w-3 mr-1 text-blue-400" />
-              זמן מוערך: {question.metadata.estimatedTime} דקות
-            </div>
-          )}
+          {/* התוכן של זמן מוערך הוסר */}
         </div>
       );
     }
 
-    // למסך רגיל - השאר רק את כפתור הדילוג אם קיים ואת המידע
+    // למסך רגיל - מציג רק את כפתור הדילוג אם קיים
     return (
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2">
@@ -165,12 +160,7 @@ export default function QuestionCard({
         </div>
 
         <div className="flex items-center">
-          {question.metadata?.estimatedTime && (
-            <div className="text-xs text-gray-500 mr-2 flex items-center">
-              <Info className="h-3 w-3 mr-1 text-blue-400" />
-              זמן מוערך: {question.metadata.estimatedTime} דקות
-            </div>
-          )}
+          {/* התוכן של זמן מוערך הוסר */}
         </div>
       </div>
     );

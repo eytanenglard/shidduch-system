@@ -83,7 +83,7 @@ const ValuePropositionSection: React.FC = () => {
                 ליווי אנושי: הדרכה אישית משדכנים מקצועיים לאורך כל התהליך
               </ComparisonItem>
               <ComparisonItem>
-                התאמה מדויקת יותר: אלגוריתם AI עם 27 ממדי התאמה
+                התאמה מדויקת יותר: אלגוריתם AI עם 50 ממדי התאמה
               </ComparisonItem>
               <ComparisonItem>
                 פרטיות מלאה: פרופילים נראים רק לשדכנים מורשים

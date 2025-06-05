@@ -1,7 +1,4 @@
 import React from "react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
 import TestimonialCard from "../components/TestimonialCard";
 
 const SuccessStoriesSection: React.FC = () => {
@@ -25,28 +22,31 @@ const SuccessStoriesSection: React.FC = () => {
           <div className="w-24 h-1 bg-gradient-to-r from-cyan-600 to-cyan-700 mx-auto rounded-full" />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+        {/* --- שינוי כאן: הגריד הותאם ל-2 סיפורים ונראה טוב יותר --- */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           <TestimonialCard
-            text="בזכות Match Point הכרתי את בן זוגי. ההתאמה הייתה מדויקת מעבר למה שציפיתי! הליווי המקצועי של דינה היה חם ורגיש לאורך כל התהליך."
-            author="רחל, ירושלים"
-            result="נשואה 8 חודשים"
-            color="cyan"
-          />
-          <TestimonialCard
-            text="אחרי שניסיתי כמה אפליקציות היכרויות רגילות, השדכנית שליוותה אותי ב-Match Point הבינה בדיוק מה אני מחפש והצליחה להתאים לי את שידוך חיי"
-            author="משה, בני ברק"
-            result="מאורס"
-            color="orange"
-          />
-          <TestimonialCard
-            text="המערכת עזרה לי למצוא את האחת בצורה צנועה ומכבדת. ממליץ בחום לכל מי שרציני לגבי מציאת זיווג אמיתי שמתאים לערכים שלו!"
-            author="דוד, פתח תקווה"
-            result="נשוי שנה וחצי"
+            text="תמיד חלמתי על שותף לחיים עם שאיפות ערכיות דומות – להקים בית של חסד, ציונות ותורה. Match Point חיברו אותי לאדם שחולם בדיוק את אותו החלום. זה חיבור של נשמה ומטרה."
+            author="שרה, ירושלים"
+            result="בדרך לחתונה"
             color="green"
+          />
+          <TestimonialCard
+            text="הקסם של Match Point הוא ביכולת לראות מעבר לפרטים היבשים. איתן והמערכת זיהו את החיבור העמוק בערכי המשפחה ובווייב הכללי שלנו. זו התאמה שמרגישה כמו בית מהרגע הראשון."
+            author="מרים, ירוחם"
+            result="מאורסת"
+            color="orange"
           />
         </div>
 
         <div className="mt-12 text-center">
+          {/* 
+            --- התייחסות לשאלתך על הכפתור ---
+            המלצה: מכיוון שכרגע יש רק שני סיפורי הצלחה, הייתי ממליץ להסיר זמנית את הכפתור "לעוד סיפורי הצלחה".
+            כפתור שמוביל לעמוד שמכיל רק את אותם שני סיפורים עלול להרגיש מאכזב למשתמש.
+            כאשר יהיו לך 4-5 סיפורים, תוכל ליצור עמוד ייעודי ולהחזיר את הכפתור.
+            כרגע, השארתי אותו כאן כהערה כדי שתוכל להפעיל אותו בקלות בעתיד.
+          */}
+          {/* 
           <Link href="/success-stories">
             <Button
               variant="outline"
@@ -56,6 +56,7 @@ const SuccessStoriesSection: React.FC = () => {
               <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Button>
           </Link>
+          */}
         </div>
       </div>
     </section>
