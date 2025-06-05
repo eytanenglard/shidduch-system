@@ -40,31 +40,8 @@ import {
 import { UserProfile } from "@/types/next-auth";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-
+import { languageOptions } from "@/lib/languageOptions"; 
 // --- Options Arrays (נשארים כפי שהיו) ---
-const languageOptions = [
-  { value: "hebrew", label: "עברית" },
-  { value: "english", label: "אנגלית" },
-  { value: "yiddish", label: "יידיש" },
-  { value: "russian", label: "רוסית" },
-  { value: "arabic", label: "ערבית" },
-  { value: "french", label: "צרפתית" },
-  { value: "amharic", label: "אמהרית" },
-  { value: "italian", label: "איטלקית" },
-  { value: "ukrainian", label: "אוקראינית" },
-  { value: "spanish", label: "ספרדית" },
-  { value: "portuguese", label: "פורטוגזית" },
-  { value: "persian", label: "פרסית" },
-  { value: "polish", label: "פולנית" },
-  { value: "chinese", label: "סינית" },
-  { value: "german", label: "גרמנית" },
-  { value: "georgian", label: "גאורגית" },
-  { value: "dutch", label: "הולנדית" },
-  { value: "hungarian", label: "הונגרית" },
-  { value: "turkish", label: "טורקית" },
-  { value: "ladino", label: "לדינו" },
-  { value: "romanian", label: "רומנית" },
-];
 
 const maritalStatusOptions = [
   { value: "single", label: "רווק/ה" },
@@ -1358,8 +1335,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
 
             {/* --- כרטיס תכונות אופי ותחביבים --- */}
             <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-pink-50/40 to-rose-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
-                <Smile className="w-5 h-5 text-rose-600" />
+              <CardHeader className="bg-gradient-to-r from-amber-50/40 to-yellow-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
+                <Smile className="w-5 h-5 text-amber-600" />
                 <CardTitle className="text-base font-semibold text-gray-700">
                   תכונות אופי ותחביבים
                 </CardTitle>
@@ -1398,11 +1375,11 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                             )
                           }
                           className={cn(
-                            "rounded-full text-xs px-3 py-1.5 transition-all", // Increased py for better touch
+                            "rounded-full text-xs px-3 py-1.5 transition-all", 
                             (formData.profileCharacterTraits || []).includes(
                               trait.value
                             )
-                              ? "bg-rose-500 hover:bg-rose-600 text-white border-rose-500"
+                              ? "bg-amber-500 hover:bg-amber-600 text-white border-amber-500"
                               : "border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400"
                           )}
                         >
@@ -1455,7 +1432,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                             )
                           }
                           className={cn(
-                            "rounded-full text-xs px-3 py-1.5 transition-all", // Increased py
+                            "rounded-full text-xs px-3 py-1.5 transition-all",
                             (formData.profileHobbies || []).includes(
                               hobby.value
                             )

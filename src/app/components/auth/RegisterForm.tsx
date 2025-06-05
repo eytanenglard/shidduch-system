@@ -142,7 +142,7 @@ export default function RegisterForm() {
         {/* טלפון */}
         <div>
           <label htmlFor="phoneRegForm" className="block text-sm font-medium text-gray-700">טלפון נייד</label>
-          <input type="tel" name="phone" id="phoneRegForm" required pattern="[0-9]{10}" placeholder="0501234567" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2" />
+          <input type="tel" name="phone" id="phoneRegForm" required pattern="[0-9]{10}" placeholder="" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2" />
         </div>
         {/* סיסמה */}
         <div>

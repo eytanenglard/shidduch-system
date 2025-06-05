@@ -283,7 +283,7 @@ const PersonalDetailsStep: React.FC = () => {
               value={registrationState.phone}
               onChange={(e) => updateField("phone", e.target.value)}
               onBlur={() => validatePhone(registrationState.phone)}
-              placeholder="0501234567"
+              placeholder=""
               required
               maxLength={10}
               className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${

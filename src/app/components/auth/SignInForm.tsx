@@ -2,13 +2,14 @@
 "use client";
 
 import { useState, useEffect, FormEvent } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation"; // Added useRouter
 import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { Mail, Lock, AlertCircle } from "lucide-react";
+import { Mail, Lock, AlertCircle, Loader2 } from "lucide-react"; // Added Loader2
 import Link from "next/link";
 
 export default function SignInForm() {
+  const router = useRouter(); // Initialize useRouter
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -16,108 +17,113 @@ export default function SignInForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  // בדיקה אם יש שגיאה מה-URL
+  // Check for error from URL (e.g., after failed NextAuth sign-in attempt)
   useEffect(() => {
     const errorMessage = searchParams.get("error");
+    const resetSuccess = searchParams.get("reset"); // Check for password reset success
+
+    if (resetSuccess === "success") {
+        // Optionally show a success message, e.g., using a toast or a temporary state
+        // For now, we just clear any previous errors.
+        setError(""); // Clear any auth errors if coming from successful reset
+    }
+
     if (errorMessage) {
       switch (errorMessage) {
         case "CredentialsSignin":
-          setError("אימייל או סיסמה אינם נכונים");
+          setError("אימייל או סיסמה אינם נכונים. אנא נסה שנית.");
           break;
         case "OAuthAccountNotLinked":
           setError(
             "חשבון זה כבר מקושר באמצעות ספק אחר. אנא התחבר באמצעות הספק המקורי."
           );
           break;
-        // Add more specific error messages as needed
+        // Add more specific error messages as needed from NextAuth errors
         default:
-          setError("אירעה שגיאה, נסה שנית");
+          setError(`אירעה שגיאה בהתחברות (${errorMessage}). נסה שנית.`);
       }
     }
   }, [searchParams]);
 
-  // בדיקה אם יש אימייל בפרמטרים של ה-URL (למשל, לאחר הרשמה)
+  // Pre-fill email if provided in URL (e.g., after registration or password reset notice)
   useEffect(() => {
     const emailParam = searchParams.get("email");
     if (emailParam) {
       setEmail(emailParam);
-      // אין צורך לשמור ל-localStorage כאן אם זה רק לאכלוס ראשוני
     }
   }, [searchParams]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError(""); // Clear previous errors
+    setIsLoading(true);
 
     if (!email || !password) {
-      setError("אנא הזן אימייל וסיסמה");
+      setError("אנא הזן אימייל וסיסמה.");
+      setIsLoading(false);
       return;
     }
 
     try {
-      setError("");
-      setIsLoading(true);
-
-      // שמירת האימייל ב-localStorage לשימוש אפשרי בהמשך (למשל, אם משתמש חוזר)
-      localStorage.setItem("last_user_email", email);
+      localStorage.setItem("last_user_email", email); // Store email for potential reuse
 
       const result = await signIn("credentials", {
-        email,
+        email: email.toLowerCase(), // Send normalized email
         password,
-        // callbackUrl: "/profile", // אפשר להגדיר יעד ברירת מחדל, אבל ה-redirect callback יקבע את הסופי
-        // אם הטלפון לא מאומת, הוא יופנה ל /auth/register
+        redirect: false, // Handle redirect manually based on result
       });
 
-      // אם ההתחברות נכשלה (result.error קיים), ה-redirect callback לא יופעל.
-      // NextAuth עשוי להפנות לדף השגיאה או להישאר כאן עם שגיאה ב-URL.
       if (result?.error) {
+        console.error("Sign-in error from NextAuth:", result.error);
         if (result.error === "CredentialsSignin") {
-          setError("אימייל או סיסמה אינם נכונים");
-        } else {
-          // אתה יכול להוסיף טיפול ספציפי לשגיאות אחרות כאן
-          console.error("Sign-in error from NextAuth:", result.error);
-          setError(result.error || "אירעה שגיאה בהתחברות, נסה שנית");
+          setError("אימייל או סיסמה אינם נכונים.");
+        } else if (result.error === "OAuthAccountNotLinked") {
+          setError("חשבון זה מקושר לספק אחר (למשל Google). אנא התחבר באמצעותו.");
         }
-      } else if (result && result.ok && result.url) {
-        // ההתחברות הצליחה ו-NextAuth מנהל את ההפניה.
-        // result.url הוא היעד הסופי.
-        // אין צורך ב-router.push ידני מכאן.
-        // לוגיקת tempQuestionnaire תטופל בדף שאליו המשתמש מופנה (למשל /profile או דף סיום הרשמה).
+        else {
+          setError(result.error || "אירעה שגיאה בהתחברות, נסה שנית.");
+        }
+      } else if (result?.ok && result?.url) {
+        // Successful sign-in, NextAuth would typically redirect if redirect:true
+        // Since redirect:false, we can manually push or let NextAuth's redirect callback handle it.
+        // The redirect callback in authOptions will determine the final destination.
+        // If it reaches here, it means NextAuth didn't auto-redirect.
+        router.push(result.url); // Or a default like '/profile'
         console.log("Sign-in successful, NextAuth redirecting to:", result.url);
       } else if (result && !result.ok && !result.error) {
-        // מקרה פחות שכיח, כאשר אין שגיאה מפורשת אבל גם לא הצלחה עם URL.
-        console.warn(
-          "Sign-in attempt did not result in an error or a redirect URL:",
-          result
-        );
+        console.warn("Sign-in attempt did not result in an error or a redirect URL:", result);
         setError("תהליך ההתחברות לא הושלם כראוי. נסה שנית.");
+      } else {
+        // If signIn was successful but no specific URL (might happen with redirect: false if callback doesn't provide one)
+        // This usually means the redirect callback in authOptions should handle it.
+        // For safety, you might redirect to a default page or check session.
+        router.push('/profile'); // Default redirect
       }
     } catch (err) {
-      // שגיאות רשת או אחרות שלא נתפסו על ידי signIn
       console.error("Unexpected sign-in error in handleSubmit:", err);
-      setError("אירעה שגיאה לא צפויה בהתחברות, נסה שנית");
+      setError("אירעה שגיאה לא צפויה בהתחברות, נסה שנית.");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleGoogleSignIn = async () => {
+    setIsGoogleLoading(true);
+    setError("");
+    localStorage.setItem("google_auth_in_progress", "true");
+    localStorage.setItem("auth_method", "google");
+
     try {
-      setIsGoogleLoading(true);
-      setError("");
-
-      localStorage.setItem("google_auth_in_progress", "true");
-      localStorage.setItem("auth_method", "google");
-
-      // NextAuth יטפל בהפניה. ה-callbackUrl הוא היעד *לאחר* ש-Google מחזיר את המשתמש לאפליקציה שלך.
-      // לאחר מכן, ה-redirect callback של NextAuth (ב-auth.ts) יקבע את ההפניה הסופית.
+      // NextAuth handles the redirect. The callbackUrl is where Google sends the user back to your app.
+      // Then, NextAuth's main redirect callback in auth.ts determines the final destination.
       await signIn("google", { callbackUrl: "/auth/google-callback" });
-      // אם signIn מוצלח, הדפדפן יופנה ולא יגיע לקוד שאחרי ה-await הזה.
-      // setIsGoogleLoading(false); // לא יתבצע אם ההפניה קרתה
+      // If signIn is successful, browser redirects, code below this await might not run if redirection happens.
     } catch (error) {
       console.error("Google sign-in error:", error);
-      setError("אירעה שגיאה בהתחברות עם גוגל");
-      setIsGoogleLoading(false); // חשוב במקרה של שגיאה לפני ההפניה
+      setError("אירעה שגיאה בהתחברות עם גוגל. נסה שנית.");
+      setIsGoogleLoading(false); // Important if error occurs before redirection
     }
+    // setIsGoogleLoading(false); // Typically not reached if redirect occurs
   };
 
   return (
@@ -130,7 +136,7 @@ export default function SignInForm() {
             התחברות למערכת
           </h1>
           <p className="text-gray-600">
-            ברוכים השבים! המשיכו למצוא את השידוך המושלם
+            ברוכים השבים! המשיכו למצוא את השידוך המושלם.
           </p>
         </div>
 
@@ -154,13 +160,14 @@ export default function SignInForm() {
               <input
                 type="email"
                 id="email"
-                name="email" // חשוב עבור שימוש ב-FormData אם תרצה, למרות שכאן אתה לוקח מה-state
+                name="email"
                 autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full pr-10 pl-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
                 placeholder="you@example.com"
                 required
+                disabled={isLoading || isGoogleLoading}
               />
             </div>
           </div>
@@ -184,11 +191,12 @@ export default function SignInForm() {
                 className="w-full pr-10 pl-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
                 placeholder="הסיסמה שלך"
                 required
+                disabled={isLoading || isGoogleLoading}
               />
             </div>
             <div className="flex justify-end">
               <Link
-                href="/auth/forgot-password"
+                href="/auth/forgot-password" // Link to the new forgot password page
                 className="text-sm text-cyan-600 hover:text-cyan-700 hover:underline mt-1"
               >
                 שכחת סיסמה?
@@ -198,12 +206,12 @@ export default function SignInForm() {
 
           <Button
             type="submit"
-            disabled={isLoading}
-            className="w-full py-3 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 shadow-lg flex items-center justify-center gap-2 relative overflow-hidden group" // Added group for shimmer
+            disabled={isLoading || isGoogleLoading}
+            className="w-full py-3 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 shadow-lg flex items-center justify-center gap-2 relative overflow-hidden group"
           >
             {isLoading ? (
               <>
-                <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <Loader2 className="h-5 w-5 animate-spin mr-1" /> {/* Using Loader2 */}
                 <span>מתחבר...</span>
               </>
             ) : (
@@ -225,15 +233,18 @@ export default function SignInForm() {
         </div>
 
         <Button
-          type="button" // חשוב type="button" כדי לא לשלוח את הטופס
+          type="button"
           onClick={handleGoogleSignIn}
-          disabled={isGoogleLoading}
+          disabled={isLoading || isGoogleLoading}
           variant="outline"
           size="lg"
           className="w-full relative border-2 border-gray-300 hover:border-gray-400 py-3 rounded-xl flex items-center justify-center gap-3 group"
         >
           {isGoogleLoading ? (
-            <div className="animate-spin h-5 w-5 border-2 border-gray-500 rounded-full border-t-transparent" />
+            <>
+              <Loader2 className="animate-spin h-5 w-5 mr-1" /> {/* Using Loader2 */}
+              <span>מתחבר עם Google...</span>
+            </>
           ) : (
             <>
               <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
@@ -265,7 +276,7 @@ export default function SignInForm() {
           <p className="text-gray-600 text-sm">
             אין לך חשבון עדיין?{" "}
             <Link
-              href="/auth/register" // זה צריך להפנות לדף התחלת תהליך ההרשמה שלך
+              href="/auth/register"
               className="text-cyan-600 font-medium hover:text-cyan-700 hover:underline"
             >
               הרשמה עכשיו

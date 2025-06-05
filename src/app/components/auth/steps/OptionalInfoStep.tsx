@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useRegistration } from "../RegistrationContext";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -18,130 +19,173 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 
-// Define the possible states during form submission
-type SubmissionStatus = "idle" | "savingProfile" | "sendingCode" | "error"; // שינוי saving ל-savingProfile
+type SubmissionStatus = "idle" | "savingProfile" | "updatingSession" | "sendingCode" | "error";
 
 const OptionalInfoStep: React.FC = () => {
   const { data, updateField, prevStep } = useRegistration();
   const router = useRouter();
+  const { update: updateSessionHook, status: sessionStatus } = useSession();
 
   const [submissionStatus, setSubmissionStatus] =
     useState<SubmissionStatus>("idle");
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async () => {
-    setSubmissionStatus("savingProfile"); // Start saving profile data
+    console.log(`[OptionalInfoStep] handleSubmit triggered. Current session status: ${sessionStatus}, RegistrationContext data:`, JSON.stringify(data, null, 2));
+    setSubmissionStatus("savingProfile");
     setError(null);
 
     try {
-      // --- Step 1: Save Profile Data ---
-   // Inside OptionalInfoStep.tsx, in handleSubmit:
-const profileData = {
-  firstName: data.firstName, // Add this
-  lastName: data.lastName,   // Add this
-  phone: data.phone,
-  gender: data.gender,
-  birthDate: data.birthDate,
-  maritalStatus: data.maritalStatus,
-  height: data.height,
-  occupation: data.occupation,
-  education: data.education,
-};
-// ... rest of the fetch call to /api/auth/complete-profile
+      const profileData = {
+        // חשוב לוודא ששולחים את כל השדות שה-API מצפה להם, במיוחד firstName ו-lastName
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phone: data.phone, // ודא ש-data.phone מכיל ערך תקין מהשלב הקודם
+        gender: data.gender, // ודא ש-data.gender מכיל ערך תקין
+        birthDate: data.birthDate, // ודא ש-data.birthDate מכיל ערך תקין
+        maritalStatus: data.maritalStatus, // ודא ש-data.maritalStatus מכיל ערך תקין
+        height: data.height,
+        occupation: data.occupation,
+        education: data.education,
+      };
 
-      console.log("OptionalInfoStep: Submitting profile data:", profileData);
+      // בדיקה נוספת של הנתונים לפני השליחה
+      if (!profileData.firstName || !profileData.lastName || !profileData.phone || !profileData.gender || !profileData.birthDate || !profileData.maritalStatus) {
+        console.error("[OptionalInfoStep] ERROR: Missing required profile data before sending to API. Data:", JSON.stringify(profileData, null, 2));
+        setError("חסרים נתונים חיוניים להשלמת הפרופיל. אנא חזור לשלב הקודם ובדוק את הפרטים.");
+        setSubmissionStatus("error");
+        return;
+      }
+
+
+      console.log("[OptionalInfoStep] Submitting profile data to /api/auth/complete-profile:", JSON.stringify(profileData, null, 2));
 
       const profileResponse = await fetch("/api/auth/complete-profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(profileData),
-        credentials: "include", // <-- *** הוספנו את זה ***
+        credentials: "include", // חשוב אם ה-API שלך מסתמך על עוגיות סשן
       });
+
+      const profileResultText = await profileResponse.text();
+      console.log(`[OptionalInfoStep] Raw response from /api/auth/complete-profile (Status: ${profileResponse.status}):`, profileResultText);
 
       if (!profileResponse.ok) {
         let errorMessage = `שגיאה ${profileResponse.status}`;
         try {
-          const errorData = await profileResponse.json();
+          const errorData = JSON.parse(profileResultText);
           errorMessage =
-            errorData.error ||
+            errorData.error || errorData.message || // נסה גם message
             `שגיאה ${profileResponse.status}: נתונים לא תקינים או בעיית שרת.`;
           console.error(
-            "OptionalInfoStep: API Error Details (complete-profile):",
+            "[OptionalInfoStep] API Error (complete-profile):",
             errorData
           );
         } catch (parseError) {
-          errorMessage = `שגיאה ${profileResponse.status}: ${profileResponse.statusText}`;
-          console.error(
-            "OptionalInfoStep: Failed to parse error response (complete-profile):",
-            parseError
-          );
+          errorMessage = `שגיאה ${profileResponse.status}: ${profileResponse.statusText}. Response: ${profileResultText}`;
+          console.error("[OptionalInfoStep] Failed to parse error JSON from /api/auth/complete-profile:", parseError);
         }
-        throw new Error(errorMessage); // זרוק שגיאה כדי להפסיק את התהליך
+        throw new Error(errorMessage);
       }
 
-      const profileResult = await profileResponse.json();
+      let profileResult;
+      try {
+        profileResult = JSON.parse(profileResultText);
+      } catch (e) {
+        console.error("[OptionalInfoStep] Failed to parse success JSON from /api/auth/complete-profile. Text was:", profileResultText, "Error:", e);
+        throw new Error("תגובה לא תקינה מהשרת לאחר שמירת פרופיל (לא JSON).");
+      }
+
       console.log(
-        "OptionalInfoStep: Profile data saved successfully:",
-        profileResult
+        "[OptionalInfoStep] Profile data saved successfully via API. API Response:",
+        JSON.stringify(profileResult, null, 2)
       );
 
-      // --- Step 2: Send Phone Verification Code ---
+      if (profileResult?.user?.isProfileComplete !== true) {
+          console.warn("[OptionalInfoStep] WARNING: API /api/auth/complete-profile did NOT return user.isProfileComplete as true in its response. User object from API:", JSON.stringify(profileResult?.user, null, 2));
+          // זה לא בהכרח אומר שה-DB לא התעדכן, אבל זה מצביע על חוסר עקביות בתגובת ה-API או שה-API לא עדכן את הדגל.
+      }
+
+      console.log("[OptionalInfoStep] Setting status to 'updatingSession' and calling updateSessionHook()...");
+      setSubmissionStatus("updatingSession");
+      await updateSessionHook(); // גורם ל-NextAuth לרענן את הטוקן/סשן. ה-JWT callback בשרת יקרא מה-DB.
+      console.log("[OptionalInfoStep] updateSessionHook() presumably completed. The session and token should now be refreshed based on DB state.");
+
+
+      console.log("[OptionalInfoStep] Setting status to 'sendingCode' and attempting to send phone verification code...");
       setSubmissionStatus("sendingCode");
-      console.log(
-        "OptionalInfoStep: Attempting to send phone verification code..."
-      );
 
       const sendCodeResponse = await fetch("/api/auth/send-phone-code", {
         method: "POST",
-        headers: { "Content-Type": "application/json" }, // Content-Type עדיין חשוב, גם אם אין body
-        // body: JSON.stringify({}), // שלח אובייקט ריק אם ה-API דורש body כלשהו
-        credentials: "include", // <-- *** הוספנו את זה ***
+        headers: { "Content-Type": "application/json" }, // גם אם אין body, header זה עדיין טוב
+        // body: JSON.stringify({}), // אם ה-API דורש גוף כלשהו, אפשר לשלוח אובייקט ריק
+        credentials: "include",
       });
+      const sendCodeResultText = await sendCodeResponse.text();
+      console.log(`[OptionalInfoStep] Raw response from /api/auth/send-phone-code (Status: ${sendCodeResponse.status}):`, sendCodeResultText);
+
 
       if (!sendCodeResponse.ok) {
         let errorMessage = `שגיאה ${sendCodeResponse.status}`;
-        try {
-          const errorData = await sendCodeResponse.json();
-          errorMessage =
-            errorData.error ||
-            `שגיאה ${sendCodeResponse.status}: לא ניתן היה לשלוח קוד אימות.`;
-          console.error(
-            "OptionalInfoStep: API Error Details (send-phone-code):",
-            errorData
-          );
-        } catch (parseError) {
-          errorMessage = `שגיאה ${sendCodeResponse.status}: ${sendCodeResponse.statusText}`;
-          console.error(
-            "OptionalInfoStep: Failed to parse error response (send-phone-code):",
-            parseError
-          );
-        }
-        throw new Error(errorMessage); // זרוק שגיאה
+         try {
+          const errorData = JSON.parse(sendCodeResultText);
+          errorMessage = errorData.error || errorData.message || `שגיאה ${sendCodeResponse.status} בשליחת קוד אימות.`;
+         } catch(e){
+            errorMessage = `שגיאה ${sendCodeResponse.status}: ${sendCodeResponse.statusText}. Response: ${sendCodeResultText}`;
+            console.error("[OptionalInfoStep] Failed to parse error JSON from /api/auth/send-phone-code:", e);
+         }
+        throw new Error(errorMessage);
       }
 
-      const sendCodeResult = await sendCodeResponse.json();
+      let sendCodeResult;
+      try {
+        sendCodeResult = JSON.parse(sendCodeResultText);
+      } catch (e) {
+         console.error("[OptionalInfoStep] Failed to parse success JSON from /api/auth/send-phone-code. Text was:", sendCodeResultText, "Error:", e);
+         throw new Error("תגובה לא תקינה מהשרת לאחר שליחת קוד טלפון (לא JSON).");
+      }
+
       console.log(
-        "OptionalInfoStep: Verification code sent successfully:",
-        sendCodeResult
+        "[OptionalInfoStep] Verification code sent successfully via API. API Response:",
+        JSON.stringify(sendCodeResult, null, 2)
       );
 
-      // --- Step 3: Redirect to Verification Page ---
-      console.log("OptionalInfoStep: Redirecting to /auth/verify-phone...");
-      router.push("/auth/verify-phone"); // נווט לדף אימות הטלפון
+      console.log("[OptionalInfoStep] Successfully sent phone code. Navigating to /auth/verify-phone...");
+      // בשלב זה, הטוקן בעוגיה אמור להיות מעודכן עם isProfileComplete: true (לאחר ה-updateSessionHook).
+      // ה-Middleware שיפעל עם הניווט יראה את הטוקן המעודכן.
+      router.push("/auth/verify-phone");
     } catch (err) {
       console.error(
-        "OptionalInfoStep: Error during profile completion or OTP sending:",
-        err
+        "[OptionalInfoStep] Error during handleSubmit:",
+        err instanceof Error ? err.stack : err // הדפס את ה-stack trace המלא אם זמין
       );
       setError(err instanceof Error ? err.message : "אירעה שגיאה לא צפויה");
-      setSubmissionStatus("error"); // עדכן סטטוס לשגיאה
+      setSubmissionStatus("error");
     }
-    // אין צורך ב-finally להחזרת סטטוס ל-idle אם יש ניווט,
-    // אבל אם נשארים בדף עקב שגיאה, הכפתור צריך להיות פעיל שוב.
-    // הסטטוס 'error' יאפשר להציג את השגיאה, אבל לא ימנע לחיצה חוזרת אם צריך.
+    // אין צורך ב-finally להחזיר סטטוס ל-idle אם יש ניווט,
+    // כי הקומפוננטה תעשה unmount.
+    // אם נשארים בדף עקב שגיאה, הכפתור צריך להיות פעיל שוב (הסטטוס 'error' יאפשר זאת).
   };
 
-  // --- Animation Variants ---
+  const getButtonText = (): string => {
+    switch (submissionStatus) {
+      case "savingProfile": return "שומר פרטים...";
+      case "updatingSession": return "מעדכן סשן...";
+      case "sendingCode": return "שולח קוד אימות...";
+      case "error": // במקרה של שגיאה, חזור לטקסט המקורי כדי לאפשר ניסיון חוזר
+      case "idle":
+      default:
+        // הטקסט הדינמי המקורי היה: data.isCompletingProfile ? "סיום והמשך לאימות" : "סיום והרשמה";
+        // מכיוון שאנחנו ב-OptionalInfoStep, סביר להניח ש-isCompletingProfile יהיה true מהקונטקסט.
+        return "סיום והמשך לאימות";
+    }
+  };
+
+  const isSubmitting =
+    submissionStatus === "savingProfile" ||
+    submissionStatus === "updatingSession" ||
+    submissionStatus === "sendingCode";
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -158,29 +202,7 @@ const profileData = {
       transition: { duration: 0.5 },
     },
   };
-  // --- End Animation Variants ---
 
-  // --- Helper to get button text based on status ---
-  const getButtonText = (): string => {
-    switch (submissionStatus) {
-      case "savingProfile":
-        return "שומר פרטים...";
-      case "sendingCode":
-        return "שולח קוד אימות...";
-      case "error":
-        // במקרה של שגיאה, חזור לטקסט המקורי כדי לאפשר ניסיון חוזר
-        return data.isCompletingProfile ? "סיום והמשך לאימות" : "סיום והרשמה";
-      case "idle":
-      default:
-        return data.isCompletingProfile ? "סיום והמשך לאימות" : "סיום והרשמה"; // טקסט דינמי בהתאם למצב
-    }
-  };
-  // --- End Helper ---
-
-  const isSubmitting =
-    submissionStatus === "savingProfile" || submissionStatus === "sendingCode";
-
-  // --- Render Component ---
   return (
     <motion.div
       className="space-y-5"
@@ -188,7 +210,6 @@ const profileData = {
       initial="hidden"
       animate="visible"
     >
-      {/* Title and Description */}
       <motion.h2
         className="text-xl font-bold text-gray-800 mb-1"
         variants={itemVariants}
@@ -200,9 +221,7 @@ const profileData = {
         אופציונליים אך מומלצים.
       </motion.p>
 
-      {/* Display Error Alert if exists */}
-      {error &&
-        submissionStatus === "error" && ( // הצג שגיאה רק אם הסטטוס הוא error
+      {error && submissionStatus === "error" && (
           <motion.div variants={itemVariants}>
             <Alert variant="destructive" className="mb-4">
               <AlertCircle className="h-4 w-4" />
@@ -212,7 +231,6 @@ const profileData = {
           </motion.div>
         )}
 
-      {/* Form Fields Container */}
       <motion.div variants={itemVariants} className="space-y-4">
         {/* Height Field */}
         <div className="space-y-1">
@@ -228,18 +246,18 @@ const profileData = {
             id="heightOptional"
             min="120"
             max="220"
-            value={data.height ?? ""}
+            value={data.height ?? ""} // השתמש ב- ?? "" כדי למנוע uncontrolled input אם הערך הוא undefined
             onChange={(e) =>
               updateField(
                 "height",
-                e.target.value
-                  ? parseInt(e.target.value, 10) || undefined
-                  : undefined
+                e.target.value === "" // אם השדה ריק, שלח undefined
+                  ? undefined
+                  : parseInt(e.target.value, 10) || undefined // אם לא ניתן להמיר למספר, שלח undefined
               )
             }
             placeholder="לדוגמה: 175"
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none disabled:bg-gray-100"
-            disabled={isSubmitting} // Disable during submission
+            disabled={isSubmitting}
           />
         </div>
 
@@ -256,10 +274,10 @@ const profileData = {
             type="text"
             id="occupationOptional"
             value={data.occupation ?? ""}
-            onChange={(e) => updateField("occupation", e.target.value)}
+            onChange={(e) => updateField("occupation", e.target.value || undefined)} // אם ריק, שלח undefined
             placeholder="לדוגמה: מהנדס תוכנה, מורה, סטודנט/ית"
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none disabled:bg-gray-100"
-            disabled={isSubmitting} // Disable during submission
+            disabled={isSubmitting}
           />
         </div>
 
@@ -276,54 +294,48 @@ const profileData = {
             type="text"
             id="educationOptional"
             value={data.education ?? ""}
-            onChange={(e) => updateField("education", e.target.value)}
+            onChange={(e) => updateField("education", e.target.value || undefined)} // אם ריק, שלח undefined
             placeholder="לדוגמה: תואר ראשון במדעי המחשב"
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none disabled:bg-gray-100"
-            disabled={isSubmitting} // Disable during submission
+            disabled={isSubmitting}
           />
         </div>
       </motion.div>
-      {/* End Form Fields Container */}
 
-      {/* Navigation Buttons */}
       <motion.div
         variants={itemVariants}
         className="flex justify-between pt-4 mt-6"
       >
-        {/* Back Button */}
         <Button
           type="button"
           onClick={prevStep}
           variant="outline"
           className="flex items-center gap-2 border-gray-300"
-          disabled={isSubmitting} // Disable button while submitting
+          disabled={isSubmitting}
         >
-          <ArrowRight className="h-4 w-4" /> {/* RTL: Right arrow for back */}
+          <ArrowRight className="h-4 w-4" />
           חזרה
         </Button>
 
-        {/* Submit/Complete Button */}
         <Button
           type="button"
           onClick={handleSubmit}
-          disabled={isSubmitting} // Disable button while submitting
-          className="bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 flex items-center gap-2 min-w-[180px] justify-center px-4 py-2 disabled:opacity-70"
+          disabled={isSubmitting}
+          className="bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 flex items-center gap-2 min-w-[200px] justify-center px-4 py-2.5 disabled:opacity-70" // שיניתי קצת את העיצוב שיתאים לכפתורים אחרים
         >
           {isSubmitting ? (
             <>
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              <span>{getButtonText()}</span> {/* טקסט דינמי */}
+              <Loader2 className="h-5 w-5 animate-spin mr-2" /> {/* התאמתי גודל אייקון */}
+              <span>{getButtonText()}</span>
             </>
           ) : (
             <>
-              <span>{getButtonText()}</span> {/* טקסט דינמי */}
-              <ArrowLeft className="h-4 w-4 ml-2" />{" "}
-              {/* RTL: Left arrow for continue */}
+              <span>{getButtonText()}</span>
+              <ArrowLeft className="h-4 w-4 ml-2" />
             </>
           )}
         </Button>
       </motion.div>
-      {/* End Navigation Buttons */}
     </motion.div>
   );
 };

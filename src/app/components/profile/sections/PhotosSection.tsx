@@ -386,7 +386,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
             <Upload className="w-8 h-8 text-cyan-500 mb-2 transition-transform group-hover:scale-110" />
             <span className="text-sm font-medium text-cyan-700">העלאת תמונה</span>
             <span className="text-xs text-cyan-600/90 mt-1">
-              עד {maxImages - images.length} נוספות
+              עד {maxImages - images.length} תמונות נוספות
             </span>
           </div>
         )}
@@ -399,9 +399,9 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
               <p className="mt-4 text-gray-600 font-medium">
                 אין עדיין תמונות בפרופיל
               </p>
-              <p className="text-sm text-gray-500 mt-1 px-4">
-                מומלץ להעלות לפחות תמונה אחת ברורה כדי להגדיל את הסיכויים.
-              </p>
+         <p className="text-sm text-gray-500 mt-1 px-4">
+  תמונה טובה היא הרושם הראשוני שלכם. כדאי להעלות אחת כדי להשלים את הפרופיל.
+</p>
           </div>
       )}
       {/* Empty State (if disabled and no images) */}

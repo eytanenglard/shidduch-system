@@ -1,7 +1,7 @@
 // src/lib/email/emailService.ts
 
 import nodemailer from 'nodemailer';
-import { emailTemplates } from './templates/emailTemplates'; // ודא שהקובץ הזה קיים ושיש בו טמפלייט בשם email-otp-verification
+import { emailTemplates } from './templates/emailTemplates'; // ודא שהקובץ הזה קיים ומיצא את התבניות
 
 // Types
 interface EmailConfig {
@@ -23,7 +23,6 @@ interface WelcomeEmailParams {
   privacyNote?: boolean;
 }
 
-// שנה את VerificationEmailParams
 interface VerificationEmailParams {
   email: string;
   verificationCode: string; // שונה מ-verificationLink
@@ -71,19 +70,37 @@ interface AvailabilityCheckEmailParams {
   baseUrl?: string;
 }
 
+// New type for password reset OTP email
+interface PasswordResetOtpEmailParams {
+  email: string;
+  otp: string;
+  firstName?: string;
+  expiresIn?: string; // e.g., "15 דקות"
+}
+
+// New type for password changed confirmation
+interface PasswordChangedConfirmationParams {
+    email: string;
+    firstName?: string;
+}
+
+
 class EmailService {
   private static instance: EmailService;
   private transporter: nodemailer.Transporter;
   
   private constructor() {
+    // Configure the transporter according to your email provider
+    // Ensure environment variables are set for sensitive data
     this.transporter = nodemailer.createTransport({
-      service: 'gmail', // או כל ספק אחר
+      service: process.env.EMAIL_SERVICE || 'gmail', // Default to gmail if not specified
       auth: {
-        user: process.env.GMAIL_USER, // או המשתמש של הספק שלך
-        pass: process.env.GMAIL_APP_PASSWORD, // או הסיסמה של הספק שלך
+        user: process.env.GMAIL_USER || process.env.EMAIL_USER, // Your email user
+        pass: process.env.GMAIL_APP_PASSWORD || process.env.EMAIL_PASS, // Your email password or app password
       },
       tls: {
-        rejectUnauthorized: false // שקול להסיר בסביבת פרודקשן אם יש לך אישור תקין
+        // Do not fail on invalid certs for development, but ensure it's true for production
+        rejectUnauthorized: process.env.NODE_ENV === 'production',
       }
     });
   }
@@ -98,14 +115,23 @@ class EmailService {
   async sendEmail({ to, subject, templateName, context }: EmailConfig): Promise<void> {
     try {
       if (!emailTemplates[templateName]) {
-        console.error(`Email template ${templateName} not found.`);
+        console.error(`Email template "${templateName}" not found.`);
         throw new Error(`Template ${templateName} not found`);
       }
 
-      const html = emailTemplates[templateName](context);
+      // Add common context variables if they are not already present
+      const fullContext = {
+        ...context,
+        supportEmail: context.supportEmail || process.env.SUPPORT_EMAIL || 'support@example.com',
+        companyName: process.env.COMPANY_NAME || 'Matchpoint Shidduch System',
+        currentYear: new Date().getFullYear(),
+        baseUrl: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
+      };
+      
+      const html = emailTemplates[templateName](fullContext);
 
       const mailOptions: nodemailer.SendMailOptions = {
-        from: `${process.env.EMAIL_FROM_NAME || 'מערכת שידוכים'} <${process.env.GMAIL_USER}>`,
+        from: `${process.env.EMAIL_FROM_NAME || 'Matchpoint Shidduch System'} <${process.env.GMAIL_USER || process.env.EMAIL_USER}>`,
         to,
         subject,
         html,
@@ -117,13 +143,13 @@ class EmailService {
       };
 
       const info = await this.transporter.sendMail(mailOptions);
-      console.log('Email sent successfully:', info.messageId, 'to:', to);
+      console.log('Email sent successfully:', info.messageId, 'to:', to, 'subject:', subject);
       
     } catch (error) {
-      console.error('Error sending email to:', to, 'Error:', error);
-      // אל תזרוק שגיאה אם אתה רוצה שהאפליקציה תמשיך גם אם שליחת המייל נכשלה,
-      // אלא אם כן זה קריטי. כאן אנחנו זורקים שגיאה.
-      throw new Error(`Failed to send email to ${to}`);
+      console.error('Error sending email to:', to, 'Subject:', subject, 'Template:', templateName, 'Error:', error);
+      // Depending on the criticality, you might re-throw or handle it.
+      // For now, re-throwing to make it clear that sending failed.
+      throw new Error(`Failed to send email to ${to} using template ${templateName}`);
     }
   }
 
@@ -140,8 +166,8 @@ class EmailService {
   }: WelcomeEmailParams): Promise<void> {
     await this.sendEmail({
       to: email,
-      subject: 'ברוכים הבאים למערכת השידוכים',
-      templateName: 'welcome', // ודא שיש טמפלייט כזה
+      subject: 'ברוכים הבאים למערכת השידוכים Matchpoint',
+      templateName: 'welcome', // Ensure 'welcome' template exists
       context: {
         firstName,
         requiresVerification,
@@ -149,41 +175,34 @@ class EmailService {
         matchmakerName,
         dashboardUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}${dashboardUrl}`,
         supportEmail: supportEmail || process.env.SUPPORT_EMAIL || 'support@example.com',
-        unsubscribeUrl, // אם יש
+        unsubscribeUrl,
         privacyNote,
-        currentYear: new Date().getFullYear()
       }
     });
   }
 
-  // עדכון sendVerificationEmail
   async sendVerificationEmail({
     email,
-    verificationCode, // קבל את הקוד
+    verificationCode,
     firstName,
-    expiresIn = 'שעה אחת' // ברירת מחדל לתוקף קצר יותר עבור OTP
+    expiresIn = 'שעה אחת'
   }: VerificationEmailParams): Promise<void> {
-    // ודא שיש לך טמפלייט שנקרא 'email-otp-verification' בקובץ emailTemplates.ts
-    // הטמפלייט הזה צריך לקבל ולהציג את verificationCode
-    // לדוגמה, בתוך הטמפלייט: <p>קוד האימות שלך הוא: <strong>{{verificationCode}}</strong></p>
-    
-    console.log(`Sending verification email with OTP ${verificationCode} to ${email}`);
+    console.log(`Sending account verification email with OTP ${verificationCode} to ${email}`);
     await this.sendEmail({
       to: email,
-      subject: 'קוד לאימות כתובת האימייל שלך', // עדכן נושא
-      templateName: 'email-otp-verification', // השתמש בשם טמפלייט מתאים
+      subject: 'קוד לאימות כתובת האימייל שלך - Matchpoint',
+      templateName: 'email-otp-verification', // Ensure this template exists and uses 'verificationCode'
       context: {
         firstName,
-        verificationCode, // העבר את הקוד לטמפלייט
+        verificationCode, // Pass the code to the template
         expiresIn,
-        supportEmail: process.env.SUPPORT_EMAIL || 'support@example.com'
       }
     });
   }
 
   async sendInvitation({
     email,
-    invitationLink, // זהו הטוקן עצמו מהמודל Invitation
+    invitationLink, // This is the token itself from the Invitation model
     matchmakerName,
     expiresIn = '7 ימים'
   }: InvitationEmailParams): Promise<void> {
@@ -192,14 +211,12 @@ class EmailService {
     
     await this.sendEmail({
       to: email,
-      subject: 'הזמנה להצטרף למערכת השידוכים',
-      templateName: 'invitation', // ודא שיש טמפלייט כזה
+      subject: `הזמנה להצטרף ל-Matchpoint מ${matchmakerName}`,
+      templateName: 'invitation', // Ensure 'invitation' template exists
       context: {
         matchmakerName,
-        invitationLink: fullInvitationLink, // שלח את הלינק המלא
+        invitationLink: fullInvitationLink,
         expiresIn,
-        // baseUrl, // אולי לא נדרש אם הלינק כבר מלא
-        // token: invitationLink, // אולי לא נדרש אם הלינק כבר מלא
       }
     });
   }
@@ -210,18 +227,18 @@ class EmailService {
     otherPartyName,
     otherPartyContact,
     matchmakerName,
-    supportEmail = process.env.SUPPORT_EMAIL || 'support@example.com'
+    supportEmail
   }: ContactDetailsEmailParams): Promise<void> {
     await this.sendEmail({
       to: email,
-      subject: 'פרטי קשר להצעת השידוך',
-      templateName: 'share-contact-details', // ודא שיש טמפלייט כזה
+      subject: `פרטי קשר להצעת שידוך מ${matchmakerName} - Matchpoint`,
+      templateName: 'share-contact-details', // Ensure 'share-contact-details' template exists
       context: {
         recipientName,
         otherPartyName,
-        otherPartyContact, // אובייקט עם phone, email, whatsapp
+        otherPartyContact,
         matchmakerName,
-        supportEmail
+        supportEmail: supportEmail || process.env.SUPPORT_EMAIL || 'support@example.com',
       }
     });
   }
@@ -230,60 +247,92 @@ class EmailService {
     email,
     recipientName,
     matchmakerName,
-    suggestionDetails // אובייקט עם פרטי ההצעה
+    suggestionDetails
   }: SuggestionEmailParams): Promise<void> {
     await this.sendEmail({
       to: email,
-      subject: 'הצעת שידוך חדשה ממתינה לך',
-      templateName: 'suggestion', // ודא שיש טמפלייט כזה
+      subject: `הצעת שידוך חדשה ממתינה לך מ${matchmakerName} - Matchpoint`,
+      templateName: 'suggestion', // Ensure 'suggestion' template exists
       context: {
         recipientName,
         matchmakerName,
         suggestionDetails,
         dashboardUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/dashboard/suggestions`,
-        supportEmail: process.env.SUPPORT_EMAIL || 'support@example.com'
       }
     });
   }
 
+  // Existing method for link-based password reset (if you still use it elsewhere)
   async sendPasswordReset(email: string, resetToken: string): Promise<void> {
-    const fullResetLink = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/auth/reset-password?token=${resetToken}`;
+    const fullResetLink = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/auth/reset-password?token=${resetToken}`; // This implies the old page took a long token
     
     await this.sendEmail({
       to: email,
-      subject: 'איפוס סיסמה',
-      templateName: 'password-reset', // ודא שיש טמפלייט כזה
+      subject: 'איפוס סיסמה - Matchpoint (קישור)', // Differentiate if needed
+      templateName: 'password-reset', // Ensure 'password-reset' (link-based) template exists
       context: {
         resetLink: fullResetLink,
-        expiresIn: 'שעה אחת', // או כמה שהוגדר לטוקן איפוס סיסמה
-        supportEmail: process.env.SUPPORT_EMAIL || 'support@example.com'
+        expiresIn: 'שעה אחת', // Or however long your link token is valid
       }
     });
+  }
+
+  // New method for sending OTP for password reset
+  async sendPasswordResetOtpEmail({
+    email,
+    otp,
+    firstName,
+    expiresIn = '15 דקות' // Default expiry for OTP
+  }: PasswordResetOtpEmailParams): Promise<void> {
+    console.log(`Sending password reset OTP ${otp} to ${email}`);
+    await this.sendEmail({
+      to: email,
+      subject: 'קוד לאיפוס סיסמה במערכת Matchpoint',
+      templateName: 'password-reset-otp', // Ensure 'password-reset-otp' template exists
+      context: {
+        firstName,
+        otp,
+        expiresIn,
+      }
+    });
+  }
+
+  // New method for confirming password change
+  async sendPasswordChangedConfirmationEmail({
+      email,
+      firstName,
+  }: PasswordChangedConfirmationParams): Promise<void> {
+      console.log(`Sending password changed confirmation to ${email}`);
+      await this.sendEmail({
+          to: email,
+          subject: 'הסיסמה שלך במערכת Matchpoint שונתה בהצלחה',
+          templateName: 'password-changed-confirmation', // Ensure 'password-changed-confirmation' template exists
+          context: {
+              firstName,
+              loginUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/auth/signin`,
+          }
+      });
   }
 
   async sendAvailabilityCheck({
     email,
     recipientName,
     matchmakerName,
-    inquiryId, // המזהה של הבקשה, כדי לבנות לינקים לתשובה
+    inquiryId,
     baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
   }: AvailabilityCheckEmailParams): Promise<void> {
-    // לדוגמה, לינקים לתשובה יכולים להיות:
-    // `${baseUrl}/api/inquiries/${inquiryId}/respond?available=true`
-    // `${baseUrl}/api/inquiries/${inquiryId}/respond?available=false`
     await this.sendEmail({
       to: email,
-      subject: 'בקשת בדיקת זמינות לשידוך',
-      templateName: 'availability-check', // ודא שיש טמפלייט כזה
+      subject: `בקשת בדיקת זמינות לשידוך מ${matchmakerName} - Matchpoint`,
+      templateName: 'availability-check', // Ensure 'availability-check' template exists
       context: {
         recipientName,
         matchmakerName,
         inquiryId,
         baseUrl,
-        // אפשר להוסיף כאן לינקים מוכנים לתשובה אם רוצים
-        // approveLink: `${baseUrl}/inquiry/respond/${inquiryId}?response=yes`,
-        // declineLink: `${baseUrl}/inquiry/respond/${inquiryId}?response=no`,
-        supportEmail: process.env.SUPPORT_EMAIL || 'support@example.com'
+        // Example links if your template supports them directly
+        // approveLink: `${baseUrl}/api/inquiries/${inquiryId}/respond?available=true`,
+        // declineLink: `${baseUrl}/api/inquiries/${inquiryId}/respond?available=false`,
       }
     });
   }
@@ -307,9 +356,11 @@ export const emailService = EmailService.getInstance();
 export type {
   EmailConfig,
   WelcomeEmailParams,
-  VerificationEmailParams, // ייצא את המבנה המעודכן
+  VerificationEmailParams,
   InvitationEmailParams,
   SuggestionEmailParams,
   ContactDetailsEmailParams,
-  AvailabilityCheckEmailParams
+  AvailabilityCheckEmailParams,
+  PasswordResetOtpEmailParams, // Export new type
+  PasswordChangedConfirmationParams, // Export new type
 };
