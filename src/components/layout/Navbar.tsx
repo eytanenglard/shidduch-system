@@ -7,8 +7,8 @@ import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import AvailabilityStatus from "@/components/AvailabilityStatus";
-import { useLanguage } from "@/app/contexts/LanguageContext"; // ודא שהנתיב נכון
-import { useNotifications } from "@/app/contexts/NotificationContext"; // ודא שהנתיב נכון
+import { useLanguage } from "@/app/contexts/LanguageContext";
+import { useNotifications } from "@/app/contexts/NotificationContext";
 import {
   Users,
   User,
@@ -20,7 +20,7 @@ import {
   Heart,
   Menu,
   X,
-  // ChevronDown, // לא בשימוש כרגע אם אין dropdown ייעודי לשפה
+  Globe,
 } from "lucide-react";
 import type { Session as NextAuthSession } from "next-auth";
 import type { UserImage } from "@/types/next-auth";
@@ -78,8 +78,6 @@ const UserDropdown = ({
 
       {isOpen && (
         <div className={`absolute mt-2 w-56 origin-top-left bg-white rounded-md shadow-xl z-20 border border-gray-100 ${
-          // Adjust position for RTL language toggle if needed, though dropdown is usually LTR content-wise
-          // Assuming language context is not directly affecting dropdown positioning here
           typeof window !== 'undefined' && document.documentElement.dir === 'rtl' ? 'left-0' : 'right-0'
         }`}>
           <div className="py-1">
@@ -128,7 +126,7 @@ const Navbar = () => {
   const pathname = usePathname();
   const isMatchmaker = session?.user?.role === "MATCHMAKER" || session?.user?.role === "ADMIN";
   const { notifications } = useNotifications();
-  const { language, setLanguage } = useLanguage(); // מנהל את השפה הנוכחית ואת הפונקציה להחלפתה
+  const { language, setLanguage } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -140,7 +138,6 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Update HTML lang and dir attributes when language changes
   useEffect(() => {
     if (typeof window !== 'undefined') {
       document.documentElement.lang = language;
@@ -171,7 +168,7 @@ const Navbar = () => {
   const mainProfileImage = getMainProfileImage();
 
   const navbarBaseClass = "sticky top-0 z-50 w-full transition-colors duration-300";
-  const navbarScrolledClass = "bg-white/95 backdrop-blur-lg shadow-sm border-b border-gray-200"; // מעט יותר אטום בגלילה
+  const navbarScrolledClass = "bg-white/95 backdrop-blur-lg shadow-sm border-b border-gray-200";
   const navbarTopClass = "bg-cyan-50/70 backdrop-blur-md border-b border-transparent";
 
   const profileIconSize = "w-9 h-9 md:w-10 md:h-10";
@@ -182,7 +179,7 @@ const Navbar = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Left Side (Logo & Main Nav for LTR, will be right for RTL) */}
-            <div className="flex items-center gap-4 md:gap-6"> {/* הגדלת מרווח */}
+            <div className="flex items-center gap-4 md:gap-6">
               <Link href="/" className="flex items-center gap-2 group shrink-0">
                 <Heart
                   className="h-7 w-7 text-pink-500 group-hover:text-pink-600 transition-colors"
@@ -198,7 +195,7 @@ const Navbar = () => {
               </Link>
 
               {/* Desktop Navigation Links */}
-              <div className="hidden md:flex items-center gap-1 md:gap-2"> {/* הקטנת מרווח בין פריטי ניווט */}
+              <div className="hidden md:flex items-center gap-1 md:gap-2">
                 {session && (
                   <>
                     {isMatchmaker ? (
@@ -221,20 +218,25 @@ const Navbar = () => {
             </div>
 
             {/* Right Side (Actions & User for LTR, will be left for RTL) */}
-            <div className="flex items-center gap-2 md:gap-3"> {/* הקטנת מרווח */}
+            <div className="flex items-center gap-2 md:gap-3">
+              {/* *** START OF LANGUAGE BUTTON CHANGE (DESKTOP - WITH TEXT) *** */}
               <Button
-                variant="outline" // שינוי ל-outline שיראה טוב יותר
-                size="sm" // גודל קטן יותר
+                variant="ghost"
+                size="sm" 
                 onClick={() => setLanguage(language === "he" ? "en" : "he")}
-                className={`font-medium transition-colors duration-300 rounded-md px-3 py-1.5 min-w-[3rem]
-                  ${scrolled 
-                    ? "border-cyan-500 text-cyan-600 hover:bg-cyan-50" 
-                    : "border-cyan-600/70 text-cyan-700 hover:bg-cyan-500/10"
+                className={`flex items-center gap-1.5 transition-colors duration-300 rounded-md px-2.5 py-1.5 
+                  ${scrolled
+                    ? "text-gray-600 hover:text-cyan-700 hover:bg-cyan-50"
+                    : "text-cyan-700 hover:text-cyan-600 hover:bg-cyan-500/10"
                   }`}
                 title={language === "he" ? "Switch to English" : "עבור לעברית"}
               >
-                {language === "he" ? "EN" : "עב"}
+                <Globe className="h-4 w-4" /> 
+                <span className="text-xs font-medium">
+                  {language === "he" ? "EN" : "עב"}
+                </span>
               </Button>
+              {/* *** END OF LANGUAGE BUTTON CHANGE (DESKTOP - WITH TEXT) *** */}
 
               {session && (
                 <div className="hidden md:block">
@@ -310,7 +312,7 @@ const Navbar = () => {
           </Button>
         </div>
 
-        <div className="overflow-y-auto h-[calc(100%-4.5rem)]"> {/* Adjust height for header */}
+        <div className="overflow-y-auto h-[calc(100%-4.5rem)] pb-16">
           {session && (
             <div className="flex items-center gap-3 p-3 my-2 mx-2 border rounded-lg bg-cyan-50/30">
               <div className={`relative ${profileIconSize} rounded-full flex items-center justify-center text-lg shadow-sm overflow-hidden`}>
@@ -364,17 +366,17 @@ const Navbar = () => {
               </>
             )}
           </nav>
-           {/* כפתור שפה בתחתית תפריט המובייל */}
-           <div className="absolute bottom-4 left-0 right-0 px-4">
+          
+          <div className="absolute bottom-4 left-0 right-0 px-4">
             <Button
               variant="outline"
-              size="lg" // כפתור גדול יותר ונגיש
+              size="lg"
               onClick={() => {
                 setLanguage(language === "he" ? "en" : "he");
-                // setMobileMenuOpen(false); // אפשר לסגור את התפריט אחרי החלפת שפה
               }}
-              className="w-full font-medium border-cyan-500 text-cyan-600 hover:bg-cyan-50"
+              className="w-full font-medium border-cyan-500 text-cyan-600 hover:bg-cyan-50 flex items-center justify-center"
             >
+              <Globe className={`h-5 w-5 ${language === 'he' ? 'ml-2' : 'mr-2'}`} /> 
               {language === "he" ? "Switch to English" : "החלף לעברית"}
             </Button>
           </div>
@@ -395,7 +397,7 @@ const NavItem = ({
   badge?: number;
   pathname: string;
 }) => {
-  const isActive = pathname === href || (href === "/matchmaker/suggestions" && pathname.startsWith("/matchmaker")); // Highlight "הצעות" if in any matchmaker sub-route
+  const isActive = pathname === href || (href === "/matchmaker/suggestions" && pathname.startsWith("/matchmaker"));
 
   return (
     <Link

@@ -324,7 +324,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:flex lg:flex-wrap lg:flex-row items-center justify-between gap-3 sm:gap-4 bg-white/40 backdrop-blur-sm py-4 sm:py-5 px-4 sm:px-8 rounded-2xl shadow-lg">
             <div className="flex items-center gap-2">
               <div className="p-1.5 sm:p-2 rounded-full bg-cyan-100"><Shield className="h-4 w-4 sm:h-5 sm:w-5 text-cyan-600" /></div>
-              <div><span className="font-semibold text-sm sm:text-base text-cyan-600">100%</span><br /><span className="text-xs sm:text-sm text-gray-600">אבטחת פרטיות</span></div>
+              <div><span className="font-semibold text-sm sm:text-base text-cyan-600">100%</span><br /><span className="text-xs sm:text-sm text-gray-600">דיסקרטיות</span></div>
             </div>
             <div className="flex items-center gap-2">
               <div className="p-1.5 sm:p-2 rounded-full bg-pink-100"><Heart className="h-4 w-4 sm:h-5 sm:w-5 text-pink-500" /></div>
