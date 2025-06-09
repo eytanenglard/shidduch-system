@@ -77,8 +77,7 @@ const getPuzzleAnimation = () => {
     
     // נקודת ההתחלה: מחושבת לפי מיקום הקונטיינר פחות 30% מגובה החלון.
     // זה אומר שהאנימציה תתחיל רק כשהקונטיינר יהיה ב-30% העליונים של המסך.
-    const startPosition = puzzleContainerTop - (window.innerHeight * 0.2);
-
+const startPosition = puzzleContainerTop;
     // משך האנימציה בפיקסלים של גלילה.
     // הגדלנו את הערך כדי שהתנועה תהיה חלקה ופחות פתאומית.
     const animationDuration = 700; 
