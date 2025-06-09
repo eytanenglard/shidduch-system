@@ -4,7 +4,7 @@ import Head from 'next/head';
 
 const TermsOfServicePage = () => {
   const companyNameLegal = 'ג\'ואיש מאצ\'פוינט בע"מ';
-  const companyNameEn = 'JEWISH MATCHPOINT LTD';
+  //const companyNameEn = 'JEWISH MATCHPOINT LTD';
   const companyNumber = '517172631';
   const pageTitle = `תנאי שימוש | ${companyNameLegal}`;
   const pageDescription = 'תנאי השימוש של מערכת השידוכים Matchpoint. קרא בעיון לפני השימוש במערכת.';
@@ -13,7 +13,7 @@ const TermsOfServicePage = () => {
   const siteUrl = 'https://www.jewishmatchpoint.com'; // עדכן לדומיין הנכון
   const privacyPolicyUrl = '/legal/privacy-policy';
   const jurisdictionDistrict = 'מרכז'; // יש לאשר עם עו"ד
-  const companyRegisteredAddress = 'גולומב 7 רעננה, ישראל'; // אם תרצה להוסיף בסעיף יצירת קשר
+  //const companyRegisteredAddress = 'גולומב 7 רעננה, ישראל'; // אם תרצה להוסיף בסעיף יצירת קשר
   const initialFreeSuggestionsCount = '3-5'; // מספר הצעות ראשוניות חינם
   const paidSuggestionsCount = '3-5'; // מספר הצעות בחבילה בתשלום
 
@@ -148,7 +148,7 @@ const TermsOfServicePage = () => {
                 <li>להתחזות לאדם או גוף אחר, או ליצור מצג שווא של קשר לאדם או גוף אחר.</li>
                 <li>להעלות, לשלוח, לפרסם או להפיץ כל תוכן משתמש שהוא פוגעני, מאיים, מטריד, גזעני, משמיץ, דיבתי, פורנוגרפי, אלים, גס, או בלתי חוקי באופן אחר.</li>
                 <li>להעלות או להעביר תוכן המפר זכויות קניין רוחני של צד שלישי (לרבות זכויות יוצרים, סימני מסחר, פטנטים, סודות מסחריים, או זכות לפרטיות/פרסום).</li>
-                <li>לעשות שימוש במערכת למטרות מסחRIאות, שיווקיות, פרסומיות, או לגיוס כספים, ללא אישור מפורש מראש ובכתב מאת החברה.</li>
+                <li>לעשות שימוש במערכת למטרות מסחריות, שיווקיות, פרסומיות, או לגיוס כספים, ללא אישור מפורש מראש ובכתב מאת החברה.</li>
                 <li>להפיץ "דואר זבל" (spam), הודעות שרשרת, או כל צורה אחרת של דיוור המוני בלתי רצוי למשתמשים אחרים.</li>
                 <li>לאסוף או לאגור מידע אישי על משתמשים אחרים ללא הסכמתם המפורשת ולמטרות שאינן קשורות ישירות לתהליך השידוך דרך המערכת.</li>
                 <li>להפריע או לשבש את פעולת המערכת, שרתיה או הרשתות המחוברות אליה, או לנסות לעקוף אמצעי אבטחה.</li>
@@ -240,7 +240,7 @@ const TermsOfServicePage = () => {
 
             <h2 id='contact-terms'>16. יצירת קשר</h2>
             <p>
-              בכל שאלה, הבהרה, או דיווח בנוגע לתנאי שימוש אלו או לפעילות המערכת, ניתן לפנות אלינו בכתובת הדוא{"'"}ל: <a href={`mailto:${supportEmail}`} className='text-cyan-600 hover:text-cyan-700'>{supportEmail}</a>
+              בכל שאלה, הבהרה, או דיווח בנוגע לתנאי שימוש אלו או לפעילות המערכת, ניתן לפנות אלינו בכתובת הדוא'ל: <a href={`mailto:${supportEmail}`} className='text-cyan-600 hover:text-cyan-700'>{supportEmail}</a>
             </p>
             <p className='mt-4'>
               אנו מאחלים לך שימוש פורה ומוצלח במערכת Matchpoint!
