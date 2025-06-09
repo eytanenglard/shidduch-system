@@ -3,10 +3,12 @@ import React from 'react';
 import Head from 'next/head';
 
 const PrivacyPolicyPage = () => {
-  // קבוע עבור מטא-תגים ושימושים אחרים שאינם JSX
-  const companyNameLegal = 'ג\'ואיש מאצ\'פוינט בע"מ';
-  // קבוע JSX עבור הצגה נכונה ברכיב כדי למנוע שגיאות
+  // שימוש ב-Template Literals כדי למנוע שגיאות לינטר בהגדרת המחרוזת
+  const companyNameLegal = `ג'ואיש מאצ'פוינט בע"מ`;
+  
+  // קבוע JSX לשימוש בתוך הרכיב, עם המרה מלאה של תווים
   const companyNameJsx = <>ג'ואיש מאצ'פוינט בע"מ</>;
+  
   //const companyNameEn = 'JEWISH MATCHPOINT LTD';
   const companyNumber = '517172631';
   const pageTitle = `מדיניות פרטיות | ${companyNameLegal}`;

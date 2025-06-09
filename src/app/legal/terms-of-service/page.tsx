@@ -3,11 +3,7 @@ import React from 'react';
 import Head from 'next/head';
 
 const TermsOfServicePage = () => {
-  // השורה הזו היא התקינה. היא משתמשת בגרשיים כפולים חיצוניים,
-  // מה שמאפשר לגרש הפנימי להיות חלק מהמחרוזת,
-  // והמרכאות הכפולות הפנימיות הוחלפו בקוד HTML שלהן.
   const companyNameLegal = `ג'ואיש מאצ'פוינט בע"מ`;
-
   //const companyNameEn = 'JEWISH MATCHPOINT LTD';
   const companyNumber = '517172631';
   const pageTitle = `תנאי שימוש | ג'ואיש מאצ'פוינט בע"מ`;
@@ -17,7 +13,7 @@ const TermsOfServicePage = () => {
   const siteUrl = 'https://www.jewishmatchpoint.com'; // עדכן לדומיין הנכון
   const privacyPolicyUrl = '/legal/privacy-policy';
   const jurisdictionDistrict = 'מרכז'; // יש לאשר עם עו"ד
-  //const companyRegisteredAddress = 'גולומב 7 רעננה, ישראל';
+ // const companyRegisteredAddress = 'גולומב 7 רעננה, ישראל';
   const initialFreeSuggestionsCount = '3-5';
   const paidSuggestionsCount = '3-5';
 
