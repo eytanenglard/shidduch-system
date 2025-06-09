@@ -3,19 +3,23 @@ import React from 'react';
 import Head from 'next/head';
 
 const TermsOfServicePage = () => {
-  const companyNameLegal = 'ג\'ואיש מאצ\'פוינט בע"מ';
+  // השורה הזו היא התקינה. היא משתמשת בגרשיים כפולים חיצוניים,
+  // מה שמאפשר לגרש הפנימי להיות חלק מהמחרוזת,
+  // והמרכאות הכפולות הפנימיות הוחלפו בקוד HTML שלהן.
+  const companyNameLegal = `ג'ואיש מאצ'פוינט בע"מ`;
+
   //const companyNameEn = 'JEWISH MATCHPOINT LTD';
   const companyNumber = '517172631';
-  const pageTitle = `תנאי שימוש | ${companyNameLegal}`;
+  const pageTitle = `תנאי שימוש | ג'ואיש מאצ'פוינט בע"מ`;
   const pageDescription = 'תנאי השימוש של מערכת השידוכים Matchpoint. קרא בעיון לפני השימוש במערכת.';
   const lastUpdatedDate = '5 ביוני 2025'; // עדכן לתאריך האמיתי
   const supportEmail = 'jewish.matchpoint@gmail.com';
   const siteUrl = 'https://www.jewishmatchpoint.com'; // עדכן לדומיין הנכון
   const privacyPolicyUrl = '/legal/privacy-policy';
   const jurisdictionDistrict = 'מרכז'; // יש לאשר עם עו"ד
-  //const companyRegisteredAddress = 'גולומב 7 רעננה, ישראל'; // אם תרצה להוסיף בסעיף יצירת קשר
-  const initialFreeSuggestionsCount = '3-5'; // מספר הצעות ראשוניות חינם
-  const paidSuggestionsCount = '3-5'; // מספר הצעות בחבילה בתשלום
+  //const companyRegisteredAddress = 'גולומב 7 רעננה, ישראל';
+  const initialFreeSuggestionsCount = '3-5';
+  const paidSuggestionsCount = '3-5';
 
   return (
     <>
@@ -24,7 +28,6 @@ const TermsOfServicePage = () => {
         <meta name='description' content={pageDescription} />
         <meta property='og:title' content={pageTitle} />
         <meta property='og:description' content={pageDescription} />
-        {/* <meta property="og:image" content={`${siteUrl}/images/og-terms.jpg`} /> */}
         <meta property='og:url' content={`${siteUrl}/legal/terms-of-service`} />
         <meta name='twitter:card' content='summary_large_image' />
       </Head>
