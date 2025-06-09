@@ -121,7 +121,8 @@ const FooterSection: React.FC = () => {
             </h3>
             <ul className="space-y-3 md:space-y-4">
               <FooterItem icon="📱" text="054-321-0040" />
-              <FooterItem icon="✉️" text="matchpoint.center@gmail.com" />
+              <FooterItem icon="✉️" text="jewish.matchpoint@gmail.com
+" />
               <FooterItem icon="📍" text="רעננה" />
               <FooterItem icon="🕒" text="א'-ה' 9:00-18:00, ו' 9:00-13:00" />
             </ul>

@@ -600,11 +600,11 @@ const AlgorithmSection: React.FC = () => {
                   </div>
                   <div>
                     <h3 className="font-bold text-gray-800 mb-2">
-                      התאמה עם 27 ממדים
+                      התאמה עם 50+ ממדים
                     </h3>
                     <p className="text-gray-600">
                       האלגוריתם שלנו מנתח את הפרופילים ומייצר התאמות פוטנציאליות
-                      על בסיס 27 ממדי התאמה שונים - הרבה מעבר למה שעין אנושית
+                      על בסיס 50+ ממדי התאמה שונים - הרבה מעבר למה שעין אנושית
                       יכולה לעבד
                     </p>
                   </div>
@@ -1075,7 +1075,8 @@ const FooterSection: React.FC = () => {
             </h3>
             <ul className="space-y-3 md:space-y-4">
               <FooterItem icon="📱" text="054-321-0040" />
-              <FooterItem icon="✉️" text="matchpoint.center@gmail.com" />
+              <FooterItem icon="✉️" text="jewish.matchpoint@gmail.com
+/>
               <FooterItem icon="📍" text="רעננה" />
               <FooterItem icon="🕒" text="א'-ה' 9:00-18:00, ו' 9:00-13:00" />
             </ul>
@@ -2031,7 +2032,7 @@ const ValuePropositionSection: React.FC = () => {
                 ליווי אנושי: הדרכה אישית משדכנים מקצועיים לאורך כל התהליך
               </ComparisonItem>
               <ComparisonItem>
-                התאמה מדויקת יותר: אלגוריתם AI עם 27 ממדי התאמה
+                התאמה מדויקת יותר: אלגוריתם AI עם 50+ ממדי התאמה
               </ComparisonItem>
               <ComparisonItem>
                 פרטיות מלאה: פרופילים נראים רק לשדכנים מורשים
