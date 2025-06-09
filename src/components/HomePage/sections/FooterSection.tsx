@@ -31,7 +31,7 @@ const FooterSection: React.FC = () => {
 
             <div className="flex space-x-4 rtl:space-x-reverse">
               <a
-                href="#"
+                href="https://www.facebook.com/profile.php?id=61577134204445"
                 className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-cyan-600/20 transition-colors duration-300"
               >
                 <svg
