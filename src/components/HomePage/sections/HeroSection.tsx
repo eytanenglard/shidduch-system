@@ -257,7 +257,7 @@ style={{ ...getParallaxStyle(0.4), animationDuration: "20s", animationDelay: "3s
 
             {/* Left Card (Personal Guidance) */}
             <div
-              className="absolute top-1/2 left-[20%] transform -translate-y-1/2 -translate-x-1/2 transition-all duration-700 ease-out"
+              className="absolute top-1/2 left-[20%] lg:left-[25%] transform -translate-y-1/2 -translate-x-1/2 transition-all duration-700 ease-out"
               style={{
                 transform: `translate(calc(-50% + ${puzzleAnim.progress * 75}px), -50%)`,
               }}
