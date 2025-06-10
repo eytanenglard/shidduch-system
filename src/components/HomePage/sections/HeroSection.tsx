@@ -65,26 +65,34 @@ return () => window.removeEventListener("mousemove", handleMouseMove);
 }, []);
 
 const getPuzzleAnimation = () => {
-    // Return a default state if the ref is not yet available to avoid errors.
     if (!puzzleContainerRef.current || puzzleContainerTop === 0) {
         return { progress: 0 };
     }
 
-    // --- שינוי מרכזי ---
-    // הגדרה אחידה שתעבוד היטב גם במובייל וגם בדסקטופ.
-    // האנימציה תתחיל רק אחרי שהמשתמש גלל, והחלק העליון של הקונטיינר 
-    // נמצא בחלק העליון של המסך. זה נותן המון זמן לקרוא את הכרטיסים.
-    
-    // נקודת ההתחלה: מחושבת לפי מיקום הקונטיינר פחות 30% מגובה החלון.
-    // זה אומר שהאנימציה תתחיל רק כשהקונטיינר יהיה ב-30% העליונים של המסך.
-const startPosition = puzzleContainerTop;
-    // משך האנימציה בפיקסלים של גלילה.
-    // הגדלנו את הערך כדי שהתנועה תהיה חלקה ופחות פתאומית.
-    const animationDuration = 700; 
+    // 1. בדיקה אם אנחנו במובייל (מסך ברוחב קטן מ-768px)
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+
+    // 2. הגדרת נקודת התחלה ומשך אנימציה שונים למובייל ולדסקטופ
+    let startPosition;
+    let animationDuration;
+
+    if (isMobile) {
+        // במובייל: נתחיל את האנימציה מוקדם יותר.
+        // האנימציה תתחיל כשהחלק העליון של הקונטיינר יהיה כ-40% מגובה המסך *לפני* שהוא מגיע לחלק העליון של החלון.
+        // אתה יכול לשחק עם המספר 0.4 כדי להקדים או לאחר את האנימציה.
+        startPosition = puzzleContainerTop - (window.innerHeight * 0.4);
+        
+        // נקצר מעט את משך האנימציה במובייל לתחושה מהירה יותר
+        animationDuration = 500;
+    } else {
+        // בדסקטופ: נשאר עם ההתנהגות המקורית שהאנימציה מתחילה כשהאזור מגיע לחלק העליון
+        startPosition = puzzleContainerTop;
+        animationDuration = 700;
+    }
 
     const endPosition = startPosition + animationDuration;
 
-    // חישוב ההתקדמות של האנימציה (ערך בין 0 ל-1)
+    // 3. חישוב התקדמות האנימציה נשאר זהה
     const progress = Math.min(
         Math.max((scrollY - startPosition) / (endPosition - startPosition), 0),
         1
