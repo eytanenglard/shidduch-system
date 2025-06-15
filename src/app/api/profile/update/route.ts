@@ -14,6 +14,7 @@ import {
   Profile, // Import Prisma's Profile type
 } from "@prisma/client";
 import type { UserProfile } from "@/types/next-auth";
+import { updateUserAiProfile } from '@/lib/services/profileAiService'; // <--- 1. ייבוא
 
 // Helper to convert to number or null
 const toNumberOrNull = (value: string | number | null | undefined): number | null => {
@@ -256,6 +257,13 @@ export async function PUT(req: NextRequest) {
           where: { userId: userId },
           data: dataToUpdate,
         });
+        
+        // --- START OF NEW CODE ---
+        // 2. הפעלת עדכון פרופיל ה-AI ברקע לאחר עדכון מוצלח
+        updateUserAiProfile(userId).catch(err => {
+            console.error(`[AI Profile Trigger - Profile Update] Failed to update AI profile in the background for user ${userId}:`, err);
+        });
+        // --- END OF NEW CODE ---
       } catch (dbError) {
         console.error('Prisma profile update error:', dbError);
         if (dbError instanceof Prisma.PrismaClientKnownRequestError && dbError.code === 'P2025') {

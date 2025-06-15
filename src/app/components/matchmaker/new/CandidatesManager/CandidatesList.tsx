@@ -39,17 +39,25 @@ interface CreateSuggestionData {
   firstPartyNotes?: string;
   secondPartyNotes?: string;
 }
+// בראש הקובץ CandidatesList.tsx
+
+// ... imports ...
 
 interface CandidatesListProps {
-  candidates: Candidate[];
+  candidates: (Candidate & { aiScore?: number })[];
   allCandidates: Candidate[];
   onCandidateClick?: (candidate: Candidate) => void;
   onCandidateAction?: (type: CandidateAction, candidate: Candidate) => void;
   viewMode: "grid" | "list";
   isLoading?: boolean;
   className?: string;
-  // הוסף את ה-prop החדש
   highlightTerm?: string;
+  
+  // --- AI-RELATED PROPS ---
+  aiTargetCandidate: Candidate | null;
+  onSetAiTarget: (candidate: Candidate, e: React.MouseEvent) => void;
+  comparisonSelection: Record<string, Candidate>;
+  onToggleComparison: (candidate: Candidate, e: React.MouseEvent) => void;
 }
 
 const CandidatesList: React.FC<CandidatesListProps> = ({
@@ -61,6 +69,10 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   isLoading = false,
   className,
   highlightTerm,
+   aiTargetCandidate,
+  onSetAiTarget,
+  comparisonSelection,
+  onToggleComparison,
 }) => {
   // Base states
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(
@@ -376,16 +388,33 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
             onMouseLeave={handleMouseLeave}
             onClick={() => handleAction("view", candidate)} // Direct click handler for mobile
           >
-            <MinimalCard
-              candidate={candidate}
-              onClick={() => handleAction("view", candidate)}
-              className={`
+<MinimalCard
+  candidate={candidate}
+  onClick={() => handleAction("view", candidate)}
+  onEdit={(c, e) => {
+    e.stopPropagation();
+    handleAction("edit", c);
+  }}
+  className={`
     ${viewMode === "list" ? "flex flex-row-reverse gap-4 h-32" : ""}
     ${isMobile ? "transform scale-95" : ""}
   `}
-              // העבר את מונח החיפוש לכרטיסיה
-              highlightTerm={highlightTerm}
-            />
+  highlightTerm={highlightTerm}
+  aiScore={candidate.aiScore}
+
+  // --- AI Props Corrected and Added ---
+  onSetAiTarget={onSetAiTarget}
+  isAiTarget={aiTargetCandidate?.id === candidate.id} // <-- התיקון לשגיאה שלך
+
+  // --- Props חדשים עבור בחירת השוואה ---
+  isSelectableForComparison={
+    !!aiTargetCandidate && // האם יש מטרה בכלל
+    aiTargetCandidate.profile.gender !== candidate.profile.gender && // האם המועמד מהפאנל הנגדי
+    aiTargetCandidate.id !== candidate.id // ודא שזה לא מועמד המטרה עצמו
+  }
+  isSelectedForComparison={!!comparisonSelection[candidate.id]}
+  onToggleComparison={onToggleComparison}
+/>
             {/* Edit button - visible when hovering */}
             <button
               className="absolute top-2 left-2 bg-primary text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
@@ -424,7 +453,9 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
             <QuickView
               candidate={hoveredCandidate}
               onAction={(action) => handleAction(action, hoveredCandidate)}
-            />
+             onSetAiTarget={(c, e) => onSetAiTarget(c, e)}
+        isAiTarget={aiTargetCandidate?.id === hoveredCandidate.id}
+         />
           </div>
         </div>
       )}

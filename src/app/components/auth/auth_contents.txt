@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\auth
-# Generated on: 2025-06-05 15:07:43
+# Generated on: 2025-06-15 11:15:41
 ################################################################################
 
 ================================================================================
@@ -78,23 +78,27 @@ Content:
 "use client";
 
 import { useState, FormEvent } from "react";
+import { useRouter } from "next/navigation"; // <--- 1. Import useRouter
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Mail, Loader2, AlertCircle, CheckCircle } from "lucide-react";
+import { Mail, Loader2, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
 
 export default function ForgotPasswordForm() {
+  const router = useRouter(); // <--- 2. Initialize router
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  // The success message might not be seen if we redirect immediately.
+  // Consider removing it or using a toast notification system for a brief message before redirect.
+  // const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
-    setSuccessMessage(null);
+    // setSuccessMessage(null); // If redirecting, this isn't needed
 
     if (!email) {
       setError("אנא הזן את כתובת המייל שלך.");
@@ -115,15 +119,19 @@ export default function ForgotPasswordForm() {
         throw new Error(data.error || "אירעה שגיאה בבקשת איפוס הסיסמה.");
       }
 
-      // Always show a generic success message for security (as per API design)
-      setSuccessMessage(data.message || "אם קיימת כתובת מייל זו במערכת, קוד אימות נשלח אליה.");
-      setEmail(""); // Clear email field on success
+      // 3. Redirect to the reset password page on success
+      // The API's success message (data.message) is generic for security and won't be shown here.
+      // The ResetPasswordForm will guide the user.
+      router.push(`/auth/reset-password?email=${encodeURIComponent(email)}`);
+      
+      // setEmail(""); // Clearing email is not strictly necessary as we are navigating away
 
     } catch (err) {
       setError(err instanceof Error ? err.message : "אירעה שגיאה לא צפויה.");
-    } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Ensure isLoading is set to false in case of an error before navigation
     }
+    // setIsLoading(false); // If navigation occurs, this line might not be reached or necessary.
+                         // It's important that isLoading is false if an error occurs and we don't navigate.
   };
 
   return (
@@ -147,6 +155,11 @@ export default function ForgotPasswordForm() {
           </Alert>
         )}
 
+        {/* Success message is removed because we are redirecting. 
+            If you want to show a message on the next page, 
+            you could pass a query param like ?request_sent=true
+        */}
+        {/*
         {successMessage && (
           <Alert variant="default" className="mb-4 bg-green-50 border-green-200 text-green-700">
             <CheckCircle className="h-4 w-4 text-green-600" />
@@ -154,8 +167,12 @@ export default function ForgotPasswordForm() {
             <AlertDescription>{successMessage}</AlertDescription>
           </Alert>
         )}
-
-        {!successMessage && ( // Only show form if no success message
+        */}
+        
+        {/* Form is always shown unless you conditionally hide it during loading/after success,
+            but since we redirect, this logic can be simpler.
+        */}
+        {/* {!successMessage && ( // This condition can be removed if successMessage state is removed */}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-1">
               <label htmlFor="email-forgot" className="block text-sm font-medium text-gray-700">
@@ -187,11 +204,11 @@ export default function ForgotPasswordForm() {
                   <span>שולח...</span>
                 </>
               ) : (
-                "שלח קוד אימות"
+                "שלח בקשה לאיפוס סיסמה" // Changed text slightly
               )}
             </Button>
           </form>
-        )}
+        {/* )} */}
 
         <div className="mt-6 text-center">
           <Link
@@ -432,7 +449,7 @@ export default function RegisterForm() {
         {/* טלפון */}
         <div>
           <label htmlFor="phoneRegForm" className="block text-sm font-medium text-gray-700">טלפון נייד</label>
-          <input type="tel" name="phone" id="phoneRegForm" required pattern="[0-9]{10}" placeholder="0501234567" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2" />
+          <input type="tel" name="phone" id="phoneRegForm" required pattern="[0-9]{10}" placeholder="" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2" />
         </div>
         {/* סיסמה */}
         <div>
@@ -3552,7 +3569,7 @@ const PersonalDetailsStep: React.FC = () => {
               value={registrationState.phone}
               onChange={(e) => updateField("phone", e.target.value)}
               onBlur={() => validatePhone(registrationState.phone)}
-              placeholder="0501234567"
+              placeholder=""
               required
               maxLength={10}
               className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${

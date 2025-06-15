@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth"; // Your auth options
 import prisma from "@/lib/prisma";
 import { Gender, UserSource, UserStatus, UserRole } from '@prisma/client';
 import { v2 as cloudinary } from "cloudinary"; // Import Cloudinary
+import { updateUserAiProfile } from '@/lib/services/profileAiService'; // <--- 1. ייבוא
 
 // Define the type for Cloudinary upload result for clarity
 type CloudinaryUploadResult = {
@@ -164,7 +165,13 @@ export async function POST(request: Request) {
         });
       }
     }
-
+   
+    // --- START OF NEW CODE ---
+    // 2. הפעלת יצירת פרופיל ה-AI עבור המועמד החדש
+    updateUserAiProfile(newManualCandidate.id).catch(err => {
+        console.error(`[AI Profile Trigger - Manual Creation] Failed to create initial AI profile in the background for new manual candidate ${newManualCandidate.id}:`, err);
+    });
+    // --- END OF NEW CODE ---
     const candidateToReturn = await prisma.user.findUnique({
         where: { id: newManualCandidate.id },
         include: {

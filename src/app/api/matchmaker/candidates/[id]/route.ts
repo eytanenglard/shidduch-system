@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { Prisma, UserRole } from "@prisma/client"; // הוספתי Prisma עבור סוגי שגיאות
+import { updateUserAiProfile } from '@/lib/services/profileAiService'; // <--- 1. ייבוא
 
 // פונקציית GET הקיימת שלך
 export async function GET(
@@ -200,7 +201,12 @@ export async function PATCH(
         lastActive: new Date() // Also update lastActive
       }
     });
-
+  // --- START OF NEW CODE ---
+    // 2. הפעלת עדכון פרופיל ה-AI ברקע עבור המועמד שעודכן
+    updateUserAiProfile(candidateIdToUpdate).catch(err => {
+        console.error(`[AI Profile Trigger - Matchmaker Update] Failed to update AI profile in the background for candidate ${candidateIdToUpdate}:`, err);
+    });
+    // --- END OF NEW CODE ---
     return NextResponse.json({
       success: true,
       profile: updatedProfile

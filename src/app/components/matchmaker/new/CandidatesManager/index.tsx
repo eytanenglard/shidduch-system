@@ -1,20 +1,14 @@
+// File: src/app/components/matchmaker/new/CandidatesManager/index.tsx
+
 "use client";
 
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { UserPlus } from "lucide-react"; // Add UserPlus for the button
-import { AddManualCandidateDialog } from "../dialogs/AddManualCandidateDialog"; // Import the new dialog
-import { Badge } from "@/components/ui/badge";
-import {
-  Filter,
-  LayoutGrid,
-  List,
-  ArrowUpDown,
-  RefreshCw,
-  Info,
-  SlidersHorizontal,
-} from "lucide-react";
+import { UserPlus, Filter, LayoutGrid, List, ArrowUpDown, Sparkles, X, RotateCw, BarChart2 } from "lucide-react";
 import { toast } from "sonner";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
 
 // Custom Hooks
 import { useCandidates } from "../hooks/useCandidates";
@@ -25,72 +19,45 @@ import SplitView from "./SplitView";
 import FilterPanel from "../Filters/FilterPanel";
 import ActiveFilters from "../Filters/ActiveFilters";
 import SearchBar from "../Filters/SearchBar";
-import CandidatesStats from "./CandidatesStats";
 import { LoadingContainer } from "../shared/LoadingStates";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { AddManualCandidateDialog } from "../dialogs/AddManualCandidateDialog";
+import { AiMatchAnalysisDialog } from "../dialogs/AiMatchAnalysisDialog";
 
 // Types
-import type {
-  Candidate,
-  ViewMode,
-  CandidatesFilter,
-  CandidateAction,
-} from "../types/candidates";
+import type { Candidate, ViewMode, CandidatesFilter, CandidateAction } from "../types/candidates";
 
 // Constants
 import { SORT_OPTIONS, VIEW_OPTIONS } from "../constants/filterOptions";
 
-const CandidatesManager: React.FC = () => {
-  // Local State
-  const [viewMode, setViewMode] = useState<ViewMode>("grid");
-  const [showFilters, setShowFilters] = useState(false);
-  const showStats = false; // קבוע במקום state
-  const [localFilters, setLocalFilters] = useState<CandidatesFilter>({});
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [, setIsMobileView] = useState(false);
-  const [showSearchResults, setShowSearchResults] = useState(false);
-  const [showFiltersMobile, setShowFiltersMobile] = useState(false);
-  const [showExportConfirm, setShowExportConfirm] = useState(false);
-  const [showManualAddDialog, setShowManualAddDialog] = useState(false); // State for the dialog
+interface AiMatch {
+  userId: string;
+  score: number;
+}
 
+const CandidatesManager: React.FC = () => {
+  // --- UI and General State ---
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [showFiltersPanel, setShowFiltersPanel] = useState(false);
+  const [showFiltersMobile, setShowFiltersMobile] = useState(false);
+  const [showManualAddDialog, setShowManualAddDialog] = useState(false);
+  
+  // --- AI State Management ---
+  const [aiTargetCandidate, setAiTargetCandidate] = useState<Candidate | null>(null);
+  const [comparisonSelection, setComparisonSelection] = useState<Record<string, Candidate>>({});
+  const [aiMatches, setAiMatches] = useState<AiMatch[]>([]);
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [isAnalysisDialogOpen, setIsAnalysisDialogOpen] = useState(false);
+  
   // Custom Hooks
   const {
     loading,
     candidates,
     maleCandidates,
     femaleCandidates,
-    filteredCandidates,
-    exportCandidates,
-    searchResults,
     sorting,
     setSorting,
     setFilters,
-    refresh, // Destructure refresh from the main useCandidates call
+    refresh,
   } = useCandidates();
 
   const {
@@ -109,432 +76,194 @@ const CandidatesManager: React.FC = () => {
     updateMaleSearchQuery,
     updateFemaleSearchQuery,
   } = useFilterLogic({
-    onFilterChange: (newFilters) => {
-      setLocalFilters(newFilters);
-      setFilters(newFilters);
-    },
+    onFilterChange: setFilters,
   });
 
-  // Callback for when a manual candidate is added
+  // --- Handlers ---
+
   const handleCandidateAdded = useCallback(() => {
-    refresh(); // Refresh the candidates list
+    refresh();
+    toast.success("מועמד חדש נוסף בהצלחה!");
   }, [refresh]);
 
-  // Check for mobile view
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobileView(window.innerWidth < 768);
-    };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => {
-      window.removeEventListener("resize", checkMobile);
-    };
+  const handleSearch = useCallback((value: string) => {
+    if (!filters.separateFiltering) {
+      setFilters(prev => ({ ...prev, searchQuery: value }));
+    }
+  }, [setFilters, filters.separateFiltering]);
+  
+  const handleRemoveFilter = useCallback((key: keyof CandidatesFilter, value?: string) => {
+    const newFilters = { ...filters };
+    if (key === "cities" && value) newFilters.cities = newFilters.cities?.filter(city => city !== value);
+    else if (key === "occupations" && value) newFilters.occupations = newFilters.occupations?.filter(occ => occ !== value);
+    else delete newFilters[key];
+    setFilters(newFilters);
+  }, [filters, setFilters]);
+
+  const handleCandidateAction = useCallback(async (type: CandidateAction, candidate: Candidate) => {
+    console.log(`Action '${type}' triggered for candidate: ${candidate.firstName}`);
   }, []);
 
-  // Initialize local filters
-  useEffect(() => {
-    setLocalFilters(filters);
-  }, [filters]);
-
-  // Search handlers
-  const handleSearch = useCallback(
-    (value: string) => {
-      if (!filters.separateFiltering) {
-        setLocalFilters((prev) => ({ ...prev, searchQuery: value }));
-        setFilters((prev) => ({ ...prev, searchQuery: value }));
-        setShowSearchResults(!!value);
-      }
-    },
-    [setFilters, filters.separateFiltering]
-  );
-
-  const handleMaleSearch = useCallback(
-    (value: string) => {
-      updateMaleSearchQuery(value);
-      setShowSearchResults(!!value);
-    },
-    [updateMaleSearchQuery]
-  );
-
-  const handleFemaleSearch = useCallback(
-    (value: string) => {
-      updateFemaleSearchQuery(value);
-      setShowSearchResults(!!value);
-    },
-    [updateFemaleSearchQuery]
-  );
-
-  const handleRemoveFilter = useCallback(
-    (key: keyof CandidatesFilter, value?: string) => {
-      setLocalFilters((prev) => {
-        const newFilters = { ...prev };
-        if (key === "cities" && value) {
-          newFilters.cities = prev.cities?.filter((city) => city !== value);
-        } else if (key === "occupations" && value) {
-          newFilters.occupations = prev.occupations?.filter(
-            (occ) => occ !== value
-          );
-        } else if (key === "separateFiltering") {
-          newFilters.separateFiltering = false;
-        } else if (key === "maleSearchQuery") {
-          newFilters.maleSearchQuery = "";
-          if (newFilters.maleFilters) newFilters.maleFilters.searchQuery = "";
-        } else if (key === "femaleSearchQuery") {
-          newFilters.femaleSearchQuery = "";
-          if (newFilters.femaleFilters)
-            newFilters.femaleFilters.searchQuery = "";
-        } else {
-          delete newFilters[key];
-        }
-        setFilters(newFilters);
-        return newFilters;
-      });
-    },
-    [setFilters]
-  );
-
-  const handleCandidateAction = useCallback(
-    async (type: CandidateAction, candidate: Candidate) => {
-      if (isProcessing) return;
-      setIsProcessing(true);
-      try {
-        switch (type) {
-          case "suggest":
-            toast.success("הצעת השידוך נוצרה בהצלחה", {
-              description: `נוצרה הצעת שידוך עבור ${candidate.firstName} ${candidate.lastName}`,
-            });
-            break;
-          case "invite":
-            await fetch("/api/matchmaker/invitations", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ candidateId: candidate.id }),
-            });
-            toast.success("ההזמנה נשלחה בהצלחה", {
-              description: `ההזמנה נשלחה ל${candidate.firstName} ${candidate.lastName}`,
-            });
-            break;
-          case "contact":
-            toast.success("בקשת יצירת הקשר נשלחה", {
-              description: `בקשה ליצירת קשר נשלחה ל${candidate.firstName} ${candidate.lastName}`,
-            });
-            break;
-          case "favorite":
-            await fetch("/api/matchmaker/favorites", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ candidateId: candidate.id }),
-            });
-            toast.success("המועמד/ת נוספ/ה למועדפים", {
-              description: `${candidate.firstName} ${candidate.lastName} נוספ/ה למועדפים שלך`,
-            });
-            break;
-          case "edit":
-            break;
-        }
-      } catch (error) {
-        toast.error("אירעה שגיאה בביצוע הפעולה", {
-          description:
-            error instanceof Error ? error.message : "שגיאה לא ידועה",
-        });
-      } finally {
-        setIsProcessing(false);
-      }
-    },
-    [isProcessing]
-  );
-
-  const handleFilterSave = useCallback(
-    async (name: string) => {
-      try {
-        await saveFilter(name, {
-          ...localFilters,
-          separateFiltering: filters.separateFiltering,
-        });
-        toast.success("הפילטר נשמר בהצלחה", {
-          description: `הפילטר "${name}" נשמר ויהיה זמין לשימוש עתידי`,
-        });
-      } catch {
-        toast.error("שגיאה בשמירת הפילטר");
-      }
-    },
-    [localFilters, saveFilter, filters.separateFiltering]
-  );
-
-  const handleExport = useCallback(async () => {
-    if (isProcessing) return;
-    setIsProcessing(true);
+  const handleFilterSave = useCallback(async (name: string) => {
     try {
-      await exportCandidates(filteredCandidates, localFilters);
-      toast.success("הנתונים יוצאו בהצלחה", {
-        description: `קובץ CSV עם ${filteredCandidates.length} מועמדים הורד למחשב שלך`,
-      });
-      setShowExportConfirm(false);
-    } catch (error) {
-      toast.error("שגיאה בייצוא הנתונים", {
-        description: "אירעה שגיאה בעת ייצוא הנתונים, אנא נסה שוב מאוחר יותר.",
-      });
-      console.error("Failed to export candidates:", error);
-    } finally {
-      setIsProcessing(false);
+      await saveFilter(name, filters);
+      toast.success("הפילטר נשמר בהצלחה");
+    } catch {
+      toast.error("שגיאה בשמירת הפילטר");
     }
-  }, [filteredCandidates, localFilters, exportCandidates, isProcessing]);
+  }, [filters, saveFilter]);
 
-  const renderSearchSummary = () => {
-    if (!searchResults || filters.separateFiltering) return null;
-    return (
-      <div className="bg-blue-50/50 p-3 border rounded-lg mb-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Info className="w-4 h-4 text-blue-500" />
-            <h3 className="font-medium">תוצאות חיפוש: {searchResults.term}</h3>
-          </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="bg-white">
-              {searchResults.count} תוצאות
-            </Badge>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 text-xs text-gray-600"
-              onClick={() => handleRemoveFilter("searchQuery")}
-            >
-              <RefreshCw className="w-3 h-3 ml-1" />
-              נקה חיפוש
-            </Button>
-          </div>
-        </div>
-        <div className="text-sm text-gray-600 mt-1 flex gap-3">
-          <span>גברים: {searchResults.male}</span>
-          <span>נשים: {searchResults.female}</span>
-        </div>
-      </div>
-    );
-  };
+  // --- AI-Specific Handlers ---
 
-  const countActiveFilters = () => {
-    return activeFilters.length;
-  };
+  const handleSetAiTarget = useCallback((candidate: Candidate, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (aiTargetCandidate?.id === candidate.id) {
+        handleClearAiTarget(e);
+        return;
+    }
+    setAiTargetCandidate(candidate);
+    setAiMatches([]);
+    setComparisonSelection({});
+    toast.info(`מועמד מטרה נבחר: ${candidate.firstName}. כעת ניתן לחפש התאמות בפאנל הנגדי.`, { position: "bottom-center" });
+  }, [aiTargetCandidate]);
 
-  const renderSeparateFilteringInfo = () => {
-    if (!filters.separateFiltering) return null;
-    return (
-      <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg mb-4 flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <SlidersHorizontal className="w-4 h-4 text-blue-500" />
-          <span className="font-medium text-blue-700">
-            מצב סינון וחיפוש נפרד פעיל
-          </span>
-          <span className="text-sm text-blue-600">
-            - סינון וחיפוש שונה מוחל על מועמדים ומועמדות
-          </span>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={toggleSeparateFiltering}
-          className="bg-white text-blue-700 border-blue-200 hover:bg-blue-100 hover:text-blue-800 transition-colors"
-        >
-          <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
-          חזור לסינון רגיל
-        </Button>
-      </div>
-    );
+  const handleClearAiTarget = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setAiTargetCandidate(null);
+    setAiMatches([]);
+    setComparisonSelection({});
+    toast.info("בחירת מועמד מטרה בוטלה.", { position: "bottom-center" });
   };
+  
+  const handleToggleComparison = useCallback((candidate: Candidate, e: React.MouseEvent) => {
+      e.stopPropagation();
+      setComparisonSelection(prev => {
+          const newSelection = {...prev};
+          if (newSelection[candidate.id]) {
+              delete newSelection[candidate.id]; // Unselect
+          } else {
+              newSelection[candidate.id] = candidate; // Select
+          }
+          return newSelection;
+      });
+  }, []);
+
+  useEffect(() => {
+    const checkDesktop = () => setShowFiltersPanel(window.innerWidth >= 1024);
+    checkDesktop();
+    window.addEventListener('resize', checkDesktop);
+    return () => window.removeEventListener('resize', checkDesktop);
+  }, []);
+
+  const activeFilterCount = useMemo(() => activeFilters.length, [activeFilters]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-white border-b shadow-sm">
-        <div className="container mx-auto py-4">
-          {/* Title and Add Button */}
+    <div className="min-h-screen bg-gray-50/50">
+      <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-sm border-b shadow-sm">
+        <div className="container mx-auto py-3 px-4">
           <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-bold text-primary/90">
-              ניהול מועמדים
-            </h1>
-            <Button onClick={() => setShowManualAddDialog(true)}>
-              <UserPlus className="w-4 h-4 ml-2" />
-              הוסף מועמד ידנית
-            </Button>
-          </div>
-          {/* Search and Filters Bar */}
-          <div className="mt-4 flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              {!filters.separateFiltering && (
-                <SearchBar
-                  value={localFilters.searchQuery || ""}
-                  onChange={handleSearch}
-                  recentSearches={recentSearches}
-                  onSaveSearch={(term) => handleSearch(term)}
-                  onClearRecentSearches={clearRecentSearches}
-                  placeholder="חיפוש לפי שם, עיר, תחום עיסוק ועוד..."
-                  autoFocus={false}
-                  genderTarget="all"
-                  separateMode={false}
-                />
+            <h1 className="text-2xl font-bold text-primary/90">ניהול מועמדים</h1>
+            <div className="flex items-center gap-2">
+              <Button onClick={() => setShowManualAddDialog(true)} size="sm">
+                <UserPlus className="w-4 h-4 ml-2" />
+                הוסף מועמד ידנית
+              </Button>
+               {Object.keys(comparisonSelection).length > 0 && aiTargetCandidate && (
+                <Button onClick={() => setIsAnalysisDialogOpen(true)} size="sm" variant="secondary">
+                    <BarChart2 className="w-4 h-4 ml-2"/>
+                    נתח התאמה ({Object.keys(comparisonSelection).length})
+                </Button>
               )}
+              <Button onClick={refresh} variant="outline" size="icon" title="רענן רשימה" disabled={loading}>
+                <RotateCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              </Button>
             </div>
-
-            <div className="flex gap-2">
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2">
+            {!filters.separateFiltering && (
+              <div className="flex-1">
+                <SearchBar
+                  value={filters.searchQuery || ""}
+                  onChange={handleSearch}
+                  placeholder="חיפוש כללי בשם, עיר, עיסוק..."
+                  recentSearches={recentSearches}
+                  onClearRecentSearches={clearRecentSearches}
+                />
+              </div>
+            )}
+            <div className="flex gap-2 justify-between">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" disabled={isProcessing}>
-                    <ArrowUpDown className="w-4 h-4 ml-2" />
-                    מיון
-                  </Button>
+                  <Button variant="outline" size="sm"><ArrowUpDown className="w-4 h-4 ml-2" />מיון</Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuContent align="end">
                   <DropdownMenuLabel>מיון לפי</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   {SORT_OPTIONS.map((option) => (
-                    <DropdownMenuItem
-                      key={option.value}
-                      onClick={() =>
-                        setSorting(
-                          option.value,
-                          option.defaultOrder as "asc" | "desc"
-                        )
-                      }
-                      className={
-                        sorting.field === option.value
-                          ? "bg-blue-50 text-blue-700 font-medium"
-                          : ""
-                      }
-                    >
-                      <div className="flex items-center justify-between w-full">
-                        <span>{option.label}</span>
-                        {sorting.field === option.value && (
-                          <Badge variant="outline" className="text-xs">
-                            {sorting.direction === "asc" ? "עולה" : "יורד"}
-                          </Badge>
-                        )}
-                      </div>
+                    <DropdownMenuItem key={option.value} onClick={() => setSorting(option.value, option.defaultOrder as "asc" | "desc")}>
+                      {option.label}
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              <Button
-                variant="outline"
-                onClick={() => setShowFilters((prev) => !prev)}
-                disabled={isProcessing}
-                className={`hidden md:flex ${
-                  showFilters ? "bg-blue-50 text-blue-700 border-blue-200" : ""
-                }`}
-              >
-                <Filter className="w-4 h-4 ml-2" />
-                {showFilters ? "הסתר סינון" : "הצג סינון"}
-              </Button>
+              <div className="hidden lg:flex">
+                <Button variant="outline" size="sm" onClick={() => setShowFiltersPanel(!showFiltersPanel)}>
+                  <Filter className="w-4 h-4 ml-2" />
+                  {showFiltersPanel ? "הסתר סינון" : "הצג סינון"}
+                </Button>
+              </div>
 
-              <Sheet
-                open={showFiltersMobile}
-                onOpenChange={setShowFiltersMobile}
-              >
+              <Sheet open={showFiltersMobile} onOpenChange={setShowFiltersMobile}>
                 <SheetTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="md:hidden relative"
-                    disabled={isProcessing}
-                  >
+                  <Button variant="outline" size="sm" className="lg:hidden relative">
                     <Filter className="w-4 h-4 ml-2" />
                     סינון
-                    {countActiveFilters() > 0 && (
-                      <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center">
-                        {countActiveFilters()}
-                      </Badge>
-                    )}
+                    {activeFilterCount > 0 && <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center">{activeFilterCount}</Badge>}
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-full sm:max-w-lg p-0">
-                  <SheetHeader className="p-4 border-b">
-                    <SheetTitle>סינון מועמדים</SheetTitle>
-                    <SheetDescription>
-                      הגדר את הפילטרים לסינון המועמדים
-                    </SheetDescription>
-                  </SheetHeader>
-                  <div className="p-1">
+                <SheetContent>
                     <FilterPanel
-                      filters={localFilters}
-                      onFiltersChange={(newFilters) => {
-                        setLocalFilters(newFilters);
-                        setFilters(newFilters);
-                      }}
-                      onSavePreset={handleFilterSave}
-                      onReset={resetFilters}
-                      savedFilters={savedFilters.map((f) => ({
-                        id: f.id,
-                        name: f.name,
-                        isDefault: f.isDefault,
-                      }))}
-                      popularFilters={popularFilters}
-                      separateFiltering={filters.separateFiltering}
-                      onToggleSeparateFiltering={toggleSeparateFiltering}
-                      onMaleFiltersChange={updateMaleFilters}
-                      onFemaleFiltersChange={updateFemaleFilters}
-                      onCopyFilters={copyFilters}
+                        filters={filters}
+                        onFiltersChange={setFilters}
+                        onSavePreset={handleFilterSave}
+                        onReset={resetFilters}
+                        savedFilters={savedFilters.map((f) => ({ id: f.id, name: f.name, isDefault: f.isDefault }))}
+                        popularFilters={popularFilters}
+                        separateFiltering={filters.separateFiltering}
+                        onToggleSeparateFiltering={toggleSeparateFiltering}
+                        onMaleFiltersChange={updateMaleFilters}
+                        onFemaleFiltersChange={updateFemaleFilters}
+                        onCopyFilters={copyFilters}
                     />
-                  </div>
                 </SheetContent>
               </Sheet>
-
-              <div className="flex gap-2">
+              
+              <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
                 {VIEW_OPTIONS.map((option) => (
-                  <Button
-                    key={option.value}
-                    variant={viewMode === option.value ? "default" : "outline"}
-                    size="icon"
-                    onClick={() => setViewMode(option.value as ViewMode)}
-                    title={option.label}
-                    disabled={isProcessing}
-                  >
-                    {option.value === "grid" ? (
-                      <LayoutGrid className="w-4 h-4" />
-                    ) : (
-                      <List className="w-4 h-4" />
-                    )}
+                  <Button key={option.value} variant={viewMode === option.value ? "default" : "ghost"} size="icon" onClick={() => setViewMode(option.value as ViewMode)}>
+                    {option.value === 'grid' ? <LayoutGrid className="w-4 h-4"/> : <List className="w-4 h-4"/>}
                   </Button>
                 ))}
               </div>
             </div>
           </div>
-
           <div className="mt-4">
-            <ActiveFilters
-              filters={localFilters}
-              onRemoveFilter={handleRemoveFilter}
-              onResetAll={resetFilters}
-              onSuggestFilter={() => {
-                toast.info("מציע פילטרים חכמים...");
-              }}
-            />
+            <ActiveFilters filters={filters} onRemoveFilter={handleRemoveFilter} onResetAll={resetFilters} />
           </div>
         </div>
-      </div>
-
-      <div className="container mx-auto py-6">
-        {showSearchResults && renderSearchSummary()}
-        {renderSeparateFilteringInfo()}
-        {showStats && (
-          <CandidatesStats candidates={filteredCandidates} className="mb-6" />
-        )}
-
+      </header>
+      
+      <main className="container mx-auto py-6 px-4">
         <div className="flex gap-6">
-          {showFilters && (
-            <div className="hidden md:block w-80">
+          {showFiltersPanel && (
+            <aside className="hidden lg:block w-80 flex-shrink-0">
               <FilterPanel
-                filters={localFilters}
-                onFiltersChange={(newFilters) => {
-                  setLocalFilters(newFilters);
-                  setFilters(newFilters);
-                }}
+                filters={filters}
+                onFiltersChange={setFilters}
                 onSavePreset={handleFilterSave}
                 onReset={resetFilters}
-                savedFilters={savedFilters.map((f) => ({
-                  id: f.id,
-                  name: f.name,
-                  isDefault: f.isDefault,
-                }))}
+                savedFilters={savedFilters.map((f) => ({ id: f.id, name: f.name, isDefault: f.isDefault }))}
                 popularFilters={popularFilters}
                 separateFiltering={filters.separateFiltering}
                 onToggleSeparateFiltering={toggleSeparateFiltering}
@@ -542,28 +271,13 @@ const CandidatesManager: React.FC = () => {
                 onFemaleFiltersChange={updateFemaleFilters}
                 onCopyFilters={copyFilters}
               />
-            </div>
+            </aside>
           )}
-          <div className="flex-1">
+
+          <div className="flex-1 min-w-0">
             {loading ? (
               <LoadingContainer>
-                <SplitView
-                  maleCandidates={[]}
-                  femaleCandidates={[]}
-                  onCandidateAction={() => {}}
-                  viewMode={viewMode}
-                  isLoading
-                  separateFiltering={filters.separateFiltering}
-                  maleFilters={filters.maleFilters}
-                  femaleFilters={filters.femaleFilters}
-                  onMaleFiltersChange={updateMaleFilters}
-                  onFemaleFiltersChange={updateFemaleFilters}
-                  onCopyFilters={copyFilters}
-                  maleSearchQuery={filters.maleSearchQuery || ""}
-                  femaleSearchQuery={filters.femaleSearchQuery || ""}
-                  onMaleSearchChange={handleMaleSearch}
-                  onFemaleSearchChange={handleFemaleSearch}
-                />
+                <div className="h-[800px] bg-gray-200 rounded-lg animate-pulse"></div>
               </LoadingContainer>
             ) : (
               <SplitView
@@ -571,52 +285,50 @@ const CandidatesManager: React.FC = () => {
                 femaleCandidates={femaleCandidates}
                 allCandidates={candidates}
                 onCandidateAction={handleCandidateAction}
+                onCandidateClick={() => {}}
                 viewMode={viewMode}
-                separateFiltering={filters.separateFiltering}
+                isLoading={loading || isAiLoading}
+                
+                // --- Pass AI State and Handlers Down ---
+                aiTargetCandidate={aiTargetCandidate}
+                aiMatches={aiMatches}
+                isAiLoading={isAiLoading}
+                onSetAiTarget={handleSetAiTarget}
+                onClearAiTarget={handleClearAiTarget}
+                setAiMatches={setAiMatches}
+                setIsAiLoading={setIsAiLoading}
+                comparisonSelection={comparisonSelection}
+                onToggleComparison={handleToggleComparison}
+                
+                // --- Filters ---
+                separateFiltering={filters.separateFiltering ?? false}
                 maleFilters={filters.maleFilters}
                 femaleFilters={filters.femaleFilters}
                 onMaleFiltersChange={updateMaleFilters}
                 onFemaleFiltersChange={updateFemaleFilters}
                 onCopyFilters={copyFilters}
-                maleSearchQuery={filters.maleSearchQuery || ""}
-                femaleSearchQuery={filters.femaleSearchQuery || ""}
-                onMaleSearchChange={handleMaleSearch}
-                onFemaleSearchChange={handleFemaleSearch}
+                maleSearchQuery={filters.maleSearchQuery}
+                femaleSearchQuery={filters.femaleSearchQuery}
+                onMaleSearchChange={updateMaleSearchQuery}
+                onFemaleSearchChange={updateFemaleSearchQuery}
               />
             )}
           </div>
         </div>
-      </div>
+      </main>
 
-      {showExportConfirm && (
-        <AlertDialog>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>
-                האם לייצא את התוצאות הנוכחיות?
-              </AlertDialogTitle>
-              <AlertDialogDescription>
-                אתה עומד לייצא {filteredCandidates.length} מועמדים לקובץ CSV.
-                האם להמשיך?
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setShowExportConfirm(false)}>
-                ביטול
-              </AlertDialogCancel>
-              <AlertDialogAction onClick={handleExport} disabled={isProcessing}>
-                {isProcessing ? "מייצא..." : "אישור ייצוא"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      )}
-
-      {/* Add Manual Candidate Dialog - Moved inside the main return */}
+      {/* Dialogs */}
       <AddManualCandidateDialog
         isOpen={showManualAddDialog}
         onClose={() => setShowManualAddDialog(false)}
         onCandidateAdded={handleCandidateAdded}
+      />
+
+      <AiMatchAnalysisDialog
+        isOpen={isAnalysisDialogOpen}
+        onClose={() => setIsAnalysisDialogOpen(false)}
+        targetCandidate={aiTargetCandidate}
+        comparisonCandidates={Object.values(comparisonSelection)}
       />
     </div>
   );

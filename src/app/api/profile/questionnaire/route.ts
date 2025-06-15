@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth"; // ודא שהנתיב הזה נכון
 import prisma from "@/lib/prisma"; // ודא שהנתיב הזה נכון
 import { Prisma } from "@prisma/client";
+import { updateUserAiProfile } from '@/lib/services/profileAiService'; // <--- 1. ייבוא
 
 // ודא שהנתיבים האלה נכונים לקבצי השאלות שלך
 import { valuesQuestions } from "@/components/questionnaire/questions/values/valuesQuestions";
@@ -232,6 +233,7 @@ export async function PATCH(req: Request) {
        console.log("PATCH /api/profile/questionnaire - Unauthorized: No session or user ID.");
        return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
      }
+        const userId = session.user.id; // <-- הגדרת userId
      console.log(`PATCH /api/profile/questionnaire - Authorized for user: ${session.user.id}`);
 
      const body = await req.json();
@@ -351,6 +353,12 @@ export async function PATCH(req: Request) {
          lastSaved: new Date()
        }
      });
+          // --- START OF NEW CODE ---
+     // 2. הפעלת עדכון פרופיל ה-AI לאחר עדכון תשובות לשאלון
+     updateUserAiProfile(userId).catch(err => {
+        console.error(`[AI Profile Trigger - Questionnaire Update] Failed to update AI profile in the background for user ${userId}:`, err);
+     });
+     // --- END OF NEW CODE ---
      console.log(`PATCH /api/profile/questionnaire - Database update successful for questionnaire ID: ${updated.id}.`);
 
      const formattedAnswers: Partial<FormattedAnswersType> = {};

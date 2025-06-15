@@ -1,3 +1,5 @@
+// File: src/app/components/matchmaker/new/CandidateCard/QuickView.tsx
+
 "use client";
 import React from "react";
 import { Button } from "@/components/ui/button";
@@ -14,8 +16,15 @@ import {
   FileText,
   CalendarClock,
   Edit,
-  Info, // For manual entry text section
+  Info,
+  Star, // הוספת ייבוא לכוכב
 } from "lucide-react";
+
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import type { Candidate } from "../types/candidates";
+import { UserSource } from "@prisma/client";
+import { cn } from "@/lib/utils"; // הוספת ייבוא עבור cn
 
 // פונקציה לחישוב גיל
 const calculateAge = (birthDate: Date): number => {
@@ -28,19 +37,23 @@ const calculateAge = (birthDate: Date): number => {
   }
   return age;
 };
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import type { Candidate } from "../types/candidates";
-import { UserSource } from "@prisma/client"; // Import UserSource
 
 interface QuickViewProps {
   candidate: Candidate;
   onAction: (
     action: "view" | "invite" | "suggest" | "contact" | "favorite" | "edit"
   ) => void;
+  // --- Props חדשים עבור AI ---
+  onSetAiTarget?: (candidate: Candidate, e: React.MouseEvent) => void;
+  isAiTarget?: boolean;
 }
 
-const QuickView: React.FC<QuickViewProps> = ({ candidate, onAction }) => {
+const QuickView: React.FC<QuickViewProps> = ({ 
+  candidate, 
+  onAction,
+  onSetAiTarget,
+  isAiTarget = false 
+}) => {
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
   };
@@ -72,9 +85,23 @@ const QuickView: React.FC<QuickViewProps> = ({ candidate, onAction }) => {
               </Badge>
             )}
           </div>
-          <h3 className="text-lg font-bold">
-            {candidate.firstName} {candidate.lastName}
-          </h3>
+          
+          <div className="flex items-center gap-2">
+            {onSetAiTarget && (
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8 text-white hover:bg-white/20"
+                onClick={(e) => onSetAiTarget(candidate, e)}
+                title={isAiTarget ? "בטל בחירת מטרה" : "בחר כמטרה לחיפוש AI"}
+              >
+                <Star className={cn("h-5 w-5", isAiTarget ? "fill-current text-yellow-300" : "text-white/80")} />
+              </Button>
+            )}
+            <h3 className="text-lg font-bold">
+              {candidate.firstName} {candidate.lastName}
+            </h3>
+          </div>
         </div>
       </div>
 

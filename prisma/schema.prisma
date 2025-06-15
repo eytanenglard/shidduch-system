@@ -1,5 +1,8 @@
 generator client {
   provider = "prisma-client-js"
+  // --- START OF FIX ---
+  previewFeatures = ["postgresqlExtensions"] 
+  // --- END OF FIX ---
 }
 
 datasource db {
@@ -190,8 +193,18 @@ model Profile {
 
   user                 User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   verifiedByMatchmaker User? @relation("VerifiedByMatchmaker", fields: [verifiedBy], references: [id], onDelete: SetNull)
-}
+  vector ProfileVector? // הוספת קשר הפוך
 
+}
+model ProfileVector {
+  profileId String @id // This will be the same as the Profile's ID
+  vector    Unsupported("vector(768)")? // גודל הווקטור של Gemini הוא 768
+  updatedAt DateTime @updatedAt
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("profile_vectors")
+}
 model Meeting {
   id            String          @id @default(cuid())
   suggestionId  String

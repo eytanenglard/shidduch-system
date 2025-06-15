@@ -16,13 +16,14 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.817.0",
     "@faker-js/faker": "^9.8.0",
+    "@google-cloud/aiplatform": "^4.2.0",
     "@google-cloud/recaptcha-enterprise": "^5.13.0",
     "@google/generative-ai": "^0.24.1",
     "@handlebars/allow-prototype-access": "^1.0.5",
     "@hookform/resolvers": "^3.9.1",
     "@next-auth/prisma-adapter": "^1.0.7",
     "@paralleldrive/cuid2": "^2.2.2",
-    "@prisma/client": "^6.8.2",
+    "@prisma/client": "^6.9.0",
     "@radix-ui/react-accordion": "^1.2.2",
     "@radix-ui/react-alert-dialog": "^1.1.4",
     "@radix-ui/react-aspect-ratio": "^1.1.1",
@@ -107,8 +108,9 @@
     "eslint-config-next": "^14.1.0",
     "handlebars-loader": "^1.7.3",
     "postcss": "^8.4.35",
-    "prisma": "^6.5.0",
+    "prisma": "^6.9.0",
     "tailwindcss": "^3.4.1",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
   }
 }
