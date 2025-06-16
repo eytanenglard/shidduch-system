@@ -2,29 +2,44 @@
 
 import prisma from "@/lib/prisma";
 import aiService from "./aiService";
-import type { User, Profile, QuestionnaireResponse } from '@prisma/client';
-import { Prisma } from '@prisma/client'; // *** ייבוא חדש ***
+import type { User, Profile, QuestionnaireResponse, Prisma as PrismaTypes } from '@prisma/client';
 
-// Helper function to format values for the narrative, handling undefined/null/empty cases
-function formatValue(value: string | number | boolean | Date | null | undefined, fallback: string = "לא צוין"): string {
-  if (value === null || value === undefined || value === '') {
-    return fallback;
-  }
-  if (typeof value === 'boolean') {
-    return value ? "כן" : "לא";
-  }
-  if (value instanceof Date) {
-    return value.toLocaleDateString('he-IL');
-  }
-  return String(value);
-}
+// 1. --- Import types and questions from the questionnaire module ---
+import type { Question } from '@/components/questionnaire/types/types';
+import { valuesQuestions } from '@/components/questionnaire/questions/values/valuesQuestions';
+import { personalityQuestions } from '@/components/questionnaire/questions/personality/personalityQuestions';
+import { relationshipQuestions } from '@/components/questionnaire/questions/relationship/relationshipQuestions';
+import { partnerQuestions } from '@/components/questionnaire/questions/partner/partnerQuestions';
+import { religionQuestions } from '@/components/questionnaire/questions/religion/religionQuestions';
 
-// Helper function to format arrays into a readable string
-function formatArray(arr: string[] | null | undefined, fallback: string = "לא צוין"): string {
-  if (!arr || arr.length === 0) {
-    return fallback;
-  }
-  return arr.join(', ');
+// 2. --- Centralized Question Data ---
+// Combine all questions into a single map for efficient lookups by ID.
+const allQuestions: Map<string, Question> = new Map();
+[
+  ...valuesQuestions,
+  ...personalityQuestions,
+  ...relationshipQuestions,
+  ...partnerQuestions,
+  ...religionQuestions
+].forEach(q => allQuestions.set(q.id, q));
+
+// 3. --- Strongly-typed interfaces for data handling ---
+type WorldKey = 'values' | 'personality' | 'relationship' | 'partner' | 'religion';
+type DbWorldKey = `${WorldKey}Answers`;
+
+const KEY_MAPPING: Record<WorldKey, DbWorldKey> = {
+  values: 'valuesAnswers',
+  personality: 'personalityAnswers',
+  relationship: 'relationshipAnswers',
+  partner: 'partnerAnswers',
+  religion: 'religionAnswers'
+};
+
+interface JsonAnswerData {
+  questionId: string;
+  value: PrismaTypes.JsonValue; // value is guaranteed to exist
+  answeredAt: string;
+  isVisible?: boolean;
 }
 
 type UserWithRelations = User & {
@@ -32,23 +47,167 @@ type UserWithRelations = User & {
   questionnaireResponses: QuestionnaireResponse[];
 };
 
+// 4. --- Helper Functions for Formatting ---
+
+/**
+ * --- FIX: This function now correctly handles all possible Prisma.JsonValue types ---
+ * Safely formats a value for the narrative, handling undefined/null/empty cases.
+ */
+function formatDisplayValue(value: PrismaTypes.JsonValue | null | undefined, fallback: string = "לא צוין"): string {
+  if (value === null || value === undefined) {
+    return fallback;
+  }
+  if (typeof value === 'string' && value.trim() === '') {
+    return fallback;
+  }
+  if (typeof value === 'boolean') {
+    return value ? "כן" : "לא";
+  }
+  if (typeof value === 'number') {
+    return String(value);
+  }
+  if (value instanceof Date) { // This check is technically redundant if dates are stored as ISO strings in JSON, but good practice
+    return value.toLocaleDateString('he-IL');
+  }
+  if (Array.isArray(value)) {
+    return value.length > 0 ? value.map(String).join(', ') : fallback;
+  }
+  if (typeof value === 'object') {
+     // For structured objects like from budgetAllocation, provide a more readable format
+     if (Object.keys(value).length > 0) {
+         return Object.entries(value)
+             .map(([key, val]) => `${key}: ${val}`)
+             .join('; ');
+     }
+     return fallback; // Return fallback for empty objects
+  }
+  // Fallback for any other type
+  return String(value);
+}
+
+/**
+ * Formats an array of strings into a human-readable list.
+ */
+function formatArray(arr: string[] | null | undefined, fallback: string = "לא צוין"): string {
+  if (!arr || arr.length === 0) {
+    return fallback;
+  }
+  return arr.join(', ');
+}
+
+/**
+ * Type guard to check if an item from JSON is a valid answer object.
+ */
+function isValidAnswerObject(item: unknown): item is PrismaTypes.JsonObject & { value: PrismaTypes.JsonValue; questionId: unknown; answeredAt: unknown } {
+  return (
+    typeof item === 'object' &&
+    item !== null &&
+    'questionId' in item &&
+    'value' in item &&
+    item.value !== undefined &&
+    'answeredAt' in item
+  );
+}
+
+/**
+ * Safely parses the JSON from the database into our defined structure.
+ */
+function safeParseAnswers(jsonValue: PrismaTypes.JsonValue | null): JsonAnswerData[] {
+  if (Array.isArray(jsonValue)) {
+    return jsonValue
+      .filter(isValidAnswerObject)
+      .map(item => ({
+        questionId: String(item.questionId || ''),
+        value: item.value,
+        answeredAt: String(item.answeredAt || new Date().toISOString()),
+        isVisible: typeof item.isVisible === 'boolean' ? item.isVisible : true,
+      }))
+      .filter(item => item.questionId);
+  }
+  return [];
+}
+
+/**
+ * Intelligently formats a single questionnaire answer into a narrative sentence.
+ */
+function formatSingleAnswer(answer: JsonAnswerData): string | null {
+  const questionDef = allQuestions.get(answer.questionId);
+  if (!questionDef) {
+    return `**שאלה לא מזוהה (${answer.questionId}):** ${formatDisplayValue(answer.value)}\n`;
+  }
+
+  if (answer.value === null || answer.value === undefined || answer.value === '') return null;
+  if (Array.isArray(answer.value) && answer.value.length === 0) return null;
+
+  let narrativePart = `**${questionDef.question}**\n`;
+  
+  switch (questionDef.type) {
+    case 'singleChoice':
+    case 'iconChoice':
+    case 'scenario': {
+      const selectedOption = questionDef.options?.find(o => o.value === answer.value);
+      narrativePart += `תשובה: ${selectedOption ? selectedOption.text : formatDisplayValue(answer.value)}\n`;
+      break;
+    }
+
+    case 'multiChoice':
+    case 'multiSelect':
+    case 'multiSelectWithOther': {
+      if (Array.isArray(answer.value)) {
+        const selectedTexts = answer.value.map(val => {
+          if (typeof val === 'string' && val.startsWith('custom:')) {
+            return `(אחר) ${val.replace('custom:', '').trim()}`;
+          }
+          const option = questionDef.options?.find(o => o.value === val);
+          return option ? option.text : String(val);
+        });
+        narrativePart += `תשובות: ${selectedTexts.join(', ')}\n`;
+      }
+      break;
+    }
+
+    case 'openText': {
+      narrativePart += `תשובה: "${formatDisplayValue(answer.value)}"\n`;
+      break;
+    }
+
+    case 'scale': {
+      const minLabel = questionDef.labels?.min || 'נמוך';
+      const maxLabel = questionDef.labels?.max || 'גבוה';
+      narrativePart += `דירוג: ${answer.value}/10 (כאשר 1=${minLabel} ו-10=${maxLabel})\n`;
+      break;
+    }
+
+    case 'budgetAllocation': {
+      if (typeof answer.value === 'object' && answer.value && !Array.isArray(answer.value)) {
+          const allocations = Object.entries(answer.value)
+              .filter(([, points]) => typeof points === 'number' && points > 0)
+              .map(([category, points]) => `${category}: ${points}%`)
+              .join('; ');
+          narrativePart += `הקצאת חשיבות: ${allocations || 'לא צוין'}\n`;
+      }
+      break;
+    }
+
+    default: {
+      narrativePart += `תשובה: ${formatDisplayValue(answer.value)}\n`;
+    }
+  }
+  
+  return narrativePart + '\n';
+}
+
+// 5. --- Main Service Functions ---
+
 /**
  * Generates a comprehensive narrative profile text for a given user.
- * This text will be used to create the vector embedding.
- * @param userId The ID of the user.
- * @returns A promise that resolves to the narrative string, or null if user not found.
  */
 export async function generateNarrativeProfile(userId: string): Promise<string | null> {
   const user: UserWithRelations | null = await prisma.user.findUnique({
     where: { id: userId },
     include: {
       profile: true,
-      questionnaireResponses: {
-        orderBy: {
-          lastSaved: 'desc',
-        },
-        take: 1, // Get the most recent questionnaire
-      },
+      questionnaireResponses: { orderBy: { lastSaved: 'desc' }, take: 1 },
     },
   });
 
@@ -57,118 +216,91 @@ export async function generateNarrativeProfile(userId: string): Promise<string |
     return null;
   }
 
-  const profile = user.profile;
-  const questionnaire = user.questionnaireResponses[0];
+  const { profile, questionnaireResponses } = user;
+  const questionnaire = questionnaireResponses[0];
 
   const calculateAge = (birthDate: Date): number => {
     const today = new Date();
     const age = today.getFullYear() - birthDate.getFullYear();
     const m = today.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-        return age - 1;
-    }
-    return age;
+    return (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) ? age - 1 : age;
   };
   const age = calculateAge(profile.birthDate);
   
-  // Start building the narrative string
-  let narrative = `# פרופיל AI עבור ${user.firstName} ${user.lastName}, ${profile.gender === 'MALE' ? 'גבר' : 'אישה'} בן/בת ${age}\n\n`;
+  const narrativeParts: string[] = [];
 
-  // --- Section: General Summary ---
-  narrative += `## סיכום כללי\n`;
-  narrative += `- **שם:** ${user.firstName} ${user.lastName}\n`;
-  narrative += `- **גיל:** ${age} ${profile.birthDateIsApproximate ? '(משוער)' : ''}\n`;
-  narrative += `- **מצב משפחתי:** ${formatValue(profile.maritalStatus)}\n`;
-  narrative += `- **מגורים:** ${formatValue(profile.city)}\n`;
-  narrative += `- **רמה דתית:** ${formatValue(profile.religiousLevel)}\n`;
-  narrative += `- **עיסוק:** ${formatValue(profile.occupation)}\n`;
-  narrative += `- **השכלה:** ${formatValue(profile.educationLevel)}, ${formatValue(profile.education)}\n`;
-  narrative += `- **שומר/ת נגיעה:** ${formatValue(profile.shomerNegiah)}\n`;
+  narrativeParts.push(
+    `# פרופיל AI עבור ${user.firstName} ${user.lastName}, ${profile.gender === 'MALE' ? 'גבר' : 'אישה'} בן/בת ${age}`,
+    `## סיכום כללי`,
+    `- **שם:** ${user.firstName} ${user.lastName}`,
+    `- **גיל:** ${age} ${profile.birthDateIsApproximate ? '(משוער)' : ''}`,
+    `- **מצב משפחתי:** ${formatDisplayValue(profile.maritalStatus)}`,
+    `- **מגורים:** ${formatDisplayValue(profile.city)}`,
+    `- **רמה דתית:** ${formatDisplayValue(profile.religiousLevel)}`,
+    `- **עיסוק:** ${formatDisplayValue(profile.occupation)}`,
+    `- **השכלה:** ${formatDisplayValue(profile.educationLevel)}, ${formatDisplayValue(profile.education)}`,
+    `- **שומר/ת נגיעה:** ${formatDisplayValue(profile.shomerNegiah)}`
+  );
   if (user.source === 'MANUAL_ENTRY' && profile.manualEntryText) {
-    narrative += `\n**הערת שדכן (למועמד ידני):** ${profile.manualEntryText}\n`;
+    narrativeParts.push(`\n**הערת שדכן (למועמד ידני):** ${profile.manualEntryText}`);
   }
-  narrative += `\n`;
 
-  // --- Section: About Me (From Profile) ---
   if (profile.about) {
-    narrative += `## קצת עליי (מהפרופיל)\n`;
-    narrative += `"${profile.about}"\n\n`;
+    narrativeParts.push(`## קצת עליי (מהפרופיל)\n"${profile.about}"`);
   }
   
-  // --- Section: Personal Traits and Hobbies ---
-  narrative += `## תכונות אופי ותחביבים\n`;
-  narrative += `- **תכונות בולטות:** ${formatArray(profile.profileCharacterTraits)}\n`;
-  narrative += `- **תחביבים עיקריים:** ${formatArray(profile.profileHobbies)}\n\n`;
+  narrativeParts.push(
+    `## תכונות אופי ותחביבים`,
+    `- **תכונות בולטות:** ${formatArray(profile.profileCharacterTraits)}`,
+    `- **תחביבים עיקריים:** ${formatArray(profile.profileHobbies)}`
+  );
   
-  // --- Section: Partner Preferences (From Profile) ---
-  narrative += `## מה אני מחפש/ת בבן/בת הזוג (העדפות מהפרופיל)\n`;
-  narrative += `- **תיאור כללי:** ${formatValue(profile.matchingNotes)}\n`;
-  narrative += `- **טווח גילאים מועדף:** ${formatValue(profile.preferredAgeMin, '?')} - ${formatValue(profile.preferredAgeMax, '?')}\n`;
-  narrative += `- **רמות דתיות מועדפות:** ${formatArray(profile.preferredReligiousLevels)}\n`;
-  narrative += `- **רמות השכלה מועדפות:** ${formatArray(profile.preferredEducation)}\n`;
-  narrative += `- **מוצאים מועדפים:** ${formatArray(profile.preferredOrigins)}\n\n`;
+  narrativeParts.push(
+    `## מה אני מחפש/ת בבן/בת הזוג (העדפות מהפרופיל)`,
+    `- **תיאור כללי:** ${formatDisplayValue(profile.matchingNotes)}`,
+    `- **טווח גילאים מועדף:** ${formatDisplayValue(profile.preferredAgeMin, '?')} - ${formatDisplayValue(profile.preferredAgeMax, '?')}`,
+    `- **רמות דתיות מועדפות:** ${formatArray(profile.preferredReligiousLevels)}`,
+    `- **רמות השכלה מועדפות:** ${formatArray(profile.preferredEducation)}`,
+    `- **מוצאים מועדפים:** ${formatArray(profile.preferredOrigins)}`
+  );
   
-  // --- Section: Questionnaire Answers ---
   if (questionnaire) {
-    narrative += `## תובנות מהשאלון\n\n`;
-    const allAnswers = [
-        ...(questionnaire.valuesAnswers as any[] || []),
-        ...(questionnaire.personalityAnswers as any[] || []),
-        ...(questionnaire.relationshipAnswers as any[] || []),
-        ...(questionnaire.partnerAnswers as any[] || []),
-        ...(questionnaire.religionAnswers as any[] || []),
-    ];
-    
-    // Helper to extract and format answers
-    const formatQuestionnaireAnswers = (answers: any[] | null) => {
-        if (!answers) return 'לא ענה/ת על חלק זה.';
-        let sectionText = '';
-        for (const ans of answers) {
-            // Assuming ans is an object with { question, answer } or similar structure
-            // This part MUST be adjusted based on the actual JSON structure of your answers
-            if (ans.question && (ans.answer || ans.displayText)) {
-                sectionText += `### שאלה: ${ans.question}\n`;
-                sectionText += `תשובה: ${ans.displayText || ans.answer}\n\n`;
-            }
+    narrativeParts.push(`## תובנות מהשאלון`);
+     
+    const worldKeys: WorldKey[] = ['values', 'personality', 'relationship', 'partner', 'religion'];
+    worldKeys.forEach(worldKey => {
+        const dbKey = KEY_MAPPING[worldKey];
+        const answers = safeParseAnswers(questionnaire[dbKey]);
+        
+        if (answers.length > 0) {
+            const worldConfig = allQuestions.get(answers[0].questionId)?.worldId;
+            const worldTitle = worldConfig ? worldConfig.charAt(0) + worldConfig.slice(1).toLowerCase() : worldKey;
+            narrativeParts.push(`### עולם ה${worldTitle}`);
+            answers.forEach(answer => {
+                const formattedPart = formatSingleAnswer(answer);
+                if (formattedPart) {
+                    narrativeParts.push(formattedPart);
+                }
+            });
         }
-        return sectionText || 'לא נמצאו תשובות בחלק זה.';
-    };
-
-    narrative += "--- עולם הערכים ---\n";
-    narrative += formatQuestionnaireAnswers(questionnaire.valuesAnswers as any[]);
-    
-    narrative += "--- עולם האישיות ---\n";
-    narrative += formatQuestionnaireAnswers(questionnaire.personalityAnswers as any[]);
-    
-    narrative += "--- עולם הזוגיות ---\n";
-    narrative += formatQuestionnaireAnswers(questionnaire.relationshipAnswers as any[]);
-    
-    narrative += "--- ציפיות מבן/בת הזוג ---\n";
-    narrative += formatQuestionnaireAnswers(questionnaire.partnerAnswers as any[]);
-    
-    narrative += "--- עולם הדת ---\n";
-    narrative += formatQuestionnaireAnswers(questionnaire.religionAnswers as any[]);
+    });
   }
 
-  return narrative.trim();
+  return narrativeParts.join('\n\n').trim();
 }
 
 /**
  * Updates a user's AI profile by generating a new narrative and its vector embedding.
- * @param userId The ID of the user to update.
  */
 export async function updateUserAiProfile(userId: string): Promise<void> {
   console.log(`Starting AI profile update for userId: ${userId}`);
-
   const profileText = await generateNarrativeProfile(userId);
-
   if (!profileText) {
     console.error(`Failed to generate narrative profile for userId: ${userId}. Aborting AI update.`);
     return;
   }
 
   const vector = await aiService.generateTextEmbedding(profileText);
-
   if (!vector) {
     console.error(`Failed to generate vector embedding for userId: ${userId}. Aborting DB update.`);
     return;
@@ -179,38 +311,25 @@ export async function updateUserAiProfile(userId: string): Promise<void> {
       where: { userId },
       select: { id: true }
     });
-    
     if (!profile) {
       console.error(`No profile found for userId: ${userId} to save the vector against.`);
       return;
     }
     
-    const profileId = profile.id;
-
-    // --- START OF MODIFIED SECTION ---
-    // We use $executeRawUnsafe because Prisma doesn't natively support vector types for parameter binding.
-    // We construct the vector string representation for SQL manually.
-    // This is safe because the 'vector' content comes from our trusted AI service, not user input.
     const vectorSqlString = `[${vector.join(',')}]`;
-
-    // Using raw SQL to perform the upsert operation for the vector type.
     await prisma.$executeRaw`
       INSERT INTO "profile_vectors" ("profileId", vector, "updatedAt")
-      VALUES (${profileId}, ${vectorSqlString}::vector, NOW())
+      VALUES (${profile.id}, ${vectorSqlString}::vector, NOW())
       ON CONFLICT ("profileId")
       DO UPDATE SET
         vector = EXCLUDED.vector,
         "updatedAt" = NOW();
     `;
-    // --- END OF MODIFIED SECTION ---
-
-    console.log(`Successfully updated AI profile and vector for userId: ${userId} (profileId: ${profileId})`);
-
+    console.log(`Successfully updated AI profile and vector for userId: ${userId} (profileId: ${profile.id})`);
   } catch (error) {
     console.error(`Error saving profile vector to DB for userId: ${userId}:`, error);
   }
 }
-
 
 const profileAiService = {
   generateNarrativeProfile,

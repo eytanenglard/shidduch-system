@@ -4,14 +4,13 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { X, Sparkles, CheckCircle, AlertTriangle, MessageSquare, Info, XCircle, Star, Cake, MapPin, BookMarked, Users as UsersIcon, Link as LinkIcon, Edit, User as UserIcon } from 'lucide-react';
+import { X, Sparkles, CheckCircle, AlertTriangle, MessageSquare, Info, XCircle, Star, Cake, MapPin, BookMarked } from 'lucide-react';
 import type { Candidate } from '../types/candidates';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from "framer-motion";
