@@ -118,6 +118,35 @@ const UserDropdown = ({
   );
 };
 
+// --- UPDATED AND IMPROVED LOGO COMPONENT ---
+// --- THE FINAL LOGO COMPONENT (English-Only & Brand Colors) ---
+
+const Logo = () => {
+  return (
+    <Link href="/" className="flex items-center gap-x-2 group shrink-0" aria-label="Keystone Match Homepage">
+      
+      {/* 1. The Icon Image (לא השתנה) */}
+      <div className="relative h-9 w-9">
+        <Image
+          src="/images/keystone-icon.png" 
+          alt="Keystone Match Icon"
+          fill 
+          className="object-contain" 
+          priority
+        />
+      </div>
+
+      {/* 2. The Static English Text with Brand Color */}
+      <span className="text-xl font-bold text-cyan-800 group-hover:text-cyan-600 transition-colors duration-300">
+        Keystone Match
+      </span>
+      
+    </Link>
+  );
+};
+
+// --- END OF THE LOGO COMPONENT ---
+// --- END OF UPDATED LOGO COMPONENT ---
 
 const Navbar = () => {
   const { data: session } = useSession() as {
@@ -180,19 +209,9 @@ const Navbar = () => {
           <div className="flex justify-between items-center h-16">
             {/* Left Side (Logo & Main Nav for LTR, will be right for RTL) */}
             <div className="flex items-center gap-4 md:gap-6">
-              <Link href="/" className="flex items-center gap-2 group shrink-0">
-                <Heart
-                  className="h-7 w-7 text-pink-500 group-hover:text-pink-600 transition-colors"
-                  fill={scrolled ? "#fff" : "#f0faff"}
-                />
-                <span
-                  className={`text-xl font-bold 
-                    text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-pink-600
-                    group-hover:from-cyan-700 group-hover:to-pink-700 transition-all`}
-                >
-                  Match Point
-                </span>
-              </Link>
+              
+              {/* --- LOGO REPLACEMENT FOR DESKTOP --- */}
+              <Logo />
 
               {/* Desktop Navigation Links */}
               <div className="hidden md:flex items-center gap-1 md:gap-2">
@@ -219,7 +238,6 @@ const Navbar = () => {
 
             {/* Right Side (Actions & User for LTR, will be left for RTL) */}
             <div className="flex items-center gap-2 md:gap-3">
-              {/* *** START OF LANGUAGE BUTTON CHANGE (DESKTOP - WITH TEXT) *** */}
               <Button
                 variant="ghost"
                 size="sm" 
@@ -236,7 +254,6 @@ const Navbar = () => {
                   {language === "he" ? "EN" : "עב"}
                 </span>
               </Button>
-              {/* *** END OF LANGUAGE BUTTON CHANGE (DESKTOP - WITH TEXT) *** */}
 
               {session && (
                 <div className="hidden md:block">
@@ -301,12 +318,10 @@ const Navbar = () => {
         aria-modal="true"
       >
         <div className="flex justify-between items-center p-4 border-b">
-          <Link href="/" className="flex items-center gap-2 group" onClick={toggleMobileMenu}>
-            <Heart className="h-6 w-6 text-pink-500" fill="#f0faff" />
-            <span className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-pink-600">
-              Match Point
-            </span>
-          </Link>
+
+          {/* --- LOGO REPLACEMENT FOR MOBILE --- */}
+          <Logo />
+          
           <Button variant="ghost" size="icon" onClick={toggleMobileMenu} className="text-gray-500 hover:text-red-500" aria-label="סגור תפריט">
             <X className="h-5 w-5" />
           </Button>
