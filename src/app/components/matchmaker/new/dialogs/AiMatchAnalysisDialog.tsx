@@ -10,14 +10,13 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { X, Sparkles, CheckCircle, AlertTriangle, MessageSquare, Info, XCircle, Star, Cake, MapPin, BookMarked } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { X, Sparkles, CheckCircle, AlertTriangle, MessageSquare, Info, XCircle, Star, Cake, MapPin, BookMarked, Users, ChevronsUpDown } from 'lucide-react';
 import type { Candidate } from '../types/candidates';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from "framer-motion";
 
 // --- Interfaces ---
-
-// The structure of the AI analysis result we expect from the API
 interface AiAnalysis {
   overallScore: number;
   matchSummary: string;
@@ -33,8 +32,7 @@ interface AiMatchAnalysisDialogProps {
   comparisonCandidates: Candidate[];
 }
 
-// --- Helper Functions (inspired by ProfileCard.tsx) ---
-
+// --- Helper Functions ---
 const getInitials = (firstName?: string, lastName?: string): string => {
   let initials = "";
   if (firstName && firstName.length > 0) initials += firstName[0];
@@ -55,7 +53,7 @@ const calculateAge = (birthDate: Date | string): number => {
     return age > 0 ? age : 0;
 };
 
-// --- Sub-components for better structure ---
+// --- Sub-components ---
 
 const MiniProfileHeader: React.FC<{ candidate: Candidate; score?: number; isTarget?: boolean }> = ({ candidate, score, isTarget = false }) => {
   const mainImage = candidate.images?.find(img => img.isMain);
@@ -89,7 +87,7 @@ const MiniProfileHeader: React.FC<{ candidate: Candidate; score?: number; isTarg
       )}
 
       <h3 className="mt-3 text-lg font-bold text-slate-800">{candidate.firstName} {candidate.lastName}</h3>
-      <div className="mt-2 flex justify-center items-center gap-3 text-xs text-slate-600">
+      <div className="mt-2 flex justify-center items-center flex-wrap gap-x-3 gap-y-1 text-xs text-slate-600">
         <div className="flex items-center gap-1"><Cake className="w-3.5 h-3.5 text-slate-400"/> {age} שנים</div>
         <div className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5 text-slate-400"/> {candidate.profile.city || 'לא צוין'}</div>
         <div className="flex items-center gap-1"><BookMarked className="w-3.5 h-3.5 text-slate-400"/> {candidate.profile.religiousLevel || 'לא צוין'}</div>
@@ -112,18 +110,16 @@ const AnalysisItem: React.FC<{ icon: React.ElementType; iconColor: string; area:
 
 const ComparisonTable: React.FC<{ target: Candidate; comparison: Candidate; }> = ({ target, comparison }) => {
     const fieldsToCompare = [
-        { key: 'age', label: 'גיל', formatter: (c: Candidate) => calculateAge(c.profile.birthDate) },
+        { key: 'age', label: 'גיל', formatter: (c: Candidate) => `${calculateAge(c.profile.birthDate)}${c.profile.birthDateIsApproximate ? ' (משוער)' : ''}` },
         { key: 'city', label: 'עיר', formatter: (c: Candidate) => c.profile.city || 'לא צוין' },
         { key: 'maritalStatus', label: 'מצב משפחתי', formatter: (c: Candidate) => c.profile.maritalStatus || 'לא צוין' },
         { key: 'religiousLevel', label: 'רמה דתית', formatter: (c: Candidate) => c.profile.religiousLevel || 'לא צוין' },
         { key: 'occupation', label: 'עיסוק', formatter: (c: Candidate) => c.profile.occupation || 'לא צוין' },
         { key: 'education', label: 'השכלה', formatter: (c: Candidate) => c.profile.education || 'לא צוין' },
-        { key: 'shomerNegiah', label: 'שמירת נגיעה', formatter: (c: Candidate) => c.profile.shomerNegiah ? 'כן' : 'לא' },
-        { key: 'profileHobbies', label: 'תחביבים', formatter: (c: Candidate) => c.profile.profileHobbies?.join(', ') || 'לא צוין' },
     ];
   
     return (
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto border rounded-lg">
         <table className="w-full text-sm text-right border-collapse">
           <thead>
             <tr className="bg-slate-50">
@@ -133,8 +129,8 @@ const ComparisonTable: React.FC<{ target: Candidate; comparison: Candidate; }> =
             </tr>
           </thead>
           <tbody>
-            {fieldsToCompare.map(field => (
-              <tr key={field.key} className="hover:bg-slate-50/50">
+            {fieldsToCompare.map((field, index) => (
+              <tr key={field.key} className={index % 2 === 0 ? "bg-white" : "bg-slate-50/50"}>
                 <td className="p-3 font-medium text-slate-500 border-b border-slate-200">{field.label}</td>
                 <td className="p-3 text-slate-700 border-b border-slate-200 text-center">{field.formatter(target)}</td>
                 <td className="p-3 text-slate-700 border-b border-slate-200 text-center">{field.formatter(comparison)}</td>
@@ -161,9 +157,16 @@ const AnalysisSkeleton: React.FC = () => (
 
 export const AiMatchAnalysisDialog: React.FC<AiMatchAnalysisDialogProps> = ({ isOpen, onClose, targetCandidate, comparisonCandidates }) => {
   const [activeComparisonId, setActiveComparisonId] = useState<string | null>(null);
-  const [analyses, setAnalyses] = useState<Record<string, AiAnalysis | 'error' | null>>({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [analyses, setAnalyses] = useState<Record<string, AiAnalysis | 'error' | 'loading'>>({});
   const [language, setLanguage] = useState<'he' | 'en'>('he');
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const activeComparisonCandidate = useMemo(() => {
     return comparisonCandidates.find(c => c.id === activeComparisonId);
@@ -175,18 +178,15 @@ export const AiMatchAnalysisDialog: React.FC<AiMatchAnalysisDialogProps> = ({ is
   }, [activeComparisonId, analyses]);
 
   useEffect(() => {
-    // Set the first comparison candidate as active when the dialog opens or candidates change.
-    if (isOpen && comparisonCandidates.length > 0 && !activeComparisonId) {
+    if (isOpen && comparisonCandidates.length > 0 && !comparisonCandidates.some(c => c.id === activeComparisonId)) {
       setActiveComparisonId(comparisonCandidates[0].id);
     }
   }, [isOpen, comparisonCandidates, activeComparisonId]);
 
   useEffect(() => {
-    // Fetch analysis when the active comparison candidate or language changes.
     if (isOpen && targetCandidate && activeComparisonId && analyses[activeComparisonId] === undefined) {
       const fetchAnalysis = async () => {
-        setIsLoading(true);
-        setAnalyses(prev => ({ ...prev, [activeComparisonId]: null })); // Set to loading state
+        setAnalyses(prev => ({ ...prev, [activeComparisonId]: 'loading' }));
 
         try {
           const response = await fetch('/api/ai/generate-rationale', {
@@ -195,7 +195,7 @@ export const AiMatchAnalysisDialog: React.FC<AiMatchAnalysisDialogProps> = ({ is
             body: JSON.stringify({
               userId1: targetCandidate.id,
               userId2: activeComparisonId,
-              language: language, // Pass the selected language
+              language: language,
             }),
           });
 
@@ -208,32 +208,25 @@ export const AiMatchAnalysisDialog: React.FC<AiMatchAnalysisDialogProps> = ({ is
         } catch (e) {
           console.error(`Failed to get analysis for ${activeComparisonId}:`, e);
           setAnalyses(prev => ({ ...prev, [activeComparisonId]: 'error' }));
-        } finally {
-          setIsLoading(false);
         }
       };
-
       fetchAnalysis();
     }
   }, [isOpen, targetCandidate, activeComparisonId, language, analyses]);
 
-  // Handler for language change
   const handleLanguageChange = (newLang: 'he' | 'en') => {
     if (newLang !== language) {
       setLanguage(newLang);
-      setAnalyses({}); // Clear all previous analyses to force re-fetching
+      setAnalyses({});
     }
   };
-
-
-  if (!targetCandidate || !activeComparisonCandidate) {
-    return null; // Or a loading/empty state for the entire dialog
-  }
+  
+  if (!isOpen || !targetCandidate) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl w-full h-[95vh] flex flex-col p-0 overflow-hidden" dir="rtl">
-        <DialogHeader className="p-4 border-b flex-row justify-between items-center">
+        <DialogHeader className="p-4 border-b flex-row justify-between items-center flex-shrink-0">
           <div className="flex items-center gap-3">
             <Sparkles className="w-7 h-7 text-teal-500" />
             <div>
@@ -257,114 +250,112 @@ export const AiMatchAnalysisDialog: React.FC<AiMatchAnalysisDialogProps> = ({ is
           </div>
         </DialogHeader>
 
-        <div className="flex flex-1 min-h-0">
-          {/* Sidebar with comparison candidates */}
-          <aside className="w-1/4 border-l bg-slate-50/50 flex flex-col">
-            <h3 className="p-3 text-sm font-semibold text-slate-600 border-b">מועמדים להשוואה ({comparisonCandidates.length})</h3>
-            <ScrollArea className="flex-1">
-              {comparisonCandidates.map(candidate => (
-                <button
-                  key={candidate.id}
-                  onClick={() => setActiveComparisonId(candidate.id)}
-                  className={cn(
-                    "w-full text-right p-3 flex items-center gap-3 border-b border-slate-200/60 hover:bg-slate-100 transition-colors",
-                    activeComparisonId === candidate.id && "bg-cyan-50 border-r-4 border-cyan-500 font-semibold"
-                  )}
-                >
-                  <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
-                     <Image src={candidate.images?.find(img => img.isMain)?.url || '/placeholder.jpg'} alt={candidate.firstName} layout="fill" className="object-cover" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="truncate text-sm text-slate-800">{candidate.firstName} {candidate.lastName}</p>
-                    <p className="text-xs text-slate-500">{calculateAge(candidate.profile.birthDate)} | {candidate.profile.city}</p>
-                  </div>
-                  {analyses[candidate.id] && analyses[candidate.id] !== 'error' && (
-                    <Badge variant="secondary" className="bg-teal-100 text-teal-800">{(analyses[candidate.id] as AiAnalysis).overallScore}%</Badge>
-                  )}
-                </button>
-              ))}
-            </ScrollArea>
-          </aside>
+        <div className="flex-1 flex flex-col md:flex-row min-h-0">
+          {/* Sidebar (Desktop) or Select (Mobile) */}
+          {isMobile ? (
+            <div className="p-4 border-b md:hidden">
+                <Select value={activeComparisonId || ''} onValueChange={setActiveComparisonId}>
+                    <SelectTrigger className="w-full">
+                        <SelectValue placeholder="בחר מועמד להשוואה" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {comparisonCandidates.map(c => (
+                            <SelectItem key={c.id} value={c.id}>{c.firstName} {c.lastName}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+          ) : (
+            <aside className="w-1/4 border-l bg-slate-50/50 flex flex-col flex-shrink-0">
+              <h3 className="p-3 text-sm font-semibold text-slate-600 border-b">מועמדים להשוואה ({comparisonCandidates.length})</h3>
+              <ScrollArea className="flex-1">
+                {comparisonCandidates.map(candidate => (
+                  <button
+                    key={candidate.id}
+                    onClick={() => setActiveComparisonId(candidate.id)}
+                    className={cn(
+                      "w-full text-right p-3 flex items-center gap-3 border-b border-slate-200/60 hover:bg-slate-100 transition-colors",
+                      activeComparisonId === candidate.id && "bg-cyan-50 border-r-4 border-cyan-500 font-semibold"
+                    )}
+                  >
+                    <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                       <Image src={candidate.images?.find(img => img.isMain)?.url || '/placeholder.jpg'} alt={candidate.firstName} layout="fill" className="object-cover" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="truncate text-sm text-slate-800">{candidate.firstName} {candidate.lastName}</p>
+                      <p className="text-xs text-slate-500">{calculateAge(candidate.profile.birthDate)} | {candidate.profile.city}</p>
+                    </div>
+                    {activeAnalysis && activeAnalysis !== 'error' && activeAnalysis !== 'loading' && (
+                      <Badge variant="secondary" className="bg-teal-100 text-teal-800">{(activeAnalysis as AiAnalysis).overallScore}%</Badge>
+                    )}
+                  </button>
+                ))}
+              </ScrollArea>
+            </aside>
+          )}
 
           {/* Main content area */}
           <main className="flex-1 flex flex-col min-h-0 bg-white">
-            <div className="grid grid-cols-2">
-              <MiniProfileHeader candidate={targetCandidate} isTarget />
-              <MiniProfileHeader candidate={activeComparisonCandidate} score={(activeAnalysis as AiAnalysis)?.overallScore} />
-            </div>
+            {!activeComparisonCandidate ? (
+                 <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-gray-500">
+                    <Users className="w-16 h-16 text-gray-300 mb-4"/>
+                    <h3 className="text-lg font-semibold">בחר מועמד/ת להשוואה</h3>
+                    <p className="max-w-xs">בחר מועמד מהרשימה בצד (או מהתפריט הנפתח במובייל) כדי להתחיל בניתוח ההתאמה.</p>
+                 </div>
+            ) : (
+                <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 flex-shrink-0">
+                      <MiniProfileHeader candidate={targetCandidate} isTarget />
+                      <MiniProfileHeader candidate={activeComparisonCandidate} score={(activeAnalysis as AiAnalysis)?.overallScore} />
+                    </div>
 
-            <Tabs defaultValue="summary" className="flex-1 flex flex-col min-h-0">
-              <TabsList className="mx-4 mt-4 bg-slate-100 p-1 rounded-lg">
-                <TabsTrigger value="summary">סיכום וחוזקות</TabsTrigger>
-                <TabsTrigger value="challenges">אתגרים ופערים</TabsTrigger>
-                <TabsTrigger value="comparison">השוואת נתונים</TabsTrigger>
-                <TabsTrigger value="conversation">נושאים לשיחה</TabsTrigger>
-              </TabsList>
-              <ScrollArea className="flex-1">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={activeComparisonId} // Re-animate when comparison changes
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.2 }}
-                    className="p-6"
-                  >
-                    {isLoading && <AnalysisSkeleton />}
-                    
-                    {activeAnalysis === 'error' && (
-                        <div className="text-center py-10">
-                            <XCircle className="w-12 h-12 text-red-400 mx-auto mb-4"/>
-                            <h3 className="font-semibold text-xl text-red-600">שגיאה בניתוח ההתאמה</h3>
-                            <p className="text-gray-500 mt-2">לא הצלחנו להפיק ניתוח עבור זוג זה. אנא נסה שוב מאוחר יותר.</p>
-                        </div>
-                    )}
-                    
-                    {activeAnalysis && activeAnalysis !== 'error' && (
-                      <>
-                        <TabsContent value="summary" className="space-y-6 mt-0">
-                          <div className="p-4 bg-slate-50/70 rounded-lg border border-slate-200">
-                            <h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2"><Info className="w-5 h-5 text-blue-500"/> סיכום ההתאמה</h3>
-                            <p className="text-sm text-gray-600 leading-relaxed">{(activeAnalysis as AiAnalysis).matchSummary}</p>
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2"><CheckCircle className="w-5 h-5 text-green-500"/> נקודות חוזק וחיבור</h3>
-                            <div className="space-y-4">
-                              {(activeAnalysis as AiAnalysis).compatibilityPoints.map(point => <AnalysisItem key={point.area} icon={CheckCircle} iconColor="text-green-500" {...point} />)}
-                            </div>
-                          </div>
-                        </TabsContent>
-
-                        <TabsContent value="challenges" className="space-y-6 mt-0">
-                          <div>
-                            <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2"><AlertTriangle className="w-5 h-5 text-amber-500"/> אתגרים ופערים פוטנציאליים</h3>
-                            <div className="space-y-4">
-                              {(activeAnalysis as AiAnalysis).potentialChallenges.map(challenge => <AnalysisItem key={challenge.area} icon={AlertTriangle} iconColor="text-amber-500" {...challenge} />)}
-                            </div>
-                          </div>
-                        </TabsContent>
-
-                        <TabsContent value="comparison" className="mt-0">
-                           <ComparisonTable target={targetCandidate} comparison={activeComparisonCandidate} />
-                        </TabsContent>
-
-                        <TabsContent value="conversation" className="space-y-4 mt-0">
-                          <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2"><MessageSquare className="w-5 h-5 text-indigo-500"/> נושאים מומלצים לשיחה</h3>
-                          <ul className="space-y-3 list-inside">
-                            {(activeAnalysis as AiAnalysis).suggestedConversationStarters.map((starter, index) => (
-                               <li key={index} className="flex items-start gap-2 p-2 rounded-md hover:bg-indigo-50/50">
-                                 <MessageSquare className="w-4 h-4 text-indigo-400 mt-1 flex-shrink-0"/>
-                                 <span className="text-sm text-gray-700">{starter}</span>
-                               </li>
-                            ))}
-                          </ul>
-                        </TabsContent>
-                      </>
-                    )}
-                  </motion.div>
-                </AnimatePresence>
-              </ScrollArea>
-            </Tabs>
+                    <Tabs defaultValue="summary" className="flex-1 flex flex-col min-h-0">
+                      <TabsList className="mx-4 mt-4 bg-slate-100 p-1 rounded-lg">
+                        <TabsTrigger value="summary">סיכום וחוזקות</TabsTrigger>
+                        <TabsTrigger value="challenges">אתגרים ופערים</TabsTrigger>
+                        <TabsTrigger value="comparison">השוואת נתונים</TabsTrigger>
+                        <TabsTrigger value="conversation">נושאים לשיחה</TabsTrigger>
+                      </TabsList>
+                      <ScrollArea className="flex-1">
+                        <AnimatePresence mode="wait">
+                          <motion.div
+                            key={activeComparisonId}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.2 }}
+                            className="p-4 md:p-6"
+                          >
+                            {activeAnalysis === 'loading' && <AnalysisSkeleton />}
+                            {activeAnalysis === 'error' && (
+                                <div className="text-center py-10">
+                                    <XCircle className="w-12 h-12 text-red-400 mx-auto mb-4"/>
+                                    <h3 className="font-semibold text-xl text-red-600">שגיאה בניתוח ההתאמה</h3>
+                                    <p className="text-gray-500 mt-2">לא הצלחנו להפיק ניתוח עבור זוג זה. אנא נסה שוב מאוחר יותר.</p>
+                                </div>
+                            )}
+                            {activeAnalysis && activeAnalysis !== 'error' && activeAnalysis !== 'loading' && (
+                              <>
+                                <TabsContent value="summary" className="space-y-6 mt-0">
+                                  <div className="p-4 bg-slate-50/70 rounded-lg border border-slate-200"><h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2"><Info className="w-5 h-5 text-blue-500"/> סיכום ההתאמה</h3><p className="text-sm text-gray-600 leading-relaxed">{(activeAnalysis as AiAnalysis).matchSummary}</p></div>
+                                  <div><h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2"><CheckCircle className="w-5 h-5 text-green-500"/> נקודות חוזק וחיבור</h3><div className="space-y-4">{(activeAnalysis as AiAnalysis).compatibilityPoints.map(point => <AnalysisItem key={point.area} icon={CheckCircle} iconColor="text-green-500" {...point} />)}</div></div>
+                                </TabsContent>
+                                <TabsContent value="challenges" className="space-y-6 mt-0">
+                                  <div><h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2"><AlertTriangle className="w-5 h-5 text-amber-500"/> אתגרים ופערים פוטנציאליים</h3><div className="space-y-4">{(activeAnalysis as AiAnalysis).potentialChallenges.map(challenge => <AnalysisItem key={challenge.area} icon={AlertTriangle} iconColor="text-amber-500" {...challenge} />)}</div></div>
+                                </TabsContent>
+                                <TabsContent value="comparison" className="mt-0"><ComparisonTable target={targetCandidate} comparison={activeComparisonCandidate} /></TabsContent>
+                                <TabsContent value="conversation" className="space-y-4 mt-0">
+                                  <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2"><MessageSquare className="w-5 h-5 text-indigo-500"/> נושאים מומלצים לשיחה</h3>
+                                  <ul className="space-y-3 list-inside">{(activeAnalysis as AiAnalysis).suggestedConversationStarters.map((starter, index) => (<li key={index} className="flex items-start gap-2 p-2 rounded-md hover:bg-indigo-50/50"><MessageSquare className="w-4 h-4 text-indigo-400 mt-1 flex-shrink-0"/><span className="text-sm text-gray-700">{starter}</span></li>))}</ul>
+                                </TabsContent>
+                              </>
+                            )}
+                          </motion.div>
+                        </AnimatePresence>
+                      </ScrollArea>
+                    </Tabs>
+                </>
+            )}
           </main>
         </div>
       </DialogContent>

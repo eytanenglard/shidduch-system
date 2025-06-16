@@ -404,7 +404,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
 
   // --- AI Props Corrected and Added ---
   onSetAiTarget={onSetAiTarget}
-  isAiTarget={aiTargetCandidate?.id === candidate.id} // <-- התיקון לשגיאה שלך
+  isAiTarget={aiTargetCandidate?.id === candidate.id} // <-- התיקון הקריטי כאן
 
   // --- Props חדשים עבור בחירת השוואה ---
   isSelectableForComparison={
@@ -415,6 +415,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   isSelectedForComparison={!!comparisonSelection[candidate.id]}
   onToggleComparison={onToggleComparison}
 />
+
             {/* Edit button - visible when hovering */}
             <button
               className="absolute top-2 left-2 bg-primary text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"

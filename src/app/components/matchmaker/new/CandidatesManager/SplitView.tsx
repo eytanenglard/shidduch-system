@@ -6,8 +6,9 @@ import React, { useMemo, useEffect, useState } from "react";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import CandidatesList from "./CandidatesList";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, XCircle } from "lucide-react";
+import { Sparkles, XCircle, Users, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"; // Import Tabs
 import type { Candidate, CandidateAction } from "../types/candidates";
 import type { FilterState } from "../types/filters";
 import SearchBar from "../Filters/SearchBar";
@@ -142,46 +143,99 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
   const maleCandidatesWithScores = useMemo(() => mapScoresToCandidates(maleCandidates), [maleCandidates, aiMatches]);
   const femaleCandidatesWithScores = useMemo(() => mapScoresToCandidates(femaleCandidates), [femaleCandidates, aiMatches]);
 
- const renderPanelHeader = (gender: 'male' | 'female') => {
+ const renderPanelHeader = (gender: 'male' | 'female', isMobileView: boolean = false) => {
     const panelGenderEnum = gender === 'male' ? Gender.MALE : Gender.FEMALE;
     const isTargetPanel = aiTargetCandidate?.profile.gender === panelGenderEnum;
     const isSearchPanel = aiTargetCandidate && aiTargetCandidate.profile.gender !== panelGenderEnum;
     const count = gender === 'male' ? maleCandidates.length : femaleCandidates.length;
 
     return (
-      <div className="flex justify-between items-center mb-2 p-2 rounded-t-lg bg-gray-50 border-b">
+      <div className={cn("flex justify-between items-center mb-2 p-2 rounded-t-lg", !isMobileView && "bg-gray-50 border-b")}>
         <h2 className={cn("text-lg font-bold", gender === 'male' ? "text-blue-800" : "text-purple-800")}>
           {gender === 'male' ? `מועמדים (${count})` : `מועמדות (${count})`}
         </h2>
         <div className="flex-grow" />
-        {isTargetPanel && aiTargetCandidate && (
-          <div className="flex items-center gap-2 bg-green-100 p-1.5 rounded-full shadow-sm animate-fade-in">
-            <span className="text-xs font-medium text-green-800 px-2">מטרה: {aiTargetCandidate.firstName}</span>
-            <Button size="icon" variant="ghost" className="h-6 w-6 text-green-700 hover:bg-green-200 rounded-full" onClick={onClearAiTarget}>
-              <XCircle className="h-4 w-4"/>
-            </Button>
-          </div>
-        )}
-        {isSearchPanel && (
-          <Button size="sm" onClick={handleFindAiMatches} disabled={isAiLoading}>
-            <Sparkles className={`ml-2 h-4 w-4 ${isAiLoading ? 'animate-spin' : ''}`}/>
-            {isAiLoading ? 'מחפש...' : 'מצא התאמות AI'}
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+            {isTargetPanel && aiTargetCandidate && (
+              <div className="flex items-center gap-2 bg-green-100 p-1.5 rounded-full shadow-sm animate-fade-in">
+                <span className="text-xs font-medium text-green-800 px-2">מטרה: {aiTargetCandidate.firstName}</span>
+                <Button size="icon" variant="ghost" className="h-6 w-6 text-green-700 hover:bg-green-200 rounded-full" onClick={onClearAiTarget}>
+                  <XCircle className="h-4 w-4"/>
+                </Button>
+              </div>
+            )}
+            {isSearchPanel && (
+              <Button size="sm" onClick={handleFindAiMatches} disabled={isAiLoading}>
+                <Sparkles className={`ml-2 h-4 w-4 ${isAiLoading ? 'animate-spin' : ''}`}/>
+                {isAiLoading ? 'מחפש...' : 'מצא התאמות AI'}
+              </Button>
+            )}
+        </div>
       </div>
     );
-};
-
-
+  };
+  
+  // --- Mobile View using Tabs ---
   if (isMobile) {
     return (
-        <div className="p-4">
-            <h3 className="font-bold text-center">תצוגת AI אינה זמינה במצב מובייל.</h3>
-            <p className="text-center text-sm text-gray-500">אנא עבור לתצוגת דסקטופ כדי להשתמש ביכולות הבינה המלאכותית.</p>
+        <div className={cn("w-full", className)}>
+            <Tabs defaultValue="male" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="male" className="flex items-center gap-2">
+                        <User className="h-4 w-4"/> מועמדים <Badge variant="secondary">{maleCandidates.length}</Badge>
+                    </TabsTrigger>
+                    <TabsTrigger value="female" className="flex items-center gap-2">
+                        <User className="h-4 w-4"/> מועמדות <Badge variant="secondary">{femaleCandidates.length}</Badge>
+                    </TabsTrigger>
+                </TabsList>
+                <TabsContent value="male" className="mt-4">
+                    <div className="p-1 flex flex-col h-full">
+                        {renderPanelHeader('male', true)}
+                        {onMaleSearchChange && <SearchBar value={maleSearchQuery} onChange={onMaleSearchChange} placeholder="חיפוש מועמדים..." genderTarget="male" separateMode={true} />}
+                        <div className="flex-grow min-h-0 overflow-y-auto">
+                            <CandidatesList
+                                candidates={maleCandidatesWithScores}
+                                allCandidates={allCandidates}
+                                onCandidateClick={onCandidateClick}
+                                onCandidateAction={onCandidateAction}
+                                viewMode={viewMode}
+                                isLoading={isLoading}
+                                highlightTerm={maleSearchQuery}
+                                aiTargetCandidate={aiTargetCandidate}
+                                onSetAiTarget={onSetAiTarget}
+                                comparisonSelection={comparisonSelection}
+                                onToggleComparison={onToggleComparison}
+                            />
+                        </div>
+                    </div>
+                </TabsContent>
+                <TabsContent value="female" className="mt-4">
+                    <div className="p-1 flex flex-col h-full">
+                        {renderPanelHeader('female', true)}
+                        {onFemaleSearchChange && <SearchBar value={femaleSearchQuery} onChange={onFemaleSearchChange} placeholder="חיפוש מועמדות..." genderTarget="female" separateMode={true} />}
+                        <div className="flex-grow min-h-0 overflow-y-auto">
+                            <CandidatesList
+                                candidates={femaleCandidatesWithScores}
+                                allCandidates={allCandidates}
+                                onCandidateClick={onCandidateClick}
+                                onCandidateAction={onCandidateAction}
+                                viewMode={viewMode}
+                                isLoading={isLoading}
+                                highlightTerm={femaleSearchQuery}
+                                aiTargetCandidate={aiTargetCandidate}
+                                onSetAiTarget={onSetAiTarget}
+                                comparisonSelection={comparisonSelection}
+                                onToggleComparison={onToggleComparison}
+                            />
+                        </div>
+                    </div>
+                </TabsContent>
+            </Tabs>
         </div>
     );
   }
 
+  // --- Desktop View using Resizable Panels ---
   return (
     <div className={cn("h-full", className)}>
       <ResizablePanelGroup direction="horizontal" className="min-h-[800px] rounded-lg bg-white shadow-sm border">

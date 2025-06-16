@@ -226,13 +226,10 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
       {isSelectableForComparison && onToggleComparison && (
           <div 
               className="absolute bottom-2 right-2 z-10 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
-              // --- START OF FIX ---
-              // מניעת קליק על הכרטיס כולו, והפעלת הפונקציה הנכונה
               onClick={(e) => {
-                  e.stopPropagation(); // Prevent card click
-                  onToggleComparison(candidate, e);
+                  e.stopPropagation(); // מונע את הקליק על הכרטיס
+                  onToggleComparison(candidate, e); // מפעיל את הפונקציה הנכונה
               }}
-              // --- END OF FIX ---
           >
               <div 
                   className="flex items-center space-x-2 bg-white/80 backdrop-blur-sm p-1.5 rounded-md shadow-md cursor-pointer"
@@ -240,7 +237,11 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
                   <Checkbox
                       id={`compare-${candidate.id}`}
                       checked={isSelectedForComparison}
-                      // אין צורך ב-onCheckedChange, ה-div החיצוני מטפל בקליק
+                      // --- START OF FIX ---
+                      // הסרת readOnly והוספת pointer-events-none
+                      // זה הופך את ה-Checkbox לויזואלי בלבד, והקליק מטופל ב-div החיצוני
+                      className="pointer-events-none"
+                      // --- END OF FIX ---
                   />
                   <label
                       htmlFor={`compare-${candidate.id}`}
