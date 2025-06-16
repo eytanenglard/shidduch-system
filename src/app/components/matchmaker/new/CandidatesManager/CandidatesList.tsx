@@ -1,9 +1,11 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
+// File: src/app/components/matchmaker/new/CandidatesManager/CandidatesList.tsx
+
+import React, { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { UserX, Edit } from "lucide-react";
 import MinimalCard from "../CandidateCard/MinimalCard";
 import QuickView from "../CandidateCard/QuickView";
 import { ProfileCard } from "@/app/components/profile";
-import type { Candidate, CandidateAction } from "../types/candidates";
+import type { Candidate, CandidateAction, MobileView } from "../types/candidates";
 import type { QuestionnaireResponse } from "@/types/next-auth";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -25,6 +27,7 @@ import { toast } from "sonner";
 import { ActionDialogs } from "../dialogs/ActionDialogs";
 import NewSuggestionForm from "../../suggestions/NewSuggestionForm";
 import MatchmakerEditProfile from "../MatchmakerEditProfile";
+import { cn } from "@/lib/utils";
 
 interface CreateSuggestionData {
   priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
@@ -39,9 +42,6 @@ interface CreateSuggestionData {
   firstPartyNotes?: string;
   secondPartyNotes?: string;
 }
-// בראש הקובץ CandidatesList.tsx
-
-// ... imports ...
 
 interface CandidatesListProps {
   candidates: (Candidate & { aiScore?: number })[];
@@ -49,6 +49,7 @@ interface CandidatesListProps {
   onCandidateClick?: (candidate: Candidate) => void;
   onCandidateAction?: (type: CandidateAction, candidate: Candidate) => void;
   viewMode: "grid" | "list";
+  mobileView: MobileView;
   isLoading?: boolean;
   className?: string;
   highlightTerm?: string;
@@ -66,10 +67,11 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   onCandidateClick,
   onCandidateAction,
   viewMode,
+  mobileView,
   isLoading = false,
   className,
   highlightTerm,
-   aiTargetCandidate,
+  aiTargetCandidate,
   onSetAiTarget,
   comparisonSelection,
   onToggleComparison,
@@ -97,10 +99,8 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     null
   );
 
-  // State for mobile detection
   const [isMobile, setIsMobile] = useState(false);
 
-  // Check screen size on mount and resize
   useEffect(() => {
     const checkScreenSize = () => {
       setIsMobile(window.innerWidth < 768);
@@ -245,14 +245,12 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   };
 
   const handleMouseEnter = (candidate: Candidate, e?: React.MouseEvent) => {
-    // On mobile, disable hover behavior to prevent issues with scrolling
     if (isMobile) return;
 
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
     }
 
-    // מיקום ברירת מחדל
     let top = window.scrollY + window.innerHeight / 3;
     let left = window.innerWidth / 2;
 
@@ -261,17 +259,13 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
       if (element) {
         const rect = element.getBoundingClientRect();
         const screenMiddle = window.innerWidth / 2;
-        const isRightPanel = rect.left < screenMiddle; // האם האלמנט בפאנל ימני
+        const isRightPanel = rect.left < screenMiddle;
 
-        // חישוב גובה
         top = rect.top + window.scrollY;
 
-        // קביעת מיקום אופקי לפי הפאנל
         if (isRightPanel) {
-          // אם האלמנט בפאנל ימני, מציג את החלון בצד ימין (אך לא חורג מהמסך)
           left = Math.min(rect.right + 10, window.innerWidth - 430);
         } else {
-          // אם האלמנט בפאנל שמאלי, מציג את החלון בצד שמאל
           left = Math.max(rect.left - 430, 10);
         }
       }
@@ -291,7 +285,6 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
       hoverTimeoutRef.current = null;
     }
 
-    // Small delay before hiding to allow moving to the QuickView
     setTimeout(() => {
       if (!quickViewRef.current?.matches(":hover")) {
         setHoveredCandidate(null);
@@ -302,7 +295,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   const handleAction = useCallback(
     (action: CandidateAction, candidate: Candidate) => {
       setDialogCandidate(candidate);
-      setHoveredCandidate(null); // Close hover card
+      setHoveredCandidate(null);
 
       switch (action) {
         case "invite":
@@ -327,6 +320,19 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     },
     [onCandidateAction, onCandidateClick]
   );
+  
+  const gridLayoutClass = useMemo(() => {
+    if (isMobile) {
+      // Mobile view logic
+      return mobileView === 'double'
+        ? 'grid grid-cols-2 gap-2' // Two columns for mobile
+        : 'grid grid-cols-1 gap-3'; // Single column for mobile
+    }
+    // Desktop view logic
+    return viewMode === 'grid'
+      ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-3 gap-y-4'
+      : 'space-y-4';
+  }, [isMobile, mobileView, viewMode]);
 
   // Loading states render
   if (isLoading) {
@@ -369,54 +375,41 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     );
   }
 
-  // Adjust the grid columns for mobile view to make cards smaller
-  const gridColumnsClass = isMobile
-    ? "grid-cols-1"
-    : viewMode === "grid"
-    ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-3 gap-y-4"
-    : "space-y-4";
-
   return (
     <>
-      {/* Candidates List with improved grid/list implementations */}
-      <div className={`${gridColumnsClass} ${className || ""}`}>
+      <div className={cn(gridLayoutClass, className || "")}>
         {candidates.map((candidate) => (
           <div
             key={candidate.id}
             className="group relative"
             onMouseEnter={(e) => handleMouseEnter(candidate, e)}
             onMouseLeave={handleMouseLeave}
-            onClick={() => handleAction("view", candidate)} // Direct click handler for mobile
+            onClick={() => handleAction("view", candidate)}
           >
-<MinimalCard
-  candidate={candidate}
-  onClick={() => handleAction("view", candidate)}
-  onEdit={(c, e) => {
-    e.stopPropagation();
-    handleAction("edit", c);
-  }}
-  className={`
-    ${viewMode === "list" ? "flex flex-row-reverse gap-4 h-32" : ""}
-    ${isMobile ? "transform scale-95" : ""}
-  `}
-  highlightTerm={highlightTerm}
-  aiScore={candidate.aiScore}
-
-  // --- AI Props Corrected and Added ---
-  onSetAiTarget={onSetAiTarget}
-  isAiTarget={aiTargetCandidate?.id === candidate.id} // <-- התיקון הקריטי כאן
-
-  // --- Props חדשים עבור בחירת השוואה ---
-  isSelectableForComparison={
-    !!aiTargetCandidate && // האם יש מטרה בכלל
-    aiTargetCandidate.profile.gender !== candidate.profile.gender && // האם המועמד מהפאנל הנגדי
-    aiTargetCandidate.id !== candidate.id // ודא שזה לא מועמד המטרה עצמו
-  }
-  isSelectedForComparison={!!comparisonSelection[candidate.id]}
-  onToggleComparison={onToggleComparison}
-/>
-
-            {/* Edit button - visible when hovering */}
+            <MinimalCard
+              candidate={candidate}
+              onClick={() => handleAction("view", candidate)}
+              onEdit={(c, e) => {
+                e.stopPropagation();
+                handleAction("edit", c);
+              }}
+              className={cn(
+                viewMode === "list" && !isMobile ? "flex flex-row-reverse gap-4 h-32" : "",
+                isMobile && mobileView === 'double' ? 'transform scale-90' : '',
+                isMobile && mobileView === 'single' ? 'transform scale-95' : ''
+              )}
+              highlightTerm={highlightTerm}
+              aiScore={candidate.aiScore}
+              onSetAiTarget={onSetAiTarget}
+              isAiTarget={aiTargetCandidate?.id === candidate.id}
+              isSelectableForComparison={
+                !!aiTargetCandidate &&
+                aiTargetCandidate.profile.gender !== candidate.profile.gender &&
+                aiTargetCandidate.id !== candidate.id
+              }
+              isSelectedForComparison={!!comparisonSelection[candidate.id]}
+              onToggleComparison={onToggleComparison}
+            />
             <button
               className="absolute top-2 left-2 bg-primary text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
               onClick={(e) => {
@@ -432,7 +425,6 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         ))}
       </div>
 
-      {/* Quick View Popup - Only shown on non-mobile */}
       {hoveredCandidate && !isMobile && (
         <div
           ref={quickViewRef}
@@ -454,14 +446,13 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
             <QuickView
               candidate={hoveredCandidate}
               onAction={(action) => handleAction(action, hoveredCandidate)}
-             onSetAiTarget={(c, e) => onSetAiTarget(c, e)}
-        isAiTarget={aiTargetCandidate?.id === hoveredCandidate.id}
-         />
+              onSetAiTarget={(c, e) => onSetAiTarget(c, e)}
+              isAiTarget={aiTargetCandidate?.id === hoveredCandidate.id}
+            />
           </div>
         </div>
       )}
 
-      {/* Profile Dialog */}
       <Dialog
         open={!!selectedCandidate}
         onOpenChange={(open) => {
@@ -512,7 +503,6 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         </DialogContent>
       </Dialog>
 
-      {/* Action Dialogs */}
       <ActionDialogs
         suggestDialog={{
           isOpen: showSuggestDialog,
@@ -534,7 +524,6 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         }}
       />
 
-      {/* New Suggestion Form */}
       <NewSuggestionForm
         isOpen={showSuggestDialog}
         onClose={() => setShowSuggestDialog(false)}
@@ -543,7 +532,6 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         onSubmit={handleCreateSuggestion}
       />
 
-      {/* Edit Profile Dialog */}
       <MatchmakerEditProfile
         isOpen={showEditProfileDialog}
         onClose={() => setShowEditProfileDialog(false)}

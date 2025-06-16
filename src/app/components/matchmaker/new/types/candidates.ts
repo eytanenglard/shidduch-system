@@ -15,6 +15,8 @@ export type CandidateImage = UserImage;
 
 export type CandidateProfile = UserProfile;
 
+export type MobileView = 'single' | 'double';
+
 export interface Candidate {
   id: string;
   email: string;

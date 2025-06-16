@@ -8,8 +8,8 @@ import CandidatesList from "./CandidatesList";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles, XCircle, Users, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"; // Import Tabs
-import type { Candidate, CandidateAction } from "../types/candidates";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { Candidate, CandidateAction, MobileView } from "../types/candidates";
 import type { FilterState } from "../types/filters";
 import SearchBar from "../Filters/SearchBar";
 import { toast } from "sonner";
@@ -28,6 +28,7 @@ interface SplitViewProps {
   onCandidateAction: (type: CandidateAction, candidate: Candidate) => void;
   onCandidateClick: (candidate: Candidate) => void;
   viewMode: "grid" | "list";
+  mobileView: MobileView;
   isLoading?: boolean;
   className?: string;
   
@@ -63,6 +64,7 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
     onCandidateAction,
     onCandidateClick,
     viewMode,
+    mobileView,
     isLoading = false,
     className,
     maleSearchQuery = "",
@@ -132,49 +134,57 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
     }
   };
   
-  const mapScoresToCandidates = (candidates: Candidate[]): (Candidate & { aiScore?: number })[] => {
-    if (aiMatches.length === 0) return candidates;
+  // --- START OF FIX ---
+  // The logic is now directly inside useMemo, which is cleaner and satisfies the ESLint rule.
+  const maleCandidatesWithScores = useMemo(() => {
+    if (aiMatches.length === 0) return maleCandidates;
     const scoreMap = new Map(aiMatches.map(m => [m.userId, m.score]));
-    return candidates
+    return maleCandidates
       .map(c => ({ ...c, aiScore: scoreMap.get(c.id) }))
       .sort((a, b) => (b.aiScore ?? -1) - (a.aiScore ?? -1));
-  };
+  }, [maleCandidates, aiMatches]);
 
-  const maleCandidatesWithScores = useMemo(() => mapScoresToCandidates(maleCandidates), [maleCandidates, aiMatches]);
-  const femaleCandidatesWithScores = useMemo(() => mapScoresToCandidates(femaleCandidates), [femaleCandidates, aiMatches]);
+  const femaleCandidatesWithScores = useMemo(() => {
+    if (aiMatches.length === 0) return femaleCandidates;
+    const scoreMap = new Map(aiMatches.map(m => [m.userId, m.score]));
+    return femaleCandidates
+      .map(c => ({ ...c, aiScore: scoreMap.get(c.id) }))
+      .sort((a, b) => (b.aiScore ?? -1) - (a.aiScore ?? -1));
+  }, [femaleCandidates, aiMatches]);
+  // --- END OF FIX ---
 
- const renderPanelHeader = (gender: 'male' | 'female', isMobileView: boolean = false) => {
-    const panelGenderEnum = gender === 'male' ? Gender.MALE : Gender.FEMALE;
-    const isTargetPanel = aiTargetCandidate?.profile.gender === panelGenderEnum;
-    const isSearchPanel = aiTargetCandidate && aiTargetCandidate.profile.gender !== panelGenderEnum;
-    const count = gender === 'male' ? maleCandidates.length : femaleCandidates.length;
+  const renderPanelHeader = (gender: 'male' | 'female', isMobileView: boolean = false) => {
+      const panelGenderEnum = gender === 'male' ? Gender.MALE : Gender.FEMALE;
+      const isTargetPanel = aiTargetCandidate?.profile.gender === panelGenderEnum;
+      const isSearchPanel = aiTargetCandidate && aiTargetCandidate.profile.gender !== panelGenderEnum;
+      const count = gender === 'male' ? maleCandidates.length : femaleCandidates.length;
 
-    return (
-      <div className={cn("flex justify-between items-center mb-2 p-2 rounded-t-lg", !isMobileView && "bg-gray-50 border-b")}>
-        <h2 className={cn("text-lg font-bold", gender === 'male' ? "text-blue-800" : "text-purple-800")}>
-          {gender === 'male' ? `מועמדים (${count})` : `מועמדות (${count})`}
-        </h2>
-        <div className="flex-grow" />
-        <div className="flex items-center gap-2">
-            {isTargetPanel && aiTargetCandidate && (
-              <div className="flex items-center gap-2 bg-green-100 p-1.5 rounded-full shadow-sm animate-fade-in">
-                <span className="text-xs font-medium text-green-800 px-2">מטרה: {aiTargetCandidate.firstName}</span>
-                <Button size="icon" variant="ghost" className="h-6 w-6 text-green-700 hover:bg-green-200 rounded-full" onClick={onClearAiTarget}>
-                  <XCircle className="h-4 w-4"/>
+      return (
+        <div className={cn("flex justify-between items-center mb-2 p-2 rounded-t-lg", !isMobileView && "bg-gray-50 border-b")}>
+          <h2 className={cn("text-lg font-bold", gender === 'male' ? "text-blue-800" : "text-purple-800")}>
+            {gender === 'male' ? `מועמדים (${count})` : `מועמדות (${count})`}
+          </h2>
+          <div className="flex-grow" />
+          <div className="flex items-center gap-2">
+              {isTargetPanel && aiTargetCandidate && (
+                <div className="flex items-center gap-2 bg-green-100 p-1.5 rounded-full shadow-sm animate-fade-in">
+                  <span className="text-xs font-medium text-green-800 px-2">מטרה: {aiTargetCandidate.firstName}</span>
+                  <Button size="icon" variant="ghost" className="h-6 w-6 text-green-700 hover:bg-green-200 rounded-full" onClick={onClearAiTarget}>
+                    <XCircle className="h-4 w-4"/>
+                  </Button>
+                </div>
+              )}
+              {isSearchPanel && (
+                <Button size="sm" onClick={handleFindAiMatches} disabled={isAiLoading}>
+                  <Sparkles className={`ml-2 h-4 w-4 ${isAiLoading ? 'animate-spin' : ''}`}/>
+                  {isAiLoading ? 'מחפש...' : 'מצא התאמות AI'}
                 </Button>
-              </div>
-            )}
-            {isSearchPanel && (
-              <Button size="sm" onClick={handleFindAiMatches} disabled={isAiLoading}>
-                <Sparkles className={`ml-2 h-4 w-4 ${isAiLoading ? 'animate-spin' : ''}`}/>
-                {isAiLoading ? 'מחפש...' : 'מצא התאמות AI'}
-              </Button>
-            )}
+              )}
+          </div>
         </div>
-      </div>
-    );
+      );
   };
-  
+
   // --- Mobile View using Tabs ---
   if (isMobile) {
     return (
@@ -199,6 +209,7 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
                                 onCandidateClick={onCandidateClick}
                                 onCandidateAction={onCandidateAction}
                                 viewMode={viewMode}
+                                mobileView={mobileView}
                                 isLoading={isLoading}
                                 highlightTerm={maleSearchQuery}
                                 aiTargetCandidate={aiTargetCandidate}
@@ -220,6 +231,7 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
                                 onCandidateClick={onCandidateClick}
                                 onCandidateAction={onCandidateAction}
                                 viewMode={viewMode}
+                                mobileView={mobileView}
                                 isLoading={isLoading}
                                 highlightTerm={femaleSearchQuery}
                                 aiTargetCandidate={aiTargetCandidate}
@@ -250,6 +262,7 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
                 onCandidateClick={onCandidateClick}
                 onCandidateAction={onCandidateAction}
                 viewMode={viewMode}
+                mobileView={mobileView}
                 isLoading={isLoading}
                 highlightTerm={maleSearchQuery}
                 aiTargetCandidate={aiTargetCandidate}
@@ -260,9 +273,7 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
             </div>
           </div>
         </ResizablePanel>
-
         <ResizableHandle withHandle />
-
         <ResizablePanel defaultSize={50} minSize={30}>
           <div className="p-3 flex flex-col h-full">
             {renderPanelHeader('female')}
@@ -274,6 +285,7 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
                 onCandidateClick={onCandidateClick}
                 onCandidateAction={onCandidateAction}
                 viewMode={viewMode}
+                mobileView={mobileView}
                 isLoading={isLoading}
                 highlightTerm={femaleSearchQuery}
                 aiTargetCandidate={aiTargetCandidate}
