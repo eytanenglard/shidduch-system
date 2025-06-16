@@ -8,20 +8,19 @@ import { VerificationService } from '@/lib/services/verificationService';
 
 const prisma = new PrismaClient();
 
-// עדכון LogMetadata סופי ומלא
 type LogMetadata = {
   userId?: string;
   email?: string;
   firstName?: string;
   lastName?: string;
   status?: string;
-  errorObject?: unknown;     // לשמירת אובייקט השגיאה המקורי
-  errorMessage?: string;     // הודעת השגיאה כטקסט
-  errorName?: string;        // error.name
-  errorCode?: string;        // error.code (למשל, שגיאות Prisma)
-  errorMeta?: unknown;       // error.meta (למשל, שגיאות Prisma)
-  errorStack?: string;       // error.stack
-  errorContext?: string;     // להוספת הקשר לשגיאה (למשל, "Main catch block", "Inside handleError")
+  errorObject?: unknown;
+  errorMessage?: string;
+  errorName?: string;
+  errorCode?: string;
+  errorMeta?: unknown;
+  errorStack?: string;
+  errorContext?: string;
   timestamp?: string;
   hasEmail?: boolean;
   hasPassword?: boolean;
@@ -40,13 +39,10 @@ const logger = {
     }));
   },
   error: (message: string, meta?: LogMetadata) => {
-    // נוודא ש-errorObject לא נשלח ישירות אם הוא מכיל מידע רגיש או גדול מדי בצורה לא מבוקרת.
-    // לרוב, המאפיינים שחילצנו (errorMessage, errorName וכו') מספיקים ללוג.
     const loggableMeta = { ...meta };
     if (loggableMeta.errorObject && process.env.NODE_ENV !== 'development') {
-        // בסביבת פרודקשן, אולי נרצה להסיר את האובייקט המלא אם הוא לא טופל כראוי
-        // delete loggableMeta.errorObject; 
-        // או להשאיר רק חלקים נבחרים ממנו. כרגע נשאיר אותו.
+        // In production, we might want to remove the full object if not handled properly.
+        // For now, we'll keep it.
     }
     console.error(JSON.stringify({
       timestamp: new Date().toISOString(),
@@ -68,7 +64,7 @@ function handleError(error: unknown): { message: string; status: number } {
     const logMeta: LogMetadata = { 
         errorContext: "Inside handleError before processing",
         timestamp: new Date().toISOString(),
-        errorObject: error // שמירת האובייקט המקורי
+        errorObject: error
     };
 
     if (error instanceof Error) {
@@ -85,24 +81,24 @@ function handleError(error: unknown): { message: string; status: number } {
         logMeta.errorCode = error.code;
         logMeta.errorMeta = error.meta;
     } else if (typeof error === 'object' && error !== null && 'code' in error) {
-        // טיפול במקרים שבהם error הוא אובייקט עם שדה code אך אינו PrismaClientKnownRequestError
         logMeta.errorCode = String((error as { code: unknown }).code);
     }
     
     logger.error("Error received in handleError", logMeta);
 
-
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       switch (error.code) {
-        case 'P2002': 
+        case 'P2002': {
           const target = error.meta?.target as string[] | undefined;
           if (target?.includes('email')) {
             return { message: 'משתמש עם כתובת אימייל זו כבר קיים במערכת.', status: 409 };
           }
           return { message: `משתמש עם פרטים אלה כבר קיים במערכת (קוד ${error.code}).`, status: 409 };
-        case 'P2003': 
+        }
+        case 'P2003': {
             const fieldName = error.meta?.field_name as string | undefined;
             return { message: `שגיאת תלות בנתונים (שדה: ${fieldName || 'לא ידוע'}). אנא נסה שנית.`, status: 500};
+        }
         case 'P2014': return { message: 'שגיאה בנתונים שהוזנו.', status: 400 };
         default: 
             return { message: `שגיאה בשמירת הנתונים (קוד שגיאת DB: ${error.code}).`, status: 500 };
@@ -115,18 +111,14 @@ function handleError(error: unknown): { message: string; status: number } {
        if (['חסרים פרטים חובה', 'כתובת אימייל לא תקינה', 'הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר'].includes(error.message)) {
            return { message: error.message, status: 400 };
        }
-       // אם השגיאה הגיעה מ-VerificationService.createVerification, היא תהיה Error instance
-       // וההודעה שלה תהיה השגיאה המקורית מ-Prisma או הודעה מותאמת אישית מהשירות.
-       // כאן אנחנו נותנים להודעה המקורית לעבור, או שיש טיפול ספציפי אם ההודעה ידועה.
        if (error.message.includes('אירעה שגיאה ביצירת קוד אימות') || 
            (error.cause instanceof Prisma.PrismaClientKnownRequestError && error.cause.code === 'P2003')) {
-            // אם השגיאה המקורית היא P2003 (מ-cause), החזר הודעה מתאימה
             return { message: 'אירעה שגיאה ביצירת רשומת האימות עקב בעיית תלות. אנא נסה שנית.', status: 500 };
        }
       return { message: error.message, status: 400 }; 
     }
     return { message: 'אירעה שגיאה בלתי צפויה.', status: 500 };
-  }
+}
 
 
 export async function POST(req: Request) {
@@ -191,8 +183,8 @@ export async function POST(req: Request) {
             isVerified: false, 
             isProfileComplete: false, 
             isPhoneVerified: false, 
-              source: UserSource.REGISTRATION,
-               termsAndPrivacyAcceptedAt: new Date(), 
+            source: UserSource.REGISTRATION,
+            termsAndPrivacyAcceptedAt: new Date(), 
           },
       });
       logger.info('User created successfully within transaction', { userId: user.id });
@@ -256,11 +248,10 @@ export async function POST(req: Request) {
     );
 
   } catch (error: unknown) { 
-    // בניית אובייקט הלוג בצורה מבוקרת
     const logMetaForCatch: LogMetadata = { 
         errorContext: "Main catch block in POST /api/auth/register",
         timestamp: new Date().toISOString(),
-        errorObject: error // שמור את האובייקט המקורי
+        errorObject: error
     };
 
     if (error instanceof Error) {
@@ -281,9 +272,8 @@ export async function POST(req: Request) {
     
     logger.error('Initial registration failed', logMetaForCatch);
 
-    const { message, status } = handleError(error); // handleError יבצע לוגינג משלו גם כן
+    const { message, status } = handleError(error);
 
-    // בניית details עבור תגובת השגיאה לקליינט
     const responseErrorDetails = process.env.NODE_ENV === 'development' ? {
         name: logMetaForCatch.errorName,
         message: logMetaForCatch.errorMessage,
@@ -291,7 +281,6 @@ export async function POST(req: Request) {
         meta: logMetaForCatch.errorMeta,
         stack: logMetaForCatch.errorStack
     } : undefined;
-
 
     return NextResponse.json(
       {

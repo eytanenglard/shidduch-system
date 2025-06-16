@@ -1,16 +1,33 @@
-import React, { createContext, useContext, useCallback, useState } from "react";
+// File: src/components/ui/alert-dialog.tsx
+"use client";
 
+import React, { 
+  createContext, 
+  useContext, 
+  useCallback, 
+  useState, 
+  cloneElement, 
+  isValidElement 
+} from "react";
+import { cn } from "@/lib/utils";
+
+// --- Context Definition ---
 type AlertDialogContextType = {
   open: boolean;
-  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setOpen: (open: boolean) => void;
 };
 
-const AlertDialogContext = createContext<AlertDialogContextType>({
-  open: false,
-  setOpen: () => {}, // Remove the unused parameter
-});
+const AlertDialogContext = createContext<AlertDialogContextType | undefined>(undefined);
 
-// Root component
+const useAlertDialog = () => {
+  const context = useContext(AlertDialogContext);
+  if (!context) {
+    throw new Error("useAlertDialog must be used within an AlertDialog provider");
+  }
+  return context;
+};
+
+// --- Main AlertDialog Component (The Provider) ---
 type AlertDialogProps = {
   children: React.ReactNode;
   open?: boolean; 
@@ -19,25 +36,20 @@ type AlertDialogProps = {
 
 const AlertDialog = ({
   children,
-  open: externalOpen,
+  open: controlledOpen,
   onOpenChange
 }: AlertDialogProps): JSX.Element => {
   const [internalOpen, setInternalOpen] = useState(false);
   
-  // אם סופקו props חיצוניים, השתמש בהם, אחרת השתמש במצב הפנימי
-  const open = externalOpen !== undefined ? externalOpen : internalOpen;
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
   
-  const setOpen = useCallback((value: boolean | ((prev: boolean) => boolean)) => {
-    // עדכון המצב הפנימי
-    if (typeof value === 'function') {
-      const newValue = value(open);
-      setInternalOpen(newValue);
-      onOpenChange?.(newValue);
-    } else {
-      setInternalOpen(value);
-      onOpenChange?.(value);
+  const setOpen = useCallback((newOpen: boolean) => {
+    if (!isControlled) {
+      setInternalOpen(newOpen);
     }
-  }, [open, onOpenChange]);
+    onOpenChange?.(newOpen);
+  }, [isControlled, onOpenChange]);
 
   const contextValue = {
     open,
@@ -51,135 +63,176 @@ const AlertDialog = ({
   );
 };
 
-// Content wrapper
-const AlertDialogContent = ({
-  className = "",
-  children,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) => {
-  const { open } = useContext(AlertDialogContext);
+// --- AlertDialogTrigger Component (Corrected) ---
+interface AlertDialogTriggerProps extends React.HTMLAttributes<HTMLButtonElement> {
+  children: React.ReactNode;
+  asChild?: boolean;
+}
 
-  if (!open) return null;
+const AlertDialogTrigger = React.forwardRef<HTMLButtonElement, AlertDialogTriggerProps>(
+  ({ children, asChild = false, ...props }, ref) => {
+    const { setOpen } = useAlertDialog();
 
-  return (
-    <>
-      <div className="fixed inset-0 z-50 bg-black/80 animate-in fade-in-0" />
-      <div
-        className={`fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-white p-6 shadow-lg duration-200 animate-in fade-in-0 zoom-in-95 slide-in-from-left-1/2 slide-in-from-top-[48%] sm:rounded-lg ${className}`}
+    if (asChild && isValidElement(children)) {
+      // The child element is cloned, and our new props are merged into it.
+      // This is the standard pattern for the `asChild` prop.
+      return cloneElement(
+        children,
+        {
+          ...props,
+          ...children.props, // Merge props from the child and the trigger.
+          ref,
+          // Create a new onClick handler that calls both the child's original
+          // onClick and our trigger's logic.
+          onClick: (event: React.MouseEvent<HTMLElement>) => {
+            // Call the child's own onClick handler if it exists.
+            children.props.onClick?.(event);
+            // If the event wasn't prevented by the child's handler, run our logic.
+            if (!event.defaultPrevented) {
+              setOpen(true);
+            }
+          },
+        }
+      );
+    }
+
+    return (
+      <button
+        ref={ref}
+        onClick={() => setOpen(true)}
         {...props}
       >
         {children}
-      </div>
-    </>
-  );
-};
+      </button>
+    );
+  }
+);
+AlertDialogTrigger.displayName = "AlertDialogTrigger";
 
-// Header component
+
+// --- (The rest of your file remains the same) ---
+
+// 4. --- AlertDialogContent Component (The Dialog itself) ---
+const AlertDialogContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, children, ...props }, ref) => {
+    const { open } = useAlertDialog();
+
+    if (!open) return null;
+
+    return (
+      <>
+        {/* Overlay */}
+        <div className="fixed inset-0 z-50 bg-black/80 animate-in fade-in-0" />
+        
+        {/* Dialog Content */}
+        <div
+          ref={ref}
+          className={cn(
+            "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 animate-in fade-in-0 zoom-in-95 slide-in-from-left-1/2 slide-in-from-top-[48%] sm:rounded-lg",
+            className
+          )}
+          {...props}
+        >
+          {children}
+        </div>
+      </>
+    );
+  }
+);
+AlertDialogContent.displayName = "AlertDialogContent";
+
+// 5. --- Other structural components ---
 const AlertDialogHeader = ({
-  className = "",
-  children,
+  className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={`flex flex-col space-y-2 text-center sm:text-left ${className}`}
+    className={cn("flex flex-col space-y-2 text-center sm:text-left", className)}
     {...props}
-  >
-    {children}
-  </div>
+  />
 );
+AlertDialogHeader.displayName = "AlertDialogHeader";
 
-// Footer component
 const AlertDialogFooter = ({
-  className = "",
-  children,
+  className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={`flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 ${className}`}
+    className={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 rtl:space-x-reverse", className)}
     {...props}
-  >
-    {children}
-  </div>
+  />
 );
+AlertDialogFooter.displayName = "AlertDialogFooter";
 
-// Title component
-const AlertDialogTitle = ({
-  className = "",
-  children,
-  ...props
-}: React.HTMLAttributes<HTMLHeadingElement>) => (
-  <h2 className={`text-lg font-semibold ${className}`} {...props}>
-    {children}
-  </h2>
-);
+const AlertDialogTitle = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLHeadingElement>
+>(({ className, ...props }, ref) => (
+  <h2
+    ref={ref}
+    className={cn("text-lg font-semibold", className)}
+    {...props}
+  />
+));
+AlertDialogTitle.displayName = "AlertDialogTitle";
 
-// Description component
-const AlertDialogDescription = ({
-  className = "",
-  children,
-  ...props
-}: React.HTMLAttributes<HTMLParagraphElement>) => (
-  <p className={`text-sm text-gray-500 ${className}`} {...props}>
-    {children}
-  </p>
-);
+const AlertDialogDescription = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
+>(({ className, ...props }, ref) => (
+  <p
+    ref={ref}
+    className={cn("text-sm text-muted-foreground", className)}
+    {...props}
+  />
+));
+AlertDialogDescription.displayName = "AlertDialogDescription";
 
-// Action button component
-const AlertDialogAction = ({
-  className = "",
-  children,
-  onClick,
-  ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement>) => {
-  const { setOpen } = useContext(AlertDialogContext);
-  const handleClick = useCallback(
-    (e: React.MouseEvent<HTMLButtonElement>) => {
-      onClick?.(e);
-      setOpen(false);
-    },
-    [onClick, setOpen]
-  );
-
+// 6. --- Action and Cancel Buttons ---
+const AlertDialogAction = React.forwardRef<
+  HTMLButtonElement,
+  React.ButtonHTMLAttributes<HTMLButtonElement>
+>(({ className, onClick, ...props }, ref) => {
+  const { setOpen } = useAlertDialog();
+  
   return (
     <button
-      className={`inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-slate-900 text-slate-50 hover:bg-slate-900/90 h-10 px-4 py-2 ${className}`}
-      onClick={handleClick}
+      ref={ref}
+      className={cn("inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2", className)}
+      onClick={(e) => {
+        onClick?.(e);
+        setOpen(false);
+      }}
       {...props}
-    >
-      {children}
-    </button>
+    />
   );
-};
+});
+AlertDialogAction.displayName = "AlertDialogAction";
 
-// Cancel button component
-const AlertDialogCancel = ({
-  className = "",
-  children,
-  onClick,
-  ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement>) => {
-  const { setOpen } = useContext(AlertDialogContext);
-  const handleClick = useCallback(
-    (e: React.MouseEvent<HTMLButtonElement>) => {
-      onClick?.(e);
-      setOpen(false);
-    },
-    [onClick, setOpen]
-  );
-
+const AlertDialogCancel = React.forwardRef<
+  HTMLButtonElement,
+  React.ButtonHTMLAttributes<HTMLButtonElement>
+>(({ className, onClick, ...props }, ref) => {
+  const { setOpen } = useAlertDialog();
+  
   return (
     <button
-      className={`inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-slate-200 bg-white hover:bg-slate-100 h-10 px-4 py-2 mt-2 sm:mt-0 ${className}`}
-      onClick={handleClick}
+      ref={ref}
+      className={cn("mt-2 sm:mt-0 inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2", className)}
+      onClick={(e) => {
+        onClick?.(e);
+        setOpen(false);
+      }}
       {...props}
-    >
-      {children}
-    </button>
+    />
   );
-};
+});
+AlertDialogCancel.displayName = "AlertDialogCancel";
 
+// 7. --- Final Exports ---
 export {
   AlertDialog,
+  AlertDialogTrigger,
   AlertDialogContent,
   AlertDialogHeader,
   AlertDialogFooter,

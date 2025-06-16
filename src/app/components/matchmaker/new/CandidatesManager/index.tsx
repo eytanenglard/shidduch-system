@@ -4,11 +4,23 @@
 
 import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { UserPlus, Filter, LayoutGrid, List, ArrowUpDown, Sparkles, X, RotateCw, BarChart2 } from "lucide-react";
+import { UserPlus, Filter, LayoutGrid, List, ArrowUpDown, RotateCw, BarChart2, Bot, Loader2 } from "lucide-react"; // Added Bot, Loader2
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"; // Import AlertDialog components
+import { useSession } from "next-auth/react"; // Import useSession to check for admin role
 
 // Custom Hooks
 import { useCandidates } from "../hooks/useCandidates";
@@ -47,14 +59,18 @@ const CandidatesManager: React.FC = () => {
   const [aiMatches, setAiMatches] = useState<AiMatch[]>([]);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isAnalysisDialogOpen, setIsAnalysisDialogOpen] = useState(false);
-  
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false); // <-- New state for bulk update button
+
+  // --- Session and Permissions ---
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === 'ADMIN';
+
   // Custom Hooks
   const {
     loading,
     candidates,
     maleCandidates,
     femaleCandidates,
-    sorting,
     setSorting,
     setFilters,
     refresh,
@@ -93,12 +109,14 @@ const CandidatesManager: React.FC = () => {
   }, [setFilters, filters.separateFiltering]);
   
   const handleRemoveFilter = useCallback((key: keyof CandidatesFilter, value?: string) => {
-    const newFilters = { ...filters };
-    if (key === "cities" && value) newFilters.cities = newFilters.cities?.filter(city => city !== value);
-    else if (key === "occupations" && value) newFilters.occupations = newFilters.occupations?.filter(occ => occ !== value);
-    else delete newFilters[key];
-    setFilters(newFilters);
-  }, [filters, setFilters]);
+    setFilters(prev => {
+      const newFilters = { ...prev };
+      if (key === "cities" && value) newFilters.cities = newFilters.cities?.filter(city => city !== value);
+      else if (key === "occupations" && value) newFilters.occupations = newFilters.occupations?.filter(occ => occ !== value);
+      else delete newFilters[key];
+      return newFilters;
+    });
+  }, [setFilters]);
 
   const handleCandidateAction = useCallback(async (type: CandidateAction, candidate: Candidate) => {
     console.log(`Action '${type}' triggered for candidate: ${candidate.firstName}`);
@@ -148,6 +166,33 @@ const CandidatesManager: React.FC = () => {
       });
   }, []);
 
+  const handleUpdateAllProfiles = async () => {
+    setIsBulkUpdating(true);
+    toast.info("מתחיל תהליך עדכון פרופילי AI...", {
+      description: "התהליך ירוץ ברקע. אין צורך להישאר בעמוד זה.",
+    });
+
+    try {
+      const response = await fetch('/api/ai/update-all-profiles', {
+        method: 'POST',
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'שגיאה בהפעלת העדכון הכללי.');
+      toast.success("העדכון הכללי הופעל בהצלחה!", {
+        description: data.message,
+        duration: 8000,
+      });
+    } catch (error) {
+      console.error("Failed to initiate bulk AI profile update:", error);
+      toast.error("שגיאה בהפעלת העדכון", {
+        description: error instanceof Error ? error.message : 'אנא נסה שוב מאוחר יותר.',
+      });
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  };
+
+
   useEffect(() => {
     const checkDesktop = () => setShowFiltersPanel(window.innerWidth >= 1024);
     checkDesktop();
@@ -174,11 +219,40 @@ const CandidatesManager: React.FC = () => {
                     נתח התאמה ({Object.keys(comparisonSelection).length})
                 </Button>
               )}
+              
+              {/* --- NEW: AI Bulk Update Button --- */}
+              {isAdmin && (
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button variant="destructive" size="sm" disabled={isBulkUpdating || loading}>
+                            {isBulkUpdating ? <Loader2 className="w-4 h-4 ml-2 animate-spin" /> : <Bot className="w-4 h-4 ml-2" />}
+                            עדכון כללי AI
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent dir="rtl">
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>אישור עדכון AI כללי</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                פעולה זו תפעיל תהליך עדכון וקטורים עבור **כל** המשתמשים הפעילים. 
+                                התהליך ירוץ ברקע ועשוי לקחת מספר דקות. 
+                                האם אתה בטוח שברצונך להמשיך?
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>ביטול</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleUpdateAllProfiles}>כן, הפעל עדכון</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+              )}
+              {/* --- END OF NEW BUTTON --- */}
+
               <Button onClick={refresh} variant="outline" size="icon" title="רענן רשימה" disabled={loading}>
                 <RotateCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               </Button>
             </div>
           </div>
+          {/* ... a lot of code ... */}
           <div className="flex flex-col sm:flex-row gap-2">
             {!filters.separateFiltering && (
               <div className="flex-1">
