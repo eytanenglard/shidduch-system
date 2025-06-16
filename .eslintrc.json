@@ -1,7 +1,10 @@
 {
   "extends": "next/core-web-vitals",
+  "plugins": [
+    "@typescript-eslint"  // <--- תוסיף את השורה הזו
+  ],
   "rules": {
-    // כאן שמרתי את החוקים המותאמים אישית שלך
+    // החוקים המותאמים אישית שלך נשארים כאן
     "react/prop-types": "off",
     "@typescript-eslint/no-explicit-any": "warn"
   }
