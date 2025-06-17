@@ -27,6 +27,14 @@ src/
         └── settings/
                 └── page.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\(authenticated)\settings\page.tsx)
     └── api/
+        └── ai/
+                └── ai_contents.txt  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\ai\ai_contents.txt)
+            └── find-matches/
+                    └── route.ts  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\ai\find-matches\route.ts)
+            └── generate-rationale/
+                    └── route.ts  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\ai\generate-rationale\route.ts)
+            └── update-all-profiles/
+                    └── route.ts  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\ai\update-all-profiles\route.ts)
         └── auth/
                 └── auth_contents.txt  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth\auth_contents.txt)
             └── complete-password-change/
@@ -64,6 +72,8 @@ src/
         └── availability/
             └── check/
                     └── route.ts  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\availability\check\route.ts)
+        └── chat/
+                └── route.ts  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\chat\route.ts)
         └── matchmaker/
             └── candidates/
                     └── route.ts  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\matchmaker\candidates\route.ts)
@@ -191,7 +201,8 @@ src/
                         └── matchingCriteria.ts  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new\constants\matchingCriteria.ts)
                 └── dialogs/
                         ├── ActionDialogs.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new\dialogs\ActionDialogs.tsx)
-                        └── AddManualCandidateDialog.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new\dialogs\AddManualCandidateDialog.tsx)
+                        ├── AddManualCandidateDialog.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new\dialogs\AddManualCandidateDialog.tsx)
+                        └── AiMatchAnalysisDialog.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new\dialogs\AiMatchAnalysisDialog.tsx)
                 └── Filters/
                         ├── ActiveFilters.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new\Filters\ActiveFilters.tsx)
                         ├── FilterPanel.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new\Filters\FilterPanel.tsx)
@@ -252,6 +263,7 @@ src/
                 ├── ProfileCard.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\profile\ProfileCard.tsx)
                 ├── constants.ts  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\profile\constants.ts)
                 ├── index.ts  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\profile\index.ts)
+                ├── profile_contents.txt  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\profile\profile_contents.txt)
                 └── utils.ts  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\profile\utils.ts)
             └── elements/
                     ├── MinimalCard.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\profile\elements\MinimalCard.tsx)
@@ -300,6 +312,8 @@ src/
         ├── AvailabilityStatus.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\AvailabilityStatus.tsx)
         ├── Providers.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\Providers.tsx)
         └── account-settings.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\account-settings.tsx)
+    └── ChatWidget/
+            └── ChatWidget.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\ChatWidget\ChatWidget.tsx)
     └── HomePage/
             ├── HomePage.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\HomePage.tsx)
             └── HomePage_contents.txt  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\HomePage_contents.txt)
@@ -450,7 +464,9 @@ src/
                 ├── suggestion.hbs  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\lib\email\templates\suggestion.hbs)
                 └── welcome.hbs  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\lib\email\templates\welcome.hbs)
     └── services/
+            ├── aiService.ts  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\lib\services\aiService.ts)
             ├── availabilityService.ts  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\lib\services\availabilityService.ts)
+            ├── profileAiService.ts  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\lib\services\profileAiService.ts)
             └── verificationService.ts  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\lib\services\verificationService.ts)
 └── types/
         ├── cloudinary.d.ts  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\types\cloudinary.d.ts)

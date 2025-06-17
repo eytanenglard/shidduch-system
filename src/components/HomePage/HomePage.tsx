@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button"; // כבר לא צריך את Button ישירות כאן
+// import { MessageCircle } from "lucide-react"; // גם את האייקון הישן לא צריך
 
 // Import all sections
 import HeroSection from "./sections/HeroSection";
@@ -16,7 +17,10 @@ import FAQSection from "./sections/FAQSection";
 import PrivacyAssuranceSection from "./sections/PrivacyAssuranceSection";
 import CTASection from "./sections/CTASection";
 import FooterSection from "./sections/FooterSection";
-import { MessageCircle } from "lucide-react";
+
+// 1. Import our new ChatWidget
+//    הנתיב היחסי מ-HomePage ל-ChatWidget
+import ChatWidget from "../ChatWidget/ChatWidget";
 
 export default function HomePage() {
   const { data: session } = useSession();
@@ -27,6 +31,7 @@ export default function HomePage() {
   }, []);
 
   return (
+    // The main div should allow the chat widget to be fixed relative to the viewport
     <div className="min-h-screen w-full overflow-x-hidden">
       <HeroSection session={session} isVisible={isVisible} />
       <ValuePropositionSection />
@@ -40,7 +45,8 @@ export default function HomePage() {
       <CTASection />
       <FooterSection />
 
-      {/* Floating Contact Button - Enhanced with animation */}
+      {/* 2. Remove the old floating button */}
+      {/*
       <div className="fixed bottom-8 left-8 z-50 animate-bounce-slow">
         <Button
           size="lg"
@@ -50,6 +56,10 @@ export default function HomePage() {
           <span className="group-hover:mr-1 transition-all">דברו איתנו</span>
         </Button>
       </div>
+      */}
+      
+      {/* 3. Add our new, shiny Chat Widget */}
+      <ChatWidget />
     </div>
   );
 }

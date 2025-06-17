@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api
-# Generated on: 2025-06-16 06:53:30
+# Generated on: 2025-06-17 20:45:32
 ################################################################################
 
 ================================================================================
@@ -16,199 +16,7 @@ File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\api_contents.
 Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\ai
 ================================================================================
 
---------------------------------------------------------------------------------
-File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\ai\ai_contents.txt
---------------------------------------------------------------------------------
-Content:
-################################################################################
-# Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\ai
-# Generated on: 2025-06-15 19:29:26
-################################################################################
-
-================================================================================
-Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\ai
-================================================================================
-
---------------------------------------------------------------------------------
-File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\ai\ai_contents.txt
---------------------------------------------------------------------------------
-[This is the output log file itself. Content not included.]
-
-================================================================================
-Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\ai\find-matches
-================================================================================
-
---------------------------------------------------------------------------------
-File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\ai\find-matches\route.ts
---------------------------------------------------------------------------------
-Content:
-// src/app/api/ai/find-matches/route.ts
-
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import prisma from "@/lib/prisma";
-import { UserRole, Prisma } from "@prisma/client";
-
-export async function POST(req: NextRequest) {
-  try {
-    // 1. Authentication and Authorization
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-    }
-
-    // 2. Body Validation
-    const body = await req.json();
-    const { targetUserId, candidatePoolIds } = body;
-
-    if (!targetUserId || !Array.isArray(candidatePoolIds) || candidatePoolIds.length === 0) {
-      return NextResponse.json({ success: false, error: "Invalid request body. 'targetUserId' (string) and 'candidatePoolIds' (array) are required." }, { status: 400 });
-    }
-
-    // 3. Fetch the profile for the target user to get their profileId
-    const targetProfile = await prisma.profile.findUnique({
-        where: { userId: targetUserId },
-        select: { id: true }
-    });
-
-    if (!targetProfile) {
-        return NextResponse.json({ success: false, error: "Target user profile not found." }, { status: 404 });
-    }
-    
-    // --- START OF FIX 1: Cast the vector to text ---
-    // We explicitly cast the vector to ::text, which Prisma understands as a string.
-    const vectorResult: { vector_text: string }[] = await prisma.$queryRaw`
-      SELECT vector::text as vector_text FROM "profile_vectors" WHERE "profileId" = ${targetProfile.id} LIMIT 1;
-    `;
-
-    if (!vectorResult || vectorResult.length === 0 || !vectorResult[0]?.vector_text) {
-        return NextResponse.json({ success: false, error: "Vector for target user not found. AI profile may still be processing." }, { status: 404 });
-    }
-
-    // Now, we parse the string back into a number array.
-    // The string looks like '[0.1,0.2,...]', so we remove brackets and split.
-    const targetVector: number[] = JSON.parse(vectorResult[0].vector_text);
-    // --- END OF FIX 1 ---
-
-    // 4. Perform Vector Similarity Search
-    // We still use the original format for the similarity search operation itself.
-    const targetVectorString = `[${targetVector.join(',')}]`;
-
-    // --- START OF FIX 2: No change needed here, the previous query was the issue ---
-    // The error was in retrieving the target vector, not in the search itself.
-    // This query is fine because the `vector` column is only used for calculation
-    // and is not returned in the final SELECT statement.
-    const results: { profileId: string; similarity: number }[] = await prisma.$queryRaw`
-      SELECT
-        pv."profileId",
-        1 - (pv.vector <=> ${targetVectorString}::vector) as similarity
-      FROM
-        "profile_vectors" AS pv
-      INNER JOIN 
-        "Profile" AS p ON pv."profileId" = p.id
-      WHERE
-        p."userId" IN (${Prisma.join(candidatePoolIds)}) AND p."userId" != ${targetUserId}
-      ORDER BY
-        similarity DESC
-      LIMIT 20;
-    `;
-    // --- END OF FIX 2 ---
-    
-    // 5. Map results from profileId back to userId for the frontend
-    const profileIdToUserIdMap = new Map<string, string>();
-    const allProfileIds = results.map(r => r.profileId);
-
-    if (allProfileIds.length > 0) {
-        const profiles = await prisma.profile.findMany({
-            where: { id: { in: allProfileIds } },
-            select: { id: true, userId: true }
-        });
-        profiles.forEach(p => profileIdToUserIdMap.set(p.id, p.userId));
-    }
-
-    const finalMatches = results.map(r => ({
-        userId: profileIdToUserIdMap.get(r.profileId) || '',
-        score: Math.round(r.similarity * 100)
-    })).filter(m => m.userId);
-
-    // 6. Return the sorted list of matches
-    return NextResponse.json({ success: true, matches: finalMatches });
-
-  } catch (error) {
-    console.error('Error in /api/ai/find-matches:', error);
-    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
-    return NextResponse.json({ success: false, error: "Internal server error.", details: errorMessage }, { status: 500 });
-  }
-}
---- End of Content for route.ts ---
-
-================================================================================
-Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\ai\generate-rationale
-================================================================================
-
---------------------------------------------------------------------------------
-File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\ai\generate-rationale\route.ts
---------------------------------------------------------------------------------
-Content:
-// File: src/app/api/ai/generate-rationale/route.ts
-
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { UserRole } from "@prisma/client";
-import { generateNarrativeProfile } from "@/lib/services/profileAiService";
-import { analyzePairCompatibility } from "@/lib/services/aiService";
-
-export async function POST(req: NextRequest) {
-  try {
-    // 1. Authentication and Authorization
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-    }
-
-    // 2. Body Validation
-    const body = await req.json();
-    const { userId1, userId2 } = body;
-
-    if (!userId1 || !userId2) {
-      return NextResponse.json({ success: false, error: "Invalid request body. 'userId1' and 'userId2' are required." }, { status: 400 });
-    }
-    
-    // 3. Generate Narrative Profiles for both users
-    // We run them in parallel for efficiency.
-    const [profile1Text, profile2Text] = await Promise.all([
-        generateNarrativeProfile(userId1),
-        generateNarrativeProfile(userId2)
-    ]);
-
-    if (!profile1Text) {
-        return NextResponse.json({ success: false, error: `Could not generate narrative profile for user ${userId1}.` }, { status: 404 });
-    }
-    if (!profile2Text) {
-        return NextResponse.json({ success: false, error: `Could not generate narrative profile for user ${userId2}.` }, { status: 404 });
-    }
-
-    // 4. Call the AI service to get the compatibility analysis
-    const analysisResult = await analyzePairCompatibility(profile1Text, profile2Text);
-
-    if (!analysisResult) {
-        return NextResponse.json({ success: false, error: "Failed to get compatibility analysis from AI service." }, { status: 500 });
-    }
-
-    // 5. Return the successful analysis
-    return NextResponse.json({ success: true, analysis: analysisResult });
-
-  } catch (error) {
-    console.error('Error in /api/ai/generate-rationale:', error);
-    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
-    return NextResponse.json({ success: false, error: "Internal server error.", details: errorMessage }, { status: 500 });
-  }
-}
---- End of Content for route.ts ---
-
---- End of Content for ai_contents.txt ---
+(This directory contains subdirectories but no files directly. See subdirectories below.)
 
 ================================================================================
 Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\ai\find-matches
@@ -382,6 +190,122 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     console.error('Error in /api/ai/generate-rationale:', error);
+    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
+    return NextResponse.json({ success: false, error: "Internal server error.", details: errorMessage }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\ai\update-all-profiles
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\ai\update-all-profiles\route.ts
+--------------------------------------------------------------------------------
+Content:
+// File: src/app/api/ai/update-all-profiles/route.ts
+
+import { NextResponse } from 'next/server';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { UserRole } from "@prisma/client";
+import { updateUserAiProfile } from '@/lib/services/profileAiService';
+
+/**
+ * פונקציית עזר שמריצה את תהליך העדכון ברקע
+ * ומדפיסה לוג מפורט בסיומו.
+ * @param userIds - מערך מזהי המשתמשים לעדכון
+ * @param adminId - מזהה האדמין שהפעיל את התהליך
+ */
+async function runBulkUpdateAndLog(userIds: string[], adminId: string) {
+  const totalUsers = userIds.length;
+  // הודעת התחלה ברורה לתהליך הרקע
+  console.log(`\n\n======================================================================`);
+  console.log(`[AI Bulk Update - BG] Starting background process for ${totalUsers} users.`);
+  console.log(`                 Initiated by admin: ${adminId}`);
+  console.log(`======================================================================\n`);
+
+  try {
+    // נשתמש ב-Promise.allSettled כדי להמתין לסיום כל העדכונים, גם אם חלקם נכשלים
+    const results = await Promise.allSettled(
+      userIds.map(userId => updateUserAiProfile(userId))
+    );
+
+    const successCount = results.filter(r => r.status === 'fulfilled').length;
+    const failedCount = totalUsers - successCount;
+    
+    // איסוף מזהי המשתמשים שנכשלו (אם יש כאלה)
+    const failedUserIds = results
+      .map((result, index) => ({ result, userId: userIds[index] }))
+      .filter(({ result }) => result.status === 'rejected')
+      .map(({ userId }) => userId);
+
+    // הדפסת סיכום מפורט
+    console.log(`\n======================================================================`);
+    console.log(`[AI Bulk Update - BG] Process Finished. Final Summary:`);
+    console.log(`----------------------------------------------------------------------`);
+    console.log(`  Total profiles to update: ${totalUsers}`);
+    console.log(`  ✅ Successfully updated:    ${successCount}`);
+    console.log(`  ❌ Failed to update:        ${failedCount}`);
+    if (failedCount > 0) {
+      console.log(`  Failed User IDs: ${failedUserIds.join(', ')}`);
+    }
+    console.log(`======================================================================\n\n`);
+
+  } catch (error) {
+    // במקרה של שגיאה קריטית בתהליך הרקע עצמו
+    console.error('[AI Bulk Update - BG] A critical error occurred in the background process:', error);
+  }
+}
+
+export async function POST() {
+  try {
+    // 1. Authentication and Authorization (ADMIN ONLY)
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || session.user.role !== UserRole.ADMIN) {
+      return NextResponse.json({ success: false, error: "Unauthorized: Admin access required." }, { status: 403 });
+    }
+    const adminId = session.user.id;
+
+    // כאן הלוג המקורי נשאר, כדי שתראה שה-API הופעל
+    console.log(`[AI Bulk Update] API endpoint hit by admin: ${adminId}`);
+
+    // 2. Fetch all active user IDs that have a profile
+    const usersToUpdate = await prisma.user.findMany({
+      where: {
+        status: 'ACTIVE',
+        profile: {
+          isNot: null,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    const userIds = usersToUpdate.map(user => user.id);
+    const totalUsers = userIds.length;
+
+    if (totalUsers === 0) {
+      return NextResponse.json({ success: true, message: "No active users with profiles found to update." });
+    }
+
+    // 3. Trigger background updates without waiting for them to complete
+    //    The process will run and log its final summary independently.
+    runBulkUpdateAndLog(userIds, adminId).catch(err => {
+        console.error(`[AI Bulk Update] Failed to kick off background logging process:`, err);
+    });
+
+    const message = `AI profile update process has been initiated for ${totalUsers} users. The process will run in the background. Check server logs for completion status.`;
+    console.log(`[AI Bulk Update] Immediate API response sent. ${message}`);
+
+    // 4. Return an immediate success response
+    return NextResponse.json({ success: true, message });
+
+  } catch (error) {
+    console.error('[AI Bulk Update] A critical error occurred in the API endpoint:', error);
     const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
     return NextResponse.json({ success: false, error: "Internal server error.", details: errorMessage }, { status: 500 });
   }
@@ -2878,20 +2802,19 @@ import { VerificationService } from '@/lib/services/verificationService';
 
 const prisma = new PrismaClient();
 
-// עדכון LogMetadata סופי ומלא
 type LogMetadata = {
   userId?: string;
   email?: string;
   firstName?: string;
   lastName?: string;
   status?: string;
-  errorObject?: unknown;     // לשמירת אובייקט השגיאה המקורי
-  errorMessage?: string;     // הודעת השגיאה כטקסט
-  errorName?: string;        // error.name
-  errorCode?: string;        // error.code (למשל, שגיאות Prisma)
-  errorMeta?: unknown;       // error.meta (למשל, שגיאות Prisma)
-  errorStack?: string;       // error.stack
-  errorContext?: string;     // להוספת הקשר לשגיאה (למשל, "Main catch block", "Inside handleError")
+  errorObject?: unknown;
+  errorMessage?: string;
+  errorName?: string;
+  errorCode?: string;
+  errorMeta?: unknown;
+  errorStack?: string;
+  errorContext?: string;
   timestamp?: string;
   hasEmail?: boolean;
   hasPassword?: boolean;
@@ -2910,13 +2833,10 @@ const logger = {
     }));
   },
   error: (message: string, meta?: LogMetadata) => {
-    // נוודא ש-errorObject לא נשלח ישירות אם הוא מכיל מידע רגיש או גדול מדי בצורה לא מבוקרת.
-    // לרוב, המאפיינים שחילצנו (errorMessage, errorName וכו') מספיקים ללוג.
     const loggableMeta = { ...meta };
     if (loggableMeta.errorObject && process.env.NODE_ENV !== 'development') {
-        // בסביבת פרודקשן, אולי נרצה להסיר את האובייקט המלא אם הוא לא טופל כראוי
-        // delete loggableMeta.errorObject; 
-        // או להשאיר רק חלקים נבחרים ממנו. כרגע נשאיר אותו.
+        // In production, we might want to remove the full object if not handled properly.
+        // For now, we'll keep it.
     }
     console.error(JSON.stringify({
       timestamp: new Date().toISOString(),
@@ -2938,7 +2858,7 @@ function handleError(error: unknown): { message: string; status: number } {
     const logMeta: LogMetadata = { 
         errorContext: "Inside handleError before processing",
         timestamp: new Date().toISOString(),
-        errorObject: error // שמירת האובייקט המקורי
+        errorObject: error
     };
 
     if (error instanceof Error) {
@@ -2955,24 +2875,24 @@ function handleError(error: unknown): { message: string; status: number } {
         logMeta.errorCode = error.code;
         logMeta.errorMeta = error.meta;
     } else if (typeof error === 'object' && error !== null && 'code' in error) {
-        // טיפול במקרים שבהם error הוא אובייקט עם שדה code אך אינו PrismaClientKnownRequestError
         logMeta.errorCode = String((error as { code: unknown }).code);
     }
     
     logger.error("Error received in handleError", logMeta);
 
-
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       switch (error.code) {
-        case 'P2002': 
+        case 'P2002': {
           const target = error.meta?.target as string[] | undefined;
           if (target?.includes('email')) {
             return { message: 'משתמש עם כתובת אימייל זו כבר קיים במערכת.', status: 409 };
           }
           return { message: `משתמש עם פרטים אלה כבר קיים במערכת (קוד ${error.code}).`, status: 409 };
-        case 'P2003': 
+        }
+        case 'P2003': {
             const fieldName = error.meta?.field_name as string | undefined;
             return { message: `שגיאת תלות בנתונים (שדה: ${fieldName || 'לא ידוע'}). אנא נסה שנית.`, status: 500};
+        }
         case 'P2014': return { message: 'שגיאה בנתונים שהוזנו.', status: 400 };
         default: 
             return { message: `שגיאה בשמירת הנתונים (קוד שגיאת DB: ${error.code}).`, status: 500 };
@@ -2985,18 +2905,14 @@ function handleError(error: unknown): { message: string; status: number } {
        if (['חסרים פרטים חובה', 'כתובת אימייל לא תקינה', 'הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר'].includes(error.message)) {
            return { message: error.message, status: 400 };
        }
-       // אם השגיאה הגיעה מ-VerificationService.createVerification, היא תהיה Error instance
-       // וההודעה שלה תהיה השגיאה המקורית מ-Prisma או הודעה מותאמת אישית מהשירות.
-       // כאן אנחנו נותנים להודעה המקורית לעבור, או שיש טיפול ספציפי אם ההודעה ידועה.
        if (error.message.includes('אירעה שגיאה ביצירת קוד אימות') || 
            (error.cause instanceof Prisma.PrismaClientKnownRequestError && error.cause.code === 'P2003')) {
-            // אם השגיאה המקורית היא P2003 (מ-cause), החזר הודעה מתאימה
             return { message: 'אירעה שגיאה ביצירת רשומת האימות עקב בעיית תלות. אנא נסה שנית.', status: 500 };
        }
       return { message: error.message, status: 400 }; 
     }
     return { message: 'אירעה שגיאה בלתי צפויה.', status: 500 };
-  }
+}
 
 
 export async function POST(req: Request) {
@@ -3061,8 +2977,8 @@ export async function POST(req: Request) {
             isVerified: false, 
             isProfileComplete: false, 
             isPhoneVerified: false, 
-              source: UserSource.REGISTRATION,
-               termsAndPrivacyAcceptedAt: new Date(), 
+            source: UserSource.REGISTRATION,
+            termsAndPrivacyAcceptedAt: new Date(), 
           },
       });
       logger.info('User created successfully within transaction', { userId: user.id });
@@ -3126,11 +3042,10 @@ export async function POST(req: Request) {
     );
 
   } catch (error: unknown) { 
-    // בניית אובייקט הלוג בצורה מבוקרת
     const logMetaForCatch: LogMetadata = { 
         errorContext: "Main catch block in POST /api/auth/register",
         timestamp: new Date().toISOString(),
-        errorObject: error // שמור את האובייקט המקורי
+        errorObject: error
     };
 
     if (error instanceof Error) {
@@ -3151,9 +3066,8 @@ export async function POST(req: Request) {
     
     logger.error('Initial registration failed', logMetaForCatch);
 
-    const { message, status } = handleError(error); // handleError יבצע לוגינג משלו גם כן
+    const { message, status } = handleError(error);
 
-    // בניית details עבור תגובת השגיאה לקליינט
     const responseErrorDetails = process.env.NODE_ENV === 'development' ? {
         name: logMetaForCatch.errorName,
         message: logMetaForCatch.errorMessage,
@@ -3161,7 +3075,6 @@ export async function POST(req: Request) {
         meta: logMetaForCatch.errorMeta,
         stack: logMetaForCatch.errorStack
     } : undefined;
-
 
     return NextResponse.json(
       {
@@ -4484,6 +4397,208 @@ export async function POST(req: Request) {
       { error: "Failed to check availability" },
       { status: 500 }
     );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\chat
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\chat\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/chat/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
+import nodemailer from 'nodemailer';
+
+// --- START: Knowledge Base ---
+const knowledgeBase = [
+  // ... (כל מאגר הידע נשאר ללא שינוי)
+  // --- General & About Matchpoint ---
+  {
+    question: "מה זה מאצ'פוינט? מה אתם עושים?",
+    answer: "מאצ'פוינט (Match Point) היא מערכת שידוכים מתקדמת המיועדת לרווקים ורווקות מהציבור הדתי המחפשים קשר רציני לטווח ארוך. אנו משלבים טכנולוגיית בינה מלאכותית (AI) עם ליווי אישי של שדכנים מקצועיים כדי לספק הצעות מדויקות ואיכותיות המבוססות על ערכים עמוקים והתאמה אישיותית."
+  },
+  {
+    question: "מי המייסדים של החברה?",
+    answer: "המייסדים שלנו הם דינה אנגלרד, שדכנית ראשית עם ניסיון עשיר, ואיתן אנגלרד, יזם טכנולוגי ומנכ\"ל החברה, שפיתח את הפלטפורמה הטכנולוגית הייחודית שלנו."
+  },
+  {
+    question: "למי השירות שלכם מיועד?",
+    answer: "השירות שלנו מיועד לרווקים ורווקות יהודים מכל הזרמים (דתי-לאומי, חרדי, אורתודוקסי-מודרני, מסורתי ועוד) שמחפשים קשר משמעותי למטרת נישואין. אנו פונים למי שנמאס לו מאפליקציות היכרויות שטחיות ומחפש תהליך רציני, דיסקרטי ויעיל יותר."
+  },
+  {
+    question: "במה אתם שונים מאפליקציות היכרויות או שדכנים אחרים?",
+    answer: "הייחוד שלנו הוא השילוב המושלם בין טכנולוגיה למגע אנושי. בניגוד לאפליקציות 'סוואיפ', אצלנו הפרטיות היא ערך עליון והפרופיל שלך גלוי רק לשדכנים. בניגוד לשדכנים מסורתיים, אנו משתמשים ב-AI לניתוח מעל 50 ממדי התאמה, מה שמאפשר לשדכנים שלנו לנהל מאגר גדול יותר ביעילות ולמצוא התאמות מדויקות יותר. כך אנחנו מציעים את הטוב משני העולמות: יעילות ודיוק טכנולוגי לצד הבנה וליווי אנושי."
+  },
+  // --- Process & Questionnaire ---
+  {
+    question: "איך התהליך עובד?",
+    answer: "התהליך מתחיל בהרשמה ומילוי פרופיל אישי. לאחר מכן, תתבקש/י למלא שאלון מקיף המחולק לחמישה 'עולמות': אישיות, ערכים, זוגיות, העדפות לפרטנר ודת. התשובות שלך מנותחות על ידי מערכת ה-AI שלנו ונסקרות על ידי שדכן אישי. השדכן, בסיוע המערכת, מציע לך התאמות פוטנציאליות. רק לאחר הסכמה הדדית, ובתיווך השדכן, נוצר קשר ראשוני."
+  },
+  {
+    question: "מה זה השאלון ומהם ה'עולמות'?",
+    answer: "השאלון שלנו הוא כלי מעמיק שנועד להכיר אותך לעומק. הוא מחולק לחמישה 'עולמות' נושאיים: 'עולם האישיות' (מי אני), 'עולם הערכים' (מה מניע אותי), 'עולם הזוגיות' (מה אני מחפש/ת בקשר), 'עולם הפרטנר' (מי מתאים לי), ו'עולם הדת והמסורת'. מילוי השאלון אורך כ-30-40 דקות, אך ניתן לעשות זאת בחלקים."
+  },
+  {
+    question: "האם אני חייב/ת למלא את כל השאלון בבת אחת?",
+    answer: "בהחלט לא. המערכת שומרת את התקדמותך באופן אוטומטי, כך שתוכל/י לעצור בכל שלב ולחזור להשלים את השאלון בזמנך החופשי."
+  },
+  {
+    question: "האם אפשר להירשם כאורח/ת בלי לפתוח חשבון?",
+    answer: "כן, ניתן למלא את השאלון גם ללא חשבון כדי להתרשם, אך חשוב לדעת שבמקרה כזה התשובות לא יישמרו במערכת ולא נוכל להציע לך שידוכים. כדי לשמור את ההתקדמות ולהיכנס למאגר, יש צורך בהרשמה והתחברות."
+  },
+  // --- Pricing & Fees ---
+  {
+    question: "מה המחיר של השירות? כמה זה עולה?",
+    answer: "המודל העסקי שלנו מבוסס על הצלחה. ההרשמה למערכת ומילוי הפרופיל והשאלונים הם ללא עלות. דמי הצלחה בסך 4,000 ש\"ח (כולל מע\"מ) נגבים רק במקרה של חתונה הנובעת משידוך ישיר דרך המערכת שלנו. בנוסף, קיימת אפשרות לחבילת הצעות נוספות וליווי מורחב בתשלום חד-פעמי של 350 ש\"ח."
+  },
+  {
+    question: "האם יש תשלומים חודשיים?",
+    answer: "לא, אין אצלנו דמי מנוי חודשיים. התשלום העיקרי הוא דמי הצלחה, רק כאשר מוצאים את הזיווג ומתחתנים. ישנה אפשרות לרכישה חד-פעמית של חבילת הצעות נוספות אם תרצה/י בכך."
+  },
+  // --- Privacy & Security ---
+  {
+    question: "מי יכול לראות את המידע והתמונות שלי?",
+    answer: "הפרטיות שלך היא ערך עליון עבורנו. בניגוד לאפליקציות אחרות, הפרופיל שלך אינו ציבורי ואינו גלוי למשתמשים אחרים. רק צוות השדכנים המורשה של מאצ'פוינט יכול לצפות בפרופיל המלא שלך. כאשר מוצעת לך התאמה, הצד השני יראה רק פרטים כלליים ותמציתיים. פרטים מלאים ותמונות נחשפים רק לאחר הסכמה הדדית ובהדרגה, בתיווך השדכן."
+  },
+  {
+    question: "איך אתם מאבטחים את המידע שלי?",
+    answer: "אנו משתמשים באמצעי אבטחה מתקדמים, כולל הצפנת מידע מקצה לקצה (SSL/TLS), הצפנת סיסמאות, בקרות גישה מבוססות תפקידים, וחומות אש. המידע שלך מאוחסן בשרתים מאובטחים של ספקים מובילים בעולם."
+  },
+  // --- Features for Matchmakers ---
+  {
+    question: "אילו כלים יש לשדכנים במערכת?",
+    answer: "השדכנים שלנו משתמשים בכלים מתקדמים לניהול מועמדים, כולל: 'Split View' להשוואה נוחה בין גברים לנשים, פאנל פילטרים מפורט, יכולת להוסיף מועמדים באופן ידני, וכלי ניתוח התאמות מבוססי AI."
+  },
+  {
+    question: "איך ה-AI עוזר לשדכנים?",
+    answer: "ה-AI מסייע לשדכנים בכמה דרכים: ראשית, הוא מנתח פרופילים על פי עשרות ממדים כדי להציף התאמות פוטנציאליות שהעין האנושית עלולה לפספס. שנית, השדכן יכול לבחור 'מועמד מטרה', והמערכת תמצא עבורו את ההתאמות הטובות ביותר מהמאגר, ממוינות לפי ציון התאמה. לבסוף, כלי 'ניתוח ההתאמה' מספק לשדכן סיכום מפורט על נקודות החוזק והאתגרים הפוטנציאליים בכל שידוך."
+  },
+  {
+    question: "האם שדכן יכול לערוך את הפרופיל שלי?",
+    answer: "כן, אחד היתרונות של הליווי האישי הוא שהשדכן יכול לסייע לך להציג את עצמך בצורה הטובה ביותר. הוא יכול לערוך את הפרופיל, לנהל את התמונות, ולעדכן פרטים כדי למקסם את סיכויי ההתאמה שלך."
+  },
+  // --- Success & Miscellaneous ---
+  {
+    question: "כמה זמן לוקח למצוא התאמה?",
+    answer: "זה משתנה מאדם לאדם, אך בזכות השילוב של טכנולוגיה וליווי אישי, התהליך אצלנו יעיל ומהיר יותר מהממוצע. בעוד הממוצע בשוק עומד על כ-2.5 שנים, רוב המשתמשים שלנו מוצאים התאמות מוצלחות תוך 6-12 חודשים."
+  },
+  {
+    question: "האם יש לכם גם אירועים או מפגשים?",
+    answer: "כן, אנו מארגנים מגוון אירועים קהילתיים כמו מפגשים חברתיים, סדנאות והרצאות. זוהי הזדמנות מצוינת להכיר אנשים חדשים בסביבה נעימה ותומכת. חברי המערכת מקבלים גישה מועדפת לאירועים אלו."
+  },
+  {
+    question: "מה קורה אחרי שנמצאה התאמה?",
+    answer: "לאחר הסכמה הדדית, השדכן המלווה יוצר את הקשר הראשוני ביניכם, בדרך כלל על ידי העברת מספרי טלפון. השדכן ממשיך ללוות אתכם, נותן עצות ומקבל משוב לאחר הפגישות כדי לסייע לקשר להתקדם בצורה הטובה ביותר."
+  },
+];
+// --- END: Knowledge base section ---
+
+const knowledgeContext = knowledgeBase
+  .map(item => `שאלה: ${item.question}\nתשובה: ${item.answer}`)
+  .join('\n\n');
+
+// Initialize the Generative AI client
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
+
+const safetySettings = [
+  { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+  { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
+  { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
+  { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+];
+
+export async function POST(req: NextRequest) {
+  try {
+    const { message, type, userEmail } = await req.json();
+
+    if (!message || typeof message !== "string") {
+      return NextResponse.json({ error: "Message is required" }, { status: 400 });
+    }
+
+    // Handle email sending logic
+    if (type === 'email') {
+      if (!userEmail || typeof userEmail !== "string") {
+        return NextResponse.json({ error: "User email is required for this action" }, { status: 400 });
+      }
+
+      const transporter = nodemailer.createTransport({
+        service: process.env.EMAIL_SERVICE || 'gmail',
+        auth: {
+          user: process.env.GMAIL_USER || process.env.EMAIL_USER,
+          pass: process.env.GMAIL_APP_PASSWORD || process.env.EMAIL_PASS,
+        },
+        tls: {
+          rejectUnauthorized: process.env.NODE_ENV === 'production',
+        }
+      });
+
+      const mailOptions = {
+        from: `"${process.env.EMAIL_FROM_NAME || 'Match Point Chatbot'}" <${process.env.GMAIL_USER || process.env.EMAIL_USER}>`,
+        to: "jewish.matchpoint@gmail.com",
+        subject: "פנייה חדשה מהצ'אט-בוט באתר Match Point",
+        replyTo: userEmail, // Critical for easy replies
+        html: `
+          <div dir="rtl" style="font-family: Arial, sans-serif; text-align: right; line-height: 1.6;">
+            <h2 style="color: #0891b2;">התקבלה הודעה חדשה מהצ'אט-בוט באתר:</h2>
+            <p><strong>מאת:</strong> <a href="mailto:${userEmail}">${userEmail}</a></p>
+            <div style="background-color: #f8f9fa; border-right: 4px solid #06b6d4; padding: 15px; border-radius: 5px; margin-top: 10px;">
+              <p style="margin: 0;">${message.replace(/\n/g, '<br>')}</p>
+            </div>
+            <p style="font-size: 12px; color: #6c757d; margin-top: 20px;">
+              זוהי הודעה אוטומטית. ניתן להשיב למייל זה ישירות כדי לענות לפונה.
+            </p>
+          </div>
+        `,
+      };
+
+      await transporter.sendMail(mailOptions);
+      return NextResponse.json({ reply: "תודה! הודעתך נשלחה בהצלחה. צוות Match Point ייצור איתך קשר בהקדם." });
+    }
+
+    // Default behavior: process question with AI
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", safetySettings });
+
+    const prompt = `
+      אתה עוזר וירטואלי מועיל וידידותי של אתר השידוכים "Match Point". 
+      תפקידך הוא לענות על שאלות משתמשים בעברית, בצורה תמציתית, ברורה ומנומסת.
+      עליך לבסס את תשובתך אך ורק על מאגר הידע שסופק לך.
+      אם השאלה נוגעת לנושא שאינו מופיע במאגר הידע, ענה: "זו שאלה מצוינת, אך אין לי תשובה מוכנה במאגר. איך תרצה/י להמשיך?".
+
+      --- מאגר הידע ---
+      ${knowledgeContext}
+      --- סוף מאגר הידע ---
+
+      שאלת המשתמש: "${message}"
+
+      תשובה:
+    `;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    let text = response.text();
+
+    if (text.includes("אין לי תשובה מוכנה במאגר")) {
+        return NextResponse.json({
+            reply: text,
+            isFallback: true,
+            actions: [
+                { type: 'email', label: 'שלח/י פניה במייל' },
+            ]
+        });
+    }
+
+    return NextResponse.json({ reply: text });
+
+  } catch (error) {
+    console.error("Error in /api/chat route:", error);
+    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
+    return NextResponse.json({ error: "Internal Server Error", details: errorMessage }, { status: 500 });
   }
 }
 --- End of Content for route.ts ---
