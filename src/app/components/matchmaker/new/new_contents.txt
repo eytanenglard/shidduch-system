@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new
-# Generated on: 2025-06-16 09:44:48
+# Generated on: 2025-06-17 09:07:18
 ################################################################################
 
 ================================================================================
@@ -858,13 +858,10 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
       {isSelectableForComparison && onToggleComparison && (
           <div 
               className="absolute bottom-2 right-2 z-10 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
-              // --- START OF FIX ---
-              // מניעת קליק על הכרטיס כולו, והפעלת הפונקציה הנכונה
               onClick={(e) => {
-                  e.stopPropagation(); // Prevent card click
-                  onToggleComparison(candidate, e);
+                  e.stopPropagation(); // מונע את הקליק על הכרטיס
+                  onToggleComparison(candidate, e); // מפעיל את הפונקציה הנכונה
               }}
-              // --- END OF FIX ---
           >
               <div 
                   className="flex items-center space-x-2 bg-white/80 backdrop-blur-sm p-1.5 rounded-md shadow-md cursor-pointer"
@@ -872,7 +869,11 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
                   <Checkbox
                       id={`compare-${candidate.id}`}
                       checked={isSelectedForComparison}
-                      // אין צורך ב-onCheckedChange, ה-div החיצוני מטפל בקליק
+                      // --- START OF FIX ---
+                      // הסרת readOnly והוספת pointer-events-none
+                      // זה הופך את ה-Checkbox לויזואלי בלבד, והקליק מטופל ב-div החיצוני
+                      className="pointer-events-none"
+                      // --- END OF FIX ---
                   />
                   <label
                       htmlFor={`compare-${candidate.id}`}
@@ -1161,12 +1162,14 @@ Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\m
 File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new\CandidatesManager\CandidatesList.tsx
 --------------------------------------------------------------------------------
 Content:
-import React, { useState, useCallback, useEffect, useRef } from "react";
+// File: src/app/components/matchmaker/new/CandidatesManager/CandidatesList.tsx
+
+import React, { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { UserX, Edit } from "lucide-react";
 import MinimalCard from "../CandidateCard/MinimalCard";
 import QuickView from "../CandidateCard/QuickView";
 import { ProfileCard } from "@/app/components/profile";
-import type { Candidate, CandidateAction } from "../types/candidates";
+import type { Candidate, CandidateAction, MobileView } from "../types/candidates";
 import type { QuestionnaireResponse } from "@/types/next-auth";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -1188,6 +1191,7 @@ import { toast } from "sonner";
 import { ActionDialogs } from "../dialogs/ActionDialogs";
 import NewSuggestionForm from "../../suggestions/NewSuggestionForm";
 import MatchmakerEditProfile from "../MatchmakerEditProfile";
+import { cn } from "@/lib/utils";
 
 interface CreateSuggestionData {
   priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
@@ -1202,9 +1206,6 @@ interface CreateSuggestionData {
   firstPartyNotes?: string;
   secondPartyNotes?: string;
 }
-// בראש הקובץ CandidatesList.tsx
-
-// ... imports ...
 
 interface CandidatesListProps {
   candidates: (Candidate & { aiScore?: number })[];
@@ -1212,6 +1213,7 @@ interface CandidatesListProps {
   onCandidateClick?: (candidate: Candidate) => void;
   onCandidateAction?: (type: CandidateAction, candidate: Candidate) => void;
   viewMode: "grid" | "list";
+  mobileView: MobileView;
   isLoading?: boolean;
   className?: string;
   highlightTerm?: string;
@@ -1229,10 +1231,11 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   onCandidateClick,
   onCandidateAction,
   viewMode,
+  mobileView,
   isLoading = false,
   className,
   highlightTerm,
-   aiTargetCandidate,
+  aiTargetCandidate,
   onSetAiTarget,
   comparisonSelection,
   onToggleComparison,
@@ -1260,10 +1263,8 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     null
   );
 
-  // State for mobile detection
   const [isMobile, setIsMobile] = useState(false);
 
-  // Check screen size on mount and resize
   useEffect(() => {
     const checkScreenSize = () => {
       setIsMobile(window.innerWidth < 768);
@@ -1408,14 +1409,12 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   };
 
   const handleMouseEnter = (candidate: Candidate, e?: React.MouseEvent) => {
-    // On mobile, disable hover behavior to prevent issues with scrolling
     if (isMobile) return;
 
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
     }
 
-    // מיקום ברירת מחדל
     let top = window.scrollY + window.innerHeight / 3;
     let left = window.innerWidth / 2;
 
@@ -1424,17 +1423,13 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
       if (element) {
         const rect = element.getBoundingClientRect();
         const screenMiddle = window.innerWidth / 2;
-        const isRightPanel = rect.left < screenMiddle; // האם האלמנט בפאנל ימני
+        const isRightPanel = rect.left < screenMiddle;
 
-        // חישוב גובה
         top = rect.top + window.scrollY;
 
-        // קביעת מיקום אופקי לפי הפאנל
         if (isRightPanel) {
-          // אם האלמנט בפאנל ימני, מציג את החלון בצד ימין (אך לא חורג מהמסך)
           left = Math.min(rect.right + 10, window.innerWidth - 430);
         } else {
-          // אם האלמנט בפאנל שמאלי, מציג את החלון בצד שמאל
           left = Math.max(rect.left - 430, 10);
         }
       }
@@ -1454,7 +1449,6 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
       hoverTimeoutRef.current = null;
     }
 
-    // Small delay before hiding to allow moving to the QuickView
     setTimeout(() => {
       if (!quickViewRef.current?.matches(":hover")) {
         setHoveredCandidate(null);
@@ -1465,7 +1459,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   const handleAction = useCallback(
     (action: CandidateAction, candidate: Candidate) => {
       setDialogCandidate(candidate);
-      setHoveredCandidate(null); // Close hover card
+      setHoveredCandidate(null);
 
       switch (action) {
         case "invite":
@@ -1490,6 +1484,19 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     },
     [onCandidateAction, onCandidateClick]
   );
+  
+  const gridLayoutClass = useMemo(() => {
+    if (isMobile) {
+      // Mobile view logic
+      return mobileView === 'double'
+        ? 'grid grid-cols-2 gap-2' // Two columns for mobile
+        : 'grid grid-cols-1 gap-3'; // Single column for mobile
+    }
+    // Desktop view logic
+    return viewMode === 'grid'
+      ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-3 gap-y-4'
+      : 'space-y-4';
+  }, [isMobile, mobileView, viewMode]);
 
   // Loading states render
   if (isLoading) {
@@ -1532,53 +1539,41 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     );
   }
 
-  // Adjust the grid columns for mobile view to make cards smaller
-  const gridColumnsClass = isMobile
-    ? "grid-cols-1"
-    : viewMode === "grid"
-    ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-3 gap-y-4"
-    : "space-y-4";
-
   return (
     <>
-      {/* Candidates List with improved grid/list implementations */}
-      <div className={`${gridColumnsClass} ${className || ""}`}>
+      <div className={cn(gridLayoutClass, className || "")}>
         {candidates.map((candidate) => (
           <div
             key={candidate.id}
             className="group relative"
             onMouseEnter={(e) => handleMouseEnter(candidate, e)}
             onMouseLeave={handleMouseLeave}
-            onClick={() => handleAction("view", candidate)} // Direct click handler for mobile
+            onClick={() => handleAction("view", candidate)}
           >
-<MinimalCard
-  candidate={candidate}
-  onClick={() => handleAction("view", candidate)}
-  onEdit={(c, e) => {
-    e.stopPropagation();
-    handleAction("edit", c);
-  }}
-  className={`
-    ${viewMode === "list" ? "flex flex-row-reverse gap-4 h-32" : ""}
-    ${isMobile ? "transform scale-95" : ""}
-  `}
-  highlightTerm={highlightTerm}
-  aiScore={candidate.aiScore}
-
-  // --- AI Props Corrected and Added ---
-  onSetAiTarget={onSetAiTarget}
-  isAiTarget={aiTargetCandidate?.id === candidate.id} // <-- התיקון לשגיאה שלך
-
-  // --- Props חדשים עבור בחירת השוואה ---
-  isSelectableForComparison={
-    !!aiTargetCandidate && // האם יש מטרה בכלל
-    aiTargetCandidate.profile.gender !== candidate.profile.gender && // האם המועמד מהפאנל הנגדי
-    aiTargetCandidate.id !== candidate.id // ודא שזה לא מועמד המטרה עצמו
-  }
-  isSelectedForComparison={!!comparisonSelection[candidate.id]}
-  onToggleComparison={onToggleComparison}
-/>
-            {/* Edit button - visible when hovering */}
+            <MinimalCard
+              candidate={candidate}
+              onClick={() => handleAction("view", candidate)}
+              onEdit={(c, e) => {
+                e.stopPropagation();
+                handleAction("edit", c);
+              }}
+              className={cn(
+                viewMode === "list" && !isMobile ? "flex flex-row-reverse gap-4 h-32" : "",
+                isMobile && mobileView === 'double' ? 'transform scale-90' : '',
+                isMobile && mobileView === 'single' ? 'transform scale-95' : ''
+              )}
+              highlightTerm={highlightTerm}
+              aiScore={candidate.aiScore}
+              onSetAiTarget={onSetAiTarget}
+              isAiTarget={aiTargetCandidate?.id === candidate.id}
+              isSelectableForComparison={
+                !!aiTargetCandidate &&
+                aiTargetCandidate.profile.gender !== candidate.profile.gender &&
+                aiTargetCandidate.id !== candidate.id
+              }
+              isSelectedForComparison={!!comparisonSelection[candidate.id]}
+              onToggleComparison={onToggleComparison}
+            />
             <button
               className="absolute top-2 left-2 bg-primary text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
               onClick={(e) => {
@@ -1594,7 +1589,6 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         ))}
       </div>
 
-      {/* Quick View Popup - Only shown on non-mobile */}
       {hoveredCandidate && !isMobile && (
         <div
           ref={quickViewRef}
@@ -1616,14 +1610,13 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
             <QuickView
               candidate={hoveredCandidate}
               onAction={(action) => handleAction(action, hoveredCandidate)}
-             onSetAiTarget={(c, e) => onSetAiTarget(c, e)}
-        isAiTarget={aiTargetCandidate?.id === hoveredCandidate.id}
-         />
+              onSetAiTarget={(c, e) => onSetAiTarget(c, e)}
+              isAiTarget={aiTargetCandidate?.id === hoveredCandidate.id}
+            />
           </div>
         </div>
       )}
 
-      {/* Profile Dialog */}
       <Dialog
         open={!!selectedCandidate}
         onOpenChange={(open) => {
@@ -1674,7 +1667,6 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         </DialogContent>
       </Dialog>
 
-      {/* Action Dialogs */}
       <ActionDialogs
         suggestDialog={{
           isOpen: showSuggestDialog,
@@ -1696,7 +1688,6 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         }}
       />
 
-      {/* New Suggestion Form */}
       <NewSuggestionForm
         isOpen={showSuggestDialog}
         onClose={() => setShowSuggestDialog(false)}
@@ -1705,7 +1696,6 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         onSubmit={handleCreateSuggestion}
       />
 
-      {/* Edit Profile Dialog */}
       <MatchmakerEditProfile
         isOpen={showEditProfileDialog}
         onClose={() => setShowEditProfileDialog(false)}
@@ -2021,9 +2011,10 @@ import React, { useMemo, useEffect, useState } from "react";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import CandidatesList from "./CandidatesList";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, XCircle } from "lucide-react";
+import { Sparkles, XCircle, Users, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { Candidate, CandidateAction } from "../types/candidates";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { Candidate, CandidateAction, MobileView } from "../types/candidates";
 import type { FilterState } from "../types/filters";
 import SearchBar from "../Filters/SearchBar";
 import { toast } from "sonner";
@@ -2042,6 +2033,7 @@ interface SplitViewProps {
   onCandidateAction: (type: CandidateAction, candidate: Candidate) => void;
   onCandidateClick: (candidate: Candidate) => void;
   viewMode: "grid" | "list";
+  mobileView: MobileView;
   isLoading?: boolean;
   className?: string;
   
@@ -2077,6 +2069,7 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
     onCandidateAction,
     onCandidateClick,
     viewMode,
+    mobileView,
     isLoading = false,
     className,
     maleSearchQuery = "",
@@ -2146,57 +2139,120 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
     }
   };
   
-  const mapScoresToCandidates = (candidates: Candidate[]): (Candidate & { aiScore?: number })[] => {
-    if (aiMatches.length === 0) return candidates;
+  // --- START OF FIX ---
+  // The logic is now directly inside useMemo, which is cleaner and satisfies the ESLint rule.
+  const maleCandidatesWithScores = useMemo(() => {
+    if (aiMatches.length === 0) return maleCandidates;
     const scoreMap = new Map(aiMatches.map(m => [m.userId, m.score]));
-    return candidates
+    return maleCandidates
       .map(c => ({ ...c, aiScore: scoreMap.get(c.id) }))
       .sort((a, b) => (b.aiScore ?? -1) - (a.aiScore ?? -1));
+  }, [maleCandidates, aiMatches]);
+
+  const femaleCandidatesWithScores = useMemo(() => {
+    if (aiMatches.length === 0) return femaleCandidates;
+    const scoreMap = new Map(aiMatches.map(m => [m.userId, m.score]));
+    return femaleCandidates
+      .map(c => ({ ...c, aiScore: scoreMap.get(c.id) }))
+      .sort((a, b) => (b.aiScore ?? -1) - (a.aiScore ?? -1));
+  }, [femaleCandidates, aiMatches]);
+  // --- END OF FIX ---
+
+  const renderPanelHeader = (gender: 'male' | 'female', isMobileView: boolean = false) => {
+      const panelGenderEnum = gender === 'male' ? Gender.MALE : Gender.FEMALE;
+      const isTargetPanel = aiTargetCandidate?.profile.gender === panelGenderEnum;
+      const isSearchPanel = aiTargetCandidate && aiTargetCandidate.profile.gender !== panelGenderEnum;
+      const count = gender === 'male' ? maleCandidates.length : femaleCandidates.length;
+
+      return (
+        <div className={cn("flex justify-between items-center mb-2 p-2 rounded-t-lg", !isMobileView && "bg-gray-50 border-b")}>
+          <h2 className={cn("text-lg font-bold", gender === 'male' ? "text-blue-800" : "text-purple-800")}>
+            {gender === 'male' ? `מועמדים (${count})` : `מועמדות (${count})`}
+          </h2>
+          <div className="flex-grow" />
+          <div className="flex items-center gap-2">
+              {isTargetPanel && aiTargetCandidate && (
+                <div className="flex items-center gap-2 bg-green-100 p-1.5 rounded-full shadow-sm animate-fade-in">
+                  <span className="text-xs font-medium text-green-800 px-2">מטרה: {aiTargetCandidate.firstName}</span>
+                  <Button size="icon" variant="ghost" className="h-6 w-6 text-green-700 hover:bg-green-200 rounded-full" onClick={onClearAiTarget}>
+                    <XCircle className="h-4 w-4"/>
+                  </Button>
+                </div>
+              )}
+              {isSearchPanel && (
+                <Button size="sm" onClick={handleFindAiMatches} disabled={isAiLoading}>
+                  <Sparkles className={`ml-2 h-4 w-4 ${isAiLoading ? 'animate-spin' : ''}`}/>
+                  {isAiLoading ? 'מחפש...' : 'מצא התאמות AI'}
+                </Button>
+              )}
+          </div>
+        </div>
+      );
   };
 
-  const maleCandidatesWithScores = useMemo(() => mapScoresToCandidates(maleCandidates), [maleCandidates, aiMatches]);
-  const femaleCandidatesWithScores = useMemo(() => mapScoresToCandidates(femaleCandidates), [femaleCandidates, aiMatches]);
-
- const renderPanelHeader = (gender: 'male' | 'female') => {
-    const panelGenderEnum = gender === 'male' ? Gender.MALE : Gender.FEMALE;
-    const isTargetPanel = aiTargetCandidate?.profile.gender === panelGenderEnum;
-    const isSearchPanel = aiTargetCandidate && aiTargetCandidate.profile.gender !== panelGenderEnum;
-    const count = gender === 'male' ? maleCandidates.length : femaleCandidates.length;
-
-    return (
-      <div className="flex justify-between items-center mb-2 p-2 rounded-t-lg bg-gray-50 border-b">
-        <h2 className={cn("text-lg font-bold", gender === 'male' ? "text-blue-800" : "text-purple-800")}>
-          {gender === 'male' ? `מועמדים (${count})` : `מועמדות (${count})`}
-        </h2>
-        <div className="flex-grow" />
-        {isTargetPanel && aiTargetCandidate && (
-          <div className="flex items-center gap-2 bg-green-100 p-1.5 rounded-full shadow-sm animate-fade-in">
-            <span className="text-xs font-medium text-green-800 px-2">מטרה: {aiTargetCandidate.firstName}</span>
-            <Button size="icon" variant="ghost" className="h-6 w-6 text-green-700 hover:bg-green-200 rounded-full" onClick={onClearAiTarget}>
-              <XCircle className="h-4 w-4"/>
-            </Button>
-          </div>
-        )}
-        {isSearchPanel && (
-          <Button size="sm" onClick={handleFindAiMatches} disabled={isAiLoading}>
-            <Sparkles className={`ml-2 h-4 w-4 ${isAiLoading ? 'animate-spin' : ''}`}/>
-            {isAiLoading ? 'מחפש...' : 'מצא התאמות AI'}
-          </Button>
-        )}
-      </div>
-    );
-};
-
-
+  // --- Mobile View using Tabs ---
   if (isMobile) {
     return (
-        <div className="p-4">
-            <h3 className="font-bold text-center">תצוגת AI אינה זמינה במצב מובייל.</h3>
-            <p className="text-center text-sm text-gray-500">אנא עבור לתצוגת דסקטופ כדי להשתמש ביכולות הבינה המלאכותית.</p>
+        <div className={cn("w-full", className)}>
+            <Tabs defaultValue="male" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="male" className="flex items-center gap-2">
+                        <User className="h-4 w-4"/> מועמדים <Badge variant="secondary">{maleCandidates.length}</Badge>
+                    </TabsTrigger>
+                    <TabsTrigger value="female" className="flex items-center gap-2">
+                        <User className="h-4 w-4"/> מועמדות <Badge variant="secondary">{femaleCandidates.length}</Badge>
+                    </TabsTrigger>
+                </TabsList>
+                <TabsContent value="male" className="mt-4">
+                    <div className="p-1 flex flex-col h-full">
+                        {renderPanelHeader('male', true)}
+                        {onMaleSearchChange && <SearchBar value={maleSearchQuery} onChange={onMaleSearchChange} placeholder="חיפוש מועמדים..." genderTarget="male" separateMode={true} />}
+                        <div className="flex-grow min-h-0 overflow-y-auto">
+                            <CandidatesList
+                                candidates={maleCandidatesWithScores}
+                                allCandidates={allCandidates}
+                                onCandidateClick={onCandidateClick}
+                                onCandidateAction={onCandidateAction}
+                                viewMode={viewMode}
+                                mobileView={mobileView}
+                                isLoading={isLoading}
+                                highlightTerm={maleSearchQuery}
+                                aiTargetCandidate={aiTargetCandidate}
+                                onSetAiTarget={onSetAiTarget}
+                                comparisonSelection={comparisonSelection}
+                                onToggleComparison={onToggleComparison}
+                            />
+                        </div>
+                    </div>
+                </TabsContent>
+                <TabsContent value="female" className="mt-4">
+                    <div className="p-1 flex flex-col h-full">
+                        {renderPanelHeader('female', true)}
+                        {onFemaleSearchChange && <SearchBar value={femaleSearchQuery} onChange={onFemaleSearchChange} placeholder="חיפוש מועמדות..." genderTarget="female" separateMode={true} />}
+                        <div className="flex-grow min-h-0 overflow-y-auto">
+                            <CandidatesList
+                                candidates={femaleCandidatesWithScores}
+                                allCandidates={allCandidates}
+                                onCandidateClick={onCandidateClick}
+                                onCandidateAction={onCandidateAction}
+                                viewMode={viewMode}
+                                mobileView={mobileView}
+                                isLoading={isLoading}
+                                highlightTerm={femaleSearchQuery}
+                                aiTargetCandidate={aiTargetCandidate}
+                                onSetAiTarget={onSetAiTarget}
+                                comparisonSelection={comparisonSelection}
+                                onToggleComparison={onToggleComparison}
+                            />
+                        </div>
+                    </div>
+                </TabsContent>
+            </Tabs>
         </div>
     );
   }
 
+  // --- Desktop View using Resizable Panels ---
   return (
     <div className={cn("h-full", className)}>
       <ResizablePanelGroup direction="horizontal" className="min-h-[800px] rounded-lg bg-white shadow-sm border">
@@ -2211,6 +2267,7 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
                 onCandidateClick={onCandidateClick}
                 onCandidateAction={onCandidateAction}
                 viewMode={viewMode}
+                mobileView={mobileView}
                 isLoading={isLoading}
                 highlightTerm={maleSearchQuery}
                 aiTargetCandidate={aiTargetCandidate}
@@ -2221,9 +2278,7 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
             </div>
           </div>
         </ResizablePanel>
-
         <ResizableHandle withHandle />
-
         <ResizablePanel defaultSize={50} minSize={30}>
           <div className="p-3 flex flex-col h-full">
             {renderPanelHeader('female')}
@@ -2235,6 +2290,7 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
                 onCandidateClick={onCandidateClick}
                 onCandidateAction={onCandidateAction}
                 viewMode={viewMode}
+                mobileView={mobileView}
                 isLoading={isLoading}
                 highlightTerm={femaleSearchQuery}
                 aiTargetCandidate={aiTargetCandidate}
@@ -2366,7 +2422,9 @@ Content:
 
 import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { UserPlus, Filter, LayoutGrid, List, ArrowUpDown, RotateCw, BarChart2, Bot, Loader2 } from "lucide-react"; // Added Bot, Loader2
+// --- START OF CHANGE 1 ---
+import { UserPlus, Filter, LayoutGrid, List, ArrowUpDown, RotateCw, BarChart2, Bot, Loader2, Columns, View } from "lucide-react"; // Added Columns, View
+// --- END OF CHANGE 1 ---
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
@@ -2381,8 +2439,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"; // Import AlertDialog components
-import { useSession } from "next-auth/react"; // Import useSession to check for admin role
+} from "@/components/ui/alert-dialog";
+import { useSession } from "next-auth/react";
 
 // Custom Hooks
 import { useCandidates } from "../hooks/useCandidates";
@@ -2398,7 +2456,7 @@ import { AddManualCandidateDialog } from "../dialogs/AddManualCandidateDialog";
 import { AiMatchAnalysisDialog } from "../dialogs/AiMatchAnalysisDialog";
 
 // Types
-import type { Candidate, ViewMode, CandidatesFilter, CandidateAction } from "../types/candidates";
+import type { Candidate, ViewMode, CandidatesFilter, CandidateAction, MobileView } from "../types/candidates"; // --- CHANGE: Added MobileView ---
 
 // Constants
 import { SORT_OPTIONS, VIEW_OPTIONS } from "../constants/filterOptions";
@@ -2411,6 +2469,10 @@ interface AiMatch {
 const CandidatesManager: React.FC = () => {
   // --- UI and General State ---
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  // --- START OF CHANGE 2 ---
+  const [mobileView, setMobileView] = useState<MobileView>('single'); // 'single' or 'double' column
+  const [isMobile, setIsMobile] = useState(false);
+  // --- END OF CHANGE 2 ---
   const [showFiltersPanel, setShowFiltersPanel] = useState(false);
   const [showFiltersMobile, setShowFiltersMobile] = useState(false);
   const [showManualAddDialog, setShowManualAddDialog] = useState(false);
@@ -2421,7 +2483,7 @@ const CandidatesManager: React.FC = () => {
   const [aiMatches, setAiMatches] = useState<AiMatch[]>([]);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isAnalysisDialogOpen, setIsAnalysisDialogOpen] = useState(false);
-  const [isBulkUpdating, setIsBulkUpdating] = useState(false); // <-- New state for bulk update button
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false); 
 
   // --- Session and Permissions ---
   const { data: session } = useSession();
@@ -2457,110 +2519,30 @@ const CandidatesManager: React.FC = () => {
     onFilterChange: setFilters,
   });
 
-  // --- Handlers ---
-
-  const handleCandidateAdded = useCallback(() => {
-    refresh();
-    toast.success("מועמד חדש נוסף בהצלחה!");
-  }, [refresh]);
-
-  const handleSearch = useCallback((value: string) => {
-    if (!filters.separateFiltering) {
-      setFilters(prev => ({ ...prev, searchQuery: value }));
-    }
-  }, [setFilters, filters.separateFiltering]);
+  // --- Handlers (unchanged) ---
+  const handleCandidateAdded = useCallback(() => { refresh(); toast.success("מועמד חדש נוסף בהצלחה!"); }, [refresh]);
+  const handleSearch = useCallback((value: string) => { if (!filters.separateFiltering) { setFilters(prev => ({ ...prev, searchQuery: value })); } }, [setFilters, filters.separateFiltering]);
+  const handleRemoveFilter = useCallback((key: keyof CandidatesFilter, value?: string) => { setFilters(prev => { const newFilters = { ...prev }; if (key === "cities" && value) newFilters.cities = newFilters.cities?.filter(city => city !== value); else if (key === "occupations" && value) newFilters.occupations = newFilters.occupations?.filter(occ => occ !== value); else delete newFilters[key]; return newFilters; }); }, [setFilters]);
+  const handleCandidateAction = useCallback(async (type: CandidateAction, candidate: Candidate) => { console.log(`Action '${type}' triggered for candidate: ${candidate.firstName}`); }, []);
+  const handleFilterSave = useCallback(async (name: string) => { try { await saveFilter(name, filters); toast.success("הפילטר נשמר בהצלחה"); } catch { toast.error("שגיאה בשמירת הפילטר"); } }, [filters, saveFilter]);
+  const handleSetAiTarget = useCallback((candidate: Candidate, e: React.MouseEvent) => { e.stopPropagation(); if (aiTargetCandidate?.id === candidate.id) { handleClearAiTarget(e); return; } setAiTargetCandidate(candidate); setAiMatches([]); setComparisonSelection({}); toast.info(`מועמד מטרה נבחר: ${candidate.firstName}. כעת ניתן לחפש התאמות בפאנל הנגדי.`, { position: "bottom-center" }); }, [aiTargetCandidate]);
+  const handleClearAiTarget = (e: React.MouseEvent) => { e.stopPropagation(); setAiTargetCandidate(null); setAiMatches([]); setComparisonSelection({}); toast.info("בחירת מועמד מטרה בוטלה.", { position: "bottom-center" }); };
+  const handleToggleComparison = useCallback((candidate: Candidate, e: React.MouseEvent) => { e.stopPropagation(); setComparisonSelection(prev => { const newSelection = {...prev}; if (newSelection[candidate.id]) { delete newSelection[candidate.id]; } else { newSelection[candidate.id] = candidate; } return newSelection; }); }, []);
+  const handleUpdateAllProfiles = async () => { setIsBulkUpdating(true); toast.info("מתחיל תהליך עדכון פרופילי AI...", { description: "התהליך ירוץ ברקע. אין צורך להישאר בעמוד זה.", }); try { const response = await fetch('/api/ai/update-all-profiles', { method: 'POST', }); const data = await response.json(); if (!response.ok) throw new Error(data.error || 'שגיאה בהפעלת העדכון הכללי.'); toast.success("העדכון הכללי הופעל בהצלחה!", { description: data.message, duration: 8000, }); } catch (error) { console.error("Failed to initiate bulk AI profile update:", error); toast.error("שגיאה בהפעלת העדכון", { description: error instanceof Error ? error.message : 'אנא נסה שוב מאוחר יותר.', }); } finally { setIsBulkUpdating(false); } };
   
-  const handleRemoveFilter = useCallback((key: keyof CandidatesFilter, value?: string) => {
-    setFilters(prev => {
-      const newFilters = { ...prev };
-      if (key === "cities" && value) newFilters.cities = newFilters.cities?.filter(city => city !== value);
-      else if (key === "occupations" && value) newFilters.occupations = newFilters.occupations?.filter(occ => occ !== value);
-      else delete newFilters[key];
-      return newFilters;
-    });
-  }, [setFilters]);
-
-  const handleCandidateAction = useCallback(async (type: CandidateAction, candidate: Candidate) => {
-    console.log(`Action '${type}' triggered for candidate: ${candidate.firstName}`);
-  }, []);
-
-  const handleFilterSave = useCallback(async (name: string) => {
-    try {
-      await saveFilter(name, filters);
-      toast.success("הפילטר נשמר בהצלחה");
-    } catch {
-      toast.error("שגיאה בשמירת הפילטר");
-    }
-  }, [filters, saveFilter]);
-
-  // --- AI-Specific Handlers ---
-
-  const handleSetAiTarget = useCallback((candidate: Candidate, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (aiTargetCandidate?.id === candidate.id) {
-        handleClearAiTarget(e);
-        return;
-    }
-    setAiTargetCandidate(candidate);
-    setAiMatches([]);
-    setComparisonSelection({});
-    toast.info(`מועמד מטרה נבחר: ${candidate.firstName}. כעת ניתן לחפש התאמות בפאנל הנגדי.`, { position: "bottom-center" });
-  }, [aiTargetCandidate]);
-
-  const handleClearAiTarget = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setAiTargetCandidate(null);
-    setAiMatches([]);
-    setComparisonSelection({});
-    toast.info("בחירת מועמד מטרה בוטלה.", { position: "bottom-center" });
-  };
-  
-  const handleToggleComparison = useCallback((candidate: Candidate, e: React.MouseEvent) => {
-      e.stopPropagation();
-      setComparisonSelection(prev => {
-          const newSelection = {...prev};
-          if (newSelection[candidate.id]) {
-              delete newSelection[candidate.id]; // Unselect
-          } else {
-              newSelection[candidate.id] = candidate; // Select
-          }
-          return newSelection;
-      });
-  }, []);
-
-  const handleUpdateAllProfiles = async () => {
-    setIsBulkUpdating(true);
-    toast.info("מתחיל תהליך עדכון פרופילי AI...", {
-      description: "התהליך ירוץ ברקע. אין צורך להישאר בעמוד זה.",
-    });
-
-    try {
-      const response = await fetch('/api/ai/update-all-profiles', {
-        method: 'POST',
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'שגיאה בהפעלת העדכון הכללי.');
-      toast.success("העדכון הכללי הופעל בהצלחה!", {
-        description: data.message,
-        duration: 8000,
-      });
-    } catch (error) {
-      console.error("Failed to initiate bulk AI profile update:", error);
-      toast.error("שגיאה בהפעלת העדכון", {
-        description: error instanceof Error ? error.message : 'אנא נסה שוב מאוחר יותר.',
-      });
-    } finally {
-      setIsBulkUpdating(false);
-    }
-  };
-
-
+  // --- START OF CHANGE 3 ---
   useEffect(() => {
-    const checkDesktop = () => setShowFiltersPanel(window.innerWidth >= 1024);
-    checkDesktop();
-    window.addEventListener('resize', checkDesktop);
-    return () => window.removeEventListener('resize', checkDesktop);
+    const checkScreen = () => {
+      const isDesktop = window.innerWidth >= 1024;
+      const isMob = window.innerWidth < 768;
+      setShowFiltersPanel(isDesktop);
+      setIsMobile(isMob);
+    };
+    checkScreen();
+    window.addEventListener('resize', checkScreen);
+    return () => window.removeEventListener('resize', checkScreen);
   }, []);
+  // --- END OF CHANGE 3 ---
 
   const activeFilterCount = useMemo(() => activeFilters.length, [activeFilters]);
 
@@ -2582,7 +2564,6 @@ const CandidatesManager: React.FC = () => {
                 </Button>
               )}
               
-              {/* --- NEW: AI Bulk Update Button --- */}
               {isAdmin && (
                 <AlertDialog>
                     <AlertDialogTrigger asChild>
@@ -2607,14 +2588,12 @@ const CandidatesManager: React.FC = () => {
                     </AlertDialogContent>
                 </AlertDialog>
               )}
-              {/* --- END OF NEW BUTTON --- */}
 
               <Button onClick={refresh} variant="outline" size="icon" title="רענן רשימה" disabled={loading}>
                 <RotateCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               </Button>
             </div>
           </div>
-          {/* ... a lot of code ... */}
           <div className="flex flex-col sm:flex-row gap-2">
             {!filters.separateFiltering && (
               <div className="flex-1">
@@ -2676,11 +2655,24 @@ const CandidatesManager: React.FC = () => {
               </Sheet>
               
               <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
-                {VIEW_OPTIONS.map((option) => (
-                  <Button key={option.value} variant={viewMode === option.value ? "default" : "ghost"} size="icon" onClick={() => setViewMode(option.value as ViewMode)}>
-                    {option.value === 'grid' ? <LayoutGrid className="w-4 h-4"/> : <List className="w-4 h-4"/>}
-                  </Button>
-                ))}
+                {/* --- START OF CHANGE 4: Conditional display for mobile view toggle --- */}
+                {isMobile ? (
+                   <Button 
+                     variant="ghost" 
+                     size="icon" 
+                     onClick={() => setMobileView(prev => prev === 'single' ? 'double' : 'single')}
+                     title={mobileView === 'single' ? 'הצג שני טורים' : 'הצג טור אחד'}
+                   >
+                     {mobileView === 'single' ? <Columns className="w-4 h-4"/> : <View className="w-4 h-4"/>}
+                   </Button>
+                ) : (
+                  VIEW_OPTIONS.map((option) => (
+                    <Button key={option.value} variant={viewMode === option.value ? "default" : "ghost"} size="icon" onClick={() => setViewMode(option.value as ViewMode)}>
+                      {option.value === 'grid' ? <LayoutGrid className="w-4 h-4"/> : <List className="w-4 h-4"/>}
+                    </Button>
+                  ))
+                )}
+                {/* --- END OF CHANGE 4 --- */}
               </div>
             </div>
           </div>
@@ -2723,9 +2715,11 @@ const CandidatesManager: React.FC = () => {
                 onCandidateAction={handleCandidateAction}
                 onCandidateClick={() => {}}
                 viewMode={viewMode}
+                // --- START OF CHANGE 5 ---
+                mobileView={mobileView} // Pass the new state down
+                // --- END OF CHANGE 5 ---
                 isLoading={loading || isAiLoading}
                 
-                // --- Pass AI State and Handlers Down ---
                 aiTargetCandidate={aiTargetCandidate}
                 aiMatches={aiMatches}
                 isAiLoading={isAiLoading}
@@ -2736,7 +2730,6 @@ const CandidatesManager: React.FC = () => {
                 comparisonSelection={comparisonSelection}
                 onToggleComparison={handleToggleComparison}
                 
-                // --- Filters ---
                 separateFiltering={filters.separateFiltering ?? false}
                 maleFilters={filters.maleFilters}
                 femaleFilters={filters.femaleFilters}
@@ -6458,14 +6451,13 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { X, Sparkles, CheckCircle, AlertTriangle, MessageSquare, Info, XCircle, Star, Cake, MapPin, BookMarked } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { X, Sparkles, CheckCircle, AlertTriangle, MessageSquare, Info, XCircle, Star, Cake, MapPin, BookMarked, Users, ChevronsUpDown } from 'lucide-react';
 import type { Candidate } from '../types/candidates';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from "framer-motion";
 
 // --- Interfaces ---
-
-// The structure of the AI analysis result we expect from the API
 interface AiAnalysis {
   overallScore: number;
   matchSummary: string;
@@ -6481,8 +6473,7 @@ interface AiMatchAnalysisDialogProps {
   comparisonCandidates: Candidate[];
 }
 
-// --- Helper Functions (inspired by ProfileCard.tsx) ---
-
+// --- Helper Functions ---
 const getInitials = (firstName?: string, lastName?: string): string => {
   let initials = "";
   if (firstName && firstName.length > 0) initials += firstName[0];
@@ -6503,7 +6494,7 @@ const calculateAge = (birthDate: Date | string): number => {
     return age > 0 ? age : 0;
 };
 
-// --- Sub-components for better structure ---
+// --- Sub-components ---
 
 const MiniProfileHeader: React.FC<{ candidate: Candidate; score?: number; isTarget?: boolean }> = ({ candidate, score, isTarget = false }) => {
   const mainImage = candidate.images?.find(img => img.isMain);
@@ -6537,7 +6528,7 @@ const MiniProfileHeader: React.FC<{ candidate: Candidate; score?: number; isTarg
       )}
 
       <h3 className="mt-3 text-lg font-bold text-slate-800">{candidate.firstName} {candidate.lastName}</h3>
-      <div className="mt-2 flex justify-center items-center gap-3 text-xs text-slate-600">
+      <div className="mt-2 flex justify-center items-center flex-wrap gap-x-3 gap-y-1 text-xs text-slate-600">
         <div className="flex items-center gap-1"><Cake className="w-3.5 h-3.5 text-slate-400"/> {age} שנים</div>
         <div className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5 text-slate-400"/> {candidate.profile.city || 'לא צוין'}</div>
         <div className="flex items-center gap-1"><BookMarked className="w-3.5 h-3.5 text-slate-400"/> {candidate.profile.religiousLevel || 'לא צוין'}</div>
@@ -6560,18 +6551,16 @@ const AnalysisItem: React.FC<{ icon: React.ElementType; iconColor: string; area:
 
 const ComparisonTable: React.FC<{ target: Candidate; comparison: Candidate; }> = ({ target, comparison }) => {
     const fieldsToCompare = [
-        { key: 'age', label: 'גיל', formatter: (c: Candidate) => calculateAge(c.profile.birthDate) },
+        { key: 'age', label: 'גיל', formatter: (c: Candidate) => `${calculateAge(c.profile.birthDate)}${c.profile.birthDateIsApproximate ? ' (משוער)' : ''}` },
         { key: 'city', label: 'עיר', formatter: (c: Candidate) => c.profile.city || 'לא צוין' },
         { key: 'maritalStatus', label: 'מצב משפחתי', formatter: (c: Candidate) => c.profile.maritalStatus || 'לא צוין' },
         { key: 'religiousLevel', label: 'רמה דתית', formatter: (c: Candidate) => c.profile.religiousLevel || 'לא צוין' },
         { key: 'occupation', label: 'עיסוק', formatter: (c: Candidate) => c.profile.occupation || 'לא צוין' },
         { key: 'education', label: 'השכלה', formatter: (c: Candidate) => c.profile.education || 'לא צוין' },
-        { key: 'shomerNegiah', label: 'שמירת נגיעה', formatter: (c: Candidate) => c.profile.shomerNegiah ? 'כן' : 'לא' },
-        { key: 'profileHobbies', label: 'תחביבים', formatter: (c: Candidate) => c.profile.profileHobbies?.join(', ') || 'לא צוין' },
     ];
   
     return (
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto border rounded-lg">
         <table className="w-full text-sm text-right border-collapse">
           <thead>
             <tr className="bg-slate-50">
@@ -6581,8 +6570,8 @@ const ComparisonTable: React.FC<{ target: Candidate; comparison: Candidate; }> =
             </tr>
           </thead>
           <tbody>
-            {fieldsToCompare.map(field => (
-              <tr key={field.key} className="hover:bg-slate-50/50">
+            {fieldsToCompare.map((field, index) => (
+              <tr key={field.key} className={index % 2 === 0 ? "bg-white" : "bg-slate-50/50"}>
                 <td className="p-3 font-medium text-slate-500 border-b border-slate-200">{field.label}</td>
                 <td className="p-3 text-slate-700 border-b border-slate-200 text-center">{field.formatter(target)}</td>
                 <td className="p-3 text-slate-700 border-b border-slate-200 text-center">{field.formatter(comparison)}</td>
@@ -6609,9 +6598,16 @@ const AnalysisSkeleton: React.FC = () => (
 
 export const AiMatchAnalysisDialog: React.FC<AiMatchAnalysisDialogProps> = ({ isOpen, onClose, targetCandidate, comparisonCandidates }) => {
   const [activeComparisonId, setActiveComparisonId] = useState<string | null>(null);
-  const [analyses, setAnalyses] = useState<Record<string, AiAnalysis | 'error' | null>>({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [analyses, setAnalyses] = useState<Record<string, AiAnalysis | 'error' | 'loading'>>({});
   const [language, setLanguage] = useState<'he' | 'en'>('he');
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const activeComparisonCandidate = useMemo(() => {
     return comparisonCandidates.find(c => c.id === activeComparisonId);
@@ -6623,18 +6619,15 @@ export const AiMatchAnalysisDialog: React.FC<AiMatchAnalysisDialogProps> = ({ is
   }, [activeComparisonId, analyses]);
 
   useEffect(() => {
-    // Set the first comparison candidate as active when the dialog opens or candidates change.
-    if (isOpen && comparisonCandidates.length > 0 && !activeComparisonId) {
+    if (isOpen && comparisonCandidates.length > 0 && !comparisonCandidates.some(c => c.id === activeComparisonId)) {
       setActiveComparisonId(comparisonCandidates[0].id);
     }
   }, [isOpen, comparisonCandidates, activeComparisonId]);
 
   useEffect(() => {
-    // Fetch analysis when the active comparison candidate or language changes.
     if (isOpen && targetCandidate && activeComparisonId && analyses[activeComparisonId] === undefined) {
       const fetchAnalysis = async () => {
-        setIsLoading(true);
-        setAnalyses(prev => ({ ...prev, [activeComparisonId]: null })); // Set to loading state
+        setAnalyses(prev => ({ ...prev, [activeComparisonId]: 'loading' }));
 
         try {
           const response = await fetch('/api/ai/generate-rationale', {
@@ -6643,7 +6636,7 @@ export const AiMatchAnalysisDialog: React.FC<AiMatchAnalysisDialogProps> = ({ is
             body: JSON.stringify({
               userId1: targetCandidate.id,
               userId2: activeComparisonId,
-              language: language, // Pass the selected language
+              language: language,
             }),
           });
 
@@ -6656,32 +6649,25 @@ export const AiMatchAnalysisDialog: React.FC<AiMatchAnalysisDialogProps> = ({ is
         } catch (e) {
           console.error(`Failed to get analysis for ${activeComparisonId}:`, e);
           setAnalyses(prev => ({ ...prev, [activeComparisonId]: 'error' }));
-        } finally {
-          setIsLoading(false);
         }
       };
-
       fetchAnalysis();
     }
   }, [isOpen, targetCandidate, activeComparisonId, language, analyses]);
 
-  // Handler for language change
   const handleLanguageChange = (newLang: 'he' | 'en') => {
     if (newLang !== language) {
       setLanguage(newLang);
-      setAnalyses({}); // Clear all previous analyses to force re-fetching
+      setAnalyses({});
     }
   };
-
-
-  if (!targetCandidate || !activeComparisonCandidate) {
-    return null; // Or a loading/empty state for the entire dialog
-  }
+  
+  if (!isOpen || !targetCandidate) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl w-full h-[95vh] flex flex-col p-0 overflow-hidden" dir="rtl">
-        <DialogHeader className="p-4 border-b flex-row justify-between items-center">
+        <DialogHeader className="p-4 border-b flex-row justify-between items-center flex-shrink-0">
           <div className="flex items-center gap-3">
             <Sparkles className="w-7 h-7 text-teal-500" />
             <div>
@@ -6705,114 +6691,112 @@ export const AiMatchAnalysisDialog: React.FC<AiMatchAnalysisDialogProps> = ({ is
           </div>
         </DialogHeader>
 
-        <div className="flex flex-1 min-h-0">
-          {/* Sidebar with comparison candidates */}
-          <aside className="w-1/4 border-l bg-slate-50/50 flex flex-col">
-            <h3 className="p-3 text-sm font-semibold text-slate-600 border-b">מועמדים להשוואה ({comparisonCandidates.length})</h3>
-            <ScrollArea className="flex-1">
-              {comparisonCandidates.map(candidate => (
-                <button
-                  key={candidate.id}
-                  onClick={() => setActiveComparisonId(candidate.id)}
-                  className={cn(
-                    "w-full text-right p-3 flex items-center gap-3 border-b border-slate-200/60 hover:bg-slate-100 transition-colors",
-                    activeComparisonId === candidate.id && "bg-cyan-50 border-r-4 border-cyan-500 font-semibold"
-                  )}
-                >
-                  <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
-                     <Image src={candidate.images?.find(img => img.isMain)?.url || '/placeholder.jpg'} alt={candidate.firstName} layout="fill" className="object-cover" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="truncate text-sm text-slate-800">{candidate.firstName} {candidate.lastName}</p>
-                    <p className="text-xs text-slate-500">{calculateAge(candidate.profile.birthDate)} | {candidate.profile.city}</p>
-                  </div>
-                  {analyses[candidate.id] && analyses[candidate.id] !== 'error' && (
-                    <Badge variant="secondary" className="bg-teal-100 text-teal-800">{(analyses[candidate.id] as AiAnalysis).overallScore}%</Badge>
-                  )}
-                </button>
-              ))}
-            </ScrollArea>
-          </aside>
+        <div className="flex-1 flex flex-col md:flex-row min-h-0">
+          {/* Sidebar (Desktop) or Select (Mobile) */}
+          {isMobile ? (
+            <div className="p-4 border-b md:hidden">
+                <Select value={activeComparisonId || ''} onValueChange={setActiveComparisonId}>
+                    <SelectTrigger className="w-full">
+                        <SelectValue placeholder="בחר מועמד להשוואה" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {comparisonCandidates.map(c => (
+                            <SelectItem key={c.id} value={c.id}>{c.firstName} {c.lastName}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+          ) : (
+            <aside className="w-1/4 border-l bg-slate-50/50 flex flex-col flex-shrink-0">
+              <h3 className="p-3 text-sm font-semibold text-slate-600 border-b">מועמדים להשוואה ({comparisonCandidates.length})</h3>
+              <ScrollArea className="flex-1">
+                {comparisonCandidates.map(candidate => (
+                  <button
+                    key={candidate.id}
+                    onClick={() => setActiveComparisonId(candidate.id)}
+                    className={cn(
+                      "w-full text-right p-3 flex items-center gap-3 border-b border-slate-200/60 hover:bg-slate-100 transition-colors",
+                      activeComparisonId === candidate.id && "bg-cyan-50 border-r-4 border-cyan-500 font-semibold"
+                    )}
+                  >
+                    <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                       <Image src={candidate.images?.find(img => img.isMain)?.url || '/placeholder.jpg'} alt={candidate.firstName} layout="fill" className="object-cover" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="truncate text-sm text-slate-800">{candidate.firstName} {candidate.lastName}</p>
+                      <p className="text-xs text-slate-500">{calculateAge(candidate.profile.birthDate)} | {candidate.profile.city}</p>
+                    </div>
+                    {activeAnalysis && activeAnalysis !== 'error' && activeAnalysis !== 'loading' && (
+                      <Badge variant="secondary" className="bg-teal-100 text-teal-800">{(activeAnalysis as AiAnalysis).overallScore}%</Badge>
+                    )}
+                  </button>
+                ))}
+              </ScrollArea>
+            </aside>
+          )}
 
           {/* Main content area */}
           <main className="flex-1 flex flex-col min-h-0 bg-white">
-            <div className="grid grid-cols-2">
-              <MiniProfileHeader candidate={targetCandidate} isTarget />
-              <MiniProfileHeader candidate={activeComparisonCandidate} score={(activeAnalysis as AiAnalysis)?.overallScore} />
-            </div>
+            {!activeComparisonCandidate ? (
+                 <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-gray-500">
+                    <Users className="w-16 h-16 text-gray-300 mb-4"/>
+                    <h3 className="text-lg font-semibold">בחר מועמד/ת להשוואה</h3>
+                    <p className="max-w-xs">בחר מועמד מהרשימה בצד (או מהתפריט הנפתח במובייל) כדי להתחיל בניתוח ההתאמה.</p>
+                 </div>
+            ) : (
+                <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 flex-shrink-0">
+                      <MiniProfileHeader candidate={targetCandidate} isTarget />
+                      <MiniProfileHeader candidate={activeComparisonCandidate} score={(activeAnalysis as AiAnalysis)?.overallScore} />
+                    </div>
 
-            <Tabs defaultValue="summary" className="flex-1 flex flex-col min-h-0">
-              <TabsList className="mx-4 mt-4 bg-slate-100 p-1 rounded-lg">
-                <TabsTrigger value="summary">סיכום וחוזקות</TabsTrigger>
-                <TabsTrigger value="challenges">אתגרים ופערים</TabsTrigger>
-                <TabsTrigger value="comparison">השוואת נתונים</TabsTrigger>
-                <TabsTrigger value="conversation">נושאים לשיחה</TabsTrigger>
-              </TabsList>
-              <ScrollArea className="flex-1">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={activeComparisonId} // Re-animate when comparison changes
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.2 }}
-                    className="p-6"
-                  >
-                    {isLoading && <AnalysisSkeleton />}
-                    
-                    {activeAnalysis === 'error' && (
-                        <div className="text-center py-10">
-                            <XCircle className="w-12 h-12 text-red-400 mx-auto mb-4"/>
-                            <h3 className="font-semibold text-xl text-red-600">שגיאה בניתוח ההתאמה</h3>
-                            <p className="text-gray-500 mt-2">לא הצלחנו להפיק ניתוח עבור זוג זה. אנא נסה שוב מאוחר יותר.</p>
-                        </div>
-                    )}
-                    
-                    {activeAnalysis && activeAnalysis !== 'error' && (
-                      <>
-                        <TabsContent value="summary" className="space-y-6 mt-0">
-                          <div className="p-4 bg-slate-50/70 rounded-lg border border-slate-200">
-                            <h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2"><Info className="w-5 h-5 text-blue-500"/> סיכום ההתאמה</h3>
-                            <p className="text-sm text-gray-600 leading-relaxed">{(activeAnalysis as AiAnalysis).matchSummary}</p>
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2"><CheckCircle className="w-5 h-5 text-green-500"/> נקודות חוזק וחיבור</h3>
-                            <div className="space-y-4">
-                              {(activeAnalysis as AiAnalysis).compatibilityPoints.map(point => <AnalysisItem key={point.area} icon={CheckCircle} iconColor="text-green-500" {...point} />)}
-                            </div>
-                          </div>
-                        </TabsContent>
-
-                        <TabsContent value="challenges" className="space-y-6 mt-0">
-                          <div>
-                            <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2"><AlertTriangle className="w-5 h-5 text-amber-500"/> אתגרים ופערים פוטנציאליים</h3>
-                            <div className="space-y-4">
-                              {(activeAnalysis as AiAnalysis).potentialChallenges.map(challenge => <AnalysisItem key={challenge.area} icon={AlertTriangle} iconColor="text-amber-500" {...challenge} />)}
-                            </div>
-                          </div>
-                        </TabsContent>
-
-                        <TabsContent value="comparison" className="mt-0">
-                           <ComparisonTable target={targetCandidate} comparison={activeComparisonCandidate} />
-                        </TabsContent>
-
-                        <TabsContent value="conversation" className="space-y-4 mt-0">
-                          <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2"><MessageSquare className="w-5 h-5 text-indigo-500"/> נושאים מומלצים לשיחה</h3>
-                          <ul className="space-y-3 list-inside">
-                            {(activeAnalysis as AiAnalysis).suggestedConversationStarters.map((starter, index) => (
-                               <li key={index} className="flex items-start gap-2 p-2 rounded-md hover:bg-indigo-50/50">
-                                 <MessageSquare className="w-4 h-4 text-indigo-400 mt-1 flex-shrink-0"/>
-                                 <span className="text-sm text-gray-700">{starter}</span>
-                               </li>
-                            ))}
-                          </ul>
-                        </TabsContent>
-                      </>
-                    )}
-                  </motion.div>
-                </AnimatePresence>
-              </ScrollArea>
-            </Tabs>
+                    <Tabs defaultValue="summary" className="flex-1 flex flex-col min-h-0">
+                      <TabsList className="mx-4 mt-4 bg-slate-100 p-1 rounded-lg">
+                        <TabsTrigger value="summary">סיכום וחוזקות</TabsTrigger>
+                        <TabsTrigger value="challenges">אתגרים ופערים</TabsTrigger>
+                        <TabsTrigger value="comparison">השוואת נתונים</TabsTrigger>
+                        <TabsTrigger value="conversation">נושאים לשיחה</TabsTrigger>
+                      </TabsList>
+                      <ScrollArea className="flex-1">
+                        <AnimatePresence mode="wait">
+                          <motion.div
+                            key={activeComparisonId}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.2 }}
+                            className="p-4 md:p-6"
+                          >
+                            {activeAnalysis === 'loading' && <AnalysisSkeleton />}
+                            {activeAnalysis === 'error' && (
+                                <div className="text-center py-10">
+                                    <XCircle className="w-12 h-12 text-red-400 mx-auto mb-4"/>
+                                    <h3 className="font-semibold text-xl text-red-600">שגיאה בניתוח ההתאמה</h3>
+                                    <p className="text-gray-500 mt-2">לא הצלחנו להפיק ניתוח עבור זוג זה. אנא נסה שוב מאוחר יותר.</p>
+                                </div>
+                            )}
+                            {activeAnalysis && activeAnalysis !== 'error' && activeAnalysis !== 'loading' && (
+                              <>
+                                <TabsContent value="summary" className="space-y-6 mt-0">
+                                  <div className="p-4 bg-slate-50/70 rounded-lg border border-slate-200"><h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2"><Info className="w-5 h-5 text-blue-500"/> סיכום ההתאמה</h3><p className="text-sm text-gray-600 leading-relaxed">{(activeAnalysis as AiAnalysis).matchSummary}</p></div>
+                                  <div><h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2"><CheckCircle className="w-5 h-5 text-green-500"/> נקודות חוזק וחיבור</h3><div className="space-y-4">{(activeAnalysis as AiAnalysis).compatibilityPoints.map(point => <AnalysisItem key={point.area} icon={CheckCircle} iconColor="text-green-500" {...point} />)}</div></div>
+                                </TabsContent>
+                                <TabsContent value="challenges" className="space-y-6 mt-0">
+                                  <div><h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2"><AlertTriangle className="w-5 h-5 text-amber-500"/> אתגרים ופערים פוטנציאליים</h3><div className="space-y-4">{(activeAnalysis as AiAnalysis).potentialChallenges.map(challenge => <AnalysisItem key={challenge.area} icon={AlertTriangle} iconColor="text-amber-500" {...challenge} />)}</div></div>
+                                </TabsContent>
+                                <TabsContent value="comparison" className="mt-0"><ComparisonTable target={targetCandidate} comparison={activeComparisonCandidate} /></TabsContent>
+                                <TabsContent value="conversation" className="space-y-4 mt-0">
+                                  <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2"><MessageSquare className="w-5 h-5 text-indigo-500"/> נושאים מומלצים לשיחה</h3>
+                                  <ul className="space-y-3 list-inside">{(activeAnalysis as AiAnalysis).suggestedConversationStarters.map((starter, index) => (<li key={index} className="flex items-start gap-2 p-2 rounded-md hover:bg-indigo-50/50"><MessageSquare className="w-4 h-4 text-indigo-400 mt-1 flex-shrink-0"/><span className="text-sm text-gray-700">{starter}</span></li>))}</ul>
+                                </TabsContent>
+                              </>
+                            )}
+                          </motion.div>
+                        </AnimatePresence>
+                      </ScrollArea>
+                    </Tabs>
+                </>
+            )}
           </main>
         </div>
       </DialogContent>
@@ -8993,6 +8977,8 @@ export interface APIResponse<T> {
 export type CandidateImage = UserImage;
 
 export type CandidateProfile = UserProfile;
+
+export type MobileView = 'single' | 'double';
 
 export interface Candidate {
   id: string;
