@@ -2,7 +2,9 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { hash } from "bcryptjs";
-import { VerificationType, VerificationStatus } from "@prisma/client";
+// --- הוספה ---
+import { VerificationType, VerificationStatus, UserStatus } from "@prisma/client";
+// --- סוף הוספה ---
 import { z } from "zod";
 
 const completeSetupSchema = z.object({
@@ -21,14 +23,13 @@ export async function POST(req: Request) {
 
     const { token, password } = validation.data;
 
-    // 1. Find the verification record
     const verification = await prisma.verification.findFirst({
       where: {
         token,
         type: VerificationType.ACCOUNT_SETUP,
         status: VerificationStatus.PENDING,
         expiresAt: {
-          gt: new Date(), // Check if not expired
+          gt: new Date(),
         },
       },
     });
@@ -37,20 +38,24 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: "קישור לא תקין או שפג תוקפו. אנא בקש מהשדכן לשלוח הזמנה חדשה." }, { status: 400 });
     }
 
-    // 2. Hash the new password
     const hashedPassword = await hash(password, 12);
 
-    // 3. Update user and verification record in a transaction
+    // עדכון הסיסמה, סטטוס המשתמש, וסטטוס האימות בטרנזקציה אחת
     await prisma.$transaction(async (tx) => {
-      // Update the user's password
+      // עדכון סיסמה, אימות מייל, וסטטוס המשתמש
       await tx.user.update({
         where: { id: verification.userId! },
         data: {
           password: hashedPassword,
+          // --- הוספה ---
+          isVerified: true, // המייל אומת מכיוון שהמשתמש הגיע מהקישור
+          status: UserStatus.PENDING_PHONE_VERIFICATION, // העבר את המשתמש לשלב הבא
+          // isProfileComplete נשאר false כי הוא עדיין צריך למלא פרטים
+          // --- סוף הוספה ---
         },
       });
 
-      // Mark the verification token as completed
+      // עדכון סטטוס האימות (הטוקן נוצל)
       await tx.verification.update({
         where: { id: verification.id },
         data: {

@@ -90,10 +90,9 @@ export async function POST(request: Request) {
         email,
         password: null,
         role: UserRole.CANDIDATE,
-        status: UserStatus.ACTIVE,
-        isVerified: true,
-        isPhoneVerified: false,
-        isProfileComplete: true,
+   status: UserStatus.PENDING_EMAIL_VERIFICATION, // הסטטוס הנכון. המשתמש צריך לפעול על המייל כדי להמשיך
+    isVerified: false,                             // המייל עדיין לא אומת
+    isProfileComplete: false,                      // הפרופיל בהחלט לא שלם
         source: UserSource.MANUAL_ENTRY,
         addedByMatchmakerId: matchmakerId,
         profile: {

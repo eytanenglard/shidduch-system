@@ -8,34 +8,24 @@ REM Configuration - MODIFY THESE VALUES
 REM --------------------------------------------
 
 REM Supabase Database Connection URL
-REM Note: Password is not included here; it will be provided by PGPASSWORD environment variable.
-REM Replace YOUR_SUPABASE_PROJECT_REF with your actual Supabase project reference.
 SET DATABASE_URL="postgresql://postgres@db.pwkwidqfbojftjumlzra.supabase.co:5432/postgres?sslmode=require"
 
 REM Supabase Database Password
-REM IMPORTANT: Storing passwords in scripts is a security risk. 
-REM Consider using a .pgpass file for better security in production.
-REM Replace with your actual Supabase DB password.
 SET PGPASSWORD=bqSWwXIdHw1tATgc
 
 REM AWS S3 Bucket Name
-REM Example: "my-supabase-backups" or "eytan-neon-db-backups"
 SET S3_BUCKET_NAME="eytan-neon-db-backups"
 
-REM Temporary local directory for backup files
-REM Example: "C:\Temp\SupabaseBackups"
-REM Ensure the parent directory (e.g., C:\Temp) exists.
-SET BACKUP_DIR="C:\Temp\SupabaseBackups"
+REM Temporary local directory for backup files (WITHOUT QUOTES)
+REM <-- תיקון: הוסרו המרכאות מההגדרה
+SET BACKUP_DIR=C:\Temp\SupabaseBackups
 
-REM Path to 7-Zip executable
-REM Example: "C:\Program Files\7-Zip\7z.exe"
-REM If 7-Zip is in your system PATH, you can just use "7z.exe" here.
-SET SEVENZIP_PATH="C:\Program Files\7-Zip\7z.exe"
+REM Path to 7-Zip executable (WITHOUT QUOTES)
+REM <-- תיקון: הוסרו המרכאות מההגדרה
+SET SEVENZIP_PATH=C:\Program Files\7-Zip\7z.exe
 
 REM GPG Encryption Settings (Optional)
-REM Set to true to enable GPG encryption
 SET ENCRYPT_BACKUP=false
-REM Your GPG key ID or email if encryption is enabled
 SET GPG_RECIPIENT="your_gpg_key_id_or_email"
 
 REM --- End of User Configuration ---
