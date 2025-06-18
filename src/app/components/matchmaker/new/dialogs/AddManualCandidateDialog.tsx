@@ -170,6 +170,8 @@ export const AddManualCandidateDialog: React.FC<
       formData.append("images", image);
     });
 
+   // src/app/components/matchmaker/new/dialogs/AddManualCandidateDialog.tsx
+
     try {
       const response = await fetch("/api/matchmaker/candidates/manual", {
         method: "POST",
@@ -178,19 +180,25 @@ export const AddManualCandidateDialog: React.FC<
 
       const result = await response.json();
 
-      if (response.ok && result.success) {
+      if (response.ok) { // Check for any 2xx status code
         toast.success("המועמד הידני נוסף בהצלחה!");
         onCandidateAdded();
         handleClose();
       } else {
-        throw new Error(result.error || "שגיאה בהוספת המועמד.");
+        // Handle controlled API errors (like 400, 409, etc.)
+        // `result.error` will now contain the specific message from the server
+        console.error("API Error:", result.error);
+        toast.error("שגיאה בהוספת המועמד", {
+          description: result.error || "אירעה שגיאה לא צפויה מהשרת.",
+          duration: 8000, // Give more time to read the specific error
+        });
       }
     } catch (error) {
-      console.error("Error adding manual candidate:", error);
-      toast.error(
-        "שגיאה בהוספת המועמד: " +
-          (error instanceof Error ? error.message : "שגיאה לא ידועה")
-      );
+      // This will now primarily catch network errors or if response.json() fails
+      console.error("Submission failed due to network or parsing error:", error);
+      toast.error("שגיאת תקשורת", {
+        description: "לא ניתן היה להתחבר לשרת. אנא בדוק את חיבור האינטרנט שלך.",
+      });
     } finally {
       setIsSaving(false);
     }

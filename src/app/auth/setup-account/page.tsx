@@ -3,8 +3,6 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-// --- 1. ייבוא של useSession ---
-import { useSession } from "next-auth/react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,9 +12,7 @@ import { Loader2, KeyRound, CheckCircle } from "lucide-react";
 
 function SetupAccountForm() {
   const searchParams = useSearchParams();
-  const router = useRouter();
-  // --- 2. קבלת הפונקציה update מ-useSession ---
-  const { update } = useSession();
+  const router = useRouter(); 
   
   const [token, setToken] = useState<string | null>(null);
   const [password, setPassword] = useState('');
@@ -65,18 +61,19 @@ function SetupAccountForm() {
       setSuccess(true);
       toast.success("החשבון הוגדר בהצלחה! הנך מועבר/ת להשלמת הפרופיל.");
 
-      // --- 3. עדכון הסשן והפניה חכמה ---
-      // עדכון הסשן כדי שה-Middleware יקבל את הסטטוס החדש של המשתמש
-      await update();
-      
-      // הפניה לדף גנרי. ה-Middleware ידאג להפנות לדף הנכון (השלמת פרופיל / אימות טלפון)
-      router.push('/profile');
+      // --- START: התיקון המרכזי ---
+      // נשתמש ב-window.location.assign כדי לכפות רענון מלא והפניה.
+      // זה מבטיח שה-Middleware יקבל את הסשן המעודכן ביותר.
+      // נוסיף השהיה קטנה כדי שהמשתמש יראה את הודעת ההצלחה.
+      setTimeout(() => {
+        window.location.assign('/profile'); 
+      }, 1500); // 1.5 שניות
+      // --- END: התיקון המרכזי ---
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'אירעה שגיאה בלתי צפויה.');
-      setIsLoading(false); // יש לעצור את הטעינה גם במקרה של שגיאה
-    } 
-    // finally block is not needed here since loading is handled in catch and redirect happens on success
+      setIsLoading(false); 
+    }
   };
   
   if (success) {
@@ -89,7 +86,7 @@ function SetupAccountForm() {
                 <CardTitle className="mt-4">החשבון הוגדר בהצלחה!</CardTitle>
             </CardHeader>
             <CardContent>
-                <p className="text-muted-foreground">כעת, לאחר שקבעת סיסמה, נעביר אותך להשלמת פרטי הפרופיל שלך.</p>
+                <p className="text-muted-foreground">הסיסמה נקבעה. הנך מועבר/ת אוטומטית לשלב הבא של השלמת הפרופיל.</p>
                 <Loader2 className="mt-4 h-6 w-6 animate-spin mx-auto" />
             </CardContent>
         </Card>
