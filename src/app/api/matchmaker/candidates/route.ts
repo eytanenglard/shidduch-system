@@ -32,14 +32,20 @@ export async function GET() {
     // ---- END OF CHANGE ----
 
     // שליפת כל המועמדים הפעילים שיש להם פרופיל
-    const users = await prisma.user.findMany({
-      where: {
-        status: 'ACTIVE',
-        role: 'CANDIDATE',
-        profile: {
-          isNot: null  // רק משתמשים עם פרופיל
-        }
-      },
+   const users = await prisma.user.findMany({
+  where: {
+    // --- START OF CHANGE ---
+    // שינינו את התנאי כדי לכלול את כל המשתמשים שאינם חסומים או לא פעילים.
+    // זה יכלול משתמשים בסטטוס 'ACTIVE', 'PENDING_PHONE_VERIFICATION' וכו'.
+    status: {
+      notIn: ['BLOCKED', 'INACTIVE']
+    },
+    // --- END OF CHANGE ---
+    role: 'CANDIDATE',
+    profile: {
+      isNot: null  // נשאיר את התנאי הזה כדי להבטיח שלמשתמש יש רשומת פרופיל כלשהי, גם אם חלקית
+    }
+  },
       select: {
         id: true,
         email: true,

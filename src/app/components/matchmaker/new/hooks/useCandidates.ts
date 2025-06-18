@@ -220,7 +220,10 @@ export const useCandidates = (initialFilters: CandidatesFilter = {}): UseCandida
       if (filters.userStatus && candidate.status !== filters.userStatus) {
         return false;
       }
-
+   // סינון סטטוס משתמש
+      if (filters.userStatus && candidate.status !== filters.userStatus) {
+        return false;
+      }
       // סינון סטטוס זמינות - ודא המרה נכונה של הטיפוס
       if (filters.availabilityStatus && 
           candidate.profile.availabilityStatus !== filters.availabilityStatus) {

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { UserSource } from "@prisma/client"; // At the top
+import { UserStatus } from "@prisma/client";
 
 import {
   Collapsible,
@@ -992,6 +993,50 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                     הסר בחירה
                   </Button>
                 )}
+              </FilterSection>
+               <FilterSection
+                title="סטטוס משתמש"
+                icon={<User className="w-4 h-4" />}
+                defaultOpen={true}
+                badge={filters.userStatus ? 1 : undefined}
+              >
+                <div className="pt-2">
+                  <Select
+                    value={filters.userStatus || ""}
+                    onValueChange={(value) =>
+                      onFiltersChange({
+                        ...filters,
+                        userStatus: value ? (value as UserStatus) : undefined,
+                      })
+                    }
+                  >
+                    <SelectTrigger className="w-full bg-white">
+                      <SelectValue placeholder="בחר סטטוס משתמש" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">הכל</SelectItem>
+                      <SelectItem value={UserStatus.ACTIVE}>פעילים</SelectItem>
+                      <SelectItem value={UserStatus.PENDING_PHONE_VERIFICATION}>ממתינים לאימות טלפון</SelectItem>
+                      <SelectItem value={UserStatus.PENDING_EMAIL_VERIFICATION}>ממתינים לאימות מייל</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {filters.userStatus && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() =>
+                        onFiltersChange({
+                          ...filters,
+                          userStatus: undefined,
+                        })
+                      }
+                      className="w-full mt-2 text-sm text-gray-500"
+                    >
+                      הסר בחירה
+                    </Button>
+                  )}
+                </div>
               </FilterSection>
               {/* Age Range - משופר ומתוקן */}
               <FilterSection
