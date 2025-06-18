@@ -86,7 +86,7 @@ echo DEBUG: Using PGPASSWORD (not shown for security)
 
 REM Step 1: Dump the database using pg_dump
 echo Dumping database to "%RAW_BACKUP_FILEPATH%"...
-pg_dump --format=custom --dbname="%DATABASE_URL%" --file="%RAW_BACKUP_FILEPATH%"
+pg_dump --format=custom --dbname=%DATABASE_URL% --file="%RAW_BACKUP_FILEPATH%"
 IF %ERRORLEVEL% NEQ 0 (
     echo ERROR: Database dump (pg_dump) failed. Exit code: %ERRORLEVEL%
     GOTO EndScriptError

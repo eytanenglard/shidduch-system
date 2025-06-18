@@ -184,7 +184,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   // Action handlers
   const handleInvite = async (candidate: Candidate, email: string) => {
     try {
-      const response = await fetch("/api/matchmaker/candidates/invite", {
+      const response = await fetch(`/api/matchmaker/candidates/${candidate.id}/invite-setup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

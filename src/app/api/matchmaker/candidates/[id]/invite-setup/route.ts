@@ -25,19 +25,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     const normalizedEmail = email.toLowerCase();
 
-    // Check if the email is already in use by another user
-    const emailExists = await prisma.user.findFirst({
-      where: {
-        email: normalizedEmail,
-        id: { not: candidateId },
-      },
-    });
-
-    if (emailExists) {
-      return NextResponse.json({ success: false, error: "כתובת אימייל זו כבר משויכת לחשבון אחר." }, { status: 409 });
-    }
-
-    // Find the candidate to invite
+    // Find the candidate to invite. We fetch their current email to compare.
     const candidate = await prisma.user.findUnique({
       where: { id: candidateId },
     });
@@ -45,25 +33,32 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     if (!candidate) {
       return NextResponse.json({ success: false, error: "Candidate not found." }, { status: 404 });
     }
+    
+    // If the candidate's email is already the one we're trying to set,
+    // we can just resend the invite without a DB update.
+    if (candidate.email === normalizedEmail) {
+        // Here, we can just resend the invite. For simplicity, we'll proceed,
+        // but a dedicated "resend" logic would be cleaner.
+        console.log(`Email ${normalizedEmail} is already set for candidate ${candidateId}. Proceeding to send invite.`);
+    }
 
-    // --- START OF FIX ---
-    // The createVerification function returns an object with `otp` and `verification`.
-    // We will destructure the `otp` property and rename it to `setupToken` for clarity.
-    // The `verification` object contains the full record from the database.
     const { otp: setupToken, verification } = await VerificationService.createVerification(
       candidateId,
       VerificationType.ACCOUNT_SETUP,
       normalizedEmail,
       72 // Token valid for 72 hours
     );
-    // --- END OF FIX ---
 
-    // Update user's email and invalidate previous tokens in a transaction
+    // This transaction will now attempt to update the email.
+    // The catch block below will handle the unique constraint violation if it occurs.
     await prisma.$transaction(async (tx) => {
-      await tx.user.update({
-        where: { id: candidateId },
-        data: { email: normalizedEmail },
-      });
+      // Only update the email if it's different from the current one.
+      if (candidate.email !== normalizedEmail) {
+          await tx.user.update({
+            where: { id: candidateId },
+            data: { email: normalizedEmail },
+          });
+      }
 
       // Invalidate previous setup tokens for this user
       await tx.verification.updateMany({
@@ -79,12 +74,12 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       });
     });
 
-    // Send the email with the correct token (which is the OTP)
+    // Send the email with the correct token
     await emailService.sendAccountSetupEmail({
       email: normalizedEmail,
       firstName: candidate.firstName,
       matchmakerName: session.user.firstName || "השדכן/ית שלך",
-      setupToken: setupToken, // Use the correctly destructured token here
+      setupToken: setupToken,
       expiresIn: "3 ימים",
     });
 
@@ -92,10 +87,27 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   } catch (error) {
     console.error("Error sending account setup invite:", error);
-    let errorMessage = "An unexpected error occurred.";
+    
+    // --- START: Enhanced Error Handling ---
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        errorMessage = "Database error occurred.";
-    } else if (error instanceof Error) {
+      // Check for unique constraint violation (P2002)
+      if (error.code === 'P2002') {
+        // The 'target' field in the error metadata tells us which field caused the violation.
+        const target = error.meta?.target as string[] | undefined;
+        if (target?.includes('email')) {
+          return NextResponse.json(
+            { success: false, error: "כתובת אימייל זו כבר משויכת לחשבון אחר." },
+            { status: 409 } // 409 Conflict is the appropriate status code
+          );
+        }
+      }
+      // Handle other potential database errors
+      return NextResponse.json({ success: false, error: "שגיאת מסד נתונים." }, { status: 500 });
+    }
+    // --- END: Enhanced Error Handling ---
+
+    let errorMessage = "An unexpected error occurred.";
+    if (error instanceof Error) {
         errorMessage = error.message;
     }
     return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
