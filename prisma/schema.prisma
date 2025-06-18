@@ -8,6 +8,8 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+    directUrl         = env("DIRECT_URL") // <-- הוסף את השורה הזו
+
 }
 
 model User {
@@ -548,6 +550,7 @@ enum VerificationType {
   DOCUMENT
   REFERENCE
   PASSWORD_RESET
+   ACCOUNT_SETUP
 }
 
 enum VerificationStatus {

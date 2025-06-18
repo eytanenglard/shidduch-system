@@ -10,7 +10,13 @@ interface EmailConfig {
   templateName: string;
   context: Record<string, unknown>;
 }
-
+interface AccountSetupEmailParams {
+    email: string;
+    firstName: string;
+    matchmakerName: string;
+    setupToken: string;
+    expiresIn: string;
+}
 interface WelcomeEmailParams {
   email: string;
   firstName: string;
@@ -180,7 +186,21 @@ class EmailService {
       }
     });
   }
-
+  async sendAccountSetupEmail({ email, firstName, matchmakerName, setupToken, expiresIn }: AccountSetupEmailParams): Promise<void> {
+    const setupLink = `${process.env.NEXT_PUBLIC_BASE_URL}/auth/setup-account?token=${setupToken}`;
+    
+    await this.sendEmail({
+      to: email,
+      subject: `הזמנה להגדרת חשבונך ב-Matchpoint`,
+      templateName: 'account-setup',
+      context: {
+        firstName,
+        matchmakerName,
+        setupLink,
+        expiresIn,
+      },
+    });
+  }
   async sendVerificationEmail({
     email,
     verificationCode,
@@ -363,4 +383,6 @@ export type {
   AvailabilityCheckEmailParams,
   PasswordResetOtpEmailParams, // Export new type
   PasswordChangedConfirmationParams, // Export new type
+  AccountSetupEmailParams, // Export new type
+
 };

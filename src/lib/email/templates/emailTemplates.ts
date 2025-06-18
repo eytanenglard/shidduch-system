@@ -71,7 +71,12 @@ interface InvitationTemplateContext extends BaseTemplateContext {
     invitationLink: string;
     expiresIn: string;
 }
-
+interface AccountSetupTemplateContext extends BaseTemplateContext {
+    firstName: string;
+    matchmakerName: string;
+    setupLink: string;
+    expiresIn: string;
+}
 
 // מיפוי הטיפוסים לתבניות
 type TemplateContextMap = {
@@ -83,6 +88,8 @@ type TemplateContextMap = {
   'password-reset-otp': PasswordResetOtpTemplateContext; // Renamed and updated
   'password-changed-confirmation': PasswordChangedConfirmationTemplateContext; // New
   'invitation': InvitationTemplateContext;
+    'account-setup': AccountSetupTemplateContext; // New template
+
   // 'password-reset': PasswordResetLinkTemplateContext; // Keep if old link-based reset is still used elsewhere
 };
 
@@ -162,7 +169,26 @@ export const emailTemplates: {
     `;
     return createBaseEmailHtml('ברוכים הבאים!', content.replace('{{headerClass}}', ''), footer);
   },
-
+ 'account-setup': (context) => {
+    const content = `
+      <p>שלום <strong>${context.firstName}</strong>,</p>
+      <p>אנו שמחים לבשר לך שהשדכן/ית, <strong>${context.matchmakerName}</strong>, יצר/ה עבורך פרופיל במערכת השידוכים המתקדמת שלנו, ${context.companyName}.</p>
+      <p>כדי שתוכל/י לקחת שליטה על הפרופיל, לעדכן פרטים, ולצפות בהצעות, יש להגדיר סיסמה אישית לחשבונך.</p>
+      <p style="text-align: center;">
+        <a href="${context.setupLink}" class="button">הגדרת סיסמה והפעלת החשבון</a>
+      </p>
+      <div class="highlight-box">
+        <p><strong>שימ/י לב:</strong> קישור זה הינו חד-פעמי ותקף למשך <strong>${context.expiresIn}</strong>.</p>
+      </div>
+      <p>לאחר הגדרת הסיסמה, תוכל/י להתחבר למערכת בכל עת באמצעות כתובת המייל שלך והסיסמה החדשה.</p>
+      <p>אנו מאחלים לך הצלחה רבה!</p>
+    `;
+    const footer = `
+      <p>לתמיכה ושאלות, ניתן לפנות אלינו בכתובת: <a href="mailto:${context.supportEmail}">${context.supportEmail}</a></p>
+      <p>© ${context.currentYear} כל הזכויות שמורות ל${context.companyName}.</p>
+    `;
+    return createBaseEmailHtml('הזמנה להגדרת חשבונך', content, footer);
+  },
   'email-otp-verification': (context) => {
     const content = `
       <p>שלום ${context.firstName || 'משתמש יקר'},</p>

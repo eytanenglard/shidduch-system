@@ -1,10 +1,12 @@
+// src/app/api/matchmaker/candidates/manual/route.ts
 import { NextResponse } from 'next/server';
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth"; // Your auth options
+import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { Gender, UserSource, UserStatus, UserRole } from '@prisma/client';
-import { v2 as cloudinary } from "cloudinary"; // Import Cloudinary
-import { updateUserAiProfile } from '@/lib/services/profileAiService'; // <--- 1. ייבוא
+import { v2 as cloudinary } from "cloudinary";
+import { updateUserAiProfile } from '@/lib/services/profileAiService';
+import { createId } from '@paralleldrive/cuid2';
 
 // Define the type for Cloudinary upload result for clarity
 type CloudinaryUploadResult = {
@@ -13,12 +15,9 @@ type CloudinaryUploadResult = {
 };
 
 // Configure Cloudinary
-// Ensure these environment variables are set in your .env file
-if (!process.env.CLOUDINARY_CLOUD_NAME ||
-    !process.env.CLOUDINARY_API_KEY ||
-    !process.env.CLOUDINARY_API_SECRET) {
-  console.error("CRITICAL: Missing required Cloudinary environment variables. Image uploads will fail.");
-  throw new Error("Missing required Cloudinary environment variables. Image uploads will fail.");
+if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+  console.error("CRITICAL: Missing required Cloudinary environment variables.");
+  throw new Error("Missing required Cloudinary environment variables.");
 }
 
 cloudinary.config({
@@ -34,19 +33,10 @@ async function uploadImageToCloudinary(file: File, userId: string): Promise<{ ur
 
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
-      {
-        folder: `manual-candidates/${userId}/images`, // Store in a specific folder for manual candidates
-        resource_type: "image",
-      },
+      { folder: `manual-candidates/${userId}/images`, resource_type: "image" },
       (error, result) => {
-        if (error) {
-          console.error("Cloudinary upload error:", error);
-          return reject(new Error("Failed to upload image to Cloudinary."));
-        }
-        if (!result) {
-          console.error("Cloudinary upload error: No result returned.");
-          return reject(new Error("Cloudinary upload failed: no result object."));
-        }
+        if (error) return reject(new Error("Failed to upload image to Cloudinary."));
+        if (!result) return reject(new Error("Cloudinary upload failed: no result object."));
         const cloudinaryResult = result as CloudinaryUploadResult;
         resolve({ url: cloudinaryResult.secure_url, publicId: cloudinaryResult.public_id });
       }
@@ -55,12 +45,10 @@ async function uploadImageToCloudinary(file: File, userId: string): Promise<{ ur
   });
 }
 
-
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session || !session.user ||
-        (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+    if (!session || !session.user || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
     const matchmakerId = session.user.id;
@@ -73,13 +61,7 @@ export async function POST(request: Request) {
     const birthDateStr = formData.get('birthDate') as string;
     const manualEntryText = formData.get('manualEntryText') as string;
     const images = formData.getAll('images') as File[];
-
-    // --- קריאת השדה החדש ---
-    const birthDateIsApproximateStr = formData.get('birthDateIsApproximate') as string;
-    // המרה לבוליאני, ברירת מחדל ל-false אם לא קיים או לא "true"
-    const birthDateIsApproximate = birthDateIsApproximateStr === 'true';
-    // --- סוף קריאת השדה החדש ---
-
+    const birthDateIsApproximate = formData.get('birthDateIsApproximate') === 'true';
 
     if (!firstName || !lastName || !gender || !birthDateStr || !manualEntryText) {
       return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
@@ -87,18 +69,18 @@ export async function POST(request: Request) {
 
     const birthDate = new Date(birthDateStr);
     if (isNaN(birthDate.getTime())) {
-         return NextResponse.json({ success: false, error: "Invalid birth date" }, { status: 400 });
+      return NextResponse.json({ success: false, error: "Invalid birth date" }, { status: 400 });
     }
 
-    const email = emailValue || `manual_${Date.now()}_${firstName.toLowerCase().replace(/\s+/g, '')}@shidduch.placeholder.com`;
-
-    const existingUser = await prisma.user.findUnique({ where: { email } });
-    if (existingUser) {
-        if (existingUser.source !== UserSource.MANUAL_ENTRY) {
-            return NextResponse.json({ success: false, error: "An active user with this email already exists. Please use a different email or contact support." }, { status: 409 });
-        } else {
-             return NextResponse.json({ success: false, error: "A manually added candidate with this email already exists." }, { status: 409 });
+    let email: string;
+    if (emailValue && emailValue.trim() !== '') {
+        email = emailValue.trim().toLowerCase();
+        const existingUser = await prisma.user.findUnique({ where: { email } });
+        if (existingUser) {
+            return NextResponse.json({ success: false, error: "משתמש עם כתובת אימייל זו כבר קיים במערכת." }, { status: 409 });
         }
+    } else {
+        email = `manual_${createId()}@shidduch.placeholder.com`;
     }
 
     const newManualCandidate = await prisma.user.create({
@@ -106,6 +88,7 @@ export async function POST(request: Request) {
         firstName,
         lastName,
         email,
+        password: null,
         role: UserRole.CANDIDATE,
         status: UserStatus.ACTIVE,
         isVerified: true,
@@ -117,9 +100,7 @@ export async function POST(request: Request) {
           create: {
             gender,
             birthDate,
-            // --- הוספת השדה החדש ליצירת הפרופיל ---
-            birthDateIsApproximate, // כאן מוסיפים את הערך הבוליאני
-            // --- סוף הוספת השדה החדש ---
+            birthDateIsApproximate,
             manualEntryText,
             availabilityStatus: 'AVAILABLE',
           },
@@ -130,21 +111,40 @@ export async function POST(request: Request) {
       },
     });
 
-    const uploadedImageData: { url: string; publicId: string; isMain: boolean }[] = [];
-    if (images && images.length > 0) {
-      for (const file of images) {
-          if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-              return NextResponse.json({ success: false, error: `Invalid file type: ${file.name}. Only JPG, PNG, WEBP allowed.` }, { status: 400 });
-          }
-          if (file.size > 5 * 1024 * 1024) { // 5MB limit
-              return NextResponse.json({ success: false, error: `File too large: ${file.name}. Max 5MB.` }, { status: 400 });
-          }
-      }
+    // --- START OF FIX ---
+    // 1. Define the type for the image data objects that will be created.
+    type UserImageCreateInput = {
+      userId: string;
+      url: string;
+      cloudinaryPublicId: string;
+      isMain: boolean;
+    };
 
+    // 2. Explicitly type the array upon initialization to avoid the 'never[]' type inference.
+    const uploadedImageData: UserImageCreateInput[] = [];
+    // --- END OF FIX ---
+
+    if (images && images.length > 0) {
+      // (Optional but good practice) File validation loop
+      for (const file of images) {
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+            return NextResponse.json({ success: false, error: `Invalid file type: ${file.name}. Only JPG, PNG, WEBP allowed.` }, { status: 400 });
+        }
+        if (file.size > 5 * 1024 * 1024) { // 5MB limit
+            return NextResponse.json({ success: false, error: `File too large: ${file.name}. Max 5MB.` }, { status: 400 });
+        }
+      }
+      
       for (let i = 0; i < images.length; i++) {
         try {
           const { url, publicId } = await uploadImageToCloudinary(images[i], newManualCandidate.id);
-          uploadedImageData.push({ url, publicId, isMain: i === 0 });
+          // 3. Push an object that matches the defined type.
+          uploadedImageData.push({
+            userId: newManualCandidate.id,
+            url: url,
+            cloudinaryPublicId: publicId,
+            isMain: i === 0,
+          });
         } catch (uploadError) {
             console.error("Failed to upload an image during manual candidate creation:", uploadError);
             return NextResponse.json({
@@ -155,36 +155,27 @@ export async function POST(request: Request) {
       }
 
       if (uploadedImageData.length > 0) {
+        // 4. The `createMany` call is now simpler and type-safe.
         await prisma.userImage.createMany({
-          data: uploadedImageData.map(img => ({
-            userId: newManualCandidate.id,
-            url: img.url,
-            cloudinaryPublicId: img.publicId,
-            isMain: img.isMain,
-          })),
+          data: uploadedImageData,
         });
       }
     }
    
-    // --- START OF NEW CODE ---
-    // 2. הפעלת יצירת פרופיל ה-AI עבור המועמד החדש
     updateUserAiProfile(newManualCandidate.id).catch(err => {
-        console.error(`[AI Profile Trigger - Manual Creation] Failed to create initial AI profile in the background for new manual candidate ${newManualCandidate.id}:`, err);
+        console.error(`[AI Profile Trigger] Failed to create AI profile for manual candidate ${newManualCandidate.id}:`, err);
     });
-    // --- END OF NEW CODE ---
+
     const candidateToReturn = await prisma.user.findUnique({
         where: { id: newManualCandidate.id },
-        include: {
-            profile: true,
-            images: true,
-        }
+        include: { profile: true, images: true }
     });
 
     return NextResponse.json({ success: true, candidate: candidateToReturn });
 
   } catch (error) {
     console.error("Error in POST /api/matchmaker/candidates/manual:", error);
-    let errorMessage = "שגיאה פנימית בשרת.";
+    let errorMessage = "Internal server error.";
     if (error instanceof Error) {
         errorMessage = error.message;
     }
