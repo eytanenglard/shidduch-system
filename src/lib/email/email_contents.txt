@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\lib\email
-# Generated on: 2025-06-17 18:22:07
+# Generated on: 2025-06-18 16:06:38
 ################################################################################
 
 ================================================================================
@@ -23,7 +23,13 @@ interface EmailConfig {
   templateName: string;
   context: Record<string, unknown>;
 }
-
+interface AccountSetupEmailParams {
+    email: string;
+    firstName: string;
+    matchmakerName: string;
+    setupToken: string;
+    expiresIn: string;
+}
 interface WelcomeEmailParams {
   email: string;
   firstName: string;
@@ -193,7 +199,21 @@ class EmailService {
       }
     });
   }
-
+  async sendAccountSetupEmail({ email, firstName, matchmakerName, setupToken, expiresIn }: AccountSetupEmailParams): Promise<void> {
+    const setupLink = `${process.env.NEXT_PUBLIC_BASE_URL}/auth/setup-account?token=${setupToken}`;
+    
+    await this.sendEmail({
+      to: email,
+      subject: `הזמנה להגדרת חשבונך ב-Matchpoint`,
+      templateName: 'account-setup',
+      context: {
+        firstName,
+        matchmakerName,
+        setupLink,
+        expiresIn,
+      },
+    });
+  }
   async sendVerificationEmail({
     email,
     verificationCode,
@@ -376,6 +396,8 @@ export type {
   AvailabilityCheckEmailParams,
   PasswordResetOtpEmailParams, // Export new type
   PasswordChangedConfirmationParams, // Export new type
+  AccountSetupEmailParams, // Export new type
+
 };
 --- End of Content for emailService.ts ---
 
@@ -387,6 +409,57 @@ File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\lib\email\email_conte
 ================================================================================
 Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\lib\email\templates
 ================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\lib\email\templates\account-setup.hbs
+--------------------------------------------------------------------------------
+Content:
+{{!-- src/lib/email/templates/account-setup.hbs --}}
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>הזמנה להגדרת חשבונך ב-{{companyName}}</title>
+    <style>
+        body { font-family: 'Arial', sans-serif; direction: rtl; text-align: right; line-height: 1.6; margin: 0; padding: 0; background-color: #f8f9fa; color: #343a40; }
+        .email-container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border: 1px solid #dee2e6; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); overflow: hidden; }
+        .email-header { background-color: #06b6d4; color: #ffffff; padding: 25px; text-align: center; }
+        .email-header h1 { margin: 0; font-size: 26px; font-weight: 600; }
+        .email-body { padding: 25px 30px; font-size: 16px; }
+        .email-body p { margin-bottom: 1em; }
+        .button { display: inline-block; padding: 12px 25px; background-color: #06b6d4; color: white !important; text-decoration: none; border-radius: 5px; margin: 15px 0; font-weight: 500; text-align: center; }
+        .button:hover { background-color: #0891b2; }
+        .footer { background-color: #f1f3f5; padding: 20px; text-align: center; font-size: 0.9em; color: #6c757d; border-top: 1px solid #e9ecef; }
+        .highlight-box { background-color: #f0f9ff; border-right: 4px solid #38bdf8; padding: 15px; margin: 20px 0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <h1>הזמנה להגדרת חשבונך</h1>
+        </div>
+        <div class="email-body">
+            <p>שלום <strong>{{firstName}}</strong>,</p>
+            <p>אנו שמחים לבשר לך שהשדכן/ית, <strong>{{matchmakerName}}</strong>, יצר/ה עבורך פרופיל במערכת השידוכים המתקדמת שלנו, {{companyName}}.</p>
+            <p>כדי שתוכל/י לקחת שליטה על הפרופיל, לעדכן פרטים, ולצפות בהצעות, יש להגדיר סיסמה אישית לחשבונך.</p>
+            <p style="text-align: center;">
+                <a href="{{setupLink}}" class="button">הגדרת סיסמה והפעלת החשבון</a>
+            </p>
+            <div class="highlight-box">
+                <p><strong>שימ/י לב:</strong> קישור זה הינו חד-פעמי ותקף למשך <strong>{{expiresIn}}</strong>.</p>
+            </div>
+            <p>לאחר הגדרת הסיסמה, תוכל/י להתחבר למערכת בכל עת באמצעות כתובת המייל שלך והסיסמה החדשה.</p>
+            <p>אנו מאחלים לך הצלחה רבה!</p>
+        </div>
+        <div class="footer">
+            <p>לתמיכה ושאלות, ניתן לפנות אלינו בכתובת: <a href="mailto:{{supportEmail}}">{{supportEmail}}</a></p>
+            <p>© {{currentYear}} כל הזכויות שמורות ל{{companyName}}.</p>
+        </div>
+    </div>
+</body>
+</html>
+--- End of Content for account-setup.hbs ---
 
 --------------------------------------------------------------------------------
 File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\lib\email\templates\availability-check.hbs
@@ -656,7 +729,12 @@ interface InvitationTemplateContext extends BaseTemplateContext {
     invitationLink: string;
     expiresIn: string;
 }
-
+interface AccountSetupTemplateContext extends BaseTemplateContext {
+    firstName: string;
+    matchmakerName: string;
+    setupLink: string;
+    expiresIn: string;
+}
 
 // מיפוי הטיפוסים לתבניות
 type TemplateContextMap = {
@@ -668,6 +746,8 @@ type TemplateContextMap = {
   'password-reset-otp': PasswordResetOtpTemplateContext; // Renamed and updated
   'password-changed-confirmation': PasswordChangedConfirmationTemplateContext; // New
   'invitation': InvitationTemplateContext;
+    'account-setup': AccountSetupTemplateContext; // New template
+
   // 'password-reset': PasswordResetLinkTemplateContext; // Keep if old link-based reset is still used elsewhere
 };
 
@@ -747,7 +827,26 @@ export const emailTemplates: {
     `;
     return createBaseEmailHtml('ברוכים הבאים!', content.replace('{{headerClass}}', ''), footer);
   },
-
+ 'account-setup': (context) => {
+    const content = `
+      <p>שלום <strong>${context.firstName}</strong>,</p>
+      <p>אנו שמחים לבשר לך שהשדכן/ית, <strong>${context.matchmakerName}</strong>, יצר/ה עבורך פרופיל במערכת השידוכים המתקדמת שלנו, ${context.companyName}.</p>
+      <p>כדי שתוכל/י לקחת שליטה על הפרופיל, לעדכן פרטים, ולצפות בהצעות, יש להגדיר סיסמה אישית לחשבונך.</p>
+      <p style="text-align: center;">
+        <a href="${context.setupLink}" class="button">הגדרת סיסמה והפעלת החשבון</a>
+      </p>
+      <div class="highlight-box">
+        <p><strong>שימ/י לב:</strong> קישור זה הינו חד-פעמי ותקף למשך <strong>${context.expiresIn}</strong>.</p>
+      </div>
+      <p>לאחר הגדרת הסיסמה, תוכל/י להתחבר למערכת בכל עת באמצעות כתובת המייל שלך והסיסמה החדשה.</p>
+      <p>אנו מאחלים לך הצלחה רבה!</p>
+    `;
+    const footer = `
+      <p>לתמיכה ושאלות, ניתן לפנות אלינו בכתובת: <a href="mailto:${context.supportEmail}">${context.supportEmail}</a></p>
+      <p>© ${context.currentYear} כל הזכויות שמורות ל${context.companyName}.</p>
+    `;
+    return createBaseEmailHtml('הזמנה להגדרת חשבונך', content, footer);
+  },
   'email-otp-verification': (context) => {
     const content = `
       <p>שלום ${context.firstName || 'משתמש יקר'},</p>

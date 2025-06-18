@@ -34,6 +34,7 @@ const publicPaths = [
   '/',
   '/auth/signin',
   '/auth/register',
+  '/contact',
   // ... (שאר הנתיבים הציבוריים שלך)
   '/api/auth/callback/google',
   '/api/uploadthing',
@@ -45,7 +46,7 @@ const allowedWhileIncompleteOrUnverifiedPaths = [
   '/auth/verify-phone',
   // ... (שאר הנתיבים המורשים למשתמש לא מושלם)
   '/api/user/accept-terms',
-   '/account-settings',                  // The account settings page itself
+   '/settings',                  // The account settings page itself
   '/api/auth/delete',                   // The API endpoint for account deletion
   '/api/auth/send-verification',        // To allow resending verification emails from the settings page
   '/api/auth/initiate-password-change', // To allow password changes
@@ -55,6 +56,7 @@ const allowedWhileIncompleteOrUnverifiedPaths = [
 // --- NEW: Add the chat API path to a separate constant for rate limiting ---
 const rateLimitedPaths = [
     '/api/chat',
+      '/api/contact',
 ];
 
 export default withAuth(
