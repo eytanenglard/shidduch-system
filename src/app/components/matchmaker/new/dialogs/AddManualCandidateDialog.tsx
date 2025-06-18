@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Loader2, UserPlus, X, UploadCloud, Trash2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import Image from "next/image";
 import { Gender } from "@prisma/client";
 import {
@@ -29,7 +30,7 @@ import { DatePicker } from "@/components/ui/date-picker";
 import {
   RadioGroup,
   RadioGroupItem,
-} from "@/components/ui/radio-group"; // הוספת ייבוא לרכיבי הרדיו
+} from "@/components/ui/radio-group";
 
 interface AddManualCandidateDialogProps {
   isOpen: boolean;
@@ -51,13 +52,12 @@ export const AddManualCandidateDialog: React.FC<
   const [manualEntryText, setManualEntryText] = useState("");
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [sendInvite, setSendInvite] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-
-  // מצבים חדשים עבור בחירת אופן הזנת גיל
   const [birthDateInputMode, setBirthDateInputMode] = useState<"date" | "age">(
     "date"
   );
-  const [ageInput, setAgeInput] = useState<string>(""); // קלט הגיל כשדה טקסט
+  const [ageInput, setAgeInput] = useState<string>("");
 
   const resetForm = useCallback(() => {
     setFirstName("");
@@ -68,9 +68,10 @@ export const AddManualCandidateDialog: React.FC<
     setManualEntryText("");
     setImages([]);
     setImagePreviews([]);
+    setSendInvite(false);
     setIsSaving(false);
-    setBirthDateInputMode("date"); // איפוס מצב בחירת הזנת גיל
-    setAgeInput(""); // איפוס שדה הגיל
+    setBirthDateInputMode("date");
+    setAgeInput("");
   }, []);
 
   const handleClose = () => {
@@ -107,7 +108,6 @@ export const AddManualCandidateDialog: React.FC<
   const removeImage = (index: number) => {
     const newImages = images.filter((_, i) => i !== index);
     const newImagePreviews = imagePreviews.filter((_, i) => i !== index);
-    // URL.revokeObjectURL(imagePreviews[index]); // Consider implications
     setImages(newImages);
     setImagePreviews(newImagePreviews);
   };
@@ -116,7 +116,6 @@ export const AddManualCandidateDialog: React.FC<
     event.preventDefault();
     setIsSaving(true);
 
-    // בדיקת שדות חובה בסיסיים
     if (!firstName || !lastName || !gender || !manualEntryText) {
       toast.error(
         "נא למלא את כל שדות החובה: שם פרטי, שם משפחה, מין וטקסט חופשי."
@@ -136,22 +135,20 @@ export const AddManualCandidateDialog: React.FC<
       }
       finalBirthDate = birthDate;
       isBirthDateApproximate = false;
-    } else { // birthDateInputMode === "age"
+    } else {
       const ageNum = parseInt(ageInput, 10);
       if (isNaN(ageNum) || ageNum <= 0 || ageNum > 120) {
         toast.error("נא להזין גיל תקין (בין 1 ל-120).");
         setIsSaving(false);
         return;
       }
-      // חישוב תאריך לידה משוער: 1 בינואר של (השנה הנוכחית - הגיל)
       const currentYear = new Date().getFullYear();
       const birthYear = currentYear - ageNum;
-      finalBirthDate = new Date(birthYear, 0, 1); // חודש ינואר הוא 0
+      finalBirthDate = new Date(birthYear, 0, 1);
       isBirthDateApproximate = true;
     }
 
     if (!finalBirthDate) {
-        // מקרה זה לא אמור לקרות אם הלוגיקה למעלה נכונה
         toast.error("שגיאה בקביעת תאריך לידה. נא לבדוק את הקלט.");
         setIsSaving(false);
         return;
@@ -163,14 +160,11 @@ export const AddManualCandidateDialog: React.FC<
     if (email) formData.append("email", email);
     formData.append("gender", gender);
     formData.append("birthDate", finalBirthDate.toISOString());
-    // הוספת השדה החדש לטופס. השרת יצטרך לטפל בו.
     formData.append("birthDateIsApproximate", String(isBirthDateApproximate));
     formData.append("manualEntryText", manualEntryText);
     images.forEach((image) => {
       formData.append("images", image);
     });
-
-   // src/app/components/matchmaker/new/dialogs/AddManualCandidateDialog.tsx
 
     try {
       const response = await fetch("/api/matchmaker/candidates/manual", {
@@ -180,25 +174,40 @@ export const AddManualCandidateDialog: React.FC<
 
       const result = await response.json();
 
-      if (response.ok) { // Check for any 2xx status code
-        toast.success("המועמד הידני נוסף בהצלחה!");
+      if (response.ok && result.success) {
+        if (sendInvite && email && result.candidate?.id) {
+           const promise = fetch(`/api/matchmaker/candidates/${result.candidate.id}/invite-setup`, {
+               method: 'POST',
+               headers: { 'Content-Type': 'application/json' },
+               body: JSON.stringify({ email }),
+           }).then(async (inviteResponse) => {
+               if (!inviteResponse.ok) {
+                   const errorData = await inviteResponse.json().catch(() => ({}));
+                   throw new Error(errorData.error || 'שליחת ההזמנה נכשלה.');
+               }
+               return inviteResponse.json();
+           });
+
+           toast.promise(promise, {
+               loading: 'מוסיף מועמד ושולח הזמנה...',
+               success: 'המועמד נוסף וההזמנה נשלחה בהצלחה!',
+               error: (err: Error) => `המועמד נוסף, אך שליחת ההזמנה נכשלה: ${err.message}`,
+           });
+        } else {
+            toast.success("המועמד הידני נוסף בהצלחה!");
+        }
+
         onCandidateAdded();
         handleClose();
       } else {
-        // Handle controlled API errors (like 400, 409, etc.)
-        // `result.error` will now contain the specific message from the server
-        console.error("API Error:", result.error);
-        toast.error("שגיאה בהוספת המועמד", {
-          description: result.error || "אירעה שגיאה לא צפויה מהשרת.",
-          duration: 8000, // Give more time to read the specific error
-        });
+        throw new Error(result.error || "שגיאה בהוספת המועמד.");
       }
     } catch (error) {
-      // This will now primarily catch network errors or if response.json() fails
-      console.error("Submission failed due to network or parsing error:", error);
-      toast.error("שגיאת תקשורת", {
-        description: "לא ניתן היה להתחבר לשרת. אנא בדוק את חיבור האינטרנט שלך.",
-      });
+      console.error("Error adding manual candidate:", error);
+      toast.error(
+        "שגיאה בהוספת המועמד: " +
+          (error instanceof Error ? error.message : "שגיאה לא ידועה")
+      );
     } finally {
       setIsSaving(false);
     }
@@ -274,6 +283,21 @@ export const AddManualCandidateDialog: React.FC<
             </p>
           </div>
 
+          <div className="flex items-center space-x-2 rtl:space-x-reverse pt-2">
+            <Checkbox
+              id="sendInvite"
+              checked={sendInvite}
+              onCheckedChange={(checked) => setSendInvite(Boolean(checked))}
+              disabled={!email || isSaving}
+            />
+            <Label
+              htmlFor="sendInvite"
+              className={`cursor-pointer transition-colors ${!email ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700'}`}
+            >
+              שלח הזמנה למועמד/ת להגדרת חשבון לאחר ההוספה
+            </Label>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="gender" className="text-right block">
@@ -293,7 +317,6 @@ export const AddManualCandidateDialog: React.FC<
               </Select>
             </div>
 
-            {/* חלק הזנת תאריך לידה / גיל */}
             <div>
               <div>
                 <Label className="text-right block mb-2">
@@ -305,9 +328,9 @@ export const AddManualCandidateDialog: React.FC<
                   onValueChange={(value: "date" | "age") => {
                     setBirthDateInputMode(value);
                     if (value === "date") {
-                      setAgeInput(""); // נקה גיל אם עוברים לתאריך
+                      setAgeInput("");
                     } else {
-                      setBirthDate(undefined); // נקה תאריך אם עוברים לגיל
+                      setBirthDate(undefined);
                     }
                   }}
                   className="flex space-x-4 rtl:space-x-reverse mb-3"
@@ -417,6 +440,7 @@ export const AddManualCandidateDialog: React.FC<
                       width={100}
                       height={100}
                       className="rounded-md object-cover w-full aspect-square"
+                      onLoad={() => URL.revokeObjectURL(preview)} // Clean up object URLs
                     />
                     <Button
                       type="button"

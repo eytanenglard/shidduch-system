@@ -35,11 +35,15 @@ const publicPaths = [
   '/auth/signin',
   '/auth/register',
   '/contact',
-  // --- FIX: Add paths for invitation and account setup flow ---
+  // --- START: FIX FOR FORGOT/RESET PASSWORD ---
+  '/auth/forgot-password',    // Page for the "Forgot Password" form
+  '/api/auth/forgot-password',// API to handle the forgot password request
+  '/auth/reset-password',     // Page for the "Reset Password" form (from email link)
+  '/api/auth/reset-password', // API to handle the actual password reset
+  // --- END: FIX FOR FORGOT/RESET PASSWORD ---
   '/auth/setup-account',       // Page for user to set password from invite
   '/api/auth/complete-setup',   // API to process the password setup
   '/auth/accept-invitation',    // Page for a generic invitation
-  // --- END FIX ---
   '/api/auth/callback/google',
   '/api/uploadthing',
 ];
