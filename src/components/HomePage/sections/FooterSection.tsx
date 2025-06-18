@@ -1,3 +1,5 @@
+// src/components/HomePage/sections/FooterSection.tsx
+
 import React from "react";
 import Link from "next/link";
 import { Heart } from "lucide-react";
@@ -107,6 +109,7 @@ const FooterSection: React.FC = () => {
               <FooterLink href="/privacy">פרטיות</FooterLink>
               <FooterLink href="/terms">תנאי שימוש</FooterLink>
               <FooterLink href="/help">עזרה ותמיכה</FooterLink>
+              <FooterLink href="/contact">צור קשר</FooterLink> {/* <--- הקישור החדש */}
               <FooterLink href="/blog">בלוג</FooterLink>
               <FooterLink href="/pricing">תוכניות ומחירים</FooterLink>
             </ul>

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+// --- שינוי: הוספת useEffect ליבוא ---
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -60,6 +61,19 @@ export const ActionDialogs: React.FC<ActionDialogsProps> = ({
     null
   );
 
+  // --- הוספה: useEffect למילוי אוטומטי של האימייל ---
+  useEffect(() => {
+    // בודקים אם דיאלוג ההזמנה פתוח ויש מועמד שנבחר
+    if (inviteDialog.isOpen && inviteDialog.selectedCandidate) {
+      // מעדכנים את שדה האימייל עם האימייל של המועמד מהדאטהבייס.
+      // אם אין לו אימייל, השדה יישאר ריק.
+      setInviteEmail(inviteDialog.selectedCandidate.email || "");
+    } else {
+      // כאשר הדיאלוג נסגר, מנקים את שדה האימייל
+      setInviteEmail("");
+    }
+  }, [inviteDialog.isOpen, inviteDialog.selectedCandidate]); // ה-hook יופעל בכל פעם שהדיאלוג נפתח/נסגר או שהמועמד משתנה
+
   // Handler for invite submission
   const handleInviteSubmit = async () => {
     if (!inviteDialog.selectedCandidate || !inviteEmail) return;
@@ -68,7 +82,7 @@ export const ActionDialogs: React.FC<ActionDialogsProps> = ({
       setIsInviting(true);
       setInviteError(null);
       await inviteDialog.onInvite(inviteDialog.selectedCandidate, inviteEmail);
-      setInviteEmail("");
+      // setInviteEmail(""); // השורה הזו כבר לא הכרחית כי ה-useEffect ינקה את השדה בסגירה
       inviteDialog.onClose();
     } catch (error) {
       setInviteError(

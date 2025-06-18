@@ -35,7 +35,11 @@ const publicPaths = [
   '/auth/signin',
   '/auth/register',
   '/contact',
-  // ... (שאר הנתיבים הציבוריים שלך)
+  // --- FIX: Add paths for invitation and account setup flow ---
+  '/auth/setup-account',       // Page for user to set password from invite
+  '/api/auth/complete-setup',   // API to process the password setup
+  '/auth/accept-invitation',    // Page for a generic invitation
+  // --- END FIX ---
   '/api/auth/callback/google',
   '/api/uploadthing',
 ];
@@ -44,9 +48,8 @@ const publicPaths = [
 const allowedWhileIncompleteOrUnverifiedPaths = [
   '/auth/register',
   '/auth/verify-phone',
-  // ... (שאר הנתיבים המורשים למשתמש לא מושלם)
   '/api/user/accept-terms',
-   '/settings',                  // The account settings page itself
+  '/settings',                  // The account settings page itself
   '/api/auth/delete',                   // The API endpoint for account deletion
   '/api/auth/send-verification',        // To allow resending verification emails from the settings page
   '/api/auth/initiate-password-change', // To allow password changes
@@ -56,7 +59,7 @@ const allowedWhileIncompleteOrUnverifiedPaths = [
 // --- NEW: Add the chat API path to a separate constant for rate limiting ---
 const rateLimitedPaths = [
     '/api/chat',
-      '/api/contact',
+    '/api/contact',
 ];
 
 export default withAuth(
@@ -92,15 +95,14 @@ export default withAuth(
         return allowedPaths.some(allowedPath => {
             if (currentPath === allowedPath) return true;
             if (allowedPath.endsWith('/*') && currentPath.startsWith(allowedPath.slice(0, -2))) return true;
-            if (allowedPath !== '/' && currentPath.startsWith(allowedPath) && (allowedPath.startsWith('/api/') || allowedPath.startsWith('/auth/'))) return true;
+            // More specific check to avoid broad matches like /auth allowing /auth/anything
+            if (currentPath.startsWith(allowedPath) && (currentPath.length === allowedPath.length || currentPath.charAt(allowedPath.length) === '/')) return true;
             return false;
         });
     };
 
     // --- Scenario 1: No token ---
     if (!token) {
-        // The /api/chat is now rate-limited above, but we still need to allow it to pass through
-        // if the user is not logged in. We add it to the public paths for this check.
         const allPublicPaths = [...publicPaths, ...rateLimitedPaths];
         const isPublic = isPathAllowed(allPublicPaths, path);
 
@@ -167,21 +169,15 @@ export default withAuth(
       authorized: ({ token, req }) => {
         const path = req.nextUrl.pathname;
         
-        // This callback primarily decides if the middleware function itself should run.
-        // It's a bit of a tricky callback. The logic inside the main middleware function is more granular.
-        // For simplicity, we can say if it's a public path, it's authorized.
-        // If it's not public, a token must exist.
-        
         const isPathAllowed = (allowedPaths: string[], currentPath: string): boolean => {
             return allowedPaths.some(allowedPath => {
                 if (currentPath === allowedPath) return true;
                 if (allowedPath.endsWith('/*') && currentPath.startsWith(allowedPath.slice(0, -2))) return true;
-                if (allowedPath !== '/' && currentPath.startsWith(allowedPath) && (allowedPath.startsWith('/api/') || allowedPath.startsWith('/auth/'))) return true;
+                if (currentPath.startsWith(allowedPath) && (currentPath.length === allowedPath.length || currentPath.charAt(allowedPath.length) === '/')) return true;
                 return false;
             });
         };
         
-        // Let's consider chat public for this check, as the rate limiter will handle it.
         const allPublicPaths = [...publicPaths, ...rateLimitedPaths];
         const isPublic = isPathAllowed(allPublicPaths, path);
 
@@ -189,7 +185,7 @@ export default withAuth(
           return true;
         }
         
-        return !!token; // For any non-public path, you must have a token.
+        return !!token;
       },
     },
     pages: {

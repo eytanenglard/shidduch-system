@@ -1,5 +1,10 @@
+// src/components/HomePage/sections/FAQSection.tsx
+
 import React from "react";
 import FAQItem from "../components/FAQItem";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 
 const FAQSection: React.FC = () => {
   return (
@@ -44,6 +49,26 @@ const FAQSection: React.FC = () => {
               answer="בהחלט! אנו מארגנים מגוון אירועים קהילתיים כולל מפגשים חברתיים, סדנאות, והרצאות. אירועים אלה מספקים הזדמנויות טבעיות להיכרות בסביבה נעימה ותומכת. לחברי המנוי שלנו ניתנת גישה מועדפת לאירועים אלה, עם מחירים הנעים בין 15₪-30₪ למפגשים חברתיים, 30₪-60₪ לסדנאות, ו-300₪-600₪ לסופי שבוע מיוחדים."
             />
           </div>
+        </div>
+
+        {/* --- בלוק יצירת קשר חדש --- */}
+        <div className="mt-12 text-center bg-gray-50 p-6 rounded-lg border border-gray-100">
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">
+            לא מצאתם את התשובה?
+          </h3>
+          <p className="text-gray-600 mb-6">
+            אנחנו כאן כדי לעזור. צרו איתנו קשר ונשמח לענות על כל שאלה.
+          </p>
+          <Link href="/contact">
+            <Button
+              variant="outline"
+              size="lg"
+              className="border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-300 transition-all duration-300 rounded-xl group"
+            >
+              <span>ליצירת קשר</span>
+              <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </Link>
         </div>
       </div>
     </section>

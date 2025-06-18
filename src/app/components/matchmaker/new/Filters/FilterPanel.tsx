@@ -994,27 +994,34 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   </Button>
                 )}
               </FilterSection>
-               <FilterSection
+                           <FilterSection
                 title="סטטוס משתמש"
                 icon={<User className="w-4 h-4" />}
                 defaultOpen={true}
                 badge={filters.userStatus ? 1 : undefined}
               >
                 <div className="pt-2">
+                  {/* --- START OF FIX --- */}
                   <Select
-                    value={filters.userStatus || ""}
+                    // 1. אם הסטטוס לא מוגדר, הערך של ה-Select יהיה "all"
+                    value={filters.userStatus || "all"}
                     onValueChange={(value) =>
                       onFiltersChange({
                         ...filters,
-                        userStatus: value ? (value as UserStatus) : undefined,
+                        // 2. אם המשתמש בחר "all", ננקה את הפילטר (undefined). אחרת, נגדיר את הערך שנבחר.
+                        userStatus: value === "all" ? undefined : (value as UserStatus),
                       })
                     }
                   >
+                  {/* --- END OF FIX --- */}
                     <SelectTrigger className="w-full bg-white">
                       <SelectValue placeholder="בחר סטטוס משתמש" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">הכל</SelectItem>
+                      {/* --- START OF FIX --- */}
+                      {/* 3. שינוי הערך של "הכל" למחרוזת שאינה ריקה */}
+                      <SelectItem value="all">הכל</SelectItem>
+                      {/* --- END OF FIX --- */}
                       <SelectItem value={UserStatus.ACTIVE}>פעילים</SelectItem>
                       <SelectItem value={UserStatus.PENDING_PHONE_VERIFICATION}>ממתינים לאימות טלפון</SelectItem>
                       <SelectItem value={UserStatus.PENDING_EMAIL_VERIFICATION}>ממתינים לאימות מייל</SelectItem>

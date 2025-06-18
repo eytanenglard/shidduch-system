@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new
-# Generated on: 2025-06-18 16:47:27
+# Generated on: 2025-06-18 17:18:15
 ################################################################################
 
 ================================================================================
@@ -3027,6 +3027,7 @@ import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { UserSource } from "@prisma/client"; // At the top
+import { UserStatus } from "@prisma/client";
 
 import {
   Collapsible,
@@ -4012,6 +4013,57 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                     הסר בחירה
                   </Button>
                 )}
+              </FilterSection>
+                           <FilterSection
+                title="סטטוס משתמש"
+                icon={<User className="w-4 h-4" />}
+                defaultOpen={true}
+                badge={filters.userStatus ? 1 : undefined}
+              >
+                <div className="pt-2">
+                  {/* --- START OF FIX --- */}
+                  <Select
+                    // 1. אם הסטטוס לא מוגדר, הערך של ה-Select יהיה "all"
+                    value={filters.userStatus || "all"}
+                    onValueChange={(value) =>
+                      onFiltersChange({
+                        ...filters,
+                        // 2. אם המשתמש בחר "all", ננקה את הפילטר (undefined). אחרת, נגדיר את הערך שנבחר.
+                        userStatus: value === "all" ? undefined : (value as UserStatus),
+                      })
+                    }
+                  >
+                  {/* --- END OF FIX --- */}
+                    <SelectTrigger className="w-full bg-white">
+                      <SelectValue placeholder="בחר סטטוס משתמש" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {/* --- START OF FIX --- */}
+                      {/* 3. שינוי הערך של "הכל" למחרוזת שאינה ריקה */}
+                      <SelectItem value="all">הכל</SelectItem>
+                      {/* --- END OF FIX --- */}
+                      <SelectItem value={UserStatus.ACTIVE}>פעילים</SelectItem>
+                      <SelectItem value={UserStatus.PENDING_PHONE_VERIFICATION}>ממתינים לאימות טלפון</SelectItem>
+                      <SelectItem value={UserStatus.PENDING_EMAIL_VERIFICATION}>ממתינים לאימות מייל</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {filters.userStatus && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() =>
+                        onFiltersChange({
+                          ...filters,
+                          userStatus: undefined,
+                        })
+                      }
+                      className="w-full mt-2 text-sm text-gray-500"
+                    >
+                      הסר בחירה
+                    </Button>
+                  )}
+                </div>
               </FilterSection>
               {/* Age Range - משופר ומתוקן */}
               <FilterSection
@@ -5649,7 +5701,8 @@ File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchm
 Content:
 "use client";
 
-import React, { useState } from "react";
+// --- שינוי: הוספת useEffect ליבוא ---
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -5709,6 +5762,19 @@ export const ActionDialogs: React.FC<ActionDialogsProps> = ({
     null
   );
 
+  // --- הוספה: useEffect למילוי אוטומטי של האימייל ---
+  useEffect(() => {
+    // בודקים אם דיאלוג ההזמנה פתוח ויש מועמד שנבחר
+    if (inviteDialog.isOpen && inviteDialog.selectedCandidate) {
+      // מעדכנים את שדה האימייל עם האימייל של המועמד מהדאטהבייס.
+      // אם אין לו אימייל, השדה יישאר ריק.
+      setInviteEmail(inviteDialog.selectedCandidate.email || "");
+    } else {
+      // כאשר הדיאלוג נסגר, מנקים את שדה האימייל
+      setInviteEmail("");
+    }
+  }, [inviteDialog.isOpen, inviteDialog.selectedCandidate]); // ה-hook יופעל בכל פעם שהדיאלוג נפתח/נסגר או שהמועמד משתנה
+
   // Handler for invite submission
   const handleInviteSubmit = async () => {
     if (!inviteDialog.selectedCandidate || !inviteEmail) return;
@@ -5717,7 +5783,7 @@ export const ActionDialogs: React.FC<ActionDialogsProps> = ({
       setIsInviting(true);
       setInviteError(null);
       await inviteDialog.onInvite(inviteDialog.selectedCandidate, inviteEmail);
-      setInviteEmail("");
+      // setInviteEmail(""); // השורה הזו כבר לא הכרחית כי ה-useEffect ינקה את השדה בסגירה
       inviteDialog.onClose();
     } catch (error) {
       setInviteError(
@@ -6938,7 +7004,10 @@ export const useCandidates = (initialFilters: CandidatesFilter = {}): UseCandida
       if (filters.userStatus && candidate.status !== filters.userStatus) {
         return false;
       }
-
+   // סינון סטטוס משתמש
+      if (filters.userStatus && candidate.status !== filters.userStatus) {
+        return false;
+      }
       // סינון סטטוס זמינות - ודא המרה נכונה של הטיפוס
       if (filters.availabilityStatus && 
           candidate.profile.availabilityStatus !== filters.availabilityStatus) {
