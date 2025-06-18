@@ -3,6 +3,8 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+// --- 1. ייבוא של useSession ---
+import { useSession } from "next-auth/react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +15,8 @@ import { Loader2, KeyRound, CheckCircle } from "lucide-react";
 function SetupAccountForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  // --- 2. קבלת הפונקציה update מ-useSession ---
+  const { update } = useSession();
   
   const [token, setToken] = useState<string | null>(null);
   const [password, setPassword] = useState('');
@@ -59,16 +63,20 @@ function SetupAccountForm() {
       }
 
       setSuccess(true);
-      toast.success("החשבון הוגדר בהצלחה! הנך מועבר/ת לעמוד ההתחברות.");
-      setTimeout(() => {
-        router.push('/auth/signin');
-      }, 3000);
+      toast.success("החשבון הוגדר בהצלחה! הנך מועבר/ת להשלמת הפרופיל.");
+
+      // --- 3. עדכון הסשן והפניה חכמה ---
+      // עדכון הסשן כדי שה-Middleware יקבל את הסטטוס החדש של המשתמש
+      await update();
+      
+      // הפניה לדף גנרי. ה-Middleware ידאג להפנות לדף הנכון (השלמת פרופיל / אימות טלפון)
+      router.push('/profile');
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'אירעה שגיאה בלתי צפויה.');
-    } finally {
-      setIsLoading(false);
-    }
+      setIsLoading(false); // יש לעצור את הטעינה גם במקרה של שגיאה
+    } 
+    // finally block is not needed here since loading is handled in catch and redirect happens on success
   };
   
   if (success) {
@@ -81,7 +89,8 @@ function SetupAccountForm() {
                 <CardTitle className="mt-4">החשבון הוגדר בהצלחה!</CardTitle>
             </CardHeader>
             <CardContent>
-                <p className="text-muted-foreground">כעת תוכל/י להתחבר למערכת עם הסיסמה החדשה שקבעת. הנך מועבר/ת אוטומטית לעמוד ההתחברות.</p>
+                <p className="text-muted-foreground">כעת, לאחר שקבעת סיסמה, נעביר אותך להשלמת פרטי הפרופיל שלך.</p>
+                <Loader2 className="mt-4 h-6 w-6 animate-spin mx-auto" />
             </CardContent>
         </Card>
     );
@@ -125,7 +134,7 @@ function SetupAccountForm() {
              <CardFooter className="p-0 pt-4">
                  <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <KeyRound className="mr-2 h-4 w-4" />}
-                    {isLoading ? 'מגדיר סיסמה...' : 'הגדר סיסמה והתחבר'}
+                    {isLoading ? 'מגדיר סיסמה...' : 'הגדר סיסמה והמשך'}
                 </Button>
             </CardFooter>
             </form>
