@@ -2,7 +2,7 @@
 
 "use client";
 import React, { useState, useEffect } from "react";
-import { useSession, signIn } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { AvailabilityStatus as AvailabilityStatusEnum } from "@prisma/client";
 import {
@@ -33,63 +33,70 @@ import { AlertCircle, CheckCircle2, PauseCircle, Loader2, Heart, UserMinus, XCir
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { Session } from "next-auth";
 
-// *** UPDATED: Helper function with new design styles ***
+// *** UPDATED: Helper function with new design for the status indicator ***
 const getStatusStyles = (status: AvailabilityStatusEnum) => {
   switch (status) {
     case AvailabilityStatusEnum.AVAILABLE:
       return {
         text: "פנוי/ה להצעות",
+        dotClasses: "bg-cyan-500", // צבע הנקודה
+        pulse: true, // האם להוסיף אנימציית פעימה
         icon: <CheckCircle2 />,
         iconColorClass: "text-cyan-600",
-        buttonClasses: "bg-cyan-100 text-cyan-800 hover:bg-cyan-200/70 border-cyan-200",
         dialogButtonClasses: "bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white",
       };
     case AvailabilityStatusEnum.UNAVAILABLE:
       return {
         text: "לא פנוי/ה",
+        dotClasses: "bg-gray-400",
+        pulse: false,
         icon: <XCircle />,
         iconColorClass: "text-gray-500",
-        buttonClasses: "bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200",
         dialogButtonClasses: "bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white",
       };
     case AvailabilityStatusEnum.DATING:
       return {
         text: "בתהליך היכרות",
+        dotClasses: "bg-pink-500",
+        pulse: false,
         icon: <Heart />,
         iconColorClass: "text-pink-600",
-        buttonClasses: "bg-pink-100 text-pink-800 hover:bg-pink-200/70 border-pink-200",
         dialogButtonClasses: "bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white",
       };
     case AvailabilityStatusEnum.PAUSED:
       return {
         text: "בהפסקה",
+        dotClasses: "bg-orange-500",
+        pulse: false,
         icon: <PauseCircle />,
         iconColorClass: "text-orange-600",
-        buttonClasses: "bg-orange-100 text-orange-800 hover:bg-orange-200/70 border-orange-200",
         dialogButtonClasses: "bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white",
       };
     case AvailabilityStatusEnum.ENGAGED:
       return {
         text: "מאורס/ת",
+        dotClasses: "bg-pink-500",
+        pulse: true,
         icon: <Heart fill="currentColor" />,
         iconColorClass: "text-pink-600",
-        buttonClasses: "bg-pink-100 text-pink-800 hover:bg-pink-200/70 border-pink-200",
         dialogButtonClasses: "bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white",
       };
     case AvailabilityStatusEnum.MARRIED:
-      return {
+        return {
         text: "נשוי/אה",
+        dotClasses: "bg-gray-400",
+        pulse: false,
         icon: <UserMinus />,
         iconColorClass: "text-gray-500",
-        buttonClasses: "bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200",
         dialogButtonClasses: "bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white",
       };
     default:
       return {
         text: "לא ידוע",
+        dotClasses: "bg-gray-400",
+        pulse: false,
         icon: <AlertCircle />,
         iconColorClass: "text-gray-500",
-        buttonClasses: "bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200",
         dialogButtonClasses: "bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white",
       };
   }
@@ -135,9 +142,6 @@ export default function AvailabilityStatus() {
       }
 
       await updateSession();
-      // Using updateSession without params usually triggers a refetch of the session data.
-      // This is often cleaner than trying to manually reconstruct the session object.
-
       setShowDialog(false);
       setShowSuccessDialog(true);
     } catch (err) {
@@ -156,20 +160,29 @@ export default function AvailabilityStatus() {
 
   return (
     <>
+      {/* --- START OF CHANGES: The new button design --- */}
       <Button
-        variant="outline"
+        variant="ghost"
         onClick={() => {
           setStatus(session?.user?.profile?.availabilityStatus || AvailabilityStatusEnum.AVAILABLE);
           setNote(session?.user?.profile?.availabilityNote || "");
           setError("");
           setShowDialog(true);
         }}
-        className={`flex items-center gap-2 px-3 h-10 rounded-full font-semibold text-sm shadow-sm transition-all duration-200 border ${currentStatusStyles.buttonClasses}`}
+        className="flex items-center gap-x-2 px-3 h-10 rounded-full font-medium text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
       >
-        {React.cloneElement(currentStatusStyles.icon, { className: `w-5 h-5 ${currentStatusStyles.iconColorClass}` })}
-        <span>{currentStatusStyles.text}</span>
+        <span className="relative flex h-2.5 w-2.5">
+          {/* The pulsing ring for the 'Available' or 'Engaged' state */}
+          {currentStatusStyles.pulse && (
+            <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${currentStatusStyles.dotClasses}`}></span>
+          )}
+          {/* The solid dot */}
+          <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${currentStatusStyles.dotClasses}`}></span>
+        </span>
+        <span className="text-sm">{currentStatusStyles.text}</span>
       </Button>
-
+      {/* --- END OF CHANGES --- */}
+      
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="sm:max-w-md p-6 bg-white rounded-xl shadow-2xl border-gray-100">
           <DialogHeader className="mb-4 text-right">

@@ -231,9 +231,7 @@ const Navbar = () => {
                 )}
               </div>
             </div>
-
-            {/* צד שמאל: כפתורי פעולה */}
-            <div className="flex items-center gap-2 md:gap-4">
+    <div className="flex items-center gap-2 md:gap-4">
               <Button
                 variant="ghost"
                 size="icon"
@@ -246,7 +244,7 @@ const Navbar = () => {
 
               {session && (
                 <div className="hidden md:block">
-                  <AvailabilityStatus />
+                  <AvailabilityStatus /> {/* <--- הרכיב הזה נשאר כאן, אבל עכשיו יציג את העיצוב החדש */}
                 </div>
               )}
 
