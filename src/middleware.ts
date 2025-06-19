@@ -51,7 +51,7 @@ const publicPaths = [
   '/legal/terms-of-service',         // <--- הוסף
   '/auth/error',                     // <--- הוסף אם דף השגיאה צריך להיות ציבורי
   '/auth/google-callback',           // <--- הוסף
-
+'/api/auth/session',
 ];
 
 // Paths accessible *after login* but *before* completion.
@@ -63,7 +63,12 @@ const allowedWhileIncompleteOrUnverifiedPaths = [
   '/api/auth/delete',                   // The API endpoint for account deletion
   '/api/auth/send-verification',        // To allow resending verification emails from the settings page
   '/api/auth/initiate-password-change', // To allow password changes
-  '/api/auth/complete-password-change', // To complete password changes
+  '/api/auth/complete-password-change',
+  '/api/auth/verify-phone-code',
+  '/api/auth/resend-phone-code',
+  '/api/auth/update-and-resend-code',
+  '/auth/update-phone',
+   // To complete password changes
 ];
 
 // --- NEW: Add the chat API path to a separate constant for rate limiting ---

@@ -177,7 +177,22 @@ const RegisterStepsContent: React.FC = () => {
       console.log("[RegisterStepsContent renderStep] Session loading, showing loader.");
       return <div className="flex justify-center p-10"><Loader2 className="h-8 w-8 animate-spin text-cyan-600" /></div>;
     }
-
+const user = session?.user as SessionUserType | undefined;
+    if (
+      sessionStatus === "authenticated" &&
+      user &&
+      (!user.isProfileComplete || !user.isPhoneVerified) &&
+      registrationContextData.step < 2
+    ) {
+      console.log("[RegisterStepsContent renderStep] Authenticated but context is not ready. Showing 'preparing' loader to prevent flash.");
+      return (
+        <div className="flex justify-center items-center p-10 space-x-3 rtl:space-x-reverse">
+          <Loader2 className="h-8 w-8 animate-spin text-cyan-600" />
+          <span className="text-gray-600">מכין את השלב הבא...</span>
+        </div>
+      );
+    }
+    // --- סוף התיקון ---
     const userFromSession = session?.user as SessionUserType | undefined;
     if (
       sessionStatus === "authenticated" && userFromSession && !initializationAttempted &&

@@ -1,0 +1,2261 @@
+################################################################################
+# Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth
+# Generated on: 2025-06-19 11:58:40
+################################################################################
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth\auth_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth\[...nextauth]
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth\[...nextauth]\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/auth/[...nextauth]/route.ts
+import NextAuth from 'next-auth';
+import { authOptions } from '@/lib/auth';
+
+// הסר את הלוגים או הפעל אותם רק בסביבת פיתוח
+const handler = NextAuth(authOptions);
+
+export { handler as GET, handler as POST };
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth\complete-password-change
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth\complete-password-change\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/auth/complete-password-change/route.ts
+import { NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { VerificationType, Prisma } from "@prisma/client";
+
+// פונקציה שבודקת אם ה-metadata מכיל את הסיסמה המוצפנת
+function hasValidPasswordMetadata(metadata: Prisma.JsonValue | null): boolean {
+  return (
+    typeof metadata === 'object' && 
+    metadata !== null && 
+    'hashedNewPassword' in metadata && 
+    typeof (metadata as { hashedNewPassword: unknown }).hashedNewPassword === 'string'
+  );
+}
+
+export async function POST(req: Request) {
+  try {
+    const { userId, token } = await req.json();
+
+    // וידוא שהטוקן הוא מספרי בן 6 ספרות
+    if (!/^\d{6}$/.test(token)) {
+      return NextResponse.json(
+        { error: "קוד אימות לא תקין. נדרש קוד בן 6 ספרות." },
+        { status: 400 }
+      );
+    }
+
+    // מציאת הטוקן
+    const verification = await db.verification.findFirst({
+      where: {
+        token,
+        userId,
+        type: VerificationType.PASSWORD_RESET,
+        status: "PENDING",
+        expiresAt: { gt: new Date() }
+      }
+    });
+
+    if (!verification) {
+      return NextResponse.json(
+        { error: "קוד לא תקף או שפג תוקפו" },
+        { status: 400 }
+      );
+    }
+
+    // בדיקה שהמטא-דאטה תקין ומכיל את הסיסמה המוצפנת
+    if (!hasValidPasswordMetadata(verification.metadata)) {
+      return NextResponse.json(
+        { error: "מידע אימות חסר או לא תקין, אנא התחל את התהליך מחדש" },
+        { status: 400 }
+      );
+    }
+
+    // כעת ניתן לגשת ל-hashedNewPassword בבטחה, המטא-דאטה אומת
+    const metadata = verification.metadata as Prisma.JsonObject;
+    const hashedNewPassword = metadata.hashedNewPassword as string;
+
+    // עדכון הסיסמה והשלמת האימות
+    await db.$transaction([
+      // עדכון סיסמה
+      db.user.update({
+        where: { id: userId },
+        data: { password: hashedNewPassword }
+      }),
+      // עדכון סטטוס האימות
+      db.verification.update({
+        where: { id: verification.id },
+        data: { 
+          status: "COMPLETED",
+          completedAt: new Date()
+        }
+      })
+    ]);
+
+    return NextResponse.json({ 
+      success: true,
+      message: "הסיסמה עודכנה בהצלחה"
+    });
+
+  } catch (error) {
+    console.error("Complete password change error:", error);
+    return NextResponse.json(
+      { error: "שגיאה בהשלמת שינוי הסיסמה" },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth\complete-profile
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth\complete-profile\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/auth/complete-profile/route.ts
+
+import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth'; // ודא שהנתיב הזה נכון ומצביע על קובץ authOptions שלך
+import prisma from '@/lib/prisma'; // ודא שהנתיב הזה נכון
+import { Prisma } from '@prisma/client';
+import { z } from 'zod';
+import { Gender, UserStatus } from '@prisma/client'; // ייבוא Gender ו-UserStatus
+
+// Zod Schema - כולל phone לאימות מהלקוח
+const completeProfileSchema = z.object({
+  // --- הוספת שם פרטי ושם משפחה ---
+  firstName: z.string().min(1, "First name is required").max(100, "First name too long"),
+  lastName: z.string().min(1, "Last name is required").max(100, "Last name too long"),
+  // --- סוף הוספה ---
+  phone: z.string().regex(/^0\d{9}$/, "Invalid phone number format (e.g., 0501234567)"),
+  gender: z.nativeEnum(Gender),
+  birthDate: z.string().refine((date) => !isNaN(Date.parse(date)), {
+     message: "Invalid birth date format",
+  }).refine((date) => {
+      const age = Math.floor((new Date().getTime() - new Date(date).getTime()) / 31557600000);
+      return age >= 18;
+  }, { message: "Must be at least 18 years old" }),
+  maritalStatus: z.string().min(1, "Marital status is required"),
+  height: z.coerce.number().int().min(120).max(220).optional(),
+  occupation: z.string().optional(),
+  education: z.string().optional(),
+});
+
+export async function POST(req: Request) {
+  console.log("--- [API /api/auth/complete-profile] POST Request Received ---");
+  console.log(`[API /api/auth/complete-profile] Timestamp: ${new Date().toISOString()}`);
+
+  const headersObject: { [key: string]: string } = {};
+  req.headers.forEach((value, key) => {
+    headersObject[key] = value;
+  });
+  console.log("[API /api/auth/complete-profile] Request Headers:", JSON.stringify(headersObject, null, 2));
+
+  // !!! הסר את זה בסביבת Production !!!
+  // console.log("[API /api/auth/complete-profile] DEBUG: NEXTAUTH_SECRET value (first 5 chars):", process.env.NEXTAUTH_SECRET?.substring(0, 5) || "NOT SET");
+
+  try {
+    console.log("[API /api/auth/complete-profile] Attempting to get session using getServerSession...");
+    const session = await getServerSession(authOptions);
+
+    console.log("[API /api/auth/complete-profile] Session object from getServerSession:", JSON.stringify(session, null, 2));
+
+    if (!session || !session.user || !session.user.id) {
+      console.error("[API /api/auth/complete-profile] ERROR: Unauthorized access attempt. Session or user.id is missing.");
+      return NextResponse.json({ error: 'Unauthorized - Session not found or invalid' }, { status: 401 });
+    }
+
+    const userId = session.user.id;
+    console.log(`[API /api/auth/complete-profile] User authenticated with ID: ${userId}`);
+    console.log(`[API /api/auth/complete-profile] User email from session: ${session.user.email}`);
+
+    if (session.user.isPhoneVerified) {
+        console.warn(`[API /api/auth/complete-profile] User ${userId} phone is ALREADY verified according to session. Proceeding, but this might indicate a flow issue.`);
+    }
+    if (session.user.isProfileComplete) {
+        console.warn(`[API /api/auth/complete-profile] User ${userId} profile is ALREADY complete according to session. Proceeding, but this might indicate a flow issue.`);
+    }
+
+    console.log("[API /api/auth/complete-profile] Attempting to parse request body...");
+    let body;
+    try {
+        body = await req.json();
+        console.log("[API /api/auth/complete-profile] Request body parsed successfully:", JSON.stringify(body, null, 2));
+    } catch (parseError) {
+        console.error("[API /api/auth/complete-profile] ERROR: Failed to parse request body as JSON:", parseError);
+        return NextResponse.json({ error: 'Invalid request body - Must be JSON' }, { status: 400 });
+    }
+
+    console.log("[API /api/auth/complete-profile] Validating request body with Zod schema...");
+    const validation = completeProfileSchema.safeParse(body);
+
+    if (!validation.success) {
+      console.error("[API /api/auth/complete-profile] ERROR: Request body validation failed.");
+      console.error("[API /api/auth/complete-profile] Validation errors:", JSON.stringify(validation.error.flatten(), null, 2));
+      return NextResponse.json({ error: 'Invalid input data', details: validation.error.flatten() }, { status: 400 });
+    }
+    console.log("[API /api/auth/complete-profile] Request body validated successfully.");
+
+    const {
+        // --- הוספת שם פרטי ושם משפחה ---
+        firstName,
+        lastName,
+        // --- סוף הוספה ---
+        phone,
+        gender,
+        birthDate,
+        maritalStatus,
+        height,
+        occupation,
+        education
+    } = validation.data;
+
+    console.log(`[API /api/auth/complete-profile] Attempting to update profile and user details for user ${userId} in a transaction.`);
+    console.log("[API /api/auth/complete-profile] Data to be saved:", JSON.stringify(validation.data, null, 2));
+
+    const updatedUser = await prisma.$transaction(async (tx) => {
+      console.log(`[API /api/auth/complete-profile] Inside transaction for user ${userId}. Upserting profile...`);
+      await tx.profile.upsert({
+        where: { userId: userId },
+        create: {
+          userId: userId,
+          gender: gender,
+          birthDate: new Date(birthDate),
+          maritalStatus: maritalStatus,
+          height: height,
+          occupation: occupation,
+          education: education,
+        },
+        update: {
+          gender: gender,
+          birthDate: new Date(birthDate),
+          maritalStatus: maritalStatus,
+          height: height,
+          occupation: occupation,
+          education: education,
+          updatedAt: new Date(),
+        },
+      });
+      console.log(`[API /api/auth/complete-profile] Profile data upserted for user ${userId}.`);
+
+      console.log(`[API /api/auth/complete-profile] Updating User record for user ${userId} (names, phone, isProfileComplete, status)...`);
+      const user = await tx.user.update({
+        where: { id: userId },
+        data: {
+          // --- הוספת שם פרטי ושם משפחה ---
+          firstName: firstName,
+          lastName: lastName,
+          // --- סוף הוספה ---
+          phone: phone,
+          isProfileComplete: true,
+          // אם המשתמש מגיע לכאן, סביר להניח שאימות המייל הושלם (אם היה כזה).
+          // לכן, הסטטוס צריך לעבור ל-PENDING_PHONE_VERIFICATION.
+          // אם אימות הטלפון הוא אופציונלי או לא השלב הבא המיידי, ייתכן ו-ACTIVE הוא הסטטוס הנכון.
+          status: UserStatus.PENDING_PHONE_VERIFICATION, // ודא שזה הסטטוס הנכון בהתאם לזרימה
+          updatedAt: new Date(),
+        },
+         select: {
+             id: true,
+             email: true,
+             firstName: true,
+             lastName: true,
+             isProfileComplete: true,
+             isPhoneVerified: true,
+             role: true,
+             status: true,
+             phone: true
+         }
+      });
+      console.log(`[API /api/auth/complete-profile] User record updated for user ${userId}. New profile status: isProfileComplete=${user.isProfileComplete}, isPhoneVerified=${user.isPhoneVerified}, status=${user.status}`);
+      return user;
+    });
+
+    console.log(`[API /api/auth/complete-profile] Profile completed successfully for user ${userId}.`);
+    console.log("[API /api/auth/complete-profile] Returning success response with user data:", JSON.stringify({ message: "Profile completed successfully", user: updatedUser }, null, 2));
+    return NextResponse.json({ message: "Profile completed successfully", user: updatedUser }, { status: 200 });
+
+  } catch (error: unknown) {
+    console.error("[API /api/auth/complete-profile] --- ERROR IN POST HANDLER ---");
+    console.error("[API /api/auth/complete-profile] Error object:", error);
+
+    if (error instanceof z.ZodError) {
+        console.error("[API /api/auth/complete-profile] Zod validation error during processing:", JSON.stringify(error.flatten(), null, 2));
+        return NextResponse.json({ error: 'Validation Error during processing', details: error.flatten() }, { status: 400 });
+    }
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        console.error(`[API /api/auth/complete-profile] Prisma Known Request Error - Code: ${error.code}`);
+        console.error("[API /api/auth/complete-profile] Prisma Error Meta:", error.meta);
+        console.error("[API /api/auth/complete-profile] Prisma Error Message:", error.message);
+        if (error.code === 'P2002') {
+            const target = error.meta?.target as string[] | undefined;
+            if (target?.includes('phone') && target?.includes('User')) {
+                 return NextResponse.json({ error: 'מספר טלפון זה כבר רשום במערכת.' }, { status: 409 });
+            } else {
+                 return NextResponse.json({ error: `Unique constraint violation on ${target?.join(', ')}.` }, { status: 409 });
+            }
+        }
+        return NextResponse.json({ error: 'Database error occurred (Prisma Known Request Error)' }, { status: 500 });
+    }
+
+    if (error instanceof Prisma.PrismaClientValidationError) {
+        console.error("[API /api/auth/complete-profile] Prisma Validation Error:", error.message);
+        return NextResponse.json({ error: 'Database validation error (Prisma Validation Error).' }, { status: 400 });
+    }
+
+    let errorMessage = 'Internal Server Error';
+    if (error instanceof Error) {
+        errorMessage = error.message;
+    }
+    console.error(`[API /api/auth/complete-profile] Fallback error message: ${errorMessage}`);
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
+  } finally {
+    console.log("--- [API /api/auth/complete-profile] POST Request Finished ---");
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth\complete-setup
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth\complete-setup\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/auth/complete-setup/route.ts
+import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { hash } from "bcryptjs";
+// --- הוספה ---
+import { VerificationType, VerificationStatus, UserStatus } from "@prisma/client";
+// --- סוף הוספה ---
+import { z } from "zod";
+
+const completeSetupSchema = z.object({
+  token: z.string().min(1, "Token is required"),
+  password: z.string().min(8, "Password must be at least 8 characters long"),
+});
+
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+    const validation = completeSetupSchema.safeParse(body);
+
+    if (!validation.success) {
+      return NextResponse.json({ success: false, error: "Invalid data", details: validation.error.flatten() }, { status: 400 });
+    }
+
+    const { token, password } = validation.data;
+
+    const verification = await prisma.verification.findFirst({
+      where: {
+        token,
+        type: VerificationType.ACCOUNT_SETUP,
+        status: VerificationStatus.PENDING,
+        expiresAt: {
+          gt: new Date(),
+        },
+      },
+    });
+
+    if (!verification || !verification.userId) {
+      return NextResponse.json({ success: false, error: "קישור לא תקין או שפג תוקפו. אנא בקש מהשדכן לשלוח הזמנה חדשה." }, { status: 400 });
+    }
+
+    const hashedPassword = await hash(password, 12);
+
+    // עדכון הסיסמה, סטטוס המשתמש, וסטטוס האימות בטרנזקציה אחת
+    await prisma.$transaction(async (tx) => {
+      // עדכון סיסמה, אימות מייל, וסטטוס המשתמש
+      await tx.user.update({
+        where: { id: verification.userId! },
+        data: {
+          password: hashedPassword,
+          // --- הוספה ---
+          isVerified: true, // המייל אומת מכיוון שהמשתמש הגיע מהקישור
+          status: UserStatus.PENDING_PHONE_VERIFICATION, // העבר את המשתמש לשלב הבא
+          // isProfileComplete נשאר false כי הוא עדיין צריך למלא פרטים
+          // --- סוף הוספה ---
+        },
+      });
+
+      // עדכון סטטוס האימות (הטוקן נוצל)
+      await tx.verification.update({
+        where: { id: verification.id },
+        data: {
+          status: VerificationStatus.COMPLETED,
+          completedAt: new Date(),
+        },
+      });
+    });
+
+    return NextResponse.json({ success: true, message: "החשבון הוגדר בהצלחה! כעת ניתן להתחבר עם הסיסמה החדשה." });
+
+  } catch (error) {
+    console.error("Error completing account setup:", error);
+    return NextResponse.json({ success: false, error: "אירעה שגיאה בהגדרת החשבון." }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth\delete
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth\delete\route.ts
+--------------------------------------------------------------------------------
+Content:
+// app/api/user/delete/route.ts
+
+import { NextResponse } from 'next/server';
+import { PrismaClient, Prisma } from '@prisma/client';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth'; // Assuming authOptions is in this path
+
+const prisma = new PrismaClient(); // Or import from '@/lib/prisma'
+
+// Using the same LogMetadata and logger from your register route, now with 'warn'
+type LogMetadata = {
+  userId?: string;
+  email?: string;
+  errorObject?: unknown;
+  errorMessage?: string;
+  errorName?: string;
+  errorCode?: string;
+  errorMeta?: unknown;
+  errorStack?: string;
+  errorContext?: string;
+  timestamp?: string;
+  sessionId?: string;
+};
+
+const logger = {
+  info: (message: string, meta?: LogMetadata) => {
+    console.log(JSON.stringify({
+      timestamp: new Date().toISOString(),
+      level: 'info',
+      message,
+      ...meta
+    }));
+  },
+  warn: (message: string, meta?: LogMetadata) => { // Added warn function
+    console.warn(JSON.stringify({ // Using console.warn
+      timestamp: new Date().toISOString(),
+      level: 'warn',
+      message,
+      ...meta
+    }));
+  },
+  error: (message: string, meta?: LogMetadata) => {
+    const loggableMeta = { ...meta };
+    if (loggableMeta.errorObject && process.env.NODE_ENV !== 'development') {
+      // Consider removing or sanitizing errorObject in production
+    }
+    console.error(JSON.stringify({
+      timestamp: new Date().toISOString(),
+      level: 'error',
+      message,
+      ...loggableMeta
+    }));
+  }
+};
+
+function handleError(error: unknown, userId?: string): { message: string; status: number } {
+    const logMeta: LogMetadata = {
+        userId,
+        errorContext: "Inside handleError (delete user) before processing",
+        timestamp: new Date().toISOString(),
+        errorObject: error
+    };
+
+    if (error instanceof Error) {
+        logMeta.errorName = error.name;
+        logMeta.errorMessage = error.message;
+        if (process.env.NODE_ENV === 'development') {
+            logMeta.errorStack = error.stack;
+        }
+    } else {
+        logMeta.errorMessage = String(error);
+    }
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        logMeta.errorCode = error.code;
+        logMeta.errorMeta = error.meta;
+        logger.error(`Prisma error during user deletion: ${error.code}`, logMeta); // Still log as error for Prisma issues
+        return { message: `שגיאת מסד נתונים בעת מחיקת המשתמש (קוד: ${error.code}).`, status: 500 };
+    } else if (typeof error === 'object' && error !== null && 'code' in error) {
+        logMeta.errorCode = String((error as { code: unknown }).code);
+    }
+    
+    logger.error("Error received in handleError (delete user)", logMeta); // General errors logged as error
+
+    if (error instanceof Error) {
+      return { message: error.message || 'שגיאה במחיקת החשבון.', status: 400 };
+    }
+
+    return { message: 'אירעה שגיאה בלתי צפויה במחיקת החשבון.', status: 500 };
+}
+
+export async function DELETE() {
+  const initialLogMeta: LogMetadata = { timestamp: new Date().toISOString() };
+  logger.info('Attempting to delete user account', initialLogMeta);
+
+  const session = await getServerSession(authOptions);
+
+  if (!session || !session.user || !session.user.id) {
+    logger.warn('Unauthorized: No active session found for delete operation', { ...initialLogMeta }); // Changed to warn
+    return NextResponse.json(
+      { success: false, error: 'אינך מורשה לבצע פעולה זו. לא זוהתה סשן פעיל.' },
+      { status: 401 }
+    );
+  }
+
+  const userId = session.user.id;
+  const userEmail = session.user.email || 'N/A';
+
+  logger.info(`User deletion initiated by user: ${userId}`, { userId, email: userEmail, ...initialLogMeta });
+
+  try {
+    await prisma.user.delete({
+      where: { id: userId },
+    });
+
+    logger.info(`User account ${userId} (${userEmail}) deleted successfully`, { userId, email: userEmail, ...initialLogMeta });
+    return NextResponse.json(
+      { success: true, message: 'החשבון נמחק בהצלחה.' },
+      { status: 200 }
+    );
+
+  } catch (error: unknown) {
+    const logMetaForCatch: LogMetadata = {
+        userId,
+        email: userEmail,
+        errorContext: "Main catch block in DELETE /api/user/delete",
+        timestamp: new Date().toISOString(),
+        errorObject: error
+    };
+
+    if (error instanceof Error) {
+        logMetaForCatch.errorName = error.name;
+        logMetaForCatch.errorMessage = error.message;
+        if (process.env.NODE_ENV === 'development') {
+            logMetaForCatch.errorStack = error.stack;
+        }
+    } else {
+        logMetaForCatch.errorMessage = String(error);
+    }
+    
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        logger.warn(`Attempted to delete non-existent user: ${userId}`, { ...logMetaForCatch, errorCode: error.code, errorMeta: error.meta });
+        return NextResponse.json(
+            { success: false, error: 'המשתמש המבוקש למחיקה לא נמצא.'},
+            { status: 404 }
+        );
+    }
+    
+    logger.error('User account deletion failed', logMetaForCatch);
+    const { message, status } = handleError(error, userId); // handleError will also log the error
+
+    const responseErrorDetails = process.env.NODE_ENV === 'development' ? {
+        name: logMetaForCatch.errorName,
+        message: logMetaForCatch.errorMessage,
+        code: logMetaForCatch.errorCode,
+        meta: logMetaForCatch.errorMeta,
+        stack: logMetaForCatch.errorStack
+    } : undefined;
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: message,
+        details: responseErrorDetails
+      },
+      { status }
+    );
+  }
+  // No finally block with prisma.$disconnect() needed if using a global/managed Prisma client
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth\initiate-password-change
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth\initiate-password-change\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/auth/initiate-password-change/route.ts
+import { NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { emailService } from "@/lib/email/emailService";
+import { VerificationService } from "@/lib/services/verificationService";
+import { VerificationType } from "@prisma/client";
+import { hash, compare } from "bcryptjs";
+
+export async function POST(req: Request) {
+  try {
+    const { userId, currentPassword, newPassword } = await req.json();
+
+    const user = await db.user.findUnique({
+      where: { id: userId }
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "משתמש לא נמצא" },
+        { status: 404 }
+      );
+    }
+
+    // הוספת בדיקה: אם למשתמש אין סיסמה (למשל, נרשם דרך OAuth)
+    if (!user.password) {
+      return NextResponse.json(
+        { error: "לא הוגדרה סיסמה לחשבון זה. ייתכן שנרשמת באמצעות שירות חיצוני." },
+        { status: 400 }
+      );
+    }
+
+    // בדיקת סיסמה נוכחית
+    // כעת, user.password מובטח להיות string
+    const isValidPassword = await compare(currentPassword, user.password);
+    if (!isValidPassword) {
+      return NextResponse.json(
+        { error: "סיסמה נוכחית שגויה" },
+        { status: 400 }
+      );
+    }
+
+    // הצפנת הסיסמה החדשה
+    const hashedNewPassword = await hash(newPassword, 12);
+
+    // יצירת קוד אימות בן 6 ספרות באמצעות שירות האימות
+    // שינוי שם הפונקציה והוספת פרמטר target
+    const { verification } = await VerificationService.createVerification(
+      user.id,
+      VerificationType.PASSWORD_RESET,
+      user.email, // הוספת user.email כפרמטר target
+      24 // תקף ל-24 שעות (expiresInHours)
+    );
+
+    // שמירת הסיסמה המוצפנת במטא-דאטה של האימות
+    await db.verification.update({
+      where: { id: verification.id },
+      data: {
+        metadata: { hashedNewPassword }
+      }
+    });
+
+    // שליחת מייל עם קוד האימות
+    await emailService.sendPasswordReset(user.email, verification.token);
+
+    return NextResponse.json({ success: true });
+
+  } catch (error) {
+    console.error("Initiate password change error:", error);
+    return NextResponse.json(
+      { error: "שגיאה בתהליך שינוי הסיסמה" },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth\register
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth\register\route.ts
+--------------------------------------------------------------------------------
+Content:
+// app/api/auth/register/route.ts
+
+import { NextResponse } from 'next/server';
+import { PrismaClient, UserRole, UserStatus, Prisma, VerificationType, UserSource  } from '@prisma/client';
+import { hash } from 'bcryptjs';
+import { emailService } from '@/lib/email/emailService';
+import { VerificationService } from '@/lib/services/verificationService'; 
+
+const prisma = new PrismaClient();
+
+type LogMetadata = {
+  userId?: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  status?: string;
+  errorObject?: unknown;
+  errorMessage?: string;
+  errorName?: string;
+  errorCode?: string;
+  errorMeta?: unknown;
+  errorStack?: string;
+  errorContext?: string;
+  timestamp?: string;
+  hasEmail?: boolean;
+  hasPassword?: boolean;
+  hasFirstName?: boolean;
+  hasLastName?: boolean;
+  verificationId?: string;
+};
+
+const logger = {
+  info: (message: string, meta?: LogMetadata) => {
+    console.log(JSON.stringify({
+      timestamp: new Date().toISOString(),
+      level: 'info',
+      message,
+      ...meta
+    }));
+  },
+  error: (message: string, meta?: LogMetadata) => {
+    const loggableMeta = { ...meta };
+    if (loggableMeta.errorObject && process.env.NODE_ENV !== 'development') {
+        // In production, we might want to remove the full object if not handled properly.
+        // For now, we'll keep it.
+    }
+    console.error(JSON.stringify({
+      timestamp: new Date().toISOString(),
+      level: 'error',
+      message,
+      ...loggableMeta
+    }));
+  }
+};
+
+interface InitialRegistrationData {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+}
+
+function handleError(error: unknown): { message: string; status: number } {
+    const logMeta: LogMetadata = { 
+        errorContext: "Inside handleError before processing",
+        timestamp: new Date().toISOString(),
+        errorObject: error
+    };
+
+    if (error instanceof Error) {
+        logMeta.errorName = error.name;
+        logMeta.errorMessage = error.message;
+        if (process.env.NODE_ENV === 'development') {
+            logMeta.errorStack = error.stack;
+        }
+    } else {
+        logMeta.errorMessage = String(error);
+    }
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        logMeta.errorCode = error.code;
+        logMeta.errorMeta = error.meta;
+    } else if (typeof error === 'object' && error !== null && 'code' in error) {
+        logMeta.errorCode = String((error as { code: unknown }).code);
+    }
+    
+    logger.error("Error received in handleError", logMeta);
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      switch (error.code) {
+        case 'P2002': {
+          const target = error.meta?.target as string[] | undefined;
+          if (target?.includes('email')) {
+            return { message: 'משתמש עם כתובת אימייל זו כבר קיים במערכת.', status: 409 };
+          }
+          return { message: `משתמש עם פרטים אלה כבר קיים במערכת (קוד ${error.code}).`, status: 409 };
+        }
+        case 'P2003': {
+            const fieldName = error.meta?.field_name as string | undefined;
+            return { message: `שגיאת תלות בנתונים (שדה: ${fieldName || 'לא ידוע'}). אנא נסה שנית.`, status: 500};
+        }
+        case 'P2014': return { message: 'שגיאה בנתונים שהוזנו.', status: 400 };
+        default: 
+            return { message: `שגיאה בשמירת הנתונים (קוד שגיאת DB: ${error.code}).`, status: 500 };
+      }
+    }
+    if (error instanceof Error) {
+       if (error.message === 'משתמש עם כתובת אימייל זו כבר קיים במערכת.') {
+           return { message: error.message, status: 409 };
+       }
+       if (['חסרים פרטים חובה', 'כתובת אימייל לא תקינה', 'הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר'].includes(error.message)) {
+           return { message: error.message, status: 400 };
+       }
+       if (error.message.includes('אירעה שגיאה ביצירת קוד אימות') || 
+           (error.cause instanceof Prisma.PrismaClientKnownRequestError && error.cause.code === 'P2003')) {
+            return { message: 'אירעה שגיאה ביצירת רשומת האימות עקב בעיית תלות. אנא נסה שנית.', status: 500 };
+       }
+      return { message: error.message, status: 400 }; 
+    }
+    return { message: 'אירעה שגיאה בלתי צפויה.', status: 500 };
+}
+
+
+export async function POST(req: Request) {
+  logger.info('Initial registration process initiated');
+
+  try {
+    const body: InitialRegistrationData = await req.json();
+    logger.info('Initial registration data received', {
+      email: body.email,
+      firstName: body.firstName,
+      lastName: body.lastName,
+      hasPassword: !!body.password
+    });
+
+    if (!body.email || !body.password || !body.firstName || !body.lastName) {
+        logger.error('Missing required fields for initial registration', { 
+            hasEmail: !!body.email, 
+            hasPassword: !!body.password, 
+            hasFirstName: !!body.firstName, 
+            hasLastName: !!body.lastName 
+        });
+        throw new Error('חסרים פרטים חובה');
+    }
+
+    const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+    if (!emailRegex.test(body.email)) {
+      logger.error('Invalid email format', { email: body.email });
+      throw new Error('כתובת אימייל לא תקינה');
+    }
+
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+    if (!passwordRegex.test(body.password)) {
+      logger.error('Invalid password format');
+      throw new Error('הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר');
+    }
+    
+    const normalizedEmail = body.email.toLowerCase();
+
+    const existingUser = await prisma.user.findUnique({
+        where: { email: normalizedEmail }, 
+    });
+    if (existingUser) {
+        logger.error('Email already exists in database', { email: normalizedEmail });
+        throw new Error('משתמש עם כתובת אימייל זו כבר קיים במערכת.');
+    }
+    
+    logger.info('Starting password hashing');
+    const hashedPassword = await hash(body.password, 12);
+    logger.info('Password hashed successfully');
+
+    logger.info('Starting database transaction for initial user creation');
+    
+    const result = await prisma.$transaction(async (tx) => { 
+      const user = await tx.user.create({
+          data: {
+            email: normalizedEmail, 
+            password: hashedPassword,
+            firstName: body.firstName,
+            lastName: body.lastName,
+            role: UserRole.CANDIDATE,
+            status: UserStatus.PENDING_EMAIL_VERIFICATION,
+            isVerified: false, 
+            isProfileComplete: false, 
+            isPhoneVerified: false, 
+            source: UserSource.REGISTRATION,
+            termsAndPrivacyAcceptedAt: new Date(), 
+          },
+      });
+      logger.info('User created successfully within transaction', { userId: user.id });
+
+      const expiresInHoursForOtp = 1;
+      const { verification: emailVerificationRecord, otp: generatedOtp } = await VerificationService.createVerification(
+        user.id,
+        VerificationType.EMAIL,
+        user.email, 
+        expiresInHoursForOtp,
+        tx 
+      );
+      logger.info('Email verification record and OTP created within transaction', { verificationId: emailVerificationRecord.id, userId: user.id });
+
+      return { user, generatedOtp }; 
+    });
+
+    logger.info('Database transaction completed successfully', { userId: result.user.id });
+    
+    let emailSentSuccess = false;
+    const emailOtpExpiryText = "שעה אחת"; 
+
+    try {
+      logger.info('Sending verification OTP email', { userId: result.user.id, email: result.user.email });
+      await emailService.sendVerificationEmail({
+        email: result.user.email,
+        verificationCode: result.generatedOtp, 
+        firstName: result.user.firstName,
+        expiresIn: emailOtpExpiryText 
+      });
+      emailSentSuccess = true;
+      logger.info('Verification OTP email sent successfully', { userId: result.user.id });
+    } catch (error) {
+      const errorLogMeta: LogMetadata = { userId: result.user.id };
+      if (error instanceof Error) {
+        errorLogMeta.errorName = error.name;
+        errorLogMeta.errorMessage = error.message;
+        errorLogMeta.errorStack = error.stack;
+      } else {
+        errorLogMeta.errorMessage = String(error);
+      }
+      logger.error('Failed to send verification OTP email', errorLogMeta);
+    }
+    
+    let responseMessage = 'החשבון נוצר בהצלחה. ';
+    if (emailSentSuccess) {
+        responseMessage += `נשלח קוד אימות לכתובת הדוא"ל שלך (${result.user.email}). אנא הזן את הקוד כדי להמשיך.`;
+    } else {
+        responseMessage += 'הייתה בעיה בשליחת קוד האימות. תוכל לבקש קוד חדש במסך הבא או לפנות לתמיכה.';
+    }
+
+    logger.info('Initial registration API call completed, user needs to verify email with OTP', { userId: result.user.id });
+    return NextResponse.json(
+      {
+        success: true,
+        message: responseMessage,
+        email: result.user.email, 
+        userId: result.user.id, 
+      },
+      { status: 201 }
+    );
+
+  } catch (error: unknown) { 
+    const logMetaForCatch: LogMetadata = { 
+        errorContext: "Main catch block in POST /api/auth/register",
+        timestamp: new Date().toISOString(),
+        errorObject: error
+    };
+
+    if (error instanceof Error) {
+        logMetaForCatch.errorName = error.name;
+        logMetaForCatch.errorMessage = error.message;
+        if (process.env.NODE_ENV === 'development') {
+            logMetaForCatch.errorStack = error.stack;
+        }
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+            logMetaForCatch.errorCode = error.code;
+            logMetaForCatch.errorMeta = error.meta;
+        } else if (typeof error === 'object' && error !== null && 'code' in error) {
+            logMetaForCatch.errorCode = String((error as { code: unknown }).code);
+        }
+    } else {
+        logMetaForCatch.errorMessage = String(error);
+    }
+    
+    logger.error('Initial registration failed', logMetaForCatch);
+
+    const { message, status } = handleError(error);
+
+    const responseErrorDetails = process.env.NODE_ENV === 'development' ? {
+        name: logMetaForCatch.errorName,
+        message: logMetaForCatch.errorMessage,
+        code: logMetaForCatch.errorCode,
+        meta: logMetaForCatch.errorMeta,
+        stack: logMetaForCatch.errorStack
+    } : undefined;
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: message, 
+        details: responseErrorDetails
+      },
+      { status }
+    );
+  } 
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth\request-password-reset
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth\request-password-reset\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/auth/request-password-reset/route.ts
+import { NextResponse } from 'next/server';
+import { PrismaClient, VerificationType, UserStatus, VerificationStatus } from '@prisma/client'; // Added VerificationStatus
+import { VerificationService } from '@/lib/services/verificationService';
+import { emailService } from '@/lib/email/emailService';
+import { z } from 'zod';
+
+const prisma = new PrismaClient(); // Consider using your global prisma instance if you have one at @/lib/prisma
+
+const requestPasswordResetSchema = z.object({
+  email: z.string().email({ message: "כתובת מייל לא תקינה" }),
+});
+
+// Helper for logging (consistent with your existing logs)
+type LogMetadata = {
+  email?: string;
+  userId?: string;
+  verificationId?: string; // <--- הוספה של המאפיין החסר
+  error?: unknown;
+  timestamp?: string;
+  action?: string;
+  status?: UserStatus | VerificationStatus; // For logging user or verification status
+};
+
+const logger = {
+  info: (message: string, meta?: LogMetadata) => console.log(JSON.stringify({ timestamp: new Date().toISOString(), level: 'info', message, ...meta })),
+  warn: (message: string, meta?: LogMetadata) => console.warn(JSON.stringify({ timestamp: new Date().toISOString(), level: 'warn', message, ...meta })),
+  error: (message: string, meta?: LogMetadata) => console.error(JSON.stringify({ timestamp: new Date().toISOString(), level: 'error', message, ...meta })),
+};
+
+export async function POST(req: Request) {
+  const action = "request-password-reset";
+  let requestBody: { email?: string } | undefined; // Define type for requestBody
+  try {
+    requestBody = await req.json();
+    logger.info('Request password reset initiated', { action });
+
+    const validation = requestPasswordResetSchema.safeParse(requestBody);
+    if (!validation.success) {
+      logger.warn('Invalid email format for password reset request', {
+        action,
+        error: validation.error.flatten().fieldErrors,
+      });
+      return NextResponse.json({ success: false, error: validation.error.flatten().fieldErrors.email?.[0] || "כתובת מייל לא תקינה" }, { status: 400 });
+    }
+
+    const { email } = validation.data;
+    const normalizedEmail = email.toLowerCase();
+    logger.info('Processing password reset request', { action, email: normalizedEmail });
+
+    const user = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+    });
+
+    const genericSuccessMessage = 'אם קיימת כתובת מייל זו במערכת וניתן לאפס עבורה סיסמה, קוד אימות נשלח כעת.';
+
+    if (!user) {
+      logger.info('User not found for password reset request', { action, email: normalizedEmail });
+      return NextResponse.json({ success: true, message: genericSuccessMessage }, { status: 200 });
+    }
+
+    if (!user.password) {
+      logger.info('Password reset attempted for account without a password (e.g., OAuth user)', { action, email: normalizedEmail, userId: user.id });
+      return NextResponse.json({ success: true, message: genericSuccessMessage }, { status: 200 });
+    }
+    
+    if (user.status === UserStatus.BLOCKED || user.status === UserStatus.INACTIVE) {
+        logger.warn('Password reset attempted for blocked or inactive user', { action, email: normalizedEmail, userId: user.id, status: user.status });
+        return NextResponse.json({ success: true, message: genericSuccessMessage }, { status: 200 });
+    }
+
+    await prisma.verification.updateMany({
+        where: {
+            userId: user.id,
+            type: VerificationType.PASSWORD_RESET,
+            status: VerificationStatus.PENDING, // Use VerificationStatus enum
+        },
+        data: {
+            status: VerificationStatus.EXPIRED, // Use VerificationStatus enum
+        },
+    });
+    logger.info('Invalidated previous pending password reset OTPs', { action, userId: user.id });
+
+    const expiresInMinutes = 15;
+    const { otp: generatedOtp, verification: passwordResetVerification } = await VerificationService.createVerification(
+      user.id,
+      VerificationType.PASSWORD_RESET,
+      user.email,
+      expiresInMinutes / 60
+    );
+    // Now this log line is valid because verificationId is in LogMetadata
+    logger.info('Password reset OTP created in VerificationService', { action, userId: user.id, verificationId: passwordResetVerification.id });
+
+    try {
+      await emailService.sendPasswordResetOtpEmail({
+        email: user.email,
+        otp: generatedOtp,
+        firstName: user.firstName,
+        expiresIn: `${expiresInMinutes} דקות`,
+      });
+      logger.info('Password reset OTP email sent successfully', { action, userId: user.id, email: user.email });
+    } catch (emailError) {
+      logger.error('Failed to send password reset OTP email', {
+        action,
+        userId: user.id,
+        email: user.email,
+        error: emailError instanceof Error ? { name: emailError.name, message: emailError.message } : emailError,
+      });
+    }
+
+    return NextResponse.json({ success: true, message: genericSuccessMessage }, { status: 200 });
+
+  } catch (error: unknown) {
+    const emailForLog = requestBody?.email;
+    logger.error('Error in request password reset process', {
+      action,
+      email: emailForLog,
+      error: error instanceof Error ? { name: error.name, message: error.message, stack: (process.env.NODE_ENV === 'development' ? error.stack : undefined) } : String(error),
+    });
+
+    return NextResponse.json(
+      { success: false, error: 'אירעה שגיאה בתהליך. אנא נסה שנית מאוחר יותר.' },
+      { status: 500 }
+    );
+  } finally {
+    // Only disconnect if prisma instance was created locally in this file
+    // If using a global instance from @/lib/prisma, it's usually managed globally
+    // await prisma.$disconnect().catch(e => logger.error('Failed to disconnect Prisma in request-password-reset', { error: e }));
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth\resend-phone-code
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth\resend-phone-code\route.ts
+--------------------------------------------------------------------------------
+Content:
+// app/api/auth/resend-phone-code/route.ts
+import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth'; // Adjust path if needed
+import prisma from '@/lib/prisma'; // Adjust path if needed
+import { generateOtp, sendOtpViaWhatsApp } from '@/lib/phoneVerificationService'; // Adjust path if needed
+import { VerificationType } from '@prisma/client'; // Import necessary enums/types
+
+// --- Configuration ---
+// How long (in seconds) the user must wait between resend requests
+const RESEND_RATE_LIMIT_SECONDS = 60;
+
+// --- Helper: Logger (optional but recommended) ---
+const logger = {
+    info: (message: string, meta?: Record<string, unknown> | object) => { // <-- שינוי הטיפוס
+      console.log(JSON.stringify({ timestamp: new Date().toISOString(), level: 'info', message, ...(meta || {}) }));
+    },
+    warn: (message: string, meta?: Record<string, unknown> | object) => { // <-- שינוי הטיפוס
+      console.warn(JSON.stringify({ timestamp: new Date().toISOString(), level: 'warn', message, ...(meta || {}) }));
+    },
+    error: (message: string, meta?: Record<string, unknown> | object) => { // <-- שינוי הטיפוס
+      // במקרה של שגיאה, נרצה אולי לטפל ב-meta בצורה שונה אם הוא אובייקט Error
+      let logMeta = meta || {};
+      if (meta instanceof Error) {
+          // אם ה-meta הוא אובייקט Error, נרצה אולי לפרק אותו
+          logMeta = { name: meta.name, message: meta.message, stack: meta.stack };
+      }
+      console.error(JSON.stringify({ timestamp: new Date().toISOString(), level: 'error', message, ...logMeta }));
+    },
+  };
+// --- End Helper ---
+
+
+// --- Main POST Handler ---
+export async function POST() {
+    logger.info("Resend phone code request received");
+
+    // 1. --- Authentication Check ---
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+        logger.warn("Unauthorized attempt to resend code");
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const userId = session.user.id;
+    logger.info("User authenticated", { userId });
+    // --- End Authentication Check ---
+
+    try {
+        // 2. --- Find Last Pending Verification ---
+        const lastVerification = await prisma.verification.findFirst({
+            where: {
+                userId: userId,
+                type: VerificationType.PHONE_WHATSAPP,
+                status: 'PENDING', // Only find codes that haven't been used, expired, or failed
+            },
+            orderBy: {
+                createdAt: 'desc' // Get the most recent one if multiple exist (shouldn't happen often with cleanup)
+            }
+        });
+
+        if (!lastVerification) {
+            logger.warn("No pending verification found to resend", { userId });
+            // This could mean the user is already verified, the code expired and wasn't updated, etc.
+            // Provide a generic message.
+            return NextResponse.json({ error: 'לא נמצאה בקשת אימות פעילה. ייתכן שכבר אימתת את מספרך או שהקוד פג תוקף.' }, { status: 404 });
+        }
+        logger.info("Found pending verification record", { userId, verificationId: lastVerification.id });
+        // --- End Find Last Pending Verification ---
+
+
+        // 3. --- Rate Limiting Check ---
+        const now = new Date();
+        // Use 'createdAt' as the timestamp of the last *send attempt* for pending codes
+        const timeSinceLastAttempt = now.getTime() - lastVerification.createdAt.getTime();
+
+        if (timeSinceLastAttempt < RESEND_RATE_LIMIT_SECONDS * 1000) {
+            const timeLeft = Math.ceil((RESEND_RATE_LIMIT_SECONDS * 1000 - timeSinceLastAttempt) / 1000);
+            logger.warn("Resend rate limit hit", { userId, timeLeft });
+            return NextResponse.json({ error: `אנא המתן ${timeLeft} שניות לפני בקשת קוד חדש.` }, { status: 429 }); // Too Many Requests
+        }
+        logger.info("Rate limit check passed", { userId });
+        // --- End Rate Limiting Check ---
+
+
+        // 4. --- Determine Target Phone and User Name ---
+        // Initialize with 'let' to allow modification in fallback
+        let targetPhone = lastVerification.target;
+        // Try to get name from session first for personalization
+        let userFirstName = session.user.firstName || ''; // Use empty string as fallback
+
+        // Fallback: If target phone wasn't stored in verification, fetch from User model
+        if (!targetPhone) {
+             logger.warn(`Target phone missing in verification record ${lastVerification.id}. Fetching from user ${userId}.`);
+             const user = await prisma.user.findUnique({
+                 where: { id: userId },
+                 select: { phone: true, firstName: true } // Select only needed fields
+             });
+             if (!user?.phone) {
+                // This is a more critical error, shouldn't happen if registration flow is correct
+                logger.error(`Cannot find phone number for user ${userId} in fallback during resend.`);
+                // Don't expose internal details, give a generic error
+                return NextResponse.json({ error: 'שגיאה: לא ניתן לאתר את מספר הטלפון לשליחת הקוד.' }, { status: 500 });
+             }
+             targetPhone = user.phone; // Assign the fetched phone number
+             userFirstName = user.firstName || ''; // Update first name if fetched
+             logger.info("Successfully fetched phone number from user model as fallback", { userId });
+        }
+
+        // Final check to ensure we have a phone number
+        if (!targetPhone) {
+             logger.error(`Target phone is still null/undefined after fallback for user ${userId}.`);
+             return NextResponse.json({ error: 'שגיאה: לא ניתן לקבוע את מספר הטלפון ליצירת קשר.' }, { status: 500 });
+        }
+        // --- End Determine Target Phone ---
+
+
+        // 5. --- Generate New OTP ---
+        const newOtpCode = generateOtp();
+        const newOtpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // New 10-minute expiration
+        logger.info("Generated new OTP", { userId });
+        // --- End Generate New OTP ---
+
+
+        // 6. --- Update Verification Record ---
+        // Update the *existing* pending record with the new code, expiry, reset attempts, and timestamp
+        await prisma.verification.update({
+            where: { id: lastVerification.id },
+            data: {
+                token: newOtpCode,
+                expiresAt: newOtpExpiresAt,
+                attempts: 0, // Reset attempts count for the new code
+                createdAt: new Date() // Update timestamp to reflect this new send attempt (for rate limiting)
+            }
+        });
+        logger.info(`Updated verification record ${lastVerification.id} with new OTP`, { userId });
+        // --- End Update Verification Record ---
+
+
+        // 7. --- Send New OTP via WhatsApp ---
+        logger.info("Attempting to send new OTP via WhatsApp", { userId, phone: targetPhone });
+        const otpSent = await sendOtpViaWhatsApp(
+            targetPhone,
+            newOtpCode,
+            userFirstName // Pass name for personalization
+        );
+
+        if (!otpSent) {
+            // Log the failure but still return a potentially helpful message to the user
+            logger.error(`Failed to resend OTP via WhatsApp for user ${userId}.`, { userId, phone: targetPhone });
+            // Let the user know there was an issue, maybe suggest trying again later
+            return NextResponse.json({ error: 'שליחת קוד האימות החדש באמצעות WhatsApp נכשלה. אנא נסה שוב בעוד מספר רגעים.' }, { status: 500 });
+        }
+        // --- End Send New OTP ---
+
+
+        // 8. --- Success Response ---
+        logger.info("New OTP resent successfully via WhatsApp", { userId });
+        return NextResponse.json({ message: 'קוד אימות חדש נשלח בהצלחה באמצעות WhatsApp.' }, { status: 200 });
+        // --- End Success Response ---
+
+    } catch (error: unknown) { // Catch errors as unknown
+        logger.error("An error occurred during the resend code process", {
+            userId: session?.user?.id, // Log userId if available
+            error: error instanceof Error ? { name: error.name, message: error.message, stack: error.stack } : String(error)
+        });
+        // Return a generic server error response
+        return NextResponse.json({ error: 'אירעה שגיאה פנימית בשרת. נסה שוב מאוחר יותר.' }, { status: 500 });
+    } finally {
+        // Disconnect Prisma client if necessary (depends on Prisma setup)
+        // await prisma.$disconnect();
+        // logger.info("Database connection closed (if applicable)");
+    }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth\resend-verification
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth\resend-verification\route.ts
+--------------------------------------------------------------------------------
+Content:
+
+import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { randomBytes } from "crypto";
+import { emailService } from "@/lib/email/emailService";
+import { VerificationType } from "@prisma/client";
+
+export async function POST(req: Request) {
+  try {
+    const { email, type } = await req.json();
+
+    if (!email || !type) {
+      return NextResponse.json(
+        { error: "חסרים פרטים נדרשים" },
+        { status: 400 }
+      );
+    }
+
+    // מציאת המשתמש
+    const user = await prisma.user.findUnique({
+      where: { email }
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "לא נמצא משתמש עם כתובת האימייל הזו" },
+        { status: 404 }
+      );
+    }
+
+    if (user.isVerified) {
+      return NextResponse.json(
+        { error: "המשתמש כבר מאומת" },
+        { status: 400 }
+      );
+    }
+
+    // יצירת טוקן אימות חדש
+    const verification = await prisma.verification.create({
+      data: {
+        userId: user.id,
+        type: type as VerificationType,
+        token: randomBytes(32).toString('hex'),
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // תוקף ל-24 שעות
+        status: 'PENDING',
+        attempts: 0
+      }
+    });
+
+    // שליחת מייל אימות חדש
+    // *** התיקון כאן: שימוש ב-verificationCode במקום verificationLink ***
+    await emailService.sendVerificationEmail({
+      email: user.email,
+      verificationCode: verification.token, // שונה מ-verificationLink
+      firstName: user.firstName,
+      expiresIn: '24 שעות'
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: "מייל אימות חדש נשלח בהצלחה"
+    });
+
+  } catch (error) {
+    console.error('Resend verification error:', error);
+    const errorMessage = error instanceof Error ? error.message : "שגיאה בשליחת מייל האימות";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth\resend-verification-code
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth\resend-verification-code\route.ts
+--------------------------------------------------------------------------------
+Content:
+// app/api/auth/resend-verification-code/route.ts
+
+import { NextResponse } from 'next/server';
+import { PrismaClient, VerificationType, UserStatus } from '@prisma/client';
+import { VerificationService } from '@/lib/services/verificationService';
+import { emailService } from '@/lib/email/emailService';
+
+const prisma = new PrismaClient();
+
+// Updated LogMetadata type
+type LogMetadata = {
+  email?: string;
+  error?: unknown;
+  timestamp?: string; // Note: logger already adds a timestamp. This allows overriding or adding a specific one.
+  userId?: string;
+  verificationId?: string; // Added to fix the error
+  status?: UserStatus;     // Added for metadata in a logger.warn call
+  isVerified?: boolean;    // Added for metadata in a logger.warn call
+};
+
+// Updated logger object with 'warn' method
+const logger = {
+  info: (message: string, meta?: LogMetadata) => console.log(JSON.stringify({ timestamp: new Date().toISOString(), level: 'info', message, ...meta })),
+  error: (message: string, meta?: LogMetadata) => console.error(JSON.stringify({ timestamp: new Date().toISOString(), level: 'error', message, ...meta })),
+  warn: (message: string, meta?: LogMetadata) => console.warn(JSON.stringify({ timestamp: new Date().toISOString(), level: 'warn', message, ...meta })) // Added 'warn' method
+};
+
+interface ResendCodeRequest {
+  email: string;
+}
+
+export async function POST(req: Request) {
+  let requestBody: ResendCodeRequest | null = null;
+  try {
+    requestBody = await req.json();
+    const { email } = requestBody!;
+
+    logger.info('Resend verification code process initiated', { email });
+
+
+    if (!email) {
+      logger.error('Missing email for resending code');
+      return NextResponse.json({ success: false, error: 'חסרה כתובת אימייל.' }, { status: 400 });
+    }
+    
+    const normalizedEmail = email.toLowerCase();
+    logger.info('Attempting to resend verification code', { email: normalizedEmail });
+
+    const user = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+    });
+
+    if (!user) {
+      logger.warn('User not found for resending code', { email: normalizedEmail }); // Now valid
+      return NextResponse.json({ success: false, error: 'משתמש עם כתובת אימייל זו אינו רשום.' }, { status: 404 });
+    }
+
+    // ודא שהמשתמש עדיין צריך לאמת אימייל
+    if (user.isVerified || user.status !== UserStatus.PENDING_EMAIL_VERIFICATION) {
+        // This log call now correctly uses properties defined in LogMetadata
+        logger.warn('User email already verified or not pending email verification', { email: normalizedEmail, userId: user.id, status: user.status, isVerified: user.isVerified });
+        return NextResponse.json({ success: false, error: 'כתובת האימייל כבר מאומתת או שאינה ממתינה לאימות.' }, { status: 400 });
+    }
+    
+    // יצירת קוד אימות חדש ושליחתו
+    const expiresInHoursForOtp = 1; // תוקף של שעה
+    const { otp: newOtp, verification: newVerificationRecord } = await VerificationService.createVerification(
+      user.id,
+      VerificationType.EMAIL,
+      user.email, // השתמש באימייל מהמשתמש (שכבר מנורמל)
+      expiresInHoursForOtp
+    );
+    // This log call now correctly uses verificationId defined in LogMetadata
+    logger.info('New verification record created for resend', { verificationId: newVerificationRecord.id, userId: user.id });
+
+
+    // שליחת המייל עם הקוד החדש
+    const emailOtpExpiryText = "שעה אחת"; // התאם ל-expiresInHoursForOtp
+    await emailService.sendVerificationEmail({
+      email: user.email,
+      verificationCode: newOtp,
+      firstName: user.firstName,
+      expiresIn: emailOtpExpiryText,
+    });
+
+    logger.info('New verification code sent successfully', { email: user.email, userId: user.id });
+
+    return NextResponse.json({
+      success: true,
+      message: `קוד אימות חדש נשלח לכתובת ${user.email}.`,
+    }, { status: 200 });
+
+  } catch (error: unknown) {
+    const emailForLog = requestBody?.email;
+    const errorDetails = error instanceof Error ? { name: error.name, message: error.message } : { message: String(error) };
+    logger.error('Failed to resend verification code', { email: emailForLog, error: errorDetails, timestamp: new Date().toISOString() });
+
+    let errorMessage = 'אירעה שגיאה בשליחה חוזרת של הקוד.';
+    const errorStatus = 500;
+
+    if (error instanceof Error) {
+        if (error.message === 'אירעה שגיאה ביצירת קוד אימות') {
+            errorMessage = error.message; // השתמש בהודעה הספציפית מהשירות
+        }
+        // אפשר להוסיף טיפול בשגיאות ספציפיות אחרות משירות המייל למשל
+    }
+    
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: errorMessage,
+        details: process.env.NODE_ENV === 'development' ? errorDetails : undefined
+      },
+      { status: errorStatus }
+    );
+  } finally {
+    await prisma.$disconnect();
+    logger.info('Database connection closed for resend-verification-code');
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth\reset-password
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth\reset-password\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/auth/reset-password/route.ts
+import { NextResponse } from 'next/server';
+import { PrismaClient, VerificationType} from '@prisma/client';
+import { VerificationService } from '@/lib/services/verificationService';
+import { emailService } from '@/lib/email/emailService'; // For password change confirmation
+import { hash } from 'bcryptjs';
+import { z } from 'zod';
+
+const prisma = new PrismaClient();
+
+const resetPasswordSchema = z.object({
+  email: z.string().email({ message: "כתובת מייל לא תקינה" }),
+  otp: z.string().length(6, { message: "קוד האימות חייב להכיל 6 ספרות" }).regex(/^\d+$/, { message: "קוד אימות יכול להכיל ספרות בלבד" }),
+  newPassword: z.string().min(8, { message: "הסיסמה חייבת להכיל לפחות 8 תווים" })
+    .regex(/[a-z]/, { message: "הסיסמה חייבת להכיל לפחות אות קטנה אחת באנגלית" })
+    .regex(/[A-Z]/, { message: "הסיסמה חייבת להכיל לפחות אות גדולה אחת באנגלית" })
+    .regex(/[0-9]/, { message: "הסיסמה חייבת להכיל לפחות ספרה אחת" }),
+});
+
+// Helper for logging
+type LogMetadata = {
+  email?: string;
+  userId?: string;
+  verificationId?: string;
+  error?: unknown;
+  timestamp?: string;
+  action?: string;
+};
+
+const logger = {
+  info: (message: string, meta?: LogMetadata) => console.log(JSON.stringify({ timestamp: new Date().toISOString(), level: 'info', message, ...meta })),
+  warn: (message: string, meta?: LogMetadata) => console.warn(JSON.stringify({ timestamp: new Date().toISOString(), level: 'warn', message, ...meta })),
+  error: (message: string, meta?: LogMetadata) => console.error(JSON.stringify({ timestamp: new Date().toISOString(), level: 'error', message, ...meta })),
+};
+
+export async function POST(req: Request) {
+  const action = "reset-password-with-otp";
+  let requestBody;
+
+  try {
+    requestBody = await req.json();
+    logger.info('Reset password with OTP process initiated', { action });
+
+    const validation = resetPasswordSchema.safeParse(requestBody);
+    if (!validation.success) {
+      logger.warn('Invalid input for password reset', {
+        action,
+        error: validation.error.flatten().fieldErrors,
+      });
+      const errors = validation.error.flatten().fieldErrors;
+      let errorMessage = "נתונים לא תקינים.";
+      if (errors.email?.[0]) errorMessage = errors.email[0];
+      else if (errors.otp?.[0]) errorMessage = errors.otp[0];
+      else if (errors.newPassword?.[0]) errorMessage = errors.newPassword[0];
+      
+      return NextResponse.json({ success: false, error: errorMessage }, { status: 400 });
+    }
+
+    const { email, otp, newPassword } = validation.data;
+    const normalizedEmail = email.toLowerCase();
+
+    logger.info('Attempting to verify OTP for password reset', { action, email: normalizedEmail });
+
+    // Step 1: Verify the OTP using VerificationService
+    // This should not mark the verification as 'COMPLETED' yet for PASSWORD_RESET type.
+    const verificationResult = await VerificationService.verifyCode(
+      otp,
+      VerificationType.PASSWORD_RESET,
+      normalizedEmail
+    );
+
+    // If verifyCode doesn't throw an error, it means the OTP is valid (not expired, not too many attempts, exists).
+    // It returns { success: true, message: 'Code verified.', userId: '...', id: '...' }
+    
+   if (!verificationResult.success || !verificationResult.userId || !verificationResult.id) {
+      // This scenario should ideally be handled by verifyCode throwing an error.
+      // If verifyCode is changed to return success:false instead of throwing for some cases, handle here.
+      logger.error('OTP verification failed or did not return expected data', { 
+        action, 
+        email: normalizedEmail, 
+        error: verificationResult // Changed 'result' to 'error'
+      });
+      throw new Error(verificationResult.message || 'שגיאה באימות הקוד.');
+    }
+    
+    const userId = verificationResult.userId;
+    const verificationId = verificationResult.id; // ID of the verification record
+
+    logger.info('OTP verified successfully for password reset', { action, email: normalizedEmail, userId, verificationId });
+
+    // Step 2: Hash the new password
+    const hashedPassword = await hash(newPassword, 12);
+    logger.info('New password hashed', { action, userId });
+
+    // Step 3: Update the user's password in the database
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        password: hashedPassword,
+        updatedAt: new Date(),
+        // Optional: Reset login attempts if you track them, or other security measures
+      },
+    });
+    logger.info('User password updated in database', { action, userId });
+
+    // Step 4: Explicitly mark the verification record as COMPLETED
+    await VerificationService.completeVerification(verificationId);
+    logger.info('Password reset verification record marked as completed', { action, verificationId });
+
+    // Step 5: Optional - Send password change confirmation email
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { email: true, firstName: true } });
+    if (user) {
+        try {
+            await emailService.sendPasswordChangedConfirmationEmail({
+                email: user.email,
+                firstName: user.firstName,
+            });
+            logger.info('Password change confirmation email sent', { action, userId });
+        } catch (emailError) {
+            logger.error('Failed to send password change confirmation email', {
+                action,
+                userId,
+                error: emailError instanceof Error ? { name: emailError.name, message: emailError.message } : emailError,
+            });
+            // Non-critical error for the overall success of password reset, proceed
+        }
+    }
+
+    return NextResponse.json({ success: true, message: 'הסיסמה אופסה בהצלחה. כעת תוכל להתחבר עם הסיסמה החדשה.' }, { status: 200 });
+
+  } catch (error: unknown) {
+    const emailForLog = typeof requestBody === 'object' && requestBody && 'email' in requestBody ? String(requestBody.email) : undefined;
+    logger.error('Error in reset password with OTP process', {
+      action,
+      email: emailForLog,
+      error: error instanceof Error ? { name: error.name, message: error.message, stack: (process.env.NODE_ENV === 'development' ? error.stack : undefined) } : String(error),
+    });
+
+    let errorMessage = 'אירעה שגיאה באיפוס הסיסמה.';
+    let errorStatus = 500;
+
+    if (error instanceof Error) {
+      const knownClientErrors = [
+        'הקוד כבר נוצל.', // This shouldn't happen if completeVerification is called after successful password update.
+        'תוקף הקוד פג. אנא בקש קוד חדש.',
+        'קוד אימות לא תקין או שלא קיימת בקשת אימות פעילה.',
+        'קוד אימות שגוי.',
+        'חרגת ממספר ניסיונות האימות המותר. אנא בקש קוד חדש.',
+        'שגיאה פנימית: אימות הקוד הצליח אך לא נמצא משתמש משויך.',
+        'שגיאה פנימית: רשומת האימות אינה משויכת למשתמש.' // from verifyCode
+      ];
+      if (knownClientErrors.includes(error.message)) {
+        errorMessage = error.message;
+        errorStatus = 400; 
+        if (error.message.includes("פג תוקפו")) errorStatus = 410; // Gone
+        if (error.message.includes("חרגת ממספר ניסיונות")) errorStatus = 429; // Too Many Requests
+      }
+    }
+
+    return NextResponse.json(
+      { success: false, error: errorMessage },
+      { status: errorStatus }
+    );
+  } finally {
+    await prisma.$disconnect().catch(e => logger.error('Failed to disconnect Prisma in reset-password API', { error: e }));
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth\send-phone-code
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth\send-phone-code\route.ts
+--------------------------------------------------------------------------------
+Content:
+// app/api/auth/send-phone-code/route.ts
+import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+import { generateOtp, sendOtpViaWhatsApp } from '@/lib/phoneVerificationService';
+import { VerificationType } from '@prisma/client';
+
+export async function POST() {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const userId = session.user.id;
+
+    try {
+        // 1. קבל את פרטי המשתמש מה-DB (בעיקר מספר הטלפון)
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { phone: true, firstName: true }
+        });
+
+        if (!user || !user.phone) {
+            console.error(`API send-phone-code: User ${userId} not found or phone number missing.`);
+            // שגיאה זו לא אמורה לקרות אם המשתמש הגיע לכאן דרך השלמת פרופיל
+            return NextResponse.json({ error: 'User phone number not found.' }, { status: 400 });
+        }
+
+        // 2. יצירת OTP חדש
+        const otpCode = generateOtp();
+        const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 דקות תפוגה
+
+        // 3. שמירת/עדכון רשומת האימות
+        // מחק רשומות קודמות לאותו משתמש כדי למנוע בלבול
+        await prisma.verification.deleteMany({
+            where: {
+                userId: userId,
+                type: VerificationType.PHONE_WHATSAPP,
+                status: 'PENDING'
+            }
+        });
+        // צור רשומה חדשה
+        await prisma.verification.create({
+            data: {
+                userId: userId,
+                type: VerificationType.PHONE_WHATSAPP,
+                target: user.phone,
+                token: otpCode,
+                expiresAt: otpExpiresAt,
+                status: 'PENDING',
+            }
+        });
+        console.log(`API send-phone-code: Verification record created/updated for user ${userId}`);
+
+        // 4. שליחת ה-OTP בוואטסאפ
+        const otpSent = await sendOtpViaWhatsApp(user.phone, otpCode, user.firstName);
+
+        if (!otpSent) {
+            console.error(`API send-phone-code: Failed to send OTP via WhatsApp for user ${userId}.`);
+            // החזר שגיאה כדי שהקליינט יוכל להציג הודעה מתאימה
+            return NextResponse.json({ error: 'Failed to send verification code via WhatsApp.' }, { status: 500 });
+        }
+
+        console.log(`API send-phone-code: OTP sent successfully via WhatsApp for user ${userId}`);
+        return NextResponse.json({ message: 'Verification code sent successfully via WhatsApp.' }, { status: 200 });
+
+    } catch (error) {
+        console.error("API send-phone-code: An error occurred:", error);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth\send-verification
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth\send-verification\route.ts
+--------------------------------------------------------------------------------
+Content:
+export const runtime = 'nodejs';
+
+import { NextResponse } from "next/server";
+import { PrismaClient, VerificationType } from "@prisma/client";
+import { generateToken } from "@/lib/tokens";
+import { emailService } from "@/lib/email/emailService";
+
+const prisma = new PrismaClient();
+
+export async function POST(req: Request) {
+  try {
+    const { email } = await req.json();
+    
+    if (!email) {
+      return NextResponse.json({ error: "אימייל הוא שדה חובה" }, { status: 400 });
+    }
+
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      return NextResponse.json({ error: "משתמש לא נמצא" }, { status: 404 });
+    }
+
+    await prisma.verification.updateMany({
+      where: {
+        userId: user.id,
+        type: VerificationType.EMAIL,
+        status: "PENDING"
+      },
+      data: { status: "EXPIRED" }
+    });
+
+    const token = await generateToken();
+    const verification = await prisma.verification.create({
+      data: {
+        token,
+        userId: user.id,
+        type: VerificationType.EMAIL,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        status: "PENDING"
+      }
+    });
+
+    await emailService.sendVerificationEmail({
+      email: user.email,
+      verificationCode: verification.token, // Changed from verificationLink to verificationCode
+      firstName: user.firstName,
+      expiresIn: '24 שעות'
+    });
+
+    return NextResponse.json({ success: true }, { status: 200 });
+
+  } catch (error) {
+    console.error('Error sending verification:', error);
+    return NextResponse.json({ error: "שגיאה בשליחת קוד האימות" }, { status: 500 });
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth\update-and-resend-code
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth\update-and-resend-code\route.ts
+--------------------------------------------------------------------------------
+Content:
+// app/api/auth/update-and-resend-code/route.ts
+import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+import { generateOtp, sendOtpViaWhatsApp } from '@/lib/phoneVerificationService';
+import { VerificationType, Prisma } from '@prisma/client';
+import { z } from 'zod';
+
+const updatePhoneSchema = z.object({
+  newPhone: z.string().regex(/^0\d{9}$/, "Invalid phone number format (e.g., 0501234567)"),
+});
+
+export async function POST(req: Request) {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const userId = session.user.id;
+
+    try {
+        const body = await req.json();
+        const validation = updatePhoneSchema.safeParse(body);
+
+        if (!validation.success) {
+          return NextResponse.json({ error: 'Invalid input', details: validation.error.flatten() }, { status: 400 });
+        }
+        const { newPhone } = validation.data;
+
+        // 1. בדוק שהמספר החדש לא תפוס על ידי משתמש מאומת אחר
+        const existingVerifiedPhoneUser = await prisma.user.findFirst({
+            where: {
+              phone: newPhone,
+              isPhoneVerified: true,
+              id: { not: userId } // לא המשתמש הנוכחי
+            }
+          });
+
+          if (existingVerifiedPhoneUser) {
+            console.warn(`API update-and-resend: Attempt to update to phone ${newPhone} already verified by user ${existingVerifiedPhoneUser.id}`);
+            return NextResponse.json({ error: 'מספר הטלפון כבר רשום ופעיל במערכת עבור משתמש אחר.' }, { status: 409 }); // Conflict
+          }
+
+        // 2. עדכן את מספר הטלפון של המשתמש
+        const updatedUser = await prisma.user.update({
+            where: { id: userId },
+            data: { phone: newPhone },
+            select: { firstName: true, phone: true } // קח את השם המעודכן אם צריך
+        });
+         console.log(`API update-and-resend: Updated phone number for user ${userId} to ${newPhone}`);
+
+
+        // 3. צור OTP חדש
+        const otpCode = generateOtp();
+        const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 דקות תפוגה
+
+        // 4. צור/עדכן רשומת אימות עבור המספר החדש
+        // בטל רשומות קודמות אם היו
+         await prisma.verification.updateMany({
+             where: {
+                 userId: userId,
+                 type: VerificationType.PHONE_WHATSAPP,
+                 status: 'PENDING',
+             },
+             data: { status: 'EXPIRED' } // סמן קודמים כפגי תוקף
+         });
+         // צור רשומה חדשה
+         await prisma.verification.create({
+             data: {
+                 userId: userId,
+                 type: VerificationType.PHONE_WHATSAPP,
+                 target: newPhone, // המספר החדש
+                 token: otpCode,
+                 expiresAt: otpExpiresAt,
+                 status: 'PENDING',
+             }
+         });
+         console.log(`API update-and-resend: Created new verification record for user ${userId} with new phone ${newPhone}`);
+
+        // 5. שלח את ה-OTP למספר החדש
+        const otpSent = await sendOtpViaWhatsApp(newPhone, otpCode, updatedUser.firstName);
+
+        if (!otpSent) {
+            console.error(`API update-and-resend: Failed to send OTP via WhatsApp to new phone ${newPhone} for user ${userId}.`);
+            // החזר שגיאה, ייתכן שהמספר החדש לא תקין בוואטסאפ
+            return NextResponse.json({ error: 'Failed to send verification code to the new phone number via WhatsApp. Please check the number.' }, { status: 500 });
+        }
+
+        console.log(`API update-and-resend: OTP sent successfully to new phone ${newPhone} for user ${userId}`);
+        return NextResponse.json({ message: 'Phone number updated and new verification code sent successfully via WhatsApp.' }, { status: 200 });
+
+    } catch (error: unknown) { // הגדרת error כ-unknown
+        console.error("API update-and-resend: An error occurred:", error);
+
+        // טיפול בשגיאות ספציפיות
+        if (error instanceof z.ZodError) {
+            return NextResponse.json({ error: 'Invalid request data', details: error.flatten() }, { status: 400 });
+        }
+         if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+             // שגיאת כפילות - למרות שבדקנו, ייתכן מצב race condition
+            return NextResponse.json({ error: 'מספר הטלפון כבר רשום במערכת.' }, { status: 409 });
+        }
+
+        // שגיאה כללית
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth\verify-email-code
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth\verify-email-code\route.ts
+--------------------------------------------------------------------------------
+Content:
+// app/api/auth/verify-email-code/route.ts
+
+import { NextResponse } from 'next/server';
+import { VerificationService } from '@/lib/services/verificationService';
+import { VerificationType, PrismaClient } from '@prisma/client';
+import { randomBytes } from 'crypto';
+
+const prisma = new PrismaClient();
+
+type LogMetadata = {
+  email?: string;
+  code?: string; 
+  codePresent?: boolean;
+  codeLength?: number;
+  error?: unknown;
+  timestamp?: string;
+  verificationId?: string;
+  userId?: string; // userId כאן יכול להיות string או undefined אם הוא לא קיים במטאדאטה
+  authTokenGenerated?: boolean;
+};
+
+const logger = {
+  info: (message: string, meta?: LogMetadata) => {
+    console.log(JSON.stringify({
+      timestamp: new Date().toISOString(),
+      level: 'info',
+      message,
+      ...meta
+    }));
+  },
+  error: (message: string, meta?: LogMetadata) => {
+    console.error(JSON.stringify({
+      timestamp: new Date().toISOString(),
+      level: 'error',
+      message,
+      ...meta
+    }));
+  }
+};
+
+interface VerifyEmailCodeRequest {
+  email: string;
+  code: string;
+}
+
+export async function POST(req: Request) {
+  let requestBody: VerifyEmailCodeRequest | null = null;
+  try {
+    requestBody = await req.json();
+    const { email, code } = requestBody!;
+
+    logger.info('Email code verification process initiated', { email });
+
+    if (!email || !code) {
+      logger.error('Missing email or code for verification', { email: email, codePresent: !!code });
+      return NextResponse.json({ success: false, error: 'חסרים פרטי אימייל או קוד.' }, { status: 400 });
+    }
+    
+    const OTP_LENGTH_FROM_SERVICE = 6;
+    if (code.length !== OTP_LENGTH_FROM_SERVICE || !/^\d+$/.test(code)) {
+        logger.error('Invalid code format', { email, code });
+        return NextResponse.json({ success: false, error: `פורמט קוד לא תקין. הקוד צריך להכיל ${OTP_LENGTH_FROM_SERVICE} ספרות.` }, { status: 400 });
+    }
+
+    logger.info('Attempting to verify email code', { email, codeLength: code.length });
+
+    const verificationResult = await VerificationService.verifyCode(code, VerificationType.EMAIL, email.toLowerCase());
+    
+    // --- התיקון מתחיל כאן ---
+    // וודא ש-userId קיים והוא מחרוזת לפני שנמשיך
+    // סביר להניח ש-verificationResult.userId יכול להיות string | null
+    // על פי ההגדרה של VerificationService.verifyCode
+    if (!verificationResult.userId) {
+      logger.error(
+        'User ID is missing from verification result after successful code verification.', 
+        { 
+          email, 
+          verificationId: verificationResult.id 
+        }
+      );
+      // זרוק שגיאה שתטופל בלוק ה-catch הכללי, או טפל בה באופן ספציפי יותר
+      // שגיאה זו מצביעה על בעיה לוגית פנימית אם הקוד אומת אך אין משתמש משויך
+      throw new Error('שגיאה פנימית: לא נמצא משתמש משויך לאימות לאחר אימות קוד מוצלח.');
+    }
+    
+    // כעת, לאחר הבדיקה, TypeScript יכול להסיק (או שנוכל להצהיר במפורש)
+    // ש-userId הוא string.
+    const userId: string = verificationResult.userId; 
+    // --- סוף התיקון ---
+
+    logger.info('Email code verified successfully, user isVerified updated.', { email, verificationId: verificationResult.id, userId });
+
+    const oneTimeTokenValue = randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+    await prisma.oneTimeAuthToken.create({
+      data: {
+        token: oneTimeTokenValue,
+        userId: userId, // כאן userId מובטח להיות string
+        expiresAt: expiresAt,
+      }
+    });
+    logger.info('OneTimeAuthToken created successfully for auto-login', { userId, authTokenGenerated: true });
+
+    return NextResponse.json({
+      success: true,
+      message: 'כתובת האימייל אומתה בהצלחה! מתבצעת התחברות אוטומטית...',
+      authToken: oneTimeTokenValue
+    }, { status: 200 });
+
+  } catch (error: unknown) {
+    const emailForLog = requestBody?.email;
+    const errorDetails = error instanceof Error ? { name: error.name, message: error.message } : { message: String(error) };
+    logger.error('Email code verification or token generation failed', { email: emailForLog, error: errorDetails, timestamp: new Date().toISOString() });
+
+    let errorMessage = 'אירעה שגיאה באימות הקוד.';
+    let errorStatus = 500;
+
+    if (error instanceof Error) {
+      const knownClientErrors = [
+        'הקוד כבר נוצל.', 
+        'תוקף הקוד פג. אנא בקש קוד חדש.', 
+        'קוד אימות לא תקין או שלא קיימת בקשת אימות פעילה.', 
+        'קוד אימות שגוי.'
+      ];
+      if (knownClientErrors.includes(error.message)) {
+        errorMessage = error.message;
+        errorStatus = 400; 
+      } else if (error.message === 'שגיאה פנימית: לא נמצא משתמש משויך לאימות.' || 
+                 error.message === 'שגיאה פנימית: לא נמצא משתמש משויך לאימות לאחר אימות קוד מוצלח.') { // הוספת השגיאה החדשה אם רוצים טיפול מיוחד
+        errorMessage = 'אירעה שגיאה פנימית. אנא נסה שנית מאוחר יותר.';
+        // errorStatus נשאר 500 כברירת מחדל לשגיאות פנימיות, או שתשנה לפי הצורך
+      }
+    }
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: errorMessage,
+        details: process.env.NODE_ENV === 'development' ? errorDetails : undefined
+      },
+      { status: errorStatus }
+    );
+  } finally {
+    await prisma.$disconnect().catch(e => console.error("Failed to disconnect Prisma in verify-email-code API", e));
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth\verify-phone-code
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\auth\verify-phone-code\route.ts
+--------------------------------------------------------------------------------
+Content:
+// app/api/auth/verify-phone-code/route.ts
+import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+import { VerificationType, UserStatus } from '@prisma/client';
+import { z } from 'zod';
+
+const verifyCodeSchema = z.object({
+  code: z.string().length(6, "Verification code must be 6 digits").regex(/^\d+$/, "Invalid code format"),
+});
+
+// Define Max Attempts
+const MAX_VERIFICATION_ATTEMPTS = 5;
+
+export async function POST(req: Request) {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const userId = session.user.id;
+
+    try {
+        const body = await req.json();
+        const validation = verifyCodeSchema.safeParse(body);
+
+        if (!validation.success) {
+          return NextResponse.json({ error: 'Invalid input', details: validation.error.flatten() }, { status: 400 });
+        }
+        const { code } = validation.data;
+
+        // 1. מצא את רשומת האימות הרלוונטית
+        const verification = await prisma.verification.findFirst({
+            where: {
+                userId: userId,
+                type: VerificationType.PHONE_WHATSAPP,
+                status: 'PENDING',
+            },
+            orderBy: {
+                createdAt: 'desc' // קח את הרשומה האחרונה
+            }
+        });
+
+        if (!verification) {
+            return NextResponse.json({ error: 'No pending verification found or already verified.' }, { status: 404 });
+        }
+
+        // 2. בדוק אם פג תוקף
+        if (new Date() > verification.expiresAt) {
+            // עדכן את סטטוס הרשומה ל-EXPIRED
+            await prisma.verification.update({
+                where: { id: verification.id },
+                data: { status: 'EXPIRED' }
+            });
+            return NextResponse.json({ error: 'Verification code expired.' }, { status: 410 }); // 410 Gone
+        }
+
+        // 3. בדוק מספר ניסיונות
+        if (verification.attempts >= MAX_VERIFICATION_ATTEMPTS) {
+             // עדכן סטטוס ל-FAILED אם עבר את המגבלה
+            await prisma.verification.update({
+                where: { id: verification.id },
+                data: { status: 'FAILED' }
+            });
+            return NextResponse.json({ error: 'Too many verification attempts.' }, { status: 429 }); // 429 Too Many Requests
+        }
+
+        // 4. השווה את הקודים
+        if (verification.token !== code) {
+            // עדכן מספר ניסיונות
+            await prisma.verification.update({
+                where: { id: verification.id },
+                data: { attempts: { increment: 1 } }
+            });
+            const attemptsLeft = MAX_VERIFICATION_ATTEMPTS - (verification.attempts + 1);
+            return NextResponse.json({ error: `Invalid verification code. ${attemptsLeft} attempts remaining.` }, { status: 400 });
+        }
+
+        // 5. אימות הצליח! עדכן את המשתמש ואת רשומת האימות
+        const [, updatedUser] = await prisma.$transaction([
+            prisma.verification.update({
+                where: { id: verification.id },
+                data: {
+                    status: 'COMPLETED',
+                    completedAt: new Date(),
+                    attempts: verification.attempts + 1
+                 }
+            }),
+            prisma.user.update({
+                where: { id: userId },
+                data: {
+                    isPhoneVerified: true,
+                    isProfileComplete: true, // לאחר אימות טלפון, הפרופיל נחשב שלם
+                    status: UserStatus.ACTIVE, // הפוך את המשתמש לפעיל
+                    updatedAt: new Date(),
+                },
+                select: { // החזר רק את המידע הנדרש לעדכון הסשן
+                    id: true,
+                    isPhoneVerified: true,
+                    isProfileComplete: true,
+                    status: true,
+                 }
+            })
+        ]);
+
+        console.log(`API verify-phone-code: Phone verified successfully for user ${userId}`);
+
+        // החזר את פרטי המשתמש המעודכנים כדי שהקליינט יוכל לעדכן את הסשן
+        return NextResponse.json({
+             message: 'Phone number verified successfully!',
+             user: updatedUser // מכיל isPhoneVerified, isProfileComplete, status
+             }, { status: 200 });
+
+    } catch (error) {
+        console.error("API verify-phone-code: An error occurred:", error);
+        if (error instanceof z.ZodError) { // Catch potential Zod errors during validation
+            return NextResponse.json({ error: 'Invalid request data', details: error.flatten() }, { status: 400 });
+        }
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+}
+--- End of Content for route.ts ---
+
