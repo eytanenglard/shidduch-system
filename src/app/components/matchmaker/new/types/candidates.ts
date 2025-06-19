@@ -15,7 +15,7 @@ export type CandidateImage = UserImage;
 
 export type CandidateProfile = UserProfile;
 
-export type MobileView = 'single' | 'double';
+export type MobileView = 'split' | 'single' | 'double';
 
 export interface Candidate {
   id: string;

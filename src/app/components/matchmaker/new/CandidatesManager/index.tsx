@@ -5,12 +5,11 @@
 import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 // --- START OF CHANGE 1 ---
-import { UserPlus, Filter, LayoutGrid, List, ArrowUpDown, RotateCw, BarChart2, Bot, Loader2, Columns, View } from "lucide-react"; // Added Columns, View
+import { UserPlus, Filter, LayoutGrid, List, ArrowUpDown, RotateCw, BarChart2, Bot, Loader2, Columns, View, Users, Split } from "lucide-react"; // הוספנו Users ו-Split
 // --- END OF CHANGE 1 ---
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuRadioGroup, DropdownMenuRadioItem } from "@/components/ui/dropdown-menu";import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,7 +37,7 @@ import { AddManualCandidateDialog } from "../dialogs/AddManualCandidateDialog";
 import { AiMatchAnalysisDialog } from "../dialogs/AiMatchAnalysisDialog";
 
 // Types
-import type { Candidate, ViewMode, CandidatesFilter, CandidateAction, MobileView } from "../types/candidates"; // --- CHANGE: Added MobileView ---
+import type { Candidate, ViewMode, CandidatesFilter, CandidateAction, MobileView } from "../types/candidates"; 
 
 // Constants
 import { SORT_OPTIONS, VIEW_OPTIONS } from "../constants/filterOptions";
@@ -52,8 +51,7 @@ const CandidatesManager: React.FC = () => {
   // --- UI and General State ---
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   // --- START OF CHANGE 2 ---
-  const [mobileView, setMobileView] = useState<MobileView>('single'); // 'single' or 'double' column
-  const [isMobile, setIsMobile] = useState(false);
+  const [mobileView, setMobileView] = useState<MobileView>('split'); // ברירת המחדל החדשה!
   // --- END OF CHANGE 2 ---
   const [showFiltersPanel, setShowFiltersPanel] = useState(false);
   const [showFiltersMobile, setShowFiltersMobile] = useState(false);
@@ -111,7 +109,8 @@ const CandidatesManager: React.FC = () => {
   const handleClearAiTarget = (e: React.MouseEvent) => { e.stopPropagation(); setAiTargetCandidate(null); setAiMatches([]); setComparisonSelection({}); toast.info("בחירת מועמד מטרה בוטלה.", { position: "bottom-center" }); };
   const handleToggleComparison = useCallback((candidate: Candidate, e: React.MouseEvent) => { e.stopPropagation(); setComparisonSelection(prev => { const newSelection = {...prev}; if (newSelection[candidate.id]) { delete newSelection[candidate.id]; } else { newSelection[candidate.id] = candidate; } return newSelection; }); }, []);
   const handleUpdateAllProfiles = async () => { setIsBulkUpdating(true); toast.info("מתחיל תהליך עדכון פרופילי AI...", { description: "התהליך ירוץ ברקע. אין צורך להישאר בעמוד זה.", }); try { const response = await fetch('/api/ai/update-all-profiles', { method: 'POST', }); const data = await response.json(); if (!response.ok) throw new Error(data.error || 'שגיאה בהפעלת העדכון הכללי.'); toast.success("העדכון הכללי הופעל בהצלחה!", { description: data.message, duration: 8000, }); } catch (error) { console.error("Failed to initiate bulk AI profile update:", error); toast.error("שגיאה בהפעלת העדכון", { description: error instanceof Error ? error.message : 'אנא נסה שוב מאוחר יותר.', }); } finally { setIsBulkUpdating(false); } };
-  
+  const [isMobile, setIsMobile] = useState(false);
+
   // --- START OF CHANGE 3 ---
   useEffect(() => {
     const checkScreen = () => {
@@ -236,17 +235,51 @@ const CandidatesManager: React.FC = () => {
                 </SheetContent>
               </Sheet>
               
-              <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
-                {/* --- START OF CHANGE 4: Conditional display for mobile view toggle --- */}
+               <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
                 {isMobile ? (
-                   <Button 
-                     variant="ghost" 
-                     size="icon" 
-                     onClick={() => setMobileView(prev => prev === 'single' ? 'double' : 'single')}
-                     title={mobileView === 'single' ? 'הצג שני טורים' : 'הצג טור אחד'}
-                   >
-                     {mobileView === 'single' ? <Columns className="w-4 h-4"/> : <View className="w-4 h-4"/>}
-                   </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="w-32 justify-between px-2">
+                        {mobileView === 'split' && (
+                          <>
+                            <Users className="w-4 h-4" />
+                            <span>מפוצל</span>
+                          </>
+                        )}
+                        {mobileView === 'single' && (
+                          <>
+                            <View className="w-4 h-4" />
+                            <span>טור אחד</span>
+                          </>
+                        )}
+                        {mobileView === 'double' && (
+                          <>
+                            <Columns className="w-4 h-4" />
+                            <span>שני טורים</span>
+                          </>
+                        )}
+                        <ArrowUpDown className="w-3 h-3 opacity-50 ml-2" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>תצוגת מובייל</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuRadioGroup value={mobileView} onValueChange={(value) => setMobileView(value as MobileView)}>
+                        <DropdownMenuRadioItem value="split">
+                          <Users className="w-4 h-4 mr-2" />
+                          תצוגה מפוצלת (גברים/נשים)
+                        </DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="single">
+                          <View className="w-4 h-4 mr-2" />
+                          תצוגת טור אחד
+                        </DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="double">
+                          <Columns className="w-4 h-4 mr-2" />
+                          תצוגת שני טורים
+                        </DropdownMenuRadioItem>
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 ) : (
                   VIEW_OPTIONS.map((option) => (
                     <Button key={option.value} variant={viewMode === option.value ? "default" : "ghost"} size="icon" onClick={() => setViewMode(option.value as ViewMode)}>
@@ -254,7 +287,6 @@ const CandidatesManager: React.FC = () => {
                     </Button>
                   ))
                 )}
-                {/* --- END OF CHANGE 4 --- */}
               </div>
             </div>
           </div>

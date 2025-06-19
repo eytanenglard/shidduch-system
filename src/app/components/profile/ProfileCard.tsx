@@ -1490,6 +1490,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     <TooltipProvider>
       <Card
         dir="rtl"
+                id="profile-card-container" // <--- הוספת ID כאן
+
         className={cn(
           "w-full bg-slate-50 shadow-2xl rounded-xl sm:rounded-2xl overflow-hidden border-0 flex flex-col max-h-[calc(100vh-1rem)] sm:max-h-[calc(100vh-2rem)] h-full",
           className

@@ -134,8 +134,6 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
     }
   };
   
-  // --- START OF FIX ---
-  // The logic is now directly inside useMemo, which is cleaner and satisfies the ESLint rule.
   const maleCandidatesWithScores = useMemo(() => {
     if (aiMatches.length === 0) return maleCandidates;
     const scoreMap = new Map(aiMatches.map(m => [m.userId, m.score]));
@@ -151,7 +149,6 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
       .map(c => ({ ...c, aiScore: scoreMap.get(c.id) }))
       .sort((a, b) => (b.aiScore ?? -1) - (a.aiScore ?? -1));
   }, [femaleCandidates, aiMatches]);
-  // --- END OF FIX ---
 
   const renderPanelHeader = (gender: 'male' | 'female', isMobileView: boolean = false) => {
       const panelGenderEnum = gender === 'male' ? Gender.MALE : Gender.FEMALE;
@@ -185,8 +182,74 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
       );
   };
 
-  // --- Mobile View using Tabs ---
+  // --- Mobile View Logic ---
   if (isMobile) {
+    if (mobileView === 'split') {
+      // --- START OF CHANGE ---
+      // This is the new split view for mobile with independent scrolling
+      return (
+        // 1. We give the main container a calculated height to constrain it.
+        // The 220px is an approximation of the header, search, and filters bar height.
+        // You might need to adjust this value slightly for a perfect fit.
+        <div className="grid grid-cols-2 gap-2" style={{ height: 'calc(100vh - 220px)' }}>
+          {/* Male Candidates Column */}
+          {/* 2. We make the column a flex container that takes the full height of its parent. */}
+          <div className="flex flex-col h-full">
+            <div className="p-2 text-center flex-shrink-0">
+              <h2 className="text-sm font-bold text-blue-800 flex items-center justify-center gap-1">
+                <User className="w-4 h-4" /> מועמדים <Badge variant="secondary">{maleCandidates.length}</Badge>
+              </h2>
+            </div>
+            {/* 3. This div will grow to fill the space and handle its own scrolling. */}
+            <div className="flex-grow min-h-0 overflow-y-auto">
+              <CandidatesList
+                candidates={maleCandidatesWithScores}
+                allCandidates={allCandidates}
+                onCandidateClick={onCandidateClick}
+                onCandidateAction={onCandidateAction}
+                viewMode="grid"
+                mobileView="single"
+                isLoading={isLoading}
+                highlightTerm={maleSearchQuery}
+                aiTargetCandidate={aiTargetCandidate}
+                onSetAiTarget={onSetAiTarget}
+                comparisonSelection={comparisonSelection}
+                onToggleComparison={onToggleComparison}
+              />
+            </div>
+          </div>
+
+          {/* Female Candidates Column */}
+          {/* The same structure is applied here. */}
+          <div className="flex flex-col h-full">
+            <div className="p-2 text-center flex-shrink-0">
+              <h2 className="text-sm font-bold text-purple-800 flex items-center justify-center gap-1">
+                <User className="w-4 h-4" /> מועמדות <Badge variant="secondary">{femaleCandidates.length}</Badge>
+              </h2>
+            </div>
+            <div className="flex-grow min-h-0 overflow-y-auto">
+              <CandidatesList
+                candidates={femaleCandidatesWithScores}
+                allCandidates={allCandidates}
+                onCandidateClick={onCandidateClick}
+                onCandidateAction={onCandidateAction}
+                viewMode="grid"
+                mobileView="single"
+                isLoading={isLoading}
+                highlightTerm={femaleSearchQuery}
+                aiTargetCandidate={aiTargetCandidate}
+                onSetAiTarget={onSetAiTarget}
+                comparisonSelection={comparisonSelection}
+                onToggleComparison={onToggleComparison}
+              />
+            </div>
+          </div>
+        </div>
+      );
+      // --- END OF CHANGE ---
+    }
+
+    // Original Tabs view for 'single' or 'double' column modes
     return (
         <div className={cn("w-full", className)}>
             <Tabs defaultValue="male" className="w-full">

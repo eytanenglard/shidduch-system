@@ -125,7 +125,7 @@ const UserDropdown = ({
   );
 };
 
-// רכיב הלוגו נשאר כפי שביקשת
+// רכיב הלוגו
 const Logo = () => {
   return (
     <Link href="/" className="flex items-center gap-x-2 group shrink-0" aria-label="Keystone Match Homepage">
@@ -145,7 +145,7 @@ const Logo = () => {
   );
 };
 
-// רכיב ה-Navbar המעוצב
+// רכיב ה-Navbar המרכזי
 const Navbar = () => {
   const { data: session } = useSession() as {
     data: (NextAuthSession & { user?: { images?: UserImage[] } }) | null;
@@ -162,7 +162,6 @@ const Navbar = () => {
       setScrolled(window.scrollY > 10);
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
-    // Set initial state
     handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -195,7 +194,6 @@ const Navbar = () => {
   };
   const mainProfileImage = getMainProfileImage();
 
-  // סגנונות דינמיים שמשתנים עם הגלילה כדי להתאים לדף הבית
   const navbarClasses = scrolled
     ? "bg-white/80 backdrop-blur-lg shadow-sm border-b border-gray-200/80"
     : "bg-transparent border-b border-transparent";
@@ -231,7 +229,9 @@ const Navbar = () => {
                 )}
               </div>
             </div>
-    <div className="flex items-center gap-2 md:gap-4">
+
+            {/* צד שמאל: פעולות משתמש */}
+            <div className="flex items-center gap-2 md:gap-4">
               <Button
                 variant="ghost"
                 size="icon"
@@ -244,7 +244,7 @@ const Navbar = () => {
 
               {session && (
                 <div className="hidden md:block">
-                  <AvailabilityStatus /> {/* <--- הרכיב הזה נשאר כאן, אבל עכשיו יציג את העיצוב החדש */}
+                  <AvailabilityStatus />
                 </div>
               )}
 
@@ -290,7 +290,7 @@ const Navbar = () => {
         </div>
       </nav>
 
-      {/* תפריט מובייל */}
+      {/* תפריט מובייל נפתח */}
       {mobileMenuOpen && (
         <div
           className="fixed inset-0 bg-black/30 z-40 backdrop-blur-sm md:hidden"
@@ -316,29 +316,37 @@ const Navbar = () => {
         <div className="overflow-y-auto h-[calc(100%-4.5rem)] pb-20">
           {session && (
             <div className="p-4">
-              <div className="flex items-center gap-4 p-3 border rounded-xl bg-gray-50">
-                <div className={`relative ${profileIconSize} rounded-full flex items-center justify-center shadow-sm overflow-hidden`}>
-                  {mainProfileImage ? (
-                    <Image
-                      src={mainProfileImage.url}
-                      alt={session.user?.name || "תמונת פרופיל"}
-                      fill
-                      className="object-cover rounded-full"
-                      sizes="40px"
-                    />
-                  ) : (
-                    <span className="font-semibold text-xl text-cyan-700 bg-cyan-100 w-full h-full flex items-center justify-center rounded-full">
-                      {getInitials()}
-                    </span>
-                  )}
+              {/* עדכון: כרטיס המשתמש במובייל שופר כדי להכיל גם את סטטוס הזמינות */}
+              <div className="p-4 border rounded-xl bg-gray-50/80">
+                <div className="flex items-center gap-4">
+                  <div className={`relative ${profileIconSize} rounded-full flex-shrink-0 flex items-center justify-center shadow-sm overflow-hidden`}>
+                    {mainProfileImage ? (
+                      <Image
+                        src={mainProfileImage.url}
+                        alt={session.user?.name || "תמונת פרופיל"}
+                        fill
+                        className="object-cover rounded-full"
+                        sizes="40px"
+                      />
+                    ) : (
+                      <span className="font-semibold text-xl text-cyan-700 bg-cyan-100 w-full h-full flex items-center justify-center rounded-full">
+                        {getInitials()}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex-grow min-w-0">
+                    <div className="font-semibold text-gray-800 truncate">{session.user?.name}</div>
+                    <div className="text-sm text-gray-500 truncate">{session.user?.email}</div>
+                  </div>
                 </div>
-                <div>
-                  <div className="font-semibold text-gray-800 truncate">{session.user?.name}</div>
-                  <div className="text-sm text-gray-500 truncate">{session.user?.email}</div>
+                {/* הוספת סטטוס זמינות מתחת לפרטי המשתמש, עם קו מפריד */}
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <AvailabilityStatus />
                 </div>
               </div>
             </div>
           )}
+
           <nav className="space-y-1.5 p-2">
             {session ? (
               <>
@@ -373,7 +381,10 @@ const Navbar = () => {
           <div className="absolute bottom-4 left-0 right-0 px-4">
             <Button
               variant="outline"
-              onClick={() => setLanguage(language === "he" ? "en" : "he")}
+              onClick={() => {
+                setLanguage(language === "he" ? "en" : "he");
+                toggleMobileMenu(); // סוגר את התפריט לאחר החלפת שפה
+              }}
               className="w-full font-medium border-gray-300 text-gray-600 hover:bg-gray-100 hover:border-gray-400 flex items-center justify-center py-6 text-base"
             >
               <Globe className={`h-5 w-5 ${language === 'he' ? 'ml-2' : 'mr-2'}`} /> 
@@ -386,7 +397,7 @@ const Navbar = () => {
   );
 };
 
-// רכיב פריט ניווט, מותאם לעיצוב החדש
+// רכיב פריט ניווט לדסקטופ
 const NavItem = ({
   href,
   text,
@@ -419,7 +430,7 @@ const NavItem = ({
   );
 };
 
-// רכיב פריט ניווט למובייל, מותאם לעיצוב החדש
+// רכיב פריט ניווט למובייל
 const MobileNavItem = ({
   href,
   text,
