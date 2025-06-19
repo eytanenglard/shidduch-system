@@ -35,9 +35,10 @@ const publicPaths = [
   '/auth/signin',
   '/auth/register',
   '/contact',
+  '/questionnaire',
   // --- START: FIX FOR FORGOT/RESET PASSWORD ---
   '/auth/forgot-password',    // Page for the "Forgot Password" form
-  '/api/auth/forgot-password',// API to handle the forgot password request
+  '/api/auth/request-password-reset',// API to handle the forgot password request
   '/auth/reset-password',     // Page for the "Reset Password" form (from email link)
   '/api/auth/reset-password', // API to handle the actual password reset
   // --- END: FIX FOR FORGOT/RESET PASSWORD ---
@@ -46,6 +47,11 @@ const publicPaths = [
   '/auth/accept-invitation',    // Page for a generic invitation
   '/api/auth/callback/google',
   '/api/uploadthing',
+   '/legal/privacy-policy',           // <--- הוסף
+  '/legal/terms-of-service',         // <--- הוסף
+  '/auth/error',                     // <--- הוסף אם דף השגיאה צריך להיות ציבורי
+  '/auth/google-callback',           // <--- הוסף
+
 ];
 
 // Paths accessible *after login* but *before* completion.
