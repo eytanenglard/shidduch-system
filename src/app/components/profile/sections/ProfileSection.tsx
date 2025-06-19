@@ -1,5 +1,5 @@
 "use client";
-
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import React, { useState, useEffect } from "react";
 import {
   Gender,
@@ -1148,9 +1148,21 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
               <CardContent className="p-4 md:p-6">
                 <div className="space-y-6">
                   <div>
-                    <Label className="block mb-1.5 text-sm font-medium text-gray-700">
-                      ספר/י קצת על עצמך (תיאור חופשי)
-                    </Label>
+                  <div className="flex items-center gap-1.5">
+  <Label htmlFor="about" className="text-sm font-medium text-gray-700">
+    ספר/י קצת על עצמך (תיאור חופשי)
+  </Label>
+  <TooltipProvider delayDuration={100}>
+    <Tooltip>
+      <TooltipTrigger type="button" className="text-gray-400 hover:text-gray-600">
+        <Info className="w-4 h-4" />
+      </TooltipTrigger>
+      <TooltipContent side="top" className="max-w-xs text-center">
+        <p>כאן המקום שלך לבלוט! ספר/י על התשוקות שלך, מה מצחיק אותך, ומה את/ה מחפש/ת. פרופיל עם תיאור אישי וכן מקבל יותר פניות איכותיות.</p>
+      </TooltipContent>
+    </Tooltip>
+  </TooltipProvider>
+</div>
                     {isEditing && !viewOnly ? (
                       <Textarea
                         value={formData.about || ""}
@@ -1170,9 +1182,21 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     )}
                   </div>
                   <div>
-                    <Label className="block mb-1.5 text-sm font-medium text-gray-700">
-                      הערות נוספות לשדכן/ית (לא יוצג לצד השני)
-                    </Label>
+                   <div className="flex items-center gap-1.5">
+  <Label className="text-sm font-medium text-gray-700">
+    הערות נוספות לשדכן/ית (לא יוצג לצד השני)
+  </Label>
+  <TooltipProvider delayDuration={100}>
+    <Tooltip>
+      <TooltipTrigger type="button" className="text-gray-400 hover:text-gray-600">
+        <Info className="w-4 h-4" />
+      </TooltipTrigger>
+      <TooltipContent side="top" className="max-w-xs text-center">
+        <p>מידע שחשוב לנו לדעת כדי למצוא התאמה טובה, אך לא תרצה/י שיופיע בפרופיל הגלוי. למשל: נושאים רגישים, העדפות ספציפיות מאוד, או רקע נוסף.</p>
+      </TooltipContent>
+    </Tooltip>
+  </TooltipProvider>
+</div>
                     {isEditing && !viewOnly ? (
                       <Textarea
                         value={formData.matchingNotes || ""}

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle, Circle, ArrowRight, User, BookOpen, Camera, Phone, SlidersHorizontal, Edit3 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion'; // <--- ייבוא שהיה חסר
 import { cn } from "@/lib/utils";
 import type { User as SessionUserType } from '@/types/next-auth';
 import { Button } from '@/components/ui/button';
@@ -16,8 +16,9 @@ interface ChecklistItemProps {
   title: string;
   description: string;
   link?: string;
-  onClick?: () => void; // Added onClick for actions that aren't links
+  onClick?: () => void;
   icon: React.ElementType;
+  stepNumber: number; // <--- הוסף את השורה הזו
 }
 
 const ChecklistItem: React.FC<ChecklistItemProps> = ({ isCompleted, title, description, link, onClick, icon: Icon }) => {
@@ -42,6 +43,7 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({ isCompleted, title, descr
     className: cn("flex items-start gap-4 p-3 rounded-lg transition-all", isCompleted ? 'bg-emerald-50/60' : 'bg-blue-50/60 hover:bg-blue-100/70'),
   };
 
+  // If a link is provided, wrap with Next.js Link. Otherwise, use a button for onClick.
   const interactiveElement = link ? (
     <Link href={link} className="flex-1">
       {content}
@@ -69,28 +71,26 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({ isCompleted, title, descr
 
 interface ProfileChecklistProps {
   user: SessionUserType;
-  // This prop will be passed from UnifiedProfileDashboard to trigger the preview dialog
   onPreviewClick: () => void; 
 }
 
 export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({ user, onPreviewClick }) => {
   
-  // --- Enhanced Task Definitions ---
   const coreTasks = [
     { 
       id: 'photo', 
       isCompleted: (user.images?.length ?? 0) > 0, 
       title: 'העלאת תמונת פרופיל', 
       description: 'פרופיל עם תמונה מקבל פי 10 יותר פניות. העלה/י תמונה ברורה.', 
-      link: '#photos', // This will require an ID on the PhotosSection component container
+      link: '#photos_section', // שיניתי את הלינק כדי שיהיה ייחודי יותר
       icon: Camera 
     },
     { 
       id: 'about', 
       isCompleted: !!user.profile?.about && user.profile.about.trim().length > 100,
       title: 'כתיבת "קצת עליי"', 
-      description: 'ספר/י על עצמך, מה מניע אותך ומה את/ה אוהב/ת. זה המקום שלך לזרוח!', 
-      link: '#profile', // This will require an ID on the ProfileSection component container
+      description: 'זהו המקום לספר על עצמך במילים שלך ולמשוך תשומת לב.', 
+      link: '/profile?tab=overview', // שינוי הלינק לטאב המתאים
       icon: User 
     },
     { 
@@ -113,46 +113,48 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({ user, onPrev
 
   const bonusTasks = [
     { 
-    id: 'preferences', 
-  isCompleted: (user.profile?.preferredAgeMin != null && (user.profile?.preferredReligiousLevels?.length ?? 0) > 0),
+      id: 'preferences', 
+      isCompleted: (user.profile?.preferredAgeMin != null && (user.profile?.preferredReligiousLevels?.length ?? 0) > 0),
       title: 'הגדרת העדפות לשידוך (בונוס)', 
       description: 'הגדר/י מה את/ה מחפש/ת כדי שנוכל למקד את החיפוש עבורך.', 
-      link: '#preferences', // This will require an ID on the PreferencesSection component container
+      link: '/profile?tab=preferences', // כיוון לטאב הנכון
       icon: SlidersHorizontal
     },
     { 
       id: 'review', 
-      isCompleted: false, // This task is never "completed" but serves as a constant prompt
+      isCompleted: false,
       title: 'סקירה סופית של הפרופיל (מומלץ)', 
-      description: 'צפה/י בפרופיל שלך כפי שמועמדים אחרים יראו אותו וודא/י שהכל נראה מצוין.', 
-      onClick: onPreviewClick, // Use the passed-in function
+      description: 'צפה/י בפרופיל שלך כפי שהוא יוצג לאחרים וודא/י שהכל נראה מצוין.', 
+      onClick: onPreviewClick,
       icon: Edit3 
     }
   ];
 
-  const allTasks = [...coreTasks, ...bonusTasks];
-  const coreTasksCompletedCount = coreTasks.filter(t => t.isCompleted).length;
-  const isCoreComplete = coreTasksCompletedCount === coreTasks.length;
+  const completedCoreCount = coreTasks.filter(t => t.isCompleted).length;
+  const isCoreComplete = completedCoreCount === coreTasks.length;
   
   const tasksToShow = isCoreComplete ? bonusTasks.filter(t => !t.isCompleted) : coreTasks.filter(t => !t.isCompleted);
   
-  // If everything is done (except the "review" task which is always shown if others are done), don't show the component.
-  if (isCoreComplete && tasksToShow.length <= 1) { // <= 1 because the review task is always there
+  // אם הכל הושלם למעט משימת הסקירה, הסתר את הרכיב
+  if (isCoreComplete && tasksToShow.length <= 1 && tasksToShow[0]?.id === 'review') {
     return null;
   }
   
-  const completionPercentage = Math.round((coreTasksCompletedCount / coreTasks.length) * 100);
+  const totalStepsForProgress = coreTasks.length;
+  const completionPercentage = Math.round((completedCoreCount / totalStepsForProgress) * 100);
 
   return (
-    <Card className="mb-8 bg-gradient-to-br from-blue-50/50 to-cyan-50/50 border-cyan-200 shadow-lg">
-      <CardHeader>
-        <CardTitle className="text-xl">מסלול ההצלחה שלך</CardTitle>
-        <CardDescription>
-          {isCoreComplete 
-            ? "כל הכבוד! השלמת את כל שלבי החובה. הנה עוד כמה דברים שישפרו את הפרופיל שלך:"
-            : "השלם את הצעדים הבאים כדי לשפר את הפרופיל שלך ולקבל הצעות טובות יותר!"
-          }
-        </CardDescription>
+    <Card className="mb-8 rounded-2xl shadow-xl border-0 overflow-hidden bg-gradient-to-br from-blue-50/50 to-cyan-50/50">
+      <CardHeader className="p-6">
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+          <CardTitle className="text-xl">מסלול ההצלחה שלך</CardTitle>
+          <CardDescription>
+            {isCoreComplete 
+              ? "כל הכבוד! השלמת את כל שלבי החובה. הנה עוד כמה דברים שישפרו את הפרופיל שלך:"
+              : "השלם את הצעדים הבאים כדי לשפר את הפרופיל שלך ולקבל הצעות טובות יותר!"
+            }
+          </CardDescription>
+        </motion.div>
         <div className="pt-2">
             <div className="flex justify-between items-center text-sm mb-1">
                 <span className="font-medium text-gray-700">השלמת שלבי החובה</span>
@@ -161,9 +163,9 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({ user, onPrev
             <Progress value={completionPercentage} className="h-2" />
         </div>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-3 p-6 pt-0">
         <AnimatePresence>
-            {tasksToShow.map((task) => (
+            {tasksToShow.map((task, index) => (
                 <ChecklistItem 
                   key={task.id} 
                   isCompleted={task.isCompleted}
@@ -172,6 +174,7 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({ user, onPrev
                   link={task.link}
                   onClick={task.onClick}
                   icon={task.icon}
+                  stepNumber={isCoreComplete ? index + 1 : completedCoreCount + index + 1}
                 />
             ))}
         </AnimatePresence>

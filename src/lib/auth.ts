@@ -71,7 +71,9 @@ export const authOptions: NextAuthOptions = {
            termsAndPrivacyAcceptedAt: null,   // Not applicable for Google sign-up
           profile: null, 
           images: [], 
-          questionnaireResponses: [], 
+          questionnaireResponses: [],
+                    questionnaireCompleted: false, // הוספה כאן
+
           redirectUrl: undefined,
           newlyCreated: true, 
           requiresCompletion: true, 
@@ -128,6 +130,8 @@ export const authOptions: NextAuthOptions = {
           profile: profile as UserProfile | null,
           images: images as UserImage[],
           questionnaireResponses: questionnaireResponses as QuestionnaireResponse[],
+          questionnaireCompleted: questionnaireResponses.length > 0 && questionnaireResponses[0].completed, // הוספה כאן
+
           source: userFromDb.source, // Add source
           addedByMatchmakerId: userFromDb.addedByMatchmakerId,
            termsAndPrivacyAcceptedAt: userFromDb.termsAndPrivacyAcceptedAt, // Add addedByMatchmakerId
@@ -188,6 +192,8 @@ export const authOptions: NextAuthOptions = {
           profile: profile as UserProfile | null,
           images: images as UserImage[],
           questionnaireResponses: questionnaireResponses as QuestionnaireResponse[],
+                   questionnaireCompleted: questionnaireResponses.length > 0 && questionnaireResponses[0].completed, // הוספה כאן
+
           source: userFromDb.source, // Add source
           addedByMatchmakerId: userFromDb.addedByMatchmakerId,
            termsAndPrivacyAcceptedAt: userFromDb.termsAndPrivacyAcceptedAt, // Add addedByMatchmakerId
@@ -391,7 +397,11 @@ export const authOptions: NextAuthOptions = {
         typedToken.isVerified = typedUserFromCallback.isVerified;
         typedToken.isProfileComplete = typedUserFromCallback.isProfileComplete || false;
         typedToken.isPhoneVerified = typedUserFromCallback.isPhoneVerified || false;
+          typedToken.questionnaireResponses = typedUserFromCallback.questionnaireResponses;
         
+        // --- START: הוספה כאן ---
+        // העבר את הדגל מה-user object בפעם הראשונה
+        typedToken.questionnaireCompleted = typedUserFromCallback.questionnaireCompleted; 
         typedToken.source = typedUserFromCallback.source; // Add source
         typedToken.addedByMatchmakerId = typedUserFromCallback.addedByMatchmakerId; // Add addedByMatchmakerId
  typedToken.termsAndPrivacyAcceptedAt = typedUserFromCallback.termsAndPrivacyAcceptedAt;
@@ -431,7 +441,8 @@ export const authOptions: NextAuthOptions = {
             typedToken.isVerified = dbUserForJwt.isVerified;
             typedToken.isProfileComplete = dbUserForJwt.isProfileComplete;
             typedToken.isPhoneVerified = dbUserForJwt.isPhoneVerified;
-            
+                        typedToken.questionnaireResponses = dbUserForJwt.questionnaireResponses as QuestionnaireResponse[];
+
             typedToken.source = dbUserForJwt.source; // Refresh source
             typedToken.addedByMatchmakerId = dbUserForJwt.addedByMatchmakerId; // Refresh addedByMatchmakerId
  typedToken.termsAndPrivacyAcceptedAt = dbUserForJwt.termsAndPrivacyAcceptedAt;
@@ -506,7 +517,9 @@ export const authOptions: NextAuthOptions = {
         typedSession.user.isVerified = typedToken.isVerified;
         typedSession.user.isProfileComplete = typedToken.isProfileComplete;
         typedSession.user.isPhoneVerified = typedToken.isPhoneVerified;
-        
+                typedSession.user.questionnaireResponses = typedToken.questionnaireResponses;
+        typedSession.user.questionnaireCompleted = typedToken.questionnaireCompleted;
+
         typedSession.user.source = typedToken.source; // Pass source to session
         typedSession.user.addedByMatchmakerId = typedToken.addedByMatchmakerId; // Pass to session
         typedSession.user.termsAndPrivacyAcceptedAt = typedToken.termsAndPrivacyAcceptedAt; // <--- הוספה

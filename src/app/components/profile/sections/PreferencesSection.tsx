@@ -1,6 +1,7 @@
 // src/app/(authenticated)/profile/components/dashboard/PreferencesSection.tsx
 "use client";
-
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Info } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -465,12 +466,19 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
               </CardHeader>
               <CardContent className="p-4 md:p-6 space-y-5">
                 <div>
-                  <Label
-                    htmlFor="matchingNotes"
-                    className="block mb-1.5 text-xs font-medium text-gray-600"
-                  >
-                    תיאור כללי על המועמד/ת המבוקש/ת
-                  </Label>
+              <div className="flex items-center gap-1.5">
+    <Label htmlFor="matchingNotes" className="text-sm font-medium text-gray-700">
+        תיאור כללי על המועמד/ת המבוקש/ת
+    </Label>
+    <TooltipProvider delayDuration={100}>
+        <Tooltip>
+            <TooltipTrigger type="button"><Info className="w-4 h-4 text-gray-400 hover:text-gray-600" /></TooltipTrigger>
+            <TooltipContent side="top" className="max-w-xs text-center">
+                <p>זהו אחד השדות החשובים ביותר! תאר/י במילים שלך את סוג האדם שאת/ה מחפש/ת. התיאור הזה יעזור לשדכנים להבין את הראש שלך מעבר לנתונים היבשים.</p>
+            </TooltipContent>
+        </Tooltip>
+    </TooltipProvider>
+</div>
                   {isEditing ? (
                     <Textarea
                       id="matchingNotes"
@@ -546,9 +554,19 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
               <CardContent className="p-4 md:p-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
                   <div>
-                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
-                      טווח גילאים מועדף
-                    </Label>
+                <div className="flex items-center gap-1.5">
+    <Label className="text-xs font-medium text-gray-600">
+      טווח גילאים מועדף
+    </Label>
+    <TooltipProvider delayDuration={100}>
+        <Tooltip>
+            <TooltipTrigger type="button"><Info className="w-4 h-4 text-gray-400 hover:text-gray-600" /></TooltipTrigger>
+            <TooltipContent side="top">
+                <p>הגדרת טווח גילאים רחב יותר תגדיל את כמות ההצעות שתקבל/י.</p>
+            </TooltipContent>
+        </Tooltip>
+    </TooltipProvider>
+</div>
                     <div className="flex items-center gap-2">
                       <Input
                         type="number"
@@ -680,9 +698,19 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                   )}
                 </div>
                 <div>
-                  <Label className="block mb-2 text-xs font-medium text-gray-600">
-                    רמות דתיות מועדפות
-                  </Label>
+                 <div className="flex items-center gap-1.5">
+    <Label className="text-xs font-medium text-gray-600">
+      רמות דתיות מועדפות
+    </Label>
+    <TooltipProvider delayDuration={100}>
+        <Tooltip>
+            <TooltipTrigger type="button"><Info className="w-4 h-4 text-gray-400 hover:text-gray-600" /></TooltipTrigger>
+            <TooltipContent side="top" className="max-w-xs text-center">
+                <p>מומלץ לבחור 1-3 רמות שמתאימות לך. בחירה רחבה מדי עלולה להוביל להצעות פחות מדויקות.</p>
+            </TooltipContent>
+        </Tooltip>
+    </TooltipProvider>
+</div>
                   {isEditing ? (
                     <div className="flex flex-wrap gap-2">
                       {religiousLevelOptions.map((level) => (

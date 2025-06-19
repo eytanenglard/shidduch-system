@@ -171,6 +171,7 @@ export interface User extends DefaultUser {
   images: UserImage[];
   questionnaireResponses: QuestionnaireResponse[];
       questionnaireCompleted?: boolean;
+    hasCompletedOnboarding?: boolean; // <-- הוספה כאן
 
   accounts?: PrismaAccount[];
   redirectUrl?: string;
@@ -212,6 +213,7 @@ declare module 'next-auth' {
        images: UserImage[];
        questionnaireResponses: QuestionnaireResponse[];
            questionnaireCompleted?: boolean;
+    hasCompletedOnboarding?: boolean; // <-- הוספה כאן
 
        accounts?: PrismaAccount[];
         source: UserSource; // Add new field
@@ -249,6 +251,8 @@ declare module 'next-auth' {
      source: UserSource; // Add new field
     addedByMatchmakerId?: string | null; // Add new field
      termsAndPrivacyAcceptedAt?: Date | null;
+     questionnaireCompleted?: boolean;
+    hasCompletedOnboarding?: boolean; // <-- הוספה כאן
   }
 }
 
