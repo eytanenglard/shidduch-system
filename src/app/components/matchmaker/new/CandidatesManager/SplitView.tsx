@@ -185,22 +185,18 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
   // --- Mobile View Logic ---
   if (isMobile) {
     if (mobileView === 'split') {
-      // --- START OF FIX ---
-      // This is the new split view for mobile with independent scrolling
+      // --- START OF CHANGE ---
+      // The container now has h-full to take the height from its parent in CandidatesManager
       return (
-        // 1. We give the main container a calculated height to constrain it.
-        // The 220px is an approximation of the header, search, and filters bar height.
-        // You might need to adjust this value slightly for a perfect fit.
-        <div className="grid grid-cols-2 gap-2" style={{ height: 'calc(100vh - 220px)' }}>
+        <div className="grid grid-cols-2 gap-2 h-full">
           {/* Male Candidates Column */}
-          {/* 2. We make the column a flex container that takes the full height of its parent. */}
           <div className="flex flex-col h-full">
             <div className="p-2 text-center flex-shrink-0">
               <h2 className="text-sm font-bold text-blue-800 flex items-center justify-center gap-1">
                 <User className="w-4 h-4" /> מועמדים <Badge variant="secondary">{maleCandidates.length}</Badge>
               </h2>
             </div>
-            {/* 3. This div will grow to fill the space and handle its own scrolling. */}
+            {/* This div will grow to fill the space and handle its own scrolling */}
             <div className="flex-grow min-h-0 overflow-y-auto">
               <CandidatesList
                 candidates={maleCandidatesWithScores}
@@ -220,7 +216,6 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
           </div>
 
           {/* Female Candidates Column */}
-          {/* The same structure is applied here. */}
           <div className="flex flex-col h-full">
             <div className="p-2 text-center flex-shrink-0">
               <h2 className="text-sm font-bold text-purple-800 flex items-center justify-center gap-1">
@@ -246,14 +241,14 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
           </div>
         </div>
       );
-      // --- END OF FIX ---
+      // --- END OF CHANGE ---
     }
 
     // Original Tabs view for 'single' or 'double' column modes
     return (
-        <div className={cn("w-full", className)}>
-            <Tabs defaultValue="male" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
+        <div className={cn("w-full h-full", className)}>
+            <Tabs defaultValue="male" className="w-full h-full flex flex-col">
+                <TabsList className="grid w-full grid-cols-2 flex-shrink-0">
                     <TabsTrigger value="male" className="flex items-center gap-2">
                         <User className="h-4 w-4"/> מועמדים <Badge variant="secondary">{maleCandidates.length}</Badge>
                     </TabsTrigger>
@@ -261,7 +256,7 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
                         <User className="h-4 w-4"/> מועמדות <Badge variant="secondary">{femaleCandidates.length}</Badge>
                     </TabsTrigger>
                 </TabsList>
-                <TabsContent value="male" className="mt-4">
+                <TabsContent value="male" className="mt-4 flex-1 min-h-0">
                     <div className="p-1 flex flex-col h-full">
                         {renderPanelHeader('male', true)}
                         {onMaleSearchChange && <SearchBar value={maleSearchQuery} onChange={onMaleSearchChange} placeholder="חיפוש מועמדים..." genderTarget="male" separateMode={true} />}
@@ -283,7 +278,7 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
                         </div>
                     </div>
                 </TabsContent>
-                <TabsContent value="female" className="mt-4">
+                <TabsContent value="female" className="mt-4 flex-1 min-h-0">
                     <div className="p-1 flex flex-col h-full">
                         {renderPanelHeader('female', true)}
                         {onFemaleSearchChange && <SearchBar value={femaleSearchQuery} onChange={onFemaleSearchChange} placeholder="חיפוש מועמדות..." genderTarget="female" separateMode={true} />}
@@ -313,7 +308,7 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
   // --- Desktop View using Resizable Panels ---
   return (
     <div className={cn("h-full", className)}>
-      <ResizablePanelGroup direction="horizontal" className="min-h-[800px] rounded-lg bg-white shadow-sm border">
+      <ResizablePanelGroup direction="horizontal" className="h-full rounded-lg bg-white shadow-sm border">
         <ResizablePanel defaultSize={50} minSize={30}>
           <div className="p-3 flex flex-col h-full">
             {renderPanelHeader('male')}

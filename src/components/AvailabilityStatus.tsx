@@ -162,6 +162,8 @@ export default function AvailabilityStatus() {
     <>
       {/* --- START OF CHANGES: The new button design --- */}
       <Button
+        id="onboarding-target-availability-status" // <--- הוספת ID כאן
+
         variant="ghost"
         onClick={() => {
           setStatus(session?.user?.profile?.availabilityStatus || AvailabilityStatusEnum.AVAILABLE);

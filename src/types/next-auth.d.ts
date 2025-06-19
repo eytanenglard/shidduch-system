@@ -170,6 +170,8 @@ export interface User extends DefaultUser {
   profile: UserProfile | null; // Using our defined UserProfile
   images: UserImage[];
   questionnaireResponses: QuestionnaireResponse[];
+      questionnaireCompleted?: boolean;
+
   accounts?: PrismaAccount[];
   redirectUrl?: string;
   newlyCreated?: boolean;
@@ -209,6 +211,8 @@ declare module 'next-auth' {
        profile: UserProfile | null;
        images: UserImage[];
        questionnaireResponses: QuestionnaireResponse[];
+           questionnaireCompleted?: boolean;
+
        accounts?: PrismaAccount[];
         source: UserSource; // Add new field
       addedByMatchmakerId?: string | null; // Add new field
@@ -267,6 +271,8 @@ declare module 'next-auth/jwt' {
     profile: UserProfile | null;
     images: UserImage[];
     questionnaireResponses: QuestionnaireResponse[];
+        questionnaireCompleted?: boolean;
+
     accounts?: PrismaAccount[];
     redirectUrl?: string;
     newlyCreated?: boolean;

@@ -59,6 +59,8 @@ const UserDropdown = ({
   return (
     <div className="relative" ref={dropdownRef}>
       <button
+        id="onboarding-target-profile-dropdown" // <--- הוספת ID כאן
+
         onClick={() => setIsOpen(!isOpen)}
         className={`relative ${profileIconSize} rounded-full flex items-center justify-center text-sm shadow-md transition-all duration-300 cursor-pointer group overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-400 focus:ring-offset-white`}
         title={session.user?.name || "פרופיל"}
@@ -217,7 +219,7 @@ const Navbar = () => {
                         <NavItem href="/matchmaker/clients" text="מועמדים" pathname={pathname} />
                       </>
                     ) : (
-                      <NavItem href="/matches" text="ההצעות שלי" pathname={pathname} />
+  <NavItem id="onboarding-target-matches-link" href="/matches" text="ההצעות שלי" pathname={pathname} /> // <--- הוספת ID כאן
                     )}
                     <NavItem
                       href="/messages"
@@ -403,16 +405,19 @@ const NavItem = ({
   text,
   badge,
   pathname,
+   id,
 }: {
   href: string;
   text: string;
   badge?: number;
   pathname: string;
+   id?: string;
 }) => {
   const isActive = pathname === href || (href === "/matchmaker/suggestions" && pathname.startsWith("/matchmaker"));
 
   return (
     <Link
+    id={id}
       href={href}
       className={`relative px-3 py-2 rounded-full text-sm transition-colors duration-200
         ${isActive

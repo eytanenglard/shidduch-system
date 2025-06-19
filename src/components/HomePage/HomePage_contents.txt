@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage
-# Generated on: 2025-06-19 16:12:25
+# Generated on: 2025-06-19 18:01:18
 ################################################################################
 
 ================================================================================
@@ -1148,7 +1148,7 @@ Content:
 import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Heart, Shield, User, Users, Sparkles, Brain, Handshake, ChevronDown } from "lucide-react"; 
+import { ArrowLeft, Heart, Shield, User,Lightbulb, Users, Sparkles, Brain, Handshake, ChevronDown } from "lucide-react"; 
 import { Session } from "next-auth";
 
 interface HeroSectionProps {
@@ -1311,19 +1311,31 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
           </div>
         </div>
 
-        {/* --- 3. Stats Bar (Social Proof) --- */}
-        <div
-          className={`mt-12 md:mt-20 w-full max-w-4xl transition-all duration-700 ${isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"}`}
-          style={getStaggerDelay(2)}
-        >
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 bg-white/60 backdrop-blur-md py-4 px-6 rounded-2xl shadow-lg border border-white/50">
-            <StatItem icon={<Shield className="h-5 w-5 text-cyan-600" />} label="דיסקרטיות" value="100%" color="cyan" />
-            <StatItem icon={<Heart className="h-5 w-5 text-pink-500" />} label="מדדי תאימות" value="50+" color="pink" />
-            <StatItem icon={<User className="h-5 w-5 text-cyan-600" />} label="ליווי אישי" value="24/6" color="cyan" />
-            <StatItem icon={<Users className="h-5 w-5 text-pink-500" />} label="צוות שדכנים" value="מקצועי" color="pink" />
-            <StatItem icon={<Sparkles className="h-5 w-5 text-cyan-600" />} label="מסורת וחדשנות" value="מושלם" color="cyan" />
-          </div>
-        </div>
+{/* --- 3. Stats Bar (Social Proof) - מסודר לפי צבעים --- */}
+<div
+  className={`mt-12 md:mt-20 w-full max-w-5xl transition-all duration-700 ${isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"}`}
+  style={getStaggerDelay(2)}
+>
+  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 bg-white/60 backdrop-blur-md py-4 px-6 rounded-2xl shadow-lg border border-white/50">
+    
+    {/* ======================================================== */}
+    {/* ||      שורה 1: תכלת | ורוד | תכלת                    || */}
+    {/* ||      (הבטחת הבסיס: פרטיות, טכנולוגיה, ליווי)      || */}
+    {/* ======================================================== */}
+    <StatItem icon={<Shield className="h-5 w-5 text-cyan-600" />} label="דיסקרטיות" value="100%" color="cyan" />
+    <StatItem icon={<Heart className="h-5 w-5 text-pink-500" />} label="מדדי תאימות" value="+50" color="pink" />
+    <StatItem icon={<User className="h-5 w-5 text-cyan-600" />} label="ליווי אישי" value="24/6" color="cyan" />
+
+    {/* ======================================================== */}
+    {/* ||      שורה 2: ורוד | תכלת | ורוד                    || */}
+    {/* ||      (הבידול הייחודי: תהליך, זהות, איכות)         || */}
+    {/* ======================================================== */}
+    <StatItem icon={<Lightbulb className="h-5 w-5 text-pink-500" />} label="שידוך מנומק" value="AI + שדכן" color="pink" />
+    <StatItem icon={<Sparkles className="h-5 w-5 text-cyan-600" />} label="מסורת וחדשנות" value="מושלם" color="cyan" />
+    <StatItem icon={<Users className="h-5 w-5 text-pink-500" />} label="צוות שדכנים" value="מקצועי" color="pink" />
+
+  </div>
+</div>
       </div>
     </section>
   );

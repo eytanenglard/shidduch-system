@@ -1,5 +1,6 @@
 import React from "react";
 import Step from "../components/Step";
+import { DemoSuggestionCard } from "../components/DemoSuggestionCard"; // <-- 1. ייבוא הקומפוננטה החדשה
 
 const HowItWorksSection: React.FC = () => {
   return (
@@ -85,6 +86,10 @@ const HowItWorksSection: React.FC = () => {
             isLast={true}
             color="cyan"
           />
+           <div>
+        <h4 className="text-center font-semibold mb-4 text-gray-700">כך תיראה הצעה לדוגמה:</h4>
+        <DemoSuggestionCard />
+    </div>
         </div>
       </div>
     </section>

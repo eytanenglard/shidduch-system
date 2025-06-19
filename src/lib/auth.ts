@@ -438,7 +438,8 @@ export const authOptions: NextAuthOptions = {
             typedToken.profile = dbUserForJwt.profile as UserProfile | null;
             typedToken.images = dbUserForJwt.images as UserImage[]; 
             typedToken.questionnaireResponses = dbUserForJwt.questionnaireResponses as QuestionnaireResponse[];
-            
+              const hasCompletedQuestionnaire = dbUserForJwt.questionnaireResponses.length > 0 && dbUserForJwt.questionnaireResponses[0].completed === true;
+            typedToken.questionnaireCompleted = hasCompletedQuestionnaire;
             typedToken.lastLogin = dbUserForJwt.lastLogin;
             typedToken.createdAt = dbUserForJwt.createdAt;
             typedToken.updatedAt = dbUserForJwt.updatedAt;
@@ -513,6 +514,7 @@ export const authOptions: NextAuthOptions = {
         typedSession.user.profile = typedToken.profile; 
         typedSession.user.images = typedToken.images; 
         typedSession.user.questionnaireResponses = typedToken.questionnaireResponses; 
+        typedSession.user.questionnaireCompleted = typedToken.questionnaireCompleted;
 
         typedSession.user.lastLogin = typedToken.lastLogin;
         typedSession.user.createdAt = typedToken.createdAt;

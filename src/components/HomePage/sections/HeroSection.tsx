@@ -61,7 +61,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                 <ArrowLeft className="relative z-10 mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
-            <Link href="/questionnaire">
+<Link href="/questionnaire" id="onboarding-target-questionnaire-button"> {/* <--- הוספת ID כאן */}
               <Button variant="outline" size="lg" className="w-full sm:w-auto text-base md:text-lg px-8 py-6 border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-300 rounded-full transition-all duration-300">
                 לשאלון ההתאמה
               </Button>

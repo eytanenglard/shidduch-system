@@ -4,12 +4,11 @@
 
 import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-// --- START OF CHANGE 1 ---
-import { UserPlus, Filter, LayoutGrid, List, ArrowUpDown, RotateCw, BarChart2, Bot, Loader2, Columns, View, Users, Split } from "lucide-react"; // הוספנו Users ו-Split
-// --- END OF CHANGE 1 ---
+import { UserPlus, Filter, LayoutGrid, List, ArrowUpDown, RotateCw, BarChart2, Bot, Loader2, Columns, View, Users, Split } from "lucide-react";
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuRadioGroup, DropdownMenuRadioItem } from "@/components/ui/dropdown-menu";import { Badge } from "@/components/ui/badge";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuRadioGroup, DropdownMenuRadioItem } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -50,9 +49,7 @@ interface AiMatch {
 const CandidatesManager: React.FC = () => {
   // --- UI and General State ---
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
-  // --- START OF CHANGE 2 ---
-  const [mobileView, setMobileView] = useState<MobileView>('split'); // ברירת המחדל החדשה!
-  // --- END OF CHANGE 2 ---
+  const [mobileView, setMobileView] = useState<MobileView>('split'); 
   const [showFiltersPanel, setShowFiltersPanel] = useState(false);
   const [showFiltersMobile, setShowFiltersMobile] = useState(false);
   const [showManualAddDialog, setShowManualAddDialog] = useState(false);
@@ -99,7 +96,7 @@ const CandidatesManager: React.FC = () => {
     onFilterChange: setFilters,
   });
 
-  // --- Handlers (unchanged) ---
+  // --- Handlers ---
   const handleCandidateAdded = useCallback(() => { refresh(); toast.success("מועמד חדש נוסף בהצלחה!"); }, [refresh]);
   const handleSearch = useCallback((value: string) => { if (!filters.separateFiltering) { setFilters(prev => ({ ...prev, searchQuery: value })); } }, [setFilters, filters.separateFiltering]);
   const handleRemoveFilter = useCallback((key: keyof CandidatesFilter, value?: string) => { setFilters(prev => { const newFilters = { ...prev }; if (key === "cities" && value) newFilters.cities = newFilters.cities?.filter(city => city !== value); else if (key === "occupations" && value) newFilters.occupations = newFilters.occupations?.filter(occ => occ !== value); else delete newFilters[key]; return newFilters; }); }, [setFilters]);
@@ -109,9 +106,9 @@ const CandidatesManager: React.FC = () => {
   const handleClearAiTarget = (e: React.MouseEvent) => { e.stopPropagation(); setAiTargetCandidate(null); setAiMatches([]); setComparisonSelection({}); toast.info("בחירת מועמד מטרה בוטלה.", { position: "bottom-center" }); };
   const handleToggleComparison = useCallback((candidate: Candidate, e: React.MouseEvent) => { e.stopPropagation(); setComparisonSelection(prev => { const newSelection = {...prev}; if (newSelection[candidate.id]) { delete newSelection[candidate.id]; } else { newSelection[candidate.id] = candidate; } return newSelection; }); }, []);
   const handleUpdateAllProfiles = async () => { setIsBulkUpdating(true); toast.info("מתחיל תהליך עדכון פרופילי AI...", { description: "התהליך ירוץ ברקע. אין צורך להישאר בעמוד זה.", }); try { const response = await fetch('/api/ai/update-all-profiles', { method: 'POST', }); const data = await response.json(); if (!response.ok) throw new Error(data.error || 'שגיאה בהפעלת העדכון הכללי.'); toast.success("העדכון הכללי הופעל בהצלחה!", { description: data.message, duration: 8000, }); } catch (error) { console.error("Failed to initiate bulk AI profile update:", error); toast.error("שגיאה בהפעלת העדכון", { description: error instanceof Error ? error.message : 'אנא נסה שוב מאוחר יותר.', }); } finally { setIsBulkUpdating(false); } };
+  
   const [isMobile, setIsMobile] = useState(false);
 
-  // --- START OF CHANGE 3 ---
   useEffect(() => {
     const checkScreen = () => {
       const isDesktop = window.innerWidth >= 1024;
@@ -123,13 +120,17 @@ const CandidatesManager: React.FC = () => {
     window.addEventListener('resize', checkScreen);
     return () => window.removeEventListener('resize', checkScreen);
   }, []);
-  // --- END OF CHANGE 3 ---
 
   const activeFilterCount = useMemo(() => activeFilters.length, [activeFilters]);
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
-      <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-sm border-b shadow-sm">
+    // --- START OF FIX ---
+    // 1. שינוי מבנה העמוד הראשי ל-flex-col עם גובה מסך מלא (h-screen)
+    //    זה מאפשר לנו לשלוט בגובה של אזור התוכן הראשי.
+    <div className="h-screen flex flex-col bg-gray-50/50">
+      {/* 2. הכותרת הופכת ל-flex-shrink-0 כדי לא לתפוס גובה גמיש.
+          הסרנו את "sticky" כדי לאפשר layout יציב ופשוט יותר. */}
+      <header className="flex-shrink-0 z-30 bg-white/80 backdrop-blur-sm border-b shadow-sm">
         <div className="container mx-auto py-3 px-4">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-2xl font-bold text-primary/90">ניהול מועמדים</h1>
@@ -296,10 +297,13 @@ const CandidatesManager: React.FC = () => {
         </div>
       </header>
       
-      <main className="container mx-auto py-6 px-4">
-        <div className="flex gap-6">
+      {/* 3. אזור התוכן הראשי מקבל flex-1 ו-min-h-0 כדי למלא את הגובה הנותר ולא לגלוש החוצה. */}
+      <main className="flex-1 min-h-0 container mx-auto py-6 px-4">
+        {/* 4. הקונטיינר הפנימי מקבל h-full כדי להעביר את הגובה הלאה לילדיו. */}
+        <div className="flex gap-6 h-full">
           {showFiltersPanel && (
-            <aside className="hidden lg:block w-80 flex-shrink-0">
+            // 5. פאנל הסינון בצד - אם הוא נהיה ארוך מדי, הוא יגלוש פנימית.
+            <aside className="hidden lg:block w-80 flex-shrink-0 overflow-y-auto">
               <FilterPanel
                 filters={filters}
                 onFiltersChange={setFilters}
@@ -316,12 +320,15 @@ const CandidatesManager: React.FC = () => {
             </aside>
           )}
 
-          <div className="flex-1 min-w-0">
+          {/* 6. הקונטיינר של SplitView מקבל h-full כדי שהוא ידע מה הגובה שלו. */}
+          <div className="flex-1 min-w-0 h-full">
             {loading ? (
               <LoadingContainer>
-                <div className="h-[800px] bg-gray-200 rounded-lg animate-pulse"></div>
+                {/* התאמת גובה הסקלטון לגובה המלא של הקונטיינר */}
+                <div className="h-full bg-gray-200 rounded-lg animate-pulse"></div>
               </LoadingContainer>
             ) : (
+              // 7. SplitView מקבלת h-full וכעת יכולה לממש את הגלילה הפנימית הנפרדת לכל עמודה.
               <SplitView
                 maleCandidates={maleCandidates}
                 femaleCandidates={femaleCandidates}
@@ -329,10 +336,9 @@ const CandidatesManager: React.FC = () => {
                 onCandidateAction={handleCandidateAction}
                 onCandidateClick={() => {}}
                 viewMode={viewMode}
-                // --- START OF CHANGE 5 ---
-                mobileView={mobileView} // Pass the new state down
-                // --- END OF CHANGE 5 ---
+                mobileView={mobileView}
                 isLoading={loading || isAiLoading}
+                className="h-full" // הוספת h-full כאן היא קריטית
                 
                 aiTargetCandidate={aiTargetCandidate}
                 aiMatches={aiMatches}
@@ -359,6 +365,7 @@ const CandidatesManager: React.FC = () => {
           </div>
         </div>
       </main>
+      {/* --- END OF FIX --- */}
 
       {/* Dialogs */}
       <AddManualCandidateDialog
