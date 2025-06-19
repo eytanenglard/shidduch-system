@@ -176,7 +176,7 @@
   }
 }
 
-/* Animation classes */
+/* --- ANIMATION CLASSES (SECTION UPDATED) --- */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -203,18 +203,62 @@
   }
 }
 
-@keyframes bounce-slow {
+/* --- START: הוספות ושיפורים לאנימציות של ה-Hero Section --- */
 
+/* אנימציית רקע גרדיאנט איטית (עבור הרקע הכללי) */
+@keyframes gradient-anim {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* אנימציית ריחוף איטית (עבור הבלונים הצפים) */
+@keyframes float {
   0%,
   100% {
     transform: translateY(0);
   }
-
   50% {
-    transform: translateY(-10px);
+    transform: translateY(-25px);
   }
 }
 
+/* אנימציית "הברקה" (עבור כפתורים) */
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* אנימציית "ציור קו" (עבור ה-SVG שמחבר) */
+@keyframes draw-line {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* אנימציית "גדילה" (עבור הלב במרכז) */
+@keyframes scale-in {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+  }
+  70% {
+    transform: translate(-50%, -50%) scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* מחלקות (classes) לשימוש באנימציות */
 .animate-fadeIn {
   animation: fadeIn 0.8s ease-out forwards;
   animation-delay: var(--animation-delay, 0s);
@@ -222,12 +266,34 @@
 }
 
 .animate-gradient {
-  animation: gradient 8s ease infinite;
+  animation: gradient 3s ease infinite;
 }
 
-.animate-bounce-slow {
-  animation: bounce-slow 3s ease-in-out infinite;
+.animate-gradient-slow {
+  animation: gradient-anim 15s ease infinite;
 }
+
+.animate-float-slow {
+  animation: float 8s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 2.5s infinite;
+}
+
+.path-animation {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: draw-line 1.5s ease-out forwards;
+  animation-delay: 200ms;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+}
+
+/* --- END: הוספות ושיפורים לאנימציות של ה-Hero Section --- */
+
 
 .form-step-enter {
   opacity: 0;
@@ -619,7 +685,83 @@ html[dir="rtl"] [data-orientation="horizontal"] {
 /* הוסף מחלקה כללית לרכיבי ממשק */
 .matchmaker-dashboard {
   direction: rtl;
+}/* הוסף את זה לקובץ ה-CSS הגלובלי שלך, למשל globals.css */
+
+/* --- אנימציות עבור ויזואליזציית הסינרגיה --- */
+
+@keyframes synergy-enter-left {
+  from { opacity: 0; transform: translate(-30px, -50%); }
+  to { opacity: 0.8; transform: translate(0, -50%); }
+}
+.animate-synergy-enter-left {
+  animation: synergy-enter-left 1s ease-out forwards;
 }
 
+@keyframes synergy-enter-right {
+  from { opacity: 0; transform: translate(30px, -50%); }
+  to { opacity: 0.8; transform: translate(0, -50%); }
+}
+.animate-synergy-enter-right {
+  animation: synergy-enter-right 1s ease-out forwards;
+}
 
+@keyframes draw-line {
+  to { stroke-dashoffset: 0; }
+}
 
+.path-draw-from-left, .path-draw-from-right {
+  stroke-dasharray: 500;
+  stroke-dashoffset: 500;
+  animation: draw-line 1.2s ease-out forwards 0.5s; /* Delay of 0.5s */
+}
+
+@keyframes heart-scale-in {
+  0% { transform: scale(0); opacity: 0; }
+  70% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); }
+}
+.animate-heart-scale-in {
+  animation: heart-scale-in 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards 1.5s; /* Delay of 1.5s */
+}
+
+@keyframes card-appear-left {
+    0% { opacity: 0; transform: translate(50px, -50%) scale(0.8); }
+    100% { opacity: 1; transform: translate(0, -50%) scale(1); }
+}
+.animate-card-appear-left {
+    animation: card-appear-left 0.7s ease-out forwards 1.5s;
+}
+
+@keyframes card-appear-right {
+    0% { opacity: 0; transform: translate(-50px, -50%) scale(0.8); }
+    100% { opacity: 1; transform: translate(0, -50%) scale(1); }
+}
+.animate-card-appear-right {
+    animation: card-appear-right 0.7s ease-out forwards 1.5s;
+}
+
+/* --- אנימציות קיימות שכדאי לוודא שהן שם --- */
+
+@keyframes gradient-anim {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.animate-gradient-slow {
+  animation: gradient-anim 15s ease infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-25px); }
+}
+.animate-float-slow {
+  animation: float 8s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+.group-hover\:animate-shimmer {
+    animation: shimmer 2s infinite;
+}

@@ -1,6 +1,7 @@
 // src/components/questionnaire/layout/QuestionnaireLayout.tsx
 
 import React, { useState, useEffect, useCallback } from "react";
+import Link from "next/link"; // --- הוספנו ייבוא ל-Link ---
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -18,6 +19,8 @@ import {
   X,
   Home,
   ArrowRightLeft,
+  LogIn, // --- הוספנו אייקון ---
+  UserPlus, // --- הוספנו אייקון ---
 } from "lucide-react";
 import type { WorldId, QuestionnaireLayoutProps } from "../types/types";
 import { cn } from "@/lib/utils";
@@ -35,9 +38,9 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet"; // הוספת ייבוא ל-Sheet
-import FAQ from "../components/FAQ"; // ייבוא קומפוננטת FAQ
-import AccessibilityFeatures from "../components/AccessibilityFeatures"; // ייבוא קומפוננטת נגישות
+} from "@/components/ui/sheet";
+import FAQ from "../components/FAQ";
+import AccessibilityFeatures from "../components/AccessibilityFeatures";
 
 // Mapping icons for different "worlds" in the system
 const worldIcons = {
@@ -45,7 +48,7 @@ const worldIcons = {
   VALUES: Heart,
   RELATIONSHIP: Users,
   PARTNER: Heart,
-  RELIGION: CheckCircle, // Using CheckCircle for Religion as an example, adjust if needed
+  RELIGION: CheckCircle,
 } as const;
 
 // Mapping labels for different "worlds"
@@ -53,7 +56,7 @@ const worldLabels = {
   PERSONALITY: "אישיות",
   VALUES: "ערכים ואמונות",
   RELATIONSHIP: "זוגיות",
-  PARTNER: "תכונות וערכים בבן/בת הזוג", // Corrected label
+  PARTNER: "תכונות וערכים בבן/בת הזוג",
   RELIGION: "דת ומסורת",
 } as const;
 
@@ -96,6 +99,7 @@ export default function QuestionnaireLayout({
   onExit,
   onSaveProgress,
   language = "he",
+  isLoggedIn = false, // --- הוספנו prop עם ערך ברירת מחדל ---
 }: QuestionnaireLayoutProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [showExitPrompt, setShowExitPrompt] = useState(false);
@@ -111,11 +115,10 @@ export default function QuestionnaireLayout({
     isVisible: false,
   });
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const [saveCount, setSaveCount] = useState(0); // Save counter
+  const [saveCount, setSaveCount] = useState(0);
 
   const isSmallScreen = useMediaQuery("(max-width: 640px)");
 
-  // Toast utilities
   const showToast = useCallback(
     (message: string, type: "success" | "error" | "info" = "info") => {
       setToast({ message, type, isVisible: true });
@@ -126,7 +129,6 @@ export default function QuestionnaireLayout({
     []
   );
 
-  // Save functionality
   const handleSave = useCallback(
     async (isAutoSave = false) => {
       if (!onSaveProgress) {
@@ -158,7 +160,6 @@ export default function QuestionnaireLayout({
     [onSaveProgress, showToast]
   );
 
-  // Automatic save timer
   useEffect(() => {
     let saveTimer: NodeJS.Timeout;
 
@@ -173,7 +174,6 @@ export default function QuestionnaireLayout({
     };
   }, [onSaveProgress, handleSave]);
 
-  // Setup RTL/LTR classes
   const isRTL = language === "he";
   const directionClass = isRTL ? "rtl" : "ltr";
 
@@ -191,7 +191,7 @@ export default function QuestionnaireLayout({
               size={isMobile ? "sm" : "default"}
               className={cn(
                 "flex items-center justify-start gap-2 w-full mb-2 transition-all",
-                isActive ? "bg-primary text-white" : "", // Use primary color from theme
+                isActive ? "bg-primary text-white" : "",
                 isCompleted ? "border-green-500" : "",
                 isMobile ? "text-xs py-1" : ""
               )}
@@ -230,25 +230,22 @@ export default function QuestionnaireLayout({
     );
   };
 
-  // --- תחילת הוספת קוד ---
-  // פונקציה לרנדור כפתור FAQ עם Sheet
   const renderFAQButton = (isMobile: boolean) => (
     <Sheet>
       <SheetTrigger asChild>
         <Button
           variant="ghost"
-          size={isMobile ? "sm" : "icon"} // Changed size to "icon" for desktop
+          size={isMobile ? "sm" : "icon"}
           className={cn(
-            "flex items-center justify-center", // Centered content for icon button
+            "flex items-center justify-center",
             isMobile
               ? "justify-start gap-2 w-full mb-2 text-xs py-1"
-              : "w-8 h-8 p-0 rounded-full" // Specific desktop styles
+              : "w-8 h-8 p-0 rounded-full"
           )}
           aria-label="שאלות נפוצות"
         >
           <HelpCircle className={cn("h-4 w-4", isMobile ? "mr-1" : "")} />
-          {!isMobile && <span className="sr-only">שאלות נפוצות</span>}{" "}
-          {/* Hidden text for desktop */}
+          {!isMobile && <span className="sr-only">שאלות נפוצות</span>}
           {isMobile && <span>שאלות נפוצות</span>}
         </Button>
       </SheetTrigger>
@@ -260,15 +257,38 @@ export default function QuestionnaireLayout({
           <SheetTitle>שאלות נפוצות</SheetTitle>
         </SheetHeader>
         <div className="mt-4">
-          <FAQ
-          // You can pass currentWorld to filter FAQs if desired
-          // initialOpenId="save-progress" // Optionally open a specific FAQ item
-          />
+          <FAQ />
         </div>
       </SheetContent>
     </Sheet>
   );
-  // --- סוף הוספת קוד ---
+
+  // --- START: Added for unauthenticated user prompt ---
+  const UnauthenticatedPrompt = () => (
+    <div className="p-3 my-3 bg-cyan-50/70 border border-cyan-200 rounded-lg text-center space-y-2">
+      <p className="text-sm text-cyan-800 font-medium">
+        התקדמותך נשמרת זמנית בדפדפן.
+      </p>
+      <p className="text-xs text-cyan-700">
+        התחבר/י או הרשמ/י כדי לשמור את התשובות לחשבונך.
+      </p>
+      <div className="flex gap-2 justify-center pt-1">
+        <Link href="/auth/signin">
+          <Button variant="outline" size="sm" className="bg-white/80">
+            <LogIn className="w-3 h-3 ml-1" />
+            התחברות
+          </Button>
+        </Link>
+        <Link href="/auth/register">
+          <Button variant="default" size="sm">
+            <UserPlus className="w-3 h-3 ml-1" />
+            הרשמה
+          </Button>
+        </Link>
+      </div>
+    </div>
+  );
+  // --- END: Added for unauthenticated user prompt ---
 
   const MobileNav = () => (
     <AnimatePresence>
@@ -289,7 +309,7 @@ export default function QuestionnaireLayout({
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             className={`fixed top-0 ${
               isRTL ? "right-0" : "left-0"
-            } h-full w-3/4 max-w-xs bg-white shadow-lg p-4 z-50 ${directionClass} flex flex-col overflow-y-auto`} // Updated: Added overflow-y-auto
+            } h-full w-3/4 max-w-xs bg-white shadow-lg p-4 z-50 ${directionClass} flex flex-col overflow-y-auto`}
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-medium flex items-center">
@@ -306,14 +326,18 @@ export default function QuestionnaireLayout({
               </Button>
             </div>
 
-            <div className="mb-4"> {/* Updated: Removed flex-1 and overflow-y-auto */}
+            <div className="mb-4">
               {Object.keys(worldIcons).map((worldId) => (
                 <NavButton key={worldId} worldId={worldId} isMobile={true} />
               ))}
               {renderFAQButton(true)}
             </div>
+            
+            {/* --- START: Added prompt for mobile --- */}
+            {!isLoggedIn && <UnauthenticatedPrompt />}
+            {/* --- END: Added prompt for mobile --- */}
 
-            <div className="pt-4 border-t space-y-4"> {/* Updated: Removed mt-auto */}
+            <div className="pt-4 border-t space-y-4">
               {lastSaved && (
                 <div className="flex items-center text-xs text-gray-500 mb-2">
                   <CheckCircle className="h-3 w-3 mr-1 text-green-500" />
@@ -371,7 +395,6 @@ export default function QuestionnaireLayout({
     <div
       className={`flex flex-col min-h-screen lg:flex-row bg-gray-50 ${directionClass}`}
     >
-      {/* Mobile Header */}
       <header className="lg:hidden sticky top-0 z-40 bg-white shadow-sm p-3 flex items-center justify-between">
         <Button
           variant="ghost"
@@ -396,8 +419,6 @@ export default function QuestionnaireLayout({
         </div>
 
         <div className="flex items-center gap-1">
-          {/* --- תחילת הוספת קוד --- */}
-          {/* Add FAQ button to Mobile Header */}
           <Sheet>
             <SheetTrigger asChild>
               <Button
@@ -420,7 +441,6 @@ export default function QuestionnaireLayout({
               </div>
             </SheetContent>
           </Sheet>
-          {/* --- סוף הוספת קוד --- */}
           {lastSaved && !isSmallScreen && (
             <span className="text-xs text-gray-500 mr-1">
               <CheckCircle className="inline-block h-3 w-3 mr-1 text-green-500" />
@@ -446,13 +466,11 @@ export default function QuestionnaireLayout({
         </div>
       </header>
 
-      {/* Mobile Nav */}
       <MobileNav />
 
-      {/* Desktop Sidebar */}
       <aside
         className={cn(
-          "w-60 bg-white border-r hidden lg:flex lg:flex-col overflow-y-auto", // overflow-y-auto is important here
+          "w-60 bg-white border-r hidden lg:flex lg:flex-col overflow-y-auto",
           isRTL ? "border-l" : "border-r"
         )}
       >
@@ -460,10 +478,7 @@ export default function QuestionnaireLayout({
           <div className="flex items-center justify-between">
             <h3 className="font-medium text-lg">עולמות השאלון</h3>
             <div className="flex gap-1">
-              {/* --- תחילת הוספת קוד --- */}
-              {/* FAQ button for desktop */}
               {renderFAQButton(false)}
-              {/* --- סוף הוספת קוד --- */}
               <TooltipProvider delayDuration={300}>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -484,13 +499,17 @@ export default function QuestionnaireLayout({
           </div>
         </div>
 
-        <div className="p-4 space-y-2"> {/* Updated: Removed flex-1 and overflow-y-auto */}
+        <div className="p-4 space-y-2">
           {Object.keys(worldIcons).map((worldId) => (
             <NavButton key={worldId} worldId={worldId} isMobile={false} />
           ))}
         </div>
+        
+        {/* --- START: Added prompt for desktop sidebar --- */}
+        {!isLoggedIn && <div className="px-4"><UnauthenticatedPrompt /></div>}
+        {/* --- END: Added prompt for desktop sidebar --- */}
 
-        <div className="p-4 border-t"> {/* Updated: Removed mt-auto */}
+        <div className="p-4 border-t mt-auto">
           {lastSaved && (
             <div className="flex items-center text-xs text-gray-500 mb-3">
               <CheckCircle className="h-3 w-3 mr-1 text-green-500" />
@@ -533,7 +552,6 @@ export default function QuestionnaireLayout({
         </div>
       </aside>
 
-      {/* Main content area */}
       <main className="flex-1 p-3 md:p-6 lg:pb-16 overflow-y-auto relative">
         {error && (
           <Alert variant="destructive" className="mb-4">
@@ -541,12 +559,9 @@ export default function QuestionnaireLayout({
           </Alert>
         )}
         {children}
-        {/* --- תחילת הוספת קוד --- */}
         <AccessibilityFeatures className="fixed bottom-4 right-4 lg:bottom-6 lg:right-6 z-50" />
-        {/* --- סוף הוספת קוד --- */}
       </main>
 
-      {/* Exit Confirmation Dialog */}
       <AnimatePresence>
         {showExitPrompt && (
           <motion.div
@@ -585,7 +600,7 @@ export default function QuestionnaireLayout({
                         if (onExit) {
                           onExit();
                         }
-                        setShowExitPrompt(false); 
+                        setShowExitPrompt(false);
                       }}
                       disabled={isSaving}
                     >
@@ -614,7 +629,6 @@ export default function QuestionnaireLayout({
         )}
       </AnimatePresence>
 
-      {/* Toast */}
       <AnimatePresence>
         {toast.isVisible && (
           <Toast

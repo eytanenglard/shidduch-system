@@ -600,6 +600,8 @@ export default function MatchmakingQuestionnaire({
             onExit={handleExit}
             onSaveProgress={() => handleQuestionnaireSave(false)} // false for manual save
             language={language}
+                        isLoggedIn={!!userId} // --- הוספנו שורה זו ---
+
           >
             {renderCurrentWorld()}
           </QuestionnaireLayout>

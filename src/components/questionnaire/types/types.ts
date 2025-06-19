@@ -146,6 +146,8 @@ export interface QuestionnaireLayoutProps {
   onExit?: () => void;
   language?: string;
   onSaveProgress?: () => Promise<void>;
+    isLoggedIn?: boolean; // --- הוספנו שורה זו ---
+
 }
 
 // Data storage interfaces
