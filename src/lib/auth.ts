@@ -66,6 +66,7 @@ export const authOptions: NextAuthOptions = {
           lastLogin: null, 
           createdAt: now,
           updatedAt: now,
+           hasCompletedOnboarding: false,
           source: UserSource.REGISTRATION, // Explicitly set for clarity, though schema has default
           addedByMatchmakerId: null,  
            termsAndPrivacyAcceptedAt: null,   // Not applicable for Google sign-up
@@ -131,6 +132,7 @@ export const authOptions: NextAuthOptions = {
           images: images as UserImage[],
           questionnaireResponses: questionnaireResponses as QuestionnaireResponse[],
           questionnaireCompleted: questionnaireResponses.length > 0 && questionnaireResponses[0].completed, // הוספה כאן
+          hasCompletedOnboarding: userFromDb.hasCompletedOnboarding, // <-- הוספה: העבר את הערך מה-DB
 
           source: userFromDb.source, // Add source
           addedByMatchmakerId: userFromDb.addedByMatchmakerId,
@@ -193,6 +195,7 @@ export const authOptions: NextAuthOptions = {
           images: images as UserImage[],
           questionnaireResponses: questionnaireResponses as QuestionnaireResponse[],
                    questionnaireCompleted: questionnaireResponses.length > 0 && questionnaireResponses[0].completed, // הוספה כאן
+          hasCompletedOnboarding: userFromDb.hasCompletedOnboarding, // <-- הוספה: העבר את הערך מה-DB
 
           source: userFromDb.source, // Add source
           addedByMatchmakerId: userFromDb.addedByMatchmakerId,
@@ -398,7 +401,8 @@ export const authOptions: NextAuthOptions = {
         typedToken.isProfileComplete = typedUserFromCallback.isProfileComplete || false;
         typedToken.isPhoneVerified = typedUserFromCallback.isPhoneVerified || false;
           typedToken.questionnaireResponses = typedUserFromCallback.questionnaireResponses;
-        
+                typedToken.hasCompletedOnboarding = typedUserFromCallback.hasCompletedOnboarding; // <-- הוספה כאן
+
         // --- START: הוספה כאן ---
         // העבר את הדגל מה-user object בפעם הראשונה
         typedToken.questionnaireCompleted = typedUserFromCallback.questionnaireCompleted; 
@@ -442,6 +446,7 @@ export const authOptions: NextAuthOptions = {
             typedToken.isProfileComplete = dbUserForJwt.isProfileComplete;
             typedToken.isPhoneVerified = dbUserForJwt.isPhoneVerified;
                         typedToken.questionnaireResponses = dbUserForJwt.questionnaireResponses as QuestionnaireResponse[];
+            typedToken.hasCompletedOnboarding = dbUserForJwt.hasCompletedOnboarding; // <-- הוספה כאן (חשוב לרענון)
 
             typedToken.source = dbUserForJwt.source; // Refresh source
             typedToken.addedByMatchmakerId = dbUserForJwt.addedByMatchmakerId; // Refresh addedByMatchmakerId
@@ -519,6 +524,7 @@ export const authOptions: NextAuthOptions = {
         typedSession.user.isPhoneVerified = typedToken.isPhoneVerified;
                 typedSession.user.questionnaireResponses = typedToken.questionnaireResponses;
         typedSession.user.questionnaireCompleted = typedToken.questionnaireCompleted;
+        typedSession.user.hasCompletedOnboarding = typedToken.hasCompletedOnboarding as boolean; // <-- הוספה כאן
 
         typedSession.user.source = typedToken.source; // Pass source to session
         typedSession.user.addedByMatchmakerId = typedToken.addedByMatchmakerId; // Pass to session
