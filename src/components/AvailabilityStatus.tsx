@@ -1,6 +1,7 @@
+// src/components/AvailabilityStatus.tsx
+
 "use client";
-import React from 'react'; // <--- הוסף את השורה הזו
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useSession, signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { AvailabilityStatus as AvailabilityStatusEnum } from "@prisma/client";
@@ -17,7 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  DialogDescription, // Added for potential use
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -28,68 +29,68 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { AlertCircle, CheckCircle2, PauseCircle, Loader2 } from "lucide-react"; // Added Loader2
+import { AlertCircle, CheckCircle2, PauseCircle, Loader2, Heart, UserMinus, XCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { Session } from "next-auth";
 
-// Helper function to get status display properties
+// *** UPDATED: Helper function with new design styles ***
 const getStatusStyles = (status: AvailabilityStatusEnum) => {
   switch (status) {
     case AvailabilityStatusEnum.AVAILABLE:
       return {
         text: "פנוי/ה להצעות",
-        icon: <CheckCircle2 className="w-5 h-5 text-emerald-500" />,
-        buttonClasses:
-          "bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-800 border border-emerald-300 dark:border-emerald-700",
-        dialogButtonClasses: "bg-emerald-500 hover:bg-emerald-600 text-white",
+        icon: <CheckCircle2 />,
+        iconColorClass: "text-cyan-600",
+        buttonClasses: "bg-cyan-100 text-cyan-800 hover:bg-cyan-200/70 border-cyan-200",
+        dialogButtonClasses: "bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white",
       };
     case AvailabilityStatusEnum.UNAVAILABLE:
       return {
-        text: "לא פנוי/ה להצעות",
-        icon: <AlertCircle className="w-5 h-5 text-rose-500" />,
-        buttonClasses:
-          "bg-rose-100 dark:bg-rose-900 text-rose-700 dark:text-rose-300 hover:bg-rose-200 dark:hover:bg-rose-800 border border-rose-300 dark:border-rose-700",
-        dialogButtonClasses: "bg-rose-500 hover:bg-rose-600 text-white",
+        text: "לא פנוי/ה",
+        icon: <XCircle />,
+        iconColorClass: "text-gray-500",
+        buttonClasses: "bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200",
+        dialogButtonClasses: "bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white",
       };
     case AvailabilityStatusEnum.DATING:
       return {
         text: "בתהליך היכרות",
-        icon: <AlertCircle className="w-5 h-5 text-rose-500" />, // Could be a different icon, e.g., Users
-        buttonClasses:
-          "bg-rose-100 dark:bg-rose-900 text-rose-700 dark:text-rose-300 hover:bg-rose-200 dark:hover:bg-rose-800 border border-rose-300 dark:border-rose-700",
-        dialogButtonClasses: "bg-rose-500 hover:bg-rose-600 text-white",
+        icon: <Heart />,
+        iconColorClass: "text-pink-600",
+        buttonClasses: "bg-pink-100 text-pink-800 hover:bg-pink-200/70 border-pink-200",
+        dialogButtonClasses: "bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white",
       };
     case AvailabilityStatusEnum.PAUSED:
       return {
-        text: "בהפסקה זמנית",
-        icon: <PauseCircle className="w-5 h-5 text-amber-500" />,
-        buttonClasses:
-          "bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-800 border border-amber-300 dark:border-amber-700",
-        dialogButtonClasses: "bg-amber-500 hover:bg-amber-600 text-white",
+        text: "בהפסקה",
+        icon: <PauseCircle />,
+        iconColorClass: "text-orange-600",
+        buttonClasses: "bg-orange-100 text-orange-800 hover:bg-orange-200/70 border-orange-200",
+        dialogButtonClasses: "bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white",
       };
     case AvailabilityStatusEnum.ENGAGED:
       return {
         text: "מאורס/ת",
-        icon: <AlertCircle className="w-5 h-5 text-rose-500" />, // Could be a different icon, e.g., Heart
-        buttonClasses:
-          "bg-rose-100 dark:bg-rose-900 text-rose-700 dark:text-rose-300 hover:bg-rose-200 dark:hover:bg-rose-800 border border-rose-300 dark:border-rose-700",
-        dialogButtonClasses: "bg-rose-500 hover:bg-rose-600 text-white",
+        icon: <Heart fill="currentColor" />,
+        iconColorClass: "text-pink-600",
+        buttonClasses: "bg-pink-100 text-pink-800 hover:bg-pink-200/70 border-pink-200",
+        dialogButtonClasses: "bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white",
       };
     case AvailabilityStatusEnum.MARRIED:
       return {
         text: "נשוי/אה",
-        icon: <AlertCircle className="w-5 h-5 text-rose-500" />, // Could be a different icon, e.g., Users
-        buttonClasses:
-          "bg-rose-100 dark:bg-rose-900 text-rose-700 dark:text-rose-300 hover:bg-rose-200 dark:hover:bg-rose-800 border border-rose-300 dark:border-rose-700",
-        dialogButtonClasses: "bg-rose-500 hover:bg-rose-600 text-white",
+        icon: <UserMinus />,
+        iconColorClass: "text-gray-500",
+        buttonClasses: "bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200",
+        dialogButtonClasses: "bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white",
       };
     default:
       return {
         text: "לא ידוע",
-        icon: <AlertCircle className="w-5 h-5 text-slate-500" />,
-        buttonClasses:
-          "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-600",
-        dialogButtonClasses: "bg-slate-500 hover:bg-slate-600 text-white",
+        icon: <AlertCircle />,
+        iconColorClass: "text-gray-500",
+        buttonClasses: "bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200",
+        dialogButtonClasses: "bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white",
       };
   }
 };
@@ -101,9 +102,7 @@ export default function AvailabilityStatus() {
   const [showDialog, setShowDialog] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
-  const initialStatus =
-    session?.user?.profile?.availabilityStatus ||
-    AvailabilityStatusEnum.AVAILABLE;
+  const initialStatus = session?.user?.profile?.availabilityStatus || AvailabilityStatusEnum.AVAILABLE;
   const initialNote = session?.user?.profile?.availabilityNote || "";
 
   const [status, setStatus] = useState<AvailabilityStatusEnum>(initialStatus);
@@ -112,17 +111,9 @@ export default function AvailabilityStatus() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState("");
 
-  // This local state is for optimistic UI update, not strictly needed if session updates quickly
-  // For simplicity, we'll rely on the main `status` and `note` reflecting the session or current edit
-  // const [localStatus, setLocalStatus] = useState<AvailabilityStatusEnum | null>(null);
-  // const [, setLocalNote] = useState<string | null>(null);
-
   useEffect(() => {
     if (session?.user?.profile) {
-      setStatus(
-        session.user.profile.availabilityStatus ||
-          AvailabilityStatusEnum.AVAILABLE
-      );
+      setStatus(session.user.profile.availabilityStatus || AvailabilityStatusEnum.AVAILABLE);
       setNote(session.user.profile.availabilityNote || "");
     }
   }, [session]);
@@ -135,10 +126,7 @@ export default function AvailabilityStatus() {
       const response = await fetch("/api/profile/availability", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          availabilityStatus: status,
-          availabilityNote: note || "",
-        }),
+        body: JSON.stringify({ availabilityStatus: status, availabilityNote: note || "" }),
       });
 
       if (!response.ok) {
@@ -146,123 +134,71 @@ export default function AvailabilityStatus() {
         throw new Error(errorData.error || "Failed to update status");
       }
 
-      const result = await response.json();
-      if (!result.success) {
-        throw new Error(result.error || "Server update failed");
-      }
-
-      await updateSession({
-        user: {
-          ...session?.user,
-          profile: {
-            ...(session?.user?.profile || {}),
-            availabilityStatus: status,
-            availabilityNote: note,
-          },
-        },
-      });
-
-      // Optional: Force session re-fetch if needed, your previous logic was fine
-      if (session?.user?.email) {
-        await signIn("credentials", {
-          redirect: false,
-          email: session.user.email,
-          password: undefined,
-        }).catch(console.error);
-      }
+      await updateSession();
+      // Using updateSession without params usually triggers a refetch of the session data.
+      // This is often cleaner than trying to manually reconstruct the session object.
 
       setShowDialog(false);
       setShowSuccessDialog(true);
     } catch (err) {
       console.error("Error in update:", err);
       setError(err instanceof Error ? err.message : "שגיאה בעדכון הסטטוס");
-      // Revert to original status from session on error, which useEffect will handle if session hasn't changed yet
-      // Or, more explicitly:
-      // setStatus(session?.user?.profile?.availabilityStatus || AvailabilityStatusEnum.AVAILABLE);
-      // setNote(session?.user?.profile?.availabilityNote || "");
     } finally {
       setIsUpdating(false);
     }
   };
 
-  // Determine the status to display. Prioritize the session's current status.
-  // If the dialog is open for editing, `status` will hold the selected (but not yet saved) value.
-  // If not editing, `status` should reflect the session.
-  const displayStatus =
-    session?.user?.profile?.availabilityStatus ||
-    AvailabilityStatusEnum.AVAILABLE;
+  const displayStatus = session?.user?.profile?.availabilityStatus || AvailabilityStatusEnum.AVAILABLE;
   const currentStatusStyles = getStatusStyles(displayStatus);
-  const editingStatusStyles = getStatusStyles(status); // For the dialog button color
+  const editingStatusStyles = getStatusStyles(status);
 
   if (!session?.user) return null;
 
   return (
     <>
       <Button
-        variant="outline" // Using outline as a base, custom classes will override
+        variant="outline"
         onClick={() => {
-          // Reset dialog state to current session state when opening
-          setStatus(
-            session?.user?.profile?.availabilityStatus ||
-              AvailabilityStatusEnum.AVAILABLE
-          );
+          setStatus(session?.user?.profile?.availabilityStatus || AvailabilityStatusEnum.AVAILABLE);
           setNote(session?.user?.profile?.availabilityNote || "");
-          setError(""); // Clear previous errors
+          setError("");
           setShowDialog(true);
         }}
-        className={`flex items-center gap-2 px-4 py-2 rounded-full font-semibold shadow-sm transition-colors duration-150 ease-in-out ${currentStatusStyles.buttonClasses}`}
+        className={`flex items-center gap-2 px-3 h-10 rounded-full font-semibold text-sm shadow-sm transition-all duration-200 border ${currentStatusStyles.buttonClasses}`}
       >
-        {currentStatusStyles.icon}
+        {React.cloneElement(currentStatusStyles.icon, { className: `w-5 h-5 ${currentStatusStyles.iconColorClass}` })}
         <span>{currentStatusStyles.text}</span>
       </Button>
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="sm:max-w-md p-6 bg-white dark:bg-slate-900 rounded-xl shadow-xl">
-          <DialogHeader className="mb-4">
-            <DialogTitle className="text-2xl font-semibold text-slate-800 dark:text-slate-100">
-              עדכון סטטוס זמינות
-            </DialogTitle>
-            <DialogDescription className="text-sm text-slate-600 dark:text-slate-400">
-              בחר/י את הסטטוס הנוכחי שלך והוספ/י הערה אם תרצה/י.
+        <DialogContent className="sm:max-w-md p-6 bg-white rounded-xl shadow-2xl border-gray-100">
+          <DialogHeader className="mb-4 text-right">
+            <DialogTitle className="text-2xl font-bold text-gray-800">עדכון סטטוס זמינות</DialogTitle>
+            <DialogDescription className="text-sm text-gray-600">
+              בחר/י את הסטטוס הנוכחי שלך. שינוי הסטטוס יעזור לשדכנים להציע לך הצעות רלוונטיות.
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-6 py-4">
             <div className="space-y-2">
-              <label
-                htmlFor="status-select"
-                className="text-sm font-medium text-slate-700 dark:text-slate-300"
-              >
+              <label htmlFor="status-select" className="text-sm font-medium text-gray-700">
                 סטטוס זמינות
               </label>
-              <Select
-                value={status}
-                onValueChange={(value) =>
-                  setStatus(value as AvailabilityStatusEnum)
-                }
-                disabled={isUpdating}
-              >
+              <Select value={status} onValueChange={(value) => setStatus(value as AvailabilityStatusEnum)} disabled={isUpdating}>
                 <SelectTrigger
                   id="status-select"
-                  className="w-full rounded-lg h-11 text-base dark:bg-slate-800 dark:text-slate-50 dark:border-slate-700"
+                  className="w-full rounded-lg h-12 text-base bg-gray-50 border-gray-200 focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
                 >
                   <SelectValue placeholder="בחר סטטוס" />
                 </SelectTrigger>
-                <SelectContent className="rounded-lg dark:bg-slate-800 dark:text-slate-50">
+                <SelectContent className="rounded-lg">
                   {Object.values(AvailabilityStatusEnum).map((enumKey) => {
                     const itemStyle = getStatusStyles(enumKey);
                     return (
-                      <SelectItem
-                        key={enumKey}
-                        value={enumKey}
-                        className="cursor-pointer hover:!bg-slate-100 dark:hover:!bg-slate-700 text-base py-2.5"
-                      >
-                        <div className="flex items-center gap-2">
-                          {/* We can use simpler icons here if the main ones are too detailed for dropdown */}
-                          {React.cloneElement(itemStyle.icon, {
-                            className: "w-4 h-4",
-                          })}
-                          {itemStyle.text}
+                      <SelectItem key={enumKey} value={enumKey} className="cursor-pointer text-base py-2.5">
+                        <div className="flex items-center gap-3">
+                          {React.cloneElement(itemStyle.icon, { className: `w-4 h-4 ${itemStyle.iconColorClass}` })}
+                          <span>{itemStyle.text}</span>
                         </div>
                       </SelectItem>
                     );
@@ -272,79 +208,54 @@ export default function AvailabilityStatus() {
             </div>
 
             <div className="space-y-2">
-              <label
-                htmlFor="status-note"
-                className="text-sm font-medium text-slate-700 dark:text-slate-300"
-              >
+              <label htmlFor="status-note" className="text-sm font-medium text-gray-700">
                 הערה (אופציונלי)
               </label>
               <Textarea
                 id="status-note"
-                placeholder="לדוגמה: 'חוזר/ת מפניות ביום ראשון', 'רק הצעות רציניות'"
+                placeholder="לדוגמה: 'חוזר/ת להצעות ביום ראשון', 'רק הצעות רציניות'"
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 disabled={isUpdating}
-                className="rounded-lg min-h-[100px] text-base dark:bg-slate-800 dark:text-slate-50 dark:border-slate-700 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                className="rounded-lg min-h-[100px] text-base bg-gray-50 border-gray-200 focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 placeholder:text-gray-400"
               />
             </div>
           </div>
 
           {error && (
-            <Alert
-              variant="destructive"
-              className="rounded-lg dark:bg-rose-900/30 dark:border-rose-500/50 dark:text-rose-300"
-            >
+            <Alert variant="destructive" className="rounded-lg">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 
-          <DialogFooter className="mt-6 sm:justify-between">
-            <Button
-              variant="outline"
-              onClick={() => setShowDialog(false)}
-              disabled={isUpdating}
-              className="rounded-lg dark:bg-slate-700 dark:text-slate-50 dark:border-slate-600 dark:hover:bg-slate-600"
-            >
+          <DialogFooter className="mt-6 sm:justify-between gap-2">
+            <Button variant="ghost" onClick={() => setShowDialog(false)} disabled={isUpdating} className="rounded-lg text-gray-600 hover:bg-gray-100">
               ביטול
             </Button>
-            <Button
-              onClick={handleUpdate}
-              disabled={isUpdating}
-              className={`rounded-lg px-6 py-2.5 text-base font-medium transition-colors ${editingStatusStyles.dialogButtonClasses}`}
-            >
-              {isUpdating ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  מעדכן...
-                </>
-              ) : (
-                "עדכון סטטוס"
-              )}
+            <Button onClick={handleUpdate} disabled={isUpdating} className={`rounded-lg px-6 h-11 text-base font-medium transition-all shadow-md hover:shadow-lg ${editingStatusStyles.dialogButtonClasses}`}>
+              {isUpdating ? <Loader2 className="h-5 w-5 animate-spin" /> : "עדכון סטטוס"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-        <AlertDialogContent className="sm:max-w-md p-6 bg-white dark:bg-slate-900 rounded-xl shadow-xl">
+        <AlertDialogContent className="sm:max-w-md p-6 bg-white rounded-xl shadow-2xl">
           <AlertDialogHeader className="text-center">
-            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-emerald-100 dark:bg-emerald-900 mb-4">
-              <CheckCircle2 className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+            <div className="mx-auto flex items-center justify-center h-14 w-14 rounded-full bg-cyan-100 mb-4">
+              <CheckCircle2 className="h-8 w-8 text-cyan-600" />
             </div>
-            <AlertDialogTitle className="text-xl font-semibold text-slate-800 dark:text-slate-100">
+            <AlertDialogTitle className="text-xl font-bold text-gray-800">
               הסטטוס עודכן בהצלחה!
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-sm text-slate-600 dark:text-slate-400 mt-2">
-              הסטטוס שלך עודכן בהצלחה במערכת.
-              <br />
-              <strong>שים/י לב:</strong> ייתכן שייקח מספר רגעים עד שהשינוי
-              יתעדכן במלואו בכל מקום.
+            <AlertDialogDescription className="text-sm text-gray-600 mt-2">
+              הסטטוס שלך עודכן במערכת. שים/י לב, ייתכן שיעברו מספר רגעים עד שהשינוי יופיע בכל מקום.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogAction
             onClick={() => setShowSuccessDialog(false)}
-            className="w-full mt-4 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-base py-2.5"
+            className="w-full mt-4 rounded-lg bg-gradient-to-r from-cyan-500 to-cyan-600 text-white text-base h-11 shadow-md hover:shadow-lg transition-all"
           >
             הבנתי
           </AlertDialogAction>

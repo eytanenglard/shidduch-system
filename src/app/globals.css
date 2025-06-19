@@ -1,108 +1,55 @@
+/* 1. Tailwind CSS Directives */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* הוסף את זה לקובץ ה-CSS הגלובלי שלך */
-.btn-refined-gradient {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem;
-  /* ריפוד קטן יותר לכפתור אייקון קומפקטי */
-  border-radius: 0.75rem;
-  /* 12px, מעוגל יותר */
-  font-weight: 500;
-  color: white;
-  background-image: linear-gradient(135deg, #22d3ee, #f472b6);
-  /* ציאן לורוד */
-  border: none;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-  /* צל מעט יותר עדין */
-  transition: all 0.2s ease-in-out;
-  cursor: pointer;
-}
-
-.btn-refined-gradient:hover {
-  background-image: linear-gradient(135deg, #06b6d4, #ec4899);
-  /* גוונים מעט כהים יותר */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12), 0 2px 3px rgba(0, 0, 0, 0.08);
-  /* צל מודגש יותר בהובר */
-  transform: translateY(-1px);
-}
-
-.btn-refined-gradient svg {
-  /* אין צורך ב-margin נוסף אם הריפוד של הכפתור מטפל בזה */
-  width: 1.125rem;
-  /* 18px - התאמה לגודל אייקון רצוי */
-  height: 1.125rem;
-  /* 18px */
-}
-
+/* 2. Base Layer: משתני עיצוב (Theming) וסגנונות בסיס */
 @layer base {
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
-
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
-
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-
     --primary: 222.2 47.4% 11.2%;
     --primary-foreground: 210 40% 98%;
-
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
-
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
-
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
-
     --radius: 0.5rem;
   }
 
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
-
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
-
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-
     --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 11.2%;
-
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
-
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
-
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
   }
-}
 
-@layer base {
   * {
     @apply border-border;
   }
@@ -110,658 +57,113 @@
   body {
     @apply bg-background text-foreground;
   }
-}
 
-@layer utilities {
-
-  /* Direction utilities */
-  .dir-rtl {
-    direction: rtl;
+  html[dir="rtl"] {
+    overflow-x: hidden;
   }
 
-  .dir-ltr {
-    direction: ltr;
-  }
-
-  /* Force direction when needed */
-  .force-ltr {
-    direction: ltr !important;
-  }
-
-  .force-rtl {
-    direction: rtl !important;
-  }
-
-  /* UI Component Direction Fixes */
-  [data-radix-popper-content-wrapper] {
-    direction: ltr;
-  }
-
-  /* Button icon margins for RTL/LTR */
-  .dir-rtl .button-icon {
-    margin-left: 0.5rem;
-    margin-right: 0;
-  }
-
-  .dir-ltr .button-icon {
-    margin-right: 0.5rem;
-    margin-left: 0;
-  }
-
-  /* Input and form control adjustments */
-  .dir-rtl .input-addon {
-    border-right: none;
-    border-left: 1px solid var(--border);
-  }
-
-  .dir-ltr .input-addon {
-    border-left: none;
-    border-right: 1px solid var(--border);
-  }
-
-  /* Progress indicator colors */
-  .progress-green [data-state="progress"] {
-    background-color: hsl(142 76% 36%);
-    /* Green-500 */
-  }
-
-  .progress-blue [data-state="progress"] {
-    background-color: hsl(221 83% 53%);
-    /* Blue-500 */
-  }
-
-  .progress-amber [data-state="progress"] {
-    background-color: hsl(45 93% 47%);
-    /* Amber-500 */
-  }
-}
-
-/* --- ANIMATION CLASSES (SECTION UPDATED) --- */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes gradient {
-  0% {
-    background-position: 0% 50%;
-  }
-
-  50% {
-    background-position: 100% 50%;
-  }
-
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-/* --- START: הוספות ושיפורים לאנימציות של ה-Hero Section --- */
-
-/* אנימציית רקע גרדיאנט איטית (עבור הרקע הכללי) */
-@keyframes gradient-anim {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-/* אנימציית ריחוף איטית (עבור הבלונים הצפים) */
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-25px);
-  }
-}
-
-/* אנימציית "הברקה" (עבור כפתורים) */
-@keyframes shimmer {
-  100% {
-    transform: translateX(100%);
-  }
-}
-
-/* אנימציית "ציור קו" (עבור ה-SVG שמחבר) */
-@keyframes draw-line {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-/* אנימציית "גדילה" (עבור הלב במרכז) */
-@keyframes scale-in {
-  0% {
-    transform: translate(-50%, -50%) scale(0);
-    opacity: 0;
-  }
-  70% {
-    transform: translate(-50%, -50%) scale(1.1);
-    opacity: 1;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(1);
-  }
-}
-
-/* מחלקות (classes) לשימוש באנימציות */
-.animate-fadeIn {
-  animation: fadeIn 0.8s ease-out forwards;
-  animation-delay: var(--animation-delay, 0s);
-  opacity: 0;
-}
-
-.animate-gradient {
-  animation: gradient 3s ease infinite;
-}
-
-.animate-gradient-slow {
-  animation: gradient-anim 15s ease infinite;
-}
-
-.animate-float-slow {
-  animation: float 8s ease-in-out infinite;
-}
-
-.animate-shimmer {
-  animation: shimmer 2.5s infinite;
-}
-
-.path-animation {
-  stroke-dasharray: 1000;
-  stroke-dashoffset: 1000;
-  animation: draw-line 1.5s ease-out forwards;
-  animation-delay: 200ms;
-}
-
-.animate-scale-in {
-  animation: scale-in 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
-}
-
-/* --- END: הוספות ושיפורים לאנימציות של ה-Hero Section --- */
-
-
-.form-step-enter {
-  opacity: 0;
-  transform: translateX(var(--enter-translate, 100%));
-}
-
-.form-step-enter-active {
-  opacity: 1;
-  transform: translateX(0%);
-  transition: opacity 300ms, transform 300ms;
-}
-
-.form-step-exit {
-  opacity: 1;
-  transform: translateX(0%);
-}
-
-.form-step-exit-active {
-  opacity: 0;
-  transform: translateX(var(--exit-translate, -100%));
-  transition: opacity 300ms, transform 300ms;
-}
-
-/* RTL animation adjustments */
-.dir-rtl .form-step-enter {
-  --enter-translate: -100%;
-}
-
-.dir-rtl .form-step-exit-active {
-  --exit-translate: 100%;
-}
-
-/* Wizard layout */
-.wizard-content {
-  min-height: 400px;
-  position: relative;
-  overflow: hidden;
-}
-
-/* RTL specific layout adjustments */
-.dir-rtl .wizard-navigation {
-  margin-left: 0;
-  margin-right: auto;
-}
-
-.dir-rtl .wizard-controls {
-  flex-direction: row-reverse;
-}
-
-/* Custom scrollbar for RTL/LTR */
-.dir-rtl .custom-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: var(--primary) transparent;
-}
-
-.dir-rtl .custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
-
-.dir-rtl .custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.dir-rtl .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: var(--primary);
-  border-radius: 3px;
-}
-
-/* Dropdown menu positioning */
-.dir-rtl .dropdown-menu {
-  transform-origin: top right;
-}
-
-.dir-ltr .dropdown-menu {
-  transform-origin: top left;
-}
-
-/* Toast notifications positioning */
-.dir-rtl .toast {
-  right: auto;
-  left: 1rem;
-}
-
-.dir-ltr .toast {
-  left: auto;
-  right: 1rem;
-}
-
-.rtl-tabs [role="tablist"] {
-  direction: rtl;
-}
-
-.rtl-tabs [role="tabpanel"] {
-  direction: rtl;
-}
-
-/* Fix for RTL layout */
-html[dir="rtl"] {
-  overflow-x: hidden;
-}
-
-html[dir="rtl"] body {
-  width: 100%;
-  overflow-x: hidden;
-}
-
-/* Mobile responsiveness */
-@media (max-width: 768px) {
-  .container {
+  html[dir="rtl"] body {
     width: 100%;
-    padding-left: 1rem;
-    padding-right: 1rem;
+    overflow-x: hidden;
   }
 }
 
-/* סגנונות לפאנל סינון נפרד לפי מגדר */
-.male-filter-panel {
-  border-color: #dbeaff;
-  background-color: #f5f9ff;
+/* 3. Components Layer: סגנונות לרכיבים מותאמים אישית */
+@layer components {
+  .btn-refined-gradient {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    border-radius: 0.75rem;
+    font-weight: 500;
+    color: white;
+    background-image: linear-gradient(135deg, #22d3ee, #f472b6);
+    border: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+  }
+
+  .btn-refined-gradient:hover {
+    background-image: linear-gradient(135deg, #06b6d4, #ec4899);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12), 0 2px 3px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
+  }
+
+  .btn-refined-gradient svg {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+
+  .wizard-content { min-height: 400px; position: relative; overflow: hidden; }
+  .form-step-enter { opacity: 0; transform: translateX(var(--enter-translate, 100%)); }
+  .form-step-enter-active { opacity: 1; transform: translateX(0%); transition: opacity 300ms, transform 300ms; }
+  .form-step-exit { opacity: 1; transform: translateX(0%); }
+  .form-step-exit-active { opacity: 0; transform: translateX(var(--exit-translate, -100%)); transition: opacity 300ms, transform 300ms; }
+  .gender-filter-panel { border-radius: 0.5rem; padding: 0.75rem; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); border-width: 1px; }
+  .male-filter-panel { border-color: #dbeaff; background-color: #f5f9ff; }
+  .female-filter-panel { border-color: #f2e6ff; background-color: #faf5ff; }
 }
 
-.female-filter-panel {
-  border-color: #f2e6ff;
-  background-color: #faf5ff;
+/* 4. Utilities Layer: כלי עזר מותאמים אישית ותיקוני RTL */
+@layer utilities {
+  .dir-rtl { direction: rtl; }
+  .dir-ltr { direction: ltr; }
+  .force-ltr { direction: ltr !important; }
+  .force-rtl { direction: rtl !important; }
+  .progress-green [data-state="progress"] { background-color: hsl(142 76% 36%); }
+  .progress-blue [data-state="progress"] { background-color: hsl(221 83% 53%); }
+  .progress-amber [data-state="progress"] { background-color: hsl(45 93% 47%); }
+  [data-radix-popper-content-wrapper] { direction: ltr; }
+  .dir-rtl .button-icon { margin-left: 0.5rem; margin-right: 0; }
+  .dir-ltr .button-icon { margin-right: 0.5rem; margin-left: 0; }
+  .dir-rtl .form-step-enter { --enter-translate: -100%; }
+  .dir-rtl .form-step-exit-active { --exit-translate: 100%; }
+  .dir-rtl .wizard-navigation { margin-left: 0; margin-right: auto; }
+  .dir-rtl .wizard-controls { flex-direction: row-reverse; }
+  .dir-rtl .dropdown-menu { transform-origin: top right; }
+  .dir-ltr .dropdown-menu { transform-origin: top left; }
+  .dir-rtl .toast { right: auto; left: 1rem; }
+  .dir-ltr .toast { left: auto; right: 1rem; }
+  [dir="rtl"] .select-value { text-align: right; }
+  .slider, .rtl-slider-container { direction: ltr !important; }
+  .rtl-number-display { direction: ltr; display: inline-block; text-align: center; }
 }
 
-/* סגנונות למצב קומפקטי */
-.compact-filter-panel {
-  padding: 0.5rem;
-  font-size: 0.75rem;
-  max-height: 250px;
-  overflow-y: auto;
-}
+/* 5. Keyframes for Animations */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes gradient-anim { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-25px); } }
+@keyframes shimmer { 100% { transform: translateX(100%); } }
 
-.compact-filter-panel .filter-section {
-  margin-bottom: 0.5rem;
-}
+/* Hero Section Synergy Visualization Animations */
+@keyframes synergy-enter-left { from { opacity: 0; transform: translate(-30px, -50%); } to { opacity: 1; transform: translate(0, -50%); } }
+@keyframes synergy-enter-right { from { opacity: 0; transform: translate(30px, -50%); } to { opacity: 1; transform: translate(0, -50%); } }
+@keyframes draw-line { to { stroke-dashoffset: 0; } }
+@keyframes match-point-appear { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 70% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
 
-.compact-filter-panel .filter-title {
-  font-size: 0.75rem;
-  padding: 0.25rem 0.5rem;
-}
+/* 6. Animation Utility Classes (עם התזמונים החדשים) */
+.animate-gradient { animation: gradient-anim 4s ease infinite; }
+.animate-gradient-slow { animation: gradient-anim 15s ease infinite; }
+.animate-float-slow { animation: float 8s ease-in-out infinite; }
+.group-hover\:animate-shimmer { animation: shimmer 2s infinite; }
 
-.compact-filter-panel .filter-content {
-  padding: 0.25rem 0.5rem;
-}
+/* Hero Section Animation Classes - THE FULL SEQUENCE */
+.animate-synergy-enter-left { animation: synergy-enter-left 0.8s ease-out forwards 0.2s; }
+.animate-synergy-enter-right { animation: synergy-enter-right 0.8s ease-out forwards 0.2s; }
 
-/* כפתורים קומפקטיים */
-.compact-button {
-  height: 1.5rem;
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
-  font-size: 0.7rem;
-}
-
-.compact-icon {
-  width: 0.75rem;
-  height: 0.75rem;
-}
-
-/* Add this to your globals.css or a component CSS file */
-.compact-filter-panel {
-  padding: 0.5rem;
-  font-size: 0.75rem;
-  max-height: 250px;
-  overflow-y: auto;
-}
-
-.male-filter-panel,
-.female-filter-panel {
-  border-width: 1px;
-  border-radius: 0.375rem;
-}
-
-.male-filter-panel {
-  border-color: #dbeaff;
-  background-color: #f5f9ff;
-}
-
-.female-filter-panel {
-  border-color: #f2e6ff;
-  background-color: #faf5ff;
-}
-
-/* הוסף לגלובל CSS */
-.compact-filter-panel .filter-section {
-  margin-bottom: 0.25rem;
-}
-
-.compact-filter-panel .filter-title {
-  font-size: 0.65rem;
-  padding: 0.125rem 0.25rem;
-}
-
-.compact-filter-panel .filter-content {
-  padding: 0.125rem 0.25rem;
-}
-
-/* הקטן את כל המרכיבים בתצוגה הקומפקטית */
-.compact-mode .MuiSlider-root {
-  height: 2px;
-}
-
-.compact-mode .MuiSlider-thumb {
-  width: 10px;
-  height: 10px;
-}
-
-/* תמיכה בסליידרים בעברית */
-[dir="rtl"] .slider-root,
-html[dir="rtl"] [data-orientation="horizontal"] {
-  direction: ltr;
-}
-
-[dir="rtl"] .slider-thumb {
-  transform: translateX(-50%);
-}
-
-/* שיפור התאמת הפילטרים ל-RTL */
-.filter-panel-content {
-  direction: rtl;
-  text-align: right;
-}
-
-/* תיקון למרווחים ב-RTL */
-[dir="rtl"] .select-trigger .select-value {
-  text-align: right;
-}
-
-[dir="rtl"] .badgeContainer {
-  margin-left: 0;
-  margin-right: 0.5rem;
-}
-
-/* תיקון לתצוגת טווח מספרים ב-RTL */
-.range-display {
-  display: flex;
-  flex-direction: row-reverse;
-  justify-content: space-between;
-  align-items: center;
-}
-
-[dir="rtl"] .range-min {
-  order: 2;
-}
-
-[dir="rtl"] .range-max {
-  order: 1;
-}
-
-/* תיקונים לסליידרים ב-RTL */
-.slider-container[dir="ltr"] {
-  width: 100%;
-}
-
-/* עבור תצוגת תג (badge) עם מספרים ב-RTL */
-[dir="rtl"] .range-badge {
-  display: inline-block;
-  min-width: 2.5rem;
-  text-align: center;
-}
-
-/* שיפור תצוגת dropdown ברשימות סינון */
-[dir="rtl"] .filter-dropdown-content {
-  text-align: right;
-}
-
-/* תיקון alignמנט בתיבות בחירה */
-[dir="rtl"] .select-value {
-  text-align: right;
-}
-
-/* שיפור תצוגת בחירות מרובות */
-[dir="rtl"] .multi-select-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-/* Add these styles to globals.css to improve RTL handling for sliders */
-
-/* Better RTL support for sliders */
-.rtl-slider-container {
-  direction: ltr;
-  width: 100%;
-}
-
-/* Force number display direction */
-.rtl-number-display {
-  direction: ltr;
-  display: inline-block;
-  text-align: center;
-}
-
-/* Improve the layout of the filters panel in RTL */
-.separate-filters-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-/* Style enhancements for male/female filter panels */
-.gender-filter-panel {
-  border-radius: 0.5rem;
-  padding: 0.75rem;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-.male-filter-panel {
-  border: 1px solid #dbeaff;
-  background-color: #f5f9ff;
-}
-
-.female-filter-panel {
-  border: 1px solid #f2e6ff;
-  background-color: #faf5ff;
-}
-
-/* Better badge styling */
-.filter-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.25rem 0.5rem;
-  font-weight: 600;
-  border-radius: 0.25rem;
-  background-color: white;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-/* כדי לשפר את המראה של רכיב Slider בעברית */
-.slider {
-  direction: ltr !important;
-}
-
-/* שיפור מראה של האינדיקטורים */
-.slider .slider-thumb {
-  width: 16px;
-  height: 16px;
-  background-color: white;
-  border: 2px solid #3b82f6;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.slider .slider-track {
-  height: 6px;
-  background-color: #e5e7eb;
-}
-
-.slider .slider-range {
-  background-color: #3b82f6;
-}
-
-/* תיקון למצב RTL בסרגלים */
-.slider-wrapper {
-  direction: rtl;
-}
-
-.rtl {
-  direction: rtl;
-}
-
-/* שיפור מראה של הסרגל */
-.slider[dir="rtl"] .slider-thumb {
-  width: 18px;
-  height: 18px;
-  background-color: white;
-  border: 2px solid #3b82f6;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.slider[dir="rtl"] .slider-track {
-  height: 6px;
-  background-color: #e5e7eb;
-}
-
-.slider[dir="rtl"] .slider-range {
-  background-color: #3b82f6;
-}
-
-.rtl {
-  direction: rtl;
-}
-
-.grid-flow-row-dense {
-  grid-auto-flow: row dense;
-}
-
-/* הוסף מחלקה כללית לרכיבי ממשק */
-.matchmaker-dashboard {
-  direction: rtl;
-}/* הוסף את זה לקובץ ה-CSS הגלובלי שלך, למשל globals.css */
-
-/* --- אנימציות עבור ויזואליזציית הסינרגיה --- */
-
-@keyframes synergy-enter-left {
-  from { opacity: 0; transform: translate(-30px, -50%); }
-  to { opacity: 0.8; transform: translate(0, -50%); }
-}
-.animate-synergy-enter-left {
-  animation: synergy-enter-left 1s ease-out forwards;
-}
-
-@keyframes synergy-enter-right {
-  from { opacity: 0; transform: translate(30px, -50%); }
-  to { opacity: 0.8; transform: translate(0, -50%); }
-}
-.animate-synergy-enter-right {
-  animation: synergy-enter-right 1s ease-out forwards;
-}
-
-@keyframes draw-line {
-  to { stroke-dashoffset: 0; }
-}
-
-.path-draw-from-left, .path-draw-from-right {
+/* שלב 1: הקווים נעים זה לקראת זה. מסתיים ב-1.7 שניות (0.5s delay + 1.2s duration). */
+.path-draw {
   stroke-dasharray: 500;
   stroke-dashoffset: 500;
-  animation: draw-line 1.2s ease-out forwards 0.5s; /* Delay of 0.5s */
+  animation: draw-line 1.2s ease-out forwards 0.5s;
 }
 
-@keyframes heart-scale-in {
-  0% { transform: scale(0); opacity: 0; }
-  70% { transform: scale(1.2); opacity: 1; }
-  100% { transform: scale(1); }
-}
-.animate-heart-scale-in {
-  animation: heart-scale-in 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards 1.5s; /* Delay of 1.5s */
-}
-
-@keyframes card-appear-left {
-    0% { opacity: 0; transform: translate(50px, -50%) scale(0.8); }
-    100% { opacity: 1; transform: translate(0, -50%) scale(1); }
-}
-.animate-card-appear-left {
-    animation: card-appear-left 0.7s ease-out forwards 1.5s;
-}
-
-@keyframes card-appear-right {
-    0% { opacity: 0; transform: translate(-50px, -50%) scale(0.8); }
-    100% { opacity: 1; transform: translate(0, -50%) scale(1); }
-}
-.animate-card-appear-right {
-    animation: card-appear-right 0.7s ease-out forwards 1.5s;
-}
-
-/* --- אנימציות קיימות שכדאי לוודא שהן שם --- */
-
-@keyframes gradient-anim {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-.animate-gradient-slow {
-  animation: gradient-anim 15s ease infinite;
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-25px); }
-}
-.animate-float-slow {
-  animation: float 8s ease-in-out infinite;
-}
-
-@keyframes shimmer {
-  100% { transform: translateX(100%); }
-}
-.group-hover\:animate-shimmer {
-    animation: shimmer 2s infinite;
+/* 
+  [FIX] שלב 2: הלב מופיע מיד כשהקווים נפגשים.
+  השהיה של 1.7 שניות כדי להמתין לסיום אנימציית הקווים.
+*/
+.animate-match-point-appear {
+  animation: match-point-appear 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards 1.7s;
 }

@@ -1,5 +1,3 @@
-// src/components/HomePage/sections/HeroSection.tsx
-
 import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -11,6 +9,7 @@ interface HeroSectionProps {
   isVisible: boolean;
 }
 
+// Helper component for animated stats (no changes needed here)
 const StatItem: React.FC<{ icon: React.ReactNode; label: string; value: string; color: 'cyan' | 'pink' }> = ({ icon, label, value, color }) => (
   <div className="flex items-center gap-2 text-right">
     <div className={`p-1.5 sm:p-2 rounded-full ${color === 'cyan' ? 'bg-cyan-100' : 'bg-pink-100'}`}>
@@ -30,7 +29,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
 
   return (
     <section className="relative min-h-screen pt-20 pb-16 md:pt-24 md:pb-20 overflow-hidden flex flex-col items-center justify-center w-full px-4 sm:px-6 lg:px-8">
-      {/* --- רקעים ואלמנטים צפים --- */}
+      {/* --- Backgrounds and Floating Elements --- */}
       <div
         className="absolute inset-0 bg-gradient-to-br from-cyan-50 via-white to-pink-50 animate-gradient-slow"
         style={{ backgroundSize: "400% 400%" }}
@@ -40,7 +39,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
       <div className="absolute bottom-1/4 right-[10%] w-40 h-40 rounded-full bg-pink-200/20 blur-2xl animate-float-slow" style={{ animationDelay: '2s' }}></div>
 
       <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col items-center">
-        {/* --- 1. התוכן המרכזי: כותרת, תיאור וכפתורים --- */}
+        {/* --- 1. Main Content: Headline, Description, Buttons --- */}
         <div
           className={`text-center transition-all duration-700 ${isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"}`}
           style={getStaggerDelay(0)}
@@ -70,78 +69,77 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
             </Link>
           </div>
         </div>
-
-        {/* --- 2. הוויזואליזציה המשודרגת: "סינרגיה והתמזגות" --- */}
+        
+        {/* --- 2. Synergy Visualization --- */}
         <div
-          className={`relative w-full max-w-2xl h-64 mt-16 transition-all duration-700 ${isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"}`}
+          className={`relative w-full max-w-4xl h-64 mt-16 transition-all duration-700 ${isVisible ? "scale-100 opacity-100" : "scale-90 opacity-0"}`}
           style={getStaggerDelay(1)}
         >
-          {/* אלמנט ה-AI (שמאל) */}
-          <div className="absolute top-1/2 left-0 -translate-y-1/2 animate-synergy-enter-left">
-            <Brain className="w-16 h-16 text-cyan-400 opacity-80" />
+          {/* Left Element: AI */}
+          <div className={`absolute top-1/2 left-0 -translate-y-1/2 flex items-center gap-3 opacity-0 ${isVisible ? 'animate-synergy-enter-left' : ''}`}>
+            <div className="p-4 bg-white/60 backdrop-blur-md rounded-full shadow-lg border border-white/50">
+                <Brain className="w-8 h-8 text-cyan-500"/>
+            </div>
+            <span className="font-bold text-gray-700 hidden sm:block">טכנולוגיית AI</span>
           </div>
 
-          {/* אלמנט הליווי האישי (ימין) */}
-          <div className="absolute top-1/2 right-0 -translate-y-1/2 animate-synergy-enter-right">
-            <Handshake className="w-16 h-16 text-pink-400 opacity-80" />
+          {/* Right Element: Human Touch */}
+           <div className={`absolute top-1/2 right-0 -translate-y-1/2 flex items-center gap-3 opacity-0 ${isVisible ? 'animate-synergy-enter-right' : ''}`}>
+            <span className="font-bold text-gray-700 hidden sm:block">ליווי אישי</span>
+            <div className="p-4 bg-white/60 backdrop-blur-md rounded-full shadow-lg border border-white/50">
+                <Handshake className="w-8 h-8 text-pink-500"/>
+            </div>
           </div>
           
-          {/* אנימציית ה-SVG שמחברת ביניהם */}
-          <svg className="absolute inset-0 w-full h-full overflow-visible">
+          {/* Connection SVG */}
+          <svg className="absolute inset-0 w-full h-full overflow-visible" viewBox="0 0 700 256">
             <defs>
-              <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#22d3ee" />
-                <stop offset="100%" stopColor="#f472b6" />
-              </linearGradient>
+              <filter id="glow">
+                  <feGaussianBlur stdDeviation="3.5" result="coloredBlur"></feGaussianBlur>
+                  <feMerge>
+                      <feMergeNode in="coloredBlur"></feMergeNode>
+                      <feMergeNode in="SourceGraphic"></feMergeNode>
+                  </feMerge>
+              </filter>
             </defs>
-            {/* נשתמש ב-2 קווים כדי ליצור אפקט של זרימה משני הכיוונים */}
+            {/* AI Path */}
             <path
-              className="path-draw-from-left"
-              d="M 64 128 C 150 80, 250 80, 320 128"
-              stroke="url(#lineGradient)" strokeWidth="3" fill="none" strokeLinecap="round"
+              className={`${isVisible ? 'path-draw' : ''}`}
+              d="M 60 128 C 180 50, 280 50, 350 128"
+              stroke="#06b6d4" strokeWidth="2.5" fill="none" strokeLinecap="round" filter="url(#glow)"
             />
-             <path
-              className="path-draw-from-right"
-              d="M 636 128 C 550 80, 450 80, 380 128"
-              stroke="url(#lineGradient)" strokeWidth="3" fill="none" strokeLinecap="round"
+            {/* Human Path */}
+            <path
+              className={`${isVisible ? 'path-draw' : ''}`}
+              d="M 640 128 C 520 200, 420 200, 350 128"
+              stroke="#ec4899" strokeWidth="2.5" fill="none" strokeLinecap="round" filter="url(#glow)"
             />
           </svg>
 
-          {/* התוצאה: הלב והכרטיסים במרכז */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-             {/* כרטיס פרופיל שמאלי - מופיע באנימציה */}
-            <div className="absolute top-1/2 -translate-y-1/2 animate-card-appear-left" style={{ right: 'calc(50% + 30px)'}}>
-                <div className="w-28 h-16 bg-white/60 backdrop-blur-md rounded-lg shadow-lg border border-white/50 p-2 flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-cyan-100 flex items-center justify-center text-cyan-600 font-bold">א</div>
-                    <span className="text-xs font-semibold text-gray-800">אביתר</span>
-                </div>
-            </div>
-            {/* כרטיס פרופיל ימני - מופיע באנימציה */}
-             <div className="absolute top-1/2 -translate-y-1/2 animate-card-appear-right" style={{ left: 'calc(50% + 30px)'}}>
-                <div className="w-28 h-16 bg-white/60 backdrop-blur-md rounded-lg shadow-lg border border-white/50 p-2 flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-pink-100 flex items-center justify-center text-pink-600 font-bold">ת</div>
-                    <span className="text-xs font-semibold text-gray-800">תמר</span>
-                </div>
-            </div>
-            {/* לב במרכז */}
-            <div className="transform scale-0 animate-heart-scale-in">
-              <div className="p-3 bg-white rounded-full shadow-2xl">
-                <Heart className="w-6 h-6 text-pink-500 fill-current animate-pulse" style={{ animationDuration: '1.5s' }} />
-              </div>
+          {/* --- The Connection Point (Heart) --- */}
+          <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 ${isVisible ? 'animate-match-point-appear' : ''}`}>
+            <div className="flex items-center gap-3 p-4 bg-gradient-to-br from-white to-gray-50 rounded-full shadow-2xl border-2 border-white">
+              <Heart className="w-7 h-7 text-red-500 fill-current animate-pulse" style={{ animationDuration: '1.5s' }} />
+              <span className="font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-pink-500">
+                Match Point
+              </span>
             </div>
           </div>
+          
+          {/* --- הדמויות הרצות הוסרו מכאן --- */}
+          
         </div>
 
-        {/* --- 3. שורת הנתונים (Social Proof) --- */}
+        {/* --- 3. Stats Bar (Social Proof) --- */}
         <div
           className={`mt-20 w-full max-w-4xl transition-all duration-700 ${isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"}`}
           style={getStaggerDelay(2)}
         >
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 bg-white/60 backdrop-blur-md py-4 px-6 rounded-2xl shadow-lg border border-white/50">
             <StatItem icon={<Shield className="h-5 w-5 text-cyan-600" />} label="דיסקרטיות" value="100%" color="cyan" />
-            <StatItem icon={<Users className="h-5 w-5 text-pink-500" />} label="צוות שדכנים" value="מקצועי" color="pink" />
-            <StatItem icon={<User className="h-5 w-5 text-cyan-600" />} label="ליווי אישי" value="24/6" color="cyan" />
             <StatItem icon={<Heart className="h-5 w-5 text-pink-500" />} label="מדדי תאימות" value="50+" color="pink" />
+            <StatItem icon={<User className="h-5 w-5 text-cyan-600" />} label="ליווי אישי" value="24/6" color="cyan" />
+            <StatItem icon={<Users className="h-5 w-5 text-pink-500" />} label="צוות שדכנים" value="מקצועי" color="pink" />
             <StatItem icon={<Sparkles className="h-5 w-5 text-cyan-600" />} label="מסורת וחדשנות" value="מושלם" color="cyan" />
           </div>
         </div>
