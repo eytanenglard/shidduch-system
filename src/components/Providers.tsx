@@ -1,21 +1,31 @@
-// src/components/Providers.tsx (או הקובץ שלך)
+// src/components/Providers.tsx
 "use client";
 
 import { SessionProvider } from "next-auth/react";
 import { NotificationProvider } from "@/app/contexts/NotificationContext";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { ReactNode } from "react"; // ייבוא מפורש אם חסר
-import { OnboardingProvider } from '@/app/contexts/OnboardingContext';
+import { ReactNode } from "react";
+// --- START: ייבואים חדשים ---
+import { OnboardingProvider } from "@/app/contexts/OnboardingContext";
+import OnboardingTrigger from "@/app/components/OnboardingTrigger";
+import OnboardingTour from "@/app/components/OnboardingTour";
+// --- END: ייבואים חדשים ---
 
 const Providers = ({ children }: { children: ReactNode }) => {
   return (
-    // ----> הוסף את המאפיין כאן <----
     <SessionProvider refetchOnWindowFocus={false}>
-        <OnboardingProvider>
-      <NotificationProvider>
-        <TooltipProvider>{children}</TooltipProvider>
-      </NotificationProvider>
-        </OnboardingProvider>
+      {/* --- START: עטיפה ב-Provider של הסיור --- */}
+      <OnboardingProvider>
+        <NotificationProvider>
+          <TooltipProvider>
+            {children}
+            {/* --- הרכיבים של הסיור ירוצו כאן, בתוך כל הקונטקסטים --- */}
+            <OnboardingTrigger />
+            <OnboardingTour />
+          </TooltipProvider>
+        </NotificationProvider>
+      </OnboardingProvider>
+      {/* --- END: עטיפה ב-Provider של הסיור --- */}
     </SessionProvider>
   );
 };
