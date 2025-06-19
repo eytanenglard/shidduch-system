@@ -185,7 +185,7 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
   // --- Mobile View Logic ---
   if (isMobile) {
     if (mobileView === 'split') {
-      // --- START OF CHANGE ---
+      // --- START OF FIX ---
       // This is the new split view for mobile with independent scrolling
       return (
         // 1. We give the main container a calculated height to constrain it.
@@ -246,7 +246,7 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
           </div>
         </div>
       );
-      // --- END OF CHANGE ---
+      // --- END OF FIX ---
     }
 
     // Original Tabs view for 'single' or 'double' column modes
