@@ -129,6 +129,18 @@
   [dir="rtl"] .select-value { text-align: right; }
   .slider, .rtl-slider-container { direction: ltr !important; }
   .rtl-number-display { direction: ltr; display: inline-block; text-align: center; }
+
+  /* ======================================= */
+  /* ||   הוספה: מחלקה לאנימציית המובייל   || */
+  /* ======================================= */
+  .animate-fade-in-up {
+    animation: fade-in-up 0.6s ease-out forwards;
+  }
+    /* !!! הוסף את ה-CLASS החדש כאן !!! */
+  .animate-mobile-match-point {
+    animation: mobile-match-point-appear 0.5s ease-out forwards;
+  }
+
 }
 
 /* 5. Keyframes for Animations */
@@ -142,6 +154,32 @@
 @keyframes synergy-enter-right { from { opacity: 0; transform: translate(30px, -50%); } to { opacity: 1; transform: translate(0, -50%); } }
 @keyframes draw-line { to { stroke-dashoffset: 0; } }
 @keyframes match-point-appear { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 70% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
+
+/* ============================================== */
+/* ||   הוספה: Keyframe לאנימציית המובייל     || */
+/* ============================================== */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* !!! הוסף את ה-KEYFRAME החדש כאן !!! */
+@keyframes mobile-match-point-appear {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
 
 /* 6. Animation Utility Classes (עם התזמונים החדשים) */
 .animate-gradient { animation: gradient-anim 4s ease infinite; }
