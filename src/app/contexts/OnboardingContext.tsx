@@ -8,6 +8,7 @@ interface OnboardingContextType {
   currentStep: number;
   nextStep: () => void;
   prevStep: () => void;
+  goToStep: (step: number) => void;
 }
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
@@ -22,9 +23,10 @@ export const OnboardingProvider: React.FC<{ children: ReactNode }> = ({ children
   const endTour = () => { setIsTourActive(false); setCurrentStep(0); /* שמור ב-localStorage שהסיור הושלם */ };
   const nextStep = () => setCurrentStep(prev => prev + 1);
   const prevStep = () => setCurrentStep(prev => Math.max(0, prev - 1));
+const goToStep = (step: number) => setCurrentStep(step); // <--- הוסף שורה זו
 
   return (
-    <OnboardingContext.Provider value={{ isTourActive, startTour, endTour, currentStep, nextStep, prevStep }}>
+    <OnboardingContext.Provider value={{ isTourActive, startTour, endTour, currentStep, nextStep, prevStep, goToStep  }}>
       {children}
     </OnboardingContext.Provider>
   );

@@ -59,7 +59,7 @@ const UserDropdown = ({
   return (
     <div className="relative" ref={dropdownRef}>
       <button
-        id="onboarding-target-profile-dropdown" // <--- הוספת ID כאן
+        id="onboarding-target-profile-dropdown"
 
         onClick={() => setIsOpen(!isOpen)}
         className={`relative ${profileIconSize} rounded-full flex items-center justify-center text-sm shadow-md transition-all duration-300 cursor-pointer group overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-400 focus:ring-offset-white`}
@@ -219,10 +219,11 @@ const Navbar = () => {
                         <NavItem href="/matchmaker/clients" text="מועמדים" pathname={pathname} />
                       </>
                     ) : (
-  <NavItem id="onboarding-target-matches-link" href="/matches" text="ההצעות שלי" pathname={pathname} /> // <--- הוספת ID כאן
+                      <NavItem id="onboarding-target-matches-link" href="/matches" text="ההצעות שלי" pathname={pathname} />
                     )}
                     <NavItem
                       href="/messages"
+                      id="onboarding-target-messages-link"
                       text="הודעות"
                       badge={notifications.total > 0 ? notifications.total : undefined}
                       pathname={pathname}
@@ -245,7 +246,7 @@ const Navbar = () => {
               </Button>
 
               {session && (
-                <div className="hidden md:block">
+                <div id="onboarding-target-availability-status" className="hidden md:block"> {/* ID הועבר ל-wrapper */}
                   <AvailabilityStatus />
                 </div>
               )}
@@ -318,7 +319,6 @@ const Navbar = () => {
         <div className="overflow-y-auto h-[calc(100%-4.5rem)] pb-20">
           {session && (
             <div className="p-4">
-              {/* עדכון: כרטיס המשתמש במובייל שופר כדי להכיל גם את סטטוס הזמינות */}
               <div className="p-4 border rounded-xl bg-gray-50/80">
                 <div className="flex items-center gap-4">
                   <div className={`relative ${profileIconSize} rounded-full flex-shrink-0 flex items-center justify-center shadow-sm overflow-hidden`}>
@@ -341,8 +341,7 @@ const Navbar = () => {
                     <div className="text-sm text-gray-500 truncate">{session.user?.email}</div>
                   </div>
                 </div>
-                {/* הוספת סטטוס זמינות מתחת לפרטי המשתמש, עם קו מפריד */}
-                <div className="mt-4 pt-4 border-t border-gray-200">
+                <div id="onboarding-target-availability-status" className="mt-4 pt-4 border-t border-gray-200"> {/* ID הועבר גם למובייל */}
                   <AvailabilityStatus />
                 </div>
               </div>
@@ -358,9 +357,10 @@ const Navbar = () => {
                     <MobileNavItem href="/matchmaker/clients" text="מועמדים" icon={<Users className="ml-2 h-5 w-5"/>} onClick={toggleMobileMenu} pathname={pathname} />
                   </>
                 ) : (
-                  <MobileNavItem href="/matches" text="ההצעות שלי" icon={<Users className="ml-2 h-5 w-5"/>} onClick={toggleMobileMenu} pathname={pathname} />
+                  <MobileNavItem id="onboarding-target-matches-link" href="/matches" text="ההצעות שלי" icon={<Users className="ml-2 h-5 w-5"/>} onClick={toggleMobileMenu} pathname={pathname} />
                 )}
-                <MobileNavItem href="/messages" text="הודעות" icon={<MessageCircle className="ml-2 h-5 w-5"/>} badge={notifications.total > 0 ? notifications.total : undefined} onClick={toggleMobileMenu} pathname={pathname} />
+                {/* --- שינוי --- הוספת ID לכפתור הודעות במובייל */}
+                <MobileNavItem id="onboarding-target-messages-link" href="/messages" text="הודעות" icon={<MessageCircle className="ml-2 h-5 w-5"/>} badge={notifications.total > 0 ? notifications.total : undefined} onClick={toggleMobileMenu} pathname={pathname} />
                 <hr className="my-3"/>
                 <MobileNavItem href="/profile" text="פרופיל אישי" icon={<User className="ml-2 h-5 w-5"/>} onClick={toggleMobileMenu} pathname={pathname} />
                 <MobileNavItem href="/settings" text="הגדרות חשבון" icon={<Settings className="ml-2 h-5 w-5"/>} onClick={toggleMobileMenu} pathname={pathname} />
@@ -385,7 +385,7 @@ const Navbar = () => {
               variant="outline"
               onClick={() => {
                 setLanguage(language === "he" ? "en" : "he");
-                toggleMobileMenu(); // סוגר את התפריט לאחר החלפת שפה
+                toggleMobileMenu();
               }}
               className="w-full font-medium border-gray-300 text-gray-600 hover:bg-gray-100 hover:border-gray-400 flex items-center justify-center py-6 text-base"
             >
@@ -443,6 +443,7 @@ const MobileNavItem = ({
   badge,
   onClick,
   pathname,
+  id, // <-- שינוי 1: הוספת id לפרופס
 }: {
   href: string;
   text: string;
@@ -450,10 +451,12 @@ const MobileNavItem = ({
   badge?: number;
   onClick: () => void;
   pathname: string;
+  id?: string; // <-- שינוי 1: הוספת id לפרופס
 }) => {
   const isActive = pathname === href || (href === "/matchmaker/suggestions" && pathname.startsWith("/matchmaker"));
   return (
     <Link
+      id={id} // <-- שינוי 2: שימוש ב-id
       href={href}
       onClick={onClick}
       className={`flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 group

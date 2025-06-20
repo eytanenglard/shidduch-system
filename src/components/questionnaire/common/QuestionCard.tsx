@@ -55,6 +55,7 @@ interface QuestionCardProps {
   onPrevious?: () => void; // Kept for potential future use
   isLastQuestion?: boolean; // Kept for potential future use
   isFirstQuestion?: boolean; // Kept for potential future use
+isFirstInList?: boolean;
 }
 
 // קונפיגורציה של צבעים ותוויות עבור רמות שאלה שונות
@@ -99,6 +100,7 @@ export default function QuestionCard({
   validationError,
   isDisabled = false,
   children, // Children will contain the AnswerInput component
+  isFirstInList = false, 
 }: QuestionCardProps) {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showHelp, setShowHelp] = useState(false);

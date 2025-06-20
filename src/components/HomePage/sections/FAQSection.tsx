@@ -8,7 +8,7 @@ import { ArrowLeft } from "lucide-react";
 
 const FAQSection: React.FC = () => {
   return (
-    <section className="py-16 md:py-20 px-4 bg-white relative overflow-hidden">
+    <section id="onboarding-target-faq" className="py-16 md:py-20 px-4 bg-white relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-white opacity-50"></div>
 
       <div className="max-w-4xl mx-auto relative">

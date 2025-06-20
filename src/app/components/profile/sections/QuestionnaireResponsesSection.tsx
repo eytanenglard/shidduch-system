@@ -54,6 +54,7 @@ interface QuestionnaireResponsesSectionProps {
     value: UpdateValue
   ) => Promise<void>;
   isEditable?: boolean;
+  isFirstInList?: boolean;
   viewMode?: "matchmaker" | "candidate";
 }
 
@@ -68,6 +69,7 @@ interface QuestionCardProps {
     questionId: string,
     value: UpdateValue
   ) => Promise<void>;
+  isFirstInList?: boolean;
 }
 
 const QuestionCard: React.FC<QuestionCardProps> = ({
@@ -76,6 +78,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
   isEditingGlobally,
   worldKey,
   onUpdate,
+  isFirstInList,
 }) => {
   const [isEditingText, setIsEditingText] = useState(false);
   const [editValue, setEditValue] = useState(answer.displayText);
@@ -221,6 +224,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
               </TooltipProvider>
 
               {isEditingGlobally && (
+                <div id={isFirstInList ? 'onboarding-target-visibility-control' : undefined}>
                 <Switch
                   // --- START OF MODIFIED SECTION ---
                   checked={currentIsVisible} // Control Switch with local state
@@ -230,6 +234,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                   className="data-[state=checked]:bg-emerald-500 data-[state=unchecked]:bg-gray-300 transform scale-90"
                   aria-label={visibilityLabel}
                 />
+                </div>
               )}
             </div>
           </div>
@@ -397,14 +402,16 @@ const WorldSection: React.FC<WorldSectionProps> = ({
       </CardHeader>
       <CardContent className="p-4 pt-4">
         <div className="space-y-4">
-          {answers.map((answer) => (
+          {answers.map((answer, index) => (
             <QuestionCard
               key={answer.questionId}
               question={answer.question}
               answer={answer}
+              isFirstInList={index === 0}
               isEditingGlobally={isEditingGlobally}
               worldKey={worldKey}
               onUpdate={onUpdate}
+              
             />
           ))}
         </div>

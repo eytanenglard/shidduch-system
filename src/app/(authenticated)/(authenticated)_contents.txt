@@ -1,0 +1,898 @@
+################################################################################
+# Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\(authenticated)
+# Generated on: 2025-06-20 12:41:08
+################################################################################
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\(authenticated)
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\(authenticated)\(authenticated)_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\(authenticated)\matches
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\(authenticated)\matches\page.tsx
+--------------------------------------------------------------------------------
+Content:
+"use client";
+import { useSession } from "next-auth/react";
+import MatchSuggestionsContainer from "@/app/components/suggestions/MatchSuggestionsContainer";
+import { Skeleton } from "@/components/ui/skeleton";
+
+export default function MatchesPage() {
+  const { data: session, status } = useSession();
+
+  if (status === "loading") {
+    return (
+      <div className="container mx-auto p-6 space-y-4">
+        <Skeleton className="h-48 w-full" />
+        <Skeleton className="h-48 w-full" />
+      </div>
+    );
+  }
+
+  if (!session?.user?.id) {
+    return <div>לא מורשה לצפות בדף זה</div>;
+  }
+
+  return <MatchSuggestionsContainer userId={session.user.id} />;
+}
+--- End of Content for page.tsx ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\(authenticated)\matchmaker
+================================================================================
+
+(This directory contains subdirectories but no files directly. See subdirectories below.)
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\(authenticated)\matchmaker\clients
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\(authenticated)\matchmaker\clients\page.tsx
+--------------------------------------------------------------------------------
+Content:
+import CandidatesManager from "@/app/components/matchmaker/new/CandidatesManager/index";
+
+export default function ClientsPage() {
+  return <CandidatesManager />;
+}
+--- End of Content for page.tsx ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\(authenticated)\matchmaker\suggestions
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\(authenticated)\matchmaker\suggestions\page.tsx
+--------------------------------------------------------------------------------
+Content:
+"use client";
+
+import { Suspense } from "react";
+import MatchmakerDashboard from "@/app/components/matchmaker/suggestions/container/MatchmakerDashboard";
+import { Card, CardContent } from "@/components/ui/card";
+
+export default function SuggestionsPage() {
+  return (
+    <div className="min-h-screen bg-background">
+      <Suspense
+        fallback={
+          <Card className="m-4">
+            <CardContent className="p-6">
+              <div className="flex justify-center items-center">
+                <div className="text-xl">טוען...</div>
+              </div>
+            </CardContent>
+          </Card>
+        }
+      >
+        <MatchmakerDashboard />
+      </Suspense>
+    </div>
+  );
+}
+--- End of Content for page.tsx ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\(authenticated)\messages
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\(authenticated)\messages\page.tsx
+--------------------------------------------------------------------------------
+Content:
+"use client";
+
+import MessagesPage from "@/app/components/messages/MessagesPage";
+import { Card } from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
+import { Suspense } from "react";
+
+export default function Messages() {
+  return (
+    <Suspense
+      fallback={
+        <Card className="m-4">
+          <div className="flex justify-center items-center p-8">
+            <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
+        </Card>
+      }
+    >
+      <MessagesPage />
+    </Suspense>
+  );
+}
+--- End of Content for page.tsx ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\(authenticated)\profile
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\(authenticated)\profile\page.tsx
+--------------------------------------------------------------------------------
+Content:
+"use client";
+
+import React from "react";
+import UnifiedProfileDashboard from "./components/dashboard/UnifiedProfileDashboard";
+import { useSearchParams } from "next/navigation";
+
+const ProfilePage = () => {
+  const searchParams = useSearchParams();
+  const viewOnly = searchParams.get("viewOnly") === "true";
+  const userId = searchParams.get("userId") || undefined; // ממיר null ל-undefined
+
+  return (
+    <div className="min-h-screen bg-background" dir="rtl">
+      <UnifiedProfileDashboard viewOnly={viewOnly} userId={userId} />
+    </div>
+  );
+};
+
+export default ProfilePage;
+--- End of Content for page.tsx ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\(authenticated)\profile\components
+================================================================================
+
+(This directory contains subdirectories but no files directly. See subdirectories below.)
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\(authenticated)\profile\components\dashboard
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\(authenticated)\profile\components\dashboard\ProfileChecklist.tsx
+--------------------------------------------------------------------------------
+Content:
+"use client";
+
+import React from 'react';
+import Link from 'next/link';
+import { Progress } from "@/components/ui/progress";
+import { CheckCircle, User, BookOpen, Camera, Phone, SlidersHorizontal, Edit3, Sparkles } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from "@/lib/utils";
+import type { User as SessionUserType } from '@/types/next-auth';
+
+interface ChecklistItemProps {
+  isCompleted: boolean;
+  title: string;
+  description: string;
+  link?: string;
+  onClick?: () => void;
+  icon: React.ElementType;
+  isBonus?: boolean;
+}
+
+// --- רכיב פריט משימה בעיצוב חדש, מזמין ואינטראקטיבי ---
+const ChecklistItem: React.FC<ChecklistItemProps> = ({ isCompleted, title, description, link, onClick, icon: Icon, isBonus }) => {
+  const content = (
+    <>
+      <div className="relative w-full flex justify-center mb-4">
+        <div className={cn(
+          "relative flex items-center justify-center w-16 h-16 rounded-2xl transition-all duration-300 transform group-hover:scale-110",
+          isCompleted ? "bg-emerald-100 shadow-emerald-500/10" : "bg-cyan-100 shadow-cyan-500/10",
+          isBonus && !isCompleted && "bg-amber-100 shadow-amber-500/10"
+        )}>
+          <Icon className={cn(
+            "w-8 h-8 transition-colors duration-300", 
+            isCompleted ? "text-emerald-500" : "text-cyan-600",
+            isBonus && !isCompleted && "text-amber-600"
+          )} />
+        </div>
+        {isCompleted && (
+           <motion.div 
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 400, damping: 20, delay: 0.2 }}
+            className="absolute -top-1 -right-1"
+          >
+            <CheckCircle className="w-6 h-6 text-emerald-500 bg-white rounded-full p-0.5" fill="white" />
+          </motion.div>
+        )}
+      </div>
+      <h4 className={cn(
+        "font-bold text-sm text-center transition-colors",
+        isCompleted ? 'text-gray-400 line-through' : 'text-gray-800'
+      )}>
+        {title}
+      </h4>
+      {!isCompleted && (
+        <p className="text-xs text-center text-gray-500 mt-1 leading-tight h-8">
+          {description}
+        </p>
+      )}
+    </>
+  );
+
+  const wrapperProps = {
+    className: cn(
+      "relative flex flex-col items-center p-4 rounded-2xl transition-all duration-300 group h-full",
+      isCompleted 
+        ? 'bg-white/40 cursor-default' 
+        : 'bg-white/70 hover:shadow-xl hover:bg-white cursor-pointer shadow-md'
+    ),
+    layout: true,
+    initial: { opacity: 0, y: 20, scale: 0.95 },
+    animate: { opacity: 1, y: 0, scale: 1 },
+    exit: { opacity: 0, y: -10, scale: 0.95, transition: { duration: 0.2 } },
+    whileHover: isCompleted ? {} : { y: -4, transition: { type: "spring", stiffness: 300, damping: 15 } },
+    transition: { type: "spring", stiffness: 300, damping: 20 },
+  };
+
+  if (link && !isCompleted) {
+    return (
+      <Link href={link} passHref legacyBehavior>
+        <motion.a {...wrapperProps}>
+          {content}
+        </motion.a>
+      </Link>
+    );
+  }
+  
+  return (
+    <motion.button onClick={onClick} {...wrapperProps} disabled={isCompleted}>
+      {content}
+    </motion.button>
+  );
+};
+
+// --- רכיב הצ'קליסט הראשי, מעוצב כבאנר קבלת פנים אינטראקטיבי ---
+export const ProfileChecklist: React.FC<{
+  user: SessionUserType;
+  onPreviewClick: () => void;
+}> = ({ user, onPreviewClick }) => {
+  
+  const coreTasks = [
+    { 
+      id: 'photo', 
+      isCompleted: (user.images?.length ?? 0) > 0, 
+      title: 'העלאת תמונות', 
+      description: 'הרושם הראשוני הוא קריטי.', 
+      link: '/profile?tab=photos',
+      icon: Camera 
+    },
+    { 
+      id: 'about', 
+      isCompleted: !!user.profile?.about && user.profile.about.trim().length > 100,
+      title: 'כתיבת "קצת עליי"', 
+      description: 'המקום לספר על עצמך במילים שלך.', 
+      link: '/profile?tab=overview',
+      icon: User 
+    },
+    { 
+      id: 'questionnaire', 
+      isCompleted: !!user.questionnaireCompleted,
+      title: 'שאלון התאמה', 
+      description: 'השלב החשוב ביותר להתאמות AI.', 
+      link: '/questionnaire', 
+      icon: BookOpen 
+    },
+    { 
+      id: 'phone', 
+      isCompleted: !!user.isPhoneVerified, 
+      title: 'אימות טלפון', 
+      description: 'חיוני ליצירת קשר ואבטחה.', 
+      link: '/auth/verify-phone', 
+      icon: Phone 
+    },
+  ];
+
+  const bonusTasks = [
+    { 
+      id: 'preferences', 
+      isCompleted: (user.profile?.preferredAgeMin != null && (user.profile?.preferredReligiousLevels?.length ?? 0) > 0),
+      title: 'הגדרת העדפות', 
+      description: 'דייק/י את החיפוש אחר הנפש התאומה.', 
+      link: '/profile?tab=preferences',
+      icon: SlidersHorizontal,
+      isBonus: true
+    },
+    { 
+      id: 'review', 
+      isCompleted: false, // This task is never "completed" in the list
+      title: 'סקירת הפרופיל', 
+      description: 'צפה/י איך הפרופיל שלך נראה לאחרים.', 
+      onClick: onPreviewClick,
+      icon: Edit3,
+      isBonus: true
+    }
+  ];
+
+  const completedCoreCount = coreTasks.filter(t => t.isCompleted).length;
+  const isCoreComplete = completedCoreCount === coreTasks.length;
+  
+  const tasksToShow = isCoreComplete ? bonusTasks.filter(t => !t.isCompleted) : coreTasks;
+  
+  const totalStepsForProgress = coreTasks.length;
+  const completionPercentage = Math.round((completedCoreCount / totalStepsForProgress) * 100);
+
+  // החלטה אם להציג את הרכיב בכלל: אם כל משימות החובה והבונוס הושלמו, אין מה להציג
+  if (isCoreComplete && bonusTasks.every(task => task.isCompleted)) {
+      return null;
+  }
+  
+  return (
+    <AnimatePresence>
+        {tasksToShow.length > 0 && (
+            <motion.div 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, height: 0, marginBottom: 0, padding: 0, transition: { duration: 0.4 } }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              className="mb-8 rounded-3xl shadow-xl border border-white/50 bg-white/70 backdrop-blur-md overflow-hidden"
+            >
+              <div className="p-6">
+                <div className="md:flex md:items-center md:justify-between">
+                  <div className="text-center md:text-right">
+                    <h2 className="text-xl font-bold text-slate-800 flex items-center justify-center md:justify-start gap-2">
+                       {isCoreComplete && <Sparkles className="w-6 h-6 text-amber-500" />}
+                      {isCoreComplete 
+                        ? `כל הכבוד, ${user.firstName}! הפרופיל שלך מוכן!`
+                        : `ברוך הבא, ${user.firstName}! בוא נכין את הפרופיל שלך להצלחה`
+                      }
+                    </h2>
+                    <p className="text-slate-600 mt-1 text-sm md:text-base">
+                      {isCoreComplete
+                        ? 'השלמת את כל השלבים החשובים. אלו צעדים נוספים שישפרו את הסיכויים שלך:'
+                        : 'השלמת הצעדים הבאים תעזור לנו למצוא עבורך את ההתאמות הטובות ביותר.'
+                      }
+                    </p>
+                  </div>
+                  {!isCoreComplete && (
+                      <div className="mt-4 md:mt-0 md:w-1/3">
+                        <div className="flex justify-between items-center text-sm mb-1">
+                            <span className="font-medium text-gray-700">התקדמות שלבי חובה</span>
+                            <span className="font-bold text-cyan-600">{completionPercentage}%</span>
+                        </div>
+                        <Progress value={completionPercentage} className="h-2 bg-slate-200/70" />
+                      </div>
+                  )}
+                </div>
+
+                <div className="mt-6 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                  <AnimatePresence>
+                      {tasksToShow.map((task) => (
+                          <ChecklistItem 
+                            key={task.id} 
+                            {...task}
+                          />
+                      ))}
+                  </AnimatePresence>
+                </div>
+              </div>
+            </motion.div>
+        )}
+    </AnimatePresence>
+  );
+};
+--- End of Content for ProfileChecklist.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\(authenticated)\profile\components\dashboard\UnifiedProfileDashboard.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/app/(authenticated)/profile/components/dashboard/UnifiedProfileDashboard.tsx
+"use client";
+
+import React, { useState, useEffect, useCallback } from "react";
+import { useSession } from "next-auth/react";
+import Link from 'next/link';
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import type { User as SessionUserType } from '@/types/next-auth';
+
+// --- Import a ProfileChecklist component that will be created next ---
+import { ProfileChecklist } from "./ProfileChecklist";
+
+// UI Components
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+
+// Shared Profile Components
+import {
+  ProfileCard,
+  PhotosSection,
+  PreferencesSection,
+  ProfileSection,
+  QuestionnaireResponsesSection,
+} from "@/app/components/profile";
+
+// Icons
+import { Eye, Edit, Pencil, Save, X, Loader2 } from "lucide-react";
+
+// Types
+import type {
+  UserProfile,
+  UserImage,
+  QuestionnaireResponse,
+  UpdateValue,
+} from "@/types/next-auth";
+
+interface UnifiedProfileDashboardProps {
+  viewOnly?: boolean;
+  userId?: string;
+}
+
+const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
+  viewOnly = false,
+  userId,
+}) => {
+  const { data: session, status: sessionStatus } = useSession();
+  const [profileData, setProfileData] = useState<UserProfile | null>(null);
+  const [images, setImages] = useState<UserImage[]>([]);
+  const [questionnaireResponse, setQuestionnaireResponse] = useState<QuestionnaireResponse | null>(null);
+  const [activeTab, setActiveTab] = useState("overview");
+  const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [previewOpen, setPreviewOpen] = useState(false);
+
+  const { update: updateSession } = useSession();
+
+  // Determine if the user is viewing their own profile
+  const isOwnProfile = !userId || (session?.user?.id === userId);
+
+  const loadData = useCallback(async () => {
+    setIsLoading(true);
+    setError("");
+    try {
+      const profileUrl = userId ? `/api/profile?userId=${userId}` : "/api/profile";
+      const profileResponse = await fetch(profileUrl);
+      const profileJson = await profileResponse.json();
+
+      if (!profileResponse.ok || !profileJson.success) {
+        throw new Error(profileJson.message || "Failed to load profile");
+      }
+      setProfileData(profileJson.profile);
+      setImages(profileJson.images || []);
+
+      const questionnaireUrl = userId ? `/api/profile/questionnaire?userId=${userId}` : "/api/profile/questionnaire";
+      const questionnaireResponse = await fetch(questionnaireUrl);
+      const questionnaireJson = await questionnaireResponse.json();
+
+      if (!questionnaireResponse.ok || !questionnaireJson.success) {
+        console.warn("Could not load questionnaire:", questionnaireJson.message);
+        setQuestionnaireResponse(null);
+      } else {
+        setQuestionnaireResponse(questionnaireJson.questionnaireResponse);
+      }
+    } catch (err: unknown) {
+      console.error("Failed to load profile data:", err);
+      let errorMessage = "שגיאה בטעינת הנתונים";
+      if (err instanceof Error) {
+        errorMessage = err.message || errorMessage;
+      } else if (typeof err === "string") {
+        errorMessage = err;
+      }
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const ensureDateObject = (value: string | number | Date | null | undefined): Date | undefined => {
+    if (!value) return undefined;
+    if (value instanceof Date && !isNaN(value.getTime())) return value;
+    if (typeof value === "string" || typeof value === "number") {
+      const date = new Date(value);
+      if (!isNaN(date.getTime())) return date;
+    }
+    return undefined;
+  };
+
+  const handleSave = async (formData: Partial<UserProfile>) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/profile/update", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+      if (data.success && data.profile) {
+        await updateSession();
+        const serverProfile = data.profile as UserProfile;
+        const processedProfile: UserProfile = {
+          ...serverProfile,
+          birthDate: ensureDateObject(serverProfile.birthDate)!,
+          createdAt: ensureDateObject(serverProfile.createdAt)!,
+          updatedAt: ensureDateObject(serverProfile.updatedAt)!,
+          lastActive: ensureDateObject(serverProfile.lastActive),
+          availabilityUpdatedAt: ensureDateObject(serverProfile.availabilityUpdatedAt),
+        };
+        setProfileData(processedProfile);
+        setIsEditing(false);
+        toast.success("הפרופיל עודכן בהצלחה");
+        setError("");
+      } else {
+        setError(data.message || "שגיאה בעדכון הפרופיל");
+        toast.error(data.message || "שגיאה בעדכון הפרופיל");
+      }
+    } catch (err) {
+      console.error("Save error:", err);
+      setError("שגיאה בעדכון הפרופיל");
+      toast.error("שגיאה בעדכון הפרופיל");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const handleImageUpload = async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/profile/images", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await response.json();
+      if (data.success) {
+        setImages((prev) => [...prev, data.image]);
+        await updateSession();
+        toast.success("התמונה הועלתה בהצלחה");
+        setError("");
+      } else {
+        setError(data.message || "שגיאה בהעלאת התמונה");
+        toast.error(data.message || "שגיאה בהעלאת התמונה");
+      }
+    } catch (err) {
+      console.error("Upload error:", err);
+      setError("שגיאה בהעלאת התמונה");
+      toast.error("שגיאה בהעלאת התמונה");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSetMainImage = async (imageId: string) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/profile/images/${imageId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isMain: true }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setImages(data.images);
+        await updateSession();
+        toast.success("התמונה הראשית עודכנה בהצלחה");
+        setError("");
+      } else {
+        setError(data.message || "שגיאה בעדכון התמונה הראשית");
+        toast.error(data.message || "שגיאה בעדכון התמונה הראשית");
+      }
+    } catch (err) {
+      console.error("Set main image error:", err);
+      setError("שגיאה בעדכון התמונה הראשית");
+      toast.error("שגיאה בעדכון התמונה הראשית");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteImage = async (imageId: string) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/profile/images/${imageId}`, {
+        method: "DELETE",
+      });
+      const data = await response.json();
+      if (data.success) {
+        setImages((prev) => prev.filter((img) => img.id !== imageId));
+        await updateSession();
+        toast.success("התמונה נמחקה בהצלחה");
+        setError("");
+      } else {
+        setError(data.message || "שגיאה במחיקת התמונה");
+        toast.error(data.message || "שגיאה במחיקת התמונה");
+      }
+    } catch (err) {
+      console.error("Delete image error:", err);
+      setError("שגיאה במחיקת התמונה");
+      toast.error("שגיאה במחיקת התמונה");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleQuestionnaireUpdate = async (world: string, questionId: string, value: UpdateValue) => {
+    setIsLoading(true);
+    try {
+      const payload = { worldKey: world, questionId: questionId, value };
+      const response = await fetch("/api/profile/questionnaire", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setQuestionnaireResponse(data.data);
+        toast.success("השאלון עודכן בהצלחה");
+        setError("");
+      } else {
+        setError(data.message || "שגיאה בעדכון השאלון");
+        toast.error(data.message || "שגיאה בעדכון השאלון");
+      }
+    } catch (err) {
+      console.error("Failed to update questionnaire:", err);
+      setError("שגיאה בעדכון השאלון");
+      toast.error("שגיאה בעדכון השאלון");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading && !profileData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-cyan-50 via-white to-pink-50" dir="rtl">
+        <div className="flex items-center gap-2 text-lg text-cyan-600">
+          <Loader2 className="animate-spin h-6 w-6" />
+          <span>טוען נתונים...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error && !profileData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 p-4" dir="rtl">
+        <Alert variant="destructive" className="max-w-md mx-auto">
+          <AlertDescription className="text-center">{error}</AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  const user = session?.user as SessionUserType | undefined;
+  
+  return (
+    <div className="relative min-h-screen w-full overflow-hidden" dir="rtl">
+      <div
+        className="absolute inset-0 bg-gradient-to-br from-cyan-50 via-white to-pink-50 animate-gradient-slow -z-10"
+        style={{ backgroundSize: "400% 400%" }}
+      />
+      <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:30px_30px] -z-10"></div>
+
+      <div id="onboarding-target-profile-card" className="relative max-w-7xl mx-auto py-8 sm:py-12 px-4 sm:px-6 lg:px-8 z-10">
+        <div className="space-y-6 md:space-y-8">
+          {error && (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          {/* --- Conditionally render ProfileChecklist --- */}
+        {isOwnProfile && user && (
+  <ProfileChecklist 
+    user={user} 
+    onPreviewClick={() => setPreviewOpen(true)} 
+  />
+)}
+
+
+          {!viewOnly && isOwnProfile && (
+            <div className="flex justify-center my-6 md:my-8">
+              <div id="onboarding-target-preview-profile" className="flex justify-center my-6 md:my-8"> {/* <--- ID לתצוגה מקדימה */}
+              <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="px-8 py-3 text-base sm:text-lg gap-2 rounded-full border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-400 transition-all duration-300 shadow-sm hover:shadow-md"
+                  >
+                    תצוגה מקדימה של הפרופיל{" "}
+                    <Eye className="w-5 h-5 sm:w-6 sm:h-6" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent
+                  className="w-[95vw] max-w-6xl max-h-[90vh] overflow-y-auto p-6 bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl border-none"
+                  dir="rtl"
+                >
+                  {profileData ? (
+                    <ProfileCard
+                      profile={profileData}
+                      images={images}
+                      questionnaire={questionnaireResponse}
+                      viewMode="candidate"
+                    />
+                  ) : (
+                    <p className="text-center text-gray-500 py-10">
+                      טוען תצוגה מקדימה...
+                    </p>
+                  )}
+                </DialogContent>
+              </Dialog>
+            </div>
+            </div>
+          )}
+
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full"
+          >
+            <div className="flex justify-center mb-6 md:mb-8">
+              <ScrollArea dir="rtl" className="w-auto max-w-full">
+                <TabsList className="h-auto p-1.5 bg-white/70 backdrop-blur-sm rounded-full shadow-md gap-1 inline-flex flex-nowrap">
+                  <TabsTrigger
+                    value="overview"
+                    className="px-3 sm:px-6 py-1.5 sm:py-2 rounded-full text-xs sm:text-base font-medium text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-100 data-[state=active]:to-pink-100 data-[state=active]:text-cyan-700 data-[state=active]:shadow-inner transition-all duration-300 whitespace-nowrap"
+                  >
+                    פרטים כלליים
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="photos"
+                    className="px-3 sm:px-6 py-1.5 sm:py-2 rounded-full text-xs sm:text-base font-medium text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-100 data-[state=active]:to-pink-100 data-[state=active]:text-cyan-700 data-[state=active]:shadow-inner transition-all duration-300 whitespace-nowrap"
+                  >
+                    תמונות
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="preferences"
+                    className="px-3 sm:px-6 py-1.5 sm:py-2 rounded-full text-xs sm:text-base font-medium text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-100 data-[state=active]:to-pink-100 data-[state=active]:text-cyan-700 data-[state=active]:shadow-inner transition-all duration-300 whitespace-nowrap"
+                  >
+                    העדפות
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="questionnaire"
+                    className="px-3 sm:px-6 py-1.5 sm:py-2 rounded-full text-xs sm:text-base font-medium text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-100 data-[state=active]:to-pink-100 data-[state=active]:text-cyan-700 data-[state=active]:shadow-inner transition-all duration-300 whitespace-nowrap"
+                  >
+                    שאלון
+                  </TabsTrigger>
+                </TabsList>
+                <ScrollBar orientation="horizontal" className="mt-1" />
+              </ScrollArea>
+            </div>
+
+            <div
+              key={activeTab}
+              className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl p-6 md:p-8 lg:p-10 transition-all duration-300 ease-in-out"
+            >
+<TabsContent value="overview" id="onboarding-target-edit-profile" className="focus-visible:ring-0 focus-visible:ring-offset-0">                {profileData ? (
+                  <ProfileSection
+                    profile={profileData}
+                    isEditing={isEditing}
+                    setIsEditing={setIsEditing}
+                    onSave={handleSave}
+                    viewOnly={viewOnly || !isOwnProfile}
+                  />
+                ) : (
+                  <p className="text-center text-gray-500 py-10">טוען סקירה כללית...</p>
+                )}
+              </TabsContent>
+
+<TabsContent value="photos" id="onboarding-target-photos" className="focus-visible:ring-0 focus-visible:ring-offset-0">                <PhotosSection
+                  images={images}
+                  isUploading={isLoading}
+                  disabled={viewOnly || !isOwnProfile}
+                  onUpload={handleImageUpload}
+                  onSetMain={handleSetMainImage}
+                  onDelete={handleDeleteImage}
+                />
+              </TabsContent>
+
+<TabsContent value="preferences" id="onboarding-target-preferences" className="focus-visible:ring-0 focus-visible:ring-offset-0">                {profileData ? (
+                  <PreferencesSection
+                    profile={profileData}
+                    isEditing={isEditing}
+                    setIsEditing={setIsEditing}
+                    onChange={handleSave}
+                    viewOnly={viewOnly || !isOwnProfile}
+                  />
+                ) : (
+                  <p className="text-center text-gray-500 py-10">טוען העדפות...</p>
+                )}
+              </TabsContent>
+
+<TabsContent value="questionnaire" id="onboarding-target-questionnaire-tab" className="focus-visible:ring-0 focus-visible:ring-offset-0">                {questionnaireResponse ? (
+                  <QuestionnaireResponsesSection
+                    questionnaire={questionnaireResponse}
+                    onUpdate={handleQuestionnaireUpdate}
+                    isEditable={!viewOnly && isOwnProfile}
+                  />
+                ) : (
+                  <div className="text-center py-12 text-gray-500">
+                    {isLoading ? "טוען שאלון..." : "לא מולאו תשובות לשאלון."}
+                    {!isLoading && isOwnProfile && (
+                      <Button asChild variant="link" className="mt-2 text-cyan-600">
+                        <Link href="/questionnaire"> למילוי השאלון</Link>
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </TabsContent>
+            </div>
+          </Tabs>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default UnifiedProfileDashboard;
+--- End of Content for UnifiedProfileDashboard.tsx ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\(authenticated)\settings
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\(authenticated)\settings\page.tsx
+--------------------------------------------------------------------------------
+Content:
+// --- START OF FILE page.tsx ---
+
+"use client";
+
+import { useSession } from "next-auth/react";
+import AccountSettings from "@/components/account-settings";
+
+export default function SettingsPage() {
+  const { data: session, status } = useSession();
+
+  if (status === "loading") return <div>Loading...</div>;
+  if (status === "unauthenticated") return <div>Access Denied</div>;
+  // It's good practice to check session?.user as well, though useSession types often guarantee it if status is "authenticated"
+  if (!session?.user) return <div>Error: No user data or session invalid</div>;
+
+  const userData = {
+    id: session.user.id,
+    email: session.user.email, // Assuming email is always present and a string
+    firstName: session.user.firstName, // Assuming firstName is always present and a string
+    lastName: session.user.lastName, // Assuming lastName is always present and a string
+    role: session.user.role,
+    status: session.user.status,
+    isVerified: session.user.isVerified,
+    lastLogin: session.user.lastLogin ?? null, // Fix: Convert undefined to null
+    createdAt: session.user.createdAt,
+  };
+
+  return <AccountSettings user={userData} />;
+}
+// --- END OF FILE page.tsx ---
+--- End of Content for page.tsx ---
+

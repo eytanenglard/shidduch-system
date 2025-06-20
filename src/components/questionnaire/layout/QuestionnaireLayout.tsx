@@ -274,7 +274,7 @@ export default function QuestionnaireLayout({
       </p>
       <div className="flex gap-2 justify-center pt-1">
         <Link href="/auth/signin">
-          <Button variant="outline" size="sm" className="bg-white/80">
+          <Button id="onboarding-target-exit-map" variant="outline" size="sm" className="bg-white/80">
             <LogIn className="w-3 h-3 ml-1" />
             התחברות
           </Button>

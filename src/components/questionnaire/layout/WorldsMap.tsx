@@ -367,7 +367,7 @@ export default function WorldsMap({
   };
 
   return (
-    <div className={cn("space-y-8 font-sans", className)}>
+    <div id="onboarding-target-worlds-map" className={cn("space-y-8 font-sans", className)}>
       <header className="bg-white dark:bg-slate-800/50 p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
           <div>
@@ -549,6 +549,7 @@ export default function WorldsMap({
               variants={cardVariants}
               initial="initial"
               animate="animate"
+              id={worldId === 'PERSONALITY' ? 'onboarding-target-world-card' : undefined}
               whileHover={accessible ? "hover" : ""}
               whileTap={accessible ? "tap" : ""}
               layout

@@ -174,7 +174,8 @@ export default function ChatWidget() {
   return (
     <>
       <div className="fixed bottom-8 left-8 z-[100]">
-        <Button
+        <Button id="onboarding-target-chat-widget"
+
           aria-label={isOpen ? "Close chat" : "Open chat"}
           size="icon"
           className="rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800 group w-16 h-16"
@@ -186,6 +187,7 @@ export default function ChatWidget() {
             <MessageCircle className="w-7 h-7 text-white transition-transform duration-300 group-hover:scale-110" />
           )}
         </Button>
+       
       </div>
 
       <div

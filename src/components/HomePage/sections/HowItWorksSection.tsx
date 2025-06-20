@@ -4,7 +4,7 @@ import { DemoSuggestionCard } from "../components/DemoSuggestionCard"; // <-- 1.
 
 const HowItWorksSection: React.FC = () => {
   return (
-    <section className="py-16 md:py-20 px-4 bg-white relative overflow-hidden">
+    <section id="onboarding-target-how-it-works" className="py-16 md:py-20 px-4 bg-white relative overflow-hidden">
       {/* Enhanced background effects */}
       <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:20px_20px]"></div>
 

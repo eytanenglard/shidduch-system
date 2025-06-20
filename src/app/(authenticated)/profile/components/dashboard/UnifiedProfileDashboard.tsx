@@ -292,7 +292,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
       />
       <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:30px_30px] -z-10"></div>
 
-      <div className="relative max-w-7xl mx-auto py-8 sm:py-12 px-4 sm:px-6 lg:px-8 z-10">
+      <div id="onboarding-target-profile-card" className="relative max-w-7xl mx-auto py-8 sm:py-12 px-4 sm:px-6 lg:px-8 z-10">
         <div className="space-y-6 md:space-y-8">
           {error && (
             <Alert variant="destructive">
@@ -302,15 +302,16 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
 
           {/* --- Conditionally render ProfileChecklist --- */}
         {isOwnProfile && user && (
-  <ProfileChecklist 
-    user={user} 
-    onPreviewClick={() => setPreviewOpen(true)} 
-  />
-)}
+            <ProfileChecklist 
+                user={user} 
+                onPreviewClick={() => setPreviewOpen(true)} 
+            />
+        )}
 
 
           {!viewOnly && isOwnProfile && (
             <div className="flex justify-center my-6 md:my-8">
+              <div id="onboarding-target-preview-profile" className="flex justify-center my-6 md:my-8"> {/* <--- ID לתצוגה מקדימה */}
               <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
                 <DialogTrigger asChild>
                   <Button
@@ -340,6 +341,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                   )}
                 </DialogContent>
               </Dialog>
+            </div>
             </div>
           )}
 
@@ -384,8 +386,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
               key={activeTab}
               className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl p-6 md:p-8 lg:p-10 transition-all duration-300 ease-in-out"
             >
-              <TabsContent value="overview" className="focus-visible:ring-0 focus-visible:ring-offset-0">
-                {profileData ? (
+<TabsContent value="overview" id="onboarding-target-edit-profile" className="focus-visible:ring-0 focus-visible:ring-offset-0">                {profileData ? (
                   <ProfileSection
                     profile={profileData}
                     isEditing={isEditing}
@@ -398,8 +399,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                 )}
               </TabsContent>
 
-              <TabsContent value="photos" className="focus-visible:ring-0 focus-visible:ring-offset-0">
-                <PhotosSection
+<TabsContent value="photos" id="onboarding-target-photos" className="focus-visible:ring-0 focus-visible:ring-offset-0">                <PhotosSection
                   images={images}
                   isUploading={isLoading}
                   disabled={viewOnly || !isOwnProfile}
@@ -409,8 +409,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                 />
               </TabsContent>
 
-              <TabsContent value="preferences" className="focus-visible:ring-0 focus-visible:ring-offset-0">
-                {profileData ? (
+<TabsContent value="preferences" id="onboarding-target-preferences" className="focus-visible:ring-0 focus-visible:ring-offset-0">                {profileData ? (
                   <PreferencesSection
                     profile={profileData}
                     isEditing={isEditing}
@@ -423,8 +422,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                 )}
               </TabsContent>
 
-              <TabsContent value="questionnaire" className="focus-visible:ring-0 focus-visible:ring-offset-0">
-                {questionnaireResponse ? (
+<TabsContent value="questionnaire" id="onboarding-target-questionnaire-tab" className="focus-visible:ring-0 focus-visible:ring-offset-0">                {questionnaireResponse ? (
                   <QuestionnaireResponsesSection
                     questionnaire={questionnaireResponse}
                     onUpdate={handleQuestionnaireUpdate}

@@ -285,7 +285,7 @@ export default function ValuesWorld({
   );
 
   const renderQuestionCard = () => (
-    <motion.div className={cn("transition-opacity duration-300")} key={currentQuestionIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+    <motion.div id="onboarding-target-question-card" className={cn("transition-opacity duration-300")} key={currentQuestionIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
       <QuestionCard question={currentQuestion} depth={currentQuestion.depth} isRequired={currentQuestion.isRequired} validationError={validationErrors[currentQuestion.id]} language={language}>
         <AnswerInput question={currentQuestion} value={currentValue} onChange={(value) => { setValidationErrors(prev => ({ ...prev, [currentQuestion.id]: '' })); onAnswer(currentQuestion.id, value); }} onClear={handleClearAnswer} language={language} showValidation={!!validationErrors[currentQuestion.id]} />
       </QuestionCard>
@@ -293,7 +293,7 @@ export default function ValuesWorld({
   );
 
   const renderNavigationButtons = () => (
-    <div className="flex justify-between pt-4 mt-6 border-t">
+    <div id="onboarding-target-navigation-buttons" className="flex justify-between pt-4 mt-6 border-t">
       <Button variant="outline" onClick={handlePrevious} className="flex items-center gap-2"><ArrowRight className="h-4 w-4" /><span>{currentQuestionIndex === 0 ? "חזור למפה" : "שאלה קודמת"}</span></Button>
       {currentQuestionIndex < allQuestions.length - 1 ? (
         <Button variant="default" onClick={handleNext} className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2"><span>שאלה הבאה</span><ArrowLeft className="h-4 w-4" /></Button>
@@ -329,7 +329,7 @@ export default function ValuesWorld({
           </div>
           <AnimatePresence>
             {isListVisible && (
-              <motion.div className="col-span-12 lg:col-span-5 xl:col-span-4" initial={{ opacity: 0, width: 0, marginInlineStart: isRTL ? "-2rem" : undefined, marginInlineEnd: isRTL ? undefined : "-2rem" }} animate={{ opacity: 1, width: "auto", marginInlineStart: 0, marginInlineEnd: 0 }} exit={{ opacity: 0, width: 0, marginInlineStart: isRTL ? "-2rem" : undefined, marginInlineEnd: isRTL ? undefined : "-2rem" }} transition={{ duration: 0.3, ease: "easeInOut" }} layout>
+              <motion.div id="onboarding-target-progress-sidebar" className="col-span-12 lg:col-span-5 xl:col-span-4" initial={{ opacity: 0, width: 0, marginInlineStart: isRTL ? "-2rem" : undefined, marginInlineEnd: isRTL ? undefined : "-2rem" }} animate={{ opacity: 1, width: "auto", marginInlineStart: 0, marginInlineEnd: 0 }} exit={{ opacity: 0, width: 0, marginInlineStart: isRTL ? "-2rem" : undefined, marginInlineEnd: isRTL ? undefined : "-2rem" }} transition={{ duration: 0.3, ease: "easeInOut" }} layout>
                 <Card className="sticky top-6 shadow-lg border border-gray-200 h-[calc(100vh-5rem)] overflow-hidden flex flex-col">
                    <CardHeader className="pb-3 pt-4 border-b bg-gray-50/50 flex-shrink-0">
                     <CardTitle className="text-lg font-semibold flex items-center gap-2 text-gray-800"><ListChecks className="h-5 w-5 text-blue-600" /><span>שאלות בעולם זה</span></CardTitle>

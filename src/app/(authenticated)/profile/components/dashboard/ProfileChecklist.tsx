@@ -1,15 +1,12 @@
-// src/app/(authenticated)/profile/components/dashboard/ProfileChecklist.tsx
 "use client";
 
 import React from 'react';
 import Link from 'next/link';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle, Circle, ArrowRight, User, BookOpen, Camera, Phone, SlidersHorizontal, Edit3 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion'; // <--- ייבוא שהיה חסר
+import { CheckCircle, User, BookOpen, Camera, Phone, SlidersHorizontal, Edit3, Sparkles } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from "@/lib/utils";
 import type { User as SessionUserType } from '@/types/next-auth';
-import { Button } from '@/components/ui/button';
 
 interface ChecklistItemProps {
   isCompleted: boolean;
@@ -18,94 +15,118 @@ interface ChecklistItemProps {
   link?: string;
   onClick?: () => void;
   icon: React.ElementType;
-  stepNumber: number; // <--- הוסף את השורה הזו
+  isBonus?: boolean;
 }
 
-const ChecklistItem: React.FC<ChecklistItemProps> = ({ isCompleted, title, description, link, onClick, icon: Icon }) => {
+// --- רכיב פריט משימה בעיצוב חדש, מזמין ואינטראקטיבי ---
+const ChecklistItem: React.FC<ChecklistItemProps> = ({ isCompleted, title, description, link, onClick, icon: Icon, isBonus }) => {
   const content = (
-    <div className="flex-1">
-      <h4 className={cn("font-semibold", isCompleted ? 'text-gray-500 line-through' : 'text-gray-800')}>{title}</h4>
-      <p className="text-sm text-gray-600">{description}</p>
-      {!isCompleted && (
-        <div className="text-sm font-semibold text-blue-600 hover:underline mt-2 inline-flex items-center gap-1 group cursor-pointer">
-          המשך לשלב זה <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1" />
+    <>
+      <div className="relative w-full flex justify-center mb-4">
+        <div className={cn(
+          "relative flex items-center justify-center w-16 h-16 rounded-2xl transition-all duration-300 transform group-hover:scale-110",
+          isCompleted ? "bg-emerald-100 shadow-emerald-500/10" : "bg-cyan-100 shadow-cyan-500/10",
+          isBonus && !isCompleted && "bg-amber-100 shadow-amber-500/10"
+        )}>
+          <Icon className={cn(
+            "w-8 h-8 transition-colors duration-300", 
+            isCompleted ? "text-emerald-500" : "text-cyan-600",
+            isBonus && !isCompleted && "text-amber-600"
+          )} />
         </div>
+        {isCompleted && (
+           <motion.div 
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 400, damping: 20, delay: 0.2 }}
+            className="absolute -top-1 -right-1"
+          >
+            <CheckCircle className="w-6 h-6 text-emerald-500 bg-white rounded-full p-0.5" fill="white" />
+          </motion.div>
+        )}
+      </div>
+      <h4 className={cn(
+        "font-bold text-sm text-center transition-colors",
+        isCompleted ? 'text-gray-400 line-through' : 'text-gray-800'
+      )}>
+        {title}
+      </h4>
+      {!isCompleted && (
+        <p className="text-xs text-center text-gray-500 mt-1 leading-tight h-8">
+          {description}
+        </p>
       )}
-    </div>
+    </>
   );
 
   const wrapperProps = {
+    className: cn(
+      "relative flex flex-col items-center p-4 rounded-2xl transition-all duration-300 group h-full",
+      isCompleted 
+        ? 'bg-white/40 cursor-default' 
+        : 'bg-white/70 hover:shadow-xl hover:bg-white cursor-pointer shadow-md'
+    ),
     layout: true,
-    initial: { opacity: 0, y: 10 },
-    animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, x: -20, transition: { duration: 0.2 } },
-    transition: { duration: 0.3 },
-    className: cn("flex items-start gap-4 p-3 rounded-lg transition-all", isCompleted ? 'bg-emerald-50/60' : 'bg-blue-50/60 hover:bg-blue-100/70'),
+    initial: { opacity: 0, y: 20, scale: 0.95 },
+    animate: { opacity: 1, y: 0, scale: 1 },
+    exit: { opacity: 0, y: -10, scale: 0.95, transition: { duration: 0.2 } },
+    whileHover: isCompleted ? {} : { y: -4, transition: { type: "spring", stiffness: 300, damping: 15 } },
+    transition: { type: "spring", stiffness: 300, damping: 20 },
   };
 
-  // If a link is provided, wrap with Next.js Link. Otherwise, use a button for onClick.
-  const interactiveElement = link ? (
-    <Link href={link} className="flex-1">
-      {content}
-    </Link>
-  ) : (
-    <button onClick={onClick} className="text-left w-full flex-1">
-      {content}
-    </button>
-  );
-
+  if (link && !isCompleted) {
+    return (
+      <Link href={link} passHref legacyBehavior>
+        <motion.a {...wrapperProps}>
+          {content}
+        </motion.a>
+      </Link>
+    );
+  }
+  
   return (
-    <motion.div {...wrapperProps}>
-      <div className="flex-shrink-0 mt-1">
-        {isCompleted ? (
-          <CheckCircle className="w-5 h-5 text-emerald-500" />
-        ) : (
-          <Circle className="w-5 h-5 text-blue-400" />
-        )}
-      </div>
-      {interactiveElement}
-      <Icon className={cn("w-6 h-6 flex-shrink-0 opacity-50", isCompleted ? "text-emerald-400" : "text-blue-400")} />
-    </motion.div>
+    <motion.button onClick={onClick} {...wrapperProps} disabled={isCompleted}>
+      {content}
+    </motion.button>
   );
 };
 
-interface ProfileChecklistProps {
+// --- רכיב הצ'קליסט הראשי, מעוצב כבאנר קבלת פנים אינטראקטיבי ---
+export const ProfileChecklist: React.FC<{
   user: SessionUserType;
-  onPreviewClick: () => void; 
-}
-
-export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({ user, onPreviewClick }) => {
+  onPreviewClick: () => void;
+}> = ({ user, onPreviewClick }) => {
   
   const coreTasks = [
     { 
       id: 'photo', 
       isCompleted: (user.images?.length ?? 0) > 0, 
-      title: 'העלאת תמונת פרופיל', 
-      description: 'פרופיל עם תמונה מקבל פי 10 יותר פניות. העלה/י תמונה ברורה.', 
-      link: '#photos_section', // שיניתי את הלינק כדי שיהיה ייחודי יותר
+      title: 'העלאת תמונות', 
+      description: 'הרושם הראשוני הוא קריטי.', 
+      link: '/profile?tab=photos',
       icon: Camera 
     },
     { 
       id: 'about', 
       isCompleted: !!user.profile?.about && user.profile.about.trim().length > 100,
       title: 'כתיבת "קצת עליי"', 
-      description: 'זהו המקום לספר על עצמך במילים שלך ולמשוך תשומת לב.', 
-      link: '/profile?tab=overview', // שינוי הלינק לטאב המתאים
+      description: 'המקום לספר על עצמך במילים שלך.', 
+      link: '/profile?tab=overview',
       icon: User 
     },
     { 
       id: 'questionnaire', 
       isCompleted: !!user.questionnaireCompleted,
-      title: 'מילוי שאלון התאמה', 
-      description: 'השלב החשוב ביותר! מאפשר למערכת ה-AI למצוא עבורך התאמות מדויקות.', 
+      title: 'שאלון התאמה', 
+      description: 'השלב החשוב ביותר להתאמות AI.', 
       link: '/questionnaire', 
       icon: BookOpen 
     },
     { 
       id: 'phone', 
       isCompleted: !!user.isPhoneVerified, 
-      title: 'אימות מספר טלפון', 
-      description: 'אימות הטלפון חיוני ליצירת קשר ולאבטחת חשבונך.', 
+      title: 'אימות טלפון', 
+      description: 'חיוני ליצירת קשר ואבטחה.', 
       link: '/auth/verify-phone', 
       icon: Phone 
     },
@@ -115,70 +136,87 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({ user, onPrev
     { 
       id: 'preferences', 
       isCompleted: (user.profile?.preferredAgeMin != null && (user.profile?.preferredReligiousLevels?.length ?? 0) > 0),
-      title: 'הגדרת העדפות לשידוך (בונוס)', 
-      description: 'הגדר/י מה את/ה מחפש/ת כדי שנוכל למקד את החיפוש עבורך.', 
-      link: '/profile?tab=preferences', // כיוון לטאב הנכון
-      icon: SlidersHorizontal
+      title: 'הגדרת העדפות', 
+      description: 'דייק/י את החיפוש אחר הנפש התאומה.', 
+      link: '/profile?tab=preferences',
+      icon: SlidersHorizontal,
+      isBonus: true
     },
     { 
       id: 'review', 
-      isCompleted: false,
-      title: 'סקירה סופית של הפרופיל (מומלץ)', 
-      description: 'צפה/י בפרופיל שלך כפי שהוא יוצג לאחרים וודא/י שהכל נראה מצוין.', 
+      isCompleted: false, // This task is never "completed" in the list
+      title: 'סקירת הפרופיל', 
+      description: 'צפה/י איך הפרופיל שלך נראה לאחרים.', 
       onClick: onPreviewClick,
-      icon: Edit3 
+      icon: Edit3,
+      isBonus: true
     }
   ];
 
   const completedCoreCount = coreTasks.filter(t => t.isCompleted).length;
   const isCoreComplete = completedCoreCount === coreTasks.length;
   
-  const tasksToShow = isCoreComplete ? bonusTasks.filter(t => !t.isCompleted) : coreTasks.filter(t => !t.isCompleted);
-  
-  // אם הכל הושלם למעט משימת הסקירה, הסתר את הרכיב
-  if (isCoreComplete && tasksToShow.length <= 1 && tasksToShow[0]?.id === 'review') {
-    return null;
-  }
+  const tasksToShow = isCoreComplete ? bonusTasks.filter(t => !t.isCompleted) : coreTasks;
   
   const totalStepsForProgress = coreTasks.length;
   const completionPercentage = Math.round((completedCoreCount / totalStepsForProgress) * 100);
 
+  // החלטה אם להציג את הרכיב בכלל: אם כל משימות החובה והבונוס הושלמו, אין מה להציג
+  if (isCoreComplete && bonusTasks.every(task => task.isCompleted)) {
+      return null;
+  }
+  
   return (
-    <Card className="mb-8 rounded-2xl shadow-xl border-0 overflow-hidden bg-gradient-to-br from-blue-50/50 to-cyan-50/50">
-      <CardHeader className="p-6">
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-          <CardTitle className="text-xl">מסלול ההצלחה שלך</CardTitle>
-          <CardDescription>
-            {isCoreComplete 
-              ? "כל הכבוד! השלמת את כל שלבי החובה. הנה עוד כמה דברים שישפרו את הפרופיל שלך:"
-              : "השלם את הצעדים הבאים כדי לשפר את הפרופיל שלך ולקבל הצעות טובות יותר!"
-            }
-          </CardDescription>
-        </motion.div>
-        <div className="pt-2">
-            <div className="flex justify-between items-center text-sm mb-1">
-                <span className="font-medium text-gray-700">השלמת שלבי החובה</span>
-                <span className="font-bold text-cyan-600">{completionPercentage}%</span>
-            </div>
-            <Progress value={completionPercentage} className="h-2" />
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-3 p-6 pt-0">
-        <AnimatePresence>
-            {tasksToShow.map((task, index) => (
-                <ChecklistItem 
-                  key={task.id} 
-                  isCompleted={task.isCompleted}
-                  title={task.title}
-                  description={task.description}
-                  link={task.link}
-                  onClick={task.onClick}
-                  icon={task.icon}
-                  stepNumber={isCoreComplete ? index + 1 : completedCoreCount + index + 1}
-                />
-            ))}
-        </AnimatePresence>
-      </CardContent>
-    </Card>
+    <AnimatePresence>
+        {tasksToShow.length > 0 && (
+            <motion.div 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, height: 0, marginBottom: 0, padding: 0, transition: { duration: 0.4 } }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              className="mb-8 rounded-3xl shadow-xl border border-white/50 bg-white/70 backdrop-blur-md overflow-hidden"
+            >
+              <div className="p-6">
+                <div className="md:flex md:items-center md:justify-between">
+                  <div className="text-center md:text-right">
+                    <h2 className="text-xl font-bold text-slate-800 flex items-center justify-center md:justify-start gap-2">
+                       {isCoreComplete && <Sparkles className="w-6 h-6 text-amber-500" />}
+                      {isCoreComplete 
+                        ? `כל הכבוד, ${user.firstName}! הפרופיל שלך מוכן!`
+                        : `ברוך הבא, ${user.firstName}! בוא נכין את הפרופיל שלך להצלחה`
+                      }
+                    </h2>
+                    <p className="text-slate-600 mt-1 text-sm md:text-base">
+                      {isCoreComplete
+                        ? 'השלמת את כל השלבים החשובים. אלו צעדים נוספים שישפרו את הסיכויים שלך:'
+                        : 'השלמת הצעדים הבאים תעזור לנו למצוא עבורך את ההתאמות הטובות ביותר.'
+                      }
+                    </p>
+                  </div>
+                  {!isCoreComplete && (
+                      <div className="mt-4 md:mt-0 md:w-1/3">
+                        <div className="flex justify-between items-center text-sm mb-1">
+                            <span className="font-medium text-gray-700">התקדמות שלבי חובה</span>
+                            <span className="font-bold text-cyan-600">{completionPercentage}%</span>
+                        </div>
+                        <Progress value={completionPercentage} className="h-2 bg-slate-200/70" />
+                      </div>
+                  )}
+                </div>
+
+                <div className="mt-6 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                  <AnimatePresence>
+                      {tasksToShow.map((task) => (
+                          <ChecklistItem 
+                            key={task.id} 
+                            {...task}
+                          />
+                      ))}
+                  </AnimatePresence>
+                </div>
+              </div>
+            </motion.div>
+        )}
+    </AnimatePresence>
   );
 };
