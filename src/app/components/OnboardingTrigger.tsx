@@ -1,34 +1,58 @@
-// src/app/components/OnboardingTrigger.tsx
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useOnboarding } from '@/app/contexts/OnboardingContext';
-import type { User as SessionUserType } from '@/types/next-auth';
 
 /**
- * רכיב זה אחראי על הלוגיקה של הפעלת הסיור הראשוני (Onboarding).
- * הוא אינו מרנדר שום דבר ויזואלי.
- * הוא צריך להיות ממוקם בתוך ה-OnboardingProvider ובתוך ה-SessionProvider.
+ * רכיב זה אחראי להחליט מתי להתחיל את סיור ההיכרות (Onboarding Tour).
+ * הוא פועל ברקע ובודק את התנאים הבאים:
+ * 1. האם המשתמש מחובר (authenticated)?
+ * 2. האם המשתמש כבר השלים את הפרופיל הראשוני שלו? (isProfileComplete === true)
+ * 3. האם המשתמש עדיין לא עשה את סיור ההיכרות? (hasCompletedOnboarding === false)
+ *
+ * רק אם כל התנאים מתקיימים, הסיור יופעל.
+ * כדי למנוע הפעלה חוזרת ונשנית, הוא יופעל רק פעם אחת בכל טעינת סשן.
  */
 const OnboardingTrigger = () => {
-  const { data: session, status: sessionStatus } = useSession();
+  const { data: session, status } = useSession();
   const { startTour, isTourActive } = useOnboarding();
+  const [hasTriggered, setHasTriggered] = useState(false);
 
   useEffect(() => {
-    // בצע את הבדיקה רק אם הסשן טעון והסיור לא כבר פעיל.
-    if (sessionStatus === 'authenticated' && session?.user && !isTourActive) {
-      const user = session.user as SessionUserType;
+    // בדוק אם יש צורך להפעיל את הסיור
+    if (
+      status === 'authenticated' &&      // 1. המשתמש מחובר
+      session?.user &&                   // ודא שאובייקט המשתמש קיים
+      !isTourActive &&                   // 2. הסיור אינו פעיל כרגע
+      !hasTriggered &&                   // 3. הסיור לא הופעל כבר בטעינה זו
+      session.user.isProfileComplete &&  // 4. המשתמש השלים את הפרופיל (התנאי החדש והחשוב!)
+      !session.user.hasCompletedOnboarding // 5. המשתמש עדיין לא השלים את הסיור
+    ) {
+      console.log("OnboardingTrigger: Conditions met. Starting tour.");
+      
+      // המתן שנייה קטנה כדי לתת לדף להיטען באופן מלא לפני הצגת הסיור
+      const timer = setTimeout(() => {
+        startTour();
+        setHasTriggered(true); // סמן שהסיור הופעל כדי למנוע הפעלות חוזרות
+      }, 1000); // דיליי של שנייה אחת (1000ms)
 
-      // התנאי להפעלת הסיור: המשתמש מחובר, והוא *לא* השלים את הסיור בעבר.
-      if (user.hasCompletedOnboarding === false) {
-        console.log("OnboardingTrigger: User needs onboarding. Starting tour.");
-        startTour(); // פשוט מפעילים את הסיור. הקומפוננטה של הסיור תדאג להמתנה לאלמנטים.
-      }
+      return () => clearTimeout(timer); // נקה את הטיימר אם הרכיב יורד מהמסך
+    } else {
+        if (status === 'authenticated' && session?.user) {
+            // הדפסה לדיבאג כדי להבין למה הסיור לא מתחיל
+            console.log("OnboardingTrigger: Conditions not met.", {
+                isAuthenticated: status === 'authenticated',
+                isTourActive,
+                hasTriggered,
+                isProfileComplete: session.user.isProfileComplete,
+                hasCompletedOnboarding: session.user.hasCompletedOnboarding,
+            });
+        }
     }
-  }, [session, sessionStatus, isTourActive, startTour]);
+  }, [session, status, startTour, isTourActive, hasTriggered]);
 
-  // רכיב זה הוא לוגי בלבד ואינו מרנדר דבר
+  // רכיב זה אינו מרנדר שום דבר למסך, הוא רק מפעיל לוגיקה
   return null;
 };
 

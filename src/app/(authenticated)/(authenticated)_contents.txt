@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\(authenticated)
-# Generated on: 2025-06-20 12:41:08
+# Generated on: 2025-06-20 13:51:45
 ################################################################################
 
 ================================================================================
@@ -708,11 +708,11 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
 
           {/* --- Conditionally render ProfileChecklist --- */}
         {isOwnProfile && user && (
-  <ProfileChecklist 
-    user={user} 
-    onPreviewClick={() => setPreviewOpen(true)} 
-  />
-)}
+            <ProfileChecklist 
+                user={user} 
+                onPreviewClick={() => setPreviewOpen(true)} 
+            />
+        )}
 
 
           {!viewOnly && isOwnProfile && (
