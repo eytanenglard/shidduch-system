@@ -4,11 +4,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import Link from 'next/link';
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { User as SessionUserType } from '@/types/next-auth';
 
-// --- Import a ProfileChecklist component that will be created next ---
 import { ProfileChecklist } from "./ProfileChecklist";
 
 // UI Components
@@ -28,7 +28,7 @@ import {
 } from "@/app/components/profile";
 
 // Icons
-import { Eye, Edit, Pencil, Save, X, Loader2 } from "lucide-react";
+import { Eye, Loader2 } from "lucide-react";
 
 // Types
 import type {
@@ -41,25 +41,39 @@ import type {
 interface UnifiedProfileDashboardProps {
   viewOnly?: boolean;
   userId?: string;
+  initialTab?: string;
 }
 
 const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   viewOnly = false,
   userId,
+  initialTab = "overview",
 }) => {
-  const { data: session, status: sessionStatus } = useSession();
+  const { data: session, status: sessionStatus, update: updateSession } = useSession();
+  const router = useRouter();
+  
   const [profileData, setProfileData] = useState<UserProfile | null>(null);
   const [images, setImages] = useState<UserImage[]>([]);
   const [questionnaireResponse, setQuestionnaireResponse] = useState<QuestionnaireResponse | null>(null);
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [previewOpen, setPreviewOpen] = useState(false);
 
-  const { update: updateSession } = useSession();
+  const [hasSeenPreview, setHasSeenPreview] = useState(
+    session?.user?.profile?.hasViewedProfilePreview || false
+  );
 
-  // Determine if the user is viewing their own profile
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
+
+  const handleTabChange = (newTab: string) => {
+    setActiveTab(newTab);
+    router.push(`/profile?tab=${newTab}`, { scroll: false });
+  };
+  
   const isOwnProfile = !userId || (session?.user?.id === userId);
 
   const loadData = useCallback(async () => {
@@ -75,24 +89,36 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
       }
       setProfileData(profileJson.profile);
       setImages(profileJson.images || []);
+      if (profileJson.profile?.hasViewedProfilePreview) {
+        setHasSeenPreview(true);
+      }
 
+      // --- START OF DEBUGGING SECTION ---
       const questionnaireUrl = userId ? `/api/profile/questionnaire?userId=${userId}` : "/api/profile/questionnaire";
-      const questionnaireResponse = await fetch(questionnaireUrl);
-      const questionnaireJson = await questionnaireResponse.json();
+      const questionnaireFetchResponse = await fetch(questionnaireUrl);
+      const questionnaireJson = await questionnaireFetchResponse.json();
 
-      if (!questionnaireResponse.ok || !questionnaireJson.success) {
-        console.warn("Could not load questionnaire:", questionnaireJson.message);
+  
+
+      if (!questionnaireFetchResponse.ok || !questionnaireJson.success) {
+        // This block is likely being triggered.
+        console.warn("--- DEBUG: Could not load questionnaire. Reason:", {
+            message: questionnaireJson.message || "Response not OK or success is false",
+            responseOk: questionnaireFetchResponse.ok,
+            jsonSuccess: questionnaireJson.success,
+        });
         setQuestionnaireResponse(null);
       } else {
+        // If this block is reached, the data should be set.
         setQuestionnaireResponse(questionnaireJson.questionnaireResponse);
       }
+      // --- END OF DEBUGGING SECTION ---
+
     } catch (err: unknown) {
       console.error("Failed to load profile data:", err);
       let errorMessage = "שגיאה בטעינת הנתונים";
       if (err instanceof Error) {
         errorMessage = err.message || errorMessage;
-      } else if (typeof err === "string") {
-        errorMessage = err;
       }
       setError(errorMessage);
       toast.error(errorMessage);
@@ -102,17 +128,32 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   }, [userId]);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
-
-  const ensureDateObject = (value: string | number | Date | null | undefined): Date | undefined => {
-    if (!value) return undefined;
-    if (value instanceof Date && !isNaN(value.getTime())) return value;
-    if (typeof value === "string" || typeof value === "number") {
-      const date = new Date(value);
-      if (!isNaN(date.getTime())) return date;
+    if (sessionStatus === 'authenticated') {
+        loadData();
     }
-    return undefined;
+  }, [loadData, sessionStatus]);
+
+  const handlePreviewClick = async () => {
+    setPreviewOpen(true);
+    if (!hasSeenPreview) {
+      try {
+        const response = await fetch('/api/profile/viewed-preview', {
+          method: 'POST',
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to update preview status');
+        }
+        
+        setHasSeenPreview(true);
+        toast.success("תודה! שלב 'הצפייה בתצוגה' הושלם.");
+        await updateSession();
+        
+      } catch (error) {
+        console.error("Error in handlePreviewClick:", error);
+        toast.error("שגיאה בעדכון סטטוס הצפייה בתצוגה המקדימה.");
+      }
+    }
   };
 
   const handleSave = async (formData: Partial<UserProfile>) => {
@@ -127,16 +168,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
       const data = await response.json();
       if (data.success && data.profile) {
         await updateSession();
-        const serverProfile = data.profile as UserProfile;
-        const processedProfile: UserProfile = {
-          ...serverProfile,
-          birthDate: ensureDateObject(serverProfile.birthDate)!,
-          createdAt: ensureDateObject(serverProfile.createdAt)!,
-          updatedAt: ensureDateObject(serverProfile.updatedAt)!,
-          lastActive: ensureDateObject(serverProfile.lastActive),
-          availabilityUpdatedAt: ensureDateObject(serverProfile.availabilityUpdatedAt),
-        };
-        setProfileData(processedProfile);
+        setProfileData(data.profile);
         setIsEditing(false);
         toast.success("הפרופיל עודכן בהצלחה");
         setError("");
@@ -152,7 +184,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
       setIsLoading(false);
     }
   };
-  
+
   const handleImageUpload = async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -199,10 +231,6 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         setError(data.message || "שגיאה בעדכון התמונה הראשית");
         toast.error(data.message || "שגיאה בעדכון התמונה הראשית");
       }
-    } catch (err) {
-      console.error("Set main image error:", err);
-      setError("שגיאה בעדכון התמונה הראשית");
-      toast.error("שגיאה בעדכון התמונה הראשית");
     } finally {
       setIsLoading(false);
     }
@@ -260,7 +288,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
       setIsLoading(false);
     }
   };
-
+  
   if (isLoading && !profileData) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-cyan-50 via-white to-pink-50" dir="rtl">
@@ -285,159 +313,63 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   const user = session?.user as SessionUserType | undefined;
   
   return (
-    <div className="relative min-h-screen w-full overflow-hidden" dir="rtl">
-      <div
-        className="absolute inset-0 bg-gradient-to-br from-cyan-50 via-white to-pink-50 animate-gradient-slow -z-10"
-        style={{ backgroundSize: "400% 400%" }}
-      />
+    <div className="relative min-h-screen w-full" dir="rtl">
+      <div className="absolute inset-0 bg-gradient-to-br from-cyan-50 via-white to-pink-50 animate-gradient-slow -z-10" style={{ backgroundSize: "400% 400%" }} />
       <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:30px_30px] -z-10"></div>
-
-      <div id="onboarding-target-profile-card" className="relative max-w-7xl mx-auto py-8 sm:py-12 px-4 sm:px-6 lg:px-8 z-10">
+      <div className="relative max-w-7xl mx-auto py-8 sm:py-12 px-4 sm:px-6 lg:px-8 z-10">
         <div className="space-y-6 md:space-y-8">
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+          {error && <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}
 
-          {/* --- Conditionally render ProfileChecklist --- */}
-        {isOwnProfile && user && (
+          {isOwnProfile && user && (
             <ProfileChecklist 
-                user={user} 
-                onPreviewClick={() => setPreviewOpen(true)} 
+                user={{ ...user, images: images }}
+                hasSeenPreview={hasSeenPreview}
+                onPreviewClick={handlePreviewClick}
+                questionnaireResponse={questionnaireResponse}
             />
-        )}
-
+          )}
 
           {!viewOnly && isOwnProfile && (
             <div className="flex justify-center my-6 md:my-8">
-              <div id="onboarding-target-preview-profile" className="flex justify-center my-6 md:my-8"> {/* <--- ID לתצוגה מקדימה */}
-              <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="px-8 py-3 text-base sm:text-lg gap-2 rounded-full border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-400 transition-all duration-300 shadow-sm hover:shadow-md"
-                  >
-                    תצוגה מקדימה של הפרופיל{" "}
-                    <Eye className="w-5 h-5 sm:w-6 sm:h-6" />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent
-                  className="w-[95vw] max-w-6xl max-h-[90vh] overflow-y-auto p-6 bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl border-none"
-                  dir="rtl"
-                >
-                  {profileData ? (
-                    <ProfileCard
-                      profile={profileData}
-                      images={images}
-                      questionnaire={questionnaireResponse}
-                      viewMode="candidate"
-                    />
-                  ) : (
-                    <p className="text-center text-gray-500 py-10">
-                      טוען תצוגה מקדימה...
-                    </p>
-                  )}
-                </DialogContent>
-              </Dialog>
-            </div>
+              <div id="onboarding-target-preview-profile" className="flex justify-center my-6 md:my-8">
+                <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+                  <DialogTrigger asChild>
+                    <Button onClick={handlePreviewClick} variant="outline" size="lg" className="px-8 py-3 text-base sm:text-lg gap-2 rounded-full border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-400 transition-all duration-300 shadow-sm hover:shadow-md">
+                      תצוגה מקדימה של הפרופיל <Eye className="w-5 h-5 sm:w-6 sm:h-6" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="w-[95vw] max-w-6xl max-h-[90vh] overflow-y-auto p-6 bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl border-none" dir="rtl">
+                    {profileData ? <ProfileCard profile={profileData} images={images} questionnaire={questionnaireResponse} viewMode="candidate" /> : <p className="text-center text-gray-500 py-10">טוען תצוגה מקדימה...</p>}
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
           )}
 
-          <Tabs
-            value={activeTab}
-            onValueChange={setActiveTab}
-            className="w-full"
-          >
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
             <div className="flex justify-center mb-6 md:mb-8">
               <ScrollArea dir="rtl" className="w-auto max-w-full">
                 <TabsList className="h-auto p-1.5 bg-white/70 backdrop-blur-sm rounded-full shadow-md gap-1 inline-flex flex-nowrap">
-                  <TabsTrigger
-                    value="overview"
-                    className="px-3 sm:px-6 py-1.5 sm:py-2 rounded-full text-xs sm:text-base font-medium text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-100 data-[state=active]:to-pink-100 data-[state=active]:text-cyan-700 data-[state=active]:shadow-inner transition-all duration-300 whitespace-nowrap"
-                  >
-                    פרטים כלליים
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="photos"
-                    className="px-3 sm:px-6 py-1.5 sm:py-2 rounded-full text-xs sm:text-base font-medium text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-100 data-[state=active]:to-pink-100 data-[state=active]:text-cyan-700 data-[state=active]:shadow-inner transition-all duration-300 whitespace-nowrap"
-                  >
-                    תמונות
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="preferences"
-                    className="px-3 sm:px-6 py-1.5 sm:py-2 rounded-full text-xs sm:text-base font-medium text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-100 data-[state=active]:to-pink-100 data-[state=active]:text-cyan-700 data-[state=active]:shadow-inner transition-all duration-300 whitespace-nowrap"
-                  >
-                    העדפות
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="questionnaire"
-                    className="px-3 sm:px-6 py-1.5 sm:py-2 rounded-full text-xs sm:text-base font-medium text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-100 data-[state=active]:to-pink-100 data-[state=active]:text-cyan-700 data-[state=active]:shadow-inner transition-all duration-300 whitespace-nowrap"
-                  >
-                    שאלון
-                  </TabsTrigger>
+                  <TabsTrigger value="overview" className="px-3 sm:px-6 py-1.5 sm:py-2 rounded-full text-xs sm:text-base font-medium text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-100 data-[state=active]:to-pink-100 data-[state=active]:text-cyan-700 data-[state=active]:shadow-inner transition-all duration-300 whitespace-nowrap">פרטים כלליים</TabsTrigger>
+                  <TabsTrigger value="photos" className="px-3 sm:px-6 py-1.5 sm:py-2 rounded-full text-xs sm:text-base font-medium text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-100 data-[state=active]:to-pink-100 data-[state=active]:text-cyan-700 data-[state=active]:shadow-inner transition-all duration-300 whitespace-nowrap">תמונות</TabsTrigger>
+                  <TabsTrigger value="preferences" className="px-3 sm:px-6 py-1.5 sm:py-2 rounded-full text-xs sm:text-base font-medium text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-100 data-[state=active]:to-pink-100 data-[state=active]:text-cyan-700 data-[state=active]:shadow-inner transition-all duration-300 whitespace-nowrap">העדפות</TabsTrigger>
+                  <TabsTrigger value="questionnaire" className="px-3 sm:px-6 py-1.5 sm:py-2 rounded-full text-xs sm:text-base font-medium text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-100 data-[state=active]:to-pink-100 data-[state=active]:text-cyan-700 data-[state=active]:shadow-inner transition-all duration-300 whitespace-nowrap">שאלון</TabsTrigger>
                 </TabsList>
                 <ScrollBar orientation="horizontal" className="mt-1" />
               </ScrollArea>
             </div>
-
-            <div
-              key={activeTab}
-              className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl p-6 md:p-8 lg:p-10 transition-all duration-300 ease-in-out"
-            >
-<TabsContent value="overview" id="onboarding-target-edit-profile" className="focus-visible:ring-0 focus-visible:ring-offset-0">                {profileData ? (
-                  <ProfileSection
-                    profile={profileData}
-                    isEditing={isEditing}
-                    setIsEditing={setIsEditing}
-                    onSave={handleSave}
-                    viewOnly={viewOnly || !isOwnProfile}
-                  />
-                ) : (
-                  <p className="text-center text-gray-500 py-10">טוען סקירה כללית...</p>
-                )}
+            <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl p-6 md:p-8 lg:p-10 transition-all duration-300 ease-in-out">
+              <TabsContent value="overview" id="onboarding-target-edit-profile" className="focus-visible:ring-0 focus-visible:ring-offset-0">
+                {profileData ? <ProfileSection profile={profileData} isEditing={isEditing} setIsEditing={setIsEditing} onSave={handleSave} viewOnly={viewOnly || !isOwnProfile} /> : <p className="text-center text-gray-500 py-10">טוען סקירה כללית...</p>}
               </TabsContent>
-
-<TabsContent value="photos" id="onboarding-target-photos" className="focus-visible:ring-0 focus-visible:ring-offset-0">                <PhotosSection
-                  images={images}
-                  isUploading={isLoading}
-                  disabled={viewOnly || !isOwnProfile}
-                  onUpload={handleImageUpload}
-                  onSetMain={handleSetMainImage}
-                  onDelete={handleDeleteImage}
-                />
+              <TabsContent value="photos" id="onboarding-target-photos" className="focus-visible:ring-0 focus-visible:ring-offset-0">
+                <PhotosSection images={images} isUploading={isLoading} disabled={viewOnly || !isOwnProfile} onUpload={handleImageUpload} onSetMain={handleSetMainImage} onDelete={handleDeleteImage} />
               </TabsContent>
-
-<TabsContent value="preferences" id="onboarding-target-preferences" className="focus-visible:ring-0 focus-visible:ring-offset-0">                {profileData ? (
-                  <PreferencesSection
-                    profile={profileData}
-                    isEditing={isEditing}
-                    setIsEditing={setIsEditing}
-                    onChange={handleSave}
-                    viewOnly={viewOnly || !isOwnProfile}
-                  />
-                ) : (
-                  <p className="text-center text-gray-500 py-10">טוען העדפות...</p>
-                )}
+              <TabsContent value="preferences" id="onboarding-target-preferences" className="focus-visible:ring-0 focus-visible:ring-offset-0">
+                {profileData ? <PreferencesSection profile={profileData} isEditing={isEditing} setIsEditing={setIsEditing} onChange={handleSave} viewOnly={viewOnly || !isOwnProfile} /> : <p className="text-center text-gray-500 py-10">טוען העדפות...</p>}
               </TabsContent>
-
-<TabsContent value="questionnaire" id="onboarding-target-questionnaire-tab" className="focus-visible:ring-0 focus-visible:ring-offset-0">                {questionnaireResponse ? (
-                  <QuestionnaireResponsesSection
-                    questionnaire={questionnaireResponse}
-                    onUpdate={handleQuestionnaireUpdate}
-                    isEditable={!viewOnly && isOwnProfile}
-                  />
-                ) : (
-                  <div className="text-center py-12 text-gray-500">
-                    {isLoading ? "טוען שאלון..." : "לא מולאו תשובות לשאלון."}
-                    {!isLoading && isOwnProfile && (
-                      <Button asChild variant="link" className="mt-2 text-cyan-600">
-                        <Link href="/questionnaire"> למילוי השאלון</Link>
-                      </Button>
-                    )}
-                  </div>
-                )}
+              <TabsContent value="questionnaire" id="onboarding-target-questionnaire-tab" className="focus-visible:ring-0 focus-visible:ring-offset-0">
+                {questionnaireResponse ? <QuestionnaireResponsesSection questionnaire={questionnaireResponse} onUpdate={handleQuestionnaireUpdate} isEditable={!viewOnly && isOwnProfile} /> : <div className="text-center py-12 text-gray-500">{isLoading ? "טוען שאלון..." : "לא מולאו תשובות לשאלון."}{!isLoading && isOwnProfile && (<Button asChild variant="link" className="mt-2 text-cyan-600"><Link href="/questionnaire"> למילוי השאלון</Link></Button>)}</div>}
               </TabsContent>
             </div>
           </Tabs>

@@ -1,3 +1,4 @@
+// src/app/components/profile/sections/ProfileSection.tsx
 "use client";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import React, { useState, useEffect } from "react";
@@ -34,14 +35,14 @@ import {
   Languages,
   Palette,
   Smile,
-  UserCircle, // אייקון חדש
-  Info, // אייקון חדש
+  UserCircle,
+  Info,
 } from "lucide-react";
 import { UserProfile } from "@/types/next-auth";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { languageOptions } from "@/lib/languageOptions"; 
-// --- Options Arrays (נשארים כפי שהיו) ---
+import { toast } from "sonner";
 
 const maritalStatusOptions = [
   { value: "single", label: "רווק/ה" },
@@ -144,7 +145,7 @@ const characterTraitsOptions = [
 
 const hobbiesOptions = [
   { value: "travel", label: "טיולים", icon: MapPin },
-  { value: "sports", label: "ספורט", icon: Briefcase },
+  { value: "sports", label: "ספורט", icon: Briefcase }, 
   { value: "reading", label: "קריאה", icon: BookOpen },
   { value: "cooking_baking", label: "בישול/אפיה", icon: Palette },
   { value: "music_playing_instrument", label: "מוזיקה/נגינה", icon: Languages },
@@ -164,7 +165,6 @@ const preferredMatchmakerGenderOptions = [
   { value: "FEMALE", label: "שדכנית" },
   { value: "NONE", label: "ללא העדפה" },
 ];
-// --- End of Options Arrays ---
 
 interface ProfileSectionProps {
   profile: UserProfile | null;
@@ -284,7 +284,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
       };
       fetchProfileAndInitialize();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profileProp]);
 
   const handleChange = (
@@ -306,7 +305,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
         field === "siblings" ||
         field === "position" ||
         field === "aliyaYear" ||
-        field === "preferredAgeMin" || // Add preference fields
+        field === "preferredAgeMin" ||
         field === "preferredAgeMax" ||
         field === "preferredHeightMin" ||
         field === "preferredHeightMax"
@@ -326,7 +325,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
         ) as UserProfile[typeof field];
       } else if (
         typeof prev[field] === "boolean" ||
-        field === "shomerNegiah" || // Explicitly handle boolean fields
+        field === "shomerNegiah" ||
         field === "hasChildrenFromPrevious" ||
         field === "isProfileVisible"
       ) {
@@ -385,6 +384,13 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
   };
 
   const handleSave = () => {
+    if (formData.about && formData.about.trim().length < 100) {
+      toast.error("שגיאת ולידציה", {
+        description: 'השדה "קצת עליי" חייב להכיל לפחות 100 תווים.',
+        duration: 5000,
+      });
+      return;
+    }
     const dataToSave = { ...formData };
     onSave(dataToSave);
     setIsEditing(false);
@@ -521,9 +527,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
 
       <div className="container mx-auto max-w-screen-xl py-6 px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* --- טור 1 --- */}
           <div className="space-y-6">
-            {/* --- כרטיס פרטים אישיים ודמוגרפיים --- */}
             <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-cyan-50/40 to-pink-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
                 <UserCircle className="w-5 h-5 text-cyan-700" />
@@ -805,7 +809,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
               </CardContent>
             </Card>
 
-            {/* --- כרטיס מצב משפחתי ורקע --- */}
             <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-purple-50/40 to-indigo-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
                 <Users className="w-5 h-5 text-purple-700" />
@@ -951,7 +954,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
               </CardContent>
             </Card>
 
-            {/* --- כרטיס דת ואורח חיים --- */}
             <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-yellow-50/40 to-amber-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
                 <BookOpen className="w-5 h-5 text-amber-700" />
@@ -1135,9 +1137,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
             </Card>
           </div>
 
-          {/* --- טור 2 --- */}
           <div className="space-y-6">
-            {/* --- כרטיס אודות ומידע נוסף (עבר לכאן) --- */}
             <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-slate-50/40 to-gray-100/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
                 <Info className="w-5 h-5 text-slate-600" />
@@ -1148,29 +1148,45 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
               <CardContent className="p-4 md:p-6">
                 <div className="space-y-6">
                   <div>
-                  <div className="flex items-center gap-1.5">
-  <Label htmlFor="about" className="text-sm font-medium text-gray-700">
-    ספר/י קצת על עצמך (תיאור חופשי)
-  </Label>
-  <TooltipProvider delayDuration={100}>
-    <Tooltip>
-      <TooltipTrigger type="button" className="text-gray-400 hover:text-gray-600">
-        <Info className="w-4 h-4" />
-      </TooltipTrigger>
-      <TooltipContent side="top" className="max-w-xs text-center">
-        <p>כאן המקום שלך לבלוט! ספר/י על התשוקות שלך, מה מצחיק אותך, ומה את/ה מחפש/ת. פרופיל עם תיאור אישי וכן מקבל יותר פניות איכותיות.</p>
-      </TooltipContent>
-    </Tooltip>
-  </TooltipProvider>
-</div>
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <Label htmlFor="about" className="text-sm font-medium text-gray-700">
+                        ספר/י קצת על עצמך (תיאור חופשי)
+                    </Label>
+                    <TooltipProvider delayDuration={100}>
+                        <Tooltip>
+                            <TooltipTrigger type="button" className="text-gray-400 hover:text-gray-600">
+                                <Info className="w-4 h-4" />
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="max-w-xs text-center">
+                                <p>כאן המקום שלך לבלוט! ספר/י על התשוקות שלך, מה מצחיק אותך, ומה את/ה מחפש/ת. 
+                                <br/>
+                                <strong className="text-cyan-600">שים/י לב: נדרשים לפחות 100 תווים.</strong></p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                  </div>
                     {isEditing && !viewOnly ? (
-                      <Textarea
-                        value={formData.about || ""}
-                        onChange={(e) => handleChange("about", e.target.value)}
-                        className="text-sm focus:ring-cyan-500 min-h-[120px] rounded-lg"
-                        placeholder="תאר/י את עצמך, מה מאפיין אותך, מה חשוב לך..."
-                        rows={5}
-                      />
+                      <div>
+                        <Textarea
+                          id="about"
+                          value={formData.about || ""}
+                          onChange={(e) => handleChange("about", e.target.value)}
+                          className={cn(
+                            "text-sm focus:ring-cyan-500 min-h-[120px] rounded-lg",
+                            formData.about && formData.about.trim().length < 100 ? "border-red-400 focus:ring-red-300" : ""
+                          )}
+                          placeholder="תאר/י את עצמך, מה מאפיין אותך, מה חשוב לך..."
+                          rows={5}
+                        />
+                         {formData.about && (
+                            <div className={cn(
+                                "text-xs mt-1 text-right",
+                                formData.about.trim().length < 100 ? "text-red-600" : "text-gray-500"
+                            )}>
+                                {formData.about.trim().length} / 100+ תווים
+                            </div>
+                         )}
+                      </div>
                     ) : (
                       <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap min-h-[60px] bg-slate-50/70 p-3 rounded-lg border border-slate-200/50">
                         {formData.about || (
@@ -1182,21 +1198,21 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     )}
                   </div>
                   <div>
-                   <div className="flex items-center gap-1.5">
-  <Label className="text-sm font-medium text-gray-700">
-    הערות נוספות לשדכן/ית (לא יוצג לצד השני)
-  </Label>
-  <TooltipProvider delayDuration={100}>
-    <Tooltip>
-      <TooltipTrigger type="button" className="text-gray-400 hover:text-gray-600">
-        <Info className="w-4 h-4" />
-      </TooltipTrigger>
-      <TooltipContent side="top" className="max-w-xs text-center">
-        <p>מידע שחשוב לנו לדעת כדי למצוא התאמה טובה, אך לא תרצה/י שיופיע בפרופיל הגלוי. למשל: נושאים רגישים, העדפות ספציפיות מאוד, או רקע נוסף.</p>
-      </TooltipContent>
-    </Tooltip>
-  </TooltipProvider>
-</div>
+                   <div className="flex items-center gap-1.5 mb-2">
+                    <Label className="text-sm font-medium text-gray-700">
+                        הערות נוספות לשדכן/ית (לא יוצג לצד השני)
+                    </Label>
+                    <TooltipProvider delayDuration={100}>
+                        <Tooltip>
+                        <TooltipTrigger type="button" className="text-gray-400 hover:text-gray-600">
+                            <Info className="w-4 h-4" />
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-xs text-center">
+                            <p>מידע שחשוב לנו לדעת כדי למצוא התאמה טובה, אך לא תרצה/י שיופיע בפרופיל הגלוי. למשל: נושאים רגישים, העדפות ספציפיות מאוד, או רקע נוסף.</p>
+                        </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                    </div>
                     {isEditing && !viewOnly ? (
                       <Textarea
                         value={formData.matchingNotes || ""}
@@ -1221,7 +1237,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
               </CardContent>
             </Card>
 
-            {/* --- כרטיס השכלה, עיסוק ושירות --- */}
             <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-teal-50/40 to-green-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
                 <Briefcase className="w-5 h-5 text-teal-700" />
@@ -1357,7 +1372,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
               </CardContent>
             </Card>
 
-            {/* --- כרטיס תכונות אופי ותחביבים --- */}
             <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-amber-50/40 to-yellow-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
                 <Smile className="w-5 h-5 text-amber-600" />

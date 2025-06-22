@@ -197,6 +197,7 @@ model Profile {
   user                 User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   verifiedByMatchmaker User? @relation("VerifiedByMatchmaker", fields: [verifiedBy], references: [id], onDelete: SetNull)
   vector ProfileVector? // הוספת קשר הפוך
+  hasViewedProfilePreview   Boolean            @default(false)
 
 }
 model ProfileVector {
