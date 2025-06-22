@@ -139,6 +139,8 @@ export async function PUT(req: NextRequest) {
       preferredCharacterTraits, // Preference for partner's traits
       preferredHobbies,         // Preference for partner's hobbies (ensure distinct from profileHobbies if needed)
       preferredAliyaStatus, // If you have this field for preferences
+          hasViewedProfilePreview, // <--- תיקון 1: קליטת הערך החדש
+
     } = body as Partial<UserProfile>;
 
     const dataToUpdate: Prisma.ProfileUpdateInput = {};
@@ -236,6 +238,7 @@ export async function PUT(req: NextRequest) {
 
     // --- Profile Management ---
     if (isProfileVisible !== undefined) dataToUpdate.isProfileVisible = isProfileVisible;
+   if (hasViewedProfilePreview !== undefined) dataToUpdate.hasViewedProfilePreview = hasViewedProfilePreview;
     if (availabilityStatus !== undefined) {
       const statusValue = emptyStringToNull(availabilityStatus);
       dataToUpdate.availabilityStatus = (statusValue === null ? "AVAILABLE" : statusValue) as AvailabilityStatus;
@@ -346,6 +349,8 @@ export async function PUT(req: NextRequest) {
       preferredCharacterTraits: dbProfile.preferredCharacterTraits || [], // Partner preference
       preferredHobbies: dbProfile.preferredHobbies || [],                 // Partner preference
       preferredAliyaStatus: dbProfile.preferredAliyaStatus || undefined,
+            hasViewedProfilePreview: dbProfile.hasViewedProfilePreview, // <--- תיקון 3: הוספת השדה לאובייקט התגובה
+
       createdAt: new Date(dbProfile.createdAt),
       updatedAt: new Date(dbProfile.updatedAt),
       lastActive: dbProfile.lastActive ? new Date(dbProfile.lastActive) : null,
