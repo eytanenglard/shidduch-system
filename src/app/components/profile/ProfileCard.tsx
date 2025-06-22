@@ -111,9 +111,9 @@ const ProfileHeader: React.FC<{ profile: UserProfile; age: number; mainImageToDi
     const keyDetails = useMemo(() => [
         { label: "גיל", value: age > 0 ? age : null, icon: Cake, color: "text-pink-600" },
         { label: "עיר", value: profile.city, icon: MapPin, color: "text-teal-600" },
-        { label: "מצב משפחתי", value: formatEnumValue(profile.maritalStatus, maritalStatusMap, null), icon: Heart, color: "text-rose-600" },
+        { label: "מצב משפחתי", value: formatEnumValue(profile.maritalStatus, maritalStatusMap), icon: Heart, color: "text-rose-600" },
         { label: "עיסוק", value: profile.occupation, icon: Briefcase, color: "text-emerald-600" },
-        { label: "רמה דתית", value: formatEnumValue(profile.religiousLevel, religiousLevelMap, null), icon: BookMarked, color: "text-indigo-600" },
+        { label: "רמה דתית", value: formatEnumValue(profile.religiousLevel, religiousLevelMap), icon: BookMarked, color: "text-indigo-600" },
         { label: "גובה", value: profile.height ? `${profile.height} ס״מ` : null, icon: User, color: "text-slate-600" },
     ].filter(item => item.value), [profile, age]);
 
