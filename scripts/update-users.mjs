@@ -35,11 +35,11 @@ if (!process.env.GEMINI_API_KEY) {
 
 // --- Google Gemini AI Client Setup ---
 let textGenerationModel;
-let embeddingModel; // <<<< מודל חדש עבור וקטורים
+let embeddingModel; // מודל עבור וקטורים
 try {
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
   textGenerationModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
-  embeddingModel = genAI.getGenerativeModel({ model: "text-embedding-004" }); // <<<< הגדרת מודל ההטמעה
+  embeddingModel = genAI.getGenerativeModel({ model: "text-embedding-004" }); // הגדרת מודל ההטמעה
   console.log('Successfully connected to Google Gemini AI for both text generation and embeddings.');
 } catch (error) {
   console.error('Failed to initialize Google Gemini AI client:', error);
@@ -72,7 +72,6 @@ function getRandomSubset(arr, maxCount = 3) {
   return shuffled.slice(0, Math.floor(Math.random() * maxCount) + 1);
 }
 
-// <<<< הוספת פונקציות עזר חדשות עבור נרטיב ה-AI >>>>
 function formatValue(value, fallback = "לא צוין") {
   if (value === null || value === undefined || value === '') {
     return fallback;
@@ -102,8 +101,6 @@ const calculateAge = (birthDate) => {
     }
     return age;
 };
-// <<<< סוף הוספת פונקציות עזר >>>>
-
 
 // --- Data Options (based on Prisma Schema and common sense) ---
 const CITIES = ['Jerusalem', 'Tel Aviv', 'Haifa', 'Beer Sheva', 'Ashdod', 'Bnei Brak', 'Petah Tikva', 'Rishon LeZion', 'Netanya', 'Holon', 'Ramat Gan', 'Modiin', 'Beit Shemesh', 'Kfar Saba', 'Herzliya', 'Givatayim', 'Eilat', 'Ra\'anana', 'Rehovot', 'Bat Yam'];
@@ -151,22 +148,39 @@ async function generateTextWithGemini(prompt, contextForLog) {
   }
 }
 
-// --- Unsplash & Cloudinary Functions (no changes needed) ---
+// --- Unsplash & Cloudinary Functions ---
+
+/**
+ * <<< שינוי והדגשה >>>
+ * הפונקציה עודכנה כדי לחפש תמונות של גברים ונשים דתיים באופן ממוקד יותר
+ * כדי לשפר את הרלוונטיות של התמונות לפרופילים.
+ */
 async function getUnsplashImage(gender) {
-    // ... (Your existing getUnsplashImage function remains here, unchanged)
     try {
         let queries = [];
+        // שאילתות ממוקדות לגברים דתיים
         if (gender === 'MALE') {
             queries = ['jewish religious man portrait', 'orthodox jewish man face', 'religious man close up kippah', 'jewish man traditional attire headshot', 'hasidic man portrait', 'yeshiva bochur portrait', 'smiling religious jewish man'];
-        } else {
+        } 
+        // שאילתות ממוקדות לנשים דתיות
+        else {
             queries = ['religious jewish woman portrait modest', 'jewish orthodox woman face covering', 'modest woman dress headshot', 'traditional jewish woman close up', 'hasidic woman portrait', 'religious woman smiling modest attire', 'jewish seminary girl portrait'];
         }
         const randomQuery = getRandomElement(queries);
-        console.log(`Searching for "${randomQuery}" on Unsplash for religious ${gender === 'MALE' ? 'man' : 'woman'}...`);
-        const result = await unsplash.search.getPhotos({ query: randomQuery, page: Math.floor(Math.random() * 3) + 1, perPage: 15, orientation: 'portrait', contentFilter: 'high' });
+        console.log(`Searching for "${randomQuery}" on Unsplash for a religious ${gender === 'MALE' ? 'man' : 'woman'}...`);
+        
+        const result = await unsplash.search.getPhotos({ 
+            query: randomQuery, 
+            page: Math.floor(Math.random() * 3) + 1, 
+            perPage: 15, 
+            orientation: 'portrait', 
+            contentFilter: 'high' 
+        });
+
         if (!result.response || !result.response.results || result.response.results.length === 0) {
-            throw new Error(`No images found in Unsplash response for ${randomQuery}`);
+            throw new Error(`No images found in Unsplash response for query: ${randomQuery}`);
         }
+
         const randomIndex = Math.floor(Math.random() * result.response.results.length);
         const photo = result.response.results[randomIndex];
         console.log(`Image found on Unsplash: "${photo.description || photo.alt_description || 'No description'}" by ${photo.user.name}`);
@@ -178,20 +192,30 @@ async function getUnsplashImage(gender) {
 }
 
 async function uploadReligiousImages(gender, count) {
-    // ... (Your existing uploadReligiousImages function remains here, unchanged)
     const imageData = [];
     if (count === 0) return imageData;
     console.log(`Starting upload of ${count} images for religious ${gender === 'MALE' ? 'men' : 'women'}...`);
+
     for (let i = 0; i < count; i++) {
         try {
-            console.log(`\nProcessing image ${i + 1} of ${count} for ${gender === 'MALE' ? 'man' : 'woman'}...`);
+            console.log(`\nProcessing image ${i + 1} of ${count} for a religious ${gender === 'MALE' ? 'man' : 'woman'}...`);
             const imageUrl = await getUnsplashImage(gender);
             console.log(`Uploading image ${i + 1} (${imageUrl}) to Cloudinary...`);
-            const result = await cloudinary.uploader.upload(imageUrl, { folder: 'user_photos_generated', public_id: `${gender.toLowerCase()}_profile_${Date.now()}_${i}`, width: 500, height: 500, crop: 'fill', gravity: 'face', quality: 'auto:good', fetch_format: 'auto' });
+            const result = await cloudinary.uploader.upload(imageUrl, { 
+                folder: 'user_photos_generated', 
+                public_id: `${gender.toLowerCase()}_profile_${Date.now()}_${i}`, 
+                width: 500, 
+                height: 500, 
+                crop: 'fill', 
+                gravity: 'face', 
+                quality: 'auto:good', 
+                fetch_format: 'auto' 
+            });
             imageData.push({ publicId: result.public_id, url: result.secure_url, gender: gender });
             console.log(`Image ${i + 1} uploaded successfully: ${result.secure_url}`);
+            
             if (i < count - 1) {
-                const delay = Math.floor(Math.random() * 800) + 700;
+                const delay = Math.floor(Math.random() * 800) + 700; // Delay to avoid rate limiting
                 await new Promise(resolve => setTimeout(resolve, delay));
             }
         } catch (error) {
@@ -199,14 +223,13 @@ async function uploadReligiousImages(gender, count) {
             console.log(`Skipping image ${i + 1} due to error.`);
         }
     }
-    console.log(`Finished uploading. Successfully uploaded ${imageData.length} of ${count} targeted images for ${gender === 'MALE' ? 'men' : 'women'}.`);
+    console.log(`Finished uploading. Successfully uploaded ${imageData.length} of ${count} targeted images for religious ${gender === 'MALE' ? 'men' : 'women'}.`);
     return imageData;
 }
 
 
-// --- User Data Generation (no major changes needed, it's the input for the AI) ---
+// --- User Data Generation ---
 async function generateUserData(gender) {
-    // ... (Your existing generateUserData function remains here, unchanged)
     const maleFirstNames = ['Abraham', 'Isaac', 'Jacob', 'Moses', 'David', 'Solomon', 'Joseph', 'Aaron', 'Nathaniel', 'Elijah', 'Benjamin', 'Samuel', 'Meir', 'Chaim', 'Judah', 'Daniel', 'Menachem', 'Elazar', 'Simon', 'Raphael', 'Yossi', 'Shlomo', 'Avi', 'Moshe', 'Ariel', 'Noam', 'Itamar', 'Yonatan', 'Ohad', 'Eitan'];
     const femaleFirstNames = ['Sarah', 'Rebecca', 'Rachel', 'Leah', 'Hannah', 'Esther', 'Miriam', 'Ruth', 'Naomi', 'Dinah', 'Yael', 'Tamar', 'Abigail', 'Michal', 'Eve', 'Zipporah', 'Gila', 'Efrat', 'Shira', 'Talia', 'Noa', 'Chana', 'Rivka', 'Avigail', 'Maya', 'Liat', 'Hadar', 'Adi', 'Roni'];
     const lastNames = ['Cohen', 'Levi', 'Mizrahi', 'Abrahami', 'Peretz', 'Biton', 'Ochana', 'Dahan', 'Azoulay', 'Almog', 'Ben Ari', 'Goldstein', 'Friedman', 'Rosenberg', 'Shapira', 'Weiss', 'Berkowitz', 'Kaplan', 'Lavi', 'Aboutboul', 'Katz', 'Hadad', 'Gabai', 'Shalom', 'Revivo', 'Ohayon', 'Dayan', 'Baruch', 'Klein', 'Segal'];
@@ -258,7 +281,10 @@ async function generateUserData(gender) {
         email, password: faker.internet.password({ length: 14, memorable: false, prefix: 'Pwd!' }), firstName, lastName, phone: phoneNumber, status: 'ACTIVE', role: 'CANDIDATE', isVerified: true, isPhoneVerified: true, isProfileComplete: true, lastLogin: faker.date.recent({ days: 45 }), source: 'REGISTRATION',
         profile: {
             create: {
-                gender: gender, birthDate, nativeLanguage, additionalLanguages, height, maritalStatus, occupation, education, educationLevel, city, origin, religiousLevel, shomerNegiah, serviceType: serviceType || undefined, serviceDetails, headCovering: headCovering || undefined, kippahType: kippahType || undefined, hasChildrenFromPrevious, profileCharacterTraits, profileHobbies, aliyaCountry, aliyaYear,
+                gender: gender, 
+                birthDate, 
+                birthDateIsApproximate: false, // <<< הוספת השדה החדש מהסכמה
+                nativeLanguage, additionalLanguages, height, maritalStatus, occupation, education, educationLevel, city, origin, religiousLevel, shomerNegiah, serviceType: serviceType || undefined, serviceDetails, headCovering: headCovering || undefined, kippahType: kippahType || undefined, hasChildrenFromPrevious, profileCharacterTraits, profileHobbies, aliyaCountry, aliyaYear,
                 about: aboutText.startsWith("Error:") || aboutText.startsWith("Content generation blocked") ? `My name is ${firstName} and I live in ${city}. I work as a ${occupation} and consider myself ${religiousLevel}. I enjoy ${profileHobbies.join(', ')} and my friends say I am ${profileCharacterTraits.join(', ')}. Looking for a serious relationship.` : aboutText,
                 parentStatus, siblings, position, preferredAgeMin, preferredAgeMax, preferredHeightMin: Math.random() > 0.25 ? preferredHeightMin : null, preferredHeightMax: Math.random() > 0.25 ? preferredHeightMax : null,
                 preferredReligiousLevels: getRandomSubset(RELIGIOUS_LEVELS, 3), preferredLocations: getRandomSubset(CITIES, 3), preferredEducation: getRandomSubset(EDUCATION_LEVELS, 2), preferredOccupations: getRandomSubset(OCCUPATIONS, 2),
@@ -274,9 +300,7 @@ async function generateUserData(gender) {
     };
 }
 
-// =========================================================================
-// <<<<<<<<<<<<<<<<<<<< START: NEW AI VECTOR FUNCTIONS >>>>>>>>>>>>>>>>>>>>>>
-// =========================================================================
+// --- NEW AI VECTOR FUNCTIONS ---
 
 /**
  * Generates a comprehensive narrative profile text for a given user object.
@@ -295,7 +319,6 @@ function generateNarrativeProfileForUser(user) {
 
   let narrative = `# פרופיל AI עבור ${user.firstName} ${user.lastName}, ${profile.gender === 'MALE' ? 'גבר' : 'אישה'} בן/בת ${age}\n\n`;
 
-  // --- Section: General Summary ---
   narrative += `## סיכום כללי\n`;
   narrative += `- **שם:** ${user.firstName} ${user.lastName}\n`;
   narrative += `- **גיל:** ${age}\n`;
@@ -306,18 +329,15 @@ function generateNarrativeProfileForUser(user) {
   narrative += `- **השכלה:** ${formatValue(profile.educationLevel)}, ${formatValue(profile.education)}\n`;
   narrative += `- **שומר/ת נגיעה:** ${formatValue(profile.shomerNegiah)}\n\n`;
 
-  // --- Section: About Me (From Profile) ---
   if (profile.about) {
     narrative += `## קצת עליי (מהפרופיל)\n`;
     narrative += `"${profile.about}"\n\n`;
   }
   
-  // --- Section: Personal Traits and Hobbies ---
   narrative += `## תכונות אופי ותחביבים\n`;
   narrative += `- **תכונות בולטות:** ${formatArray(profile.profileCharacterTraits)}\n`;
   narrative += `- **תחביבים עיקריים:** ${formatArray(profile.profileHobbies)}\n\n`;
   
-  // --- Section: Partner Preferences (From Profile) ---
   narrative += `## מה אני מחפש/ת בבן/בת הזוג (העדפות מהפרופיל)\n`;
   narrative += `- **תיאור כללי:** ${formatValue(profile.matchingNotes)}\n`;
   narrative += `- **טווח גילאים מועדף:** ${formatValue(profile.preferredAgeMin, '?')} - ${formatValue(profile.preferredAgeMax, '?')}\n`;
@@ -325,9 +345,6 @@ function generateNarrativeProfileForUser(user) {
   narrative += `- **רמות השכלה מועדפות:** ${formatArray(profile.preferredEducation)}\n`;
   narrative += `- **מוצאים מועדפים:** ${formatArray(profile.preferredOrigins)}\n\n`;
   
-  // Note: Questionnaire answers are omitted as this script does not generate them.
-  // In a real scenario, this part would be included.
-
   return narrative.trim();
 }
 
@@ -342,14 +359,12 @@ async function generateAndSaveVector(createdUser) {
     }
     console.log(`[AI] Starting vector generation for user: ${createdUser.email}`);
 
-    // Re-create the data structure that generateNarrativeProfileForUser expects
     const userForNarrative = {
         firstName: createdUser.firstName,
         lastName: createdUser.lastName,
         profile: { create: createdUser.profile }
     };
     
-    // 1. Generate the narrative profile text
     const profileText = generateNarrativeProfileForUser(userForNarrative);
 
     if (!profileText) {
@@ -358,7 +373,6 @@ async function generateAndSaveVector(createdUser) {
     }
 
     try {
-        // 2. Generate the embedding vector
         console.log(`[AI] Generating embedding for user ${createdUser.id}...`);
         const result = await embeddingModel.embedContent(profileText);
         const vector = result.embedding.values;
@@ -368,7 +382,6 @@ async function generateAndSaveVector(createdUser) {
             return;
         }
 
-        // 3. Save the vector to the database using a raw query
         const profileId = createdUser.profile.id;
         const vectorSqlString = `[${vector.join(',')}]`;
         
@@ -388,10 +401,6 @@ async function generateAndSaveVector(createdUser) {
         console.error(`[AI] CRITICAL ERROR during vector generation or saving for user ${createdUser.id}:`, error);
     }
 }
-// =========================================================================
-// <<<<<<<<<<<<<<<<<<<< END: NEW AI VECTOR FUNCTIONS >>>>>>>>>>>>>>>>>>>>>>
-// =========================================================================
-
 
 // --- Create New Users in Database ---
 async function createNewUsers(count, maleImages, femaleImages, imagesPerUser = 3) {
@@ -417,8 +426,6 @@ async function createNewUsers(count, maleImages, femaleImages, imagesPerUser = 3
           const image = maleImages[maleImageIndex++];
           if (image) {
             imageCreateArray.push({ url: image.url, isMain: j === 0, cloudinaryPublicId: image.publicId });
-          } else if (j === 0) {
-             console.warn(`Main male image expected but not found for user ${userData.firstName}. User will have fewer images.`);
           }
         }
       } else if (imagesPerUser > 0) {
@@ -434,7 +441,6 @@ async function createNewUsers(count, maleImages, femaleImages, imagesPerUser = 3
       });
       console.log(`SUCCESS: Created male user: ${user.email} (ID: ${user.id}) with ${user.images.length} images.`);
       
-      // <<<< Call the AI vector generation function >>>>
       await generateAndSaveVector(user);
       
       createdCount++;
@@ -464,8 +470,6 @@ async function createNewUsers(count, maleImages, femaleImages, imagesPerUser = 3
           const image = femaleImages[femaleImageIndex++];
           if (image) {
             imageCreateArray.push({ url: image.url, isMain: j === 0, cloudinaryPublicId: image.publicId });
-          } else if (j===0) {
-            console.warn(`Main female image expected but not found for user ${userData.firstName}. User will have fewer images.`);
           }
         }
       } else if (imagesPerUser > 0) {
@@ -481,7 +485,6 @@ async function createNewUsers(count, maleImages, femaleImages, imagesPerUser = 3
       });
       console.log(`SUCCESS: Created female user: ${user.email} (ID: ${user.id}) with ${user.images.length} images.`);
 
-      // <<<< Call the AI vector generation function >>>>
       await generateAndSaveVector(user);
       
       createdCount++;
@@ -520,9 +523,6 @@ async function runUserCreationProcess(newUserCount = 10, imagesPerUser = 1) {
     }
 
     await createNewUsers(newUserCount, maleImages, femaleImages, imagesPerUser);
-    
-    // The example data generation is removed from here to avoid confusion,
-    // as it was only for demonstrating the structure.
     
   } catch (error) {
     console.error('Critical error in main user creation process:', error);

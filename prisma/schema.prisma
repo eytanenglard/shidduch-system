@@ -1,38 +1,35 @@
 generator client {
-  provider = "prisma-client-js"
-  // --- START OF FIX ---
-  previewFeatures = ["postgresqlExtensions"] 
-  // --- END OF FIX ---
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-    directUrl         = env("DIRECT_URL") // <-- הוסף את השורה הזו
-
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  directUrl  = env("DIRECT_URL")
 }
 
 model User {
-  id                              String                  @id @default(cuid())
-  email                           String                  @unique
-  password                        String?
-  firstName                       String
-  lastName                        String
-  phone                           String?                 @unique
-  createdAt                       DateTime                @default(now())
-  updatedAt                       DateTime                @updatedAt
-  lastLogin                       DateTime?
-  status                          UserStatus              @default(PENDING_PHONE_VERIFICATION)
-  role                            UserRole                @default(CANDIDATE)
-  isVerified                      Boolean                 @default(false)
-  isPhoneVerified                 Boolean                 @default(false)
-  isProfileComplete               Boolean                 @default(false)
-  
-  source                          UserSource              @default(REGISTRATION) // New field
-  addedByMatchmakerId             String?                 // Optional: ID of matchmaker who added this manual user
-  matchmakerWhoAdded              User?                   @relation("ManuallyAddedBy", fields: [addedByMatchmakerId], references: [id]) // New relation
-  termsAndPrivacyAcceptedAt       DateTime?               // מתי המשתמש אישר את התנאים ומדיניות הפרטיות
-  hasCompletedOnboarding          Boolean   @default(false)
+  id                String     @id @default(cuid())
+  email             String     @unique
+  password          String?
+  firstName         String
+  lastName          String
+  phone             String?    @unique
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  lastLogin         DateTime?
+  status            UserStatus @default(PENDING_PHONE_VERIFICATION)
+  role              UserRole   @default(CANDIDATE)
+  isVerified        Boolean    @default(false)
+  isPhoneVerified   Boolean    @default(false)
+  isProfileComplete Boolean    @default(false)
+
+  source                    UserSource @default(REGISTRATION) // New field
+  addedByMatchmakerId       String? // Optional: ID of matchmaker who added this manual user
+  matchmakerWhoAdded        User?      @relation("ManuallyAddedBy", fields: [addedByMatchmakerId], references: [id]) // New relation
+  termsAndPrivacyAcceptedAt DateTime? // מתי המשתמש אישר את התנאים ומדיניות הפרטיות
+  hasCompletedOnboarding    Boolean    @default(false)
 
   firstPartyInquiries             AvailabilityInquiry[]   @relation("FirstPartyInquiries")
   matchmakerAvailabilityInquiries AvailabilityInquiry[]   @relation("MatchmakerInquiries")
@@ -64,6 +61,7 @@ model User {
   @@index([source]) // Index the new field
   @@index([addedByMatchmakerId])
 }
+
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -127,61 +125,61 @@ model Verification {
 // model Profile in your schema.prisma
 
 model Profile {
-  id                        String             @id @default(cuid())
-  userId                    String             @unique
-  gender                    Gender
-  birthDate                 DateTime
-    birthDateIsApproximate    Boolean?           @default(false) // <--- הוסף שדה זה
+  id                     String   @id @default(cuid())
+  userId                 String   @unique
+  gender                 Gender
+  birthDate              DateTime
+  birthDateIsApproximate Boolean? @default(false) // <--- הוסף שדה זה
 
-  nativeLanguage            String?
-  additionalLanguages       String[]
-  height                    Int?
-  maritalStatus             String? // Marital status of the user
-  occupation                String?
-  education                 String?
-  educationLevel            String?
-  city                      String?
-  origin                    String? // Origin of the user
-  religiousLevel            String? // Religious level of the user
-  shomerNegiah              Boolean?
-  serviceType               ServiceType? // Service type of the user
-  serviceDetails            String?
-    manualEntryText           String?
-  headCovering              HeadCoveringType?
-  kippahType                KippahType?
-  hasChildrenFromPrevious   Boolean?           @default(false)
-  profileCharacterTraits    String[]           @default([]) // User's own traits
-  profileHobbies            String[]           @default([]) // User's own hobbies
-  aliyaCountry              String?
-  aliyaYear                 Int?
-  about                     String?
-  parentStatus              String?
-  siblings                  Int?
-  position                  Int?
+  nativeLanguage          String?
+  additionalLanguages     String[]
+  height                  Int?
+  maritalStatus           String? // Marital status of the user
+  occupation              String?
+  education               String?
+  educationLevel          String?
+  city                    String?
+  origin                  String? // Origin of the user
+  religiousLevel          String? // Religious level of the user
+  shomerNegiah            Boolean?
+  serviceType             ServiceType? // Service type of the user
+  serviceDetails          String?
+  manualEntryText         String?
+  headCovering            HeadCoveringType?
+  kippahType              KippahType?
+  hasChildrenFromPrevious Boolean?          @default(false)
+  profileCharacterTraits  String[]          @default([]) // User's own traits
+  profileHobbies          String[]          @default([]) // User's own hobbies
+  aliyaCountry            String?
+  aliyaYear               Int?
+  about                   String?
+  parentStatus            String?
+  siblings                Int?
+  position                Int?
 
   // --- Existing Preference Fields ---
-  preferredAgeMin           Int?
-  preferredAgeMax           Int?
-  preferredHeightMin        Int?
-  preferredHeightMax        Int?
-  preferredReligiousLevels  String[]           @default([])
-  preferredLocations        String[]           @default([])
-  preferredEducation        String[]           @default([]) // Corresponds to educationPreferenceOptions
-  preferredOccupations      String[]           @default([]) // Corresponds to occupationPreferenceOptions
-  contactPreference         String?
- preferredHasChildrenFromPrevious   Boolean? @map("preferred_has_children_from_previous")
+  preferredAgeMin                  Int?
+  preferredAgeMax                  Int?
+  preferredHeightMin               Int?
+  preferredHeightMax               Int?
+  preferredReligiousLevels         String[] @default([])
+  preferredLocations               String[] @default([])
+  preferredEducation               String[] @default([]) // Corresponds to educationPreferenceOptions
+  preferredOccupations             String[] @default([]) // Corresponds to occupationPreferenceOptions
+  contactPreference                String?
+  preferredHasChildrenFromPrevious Boolean? @map("preferred_has_children_from_previous")
 
   // --- New Preference Fields ---
-  preferredMaritalStatuses  String[]           @default([]) // Preferred marital status(es) of the partner
-  preferredShomerNegiah     String?            // e.g., "yes", "no", "flexible"
-  preferredPartnerHasChildren String?          // e.g., "yes_ok", "no_preferred", "does_not_matter"
-  preferredOrigins          String[]           @default([]) // Preferred origin(s) of the partner
-  preferredServiceTypes     ServiceType[]      @default([]) // Preferred service type(s) of the partner
-  preferredHeadCoverings    HeadCoveringType[] @default([]) // Preferred head covering(s) if partner is female
-  preferredKippahTypes      KippahType[]       @default([]) // Preferred kippah type(s) if partner is male
-  preferredCharacterTraits  String[]           @default([]) // Preferred character trait(s) of the partner
-  preferredHobbies          String[]           @default([]) // Preferred hobbies of the partner
-  preferredAliyaStatus      String?            // e.g., "oleh", "tzabar", "no_preference"
+  preferredMaritalStatuses    String[]           @default([]) // Preferred marital status(es) of the partner
+  preferredShomerNegiah       String? // e.g., "yes", "no", "flexible"
+  preferredPartnerHasChildren String? // e.g., "yes_ok", "no_preferred", "does_not_matter"
+  preferredOrigins            String[]           @default([]) // Preferred origin(s) of the partner
+  preferredServiceTypes       ServiceType[]      @default([]) // Preferred service type(s) of the partner
+  preferredHeadCoverings      HeadCoveringType[] @default([]) // Preferred head covering(s) if partner is female
+  preferredKippahTypes        KippahType[]       @default([]) // Preferred kippah type(s) if partner is male
+  preferredCharacterTraits    String[]           @default([]) // Preferred character trait(s) of the partner
+  preferredHobbies            String[]           @default([]) // Preferred hobbies of the partner
+  preferredAliyaStatus        String? // e.g., "oleh", "tzabar", "no_preference"
 
   isProfileVisible          Boolean            @default(true)
   preferredMatchmakerGender Gender?
@@ -194,21 +192,22 @@ model Profile {
   updatedAt                 DateTime           @updatedAt
   lastActive                DateTime?
 
-  user                 User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  verifiedByMatchmaker User? @relation("VerifiedByMatchmaker", fields: [verifiedBy], references: [id], onDelete: SetNull)
-  vector ProfileVector? // הוספת קשר הפוך
-  hasViewedProfilePreview   Boolean            @default(false)
-
+  user                    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verifiedByMatchmaker    User?          @relation("VerifiedByMatchmaker", fields: [verifiedBy], references: [id], onDelete: SetNull)
+  vector                  ProfileVector? // הוספת קשר הפוך
+  hasViewedProfilePreview Boolean        @default(false)
 }
+
 model ProfileVector {
-  profileId String @id // This will be the same as the Profile's ID
+  profileId String                      @id // This will be the same as the Profile's ID
   vector    Unsupported("vector(768)")? // גודל הווקטור של Gemini הוא 768
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime                    @updatedAt
 
   profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
   @@map("profile_vectors")
 }
+
 model Meeting {
   id            String          @id @default(cuid())
   suggestionId  String
@@ -528,8 +527,9 @@ enum SuggestionCategory {
 enum UserSource {
   REGISTRATION // User registered themselves
   MANUAL_ENTRY // User added manually by a matchmaker
-  IMPORTED     // Future: User imported from another system
+  IMPORTED // Future: User imported from another system
 }
+
 enum AvailabilityStatus {
   AVAILABLE
   UNAVAILABLE
@@ -552,7 +552,7 @@ enum VerificationType {
   DOCUMENT
   REFERENCE
   PASSWORD_RESET
-   ACCOUNT_SETUP
+  ACCOUNT_SETUP
 }
 
 enum VerificationStatus {
