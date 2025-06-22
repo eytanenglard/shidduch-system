@@ -76,6 +76,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   
   const isOwnProfile = !userId || (session?.user?.id === userId);
 
+  // ✅ שלב 1: עטפנו את `loadData` ב-`useCallback` כדי להבטיח שהפונקציה יציבה
   const loadData = useCallback(async () => {
     setIsLoading(true);
     setError("");
@@ -93,26 +94,25 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         setHasSeenPreview(true);
       }
 
-      // --- START OF DEBUGGING SECTION ---
+      // ✅ שלב 2: תיקון הלוגיקה של טעינת השאלון
       const questionnaireUrl = userId ? `/api/profile/questionnaire?userId=${userId}` : "/api/profile/questionnaire";
       const questionnaireFetchResponse = await fetch(questionnaireUrl);
-      const questionnaireJson = await questionnaireFetchResponse.json();
-
-  
-
-      if (!questionnaireFetchResponse.ok || !questionnaireJson.success) {
-        // This block is likely being triggered.
-        console.warn("--- DEBUG: Could not load questionnaire. Reason:", {
-            message: questionnaireJson.message || "Response not OK or success is false",
-            responseOk: questionnaireFetchResponse.ok,
-            jsonSuccess: questionnaireJson.success,
-        });
+      
+      if (questionnaireFetchResponse.status === 404) {
+        console.log("No questionnaire response found for user, setting to null.");
         setQuestionnaireResponse(null);
+      } else if (questionnaireFetchResponse.ok) {
+        const questionnaireJson = await questionnaireFetchResponse.json();
+        if (questionnaireJson.success) {
+          setQuestionnaireResponse(questionnaireJson.questionnaireResponse);
+        } else {
+          console.warn("Could not load questionnaire. Reason:", questionnaireJson.message);
+          setQuestionnaireResponse(null);
+        }
       } else {
-        // If this block is reached, the data should be set.
-        setQuestionnaireResponse(questionnaireJson.questionnaireResponse);
+        console.error("Failed to fetch questionnaire data. Status:", questionnaireFetchResponse.status);
+        setQuestionnaireResponse(null);
       }
-      // --- END OF DEBUGGING SECTION ---
 
     } catch (err: unknown) {
       console.error("Failed to load profile data:", err);
@@ -125,13 +125,33 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
     } finally {
       setIsLoading(false);
     }
-  }, [userId]);
+  }, [userId]); // התלויות מבטיחות שהפונקציה תתעדכן רק אם ה-userId משתנה
 
   useEffect(() => {
     if (sessionStatus === 'authenticated') {
         loadData();
     }
-  }, [loadData, sessionStatus]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionStatus, loadData]);
+
+  // ✅ שלב 3: הוספת מנגנון לרענון הנתונים כשהמשתמש חוזר לטאב
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      // אם הטאב חזר להיות גלוי, והמשתמש מחובר
+      if (document.visibilityState === 'visible' && sessionStatus === 'authenticated') {
+        console.log("Tab is visible again, refetching data to get latest questionnaire progress...");
+        loadData(); // קוראים לפונקציה כדי למשוך נתונים עדכניים
+      }
+    };
+
+    // הוספת מאזין לאירוע
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // ניקוי המאזין כשהרכיב יורד
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [loadData, sessionStatus]); // התלויות מבטיחות שהמאזין תמיד ישתמש בגרסה העדכנית של הפונקציה
 
   const handlePreviewClick = async () => {
     setPreviewOpen(true);

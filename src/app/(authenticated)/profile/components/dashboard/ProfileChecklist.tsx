@@ -1,3 +1,5 @@
+// ProfileChecklist.tsx
+
 "use client";
 
 import React, { useState, useMemo } from 'react';
@@ -8,7 +10,8 @@ import { CheckCircle, User, BookOpen, Camera, Target, ChevronUp, ChevronDown, Sp
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from "@/lib/utils";
 import type { User as SessionUserType } from '@/types/next-auth';
-import type { QuestionnaireResponse } from '@prisma/client';
+// ✅✅✅ ייבוא QuestionnaireResponse מהמקום הנכון. הוא מכיל את שדות ה-JSON.
+import type { QuestionnaireResponse } from '@/types/next-auth';
 
 // Helper Types & Constants
 const QUESTION_COUNTS: Record<'VALUES' | 'PERSONALITY' | 'RELATIONSHIP' | 'PARTNER' | 'RELIGION', number> = {
@@ -117,10 +120,6 @@ interface ProfileChecklistProps {
 }
 
 export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({ user, onPreviewClick, hasSeenPreview, questionnaireResponse }) => {
-    // --- DEBUG LOG 1: Check the data passed to the component ---
-    console.log("--- DEBUG: Data passed to ProfileChecklist ---", { questionnaireResponse });
-    // -----------------------------------------------------------
-
     const [isMinimized, setIsMinimized] = useState(false);
     const [activeItemId, setActiveItemId] = useState<string | null>(null);
 
@@ -144,54 +143,52 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({ user, onPrev
                 (!p.preferredLocations || p.preferredLocations.length === 0) && 'אזורי מגורים מועדפים',
                 (!p.preferredMaritalStatuses || p.preferredMaritalStatuses.length === 0) && 'מצב משפחתי מועדף',
                 !p.preferredShomerNegiah && 'העדפת שמירת נגיעה',
-                !p.preferredPartnerHasChildren && 'העדפה לגבי ילדים מקשר קודם', // This field name might need checking against prisma schema
+                !p.preferredPartnerHasChildren && 'העדפה לגבי ילדים מקשר קודם',
                 (!p.preferredCharacterTraits || p.preferredCharacterTraits.length === 0) && 'תכונות אופי מועדפות',
                 (!p.preferredHobbies || p.preferredHobbies.length === 0) && 'תחביבים מועדפים',
             ].filter((item): item is string => !!item),
         };
     }, [user.profile]);
 
-    // --- START OF FIXED SECTION ---
+    // ✅✅✅ *** קוד משופר וחסין תקלות *** ✅✅✅
     const questionnaireProgress = useMemo(() => {
-        // אם אין תשובות שאלון, אין מה להציג
+        // פונקציית עזר בטוחה לספירת תשובות ממערך
+        const getAnswerCountFromJsonArray = (jsonValue: unknown): number => {
+            if (Array.isArray(jsonValue)) {
+                return jsonValue.length;
+            }
+            return 0; // אם המידע אינו מערך (או null/undefined), נחזיר 0
+        };
+
+        // אם אין אובייקט תשובות כלל, נחזיר 0 התקדמות לכל העולמות.
         if (!questionnaireResponse) {
-            return null;
+            return (Object.keys(WORLD_NAMES_MAP) as WorldKey[]).map(key => ({
+                world: WORLD_NAMES_MAP[key],
+                completed: 0,
+                total: QUESTION_COUNTS[key.toUpperCase() as keyof typeof QUESTION_COUNTS],
+                isDone: false,
+            }));
         }
 
         const qr = questionnaireResponse;
 
-        // פונקציה חדשה לספירת מפתחות באובייקט JSON
-        const getAnswerCountFromObject = (answersObject: unknown): number => {
-            // ודא שהערך הוא אובייקט תקין ולא מערך או null
-            if (typeof answersObject === 'object' && answersObject !== null && !Array.isArray(answersObject)) {
-                return Object.keys(answersObject).length;
-            }
-            return 0;
-        };
-
         return (Object.keys(WORLD_NAMES_MAP) as WorldKey[]).map(key => {
             const uppercaseKey = key.toUpperCase() as keyof typeof QUESTION_COUNTS;
-            
-            // ✅ תיקון: גישה לשדה ה-JSON הנכון מה-DB, למשל 'valuesAnswers'
             const answersFieldKey = `${key}Answers` as keyof QuestionnaireResponse;
-            const answersForWorld = qr[answersFieldKey];
-
-            // ✅ תיקון: שימוש בפונקציה שסופרת מפתחות באובייקט
-            const completedCount = getAnswerCountFromObject(answersForWorld);
+            
+            // סופר את התשובות מהשדה הספציפי של ה-JSON באמצעות פונקציית העזר
+            const completedCount = getAnswerCountFromJsonArray(qr[answersFieldKey]);
 
             return {
                 world: WORLD_NAMES_MAP[key],
                 completed: completedCount,
                 total: QUESTION_COUNTS[uppercaseKey],
-                isDone: qr.worldsCompleted?.includes(uppercaseKey) ?? false
+                // קובע אם העולם הושלם על פי המערך `worldsCompleted`
+                isDone: qr.worldsCompleted?.includes(uppercaseKey) ?? false,
             };
         });
     }, [questionnaireResponse]);
-    // --- END OF FIXED SECTION ---
-
-    // --- DEBUG LOG 2: Check the calculated progress ---
-    console.log("--- DEBUG: Calculated Progress for Hover ---", questionnaireProgress);
-    // --------------------------------------------------
+    // ------------------------------------------
 
     const questionnaireCompleted = questionnaireResponse?.completed ?? false;
     
