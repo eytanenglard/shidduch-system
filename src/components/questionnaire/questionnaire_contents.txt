@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\questionnaire
-# Generated on: 2025-06-22 00:52:03
+# Generated on: 2025-06-22 21:42:48
 ################################################################################
 
 ================================================================================
@@ -89,8 +89,7 @@ export default function MatchmakingQuestionnaire({
   const [currentWorld, setCurrentWorld] = useState<WorldId>(
     initialWorld || "VALUES"
   );
-  const [userTrack, setUserTrack] = useState<UserTrack>("SECULAR");
-  const [answers, setAnswers] = useState<QuestionnaireAnswer[]>([]);
+const [userTrack, setUserTrack] = useState<UserTrack>("חילוני");  const [answers, setAnswers] = useState<QuestionnaireAnswer[]>([]);
   const [completedWorlds, setCompletedWorlds] = useState<WorldId[]>([]);
   const [startTime] = useState(() => new Date().toISOString());
   const [lastSavedTime, setLastSavedTime] = useState<Date | null>(null);
@@ -7647,7 +7646,7 @@ interface TrackOption {
 
 const trackOptions: TrackOption[] = [
   {
-    id: "SECULAR",
+    id: "חילוני",
     title: "חילוני",
     description: "אורח חיים חופשי עם זיקה למסורת",
     icon: <Sun className="w-6 h-6" />,
@@ -7664,7 +7663,7 @@ const trackOptions: TrackOption[] = [
     },
   },
   {
-    id: "TRADITIONAL",
+    id: "מסורתי",
     title: "מסורתי",
     description: "שילוב בין מסורת למודרנה",
     icon: <Heart className="w-6 h-6" />,
@@ -7681,7 +7680,7 @@ const trackOptions: TrackOption[] = [
     },
   },
   {
-    id: "RELIGIOUS",
+    id: "דתי",
     title: "דתי",
     description: "אורח חיים על פי ההלכה",
     icon: <Book className="w-6 h-6" />,
@@ -7698,7 +7697,7 @@ const trackOptions: TrackOption[] = [
     },
   },
   {
-    id: "ORTHODOX",
+    id: "חרדי",
     title: "חרדי",
     description: "הקפדה מלאה על קלה כבחמורה",
     icon: <Scroll className="w-6 h-6" />,
@@ -8673,12 +8672,12 @@ export const partnerQuestions: Question[] = [
     depth: "BASIC",
     isRequired: true,
     options: [
-      { icon: <Eye />, text: "מראה חיצוני כללי וטיפוח", value: "appearance_grooming" },
-      { icon: <Smile />, text: "חיוך, נעימות וחמימות אישית", value: "smile_warmth" },
-      { icon: <MessageCircle />, text: "יכולת שיחה, זרימה וכימיה ראשונית", value: "conversation_chemistry" },
-      { icon: <Brain />, text: "ניצוץ של חוכמה, שנינות או סקרנות", value: "spark_intelligence_wit" },
-      { icon: <Activity />, text: "אנרגיה כללית, חיוניות ונוכחות", value: "energy_presence" },
-      { icon: <ShieldCheck />, text: "תחושת ביטחון ואמינות שהוא/היא משדר/ת", value: "sense_of_security_trust" },
+      { icon: <Eye />, text: "מראה חיצוני כללי וטיפוח", value: "מראה חיצוני כללי וטיפוח" },
+      { icon: <Smile />, text: "חיוך, נעימות וחמימות אישית", value: "חיוך, נעימות וחמימות אישית" },
+      { icon: <MessageCircle />, text: "יכולת שיחה, זרימה וכימיה ראשונית", value: "יכולת שיחה, זרימה וכימיה ראשונית" },
+      { icon: <Brain />, text: "ניצוץ של חוכמה, שנינות או סקרנות", value: "ניצוץ של חוכמה, שנינות או סקרנות" },
+      { icon: <Activity />, text: "אנרגיה כללית, חיוניות ונוכחות", value: "אנרגיה כללית, חיוניות ונוכחות" },
+      { icon: <ShieldCheck />, text: "תחושת ביטחון ואמינות שהוא/היא משדר/ת", value: "תחושת ביטחון ואמינות שהוא/היא משדר/ת" },
     ],
     minSelections: 1,
     maxSelections: 3,
@@ -8704,18 +8703,18 @@ export const partnerQuestions: Question[] = [
     category: "partner",
     subcategory: "first_impression_basics",
     question: "אילו 3-4 תכונות אופי הן *החיוניות ביותר* עבורך אצל בן/בת זוג לחיים?",
-    type: "multiSelectWithOther", // מאפשר גם "אחר"
+    type: "multiSelectWithOther",
     depth: "BASIC",
     isRequired: true,
     options: [
-      { icon: <ShieldCheck />, text: "יושרה, אמינות וכנות", value: "integrity_honesty_trustworthiness" },
-      { icon: <Heart />, text: "חום, אמפתיה וטוב לב", value: "warmth_empathy_kindness" },
-      { icon: <Smile />, text: "אופטימיות, שמחת חיים וחוש הומור", value: "optimism_joy_humor" },
-      { icon: <Brain />, text: "אינטליגנציה, סקרנות ופתיחות ללמוד", value: "intelligence_curiosity_openness_to_learn" },
-      { icon: <Target />, text: "אחריות, בגרות ויציבות רגשית", value: "responsibility_maturity_emotional_stability" },
-      { icon: <Star />, text: "שאפתנות, מוטיבציה ורצון להתפתח", value: "ambition_motivation_drive" },
-      { icon: <Scale />, text: "יכולת פשרה, גמישות וסבלנות", value: "compromise_flexibility_patience" },
-      { icon: <HandHeart />, text: "תקשורת טובה ויכולת הקשבה", value: "good_communication_listening_skills" },
+      { icon: <ShieldCheck />, text: "יושרה, אמינות וכנות", value: "יושרה, אמינות וכנות" },
+      { icon: <Heart />, text: "חום, אמפתיה וטוב לב", value: "חום, אמפתיה וטוב לב" },
+      { icon: <Smile />, text: "אופטימיות, שמחת חיים וחוש הומור", value: "אופטימיות, שמחת חיים וחוש הומור" },
+      { icon: <Brain />, text: "אינטליגנציה, סקרנות ופתיחות ללמוד", value: "אינטליגנציה, סקרנות ופתיחות ללמוד" },
+      { icon: <Target />, text: "אחריות, בגרות ויציבות רגשית", value: "אחריות, בגרות ויציבות רגשית" },
+      { icon: <Star />, text: "שאפתנות, מוטיבציה ורצון להתפתח", value: "שאפתנות, מוטיבציה ורצון להתפתח" },
+      { icon: <Scale />, text: "יכולת פשרה, גמישות וסבלנות", value: "יכולת פשרה, גמישות וסבלנות" },
+      { icon: <HandHeart />, text: "תקשורת טובה ויכולת הקשבה", value: "תקשורת טובה ויכולת הקשבה" },
     ],
     minSelections: 3,
     maxSelections: 4,
@@ -8733,10 +8732,10 @@ export const partnerQuestions: Question[] = [
     depth: "BASIC",
     isRequired: true,
     options: [
-      { icon: <Activity />, text: "דינמי, פעיל ומלא עניין", value: "dynamic_active_eventful" },
-      { icon: <Home />, text: "רגוע, ביתי ושליו, עם שגרה יציבה", value: "calm_homey_stable_routine" },
-      { icon: <Scale />, text: "מאוזן - יודע/ת לשלב בין פעילות למנוחה, בין שגרה לספונטניות", value: "balanced_activity_rest_routine_spontaneity" },
-      { icon: <Sparkles />, text: "הרפתקני, אוהב/ת שינויים, טיולים וחוויות חדשות", value: "adventurous_loves_change_travel" },
+      { icon: <Activity />, text: "דינמי, פעיל ומלא עניין", value: "דינמי, פעיל ומלא עניין" },
+      { icon: <Home />, text: "רגוע, ביתי ושליו, עם שגרה יציבה", value: "רגוע, ביתי ושליו, עם שגרה יציבה" },
+      { icon: <Scale />, text: "מאוזן - יודע/ת לשלב בין פעילות למנוחה, בין שגרה לספונטניות", value: "מאוזן - יודע/ת לשלב בין פעילות למנוחה, בין שגרה לספונטניות" },
+      { icon: <Sparkles />, text: "הרפתקני, אוהב/ת שינויים, טיולים וחוויות חדשות", value: "הרפתקני, אוהב/ת שינויים, טיולים וחוויות חדשות" },
     ],
     metadata: { estimatedTime: 1 },
   },
@@ -8749,8 +8748,8 @@ export const partnerQuestions: Question[] = [
     type: "scale",
     depth: "ADVANCED",
     isRequired: false,
-    min: 1, // לא מאוד חשוב, אפשר שונים
-    max: 10, // חשוב מאוד שיהיו משותפים
+    min: 1, 
+    max: 10, 
     labels: { min: "פחות קריטי", max: "חשוב מאוד" },
     metadata: { estimatedTime: 1 },
   },
@@ -8764,10 +8763,10 @@ export const partnerQuestions: Question[] = [
     depth: "BASIC",
     isRequired: false,
     options: [
-      { icon: <Users />, text: "מאוד חברותי/ת, עם מעגל חברים רחב ואוהב/ת לארח/להתארח", value: "very_social_large_circle_hosts" },
-      { icon: <Coffee />, text: "חברותי/ת אך מעדיפ/ה מפגשים קטנים ואינטימיים", value: "social_prefers_small_intimate_gatherings" },
-      { icon: <Home />, text: "מעדיפ/ה חיי חברה מצומצמים, עם דגש על זמן איכות זוגי/משפחתי", value: "prefers_limited_social_life_family_focus" },
-      { icon: <Scale />, text: "מאוזנ/ת - נהנה/ית גם מחברה וגם מזמן שקט יותר", value: "balanced_enjoys_social_and_quiet" },
+      { icon: <Users />, text: "מאוד חברותי/ת, עם מעגל חברים רחב ואוהב/ת לארח/להתארח", value: "מאוד חברותי/ת, עם מעגל חברים רחב ואוהב/ת לארח/להתארח" },
+      { icon: <Coffee />, text: "חברותי/ת אך מעדיפ/ה מפגשים קטנים ואינטימיים", value: "חברותי/ת אך מעדיפ/ה מפגשים קטנים ואינטימיים" },
+      { icon: <Home />, text: "מעדיפ/ה חיי חברה מצומצמים, עם דגש על זמן איכות זוגי/משפחתי", value: "מעדיפ/ה חיי חברה מצומצמים, עם דגש על זמן איכות זוגי/משפחתי" },
+      { icon: <Scale />, text: "מאוזנ/ת - נהנה/ית גם מחברה וגם מזמן שקט יותר", value: "מאוזנ/ת - נהנה/ית גם מחברה וגם מזמן שקט יותר" },
     ],
     metadata: { estimatedTime: 1 },
   },
@@ -8793,21 +8792,21 @@ export const partnerQuestions: Question[] = [
     category: "partner",
     subcategory: "values_beliefs_spirituality",
     question: "באיזו רמה של שמירת מצוות והשקפה דתית היית רוצה שבן/בת הזוג יהיו? (ניתן לבחור טווח אם יש גמישות)",
-    type: "multiSelect", // מאפשר בחירת טווח או מספר אופציות
+    type: "multiSelect",
     depth: "BASIC",
     isRequired: true,
-    options: [ // הוספתי אופציות מגוונות יותר
-      { icon: <Scroll />, text: "חרדי/ת (כל הזרמים)", value: "charedi_any" },
-      { icon: <BookOpen />, text: "דתי/ה לאומי/ת - תורני/ת מאוד (חרד\"ל)", value: "dati_leumi_very_torani" },
-      { icon: <BookOpen />, text: "דתי/ה לאומי/ת - תורני/ת / ישיבתי/ת", value: "dati_leumi_torani_yeshivish" },
-      { icon: <Sparkles />, text: "דתי/ה לאומי/ת - מרכז / ליברלי", value: "dati_leumi_centrist_liberal" },
-      { icon: <Heart />, text: "מסורתי/ת מאוד (שומר/ת שבת וכשרות בקפידה)", value: "masorti_very_observant" },
-      { icon: <Heart />, text: "מסורתי/ת (שומר/ת חלק מהמצוות, חיבור למסורת)", value: "masorti_observant_traditional_connection" },
-      { icon: <Users />, text: "חילוני/ת עם זיקה חזקה למסורת וערכים יהודיים", value: "secular_strong_jewish_values_tradition" },
-      { icon: <Lightbulb />, text: "פתוח/ה גם למי שאינו/ה מוגדר/ת דתית אך עם ערכים דומים", value: "open_to_non_defined_similar_values" },
+    options: [
+      { icon: <Scroll />, text: "חרדי/ת (כל הזרמים)", value: "חרדי/ת (כל הזרמים)" },
+      { icon: <BookOpen />, text: "דתי/ה לאומי/ת - תורני/ת מאוד (חרד\"ל)", value: "דתי/ה לאומי/ת - תורני/ת מאוד (חרד\"ל)" },
+      { icon: <BookOpen />, text: "דתי/ה לאומי/ת - תורני/ת / ישיבתי/ת", value: "דתי/ה לאומי/ת - תורני/ת / ישיבתי/ת" },
+      { icon: <Sparkles />, text: "דתי/ה לאומי/ת - מרכז / ליברלי", value: "דתי/ה לאומי/ת - מרכז / ליברלי" },
+      { icon: <Heart />, text: "מסורתי/ת מאוד (שומר/ת שבת וכשרות בקפידה)", value: "מסורתי/ת מאוד (שומר/ת שבת וכשרות בקפידה)" },
+      { icon: <Heart />, text: "מסורתי/ת (שומר/ת חלק מהמצוות, חיבור למסורת)", value: "מסורתי/ת (שומר/ת חלק מהמצוות, חיבור למסורת)" },
+      { icon: <Users />, text: "חילוני/ת עם זיקה חזקה למסורת וערכים יהודיים", value: "חילוני/ת עם זיקה חזקה למסורת וערכים יהודיים" },
+      { icon: <Lightbulb />, text: "פתוח/ה גם למי שאינו/ה מוגדר/ת דתית אך עם ערכים דומים", value: "פתוח/ה גם למי שאינו/ה מוגדר/ת דתית אך עם ערכים דומים" },
     ],
     minSelections: 1,
-    maxSelections: 3, // מאפשר גמישות מסוימת בטווח
+    maxSelections: 3,
     metadata: { estimatedTime: 1, helpText: "חשוב להיות כן/ה. זהו אחד הפרמטרים החשובים ביותר להתאמה." },
   },
   {
@@ -8820,10 +8819,10 @@ export const partnerQuestions: Question[] = [
     depth: "ADVANCED",
     isRequired: false,
     options: [
-      { icon: <TrendingUp />, text: "כן, מאוד חשוב לי שיהיה רצון משותף להתפתח יחד", value: "very_important_mutual_growth" },
-      { icon: <Lightbulb />, text: "כן, חשובה לי פתיחות לכך, גם אם הקצב שונה", value: "important_openness_different_pace" },
-      { icon: <Scale />, text: "פחות קריטי, כל עוד יש הבנה וכבוד הדדי למקום של כל אחד", value: "less_critical_mutual_respect" },
-      { icon: <Target />, text: "מעדיפ/ה מישהו/י שכבר נמצא/ת במקום דומה לשלי מבחינה רוחנית/דתית", value: "prefer_similar_current_level" },
+      { icon: <TrendingUp />, text: "כן, מאוד חשוב לי שיהיה רצון משותף להתפתח יחד", value: "כן, מאוד חשוב לי שיהיה רצון משותף להתפתח יחד" },
+      { icon: <Lightbulb />, text: "כן, חשובה לי פתיחות לכך, גם אם הקצב שונה", value: "כן, חשובה לי פתיחות לכך, גם אם הקצב שונה" },
+      { icon: <Scale />, text: "פחות קריטי, כל עוד יש הבנה וכבוד הדדי למקום של כל אחד", value: "פחות קריטי, כל עוד יש הבנה וכבוד הדדי למקום של כל אחד" },
+      { icon: <Target />, text: "מעדיפ/ה מישהו/י שכבר נמצא/ת במקום דומה לשלי מבחינה רוחנית/דתית", value: "מעדיפ/ה מישהו/י שכבר נמצא/ת במקום דומה לשלי מבחינה רוחנית/דתית" },
     ],
     metadata: { estimatedTime: 1 },
   },
@@ -8853,10 +8852,10 @@ export const partnerQuestions: Question[] = [
     depth: "ADVANCED",
     isRequired: false,
     options: [
-      { icon: <Star />, text: "שאפתנ/ית מאוד, עם מטרות קריירה ברורות ורצון להתקדם", value: "very_ambitious_career_driven" },
-      { icon: <Briefcase />, text: "בעל/ת קריירה יציבה ומספקת, אך לא בהכרח בראש סדר העדיפויות", value: "stable_fulfilling_career_not_top_priority" },
-      { icon: <Scale />, text: "מחפש/ת איזון בין עבודה לחיים אישיים/משפחתיים", value: "work_life_balance_seeker" },
-      { icon: <Heart />, text: "העיסוק פחות קריטי, כל עוד הוא/היא מאושר/ת ומסופק/ת", value: "occupation_less_critical_happiness_matters" },
+      { icon: <Star />, text: "שאפתנ/ית מאוד, עם מטרות קריירה ברורות ורצון להתקדם", value: "שאפתנ/ית מאוד, עם מטרות קריירה ברורות ורצון להתקדם" },
+      { icon: <Briefcase />, text: "בעל/ת קריירה יציבה ומספקת, אך לא בהכרח בראש סדר העדיפויות", value: "בעל/ת קריירה יציבה ומספקת, אך לא בהכרח בראש סדר העדיפויות" },
+      { icon: <Scale />, text: "מחפש/ת איזון בין עבודה לחיים אישיים/משפחתיים", value: "מחפש/ת איזון בין עבודה לחיים אישיים/משפחתיים" },
+      { icon: <Heart />, text: "העיסוק פחות קריטי, כל עוד הוא/היא מאושר/ת ומסופק/ת", value: "העיסוק פחות קריטי, כל עוד הוא/היא מאושר/ת ומסופק/ת" },
     ],
     metadata: { estimatedTime: 1 },
   },
@@ -8870,10 +8869,10 @@ export const partnerQuestions: Question[] = [
     depth: "ADVANCED",
     isRequired: false,
     options: [
-      { icon: <PiggyBank />, text: "חסכנ/ית, מחושב/ת ומתכננ/ת לטווח ארוך", value: "frugal_planner_long_term" },
-      { icon: <Scale />, text: "מאוזנ/ת - יודע/ת להנות מהכסף אך גם לנהל אותו באחריות", value: "balanced_enjoys_responsibly" },
-      { icon: <Sparkles />, text: "נדיב/ה, אוהב/ת לחיות טוב ולהוציא על חוויות והנאות", value: "generous_enjoys_life_experiences" },
-      { icon: <Info />, text: "פחות משנה לי הגישה, כל עוד יש הסכמה על ניהול משותף", value: "approach_less_important_than_joint_management" },
+      { icon: <PiggyBank />, text: "חסכנ/ית, מחושב/ת ומתכננ/ת לטווח ארוך", value: "חסכנ/ית, מחושב/ת ומתכננ/ת לטווח ארוך" },
+      { icon: <Scale />, text: "מאוזנ/ת - יודע/ת להנות מהכסף אך גם לנהל אותו באחריות", value: "מאוזנ/ת - יודע/ת להנות מהכסף אך גם לנהל אותו באחריות" },
+      { icon: <Sparkles />, text: "נדיב/ה, אוהב/ת לחיות טוב ולהוציא על חוויות והנאות", value: "נדיב/ה, אוהב/ת לחיות טוב ולהוציא על חוויות והנאות" },
+      { icon: <Info />, text: "פחות משנה לי הגישה, כל עוד יש הסכמה על ניהול משותף", value: "פחות משנה לי הגישה, כל עוד יש הסכמה על ניהול משותף" },
     ],
     metadata: { estimatedTime: 1 },
   },
@@ -8888,8 +8887,8 @@ export const partnerQuestions: Question[] = [
     type: "scale",
     depth: "BASIC",
     isRequired: true,
-    min: 1, // פחות משפחתי/ת, יותר עצמאי/ת
-    max: 10, // מאוד משפחתי/ת, קשר הדוק
+    min: 1, 
+    max: 10,
     labels: { min: "עצמאי/ת יותר", max: "מאוד משפחתי/ת" },
     metadata: { estimatedTime: 1 },
   },
@@ -8900,13 +8899,13 @@ export const partnerQuestions: Question[] = [
     subcategory: "family_background",
     question: "מהי גישתך לקשר עם בן/בת זוג שכבר יש לו/לה ילדים ממערכת יחסים קודמת?",
     type: "iconChoice",
-    depth: "ADVANCED", // שאלה רגישה
-    isRequired: true, // קריטי לסינון
+    depth: "ADVANCED",
+    isRequired: true,
     options: [
-      { icon: <Heart />, text: "פתוח/ה לחלוטין ומקבל/ת באהבה", value: "fully_open_accepting" },
-      { icon: <Scale />, text: "פתוח/ה לשקול, תלוי בנסיבות (גיל הילדים, טיב הקשר וכו')", value: "open_to_consider_depends_on_circumstances" },
-      { icon: <Home />, text: "מעדיפ/ה להתחיל 'דף חדש' ללא ילדים קיימים, אך לא שולל/ת לחלוטין", value: "prefer_fresh_start_not_completely_ruling_out" },
-      { icon: <Info />, text: "לא מעוניינ/ת בקשר עם בן/בת זוג שיש לו/לה ילדים", value: "not_interested_partner_with_children" },
+      { icon: <Heart />, text: "פתוח/ה לחלוטין ומקבל/ת באהבה", value: "פתוח/ה לחלוטין ומקבל/ת באהבה" },
+      { icon: <Scale />, text: "פתוח/ה לשקול, תלוי בנסיבות (גיל הילדים, טיב הקשר וכו')", value: "פתוח/ה לשקול, תלוי בנסיבות (גיל הילדים, טיב הקשר וכו')" },
+      { icon: <Home />, text: "מעדיפ/ה להתחיל 'דף חדש' ללא ילדים קיימים, אך לא שולל/ת לחלוטין", value: "מעדיפ/ה להתחיל 'דף חדש' ללא ילדים קיימים, אך לא שולל/ת לחלוטין" },
+      { icon: <Info />, text: "לא מעוניינ/ת בקשר עם בן/בת זוג שיש לו/לה ילדים", value: "לא מעוניינ/ת בקשר עם בן/בת זוג שיש לו/לה ילדים" },
     ],
     metadata: { estimatedTime: 1 },
   },
@@ -8919,8 +8918,8 @@ export const partnerQuestions: Question[] = [
     type: "scale",
     depth: "ADVANCED",
     isRequired: false,
-    min: 1, // לא חשוב כלל
-    max: 10, // חשוב מאוד
+    min: 1, 
+    max: 10, 
     labels: { min: "לא חשוב כלל", max: "חשוב מאוד" },
     metadata: { estimatedTime: 1, helpText: "אם יש העדפה ספציפית, תוכל/י לציין זאת בהמשך או בשיחה עם השדכן." },
   },
@@ -8933,8 +8932,8 @@ export const partnerQuestions: Question[] = [
     subcategory: "non_negotiables",
     question: "האם ישנן תכונות אופי, התנהגויות או הרגלים מסוימים שמהווים 'קו אדום' (Deal Breaker) מוחלט עבורך אצל בן/בת זוג? אם כן, פרט/י 1-2 דוגמאות עיקריות.",
     type: "openText",
-    depth: "EXPERT", // שאלה קריטית
-    isRequired: false, // לעודד כנות, אך לא להכריח
+    depth: "EXPERT", 
+    isRequired: false,
     minLength: 0,
     maxLength: 300,
     placeholder: "לדוגמה: חוסר כנות, קמצנות קיצונית, חוסר כבוד, התמכרות כלשהי...",
@@ -8947,16 +8946,14 @@ export const partnerQuestions: Question[] = [
     subcategory: "non_negotiables",
     question: "לסיום עולם זה, מהי התכונה או האיכות *האחת* החשובה ביותר שחייבת להיות לבן/בת הזוג שלך כדי שתוכל/י לראות עתיד משותף?",
     type: "openText",
-    depth: "EXPERT", // שאלה מסכמת ומזקקת
+    depth: "EXPERT",
     isRequired: true,
-    minLength: 10, // מילה או שתיים לפחות
+    minLength: 10,
     maxLength: 150,
     placeholder: "נסה/י לחשוב על הדבר האחד והיחיד שהוא הבסיס להכל עבורך...",
     metadata: { estimatedTime: 1 },
   },
 ];
-
-// export default partnerQuestions; // כבר לא צריך אם מייבאים ישירות את המערך
 --- End of Content for partnerQuestions.tsx ---
 
 ================================================================================
@@ -9030,10 +9027,10 @@ export const personalityQuestions: Question[] = [
     depth: "BASIC",
     isRequired: true,
     options: [
-      { icon: <Sun />, text: "גבוהה - תמיד בתנועה ופעלתנות", value: "high_energy" },
-      { icon: <Activity />, text: "בינונית - אנרגטי/ת כשצריך, יודע/ת גם לנוח", value: "medium_energy" },
-      { icon: <Moon />, text: "נמוכה - מעדיף/ה קצב רגוע ושליו", value: "low_energy" },
-      { icon: <Cloud />, text: "משתנה - תלוי במצב הרוח וביום", value: "variable_energy" },
+      { icon: <Sun />, text: "גבוהה - תמיד בתנועה ופעלתנות", value: "גבוהה - תמיד בתנועה ופעלתנות" },
+      { icon: <Activity />, text: "בינונית - אנרגטי/ת כשצריך, יודע/ת גם לנוח", value: "בינונית - אנרגטי/ת כשצריך, יודע/ת גם לנוח" },
+      { icon: <Moon />, text: "נמוכה - מעדיף/ה קצב רגוע ושליו", value: "נמוכה - מעדיף/ה קצב רגוע ושליו" },
+      { icon: <Cloud />, text: "משתנה - תלוי במצב הרוח וביום", value: "משתנה - תלוי במצב הרוח וביום" },
     ],
     metadata: { estimatedTime: 1 },
   },
@@ -9061,18 +9058,18 @@ export const personalityQuestions: Question[] = [
     depth: "BASIC",
     isRequired: true,
     options: [
-      { icon: <Heart />, text: "אמפתי/ת ורגיש/ה", value: "empathetic" },
-      { icon: <ShieldCheck />, text: "ישר/ה ואמין/ה", value: "honest" },
-      { icon: <Sun />, text: "אופטימי/ת ושמח/ה", value: "optimistic" },
-      { icon: <Smile />, text: "בעל/ת חוש הומור", value: "humorous" },
-      { icon: <Brain />, text: "אינטליגנט/ית וסקרנ/ית", value: "intelligent" },
-      { icon: <Star />, text: "שאפתנ/ית ובעל/ת מוטיבציה", value: "ambitious" },
-      { icon: <Feather />, text: "קליל/ה וזורמ/ת", value: "easygoing" },
-      { icon: <Target />, text: "אחראי/ת ומאורגנ/ת", value: "responsible" },
-      { icon: <Lightbulb />, text: "יצירתי/ת ומקור/ית", value: "creative" },
-      { icon: <Anchor />, text: "יציב/ה וקרקע/ית", value: "stable" },
-      { icon: <Compass />, text: "החלטי/ת ובעל/ת ביטחון", value: "decisive" },
-      { icon: <HandHeart />, text: "נדיב/ה ומתחשב/ת", value: "generous" },
+      { icon: <Heart />, text: "אמפתי/ת ורגיש/ה", value: "אמפתי/ת ורגיש/ה" },
+      { icon: <ShieldCheck />, text: "ישר/ה ואמין/ה", value: "ישר/ה ואמין/ה" },
+      { icon: <Sun />, text: "אופטימי/ת ושמח/ה", value: "אופטימי/ת ושמח/ה" },
+      { icon: <Smile />, text: "בעל/ת חוש הומור", value: "בעל/ת חוש הומור" },
+      { icon: <Brain />, text: "אינטליגנט/ית וסקרנ/ית", value: "אינטליגנט/ית וסקרנ/ית" },
+      { icon: <Star />, text: "שאפתנ/ית ובעל/ת מוטיבציה", value: "שאפתנ/ית ובעל/ת מוטיבציה" },
+      { icon: <Feather />, text: "קליל/ה וזורמ/ת", value: "קליל/ה וזורמ/ת" },
+      { icon: <Target />, text: "אחראי/ת ומאורגנ/ת", value: "אחראי/ת ומאורגנ/ת" },
+      { icon: <Lightbulb />, text: "יצירתי/ת ומקור/ית", value: "יצירתי/ת ומקור/ית" },
+      { icon: <Anchor />, text: "יציב/ה וקרקע/ית", value: "יציב/ה וקרקע/ית" },
+      { icon: <Compass />, text: "החלטי/ת ובעל/ת ביטחון", value: "החלטי/ת ובעל/ת ביטחון" },
+      { icon: <HandHeart />, text: "נדיב/ה ומתחשב/ת", value: "נדיב/ה ומתחשב/ת" },
     ],
     minSelections: 3,
     maxSelections: 5,
@@ -9090,10 +9087,10 @@ export const personalityQuestions: Question[] = [
     depth: "BASIC",
     isRequired: true,
     options: [
-      { icon: <Watch />, text: "מתוכננת ומסודרת עם לו\"ז קבוע", value: "structured_routine" },
-      { icon: <Cloud />, text: "גמישה וספונטנית, משתנה מיום ליום", value: "flexible_spontaneous" },
-      { icon: <Target />, text: "ממוקדת משימות ויעדים ברורים", value: "task_oriented" },
-      { icon: <Scale />, text: "שילוב של תכנון וגמישות", value: "balanced_structure" },
+      { icon: <Watch />, text: "מתוכננת ומסודרת עם לו\"ז קבוע", value: "מתוכננת ומסודרת עם לו\"ז קבוע" },
+      { icon: <Cloud />, text: "גמישה וספונטנית, משתנה מיום ליום", value: "גמישה וספונטנית, משתנה מיום ליום" },
+      { icon: <Target />, text: "ממוקדת משימות ויעדים ברורים", value: "ממוקדת משימות ויעדים ברורים" },
+      { icon: <Scale />, text: "שילוב של תכנון וגמישות", value: "שילוב של תכנון וגמישות" },
     ],
     metadata: { estimatedTime: 1 },
   },
@@ -9107,10 +9104,10 @@ export const personalityQuestions: Question[] = [
     depth: "BASIC",
     isRequired: false,
     options: [
-      { icon: <Home />, text: "שקטה וביתית, עם מינימום הסחות דעת", value: "quiet_home" },
-      { icon: <Coffee />, text: "דינמית ותוססת, כמו בית קפה או משרד פתוח", value: "dynamic_cafe" },
-      { icon: <Leaf />, text: "בטבע או בסביבה ירוקה", value: "nature_outdoors" },
-      { icon: <Users />, text: "בסביבה חברתית, עם אנשים סביבי", value: "social_collaborative" },
+      { icon: <Home />, text: "שקטה וביתית, עם מינימום הסחות דעת", value: "שקטה וביתית, עם מינימום הסחות דעת" },
+      { icon: <Coffee />, text: "דינמית ותוססת, כמו בית קפה או משרד פתוח", value: "דינמית ותוססת, כמו בית קפה או משרד פתוח" },
+      { icon: <Leaf />, text: "בטבע או בסביבה ירוקה", value: "בטבע או בסביבה ירוקה" },
+      { icon: <Users />, text: "בסביבה חברתית, עם אנשים סביבי", value: "בסביבה חברתית, עם אנשים סביבי" },
     ],
     metadata: { estimatedTime: 1 },
   },
@@ -9124,14 +9121,14 @@ export const personalityQuestions: Question[] = [
     depth: "ADVANCED",
     isRequired: false,
     options: [
-      { icon: <Bed />, text: "מנוחה והטענת מצברים בבית", value: "rest_recharge" },
-      { icon: <Mountain />, text: "טיולים והרפתקאות בטבע", value: "nature_adventure" },
-      { icon: <Users />, text: "מפגשים חברתיים ובילויים", value: "social_outings" },
-      { icon: <Palette />, text: "תרבות, אמנות והופעות", value: "culture_art" },
-      { icon: <BookOpen />, text: "למידה, קריאה והתפתחות אישית", value: "learning_development" },
-      { icon: <Utensils />, text: "בישול, אירוח ואוכל טוב", value: "cooking_hosting" },
-      { icon: <Activity />, text: "ספורט ופעילות גופנית", value: "sports_activity" },
-      { icon: <Sparkles />, text: "זמן איכות ספונטני, מה שבא", value: "spontaneous_quality_time" },
+      { icon: <Bed />, text: "מנוחה והטענת מצברים בבית", value: "מנוחה והטענת מצברים בבית" },
+      { icon: <Mountain />, text: "טיולים והרפתקאות בטבע", value: "טיולים והרפתקאות בטבע" },
+      { icon: <Users />, text: "מפגשים חברתיים ובילויים", value: "מפגשים חברתיים ובילויים" },
+      { icon: <Palette />, text: "תרבות, אמנות והופעות", value: "תרבות, אמנות והופעות" },
+      { icon: <BookOpen />, text: "למידה, קריאה והתפתחות אישית", value: "למידה, קריאה והתפתחות אישית" },
+      { icon: <Utensils />, text: "בישול, אירוח ואוכל טוב", value: "בישול, אירוח ואוכל טוב" },
+      { icon: <Activity />, text: "ספורט ופעילות גופנית", value: "ספורט ופעילות גופנית" },
+      { icon: <Sparkles />, text: "זמן איכות ספונטני, מה שבא", value: "זמן איכות ספונטני, מה שבא" },
     ],
     minSelections: 1,
     maxSelections: 3,
@@ -9163,10 +9160,10 @@ export const personalityQuestions: Question[] = [
     depth: "BASIC",
     isRequired: true,
     options: [
-      { icon: <Users />, text: "במרכז העניינים, יוזמ/ת שיחה ופעילות", value: "center_of_attention" },
-      { icon: <MessageCircle />, text: "מקשיב/ה ומתבוננ/ת יותר, תורמ/ת כשמתאים", value: "observer_listener" },
-      { icon: <Coffee />, text: "נהנה/ית משיחות עומק בקבוצות קטנות", value: "small_group_deep_talks" },
-      { icon: <Sparkles />, text: "משתלב/ת לפי האווירה והאנשים", value: "adapts_to_vibe" },
+      { icon: <Users />, text: "במרכז העניינים, יוזמ/ת שיחה ופעילות", value: "במרכז העניינים, יוזמ/ת שיחה ופעילות" },
+      { icon: <MessageCircle />, text: "מקשיב/ה ומתבוננ/ת יותר, תורמ/ת כשמתאים", value: "מקשיב/ה ומתבוננ/ת יותר, תורמ/ת כשמתאים" },
+      { icon: <Coffee />, text: "נהנה/ית משיחות עומק בקבוצות קטנות", value: "נהנה/ית משיחות עומק בקבוצות קטנות" },
+      { icon: <Sparkles />, text: "משתלב/ת לפי האווירה והאנשים", value: "משתלב/ת לפי האווירה והאנשים" },
     ],
     metadata: { estimatedTime: 1 },
   },
@@ -9180,12 +9177,12 @@ export const personalityQuestions: Question[] = [
     depth: "ADVANCED",
     isRequired: true,
     options: [
-      { icon: <Target />, text: "ישיר/ה, ענייני/ת ולעניין", value: "direct_to_the_point" },
-      { icon: <HandHeart />, text: "אמפתי/ת, רגיש/ה ומתחשב/ת ברגשות האחר", value: "empathetic_considerate" },
-      { icon: <Brain />, text: "לוגי/ת, אנליטי/ת ומבוסס/ת עובדות", value: "logical_analytical" },
-      { icon: <Lightbulb />, text: "יצירתי/ת, אסוציאטיבי/ת ומלא/ת רעיונות", value: "creative_associative" },
-      { icon: <Smile />, text: "הומוריסטי/ת, קליל/ה ומשתמש/ת בסיפורים", value: "humorous_storyteller" },
-      { icon: <MessageCircle />, text: "פתוח/ה, משתפ/ת ומעודד/ת פתיחות", value: "open_sharing" },
+      { icon: <Target />, text: "ישיר/ה, ענייני/ת ולעניין", value: "ישיר/ה, ענייני/ת ולעניין" },
+      { icon: <HandHeart />, text: "אמפתי/ת, רגיש/ה ומתחשב/ת ברגשות האחר", value: "אמפתי/ת, רגיש/ה ומתחשב/ת ברגשות האחר" },
+      { icon: <Brain />, text: "לוגי/ת, אנליטי/ת ומבוסס/ת עובדות", value: "לוגי/ת, אנליטי/ת ומבוסס/ת עובדות" },
+      { icon: <Lightbulb />, text: "יצירתי/ת, אסוציאטיבי/ת ומלא/ת רעיונות", value: "יצירתי/ת, אסוציאטיבי/ת ומלא/ת רעיונות" },
+      { icon: <Smile />, text: "הומוריסטי/ת, קליל/ה ומשתמש/ת בסיפורים", value: "הומוריסטי/ת, קליל/ה ומשתמש/ת בסיפורים" },
+      { icon: <MessageCircle />, text: "פתוח/ה, משתפ/ת ומעודד/ת פתיחות", value: "פתוח/ה, משתפ/ת ומעודד/ת פתיחות" },
     ],
     minSelections: 1,
     maxSelections: 2,
@@ -9217,14 +9214,14 @@ export const personalityQuestions: Question[] = [
     depth: "BASIC",
     isRequired: true,
     options: [
-      { icon: <Activity />, text: "פעילות גופנית (ספורט, הליכה)", value: "exercise" },
-      { icon: <Headphones />, text: "מוזיקה או פודקאסטים", value: "music_podcasts" },
-      { icon: <Edit />, text: "כתיבה, יומן, ביטוי עצמי", value: "writing_expression" },
-      { icon: <Users />, text: "שיחה עם חבר/ה קרוב/ה או בן/בת משפחה", value: "talking_support" },
-      { icon: <Bed />, text: "זמן לבד, מנוחה ושקט", value: "alone_time_rest" },
-      { icon: <Leaf />, text: "בילוי בטבע", value: "nature" },
-      { icon: <Palette />, text: "עיסוק בתחביב יצירתי", value: "creative_hobby" },
-      { icon: <MessageCircle />, text: "עיבוד וניתוח של המצב", value: "processing_analyzing" },
+      { icon: <Activity />, text: "פעילות גופנית (ספורט, הליכה)", value: "פעילות גופנית (ספורט, הליכה)" },
+      { icon: <Headphones />, text: "מוזיקה או פודקאסטים", value: "מוזיקה או פודקאסטים" },
+      { icon: <Edit />, text: "כתיבה, יומן, ביטוי עצמי", value: "כתיבה, יומן, ביטוי עצמי" },
+      { icon: <Users />, text: "שיחה עם חבר/ה קרוב/ה או בן/בת משפחה", value: "שיחה עם חבר/ה קרוב/ה או בן/בת משפחה" },
+      { icon: <Bed />, text: "זמן לבד, מנוחה ושקט", value: "זמן לבד, מנוחה ושקט" },
+      { icon: <Leaf />, text: "בילוי בטבע", value: "בילוי בטבע" },
+      { icon: <Palette />, text: "עיסוק בתחביב יצירתי", value: "עיסוק בתחביב יצירתי" },
+      { icon: <MessageCircle />, text: "עיבוד וניתוח של המצב", value: "עיבוד וניתוח של המצב" },
     ],
     minSelections: 1,
     maxSelections: 3,
@@ -9240,10 +9237,10 @@ export const personalityQuestions: Question[] = [
     depth: "BASIC",
     isRequired: true,
     options: [
-      { icon: <Brain />, text: "איסוף מידע וניתוח לוגי מעמיק", value: "logical_analysis" },
-      { icon: <Heart />, text: "הליכה עם תחושת הבטן והאינטואיציה", value: "intuition_gut_feeling" },
-      { icon: <Users />, text: "התייעצות עם אנשים קרובים וקבלת חוות דעת", value: "consulting_others" },
-      { icon: <Compass />, text: "שילוב של לוגיקה ואינטואיציה, תוך לקיחת סיכונים מחושבים", value: "balanced_approach" },
+      { icon: <Brain />, text: "איסוף מידע וניתוח לוגי מעמיק", value: "איסוף מידע וניתוח לוגי מעמיק" },
+      { icon: <Heart />, text: "הליכה עם תחושת הבטן והאינטואיציה", value: "הליכה עם תחושת הבטן והאינטואיציה" },
+      { icon: <Users />, text: "התייעצות עם אנשים קרובים וקבלת חוות דעת", value: "התייעצות עם אנשים קרובים וקבלת חוות דעת" },
+      { icon: <Compass />, text: "שילוב של לוגיקה ואינטואיציה, תוך לקיחת סיכונים מחושבים", value: "שילוב של לוגיקה ואינטואיציה, תוך לקיחת סיכונים מחושבים" },
     ],
     metadata: { estimatedTime: 1 },
   },
@@ -9287,12 +9284,12 @@ export const personalityQuestions: Question[] = [
     depth: "ADVANCED",
     isRequired: true,
     options: [
-      { icon: <Star />, text: "הגשמה עצמית והשגת מטרות", value: "self_actualization" },
-      { icon: <Heart />, text: "יצירת קשרים משמעותיים ואהבה", value: "meaningful_connections" },
-      { icon: <HandHeart />, text: "תרומה לאחרים והשפעה חיובית", value: "contributing_to_others" },
-      { icon: <BookOpen />, text: "למידה, סקרנות והבנת העולם", value: "learning_understanding" },
-      { icon: <Sparkles />, text: "יצירה, ביטוי עצמי והשארת חותם", value: "creation_expression" },
-      { icon: <ShieldCheck />, text: "ביטחון, יציבות ושקט נפשי", value: "security_stability" },
+      { icon: <Star />, text: "הגשמה עצמית והשגת מטרות", value: "הגשמה עצמית והשגת מטרות" },
+      { icon: <Heart />, text: "יצירת קשרים משמעותיים ואהבה", value: "יצירת קשרים משמעותיים ואהבה" },
+      { icon: <HandHeart />, text: "תרומה לאחרים והשפעה חיובית", value: "תרומה לאחרים והשפעה חיובית" },
+      { icon: <BookOpen />, text: "למידה, סקרנות והבנת העולם", value: "למידה, סקרנות והבנת העולם" },
+      { icon: <Sparkles />, text: "יצירה, ביטוי עצמי והשארת חותם", value: "יצירה, ביטוי עצמי והשארת חותם" },
+      { icon: <ShieldCheck />, text: "ביטחון, יציבות ושקט נפשי", value: "ביטחון, יציבות ושקט נפשי" },
     ],
     metadata: { estimatedTime: 1 },
   },
@@ -9334,12 +9331,12 @@ export const personalityQuestions: Question[] = [
     depth: "BASIC",
     isRequired: false,
     options: [
-      { icon: <Smile />, text: "שנון ומשחקי מילים", value: "witty_puns" },
-      { icon: <Feather />, text: "ציני וסרקסטי (בטוב טעם)", value: "sarcastic_tasteful" },
-      { icon: <Lightbulb />, text: "אירוני וחכם", value: "ironic_clever" },
-      { icon: <Cloud />, text: "סיטואציוני וקליל", value: "situational_light" },
-      { icon: <Heart />, text: "הומור עצמי", value: "self_deprecating" },
-      { icon: <HelpCircle />, text: "לא בטוח/ה / הכל מצחיק אותי", value: "not_sure_everything" },
+      { icon: <Smile />, text: "שנון ומשחקי מילים", value: "שנון ומשחקי מילים" },
+      { icon: <Feather />, text: "ציני וסרקסטי (בטוב טעם)", value: "ציני וסרקסטי (בטוב טעם)" },
+      { icon: <Lightbulb />, text: "אירוני וחכם", value: "אירוני וחכם" },
+      { icon: <Cloud />, text: "סיטואציוני וקליל", value: "סיטואציוני וקליל" },
+      { icon: <Heart />, text: "הומור עצמי", value: "הומור עצמי" },
+      { icon: <HelpCircle />, text: "לא בטוח/ה / הכל מצחיק אותי", value: "לא בטוח/ה / הכל מצחיק אותי" },
     ],
     metadata: { estimatedTime: 1 },
   },
@@ -9391,11 +9388,11 @@ export const relationshipQuestions: Question[] = [
     depth: "BASIC",
     isRequired: true,
     options: [
-      { icon: <Heart />, text: "חיבור רגשי עמוק, אינטימיות והבנה הדדית", value: "deep_emotional_connection" },
-      { icon: <Users />, text: "שותפות איתנה, חברות אמת ותמיכה הדדית", value: "strong_partnership_friendship" },
-      { icon: <Link />, text: "מחויבות, נאמנות וביטחון בקשר לטווח ארוך", value: "commitment_loyalty_security" },
-      { icon: <Sparkles />, text: "צמיחה אישית וזוגית, למידה והתפתחות משותפת", value: "mutual_growth_development" },
-      { icon: <Home />, text: "בניית בית ומשפחה המבוססים על ערכים משותפים", value: "building_family_shared_values" },
+      { icon: <Heart />, text: "חיבור רגשי עמוק, אינטימיות והבנה הדדית", value: "חיבור רגשי עמוק, אינטימיות והבנה הדדית" },
+      { icon: <Users />, text: "שותפות איתנה, חברות אמת ותמיכה הדדית", value: "שותפות איתנה, חברות אמת ותמיכה הדדית" },
+      { icon: <Link />, text: "מחויבות, נאמנות וביטחון בקשר לטווח ארוך", value: "מחויבות, נאמנות וביטחון בקשר לטווח ארוך" },
+      { icon: <Sparkles />, text: "צמיחה אישית וזוגית, למידה והתפתחות משותפת", value: "צמיחה אישית וזוגית, למידה והתפתחות משותפת" },
+      { icon: <Home />, text: "בניית בית ומשפחה המבוססים על ערכים משותפים", value: "בניית בית ומשפחה המבוססים על ערכים משותפים" },
     ],
     minSelections: 1,
     maxSelections: 2,
@@ -9411,15 +9408,15 @@ export const relationshipQuestions: Question[] = [
     depth: "BASIC",
     isRequired: true,
     options: [
-      { icon: <HandHeart />, text: "שיתוף רגשי, הקשבה ותמיכה ברגעים קשים", value: "emotional_support" },
-      { icon: <MessageCircle />, text: "תקשורת פתוחה, כנה ומכבדת", value: "open_communication" },
-      { icon: <Award />, text: "הערכה, כבוד הדדי ופרגון", value: "respect_appreciation" },
-      { icon: <ShieldCheck />, text: "אמינות, יושרה ונאמנות", value: "trustworthiness_loyalty" },
-      { icon: <Scale />, text: "נכונות לפשרה והבנת צרכים הדדיים", value: "compromise_mutual_understanding" },
-      { icon: <Sparkles />, text: "יכולת להנות יחד, חוש הומור וקלילות", value: "shared_fun_humor" },
-      { icon: <Users />, text: "שותפות פעילה בניהול החיים המשותפים", value: "active_partnership_life_management" },
+      { icon: <HandHeart />, text: "שיתוף רגשי, הקשבה ותמיכה ברגעים קשים", value: "שיתוף רגשי, הקשבה ותמיכה ברגעים קשים" },
+      { icon: <MessageCircle />, text: "תקשורת פתוחה, כנה ומכבדת", value: "תקשורת פתוחה, כנה ומכבדת" },
+      { icon: <Award />, text: "הערכה, כבוד הדדי ופרגון", value: "הערכה, כבוד הדדי ופרגון" },
+      { icon: <ShieldCheck />, text: "אמינות, יושרה ונאמנות", value: "אמינות, יושרה ונאמנות" },
+      { icon: <Scale />, text: "נכונות לפשרה והבנת צרכים הדדיים", value: "נכונות לפשרה והבנת צרכים הדדיים" },
+      { icon: <Sparkles />, text: "יכולת להנות יחד, חוש הומור וקלילות", value: "יכולת להנות יחד, חוש הומור וקלילות" },
+      { icon: <Users />, text: "שותפות פעילה בניהול החיים המשותפים", value: "שותפות פעילה בניהול החיים המשותפים" },
     ],
-    minSelections: 1, // לפחות אחת
+    minSelections: 1,
     maxSelections: 3,
     metadata: { estimatedTime: 1 },
   },
@@ -9449,10 +9446,10 @@ export const relationshipQuestions: Question[] = [
     depth: "BASIC",
     isRequired: true,
     options: [
-      { icon: <MessageCircle />, text: "פתוחה וישירה - אומרים הכל, גם דברים קשים, בכבוד", value: "open_direct" },
-      { icon: <Heart />, text: "רגישה ואמפתית - דגש על הקשבה והבנת רגשות", value: "sensitive_empathetic" },
-      { icon: <Brain />, text: "עניינית וממוקדת פתרונות - פחות דיבורים, יותר מעשים", value: "practical_solution_focused" },
-      { icon: <Scale />, text: "מאוזנת - שילוב של פתיחות, רגישות ומעשיות", value: "balanced_communication" },
+      { icon: <MessageCircle />, text: "פתוחה וישירה - אומרים הכל, גם דברים קשים, בכבוד", value: "פתוחה וישירה - אומרים הכל, גם דברים קשים, בכבוד" },
+      { icon: <Heart />, text: "רגישה ואמפתית - דגש על הקשבה והבנת רגשות", value: "רגישה ואמפתית - דגש על הקשבה והבנת רגשות" },
+      { icon: <Brain />, text: "עניינית וממוקדת פתרונות - פחות דיבורים, יותר מעשים", value: "עניינית וממוקדת פתרונות - פחות דיבורים, יותר מעשים" },
+      { icon: <Scale />, text: "מאוזנת - שילוב של פתיחות, רגישות ומעשיות", value: "מאוזנת - שילוב של פתיחות, רגישות ומעשיות" },
     ],
     metadata: { estimatedTime: 1 },
   },
@@ -9480,12 +9477,12 @@ export const relationshipQuestions: Question[] = [
     depth: "ADVANCED",
     isRequired: true,
     options: [
-      { icon: <MessageCircle />, text: "לדבר על זה מיד ובגלוי כדי לפתור", value: "discuss_immediately" },
-      { icon: <Clock />, text: "לקחת פסק זמן קצר להירגע ולחשוב, ואז לדבר", value: "short_break_then_discuss" },
-      { icon: <Heart />, text: "לנסות להבין את הצד השני ולהגיע לפשרה", value: "understand_compromise" },
-      { icon: <Brain />, text: "לנתח את המצב בצורה לוגית ולמצוא פתרון מעשי", value: "logical_analysis_solution" },
-      { icon: <Users />, text: "להתייעץ עם מישהו ניטרלי אם לא מסתדרים לבד", value: "seek_neutral_advice" },
-      { icon: <Info />, text: "מעדיפ/ה להימנע מוויכוחים ככל האפשר", value: "avoid_conflict" },
+      { icon: <MessageCircle />, text: "לדבר על זה מיד ובגלוי כדי לפתור", value: "לדבר על זה מיד ובגלוי כדי לפתור" },
+      { icon: <Clock />, text: "לקחת פסק זמן קצר להירגע ולחשוב, ואז לדבר", value: "לקחת פסק זמן קצר להירגע ולחשוב, ואז לדבר" },
+      { icon: <Heart />, text: "לנסות להבין את הצד השני ולהגיע לפשרה", value: "לנסות להבין את הצד השני ולהגיע לפשרה" },
+      { icon: <Brain />, text: "לנתח את המצב בצורה לוגית ולמצוא פתרון מעשי", value: "לנתח את המצב בצורה לוגית ולמצוא פתרון מעשי" },
+      { icon: <Users />, text: "להתייעץ עם מישהו ניטרלי אם לא מסתדרים לבד", value: "להתייעץ עם מישהו ניטרלי אם לא מסתדרים לבד" },
+      { icon: <Info />, text: "מעדיפ/ה להימנע מוויכוחים ככל האפשר", value: "מעדיפ/ה להימנע מוויכוחים ככל האפשר" },
     ],
     minSelections: 1,
     maxSelections: 2,
@@ -9511,18 +9508,18 @@ export const relationshipQuestions: Question[] = [
     category: "relationship",
     subcategory: "communication_intimacy",
     question: "בחר/י עד שתי 'שפות אהבה' עיקריות שדרכן את/ה נוטה *להביע* אהבה, ועד שתיים שדרכן את/ה הכי אוהב/ת *לקבל* אהבה:",
-    type: "multiSelect", // נצטרך אולי לחשוב על ממשק טוב יותר לשאלה זו, או לפצל
+    type: "multiSelect",
     depth: "ADVANCED",
     isRequired: true,
     options: [
-      { icon: <Award />, text: "מילים מאשרות (מחמאות, עידוד)", value: "words_of_affirmation" },
-      { icon: <Clock />, text: "זמן איכות (תשומת לב מלאה, בילוי משותף)", value: "quality_time" },
-      { icon: <Gift />, text: "קבלת מתנות (סמליות או משמעותיות)", value: "receiving_gifts" },
-      { icon: <HandHeart />, text: "מעשי שירות (עזרה, הקלה במטלות)", value: "acts_of_service" },
-      { icon: <Bed />, text: "מגע פיזי (חיבוק, קרבה, אינטימיות)", value: "physical_touch" },
+      { icon: <Award />, text: "מילים מאשרות (מחמאות, עידוד)", value: "מילים מאשרות (מחמאות, עידוד)" },
+      { icon: <Clock />, text: "זמן איכות (תשומת לב מלאה, בילוי משותף)", value: "זמן איכות (תשומת לב מלאה, בילוי משותף)" },
+      { icon: <Gift />, text: "קבלת מתנות (סמליות או משמעותיות)", value: "קבלת מתנות (סמליות או משמעותיות)" },
+      { icon: <HandHeart />, text: "מעשי שירות (עזרה, הקלה במטלות)", value: "מעשי שירות (עזרה, הקלה במטלות)" },
+      { icon: <Bed />, text: "מגע פיזי (חיבוק, קרבה, אינטימיות)", value: "מגע פיזי (חיבוק, קרבה, אינטימיות)" },
     ],
-    minSelections: 1, // לכל הפחות דרך אחת להביע ואחת לקבל
-    maxSelections: 4, // מקסימום 2 להבעה + 2 לקבלה
+    minSelections: 1,
+    maxSelections: 4,
     metadata: { estimatedTime: 2, helpText: "זו שאלה כפולה. סמן/י מה מאפיין אותך גם בנתינה וגם בקבלה. אפשר לבחור אותה אופציה פעמיים אם היא דומיננטית בשני הכיוונים, או להתמקד ב-1-2 לכל כיוון." },
   },
 
@@ -9551,12 +9548,12 @@ export const relationshipQuestions: Question[] = [
     depth: "BASIC",
     isRequired: false,
     options: [
-      { icon: <Coffee />, text: "בילויים ופנאי (מסעדות, סרטים, טיולים)", value: "leisure_outings" },
-      { icon: <Home />, text: "מטלות הבית וניהול משק הבית", value: "household_chores" },
-      { icon: <BookOpen />, text: "תחומי עניין משותפים, תחביבים ולמידה", value: "shared_hobbies_learning" },
-      { icon: <Users />, text: "מפגשים עם חברים ומשפחה", value: "social_family_gatherings" },
-      { icon: <Heart />, text: "חוויות רוחניות או דתיות משותפות", value: "spiritual_religious_experiences" },
-      { icon: <Briefcase />, text: "תמיכה הדדית בקריירה וביעדים אישיים", value: "career_personal_goals_support" },
+      { icon: <Coffee />, text: "בילויים ופנאי (מסעדות, סרטים, טיולים)", value: "בילויים ופנאי (מסעדות, סרטים, טיולים)" },
+      { icon: <Home />, text: "מטלות הבית וניהול משק הבית", value: "מטלות הבית וניהול משק הבית" },
+      { icon: <BookOpen />, text: "תחומי עניין משותפים, תחביבים ולמידה", value: "תחומי עניין משותפים, תחביבים ולמידה" },
+      { icon: <Users />, text: "מפגשים עם חברים ומשפחה", value: "מפגשים עם חברים ומשפחה" },
+      { icon: <Heart />, text: "חוויות רוחניות או דתיות משותפות", value: "חוויות רוחניות או דתיות משותפות" },
+      { icon: <Briefcase />, text: "תמיכה הדדית בקריירה וביעדים אישיים", value: "תמיכה הדדית בקריירה וביעדים אישיים" },
     ],
     minSelections: 1,
     maxSelections: 3,
@@ -9572,10 +9569,10 @@ export const relationshipQuestions: Question[] = [
     depth: "BASIC",
     isRequired: true,
     options: [
-      { icon: <Link />, text: "שקיפות מלאה וחשבון משותף לכל", value: "full_transparency_joint_account" },
-      { icon: <Scale />, text: "הפרדה מסוימת עם קופה משותפת להוצאות הבית", value: "separate_with_joint_for_household" },
-      { icon: <Users />, text: "כל אחד מנהל את כספו, ומתחלקים בהוצאות גדולות", value: "individual_management_share_large_expenses" },
-      { icon: <Info />, text: "פחות קריטי לי איך, כל עוד יש הסכמה ותקשורת פתוחה", value: "method_less_important_than_agreement" },
+      { icon: <Link />, text: "שקיפות מלאה וחשבון משותף לכל", value: "שקיפות מלאה וחשבון משותף לכל" },
+      { icon: <Scale />, text: "הפרדה מסוימת עם קופה משותפת להוצאות הבית", value: "הפרדה מסוימת עם קופה משותפת להוצאות הבית" },
+      { icon: <Users />, text: "כל אחד מנהל את כספו, ומתחלקים בהוצאות גדולות", value: "כל אחד מנהל את כספו, ומתחלקים בהוצאות גדולות" },
+      { icon: <Info />, text: "פחות קריטי לי איך, כל עוד יש הסכמה ותקשורת פתוחה", value: "פחות קריטי לי איך, כל עוד יש הסכמה ותקשורת פתוחה" },
     ],
     metadata: { estimatedTime: 1 },
   },
@@ -9605,11 +9602,11 @@ export const relationshipQuestions: Question[] = [
     depth: "BASIC",
     isRequired: true,
     options: [
-      { icon: <Baby />, text: "מאוד רוצה ילדים, רצוי בקרוב יחסית", value: "want_children_soon" },
-      { icon: <Home />, text: "רוצה ילדים בעתיד, אך ללא לחץ של זמן", value: "want_children_future_no_rush" },
-      { icon: <Scale />, text: "פתוח/ה לאפשרות של ילדים, אך זה לא בראש סדר העדיפויות", value: "open_to_children_not_priority" },
-      { icon: <Heart />, text: "מעדיפ/ה זוגיות ללא ילדים, או שזה פחות רלוונטי לי", value: "prefer_no_children_or_not_relevant" },
-      { icon: <Info />, text: "יש לי כבר ילדים ואני פתוח/ה לעוד / לא מעוניינ/ת בעוד", value: "already_have_children_open_or_not" },
+      { icon: <Baby />, text: "מאוד רוצה ילדים, רצוי בקרוב יחסית", value: "מאוד רוצה ילדים, רצוי בקרוב יחסית" },
+      { icon: <Home />, text: "רוצה ילדים בעתיד, אך ללא לחץ של זמן", value: "רוצה ילדים בעתיד, אך ללא לחץ של זמן" },
+      { icon: <Scale />, text: "פתוח/ה לאפשרות של ילדים, אך זה לא בראש סדר העדיפויות", value: "פתוח/ה לאפשרות של ילדים, אך זה לא בראש סדר העדיפויות" },
+      { icon: <Heart />, text: "מעדיפ/ה זוגיות ללא ילדים, או שזה פחות רלוונטי לי", value: "מעדיפ/ה זוגיות ללא ילדים, או שזה פחות רלוונטי לי" },
+      { icon: <Info />, text: "יש לי כבר ילדים ואני פתוח/ה לעוד / לא מעוניינ/ת בעוד", value: "יש לי כבר ילדים ואני פתוח/ה לעוד / לא מעוניינ/ת בעוד" },
     ],
     metadata: { estimatedTime: 1 },
   },
@@ -9637,10 +9634,10 @@ export const relationshipQuestions: Question[] = [
     depth: "BASIC",
     isRequired: false,
     options: [
-      { icon: <Users />, text: "מעורבות גבוהה וקשר הדוק, כחלק אינטגרלי", value: "high_involvement_integral" },
-      { icon: <Home />, text: "קשר חם, תומך ומכבד, תוך שמירה על גבולות ברורים", value: "warm_supportive_with_boundaries" },
-      { icon: <Map />, text: "קשר מכבד אך מצומצם יחסית, עם דגש על עצמאות הזוג", value: "respectful_limited_autonomy_focus" },
-      { icon: <Info />, text: "גמיש/ה, תלוי באופי הקשרים ובדינמיקה שתווצר", value: "flexible_depends_on_dynamics" },
+      { icon: <Users />, text: "מעורבות גבוהה וקשר הדוק, כחלק אינטגרלי", value: "מעורבות גבוהה וקשר הדוק, כחלק אינטגרלי" },
+      { icon: <Home />, text: "קשר חם, תומך ומכבד, תוך שמירה על גבולות ברורים", value: "קשר חם, תומך ומכבד, תוך שמירה על גבולות ברורים" },
+      { icon: <Map />, text: "קשר מכבד אך מצומצם יחסית, עם דגש על עצמאות הזוג", value: "קשר מכבד אך מצומצם יחסית, עם דגש על עצמאות הזוג" },
+      { icon: <Info />, text: "גמיש/ה, תלוי באופי הקשרים ובדינמיקה שתווצר", value: "גמיש/ה, תלוי באופי הקשרים ובדינמיקה שתווצר" },
     ],
     metadata: { estimatedTime: 1 },
   },
@@ -9689,8 +9686,6 @@ export const relationshipQuestions: Question[] = [
     metadata: { estimatedTime: 2 },
   },
 ];
-
-// export default relationshipQuestions; // כבר לא צריך אם מייבאים ישירות את המערך
 --- End of Content for relationshipQuestions.tsx ---
 
 ================================================================================
@@ -10048,13 +10043,13 @@ export const religionQuestions: Question[] = [
     depth: "BASIC",
     isRequired: true,
     options: [
-      { icon: <Scroll />, text: "חרדי/ת (למשל: ליטאי, חסידי, ספרדי)", value: "charedi_various_streams" },
-      { icon: <BookOpen />, text: "דתי/ה לאומי/ת - תורני/ת (למשל: חרד\"ל, ישיבתי)", value: "dati_leumi_torani_yeshivish" },
-      { icon: <Sparkles />, text: "דתי/ה לאומי/ת - מרכז / פתוח/ה (למשל: דתי-לייט, ליברלי)", value: "dati_leumi_centrist_liberal" },
-      { icon: <Heart />, text: "מסורתי/ת (למשל: שומר/ת מסורת, מחובר/ת לבית הכנסת)", value: "masorti_traditional_connected" },
-      { icon: <Users />, text: "חילוני/ת עם זיקה למסורת וליהדות", value: "secular_with_tradition_connection" },
-      { icon: <Lightbulb />, text: "רוחני/ת בדרכי (לאו דווקא במסגרת זרם מוגדר)", value: "spiritual_my_own_way" },
-      { icon: <Info />, text: "אחר/ת או בתהליך גיבוש (ניתן לפרט בשאלה הבאה)", value: "other_or_forming_identity" },
+      { icon: <Scroll />, text: "חרדי/ת (למשל: ליטאי, חסידי, ספרדי)", value: "חרדי/ת (למשל: ליטאי, חסידי, ספרדי)" },
+      { icon: <BookOpen />, text: "דתי/ה לאומי/ת - תורני/ת (למשל: חרד\"ל, ישיבתי)", value: "דתי/ה לאומי/ת - תורני/ת (למשל: חרד\"ל, ישיבתי)" },
+      { icon: <Sparkles />, text: "דתי/ה לאומי/ת - מרכז / פתוח/ה (למשל: דתי-לייט, ליברלי)", value: "דתי/ה לאומי/ת - מרכז / פתוח/ה (למשל: דתי-לייט, ליברלי)" },
+      { icon: <Heart />, text: "מסורתי/ת (למשל: שומר/ת מסורת, מחובר/ת לבית הכנסת)", value: "מסורתי/ת (למשל: שומר/ת מסורת, מחובר/ת לבית הכנסת)" },
+      { icon: <Users />, text: "חילוני/ת עם זיקה למסורת וליהדות", value: "חילוני/ת עם זיקה למסורת וליהדות" },
+      { icon: <Lightbulb />, text: "רוחני/ת בדרכי (לאו דווקא במסגרת זרם מוגדר)", value: "רוחני/ת בדרכי (לאו דווקא במסגרת זרם מוגדר)" },
+      { icon: <Info />, text: "אחר/ת או בתהליך גיבוש (ניתן לפרט בשאלה הבאה)", value: "אחר/ת או בתהליך גיבוש (ניתן לפרט בשאלה הבאה)" },
     ],
     metadata: { estimatedTime: 1, helpText: "בחר/י את התיאור שהכי קרוב לליבך ולדרך חייך." },
   },
@@ -10082,12 +10077,12 @@ export const religionQuestions: Question[] = [
     depth: "ADVANCED",
     isRequired: false,
     options: [
-      { icon: <Heart />, text: "אמונה בקב\"ה ובבחירת עם ישראל", value: "belief_in_god_chosen_people" },
-      { icon: <Scroll />, text: "תורה מן השמיים ומחויבות להלכה", value: "torah_from_heaven_halacha_commitment" },
-      { icon: <Sparkles />, text: "חיפוש מתמיד אחר משמעות וחיבור רוחני", value: "seeking_meaning_spiritual_connection" },
-      { icon: <HandHeart />, text: "תיקון עולם, צדק חברתי וחסד", value: "tikkun_olam_social_justice_kindness" },
-      { icon: <Flag />, text: "גאולת ישראל וקיבוץ גלויות בארץ ישראל", value: "redemption_israel_ingathering_exiles" },
-      { icon: <Users />, text: "ערבות הדדית ואחדות עם ישראל", value: "mutual_responsibility_jewish_unity" },
+      { icon: <Heart />, text: "אמונה בקב\"ה ובבחירת עם ישראל", value: "אמונה בקב\"ה ובבחירת עם ישראל" },
+      { icon: <Scroll />, text: "תורה מן השמיים ומחויבות להלכה", value: "תורה מן השמיים ומחויבות להלכה" },
+      { icon: <Sparkles />, text: "חיפוש מתמיד אחר משמעות וחיבור רוחני", value: "חיפוש מתמיד אחר משמעות וחיבור רוחני" },
+      { icon: <HandHeart />, text: "תיקון עולם, צדק חברתי וחסד", value: "תיקון עולם, צדק חברתי וחסד" },
+      { icon: <Flag />, text: "גאולת ישראל וקיבוץ גלויות בארץ ישראל", value: "גאולת ישראל וקיבוץ גלויות בארץ ישראל" },
+      { icon: <Users />, text: "ערבות הדדית ואחדות עם ישראל", value: "ערבות הדדית ואחדות עם ישראל" },
     ],
     minSelections: 1,
     maxSelections: 3,
@@ -10101,7 +10096,7 @@ export const religionQuestions: Question[] = [
     question: "מהי החשיבות של דמות רבנית או הנהגה רוחנית אישית עבורך? (1=לא משמעותי, 10=משמעותי מאוד)",
     type: "scale",
     depth: "BASIC",
-    isRequired: false, // לא לכולם יש דמות ספציפית
+    isRequired: false,
     min: 1,
     max: 10,
     labels: { min: "לא משמעותי", max: "משמעותי מאוד" },
@@ -10119,11 +10114,11 @@ export const religionQuestions: Question[] = [
     depth: "BASIC",
     isRequired: true,
     options: [
-      { icon: <ShieldCheck />, text: "הקפדה מלאה על כל ההלכות ודקדוקיהן", value: "full_strict_observance_shabbat" },
-      { icon: <Target />, text: "שמירה על עיקרי ההלכות (ללא חשמל, בישול, נסיעה)", value: "main_halachic_observance_shabbat" },
-      { icon: <Scale />, text: "שמירה על אווירת השבת (קידוש, סעודות, תפילה) עם גמישות מסוימת בהלכות", value: "shabbat_atmosphere_some_flexibility" },
-      { icon: <Home />, text: "שמירת שבת בעיקר בבית ובמשפחה, פחות במרחב הציבורי", value: "shabbat_mainly_at_home_family" },
-      { icon: <Info />, text: "אינני שומר/ת שבת באופן הלכתי", value: "not_halachically_observant_shabbat" },
+      { icon: <ShieldCheck />, text: "הקפדה מלאה על כל ההלכות ודקדוקיהן", value: "הקפדה מלאה על כל ההלכות ודקדוקיהן" },
+      { icon: <Target />, text: "שמירה על עיקרי ההלכות (ללא חשמל, בישול, נסיעה)", value: "שמירה על עיקרי ההלכות (ללא חשמל, בישול, נסיעה)" },
+      { icon: <Scale />, text: "שמירה על אווירת השבת (קידוש, סעודות, תפילה) עם גמישות מסוימת בהלכות", value: "שמירה על אווירת השבת (קידוש, סעודות, תפילה) עם גמישות מסוימת בהלכות" },
+      { icon: <Home />, text: "שמירת שבת בעיקר בבית ובמשפחה, פחות במרחב הציבורי", value: "שמירת שבת בעיקר בבית ובמשפחה, פחות במרחב הציבורי" },
+      { icon: <Info />, text: "אינני שומר/ת שבת באופן הלכתי", value: "אינני שומר/ת שבת באופן הלכתי" },
     ],
     metadata: { estimatedTime: 1 },
   },
@@ -10163,7 +10158,7 @@ export const religionQuestions: Question[] = [
     question: "מהי גישתך האישית לצניעות (לבוש, דיבור, התנהגות בין המינים) וכיצד היא מתבטאת?",
     type: "openText",
     depth: "ADVANCED",
-    isRequired: true, // נושא חשוב להתאמה
+    isRequired: true,
     minLength: 40,
     maxLength: 400,
     placeholder: "לדוגמה: כיסוי ראש (סוג), לבוש (אורך שרוול/חצאית), שמירת נגיעה, סגנון דיבור.",
@@ -10175,14 +10170,14 @@ export const religionQuestions: Question[] = [
     category: "religion",
     subcategory: "practical_observance",
     question: "מהי גישתך ורמת הקפדתך על הלכות טהרת המשפחה?",
-    type: "iconChoice", // ניתן גם להפוך ל-openText לרגישות
+    type: "iconChoice",
     depth: "ADVANCED",
-    isRequired: true, // קריטי לזוגיות דתית
+    isRequired: true,
     options: [
-      { icon: <ShieldCheck />, text: "הקפדה מלאה על כל ההלכות והחומרות המקובלות", value: "full_observance_chumrot_family_purity" },
-      { icon: <Target />, text: "הקפדה על עיקרי ההלכות כפי שמקובל בקהילתי", value: "main_observance_community_standard_family_purity" },
-      { icon: <Scale />, text: "שואפ/ת לשמור, עם רצון ללמוד ולהתחזק בנושא", value: "aspire_to_observe_learn_family_purity" },
-      { icon: <Info />, text: "הנושא אינו רלוונטי לי / דורש דיון מעמיק יותר", value: "not_relevant_or_requires_discussion_family_purity" },
+      { icon: <ShieldCheck />, text: "הקפדה מלאה על כל ההלכות והחומרות המקובלות", value: "הקפדה מלאה על כל ההלכות והחומרות המקובלות" },
+      { icon: <Target />, text: "הקפדה על עיקרי ההלכות כפי שמקובל בקהילתי", value: "הקפדה על עיקרי ההלכות כפי שמקובל בקהילתי" },
+      { icon: <Scale />, text: "שואפ/ת לשמור, עם רצון ללמוד ולהתחזק בנושא", value: "שואפ/ת לשמור, עם רצון ללמוד ולהתחזק בנושא" },
+      { icon: <Info />, text: "הנושא אינו רלוונטי לי / דורש דיון מעמיק יותר", value: "הנושא אינו רלוונטי לי / דורש דיון מעמיק יותר" },
     ],
     metadata: { estimatedTime: 1, helpText: "זו שאלה רגישה וחשובה. אנא ענה/י בכנות." },
   },
@@ -10212,9 +10207,9 @@ export const religionQuestions: Question[] = [
     depth: "BASIC",
     isRequired: false,
     options: [
-      { icon: <Users />, text: "רובו ככולו מורכב מאנשים ברמה דתית דומה לשלי", value: "mostly_similar_religious_level_social_circle" },
-      { icon: <Scale />, text: "יש לי חברים ממגוון רמות דתיות והשקפות", value: "diverse_religious_levels_social_circle" },
-      { icon: <Home />, text: "המעגל החברתי שלי מצומצם יחסית ופחות מוגדר דתית", value: "small_less_religiously_defined_social_circle" },
+      { icon: <Users />, text: "רובו ככולו מורכב מאנשים ברמה דתית דומה לשלי", value: "רובו ככולו מורכב מאנשים ברמה דתית דומה לשלי" },
+      { icon: <Scale />, text: "יש לי חברים ממגוון רמות דתיות והשקפות", value: "יש לי חברים ממגוון רמות דתיות והשקפות" },
+      { icon: <Home />, text: "המעגל החברתי שלי מצומצם יחסית ופחות מוגדר דתית", value: "המעגל החברתי שלי מצומצם יחסית ופחות מוגדר דתית" },
     ],
     metadata: { estimatedTime: 1 },
   },
@@ -10232,7 +10227,7 @@ export const religionQuestions: Question[] = [
     placeholder: "לדוגמה: חיים בתוך 'בועה' מוגנת, שילוב תוך סינון, פתיחות מלאה, השפעה הדדית...",
     metadata: { estimatedTime: 1 },
   },
- {
+  {
     worldId: "RELIGION",
     id: "religion_state_and_army_service_view",
     category: "religion",
@@ -10244,10 +10239,7 @@ export const religionQuestions: Question[] = [
     minLength: 0,
     maxLength: 400,
     placeholder: "לדוגמה: חשיבות השירות, סוג השירות המועדף, יחס למדינה כ'אתחלתא דגאולה', וכו'.",
-    // --- התיקון כאן ---
-    icon: <PocketKnife />, // האייקון מוגדר ברמת השאלה
-    metadata: { estimatedTime: 1 }, // metadata מכיל רק את המאפיינים המותרים לו
-    // --- סוף התיקון ---
+    metadata: { estimatedTime: 1 },
   },
 
   // --- חלק 4: התאמה דתית בזוגיות וחינוך ילדים ---
@@ -10287,7 +10279,7 @@ export const religionQuestions: Question[] = [
     question: "איזה סוג של בית וחינוך דתי/תורני היית רוצה להעניק לילדיך, ומהן הציפיות שלך מבן/בת הזוג בהקשר זה?",
     type: "openText",
     depth: "ADVANCED",
-    isRequired: true, // חשוב למי שרואה ילדים בעתיד
+    isRequired: true, 
     minLength: 50,
     maxLength: 500,
     placeholder: "לדוגמה: סוג מוסדות חינוך, אווירה דתית בבית, דגש על ערכים ספציפיים, מעורבות הורית בלימוד.",
@@ -10337,8 +10329,6 @@ export const religionQuestions: Question[] = [
     metadata: { estimatedTime: 1 },
   },
 ];
-
-// export default religionQuestions; // כבר לא צריך אם מייבאים ישירות את המערך
 --- End of Content for religionQuestions.tsx ---
 
 ================================================================================
@@ -10362,16 +10352,16 @@ import {
   Target,        // מטרות, עקרונות
   PiggyBank,     // כסף, חיסכון, כלכלה
   HandHeart,     // נתינה, חסד, התנדבות
-  TrendingUp,    // צמיחה, התפתחות, שאיפות        // הישגים, הצלחה (יכול להתאים גם לערכים)
+  TrendingUp,    // צמיחה, התפתחות, שאיפות
   Leaf,          // טבע, סביבה, פשטות
-  Sparkles,      // רוחניות, השראה (יכול להתאים גם לערכים)
-  ShieldCheck,   // ביטחון, יושרה (יכול להתאים גם לערכים)       // מסורת, דת (יכול להתאים גם לערכים)
+  Sparkles,      // רוחניות, השראה
+  ShieldCheck,   // ביטחון, יושרה
   Flag,          // מדינה, ציונות
   HelpCircle,    // שאלות נוספות, הבהרה
   Info,          // מידע כללי
-  DollarSign,    // כסף, נתינה (יותר ספציפי מ-PiggyBank)        // תכנון, סדר עדיפויות גאוגרפי (פחות רלוונטי פה)
-  Activity,      // פעילות, סגנון חיים (יותר רלוונטי לאישיות)
-MessageCircle,
+  DollarSign,    // כסף, נתינה
+  Activity,      // פעילות, סגנון חיים
+  MessageCircle,
 } from "lucide-react";
 
 export const valuesQuestions: Question[] = [
@@ -10387,18 +10377,18 @@ export const valuesQuestions: Question[] = [
     depth: "BASIC",
     isRequired: true,
     options: [
-      { icon: <Heart />, text: "משפחה וקשרים קרובים", value: "family_connections" },
-      { icon: <ShieldCheck />, text: "יושרה, אמינות וכנות", value: "integrity_honesty" },
-      { icon: <BookOpen />, text: "רוחניות, אמונה וחיבור למסורת", value: "spirituality_tradition" },
-      { icon: <TrendingUp />, text: "צמיחה אישית, למידה והתפתחות", value: "personal_growth" },
-      { icon: <HandHeart />, text: "נתינה, חסד ותרומה לזולת", value: "giving_kindness" },
-      { icon: <Briefcase />, text: "הצלחה מקצועית ומימוש עצמי בקריירה", value: "career_achievement" },
-      { icon: <PiggyBank />, text: "ביטחון כלכלי ויציבות חומרית", value: "financial_security" },
-      { icon: <Scale />, text: "צדק חברתי ושוויון הזדמנויות", value: "social_justice_equality" },
-      { icon: <Sparkles />, text: "יצירתיות, ביטוי עצמי ומקוריות", value: "creativity_expression" },
-      { icon: <Leaf />, text: "חיבור לטבע ושמירה על הסביבה", value: "nature_environment" },
-      { icon: <Activity />, text: "בריאות ואורח חיים פעיל", value: "health_activity" },
-      { icon: <Users />, text: "קהילתיות ומעורבות חברתית", value: "community_involvement" },
+      { icon: <Heart />, text: "משפחה וקשרים קרובים", value: "משפחה וקשרים קרובים" },
+      { icon: <ShieldCheck />, text: "יושרה, אמינות וכנות", value: "יושרה, אמינות וכנות" },
+      { icon: <BookOpen />, text: "רוחניות, אמונה וחיבור למסורת", value: "רוחניות, אמונה וחיבור למסורת" },
+      { icon: <TrendingUp />, text: "צמיחה אישית, למידה והתפתחות", value: "צמיחה אישית, למידה והתפתחות" },
+      { icon: <HandHeart />, text: "נתינה, חסד ותרומה לזולת", value: "נתינה, חסד ותרומה לזולת" },
+      { icon: <Briefcase />, text: "הצלחה מקצועית ומימוש עצמי בקריירה", value: "הצלחה מקצועית ומימוש עצמי בקריירה" },
+      { icon: <PiggyBank />, text: "ביטחון כלכלי ויציבות חומרית", value: "ביטחון כלכלי ויציבות חומרית" },
+      { icon: <Scale />, text: "צדק חברתי ושוויון הזדמנויות", value: "צדק חברתי ושוויון הזדמנויות" },
+      { icon: <Sparkles />, text: "יצירתיות, ביטוי עצמי ומקוריות", value: "יצירתיות, ביטוי עצמי ומקוריות" },
+      { icon: <Leaf />, text: "חיבור לטבע ושמירה על הסביבה", value: "חיבור לטבע ושמירה על הסביבה" },
+      { icon: <Activity />, text: "בריאות ואורח חיים פעיל", value: "בריאות ואורח חיים פעיל" },
+      { icon: <Users />, text: "קהילתיות ומעורבות חברתית", value: "קהילתיות ומעורבות חברתית" },
     ],
     minSelections: 3,
     maxSelections: 5,
@@ -10451,7 +10441,7 @@ export const valuesQuestions: Question[] = [
     depth: "ADVANCED",
     isRequired: true,
     totalPoints: 100,
-    categories: [ // אותן קטגוריות כמו בשאלה הקודמת, כדי לאפשר השוואה
+    categories: [
       { label: "זוגיות (כולל ילדים עתידיים)", icon: <Heart />, min: 0, max: 100, description: "השקעה בקשר הזוגי, בילדים ובבניית התא המשפחתי." },
       { label: "משפחה (הורים, אחים)", icon: <Home />, min: 0, max: 100, description: "שמירה על קשר ותמיכה במשפחות המוצא של שני בני הזוג." },
       { label: "קריירה ופרנסה (של שניכם)", icon: <Briefcase />, min: 0, max: 100, description: "פיתוח קריירה אישי ומשותף, תוך תמיכה הדדית." },
@@ -10473,10 +10463,10 @@ export const valuesQuestions: Question[] = [
     depth: "BASIC",
     isRequired: true,
     options: [
-      { icon: <Leaf />, text: "פשטות והסתפקות במועט הן ערך עליון", value: "simplicity_minimalism" },
-      { icon: <Scale />, text: "איזון בין נוחות חומרית לערכים אחרים", value: "balanced_comfort_values" },
-      { icon: <TrendingUp />, text: "שאיפה לרווחה כלכלית והצלחה חומרית", value: "financial_success_ambition" },
-      { icon: <PiggyBank />, text: "אחריות כלכלית, חיסכון ותכנון לטווח ארוך", value: "financial_responsibility_planning" },
+      { icon: <Leaf />, text: "פשטות והסתפקות במועט הן ערך עליון", value: "פשטות והסתפקות במועט הן ערך עליון" },
+      { icon: <Scale />, text: "איזון בין נוחות חומרית לערכים אחרים", value: "איזון בין נוחות חומרית לערכים אחרים" },
+      { icon: <TrendingUp />, text: "שאיפה לרווחה כלכלית והצלחה חומרית", value: "שאיפה לרווחה כלכלית והצלחה חומרית" },
+      { icon: <PiggyBank />, text: "אחריות כלכלית, חיסכון ותכנון לטווח ארוך", value: "אחריות כלכלית, חיסכון ותכנון לטווח ארוך" },
     ],
     metadata: { estimatedTime: 1 },
   },
@@ -10504,11 +10494,11 @@ export const valuesQuestions: Question[] = [
     depth: "ADVANCED",
     isRequired: false,
     options: [
-      { icon: <DollarSign />, text: "תרומות כספיות קבועות/מזדמנות", value: "monetary_donations" },
-      { icon: <HandHeart />, text: "התנדבות פעילה בארגונים/קהילה", value: "active_volunteering" },
-      { icon: <Users />, text: "עזרה אישית לחברים, משפחה או שכנים", value: "personal_help" },
-      { icon: <Briefcase />, text: "שימוש בכישורים מקצועיים למען אחרים (פרו-בונו)", value: "pro_bono_skills" },
-      { icon: <Heart />, text: "מעשי חסד קטנים ביומיום", value: "daily_acts_of_kindness" },
+      { icon: <DollarSign />, text: "תרומות כספיות קבועות/מזדמנות", value: "תרומות כספיות קבועות/מזדמנות" },
+      { icon: <HandHeart />, text: "התנדבות פעילה בארגונים/קהילה", value: "התנדבות פעילה בארגונים/קהילה" },
+      { icon: <Users />, text: "עזרה אישית לחברים, משפחה או שכנים", value: "עזרה אישית לחברים, משפחה או שכנים" },
+      { icon: <Briefcase />, text: "שימוש בכישורים מקצועיים למען אחרים (פרו-בונו)", value: "שימוש בכישורים מקצועיים למען אחרים (פרו-בונו)" },
+      { icon: <Heart />, text: "מעשי חסד קטנים ביומיום", value: "מעשי חסד קטנים ביומיום" },
     ],
     minSelections: 1,
     maxSelections: 3,
@@ -10524,10 +10514,10 @@ export const valuesQuestions: Question[] = [
     depth: "BASIC",
     isRequired: true,
     options: [
-      { icon: <BookOpen />, text: "למידה מתמדת היא דרך חיים והכרח", value: "lifelong_learning_essential" },
-      { icon: <Target />, text: "חשוב לרכוש ידע והשכלה רלוונטיים למטרותיי", value: "relevant_education_for_goals" },
-      { icon: <Scale />, text: "מעריך/ה השכלה, אך לא בראש סדר העדיפויות", value: "appreciate_not_top_priority" },
-      { icon: <Sparkles />, text: "מעדיפ/ה למידה חווייתית והתנסותית על פני פורמלית", value: "experiential_learning_preferred" },
+      { icon: <BookOpen />, text: "למידה מתמדת היא דרך חיים והכרח", value: "למידה מתמדת היא דרך חיים והכרח" },
+      { icon: <Target />, text: "חשוב לרכוש ידע והשכלה רלוונטיים למטרותיי", value: "חשוב לרכוש ידע והשכלה רלוונטיים למטרותיי" },
+      { icon: <Scale />, text: "מעריך/ה השכלה, אך לא בראש סדר העדיפויות", value: "מעריך/ה השכלה, אך לא בראש סדר העדיפויות" },
+      { icon: <Sparkles />, text: "מעדיפ/ה למידה חווייתית והתנסותית על פני פורמלית", value: "מעדיפ/ה למידה חווייתית והתנסותית על פני פורמלית" },
     ],
     metadata: { estimatedTime: 1 },
   },
@@ -10557,10 +10547,10 @@ export const valuesQuestions: Question[] = [
     depth: "BASIC",
     isRequired: false,
     options: [
-      { icon: <Target />, text: "פעיל/ה ומוביל/ה, בעל/ת תפקיד מרכזי", value: "leader_active_role" },
-      { icon: <Users />, text: "מעורב/ת ומשתתפ/ת קבוע/ה בפעילויות", value: "involved_participant" },
-      { icon: <HandHeart />, text: "תורמ/ת ועוזר/ת כשנדרש, מאחורי הקלעים", value: "contributor_helper" },
-      { icon: <Home />, text: "חבר/ה שקט/ה בקהילה, פחות מעורב/ת רשמית", value: "quiet_member" },
+      { icon: <Target />, text: "פעיל/ה ומוביל/ה, בעל/ת תפקיד מרכזי", value: "פעיל/ה ומוביל/ה, בעל/ת תפקיד מרכזי" },
+      { icon: <Users />, text: "מעורב/ת ומשתתפ/ת קבוע/ה בפעילויות", value: "מעורב/ת ומשתתפ/ת קבוע/ה בפעילויות" },
+      { icon: <HandHeart />, text: "תורמ/ת ועוזר/ת כשנדרש, מאחורי הקלעים", value: "תורמ/ת ועוזר/ת כשנדרש, מאחורי הקלעים" },
+      { icon: <Home />, text: "חבר/ה שקט/ה בקהילה, פחות מעורב/ת רשמית", value: "חבר/ה שקט/ה בקהילה, פחות מעורב/ת רשמית" },
     ],
     metadata: { estimatedTime: 1 },
   },
@@ -10602,10 +10592,10 @@ export const valuesQuestions: Question[] = [
     depth: "BASIC", // שאלה בסיסית להבנת הקשר
     isRequired: true,
     options: [
-      { icon: <Flag />, text: "ציונות היא ערך מרכזי, הזדהות עמוקה עם המדינה", value: "strong_zionist_identification" },
-      { icon: <Heart />, text: "קשר רגשי חזק למדינה ולארץ, גם אם יש ביקורת", value: "emotional_connection_critical_support" },
-      { icon: <Scale />, text: "יחס פרגמטי, חי/ה כאן מסיבות שונות", value: "pragmatic_living_here" },
-      { icon: <BookOpen />, text: "יחס מורכב יותר, תלוי בהשקפה דתית/פוליטית", value: "complex_ideological" },
+      { icon: <Flag />, text: "ציונות היא ערך מרכזי, הזדהות עמוקה עם המדינה", value: "ציונות היא ערך מרכזי, הזדהות עמוקה עם המדינה" },
+      { icon: <Heart />, text: "קשר רגשי חזק למדינה ולארץ, גם אם יש ביקורת", value: "קשר רגשי חזק למדינה ולארץ, גם אם יש ביקורת" },
+      { icon: <Scale />, text: "יחס פרגמטי, חי/ה כאן מסיבות שונות", value: "יחס פרגמטי, חי/ה כאן מסיבות שונות" },
+      { icon: <BookOpen />, text: "יחס מורכב יותר, תלוי בהשקפה דתית/פוליטית", value: "יחס מורכב יותר, תלוי בהשקפה דתית/פוליטית" },
     ],
     metadata: { estimatedTime: 1 },
   },
@@ -10649,11 +10639,11 @@ export const valuesQuestions: Question[] = [
     depth: "ADVANCED",
     isRequired: true,
     options: [
-      { icon: <MessageCircle />, text: "שיחה פתוחה ומכבדת, גם אם לא מגיעים להסכמה מלאה", value: "open_respectful_dialogue" },
-      { icon: <Brain />, text: "ניסיון להבין את נקודת המבט של השני ולמצוא בסיס משותף", value: "understanding_common_ground" },
-      { icon: <Scale />, text: "חיפוש פשרה מעשית שמאפשרת חיים משותפים", value: "practical_compromise" },
-      { icon: <HelpCircle />, text: "התייעצות עם גורם שלישי (רב, יועץ) במקרה הצורך", value: "third_party_consultation" },
-      { icon: <Info />, text: "עבורי, חייבת להיות הסכמה מלאה בנושאים אלו", value: "full_agreement_essential" },
+      { icon: <MessageCircle />, text: "שיחה פתוחה ומכבדת, גם אם לא מגיעים להסכמה מלאה", value: "שיחה פתוחה ומכבדת, גם אם לא מגיעים להסכמה מלאה" },
+      { icon: <Brain />, text: "ניסיון להבין את נקודת המבט של השני ולמצוא בסיס משותף", value: "ניסיון להבין את נקודת המבט של השני ולמצוא בסיס משותף" },
+      { icon: <Scale />, text: "חיפוש פשרה מעשית שמאפשרת חיים משותפים", value: "חיפוש פשרה מעשית שמאפשרת חיים משותפים" },
+      { icon: <HelpCircle />, text: "התייעצות עם גורם שלישי (רב, יועץ) במקרה הצורך", value: "התייעצות עם גורם שלישי (רב, יועץ) במקרה הצורך" },
+      { icon: <Info />, text: "עבורי, חייבת להיות הסכמה מלאה בנושאים אלו", value: "עבורי, חייבת להיות הסכמה מלאה בנושאים אלו" },
     ],
     metadata: { estimatedTime: 1, helpText: "חשוב/י על מצבים שבהם אין 'תשובה נכונה' אחת, אלא שתי השקפות לגיטימיות." },
   },
@@ -10702,8 +10692,6 @@ export const valuesQuestions: Question[] = [
     metadata: { estimatedTime: 2 },
   },
 ];
-
-// export default valuesQuestions; // כבר לא צריך אם מייבאים ישירות את המערך
 --- End of Content for valuesQuestions.tsx ---
 
 ================================================================================
@@ -10862,7 +10850,7 @@ export interface QuestionnaireLayoutProps {
   onExit?: () => void;
   language?: string;
   onSaveProgress?: () => Promise<void>;
-    isLoggedIn?: boolean; // --- הוספנו שורה זו ---
+  isLoggedIn?: boolean;
 
 }
 
@@ -10878,10 +10866,10 @@ export interface QuestionnaireSubmission {
 }
 
 export type UserTrack =
-  | 'SECULAR'
-  | 'TRADITIONAL'
-  | 'RELIGIOUS'
-  | 'ORTHODOX';
+  | 'חילוני'
+  | 'מסורתי'
+  | 'דתי'
+  | 'חרדי';
 --- End of Content for types.ts ---
 
 ================================================================================
