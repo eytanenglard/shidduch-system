@@ -89,6 +89,8 @@ interface ExtendedMatchSuggestion extends MatchSuggestion {
   firstParty: PartyInfo;
   secondParty: PartyInfo;
   statusHistory: StatusHistoryItem[];
+  // 1. (FIX) Add optional questionnaire property to align with the modal's expected type
+  secondPartyQuestionnaire?: QuestionnaireResponse | null;
 }
 
 interface SuggestionsListProps {
@@ -132,8 +134,9 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
   const [actionType, setActionType] = useState<"approve" | "decline" | null>(
     null
   );
-  const [questionnaireResponse, setQuestionnaireResponse] =
-    useState<QuestionnaireResponse | null>(null);
+  // 2. (FIX) Remove the separate questionnaire state
+  // const [questionnaireResponse, setQuestionnaireResponse] =
+  //   useState<QuestionnaireResponse | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState<SortOption>("newest");
   const [filterOption, setFilterOption] = useState<FilterOption>("all");
@@ -230,11 +233,11 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
     setFilteredSuggestions(result);
   }, [initialSuggestions, searchQuery, sortOption, filterOption, userId]);
 
-  // Load questionnaire when a suggestion is selected
+  // 3. (FIX) Refactor useEffect to load questionnaire data into the selectedSuggestion object
   useEffect(() => {
     const loadQuestionnaire = async () => {
-      if (!selectedSuggestion) {
-        setQuestionnaireResponse(null);
+      // Exit if no suggestion is selected or if its questionnaire has already been fetched
+      if (!selectedSuggestion || selectedSuggestion.secondPartyQuestionnaire) {
         return;
       }
 
@@ -264,7 +267,25 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                 data.questionnaireResponse.formattedAnswers.religion || [],
             },
           };
-          setQuestionnaireResponse(formattedQuestionnaire);
+          // Update the selected suggestion with the new questionnaire data
+          setSelectedSuggestion((currentSuggestion) =>
+            currentSuggestion
+              ? {
+                  ...currentSuggestion,
+                  secondPartyQuestionnaire: formattedQuestionnaire,
+                }
+              : null
+          );
+        } else {
+           // Mark as fetched (even if null) to prevent re-fetching
+           setSelectedSuggestion((currentSuggestion) =>
+            currentSuggestion
+              ? {
+                  ...currentSuggestion,
+                  secondPartyQuestionnaire: null,
+                }
+              : null
+          );
         }
       } catch (error) {
         console.error("Failed to load questionnaire:", error);
@@ -274,6 +295,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
 
     loadQuestionnaire();
   }, [selectedSuggestion, userId]);
+
 
   // Handlers
   const handleOpenDetails = (suggestion: ExtendedMatchSuggestion) => {
@@ -618,14 +640,13 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
         ))}
       </div>
 
-      {/* Suggestion Details Modal */}
+      {/* 4. (FIX) Suggestion Details Modal call no longer needs the questionnaire prop */}
       <SuggestionDetailsModal
         suggestion={selectedSuggestion}
         userId={userId}
         isOpen={!!selectedSuggestion && !showAskDialog && !showStatusDialog}
         onClose={() => setSelectedSuggestion(null)}
         onStatusChange={onStatusChange}
-        questionnaire={questionnaireResponse}
       />
 
       {/* Ask Matchmaker Dialog */}
