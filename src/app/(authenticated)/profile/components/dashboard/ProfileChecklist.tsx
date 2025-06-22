@@ -1,4 +1,4 @@
-// ProfileChecklist.tsx
+// src/app/(authenticated)/profile/components/dashboard/ProfileChecklist.tsx
 
 "use client";
 
@@ -10,7 +10,6 @@ import { CheckCircle, User, BookOpen, Camera, Target, ChevronUp, ChevronDown, Sp
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from "@/lib/utils";
 import type { User as SessionUserType } from '@/types/next-auth';
-// ✅✅✅ ייבוא QuestionnaireResponse מהמקום הנכון. הוא מכיל את שדות ה-JSON.
 import type { QuestionnaireResponse } from '@/types/next-auth';
 
 // Helper Types & Constants
@@ -142,25 +141,20 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({ user, onPrev
                 (!p.preferredReligiousLevels || p.preferredReligiousLevels.length === 0) && 'רמות דתיות מועדפות',
                 (!p.preferredLocations || p.preferredLocations.length === 0) && 'אזורי מגורים מועדפים',
                 (!p.preferredMaritalStatuses || p.preferredMaritalStatuses.length === 0) && 'מצב משפחתי מועדף',
-                !p.preferredShomerNegiah && 'העדפת שמירת נגיעה',
-                !p.preferredPartnerHasChildren && 'העדפה לגבי ילדים מקשר קודם',
+                (p.preferredShomerNegiah === null || p.preferredShomerNegiah === undefined) && 'העדפת שמירת נגיעה',
+                (p.preferredPartnerHasChildren === null || p.preferredPartnerHasChildren === undefined) && 'העדפה לגבי ילדים מקשר קודם',
                 (!p.preferredCharacterTraits || p.preferredCharacterTraits.length === 0) && 'תכונות אופי מועדפות',
                 (!p.preferredHobbies || p.preferredHobbies.length === 0) && 'תחביבים מועדפים',
             ].filter((item): item is string => !!item),
         };
     }, [user.profile]);
 
-    // ✅✅✅ *** קוד משופר וחסין תקלות *** ✅✅✅
     const questionnaireProgress = useMemo(() => {
-        // פונקציית עזר בטוחה לספירת תשובות ממערך
         const getAnswerCountFromJsonArray = (jsonValue: unknown): number => {
-            if (Array.isArray(jsonValue)) {
-                return jsonValue.length;
-            }
-            return 0; // אם המידע אינו מערך (או null/undefined), נחזיר 0
+            if (Array.isArray(jsonValue)) return jsonValue.length;
+            return 0;
         };
 
-        // אם אין אובייקט תשובות כלל, נחזיר 0 התקדמות לכל העולמות.
         if (!questionnaireResponse) {
             return (Object.keys(WORLD_NAMES_MAP) as WorldKey[]).map(key => ({
                 world: WORLD_NAMES_MAP[key],
@@ -171,24 +165,18 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({ user, onPrev
         }
 
         const qr = questionnaireResponse;
-
         return (Object.keys(WORLD_NAMES_MAP) as WorldKey[]).map(key => {
             const uppercaseKey = key.toUpperCase() as keyof typeof QUESTION_COUNTS;
             const answersFieldKey = `${key}Answers` as keyof QuestionnaireResponse;
-            
-            // סופר את התשובות מהשדה הספציפי של ה-JSON באמצעות פונקציית העזר
             const completedCount = getAnswerCountFromJsonArray(qr[answersFieldKey]);
-
             return {
                 world: WORLD_NAMES_MAP[key],
                 completed: completedCount,
                 total: QUESTION_COUNTS[uppercaseKey],
-                // קובע אם העולם הושלם על פי המערך `worldsCompleted`
                 isDone: qr.worldsCompleted?.includes(uppercaseKey) ?? false,
             };
         });
     }, [questionnaireResponse]);
-    // ------------------------------------------
 
     const questionnaireCompleted = questionnaireResponse?.completed ?? false;
     
@@ -199,10 +187,74 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({ user, onPrev
         { id: 'questionnaire', isCompleted: questionnaireCompleted, title: 'שאלון התאמה', description: 'המפתח להתאמות AI.', link: '/questionnaire', icon: BookOpen, worldProgress: questionnaireProgress ?? undefined },
         { id: 'review', isCompleted: hasSeenPreview, title: 'תצוגה מקדימה', description: 'לראות איך אחרים רואים אותך.', onClick: onPreviewClick, icon: Edit3, missingItems: !hasSeenPreview ? ['יש לצפות בתצוגה המקדימה של הפרופיל'] : [] },
     ];
+    
+    // ✅✅✅ לוגיקת חישוב אחוזי ההתקדמות החדשה ✅✅✅
+    const completionPercentage = useMemo(() => {
+        const QUESTIONNAIRE_WEIGHT = 20; // 20% מהציון הכולל
+        const OTHER_TASKS_WEIGHT = 80;   // 80% מהציון הכולל
 
-    const completedCount = tasks.filter(t => t.isCompleted).length;
-    const isAllComplete = completedCount === tasks.length;
-    const completionPercentage = Math.round((completedCount / tasks.length) * 100);
+        // --- חלק 1: חישוב תרומת השאלון (0-20%) ---
+        const totalQuestions = Object.values(QUESTION_COUNTS).reduce((sum, count) => sum + count, 0);
+        const answeredQuestions = questionnaireProgress.reduce((sum, world) => sum + world.completed, 0);
+        const questionnaireContribution = totalQuestions > 0
+            ? (answeredQuestions / totalQuestions) * QUESTIONNAIRE_WEIGHT
+            : 0;
+
+        // --- חלק 2: חישוב תרומת שאר המשימות (0-80%) ---
+        const p = user.profile;
+        const otherTasksStatus: boolean[] = [];
+
+        // משימה 1: תמונות
+        otherTasksStatus.push((user.images?.length ?? 0) >= 3);
+
+        // 11 משימות של פרטים אישיים
+        if (p) {
+            otherTasksStatus.push(!!(p.about && p.about.trim().length >= 100));
+            otherTasksStatus.push(!!p.height);
+            otherTasksStatus.push(!!p.maritalStatus);
+            otherTasksStatus.push(!!p.city);
+            otherTasksStatus.push(!!p.occupation);
+            otherTasksStatus.push(!!p.educationLevel);
+            otherTasksStatus.push(!!p.origin);
+            otherTasksStatus.push(!!p.religiousLevel);
+            otherTasksStatus.push(!!p.serviceType);
+            otherTasksStatus.push(!!(p.profileHobbies && p.profileHobbies.length > 0));
+            otherTasksStatus.push(!!(p.profileCharacterTraits && p.profileCharacterTraits.length > 0));
+        } else {
+            otherTasksStatus.push(...Array(11).fill(false)); // אם אין פרופיל, כל המשימות לא הושלמו
+        }
+        
+        // 9 משימות של העדפות בן/בת זוג
+        if (p) {
+            otherTasksStatus.push(!!(p.preferredAgeMin && p.preferredAgeMax));
+            otherTasksStatus.push(!!(p.preferredHeightMin && p.preferredHeightMax));
+            otherTasksStatus.push(!!(p.preferredReligiousLevels && p.preferredReligiousLevels.length > 0));
+            otherTasksStatus.push(!!(p.preferredLocations && p.preferredLocations.length > 0));
+            otherTasksStatus.push(!!(p.preferredMaritalStatuses && p.preferredMaritalStatuses.length > 0));
+            otherTasksStatus.push(p.preferredShomerNegiah !== null && p.preferredShomerNegiah !== undefined);
+            otherTasksStatus.push(p.preferredPartnerHasChildren !== null && p.preferredPartnerHasChildren !== undefined);
+            otherTasksStatus.push(!!(p.preferredCharacterTraits && p.preferredCharacterTraits.length > 0));
+            otherTasksStatus.push(!!(p.preferredHobbies && p.preferredHobbies.length > 0));
+        } else {
+             otherTasksStatus.push(...Array(9).fill(false)); // אם אין פרופיל, כל המשימות לא הושלמו
+        }
+        
+        // משימה אחרונה: צפייה בתצוגה מקדימה
+        otherTasksStatus.push(hasSeenPreview);
+        
+        const totalOtherTasks = otherTasksStatus.length;
+        const completedOtherTasks = otherTasksStatus.filter(isCompleted => isCompleted).length;
+        
+        const otherTasksContribution = totalOtherTasks > 0
+            ? (completedOtherTasks / totalOtherTasks) * OTHER_TASKS_WEIGHT
+            : 0;
+
+        // --- חלק 3: חישוב סופי ---
+        return Math.round(questionnaireContribution + otherTasksContribution);
+
+    }, [user, questionnaireProgress, hasSeenPreview]);
+
+    const isAllComplete = completionPercentage >= 100;
 
     return (
         <AnimatePresence>

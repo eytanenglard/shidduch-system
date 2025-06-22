@@ -10,7 +10,6 @@ src/
         ├── metadata.ts  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\metadata.ts)
         └── page.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\page.tsx)
     └── (authenticated)/
-            └── (authenticated)_contents.txt  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\(authenticated)\(authenticated)_contents.txt)
         └── matches/
                 └── page.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\(authenticated)\matches\page.tsx)
         └── matchmaker/
@@ -119,6 +118,7 @@ src/
         └── notifications/
                 └── route.ts  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\notifications\route.ts)
         └── profile/
+                ├── profile_contents.txt  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\profile\profile_contents.txt)
                 └── route.ts  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\profile\route.ts)
             └── availability/
                     └── route.ts  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\profile\availability\route.ts)
@@ -130,6 +130,8 @@ src/
                     └── route.ts  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\profile\questionnaire\route.ts)
             └── update/
                     └── route.ts  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\profile\update\route.ts)
+            └── viewed-preview/
+                    └── route.ts  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\profile\viewed-preview\route.ts)
         └── questionnaire/
                 └── route.ts  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\questionnaire\route.ts)
             └── complete/
@@ -177,9 +179,6 @@ src/
         └── verify-phone/
                 └── page.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\auth\verify-phone\page.tsx)
     └── components/
-            ├── OnboardingTour.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\OnboardingTour.tsx)
-            ├── OnboardingTrigger.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\OnboardingTrigger.tsx)
-            └── components_contents.txt  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\components_contents.txt)
         └── auth/
                 ├── ConsentCheckbox.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\auth\ConsentCheckbox.tsx)
                 ├── ForgotPasswordForm.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\auth\ForgotPasswordForm.tsx)
@@ -278,6 +277,7 @@ src/
                 ├── ProfileCard.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\profile\ProfileCard.tsx)
                 ├── constants.ts  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\profile\constants.ts)
                 ├── index.ts  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\profile\index.ts)
+                ├── profile_contents.txt  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\profile\profile_contents.txt)
                 └── utils.ts  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\profile\utils.ts)
             └── elements/
                     ├── MinimalCard.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\profile\elements\MinimalCard.tsx)
@@ -312,8 +312,7 @@ src/
             └── page.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\contact\page.tsx)
     └── contexts/
             ├── LanguageContext.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\contexts\LanguageContext.tsx)
-            ├── NotificationContext.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\contexts\NotificationContext.tsx)
-            └── OnboardingContext.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\contexts\OnboardingContext.tsx)
+            └── NotificationContext.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\contexts\NotificationContext.tsx)
     └── legal/
         └── privacy-policy/
                 └── page.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\legal\privacy-policy\page.tsx)
@@ -328,12 +327,12 @@ src/
 └── components/
         ├── AvailabilityStatus.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\AvailabilityStatus.tsx)
         ├── Providers.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\Providers.tsx)
-        ├── account-settings.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\account-settings.tsx)
-        └── components_contents.txt  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\components_contents.txt)
+        └── account-settings.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\account-settings.tsx)
     └── ChatWidget/
             └── ChatWidget.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\ChatWidget\ChatWidget.tsx)
     └── HomePage/
-            └── HomePage.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\HomePage.tsx)
+            ├── HomePage.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\HomePage.tsx)
+            └── HomePage_contents.txt  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\HomePage_contents.txt)
         └── components/
                 ├── ComparisonItem.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\components\ComparisonItem.tsx)
                 ├── DemoSuggestionCard.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\components\DemoSuggestionCard.tsx)
@@ -361,7 +360,8 @@ src/
             ├── MatchmakingQuestionnaire.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\questionnaire\MatchmakingQuestionnaire.tsx)
             ├── QuestionnaireComplete.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\questionnaire\QuestionnaireComplete.tsx)
             ├── QuestionnairePage.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\questionnaire\QuestionnairePage.tsx)
-            └── QuestionnaireRestore.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\questionnaire\QuestionnaireRestore.tsx)
+            ├── QuestionnaireRestore.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\questionnaire\QuestionnaireRestore.tsx)
+            └── questionnaire_contents.txt  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\questionnaire\questionnaire_contents.txt)
         └── common/
                 ├── AnswerInput.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\questionnaire\common\AnswerInput.tsx)
                 ├── InteractiveScale.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\questionnaire\common\InteractiveScale.tsx)

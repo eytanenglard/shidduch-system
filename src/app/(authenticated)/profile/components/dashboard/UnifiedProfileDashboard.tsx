@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 import type { User as SessionUserType } from '@/types/next-auth';
 
 import { ProfileChecklist } from "./ProfileChecklist";
+// --- 1. ייבוא הקומפוננטה החדשה של יועץ ה-AI ---
+import { AIProfileAdvisorDialog } from "../advisor/AIProfileAdvisorDialog";
 
 // UI Components
 import { Button } from "@/components/ui/button";
@@ -28,7 +30,7 @@ import {
 } from "@/app/components/profile";
 
 // Icons
-import { Eye, Loader2 } from "lucide-react";
+import { Eye, Loader2, Sparkles } from "lucide-react"; // הוספתי Sparkles לאייקונים
 
 // Types
 import type {
@@ -76,7 +78,6 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   
   const isOwnProfile = !userId || (session?.user?.id === userId);
 
-  // ✅ שלב 1: עטפנו את `loadData` ב-`useCallback` כדי להבטיח שהפונקציה יציבה
   const loadData = useCallback(async () => {
     setIsLoading(true);
     setError("");
@@ -94,7 +95,6 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         setHasSeenPreview(true);
       }
 
-      // ✅ שלב 2: תיקון הלוגיקה של טעינת השאלון
       const questionnaireUrl = userId ? `/api/profile/questionnaire?userId=${userId}` : "/api/profile/questionnaire";
       const questionnaireFetchResponse = await fetch(questionnaireUrl);
       
@@ -125,33 +125,26 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
     } finally {
       setIsLoading(false);
     }
-  }, [userId]); // התלויות מבטיחות שהפונקציה תתעדכן רק אם ה-userId משתנה
+  }, [userId]);
 
   useEffect(() => {
     if (sessionStatus === 'authenticated') {
         loadData();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionStatus, loadData]);
 
-  // ✅ שלב 3: הוספת מנגנון לרענון הנתונים כשהמשתמש חוזר לטאב
   useEffect(() => {
     const handleVisibilityChange = () => {
-      // אם הטאב חזר להיות גלוי, והמשתמש מחובר
       if (document.visibilityState === 'visible' && sessionStatus === 'authenticated') {
-        console.log("Tab is visible again, refetching data to get latest questionnaire progress...");
-        loadData(); // קוראים לפונקציה כדי למשוך נתונים עדכניים
+        console.log("Tab is visible again, refetching data...");
+        loadData();
       }
     };
-
-    // הוספת מאזין לאירוע
     document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    // ניקוי המאזין כשהרכיב יורד
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [loadData, sessionStatus]); // התלויות מבטיחות שהמאזין תמיד ישתמש בגרסה העדכנית של הפונקציה
+  }, [loadData, sessionStatus]);
 
   const handlePreviewClick = async () => {
     setPreviewOpen(true);
@@ -160,15 +153,12 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         const response = await fetch('/api/profile/viewed-preview', {
           method: 'POST',
         });
-
         if (!response.ok) {
           throw new Error('Failed to update preview status');
         }
-        
         setHasSeenPreview(true);
         toast.success("תודה! שלב 'הצפייה בתצוגה' הושלם.");
         await updateSession();
-        
       } catch (error) {
         console.error("Error in handlePreviewClick:", error);
         toast.error("שגיאה בעדכון סטטוס הצפייה בתצוגה המקדימה.");
@@ -341,12 +331,18 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
           {error && <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}
 
           {isOwnProfile && user && (
-            <ProfileChecklist 
-                user={{ ...user, images: images }}
-                hasSeenPreview={hasSeenPreview}
-                onPreviewClick={handlePreviewClick}
-                questionnaireResponse={questionnaireResponse}
-            />
+            <>
+              <ProfileChecklist 
+                  user={{ ...user, images: images }}
+                  hasSeenPreview={hasSeenPreview}
+                  onPreviewClick={handlePreviewClick}
+                  questionnaireResponse={questionnaireResponse}
+              />
+              {/* --- 2. הוספת הקומפוננטה החדשה כאן --- */}
+              <div className="my-6 md:my-8 text-center">
+                <AIProfileAdvisorDialog userId={user.id} />
+              </div>
+            </>
           )}
 
           {!viewOnly && isOwnProfile && (
@@ -365,7 +361,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
               </div>
             </div>
           )}
-
+          
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
             <div className="flex justify-center mb-6 md:mb-8">
               <ScrollArea dir="rtl" className="w-auto max-w-full">

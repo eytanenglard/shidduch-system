@@ -50,7 +50,6 @@ type UserWithRelations = User & {
 // 4. --- Helper Functions for Formatting ---
 
 /**
- * --- FIX: This function now correctly handles all possible Prisma.JsonValue types ---
  * Safely formats a value for the narrative, handling undefined/null/empty cases.
  */
 function formatDisplayValue(value: PrismaTypes.JsonValue | null | undefined, fallback: string = "לא צוין"): string {
@@ -66,22 +65,20 @@ function formatDisplayValue(value: PrismaTypes.JsonValue | null | undefined, fal
   if (typeof value === 'number') {
     return String(value);
   }
-  if (value instanceof Date) { // This check is technically redundant if dates are stored as ISO strings in JSON, but good practice
+  if (value instanceof Date) {
     return value.toLocaleDateString('he-IL');
   }
   if (Array.isArray(value)) {
     return value.length > 0 ? value.map(String).join(', ') : fallback;
   }
   if (typeof value === 'object') {
-     // For structured objects like from budgetAllocation, provide a more readable format
      if (Object.keys(value).length > 0) {
          return Object.entries(value)
              .map(([key, val]) => `${key}: ${val}`)
              .join('; ');
      }
-     return fallback; // Return fallback for empty objects
+     return fallback;
   }
-  // Fallback for any other type
   return String(value);
 }
 
@@ -149,7 +146,6 @@ function formatSingleAnswer(answer: JsonAnswerData): string | null {
       narrativePart += `תשובה: ${selectedOption ? selectedOption.text : formatDisplayValue(answer.value)}\n`;
       break;
     }
-
     case 'multiChoice':
     case 'multiSelect':
     case 'multiSelectWithOther': {
@@ -165,19 +161,16 @@ function formatSingleAnswer(answer: JsonAnswerData): string | null {
       }
       break;
     }
-
     case 'openText': {
       narrativePart += `תשובה: "${formatDisplayValue(answer.value)}"\n`;
       break;
     }
-
     case 'scale': {
       const minLabel = questionDef.labels?.min || 'נמוך';
       const maxLabel = questionDef.labels?.max || 'גבוה';
       narrativePart += `דירוג: ${answer.value}/10 (כאשר 1=${minLabel} ו-10=${maxLabel})\n`;
       break;
     }
-
     case 'budgetAllocation': {
       if (typeof answer.value === 'object' && answer.value && !Array.isArray(answer.value)) {
           const allocations = Object.entries(answer.value)
@@ -188,7 +181,6 @@ function formatSingleAnswer(answer: JsonAnswerData): string | null {
       }
       break;
     }
-
     default: {
       narrativePart += `תשובה: ${formatDisplayValue(answer.value)}\n`;
     }
@@ -196,6 +188,58 @@ function formatSingleAnswer(answer: JsonAnswerData): string | null {
   
   return narrativePart + '\n';
 }
+
+/**
+ *  --- NEW FUNCTION ---
+ * Processes questionnaire data to get completion stats and a narrative summary of answers.
+ */
+function processQuestionnaireData(questionnaire: QuestionnaireResponse | null | undefined) {
+    const totalCount = allQuestions.size;
+    if (!questionnaire) {
+        return {
+            answeredCount: 0,
+            totalCount,
+            completionPercentage: 0,
+            answersNarrative: "המשתמש עדיין לא החל למלא את השאלון."
+        };
+    }
+
+    const worldKeys: WorldKey[] = ['values', 'personality', 'relationship', 'partner', 'religion'];
+    let answeredCount = 0;
+    const narrativeChunks: string[] = [];
+
+    worldKeys.forEach(worldKey => {
+        const dbKey = KEY_MAPPING[worldKey];
+        const answers = safeParseAnswers(questionnaire[dbKey]);
+        
+        if (answers.length > 0) {
+            answeredCount += answers.length;
+            
+            // Generate a title for the "world" based on the question definitions
+            const worldInfo = allQuestions.get(answers[0].questionId);
+            const worldTitle = worldInfo?.worldId ? worldInfo.worldId.charAt(0) + worldInfo.worldId.slice(1).toLowerCase() : worldKey;
+            
+            narrativeChunks.push(`### עולם ה${worldTitle}`);
+            
+            answers.forEach(answer => {
+                const formattedPart = formatSingleAnswer(answer);
+                if (formattedPart) {
+                    narrativeChunks.push(formattedPart);
+                }
+            });
+        }
+    });
+
+    const completionPercentage = totalCount > 0 ? Math.round((answeredCount / totalCount) * 100) : 0;
+    
+    return {
+        answeredCount,
+        totalCount,
+        completionPercentage,
+        answersNarrative: narrativeChunks.length > 0 ? narrativeChunks.join('\n') : "המשתמש החל למלא את השאלון אך לא נמצאו תשובות תקפות לעיבוד."
+    };
+}
+
 
 // 5. --- Main Service Functions ---
 
@@ -227,6 +271,10 @@ export async function generateNarrativeProfile(userId: string): Promise<string |
   };
   const age = calculateAge(profile.birthDate);
   
+  // --- MODIFIED SECTION ---
+  // Process questionnaire data to get stats and narrative
+  const questionnaireData = processQuestionnaireData(questionnaire);
+
   const narrativeParts: string[] = [];
 
   narrativeParts.push(
@@ -241,6 +289,7 @@ export async function generateNarrativeProfile(userId: string): Promise<string |
     `- **השכלה:** ${formatDisplayValue(profile.educationLevel)}, ${formatDisplayValue(profile.education)}`,
     `- **שומר/ת נגיעה:** ${formatDisplayValue(profile.shomerNegiah)}`
   );
+
   if (user.source === 'MANUAL_ENTRY' && profile.manualEntryText) {
     narrativeParts.push(`\n**הערת שדכן (למועמד ידני):** ${profile.manualEntryText}`);
   }
@@ -263,28 +312,16 @@ export async function generateNarrativeProfile(userId: string): Promise<string |
     `- **רמות השכלה מועדפות:** ${formatArray(profile.preferredEducation)}`,
     `- **מוצאים מועדפים:** ${formatArray(profile.preferredOrigins)}`
   );
-  
-  if (questionnaire) {
-    narrativeParts.push(`## תובנות מהשאלון`);
-     
-    const worldKeys: WorldKey[] = ['values', 'personality', 'relationship', 'partner', 'religion'];
-    worldKeys.forEach(worldKey => {
-        const dbKey = KEY_MAPPING[worldKey];
-        const answers = safeParseAnswers(questionnaire[dbKey]);
-        
-        if (answers.length > 0) {
-            const worldConfig = allQuestions.get(answers[0].questionId)?.worldId;
-            const worldTitle = worldConfig ? worldConfig.charAt(0) + worldConfig.slice(1).toLowerCase() : worldKey;
-            narrativeParts.push(`### עולם ה${worldTitle}`);
-            answers.forEach(answer => {
-                const formattedPart = formatSingleAnswer(answer);
-                if (formattedPart) {
-                    narrativeParts.push(formattedPart);
-                }
-            });
-        }
-    });
-  }
+
+  // --- NEW SECTION IN NARRATIVE ---
+  // Add the questionnaire analysis to the narrative
+  narrativeParts.push(
+    `\n## ניתוח השלמת השאלון`,
+    `- **סך הכל שאלות במערכת:** ${questionnaireData.totalCount}`,
+    `- **שאלות שנענו:** ${questionnaireData.answeredCount}`,
+    `- **אחוז השלמה:** ${questionnaireData.completionPercentage}%`,
+    `\n## תובנות מהשאלון (תשובות מפורטות)\n${questionnaireData.answersNarrative}`
+  );
 
   return narrativeParts.join('\n\n').trim();
 }
