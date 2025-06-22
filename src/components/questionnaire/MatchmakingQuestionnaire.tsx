@@ -76,8 +76,7 @@ export default function MatchmakingQuestionnaire({
   const [currentWorld, setCurrentWorld] = useState<WorldId>(
     initialWorld || "VALUES"
   );
-  const [userTrack, setUserTrack] = useState<UserTrack>("SECULAR");
-  const [answers, setAnswers] = useState<QuestionnaireAnswer[]>([]);
+const [userTrack, setUserTrack] = useState<UserTrack>("חילוני");  const [answers, setAnswers] = useState<QuestionnaireAnswer[]>([]);
   const [completedWorlds, setCompletedWorlds] = useState<WorldId[]>([]);
   const [startTime] = useState(() => new Date().toISOString());
   const [lastSavedTime, setLastSavedTime] = useState<Date | null>(null);

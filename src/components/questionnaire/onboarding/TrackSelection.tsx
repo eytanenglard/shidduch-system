@@ -38,7 +38,7 @@ interface TrackOption {
 
 const trackOptions: TrackOption[] = [
   {
-    id: "SECULAR",
+    id: "חילוני",
     title: "חילוני",
     description: "אורח חיים חופשי עם זיקה למסורת",
     icon: <Sun className="w-6 h-6" />,
@@ -55,7 +55,7 @@ const trackOptions: TrackOption[] = [
     },
   },
   {
-    id: "TRADITIONAL",
+    id: "מסורתי",
     title: "מסורתי",
     description: "שילוב בין מסורת למודרנה",
     icon: <Heart className="w-6 h-6" />,
@@ -72,7 +72,7 @@ const trackOptions: TrackOption[] = [
     },
   },
   {
-    id: "RELIGIOUS",
+    id: "דתי",
     title: "דתי",
     description: "אורח חיים על פי ההלכה",
     icon: <Book className="w-6 h-6" />,
@@ -89,7 +89,7 @@ const trackOptions: TrackOption[] = [
     },
   },
   {
-    id: "ORTHODOX",
+    id: "חרדי",
     title: "חרדי",
     description: "הקפדה מלאה על קלה כבחמורה",
     icon: <Scroll className="w-6 h-6" />,

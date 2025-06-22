@@ -146,7 +146,7 @@ export interface QuestionnaireLayoutProps {
   onExit?: () => void;
   language?: string;
   onSaveProgress?: () => Promise<void>;
-    isLoggedIn?: boolean; // --- הוספנו שורה זו ---
+  isLoggedIn?: boolean;
 
 }
 
@@ -162,7 +162,7 @@ export interface QuestionnaireSubmission {
 }
 
 export type UserTrack =
-  | 'SECULAR'
-  | 'TRADITIONAL'
-  | 'RELIGIOUS'
-  | 'ORTHODOX';
+  | 'חילוני'
+  | 'מסורתי'
+  | 'דתי'
+  | 'חרדי';

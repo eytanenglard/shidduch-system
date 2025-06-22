@@ -29,13 +29,13 @@ export const religionQuestions: Question[] = [
     depth: "BASIC",
     isRequired: true,
     options: [
-      { icon: <Scroll />, text: "חרדי/ת (למשל: ליטאי, חסידי, ספרדי)", value: "charedi_various_streams" },
-      { icon: <BookOpen />, text: "דתי/ה לאומי/ת - תורני/ת (למשל: חרד\"ל, ישיבתי)", value: "dati_leumi_torani_yeshivish" },
-      { icon: <Sparkles />, text: "דתי/ה לאומי/ת - מרכז / פתוח/ה (למשל: דתי-לייט, ליברלי)", value: "dati_leumi_centrist_liberal" },
-      { icon: <Heart />, text: "מסורתי/ת (למשל: שומר/ת מסורת, מחובר/ת לבית הכנסת)", value: "masorti_traditional_connected" },
-      { icon: <Users />, text: "חילוני/ת עם זיקה למסורת וליהדות", value: "secular_with_tradition_connection" },
-      { icon: <Lightbulb />, text: "רוחני/ת בדרכי (לאו דווקא במסגרת זרם מוגדר)", value: "spiritual_my_own_way" },
-      { icon: <Info />, text: "אחר/ת או בתהליך גיבוש (ניתן לפרט בשאלה הבאה)", value: "other_or_forming_identity" },
+      { icon: <Scroll />, text: "חרדי/ת (למשל: ליטאי, חסידי, ספרדי)", value: "חרדי/ת (למשל: ליטאי, חסידי, ספרדי)" },
+      { icon: <BookOpen />, text: "דתי/ה לאומי/ת - תורני/ת (למשל: חרד\"ל, ישיבתי)", value: "דתי/ה לאומי/ת - תורני/ת (למשל: חרד\"ל, ישיבתי)" },
+      { icon: <Sparkles />, text: "דתי/ה לאומי/ת - מרכז / פתוח/ה (למשל: דתי-לייט, ליברלי)", value: "דתי/ה לאומי/ת - מרכז / פתוח/ה (למשל: דתי-לייט, ליברלי)" },
+      { icon: <Heart />, text: "מסורתי/ת (למשל: שומר/ת מסורת, מחובר/ת לבית הכנסת)", value: "מסורתי/ת (למשל: שומר/ת מסורת, מחובר/ת לבית הכנסת)" },
+      { icon: <Users />, text: "חילוני/ת עם זיקה למסורת וליהדות", value: "חילוני/ת עם זיקה למסורת וליהדות" },
+      { icon: <Lightbulb />, text: "רוחני/ת בדרכי (לאו דווקא במסגרת זרם מוגדר)", value: "רוחני/ת בדרכי (לאו דווקא במסגרת זרם מוגדר)" },
+      { icon: <Info />, text: "אחר/ת או בתהליך גיבוש (ניתן לפרט בשאלה הבאה)", value: "אחר/ת או בתהליך גיבוש (ניתן לפרט בשאלה הבאה)" },
     ],
     metadata: { estimatedTime: 1, helpText: "בחר/י את התיאור שהכי קרוב לליבך ולדרך חייך." },
   },
@@ -63,12 +63,12 @@ export const religionQuestions: Question[] = [
     depth: "ADVANCED",
     isRequired: false,
     options: [
-      { icon: <Heart />, text: "אמונה בקב\"ה ובבחירת עם ישראל", value: "belief_in_god_chosen_people" },
-      { icon: <Scroll />, text: "תורה מן השמיים ומחויבות להלכה", value: "torah_from_heaven_halacha_commitment" },
-      { icon: <Sparkles />, text: "חיפוש מתמיד אחר משמעות וחיבור רוחני", value: "seeking_meaning_spiritual_connection" },
-      { icon: <HandHeart />, text: "תיקון עולם, צדק חברתי וחסד", value: "tikkun_olam_social_justice_kindness" },
-      { icon: <Flag />, text: "גאולת ישראל וקיבוץ גלויות בארץ ישראל", value: "redemption_israel_ingathering_exiles" },
-      { icon: <Users />, text: "ערבות הדדית ואחדות עם ישראל", value: "mutual_responsibility_jewish_unity" },
+      { icon: <Heart />, text: "אמונה בקב\"ה ובבחירת עם ישראל", value: "אמונה בקב\"ה ובבחירת עם ישראל" },
+      { icon: <Scroll />, text: "תורה מן השמיים ומחויבות להלכה", value: "תורה מן השמיים ומחויבות להלכה" },
+      { icon: <Sparkles />, text: "חיפוש מתמיד אחר משמעות וחיבור רוחני", value: "חיפוש מתמיד אחר משמעות וחיבור רוחני" },
+      { icon: <HandHeart />, text: "תיקון עולם, צדק חברתי וחסד", value: "תיקון עולם, צדק חברתי וחסד" },
+      { icon: <Flag />, text: "גאולת ישראל וקיבוץ גלויות בארץ ישראל", value: "גאולת ישראל וקיבוץ גלויות בארץ ישראל" },
+      { icon: <Users />, text: "ערבות הדדית ואחדות עם ישראל", value: "ערבות הדדית ואחדות עם ישראל" },
     ],
     minSelections: 1,
     maxSelections: 3,
@@ -82,7 +82,7 @@ export const religionQuestions: Question[] = [
     question: "מהי החשיבות של דמות רבנית או הנהגה רוחנית אישית עבורך? (1=לא משמעותי, 10=משמעותי מאוד)",
     type: "scale",
     depth: "BASIC",
-    isRequired: false, // לא לכולם יש דמות ספציפית
+    isRequired: false,
     min: 1,
     max: 10,
     labels: { min: "לא משמעותי", max: "משמעותי מאוד" },
@@ -100,11 +100,11 @@ export const religionQuestions: Question[] = [
     depth: "BASIC",
     isRequired: true,
     options: [
-      { icon: <ShieldCheck />, text: "הקפדה מלאה על כל ההלכות ודקדוקיהן", value: "full_strict_observance_shabbat" },
-      { icon: <Target />, text: "שמירה על עיקרי ההלכות (ללא חשמל, בישול, נסיעה)", value: "main_halachic_observance_shabbat" },
-      { icon: <Scale />, text: "שמירה על אווירת השבת (קידוש, סעודות, תפילה) עם גמישות מסוימת בהלכות", value: "shabbat_atmosphere_some_flexibility" },
-      { icon: <Home />, text: "שמירת שבת בעיקר בבית ובמשפחה, פחות במרחב הציבורי", value: "shabbat_mainly_at_home_family" },
-      { icon: <Info />, text: "אינני שומר/ת שבת באופן הלכתי", value: "not_halachically_observant_shabbat" },
+      { icon: <ShieldCheck />, text: "הקפדה מלאה על כל ההלכות ודקדוקיהן", value: "הקפדה מלאה על כל ההלכות ודקדוקיהן" },
+      { icon: <Target />, text: "שמירה על עיקרי ההלכות (ללא חשמל, בישול, נסיעה)", value: "שמירה על עיקרי ההלכות (ללא חשמל, בישול, נסיעה)" },
+      { icon: <Scale />, text: "שמירה על אווירת השבת (קידוש, סעודות, תפילה) עם גמישות מסוימת בהלכות", value: "שמירה על אווירת השבת (קידוש, סעודות, תפילה) עם גמישות מסוימת בהלכות" },
+      { icon: <Home />, text: "שמירת שבת בעיקר בבית ובמשפחה, פחות במרחב הציבורי", value: "שמירת שבת בעיקר בבית ובמשפחה, פחות במרחב הציבורי" },
+      { icon: <Info />, text: "אינני שומר/ת שבת באופן הלכתי", value: "אינני שומר/ת שבת באופן הלכתי" },
     ],
     metadata: { estimatedTime: 1 },
   },
@@ -144,7 +144,7 @@ export const religionQuestions: Question[] = [
     question: "מהי גישתך האישית לצניעות (לבוש, דיבור, התנהגות בין המינים) וכיצד היא מתבטאת?",
     type: "openText",
     depth: "ADVANCED",
-    isRequired: true, // נושא חשוב להתאמה
+    isRequired: true,
     minLength: 40,
     maxLength: 400,
     placeholder: "לדוגמה: כיסוי ראש (סוג), לבוש (אורך שרוול/חצאית), שמירת נגיעה, סגנון דיבור.",
@@ -156,14 +156,14 @@ export const religionQuestions: Question[] = [
     category: "religion",
     subcategory: "practical_observance",
     question: "מהי גישתך ורמת הקפדתך על הלכות טהרת המשפחה?",
-    type: "iconChoice", // ניתן גם להפוך ל-openText לרגישות
+    type: "iconChoice",
     depth: "ADVANCED",
-    isRequired: true, // קריטי לזוגיות דתית
+    isRequired: true,
     options: [
-      { icon: <ShieldCheck />, text: "הקפדה מלאה על כל ההלכות והחומרות המקובלות", value: "full_observance_chumrot_family_purity" },
-      { icon: <Target />, text: "הקפדה על עיקרי ההלכות כפי שמקובל בקהילתי", value: "main_observance_community_standard_family_purity" },
-      { icon: <Scale />, text: "שואפ/ת לשמור, עם רצון ללמוד ולהתחזק בנושא", value: "aspire_to_observe_learn_family_purity" },
-      { icon: <Info />, text: "הנושא אינו רלוונטי לי / דורש דיון מעמיק יותר", value: "not_relevant_or_requires_discussion_family_purity" },
+      { icon: <ShieldCheck />, text: "הקפדה מלאה על כל ההלכות והחומרות המקובלות", value: "הקפדה מלאה על כל ההלכות והחומרות המקובלות" },
+      { icon: <Target />, text: "הקפדה על עיקרי ההלכות כפי שמקובל בקהילתי", value: "הקפדה על עיקרי ההלכות כפי שמקובל בקהילתי" },
+      { icon: <Scale />, text: "שואפ/ת לשמור, עם רצון ללמוד ולהתחזק בנושא", value: "שואפ/ת לשמור, עם רצון ללמוד ולהתחזק בנושא" },
+      { icon: <Info />, text: "הנושא אינו רלוונטי לי / דורש דיון מעמיק יותר", value: "הנושא אינו רלוונטי לי / דורש דיון מעמיק יותר" },
     ],
     metadata: { estimatedTime: 1, helpText: "זו שאלה רגישה וחשובה. אנא ענה/י בכנות." },
   },
@@ -193,9 +193,9 @@ export const religionQuestions: Question[] = [
     depth: "BASIC",
     isRequired: false,
     options: [
-      { icon: <Users />, text: "רובו ככולו מורכב מאנשים ברמה דתית דומה לשלי", value: "mostly_similar_religious_level_social_circle" },
-      { icon: <Scale />, text: "יש לי חברים ממגוון רמות דתיות והשקפות", value: "diverse_religious_levels_social_circle" },
-      { icon: <Home />, text: "המעגל החברתי שלי מצומצם יחסית ופחות מוגדר דתית", value: "small_less_religiously_defined_social_circle" },
+      { icon: <Users />, text: "רובו ככולו מורכב מאנשים ברמה דתית דומה לשלי", value: "רובו ככולו מורכב מאנשים ברמה דתית דומה לשלי" },
+      { icon: <Scale />, text: "יש לי חברים ממגוון רמות דתיות והשקפות", value: "יש לי חברים ממגוון רמות דתיות והשקפות" },
+      { icon: <Home />, text: "המעגל החברתי שלי מצומצם יחסית ופחות מוגדר דתית", value: "המעגל החברתי שלי מצומצם יחסית ופחות מוגדר דתית" },
     ],
     metadata: { estimatedTime: 1 },
   },
@@ -213,7 +213,7 @@ export const religionQuestions: Question[] = [
     placeholder: "לדוגמה: חיים בתוך 'בועה' מוגנת, שילוב תוך סינון, פתיחות מלאה, השפעה הדדית...",
     metadata: { estimatedTime: 1 },
   },
- {
+  {
     worldId: "RELIGION",
     id: "religion_state_and_army_service_view",
     category: "religion",
@@ -225,10 +225,7 @@ export const religionQuestions: Question[] = [
     minLength: 0,
     maxLength: 400,
     placeholder: "לדוגמה: חשיבות השירות, סוג השירות המועדף, יחס למדינה כ'אתחלתא דגאולה', וכו'.",
-    // --- התיקון כאן ---
-    icon: <PocketKnife />, // האייקון מוגדר ברמת השאלה
-    metadata: { estimatedTime: 1 }, // metadata מכיל רק את המאפיינים המותרים לו
-    // --- סוף התיקון ---
+    metadata: { estimatedTime: 1 },
   },
 
   // --- חלק 4: התאמה דתית בזוגיות וחינוך ילדים ---
@@ -268,7 +265,7 @@ export const religionQuestions: Question[] = [
     question: "איזה סוג של בית וחינוך דתי/תורני היית רוצה להעניק לילדיך, ומהן הציפיות שלך מבן/בת הזוג בהקשר זה?",
     type: "openText",
     depth: "ADVANCED",
-    isRequired: true, // חשוב למי שרואה ילדים בעתיד
+    isRequired: true, 
     minLength: 50,
     maxLength: 500,
     placeholder: "לדוגמה: סוג מוסדות חינוך, אווירה דתית בבית, דגש על ערכים ספציפיים, מעורבות הורית בלימוד.",
@@ -318,5 +315,3 @@ export const religionQuestions: Question[] = [
     metadata: { estimatedTime: 1 },
   },
 ];
-
-// export default religionQuestions; // כבר לא צריך אם מייבאים ישירות את המערך

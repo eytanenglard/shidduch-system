@@ -1,0 +1,39 @@
+Directory Map for: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new
+======================================================================================================
+
+new/
+    ├── MatchmakerEditProfile.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new\MatchmakerEditProfile.tsx)
+└── CandidateCard/
+        ├── Actions.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new\CandidateCard\Actions.tsx)
+        ├── MinimalCard.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new\CandidateCard\MinimalCard.tsx)
+        └── QuickView.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new\CandidateCard\QuickView.tsx)
+└── CandidatesManager/
+        ├── CandidatesList.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new\CandidatesManager\CandidatesList.tsx)
+        ├── CandidatesStats.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new\CandidatesManager\CandidatesStats.tsx)
+        ├── SplitView.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new\CandidatesManager\SplitView.tsx)
+        ├── StatsCard.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new\CandidatesManager\StatsCard.tsx)
+        └── index.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new\CandidatesManager\index.tsx)
+└── constants/
+        ├── filterOptions.ts  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new\constants\filterOptions.ts)
+        └── matchingCriteria.ts  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new\constants\matchingCriteria.ts)
+└── dialogs/
+        ├── ActionDialogs.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new\dialogs\ActionDialogs.tsx)
+        ├── AddManualCandidateDialog.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new\dialogs\AddManualCandidateDialog.tsx)
+        └── AiMatchAnalysisDialog.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new\dialogs\AiMatchAnalysisDialog.tsx)
+└── Filters/
+        ├── ActiveFilters.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new\Filters\ActiveFilters.tsx)
+        ├── FilterPanel.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new\Filters\FilterPanel.tsx)
+        ├── SavedFilters.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new\Filters\SavedFilters.tsx)
+        └── SearchBar.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new\Filters\SearchBar.tsx)
+└── hooks/
+        ├── filterUtils  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new\hooks\filterUtils)
+        ├── useCandidates.ts  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new\hooks\useCandidates.ts)
+        ├── useFilterLogic.ts  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new\hooks\useFilterLogic.ts)
+        └── useStatistics.ts  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new\hooks\useStatistics.ts)
+└── shared/
+        ├── LoadingStates.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new\shared\LoadingStates.tsx)
+        ├── Pagination.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new\shared\Pagination.tsx)
+        └── StatusBadge.tsx  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new\shared\StatusBadge.tsx)
+└── types/
+        ├── candidates.ts  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new\types\candidates.ts)
+        └── filters.ts  (Full Path: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\new\types\filters.ts)

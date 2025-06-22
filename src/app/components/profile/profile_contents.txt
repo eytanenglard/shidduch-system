@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\profile
-# Generated on: 2025-06-22 16:43:01
+# Generated on: 2025-06-22 19:17:35
 ################################################################################
 
 ================================================================================
@@ -33,7 +33,7 @@ import {
   DialogHeader,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"; // <--- ודא שזה מיובא
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import {
   Tooltip,
   TooltipContent,
@@ -87,7 +87,147 @@ import {
   ShieldQuestion,
 } from "lucide-react";
 
-// Constants
+// Types
+import type {
+  UserProfile,
+  UserImage as UserImageType,
+  QuestionnaireResponse,
+  FormattedAnswer,
+  ServiceType,
+  HeadCoveringType,
+  KippahType,
+} from "@/types/next-auth";
+import { languageOptions } from "@/lib/languageOptions"; // Assuming this file exists and exports a Hebrew list
+
+// --- Data & Translation Maps ---
+// These maps translate database values (in English) to Hebrew display text.
+// They can be moved to a central 'translations.ts' or 'formatters.ts' file for better organization.
+
+const maritalStatusMap: { [key: string]: string } = {
+  single: "רווק/ה",
+  divorced: "גרוש/ה",
+  widowed: "אלמן/ה",
+  annulled: "נישואין שבוטלו",
+  any: "כל האפשרויות פתוחות",
+};
+
+const religiousLevelMap: { [key: string]: string } = {
+  charedi: "חרדי/ת",
+  charedi_modern: "חרדי/ת מודרני/ת",
+  dati_leumi_torani: "דתי/ה לאומי/ת תורני/ת",
+  dati_leumi_liberal: "דתי/ה לאומי/ת ליברלי/ת",
+  dati_leumi_standard: "דתי/ה לאומי/ת (סטנדרטי)",
+  masorti_strong: "מסורתי/ת (קרוב/ה לדת)",
+  masorti_light: "מסורתי/ת (קשר קל למסורת)",
+  secular_traditional_connection: "חילוני/ת עם זיקה למסורת",
+  secular: "חילוני/ת",
+  spiritual_not_religious: "רוחני/ת (לאו דווקא דתי/ה)",
+  other: "אחר",
+  "לא משנה": "ללא העדפה / גמיש",
+};
+
+const educationLevelMap: { [key: string]: string } = {
+  high_school: "תיכונית",
+  vocational: "מקצועית / תעודה",
+  academic_student: "סטודנט/ית לתואר",
+  academic_ba: "תואר ראשון (BA/BSc)",
+  academic_ma: "תואר שני (MA/MSc)",
+  academic_phd: "דוקטורט (PhD)",
+  yeshiva_seminary: "לימודים תורניים (ישיבה/מדרשה/כולל)",
+  other: "אחר",
+  "ללא העדפה": "ללא העדפה",
+};
+
+const serviceTypeMap: { [key: string]: string } = {
+  MILITARY_COMBATANT: "צבאי - לוחם/ת",
+  MILITARY_SUPPORT: "צבאי - תומכ/ת לחימה",
+  MILITARY_OFFICER: "צבאי - קצונה",
+  MILITARY_INTELLIGENCE_CYBER_TECH: "צבאי - מודיעין/סייבר/טכנולוגי",
+  NATIONAL_SERVICE_ONE_YEAR: "שירות לאומי - שנה",
+  NATIONAL_SERVICE_TWO_YEARS: "שירות לאומי - שנתיים",
+  HESDER_YESHIVA: "ישיבת הסדר",
+  YESHIVA_ONLY_POST_HS: "ישיבה גבוהה / מדרשה (ללא שירות)",
+  PRE_MILITARY_ACADEMY_AND_SERVICE: "מכינה קדם-צבאית ושירות",
+  EXEMPTED: "פטור משירות",
+  CIVILIAN_SERVICE: "שירות אזרחי",
+  OTHER: "אחר / לא רלוונטי",
+};
+
+const headCoveringMap: { [key: string]: string } = {
+  FULL_COVERAGE: "כיסוי ראש מלא",
+  PARTIAL_COVERAGE: "כיסוי ראש חלקי",
+  HAT_BERET: "כובע / ברט",
+  SCARF_ONLY_SOMETIMES: "מטפחת (רק באירועים/בית כנסת)",
+  NONE: "ללא כיסוי ראש",
+  any: "כל האפשרויות פתוחות",
+};
+
+const kippahTypeMap: { [key: string]: string } = {
+  BLACK_VELVET: "קטיפה שחורה",
+  KNITTED_SMALL: "סרוגה קטנה",
+  KNITTED_LARGE: "סרוגה גדולה",
+  CLOTH: "בד",
+  BRESLEV: "ברסלב (לבנה גדולה)",
+  NONE_AT_WORK_OR_CASUAL: "לא בעבודה / ביומיום",
+  NONE_USUALLY: "לרוב לא חובש",
+  OTHER: "אחר",
+  any: "כל האפשרויות פתוחות",
+};
+
+const languageMap = languageOptions.reduce((acc, lang) => {
+    acc[lang.value] = lang.label;
+    return acc;
+}, {} as { [key: string]: string });
+
+const contactPreferenceMap: { [key: string]: string } = {
+  direct: "ישירות",
+  matchmaker: "דרך השדכן/ית",
+  both: "שתי האפשרויות",
+};
+
+const aliyaStatusMap: { [key: string]: string } = {
+  oleh: "עולה חדש/ה",
+  tzabar: "צבר/ית",
+  no_preference: "ללא העדפה",
+};
+
+const characterTraitMap: { [key: string]: string } = {
+  empathetic: "אמפתי/ת",
+  driven: "שאפתן/ית",
+  optimistic: "אופטימי/ת",
+  family_oriented: "משפחתי/ת",
+  intellectual: "אינטלקטואל/ית",
+  organized: "מאורגנ/ת",
+  calm: "רגוע/ה",
+  humorous: "בעל/ת חוש הומור",
+  sociable: "חברותי/ת",
+  sensitive: "רגיש/ה",
+  independent: "עצמאי/ת",
+  creative: "יצירתי/ת",
+  honest: "כן/ה וישר/ה",
+  responsible: "אחראי/ת",
+  easy_going: "זורם/ת וקליל/ה",
+  no_strong_preference: "ללא העדפה חזקה",
+};
+
+const hobbiesMap: { [key: string]: string } = {
+    travel: "טיולים",
+    sports: "ספורט",
+    reading: "קריאה",
+    cooking_baking: "בישול/אפיה",
+    music_playing_instrument: "מוזיקה/נגינה",
+    art_crafts: "אומנות/יצירה",
+    volunteering: "התנדבות",
+    learning_courses: "למידה/קורסים",
+    board_games_puzzles: "משחקי קופסא/פאזלים",
+    movies_theater: "סרטים/תיאטרון",
+    dancing: "ריקוד",
+    writing: "כתיבה",
+    nature_hiking: "טבע/טיולים רגליים",
+    photography: "צילום",
+    no_strong_preference: "ללא העדפה חזקה",
+};
+
 const WORLDS: {
   [key: string]: { label: string; icon: React.ElementType; color: string };
 } = {
@@ -99,18 +239,26 @@ const WORLDS: {
   general: { label: "שאלות כלליות", icon: FileText, color: "slate" },
 };
 
-// Types
-import type {
-  UserProfile,
-  UserImage as UserImageType,
-  QuestionnaireResponse,
-  FormattedAnswer,
-  ServiceType,
-  HeadCoveringType,
-  KippahType,
-} from "@/types/next-auth";
-
 // --- Helper Functions ---
+
+/**
+ * Formats an enum or key string into a readable Hebrew string using a mapping object.
+ * @param value The key to translate (e.g., "divorced").
+ * @param map The translation map (e.g., maritalStatusMap).
+ * @param placeholder The text to return if the value is not found.
+ * @returns The translated Hebrew string.
+ */
+const formatEnumValue = (
+  value: string | null | undefined,
+  map: { [key: string]: string },
+  placeholder: string = "לא צוין"
+): string => {
+  if (!value || !map[value]) {
+    return placeholder;
+  }
+  return map[value];
+};
+
 const getInitials = (firstName?: string, lastName?: string): string => {
   let initials = "";
   if (firstName && firstName.length > 0) initials += firstName[0];
@@ -168,23 +316,6 @@ const formatAvailabilityStatus = (
   }
 };
 
-const formatCategoryLabel = (
-  value: string | null | undefined,
-  placeholder: string = "לא צוין"
-): string => {
-  if (!value || value.trim() === "") return placeholder;
-  // Enhanced formatter for mixed case and specific abbreviations if needed
-  // For now, keeping the existing logic which is generally good.
-  // Example of more complex: value.replace(/_/g, ' ').replace(/\b(HS|BA|MA|PhD)\b/g, match => match.toUpperCase()).replace(/\b\w/g, l => l.toUpperCase());
-  return value
-    .replace(/_/g, " ")
-    .replace(/\b(hs)\b/gi, (match) => match.toUpperCase()) // Example for HS
-    .replace(/\b\w/g, (l) => l.toUpperCase())
-    .replace(/ Hs$/, " HS") // Corrects trailing "Hs"
-    .replace(/ Yes$/, " Yes")
-    .replace(/ No$/, " No");
-};
-
 const formatBooleanPreference = (
   value: boolean | null | undefined,
   yesLabel: string = "כן",
@@ -210,6 +341,7 @@ const formatStringBooleanPreference = (
   }
   return notSpecifiedLabel;
 };
+
 
 // --- Helper Components ---
 const DetailItem: React.FC<{
@@ -346,10 +478,11 @@ const SectionCard: React.FC<{
   );
 };
 
+
 // --- Profile Header Component ---
 const ProfileHeader: React.FC<{
   profile: UserProfile;
-  age: number; // This is already calculated
+  age: number;
   userInitials: string;
   mainImageToDisplay: UserImageType | null;
   availability: ReturnType<typeof formatAvailabilityStatus>;
@@ -362,204 +495,152 @@ const ProfileHeader: React.FC<{
   availability,
   viewMode,
 }) => {
-  // Log 1: Check incoming props and calculated age at the component level
-  console.log(
-    "[ProfileHeader] Props:",
-    {
-      birthDate: profile.birthDate,
-      birthDateIsApproximate: profile.birthDateIsApproximate,
-      calculatedAge: age,
-      firstName: profile.user?.firstName, // For identification
-    }
-  );
-
-  const allProfileDetails = useMemo(
-    () => {
-      // Log 2: Inside useMemo, before defining the age detail object
-      console.log(
-        "[ProfileHeader useMemo] Values for age calculation:",
-        {
-          age, // Calculated age passed to useMemo
-          birthDateIsApproximate: profile.birthDateIsApproximate,
-        }
-      );
-
-      return [
-        {
-          label: "גיל",
-          value: (() => {
-            // Log 3: Inside the IIFE for age value
-            console.log(
-              "[ProfileHeader Age IIFE] Checking conditions:",
-              {
-                currentAge: age,
-                isApprox: profile.birthDateIsApproximate,
-              }
+  const allProfileDetails = useMemo(() => {
+    return [
+      {
+        label: "גיל",
+        value: (() => {
+          if (age > 0) {
+            return (
+              <>
+                {age}
+                {profile.birthDateIsApproximate && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="text-xs text-gray-500 cursor-help"> (משוער)</span>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      <p className="text-xs max-w-xs text-center">
+                        הגיל הוזן על ידי השדכן והוא משקף את הגיל בקירוב
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+              </>
             );
+          }
+          if (profile.birthDateIsApproximate === true) {
+            return (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>משוער (לא צוין ערך)</span>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <p className="text-xs max-w-xs text-center">
+                    צוין שהגיל הוא הערכה, אך לא הוזן תאריך לידה ספציפי.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            );
+          }
+          return "-";
+        })(),
+        icon: Cake,
+        color: "pink-600",
+        condition: age > 0 || profile.birthDateIsApproximate === true,
+      },
+      {
+        label: "מצב משפחתי",
+        value: formatEnumValue(profile.maritalStatus, maritalStatusMap, "-"),
+        icon: Heart,
+        color: "rose-600",
+        condition: !!profile.maritalStatus,
+      },
+      {
+        label: "סטטוס",
+        value: availability.text,
+        icon: availability.icon,
+        color: availability.color.replace("bg-", ""),
+        isBadge: true,
+        badgeColor: availability.color,
+        badgeTextColor: "text-white",
+      },
+      {
+        label: "עיר",
+        value: profile.city,
+        icon: MapPin,
+        color: "teal-600",
+        condition: !!profile.city,
+      },
+      {
+        label: "מוצא",
+        value: profile.origin,
+        icon: Gem,
+        color: "purple-600",
+        condition: !!profile.origin,
+      },
+      {
+        label: "רמה דתית",
+        value: formatEnumValue(profile.religiousLevel, religiousLevelMap, "-"),
+        icon: BookMarked,
+        color: "indigo-600",
+        condition: !!profile.religiousLevel,
+      },
+      {
+        label: "עיסוק",
+        value: profile.occupation,
+        icon: Briefcase,
+        color: "emerald-600",
+        condition: !!profile.occupation,
+      },
+      {
+        label: "השכלה",
+        value: formatEnumValue(profile.educationLevel, educationLevelMap, profile.education || "-"),
+        icon: GraduationCap,
+        color: "sky-600",
+        condition: !!(profile.educationLevel || profile.education),
+      },
+      {
+        label: "גובה",
+        value: profile.height ? `${profile.height} ס״מ` : "-",
+        icon: User,
+        color: "slate-600",
+        condition: !!profile.height,
+      },
+      {
+        label: "שומר/ת נגיעה",
+        value: formatBooleanPreference(profile.shomerNegiah),
+        icon: Sparkles,
+        color: "pink-600",
+        condition:
+          typeof profile.shomerNegiah === "boolean" ||
+          profile.shomerNegiah === null,
+      },
+      ...(profile.gender === "FEMALE"
+        ? [
+            {
+              label: "כיסוי ראש",
+              value: formatEnumValue(profile.headCovering, headCoveringMap, "-"),
+              icon: UserCheck,
+              color: "slate-600",
+              condition: !!profile.headCovering,
+            },
+          ]
+        : []),
+      ...(profile.gender === "MALE"
+        ? [
+            {
+              label: "סוג כיפה",
+              value: formatEnumValue(profile.kippahType, kippahTypeMap, "-"),
+              icon: UserCheck,
+              color: "slate-600",
+              condition: !!profile.kippahType,
+            },
+          ]
+        : []),
+      {
+        label: "שפת אם",
+        value: formatEnumValue(profile.nativeLanguage, languageMap, "-"),
+        icon: Languages,
+        color: "emerald-600",
+        condition: !!profile.nativeLanguage,
+      },
+    ].filter(
+      (detail) =>
+        detail.condition !== false && detail.value && detail.value !== "-"
+    );
+  }, [profile, age, availability]);
 
-            if (age > 0) {
-              console.log("[ProfileHeader Age IIFE] Condition: age > 0 is TRUE");
-              return (
-                <>
-                  {age}
-                  {profile.birthDateIsApproximate && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span className="text-xs text-gray-500 cursor-help"> (משוער)</span>
-                      </TooltipTrigger>
-                      <TooltipContent side="top">
-                        <p className="text-xs max-w-xs text-center">
-                          הגיל הוזן על ידי השדכן והוא משקף את הגיל בקירוב
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  )}
-                </>
-              );
-            }
-
-            console.log("[ProfileHeader Age IIFE] Condition: age > 0 is FALSE");
-            if (profile.birthDateIsApproximate === true) {
-              console.log("[ProfileHeader Age IIFE] Condition: profile.birthDateIsApproximate === true is TRUE");
-              return (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span>משוער (לא צוין ערך)</span>
-                  </TooltipTrigger>
-                  <TooltipContent side="top">
-                    <p className="text-xs max-w-xs text-center">
-                      צוין שהגיל הוא הערכה, אך לא הוזן תאריך לידה ספציפי.
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              );
-            }
-            console.log("[ProfileHeader Age IIFE] Condition: profile.birthDateIsApproximate === true is FALSE, returning '-'");
-            return "-";
-          })(),
-          icon: Cake,
-          color: "pink-600",
-          condition: age > 0 || profile.birthDateIsApproximate === true,
-        },
-        // ... (rest of allProfileDetails objects)
-        {
-          label: "מצב משפחתי",
-          value: profile.maritalStatus
-            ? formatCategoryLabel(profile.maritalStatus, "-")
-            : "-",
-          icon: Heart,
-          color: "rose-600",
-          condition: !!profile.maritalStatus,
-        },
-        {
-          label: "סטטוס",
-          value: availability.text,
-          icon: availability.icon,
-          color: availability.color.replace("bg-", ""),
-          isBadge: true,
-          badgeColor: availability.color,
-          badgeTextColor: "text-white",
-        },
-        {
-          label: "עיר",
-          value: profile.city,
-          icon: MapPin,
-          color: "teal-600",
-          condition: !!profile.city,
-        },
-        {
-          label: "מוצא",
-          value: profile.origin,
-          icon: Gem,
-          color: "purple-600",
-          condition: !!profile.origin,
-        },
-        {
-          label: "רמה דתית",
-          value: profile.religiousLevel
-            ? formatCategoryLabel(profile.religiousLevel)
-            : "-",
-          icon: BookMarked,
-          color: "indigo-600",
-          condition: !!profile.religiousLevel,
-        },
-        {
-          label: "עיסוק",
-          value: profile.occupation,
-          icon: Briefcase,
-          color: "emerald-600",
-          condition: !!profile.occupation,
-        },
-        {
-          label: "השכלה",
-          value: profile.educationLevel
-            ? formatCategoryLabel(profile.educationLevel)
-            : profile.education || "-",
-          icon: GraduationCap,
-          color: "sky-600",
-          condition: !!(profile.educationLevel || profile.education),
-        },
-        {
-          label: "גובה",
-          value: profile.height ? `${profile.height} ס״מ` : "-",
-          icon: User,
-          color: "slate-600",
-          condition: !!profile.height,
-        },
-        {
-          label: "שומר/ת נגיעה",
-          value: formatBooleanPreference(profile.shomerNegiah),
-          icon: Sparkles,
-          color: "pink-600",
-          condition:
-            typeof profile.shomerNegiah === "boolean" ||
-            profile.shomerNegiah === null,
-        },
-        ...(profile.gender === "FEMALE"
-          ? [
-              {
-                label: "כיסוי ראש",
-                value: profile.headCovering
-                  ? formatCategoryLabel(profile.headCovering)
-                  : "-",
-                icon: UserCheck,
-                color: "slate-600",
-                condition: !!profile.headCovering,
-              },
-            ]
-          : []),
-        ...(profile.gender === "MALE"
-          ? [
-              {
-                label: "סוג כיפה",
-                value: profile.kippahType
-                  ? formatCategoryLabel(profile.kippahType)
-                  : "-",
-                icon: UserCheck,
-                color: "slate-600",
-                condition: !!profile.kippahType,
-              },
-            ]
-          : []),
-        {
-          label: "שפת אם",
-          value: profile.nativeLanguage
-            ? formatCategoryLabel(profile.nativeLanguage)
-            : "-",
-          icon: Languages,
-          color: "emerald-600",
-          condition: !!profile.nativeLanguage,
-        },
-      ].filter(
-        (detail) =>
-          detail.condition !== false && detail.value && detail.value !== "-"
-      );
-    },
-    // Dependencies for useMemo
-    [profile, age, availability] // profile includes birthDate, birthDateIsApproximate
-  );
-
-  // ... (rest of ProfileHeader JSX)
   return (
     <div className="p-3 sm:p-4 md:p-5 bg-gradient-to-br from-slate-100 via-white to-sky-100/30 border-b border-slate-200/80">
       <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-4 md:gap-6">
@@ -670,7 +751,7 @@ const ProfileHeader: React.FC<{
             <div className="pt-1 sm:pt-2 flex justify-center sm:justify-start">
               <Button
                 variant="outline"
-                size="xs" // ensures it's small
+                size="xs"
                 className="text-cyan-600 border-cyan-500 hover:bg-cyan-50 text-[10px] sm:text-xs px-2 py-1"
               >
                 <Link className="w-3 h-3 sm:w-3.5 sm:h-3.5 ml-1 sm:ml-1.5" />
@@ -684,9 +765,7 @@ const ProfileHeader: React.FC<{
   );
 };
 
-
 // ProfileCard.tsx - QuestionnaireItem component
-
 const QuestionnaireItem: React.FC<{
   answer: FormattedAnswer;
   worldColor?: string;
@@ -696,21 +775,21 @@ const QuestionnaireItem: React.FC<{
       className={cn(
         "p-2.5 sm:p-3.5 rounded-md sm:rounded-lg border hover:shadow-md transition-shadow",
         `bg-${worldColor}-50/50 border-${worldColor}-200/70`,
-        "flex flex-col min-w-0" // min-w-0 חשוב למניעת גלישה של האלמנט עצמו
+        "flex flex-col min-w-0"
       )}
     >
-      <p // Question
+      <p
         className={cn(
-          "text-xs sm:text-sm font-medium mb-1 sm:mb-1.5 min-w-0 break-words", // break-words לשאלה (בדרך כלל מספיק)
+          "text-xs sm:text-sm font-medium mb-1 sm:mb-1.5 min-w-0 break-words",
           `text-${worldColor}-700`
         )}
       >
         {answer.question}
       </p>
-      <p // Answer
+      <p
         className={cn(
           "text-sm sm:text-base font-semibold text-slate-800 whitespace-pre-wrap min-w-0",
-          "break-all" // <--- שינוי: מ-break-words ל-break-all
+          "break-all"
         )}
       >
         {answer.displayText || answer.answer}
@@ -884,14 +963,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     label: string,
     icon: React.ElementType,
     iconColorClass: string,
-    values:
-      | string[]
-      | ServiceType[]
-      | HeadCoveringType[]
-      | KippahType[]
-      | undefined,
+    values: string[] | undefined,
     badgeColorClass: string,
-    formatter: (val: string) => string = formatCategoryLabel
+    translationMap: { [key: string]: string }
   ) => {
     if (!values || values.length === 0) return null;
     const IconComponent = icon;
@@ -915,14 +989,14 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 badgeColorClass
               )}
             >
-              {formatter(val)}
+              {formatEnumValue(val, translationMap)}
             </Badge>
           ))}
         </div>
       </div>
     );
   };
-
+  
   const MainContentTabs = ({
     inScrollArea = false,
   }: {
@@ -940,18 +1014,15 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         )}
       >
         <ScrollArea dir="rtl" className="w-full">
-          {" "}
-          {/* ודא שזה כאן */}
           <TabsList className="h-auto inline-flex bg-transparent flex-nowrap justify-start p-0.5 sm:p-1">
             {tabItems.map((tab) => (
               <TabsTrigger
                 key={tab.value}
                 value={tab.value}
                 className={cn(
-                  // הקטנתי ריווחים ופונטים למובייל עוד קצת
-                  "flex items-center gap-0.5 px-1 py-0.5 text-[9px] rounded-sm", // Mobile base (very compact)
-                  "sm:gap-1 sm:px-1.5 sm:py-1 sm:text-[10px] sm:rounded-md", // SM breakpoint
-                  "md:gap-1.5 md:px-2 md:py-1.5 md:text-xs", // MD breakpoint
+                  "flex items-center gap-0.5 px-1 py-0.5 text-[9px] rounded-sm",
+                  "sm:gap-1 sm:px-1.5 sm:py-1 sm:text-[10px] sm:rounded-md",
+                  "md:gap-1.5 md:px-2 md:py-1.5 md:text-xs",
                   "whitespace-nowrap transition-all duration-200 border-b-2",
                   "text-slate-500 hover:text-slate-700 hover:bg-slate-100",
                   activeTab === tab.value
@@ -964,7 +1035,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               >
                 <tab.icon
                   className={cn(
-                    "w-2.5 h-2.5 sm:w-3 sm:h-3", // Smaller base icon
+                    "w-2.5 h-2.5 sm:w-3 sm:h-3",
                     activeTab === tab.value
                       ? `text-${tab.activeColor}-500`
                       : "text-slate-400"
@@ -974,7 +1045,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 {tab.count !== undefined && tab.count > 0 && (
                   <span
                     className={cn(
-                      `text-[8px] sm:text-[9px] rounded-full px-1 py-px ml-0.5 hidden sm:inline-block font-mono`, // Smaller badge
+                      `text-[8px] sm:text-[9px] rounded-full px-1 py-px ml-0.5 hidden sm:inline-block font-mono`,
                       activeTab === tab.value
                         ? `bg-${tab.activeColor}-100 text-${tab.activeColor}-700`
                         : `bg-slate-200 text-slate-600`
@@ -986,7 +1057,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               </TabsTrigger>
             ))}
           </TabsList>
-          <ScrollBar orientation="horizontal" /> {/* ודא שזה כאן */}
+          <ScrollBar orientation="horizontal" />
         </ScrollArea>
       </div>
 
@@ -1003,9 +1074,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             contentClassName="space-y-2.5 sm:space-y-3"
           >
             {profile.about ? (
-              // === MODIFICATION HERE ===
               <p className="text-slate-700 whitespace-pre-wrap break-words text-xs sm:text-sm leading-relaxed p-1.5 sm:p-2 bg-slate-50 rounded-md min-w-0">
-                {/* Added min-w-0 and ensured break-words */}
                 {profile.about}
               </p>
             ) : (
@@ -1027,7 +1096,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       variant="secondary"
                       className="px-1.5 py-0.5 sm:px-2 sm:py-1 bg-purple-100 text-purple-700 border border-purple-200/70 shadow-xs text-[10px] sm:text-xs"
                     >
-                      {trait}
+                      {formatEnumValue(trait, characterTraitMap, trait)}
                     </Badge>
                   ))}
                 </div>
@@ -1048,7 +1117,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       variant="secondary"
                       className="px-1.5 py-0.5 sm:px-2 sm:py-1 bg-teal-100 text-teal-700 border border-teal-200/70 shadow-xs text-[10px] sm:text-xs"
                     >
-                      {hobby}
+                      {formatEnumValue(hobby, hobbiesMap, hobby)}
                     </Badge>
                   ))}
                 </div>
@@ -1071,7 +1140,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               <DetailItem
                 icon={Users2}
                 label="מצב הורים"
-                value={formatCategoryLabel(profile.parentStatus)}
+                value={profile.parentStatus}
                 iconColorClass="text-purple-600"
               />
               <DetailItem
@@ -1128,7 +1197,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         variant="outline"
                         className="px-1.5 py-0.5 bg-emerald-50 text-emerald-800 border-emerald-200 text-[10px] sm:text-xs shadow-xs"
                       >
-                        {formatCategoryLabel(lang)}
+                        {formatEnumValue(lang, languageMap)}
                       </Badge>
                     ))}
                   </div>
@@ -1147,7 +1216,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               <DetailItem
                 icon={BookMarked}
                 label="רמה דתית"
-                value={formatCategoryLabel(profile.religiousLevel)}
+                value={formatEnumValue(profile.religiousLevel, religiousLevelMap)}
                 iconColorClass="text-indigo-600"
               />
               <DetailItem
@@ -1160,7 +1229,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 <DetailItem
                   icon={UserCheck}
                   label="כיסוי ראש"
-                  value={formatCategoryLabel(profile.headCovering)}
+                  value={formatEnumValue(profile.headCovering, headCoveringMap)}
                   iconColorClass="text-slate-600"
                 />
               )}
@@ -1168,7 +1237,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 <DetailItem
                   icon={UserCheck}
                   label="סוג כיפה"
-                  value={formatCategoryLabel(profile.kippahType)}
+                  value={formatEnumValue(profile.kippahType, kippahTypeMap)}
                   iconColorClass="text-slate-600"
                 />
               )}
@@ -1183,7 +1252,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               <DetailItem
                 icon={GraduationCap}
                 label="רמת השכלה"
-                value={formatCategoryLabel(profile.educationLevel)}
+                value={formatEnumValue(profile.educationLevel, educationLevelMap)}
                 iconColorClass="text-sky-600"
               />
               <DetailItem
@@ -1202,7 +1271,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               <DetailItem
                 icon={Award}
                 label="שירות צבאי/לאומי"
-                value={formatCategoryLabel(profile.serviceType)}
+                value={formatEnumValue(profile.serviceType, serviceTypeMap)}
                 iconColorClass="text-amber-600"
               />
               {profile.serviceDetails && (
@@ -1270,8 +1339,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 icon={Users2}
                 label="ילדים מקשר קודם"
                 value={formatBooleanPreference(
-                  profile.preferredHasChildrenFromPrevious // Note: In your type this is boolean, should be string 'yes_ok', 'no_preferred', etc.
-                  // Assuming it's string from context, if boolean, adjust formatStringBooleanPreference.
+                  profile.preferredHasChildrenFromPrevious
                 )}
                 iconColorClass="text-purple-600"
                 tooltip="העדפה לגבי ילדים מקשר קודם של בן/בת הזוג"
@@ -1281,27 +1349,30 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 Heart,
                 "text-rose-600",
                 profile.preferredMaritalStatuses,
-                "bg-rose-50 text-rose-700 border-rose-200"
+                "bg-rose-50 text-rose-700 border-rose-200",
+                maritalStatusMap
               )}
               {renderPreferenceBadges(
-                "מוצאים מועדפים",
+                "מוצאים מועדפים", // Origin is a free text, so we can't map it. This will show the raw text.
                 Gem,
                 "text-purple-600",
                 profile.preferredOrigins,
-                "bg-purple-50 text-purple-700 border-purple-200"
+                "bg-purple-50 text-purple-700 border-purple-200",
+                {} // Pass empty map to just show the value
               )}
               {renderPreferenceBadges(
                 "רמות דתיות מועדפות",
                 BookMarked,
                 "text-indigo-600",
                 profile.preferredReligiousLevels,
-                "bg-indigo-50 text-indigo-700 border-indigo-200"
+                "bg-indigo-50 text-indigo-700 border-indigo-200",
+                religiousLevelMap
               )}
               {profile.preferredAliyaStatus && (
                 <DetailItem
                   icon={MapPin}
                   label="סטטוס עלייה מועדף"
-                  value={formatCategoryLabel(profile.preferredAliyaStatus)}
+                  value={formatEnumValue(profile.preferredAliyaStatus, aliyaStatusMap)}
                   iconColorClass="text-cyan-600"
                 />
               )}
@@ -1312,7 +1383,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               !profile.preferredHeightMin &&
               !profile.preferredHeightMax &&
               !profile.preferredShomerNegiah &&
-              typeof profile.preferredHasChildrenFromPrevious !== "boolean" && // or check for undefined string
+              typeof profile.preferredHasChildrenFromPrevious !== "boolean" &&
               (!profile.preferredMaritalStatuses ||
                 profile.preferredMaritalStatuses.length === 0) &&
               (!profile.preferredOrigins ||
@@ -1340,7 +1411,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   ([worldKey, answers]) => {
                     const worldConfig = WORLDS[worldKey] ||
                       WORLDS.general || {
-                        label: formatCategoryLabel(worldKey, "שאלות נוספות"),
+                        label: 'שאלות נוספות',
                         icon: FileText,
                         color: "slate",
                       };
@@ -1438,7 +1509,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               <DetailItem
                 icon={Phone}
                 label="העדפת יצירת קשר"
-                value={formatCategoryLabel(profile.contactPreference, "-")}
+                value={formatEnumValue(profile.contactPreference, contactPreferenceMap, "-")}
                 iconColorClass="text-amber-600"
               />
               <DetailItem
@@ -1457,7 +1528,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 <p className="text-xs font-medium text-amber-600 mb-1 sm:mb-1.5 flex items-center gap-1 sm:gap-1.5">
                   <Edit3 className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> הערות לשדכנים:
                 </p>
-                {profile.matchingNotes ? ( // Reusing matchingNotes here; might need a specific field
+                {profile.matchingNotes ? ( 
                   <p className="text-xs sm:text-sm text-slate-700 whitespace-pre-wrap break-words bg-amber-100/70 p-2 sm:p-2.5 rounded-md border border-amber-200/80">
                     {profile.matchingNotes}
                   </p>
@@ -1503,8 +1574,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     <TooltipProvider>
       <Card
         dir="rtl"
-                id="profile-card-container" // <--- הוספת ID כאן
-
+        id="profile-card-container"
         className={cn(
           "w-full bg-slate-50 shadow-2xl rounded-xl sm:rounded-2xl overflow-hidden border-0 flex flex-col max-h-[calc(100vh-1rem)] sm:max-h-[calc(100vh-2rem)] h-full",
           className
@@ -1708,10 +1778,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         ) : (
           // Mobile Layout
           <ScrollArea className="flex-grow min-h-0 w-full">
-            {/* === MODIFIED HERE === */}
             <div className="p-2 sm:p-2.5">
-              {" "}
-              {/* Was p-2.5 sm:p-3. Reduced base padding */}
               <MainContentTabs />
             </div>
           </ScrollArea>

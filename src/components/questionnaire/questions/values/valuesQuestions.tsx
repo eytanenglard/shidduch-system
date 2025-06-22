@@ -11,16 +11,16 @@ import {
   Target,        // מטרות, עקרונות
   PiggyBank,     // כסף, חיסכון, כלכלה
   HandHeart,     // נתינה, חסד, התנדבות
-  TrendingUp,    // צמיחה, התפתחות, שאיפות        // הישגים, הצלחה (יכול להתאים גם לערכים)
+  TrendingUp,    // צמיחה, התפתחות, שאיפות
   Leaf,          // טבע, סביבה, פשטות
-  Sparkles,      // רוחניות, השראה (יכול להתאים גם לערכים)
-  ShieldCheck,   // ביטחון, יושרה (יכול להתאים גם לערכים)       // מסורת, דת (יכול להתאים גם לערכים)
+  Sparkles,      // רוחניות, השראה
+  ShieldCheck,   // ביטחון, יושרה
   Flag,          // מדינה, ציונות
   HelpCircle,    // שאלות נוספות, הבהרה
   Info,          // מידע כללי
-  DollarSign,    // כסף, נתינה (יותר ספציפי מ-PiggyBank)        // תכנון, סדר עדיפויות גאוגרפי (פחות רלוונטי פה)
-  Activity,      // פעילות, סגנון חיים (יותר רלוונטי לאישיות)
-MessageCircle,
+  DollarSign,    // כסף, נתינה
+  Activity,      // פעילות, סגנון חיים
+  MessageCircle,
 } from "lucide-react";
 
 export const valuesQuestions: Question[] = [
@@ -36,18 +36,18 @@ export const valuesQuestions: Question[] = [
     depth: "BASIC",
     isRequired: true,
     options: [
-      { icon: <Heart />, text: "משפחה וקשרים קרובים", value: "family_connections" },
-      { icon: <ShieldCheck />, text: "יושרה, אמינות וכנות", value: "integrity_honesty" },
-      { icon: <BookOpen />, text: "רוחניות, אמונה וחיבור למסורת", value: "spirituality_tradition" },
-      { icon: <TrendingUp />, text: "צמיחה אישית, למידה והתפתחות", value: "personal_growth" },
-      { icon: <HandHeart />, text: "נתינה, חסד ותרומה לזולת", value: "giving_kindness" },
-      { icon: <Briefcase />, text: "הצלחה מקצועית ומימוש עצמי בקריירה", value: "career_achievement" },
-      { icon: <PiggyBank />, text: "ביטחון כלכלי ויציבות חומרית", value: "financial_security" },
-      { icon: <Scale />, text: "צדק חברתי ושוויון הזדמנויות", value: "social_justice_equality" },
-      { icon: <Sparkles />, text: "יצירתיות, ביטוי עצמי ומקוריות", value: "creativity_expression" },
-      { icon: <Leaf />, text: "חיבור לטבע ושמירה על הסביבה", value: "nature_environment" },
-      { icon: <Activity />, text: "בריאות ואורח חיים פעיל", value: "health_activity" },
-      { icon: <Users />, text: "קהילתיות ומעורבות חברתית", value: "community_involvement" },
+      { icon: <Heart />, text: "משפחה וקשרים קרובים", value: "משפחה וקשרים קרובים" },
+      { icon: <ShieldCheck />, text: "יושרה, אמינות וכנות", value: "יושרה, אמינות וכנות" },
+      { icon: <BookOpen />, text: "רוחניות, אמונה וחיבור למסורת", value: "רוחניות, אמונה וחיבור למסורת" },
+      { icon: <TrendingUp />, text: "צמיחה אישית, למידה והתפתחות", value: "צמיחה אישית, למידה והתפתחות" },
+      { icon: <HandHeart />, text: "נתינה, חסד ותרומה לזולת", value: "נתינה, חסד ותרומה לזולת" },
+      { icon: <Briefcase />, text: "הצלחה מקצועית ומימוש עצמי בקריירה", value: "הצלחה מקצועית ומימוש עצמי בקריירה" },
+      { icon: <PiggyBank />, text: "ביטחון כלכלי ויציבות חומרית", value: "ביטחון כלכלי ויציבות חומרית" },
+      { icon: <Scale />, text: "צדק חברתי ושוויון הזדמנויות", value: "צדק חברתי ושוויון הזדמנויות" },
+      { icon: <Sparkles />, text: "יצירתיות, ביטוי עצמי ומקוריות", value: "יצירתיות, ביטוי עצמי ומקוריות" },
+      { icon: <Leaf />, text: "חיבור לטבע ושמירה על הסביבה", value: "חיבור לטבע ושמירה על הסביבה" },
+      { icon: <Activity />, text: "בריאות ואורח חיים פעיל", value: "בריאות ואורח חיים פעיל" },
+      { icon: <Users />, text: "קהילתיות ומעורבות חברתית", value: "קהילתיות ומעורבות חברתית" },
     ],
     minSelections: 3,
     maxSelections: 5,
@@ -100,7 +100,7 @@ export const valuesQuestions: Question[] = [
     depth: "ADVANCED",
     isRequired: true,
     totalPoints: 100,
-    categories: [ // אותן קטגוריות כמו בשאלה הקודמת, כדי לאפשר השוואה
+    categories: [
       { label: "זוגיות (כולל ילדים עתידיים)", icon: <Heart />, min: 0, max: 100, description: "השקעה בקשר הזוגי, בילדים ובבניית התא המשפחתי." },
       { label: "משפחה (הורים, אחים)", icon: <Home />, min: 0, max: 100, description: "שמירה על קשר ותמיכה במשפחות המוצא של שני בני הזוג." },
       { label: "קריירה ופרנסה (של שניכם)", icon: <Briefcase />, min: 0, max: 100, description: "פיתוח קריירה אישי ומשותף, תוך תמיכה הדדית." },
@@ -122,10 +122,10 @@ export const valuesQuestions: Question[] = [
     depth: "BASIC",
     isRequired: true,
     options: [
-      { icon: <Leaf />, text: "פשטות והסתפקות במועט הן ערך עליון", value: "simplicity_minimalism" },
-      { icon: <Scale />, text: "איזון בין נוחות חומרית לערכים אחרים", value: "balanced_comfort_values" },
-      { icon: <TrendingUp />, text: "שאיפה לרווחה כלכלית והצלחה חומרית", value: "financial_success_ambition" },
-      { icon: <PiggyBank />, text: "אחריות כלכלית, חיסכון ותכנון לטווח ארוך", value: "financial_responsibility_planning" },
+      { icon: <Leaf />, text: "פשטות והסתפקות במועט הן ערך עליון", value: "פשטות והסתפקות במועט הן ערך עליון" },
+      { icon: <Scale />, text: "איזון בין נוחות חומרית לערכים אחרים", value: "איזון בין נוחות חומרית לערכים אחרים" },
+      { icon: <TrendingUp />, text: "שאיפה לרווחה כלכלית והצלחה חומרית", value: "שאיפה לרווחה כלכלית והצלחה חומרית" },
+      { icon: <PiggyBank />, text: "אחריות כלכלית, חיסכון ותכנון לטווח ארוך", value: "אחריות כלכלית, חיסכון ותכנון לטווח ארוך" },
     ],
     metadata: { estimatedTime: 1 },
   },
@@ -153,11 +153,11 @@ export const valuesQuestions: Question[] = [
     depth: "ADVANCED",
     isRequired: false,
     options: [
-      { icon: <DollarSign />, text: "תרומות כספיות קבועות/מזדמנות", value: "monetary_donations" },
-      { icon: <HandHeart />, text: "התנדבות פעילה בארגונים/קהילה", value: "active_volunteering" },
-      { icon: <Users />, text: "עזרה אישית לחברים, משפחה או שכנים", value: "personal_help" },
-      { icon: <Briefcase />, text: "שימוש בכישורים מקצועיים למען אחרים (פרו-בונו)", value: "pro_bono_skills" },
-      { icon: <Heart />, text: "מעשי חסד קטנים ביומיום", value: "daily_acts_of_kindness" },
+      { icon: <DollarSign />, text: "תרומות כספיות קבועות/מזדמנות", value: "תרומות כספיות קבועות/מזדמנות" },
+      { icon: <HandHeart />, text: "התנדבות פעילה בארגונים/קהילה", value: "התנדבות פעילה בארגונים/קהילה" },
+      { icon: <Users />, text: "עזרה אישית לחברים, משפחה או שכנים", value: "עזרה אישית לחברים, משפחה או שכנים" },
+      { icon: <Briefcase />, text: "שימוש בכישורים מקצועיים למען אחרים (פרו-בונו)", value: "שימוש בכישורים מקצועיים למען אחרים (פרו-בונו)" },
+      { icon: <Heart />, text: "מעשי חסד קטנים ביומיום", value: "מעשי חסד קטנים ביומיום" },
     ],
     minSelections: 1,
     maxSelections: 3,
@@ -173,10 +173,10 @@ export const valuesQuestions: Question[] = [
     depth: "BASIC",
     isRequired: true,
     options: [
-      { icon: <BookOpen />, text: "למידה מתמדת היא דרך חיים והכרח", value: "lifelong_learning_essential" },
-      { icon: <Target />, text: "חשוב לרכוש ידע והשכלה רלוונטיים למטרותיי", value: "relevant_education_for_goals" },
-      { icon: <Scale />, text: "מעריך/ה השכלה, אך לא בראש סדר העדיפויות", value: "appreciate_not_top_priority" },
-      { icon: <Sparkles />, text: "מעדיפ/ה למידה חווייתית והתנסותית על פני פורמלית", value: "experiential_learning_preferred" },
+      { icon: <BookOpen />, text: "למידה מתמדת היא דרך חיים והכרח", value: "למידה מתמדת היא דרך חיים והכרח" },
+      { icon: <Target />, text: "חשוב לרכוש ידע והשכלה רלוונטיים למטרותיי", value: "חשוב לרכוש ידע והשכלה רלוונטיים למטרותיי" },
+      { icon: <Scale />, text: "מעריך/ה השכלה, אך לא בראש סדר העדיפויות", value: "מעריך/ה השכלה, אך לא בראש סדר העדיפויות" },
+      { icon: <Sparkles />, text: "מעדיפ/ה למידה חווייתית והתנסותית על פני פורמלית", value: "מעדיפ/ה למידה חווייתית והתנסותית על פני פורמלית" },
     ],
     metadata: { estimatedTime: 1 },
   },
@@ -206,10 +206,10 @@ export const valuesQuestions: Question[] = [
     depth: "BASIC",
     isRequired: false,
     options: [
-      { icon: <Target />, text: "פעיל/ה ומוביל/ה, בעל/ת תפקיד מרכזי", value: "leader_active_role" },
-      { icon: <Users />, text: "מעורב/ת ומשתתפ/ת קבוע/ה בפעילויות", value: "involved_participant" },
-      { icon: <HandHeart />, text: "תורמ/ת ועוזר/ת כשנדרש, מאחורי הקלעים", value: "contributor_helper" },
-      { icon: <Home />, text: "חבר/ה שקט/ה בקהילה, פחות מעורב/ת רשמית", value: "quiet_member" },
+      { icon: <Target />, text: "פעיל/ה ומוביל/ה, בעל/ת תפקיד מרכזי", value: "פעיל/ה ומוביל/ה, בעל/ת תפקיד מרכזי" },
+      { icon: <Users />, text: "מעורב/ת ומשתתפ/ת קבוע/ה בפעילויות", value: "מעורב/ת ומשתתפ/ת קבוע/ה בפעילויות" },
+      { icon: <HandHeart />, text: "תורמ/ת ועוזר/ת כשנדרש, מאחורי הקלעים", value: "תורמ/ת ועוזר/ת כשנדרש, מאחורי הקלעים" },
+      { icon: <Home />, text: "חבר/ה שקט/ה בקהילה, פחות מעורב/ת רשמית", value: "חבר/ה שקט/ה בקהילה, פחות מעורב/ת רשמית" },
     ],
     metadata: { estimatedTime: 1 },
   },
@@ -251,10 +251,10 @@ export const valuesQuestions: Question[] = [
     depth: "BASIC", // שאלה בסיסית להבנת הקשר
     isRequired: true,
     options: [
-      { icon: <Flag />, text: "ציונות היא ערך מרכזי, הזדהות עמוקה עם המדינה", value: "strong_zionist_identification" },
-      { icon: <Heart />, text: "קשר רגשי חזק למדינה ולארץ, גם אם יש ביקורת", value: "emotional_connection_critical_support" },
-      { icon: <Scale />, text: "יחס פרגמטי, חי/ה כאן מסיבות שונות", value: "pragmatic_living_here" },
-      { icon: <BookOpen />, text: "יחס מורכב יותר, תלוי בהשקפה דתית/פוליטית", value: "complex_ideological" },
+      { icon: <Flag />, text: "ציונות היא ערך מרכזי, הזדהות עמוקה עם המדינה", value: "ציונות היא ערך מרכזי, הזדהות עמוקה עם המדינה" },
+      { icon: <Heart />, text: "קשר רגשי חזק למדינה ולארץ, גם אם יש ביקורת", value: "קשר רגשי חזק למדינה ולארץ, גם אם יש ביקורת" },
+      { icon: <Scale />, text: "יחס פרגמטי, חי/ה כאן מסיבות שונות", value: "יחס פרגמטי, חי/ה כאן מסיבות שונות" },
+      { icon: <BookOpen />, text: "יחס מורכב יותר, תלוי בהשקפה דתית/פוליטית", value: "יחס מורכב יותר, תלוי בהשקפה דתית/פוליטית" },
     ],
     metadata: { estimatedTime: 1 },
   },
@@ -298,11 +298,11 @@ export const valuesQuestions: Question[] = [
     depth: "ADVANCED",
     isRequired: true,
     options: [
-      { icon: <MessageCircle />, text: "שיחה פתוחה ומכבדת, גם אם לא מגיעים להסכמה מלאה", value: "open_respectful_dialogue" },
-      { icon: <Brain />, text: "ניסיון להבין את נקודת המבט של השני ולמצוא בסיס משותף", value: "understanding_common_ground" },
-      { icon: <Scale />, text: "חיפוש פשרה מעשית שמאפשרת חיים משותפים", value: "practical_compromise" },
-      { icon: <HelpCircle />, text: "התייעצות עם גורם שלישי (רב, יועץ) במקרה הצורך", value: "third_party_consultation" },
-      { icon: <Info />, text: "עבורי, חייבת להיות הסכמה מלאה בנושאים אלו", value: "full_agreement_essential" },
+      { icon: <MessageCircle />, text: "שיחה פתוחה ומכבדת, גם אם לא מגיעים להסכמה מלאה", value: "שיחה פתוחה ומכבדת, גם אם לא מגיעים להסכמה מלאה" },
+      { icon: <Brain />, text: "ניסיון להבין את נקודת המבט של השני ולמצוא בסיס משותף", value: "ניסיון להבין את נקודת המבט של השני ולמצוא בסיס משותף" },
+      { icon: <Scale />, text: "חיפוש פשרה מעשית שמאפשרת חיים משותפים", value: "חיפוש פשרה מעשית שמאפשרת חיים משותפים" },
+      { icon: <HelpCircle />, text: "התייעצות עם גורם שלישי (רב, יועץ) במקרה הצורך", value: "התייעצות עם גורם שלישי (רב, יועץ) במקרה הצורך" },
+      { icon: <Info />, text: "עבורי, חייבת להיות הסכמה מלאה בנושאים אלו", value: "עבורי, חייבת להיות הסכמה מלאה בנושאים אלו" },
     ],
     metadata: { estimatedTime: 1, helpText: "חשוב/י על מצבים שבהם אין 'תשובה נכונה' אחת, אלא שתי השקפות לגיטימיות." },
   },
@@ -351,5 +351,3 @@ export const valuesQuestions: Question[] = [
     metadata: { estimatedTime: 2 },
   },
 ];
-
-// export default valuesQuestions; // כבר לא צריך אם מייבאים ישירות את המערך
