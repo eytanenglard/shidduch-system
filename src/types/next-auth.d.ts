@@ -94,6 +94,7 @@ export interface UserProfile extends Omit<PrismaProfile, 'gender' | 'birthDate' 
   availabilityStatus: AvailabilityStatus; // from PrismaProfile
   availabilityNote?: string | null;
   availabilityUpdatedAt?: Date | null;
+  hasViewedProfilePreview: boolean; // <--- הוסף את השורה הזו
 
   // Timestamps
   createdAt: Date; // from PrismaProfile

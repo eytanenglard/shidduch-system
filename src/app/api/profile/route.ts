@@ -45,7 +45,7 @@ export async function GET(req: Request) {
             id: true,
             userId: true,
             gender: true,
-            birthDate: true, // This is DateTime in Prisma
+            birthDate: true,
             nativeLanguage: true,
             additionalLanguages: true,
             height: true,
@@ -92,13 +92,14 @@ export async function GET(req: Request) {
             preferredKippahTypes: true,
             preferredShomerNegiah: true,
             preferredHasChildrenFromPrevious: true,
-            preferredCharacterTraits: true, // Assuming this is for partner preferences in Prisma model
-            preferredHobbies: true,         // Assuming this is for partner preferences in Prisma model
-            preferredAliyaStatus: true,     // Assuming this is for partner preferences in Prisma model
+            preferredCharacterTraits: true,
+            preferredHobbies: true,
+            preferredAliyaStatus: true,
             createdAt: true,
             updatedAt: true,
             lastActive: true,
-            verifiedBy: true, // Added this field as it was in UserProfile Omit
+            verifiedBy: true,
+            hasViewedProfilePreview: true, // <--- תיקון 1: הוסף את השדה לשליפה
           }
         },
         images: {
@@ -107,7 +108,7 @@ export async function GET(req: Request) {
             url: true,
             isMain: true,
             createdAt: true,
-            cloudinaryPublicId: true, // Ensure all UserImage fields are selected
+            cloudinaryPublicId: true,
             updatedAt: true,
           }
         }
@@ -123,37 +124,27 @@ export async function GET(req: Request) {
 
     const dbProfile = userWithProfile.profile;
 
-    if (!dbProfile) { // If dbProfile is null, it means no profile record exists.
-        // This is a critical data issue if a profile is expected.
-        // Depending on your logic, you might return an error or a UserProfile with defaults for a non-existent profile.
-        // For now, let's assume if birthDate is required in UserProfile, dbProfile must exist and have it.
-        console.error(`Profile data not found for user ID: ${targetUserId}, but UserProfile type requires fields like birthDate.`);
+    if (!dbProfile) {
+        console.error(`Profile data not found for user ID: ${targetUserId}`);
         return NextResponse.json(
-            { success: false, message: 'Profile data integrity issue: Core profile data missing.' },
-            { status: 500 } // Or 404 if it's acceptable for a profile to not exist
+            { success: false, message: 'Profile data not found for user.' },
+            { status: 404 }
         );
     }
 
-    // If birthDate is NOT nullable in Prisma (DateTime, not DateTime?), then dbProfile.birthDate will be a Date object.
-    // If it IS nullable in Prisma (DateTime?), then you need to decide if UserProfile.birthDate can be null.
-    // Given the error, UserProfile.birthDate CANNOT be null.
-    // So, dbProfile.birthDate from Prisma MUST be a non-null Date.
     if (!dbProfile.birthDate) {
-        // This case should ideally not happen if birthDate is non-nullable in Prisma's Profile model
-        // and a profile record exists.
-        console.error(`birthDate is null or undefined for profile ID: ${dbProfile.id}, which is not allowed by UserProfile type.`);
+        console.error(`birthDate is null or undefined for profile ID: ${dbProfile.id}`);
         return NextResponse.json(
             { success: false, message: 'Data integrity issue: birthDate is missing for the profile.' },
             { status: 500 }
         );
     }
 
-
     const profileResponseData: UserProfile = {
       id: dbProfile.id,
       userId: dbProfile.userId,
-      gender: dbProfile.gender, // Assuming dbProfile.gender is Gender, not Gender | null
-      birthDate: new Date(dbProfile.birthDate), // Directly use new Date() as dbProfile.birthDate is now guaranteed to be non-null
+      gender: dbProfile.gender,
+      birthDate: new Date(dbProfile.birthDate),
       nativeLanguage: dbProfile.nativeLanguage || undefined,
       additionalLanguages: dbProfile.additionalLanguages || [],
       height: dbProfile.height ?? null,
@@ -169,12 +160,12 @@ export async function GET(req: Request) {
       educationLevel: dbProfile.educationLevel || undefined,
       education: dbProfile.education || "",
       occupation: dbProfile.occupation || "",
-      serviceType: dbProfile.serviceType as ServiceType | null || undefined, // Cast if necessary
+      serviceType: dbProfile.serviceType as ServiceType | null || undefined,
       serviceDetails: dbProfile.serviceDetails || "",
       religiousLevel: dbProfile.religiousLevel || undefined,
       shomerNegiah: dbProfile.shomerNegiah ?? undefined,
-      headCovering: dbProfile.headCovering as HeadCoveringType | null || undefined, // Cast
-      kippahType: dbProfile.kippahType as KippahType | null || undefined,       // Cast
+      headCovering: dbProfile.headCovering as HeadCoveringType | null || undefined,
+      kippahType: dbProfile.kippahType as KippahType | null || undefined,
       profileCharacterTraits: dbProfile.profileCharacterTraits || [],
       profileHobbies: dbProfile.profileHobbies || [],
       about: dbProfile.about || "",
@@ -188,9 +179,9 @@ export async function GET(req: Request) {
       preferredEducation: dbProfile.preferredEducation || [],
       preferredOccupations: dbProfile.preferredOccupations || [],
       contactPreference: dbProfile.contactPreference || undefined,
-      isProfileVisible: dbProfile.isProfileVisible, // Assuming non-nullable boolean from Prisma
-      preferredMatchmakerGender: dbProfile.preferredMatchmakerGender as Gender | null || undefined, // Cast
-      availabilityStatus: dbProfile.availabilityStatus, // Assuming non-nullable enum from Prisma
+      isProfileVisible: dbProfile.isProfileVisible,
+      preferredMatchmakerGender: dbProfile.preferredMatchmakerGender as Gender | null || undefined,
+      availabilityStatus: dbProfile.availabilityStatus,
       availabilityNote: dbProfile.availabilityNote || "",
       availabilityUpdatedAt: dbProfile.availabilityUpdatedAt ? new Date(dbProfile.availabilityUpdatedAt) : null,
       preferredMaritalStatuses: dbProfile.preferredMaritalStatuses || [],
@@ -198,15 +189,16 @@ export async function GET(req: Request) {
       preferredServiceTypes: (dbProfile.preferredServiceTypes as ServiceType[]) || [],
       preferredHeadCoverings: (dbProfile.preferredHeadCoverings as HeadCoveringType[]) || [],
       preferredKippahTypes: (dbProfile.preferredKippahTypes as KippahType[]) || [],
-      preferredShomerNegiah: dbProfile.preferredShomerNegiah || undefined, // This was string in your old UserProfile
+      preferredShomerNegiah: dbProfile.preferredShomerNegiah || undefined,
       preferredHasChildrenFromPrevious: dbProfile.preferredHasChildrenFromPrevious ?? undefined,
-      preferredCharacterTraits: dbProfile.preferredCharacterTraits || [], // Partner preference
-      preferredHobbies: dbProfile.preferredHobbies || [],                 // Partner preference
+      preferredCharacterTraits: dbProfile.preferredCharacterTraits || [],
+      preferredHobbies: dbProfile.preferredHobbies || [],
       preferredAliyaStatus: dbProfile.preferredAliyaStatus || undefined,
-      verifiedBy: dbProfile.verifiedBy || undefined, // Added from Omit
+      verifiedBy: dbProfile.verifiedBy || undefined,
       createdAt: new Date(dbProfile.createdAt),
       updatedAt: new Date(dbProfile.updatedAt),
       lastActive: dbProfile.lastActive ? new Date(dbProfile.lastActive) : null,
+      hasViewedProfilePreview: dbProfile.hasViewedProfilePreview, // <--- תיקון 2: הוסף את השדה לאובייקט
       user: {
         id: userWithProfile.id,
         firstName: userWithProfile.firstName,
