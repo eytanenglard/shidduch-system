@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\suggestions
-# Generated on: 2025-06-23 22:37:49
+# Generated on: 2025-06-23 23:11:20
 ################################################################################
 
 ================================================================================
@@ -3352,7 +3352,6 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-6xl h-[90vh] max-h-[90vh] flex flex-col p-0">
-          
           <DialogHeader className="px-6 py-4 border-b flex-shrink-0">
             <div className="flex justify-between items-center">
               <DialogTitle className="text-xl">
@@ -3366,17 +3365,24 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
             </div>
           </DialogHeader>
 
-            <div className="border-b px-6 pt-2 sticky top-0 bg-white z-10">
-              <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList>
-                  <TabsTrigger value="profile"><User className="w-4 h-4 mr-2" />פרופיל</TabsTrigger>
-                  <TabsTrigger value="details"><Info className="w-4 h-4 mr-2" />פרטי ההצעה</TabsTrigger>
-                  <TabsTrigger value="timeline"><Clock className="w-4 h-4 mr-2" />היסטוריה</TabsTrigger>
-                </TabsList>
-              </Tabs>
+          {/**************************************/}
+          {/*         START OF THE FIX           */}
+          {/**************************************/}
+
+          {/* 1. רכיב ה-Tabs עוטף כעת את כל המבנה */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-grow flex flex-col min-h-0">
+            
+            {/* 2. ה-TabsList נמצא בתוך ה-Tabs */}
+            <div className="border-b px-6 pt-2 sticky top-0 bg-white z-10 flex-shrink-0">
+              <TabsList>
+                <TabsTrigger value="profile"><User className="w-4 h-4 mr-2" />פרופיל</TabsTrigger>
+                <TabsTrigger value="details"><Info className="w-4 h-4 mr-2" />פרטי ההצעה</TabsTrigger>
+                <TabsTrigger value="timeline"><Clock className="w-4 h-4 mr-2" />היסטוריה</TabsTrigger>
+              </TabsList>
             </div>
             
-            <div className="p-6">
+            {/* 3. ה-TabsContent נמצאים בתוך ה-Tabs, בתוך ScrollArea */}
+            <ScrollArea className="flex-grow p-6">
               <TabsContent value="profile" className="mt-0">
                   {isQuestionnaireLoading ? (
                     <div className="flex justify-center items-center h-64">
@@ -3388,26 +3394,18 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                       <p>שגיאה קריטית: לא נמצאו פרטי פרופיל עבור המשתמש המוצע.</p>
                     </div>
                   ) : (
-                    <>
-                      {/* --- LOGGING POINT 14 (FIXED) --- */}
-                      {(() => {
-                        console.log("[Modal-Render] PREPARING to render ProfileCard. Props are ready.");
-                        return null;
-                      })()}
-                      <ProfileCard
-                        profile={{ ...(targetParty.profile), user: { firstName: targetParty.firstName, lastName: targetParty.lastName, email: targetParty.email }}}
-                        images={targetParty.images || []}
-                        questionnaire={questionnaire}
-                        viewMode="candidate"
-                      />
-                    </>
+                    <ProfileCard
+                      profile={{ ...(targetParty.profile), user: { firstName: targetParty.firstName, lastName: targetParty.lastName, email: targetParty.email }}}
+                      images={targetParty.images || []}
+                      questionnaire={questionnaire}
+                      viewMode="candidate"
+                    />
                   )}
               </TabsContent>
 
-
-              <TabsContent value="details" className="p-6">
-               
+              <TabsContent value="details" className="mt-0">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* ... (The content of the "details" tab remains the same) ... */}
                     <Card><CardContent className="p-6">
                         <h3 className="text-lg font-medium mb-4">פרטי ההצעה</h3>
                         <div className="space-y-4">
@@ -3433,12 +3431,17 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                 </div>
               </TabsContent>
 
-              <TabsContent value="timeline" className="p-6">
+              <TabsContent value="timeline" className="mt-0">
                 <SuggestionTimeline statusHistory={suggestion.statusHistory} />
               </TabsContent>
-          </div>
+            </ScrollArea>
+          </Tabs>
+          
+          {/**************************************/}
+          {/*          END OF THE FIX            */}
+          {/**************************************/}
 
-          <DialogFooter className="px-6 py-4 border-t flex-shrink-0">
+          <DialogFooter className="px-6 py-4 border-t flex-shrink-0 bg-white">
             <div className="flex gap-2 w-full">
               {canApprove && <Button variant="default" className="bg-green-600 hover:bg-green-700" disabled={isSubmitting} onClick={() => handleStatusChange(isFirstParty ? "FIRST_PARTY_APPROVED" : "SECOND_PARTY_APPROVED")}><CheckCircle className="w-4 h-4 ml-2" />אישור ההצעה</Button>}
               {canDecline && <Button variant="outline" className="text-red-600 hover:bg-red-50 hover:text-red-700" disabled={isSubmitting} onClick={() => handleStatusChange(isFirstParty ? "FIRST_PARTY_DECLINED" : "SECOND_PARTY_DECLINED")}><XCircle className="w-4 h-4 ml-2" />דחיית ההצעה</Button>}
@@ -3448,7 +3451,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
+      
       <AskMatchmakerDialog
         isOpen={showAskDialog}
         onClose={() => setShowAskDialog(false)}
