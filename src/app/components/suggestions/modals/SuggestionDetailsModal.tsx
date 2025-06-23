@@ -119,6 +119,14 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   onClose,
   onStatusChange,
 }) => {
+    console.log("[Modal] SuggestionDetailsModal component function body is executing.");
+  console.log(`[Modal] Received props -> isOpen: ${isOpen}, userId: ${userId}`);
+  
+  if (suggestion) {
+    console.log("[Modal] Full suggestion prop:", JSON.stringify(suggestion, null, 2));
+  } else {
+    console.log("[Modal] Suggestion prop is null.");
+  }
   const { data: session } = useSession();
   const currentUserId = session?.user?.id;
 
@@ -131,19 +139,25 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   const [isQuestionnaireLoading, setIsQuestionnaireLoading] = useState(false);
 
 
-  // 5. (FIX) הוספת useEffect לטעינת השאלון כאשר המודאל נפתח
+  // 5. (FIX) הוספת useEffect לטעינת השאלון כאשר המודאל נפתח. זה פותר את הלולאה האין-סופית.
   useEffect(() => {
     // איפוס הטאב והשאלון כאשר המודאל נפתח או ההצעה משתנה
     if (isOpen) {
+            console.log("[Modal-useEffect] useEffect triggered due to isOpen or suggestion change.");
+
       setActiveTab("profile");
       setQuestionnaire(null);
     }
 
     if (!isOpen || !suggestion) {
+            console.log("[Modal-useEffect] Bailing out of fetch, isOpen is false or no suggestion.");
+
       return;
     }
 
     const fetchQuestionnaire = async () => {
+            console.log("[Modal-useEffect] Starting to fetch questionnaire...");
+
       setIsQuestionnaireLoading(true);
       try {
         const targetParty = suggestion.firstPartyId === userId
@@ -154,17 +168,25 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
         const data = await response.json();
 
         if (response.ok && data.success) {
+                    console.log("[Modal-useEffect] Successfully fetched questionnaire.", JSON.stringify(data.questionnaireResponse, null, 2));
+
           setQuestionnaire(data.questionnaireResponse);
         } else {
+                    console.error("[Modal-useEffect] Failed to fetch questionnaire:", data.error || "Unknown error");
+
           setQuestionnaire(null);
           console.error("Failed to fetch questionnaire:", data.error || "Unknown error");
           toast.error("שגיאה בטעינת פרטי השאלון.");
         }
       } catch (error) {
         setQuestionnaire(null);
+                console.error("[Modal-useEffect] Critical error fetching questionnaire:", error);
+
         console.error("Error fetching questionnaire:", error);
         toast.error("שגיאה בטעינת פרטי השאלון.");
       } finally {
+                console.log("[Modal-useEffect] Finished fetching questionnaire, setting loading to false.");
+
         setIsQuestionnaireLoading(false);
       }
     };
@@ -172,11 +194,17 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
     fetchQuestionnaire();
   }, [isOpen, suggestion, userId]); // מופעל מחדש כשהמודאל נפתח או כשההצעה משתנה
 
-
-  if (!suggestion) return null;
+  if (!suggestion) {
+    // --- LOGGING POINT 9: Early exit ---
+    console.log("[Modal] Rendering null because suggestion prop is null.");
+    return null;
+  }
 
   const isFirstParty = suggestion.firstPartyId === userId;
   const targetParty = isFirstParty ? suggestion.secondParty : suggestion.firstParty;
+   console.log(`[Modal] Derived values calculated. isFirstParty: ${isFirstParty}, targetParty name: ${targetParty?.firstName}`);
+  const isProfileDataValid = targetParty && targetParty.profile && Object.keys(targetParty.profile).length > 1;
+  console.log(`[Modal] Profile data validity check: isProfileDataValid = ${isProfileDataValid}`);
   const targetPartyAge = targetParty.profile?.birthDate ? calculateAge(new Date(targetParty.profile.birthDate)) : null;
 
   // 6. (FIX) נשתמש ב-state המקומי במקום בנתון שהגיע מה-props
@@ -211,9 +239,11 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
         body: JSON.stringify({ question }),
       });
       if (!response.ok) throw new Error("Failed to send inquiry");
+      toast.success("שאלתך נשלחה בהצלחה!");
       setShowAskDialog(false);
     } catch (error) {
       console.error("Error sending question:", error);
+      toast.error("שגיאה בשליחת השאלה.");
     } finally {
       setIsSubmitting(false);
     }
@@ -223,7 +253,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-6xl h-[90vh] max-h-[90vh] flex flex-col p-0">
-          <DialogHeader className="px-6 py-4 border-b">
+          <DialogHeader className="px-6 py-4 border-b flex-shrink-0">
             <div className="flex justify-between items-center">
               <DialogTitle className="text-xl">
                 הצעת שידוך עם {targetParty.firstName}
@@ -236,56 +266,47 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
             </div>
           </DialogHeader>
 
-          <div className="flex-1 overflow-hidden flex flex-col">
-            <div className="border-b px-6 pt-2">
-              <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList>
-                  <TabsTrigger value="profile"><User className="w-4 h-4 mr-2" />פרופיל</TabsTrigger>
-                  <TabsTrigger value="details"><Info className="w-4 h-4 mr-2" />פרטי ההצעה</TabsTrigger>
-                  <TabsTrigger value="timeline"><Clock className="w-4 h-4 mr-2" />היסטוריה</TabsTrigger>
-                </TabsList>
-              </Tabs>
+          {/**************************************/}
+          {/*         START OF THE FIX           */}
+          {/**************************************/}
+
+          {/* 1. רכיב ה-Tabs עוטף כעת את כל המבנה */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-grow flex flex-col min-h-0">
+            
+            {/* 2. ה-TabsList נמצא בתוך ה-Tabs */}
+            <div className="border-b px-6 pt-2 sticky top-0 bg-white z-10 flex-shrink-0">
+              <TabsList>
+                <TabsTrigger value="profile"><User className="w-4 h-4 mr-2" />פרופיל</TabsTrigger>
+                <TabsTrigger value="details"><Info className="w-4 h-4 mr-2" />פרטי ההצעה</TabsTrigger>
+                <TabsTrigger value="timeline"><Clock className="w-4 h-4 mr-2" />היסטוריה</TabsTrigger>
+              </TabsList>
             </div>
-
-            <ScrollArea className="flex-1">
-              <TabsContent value="profile" className="p-6">
-                
-                {currentUserId && (
-                  <div className="mb-6 p-4 bg-purple-50 border border-dashed border-purple-300 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4">
-                      <div>
-                          <h3 className="font-semibold text-purple-800 flex items-center gap-2 text-base">
-                              <Bot className="w-5 h-5"/>
-                              מתלבט/ת? קבל/י דעה שנייה מה-AI
-                          </h3>
-                          <p className="text-sm text-purple-700 mt-1">
-                              קבל ניתוח מקיף של ההתאמה על סמך הפרופילים של שניכם כדי לקבל החלטה מושכלת.
-                          </p>
-                      </div>
-                      <UserAiAnalysisDialog 
-                          suggestedUserId={targetParty.id} 
-                      />
-                  </div>
-                )}
-                
-                {/* 7. (FIX) הוספת טיפול במצב טעינה */}
-                {isQuestionnaireLoading ? (
-                  <div className="flex justify-center items-center h-64">
-                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                    <p className="mr-4">טוען פרטי פרופיל...</p>
-                  </div>
-                ) : (
-                  <ProfileCard
-                    profile={{ ...targetParty.profile, user: { firstName: targetParty.firstName, lastName: targetParty.lastName, email: targetParty.email } }}
-                    images={targetParty.images}
-                    questionnaire={targetQuestionnaire}
-                    viewMode="candidate"
-                  />
-                )}
-
+            
+            {/* 3. ה-TabsContent נמצאים בתוך ה-Tabs, בתוך ScrollArea */}
+            <ScrollArea className="flex-grow p-6">
+              <TabsContent value="profile" className="mt-0">
+                  {isQuestionnaireLoading ? (
+                    <div className="flex justify-center items-center h-64">
+                      <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                      <p className="mr-4">טוען פרטי פרופיל...</p>
+                    </div>
+                  ) : !isProfileDataValid ? (
+                    <div className="text-center text-red-500 p-8">
+                      <p>שגיאה קריטית: לא נמצאו פרטי פרופיל עבור המשתמש המוצע.</p>
+                    </div>
+                  ) : (
+                    <ProfileCard
+                      profile={{ ...(targetParty.profile), user: { firstName: targetParty.firstName, lastName: targetParty.lastName, email: targetParty.email }}}
+                      images={targetParty.images || []}
+                      questionnaire={questionnaire}
+                      viewMode="candidate"
+                    />
+                  )}
               </TabsContent>
 
-              <TabsContent value="details" className="p-6">
+              <TabsContent value="details" className="mt-0">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* ... (The content of the "details" tab remains the same) ... */}
                     <Card><CardContent className="p-6">
                         <h3 className="text-lg font-medium mb-4">פרטי ההצעה</h3>
                         <div className="space-y-4">
@@ -311,13 +332,17 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                 </div>
               </TabsContent>
 
-              <TabsContent value="timeline" className="p-6">
+              <TabsContent value="timeline" className="mt-0">
                 <SuggestionTimeline statusHistory={suggestion.statusHistory} />
               </TabsContent>
             </ScrollArea>
-          </div>
+          </Tabs>
+          
+          {/**************************************/}
+          {/*          END OF THE FIX            */}
+          {/**************************************/}
 
-          <DialogFooter className="px-6 py-4 border-t flex-shrink-0">
+          <DialogFooter className="px-6 py-4 border-t flex-shrink-0 bg-white">
             <div className="flex gap-2 w-full">
               {canApprove && <Button variant="default" className="bg-green-600 hover:bg-green-700" disabled={isSubmitting} onClick={() => handleStatusChange(isFirstParty ? "FIRST_PARTY_APPROVED" : "SECOND_PARTY_APPROVED")}><CheckCircle className="w-4 h-4 ml-2" />אישור ההצעה</Button>}
               {canDecline && <Button variant="outline" className="text-red-600 hover:bg-red-50 hover:text-red-700" disabled={isSubmitting} onClick={() => handleStatusChange(isFirstParty ? "FIRST_PARTY_DECLINED" : "SECOND_PARTY_DECLINED")}><XCircle className="w-4 h-4 ml-2" />דחיית ההצעה</Button>}
@@ -327,7 +352,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
+      
       <AskMatchmakerDialog
         isOpen={showAskDialog}
         onClose={() => setShowAskDialog(false)}

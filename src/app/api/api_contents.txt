@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api
-# Generated on: 2025-06-23 17:47:43
+# Generated on: 2025-06-23 20:12:33
 ################################################################################
 
 ================================================================================
@@ -12301,7 +12301,104 @@ function validateStatusTransition(
 Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\suggestions\[id]
 ================================================================================
 
-(This directory contains subdirectories but no files directly. See subdirectories below.)
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\suggestions\[id]\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/suggestions/[id]/route.ts
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { UserRole } from "@prisma/client";
+
+// Helper function to include all necessary fields for a party
+const partySelect = {
+  id: true,
+  email: true,
+  firstName: true,
+  lastName: true,
+  profile: true,
+  images: {
+    select: {
+      id: true,
+      url: true,
+      isMain: true,
+    },
+    orderBy: { isMain: "desc" as const },
+  },
+};
+
+export async function GET(req: Request, { params }: { params: { id: string } }) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const suggestionId = params.id;
+
+    const suggestion = await prisma.matchSuggestion.findUnique({
+      where: { id: suggestionId },
+      include: {
+        matchmaker: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+        firstParty: { select: partySelect },
+        secondParty: { select: partySelect },
+        statusHistory: {
+          orderBy: { createdAt: "desc" as const },
+        },
+      },
+    });
+
+    if (!suggestion) {
+      return NextResponse.json({ error: "Suggestion not found" }, { status: 404 });
+    }
+
+    // Authorization check: User must be one of the parties or the matchmaker or an admin
+    const isAuthorized =
+      session.user.id === suggestion.firstPartyId ||
+      session.user.id === suggestion.secondPartyId ||
+      session.user.id === suggestion.matchmakerId ||
+      session.user.role === UserRole.ADMIN;
+
+    if (!isAuthorized) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    // Fetch the questionnaire for the "other" party
+    const targetPartyId =
+      suggestion.firstPartyId === session.user.id
+        ? suggestion.secondPartyId
+        : suggestion.firstPartyId;
+
+    const questionnaireResponse = await prisma.questionnaireResponse.findFirst({
+      where: { userId: targetPartyId },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    // Combine all data into a single response object
+    const fullSuggestionData = {
+      ...suggestion,
+      secondPartyQuestionnaire: questionnaireResponse || null, // Naming this consistently
+    };
+
+    return NextResponse.json({
+      success: true,
+      suggestion: fullSuggestionData,
+    });
+  } catch (error) {
+    console.error(`Error fetching suggestion ${params.id}:`, error);
+    const errorMessage = error instanceof Error ? error.message : "Internal Server Error";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
 
 ================================================================================
 Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\suggestions\[id]\delete

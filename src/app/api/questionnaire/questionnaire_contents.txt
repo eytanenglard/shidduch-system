@@ -1,0 +1,549 @@
+################################################################################
+# Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\questionnaire
+# Generated on: 2025-06-23 22:37:34
+################################################################################
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\questionnaire
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\questionnaire\questionnaire_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\questionnaire\route.ts
+--------------------------------------------------------------------------------
+Content:
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { z } from "zod";
+import { Prisma } from "@prisma/client";
+
+function isPrismaError(error: unknown): error is Prisma.PrismaClientKnownRequestError {
+  return error instanceof Prisma.PrismaClientKnownRequestError;
+}
+
+function isError(error: unknown): error is Error {
+  return error instanceof Error;
+}
+
+const WORLD_IDS = ["VALUES", "RELATIONSHIP", "PERSONALITY", "PARTNER", "RELIGION"] as const;
+
+const WorldId = z.enum(WORLD_IDS);
+type WorldId = z.infer<typeof WorldId>;
+
+const baseAnswerSchema = z.object({
+  questionId: z.string().min(1),
+  worldId: WorldId,
+  value: z.union([
+    z.string(),
+    z.number(),
+    z.array(z.string()),
+    z.array(z.number()),
+    z.record(z.string(), z.number())
+  ]),
+  answeredAt: z.string().datetime()
+});
+
+type QuestionAnswer = z.infer<typeof baseAnswerSchema>;
+
+const QuestionnaireAnswer = baseAnswerSchema;
+
+const QuestionnaireSubmission = z.object({
+  userId: z.string(),
+  answers: z.array(QuestionnaireAnswer),
+  worldsCompleted: z.array(WorldId),
+  completed: z.boolean(),
+  startedAt: z.string().datetime(),
+  completedAt: z.string().datetime().optional()
+});
+
+type QuestionnaireSubmission = z.infer<typeof QuestionnaireSubmission>;
+
+function groupAnswersByWorld(answers: QuestionnaireSubmission["answers"]) {
+  return answers.reduce<Record<string, QuestionAnswer[]>>((acc, answer) => {
+    const worldKey = `${answer.worldId.toLowerCase()}Answers`;
+    const formattedAnswer: QuestionAnswer = {
+      questionId: answer.questionId,
+      worldId: answer.worldId,
+      value: answer.value,
+      answeredAt: answer.answeredAt
+    };
+
+    if (!acc[worldKey]) {
+      acc[worldKey] = [];
+    }
+    acc[worldKey].push(formattedAnswer);
+    
+    return acc;
+  }, {});
+}
+
+function validateSubmissionData(data: unknown): z.infer<typeof QuestionnaireSubmission> {
+  const validatedData = QuestionnaireSubmission.safeParse(data);
+  
+  if (!validatedData.success) {
+    throw new Error(`Validation Error: ${validatedData.error.message}`);
+  }
+
+  return validatedData.data;
+}
+
+export async function GET() {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "נדרשת התחברות" },
+        { status: 401 }
+      );
+    }
+
+    const questionnaire = await prisma.questionnaireResponse.findFirst({
+      where: {
+        userId: session.user.id
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    const transformedData = questionnaire ? {
+      ...questionnaire,
+      valuesAnswers: questionnaire.valuesAnswers || [],
+      personalityAnswers: questionnaire.personalityAnswers || [],
+      relationshipAnswers: questionnaire.relationshipAnswers || [],
+      partnerAnswers: questionnaire.partnerAnswers || [],
+      religionAnswers: questionnaire.religionAnswers || [],
+    } : null;
+
+    return NextResponse.json({
+      success: true,
+      data: transformedData
+    });
+
+  } catch (error: unknown) {
+    console.error("Error fetching questionnaire:", {
+      message: isError(error) ? error.message : "Unknown error occurred",
+      stack: process.env.NODE_ENV === 'development' ? error : undefined
+    });
+
+    return NextResponse.json({
+      error: "אירעה שגיאה בטעינת השאלון",
+      details: process.env.NODE_ENV === 'development' ? error : undefined
+    }, { status: 500 });
+  }
+}
+
+type Answer = {
+  questionId: string;
+  worldId: WorldId;
+  value: string | number | string[] | number[] | Record<string, number>;
+  answeredAt: string;
+};
+
+type MergedAnswers = {
+  valuesAnswers: Answer[];
+  personalityAnswers: Answer[];
+  relationshipAnswers: Answer[];
+  partnerAnswers: Answer[];
+  religionAnswers: Answer[];
+};
+
+export async function PUT(req: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "נדרשת התחברות" }, { status: 401 });
+    }
+
+    const rawBody = await req.json();
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Request body:', JSON.stringify(rawBody, null, 2));
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { id: true }
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "משתמש לא נמצא" },
+        { status: 404 }
+      );
+    }
+
+    const submissionData = {
+      ...rawBody,
+      userId: session.user.id,
+      answers: rawBody.answers?.filter((answer: Answer) => 
+        answer && 
+        answer.questionId && 
+        answer.worldId && 
+        answer.value !== undefined && 
+        answer.value !== null && 
+        answer.value !== ''
+      ) ?? []
+    };
+
+    let validatedData: QuestionnaireSubmission;
+    try {
+      validatedData = validateSubmissionData(submissionData);
+    } catch (error) {
+      return NextResponse.json({
+        error: "שגיאת ולידציה",
+        details: isError(error) ? error.message : 'Unknown validation error'
+      }, { status: 400 });
+    }
+
+    const answersGroupedByWorld = groupAnswersByWorld(validatedData.answers);
+
+    const result = await prisma.$transaction(async (prisma) => {
+      const existingResponse = await prisma.questionnaireResponse.findFirst({
+        where: { userId: session.user.id },
+        orderBy: { createdAt: 'desc' }
+      });
+
+      const mergedAnswers: MergedAnswers = {
+        valuesAnswers: [...(existingResponse?.valuesAnswers as Answer[] || []), ...(answersGroupedByWorld.valuesAnswers || [])],
+        personalityAnswers: [...(existingResponse?.personalityAnswers as Answer[] || []), ...(answersGroupedByWorld.personalityAnswers || [])],
+        relationshipAnswers: [...(existingResponse?.relationshipAnswers as Answer[] || []), ...(answersGroupedByWorld.relationshipAnswers || [])],
+        partnerAnswers: [...(existingResponse?.partnerAnswers as Answer[] || []), ...(answersGroupedByWorld.partnerAnswers || [])],
+        religionAnswers: [...(existingResponse?.religionAnswers as Answer[] || []), ...(answersGroupedByWorld.religionAnswers || [])]
+      };
+
+      for (const worldKey in mergedAnswers) {
+        const answers = mergedAnswers[worldKey as keyof MergedAnswers];
+        if (Array.isArray(answers)) {
+          const uniqueAnswers = answers.reduce((acc: Answer[], curr: Answer) => {
+            const existingIndex = acc.findIndex(a => a.questionId === curr.questionId);
+            if (existingIndex >= 0) {
+              if (new Date(curr.answeredAt) > new Date(acc[existingIndex].answeredAt)) {
+                acc[existingIndex] = curr;
+              }
+            } else {
+              acc.push(curr);
+            }
+            return acc;
+          }, []);
+          mergedAnswers[worldKey as keyof MergedAnswers] = uniqueAnswers;
+        }
+      }
+
+      const savedQuestionnaire = await prisma.questionnaireResponse.upsert({
+        where: {
+          id: existingResponse?.id || 'new-response',
+        },
+        create: {
+          userId: session.user.id,
+          ...mergedAnswers,
+          worldsCompleted: validatedData.worldsCompleted,
+          completed: validatedData.completed,
+          startedAt: new Date(validatedData.startedAt),
+          completedAt: validatedData.completedAt ? new Date(validatedData.completedAt) : null,
+          valuesCompleted: validatedData.worldsCompleted.includes("VALUES"),
+          personalityCompleted: validatedData.worldsCompleted.includes("PERSONALITY"),
+          relationshipCompleted: validatedData.worldsCompleted.includes("RELATIONSHIP"),
+          partnerCompleted: validatedData.worldsCompleted.includes("PARTNER"),
+          religionCompleted: validatedData.worldsCompleted.includes("RELIGION"),
+          lastSaved: new Date()
+        },
+        update: {
+          ...mergedAnswers,
+          worldsCompleted: validatedData.worldsCompleted,
+          completed: validatedData.completed,
+          completedAt: validatedData.completedAt ? new Date(validatedData.completedAt) : null,
+          valuesCompleted: validatedData.worldsCompleted.includes("VALUES"),
+          personalityCompleted: validatedData.worldsCompleted.includes("PERSONALITY"),
+          relationshipCompleted: validatedData.worldsCompleted.includes("RELATIONSHIP"),
+          partnerCompleted: validatedData.worldsCompleted.includes("PARTNER"),
+          religionCompleted: validatedData.worldsCompleted.includes("RELIGION"),
+          lastSaved: new Date()
+        }
+      });
+
+      if (validatedData.completed) {
+        await prisma.user.update({
+          where: { id: session.user.id },
+          data: { status: "ACTIVE" }
+        });
+      }
+
+      return savedQuestionnaire;
+    });
+
+    return NextResponse.json({
+      success: true,
+      data: result
+    });
+
+  } catch (error: unknown) {
+    const errorMessage = isError(error) ? error.message : "Unknown error occurred";
+    const errorStack = isError(error) ? error.stack : undefined;
+
+    console.error("Error details:", {
+      message: errorMessage,
+      stack: process.env.NODE_ENV === 'development' ? errorStack : undefined
+    });
+
+    if (isPrismaError(error)) {
+      switch (error.code) {
+        case 'P2003':
+          return NextResponse.json({
+            error: "שגיאה בשמירת השאלון - משתמש לא קיים",
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+          }, { status: 400 });
+        case 'P2002':
+          return NextResponse.json({
+            error: "שגיאה בשמירת השאלון - רשומה כבר קיימת",
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+          }, { status: 409 });
+        default:
+          return NextResponse.json({
+            error: "שגיאה בשמירת השאלון",
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+          }, { status: 500 });
+      }
+    }
+
+    return NextResponse.json({
+      error: "אירעה שגיאה בשמירת השאלון",
+      details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+    }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\questionnaire\complete
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\questionnaire\complete\route.ts
+--------------------------------------------------------------------------------
+Content:
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { z } from "zod";
+
+const WorldId = z.enum(["VALUES", "RELATIONSHIP", "PERSONALITY", "PARTNER", "RELIGION"]);
+
+const completionSchema = z.object({
+  worldsCompleted: z.array(WorldId),
+  completed: z.boolean(),
+  startedAt: z.string().datetime(),
+  completedAt: z.string().datetime()
+});
+
+export async function PUT(req: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "נדרשת התחברות" },
+        { status: 401 }
+      );
+    }
+
+    const body = await req.json();
+    const validatedData = completionSchema.parse(body);
+
+    // Verify all required worlds are completed
+    const requiredWorlds = ["VALUES", "RELATIONSHIP", "PERSONALITY", "PARTNER", "RELIGION"] as const;
+    const allWorldsCompleted = requiredWorlds.every(
+      world => validatedData.worldsCompleted.includes(world)
+    );
+
+    if (!allWorldsCompleted) {
+      return NextResponse.json({
+        error: "לא כל העולמות הושלמו"
+      }, { status: 400 });
+    }
+
+    const questionnaire = await prisma.questionnaireResponse.findFirst({
+      where: { userId: session.user.id }
+    });
+
+    if (!questionnaire) {
+      return NextResponse.json({
+        error: "לא נמצא שאלון להשלמה"
+      }, { status: 404 });
+    }
+
+    // Update questionnaire and user status in a transaction
+    const result = await prisma.$transaction([
+      prisma.questionnaireResponse.update({
+        where: { id: questionnaire.id },
+        data: {
+          completed: true,
+          completedAt: new Date(validatedData.completedAt),
+          worldsCompleted: validatedData.worldsCompleted,
+          lastSaved: new Date()
+        }
+      }),
+      prisma.user.update({
+        where: { id: session.user.id },
+        data: { status: "ACTIVE" }
+      })
+    ]);
+
+    return NextResponse.json({
+      success: true,
+      data: result[0]
+    });
+
+  } catch (error: unknown) {
+    console.error("Error completing questionnaire:", error);
+
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({
+        error: "שגיאת ולידציה",
+        details: error.issues
+      }, { status: 400 });
+    }
+
+    return NextResponse.json({
+      error: "אירעה שגיאה בהשלמת השאלון"
+    }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\questionnaire\world
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\questionnaire\world\route.ts
+--------------------------------------------------------------------------------
+Content:
+// File: src/app/api/questionnaire/world/route.ts
+
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { z } from "zod";
+import { Prisma } from "@prisma/client";
+import { updateUserAiProfile } from '@/lib/services/profileAiService';
+
+// Define the WorldId type and validation schema
+const WorldId = z.enum(["VALUES", "RELATIONSHIP", "PERSONALITY", "PARTNER", "RELIGION"]);
+type WorldId = z.infer<typeof WorldId>;
+
+// Schema for a single answer within a world submission
+const answerSchema = z.object({
+  questionId: z.string().min(1),
+  value: z.union([
+    z.string(),
+    z.number(),
+    z.boolean(),
+    z.array(z.string()),
+    z.array(z.number()),
+    z.record(z.string(), z.number()),
+    z.null(),
+    z.undefined()
+  ]).optional(),
+  answeredAt: z.string().datetime().transform((str) => new Date(str)), // Convert to Date object
+  isVisible: z.boolean().default(true),
+});
+
+// Main schema for submitting answers for a whole world
+const worldAnswersSchema = z.object({
+  worldId: WorldId,
+  answers: z.array(answerSchema),
+});
+
+type AnswerPayload = z.infer<typeof answerSchema>;
+
+export async function PUT(req: Request) {
+  try {
+    // 1. Authenticate user
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+    const userId = session.user.id;
+
+    // 2. Parse and validate request body
+    const body = await req.json();
+    const validationResult = worldAnswersSchema.safeParse(body);
+    if (!validationResult.success) {
+      console.error("Validation error in /questionnaire/world:", validationResult.error);
+      return NextResponse.json({ success: false, error: "Invalid request data", details: validationResult.error.flatten() }, { status: 400 });
+    }
+    const { worldId, answers: newAnswers } = validationResult.data;
+    
+    // Map worldId to the corresponding DB field name
+    const dbAnswersKey = `${worldId.toLowerCase()}Answers` as keyof Prisma.QuestionnaireResponseCreateInput;
+    const dbCompletedKey = `${worldId.toLowerCase()}Completed` as keyof Prisma.QuestionnaireResponseCreateInput;
+
+    // 3. Upsert the questionnaire response
+    const updatedQuestionnaire = await prisma.$transaction(async (tx) => {
+      // Find the existing response for the user
+      const existingResponse = await tx.questionnaireResponse.findFirst({
+        where: { userId },
+      });
+
+      // Prepare the JSON data for the answers
+      const newAnswersJson = newAnswers.map(ans => ({
+        ...ans,
+        answeredAt: ans.answeredAt.toISOString(), // Ensure date is stored as string
+      })) as unknown as Prisma.JsonArray; // Cast to Prisma.JsonArray
+
+      // Create or update the questionnaire
+      const questionnaire = await tx.questionnaireResponse.upsert({
+        where: { id: existingResponse?.id || 'new-response-placeholder' }, // a dummy id for create case
+        create: {
+          userId,
+          startedAt: new Date(),
+          lastSaved: new Date(),
+          [dbAnswersKey]: newAnswersJson,
+          [dbCompletedKey]: true,
+          worldsCompleted: [worldId],
+        },
+        update: {
+          lastSaved: new Date(),
+          [dbAnswersKey]: newAnswersJson, // Replace all answers for this world
+          [dbCompletedKey]: true,
+          worldsCompleted: {
+            push: worldId, // Add to the array of completed worlds
+          },
+        },
+      });
+      return questionnaire;
+    });
+
+    // 4. Trigger the AI profile update in the background
+    updateUserAiProfile(userId).catch(err => {
+        console.error(`[AI Profile Trigger - World Update] Failed to update AI profile for user ${userId} after updating world ${worldId}:`, err);
+    });
+
+    // 5. Return success response
+    return NextResponse.json({
+      success: true,
+      message: `Successfully saved answers for world: ${worldId}`,
+      data: updatedQuestionnaire,
+    });
+
+  } catch (error: unknown) {
+    console.error("Error in PUT /api/questionnaire/world:", error);
+    
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ success: false, error: "Validation error", details: error.issues }, { status: 400 });
+    }
+    
+    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
+    return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+

@@ -70,15 +70,6 @@ const useMediaQuery = (query: string) => {
   return matches;
 };
 
-// --- START OF FIX ---
-// Define a specific type for all possible suggestion actions
-type SuggestionActionType =
-  | "view" | "contact" | "message" | "edit" | "delete" | "resend"
-  | "changeStatus" | "reminder" | "sendReminder" | "shareContacts"
-  | "scheduleMeeting" | "viewMeetings" | "exportHistory" | "export"
-  | "resendToAll";
-// --- END OF FIX ---
-
 // --- Defining specific payload types to replace 'any' ---
 interface SuggestionUpdatePayload {
   priority?: Priority;
@@ -285,8 +276,7 @@ export default function MatchmakerDashboard() {
     }
   };
   
-  // --- START OF FIX ---
-  const handleDialogAction = (action: SuggestionActionType, data?: DialogActionData) => {
+  const handleDialogAction = (action: string, data?: DialogActionData) => {
     setSelectedSuggestion(data?.suggestion || null);
     if (action === 'view' && data?.suggestion) {
         setSelectedSuggestion(data.suggestion);
@@ -302,10 +292,9 @@ export default function MatchmakerDashboard() {
     }
   };
   
-  const handleSuggestionAction = (type: SuggestionActionType, suggestion: Suggestion, additionalData?: ActionAdditionalData) => {
+  const handleSuggestionAction = (type: any, suggestion: Suggestion, additionalData?: ActionAdditionalData) => {
     handleDialogAction(type, { ...additionalData, suggestionId: suggestion.id, suggestion });
   };
-  // --- END OF FIX ---
   
   const kanbanColumns = useMemo(() => {
     const columns: { title: string; suggestions: Suggestion[] }[] = [
@@ -482,14 +471,7 @@ export default function MatchmakerDashboard() {
 
       {/* Dialogs and Forms (common for both views) */}
       <NewSuggestionForm isOpen={showNewSuggestion} onClose={() => setShowNewSuggestion(false)} candidates={allCandidates} onSubmit={handleNewSuggestion} />
-      {/* --- START OF FIX --- */}
-      <SuggestionDetailsDialog 
-        suggestion={selectedSuggestion} 
-        isOpen={!!selectedSuggestion} 
-        onClose={() => setSelectedSuggestion(null)} 
-        onAction={handleDialogAction} 
-      />
-      {/* --- END OF FIX --- */}
+      <SuggestionDetailsDialog suggestion={selectedSuggestion} isOpen={!!selectedSuggestion} onClose={() => setSelectedSuggestion(null)} onAction={handleDialogAction as any} />
       <Dialog open={showMonthlyTrendDialog} onOpenChange={setShowMonthlyTrendDialog}><DialogContent className="max-w-4xl"><DialogHeader><DialogTitle>מגמה חודשית</DialogTitle></DialogHeader><MonthlyTrendModal suggestions={suggestions} /></DialogContent></Dialog>
       <EditSuggestionForm isOpen={showEditForm} onClose={() => setShowEditForm(false)} suggestion={selectedSuggestion} onSave={handleUpdateSuggestion} />
       <MessageForm isOpen={showMessageForm} onClose={() => setShowMessageForm(false)} suggestion={selectedSuggestion} onSend={handleSendMessage} />

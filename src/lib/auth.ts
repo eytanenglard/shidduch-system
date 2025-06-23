@@ -376,19 +376,19 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
 
-    async jwt({ token, user, trigger, session, account }) {
+    async jwt({ token, user, trigger, session }) {
       const typedToken = token as ExtendedUserJWT;
       const typedUserFromCallback = user as ExtendedUser | undefined;
 
       console.log("[JWT Callback] Triggered.", {
           trigger,
           tokenEmail: typedToken.email,
-          userEmailFromCallback: typedUserFromCallback?.email,
-          isAccountPresent: !!account,
-          isSessionPresent: !!session
+          userEmailFromCallback: typedUserFromCallback?.email
       });
 
+      // שלב 1: בזמן התחברות ראשונית, קח רק מידע בסיסי מה-user
       if (typedUserFromCallback) {
+        console.log("[JWT Callback] Initial population from user object.");
         typedToken.id = typedUserFromCallback.id;
         typedToken.email = typedUserFromCallback.email.toLowerCase();
         typedToken.firstName = typedUserFromCallback.firstName;
@@ -400,37 +400,38 @@ export const authOptions: NextAuthOptions = {
         typedToken.isVerified = typedUserFromCallback.isVerified;
         typedToken.isProfileComplete = typedUserFromCallback.isProfileComplete || false;
         typedToken.isPhoneVerified = typedUserFromCallback.isPhoneVerified || false;
-          typedToken.questionnaireResponses = typedUserFromCallback.questionnaireResponses;
-                typedToken.hasCompletedOnboarding = typedUserFromCallback.hasCompletedOnboarding; // <-- הוספה כאן
-
-        // --- START: הוספה כאן ---
-        // העבר את הדגל מה-user object בפעם הראשונה
-        typedToken.questionnaireCompleted = typedUserFromCallback.questionnaireCompleted; 
-        typedToken.source = typedUserFromCallback.source; // Add source
-        typedToken.addedByMatchmakerId = typedUserFromCallback.addedByMatchmakerId; // Add addedByMatchmakerId
- typedToken.termsAndPrivacyAcceptedAt = typedUserFromCallback.termsAndPrivacyAcceptedAt;
+        typedToken.hasCompletedOnboarding = typedUserFromCallback.hasCompletedOnboarding;
+        typedToken.questionnaireCompleted = typedUserFromCallback.questionnaireCompleted;
+        typedToken.source = typedUserFromCallback.source;
+        typedToken.addedByMatchmakerId = typedUserFromCallback.addedByMatchmakerId;
+        typedToken.termsAndPrivacyAcceptedAt = typedUserFromCallback.termsAndPrivacyAcceptedAt;
         typedToken.requiresCompletion = typedUserFromCallback.requiresCompletion;
         typedToken.redirectUrl = typedUserFromCallback.redirectUrl;
         typedToken.newlyCreated = typedUserFromCallback.newlyCreated;
-        typedToken.createdAt = typedUserFromCallback.createdAt; 
-        typedToken.updatedAt = typedUserFromCallback.updatedAt; 
-
-        console.log("[JWT Callback - Initial Population] Token populated from user callback object:", {
-            tokenId: typedToken.id,
-            tokenEmail: typedToken.email,
-            tokenStatus: typedToken.status,
-            tokenSource: typedToken.source,
-        });
+        
+        // **לא** מוסיפים לכאן את `profile`, `images`, `questionnaireResponses`
       }
       
-      if (typedToken.id && (trigger === "signIn" || trigger === "signUp" || trigger === "update" || !typedToken.profile || !typedToken.images)) {
-          console.log(`[JWT Callback - DB Refresh] Refreshing token data for user ID: ${typedToken.id} due to trigger: ${trigger} or missing profile/images.`);
+      // שלב 2: רענון מה-DB רק בעת הצורך כדי לעדכן הרשאות או סטטוס
+      if (trigger === "signIn" || trigger === "signUp" || trigger === "update") {
+          console.log(`[JWT Callback - DB Refresh] Refreshing core data for user ID: ${typedToken.id} due to trigger: ${trigger}.`);
           const dbUserForJwt = await prisma.user.findUnique({
             where: { id: typedToken.id },
-            include: {
-              profile: true, // This will include manualEntryText
-              images: { where: { isMain: true }, take: 1 },
-              questionnaireResponses: { orderBy: { createdAt: 'desc' }, take: 1 }
+            // הביא רק את המידע הנחוץ לטוקן וללוגיקת הניתוב
+            select: {
+              email: true,
+              firstName: true,
+              lastName: true,
+              role: true,
+              status: true,
+              isVerified: true,
+              isProfileComplete: true,
+              isPhoneVerified: true,
+              hasCompletedOnboarding: true,
+              source: true,
+              addedByMatchmakerId: true,
+              termsAndPrivacyAcceptedAt: true,
+              questionnaireResponses: { where: { completed: true }, take: 1 } // רק כדי לבדוק אם השלים שאלון
             }
           });
 
@@ -439,68 +440,30 @@ export const authOptions: NextAuthOptions = {
             typedToken.firstName = dbUserForJwt.firstName;
             typedToken.lastName = dbUserForJwt.lastName;
             typedToken.name = `${dbUserForJwt.firstName} ${dbUserForJwt.lastName}`.trim();
-            typedToken.picture = dbUserForJwt.images?.[0]?.url || typedToken.picture; 
             typedToken.role = dbUserForJwt.role;
             typedToken.status = dbUserForJwt.status;
             typedToken.isVerified = dbUserForJwt.isVerified;
             typedToken.isProfileComplete = dbUserForJwt.isProfileComplete;
             typedToken.isPhoneVerified = dbUserForJwt.isPhoneVerified;
-                        typedToken.questionnaireResponses = dbUserForJwt.questionnaireResponses as QuestionnaireResponse[];
-            typedToken.hasCompletedOnboarding = dbUserForJwt.hasCompletedOnboarding; // <-- הוספה כאן (חשוב לרענון)
+            typedToken.hasCompletedOnboarding = dbUserForJwt.hasCompletedOnboarding;
+            typedToken.source = dbUserForJwt.source;
+            typedToken.addedByMatchmakerId = dbUserForJwt.addedByMatchmakerId;
+            typedToken.termsAndPrivacyAcceptedAt = dbUserForJwt.termsAndPrivacyAcceptedAt;
 
-            typedToken.source = dbUserForJwt.source; // Refresh source
-            typedToken.addedByMatchmakerId = dbUserForJwt.addedByMatchmakerId; // Refresh addedByMatchmakerId
- typedToken.termsAndPrivacyAcceptedAt = dbUserForJwt.termsAndPrivacyAcceptedAt;
-            typedToken.profile = dbUserForJwt.profile as UserProfile | null;
-            typedToken.images = dbUserForJwt.images as UserImage[]; 
-            typedToken.questionnaireResponses = dbUserForJwt.questionnaireResponses as QuestionnaireResponse[];
-              const hasCompletedQuestionnaire = dbUserForJwt.questionnaireResponses.length > 0 && dbUserForJwt.questionnaireResponses[0].completed === true;
-            typedToken.questionnaireCompleted = hasCompletedQuestionnaire;
-            typedToken.lastLogin = dbUserForJwt.lastLogin;
-            typedToken.createdAt = dbUserForJwt.createdAt;
-            typedToken.updatedAt = dbUserForJwt.updatedAt;
-            console.log("[JWT Callback - DB Refresh] dbUserForJwt.role:", dbUserForJwt.role); 
-
+            // עדכון לוגיקת הניתוב על סמך המידע העדכני
             const requiresCompletionFromDb = (!dbUserForJwt.isProfileComplete || !dbUserForJwt.isPhoneVerified);
-            if (trigger !== "update" || session === undefined ) { 
-                typedToken.requiresCompletion = requiresCompletionFromDb;
-                typedToken.redirectUrl = requiresCompletionFromDb ? '/auth/register' : '/profile';
-                 if ((dbUserForJwt.status === UserStatus.PENDING_PHONE_VERIFICATION || 
-                     dbUserForJwt.status === UserStatus.PENDING_EMAIL_VERIFICATION) && 
-                    !dbUserForJwt.isProfileComplete) {
-                    if (typedToken.newlyCreated !== true) {
-                       typedToken.newlyCreated = true;
-                    }
-                } else {
-                    if (typedToken.newlyCreated !== true) { 
-                         typedToken.newlyCreated = false;
-                    }
-                }
-            }
-
-            console.log("[JWT Callback - DB Refresh] Token updated from DB:", {
-                tokenId: typedToken.id,
-                tokenEmail: typedToken.email,
-                tokenStatus: typedToken.status,
-                tokenSource: typedToken.source,
-            });
-          } else {
-              console.warn(`[JWT Callback - DB Refresh] User with ID ${typedToken.id} not found in DB during refresh. Token might be stale.`);
+            typedToken.requiresCompletion = requiresCompletionFromDb;
+            typedToken.redirectUrl = requiresCompletionFromDb ? '/auth/register' : '/profile';
           }
       }
       
       if (trigger === "update" && session) {
-        console.log("[JWT Callback - Client Update] Processing 'update' trigger with session data:", session);
+        console.log("[JWT Callback - Client Update] Processing 'update' trigger with session data.", session);
+        // כאן תוכל לעדכן שדות ספציפיים מה-session אם תרצה, למשל:
+        // typedToken.firstName = session.firstName
       }
 
-      console.log("[JWT Callback] Returning final token:", { 
-        tokenId: typedToken.id,
-        email: typedToken.email, 
-        role: typedToken.role, 
-        requiresCompletion: typedToken.requiresCompletion,
-        redirectUrl: typedToken.redirectUrl,
-        source: typedToken.source,
-      });
+      console.log("[JWT Callback] Returning final lightweight token.");
       return typedToken;
     },
 
@@ -508,52 +471,41 @@ export const authOptions: NextAuthOptions = {
       const typedToken = token as ExtendedUserJWT;
       const typedSession = session as ExtendedSession;
 
-      console.log("[Session Callback] Triggered.", { tokenId: typedToken.id, tokenEmail: typedToken.email });
+      console.log("[Session Callback] Populating session from lightweight token.");
 
       if (typedSession.user && typedToken.id) {
+        // ---- מידע מזהה בסיסי ----
         typedSession.user.id = typedToken.id;
         typedSession.user.email = typedToken.email;
         typedSession.user.firstName = typedToken.firstName;
         typedSession.user.lastName = typedToken.lastName;
         typedSession.user.name = typedToken.name ?? null; 
-        typedSession.user.image = typedToken.picture ?? null; 
+        typedSession.user.image = typedToken.picture ?? null; // פותר את שגיאת ה-undefined
         typedSession.user.role = typedToken.role;
         typedSession.user.status = typedToken.status;
+        
+        // ---- דגלים לוגיים ----
         typedSession.user.isVerified = typedToken.isVerified;
         typedSession.user.isProfileComplete = typedToken.isProfileComplete;
         typedSession.user.isPhoneVerified = typedToken.isPhoneVerified;
-                typedSession.user.questionnaireResponses = typedToken.questionnaireResponses;
         typedSession.user.questionnaireCompleted = typedToken.questionnaireCompleted;
-        typedSession.user.hasCompletedOnboarding = typedToken.hasCompletedOnboarding as boolean; // <-- הוספה כאן
-
-        typedSession.user.source = typedToken.source; // Pass source to session
-        typedSession.user.addedByMatchmakerId = typedToken.addedByMatchmakerId; // Pass to session
-        typedSession.user.termsAndPrivacyAcceptedAt = typedToken.termsAndPrivacyAcceptedAt; // <--- הוספה
-
-        typedSession.user.profile = typedToken.profile; 
-        typedSession.user.images = typedToken.images; 
-        typedSession.user.questionnaireResponses = typedToken.questionnaireResponses; 
-        typedSession.user.questionnaireCompleted = typedToken.questionnaireCompleted;
-
-        typedSession.user.lastLogin = typedToken.lastLogin;
-        typedSession.user.createdAt = typedToken.createdAt;
-        typedSession.user.updatedAt = typedToken.updatedAt;
-
+        typedSession.user.termsAndPrivacyAcceptedAt = typedToken.termsAndPrivacyAcceptedAt;
+        
+        // ---- מידע על מקור וניתוב ----
+        typedSession.user.source = typedToken.source;
+        typedSession.user.addedByMatchmakerId = typedToken.addedByMatchmakerId;
         typedSession.requiresCompletion = typedToken.requiresCompletion;
         typedSession.redirectUrl = typedToken.redirectUrl;
         typedSession.newlyCreated = typedToken.newlyCreated;
 
-      } else {
-          console.warn("[Session Callback] Token ID or session.user missing. Session might be incomplete.");
+        // **הסרנו את כל האובייקטים הכבדים: profile, images, questionnaireResponses**
       }
-      console.log("[Session Callback] Populated session:", { 
-        userId: typedSession.user?.id,
-        email: typedSession.user?.email, 
-        requiresCompletion: typedSession.requiresCompletion, 
-        source: typedSession.user?.source,
-      });
+      
+      console.log("[Session Callback] Final lightweight session object prepared.");
       return typedSession;
     },
+
+
 
 
     async redirect(params: { url: string; baseUrl: string; token?: unknown }) { 

@@ -48,7 +48,6 @@ import type { MatchSuggestion } from "@prisma/client";
 import type {
   UserProfile,
   UserImage,
-  QuestionnaireResponse,
 } from "@/types/next-auth";
 
 import MinimalSuggestionCard from "../cards/MinimalSuggestionCard";
@@ -82,6 +81,7 @@ interface StatusHistoryItem {
 }
 
 // 1. (FIX) הסרת השדה secondPartyQuestionnaire מהממשק כאן.
+//    הוא היה הגורם המרכזי ללולאה האין-סופית. המודאל יטען את המידע הזה בעצמו.
 interface ExtendedMatchSuggestion extends MatchSuggestion {
   matchmaker: {
     firstName: string;
@@ -230,10 +230,14 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
   }, [initialSuggestions, searchQuery, sortOption, filterOption, userId]);
 
   // 2. (FIX) הסרת ה-useEffect שגרם ללולאה האין-סופית.
-  // הלוגיקה לטעינת השאלון תעבור ל-SuggestionDetailsModal.
+  //    הלוגיקה לטעינת השאלון עברה במלואה ל-SuggestionDetailsModal.
+  //    זה הפיתרון המרכזי והחשוב ביותר.
 
   // Handlers
   const handleOpenDetails = (suggestion: ExtendedMatchSuggestion) => {
+    // --- LOGGING POINT 1 ---
+    console.log("[SuggestionsList] handleOpenDetails triggered. Setting selected suggestion.");
+    console.log("[SuggestionsList] Suggestion data being passed to modal:", JSON.stringify(suggestion, null, 2));
     setSelectedSuggestion(suggestion);
   };
 
@@ -576,6 +580,8 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
       </div>
 
       {/* 3. (FIX) הקריאה למודאל נשארת פשוטה. הוא ינהל את טעינת השאלון בעצמו. */}
+            {console.log(`[SuggestionsList] Rendering SuggestionDetailsModal. isOpen: ${!!selectedSuggestion && !showAskDialog && !showStatusDialog}`)}
+
       <SuggestionDetailsModal
         suggestion={selectedSuggestion}
         userId={userId}

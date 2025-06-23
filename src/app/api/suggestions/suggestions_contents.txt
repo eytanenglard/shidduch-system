@@ -1,0 +1,1529 @@
+################################################################################
+# Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\suggestions
+# Generated on: 2025-06-23 22:37:06
+################################################################################
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\suggestions
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\suggestions\route.ts
+--------------------------------------------------------------------------------
+Content:
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { MatchSuggestionStatus, UserRole, Priority } from "@prisma/client";
+import { z } from "zod";
+
+// Validation schema for creating a new suggestion
+const createSuggestionSchema = z.object({
+  firstPartyId: z.string({
+    required_error: "First party ID is required",
+  }),
+  secondPartyId: z.string({
+    required_error: "Second party ID is required",
+  }),
+  priority: z.enum([Priority.LOW, Priority.MEDIUM, Priority.HIGH, Priority.URGENT])
+    .default(Priority.MEDIUM),
+  matchingReason: z.string().optional(),
+  firstPartyNotes: z.string().optional(),
+  secondPartyNotes: z.string().optional(),
+  internalNotes: z.string().optional(),
+  decisionDeadline: z.string().refine((val) => !isNaN(Date.parse(val)), { // Validate as date string
+    message: "Invalid date format for decisionDeadline",
+  }).transform((val) => new Date(val)), // Transform to Date object
+});
+
+export async function POST(req: NextRequest) {
+  try {
+    // 1. Authentication check
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || !session.user.role) { // Check for user.id and user.role
+      return NextResponse.json({ error: "Unauthorized - Invalid session" }, { status: 401 });
+    }
+
+    // ---- START OF CHANGE for POST ----
+    // 2. Role verification (only matchmakers or admins can create suggestions)
+    const allowedCreatorRoles: UserRole[] = [UserRole.MATCHMAKER, UserRole.ADMIN];
+    if (!allowedCreatorRoles.includes(session.user.role as UserRole)) {
+      return NextResponse.json({ error: "Forbidden - Insufficient permissions to create suggestion" }, { status: 403 });
+    }
+    // ---- END OF CHANGE for POST ----
+
+    // 3. Parse and validate request body
+    const body = await req.json();
+    const validationResult = createSuggestionSchema.safeParse(body);
+
+    if (!validationResult.success) {
+        return NextResponse.json(
+            { error: "Validation error", details: validationResult.error.errors },
+            { status: 400 }
+        );
+    }
+    const validatedData = validationResult.data;
+
+
+    // 4. Check if parties exist and are available
+    const [firstParty, secondParty] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: validatedData.firstPartyId },
+        include: { profile: true },
+      }),
+      prisma.user.findUnique({
+        where: { id: validatedData.secondPartyId },
+        include: { profile: true },
+      }),
+    ]);
+
+    if (!firstParty || !secondParty) {
+      return NextResponse.json(
+        { error: "One or both parties not found" },
+        { status: 404 }
+      );
+    }
+
+    // 5. Check availability status
+    if (
+      firstParty.profile?.availabilityStatus !== "AVAILABLE" ||
+      secondParty.profile?.availabilityStatus !== "AVAILABLE"
+    ) {
+      return NextResponse.json(
+        { error: "One or both parties are not available for matching" },
+        { status: 400 }
+      );
+    }
+
+    // 6. Check for existing active suggestions between the parties
+    const existingSuggestion = await prisma.matchSuggestion.findFirst({
+      where: {
+        AND: [
+          {
+            OR: [
+              {
+                firstPartyId: validatedData.firstPartyId,
+                secondPartyId: validatedData.secondPartyId,
+              },
+              {
+                firstPartyId: validatedData.secondPartyId,
+                secondPartyId: validatedData.firstPartyId,
+              },
+            ],
+          },
+          {
+            status: {
+              notIn: [
+                MatchSuggestionStatus.CLOSED,
+                MatchSuggestionStatus.CANCELLED,
+                MatchSuggestionStatus.EXPIRED,
+                MatchSuggestionStatus.MATCH_DECLINED,
+                MatchSuggestionStatus.FIRST_PARTY_DECLINED, // Added
+                MatchSuggestionStatus.SECOND_PARTY_DECLINED, // Added
+                MatchSuggestionStatus.ENDED_AFTER_FIRST_DATE, // Added
+              ],
+            },
+          },
+        ],
+      },
+    });
+
+    if (existingSuggestion) {
+      return NextResponse.json(
+        { error: `Active or pending suggestion (ID: ${existingSuggestion.id}, Status: ${existingSuggestion.status}) already exists between these parties` },
+        { status: 409 } // Conflict
+      );
+    }
+
+    // 7. Create the suggestion using a transaction
+    const suggestion = await prisma.$transaction(async (tx) => {
+      // Create the suggestion
+      const newSuggestion = await tx.matchSuggestion.create({
+        data: {
+          matchmakerId: session.user.id, // The user creating is the matchmaker
+          firstPartyId: validatedData.firstPartyId,
+          secondPartyId: validatedData.secondPartyId,
+          status: MatchSuggestionStatus.PENDING_FIRST_PARTY,
+          priority: validatedData.priority,
+          matchingReason: validatedData.matchingReason,
+          firstPartyNotes: validatedData.firstPartyNotes,
+          secondPartyNotes: validatedData.secondPartyNotes,
+          internalNotes: validatedData.internalNotes,
+          decisionDeadline: validatedData.decisionDeadline,
+          responseDeadline: validatedData.decisionDeadline,
+          firstPartySent: new Date(),
+          lastStatusChange: new Date(),
+          lastActivity: new Date(), // Initialize lastActivity
+        },
+      });
+
+      // Create initial status history entry
+      await tx.suggestionStatusHistory.create({
+        data: {
+          suggestionId: newSuggestion.id,
+          status: MatchSuggestionStatus.PENDING_FIRST_PARTY,
+          notes: "Initial suggestion created and sent to first party",
+        },
+      });
+
+      return newSuggestion;
+    });
+
+    // 8. Trigger email notifications (should be moved to a separate service)
+    // TODO: Implement email service integration
+    // await emailService.sendSuggestionNotification(suggestion); // Consider passing the full suggestion object
+
+    return NextResponse.json({
+      message: "Suggestion created successfully",
+      suggestion, // Return the created suggestion object
+    }, { status: 201 }); // HTTP 201 Created
+  } catch (error) {
+    console.error("Error creating suggestion:", error);
+    
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: "Validation error", details: error.errors },
+        { status: 400 }
+      );
+    }
+
+    // Handle Prisma unique constraint errors specifically if needed
+    // if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {}
+    
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+// Status update handler
+export async function PATCH(req: NextRequest) {
+  try {
+    // 1. Authentication check
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || !session.user.role) {
+      return NextResponse.json({ error: "Unauthorized - Invalid session" }, { status: 401 });
+    }
+
+    // ---- START OF CHANGE for PATCH (General permission) ----
+    const allowedUpdaterRoles: UserRole[] = [UserRole.MATCHMAKER, UserRole.ADMIN, UserRole.CANDIDATE]; // CANDIDATE can update if they are a party
+    if (!allowedUpdaterRoles.includes(session.user.role as UserRole)) {
+        return NextResponse.json({ error: "Forbidden - Insufficient permissions to update suggestion status" }, { status: 403 });
+    }
+    // ---- END OF CHANGE for PATCH ----
+
+    const body = await req.json();
+    const { suggestionId, status, notes } = body; // Assuming status and notes are part of body
+
+    // Validate incoming data (basic example)
+    if (!suggestionId || !status) {
+        return NextResponse.json({ error: "Missing suggestionId or status" }, { status: 400 });
+    }
+    if (!Object.values(MatchSuggestionStatus).includes(status as MatchSuggestionStatus)) {
+        return NextResponse.json({ error: "Invalid status value" }, { status: 400 });
+    }
+
+
+    // 2. Fetch current suggestion
+    const suggestion = await prisma.matchSuggestion.findUnique({
+      where: { id: suggestionId },
+      include: {
+        firstParty: { include: { profile: true } },
+        secondParty: { include: { profile: true } },
+        matchmaker: true, // Include matchmaker for permission checks
+      },
+    });
+
+    if (!suggestion) {
+      return NextResponse.json(
+        { error: "Suggestion not found" },
+        { status: 404 }
+      );
+    }
+
+    // ---- Specific permission check for PATCH ----
+    // An ADMIN can update any suggestion.
+    // A MATCHMAKER can update suggestions they created.
+    // A CANDIDATE can update suggestions they are a party to (firstPartyId or secondPartyId).
+    const isUserAdmin = session.user.role === UserRole.ADMIN;
+    const isUserMatchmakerOwner = session.user.role === UserRole.MATCHMAKER && suggestion.matchmakerId === session.user.id;
+    const isUserParty = session.user.role === UserRole.CANDIDATE && (suggestion.firstPartyId === session.user.id || suggestion.secondPartyId === session.user.id);
+
+    if (!isUserAdmin && !isUserMatchmakerOwner && !isUserParty) {
+        return NextResponse.json({ error: "Forbidden - You do not have permission to update this specific suggestion's status." }, { status: 403 });
+    }
+    // ---- End specific permission check ----
+
+
+    // 3. Validate status transition (using your existing helper)
+    const isValidTransition = validateStatusTransition(suggestion.status, status as MatchSuggestionStatus);
+    if (!isValidTransition) {
+      return NextResponse.json(
+        { error: `Invalid status transition from ${suggestion.status} to ${status}` },
+        { status: 400 }
+      );
+    }
+
+    // 4. Update suggestion and create history entry
+    const updatedSuggestion = await prisma.$transaction(async (tx) => {
+      const updated = await tx.matchSuggestion.update({
+        where: { id: suggestionId },
+        data: {
+          status: status as MatchSuggestionStatus,
+          previousStatus: suggestion.status,
+          lastStatusChange: new Date(),
+          lastActivity: new Date(), // Update lastActivity
+          ...(status === MatchSuggestionStatus.PENDING_SECOND_PARTY && {
+            secondPartySent: new Date(),
+          }),
+          ...(status === MatchSuggestionStatus.CONTACT_DETAILS_SHARED && {
+            // closedAt: new Date(), // Typically, CONTACT_DETAILS_SHARED doesn't mean closed
+          }),
+          ...(status === MatchSuggestionStatus.CLOSED && { // Explicitly set closedAt for CLOSED status
+            closedAt: new Date(),
+          }),
+        },
+      });
+
+      await tx.suggestionStatusHistory.create({
+        data: {
+          suggestionId,
+          status: status as MatchSuggestionStatus,
+          notes: notes || `Status changed to ${status} by user ${session.user.id}`, // Add more context to notes
+        },
+      });
+
+      return updated;
+    });
+
+    // 5. Handle automatic transitions and notifications
+    // This logic might be better suited in a service layer or triggered by events
+    // For example, if status is FIRST_PARTY_APPROVED, you might automatically transition to PENDING_SECOND_PARTY
+    // and send notifications.
+    // if (status === MatchSuggestionStatus.FIRST_PARTY_APPROVED) {
+    //   // TODO: Transition to PENDING_SECOND_PARTY and notify
+    // } else if (status === MatchSuggestionStatus.SECOND_PARTY_APPROVED) {
+    //   // TODO: Transition to CONTACT_DETAILS_SHARED and notify
+    // }
+
+    return NextResponse.json({
+      message: "Suggestion status updated successfully",
+      suggestion: updatedSuggestion,
+    });
+  } catch (error) {
+    console.error("Error updating suggestion status:", error);
+    if (error instanceof z.ZodError) { // Handle Zod validation errors if you add more validation
+        return NextResponse.json(
+            { error: "Validation error for status update", details: error.errors },
+            { status: 400 }
+        );
+    }
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+// Helper function to validate status transitions
+function validateStatusTransition(
+  currentStatus: MatchSuggestionStatus,
+  newStatus: MatchSuggestionStatus
+): boolean {
+  const validTransitions: Record<MatchSuggestionStatus, MatchSuggestionStatus[]> = {
+    DRAFT: [MatchSuggestionStatus.PENDING_FIRST_PARTY, MatchSuggestionStatus.CANCELLED],
+    PENDING_FIRST_PARTY: [
+        MatchSuggestionStatus.FIRST_PARTY_APPROVED,
+        MatchSuggestionStatus.FIRST_PARTY_DECLINED,
+        MatchSuggestionStatus.CANCELLED,
+        MatchSuggestionStatus.EXPIRED,
+    ],
+    FIRST_PARTY_APPROVED: [
+        MatchSuggestionStatus.PENDING_SECOND_PARTY,
+        MatchSuggestionStatus.CANCELLED
+    ],
+    FIRST_PARTY_DECLINED: [MatchSuggestionStatus.CLOSED],
+    PENDING_SECOND_PARTY: [
+        MatchSuggestionStatus.SECOND_PARTY_APPROVED,
+        MatchSuggestionStatus.SECOND_PARTY_DECLINED,
+        MatchSuggestionStatus.CANCELLED,
+        MatchSuggestionStatus.EXPIRED,
+    ],
+    SECOND_PARTY_APPROVED: [
+        MatchSuggestionStatus.AWAITING_MATCHMAKER_APPROVAL, // Often matchmaker confirms before sharing
+        MatchSuggestionStatus.CONTACT_DETAILS_SHARED, // Or directly share
+        MatchSuggestionStatus.CANCELLED
+    ],
+    SECOND_PARTY_DECLINED: [MatchSuggestionStatus.CLOSED],
+    AWAITING_MATCHMAKER_APPROVAL: [ // Matchmaker action after both parties approve
+        MatchSuggestionStatus.CONTACT_DETAILS_SHARED,
+        MatchSuggestionStatus.MATCH_DECLINED, // Matchmaker can decide not to proceed
+        MatchSuggestionStatus.CANCELLED
+    ],
+    CONTACT_DETAILS_SHARED: [
+        MatchSuggestionStatus.MEETING_PENDING, // Or AWAITING_FIRST_DATE_FEEDBACK
+        MatchSuggestionStatus.DATING, // If they skip formal feedback and start dating
+        MatchSuggestionStatus.CLOSED, // If one party decides not to proceed after contact
+        MatchSuggestionStatus.CANCELLED
+    ],
+    AWAITING_FIRST_DATE_FEEDBACK: [
+        MatchSuggestionStatus.THINKING_AFTER_DATE,
+        MatchSuggestionStatus.ENDED_AFTER_FIRST_DATE,
+        MatchSuggestionStatus.PROCEEDING_TO_SECOND_DATE, // If feedback leads to this
+        MatchSuggestionStatus.CANCELLED
+    ],
+    THINKING_AFTER_DATE: [
+        MatchSuggestionStatus.PROCEEDING_TO_SECOND_DATE,
+        MatchSuggestionStatus.ENDED_AFTER_FIRST_DATE,
+        MatchSuggestionStatus.CANCELLED
+    ],
+    PROCEEDING_TO_SECOND_DATE: [ // This might be too granular, DATNG might cover it
+        MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK, // For feedback after 2nd date etc.
+        MatchSuggestionStatus.DATING,
+        MatchSuggestionStatus.ENDED_AFTER_FIRST_DATE, // If it ends after 2nd date
+        MatchSuggestionStatus.CANCELLED
+    ],
+    ENDED_AFTER_FIRST_DATE: [MatchSuggestionStatus.CLOSED],
+    MEETING_PENDING: [ // This status might be redundant if AWAITING_FIRST_DATE_FEEDBACK is used
+        MatchSuggestionStatus.MEETING_SCHEDULED,
+        MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK,
+        MatchSuggestionStatus.CANCELLED
+    ],
+    MEETING_SCHEDULED: [ // Similar to MEETING_PENDING
+        MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK,
+        MatchSuggestionStatus.DATING,
+        MatchSuggestionStatus.CANCELLED
+    ],
+    MATCH_APPROVED: [ // This is often equivalent to CONTACT_DETAILS_SHARED or DATNG
+        MatchSuggestionStatus.DATING,
+        MatchSuggestionStatus.ENGAGED, // Could jump here
+        MatchSuggestionStatus.CANCELLED
+    ],
+    MATCH_DECLINED: [MatchSuggestionStatus.CLOSED],
+    DATING: [
+        MatchSuggestionStatus.ENGAGED,
+        MatchSuggestionStatus.CLOSED, // If dating ends
+        MatchSuggestionStatus.CANCELLED
+    ],
+    ENGAGED: [
+        MatchSuggestionStatus.MARRIED,
+        MatchSuggestionStatus.CLOSED, // If engagement breaks
+        MatchSuggestionStatus.CANCELLED
+    ],
+    MARRIED: [MatchSuggestionStatus.CLOSED], // Or just stay MARRIE
+    EXPIRED: [MatchSuggestionStatus.CLOSED],
+    CLOSED: [], // No transitions from CLOSED typically, except maybe reopening
+    CANCELLED: [MatchSuggestionStatus.CLOSED] // Or just stay CANCELLED
+};
+
+  return validTransitions[currentStatus]?.includes(newStatus) ?? false;
+}
+--- End of Content for route.ts ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\suggestions\suggestions_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\suggestions\[id]
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\suggestions\[id]\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/suggestions/[id]/route.ts
+
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { UserRole } from "@prisma/client";
+
+// Helper function to include all necessary fields for a party
+const partySelect = {
+  id: true,
+  email: true,
+  firstName: true,
+  lastName: true,
+  profile: true,
+  images: {
+    select: {
+      id: true,
+      url: true,
+      isMain: true,
+    },
+    orderBy: { isMain: "desc" as const },
+  },
+};
+
+export async function GET(req: Request, { params }: { params: { id: string } }) {
+  const suggestionId = params.id;
+  // --- לוג 1: התחלת טיפול בבקשה ---
+  console.log(`[API GET /suggestions/${suggestionId}] Request received.`);
+
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      // --- לוג 2: שגיאת אימות ---
+      console.warn(`[API GET /suggestions/${suggestionId}] Unauthorized access attempt: No session or user ID.`);
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // --- לוג 3: פרטי משתמש מאומת ---
+    console.log(`[API GET /suggestions/${suggestionId}] User authenticated: ID=${session.user.id}, Role=${session.user.role}`);
+
+    const suggestion = await prisma.matchSuggestion.findUnique({
+      where: { id: suggestionId },
+      include: {
+        matchmaker: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+        firstParty: { select: partySelect },
+        secondParty: { select: partySelect },
+        statusHistory: {
+          orderBy: { createdAt: "desc" as const },
+        },
+      },
+    });
+
+    if (!suggestion) {
+      // --- לוג 4: הצעה לא נמצאה ---
+      console.warn(`[API GET /suggestions/${suggestionId}] Suggestion not found in database.`);
+      return NextResponse.json({ error: "Suggestion not found" }, { status: 404 });
+    }
+
+    // --- לוג 5: הצעה נמצאה בהצלחה ---
+    console.log(`[API GET /suggestions/${suggestionId}] Found suggestion. Status: ${suggestion.status}, Matchmaker: ${suggestion.matchmakerId}`);
+
+    // Authorization check: User must be one of the parties or the matchmaker or an admin
+    const isAuthorized =
+      session.user.id === suggestion.firstPartyId ||
+      session.user.id === suggestion.secondPartyId ||
+      session.user.id === suggestion.matchmakerId ||
+      session.user.role === UserRole.ADMIN;
+
+    if (!isAuthorized) {
+      // --- לוג 6: שגיאת הרשאה ---
+      console.warn(`[API GET /suggestions/${suggestionId}] Forbidden access. User ${session.user.id} is not a party, the matchmaker, or an admin.`);
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    // --- לוג 7: הרשאה תקינה ---
+    console.log(`[API GET /suggestions/${suggestionId}] User ${session.user.id} is authorized to view.`);
+
+    // Fetch the questionnaire for the "other" party
+    const targetPartyId =
+      suggestion.firstPartyId === session.user.id
+        ? suggestion.secondPartyId
+        : suggestion.firstPartyId;
+
+    // --- לוג 8: שליפת שאלון עבור הצד השני ---
+    console.log(`[API GET /suggestions/${suggestionId}] Fetching questionnaire for targetPartyId: ${targetPartyId}.`);
+
+    const questionnaireResponse = await prisma.questionnaireResponse.findFirst({
+      where: { userId: targetPartyId },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    // --- לוג 9: תוצאת שליפת השאלון ---
+    if (questionnaireResponse) {
+        console.log(`[API GET /suggestions/${suggestionId}] Found questionnaire for targetPartyId: ${targetPartyId}. Questionnaire ID: ${questionnaireResponse.id}`);
+    } else {
+        console.warn(`[API GET /suggestions/${suggestionId}] No questionnaire found for targetPartyId: ${targetPartyId}.`);
+    }
+
+    // Combine all data into a single response object
+    const fullSuggestionData = {
+      ...suggestion,
+      secondPartyQuestionnaire: questionnaireResponse || null, // Naming this consistently
+    };
+
+    // --- לוג 10: סיכום המידע לפני שליחה ---
+    console.log(`[API GET /suggestions/${suggestionId}] Preparing to send final data. Suggestion ID: ${fullSuggestionData.id}, Status: ${fullSuggestionData.status}, Questionnaire present: ${!!fullSuggestionData.secondPartyQuestionnaire}`);
+    // אם תרצה לראות את כל האובייקט, תוכל להסיר את ההערה מהשורה הבאה, אך שים לב שהפלט יהיה ארוך מאוד
+    // console.log(`[API GET /suggestions/${suggestionId}] Full data object:`, JSON.stringify(fullSuggestionData, null, 2));
+
+
+    return NextResponse.json({
+      success: true,
+      suggestion: fullSuggestionData,
+    });
+  } catch (error) {
+    // --- לוג 11: טיפול בשגיאות כלליות ---
+    console.error(`[API GET /suggestions/${suggestionId}] Critical error fetching suggestion:`, error);
+    const errorMessage = error instanceof Error ? error.message : "Internal Server Error";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\suggestions\[id]\delete
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\suggestions\[id]\delete\route.ts
+--------------------------------------------------------------------------------
+Content:
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { UserRole } from "@prisma/client";
+
+export async function DELETE(
+  req: NextRequest, // req is not used, can be removed if not needed
+  context: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || !session.user.role) {
+      return NextResponse.json({ error: "Unauthorized - Invalid session" }, { status: 401 });
+    }
+
+    const suggestionId = context.params.id;
+
+    // בדיקה שההצעה קיימת
+    const suggestion = await prisma.matchSuggestion.findUnique({
+      where: { id: suggestionId },
+    });
+
+    if (!suggestion) {
+      return NextResponse.json({ error: "Suggestion not found" }, { status: 404 });
+    }
+
+    // ---- START OF CHANGE ----
+    // הרשאות:
+    // 1. אדמין יכול למחוק כל הצעה.
+    // 2. שדכן יכול למחוק רק הצעה שהוא יצר.
+    const userRole = session.user.role as UserRole;
+    const isOwner = suggestion.matchmakerId === session.user.id;
+
+    if (userRole === UserRole.ADMIN) {
+      // Admin can delete any suggestion
+    } else if (userRole === UserRole.MATCHMAKER && isOwner) {
+      // Matchmaker can delete their own suggestion
+    } else {
+      // Any other case is forbidden
+      return NextResponse.json({ error: "Forbidden - Insufficient permissions to delete this suggestion" }, { status: 403 });
+    }
+    // ---- END OF CHANGE ----
+
+    // מחיקת ההצעה וכל הנתונים הקשורים אליה (ודא ש-onDelete: Cascade מוגדר בסכמה אם רלוונטי)
+    // אם אין Cascade, יש למחוק רשומות קשורות ידנית קודם.
+    // הסדר הנוכחי שלך נראה טוב אם אין Cascade על הכל.
+    await prisma.$transaction(async (tx) => { // Changed to async for await inside
+      // מחיקת היסטוריית סטטוסים
+      await tx.suggestionStatusHistory.deleteMany({
+        where: { suggestionId },
+      });
+      // מחיקת שאלות
+      await tx.suggestionInquiry.deleteMany({
+        where: { suggestionId },
+      });
+      // מחיקת פגישות (אם קיימות וקשורות ישירות)
+      await tx.meeting.deleteMany({
+        where: { suggestionId },
+      });
+      // Consider other related data like DateFeedback
+      await tx.dateFeedback.deleteMany({
+        where: { suggestionId },
+      });
+
+      // הסרת קשרים בטבלאות קשר רבים-לרבים (אם יש)
+      // לדוגמה, אם יש קשר approvedBy, reviewedBy ב-MatchSuggestion
+      await tx.matchSuggestion.update({
+        where: { id: suggestionId },
+        data: {
+          approvedBy: { set: [] }, // Assuming relation exists
+          reviewedBy: { set: [] }, // Assuming relation exists
+        }
+      });
+      
+      // מחיקת ההצעה עצמה
+      await tx.matchSuggestion.delete({
+        where: { id: suggestionId },
+      });
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: "Suggestion deleted successfully",
+    });
+
+  } catch (error) {
+    console.error("Error deleting suggestion:", error);
+    // Consider more specific error handling (e.g., Prisma errors)
+    return NextResponse.json(
+      { error: "Internal server error during suggestion deletion" },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\suggestions\[id]\inquiries
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\suggestions\[id]\inquiries\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/suggestions/[id]/inquiries/route.ts
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+/* import { EmailService } from "@/app/components/matchmaker/suggestions/services/email/EmailService";
+ */
+export async function POST(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { question } = await req.json();
+
+    // Fetch the suggestion to get matchmaker details
+    const suggestion = await prisma.matchSuggestion.findUnique({
+      where: { id: params.id },
+      include: {
+        matchmaker: true,
+        firstParty: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true,
+          }
+        },
+        secondParty: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true,
+          }
+        },
+      },
+    });
+
+    if (!suggestion) {
+      return NextResponse.json({ error: "Suggestion not found" }, { status: 404 });
+    }
+
+    // Verify user is authorized to send inquiries for this suggestion
+    if (suggestion.firstPartyId !== session.user.id && 
+        suggestion.secondPartyId !== session.user.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
+
+    // Create the inquiry record
+   // בקובץ src/app/api/suggestions/[id]/inquiries/route.ts נעדכן את היחסים:
+
+const inquiry = await prisma.suggestionInquiry.create({
+    data: {
+      suggestionId: params.id,
+      fromUserId: session.user.id,
+      toUserId: suggestion.matchmakerId,
+      question,
+      status: "PENDING",
+    },
+    include: {
+      fromUser: true,
+      toUser: true,
+      suggestion: true,
+    }
+  });
+
+    return NextResponse.json({
+      success: true,
+      inquiry,
+    });
+
+  } catch (error) {
+    console.error("Error creating inquiry:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\suggestions\[id]\status
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\suggestions\[id]\status\route.ts
+--------------------------------------------------------------------------------
+Content:
+// Full path: src/app/api/suggestions/[id]/status/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { z } from "zod";
+import { MatchSuggestionStatus, MatchSuggestion } from "@prisma/client";
+import { statusTransitionService } from "@/app/components/matchmaker/suggestions/services/suggestions/StatusTransitionService";
+
+// Validation schema for status update
+const statusUpdateSchema = z.object({
+  status: z.enum([
+    "DRAFT",
+    "PENDING_FIRST_PARTY",
+    "FIRST_PARTY_APPROVED",
+    "FIRST_PARTY_DECLINED",
+    "PENDING_SECOND_PARTY",
+    "SECOND_PARTY_APPROVED",
+    "SECOND_PARTY_DECLINED",
+    "AWAITING_MATCHMAKER_APPROVAL",
+    "CONTACT_DETAILS_SHARED",
+    "AWAITING_FIRST_DATE_FEEDBACK",
+    "THINKING_AFTER_DATE",
+    "PROCEEDING_TO_SECOND_DATE",
+    "ENDED_AFTER_FIRST_DATE",
+    "MEETING_PENDING",
+    "MEETING_SCHEDULED",
+    "MATCH_APPROVED",
+    "MATCH_DECLINED",
+    "DATING",
+    "ENGAGED",
+    "MARRIED",
+    "EXPIRED",
+    "CLOSED",
+    "CANCELLED"
+  ] as const),
+  notes: z.string().optional(),
+  feedback: z.string().optional(),
+  meetingDate: z.string().optional(),
+  customMessage: z.string().optional(),
+});
+
+export async function PATCH(
+  req: NextRequest,
+  context: { params: { id: string } }
+) {
+  try {
+    // Extract parameters
+    const params = await context.params;
+    const suggestionId = params.id;
+
+    // Authentication check
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Parse and validate request body
+    const body = await req.json();
+    
+    try {
+      const validatedData = statusUpdateSchema.parse(body);
+      
+      // Fetch current suggestion with related parties
+      const suggestion = await prisma.matchSuggestion.findUnique({
+        where: { id: suggestionId },
+        include: {
+          firstParty: {
+            include: { profile: true }
+          },
+          secondParty: {
+            include: { profile: true }
+          },
+          matchmaker: true,
+        },
+      });
+
+      if (!suggestion) {
+        return NextResponse.json(
+          { error: "Suggestion not found" },
+          { status: 404 }
+        );
+      }
+
+      // Validate user permissions
+      if (
+        suggestion.firstPartyId !== session.user.id &&
+        suggestion.secondPartyId !== session.user.id &&
+        suggestion.matchmakerId !== session.user.id
+      ) {
+        return NextResponse.json(
+          { error: "Unauthorized to update this suggestion" },
+          { status: 403 }
+        );
+      }
+
+      // Define transition options based on the type of update
+      const transitionOptions = {
+        sendNotifications: true,
+        customMessage: validatedData.customMessage,
+        notifyParties: ['first', 'second', 'matchmaker'] as ('first' | 'second' | 'matchmaker')[]
+      };
+
+      // Handle special cases for different status updates
+      if (validatedData.status === "CONTACT_DETAILS_SHARED" && 
+          validatedData.feedback && 
+          validatedData.notes) {
+        await createMeetingIfNecessary(suggestionId, validatedData);
+      }
+
+      // Process automatic secondary actions for certain status changes
+      const secondaryAction = determineSecondaryAction(suggestion.status, validatedData.status);
+
+      // Update suggestion status
+      let updatedSuggestion = await statusTransitionService.transitionStatus(
+        suggestion,
+        validatedData.status as MatchSuggestionStatus,
+        validatedData.notes,
+        transitionOptions
+      );
+
+      // Process any secondary action if needed
+      if (secondaryAction) {
+        try {
+          updatedSuggestion = await statusTransitionService.transitionStatus(
+            updatedSuggestion,
+            secondaryAction,
+            `Automatic transition after ${validatedData.status}`,
+            { 
+              ...transitionOptions,
+              customMessage: `התבצע מעבר אוטומטי לסטטוס ${statusTransitionService.getStatusLabel(secondaryAction)}`
+            }
+          );
+        } catch (secondaryActionError) {
+          console.warn("Warning: Secondary status transition failed:", secondaryActionError);
+          // Continue with the response even if secondary action fails
+        }
+      }
+
+      // Update party profiles if needed (e.g., changing availability status)
+      await updateProfilesIfNeeded(validatedData.status as MatchSuggestionStatus, suggestion);
+
+      return NextResponse.json({
+        success: true,
+        suggestion: updatedSuggestion,
+      });
+
+    } catch (validationError) {
+      if (validationError instanceof z.ZodError) {
+        return NextResponse.json({
+          error: "Validation error",
+          details: validationError.errors
+        }, { status: 400 });
+      }
+      throw validationError;
+    }
+
+  } catch (error) {
+    console.error("Error processing request:", error);
+    return NextResponse.json(
+      { 
+        error: "Internal server error",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
+  }
+}
+
+// Helper function to determine if a secondary action should be taken
+function determineSecondaryAction(
+  currentStatus: MatchSuggestionStatus,
+  newStatus: MatchSuggestionStatus
+): MatchSuggestionStatus | null {
+  // Automatic transitions
+
+const automaticTransitions: Partial<Record<MatchSuggestionStatus, MatchSuggestionStatus>> = {    FIRST_PARTY_APPROVED: MatchSuggestionStatus.PENDING_SECOND_PARTY,
+    SECOND_PARTY_APPROVED: MatchSuggestionStatus.CONTACT_DETAILS_SHARED,
+    FIRST_PARTY_DECLINED: MatchSuggestionStatus.CLOSED,
+    SECOND_PARTY_DECLINED: MatchSuggestionStatus.CLOSED,
+  };
+
+  return automaticTransitions[newStatus] || null;
+}
+
+// Helper function to create a meeting record if needed
+async function createMeetingIfNecessary(
+  suggestionId: string,
+  data: z.infer<typeof statusUpdateSchema>
+) {
+  if (data.meetingDate) {
+    // Create a meeting record
+    await prisma.meeting.create({
+      data: {
+        suggestionId,
+        scheduledDate: new Date(data.meetingDate),
+        status: "SCHEDULED",
+        notes: data.notes || "Automatically created when contact details were shared",
+      }
+    });
+  }
+}
+
+// Helper function to update profiles if needed
+async function updateProfilesIfNeeded(
+  newStatus: MatchSuggestionStatus,
+  suggestion: MatchSuggestion,
+) {
+  // Special handling for ENGAGED and MARRIED statuses
+  if (newStatus === "ENGAGED" || newStatus === "MARRIED") {
+    const availabilityStatus = newStatus === "ENGAGED" ? "ENGAGED" : "MARRIED";
+    
+    // Update both profiles with the new status
+    await Promise.all([
+      prisma.profile.update({
+        where: { userId: suggestion.firstPartyId },
+        data: {
+          availabilityStatus,
+          availabilityNote: `Status changed to ${newStatus} on ${new Date().toISOString().split('T')[0]}`,
+          availabilityUpdatedAt: new Date()
+        }
+      }),
+      prisma.profile.update({
+        where: { userId: suggestion.secondPartyId },
+        data: {
+          availabilityStatus,
+          availabilityNote: `Status changed to ${newStatus} on ${new Date().toISOString().split('T')[0]}`,
+          availabilityUpdatedAt: new Date()
+        }
+      })
+    ]);
+  }
+  
+  // For DATING status, mark both profiles as unavailable
+  if (newStatus === "DATING") {
+    await Promise.all([
+      prisma.profile.update({
+        where: { userId: suggestion.firstPartyId },
+        data: {
+          availabilityStatus: "DATING",
+          availabilityNote: "Currently in a dating process",
+          availabilityUpdatedAt: new Date()
+        }
+      }),
+      prisma.profile.update({
+        where: { userId: suggestion.secondPartyId },
+        data: {
+          availabilityStatus: "DATING",
+          availabilityNote: "Currently in a dating process",
+          availabilityUpdatedAt: new Date()
+        }
+      })
+    ]);
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\suggestions\active
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\suggestions\active\route.ts
+--------------------------------------------------------------------------------
+Content:
+
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth"; // Assuming next-auth/next might be more common for app router, but this works.
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+
+export async function GET() {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const activeSuggestions = await prisma.matchSuggestion.findMany({
+      where: {
+        OR: [
+          {
+            firstPartyId: session.user.id,
+            status: {
+              in: [
+                "PENDING_FIRST_PARTY",
+                "FIRST_PARTY_APPROVED",
+                "PENDING_SECOND_PARTY",
+                "SECOND_PARTY_APPROVED",
+                "CONTACT_DETAILS_SHARED"
+              ],
+            },
+          },
+          {
+            secondPartyId: session.user.id,
+            status: {
+              in: [
+                "PENDING_SECOND_PARTY",
+                "SECOND_PARTY_APPROVED",
+                "CONTACT_DETAILS_SHARED"
+              ],
+            },
+          },
+        ],
+      },
+      include: {
+        statusHistory: {
+          orderBy: {
+            createdAt: 'desc'
+          }
+        },
+        matchmaker: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
+        firstParty: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            profile: {
+              select: {
+                gender: true,
+                birthDate: true,
+                nativeLanguage: true,
+                additionalLanguages: true,
+                height: true,
+                maritalStatus: true,
+                occupation: true,
+                education: true, // תיאור טקסטואלי
+                educationLevel: true, // רמת השכלה מובנית - נוסף
+                // address: true, // הוסר מ-UserProfile
+                city: true,
+                origin: true,
+                religiousLevel: true,
+                about: true,
+                // hobbies: true, // הוסר (הוחלף ב-profileHobbies)
+
+                // --- שדות חדשים מ-UserProfile ---
+                shomerNegiah: true,
+                serviceType: true,
+                serviceDetails: true,
+                headCovering: true, // לנשים
+                kippahType: true, // לגברים
+                hasChildrenFromPrevious: true,
+                profileCharacterTraits: true,
+                profileHobbies: true,
+                aliyaCountry: true,
+                aliyaYear: true,
+                
+                parentStatus: true,
+                siblings: true,
+                position: true,
+                preferredAgeMin: true,
+                preferredAgeMax: true,
+                preferredHeightMin: true,
+                preferredHeightMax: true,
+                preferredReligiousLevels: true,
+                preferredLocations: true,
+                preferredEducation: true,
+                preferredOccupations: true,
+                contactPreference: true,
+      
+                isProfileVisible: true,
+                preferredMatchmakerGender: true,
+                matchingNotes: true,
+                verifiedBy: true,
+                availabilityStatus: true,
+                availabilityNote: true,
+                availabilityUpdatedAt: true,
+                createdAt: true,
+                updatedAt: true,
+                lastActive: true,
+              },
+            },
+            images: {
+              select: {
+                id: true,
+                url: true,
+                isMain: true,
+                cloudinaryPublicId: true,
+                createdAt: true,
+                updatedAt: true,
+              },
+            },
+          },
+        },
+        secondParty: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            profile: {
+              select: {
+                gender: true,
+                birthDate: true,
+                nativeLanguage: true,
+                additionalLanguages: true,
+                height: true,
+                maritalStatus: true,
+                occupation: true,
+                education: true, // תיאור טקסטואלי
+                educationLevel: true, // רמת השכלה מובנית - נוסף
+                // address: true, // הוסר מ-UserProfile
+                city: true,
+                origin: true,
+                religiousLevel: true,
+                about: true,
+                // hobbies: true, // הוסר (הוחלף ב-profileHobbies)
+
+                // --- שדות חדשים מ-UserProfile ---
+                shomerNegiah: true,
+                serviceType: true,
+                serviceDetails: true,
+                headCovering: true, // לנשים
+                kippahType: true, // לגברים
+                hasChildrenFromPrevious: true,
+                profileCharacterTraits: true,
+                profileHobbies: true,
+                aliyaCountry: true,
+                aliyaYear: true,
+
+                parentStatus: true,
+                siblings: true,
+                position: true,
+                preferredAgeMin: true,
+                preferredAgeMax: true,
+                preferredHeightMin: true,
+                preferredHeightMax: true,
+                preferredReligiousLevels: true,
+                preferredLocations: true,
+                preferredEducation: true,
+                preferredOccupations: true,
+                contactPreference: true,
+             
+                isProfileVisible: true,
+                preferredMatchmakerGender: true,
+                matchingNotes: true,
+                verifiedBy: true,
+                availabilityStatus: true,
+                availabilityNote: true,
+                availabilityUpdatedAt: true,
+                createdAt: true,
+                updatedAt: true,
+                lastActive: true,
+              },
+            },
+            images: {
+              select: {
+                id: true,
+                url: true,
+                isMain: true,
+                cloudinaryPublicId: true,
+                createdAt: true,
+                updatedAt: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      suggestions: activeSuggestions,
+    });
+    
+  } catch (error) {
+    console.error("Error fetching active suggestions:", error);
+    // It's good practice to type the error if possible, e.g., if (error instanceof Error)
+    const errorMessage = error instanceof Error ? error.message : "Internal server error";
+    return NextResponse.json(
+      { error: errorMessage }, // More specific error message if available
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\suggestions\history
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\api\suggestions\history\route.ts
+--------------------------------------------------------------------------------
+Content:
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth"; // Using 'next-auth' is fine
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { UserProfile } from "@/types/next-auth"; // Import for potential explicit typing if needed
+
+export async function GET() {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const historySuggestions = await prisma.matchSuggestion.findMany({
+      where: {
+        OR: [
+          {
+            firstPartyId: session.user.id,
+            status: {
+              in: [
+                "FIRST_PARTY_DECLINED",
+                "SECOND_PARTY_DECLINED",
+                "MATCH_DECLINED",
+                "CLOSED",
+                "CANCELLED",
+              ],
+            },
+          },
+          {
+            secondPartyId: session.user.id,
+            status: {
+              in: [
+                "SECOND_PARTY_DECLINED",
+                "MATCH_DECLINED",
+                "CLOSED",
+                "CANCELLED",
+              ],
+            },
+          },
+        ],
+      },
+      include: {
+        statusHistory: {
+          orderBy: {
+            createdAt: 'desc'
+          }
+        },
+        matchmaker: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
+        firstParty: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            profile: {
+              select: {
+                gender: true,
+                birthDate: true,
+                nativeLanguage: true,
+                additionalLanguages: true,
+                height: true,
+                maritalStatus: true,
+                occupation: true,
+                education: true, // תיאור טקסטואלי
+                educationLevel: true, // רמת השכלה מובנית - נוסף
+                // address: true, // הוסר מ-UserProfile
+                city: true,
+                origin: true,
+                religiousLevel: true,
+                about: true,
+                // hobbies: true, // הוסר (הוחלף ב-profileHobbies)
+
+                // --- שדות חדשים מ-UserProfile ---
+                shomerNegiah: true,
+                serviceType: true,
+                serviceDetails: true,
+                headCovering: true, // לנשים
+                kippahType: true, // לגברים
+                hasChildrenFromPrevious: true,
+                profileCharacterTraits: true,
+                profileHobbies: true,
+                aliyaCountry: true,
+                aliyaYear: true,
+                
+                parentStatus: true,
+                siblings: true,
+                position: true,
+                preferredAgeMin: true,
+                preferredAgeMax: true,
+                preferredHeightMin: true,
+                preferredHeightMax: true,
+                preferredReligiousLevels: true,
+                preferredLocations: true,
+                preferredEducation: true,
+                preferredOccupations: true,
+                contactPreference: true,
+         
+                isProfileVisible: true,
+                preferredMatchmakerGender: true,
+                matchingNotes: true,
+                verifiedBy: true,
+                availabilityStatus: true,
+                availabilityNote: true,
+                availabilityUpdatedAt: true,
+                createdAt: true,
+                updatedAt: true,
+                lastActive: true,
+              },
+            },
+            images: {
+              select: {
+                id: true,
+                url: true,
+                isMain: true,
+                cloudinaryPublicId: true,
+                createdAt: true,
+                updatedAt: true,
+              },
+            },
+          },
+        },
+        secondParty: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            profile: {
+              select: {
+                gender: true,
+                birthDate: true,
+                nativeLanguage: true,
+                additionalLanguages: true,
+                height: true,
+                maritalStatus: true,
+                occupation: true,
+                education: true, // תיאור טקסטואלי
+                educationLevel: true, // רמת השכלה מובנית - נוסף
+                // address: true, // הוסר מ-UserProfile
+                city: true,
+                origin: true,
+                religiousLevel: true,
+                about: true,
+                // hobbies: true, // הוסר (הוחלף ב-profileHobbies)
+
+                // --- שדות חדשים מ-UserProfile ---
+                shomerNegiah: true,
+                serviceType: true,
+                serviceDetails: true,
+                headCovering: true, // לנשים
+                kippahType: true, // לגברים
+                hasChildrenFromPrevious: true,
+                profileCharacterTraits: true,
+                profileHobbies: true,
+                aliyaCountry: true,
+                aliyaYear: true,
+
+                parentStatus: true,
+                siblings: true,
+                position: true,
+                preferredAgeMin: true,
+                preferredAgeMax: true,
+                preferredHeightMin: true,
+                preferredHeightMax: true,
+                preferredReligiousLevels: true,
+                preferredLocations: true,
+                preferredEducation: true,
+                preferredOccupations: true,
+                contactPreference: true,
+
+                isProfileVisible: true,
+                preferredMatchmakerGender: true,
+                matchingNotes: true,
+                verifiedBy: true,
+                availabilityStatus: true,
+                availabilityNote: true,
+                availabilityUpdatedAt: true,
+                createdAt: true,
+                updatedAt: true,
+                lastActive: true,
+              },
+            },
+            images: {
+              select: {
+                id: true,
+                url: true,
+                isMain: true,
+                cloudinaryPublicId: true,
+                createdAt: true,
+                updatedAt: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        updatedAt: "desc", // Changed from createdAt in previous example, make sure this is intended for history
+      },
+    });
+
+    // Typing the suggestion before mapping for better intellisense and safety
+    // This assumes the structure returned by Prisma matches what's expected by UserProfile
+    // and related types.
+    const formattedSuggestions = historySuggestions.map(suggestion => {
+      // Ensure profile exists before trying to spread it, or handle potential null case
+      // Prisma's `include` with `select` guarantees `profile` exists if the relation does,
+      // but if `firstParty` or `secondParty` could be null (e.g., if the user was deleted),
+      // you'd need to handle that. Here, they are expected to be non-null.
+      
+      const firstPartyProfile = suggestion.firstParty.profile as UserProfile | null;
+      const secondPartyProfile = suggestion.secondParty.profile as UserProfile | null;
+
+      return {
+        ...suggestion,
+        firstParty: {
+            ...suggestion.firstParty,
+            profile: firstPartyProfile ? { // Add user sub-object to firstParty.profile if it's part of UserProfile type
+                ...firstPartyProfile,
+                user: {
+                    id: suggestion.firstParty.id,
+                    firstName: suggestion.firstParty.firstName,
+                    lastName: suggestion.firstParty.lastName,
+                    email: suggestion.firstParty.email,
+                }
+            } : null,
+        },
+        secondParty: {
+          ...suggestion.secondParty,
+          profile: secondPartyProfile ? {
+            ...secondPartyProfile,
+            user: { // This structure matches the UserProfile.user field
+              id: suggestion.secondParty.id,
+              firstName: suggestion.secondParty.firstName,
+              lastName: suggestion.secondParty.lastName,
+              email: suggestion.secondParty.email,
+            }
+          } : null,
+        }
+      };
+    });
+
+    return NextResponse.json({
+      success: true,
+      suggestions: formattedSuggestions,
+    });
+
+  } catch (error) {
+    console.error("Error fetching suggestion history:", error);
+    const errorMessage = error instanceof Error ? error.message : "Internal server error";
+    return NextResponse.json(
+      { error: errorMessage },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
