@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\profile
-# Generated on: 2025-06-22 22:34:53
+# Generated on: 2025-06-23 09:19:27
 ################################################################################
 
 ================================================================================
@@ -59,6 +59,25 @@ import type {
   ServiceType, HeadCoveringType, KippahType
 } from "@/types/next-auth";
 import { languageOptions } from "@/lib/languageOptions";
+import type { Candidate } from "@/app/components/matchmaker/new/types/candidates";
+
+// ##### [NEW] Importing suggestion form and related types #####
+import NewSuggestionForm from "@/app/components/matchmaker/suggestions/NewSuggestionForm";
+
+// ##### [NEW] Defining data structure for creating a suggestion #####
+interface CreateSuggestionData {
+  priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+  firstPartyId: string;
+  secondPartyId: string;
+  status:
+    | "DRAFT"
+    | "PENDING_FIRST_PARTY"
+    | "FIRST_PARTY_APPROVED"
+    | "FIRST_PARTY_DECLINED"
+    | string;
+  firstPartyNotes?: string;
+  secondPartyNotes?: string;
+}
 
 // --- Data & Translation Maps ---
 const maritalStatusMap: { [key: string]: string } = { single: "רווק/ה", divorced: "גרוש/ה", widowed: "אלמן/ה", annulled: "נישואין שבוטלו", any: "כל האפשרויות פתוחות" };
@@ -87,40 +106,14 @@ const DetailItem: React.FC<{ icon: React.ElementType; label: string; value: Reac
 const EmptyState: React.FC<{ icon: React.ElementType; message: string; description?: string; className?: string; action?: React.ReactNode; }> = ({ icon: Icon, message, description, className, action }) => ( <div className={cn("flex flex-col items-center justify-center py-10 text-center bg-slate-50/50 rounded-xl border border-dashed border-slate-200", className)}> <Icon className="w-12 h-12 mb-3 text-slate-400/70" /> <p className="text-base font-semibold text-slate-700">{message}</p> {description && <p className="text-sm text-slate-500 mt-1.5 max-w-xs">{description}</p>} {action && <div className="mt-6">{action}</div>} </div> );
 const SectionCard: React.FC<{ title: string; icon?: React.ElementType; children: React.ReactNode; className?: string; contentClassName?: string; titleClassName?: string; action?: React.ReactNode; description?: string; }> = ({ title, icon: Icon, children, className, contentClassName, titleClassName, action, description, }) => ( <div className={cn("bg-white rounded-xl shadow-lg border border-slate-200/60 overflow-hidden flex flex-col", className)}> <div className={cn("flex items-center justify-between gap-3 p-4 border-b border-slate-200/70 bg-slate-50/80", titleClassName)}> <div className="flex items-center gap-2.5 min-w-0"> {Icon && <Icon className="w-5 h-5 text-cyan-600 flex-shrink-0" />} <div className="min-w-0"> <h3 className="text-base md:text-lg font-semibold text-slate-800 truncate">{title}</h3> {description && <p className="text-xs text-slate-500 mt-0.5 truncate">{description}</p>} </div> </div> {action && <div className="ml-auto flex-shrink-0">{action}</div>} </div> <div className={cn("p-4", contentClassName)}>{children}</div> </div> );
 
-const AIAnalysisCard = ({ className }: { className?: string }) => {
-    const promptStarters = [
-        { text: 'סכם/י את הפרופיל ב-5 נקודות', icon: MessageSquareQuote },
-        { text: 'מהם הדגלים האדומים הפוטנציאליים?', icon: MessageSquareQuote },
-        { text: 'הצע/י נושאי שיחה לדייט ראשון', icon: MessageSquareQuote },
-    ];
-    return (
-        <div className={cn('rounded-xl border border-sky-200/50 bg-gradient-to-br from-sky-50/70 via-white to-blue-50/50 p-4 shadow-lg hover:shadow-xl transition-shadow', className)}>
-            <div className="flex items-center gap-3 mb-3">
-                <div className="p-2 bg-sky-500/20 rounded-full">
-                    <Bot className="w-5 h-5 text-sky-600" />
-                </div>
-                <h3 className="font-semibold text-lg text-slate-800">ניתוח AI ותובנות</h3>
-            </div>
-            <p className="text-sm text-slate-600 leading-relaxed mb-4">
-                קבל/י ניתוח מעמיק, סיכונים והזדמנויות, והתייעצ/י עם ה-AI של MatchPoint.
-            </p>
-            <div className="space-y-2">
-                {promptStarters.map((prompt, index) => (
-                    <Button key={index} variant="ghost" className="w-full justify-start text-left h-auto py-2 px-3 bg-sky-100/60 hover:bg-sky-100 text-sky-800">
-                        <prompt.icon className="w-4 h-4 ml-2.5 flex-shrink-0" />
-                        <span className="text-sm font-medium">{prompt.text}</span>
-                    </Button>
-                ))}
-            </div>
-            <Button size="sm" className="w-full mt-4 bg-sky-500 hover:bg-sky-600 font-semibold text-white">
-                <Sparkles className="w-4 h-4 ml-2" />
-                התחל שיחה חופשית
-            </Button>
-        </div>
-    );
-};
-
-const ProfileHeader: React.FC<{ profile: UserProfile; age: number; mainImageToDisplay: UserImageType | null; availability: ReturnType<typeof formatAvailabilityStatus>; }> = ({ profile, age, mainImageToDisplay, availability }) => {
+const ProfileHeader: React.FC<{ 
+  profile: UserProfile; 
+  age: number; 
+  mainImageToDisplay: UserImageType | null; 
+  availability: ReturnType<typeof formatAvailabilityStatus>;
+  viewMode: "matchmaker" | "candidate";
+  onSuggestClick: () => void;
+}> = ({ profile, age, mainImageToDisplay, availability, viewMode, onSuggestClick }) => {
     const keyDetails = useMemo(() => [
         { label: "גיל", value: age > 0 ? age : null, icon: Cake, color: "text-pink-600" },
         { label: "עיר", value: profile.city, icon: MapPin, color: "text-teal-600" },
@@ -161,10 +154,16 @@ const ProfileHeader: React.FC<{ profile: UserProfile; age: number; mainImageToDi
                                 )}
                             </div>
                         </div>
-                        <Button size="sm" className="bg-cyan-500 hover:bg-cyan-600 text-white font-semibold rounded-full px-5 shadow-lg hover:shadow-cyan-500/30 transition-all self-center sm:self-start mt-3 sm:mt-0">
+                        {viewMode === 'matchmaker' && (
+                          <Button 
+                            size="sm" 
+                            className="bg-cyan-500 hover:bg-cyan-600 text-white font-semibold rounded-full px-5 shadow-lg hover:shadow-cyan-500/30 transition-all self-center sm:self-start mt-3 sm:mt-0"
+                            onClick={onSuggestClick}
+                          >
                             <LinkIcon className="w-4 h-4 ml-2" />
                             הצע התאמה
-                        </Button>
+                          </Button>
+                        )}
                     </div>
                     <div className="mt-4 pt-4 border-t border-slate-200/90 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-4 gap-y-3">
                         {keyDetails.map(({ label, value, icon: Icon, color }) => (
@@ -184,23 +183,10 @@ const ProfileHeader: React.FC<{ profile: UserProfile; age: number; mainImageToDi
 };
 
 const QuestionnaireItem: React.FC<{ answer: FormattedAnswer; worldColor?: string; }> = ({ answer, worldColor = "slate" }) => {
-    const isShortAnswer = (answer.displayText || answer.answer || "").length < 50;
-
-    if (!isShortAnswer) {
-        return (
-            <div className={cn("p-4 rounded-lg border hover:shadow-md transition-shadow w-full", `bg-white border-${worldColor}-200/60`)}>
-                <p className="text-sm font-semibold mb-2 text-slate-800">{answer.question}</p>
-                <p className="text-sm text-slate-700 whitespace-pre-wrap break-words leading-relaxed">{`“${answer.displayText || answer.answer}”`}</p>
-            </div>
-        );
-    }
-
     return (
-        <div className={cn("flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 rounded-lg border hover:shadow-sm transition-shadow", `bg-white border-${worldColor}-200/60`)}>
-            <p className="text-sm font-medium text-slate-800 flex-shrink min-w-0">{answer.question}</p>
-            <Badge variant="secondary" className={cn("text-sm font-semibold px-3 py-1.5 self-start sm:self-center flex-shrink-0", `bg-${worldColor}-100 text-${worldColor}-800 border-${worldColor}-200/80`)}>
-                {answer.displayText || answer.answer}
-            </Badge>
+        <div className={cn("p-4 rounded-lg border hover:shadow-md transition-shadow w-full", `bg-white border-${worldColor}-200/60`)}>
+            <p className="text-sm font-semibold mb-2 text-slate-800">{answer.question}</p>
+            <p className="text-sm text-slate-700 whitespace-pre-wrap break-words leading-relaxed">{`“${answer.displayText || answer.answer}”`}</p>
         </div>
     );
 };
@@ -211,19 +197,30 @@ interface ProfileCardProps {
     questionnaire?: QuestionnaireResponse | null;
     viewMode?: "matchmaker" | "candidate";
     className?: string;
+    candidate?: Candidate;
+    allCandidates?: Candidate[];
+    onCreateSuggestion?: (data: CreateSuggestionData) => Promise<void>;
 }
 
-const ProfileCard: React.FC<ProfileCardProps> = ({ profile, images = [], questionnaire, viewMode = "candidate", className, }) => {
+const ProfileCard: React.FC<ProfileCardProps> = ({ 
+    profile, 
+    candidate,
+    images = [], 
+    questionnaire, 
+    viewMode = "candidate", 
+    className,
+    allCandidates = [],
+    onCreateSuggestion
+}) => {
     const [isClient, setIsClient] = useState(false);
     const [isDesktop, setIsDesktop] = useState(true);
     const [selectedImageForDialog, setSelectedImageForDialog] = useState<UserImageType | null>(null);
     const [activeTab, setActiveTab] = useState("about_me");
-    const [mainContentPanelSize, setMainContentPanelSize] = useState(60);
-    const [sidePhotosPanelSize, setSidePhotosPanelSize] = useState(40);
+    const [isSuggestDialogOpen, setIsSuggestDialogOpen] = useState(false);
     
     useEffect(() => {
         setIsClient(true);
-        const checkScreenSize = () => setIsDesktop(window.innerWidth >= 1024); // lg breakpoint for panel view
+        const checkScreenSize = () => setIsDesktop(window.innerWidth >= 1024);
         checkScreenSize();
         window.addEventListener("resize", checkScreenSize);
         return () => window.removeEventListener("resize", checkScreenSize);
@@ -241,16 +238,14 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, images = [], questio
     const age = useMemo(() => calculateAge(profile.birthDate), [profile.birthDate]);
     const availability = useMemo(() => formatAvailabilityStatus(profile.availabilityStatus), [profile.availabilityStatus]);
 
-    // ########### THE FIX IS HERE ###########
     const hasDisplayableQuestionnaireAnswers = useMemo(() =>
         questionnaire &&
-        questionnaire.formattedAnswers && // This line ensures formattedAnswers is not null/undefined
+        questionnaire.formattedAnswers &&
         Object.values(questionnaire.formattedAnswers)
             .flat()
             .some((a) => a.isVisible !== false && (a.answer || a.displayText)),
         [questionnaire]
     );
-    // #########################################
 
     const currentDialogImageIndex = useMemo(() => selectedImageForDialog ? orderedImages.findIndex(img => img.id === selectedImageForDialog.id) : -1, [selectedImageForDialog, orderedImages]);
 
@@ -261,6 +256,13 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, images = [], questio
         if (currentDialogImageIndex === -1 || orderedImages.length <= 1) return;
         const newIndex = (currentDialogImageIndex + (direction === 'next' ? 1 : -1) + orderedImages.length) % orderedImages.length;
         setSelectedImageForDialog(orderedImages[newIndex]);
+    };
+
+    const handleCreateSuggestion = async (data: CreateSuggestionData) => {
+        if (onCreateSuggestion) {
+            await onCreateSuggestion(data);
+        }
+        setIsSuggestDialogOpen(false);
     };
 
     const tabItems = useMemo(() => [
@@ -307,11 +309,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, images = [], questio
             </div>
             <div className="space-y-4 focus:outline-none flex-grow min-h-0">
                 <TabsContent value="about_me" className="mt-0 space-y-4">
-                    <SectionCard title="אודותיי" icon={InfoIcon} contentClassName="space-y-4">
-                        {profile.about ? (
-                            <p className="text-sm text-slate-800 whitespace-pre-wrap break-words leading-relaxed p-3 bg-slate-50 rounded-md">{profile.about}</p>
-                        ) : <EmptyState icon={InfoIcon} message="לא הוזן תיאור אישי" />}
-                    </SectionCard>
+                    {/* ##### [REMOVED] "About Me" SectionCard was removed from here and elevated to the right panel ##### */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <SectionCard title="תכונות אופי (שלי)" icon={Smile}>
                             <div className="flex flex-wrap gap-2">
@@ -353,10 +351,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, images = [], questio
                 </TabsContent>
                 <TabsContent value="looking_for" className="mt-0 space-y-4">
                     <SectionCard title="העדפות לבן/בת הזוג" icon={Target} description="מה המועמד/ת מחפש/ת בהתאמה" contentClassName="space-y-5">
-                        {profile.matchingNotes && <div>
-                            <p className="text-sm font-semibold text-slate-600 mb-2 flex items-center gap-2"><FileText className="w-4 h-4 text-slate-500" /> תיאור כללי על המבוקש/ת:</p>
-                            <p className="text-sm text-slate-700 whitespace-pre-wrap bg-slate-100 p-3 rounded-md border">{profile.matchingNotes}</p>
-                        </div>}
+                        {/* ##### [REMOVED] "matchingNotes" was elevated to the right panel ##### */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {(profile.preferredAgeMin || profile.preferredAgeMax) && <DetailItem icon={Calendar} label="טווח גילאים" value={`${profile.preferredAgeMin || '?'} - ${profile.preferredAgeMax || '?'} שנים`} iconColorClass="text-blue-600" />}
                             {(profile.preferredHeightMin || profile.preferredHeightMax) && <DetailItem icon={User} label="טווח גבהים" value={`${profile.preferredHeightMin || '?'} - ${profile.preferredHeightMax || '?'} ס״מ`} iconColorClass="text-blue-600" />}
@@ -367,7 +362,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, images = [], questio
                           {renderPreferenceBadges("סטטוסים משפחתיים", Heart, "text-rose-600", profile.preferredMaritalStatuses, "bg-rose-50 text-rose-800 border-rose-200", maritalStatusMap)}
                           {renderPreferenceBadges("רמות דתיות", BookMarked, "text-indigo-600", profile.preferredReligiousLevels, "bg-indigo-50 text-indigo-800 border-indigo-200", religiousLevelMap)}
                         </div>
-                         {!profile.matchingNotes && !profile.preferredAgeMin && !profile.preferredMaritalStatuses?.length && <EmptyState icon={Search} message="לא צוינו העדפות ספציפיות" />}
+                         {!profile.preferredAgeMin && !profile.preferredMaritalStatuses?.length && <EmptyState icon={Search} message="לא צוינו העדפות ספציפיות" />}
                     </SectionCard>
                 </TabsContent>
                 {hasDisplayableQuestionnaireAnswers && (
@@ -429,45 +424,86 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, images = [], questio
         <TooltipProvider>
             <Card dir="rtl" id="profile-card-container" className={cn("w-full bg-slate-50 shadow-2xl rounded-2xl overflow-hidden border-0 flex flex-col max-h-[calc(100vh-2rem)] h-full relative", className)}>
                 {isDesktop ? (
-                    <ResizablePanelGroup direction="horizontal" dir="rtl" className="flex-grow min-h-0" onLayout={(s) => { setMainContentPanelSize(s[0]); setSidePhotosPanelSize(s[1]); }}>
-                        <ResizablePanel defaultSize={60} minSize={40} maxSize={75} className="min-w-0 bg-slate-100/40 flex flex-col">
-                            <ProfileHeader profile={profile} age={age} mainImageToDisplay={mainImageToDisplay} availability={availability} />
+                    <ResizablePanelGroup direction="horizontal" dir="rtl" className="flex-grow min-h-0">
+                        <ResizablePanel defaultSize={60} minSize={40} className="min-w-0 bg-slate-100/40 flex flex-col">
+                            <ProfileHeader 
+                              profile={profile} 
+                              age={age} 
+                              mainImageToDisplay={mainImageToDisplay} 
+                              availability={availability} 
+                              viewMode={viewMode}
+                              onSuggestClick={() => setIsSuggestDialogOpen(true)}
+                            />
                             <ScrollArea className="flex-grow min-h-0"><div className="p-4"><MainContentTabs /></div></ScrollArea>
                         </ResizablePanel>
                         <ResizableHandle withHandle className="bg-slate-200 hover:bg-slate-300 transition-colors" />
-                        <ResizablePanel defaultSize={40} minSize={25} maxSize={60} className="min-w-0 bg-white flex flex-col">
-                            <div className="p-4 flex-grow flex flex-col min-h-0 gap-4">
-                                <h3 className="text-lg font-semibold text-slate-700 flex items-center gap-2 flex-shrink-0"><ImageIcon className="w-5 h-5 text-cyan-600" /> תמונות</h3>
-                                {orderedImages.length > 0 ? (
-                                    <div className="flex-grow flex flex-col gap-3 min-h-0">
-                                        <div className="relative aspect-video rounded-xl overflow-hidden cursor-pointer group shadow-lg border hover:shadow-xl transition-all" onClick={() => handleOpenImageDialog(orderedImages[0])}>
-                                            <Image src={orderedImages[0].url} alt="תמונה ראשית" fill className="object-cover" sizes="40vw" priority />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><Eye className="w-8 h-8 text-white" /></div>
-                                        </div>
-                                        {orderedImages.length > 1 && (
-                                            <ScrollArea dir="rtl" className="w-full flex-shrink-0">
-                                                <div className="flex gap-2 pb-2">
-                                                    {orderedImages.slice(1).map(img => (
-                                                        <div key={img.id} className="relative w-20 h-20 rounded-md overflow-hidden cursor-pointer border-2 border-slate-200 hover:border-cyan-400" onClick={() => handleOpenImageDialog(img)}>
-                                                            <Image src={img.url} alt="תמונת פרופיל" fill className="object-cover" sizes="80px" />
-                                                        </div>
-                                                    ))}
+                        {/* ##### [REDESIGNED] Right panel for "At-a-Glance" summary ##### */}
+                        <ResizablePanel defaultSize={40} minSize={25} className="min-w-0 bg-slate-100/40 flex flex-col">
+                           <ScrollArea className="flex-grow min-h-0">
+                                <div className="p-4 space-y-4">
+                                    <SectionCard title="תמונות" icon={ImageIcon} contentClassName="p-2 space-y-2">
+                                        {orderedImages.length > 0 ? (
+                                            <>
+                                                <div className="relative aspect-video rounded-lg overflow-hidden cursor-pointer group shadow-md" onClick={() => handleOpenImageDialog(orderedImages[0])}>
+                                                    <Image src={orderedImages[0].url} alt="תמונה ראשית" fill className="object-cover" sizes="35vw" priority />
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><Eye className="w-8 h-8 text-white" /></div>
                                                 </div>
-                                                <ScrollBar orientation="horizontal" />
-                                            </ScrollArea>
+                                                {orderedImages.length > 1 && (
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        {orderedImages.slice(1).map(img => (
+                                                            <div key={img.id} className="relative aspect-square rounded-md overflow-hidden cursor-pointer border hover:border-cyan-400" onClick={() => handleOpenImageDialog(img)}>
+                                                                <Image src={img.url} alt="תמונת פרופיל" fill className="object-cover" sizes="15vw" />
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </>
+                                        ) : <EmptyState icon={ImageIcon} message="אין תמונות להצגה" />}
+                                    </SectionCard>
+
+                                    <SectionCard title="תמצית פרופיל" icon={Gem} contentClassName="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
+                                        <DetailItem icon={BookMarked} label="רמה דתית" value={formatEnumValue(profile.religiousLevel, religiousLevelMap)} iconColorClass="text-indigo-600" />
+                                        <DetailItem icon={Sparkles} label="שמירת נגיעה" value={formatBooleanPreference(profile.shomerNegiah)} iconColorClass="text-pink-600" />
+                                        <DetailItem icon={Briefcase} label="עיסוק" value={profile.occupation} iconColorClass="text-emerald-600" />
+                                        <DetailItem icon={GraduationCap} label="רמת השכלה" value={formatEnumValue(profile.educationLevel, educationLevelMap)} iconColorClass="text-sky-600" />
+                                        <DetailItem icon={MapPin} label="עיר" value={profile.city} iconColorClass="text-teal-600" />
+                                        {(profile.maritalStatus === 'divorced' || profile.maritalStatus === 'widowed' || profile.maritalStatus === 'annulled') && (
+                                          <DetailItem icon={Users2} label="ילדים מקשר קודם" value={formatBooleanPreference(profile.hasChildrenFromPrevious)} iconColorClass="text-purple-600" />
                                         )}
-                                    </div>
-                                ) : <EmptyState icon={ImageIcon} message="אין תמונות להצגה" />}
-                                <div className="mt-auto flex-shrink-0">
-                                    <AIAnalysisCard />
+                                    </SectionCard>
+
+                                    <SectionCard title="קצת עליי" icon={InfoIcon}>
+                                        {profile.about ? (
+                                            <p className="text-sm text-slate-800 whitespace-pre-wrap break-words leading-relaxed p-3 bg-slate-50 rounded-md border border-slate-200/60">{`“${profile.about}”`}</p>
+                                        ) : <EmptyState icon={InfoIcon} message="לא הוזן תיאור אישי" />}
+                                    </SectionCard>
+                                    
+                                    <SectionCard title="תיאור המבוקש/ת" icon={Target} contentClassName="space-y-4">
+                                        {profile.matchingNotes ? (
+                                            <p className="text-sm text-slate-700 whitespace-pre-wrap bg-slate-100 p-3 rounded-md border">{profile.matchingNotes}</p>
+                                        ) : (
+                                            <EmptyState icon={Search} message="לא הוזן תיאור על המבוקש/ת" className="py-6" />
+                                        )}
+                                        <div className="space-y-3 pt-3 border-t border-slate-200/60">
+                                            <DetailItem icon={Calendar} label="טווח גילאים מועדף" value={`${profile.preferredAgeMin || '?'} - ${profile.preferredAgeMax || '?'} שנים`} iconColorClass="text-blue-600" />
+                                            {renderPreferenceBadges("רמות דתיות מועדפות", BookMarked, "text-indigo-600", profile.preferredReligiousLevels, "bg-indigo-50 text-indigo-800 border-indigo-200", religiousLevelMap)}
+                                        </div>
+                                    </SectionCard>
                                 </div>
-                            </div>
+                            </ScrollArea>
                         </ResizablePanel>
                     </ResizablePanelGroup>
                 ) : (
                     <>
                     <ScrollArea className="flex-grow min-h-0 w-full">
-                        <ProfileHeader profile={profile} age={age} mainImageToDisplay={mainImageToDisplay} availability={availability} />
+                        <ProfileHeader 
+                          profile={profile} 
+                          age={age} 
+                          mainImageToDisplay={mainImageToDisplay} 
+                          availability={availability}
+                          viewMode={viewMode}
+                          onSuggestClick={() => setIsSuggestDialogOpen(true)}
+                        />
                         {orderedImages.length > 0 && (
                             <div className="px-4 pt-4 pb-2">
                                 <ScrollArea dir="rtl" className="w-full whitespace-nowrap">
@@ -493,7 +529,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, images = [], questio
                             </Button>
                         </SheetTrigger>
                         <SheetContent side="bottom" className="h-[80vh] p-0 flex flex-col" dir="rtl">
-                             <ScrollArea className="flex-grow"><div className="p-4"><AIAnalysisCard /></div></ScrollArea>
+                             <ScrollArea className="flex-grow">
+                                <div className="p-4">
+                                     {/* Placeholder for future mobile AI/tools */}
+                                     <p>כלי AI וניתוח יהיו זמינים כאן בקרוב.</p>
+                                </div>
+                             </ScrollArea>
                         </SheetContent>
                     </Sheet>
                     </>
@@ -520,6 +561,16 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, images = [], questio
                             ))}</div><ScrollBar orientation="horizontal" /></ScrollArea></DialogFooter>}
                     </DialogContent>
                 </Dialog>}
+                
+                {viewMode === 'matchmaker'  && candidate &&  (
+                    <NewSuggestionForm
+                        isOpen={isSuggestDialogOpen}
+                        onClose={() => setIsSuggestDialogOpen(false)}
+                        candidates={allCandidates}
+                        selectedCandidate={candidate} 
+                        onSubmit={handleCreateSuggestion}
+                    />
+                )}
             </Card>
         </TooltipProvider>
     );
