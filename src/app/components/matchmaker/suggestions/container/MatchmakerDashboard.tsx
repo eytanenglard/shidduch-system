@@ -109,6 +109,15 @@ export default function MatchmakerDashboard() {
       const response = await fetch("/api/matchmaker/suggestions");
       if (!response.ok) throw new Error("Failed to fetch suggestions");
       const data = await response.json();
+      
+      // =================  LOGGING START  =================
+      console.log("[MatchmakerDashboard] Fetched suggestions data:", data);
+      const createdSuggestion = data.find((s: Suggestion) => s.status === 'PENDING_FIRST_PARTY');
+      if (createdSuggestion) {
+        console.log("[MatchmakerDashboard] Found a newly created suggestion:", createdSuggestion);
+      }
+      // =================   LOGGING END   =================
+
       setSuggestions(data);
     } catch (error: unknown) {
       console.error("Error fetching suggestions:", error);
@@ -117,6 +126,7 @@ export default function MatchmakerDashboard() {
       setIsLoading(false);
     }
   }, []);
+
 
   useEffect(() => {
     fetchSuggestions();
@@ -307,11 +317,20 @@ export default function MatchmakerDashboard() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <div className="flex items-center justify-between mb-6">
-            <TabsList dir="rtl">
-              <TabsTrigger value="pending">ממתין לאישור <Badge className="mr-2">{pendingCount}</Badge></TabsTrigger>
-              <TabsTrigger value="active">פעילות <Badge className="mr-2">{activeCount}</Badge></TabsTrigger>
-              <TabsTrigger value="history">היסטוריה <Badge className="mr-2">{historyCount}</Badge></TabsTrigger>
+                   <TabsList dir="rtl">
+              {/* --- START OF CHANGE --- */}
+              <TabsTrigger value="pending">
+                ממתין לאישור <Badge className="mr-2">{pendingCount}</Badge>
+              </TabsTrigger>
+              <TabsTrigger value="active">
+                פעילות <Badge className="mr-2">{activeCount}</Badge>
+              </TabsTrigger>
+              <TabsTrigger value="history">
+                היסטוריה <Badge className="mr-2">{historyCount}</Badge>
+              </TabsTrigger>
+              {/* --- END OF CHANGE --- */}
             </TabsList>
+
           </div>
           
           <SuggestionActionBar

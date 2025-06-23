@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker
-# Generated on: 2025-06-23 15:34:18
+# Generated on: 2025-06-23 16:33:59
 ################################################################################
 
 ================================================================================
@@ -9092,6 +9092,12 @@ export interface Candidate {
   source: UserSource; // Add new field
   addedByMatchmakerId?: string | null; // Add new field
   profile: CandidateProfile; // Ensure this uses the updated CandidateProfile
+    suggestionStatus?: {
+    status: 'BLOCKED' | 'PENDING';
+    suggestionId: string;
+    withCandidateName: string;
+  } | null;
+
 }
 export interface CandidatesFilter {
    source?: UserSource;
@@ -19199,8 +19205,10 @@ Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\m
 File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\suggestions\NewSuggestionForm\CandidateSelector.tsx
 --------------------------------------------------------------------------------
 Content:
+// src/app/components/matchmaker/suggestions/NewSuggestionForm/CandidateSelector.tsx
+
 import React, { useState, useCallback, KeyboardEvent } from "react";
-import { Search } from "lucide-react";
+import { Search, AlertTriangle, Clock } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Popover,
@@ -19216,8 +19224,10 @@ import {
 } from "@/components/ui/command";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { calculateAge } from "@/lib/utils";
 import type { Candidate } from "../../new/types/candidates";
+import { toast } from "sonner"; // Make sure to import toast
 
 interface CandidateSelectorProps {
   value: Candidate | null;
@@ -19267,6 +19277,14 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
 
   const handleSelect = useCallback(
     (candidate: Candidate) => {
+      // Check if the candidate is blocked by an active suggestion
+      if (candidate.suggestionStatus?.status === 'BLOCKED') {
+        toast.error("לא ניתן לבחור מועמד זה", {
+          description: `${candidate.firstName} ${candidate.lastName} כבר נמצא/ת בהצעה פעילה עם ${candidate.suggestionStatus.withCandidateName}.`,
+        });
+        return; // Prevent selection
+      }
+      
       onChange(candidate);
       setOpen(false);
       setInputValue("");
@@ -19344,10 +19362,7 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
               <CommandInput
                 placeholder="חיפוש מועמדים..."
                 value={inputValue}
-                onValueChange={(value) => {
-                  setInputValue(value);
-                  setActiveIndex(-1);
-                }}
+                onValueChange={setInputValue}
               />
               <CommandList
                 className="max-h-[300px] overflow-auto"
@@ -19356,32 +19371,45 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
               >
                 <CommandEmpty>לא נמצאו תוצאות</CommandEmpty>
                 <CommandGroup>
-                  {filteredCandidates.map((candidate, index) => (
-                    <div
-                      key={candidate.id}
-                      onClick={() => handleSelect(candidate)}
-                      className={`flex items-center gap-2 text-right p-2 hover:bg-accent/50 cursor-pointer ${
-                        index === activeIndex ? "bg-accent" : ""
-                      }`}
-                      role="option"
-                      id={`candidate-${candidate.id}`}
-                      aria-selected={index === activeIndex}
-                      onMouseEnter={() => setActiveIndex(index)}
-                    >
-                      <div className="flex-1">
-                        <div className="font-medium">
-                          {formatCandidateDisplay(candidate)}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {candidate.profile.religiousLevel} |
-                          {candidate.profile.occupation &&
-                            ` ${candidate.profile.occupation} |`}
-                          {candidate.profile.education &&
-                            ` ${candidate.profile.education}`}
+                  {filteredCandidates.map((candidate, index) => {
+                    const isBlocked = candidate.suggestionStatus?.status === 'BLOCKED';
+                    return (
+                      <div
+                        key={candidate.id}
+                        onClick={() => handleSelect(candidate)}
+                        className={`flex items-start gap-3 p-2 text-right ${
+                          isBlocked 
+                            ? 'cursor-not-allowed opacity-60' 
+                            : 'cursor-pointer hover:bg-accent/50'
+                        } ${index === activeIndex ? "bg-accent" : ""}`}
+                        role="option"
+                        id={`candidate-${candidate.id}`}
+                        aria-selected={index === activeIndex}
+                        onMouseEnter={() => setActiveIndex(index)}
+                      >
+                        <div className="flex-1">
+                          <div className="font-medium">
+                            {formatCandidateDisplay(candidate)}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {candidate.profile.religiousLevel} | {candidate.profile.occupation}
+                          </div>
+                          {candidate.suggestionStatus?.status === 'BLOCKED' && (
+                            <Badge variant="destructive" className="mt-2 font-normal">
+                              <AlertTriangle className="w-3.5 h-3.5 ml-1.5" />
+                              בהצעה פעילה עם: {candidate.suggestionStatus.withCandidateName}
+                            </Badge>
+                          )}
+                          {candidate.suggestionStatus?.status === 'PENDING' && (
+                            <Badge variant="outline" className="mt-2 font-normal text-amber-800 bg-amber-50 border-amber-200">
+                              <Clock className="w-3.5 h-3.5 ml-1.5" />
+                              הצעה ממתינה עם: {candidate.suggestionStatus.withCandidateName}
+                            </Badge>
+                          )}
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </CommandGroup>
               </CommandList>
             </Command>
@@ -19395,9 +19423,7 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => {
-                /* Add view profile handler */
-              }}
+              onClick={() => { /* Implement view profile handler */ }}
               className="text-primary"
             >
               צפה בפרופיל מלא
@@ -20759,6 +20785,15 @@ export default function MatchmakerDashboard() {
       const response = await fetch("/api/matchmaker/suggestions");
       if (!response.ok) throw new Error("Failed to fetch suggestions");
       const data = await response.json();
+      
+      // =================  LOGGING START  =================
+      console.log("[MatchmakerDashboard] Fetched suggestions data:", data);
+      const createdSuggestion = data.find((s: Suggestion) => s.status === 'PENDING_FIRST_PARTY');
+      if (createdSuggestion) {
+        console.log("[MatchmakerDashboard] Found a newly created suggestion:", createdSuggestion);
+      }
+      // =================   LOGGING END   =================
+
       setSuggestions(data);
     } catch (error: unknown) {
       console.error("Error fetching suggestions:", error);
@@ -20767,6 +20802,7 @@ export default function MatchmakerDashboard() {
       setIsLoading(false);
     }
   }, []);
+
 
   useEffect(() => {
     fetchSuggestions();
@@ -20957,11 +20993,20 @@ export default function MatchmakerDashboard() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <div className="flex items-center justify-between mb-6">
-            <TabsList dir="rtl">
-              <TabsTrigger value="pending">ממתין לאישור <Badge className="mr-2">{pendingCount}</Badge></TabsTrigger>
-              <TabsTrigger value="active">פעילות <Badge className="mr-2">{activeCount}</Badge></TabsTrigger>
-              <TabsTrigger value="history">היסטוריה <Badge className="mr-2">{historyCount}</Badge></TabsTrigger>
+                   <TabsList dir="rtl">
+              {/* --- START OF CHANGE --- */}
+              <TabsTrigger value="pending">
+                ממתין לאישור <Badge className="mr-2">{pendingCount}</Badge>
+              </TabsTrigger>
+              <TabsTrigger value="active">
+                פעילות <Badge className="mr-2">{activeCount}</Badge>
+              </TabsTrigger>
+              <TabsTrigger value="history">
+                היסטוריה <Badge className="mr-2">{historyCount}</Badge>
+              </TabsTrigger>
+              {/* --- END OF CHANGE --- */}
             </TabsList>
+
           </div>
           
           <SuggestionActionBar
@@ -26101,7 +26146,19 @@ import type {
 
 // Initialize notification service
 const notificationService = initNotificationService();
-
+const BLOCKING_SUGGESTION_STATUSES: MatchSuggestionStatus[] = [
+  'FIRST_PARTY_APPROVED',
+  'SECOND_PARTY_APPROVED',
+  'AWAITING_MATCHMAKER_APPROVAL',
+  'CONTACT_DETAILS_SHARED',
+  'AWAITING_FIRST_DATE_FEEDBACK',
+  'THINKING_AFTER_DATE',
+  'PROCEEDING_TO_SECOND_DATE',
+  'MEETING_PENDING',
+  'MEETING_SCHEDULED',
+  'MATCH_APPROVED',
+  'DATING',
+];
 export class SuggestionService {
   private static instance: SuggestionService;
 
@@ -26128,6 +26185,43 @@ const allowedRoles: UserRole[] = [UserRole.MATCHMAKER, UserRole.ADMIN];
 if (!matchmaker || !allowedRoles.includes(matchmaker.role)) {
   throw new Error("Unauthorized - User must be a Matchmaker or Admin");
 }
+  // --- START: NEW VALIDATION LOGIC ---
+    // Fetch both parties to get their names for error messages
+    const [firstParty, secondParty] = await Promise.all([
+        prisma.user.findUnique({ where: { id: data.firstPartyId } }),
+        prisma.user.findUnique({ where: { id: data.secondPartyId } })
+    ]);
+
+    if (!firstParty || !secondParty) {
+        throw new Error("One or both candidates not found.");
+    }
+    
+    // Check for BLOCKING suggestions for either party
+    const blockingSuggestion = await prisma.matchSuggestion.findFirst({
+        where: {
+            OR: [
+                { firstPartyId: data.firstPartyId },
+                { secondPartyId: data.firstPartyId },
+                { firstPartyId: data.secondPartyId },
+                { secondPartyId: data.secondPartyId },
+            ],
+            status: {
+                in: BLOCKING_SUGGESTION_STATUSES,
+            },
+        },
+    });
+
+    if (blockingSuggestion) {
+        const hasBlockingSuggestion = (id: string) => 
+            blockingSuggestion.firstPartyId === id || blockingSuggestion.secondPartyId === id;
+            
+        if (hasBlockingSuggestion(data.firstPartyId)) {
+            throw new Error(`לא ניתן ליצור הצעה חדשה. ל${firstParty.firstName} ${firstParty.lastName} יש כבר הצעה פעילה.`);
+        }
+        if (hasBlockingSuggestion(data.secondPartyId)) {
+            throw new Error(`לא ניתן ליצור הצעה חדשה. ל${secondParty.firstName} ${secondParty.lastName} יש כבר הצעה פעילה.`);
+        }
+    }
 
     // 4. יצירת ההצעה בטרנזקציה
     const suggestion = await prisma.$transaction(async (tx) => {

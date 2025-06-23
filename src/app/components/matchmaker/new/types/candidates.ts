@@ -30,6 +30,12 @@ export interface Candidate {
   source: UserSource; // Add new field
   addedByMatchmakerId?: string | null; // Add new field
   profile: CandidateProfile; // Ensure this uses the updated CandidateProfile
+    suggestionStatus?: {
+    status: 'BLOCKED' | 'PENDING';
+    suggestionId: string;
+    withCandidateName: string;
+  } | null;
+
 }
 export interface CandidatesFilter {
    source?: UserSource;

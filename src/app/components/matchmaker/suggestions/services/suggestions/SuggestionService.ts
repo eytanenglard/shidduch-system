@@ -11,7 +11,19 @@ import type {
 
 // Initialize notification service
 const notificationService = initNotificationService();
-
+const BLOCKING_SUGGESTION_STATUSES: MatchSuggestionStatus[] = [
+  'FIRST_PARTY_APPROVED',
+  'SECOND_PARTY_APPROVED',
+  'AWAITING_MATCHMAKER_APPROVAL',
+  'CONTACT_DETAILS_SHARED',
+  'AWAITING_FIRST_DATE_FEEDBACK',
+  'THINKING_AFTER_DATE',
+  'PROCEEDING_TO_SECOND_DATE',
+  'MEETING_PENDING',
+  'MEETING_SCHEDULED',
+  'MATCH_APPROVED',
+  'DATING',
+];
 export class SuggestionService {
   private static instance: SuggestionService;
 
@@ -38,6 +50,43 @@ const allowedRoles: UserRole[] = [UserRole.MATCHMAKER, UserRole.ADMIN];
 if (!matchmaker || !allowedRoles.includes(matchmaker.role)) {
   throw new Error("Unauthorized - User must be a Matchmaker or Admin");
 }
+  // --- START: NEW VALIDATION LOGIC ---
+    // Fetch both parties to get their names for error messages
+    const [firstParty, secondParty] = await Promise.all([
+        prisma.user.findUnique({ where: { id: data.firstPartyId } }),
+        prisma.user.findUnique({ where: { id: data.secondPartyId } })
+    ]);
+
+    if (!firstParty || !secondParty) {
+        throw new Error("One or both candidates not found.");
+    }
+    
+    // Check for BLOCKING suggestions for either party
+    const blockingSuggestion = await prisma.matchSuggestion.findFirst({
+        where: {
+            OR: [
+                { firstPartyId: data.firstPartyId },
+                { secondPartyId: data.firstPartyId },
+                { firstPartyId: data.secondPartyId },
+                { secondPartyId: data.secondPartyId },
+            ],
+            status: {
+                in: BLOCKING_SUGGESTION_STATUSES,
+            },
+        },
+    });
+
+    if (blockingSuggestion) {
+        const hasBlockingSuggestion = (id: string) => 
+            blockingSuggestion.firstPartyId === id || blockingSuggestion.secondPartyId === id;
+            
+        if (hasBlockingSuggestion(data.firstPartyId)) {
+            throw new Error(`לא ניתן ליצור הצעה חדשה. ל${firstParty.firstName} ${firstParty.lastName} יש כבר הצעה פעילה.`);
+        }
+        if (hasBlockingSuggestion(data.secondPartyId)) {
+            throw new Error(`לא ניתן ליצור הצעה חדשה. ל${secondParty.firstName} ${secondParty.lastName} יש כבר הצעה פעילה.`);
+        }
+    }
 
     // 4. יצירת ההצעה בטרנזקציה
     const suggestion = await prisma.$transaction(async (tx) => {

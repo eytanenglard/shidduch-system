@@ -2,11 +2,10 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { MatchSuggestionStatus, Prisma, UserRole } from "@prisma/client"; // Added UserRole
+import { MatchSuggestionStatus, Prisma, UserRole } from "@prisma/client";
 import { suggestionService } from "@/app/components/matchmaker/suggestions/services/suggestions/SuggestionService";
 import type { CreateSuggestionData } from "@/types/suggestions";
 
-// פונקציית עזר שמגדירה את הקטגוריה של ההצעה לפי הסטטוס שלה
 const getSuggestionCategory = (status: MatchSuggestionStatus) => {
   switch (status) {
     case 'DRAFT':
@@ -31,13 +30,11 @@ const getSuggestionCategory = (status: MatchSuggestionStatus) => {
   }
 };
 
-// יצירת הצעה חדשה
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions); // Removed Session type assertion for safety
+    const session = await getServerSession(authOptions);
     
-    // ---- START OF CHANGE ----
-    if (!session?.user?.id || !session.user.role) { // Ensure role exists
+    if (!session?.user?.id || !session.user.role) {
         return NextResponse.json({ error: "Unauthorized - Invalid session" }, { status: 401 });
     }
 
@@ -45,18 +42,17 @@ export async function POST(req: Request) {
     if (!allowedRolesToCreate.includes(session.user.role as UserRole)) {
       return NextResponse.json({ error: "Unauthorized - Matchmaker or Admin access required to create suggestions" }, { status: 403 });
     }
-    // ---- END OF CHANGE ----
-
+    
     const data = await req.json();
     
     const suggestionData: CreateSuggestionData = {
       ...data,
-      matchmakerId: session.user.id, // The creator is the matchmakerId
+      matchmakerId: session.user.id,
     };
 
-    const newSuggestion = await suggestionService.createSuggestion(suggestionData); // Renamed variable
+    const newSuggestion = await suggestionService.createSuggestion(suggestionData);
     
-    return NextResponse.json(newSuggestion); // Return the created suggestion
+    return NextResponse.json(newSuggestion);
     
   } catch (error) {
     console.error('Error creating suggestion:', error);
@@ -71,7 +67,6 @@ export async function POST(req: Request) {
   }
 }
 
-// קבלת רשימת הצעות
 export async function GET(req: Request) {
   try {
     const session = await getServerSession(authOptions); 
@@ -84,30 +79,26 @@ export async function GET(req: Request) {
     const status = searchParams.get("status");
     const priority = searchParams.get("priority");
     const timeframe = searchParams.get("timeframe");
-    // New filter: allow admin to see all, or filter by matchmakerId if they are a matchmaker
-    const viewAll = searchParams.get("viewAll") === "true" && session.user.role === UserRole.ADMIN;
-
 
     const where: Prisma.MatchSuggestionWhereInput = {};
     
-    if (!viewAll) { // If not admin viewing all
-        if (session.user.role === UserRole.MATCHMAKER) {
-          // Matchmaker sees their suggestions OR suggestions they are party to
-          where.OR = [
-            { matchmakerId: session.user.id },
+    // ---- START OF FIX ----
+    // שינינו את הלוגיקה כדי לטפל נכון בהרשאות
+    if (session.user.role === UserRole.MATCHMAKER) {
+        // שדכן רואה רק את ההצעות שהוא יצר
+        where.matchmakerId = session.user.id;
+    } else if (session.user.role === UserRole.CANDIDATE) {
+        // מועמד רואה רק הצעות שהוא צד בהן
+        where.OR = [
             { firstPartyId: session.user.id },
             { secondPartyId: session.user.id }
-          ];
-        } else { // Candidate or Admin (not in viewAll mode) sees suggestions they are party to
-          where.OR = [
-            { firstPartyId: session.user.id },
-            { secondPartyId: session.user.id }
-          ];
-        }
-    } // If viewAll is true, no user-specific filters are applied here, admin sees all.
+        ];
+    }
+    // אם המשתמש הוא ADMIN, לא נוסיף סינון לפי מזהה משתמש, וכך הוא יראה את כל ההצעות.
+    // ---- END OF FIX ----
 
     if (status) where.status = status as MatchSuggestionStatus;
-    if (priority) where.priority = priority as Prisma.EnumPriorityFieldUpdateOperationsInput["set"]; // Prisma.Priority
+    if (priority) where.priority = priority as Prisma.EnumPriorityFieldUpdateOperationsInput["set"];
     
     if (timeframe) {
       const date = new Date();
@@ -131,64 +122,20 @@ export async function GET(req: Request) {
       where,
       include: {
         firstParty: {
-          select: {
-            id: true,
-            email: true,
-            firstName: true,
-            lastName: true,
-            status: true,
-            isVerified: true,
-            images: {
-              select: {
-                id: true,
-                url: true,
-                isMain: true
-              },
-              orderBy: [{ isMain: 'desc' }, { createdAt: 'asc'}]
-            },
-            profile: true
-          }
+          select: { id: true, email: true, firstName: true, lastName: true, status: true, isVerified: true, images: { select: { id: true, url: true, isMain: true }, orderBy: [{ isMain: 'desc' }, { createdAt: 'asc'}] }, profile: true }
         },
         secondParty: {
-          select: {
-            id: true,
-            email: true,
-            firstName: true,
-            lastName: true,
-            status: true,
-            isVerified: true,
-            images: {
-              select: {
-                id: true,
-                url: true,
-                isMain: true
-              },
-              orderBy: [{ isMain: 'desc' }, { createdAt: 'asc'}]
-            },
-            profile: true
-          }
+          select: { id: true, email: true, firstName: true, lastName: true, status: true, isVerified: true, images: { select: { id: true, url: true, isMain: true }, orderBy: [{ isMain: 'desc' }, { createdAt: 'asc'}] }, profile: true }
         },
         matchmaker: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            role: true
-          }
+          select: { id: true, firstName: true, lastName: true, role: true }
         },
-        statusHistory: {
-            orderBy: { createdAt: 'desc' }
-        },
-        meetings: {
-            orderBy: { createdAt: 'desc' }
-        }
+        statusHistory: { orderBy: { createdAt: 'desc' } },
+        meetings: { orderBy: { createdAt: 'desc' } }
       },
-      orderBy: {
-        lastActivity: 'desc'
-      }
+      orderBy: { lastActivity: 'desc' }
     });
 
-    // עיבוד המידע המוחזר - המרת תאריכים וכו'
     const formattedSuggestions = suggestions.map(suggestion => ({
       ...suggestion,
       category: getSuggestionCategory(suggestion.status),
@@ -196,7 +143,7 @@ export async function GET(req: Request) {
         ...suggestion.firstParty,
         profile: suggestion.firstParty.profile ? {
           ...suggestion.firstParty.profile,
-          birthDate: suggestion.firstParty.profile.birthDate?.toISOString(), // birthDate is non-null in schema but profile can be null
+          birthDate: suggestion.firstParty.profile.birthDate?.toISOString(),
           lastActive: suggestion.firstParty.profile.lastActive?.toISOString(),
           availabilityUpdatedAt: suggestion.firstParty.profile.availabilityUpdatedAt?.toISOString(),
           createdAt: suggestion.firstParty.profile.createdAt?.toISOString(),
@@ -220,7 +167,7 @@ export async function GET(req: Request) {
       })),
       meetings: suggestion.meetings.map(meeting => ({
         ...meeting,
-        scheduledDate: meeting.scheduledDate.toISOString(), // Assuming scheduledDate is DateTime
+        scheduledDate: meeting.scheduledDate.toISOString(),
         createdAt: meeting.createdAt.toISOString(),
         updatedAt: meeting.updatedAt.toISOString()
       })),
@@ -237,6 +184,13 @@ export async function GET(req: Request) {
       updatedAt: suggestion.updatedAt.toISOString(),
       lastActivity: suggestion.lastActivity.toISOString()
     }));
+    
+    // =================  LOGGING START (Improved) =================
+    console.log(`[API GET /suggestions] User: ${session.user.id} (Role: ${session.user.role}). Found ${suggestions.length} suggestions matching query.`);
+    if (suggestions.length > 0) {
+        console.log(`[API GET /suggestions] Example suggestion being sent (ID: ${suggestions[0].id}, Status: ${suggestions[0].status})`);
+    }
+    // =================   LOGGING END   =================
 
     return NextResponse.json(formattedSuggestions);
     

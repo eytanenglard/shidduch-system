@@ -1,5 +1,7 @@
+// src/app/components/matchmaker/suggestions/NewSuggestionForm/CandidateSelector.tsx
+
 import React, { useState, useCallback, KeyboardEvent } from "react";
-import { Search } from "lucide-react";
+import { Search, AlertTriangle, Clock } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Popover,
@@ -15,8 +17,10 @@ import {
 } from "@/components/ui/command";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { calculateAge } from "@/lib/utils";
 import type { Candidate } from "../../new/types/candidates";
+import { toast } from "sonner"; // Make sure to import toast
 
 interface CandidateSelectorProps {
   value: Candidate | null;
@@ -66,6 +70,14 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
 
   const handleSelect = useCallback(
     (candidate: Candidate) => {
+      // Check if the candidate is blocked by an active suggestion
+      if (candidate.suggestionStatus?.status === 'BLOCKED') {
+        toast.error("לא ניתן לבחור מועמד זה", {
+          description: `${candidate.firstName} ${candidate.lastName} כבר נמצא/ת בהצעה פעילה עם ${candidate.suggestionStatus.withCandidateName}.`,
+        });
+        return; // Prevent selection
+      }
+      
       onChange(candidate);
       setOpen(false);
       setInputValue("");
@@ -143,10 +155,7 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
               <CommandInput
                 placeholder="חיפוש מועמדים..."
                 value={inputValue}
-                onValueChange={(value) => {
-                  setInputValue(value);
-                  setActiveIndex(-1);
-                }}
+                onValueChange={setInputValue}
               />
               <CommandList
                 className="max-h-[300px] overflow-auto"
@@ -155,32 +164,45 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
               >
                 <CommandEmpty>לא נמצאו תוצאות</CommandEmpty>
                 <CommandGroup>
-                  {filteredCandidates.map((candidate, index) => (
-                    <div
-                      key={candidate.id}
-                      onClick={() => handleSelect(candidate)}
-                      className={`flex items-center gap-2 text-right p-2 hover:bg-accent/50 cursor-pointer ${
-                        index === activeIndex ? "bg-accent" : ""
-                      }`}
-                      role="option"
-                      id={`candidate-${candidate.id}`}
-                      aria-selected={index === activeIndex}
-                      onMouseEnter={() => setActiveIndex(index)}
-                    >
-                      <div className="flex-1">
-                        <div className="font-medium">
-                          {formatCandidateDisplay(candidate)}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {candidate.profile.religiousLevel} |
-                          {candidate.profile.occupation &&
-                            ` ${candidate.profile.occupation} |`}
-                          {candidate.profile.education &&
-                            ` ${candidate.profile.education}`}
+                  {filteredCandidates.map((candidate, index) => {
+                    const isBlocked = candidate.suggestionStatus?.status === 'BLOCKED';
+                    return (
+                      <div
+                        key={candidate.id}
+                        onClick={() => handleSelect(candidate)}
+                        className={`flex items-start gap-3 p-2 text-right ${
+                          isBlocked 
+                            ? 'cursor-not-allowed opacity-60' 
+                            : 'cursor-pointer hover:bg-accent/50'
+                        } ${index === activeIndex ? "bg-accent" : ""}`}
+                        role="option"
+                        id={`candidate-${candidate.id}`}
+                        aria-selected={index === activeIndex}
+                        onMouseEnter={() => setActiveIndex(index)}
+                      >
+                        <div className="flex-1">
+                          <div className="font-medium">
+                            {formatCandidateDisplay(candidate)}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {candidate.profile.religiousLevel} | {candidate.profile.occupation}
+                          </div>
+                          {candidate.suggestionStatus?.status === 'BLOCKED' && (
+                            <Badge variant="destructive" className="mt-2 font-normal">
+                              <AlertTriangle className="w-3.5 h-3.5 ml-1.5" />
+                              בהצעה פעילה עם: {candidate.suggestionStatus.withCandidateName}
+                            </Badge>
+                          )}
+                          {candidate.suggestionStatus?.status === 'PENDING' && (
+                            <Badge variant="outline" className="mt-2 font-normal text-amber-800 bg-amber-50 border-amber-200">
+                              <Clock className="w-3.5 h-3.5 ml-1.5" />
+                              הצעה ממתינה עם: {candidate.suggestionStatus.withCandidateName}
+                            </Badge>
+                          )}
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </CommandGroup>
               </CommandList>
             </Command>
@@ -194,9 +216,7 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => {
-                /* Add view profile handler */
-              }}
+              onClick={() => { /* Implement view profile handler */ }}
               className="text-primary"
             >
               צפה בפרופיל מלא

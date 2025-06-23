@@ -1,22 +1,50 @@
+// src/app/api/matchmaker/candidates/route.ts
+
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { UserRole } from "@prisma/client"; // Added UserRole
+import { UserRole, MatchSuggestionStatus, UserSource } from "@prisma/client";
+
+// Define different types of suggestion statuses for clear logic
+const BLOCKING_SUGGESTION_STATUSES: MatchSuggestionStatus[] = [
+  'FIRST_PARTY_APPROVED',
+  'SECOND_PARTY_APPROVED',
+  'AWAITING_MATCHMAKER_APPROVAL',
+  'CONTACT_DETAILS_SHARED',
+  'AWAITING_FIRST_DATE_FEEDBACK',
+  'THINKING_AFTER_DATE',
+  'PROCEEDING_TO_SECOND_DATE',
+  'MEETING_PENDING',
+  'MEETING_SCHEDULED',
+  'MATCH_APPROVED',
+  'DATING',
+];
+
+const PENDING_SUGGESTION_STATUSES: MatchSuggestionStatus[] = [
+  'PENDING_FIRST_PARTY',
+  'PENDING_SECOND_PARTY',
+  'DRAFT', // A draft is also a form of pending that doesn't block
+];
+
+// This is the type for the object we will attach to the user
+type SuggestionStatusInfo = {
+  status: 'BLOCKED' | 'PENDING';
+  suggestionId: string;
+  withCandidateName: string;
+};
 
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     
-    // ---- START OF CHANGE ----
-    if (!session?.user?.id) { // Check for user ID as well
+    if (!session?.user?.id) {
       return new NextResponse(
         JSON.stringify({ error: 'Unauthorized - Not logged in' }),
         { status: 401 }
       );
     }
 
-    // Fetch user role for permission check
     const performingUser = await prisma.user.findUnique({
         where: { id: session.user.id },
         select: { role: true }
@@ -29,116 +57,106 @@ export async function GET() {
             { status: 403 }
         );
     }
-    // ---- END OF CHANGE ----
-
-    // שליפת כל המועמדים הפעילים שיש להם פרופיל
-   const users = await prisma.user.findMany({
-  where: {
-    // --- START OF CHANGE ---
-    // שינינו את התנאי כדי לכלול את כל המשתמשים שאינם חסומים או לא פעילים.
-    // זה יכלול משתמשים בסטטוס 'ACTIVE', 'PENDING_PHONE_VERIFICATION' וכו'.
-    status: {
-      notIn: ['BLOCKED', 'INACTIVE']
-    },
-    // --- END OF CHANGE ---
-    role: 'CANDIDATE',
-    profile: {
-      isNot: null  // נשאיר את התנאי הזה כדי להבטיח שלמשתמש יש רשומת פרופיל כלשהי, גם אם חלקית
-    }
-  },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        status: true,
-        isVerified: true,
-        images: {
-          select: {
-            id: true,
-            url: true,
-            isMain: true
-          },
-          orderBy: [{isMain: 'desc'}, {createdAt: 'asc'}] // Main image first
+    
+    // Fetch all candidates with their full profile and images
+    const users = await prisma.user.findMany({
+        where: {
+            status: { notIn: ['BLOCKED', 'INACTIVE'] },
+            role: 'CANDIDATE',
+            profile: { isNot: null }
         },
-        profile: {
-          select: {
+        select: {
             id: true,
-            gender: true,
-            birthDate: true,
-             birthDateIsApproximate: true,
-            nativeLanguage: true,
-            additionalLanguages: true,
-            height: true,
-            maritalStatus: true,
-            occupation: true,
-            education: true, 
-            educationLevel: true, 
-            city: true,
-            origin: true,
-            religiousLevel: true,
-            about: true,
-            shomerNegiah: true,
-            serviceType: true,
-            serviceDetails: true,
-            headCovering: true, 
-            kippahType: true, 
-            hasChildrenFromPrevious: true,
-            profileCharacterTraits: true,
-            profileHobbies: true,
-            aliyaCountry: true,
-            aliyaYear: true,
-            parentStatus: true,
-            siblings: true,
-            position: true,
-            preferredAgeMin: true,
-            preferredAgeMax: true,
-            preferredHeightMin: true,
-            preferredHeightMax: true,
-            preferredReligiousLevels: true,
-            preferredLocations: true,
-            preferredEducation: true,
-            preferredOccupations: true,
-            contactPreference: true,
-            isProfileVisible: true,
-            preferredMatchmakerGender: true,
-            matchingNotes: true,
-            verifiedBy: true,
-            availabilityStatus: true,
-            availabilityNote: true,
-            availabilityUpdatedAt: true,
-            lastActive: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            status: true,
+            source: true,
             createdAt: true,
-            updatedAt: true
-          }
+            isVerified: true,
+            isProfileComplete: true, // Also fetch this field
+            images: {
+                select: { id: true, url: true, isMain: true },
+                orderBy: [{isMain: 'desc'}, {createdAt: 'asc'}]
+            },
+            profile: true // Fetch the full profile object
         }
-      }
     });
 
-    const formattedUsers = users.map(user => {
-      const profile = user.profile!; 
+    // Enhance each user with information about their current suggestion status
+    const usersWithSuggestionInfo = await Promise.all(
+      users.map(async (user) => {
+        // First, check for a BLOCKING suggestion
+        let suggestion = await prisma.matchSuggestion.findFirst({
+          where: {
+            OR: [{ firstPartyId: user.id }, { secondPartyId: user.id }],
+            status: { in: BLOCKING_SUGGESTION_STATUSES },
+          },
+          include: {
+            firstParty: { select: { id: true, firstName: true, lastName: true } },
+            secondParty: { select: { id: true, firstName: true, lastName: true } },
+          },
+        });
+
+        let suggestionType: 'BLOCKED' | 'PENDING' | null = null;
+        if (suggestion) {
+            suggestionType = 'BLOCKED';
+        } else {
+            // If no blocking suggestion, check for a PENDING one
+            suggestion = await prisma.matchSuggestion.findFirst({
+                where: {
+                    OR: [{ firstPartyId: user.id }, { secondPartyId: user.id }],
+                    status: { in: PENDING_SUGGESTION_STATUSES },
+                },
+                 include: {
+                    firstParty: { select: { id: true, firstName: true, lastName: true } },
+                    secondParty: { select: { id: true, firstName: true, lastName: true } },
+                },
+            });
+            if (suggestion) {
+                suggestionType = 'PENDING';
+            }
+        }
+        
+        // **THE FIX IS HERE**: Define the variable with the correct type that allows null or the object
+        let suggestionInfo: SuggestionStatusInfo | null = null;
+
+        if (suggestion && suggestionType) {
+          const otherParty = suggestion.firstPartyId === user.id
+            ? suggestion.secondParty
+            : suggestion.firstParty;
+          
+          suggestionInfo = {
+            status: suggestionType,
+            suggestionId: suggestion.id,
+            withCandidateName: `${otherParty.firstName} ${otherParty.lastName}`,
+          };
+        }
+        
+        return {
+          ...user,
+          suggestionStatus: suggestionInfo,
+        };
+      })
+    );
+    
+    // Format the final list to ensure date consistency for the client
+    const formattedUsers = usersWithSuggestionInfo.map(user => {
+      // The profile might be null if the select query changes, so we handle it safely
+      const profile = user.profile;
 
       return {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        status: user.status,
-        isVerified: user.isVerified,
-        images: user.images,
-        profile: {
+        // Spread all top-level user properties
+        ...user,
+        // Override profile to format dates to ISO strings for JSON safety
+        profile: profile ? {
           ...profile,
           birthDate: profile.birthDate.toISOString(), 
-          lastActive: profile.lastActive?.toISOString(),
-          availabilityUpdatedAt: profile.availabilityUpdatedAt?.toISOString(),
-          createdAt: profile.createdAt.toISOString(), 
-          updatedAt: profile.updatedAt.toISOString(), 
-          // user: { // This field is part of the UserProfile type definition - consider if needed client-side
-          //   firstName: user.firstName,
-          //   lastName: user.lastName,
-          //   email: user.email
-          // }
-        }
+          availabilityUpdatedAt: profile.availabilityUpdatedAt?.toISOString() || null,
+          createdAt: profile.createdAt.toISOString(),
+          updatedAt: profile.updatedAt.toISOString(),
+          lastActive: profile.lastActive?.toISOString() || null,
+        } : null, // handle case where profile could be null
       };
     });
 
@@ -151,14 +169,15 @@ export async function GET() {
       { status: 200 }
     );
 
-  } catch (error: Error | unknown) {  
+  } catch (error: unknown) {  
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Profile fetch error:', errorMessage);
+    console.error('Candidate list fetch error:', errorMessage, error);
     
     return new NextResponse(
       JSON.stringify({ 
         success: false,
-        error: errorMessage 
+        error: "An error occurred while fetching candidates.",
+        details: errorMessage
       }),
       { status: 500 }
     );
