@@ -107,7 +107,14 @@ const AIAnalysisCard = ({ className }: { className?: string }) => {
     );
 };
 
-const ProfileHeader: React.FC<{ profile: UserProfile; age: number; mainImageToDisplay: UserImageType | null; availability: ReturnType<typeof formatAvailabilityStatus>; }> = ({ profile, age, mainImageToDisplay, availability }) => {
+const ProfileHeader: React.FC<{
+  profile: UserProfile;
+  age: number;
+  mainImageToDisplay: UserImageType | null;
+  availability: ReturnType<typeof formatAvailabilityStatus>;
+  viewMode: "matchmaker" | "candidate";
+  onSuggestMatch?: () => void;
+}> = ({ profile, age, mainImageToDisplay, availability, viewMode, onSuggestMatch }) => {
     const keyDetails = useMemo(() => [
         { label: "גיל", value: age > 0 ? age : null, icon: Cake, color: "text-pink-600" },
         { label: "עיר", value: profile.city, icon: MapPin, color: "text-teal-600" },
@@ -148,10 +155,16 @@ const ProfileHeader: React.FC<{ profile: UserProfile; age: number; mainImageToDi
                                 )}
                             </div>
                         </div>
-                        <Button size="sm" className="bg-cyan-500 hover:bg-cyan-600 text-white font-semibold rounded-full px-5 shadow-lg hover:shadow-cyan-500/30 transition-all self-center sm:self-start mt-3 sm:mt-0">
-                            <LinkIcon className="w-4 h-4 ml-2" />
-                            הצע התאמה
-                        </Button>
+                        {viewMode === 'matchmaker' && onSuggestMatch && (
+                           <Button
+                             size="sm"
+                             className="bg-cyan-500 hover:bg-cyan-600 text-white font-semibold rounded-full px-5 shadow-lg hover:shadow-cyan-500/30 transition-all self-center sm:self-start mt-3 sm:mt-0"
+                             onClick={onSuggestMatch}
+                           >
+                             <LinkIcon className="w-4 h-4 ml-2" />
+                             הצע התאמה
+                           </Button>
+                        )}
                     </div>
                     <div className="mt-4 pt-4 border-t border-slate-200/90 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-4 gap-y-3">
                         {keyDetails.map(({ label, value, icon: Icon, color }) => (
@@ -198,9 +211,10 @@ interface ProfileCardProps {
     questionnaire?: QuestionnaireResponse | null;
     viewMode?: "matchmaker" | "candidate";
     className?: string;
+    onSuggestMatch?: () => void;
 }
 
-const ProfileCard: React.FC<ProfileCardProps> = ({ profile, images = [], questionnaire, viewMode = "candidate", className, }) => {
+const ProfileCard: React.FC<ProfileCardProps> = ({ profile, images = [], questionnaire, viewMode = "candidate", className, onSuggestMatch }) => {
     const [isClient, setIsClient] = useState(false);
     const [isDesktop, setIsDesktop] = useState(true);
     const [selectedImageForDialog, setSelectedImageForDialog] = useState<UserImageType | null>(null);
@@ -228,16 +242,14 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, images = [], questio
     const age = useMemo(() => calculateAge(profile.birthDate), [profile.birthDate]);
     const availability = useMemo(() => formatAvailabilityStatus(profile.availabilityStatus), [profile.availabilityStatus]);
 
-    // ########### THE FIX IS HERE ###########
     const hasDisplayableQuestionnaireAnswers = useMemo(() =>
         questionnaire &&
-        questionnaire.formattedAnswers && // This line ensures formattedAnswers is not null/undefined
+        questionnaire.formattedAnswers &&
         Object.values(questionnaire.formattedAnswers)
             .flat()
             .some((a) => a.isVisible !== false && (a.answer || a.displayText)),
         [questionnaire]
     );
-    // #########################################
 
     const currentDialogImageIndex = useMemo(() => selectedImageForDialog ? orderedImages.findIndex(img => img.id === selectedImageForDialog.id) : -1, [selectedImageForDialog, orderedImages]);
 
@@ -354,7 +366,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, images = [], questio
                           {renderPreferenceBadges("סטטוסים משפחתיים", Heart, "text-rose-600", profile.preferredMaritalStatuses, "bg-rose-50 text-rose-800 border-rose-200", maritalStatusMap)}
                           {renderPreferenceBadges("רמות דתיות", BookMarked, "text-indigo-600", profile.preferredReligiousLevels, "bg-indigo-50 text-indigo-800 border-indigo-200", religiousLevelMap)}
                         </div>
-                         {!profile.matchingNotes && !profile.preferredAgeMin && !profile.preferredMaritalStatuses?.length && <EmptyState icon={Search} message="לא צוינו העדפות ספציפיות" />}
+                         {!profile.matchingNotes && !profile.preferredAgeMin && !profile.preferredMaritalStatuses?.length && <EmptyState icon={Search} message="לא צוינו העדפות ספציфиות" />}
                     </SectionCard>
                 </TabsContent>
                 {hasDisplayableQuestionnaireAnswers && (
@@ -418,7 +430,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, images = [], questio
                 {isDesktop ? (
                     <ResizablePanelGroup direction="horizontal" dir="rtl" className="flex-grow min-h-0" onLayout={(s) => { setMainContentPanelSize(s[0]); setSidePhotosPanelSize(s[1]); }}>
                         <ResizablePanel defaultSize={60} minSize={40} maxSize={75} className="min-w-0 bg-slate-100/40 flex flex-col">
-                            <ProfileHeader profile={profile} age={age} mainImageToDisplay={mainImageToDisplay} availability={availability} />
+                            <ProfileHeader profile={profile} age={age} mainImageToDisplay={mainImageToDisplay} availability={availability} viewMode={viewMode} onSuggestMatch={onSuggestMatch} />
                             <ScrollArea className="flex-grow min-h-0"><div className="p-4"><MainContentTabs /></div></ScrollArea>
                         </ResizablePanel>
                         <ResizableHandle withHandle className="bg-slate-200 hover:bg-slate-300 transition-colors" />
@@ -454,7 +466,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, images = [], questio
                 ) : (
                     <>
                     <ScrollArea className="flex-grow min-h-0 w-full">
-                        <ProfileHeader profile={profile} age={age} mainImageToDisplay={mainImageToDisplay} availability={availability} />
+                        <ProfileHeader profile={profile} age={age} mainImageToDisplay={mainImageToDisplay} availability={availability} viewMode={viewMode} onSuggestMatch={onSuggestMatch} />
                         {orderedImages.length > 0 && (
                             <div className="px-4 pt-4 pb-2">
                                 <ScrollArea dir="rtl" className="w-full whitespace-nowrap">
