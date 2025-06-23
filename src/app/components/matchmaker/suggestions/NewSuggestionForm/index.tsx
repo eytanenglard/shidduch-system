@@ -1,26 +1,25 @@
+// src/app/components/matchmaker/suggestions/NewSuggestionForm/index.tsx
+
 "use client";
 import React, { useState, useEffect } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "sonner";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Priority, MatchSuggestionStatus } from "@prisma/client";
 import { Separator } from "@/components/ui/separator";
-import { CheckCircle, UserPlus } from "lucide-react";
-import { Steps } from "@/components/ui/steps";
+import { UserPlus, Sparkles, Loader2, BarChart2, CheckCircle, Users } from "lucide-react";
+
+// Types
 import type { Candidate } from "../../new/types/candidates";
-import { newSuggestionSchema } from "./schema";
-import type { NewSuggestionFormData } from "./schema";
+import { newSuggestionSchema, type NewSuggestionFormData } from "./schema";
+
+// Components
 import SuggestionDetails from "./SuggestionDetails";
 import MatchPreview from "./MatchPreview";
 import CandidateSelector from "./CandidateSelector";
+import { AiMatchAnalysisDialog } from "../../new/dialogs/AiMatchAnalysisDialog";
 
 interface NewSuggestionFormProps {
   isOpen: boolean;
@@ -30,267 +29,164 @@ interface NewSuggestionFormProps {
   onSubmit: (data: NewSuggestionFormData) => Promise<void>;
 }
 
-const STEPS = [
-  {
-    title: "בחירת מועמדים",
-    description: "בחירת שני הצדדים להצעה",
-    icon: UserPlus,
-  },
-  {
-    title: "פרטי ההצעה",
-    description: "הגדרת פרטי ההצעה ותזמונים",
-    icon: CheckCircle,
-  },
-];
-
-const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
-  isOpen,
-  onClose,
-  candidates,
-  selectedCandidate,
-  onSubmit,
-}) => {
-  const [step, setStep] = useState(1);
+const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({ isOpen, onClose, candidates, selectedCandidate, onSubmit }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [firstParty, setFirstParty] = useState<Candidate | null>(
-    selectedCandidate || null
-  );
+  const [firstParty, setFirstParty] = useState<Candidate | null>(null);
   const [secondParty, setSecondParty] = useState<Candidate | null>(null);
-
-  const { toast } = useToast();
+  const [showAnalysisDialog, setShowAnalysisDialog] = useState(false);
 
   const form = useForm<NewSuggestionFormData>({
     resolver: zodResolver(newSuggestionSchema),
     defaultValues: {
       priority: Priority.MEDIUM,
       status: MatchSuggestionStatus.DRAFT,
-      firstPartyId: selectedCandidate?.id || "",
-      secondPartyId: "",
+      decisionDeadline: new Date(new Date().setDate(new Date().getDate() + 14)), // Default to 2 weeks
     },
   });
 
-  // Debug logging for form state changes
+  // Reset form and state when dialog opens or selectedCandidate changes
   useEffect(() => {
-    const subscription = form.watch((value, { name, type }) => {
-      console.log("Form value changed:", {
-        name,
-        value,
-        type,
-        allValues: form.getValues(),
-        formState: form.formState,
+    if (isOpen) {
+      form.reset({
+        priority: Priority.MEDIUM,
+        status: MatchSuggestionStatus.DRAFT,
+        decisionDeadline: new Date(new Date().setDate(new Date().getDate() + 14)),
+        firstPartyId: selectedCandidate?.id || "",
+        secondPartyId: "",
       });
-    });
+      setFirstParty(selectedCandidate || null);
+      setSecondParty(null);
+    }
+  }, [isOpen, selectedCandidate, form]);
 
-    return () => subscription.unsubscribe();
-  }, [form]);
+  const handleCandidateSelect = (type: "first" | "second") => (candidate: Candidate | null) => {
+    const setter = type === 'first' ? setFirstParty : setSecondParty;
+    const fieldName = type === 'first' ? 'firstPartyId' : 'secondPartyId';
+    setter(candidate);
+    form.setValue(fieldName, candidate?.id || "", { shouldValidate: true, shouldDirty: true });
+  };
 
-  // Handle candidate selection
-  const handleCandidateSelect =
-    (type: "first" | "second") => (candidate: Candidate | null) => {
-      console.log(`${type} party selection:`, { candidate });
-
-      if (type === "first") {
-        setFirstParty(candidate);
-        if (candidate) {
-          form.setValue("firstPartyId", candidate.id, {
-            shouldValidate: true,
-            shouldDirty: true,
-            shouldTouch: true,
-          });
-        } else {
-          form.setValue("firstPartyId", "", {
-            shouldValidate: true,
-            shouldDirty: true,
-            shouldTouch: true,
-          });
-        }
-      } else {
-        setSecondParty(candidate);
-        if (candidate) {
-          form.setValue("secondPartyId", candidate.id, {
-            shouldValidate: true,
-            shouldDirty: true,
-            shouldTouch: true,
-          });
-        } else {
-          form.setValue("secondPartyId", "", {
-            shouldValidate: true,
-            shouldDirty: true,
-            shouldTouch: true,
-          });
-        }
-      }
-
-      // Log form state after update
-      console.log("Form state after selection:", {
-        values: form.getValues(),
-        errors: form.formState.errors,
-        isDirty: form.formState.isDirty,
-        isValid: form.formState.isValid,
-      });
-    };
-
-  const handleSubmit = async (data: NewSuggestionFormData) => {
-    console.log("Submit attempt:", {
-      formData: data,
-      formState: form.formState,
-      firstParty,
-      secondParty,
-    });
-
+  const handleSubmit = form.handleSubmit(async (data) => {
     if (!firstParty || !secondParty) {
-      console.log("Missing parties:", { firstParty, secondParty });
+      toast.error("יש לבחור את שני הצדדים להצעה.");
       return;
     }
 
+    setIsSubmitting(true);
     try {
-      setIsSubmitting(true);
-      console.log("=== Before API call ===");
       await onSubmit(data);
-      console.log("=== After successful API call ===");
-      toast({
-        title: "ההצעה נוצרה בהצלחה",
-        description: "ההצעה נשמרה במערכת והועברה לטיפול",
-      });
+      toast.success("ההצעה נוצרה בהצלחה!");
       onClose();
     } catch (error) {
-      console.log("=== API call failed ===", error);
-      console.error("Submission error:", error);
-      toast({
-        title: "שגיאה",
-        description: "אירעה שגיאה בעת יצירת ההצעה",
-        variant: "destructive",
-      });
+      toast.error("שגיאה ביצירת ההצעה: " + (error instanceof Error ? error.message : "שגיאה לא ידועה"));
     } finally {
       setIsSubmitting(false);
     }
-  };
+  });
 
-  // Handle form validation before moving to next step
-  const handleNextStep = () => {
-    form.trigger(["firstPartyId", "secondPartyId"]).then((isValid) => {
-      if (isValid) {
-        setStep(2);
-      } else {
-        console.log("Validation failed:", form.formState.errors);
-      }
-    });
-  };
+  const maleCandidates = candidates.filter(c => c.profile.gender === 'MALE');
+  const femaleCandidates = candidates.filter(c => c.profile.gender === 'FEMALE');
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
-        <DialogHeader className="px-8 pt-6 pb-2">
-          <DialogTitle className="text-2xl">יצירת הצעת שידוך חדשה</DialogTitle>
-          <DialogDescription>
-            יצירת הצעת שידוך בין שני מועמדים והגדרת פרטי ההצעה
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-7xl w-full h-[95vh] flex flex-col p-0" dir="rtl">
+          <DialogHeader className="px-6 py-4 border-b flex-shrink-0">
+            <DialogTitle className="text-2xl flex items-center gap-3">
+              <UserPlus className="text-primary"/>
+              יצירת הצעת שידוך חדשה
+            </DialogTitle>
+            <DialogDescription>
+              בחר שני מועמדים, נתח את ההתאמה ביניהם והגדר את פרטי ההצעה.
+            </DialogDescription>
+          </DialogHeader>
 
-        {/* Steps Indicator */}
-        <div className="px-8 py-4">
-          <Steps steps={STEPS} currentStep={step} />
-        </div>
-
-        <Separator />
-
-        <FormProvider {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="p-8 pt-6">
-            {/* Step 1: Candidate Selection */}
-            <div className={step !== 1 ? "hidden" : "space-y-8"}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <FormProvider {...form}>
+            <form onSubmit={handleSubmit} className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-6 p-6 overflow-hidden">
+              
+              {/* Left Panel: Male Selector */}
+              <div className="md:col-span-3 flex flex-col gap-4">
                 <CandidateSelector
-                  label="צד א׳"
+                  label="צד א' (גבר)"
                   value={firstParty}
                   onChange={handleCandidateSelect("first")}
-                  candidates={candidates}
+                  candidates={maleCandidates}
                   otherParty={secondParty}
                   fieldName="firstPartyId"
                   error={form.formState.errors.firstPartyId?.message}
                 />
+              </div>
+              
+              {/* Center Panel: Details and Actions */}
+              <div className="md:col-span-6 flex flex-col gap-4 overflow-y-auto pr-2 pb-4">
+                {firstParty && secondParty ? (
+                  <>
+                    <MatchPreview firstParty={firstParty} secondParty={secondParty} />
+                     <div className="flex gap-2 justify-center">
+                      <Button type="button" variant="outline" onClick={() => setShowAnalysisDialog(true)}>
+                        <BarChart2 className="w-4 h-4 ml-2"/>
+                        נתח התאמה מלא (AI)
+                      </Button>
+                     </div>
+                    <SuggestionDetails firstParty={firstParty} secondParty={secondParty} />
+                  </>
+                ) : (
+                  <div className="flex items-center justify-center h-full bg-gray-50 rounded-lg border-2 border-dashed">
+                    <div className="text-center text-gray-500">
+                        <Users className="mx-auto h-12 w-12 text-gray-300" />
+                        <h3 className="mt-2 text-sm font-medium">בחר מועמדים</h3>
+                        <p className="mt-1 text-sm text-gray-500">
+                            יש לבחור מועמד ומועמדת מהעמודות בצדדים.
+                        </p>
+                    </div>
+                  </div>
+                )}
+              </div>
 
+              {/* Right Panel: Female Selector */}
+              <div className="md:col-span-3 flex flex-col gap-4">
                 <CandidateSelector
-                  label="צד ב׳"
+                  label="צד ב' (אישה)"
                   value={secondParty}
                   onChange={handleCandidateSelect("second")}
-                  candidates={candidates}
+                  candidates={femaleCandidates}
                   otherParty={firstParty}
                   fieldName="secondPartyId"
                   error={form.formState.errors.secondPartyId?.message}
                 />
               </div>
 
-              {firstParty && secondParty && (
-                <div className="rounded-lg border bg-card">
-                  <div className="px-6 py-4 border-b">
-                    <h3 className="text-lg font-semibold">
-                      התאמה בין המועמדים
-                    </h3>
-                  </div>
-                  <div className="p-6">
-                    <MatchPreview
-                      firstParty={firstParty}
-                      secondParty={secondParty}
-                    />
-                  </div>
-                </div>
-              )}
+            </form>
+          </FormProvider>
 
-              <div className="flex justify-end mt-8">
-                <Button
-                  type="button"
-                  size="lg"
-                  onClick={handleNextStep}
-                  disabled={!firstParty || !secondParty}
-                >
-                  המשך להגדרת פרטי ההצעה
-                </Button>
-              </div>
+          <DialogFooter className="p-4 border-t flex-shrink-0">
+            <div className="flex justify-between w-full items-center">
+                <span className="text-xs text-gray-500">לאחר יצירת ההצעה, היא תופיע בסטטוס טיוטה.</span>
+                <div className="flex gap-2">
+                    <DialogClose asChild><Button variant="outline">ביטול</Button></DialogClose>
+                    <Button
+                        type="submit"
+                        onClick={handleSubmit}
+                        disabled={isSubmitting || !firstParty || !secondParty}
+                    >
+                        {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin ml-2"/> : <CheckCircle className="w-4 h-4 ml-2"/>}
+                        {isSubmitting ? "יוצר הצעה..." : "צור הצעה"}
+                    </Button>
+                </div>
             </div>
-
-            {/* Step 2: Suggestion Details */}
-            <div className={step !== 2 ? "hidden" : "space-y-8"}>
-              <div className="rounded-lg border bg-card">
-                <div className="px-6 py-4 border-b">
-                  <h3 className="text-lg font-semibold">פרטי ההצעה</h3>
-                </div>
-                <div className="p-6">
-                  {firstParty && secondParty ? (
-                    <SuggestionDetails
-                      firstParty={firstParty}
-                      secondParty={secondParty}
-                    />
-                  ) : (
-                    <div className="text-center py-4 text-gray-500">
-                      יש לבחור את שני הצדדים בשלב הראשון
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex justify-between mt-8">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="lg"
-                  onClick={() => setStep(1)}
-                >
-                  חזרה לבחירת מועמדים
-                </Button>
-
-                <Button
-                  type="submit"
-                  size="lg"
-                  disabled={isSubmitting || !form.formState.isValid}
-                >
-                  {isSubmitting ? "שומר הצעה..." : "שמור הצעה"}
-                </Button>
-              </div>
-            </div>
-          </form>
-        </FormProvider>
-      </DialogContent>
-    </Dialog>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {firstParty && secondParty && (
+        <AiMatchAnalysisDialog
+          isOpen={showAnalysisDialog}
+          onClose={() => setShowAnalysisDialog(false)}
+          targetCandidate={firstParty}
+          comparisonCandidates={[secondParty]}
+        />
+      )}
+    </>
   );
 };
 

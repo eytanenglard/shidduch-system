@@ -1,5 +1,7 @@
+// src/app/components/matchmaker/suggestions/NewSuggestionForm/SuggestionDetails.tsx
+
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { useFormContext } from "react-hook-form";
 import {
   Select,
@@ -8,264 +10,165 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Priority } from "@prisma/client";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { calculateAge } from "@/lib/utils";
+import { toast } from "sonner";
+import { Loader2, Sparkles, AlertTriangle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { NewSuggestionFormData } from "./schema";
 import type { Candidate } from "../../new/types/candidates";
 
 interface SuggestionDetailsProps {
-  className?: string;
   firstParty: Candidate;
   secondParty: Candidate;
 }
 
-const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({
-  firstParty,
-  secondParty,
-}) => {
-  const {
-    register,
-    formState: { errors },
-    setValue,
-    getValues,
-  } = useFormContext<NewSuggestionFormData>();
+const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({ firstParty, secondParty }) => {
+  const { register, formState: { errors }, setValue, watch } = useFormContext<NewSuggestionFormData>();
+  const [isGeneratingRationale, setIsGeneratingRationale] = useState(false);
 
-  // Format candidate display
-  const formatCandidateInfo = (candidate: Candidate): string => {
-    const age = calculateAge(new Date(candidate.profile.birthDate));
-    return `${candidate.firstName} ${candidate.lastName}, ${age}${
-      candidate.profile.city ? `, ${candidate.profile.city}` : ""
-    }`;
-  };
+  const priority = watch("priority", Priority.MEDIUM);
 
-  // Register all form fields
-  React.useEffect(() => {
-    // Set default values if not already set
-    const currentValues = getValues();
-    if (!currentValues.priority) {
-      setValue("priority", Priority.MEDIUM);
+  const handleGenerateRationale = async () => {
+    setIsGeneratingRationale(true);
+    toast.info("ה-AI מנסח את חבילת הנימוקים...");
+    try {
+      const response = await fetch('/api/ai/generate-suggestion-rationale', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId1: firstParty.id, userId2: secondParty.id }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success || !data.rationales) {
+        throw new Error(data.error || "שגיאה בייצור הנימוקים");
+      }
+
+      // --- START OF CHANGE: Populate all three fields ---
+      const { generalRationale, rationaleForParty1, rationaleForParty2 } = data.rationales;
+
+      setValue('matchingReason', generalRationale, { shouldValidate: true, shouldDirty: true });
+      setValue('firstPartyNotes', rationaleForParty1, { shouldValidate: true, shouldDirty: true });
+      setValue('secondPartyNotes', rationaleForParty2, { shouldValidate: true, shouldDirty: true });
+      // --- END OF CHANGE ---
+
+      toast.success("הנימוקים נוצרו בהצלחה והוזנו בשדות המתאימים.");
+
+    } catch (error) {
+      console.error("Failed to generate rationales:", error);
+      toast.error(error instanceof Error ? error.message : "שגיאה לא צפויה");
+    } finally {
+      setIsGeneratingRationale(false);
     }
-  }, [setValue, getValues]);
+  };
 
   return (
     <div className="space-y-6">
-      {/* Selected Candidates Summary */}
-      <Card className="bg-slate-50">
-        <CardHeader className="pb-3">
-          <h3 className="text-lg font-semibold">הצדדים המוצעים</h3>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label className="text-primary font-medium">צד א׳</Label>
-            <div className="p-3 bg-white rounded-lg border">
-              <div className="font-medium">
-                {formatCandidateInfo(firstParty)}
-              </div>
-              <div className="text-sm text-gray-500 mt-1">
-                {firstParty.profile.religiousLevel} |
-                {firstParty.profile.occupation &&
-                  ` ${firstParty.profile.occupation} |`}
-                {firstParty.profile.education &&
-                  ` ${firstParty.profile.education}`}
-              </div>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label className="text-primary font-medium">צד ב׳</Label>
-            <div className="p-3 bg-white rounded-lg border">
-              <div className="font-medium">
-                {formatCandidateInfo(secondParty)}
-              </div>
-              <div className="text-sm text-gray-500 mt-1">
-                {secondParty.profile.religiousLevel} |
-                {secondParty.profile.occupation &&
-                  ` ${secondParty.profile.occupation} |`}
-                {secondParty.profile.education &&
-                  ` ${secondParty.profile.education}`}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Priority Selection with Visual Indicators */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="space-y-4">
-            <Label className="text-lg">עדיפות ההצעה</Label>
-            <Select
-              onValueChange={(value: Priority) => {
-                setValue("priority", value, {
-                  shouldValidate: true,
-                  shouldDirty: true,
-                  shouldTouch: true,
-                });
-              }}
-              value={getValues("priority") || Priority.MEDIUM}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="בחר/י עדיפות" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={Priority.URGENT}>
-                  <div className="flex items-center gap-2">
-                    <Badge
-                      variant="destructive"
-                      className="h-2 w-2 p-0 rounded-full"
-                    />
-                    דחופה
-                  </div>
-                </SelectItem>
-                <SelectItem value={Priority.HIGH}>
-                  <div className="flex items-center gap-2">
-                    <Badge
-                      variant="warning"
-                      className="h-2 w-2 p-0 rounded-full"
-                    />
-                    גבוהה
-                  </div>
-                </SelectItem>
-                <SelectItem value={Priority.MEDIUM}>
-                  <div className="flex items-center gap-2">
-                    <Badge
-                      variant="default"
-                      className="h-2 w-2 p-0 rounded-full"
-                    />
-                    רגילה
-                  </div>
-                </SelectItem>
-                <SelectItem value={Priority.LOW}>
-                  <div className="flex items-center gap-2">
-                    <Badge
-                      variant="secondary"
-                      className="h-2 w-2 p-0 rounded-full"
-                    />
-                    נמוכה
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-            {errors.priority && (
-              <p className="text-sm text-red-500">{errors.priority.message}</p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Matching Details */}
       <Card>
         <CardContent className="pt-6 space-y-6">
-          {/* Matching Reason */}
-          <div className="space-y-3">
-            <Label className="text-lg">סיבת ההתאמה</Label>
-            <div className="text-sm text-gray-500 mb-2">
-              פרט/י מדוע לדעתך יש התאמה בין המועמדים. מידע זה יוצג לשני הצדדים.
+          <div className="space-y-2">
+            <Label htmlFor="priority">עדיפות ההצעה</Label>
+            <Select
+              onValueChange={(value: Priority) => setValue("priority", value, { shouldValidate: true })}
+              defaultValue={priority}
+              name="priority"
+            >
+              <SelectTrigger id="priority"><SelectValue placeholder="בחר/י עדיפות" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value={Priority.URGENT}>דחופה</SelectItem>
+                <SelectItem value={Priority.HIGH}>גבוהה</SelectItem>
+                <SelectItem value={Priority.MEDIUM}>רגילה</SelectItem>
+                <SelectItem value={Priority.LOW}>נמוכה</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.priority && <p className="text-sm text-red-500 mt-1">{errors.priority.message}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <Label htmlFor="matchingReason">סיבת התאמה (כללי, יוצג לצדדים)</Label>
+              <Button type="button" variant="ghost" size="sm" onClick={handleGenerateRationale} disabled={isGeneratingRationale}>
+                {isGeneratingRationale ? (
+                  <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                ) : (
+                  <Sparkles className="w-4 h-4 ml-2 text-purple-500" />
+                )}
+                {isGeneratingRationale ? 'מנסח...' : 'צור נימוקים (AI)'}
+              </Button>
             </div>
             <Textarea
+              id="matchingReason"
               {...register("matchingReason")}
-              placeholder="לדוגמה: שני הצדדים מחפשים בן/בת זוג עם השקפת עולם דומה, שאיפות דומות..."
-              className="min-h-[120px] resize-none"
+              placeholder="נימוק כללי המסביר מדוע יש התאמה בין הצדדים..."
+              className="min-h-[120px]"
             />
-            {errors.matchingReason && (
-              <p className="text-sm text-red-500">
-                {errors.matchingReason.message}
-              </p>
-            )}
+            {errors.matchingReason && <p className="text-sm text-red-500 mt-1">{errors.matchingReason.message}</p>}
+             <Alert variant="default" className="mt-2 text-xs p-3 bg-blue-50 border-blue-200">
+                <AlertTriangle className="h-4 w-4 text-blue-500" />
+                <AlertDescription>
+                  לחיצה על כפתור ה-AI תמלא אוטומטית את שדה זה וגם את שדות ההערות האישיות לכל צד.
+                </AlertDescription>
+            </Alert>
           </div>
 
-          {/* Party-specific Notes */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-3">
-              <Label className="text-lg">הערות לצד א׳</Label>
-              <div className="text-sm text-gray-500 mb-2">
-                הערות אישיות שיוצגו רק ל{firstParty.firstName}
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="firstPartyNotes">הערות אישיות לצד א׳ ({firstParty.firstName})</Label>
               <Textarea
+                id="firstPartyNotes"
                 {...register("firstPartyNotes")}
-                placeholder="מידע נוסף שחשוב שידע..."
-                className="min-h-[100px] resize-none"
+                placeholder="טקסט אישי המדגיש את היתרונות של צד ב' עבור צד א'..."
+                className="min-h-[140px]"
               />
-              {errors.firstPartyNotes && (
-                <p className="text-sm text-red-500">
-                  {errors.firstPartyNotes.message}
-                </p>
-              )}
+              {errors.firstPartyNotes && <p className="text-sm text-red-500 mt-1">{errors.firstPartyNotes.message}</p>}
             </div>
-
-            <div className="space-y-3">
-              <Label className="text-lg">הערות לצד ב׳</Label>
-              <div className="text-sm text-gray-500 mb-2">
-                הערות אישיות שיוצגו רק ל{secondParty.firstName}
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="secondPartyNotes">הערות אישיות לצד ב׳ ({secondParty.firstName})</Label>
               <Textarea
+                id="secondPartyNotes"
                 {...register("secondPartyNotes")}
-                placeholder="מידע נוסף שחשוב שידע..."
-                className="min-h-[100px] resize-none"
+                placeholder="טקסט אישי המדגיש את היתרונות של צד א' עבור צד ב'..."
+                className="min-h-[140px]"
               />
-              {errors.secondPartyNotes && (
-                <p className="text-sm text-red-500">
-                  {errors.secondPartyNotes.message}
-                </p>
-              )}
+              {errors.secondPartyNotes && <p className="text-sm text-red-500 mt-1">{errors.secondPartyNotes.message}</p>}
             </div>
           </div>
 
-          {/* Internal Notes */}
-          <div className="space-y-3">
-            <Label className="text-lg">הערות פנימיות</Label>
-            <div className="text-sm text-gray-500 mb-2">
-              הערות אלו יהיו גלויות רק לצוות השדכנים
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="internalNotes">הערות פנימיות (לצוות השדכנים)</Label>
             <Textarea
+              id="internalNotes"
               {...register("internalNotes")}
-              placeholder="הערות והנחיות לשדכנים..."
-              className="min-h-[100px] resize-none"
+              placeholder="הערות והנחיות לשימוש פנימי בלבד..."
+              className="min-h-[100px]"
             />
-            {errors.internalNotes && (
-              <p className="text-sm text-red-500">
-                {errors.internalNotes.message}
-              </p>
-            )}
+            {errors.internalNotes && <p className="text-sm text-red-500 mt-1">{errors.internalNotes.message}</p>}
           </div>
-
-          {/* Decision Days */}
-          <div className="space-y-3">
-            <Label className="text-lg">זמן להחלטה</Label>
-            <div className="text-sm text-gray-500 mb-2">
-              תוך כמה ימים נדרשת החלטה סופית משני הצדדים
-            </div>
+          
+          <div className="space-y-2">
+            <Label>תאריך יעד להחלטה</Label>
             <Select
               onValueChange={(value) => {
-                const days = parseInt(value);
+                const days = parseInt(value, 10);
                 const deadline = new Date();
                 deadline.setDate(deadline.getDate() + days);
-                setValue("decisionDeadline", deadline, {
-                  shouldValidate: true,
-                  shouldDirty: true,
-                  shouldTouch: true,
-                });
+                setValue("decisionDeadline", deadline, { shouldValidate: true });
               }}
               defaultValue="14"
             >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="בחר/י מספר ימים" />
-              </SelectTrigger>
+              <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="2">2 ימים</SelectItem>
                 <SelectItem value="3">3 ימים</SelectItem>
-                <SelectItem value="5">5 ימים</SelectItem>
                 <SelectItem value="7">7 ימים</SelectItem>
+                <SelectItem value="14">14 ימים</SelectItem>
+                <SelectItem value="30">30 ימים</SelectItem>
               </SelectContent>
             </Select>
-            {errors.decisionDeadline && (
-              <p className="text-sm text-red-500">
-                {errors.decisionDeadline.message}
-              </p>
-            )}
+            {errors.decisionDeadline && <p className="text-sm text-red-500 mt-1">{errors.decisionDeadline.message}</p>}
           </div>
         </CardContent>
       </Card>

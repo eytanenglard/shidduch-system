@@ -1,0 +1,3680 @@
+################################################################################
+# Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\suggestions
+# Generated on: 2025-06-23 13:20:49
+################################################################################
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\suggestions
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\suggestions\MatchSuggestionsContainer.tsx
+--------------------------------------------------------------------------------
+Content:
+// Full path: src/app/components/suggestions/MatchSuggestionsContainer.tsx
+
+"use client";
+
+import React, { useState, useEffect, useCallback } from "react"; // Import useCallback
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Clock, History, AlertCircle, RefreshCw, Bell } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import type { MatchSuggestion } from "@prisma/client";
+import type { UserProfile, UserImage } from "@/types/next-auth";
+
+import SuggestionsList from "./list/SuggestionsList";
+
+// Interfaces remain the same
+interface ExtendedUserProfile extends UserProfile {
+  user: {
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+}
+
+interface PartyInfo {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  profile: ExtendedUserProfile;
+  images: UserImage[];
+}
+
+interface StatusHistoryItem {
+  id: string;
+  suggestionId: string;
+  status: string;
+  notes?: string | null;
+  createdAt: Date | string;
+}
+
+interface ExtendedMatchSuggestion extends MatchSuggestion {
+  matchmaker: {
+    firstName: string;
+    lastName: string;
+  };
+  firstParty: PartyInfo;
+  secondParty: PartyInfo;
+  statusHistory: StatusHistoryItem[];
+}
+
+interface MatchSuggestionsContainerProps {
+  userId: string;
+  className?: string;
+}
+
+const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
+  userId,
+  className,
+}) => {
+  // States
+  const [activeSuggestions, setActiveSuggestions] = useState<
+    ExtendedMatchSuggestion[]
+  >([]);
+  const [historySuggestions, setHistorySuggestions] = useState<
+    ExtendedMatchSuggestion[]
+  >([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("active");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [hasNewSuggestions, setHasNewSuggestions] = useState(false);
+
+  // Calculate counts
+  const pendingCount = activeSuggestions.filter(
+    (s) =>
+      s.status === "PENDING_FIRST_PARTY" || s.status === "PENDING_SECOND_PARTY"
+  ).length;
+
+  // Fetch suggestions function - wrapped in useCallback
+  // Added `activeSuggestions.length` to dependency array because it's used inside
+  // for the `hasNewSuggestions` check.
+  const fetchSuggestions = useCallback(
+    async (showLoadingState = true) => {
+      try {
+        if (showLoadingState) {
+          setIsLoading(true);
+        } else {
+          setIsRefreshing(true);
+        }
+        setError(null);
+
+        // Assume API endpoints implicitly use authenticated user context if userId is not passed
+        // If userId *was* needed in the URL, it should be a dependency of useCallback
+        const [activeResponse, historyResponse] = await Promise.all([
+          fetch(`/api/suggestions/active`),
+          fetch(`/api/suggestions/history`),
+        ]);
+
+        if (!activeResponse.ok || !historyResponse.ok) {
+          const activeError = !activeResponse.ok
+            ? await activeResponse.text()
+            : "";
+          const historyError = !historyResponse.ok
+            ? await historyResponse.text()
+            : "";
+          console.error("Fetch errors:", { activeError, historyError });
+          throw new Error(
+            `Failed to fetch suggestions (${activeResponse.status}/${historyResponse.status})`
+          );
+        }
+
+        const activeData = await activeResponse.json();
+        const historyData = await historyResponse.json();
+
+        // Check if there are new suggestions compared to previous state length
+        // Use functional state update for `setHasNewSuggestions` if it depended on previous state
+        // but direct comparison with `activeSuggestions.length` is okay here.
+        if (
+          !showLoadingState &&
+          activeData.suggestions.length > activeSuggestions.length
+        ) {
+          setHasNewSuggestions(true);
+          toast.success("התקבלו הצעות שידוך חדשות!");
+        }
+
+        setActiveSuggestions(activeData.suggestions);
+        setHistorySuggestions(historyData.suggestions);
+      } catch (error) {
+        console.error("Error loading suggestions:", error);
+        setError(
+          `אירעה שגיאה בטעינת ההצעות: ${
+            error instanceof Error ? error.message : "שגיאה לא ידועה"
+          }`
+        );
+      } finally {
+        setIsLoading(false);
+        setIsRefreshing(false);
+      }
+      // We include `activeSuggestions.length` because it's read inside the function for comparison.
+      // While `activeSuggestions` state itself is modified, `useCallback` depends on the value *at the time of definition*.
+      // A safer alternative might be to pass the current length as an argument if complex dependencies arise,
+      // but for this specific comparison, depending on the length should be acceptable.
+      // If the API endpoints depended on `userId`, add `userId` here too.
+    },
+    [activeSuggestions.length]
+  ); // Dependency array for useCallback
+
+  // Initial load and periodic refresh
+  useEffect(() => {
+    fetchSuggestions(); // Initial fetch
+
+    const intervalId = setInterval(() => {
+      fetchSuggestions(false); // Periodic refresh without full loading state
+    }, 5 * 60 * 1000); // Refresh every 5 minutes
+
+    return () => clearInterval(intervalId); // Cleanup interval on unmount
+  }, [userId, fetchSuggestions]); // Added fetchSuggestions to dependency array
+
+  // Clear new suggestions notification when changing to active tab
+  useEffect(() => {
+    if (activeTab === "active") {
+      setHasNewSuggestions(false);
+    }
+  }, [activeTab]);
+
+  // Handle suggestion status change - wrapped in useCallback
+  const handleStatusChange = useCallback(
+    async (suggestionId: string, newStatus: string, notes?: string) => {
+      try {
+        const response = await fetch(
+          `/api/suggestions/${suggestionId}/status`,
+          {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: newStatus, notes }),
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(
+            errorData.error || "Failed to update suggestion status"
+          );
+        }
+
+        // Refresh suggestions to get the updated state
+        // Pass false to avoid showing the main loading spinner
+        await fetchSuggestions(false);
+
+        const statusMessages: Record<string, string> = {
+          FIRST_PARTY_APPROVED: "אישרת את ההצעה בהצלחה",
+          SECOND_PARTY_APPROVED: "אישרת את ההצעה בהצלחה",
+          FIRST_PARTY_DECLINED: "דחית את ההצעה בהצלחה",
+          SECOND_PARTY_DECLINED: "דחית את ההצעה בהצלחה",
+        };
+
+        toast.success(statusMessages[newStatus] || "הסטטוס עודכן בהצלחה");
+      } catch (error) {
+        console.error("Error updating suggestion status:", error);
+        toast.error(
+          `אירעה שגיאה בעדכון הסטטוס: ${
+            error instanceof Error ? error.message : "שגיאה לא ידועה"
+          }`
+        );
+        // Re-throw the error if the calling component needs to handle it (e.g., disable a button)
+        // throw error; // Uncomment if needed
+      }
+    },
+    [fetchSuggestions]
+  ); // Depends on the memoized fetchSuggestions
+
+  // Handle manual refresh - wrapped in useCallback
+  const handleRefresh = useCallback(async () => {
+    // Pass false to indicate it's a refresh, not initial load
+    await fetchSuggestions(false);
+    toast.success("הנתונים עודכנו בהצלחה");
+  }, [fetchSuggestions]); // Depends on the memoized fetchSuggestions
+
+  return (
+    <Card className={`shadow-md ${className}`}>
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          {/* Refresh Button on the left (assuming LTR context despite RTL text for UI layout) */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleRefresh}
+            disabled={isRefreshing || isLoading} // Disable if initial loading or refreshing
+            aria-label="רענן הצעות" // Accessibility
+          >
+            <RefreshCw
+              className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+            />
+          </Button>
+
+          <CardTitle className="text-xl text-right flex-grow mr-2">
+            הצעות שידוך
+          </CardTitle>
+        </div>
+      </CardHeader>
+
+      <CardContent className="pb-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} dir="rtl">
+          {" "}
+          {/* Added dir="rtl" */}
+          <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
+            {" "}
+            {/* Responsive layout */}
+            <TabsList className="relative">
+              <TabsTrigger
+                value="active"
+                className="flex items-center gap-2 px-3"
+              >
+                {" "}
+                {/* Added padding */}
+                <Clock className="w-4 h-4 ml-1" /> {/* Icon spacing */}
+                <span>פעילות</span> {/* Shortened label */}
+                {activeSuggestions.length > 0 && (
+                  <Badge className="mr-2 px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground text-xs font-normal">
+                    {" "}
+                    {/* Adjusted badge */}
+                    {activeSuggestions.length}
+                  </Badge>
+                )}
+                {/* Keep indicator relative to trigger */}
+                {hasNewSuggestions && (
+                  <span className="absolute top-0 right-0 -mt-1 -mr-1 flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                  </span>
+                )}
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="history"
+                className="flex items-center gap-2 px-3"
+              >
+                {" "}
+                {/* Added padding */}
+                <History className="w-4 h-4 ml-1" /> {/* Icon spacing */}
+                <span>היסטוריה</span>
+                {historySuggestions.length > 0 && (
+                  <Badge
+                    variant="outline"
+                    className="mr-2 px-1.5 py-0.5 rounded-full text-xs font-normal"
+                  >
+                    {" "}
+                    {/* Adjusted badge */}
+                    {historySuggestions.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+
+              {pendingCount > 0 && (
+                <TabsTrigger
+                  value="pending"
+                  className="flex items-center gap-2 px-3"
+                >
+                  {" "}
+                  {/* Added padding */}
+                  <Bell className="w-4 h-4 ml-1" /> {/* Icon spacing */}
+                  <span>ממתינות</span>
+                  <Badge className="mr-2 px-1.5 py-0.5 rounded-full bg-yellow-500 text-white text-xs font-normal">
+                    {" "}
+                    {/* Adjusted badge */}
+                    {pendingCount}
+                  </Badge>
+                </TabsTrigger>
+              )}
+            </TabsList>
+            {/* View Mode Toggle on the left */}
+            <div className="flex">
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs px-3" // Adjusted padding
+                onClick={() =>
+                  setViewMode(viewMode === "grid" ? "list" : "grid")
+                }
+              >
+                {viewMode === "grid" ? "תצוגת רשימה" : "תצוגת קלפים"}{" "}
+                {/* Adjusted text */}
+              </Button>
+            </div>
+          </div>
+          {error && (
+            <Alert variant="destructive" className="mb-6" dir="rtl">
+              {" "}
+              {/* Added dir="rtl" */}
+              <AlertCircle className="h-4 w-4 ml-2" /> {/* Icon spacing */}
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          {/* Pass memoized handlers to child */}
+          <TabsContent value="active">
+            <SuggestionsList
+              suggestions={activeSuggestions}
+              userId={userId}
+              viewMode={viewMode}
+              isLoading={isLoading}
+              onStatusChange={handleStatusChange}
+              onRefresh={handleRefresh} // Pass handleRefresh for consistency if needed inside list items
+            />
+          </TabsContent>
+          <TabsContent value="history">
+            <SuggestionsList
+              suggestions={historySuggestions}
+              userId={userId}
+              viewMode={viewMode}
+              isLoading={isLoading}
+              isHistory={true}
+              onRefresh={handleRefresh} // Pass handleRefresh for consistency if needed inside list items
+              // No status change for history items
+            />
+          </TabsContent>
+          <TabsContent value="pending">
+            <SuggestionsList
+              suggestions={activeSuggestions.filter(
+                (s) =>
+                  s.status === "PENDING_FIRST_PARTY" ||
+                  s.status === "PENDING_SECOND_PARTY"
+              )}
+              userId={userId}
+              viewMode={viewMode}
+              isLoading={isLoading}
+              onStatusChange={handleStatusChange}
+              onRefresh={handleRefresh} // Pass handleRefresh for consistency if needed inside list items
+            />
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default MatchSuggestionsContainer;
+--- End of Content for MatchSuggestionsContainer.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\suggestions\suggestions_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\suggestions\cards
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\suggestions\cards\MinimalSuggestionCard.tsx
+--------------------------------------------------------------------------------
+Content:
+// Full path: src/app/components/suggestions/cards/MinimalSuggestionCard.tsx
+
+import React from "react";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  User,
+  MapPin,
+  Briefcase,
+  Clock,
+  UserCircle,
+  Eye,
+  CheckCircle,
+  XCircle,
+  MessageCircle,
+  Heart,
+  BookOpen,
+  Scroll,
+  Calendar,
+  AlertTriangle,
+} from "lucide-react";
+import Image from "next/image";
+import { format, formatDistanceToNow, isAfter, subDays } from "date-fns";
+import { he } from "date-fns/locale";
+import type { MatchSuggestion } from "@prisma/client";
+import type { UserProfile, UserImage } from "@/types/next-auth";
+import { cn } from "@/lib/utils";
+
+interface ExtendedUserProfile extends UserProfile {
+  user: {
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+}
+
+interface PartyInfo {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  profile: ExtendedUserProfile;
+  images: UserImage[];
+}
+
+interface ExtendedMatchSuggestion extends MatchSuggestion {
+  matchmaker: {
+    firstName: string;
+    lastName: string;
+  };
+  firstParty: PartyInfo;
+  secondParty: PartyInfo;
+}
+
+interface MinimalSuggestionCardProps {
+  suggestion: ExtendedMatchSuggestion;
+  userId: string;
+  onClick: (suggestion: ExtendedMatchSuggestion) => void;
+  onQuickAction?: (suggestion: ExtendedMatchSuggestion) => void;
+  onApprove?: (suggestion: ExtendedMatchSuggestion) => void;
+  onInquiry?: (suggestion: ExtendedMatchSuggestion) => void;
+  onDecline?: (suggestion: ExtendedMatchSuggestion) => void;
+  className?: string;
+  isHistory?: boolean;
+}
+
+const calculateAge = (birthDate: Date): number => {
+  const today = new Date();
+  const birth = new Date(birthDate);
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age;
+};
+
+const getStatusInfo = (status: string) => {
+  switch (status) {
+    case "PENDING_FIRST_PARTY":
+      return {
+        label: "ממתין לתשובתך",
+        className: "bg-yellow-100 text-yellow-800 border-yellow-200",
+        icon: <Clock className="w-3 h-3 ml-1" />,
+      };
+    case "PENDING_SECOND_PARTY":
+      return {
+        label: "ממתין לתשובת הצד השני",
+        className: "bg-blue-100 text-blue-800 border-blue-200",
+        icon: <Clock className="w-3 h-3 ml-1" />,
+      };
+    case "FIRST_PARTY_APPROVED":
+      return {
+        label: "אישרת את ההצעה",
+        className: "bg-green-100 text-green-800 border-green-200",
+        icon: <CheckCircle className="w-3 h-3 ml-1" />,
+      };
+    case "SECOND_PARTY_APPROVED":
+      return {
+        label: "הצד השני אישר את ההצעה",
+        className: "bg-green-100 text-green-800 border-green-200",
+        icon: <CheckCircle className="w-3 h-3 ml-1" />,
+      };
+    case "CONTACT_DETAILS_SHARED":
+      return {
+        label: "פרטי קשר שותפו",
+        className: "bg-purple-100 text-purple-800 border-purple-200",
+        icon: <MessageCircle className="w-3 h-3 ml-1" />,
+      };
+    case "FIRST_PARTY_DECLINED":
+    case "SECOND_PARTY_DECLINED":
+      return {
+        label: "ההצעה נדחתה",
+        className: "bg-red-100 text-red-800 border-red-200",
+        icon: <XCircle className="w-3 h-3 ml-1" />,
+      };
+    case "CANCELLED":
+      return {
+        label: "ההצעה בוטלה",
+        className: "bg-gray-100 text-gray-800 border-gray-200",
+        icon: <XCircle className="w-3 h-3 ml-1" />,
+      };
+    case "DATING":
+      return {
+        label: "בתהליך היכרות",
+        className: "bg-pink-100 text-pink-800 border-pink-200",
+        icon: <Heart className="w-3 h-3 ml-1" />,
+      };
+    case "ENGAGED":
+      return {
+        label: "אירוסין",
+        className: "bg-indigo-100 text-indigo-800 border-indigo-200",
+        icon: <Heart className="w-3 h-3 ml-1" fill="currentColor" />,
+      };
+    case "MARRIED":
+      return {
+        label: "נישואין",
+        className: "bg-indigo-100 text-indigo-800 border-indigo-200",
+        icon: <Heart className="w-3 h-3 ml-1" fill="currentColor" />,
+      };
+    default:
+      return {
+        label: "בטיפול",
+        className: "bg-gray-100 text-gray-800 border-gray-200",
+        icon: <Clock className="w-3 h-3 ml-1" />,
+      };
+  }
+};
+
+const isDeadlineApproaching = (deadline: Date): boolean => {
+  return (
+    isAfter(deadline, new Date()) && isAfter(subDays(deadline, 2), new Date())
+  );
+};
+
+const isDeadlineUrgent = (deadline: Date): boolean => {
+  return (
+    isAfter(deadline, new Date()) && !isAfter(subDays(deadline, 2), new Date())
+  );
+};
+
+const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
+  suggestion,
+  userId,
+  onClick,
+  onApprove,
+  onInquiry,
+  onDecline,
+  className,
+  isHistory = false,
+}) => {
+  const targetParty =
+    suggestion.firstPartyId === userId
+      ? suggestion.secondParty
+      : suggestion.firstParty;
+
+  const isFirstParty = suggestion.firstPartyId === userId;
+
+  if (!targetParty || !targetParty.profile) {
+    return null;
+  }
+
+  const mainImage = targetParty.images?.find((img) => img.isMain);
+  const age = targetParty.profile?.birthDate
+    ? calculateAge(new Date(targetParty.profile.birthDate))
+    : null;
+  const statusInfo = getStatusInfo(suggestion.status);
+
+  const hasDeadline = suggestion.decisionDeadline !== null;
+  const deadlineClass = hasDeadline
+    ? isDeadlineUrgent(new Date(suggestion.decisionDeadline!))
+      ? "bg-red-50 border-red-100"
+      : isDeadlineApproaching(new Date(suggestion.decisionDeadline!))
+      ? "bg-amber-50 border-amber-100"
+      : ""
+    : "";
+
+  // Extract compatibility reasons from matching reason (if available)
+  const getCompatibilityHighlights = () => {
+    if (!suggestion.matchingReason) return [];
+
+    // Explicitly define the type of highlights
+    const highlights: { icon: React.ReactNode; text: string }[] = [];
+    const reason = suggestion.matchingReason.toLowerCase();
+
+    if (reason.includes("ערכים") || reason.includes("value"))
+      highlights.push({
+        icon: <Scroll className="w-4 h-4" />,
+        text: "ערכים משותפים",
+      });
+
+    if (reason.includes("השכלה") || reason.includes("education"))
+      highlights.push({
+        icon: <BookOpen className="w-4 h-4" />,
+        text: "רקע השכלתי דומה",
+      });
+
+    if (reason.includes("אופי") || reason.includes("personality"))
+      highlights.push({
+        icon: <User className="w-4 h-4" />,
+        text: "התאמה אישיותית",
+      });
+
+    if (reason.includes("רמה דתית") || reason.includes("religious"))
+      highlights.push({
+        icon: <Scroll className="w-4 h-4" />,
+        text: "רמה דתית מתאימה",
+      });
+
+    return highlights.slice(0, 2); // Limit to 2 highlights
+  };
+
+  const compatibilityHighlights = getCompatibilityHighlights();
+
+  return (
+    <Card
+      className={cn(
+        "relative overflow-hidden transition-all hover:shadow-lg",
+        deadlineClass,
+        className
+      )}
+      onClick={(e) => {
+        if (!(e.target as Element).closest("button")) {
+          onClick(suggestion);
+        }
+      }}
+    >
+      <div className="relative h-48 bg-gradient-to-b from-blue-50 to-blue-100">
+        {mainImage?.url ? (
+          <Image
+            src={mainImage.url}
+            alt={`${targetParty.firstName} ${targetParty.lastName}`}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <User className="w-16 h-16 text-gray-400" />
+          </div>
+        )}
+
+        <div className="absolute top-3 right-3">
+          <Badge className={cn("flex items-center", statusInfo.className)}>
+            {statusInfo.icon}
+            <span>{statusInfo.label}</span>
+          </Badge>
+        </div>
+
+        <div className="absolute top-3 left-3">
+          <Badge variant="outline" className="bg-white/90 flex items-center">
+            <UserCircle className="w-3 h-3 ml-1" />
+            {suggestion.matchmaker.firstName} {suggestion.matchmaker.lastName}
+          </Badge>
+        </div>
+
+        {hasDeadline && (
+          <div
+            className={cn(
+              "absolute bottom-3 right-3 max-w-[70%]",
+              isDeadlineUrgent(new Date(suggestion.decisionDeadline!)) &&
+                "animate-pulse"
+            )}
+          >
+            <Badge
+              variant="outline"
+              className={cn(
+                "bg-white/90 flex items-center",
+                isDeadlineUrgent(new Date(suggestion.decisionDeadline!)) &&
+                  "bg-red-50 text-red-700"
+              )}
+            >
+              {isDeadlineUrgent(new Date(suggestion.decisionDeadline!)) ? (
+                <AlertTriangle className="w-3 h-3 ml-1" />
+              ) : (
+                <Calendar className="w-3 h-3 ml-1" />
+              )}
+              <span className="text-xs truncate">
+                נדרשת החלטה עד{" "}
+                {format(new Date(suggestion.decisionDeadline!), "dd/MM/yyyy", {
+                  locale: he,
+                })}
+              </span>
+            </Badge>
+          </div>
+        )}
+      </div>
+
+      <CardContent className="p-4">
+        <h3 className="text-lg font-semibold mb-2 text-right flex justify-between items-center">
+          <span>
+            {targetParty.firstName} {targetParty.lastName}
+          </span>
+          {age && (
+            <Badge variant="outline" className="text-xs font-normal">
+              גיל {age}
+            </Badge>
+          )}
+        </h3>
+
+        <div className="space-y-3 text-gray-600 text-sm">
+          <div className="grid grid-cols-2 gap-2">
+            {targetParty.profile.city && (
+              <div className="flex items-center justify-end gap-2">
+                <span>{targetParty.profile.city}</span>
+                <MapPin className="w-4 h-4" />
+              </div>
+            )}
+
+            {targetParty.profile.occupation && (
+              <div className="flex items-center justify-end gap-2">
+                <span>{targetParty.profile.occupation}</span>
+                <Briefcase className="w-4 h-4" />
+              </div>
+            )}
+
+            {targetParty.profile.religiousLevel && (
+              <div className="flex items-center justify-end gap-2">
+                <span>{targetParty.profile.religiousLevel}</span>
+                <Scroll className="w-4 h-4" />
+              </div>
+            )}
+
+            {targetParty.profile.education && (
+              <div className="flex items-center justify-end gap-2">
+                <span className="truncate">
+                  {targetParty.profile.education}
+                </span>
+                <BookOpen className="w-4 h-4 flex-shrink-0" />
+              </div>
+            )}
+          </div>
+
+          {compatibilityHighlights.length > 0 && (
+            <div className="border-t border-gray-100 pt-2">
+              <p className="text-xs mb-1 text-right text-gray-500">
+                התאמה מיוחדת:
+              </p>
+              <div className="flex flex-wrap justify-end gap-2">
+                {compatibilityHighlights.map((highlight, index) => (
+                  <Badge
+                    key={index}
+                    variant="outline"
+                    className="flex items-center gap-1 bg-green-50"
+                  >
+                    {highlight.icon}
+                    <span className="text-xs">{highlight.text}</span>
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="flex items-center justify-end gap-2 text-xs text-gray-400">
+            <span>
+              {`הוצע ${formatDistanceToNow(new Date(suggestion.createdAt), {
+                addSuffix: true,
+                locale: he,
+              })}`}
+            </span>
+            <Clock className="w-3 h-3" />
+          </div>
+        </div>
+      </CardContent>
+
+      {!isHistory && (
+        <CardFooter className="grid grid-cols-2 gap-2 px-4 pb-4 pt-0 border-t border-gray-100">
+          <Button
+            size="sm"
+            variant="default"
+            className="w-full"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClick(suggestion);
+            }}
+          >
+            <Eye className="w-4 h-4 ml-2" />
+            פרטים מלאים
+          </Button>
+
+          {suggestion.status === "PENDING_FIRST_PARTY" && isFirstParty && (
+            <Button
+              size="sm"
+              variant="default"
+              className="w-full bg-green-600 hover:bg-green-700"
+              onClick={(e) => {
+                e.stopPropagation();
+                onApprove?.(suggestion);
+              }}
+            >
+              <CheckCircle className="w-4 h-4 ml-2" />
+              אישור הצעה
+            </Button>
+          )}
+
+          {suggestion.status === "PENDING_SECOND_PARTY" && !isFirstParty && (
+            <Button
+              size="sm"
+              variant="default"
+              className="w-full bg-green-600 hover:bg-green-700"
+              onClick={(e) => {
+                e.stopPropagation();
+                onApprove?.(suggestion);
+              }}
+            >
+              <CheckCircle className="w-4 h-4 ml-2" />
+              אישור הצעה
+            </Button>
+          )}
+
+          {((suggestion.status === "PENDING_FIRST_PARTY" && isFirstParty) ||
+            (suggestion.status === "PENDING_SECOND_PARTY" &&
+              !isFirstParty)) && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-full text-red-600 hover:text-red-700 hover:bg-red-50"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDecline?.(suggestion);
+              }}
+            >
+              <XCircle className="w-4 h-4 ml-2" />
+              דחיית הצעה
+            </Button>
+          )}
+
+          <Button
+            size="sm"
+            variant="outline"
+            className="w-full"
+            onClick={(e) => {
+              e.stopPropagation();
+              onInquiry?.(suggestion);
+            }}
+          >
+            <MessageCircle className="w-4 h-4 ml-2" />
+            שאלה לשדכן
+          </Button>
+        </CardFooter>
+      )}
+    </Card>
+  );
+};
+
+export default MinimalSuggestionCard;
+--- End of Content for MinimalSuggestionCard.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\suggestions\cards\SuggestionQuickView.tsx
+--------------------------------------------------------------------------------
+Content:
+import React from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Heart,
+  User,
+  Clock,
+  Eye,
+  Scroll,
+  GraduationCap,
+  Briefcase,
+  MapPin,
+  MessageCircle,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
+import type { MatchSuggestion } from "@prisma/client";
+import type { UserProfile, UserImage } from "@/types/next-auth";
+
+interface ExtendedUserProfile extends UserProfile {
+  user: {
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+}
+
+interface PartyInfo {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  profile: ExtendedUserProfile;
+  images: UserImage[];
+}
+
+interface ExtendedMatchSuggestion extends MatchSuggestion {
+  matchmaker: {
+    firstName: string;
+    lastName: string;
+  };
+  firstParty: PartyInfo;
+  secondParty: PartyInfo;
+}
+
+interface SuggestionQuickViewProps {
+  suggestion: ExtendedMatchSuggestion;
+  userId?: string;
+  onAction: (action: "approve" | "reject" | "ask" | "view") => void;
+}
+
+const SuggestionQuickView: React.FC<SuggestionQuickViewProps> = ({
+  suggestion,
+  userId,
+  onAction,
+}) => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
+  const profile = userId
+    ? suggestion.firstPartyId === userId
+      ? suggestion.secondParty.profile
+      : suggestion.firstParty.profile
+    : suggestion.secondParty.profile;
+
+  return (
+    <div
+      className="bg-white/95 backdrop-blur-sm p-4 rounded-lg shadow-lg flex flex-col"
+      onClick={handleClick}
+    >
+      <div className="flex-1 space-y-4 text-right overflow-y-auto max-h-96">
+        <div className="grid grid-cols-2 gap-3">
+          {profile.height && (
+            <div className="flex items-center justify-end gap-2 text-sm text-gray-600">
+              <span>{profile.height} ס״מ</span>
+              <User className="w-4 h-4" />
+            </div>
+          )}
+
+          {profile.maritalStatus && (
+            <div className="flex items-center justify-end gap-2 text-sm text-gray-600">
+              <span>{profile.maritalStatus}</span>
+              <Heart className="w-4 h-4" />
+            </div>
+          )}
+
+          {profile.religiousLevel && (
+            <div className="flex items-center justify-end gap-2 text-sm text-gray-600">
+              <span>{profile.religiousLevel}</span>
+              <Scroll className="w-4 h-4" />
+            </div>
+          )}
+
+          {profile.education && (
+            <div className="flex items-center justify-end gap-2 text-sm text-gray-600">
+              <span>{profile.education}</span>
+              <GraduationCap className="w-4 h-4" />
+            </div>
+          )}
+        </div>
+
+        {profile.about && (
+          <div className="border-t border-gray-100 pt-3">
+            <h4 className="text-sm font-medium mb-1">אודות:</h4>
+            <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">
+              {profile.about}
+            </p>
+          </div>
+        )}
+
+        {suggestion.matchingReason && (
+          <div className="border-t border-gray-100 pt-3">
+            <h4 className="text-sm font-medium mb-1">סיבת ההצעה:</h4>
+            <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">
+              {suggestion.matchingReason}
+            </p>
+          </div>
+        )}
+
+        <div className="border-t border-gray-100 pt-3 space-y-2">
+          {profile.city && (
+            <div className="flex items-center justify-end gap-2 text-sm text-gray-600">
+              <span>{profile.city}</span>
+              <MapPin className="w-4 h-4" />
+            </div>
+          )}
+
+          {profile.occupation && (
+            <div className="flex items-center justify-end gap-2 text-sm text-gray-600">
+              <span>{profile.occupation}</span>
+              <Briefcase className="w-4 h-4" />
+            </div>
+          )}
+        </div>
+
+        {suggestion.decisionDeadline && (
+          <div className="border-t border-gray-100 pt-3">
+            <div className="flex items-center justify-end gap-2 text-sm text-yellow-600">
+              <span>
+                נדרשת תשובה עד{" "}
+                {new Date(suggestion.decisionDeadline).toLocaleDateString(
+                  "he-IL"
+                )}
+              </span>
+              <Clock className="w-4 h-4" />
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-gray-100">
+        <Button
+          variant="default"
+          className="w-full"
+          onClick={() => onAction("view")}
+        >
+          <Eye className="w-4 h-4 ml-2" />
+          צפייה בפרופיל
+        </Button>
+
+        <Button
+          variant="default"
+          className="w-full bg-green-600 hover:bg-green-700"
+          onClick={() => onAction("approve")}
+        >
+          <CheckCircle className="w-4 h-4 ml-2" />
+          אישור הצעה
+        </Button>
+
+        <Button
+          variant="outline"
+          className="w-full text-red-600 hover:text-red-700 hover:bg-red-50"
+          onClick={() => onAction("reject")}
+        >
+          <XCircle className="w-4 h-4 ml-2" />
+          דחיית הצעה
+        </Button>
+
+        <Button
+          variant="outline"
+          className="w-full"
+          onClick={() => onAction("ask")}
+        >
+          <MessageCircle className="w-4 h-4 ml-2" />
+          שאלה לשדכן
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+export default SuggestionQuickView;
+--- End of Content for SuggestionQuickView.tsx ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\suggestions\compatibility
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\suggestions\compatibility\MatchCompatibilityView.tsx
+--------------------------------------------------------------------------------
+Content:
+// Full path: src/app/components/suggestions/compatibility/MatchCompatibilityView.tsx
+
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import {
+  Heart,
+  User,
+  Scroll,
+  GraduationCap,
+  MapPin,
+  BookOpen,
+  Home,
+  Languages,
+  Star,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+
+interface ProfileData {
+  birthDate?: Date | string | null;
+  age?: number;
+  height?: number | null;
+  preferredHeightMin?: number | null;
+  preferredHeightMax?: number | null;
+  city?: string | null;
+  preferredLocations?: string[] | null;
+  religiousLevel?: string | null;
+  preferredReligiousLevels?: string[] | null;
+  origin?: string | null;
+  education?: string | null;
+  preferredEducation?: string[] | null;
+  occupation?: string | null;
+  preferredOccupations?: string[] | null;
+  preferredAgeMin?: number | null;
+  preferredAgeMax?: number | null;
+  nativeLanguage?: string | null;
+  additionalLanguages?: string[] | null;
+}
+
+interface Party {
+  firstName: string;
+  profile: ProfileData;
+}
+
+interface MatchCompatibilityProps {
+  firstParty: Party;
+  secondParty: Party;
+  matchingReason?: string | null;
+  className?: string;
+}
+
+interface CompatibilityItem {
+  criterion: string;
+  icon: React.ReactNode;
+  compatible: boolean;
+  reason: string;
+  first?: string | number | null;
+  second?: string | number | null;
+}
+
+
+const calculateAge = (birthDate?: Date | string | null): number | null => {
+  if (!birthDate) return null;
+
+  try {
+    const today = new Date();
+    const birth = new Date(birthDate);
+    // Basic validation if Date constructor returns invalid date
+    if (isNaN(birth.getTime())) return null;
+
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    // Ensure age is not negative if birthDate is in the future
+    return age >= 0 ? age : null;
+  } catch (error) {
+    console.error("Error calculating age:", error);
+    return null;
+  }
+};
+
+const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
+  firstParty,
+  secondParty,
+  matchingReason,
+  className,
+}) => {
+  // Calculate ages if not provided
+  const firstPartyAge =
+    firstParty.profile.age ?? calculateAge(firstParty.profile.birthDate);
+  const secondPartyAge =
+    secondParty.profile.age ?? calculateAge(secondParty.profile.birthDate);
+
+  // Helper to check if a value is within the preferred range (handles null/undefined)
+  const isWithinRange = (value: number | null | undefined, min: number | null | undefined, max: number | null | undefined): boolean => {
+    if (value == null) return false; // Cannot check compatibility if the value itself is missing
+    const minOk = min == null || value >= min;
+    const maxOk = max == null || value <= max;
+    return minOk && maxOk;
+  }
+
+  // Helper to check if a value exists in preferred list (handles null/undefined/empty list)
+  const isInPreferredList = (value: string | null | undefined, preferredList: string[] | null | undefined): boolean => {
+    if (value == null) return false; // Cannot check compatibility if the value itself is missing
+    // If no preferences are set (list is null, undefined, or empty), consider it compatible
+    if (preferredList == null || preferredList.length === 0) {
+      return true;
+    }
+    return preferredList.includes(value);
+  }
+
+
+  // Calculate compatibility score
+  const calculateCompatibilityItems = (): CompatibilityItem[] => {
+    const items: CompatibilityItem[] = [];
+
+    // Age compatibility
+    if (firstPartyAge != null && secondPartyAge != null) {
+      const firstAgePreferenceMatch = isWithinRange(
+        secondPartyAge,
+        firstParty.profile.preferredAgeMin,
+        firstParty.profile.preferredAgeMax
+      );
+
+      const secondAgePreferenceMatch = isWithinRange(
+        firstPartyAge,
+        secondParty.profile.preferredAgeMin,
+        secondParty.profile.preferredAgeMax
+      );
+
+      const compatible = firstAgePreferenceMatch && secondAgePreferenceMatch;
+      items.push({
+        criterion: "גיל",
+        icon: <User className="h-5 w-5" />,
+        compatible: compatible,
+        reason: compatible
+          ? "התאמה הדדית בציפיות הגיל"
+          : "אי התאמה בציפיות הגיל",
+        first: firstPartyAge,
+        second: secondPartyAge,
+      });
+    }
+
+    // Height compatibility
+    const firstHeight = firstParty.profile.height;
+    const secondHeight = secondParty.profile.height;
+    // Only check if both heights are present
+    if (firstHeight != null && secondHeight != null) {
+      const firstHeightPreferenceMatch = isWithinRange(
+        secondHeight,
+        firstParty.profile.preferredHeightMin,
+        firstParty.profile.preferredHeightMax
+      );
+
+      const secondHeightPreferenceMatch = isWithinRange(
+        firstHeight,
+        secondParty.profile.preferredHeightMin,
+        secondParty.profile.preferredHeightMax
+      );
+
+      const compatible = firstHeightPreferenceMatch && secondHeightPreferenceMatch;
+      items.push({
+        criterion: "גובה",
+        icon: <User className="h-5 w-5" />, // Consider a different icon? Maybe ArrowsUpDown?
+        compatible: compatible,
+        reason: compatible
+          ? "התאמה הדדית בציפיות הגובה"
+          : "אי התאמה בציפיות הגובה",
+        first: `${firstHeight} ס"מ`,
+        second: `${secondHeight} ס"מ`,
+      });
+    }
+
+    // Location compatibility
+    const firstCity = firstParty.profile.city;
+    const secondCity = secondParty.profile.city;
+    // Only check if both cities are present
+    if (firstCity != null && secondCity != null) {
+        const firstLocationPreferenceMatch = isInPreferredList(
+            secondCity,
+            firstParty.profile.preferredLocations
+        );
+
+        const secondLocationPreferenceMatch = isInPreferredList(
+            firstCity,
+            secondParty.profile.preferredLocations
+        );
+
+        const compatible = firstLocationPreferenceMatch && secondLocationPreferenceMatch;
+        items.push({
+            criterion: "מקום מגורים",
+            icon: <MapPin className="h-5 w-5" />,
+            compatible: compatible,
+            reason: compatible
+              ? "התאמה הדדית בהעדפות מיקום"
+              : "אי התאמה בהעדפות מיקום",
+            first: firstCity,
+            second: secondCity,
+        });
+    }
+
+
+    // Religious level compatibility
+    const firstReligious = firstParty.profile.religiousLevel;
+    const secondReligious = secondParty.profile.religiousLevel;
+    // Only check if both levels are present
+    if (firstReligious != null && secondReligious != null) {
+      const firstReligiousPreferenceMatch = isInPreferredList(
+        secondReligious,
+        firstParty.profile.preferredReligiousLevels
+      );
+
+      const secondReligiousPreferenceMatch = isInPreferredList(
+        firstReligious,
+        secondParty.profile.preferredReligiousLevels
+      );
+
+      const compatible = firstReligiousPreferenceMatch && secondReligiousPreferenceMatch;
+      items.push({
+        criterion: "רמה דתית",
+        icon: <Scroll className="h-5 w-5" />,
+        compatible: compatible,
+        reason: compatible
+          ? "התאמה הדדית בהעדפות רמה דתית"
+          : "אי התאמה בהעדפות רמה דתית",
+        first: firstReligious,
+        second: secondReligious,
+      });
+    }
+
+    // Origin compatibility (informational, always 'compatible' in this logic)
+    const firstOrigin = firstParty.profile.origin;
+    const secondOrigin = secondParty.profile.origin;
+    if (firstOrigin != null && secondOrigin != null) {
+      const sameOrigin = firstOrigin === secondOrigin;
+      items.push({
+        criterion: "מוצא",
+        icon: <Home className="h-5 w-5" />,
+        compatible: true, // Not marking as incompatible, just informational based on sameness
+        reason: sameOrigin ? "מוצא זהה" : "מוצא שונה",
+        first: firstOrigin,
+        second: secondOrigin,
+      });
+    }
+
+    // Education compatibility
+    const firstEdu = firstParty.profile.education;
+    const secondEdu = secondParty.profile.education;
+    // Only check if both education levels are present
+    if (firstEdu != null && secondEdu != null) {
+      const firstEducationPreferenceMatch = isInPreferredList(
+        secondEdu,
+        firstParty.profile.preferredEducation
+      );
+
+      const secondEducationPreferenceMatch = isInPreferredList(
+        firstEdu,
+        secondParty.profile.preferredEducation
+      );
+
+      const compatible = firstEducationPreferenceMatch && secondEducationPreferenceMatch;
+      items.push({
+        criterion: "השכלה",
+        icon: <GraduationCap className="h-5 w-5" />,
+        compatible: compatible,
+        reason: compatible
+          ? "התאמה הדדית בהעדפות השכלה"
+          : "אי התאמה בהעדפות השכלה",
+        first: firstEdu,
+        second: secondEdu,
+      });
+    }
+
+    // Occupation compatibility
+    const firstOcc = firstParty.profile.occupation;
+    const secondOcc = secondParty.profile.occupation;
+    // Only check if both occupations are present
+    if (firstOcc != null && secondOcc != null) {
+      const firstOccupationPreferenceMatch = isInPreferredList(
+        secondOcc,
+        firstParty.profile.preferredOccupations
+      );
+
+      const secondOccupationPreferenceMatch = isInPreferredList(
+        firstOcc,
+        secondParty.profile.preferredOccupations
+      );
+
+      const compatible = firstOccupationPreferenceMatch && secondOccupationPreferenceMatch;
+      items.push({
+        criterion: "תעסוקה",
+        icon: <BookOpen className="h-5 w-5" />,
+        compatible: compatible,
+        reason: compatible
+          ? "התאמה הדדית בהעדפות תעסוקה"
+          : "אי התאמה בהעדפות תעסוקה",
+        first: firstOcc,
+        second: secondOcc,
+      });
+    }
+
+    // Language compatibility
+    const firstLang = firstParty.profile.nativeLanguage;
+    const secondLang = secondParty.profile.nativeLanguage;
+    // Only check if both native languages are present
+    if (firstLang != null && secondLang != null) {
+        // Check if native languages match OR if one speaks the other's native language as additional
+        const nativeMatch = firstLang === secondLang;
+        const firstSpeaksSecondNative = firstParty.profile.additionalLanguages?.includes(secondLang) ?? false;
+        const secondSpeaksFirstNative = secondParty.profile.additionalLanguages?.includes(firstLang) ?? false;
+
+        const sharedLanguage = nativeMatch || firstSpeaksSecondNative || secondSpeaksFirstNative;
+
+        items.push({
+            criterion: "שפה",
+            icon: <Languages className="h-5 w-5" />,
+            compatible: sharedLanguage, // This is inherently boolean
+            reason: sharedLanguage ? "יש שפה משותפת" : "אין שפה משותפת מוכרת",
+            first: firstLang,
+            second: secondLang,
+        });
+    }
+
+
+    return items;
+  };
+
+  const compatibilityItems = calculateCompatibilityItems();
+  const compatibleCount = compatibilityItems.filter(
+    (item) => item.compatible
+  ).length;
+  // Avoid division by zero if no items could be calculated
+  const compatibilityScore =
+    compatibilityItems.length > 0
+      ? Math.round((compatibleCount / compatibilityItems.length) * 100)
+      : 0;
+
+  return (
+    <Card className={cn("shadow-sm", className)}>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-lg flex items-center gap-2">
+          <Heart className="h-5 w-5 text-pink-500" />
+          ניתוח התאמה
+        </CardTitle>
+      </CardHeader>
+
+      <CardContent>
+        <div className="mb-6">
+          <div className="flex justify-between mb-2 text-sm">
+            <span className="font-medium">{compatibilityScore}% התאמה</span>
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-gray-500">
+                {compatibleCount} מתוך {compatibilityItems.length} קריטריונים
+                תואמים
+              </span>
+            </div>
+          </div>
+          <Progress value={compatibilityScore} className="h-2" />
+        </div>
+
+        {compatibilityItems.length > 0 ? (
+          <div className="grid gap-4">
+            {compatibilityItems.map((item, index) => (
+              <div key={index} className="border-b pb-3 last:border-b-0 last:pb-0"> {/* Improved styling for last item */}
+                <div className="flex justify-between items-start mb-2 gap-2"> {/* Added gap */}
+                  <div className="flex items-center gap-1 flex-shrink-0"> {/* Prevent shrinking */}
+                    {item.compatible ? (
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <XCircle className="h-4 w-4 text-red-500" />
+                    )}
+                    <Badge variant="outline" className="gap-1 text-xs sm:text-sm whitespace-nowrap"> {/* Adjusted text size and nowrap */}
+                      {item.icon}
+                      <span>{item.criterion}</span>
+                    </Badge>
+                  </div>
+                  <div className="text-sm text-right flex-grow"> {/* Allow reason to take space */}
+                    <p
+                      className={cn(
+                        "font-medium", // Make reason slightly bolder
+                        item.compatible ? "text-green-600" : "text-red-600"
+                      )}
+                    >
+                      {item.reason}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Show details only if they exist */}
+                {(item.first != null || item.second != null) && (
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div className="text-left truncate"> {/* Added truncate */}
+                      <span className="text-gray-500">
+                        {firstParty.firstName}:{" "}
+                      </span>
+                      <span className="font-medium">{item.first ?? "לא צוין"}</span> {/* Handle null/undefined */}
+                    </div>
+                    <div className="text-right truncate"> {/* Added truncate */}
+                      <span className="text-gray-500">
+                        {secondParty.firstName}:{" "}
+                      </span>
+                      <span className="font-medium">{item.second ?? "לא צוין"}</span> {/* Handle null/undefined */}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+            <p className="text-sm text-gray-500 text-center">אין מספיק נתונים לחישוב התאמה.</p>
+        )}
+
+
+        {matchingReason && (
+          <div className="mt-6 bg-blue-50 p-4 rounded-lg border border-blue-200"> {/* Added border */}
+            <div className="flex items-center gap-2 mb-2">
+              <Star className="h-5 w-5 text-blue-500" />
+              <h3 className="font-semibold text-blue-800">סיבת ההצעה מהשדכן</h3> {/* Enhanced styling */}
+            </div>
+            <p className="text-sm text-gray-800 text-right">{matchingReason}</p> {/* Adjusted text size/color */}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+export default MatchCompatibilityView;
+--- End of Content for MatchCompatibilityView.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\suggestions\compatibility\UserAiAnalysisDisplay.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/app/components/suggestions/compatibility/UserAiAnalysisDisplay.tsx
+"use client";
+
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Heart, Lightbulb, MessageSquareQuote, ShieldAlert, Sparkles } from 'lucide-react';
+import type { AiSuggestionAnalysisResult } from '@/lib/services/aiService';
+import { motion } from 'framer-motion';
+
+interface UserAiAnalysisDisplayProps {
+  analysis: AiSuggestionAnalysisResult;
+}
+
+const Section: React.FC<{
+  title: string;
+  icon: React.ElementType;
+  iconColorClass: string;
+  children: React.ReactNode;
+}> = ({ title, icon: Icon, iconColorClass, children }) => (
+  <Card className="bg-white/70 backdrop-blur-sm shadow-lg border border-slate-200/60">
+    <CardHeader>
+      <CardTitle className="flex items-center gap-3 text-lg sm:text-xl">
+        <div className={`p-2 rounded-full ${iconColorClass.replace('text-', 'bg-').replace('-500', '-100')}`}>
+            <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${iconColorClass}`} />
+        </div>
+        <span>{title}</span>
+      </CardTitle>
+    </CardHeader>
+    <CardContent>{children}</CardContent>
+  </Card>
+);
+
+const UserAiAnalysisDisplay: React.FC<UserAiAnalysisDisplayProps> = ({ analysis }) => {
+  const scoreColor = analysis.overallScore >= 80 ? 'text-green-500' :
+                     analysis.overallScore >= 60 ? 'text-blue-500' :
+                     'text-amber-500';
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.15,
+        delayChildren: 0.2,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100 } },
+  };
+
+  return (
+    <motion.div
+      className="space-y-6"
+      variants={containerVariants}
+      initial="hidden"
+      animate="show"
+    >
+      {/* כותרת וסיכום ראשי */}
+      <motion.div variants={itemVariants}>
+        <Card className="text-center bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 p-6 shadow-xl border-purple-200/70">
+          <Sparkles className="w-10 h-10 text-purple-500 mx-auto mb-3 animate-pulse" />
+          <h2 className="text-xl sm:text-2xl font-bold text-purple-800">{analysis.matchTitle}</h2>
+          <p className="text-sm sm:text-base text-purple-700 mt-2 max-w-2xl mx-auto">
+            {analysis.matchSummary}
+          </p>
+          <div className="mt-4">
+            <Badge variant="secondary" className={`text-lg font-bold px-4 py-2 rounded-full bg-white shadow-md ${scoreColor}`}>
+              ציון התאמה: {analysis.overallScore}%
+            </Badge>
+            <Progress value={analysis.overallScore} className="max-w-xs mx-auto mt-3 h-2" />
+          </div>
+        </Card>
+      </motion.div>
+
+      {/* נקודות התאמה */}
+      <motion.div variants={itemVariants}>
+        <Section title="נקודות חיבור חזקות" icon={Heart} iconColorClass="text-rose-500">
+          <div className="space-y-4">
+            {analysis.compatibilityPoints.map((point, index) => (
+              <div key={index} className="p-3 bg-rose-50/70 rounded-lg border border-rose-100">
+                <p className="font-semibold text-sm text-rose-800 mb-1">{point.area}</p>
+                <p className="text-sm text-rose-900">{point.explanation}</p>
+              </div>
+            ))}
+          </div>
+        </Section>
+      </motion.div>
+
+      {/* נקודות למחשבה */}
+      <motion.div variants={itemVariants}>
+        <Section title="נקודות למחשבה וצמיחה" icon={Lightbulb} iconColorClass="text-blue-500">
+          <div className="space-y-4">
+            {analysis.pointsToConsider.map((point, index) => (
+              <div key={index} className="p-3 bg-blue-50/70 rounded-lg border border-blue-100">
+                <p className="font-semibold text-sm text-blue-800 mb-1">{point.area}</p>
+                <p className="text-sm text-blue-900">{point.explanation}</p>
+              </div>
+            ))}
+          </div>
+        </Section>
+      </motion.div>
+
+      {/* נושאים לפתיחת שיחה */}
+      <motion.div variants={itemVariants}>
+        <Section title="נושאים מומלצים לפתיחת שיחה" icon={MessageSquareQuote} iconColorClass="text-emerald-500">
+          <ul className="space-y-3 list-inside">
+            {analysis.suggestedConversationStarters.map((starter, index) => (
+              <li key={index} className="flex items-start gap-3">
+                 <div className="flex-shrink-0 mt-1.5 w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
+                 <span className="text-sm text-emerald-900">{starter}</span>
+              </li>
+            ))}
+          </ul>
+        </Section>
+      </motion.div>
+
+    </motion.div>
+  );
+};
+
+export default UserAiAnalysisDisplay;
+--- End of Content for UserAiAnalysisDisplay.tsx ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\suggestions\dialogs
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\suggestions\dialogs\AskMatchmakerDialog.tsx
+--------------------------------------------------------------------------------
+Content:
+// Full path: src/app/components/suggestions/dialogs/AskMatchmakerDialog.tsx
+
+import React, { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { MessageCircle, Send, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+
+interface AskMatchmakerDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (question: string) => Promise<void>;
+  matchmakerName?: string;
+  suggestionId?: string;
+}
+
+export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  matchmakerName,
+}) => {
+  const [question, setQuestion] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+
+  const handleSubmit = async () => {
+    if (!question.trim()) return;
+
+    try {
+      setIsSubmitting(true);
+      setError(null);
+      await onSubmit(question);
+      setQuestion("");
+      setSelectedTopic(null);
+      onClose();
+    } catch (error) {
+      console.error("Error submitting question:", error);
+      setError("אירעה שגיאה בשליחת השאלה. אנא נסה שוב מאוחר יותר.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const topics = [
+    { id: "values", label: "ערכים ואמונות" },
+    { id: "family", label: "משפחה ורקע" },
+    { id: "career", label: "תעסוקה ולימודים" },
+    { id: "personality", label: "אופי ומזג" },
+    { id: "future", label: "תוכניות לעתיד" },
+    { id: "other", label: "אחר" },
+  ];
+
+  const topicQuestions: Record<string, string[]> = {
+    values: [
+      "האם יש משהו שחשוב לדעת לגבי השקפת העולם שלו/ה?",
+      "מה מידת החשיבות שהוא/היא מייחס/ת לנושאים דתיים?",
+      "האם יש לו/ה קווים אדומים בנושאי השקפה?",
+    ],
+    family: [
+      "איך ניתן לתאר את המשפחה שלו/ה?",
+      "האם יש דברים חשובים לדעת לגבי המשפחה?",
+      "מה חשוב לו/ה בנושא בניית משפחה?",
+    ],
+    career: [
+      "מה התוכניות המקצועיות שלו/ה לטווח הארוך?",
+      "האם הוא/היא מעוניין/ת בשינוי תעסוקתי?",
+      "איך הוא/היא רואה את האיזון בין קריירה ומשפחה?",
+    ],
+    personality: [
+      "איך היית מתאר/ת את האופי שלו/ה?",
+      "מה הן התכונות החזקות ביותר שלו/ה?",
+      "האם יש משהו שכדאי לדעת לגבי המזג?",
+    ],
+    future: [
+      "מה החלומות שלו/ה לטווח הארוך?",
+      "האם יש לו/ה תוכניות לשינוי מקום מגורים?",
+      "מה החזון שלו/ה לחיי המשפחה?",
+    ],
+    other: ["יש לי שאלה ספציפית..."],
+  };
+
+  const getInitials = (name?: string) => {
+    if (!name) return "שד";
+
+    const parts = name.split(" ");
+    if (parts.length === 1) return parts[0].charAt(0);
+    return `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(0)}`;
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <MessageCircle className="w-5 h-5" />
+            שאלה ל{matchmakerName ? `שדכן ${matchmakerName}` : "שדכן"}
+          </DialogTitle>
+          <DialogDescription>
+            השדכן ישמח לענות על כל שאלה שיש לך לגבי המועמד/ת
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-2">
+          <div className="flex items-center gap-2 mb-4">
+            <Avatar className="w-10 h-10 bg-primary text-primary-foreground">
+              <AvatarFallback>{getInitials(matchmakerName)}</AvatarFallback>
+            </Avatar>
+            <div className="text-sm">
+              <p className="font-medium">{matchmakerName || "השדכן"}</p>
+              <p className="text-gray-500">זמין/ה לענות על שאלותיך</p>
+            </div>
+          </div>
+
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          <div>
+            <Label className="block mb-2 text-right">בחר נושא לשאלה</Label>
+            <div className="grid grid-cols-2 gap-2">
+              {topics.map((topic) => (
+                <Button
+                  key={topic.id}
+                  type="button"
+                  variant={selectedTopic === topic.id ? "default" : "outline"}
+                  className="justify-center"
+                  onClick={() => setSelectedTopic(topic.id)}
+                >
+                  {topic.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {selectedTopic && (
+            <div className="space-y-2">
+              <Label className="block mb-2 text-right">שאלות לדוגמה</Label>
+              <div className="space-y-2 max-h-32 overflow-y-auto">
+                {topicQuestions[selectedTopic].map((q, index) => (
+                  <Button
+                    key={index}
+                    type="button"
+                    variant="ghost"
+                    className="w-full justify-end text-right hover:bg-gray-100"
+                    onClick={() => setQuestion(q)}
+                  >
+                    {q}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div>
+            <Label htmlFor="question" className="block mb-2 text-right">
+              שאלתך
+            </Label>
+            <Textarea
+              id="question"
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              placeholder="הזן את שאלתך כאן..."
+              className="min-h-[120px] text-right"
+            />
+          </div>
+        </div>
+
+        <DialogFooter className="gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            disabled={isSubmitting}
+          >
+            ביטול
+          </Button>
+          <Button
+            type="submit"
+            onClick={handleSubmit}
+            disabled={!question.trim() || isSubmitting}
+            className="gap-2"
+          >
+            <Send className="w-4 h-4" />
+            {isSubmitting ? "שולח..." : "שלח שאלה"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default AskMatchmakerDialog;
+--- End of Content for AskMatchmakerDialog.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\suggestions\dialogs\UserAiAnalysisDialog.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/app/components/suggestions/dialogs/UserAiAnalysisDialog.tsx
+"use client";
+
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Loader2, Sparkles, AlertTriangle, Bot } from 'lucide-react';
+import { toast } from 'sonner';
+
+// נייבא את הקומפוננטה שתציג את התוצאות
+import UserAiAnalysisDisplay from '../compatibility/UserAiAnalysisDisplay'; 
+import type { AiSuggestionAnalysisResult } from '@/lib/services/aiService';
+
+interface UserAiAnalysisDialogProps {
+  suggestedUserId: string;
+}
+
+export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = ({ suggestedUserId }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [analysis, setAnalysis] = useState<AiSuggestionAnalysisResult | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // פונקציה שתופעל כשהמשתמש ילחץ על הכפתור ותתחיל את התהליך
+  const handleGetAnalysis = async () => {
+    // אם כבר יש ניתוח, פשוט נפתח את הדיאלוג בלי לקרוא שוב ל-API
+    if (analysis) {
+      setIsOpen(true);
+      return;
+    }
+    
+    // נפתח את הדיאלוג כדי להציג את מצב הטעינה
+    setIsOpen(true);
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/ai/analyze-suggestion', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ suggestedUserId }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'שגיאה בקבלת ניתוח ההצעה.');
+      }
+
+      setAnalysis(result.data);
+
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'אירעה שגיאה לא צפויה.';
+      setError(errorMessage);
+      toast.error('שגיאה בתהליך הניתוח', {
+        description: errorMessage,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    if (!open) {
+      // לא מאפסים את ה-analysis כדי לשמור אותו בזיכרון לפתיחה הבאה
+      setError(null); 
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>
+        <Button
+          onClick={handleGetAnalysis}
+          variant="outline"
+          className="rounded-full border-2 border-purple-300 bg-purple-50 text-purple-700 hover:bg-purple-100 hover:border-purple-400 transition-all duration-300 shadow-sm hover:shadow-lg group"
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+          ) : (
+            <Sparkles className="w-4 h-4 ml-2 text-purple-500 transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110" />
+          )}
+          <span>ייעוץ AI על ההצעה</span>
+        </Button>
+      </DialogTrigger>
+      
+      <DialogContent 
+        className="max-w-4xl w-[95vw] h-[90vh] flex flex-col p-0"
+        dir="rtl"
+      >
+        <DialogHeader className="p-4 border-b bg-slate-50">
+          <DialogTitle className="flex items-center gap-2 text-xl">
+            <Bot className="w-6 h-6 text-purple-500" />
+            <span>ניתוח התאמה מבוסס AI</span>
+          </DialogTitle>
+          <DialogDescription>
+            סקירה חכמה של נקודות החיבור והאתגרים הפוטנציאליים בהצעה זו.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="flex-grow overflow-y-auto p-4 md:p-6 bg-slate-100/50">
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <Loader2 className="w-12 h-12 text-purple-500 animate-spin mb-4" />
+              <p className="text-lg font-semibold text-gray-700">ה-AI שלנו בוחן את ההתאמה...</p>
+              <p className="text-sm text-gray-500 mt-2">זה עשוי לקחת מספר שניות. תודה על סבלנותך.</p>
+            </div>
+          ) : error ? (
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <Alert variant="destructive" className="max-w-md">
+                <AlertTriangle className="h-5 w-5" />
+                <AlertTitle>אופס, משהו השתבש</AlertTitle>
+                <AlertDescription>
+                  <p>לא הצלחנו להשלים את ניתוח ההתאמה כרגע.</p>
+                  <p className="text-xs mt-2">{error}</p>
+                </AlertDescription>
+              </Alert>
+              <Button onClick={handleGetAnalysis} variant="outline" className="mt-4">
+                נסה שוב
+              </Button>
+            </div>
+          ) : analysis ? (
+            <UserAiAnalysisDisplay analysis={analysis} />
+          ) : (
+            // מצב זה לא אמור לקרות כי הדיאלוג נפתח רק אחרי לחיצה
+             <div className="flex items-center justify-center h-full">
+                <p>טוען נתונים...</p>
+             </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+--- End of Content for UserAiAnalysisDialog.tsx ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\suggestions\inquiries
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\suggestions\inquiries\InquiryThreadView.tsx
+--------------------------------------------------------------------------------
+Content:
+import React, { useState, useEffect, useCallback } from "react"; // Import useCallback
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { format } from "date-fns";
+import { he } from "date-fns/locale";
+import { Send, MessageCircle, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+
+// Interface Inquiry remains the same...
+interface Inquiry {
+  id: string;
+  suggestionId: string;
+  fromUserId: string;
+  toUserId: string;
+  question: string;
+  answer: string | null;
+  status: "PENDING" | "ANSWERED" | "CLOSED";
+  createdAt: string | Date;
+  answeredAt: string | Date | null;
+  fromUser: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  toUser: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+}
+
+interface InquiryThreadViewProps {
+  suggestionId: string;
+  userId: string;
+  showComposer?: boolean;
+  className?: string;
+}
+
+const InquiryThreadView: React.FC<InquiryThreadViewProps> = ({
+  suggestionId,
+  userId,
+  showComposer = true,
+  className,
+}) => {
+  const [inquiries, setInquiries] = useState<Inquiry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [newQuestion, setNewQuestion] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Wrap fetchInquiries in useCallback
+  // It depends on suggestionId, so list suggestionId as its dependency.
+  const fetchInquiries = useCallback(async () => {
+    // Check suggestionId inside useCallback or rely on useEffect condition
+    if (!suggestionId) {
+      // Optionally clear inquiries or handle appropriately if suggestionId becomes null/undefined
+      setInquiries([]);
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const response = await fetch(
+        `/api/suggestions/${suggestionId}/inquiries`
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({})); // Try to get error details
+        console.error("Failed to fetch inquiries:", response.status, errorData);
+        throw new Error(`Failed to fetch inquiries (${response.status})`);
+      }
+
+      const data = await response.json();
+      // Ensure data.inquiries is always an array
+      setInquiries(Array.isArray(data.inquiries) ? data.inquiries : []);
+    } catch (error) {
+      console.error("Error fetching inquiries:", error);
+      setError("אירעה שגיאה בטעינת השאלות");
+      // Optionally show a toast notification for fetch errors too
+      // toast.error("אירעה שגיאה בטעינת השאלות");
+    } finally {
+      setIsLoading(false);
+    }
+    // Add suggestionId as a dependency for useCallback
+  }, [suggestionId]);
+
+  useEffect(() => {
+    // Now the effect depends on the memoized fetchInquiries function.
+    // It will run initially and whenever fetchInquiries changes (i.e., when suggestionId changes).
+    fetchInquiries();
+    // Add the memoized fetchInquiries to the dependency array.
+  }, [fetchInquiries]);
+
+  const handleSendQuestion = async () => {
+    if (!newQuestion.trim()) return;
+
+    try {
+      setIsSending(true);
+      setError(null); // Clear previous errors
+
+      const response = await fetch(
+        `/api/suggestions/${suggestionId}/inquiries`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question: newQuestion }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({})); // Try to get error details
+        console.error("Failed to send inquiry:", response.status, errorData);
+        throw new Error(`Failed to send inquiry (${response.status})`);
+      }
+
+      // Refresh the inquiries list by calling the memoized fetch function
+      await fetchInquiries();
+      setNewQuestion(""); // Clear input only on success
+      toast.success("השאלה נשלחה בהצלחה");
+    } catch (error) {
+      console.error("Error sending inquiry:", error);
+      setError("אירעה שגיאה בשליחת השאלה"); // Set error state for potential display
+      toast.error("אירעה שגיאה בשליחת השאלה");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  // getInitials, formatDate, getStatusLabel remain the same...
+  const getInitials = (name: string) => {
+    const parts = name?.split(" ") || ["?"]; // Handle potential null/undefined name
+    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+    return `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(
+      0
+    )}`.toUpperCase();
+  };
+
+  const formatDate = (date: string | Date | null) => {
+    if (!date) return ""; // Handle null date
+    try {
+      return format(new Date(date), "dd בMMMM yyyy, HH:mm", { locale: he });
+    } catch (e) {
+      console.error("Error formatting date:", date, e);
+      return "תאריך לא תקין"; // Fallback for invalid date
+    }
+  };
+
+  const getStatusLabel = (status: Inquiry["status"]) => {
+    switch (status) {
+      case "PENDING":
+        return {
+          label: "ממתין לתשובה",
+          className: "border-yellow-300 bg-yellow-50 text-yellow-700", // Adjusted colors for better contrast/style
+        };
+      case "ANSWERED":
+        return {
+          label: "נענה",
+          className: "border-green-300 bg-green-50 text-green-700",
+        };
+      case "CLOSED":
+        return {
+          label: "סגור",
+          className: "border-gray-300 bg-gray-50 text-gray-600",
+        };
+      default:
+        // Handle potential unknown status gracefully
+        const statusStr = String(status);
+        return {
+          label: statusStr,
+          className: "border-gray-300 bg-gray-50 text-gray-600",
+        };
+    }
+  };
+
+  // JSX structure remains largely the same
+  return (
+    <Card className={cn("bg-white shadow-sm flex flex-col", className)}>
+      <CardHeader className="pb-3 border-b">
+        {" "}
+        {/* Added border */}
+        <CardTitle className="text-lg flex items-center gap-2 text-gray-800">
+          {" "}
+          {/* Adjusted text color */}
+          <MessageCircle className="w-5 h-5 text-primary" />{" "}
+          {/* Use primary color */}
+          שאלות לשדכן
+        </CardTitle>
+      </CardHeader>
+
+      {/* Make content area scrollable, not the whole card */}
+      <CardContent className="flex-1 py-4 px-4 space-y-6 overflow-y-auto max-h-[400px]">
+        {" "}
+        {/* Adjusted padding and added scroll */}
+        {isLoading ? (
+          <div className="space-y-4 p-4">
+            {" "}
+            {/* Added padding for skeleton */}
+            {Array.from({ length: 2 }).map(
+              (
+                _,
+                i // Reduced skeleton count slightly
+              ) => (
+                <div key={i} className="flex gap-3">
+                  <Skeleton className="h-10 w-10 rounded-full" />
+                  <div className="space-y-2 flex-1">
+                    <Skeleton className="h-4 w-28" />
+                    <Skeleton className="h-10 w-full" /> {/* Adjusted height */}
+                  </div>
+                </div>
+              )
+            )}
+          </div>
+        ) : error ? (
+          <div className="text-center text-red-600 py-4 px-4 flex flex-col items-center">
+            {" "}
+            {/* Adjusted text color */}
+            <MessageCircle className="mx-auto h-10 w-10 mb-2 opacity-50 text-red-500" />
+            <p className="font-medium">שגיאה</p>
+            <p className="text-sm">{error}</p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={fetchInquiries}
+              className="mt-4"
+            >
+              נסה שוב
+            </Button>
+          </div>
+        ) : inquiries.length === 0 ? (
+          <div className="text-center text-gray-500 py-8 flex flex-col items-center">
+            <MessageCircle className="mx-auto h-12 w-12 mb-3 opacity-20" />
+            <p className="font-medium">אין עדיין שאלות</p>
+            {showComposer && (
+              <p className="text-sm mt-1 text-gray-400">
+                תוכל לשאול את השדכן שאלה כאן למטה.
+              </p>
+            )}
+          </div>
+        ) : (
+          // Removed max-h and overflow from here, moved to CardContent
+          <div className="space-y-6">
+            {inquiries.map((inquiry) => {
+              const isMyQuestion = inquiry.fromUserId === userId; // User asking the question
+              // Determine alignment based on who *asked* the original question
+              const alignRight = isMyQuestion; // Align right if the current user asked the question
+
+              const asker = inquiry.fromUser;
+              const responder = inquiry.toUser; // Usually the matchmaker
+              const statusInfo = getStatusLabel(inquiry.status);
+
+              return (
+                <div
+                  key={inquiry.id}
+                  className={cn(
+                    "flex gap-3",
+                    alignRight ? "flex-row-reverse" : "flex-row" // Align based on asker
+                  )}
+                >
+                  {/* Avatar of the person who asked the question */}
+                  <Avatar className="h-9 w-9 mt-1 flex-shrink-0">
+                    <AvatarFallback className="text-xs">
+                      {getInitials(`${asker.firstName} ${asker.lastName}`)}
+                    </AvatarFallback>
+                  </Avatar>
+
+                  <div className={cn("flex-1 space-y-1")}>
+                    {/* Question Section */}
+                    <div className="flex items-center justify-between flex-wrap gap-x-2 gap-y-1">
+                      <div
+                        className={cn(
+                          "flex items-center gap-2",
+                          alignRight ? "flex-row-reverse" : "flex-row"
+                        )}
+                      >
+                        <span className="font-medium text-sm text-gray-800">
+                          {`${asker.firstName} ${asker.lastName}`}
+                        </span>
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            "text-xs px-1.5 py-0.5 font-normal",
+                            statusInfo.className
+                          )}
+                        >
+                          {statusInfo.label}
+                        </Badge>
+                      </div>
+                      <span className="text-xs text-gray-400">
+                        {formatDate(inquiry.createdAt)}
+                      </span>
+                    </div>
+                    <div
+                      className={cn(
+                        "p-3 rounded-lg max-w-[85%]", // Limit width
+                        alignRight
+                          ? "bg-blue-50 text-blue-900 ml-auto text-right" // Asker's question style
+                          : "bg-gray-100 text-gray-800 mr-auto text-left" // Other person's question style
+                      )}
+                      dir="auto" // Auto direction based on text content
+                    >
+                      <p className="whitespace-pre-wrap text-sm">
+                        {inquiry.question}
+                      </p>
+                    </div>
+
+                    {/* Answer Section (if exists) */}
+                    {inquiry.answer && inquiry.answeredAt && (
+                      <div className="mt-2 flex gap-3">
+                        {/* Answer Avatar (Matchmaker/Responder) - Aligned opposite to question */}
+                        {!alignRight && (
+                          <div className="w-9 flex-shrink-0"></div>
+                        )}{" "}
+                        {/* Spacer */}
+                        <Avatar className="h-9 w-9 mt-1 flex-shrink-0">
+                          <AvatarFallback className="text-xs bg-green-100 text-green-700">
+                            {getInitials(
+                              `${responder.firstName} ${responder.lastName}`
+                            )}
+                          </AvatarFallback>
+                        </Avatar>
+                        {alignRight && (
+                          <div className="w-9 flex-shrink-0"></div>
+                        )}{" "}
+                        {/* Spacer */}
+                        {/* Answer Content */}
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between flex-wrap gap-x-2 gap-y-1">
+                            {/* Answer Meta - aligned opposite */}
+                            <div
+                              className={cn(
+                                "flex items-center gap-2",
+                                !alignRight ? "flex-row-reverse" : "flex-row"
+                              )}
+                            >
+                              <span className="font-medium text-sm text-gray-800">
+                                {`${responder.firstName} ${responder.lastName}`}{" "}
+                                (תשובה)
+                              </span>
+                            </div>
+                            <span className="text-xs text-gray-400">
+                              {formatDate(inquiry.answeredAt)}
+                            </span>
+                          </div>
+                          <div
+                            className={cn(
+                              "p-3 rounded-lg bg-green-50 text-green-900 max-w-[85%]", // Limit width
+                              !alignRight
+                                ? "ml-auto text-right"
+                                : "mr-auto text-left" // Align answer opposite to question
+                            )}
+                            dir="auto" // Auto direction
+                          >
+                            <p className="whitespace-pre-wrap text-sm">
+                              {inquiry.answer}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </CardContent>
+
+      {showComposer && (
+        <CardFooter className="flex-col space-y-2 pt-4 pb-4 border-t bg-gray-50">
+          {" "}
+          {/* Added border and subtle bg */}
+          <Textarea
+            placeholder="כתוב כאן את שאלתך לשדכן..."
+            value={newQuestion}
+            onChange={(e) => setNewQuestion(e.target.value)}
+            className="bg-white text-right" // Ensure white background for textarea
+            rows={3}
+            disabled={isSending} // Disable textarea while sending
+          />
+          <div className="flex justify-end w-full">
+            <Button
+              onClick={handleSendQuestion}
+              disabled={!newQuestion.trim() || isSending || isLoading} // Also disable if loading inquiries
+              className="gap-2"
+              size="sm" // Slightly smaller button
+            >
+              {isSending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  שולח...
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4" />
+                  שלח שאלה
+                </>
+              )}
+            </Button>
+          </div>
+        </CardFooter>
+      )}
+    </Card>
+  );
+};
+
+export default InquiryThreadView;
+--- End of Content for InquiryThreadView.tsx ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\suggestions\list
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\suggestions\list\SuggestionsList.tsx
+--------------------------------------------------------------------------------
+Content:
+// Full path: src/app/components/suggestions/list/SuggestionsList.tsx
+
+"use client";
+import React, { useState, useEffect } from "react";
+import {
+  User,
+  Search,
+  Filter,
+  SortAsc,
+  SortDesc,
+  Calendar,
+  Grid3X3,
+  List as ListIcon,
+  Check,
+  XCircle,
+} from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import type { MatchSuggestion } from "@prisma/client";
+import type {
+  UserProfile,
+  UserImage,
+  QuestionnaireResponse,
+} from "@/types/next-auth";
+
+import MinimalSuggestionCard from "../cards/MinimalSuggestionCard";
+import SuggestionDetailsModal from "../modals/SuggestionDetailsModal";
+import AskMatchmakerDialog from "../dialogs/AskMatchmakerDialog";
+import { cn } from "@/lib/utils";
+
+interface ExtendedUserProfile extends UserProfile {
+  user: {
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+}
+
+interface PartyInfo {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  profile: ExtendedUserProfile;
+  images: UserImage[];
+}
+
+interface StatusHistoryItem {
+  id: string;
+  suggestionId: string;
+  status: string;
+  notes?: string | null;
+  createdAt: Date | string;
+}
+
+interface ExtendedMatchSuggestion extends MatchSuggestion {
+  matchmaker: {
+    firstName: string;
+    lastName: string;
+  };
+  firstParty: PartyInfo;
+  secondParty: PartyInfo;
+  statusHistory: StatusHistoryItem[];
+  // 1. (FIX) Add optional questionnaire property to align with the modal's expected type
+  secondPartyQuestionnaire?: QuestionnaireResponse | null;
+}
+
+interface SuggestionsListProps {
+  suggestions: ExtendedMatchSuggestion[];
+  userId: string;
+  isHistory?: boolean;
+  viewMode: "grid" | "list";
+  isLoading?: boolean;
+  className?: string;
+  onStatusChange?: (
+    suggestionId: string,
+    newStatus: string,
+    notes?: string
+  ) => Promise<void>;
+  onRefresh?: () => void;
+}
+
+type SortOption = "newest" | "oldest" | "deadline" | "priority";
+type FilterOption =
+  | "all"
+  | "pending"
+  | "accepted"
+  | "declined"
+  | "contact_shared";
+
+const SuggestionsList: React.FC<SuggestionsListProps> = ({
+  suggestions: initialSuggestions,
+  isHistory = false,
+  viewMode: initialViewMode,
+  isLoading = false,
+  userId,
+  className,
+  onStatusChange,
+  onRefresh,
+}) => {
+  // State
+  const [selectedSuggestion, setSelectedSuggestion] =
+    useState<ExtendedMatchSuggestion | null>(null);
+  const [showAskDialog, setShowAskDialog] = useState(false);
+  const [showStatusDialog, setShowStatusDialog] = useState(false);
+  const [actionType, setActionType] = useState<"approve" | "decline" | null>(
+    null
+  );
+  // 2. (FIX) Remove the separate questionnaire state
+  // const [questionnaireResponse, setQuestionnaireResponse] =
+  //   useState<QuestionnaireResponse | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOption, setSortOption] = useState<SortOption>("newest");
+  const [filterOption, setFilterOption] = useState<FilterOption>("all");
+  const [viewMode, setViewMode] = useState<"grid" | "list">(initialViewMode);
+  const [filteredSuggestions, setFilteredSuggestions] =
+    useState<ExtendedMatchSuggestion[]>(initialSuggestions);
+
+  // Filter and sort suggestions
+  useEffect(() => {
+    let result = [...initialSuggestions];
+
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter((suggestion) => {
+        const targetParty =
+          suggestion.firstPartyId === userId
+            ? suggestion.secondParty
+            : suggestion.firstParty;
+        return (
+          targetParty.firstName.toLowerCase().includes(query) ||
+          targetParty.lastName.toLowerCase().includes(query) ||
+          targetParty.profile?.city?.toLowerCase().includes(query) ||
+          targetParty.profile?.occupation?.toLowerCase().includes(query) ||
+          targetParty.profile?.religiousLevel?.toLowerCase().includes(query)
+        );
+      });
+    }
+
+    // Apply status filter
+    if (filterOption !== "all") {
+      switch (filterOption) {
+        case "pending":
+          result = result.filter(
+            (s) =>
+              s.status === "PENDING_FIRST_PARTY" ||
+              s.status === "PENDING_SECOND_PARTY"
+          );
+          break;
+        case "accepted":
+          result = result.filter(
+            (s) =>
+              s.status === "FIRST_PARTY_APPROVED" ||
+              s.status === "SECOND_PARTY_APPROVED"
+          );
+          break;
+        case "declined":
+          result = result.filter(
+            (s) =>
+              s.status === "FIRST_PARTY_DECLINED" ||
+              s.status === "SECOND_PARTY_DECLINED"
+          );
+          break;
+        case "contact_shared":
+          result = result.filter((s) => s.status === "CONTACT_DETAILS_SHARED");
+          break;
+      }
+    }
+
+    // Apply sorting
+    switch (sortOption) {
+      case "newest":
+        result.sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        break;
+      case "oldest":
+        result.sort(
+          (a, b) =>
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
+        break;
+      case "deadline":
+        result.sort((a, b) => {
+          if (!a.decisionDeadline) return 1;
+          if (!b.decisionDeadline) return -1;
+          return (
+            new Date(a.decisionDeadline).getTime() -
+            new Date(b.decisionDeadline).getTime()
+          );
+        });
+        break;
+      case "priority":
+        const priorityOrder = { URGENT: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
+        result.sort(
+          (a, b) =>
+            (priorityOrder[a.priority as keyof typeof priorityOrder] || 4) -
+            (priorityOrder[b.priority as keyof typeof priorityOrder] || 4)
+        );
+        break;
+    }
+
+    setFilteredSuggestions(result);
+  }, [initialSuggestions, searchQuery, sortOption, filterOption, userId]);
+
+  // 3. (FIX) Refactor useEffect to load questionnaire data into the selectedSuggestion object
+  useEffect(() => {
+    const loadQuestionnaire = async () => {
+      // Exit if no suggestion is selected or if its questionnaire has already been fetched
+      if (!selectedSuggestion || selectedSuggestion.secondPartyQuestionnaire) {
+        return;
+      }
+
+      const targetParty =
+        selectedSuggestion.firstPartyId === userId
+          ? selectedSuggestion.secondParty
+          : selectedSuggestion.firstParty;
+
+      try {
+        const response = await fetch(
+          `/api/profile/questionnaire?userId=${targetParty.id}`
+        );
+        const data = await response.json();
+
+        if (data.success && data.questionnaireResponse) {
+          const formattedQuestionnaire = {
+            ...data.questionnaireResponse,
+            formattedAnswers: {
+              values: data.questionnaireResponse.formattedAnswers.values || [],
+              personality:
+                data.questionnaireResponse.formattedAnswers.personality || [],
+              relationship:
+                data.questionnaireResponse.formattedAnswers.relationship || [],
+              partner:
+                data.questionnaireResponse.formattedAnswers.partner || [],
+              religion:
+                data.questionnaireResponse.formattedAnswers.religion || [],
+            },
+          };
+          // Update the selected suggestion with the new questionnaire data
+          setSelectedSuggestion((currentSuggestion) =>
+            currentSuggestion
+              ? {
+                  ...currentSuggestion,
+                  secondPartyQuestionnaire: formattedQuestionnaire,
+                }
+              : null
+          );
+        } else {
+           // Mark as fetched (even if null) to prevent re-fetching
+           setSelectedSuggestion((currentSuggestion) =>
+            currentSuggestion
+              ? {
+                  ...currentSuggestion,
+                  secondPartyQuestionnaire: null,
+                }
+              : null
+          );
+        }
+      } catch (error) {
+        console.error("Failed to load questionnaire:", error);
+        toast.error("שגיאה בטעינת השאלון");
+      }
+    };
+
+    loadQuestionnaire();
+  }, [selectedSuggestion, userId]);
+
+
+  // Handlers
+  const handleOpenDetails = (suggestion: ExtendedMatchSuggestion) => {
+    setSelectedSuggestion(suggestion);
+  };
+
+  const handleInquiry = (suggestion: ExtendedMatchSuggestion) => {
+    setSelectedSuggestion(suggestion);
+    setShowAskDialog(true);
+  };
+
+  const handleStatusAction = (
+    suggestion: ExtendedMatchSuggestion,
+    action: "approve" | "decline"
+  ) => {
+    setSelectedSuggestion(suggestion);
+    setActionType(action);
+    setShowStatusDialog(true);
+  };
+
+  const handleActionConfirm = async () => {
+    if (!selectedSuggestion || !actionType || !onStatusChange) return;
+
+    try {
+      const isFirstParty = selectedSuggestion.firstPartyId === userId;
+
+      let newStatus = "";
+      if (actionType === "approve") {
+        newStatus = isFirstParty
+          ? "FIRST_PARTY_APPROVED"
+          : "SECOND_PARTY_APPROVED";
+      } else {
+        newStatus = isFirstParty
+          ? "FIRST_PARTY_DECLINED"
+          : "SECOND_PARTY_DECLINED";
+      }
+
+      await onStatusChange(selectedSuggestion.id, newStatus);
+
+      toast.success(
+        actionType === "approve" ? "ההצעה אושרה בהצלחה" : "ההצעה נדחתה בהצלחה"
+      );
+
+      if (onRefresh) {
+        onRefresh();
+      }
+    } catch (error) {
+      console.error("Error updating suggestion status:", error);
+      toast.error("אירעה שגיאה בעדכון הסטטוס");
+    } finally {
+      setShowStatusDialog(false);
+      setSelectedSuggestion(null);
+      setActionType(null);
+    }
+  };
+
+  const handleSendQuestion = async (questionText: string) => {
+    if (!selectedSuggestion) return;
+
+    try {
+      const response = await fetch(
+        `/api/suggestions/${selectedSuggestion.id}/inquiries`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question: questionText }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to send inquiry");
+      }
+
+      toast.success("השאלה נשלחה בהצלחה לשדכן");
+      setShowAskDialog(false);
+    } catch (error) {
+      console.error("Error sending question:", error);
+      toast.error("אירעה שגיאה בשליחת השאלה");
+    }
+  };
+
+  // Render loading state
+  if (isLoading) {
+    return (
+      <div
+        className={cn(
+          viewMode === "grid"
+            ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+            : "space-y-4",
+          className
+        )}
+      >
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Skeleton key={i} className="h-64 w-full" />
+        ))}
+      </div>
+    );
+  }
+
+  // Render empty state
+  if (filteredSuggestions.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 text-gray-400">
+        <User className="w-12 h-12 mb-4" />
+        {searchQuery || filterOption !== "all" ? (
+          <div className="text-center">
+            <p>לא נמצאו הצעות התואמות את החיפוש</p>
+            <Button
+              variant="ghost"
+              className="mt-2"
+              onClick={() => {
+                setSearchQuery("");
+                setFilterOption("all");
+              }}
+            >
+              נקה סינון
+            </Button>
+          </div>
+        ) : (
+          <p>{isHistory ? "אין הצעות בהיסטוריה" : "אין הצעות פעילות"}</p>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {/* Filters and search bar */}
+      <div className="mb-6 flex flex-col gap-4">
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <Input
+              type="text"
+              placeholder="חיפוש לפי שם, עיר, או מקצוע..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pr-10 text-right"
+            />
+          </div>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon">
+                <Filter className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>סינון הצעות</DropdownMenuLabel>
+              <DropdownMenuGroup>
+                <DropdownMenuItem onClick={() => setFilterOption("all")}>
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      filterOption === "all" ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  הכל
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setFilterOption("pending")}>
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      filterOption === "pending" ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  ממתינות לתשובה
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setFilterOption("accepted")}>
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      filterOption === "accepted" ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  מאושרות
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setFilterOption("declined")}>
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      filterOption === "declined" ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  שנדחו
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setFilterOption("contact_shared")}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      filterOption === "contact_shared"
+                        ? "opacity-100"
+                        : "opacity-0"
+                    )}
+                  />
+                  פרטי קשר שותפו
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <Select
+            value={sortOption}
+            onValueChange={(value) => setSortOption(value as SortOption)}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="מיון לפי" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">
+                <div className="flex items-center gap-2">
+                  <SortDesc className="h-4 w-4" />
+                  החדש ביותר
+                </div>
+              </SelectItem>
+              <SelectItem value="oldest">
+                <div className="flex items-center gap-2">
+                  <SortAsc className="h-4 w-4" />
+                  הישן ביותר
+                </div>
+              </SelectItem>
+              <SelectItem value="deadline">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  תאריך יעד
+                </div>
+              </SelectItem>
+              <SelectItem value="priority">
+                <div className="flex items-center gap-2">
+                  <Filter className="h-4 w-4" />
+                  עדיפות
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+
+          <div className="flex gap-1 border rounded-md">
+            <Button
+              variant={viewMode === "grid" ? "default" : "ghost"}
+              size="icon"
+              className={cn(
+                "rounded-none",
+                viewMode === "grid" ? "" : "hover:bg-muted"
+              )}
+              onClick={() => setViewMode("grid")}
+            >
+              <Grid3X3 className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === "list" ? "default" : "ghost"}
+              size="icon"
+              className={cn(
+                "rounded-none",
+                viewMode === "list" ? "" : "hover:bg-muted"
+              )}
+              onClick={() => setViewMode("list")}
+            >
+              <ListIcon className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Active filters display */}
+        {(searchQuery || filterOption !== "all") && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-500">סינון פעיל:</span>
+            {searchQuery && (
+              <Badge variant="outline" className="flex items-center gap-1">
+                חיפוש: {searchQuery}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-4 w-4 p-0 hover:bg-transparent"
+                  onClick={() => setSearchQuery("")}
+                >
+                  <XCircle className="h-3 w-3" />
+                </Button>
+              </Badge>
+            )}
+            {filterOption !== "all" && (
+              <Badge variant="outline" className="flex items-center gap-1">
+                {filterOption === "pending" && "ממתינות לתשובה"}
+                {filterOption === "accepted" && "מאושרות"}
+                {filterOption === "declined" && "שנדחו"}
+                {filterOption === "contact_shared" && "פרטי קשר שותפו"}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-4 w-4 p-0 hover:bg-transparent"
+                  onClick={() => setFilterOption("all")}
+                >
+                  <XCircle className="h-3 w-3" />
+                </Button>
+              </Badge>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs"
+              onClick={() => {
+                setSearchQuery("");
+                setFilterOption("all");
+              }}
+            >
+              נקה הכל
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Results count */}
+      <div className="mb-4 text-sm text-gray-500 text-left">
+        מציג {filteredSuggestions.length}{" "}
+        {filteredSuggestions.length === 1 ? "הצעה" : "הצעות"} מתוך{" "}
+        {initialSuggestions.length}
+      </div>
+
+      {/* Suggestions grid/list */}
+      <div
+        className={cn(
+          viewMode === "grid"
+            ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            : "space-y-4",
+          className
+        )}
+      >
+        {filteredSuggestions.map((suggestion) => (
+          <div key={suggestion.id} className="relative">
+            <MinimalSuggestionCard
+              suggestion={suggestion}
+              userId={userId}
+              onClick={() => handleOpenDetails(suggestion)}
+              onInquiry={() => handleInquiry(suggestion)}
+              onApprove={() => handleStatusAction(suggestion, "approve")}
+              onDecline={() => handleStatusAction(suggestion, "decline")}
+              isHistory={isHistory}
+              className={viewMode === "list" ? "flex" : ""}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* 4. (FIX) Suggestion Details Modal call no longer needs the questionnaire prop */}
+      <SuggestionDetailsModal
+        suggestion={selectedSuggestion}
+        userId={userId}
+        isOpen={!!selectedSuggestion && !showAskDialog && !showStatusDialog}
+        onClose={() => setSelectedSuggestion(null)}
+        onStatusChange={onStatusChange}
+      />
+
+      {/* Ask Matchmaker Dialog */}
+      <AskMatchmakerDialog
+        isOpen={showAskDialog}
+        onClose={() => setShowAskDialog(false)}
+        onSubmit={handleSendQuestion}
+        matchmakerName={selectedSuggestion?.matchmaker.firstName}
+        suggestionId={selectedSuggestion?.id}
+      />
+
+      {/* Status Change Confirmation Dialog */}
+      <AlertDialog open={showStatusDialog} onOpenChange={setShowStatusDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {actionType === "approve"
+                ? "אישור הצעת השידוך"
+                : "דחיית הצעת השידוך"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {actionType === "approve"
+                ? "האם אתה בטוח שברצונך לאשר את הצעת השידוך? לאחר האישור, ההצעה תעבור לשלב הבא בתהליך."
+                : "האם אתה בטוח שברצונך לדחות את הצעת השידוך? פעולה זו אינה ניתנת לביטול."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>ביטול</AlertDialogCancel>
+            <AlertDialogAction onClick={handleActionConfirm}>
+              {actionType === "approve" ? "אישור ההצעה" : "דחיית ההצעה"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+};
+
+export default SuggestionsList;
+--- End of Content for SuggestionsList.tsx ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\suggestions\modals
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\suggestions\modals\SuggestionDetailsModal.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/app/components/suggestions/modals/SuggestionDetailsModal.tsx
+
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { useSession } from "next-auth/react"; // 1. ייבוא
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  CheckCircle,
+  XCircle,
+  MessageCircle,
+  Calendar,
+  Info,
+  User,
+  Clock,
+  Briefcase,
+  GraduationCap,
+  MapPin,
+  Scroll as ScrollIcon, // שינוי שם כדי למנוע התנגשות
+  Bot, // 1. ייבוא
+  Sparkles, // 1. ייבוא
+  X, // הוספת אייקון X לסגירה
+} from "lucide-react";
+import { format } from "date-fns";
+import { he } from "date-fns/locale";
+import { ProfileCard } from "@/app/components/profile";
+import SuggestionTimeline from "../timeline/SuggestionTimeline";
+import { AskMatchmakerDialog } from "../dialogs/AskMatchmakerDialog";
+import type { MatchSuggestion } from "@prisma/client";
+import type { UserProfile, UserImage, QuestionnaireResponse } from "@/types/next-auth";
+import { cn } from "@/lib/utils";
+// --- 1. ייבוא קומפוננטת הדיאלוג החדשה של ניתוח ה-AI ---
+import { UserAiAnalysisDialog } from "../dialogs/UserAiAnalysisDialog";
+
+// הגדרת טיפוסים מורחבים כפי שהיו בקובץ המקורי
+interface ExtendedUserProfile extends UserProfile {
+  user: {
+    firstName: string;
+    lastName:string;
+    email: string;
+  };
+}
+
+interface PartyInfo {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  profile: ExtendedUserProfile;
+  images: UserImage[];
+}
+
+interface StatusHistoryItem {
+  id: string;
+  suggestionId: string;
+  status: string;
+  notes?: string | null;
+  createdAt: Date | string;
+}
+
+interface ExtendedMatchSuggestion extends MatchSuggestion {
+  matchmaker: {
+    firstName: string;
+    lastName: string;
+  };
+  firstParty: PartyInfo;
+  secondParty: PartyInfo;
+  statusHistory: StatusHistoryItem[];
+  // נוסיף את המידע על השאלון ישירות לאובייקט ההצעה כדי שיהיה זמין
+  secondPartyQuestionnaire?: QuestionnaireResponse | null; 
+}
+
+
+interface SuggestionDetailsModalProps {
+  suggestion: ExtendedMatchSuggestion | null;
+  userId: string;
+  isOpen: boolean;
+  onClose: () => void;
+  onStatusChange?: (suggestionId: string, newStatus: string) => Promise<void>;
+  // הסרנו את questionnaire מפה כי הוא יגיע דרך suggestion
+}
+
+
+// פונקציות עזר מהקובץ המקורי
+const getStatusLabel = (status: string): string => {
+  const statusMap: Record<string, string> = { DRAFT: "טיוטה", PENDING_FIRST_PARTY: "ממתין לתשובתך", FIRST_PARTY_APPROVED: "אישרת", FIRST_PARTY_DECLINED: "דחית", PENDING_SECOND_PARTY: "ממתין לצד השני", SECOND_PARTY_APPROVED: "הצד השני אישר", SECOND_PARTY_DECLINED: "הצד השני דחה", CONTACT_DETAILS_SHARED: "פרטי קשר שותפו", AWAITING_FIRST_DATE_FEEDBACK: "ממתין למשוב פגישה", THINKING_AFTER_DATE: "בחשיבה לאחר פגישה", PROCEEDING_TO_SECOND_DATE: "התקדמות לפגישה שנייה", ENDED_AFTER_FIRST_DATE: "הסתיים לאחר פגישה ראשונה", DATING: "בתהליך היכרות", ENGAGED: "אירוסין", MARRIED: "נישואין", CANCELLED: "בוטל", CLOSED: "נסגר", EXPIRED: "פג תוקף" };
+  return statusMap[status] || status;
+};
+
+const getPriorityLabel = (priority: string): { label: string; color: string } => {
+  switch (priority) {
+    case "LOW": return { label: "נמוכה", color: "bg-gray-100 text-gray-800" };
+    case "MEDIUM": return { label: "בינונית", color: "bg-blue-100 text-blue-800" };
+    case "HIGH": return { label: "גבוהה", color: "bg-yellow-100 text-yellow-800" };
+    case "URGENT": return { label: "דחופה", color: "bg-red-100 text-red-800" };
+    default: return { label: "בינונית", color: "bg-blue-100 text-blue-800" };
+  }
+};
+
+const calculateAge = (birthDate: Date): number => {
+  const today = new Date();
+  const birth = new Date(birthDate);
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age;
+};
+
+const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
+  suggestion,
+  userId,
+  isOpen,
+  onClose,
+  onStatusChange,
+}) => {
+  const { data: session } = useSession(); // 2. קבלת הסשן
+  const currentUserId = session?.user?.id; // חילוץ ה-ID של המשתמש הנוכחי
+
+  const [activeTab, setActiveTab] = useState("profile");
+  const [showAskDialog, setShowAskDialog] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setActiveTab("profile");
+    }
+  }, [isOpen]);
+
+  if (!suggestion) return null;
+
+  const isFirstParty = suggestion.firstPartyId === userId;
+  const targetParty = isFirstParty ? suggestion.secondParty : suggestion.firstParty;
+  const targetPartyAge = targetParty.profile?.birthDate ? calculateAge(new Date(targetParty.profile.birthDate)) : null;
+
+  // נוודא שאנחנו מעבירים את השאלון הנכון לקומפוננטת הפרופיל
+  const targetQuestionnaire = suggestion.secondPartyQuestionnaire;
+
+  const priorityInfo = getPriorityLabel(suggestion.priority);
+
+  const canApprove =
+    (isFirstParty && suggestion.status === "PENDING_FIRST_PARTY") ||
+    (!isFirstParty && suggestion.status === "PENDING_SECOND_PARTY");
+  const canDecline = canApprove;
+
+  const handleStatusChange = async (newStatus: string) => {
+    if (!onStatusChange) return;
+    try {
+      setIsSubmitting(true);
+      await onStatusChange(suggestion.id, newStatus);
+      onClose();
+    } catch (error) {
+      console.error("Failed to update status:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSendQuestion = async (question: string) => {
+    try {
+      setIsSubmitting(true);
+      const response = await fetch(`/api/suggestions/${suggestion.id}/inquiries`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question }),
+      });
+      if (!response.ok) throw new Error("Failed to send inquiry");
+      setShowAskDialog(false);
+    } catch (error) {
+      console.error("Error sending question:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-6xl h-[90vh] max-h-[90vh] flex flex-col p-0">
+          <DialogHeader className="px-6 py-4 border-b">
+            <div className="flex justify-between items-center">
+              <DialogTitle className="text-xl">
+                הצעת שידוך עם {targetParty.firstName}
+                {targetPartyAge && <span className="text-lg font-normal">, {targetPartyAge}</span>}
+              </DialogTitle>
+              <div className="flex items-center gap-2">
+                <Badge className={cn("text-xs py-1", priorityInfo.color)}>{priorityInfo.label}</Badge>
+                <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full h-8 w-8"><X className="w-4 h-4" /></Button>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-hidden flex flex-col">
+            <div className="border-b px-6 pt-2">
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList>
+                  <TabsTrigger value="profile"><User className="w-4 h-4 mr-2" />פרופיל</TabsTrigger>
+                  <TabsTrigger value="details"><Info className="w-4 h-4 mr-2" />פרטי ההצעה</TabsTrigger>
+                  <TabsTrigger value="timeline"><Clock className="w-4 h-4 mr-2" />היסטוריה</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+
+            <ScrollArea className="flex-1">
+              <TabsContent value="profile" className="p-6">
+                
+                {/* --- 3. הוספת רכיב ה-AI --- */}
+                {currentUserId && (
+                  <div className="mb-6 p-4 bg-purple-50 border border-dashed border-purple-300 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+                      <div>
+                          <h3 className="font-semibold text-purple-800 flex items-center gap-2 text-base">
+                              <Bot className="w-5 h-5"/>
+                              מתלבט/ת? קבל/י דעה שנייה מה-AI
+                          </h3>
+                          <p className="text-sm text-purple-700 mt-1">
+                              קבל ניתוח מקיף של ההתאמה על סמך הפרופילים של שניכם כדי לקבל החלטה מושכלת.
+                          </p>
+                      </div>
+                      <UserAiAnalysisDialog 
+                          suggestedUserId={targetParty.id} 
+                      />
+                  </div>
+                )}
+                {/* --- סוף הוספת רכיב ה-AI --- */}
+
+                <ProfileCard
+                  profile={{ ...targetParty.profile, user: { firstName: targetParty.firstName, lastName: targetParty.lastName, email: targetParty.email } }}
+                  images={targetParty.images}
+                  questionnaire={targetQuestionnaire}
+                  viewMode="candidate"
+                />
+              </TabsContent>
+
+              <TabsContent value="details" className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* תוכן הטאב 'פרטי ההצעה' מהקובץ המקורי */}
+                    <Card><CardContent className="p-6">
+                        <h3 className="text-lg font-medium mb-4">פרטי ההצעה</h3>
+                        <div className="space-y-4">
+                            <div><p className="text-sm text-gray-500">סטטוס</p><Badge>{getStatusLabel(suggestion.status)}</Badge></div>
+                            <div><p className="text-sm text-gray-500">שדכן</p><p>{suggestion.matchmaker.firstName} {suggestion.matchmaker.lastName}</p></div>
+                            {suggestion.decisionDeadline && <div><p className="text-sm text-gray-500">תאריך יעד</p><p>{format(new Date(suggestion.decisionDeadline), "dd/MM/yyyy", { locale: he })}</p></div>}
+                        </div>
+                    </CardContent></Card>
+                    <Card><CardContent className="p-6">
+                        <h3 className="text-lg font-medium mb-4">סיבות להצעה</h3>
+                        <p className="whitespace-pre-line">{suggestion.matchingReason || "לא צוינו סיבות מיוחדות."}</p>
+                        {isFirstParty && suggestion.firstPartyNotes && <div className="mt-4"><h4 className="font-medium text-sm mb-2">הערות עבורך:</h4><div className="bg-blue-50 p-3 rounded">{suggestion.firstPartyNotes}</div></div>}
+                        {!isFirstParty && suggestion.secondPartyNotes && <div className="mt-4"><h4 className="font-medium text-sm mb-2">הערות עבורך:</h4><div className="bg-blue-50 p-3 rounded">{suggestion.secondPartyNotes}</div></div>}
+                    </CardContent></Card>
+                    <Card className="md:col-span-2"><CardContent className="p-6">
+                        <h3 className="text-lg font-medium mb-4">נקודות התאמה</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="bg-green-50 p-4 rounded-lg"><h4 className="font-medium flex items-center gap-2"><GraduationCap className="text-green-600"/>רקע והשכלה</h4>{/*...*/}</div>
+                            <div className="bg-blue-50 p-4 rounded-lg"><h4 className="font-medium flex items-center gap-2"><MapPin className="text-blue-600"/>מקום מגורים</h4>{/*...*/}</div>
+                            <div className="bg-purple-50 p-4 rounded-lg"><h4 className="font-medium flex items-center gap-2"><ScrollIcon className="text-purple-600"/>רקע דתי</h4>{/*...*/}</div>
+                        </div>
+                    </CardContent></Card>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="timeline" className="p-6">
+                <SuggestionTimeline statusHistory={suggestion.statusHistory} />
+              </TabsContent>
+            </ScrollArea>
+          </div>
+
+          <DialogFooter className="px-6 py-4 border-t flex-shrink-0">
+            <div className="flex gap-2 w-full">
+              {canApprove && <Button variant="default" className="bg-green-600 hover:bg-green-700" disabled={isSubmitting} onClick={() => handleStatusChange(isFirstParty ? "FIRST_PARTY_APPROVED" : "SECOND_PARTY_APPROVED")}><CheckCircle className="w-4 h-4 ml-2" />אישור ההצעה</Button>}
+              {canDecline && <Button variant="outline" className="text-red-600 hover:bg-red-50 hover:text-red-700" disabled={isSubmitting} onClick={() => handleStatusChange(isFirstParty ? "FIRST_PARTY_DECLINED" : "SECOND_PARTY_DECLINED")}><XCircle className="w-4 h-4 ml-2" />דחיית ההצעה</Button>}
+              <Button variant="outline" onClick={() => setShowAskDialog(true)} disabled={isSubmitting}><MessageCircle className="w-4 h-4 ml-2" />שאלה לשדכן</Button>
+              <Button variant="ghost" className="mr-auto" onClick={onClose} disabled={isSubmitting}>סגירה</Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AskMatchmakerDialog
+        isOpen={showAskDialog}
+        onClose={() => setShowAskDialog(false)}
+        onSubmit={handleSendQuestion}
+        matchmakerName={`${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`}
+      />
+    </>
+  );
+};
+
+export default SuggestionDetailsModal;
+--- End of Content for SuggestionDetailsModal.tsx ---
+
+================================================================================
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\suggestions\timeline
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\suggestions\timeline\SuggestionTimeline.tsx
+--------------------------------------------------------------------------------
+Content:
+// Full path: src/app/components/suggestions/timeline/SuggestionTimeline.tsx
+
+import React from "react";
+import { format } from "date-fns";
+import { he } from "date-fns/locale";
+import {
+  Clock,
+  CheckCircle,
+  XCircle,
+  MessageCircle,
+  Heart,
+  AlertCircle,
+  User,
+  Calendar
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
+interface StatusHistoryItem {
+  id: string;
+  status: string;
+  notes?: string | null;
+  createdAt: Date | string;
+}
+
+interface SuggestionTimelineProps {
+  statusHistory: StatusHistoryItem[];
+  className?: string;
+}
+
+const getStatusInfo = (status: string) => {
+  switch (status) {
+    case "DRAFT":
+      return {
+        label: "טיוטה",
+        icon: <Clock className="w-4 h-4" />,
+        color: "text-gray-500 bg-gray-100",
+        description: "ההצעה נוצרה אך טרם נשלחה למועמדים"
+      };
+    case "PENDING_FIRST_PARTY":
+      return {
+        label: "ממתין לתשובת הצד הראשון",
+        icon: <User className="w-4 h-4" />,
+        color: "text-yellow-700 bg-yellow-100",
+        description: "ההצעה נשלחה לצד הראשון וממתינה לתשובה"
+      };
+    case "FIRST_PARTY_APPROVED":
+      return {
+        label: "הצד הראשון אישר",
+        icon: <CheckCircle className="w-4 h-4" />,
+        color: "text-green-700 bg-green-100",
+        description: "הצד הראשון אישר את ההצעה"
+      };
+    case "FIRST_PARTY_DECLINED":
+      return {
+        label: "הצד הראשון דחה",
+        icon: <XCircle className="w-4 h-4" />,
+        color: "text-red-700 bg-red-100",
+        description: "הצד הראשון דחה את ההצעה"
+      };
+    case "PENDING_SECOND_PARTY":
+      return {
+        label: "ממתין לתשובת הצד השני",
+        icon: <User className="w-4 h-4" />,
+        color: "text-blue-700 bg-blue-100",
+        description: "ההצעה נשלחה לצד השני וממתינה לתשובה"
+      };
+    case "SECOND_PARTY_APPROVED":
+      return {
+        label: "הצד השני אישר",
+        icon: <CheckCircle className="w-4 h-4" />,
+        color: "text-green-700 bg-green-100",
+        description: "הצד השני אישר את ההצעה"
+      };
+    case "SECOND_PARTY_DECLINED":
+      return {
+        label: "הצד השני דחה",
+        icon: <XCircle className="w-4 h-4" />,
+        color: "text-red-700 bg-red-100",
+        description: "הצד השני דחה את ההצעה"
+      };
+    case "CONTACT_DETAILS_SHARED":
+      return {
+        label: "פרטי קשר שותפו",
+        icon: <MessageCircle className="w-4 h-4" />,
+        color: "text-purple-700 bg-purple-100",
+        description: "פרטי הקשר של שני הצדדים שותפו ביניהם"
+      };
+    case "AWAITING_FIRST_DATE_FEEDBACK":
+      return {
+        label: "ממתין למשוב פגישה ראשונה",
+        icon: <Calendar className="w-4 h-4" />,
+        color: "text-indigo-700 bg-indigo-100",
+        description: "ממתין למשוב לאחר הפגישה הראשונה"
+      };
+    case "DATING":
+      return {
+        label: "בתהליך היכרות",
+        icon: <Heart className="w-4 h-4" />,
+        color: "text-pink-700 bg-pink-100",
+        description: "הצדדים נמצאים בתהליך היכרות"
+      };
+    case "ENGAGED":
+      return {
+        label: "אירוסין",
+        icon: <Heart className="w-4 h-4" fill="currentColor" />,
+        color: "text-pink-700 bg-pink-100",
+        description: "הצדדים התארסו"
+      };
+    case "MARRIED":
+      return {
+        label: "נישואין",
+        icon: <Heart className="w-4 h-4" fill="currentColor" />,
+        color: "text-pink-700 bg-pink-100",
+        description: "הצדדים נישאו"
+      };
+    case "CANCELLED":
+      return {
+        label: "בוטל",
+        icon: <XCircle className="w-4 h-4" />,
+        color: "text-red-700 bg-red-100",
+        description: "ההצעה בוטלה"
+      };
+    case "CLOSED":
+      return {
+        label: "נסגר",
+        icon: <XCircle className="w-4 h-4" />,
+        color: "text-gray-700 bg-gray-100",
+        description: "ההצעה נסגרה"
+      };
+    default:
+      return {
+        label: status,
+        icon: <AlertCircle className="w-4 h-4" />,
+        color: "text-gray-700 bg-gray-100",
+        description: "סטטוס אחר"
+      };
+  }
+};
+
+const SuggestionTimeline: React.FC<SuggestionTimelineProps> = ({ 
+  statusHistory,
+  className
+}) => {
+  // Sort history from newest to oldest
+  const sortedHistory = [...statusHistory].sort((a, b) => 
+    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+
+  return (
+    <div className={cn("px-4 py-2", className)}>
+      <h3 className="text-lg font-semibold mb-4 text-right">היסטוריית סטטוסים</h3>
+      
+      <div className="relative border-r-2 border-gray-200 pr-6 space-y-6">
+        {sortedHistory.map((item, index) => {
+          const statusInfo = getStatusInfo(item.status);
+          const formattedDate = format(
+            new Date(item.createdAt),
+            "dd בMMMM yyyy, HH:mm",
+            { locale: he }
+          );
+          
+          return (
+            <div 
+              key={item.id} 
+              className={cn(
+                "relative",
+                index === 0 ? "opacity-100" : "opacity-80"
+              )}
+            >
+              {/* Timeline node */}
+              <div 
+                className={cn(
+                  "absolute right-[-21px] p-1 rounded-full",
+                  statusInfo.color
+                )}
+              >
+                {statusInfo.icon}
+              </div>
+              
+              {/* Content */}
+              <div className="bg-white rounded-lg p-3 shadow-sm">
+                <div className="flex justify-between items-start">
+                  <span className="text-xs text-gray-500 mt-1">{formattedDate}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{statusInfo.label}</span>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Badge className={cn("h-2 w-2 rounded-full p-0", statusInfo.color)} />
+                        </TooltipTrigger>
+                        <TooltipContent className="text-right">
+                          <p>{statusInfo.description}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                </div>
+                
+                {item.notes && (
+                  <p className="mt-2 text-sm text-gray-600 text-right">
+                    {item.notes}
+                  </p>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+export default SuggestionTimeline;
+--- End of Content for SuggestionTimeline.tsx ---
+

@@ -239,12 +239,139 @@ export async function analyzeSuggestionForUser(
   }
 }
 
-// --- ייצוא מאוחד של כל שירותי ה-AI ---
+// --- START OF CHANGE ---
+/**
+ * מייצר טקסט נימוק מותאם אישית עבור הצעת שידוך.
+ * @param profile1Text הפרופיל הנרטיבי של צד א'.
+ * @param profile2Text הפרופיל הנרטיבי של צד ב'.
+ * @returns Promise שמחזיר מחרוזת טקסט עם הנימוק, או null במקרה של כישלון.
+ */
+export async function generateSuggestionRationale(
+  profile1Text: string,
+  profile2Text: string
+): Promise<string | null> {
+  console.log("--- [AI Rationale Writer] Starting suggestion rationale generation ---");
+  if (!profile1Text || !profile2Text) {
+    console.error("[AI Rationale Writer] Called with one or more empty profiles.");
+    return null;
+  }
+
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+  const prompt = `
+    You are a professional and sensitive matchmaker in the religious Jewish community. Your task is to write a warm, personal, and compelling justification ('matchingReason') for a match suggestion.
+    Based on the two profiles provided, identify 2-3 key points of compatibility (values, life goals, personality traits, background) and weave them into a concise and positive paragraph.
+    The output should be ONLY the justification text in Hebrew, without any additional titles, formatting, or explanations. Start directly with the text.
+
+    **Example Output Structure:**
+    "אני חושב/ת שיש כאן פוטנציאל להתאמה מצוינת מכמה סיבות. ראשית, שניכם ציינתם ש... וזה מראה על... שנית, הרקע ה... שלכם יכול להוות בסיס משותף חזק. בנוסף, נראה ששניכם חולקים... וזה יכול לתרום רבות לבניית קשר..."
+
+    --- Profile 1 ---
+    ${profile1Text}
+
+    --- Profile 2 ---
+    ${profile2Text}
+  `;
+
+  try {
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    const text = response.text();
+
+    if (!text) {
+      console.error("[AI Rationale Writer] Gemini API returned an empty response.");
+      return null;
+    }
+
+    console.log("--- [AI Rationale Writer] Successfully generated rationale. ---");
+    return text.trim();
+  } catch (error) {
+    console.error("[AI Rationale Writer] Error generating suggestion rationale:", error);
+    return null;
+  }
+}
+// --- END OF CHANGE ---
+
+/**
+ * מגדיר את מבנה ה-JSON של אובייקט הנימוקים המלא.
+ */
+export interface FullRationaleResult {
+  generalRationale: string;
+  rationaleForParty1: string;
+  rationaleForParty2: string;
+}
+
+/**
+ * מייצר חבילת נימוקים מלאה עבור הצעת שידוך: כללי, ואישי לכל צד.
+ * @param profile1Text הפרופיל הנרטיבי של צד א'.
+ * @param profile2Text הפרופיל הנרטיבי של צד ב'.
+ * @returns Promise שמחזיר אובייקט עם שלושת סוגי הנימוקים, או null במקרה של כישלון.
+ */
+export async function generateFullSuggestionRationale(
+  profile1Text: string,
+  profile2Text: string
+): Promise<FullRationaleResult | null> {
+  console.log("--- [AI Rationale Writer] Starting full rationale package generation ---");
+  if (!profile1Text || !profile2Text) {
+    console.error("[AI Rationale Writer] Called with one or more empty profiles.");
+    return null;
+  }
+
+  const model = genAI.getGenerativeModel({ 
+    model: "gemini-1.5-pro-latest",
+    generationConfig: {
+      responseMimeType: "application/json",
+      temperature: 0.6, // מעט יותר יצירתיות לניסוח אישי
+    }
+  });
+
+  const prompt = `
+    You are a professional and sensitive matchmaker in the religious Jewish community. Your task is to write three distinct texts for a match suggestion based on the two provided user profiles.
+    The entire output MUST be a valid JSON object in Hebrew, with the following exact structure:
+    {
+      "generalRationale": "A general, objective summary of the compatibility points. This is for the matchmaker's internal use.",
+      "rationaleForParty1": "A personal and warm message for Party 1, explaining why Party 2 is a great match for them. Address them directly and highlight how Party 2's qualities align with Party 1's stated needs and desires. Use encouraging and persuasive language.",
+      "rationaleForParty2": "A personal and warm message for Party 2, explaining why Party 1 is a great match for them. Do the same as above, but from Party 2's perspective."
+    }
+
+    **Key instructions for personal rationales (rationaleForParty1, rationaleForParty2):**
+    - Start with a warm opening.
+    - Reference specific details from the person's own profile to show you understand them.
+    - Connect those details to specific strengths of the suggested partner.
+    - Maintain a positive, professional, and slightly persuasive tone, without being pushy.
+    - The goal is to make each person feel understood and that this suggestion was made with careful consideration for them personally.
+
+    --- Profile 1 ---
+    ${profile1Text}
+
+    --- Profile 2 ---
+    ${profile2Text}
+  `;
+
+  try {
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    const jsonString = response.text();
+
+    if (!jsonString) {
+      console.error("[AI Rationale Writer] Gemini API returned an empty response for full rationale.");
+      return null;
+    }
+
+    console.log("--- [AI Rationale Writer] Successfully generated full rationale package. ---");
+    return JSON.parse(jsonString) as FullRationaleResult;
+  } catch (error) {
+    console.error("[AI Rationale Writer] Error generating full suggestion rationale:", error);
+    return null;
+  }
+}
 const aiService = {
   generateTextEmbedding,
   analyzePairCompatibility,
   getProfileAnalysis,
   analyzeSuggestionForUser,
+  generateSuggestionRationale, // --- ADDED ---
+  generateFullSuggestionRationale,
 };
 
 export default aiService;

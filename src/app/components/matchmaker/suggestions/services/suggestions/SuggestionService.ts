@@ -33,9 +33,11 @@ export class SuggestionService {
       where: { id: data.matchmakerId },
     });
 
-    if (!matchmaker || matchmaker.role !== UserRole.MATCHMAKER) {
-      throw new Error("Unauthorized - User is not a matchmaker");
-    }
+    // קוד חדש ומתוקן
+const allowedRoles: UserRole[] = [UserRole.MATCHMAKER, UserRole.ADMIN];
+if (!matchmaker || !allowedRoles.includes(matchmaker.role)) {
+  throw new Error("Unauthorized - User must be a Matchmaker or Admin");
+}
 
     // 4. יצירת ההצעה בטרנזקציה
     const suggestion = await prisma.$transaction(async (tx) => {
