@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\suggestions
-# Generated on: 2025-06-22 22:37:50
+# Generated on: 2025-06-23 17:12:45
 ################################################################################
 
 ================================================================================
@@ -594,8 +594,10 @@ Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\m
 File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\suggestions\NewSuggestionForm\CandidateSelector.tsx
 --------------------------------------------------------------------------------
 Content:
+// src/app/components/matchmaker/suggestions/NewSuggestionForm/CandidateSelector.tsx
+
 import React, { useState, useCallback, KeyboardEvent } from "react";
-import { Search } from "lucide-react";
+import { Search, AlertTriangle, Clock } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Popover,
@@ -611,8 +613,10 @@ import {
 } from "@/components/ui/command";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { calculateAge } from "@/lib/utils";
 import type { Candidate } from "../../new/types/candidates";
+import { toast } from "sonner"; // Make sure to import toast
 
 interface CandidateSelectorProps {
   value: Candidate | null;
@@ -662,6 +666,14 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
 
   const handleSelect = useCallback(
     (candidate: Candidate) => {
+      // Check if the candidate is blocked by an active suggestion
+      if (candidate.suggestionStatus?.status === 'BLOCKED') {
+        toast.error("לא ניתן לבחור מועמד זה", {
+          description: `${candidate.firstName} ${candidate.lastName} כבר נמצא/ת בהצעה פעילה עם ${candidate.suggestionStatus.withCandidateName}.`,
+        });
+        return; // Prevent selection
+      }
+      
       onChange(candidate);
       setOpen(false);
       setInputValue("");
@@ -739,10 +751,7 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
               <CommandInput
                 placeholder="חיפוש מועמדים..."
                 value={inputValue}
-                onValueChange={(value) => {
-                  setInputValue(value);
-                  setActiveIndex(-1);
-                }}
+                onValueChange={setInputValue}
               />
               <CommandList
                 className="max-h-[300px] overflow-auto"
@@ -751,32 +760,45 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
               >
                 <CommandEmpty>לא נמצאו תוצאות</CommandEmpty>
                 <CommandGroup>
-                  {filteredCandidates.map((candidate, index) => (
-                    <div
-                      key={candidate.id}
-                      onClick={() => handleSelect(candidate)}
-                      className={`flex items-center gap-2 text-right p-2 hover:bg-accent/50 cursor-pointer ${
-                        index === activeIndex ? "bg-accent" : ""
-                      }`}
-                      role="option"
-                      id={`candidate-${candidate.id}`}
-                      aria-selected={index === activeIndex}
-                      onMouseEnter={() => setActiveIndex(index)}
-                    >
-                      <div className="flex-1">
-                        <div className="font-medium">
-                          {formatCandidateDisplay(candidate)}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {candidate.profile.religiousLevel} |
-                          {candidate.profile.occupation &&
-                            ` ${candidate.profile.occupation} |`}
-                          {candidate.profile.education &&
-                            ` ${candidate.profile.education}`}
+                  {filteredCandidates.map((candidate, index) => {
+                    const isBlocked = candidate.suggestionStatus?.status === 'BLOCKED';
+                    return (
+                      <div
+                        key={candidate.id}
+                        onClick={() => handleSelect(candidate)}
+                        className={`flex items-start gap-3 p-2 text-right ${
+                          isBlocked 
+                            ? 'cursor-not-allowed opacity-60' 
+                            : 'cursor-pointer hover:bg-accent/50'
+                        } ${index === activeIndex ? "bg-accent" : ""}`}
+                        role="option"
+                        id={`candidate-${candidate.id}`}
+                        aria-selected={index === activeIndex}
+                        onMouseEnter={() => setActiveIndex(index)}
+                      >
+                        <div className="flex-1">
+                          <div className="font-medium">
+                            {formatCandidateDisplay(candidate)}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {candidate.profile.religiousLevel} | {candidate.profile.occupation}
+                          </div>
+                          {candidate.suggestionStatus?.status === 'BLOCKED' && (
+                            <Badge variant="destructive" className="mt-2 font-normal">
+                              <AlertTriangle className="w-3.5 h-3.5 ml-1.5" />
+                              בהצעה פעילה עם: {candidate.suggestionStatus.withCandidateName}
+                            </Badge>
+                          )}
+                          {candidate.suggestionStatus?.status === 'PENDING' && (
+                            <Badge variant="outline" className="mt-2 font-normal text-amber-800 bg-amber-50 border-amber-200">
+                              <Clock className="w-3.5 h-3.5 ml-1.5" />
+                              הצעה ממתינה עם: {candidate.suggestionStatus.withCandidateName}
+                            </Badge>
+                          )}
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </CommandGroup>
               </CommandList>
             </Command>
@@ -790,9 +812,7 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => {
-                /* Add view profile handler */
-              }}
+              onClick={() => { /* Implement view profile handler */ }}
               className="text-primary"
             >
               צפה בפרופיל מלא
@@ -949,8 +969,10 @@ export default MatchPreview;
 File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\suggestions\NewSuggestionForm\SuggestionDetails.tsx
 --------------------------------------------------------------------------------
 Content:
+// src/app/components/matchmaker/suggestions/NewSuggestionForm/SuggestionDetails.tsx
+
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { useFormContext } from "react-hook-form";
 import {
   Select,
@@ -959,264 +981,165 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Priority } from "@prisma/client";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { calculateAge } from "@/lib/utils";
+import { toast } from "sonner";
+import { Loader2, Sparkles, AlertTriangle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { NewSuggestionFormData } from "./schema";
 import type { Candidate } from "../../new/types/candidates";
 
 interface SuggestionDetailsProps {
-  className?: string;
   firstParty: Candidate;
   secondParty: Candidate;
 }
 
-const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({
-  firstParty,
-  secondParty,
-}) => {
-  const {
-    register,
-    formState: { errors },
-    setValue,
-    getValues,
-  } = useFormContext<NewSuggestionFormData>();
+const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({ firstParty, secondParty }) => {
+  const { register, formState: { errors }, setValue, watch } = useFormContext<NewSuggestionFormData>();
+  const [isGeneratingRationale, setIsGeneratingRationale] = useState(false);
 
-  // Format candidate display
-  const formatCandidateInfo = (candidate: Candidate): string => {
-    const age = calculateAge(new Date(candidate.profile.birthDate));
-    return `${candidate.firstName} ${candidate.lastName}, ${age}${
-      candidate.profile.city ? `, ${candidate.profile.city}` : ""
-    }`;
-  };
+  const priority = watch("priority", Priority.MEDIUM);
 
-  // Register all form fields
-  React.useEffect(() => {
-    // Set default values if not already set
-    const currentValues = getValues();
-    if (!currentValues.priority) {
-      setValue("priority", Priority.MEDIUM);
+  const handleGenerateRationale = async () => {
+    setIsGeneratingRationale(true);
+    toast.info("ה-AI מנסח את חבילת הנימוקים...");
+    try {
+      const response = await fetch('/api/ai/generate-suggestion-rationale', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId1: firstParty.id, userId2: secondParty.id }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success || !data.rationales) {
+        throw new Error(data.error || "שגיאה בייצור הנימוקים");
+      }
+
+      // --- START OF CHANGE: Populate all three fields ---
+      const { generalRationale, rationaleForParty1, rationaleForParty2 } = data.rationales;
+
+      setValue('matchingReason', generalRationale, { shouldValidate: true, shouldDirty: true });
+      setValue('firstPartyNotes', rationaleForParty1, { shouldValidate: true, shouldDirty: true });
+      setValue('secondPartyNotes', rationaleForParty2, { shouldValidate: true, shouldDirty: true });
+      // --- END OF CHANGE ---
+
+      toast.success("הנימוקים נוצרו בהצלחה והוזנו בשדות המתאימים.");
+
+    } catch (error) {
+      console.error("Failed to generate rationales:", error);
+      toast.error(error instanceof Error ? error.message : "שגיאה לא צפויה");
+    } finally {
+      setIsGeneratingRationale(false);
     }
-  }, [setValue, getValues]);
+  };
 
   return (
     <div className="space-y-6">
-      {/* Selected Candidates Summary */}
-      <Card className="bg-slate-50">
-        <CardHeader className="pb-3">
-          <h3 className="text-lg font-semibold">הצדדים המוצעים</h3>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label className="text-primary font-medium">צד א׳</Label>
-            <div className="p-3 bg-white rounded-lg border">
-              <div className="font-medium">
-                {formatCandidateInfo(firstParty)}
-              </div>
-              <div className="text-sm text-gray-500 mt-1">
-                {firstParty.profile.religiousLevel} |
-                {firstParty.profile.occupation &&
-                  ` ${firstParty.profile.occupation} |`}
-                {firstParty.profile.education &&
-                  ` ${firstParty.profile.education}`}
-              </div>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label className="text-primary font-medium">צד ב׳</Label>
-            <div className="p-3 bg-white rounded-lg border">
-              <div className="font-medium">
-                {formatCandidateInfo(secondParty)}
-              </div>
-              <div className="text-sm text-gray-500 mt-1">
-                {secondParty.profile.religiousLevel} |
-                {secondParty.profile.occupation &&
-                  ` ${secondParty.profile.occupation} |`}
-                {secondParty.profile.education &&
-                  ` ${secondParty.profile.education}`}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Priority Selection with Visual Indicators */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="space-y-4">
-            <Label className="text-lg">עדיפות ההצעה</Label>
-            <Select
-              onValueChange={(value: Priority) => {
-                setValue("priority", value, {
-                  shouldValidate: true,
-                  shouldDirty: true,
-                  shouldTouch: true,
-                });
-              }}
-              value={getValues("priority") || Priority.MEDIUM}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="בחר/י עדיפות" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={Priority.URGENT}>
-                  <div className="flex items-center gap-2">
-                    <Badge
-                      variant="destructive"
-                      className="h-2 w-2 p-0 rounded-full"
-                    />
-                    דחופה
-                  </div>
-                </SelectItem>
-                <SelectItem value={Priority.HIGH}>
-                  <div className="flex items-center gap-2">
-                    <Badge
-                      variant="warning"
-                      className="h-2 w-2 p-0 rounded-full"
-                    />
-                    גבוהה
-                  </div>
-                </SelectItem>
-                <SelectItem value={Priority.MEDIUM}>
-                  <div className="flex items-center gap-2">
-                    <Badge
-                      variant="default"
-                      className="h-2 w-2 p-0 rounded-full"
-                    />
-                    רגילה
-                  </div>
-                </SelectItem>
-                <SelectItem value={Priority.LOW}>
-                  <div className="flex items-center gap-2">
-                    <Badge
-                      variant="secondary"
-                      className="h-2 w-2 p-0 rounded-full"
-                    />
-                    נמוכה
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-            {errors.priority && (
-              <p className="text-sm text-red-500">{errors.priority.message}</p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Matching Details */}
       <Card>
         <CardContent className="pt-6 space-y-6">
-          {/* Matching Reason */}
-          <div className="space-y-3">
-            <Label className="text-lg">סיבת ההתאמה</Label>
-            <div className="text-sm text-gray-500 mb-2">
-              פרט/י מדוע לדעתך יש התאמה בין המועמדים. מידע זה יוצג לשני הצדדים.
+          <div className="space-y-2">
+            <Label htmlFor="priority">עדיפות ההצעה</Label>
+            <Select
+              onValueChange={(value: Priority) => setValue("priority", value, { shouldValidate: true })}
+              defaultValue={priority}
+              name="priority"
+            >
+              <SelectTrigger id="priority"><SelectValue placeholder="בחר/י עדיפות" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value={Priority.URGENT}>דחופה</SelectItem>
+                <SelectItem value={Priority.HIGH}>גבוהה</SelectItem>
+                <SelectItem value={Priority.MEDIUM}>רגילה</SelectItem>
+                <SelectItem value={Priority.LOW}>נמוכה</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.priority && <p className="text-sm text-red-500 mt-1">{errors.priority.message}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <Label htmlFor="matchingReason">סיבת התאמה (כללי, יוצג לצדדים)</Label>
+              <Button type="button" variant="ghost" size="sm" onClick={handleGenerateRationale} disabled={isGeneratingRationale}>
+                {isGeneratingRationale ? (
+                  <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                ) : (
+                  <Sparkles className="w-4 h-4 ml-2 text-purple-500" />
+                )}
+                {isGeneratingRationale ? 'מנסח...' : 'צור נימוקים (AI)'}
+              </Button>
             </div>
             <Textarea
+              id="matchingReason"
               {...register("matchingReason")}
-              placeholder="לדוגמה: שני הצדדים מחפשים בן/בת זוג עם השקפת עולם דומה, שאיפות דומות..."
-              className="min-h-[120px] resize-none"
+              placeholder="נימוק כללי המסביר מדוע יש התאמה בין הצדדים..."
+              className="min-h-[120px]"
             />
-            {errors.matchingReason && (
-              <p className="text-sm text-red-500">
-                {errors.matchingReason.message}
-              </p>
-            )}
+            {errors.matchingReason && <p className="text-sm text-red-500 mt-1">{errors.matchingReason.message}</p>}
+             <Alert variant="default" className="mt-2 text-xs p-3 bg-blue-50 border-blue-200">
+                <AlertTriangle className="h-4 w-4 text-blue-500" />
+                <AlertDescription>
+                  לחיצה על כפתור ה-AI תמלא אוטומטית את שדה זה וגם את שדות ההערות האישיות לכל צד.
+                </AlertDescription>
+            </Alert>
           </div>
 
-          {/* Party-specific Notes */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-3">
-              <Label className="text-lg">הערות לצד א׳</Label>
-              <div className="text-sm text-gray-500 mb-2">
-                הערות אישיות שיוצגו רק ל{firstParty.firstName}
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="firstPartyNotes">הערות אישיות לצד א׳ ({firstParty.firstName})</Label>
               <Textarea
+                id="firstPartyNotes"
                 {...register("firstPartyNotes")}
-                placeholder="מידע נוסף שחשוב שידע..."
-                className="min-h-[100px] resize-none"
+                placeholder="טקסט אישי המדגיש את היתרונות של צד ב' עבור צד א'..."
+                className="min-h-[140px]"
               />
-              {errors.firstPartyNotes && (
-                <p className="text-sm text-red-500">
-                  {errors.firstPartyNotes.message}
-                </p>
-              )}
+              {errors.firstPartyNotes && <p className="text-sm text-red-500 mt-1">{errors.firstPartyNotes.message}</p>}
             </div>
-
-            <div className="space-y-3">
-              <Label className="text-lg">הערות לצד ב׳</Label>
-              <div className="text-sm text-gray-500 mb-2">
-                הערות אישיות שיוצגו רק ל{secondParty.firstName}
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="secondPartyNotes">הערות אישיות לצד ב׳ ({secondParty.firstName})</Label>
               <Textarea
+                id="secondPartyNotes"
                 {...register("secondPartyNotes")}
-                placeholder="מידע נוסף שחשוב שידע..."
-                className="min-h-[100px] resize-none"
+                placeholder="טקסט אישי המדגיש את היתרונות של צד א' עבור צד ב'..."
+                className="min-h-[140px]"
               />
-              {errors.secondPartyNotes && (
-                <p className="text-sm text-red-500">
-                  {errors.secondPartyNotes.message}
-                </p>
-              )}
+              {errors.secondPartyNotes && <p className="text-sm text-red-500 mt-1">{errors.secondPartyNotes.message}</p>}
             </div>
           </div>
 
-          {/* Internal Notes */}
-          <div className="space-y-3">
-            <Label className="text-lg">הערות פנימיות</Label>
-            <div className="text-sm text-gray-500 mb-2">
-              הערות אלו יהיו גלויות רק לצוות השדכנים
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="internalNotes">הערות פנימיות (לצוות השדכנים)</Label>
             <Textarea
+              id="internalNotes"
               {...register("internalNotes")}
-              placeholder="הערות והנחיות לשדכנים..."
-              className="min-h-[100px] resize-none"
+              placeholder="הערות והנחיות לשימוש פנימי בלבד..."
+              className="min-h-[100px]"
             />
-            {errors.internalNotes && (
-              <p className="text-sm text-red-500">
-                {errors.internalNotes.message}
-              </p>
-            )}
+            {errors.internalNotes && <p className="text-sm text-red-500 mt-1">{errors.internalNotes.message}</p>}
           </div>
-
-          {/* Decision Days */}
-          <div className="space-y-3">
-            <Label className="text-lg">זמן להחלטה</Label>
-            <div className="text-sm text-gray-500 mb-2">
-              תוך כמה ימים נדרשת החלטה סופית משני הצדדים
-            </div>
+          
+          <div className="space-y-2">
+            <Label>תאריך יעד להחלטה</Label>
             <Select
               onValueChange={(value) => {
-                const days = parseInt(value);
+                const days = parseInt(value, 10);
                 const deadline = new Date();
                 deadline.setDate(deadline.getDate() + days);
-                setValue("decisionDeadline", deadline, {
-                  shouldValidate: true,
-                  shouldDirty: true,
-                  shouldTouch: true,
-                });
+                setValue("decisionDeadline", deadline, { shouldValidate: true });
               }}
               defaultValue="14"
             >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="בחר/י מספר ימים" />
-              </SelectTrigger>
+              <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="2">2 ימים</SelectItem>
                 <SelectItem value="3">3 ימים</SelectItem>
-                <SelectItem value="5">5 ימים</SelectItem>
                 <SelectItem value="7">7 ימים</SelectItem>
+                <SelectItem value="14">14 ימים</SelectItem>
+                <SelectItem value="30">30 ימים</SelectItem>
               </SelectContent>
             </Select>
-            {errors.decisionDeadline && (
-              <p className="text-sm text-red-500">
-                {errors.decisionDeadline.message}
-              </p>
-            )}
+            {errors.decisionDeadline && <p className="text-sm text-red-500 mt-1">{errors.decisionDeadline.message}</p>}
           </div>
         </CardContent>
       </Card>
@@ -1231,29 +1154,28 @@ export default SuggestionDetails;
 File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchmaker\suggestions\NewSuggestionForm\index.tsx
 --------------------------------------------------------------------------------
 Content:
+// src/app/components/matchmaker/suggestions/NewSuggestionForm/index.tsx
+
 "use client";
 import React, { useState, useEffect } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "sonner";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Priority, MatchSuggestionStatus } from "@prisma/client";
 import { Separator } from "@/components/ui/separator";
-import { CheckCircle, UserPlus } from "lucide-react";
-import { Steps } from "@/components/ui/steps";
+import { UserPlus, Sparkles, Loader2, BarChart2, CheckCircle, Users } from "lucide-react";
+
+// Types
 import type { Candidate } from "../../new/types/candidates";
-import { newSuggestionSchema } from "./schema";
-import type { NewSuggestionFormData } from "./schema";
+import { newSuggestionSchema, type NewSuggestionFormData } from "./schema";
+
+// Components
 import SuggestionDetails from "./SuggestionDetails";
 import MatchPreview from "./MatchPreview";
 import CandidateSelector from "./CandidateSelector";
+import { AiMatchAnalysisDialog } from "../../new/dialogs/AiMatchAnalysisDialog";
 
 interface NewSuggestionFormProps {
   isOpen: boolean;
@@ -1263,267 +1185,164 @@ interface NewSuggestionFormProps {
   onSubmit: (data: NewSuggestionFormData) => Promise<void>;
 }
 
-const STEPS = [
-  {
-    title: "בחירת מועמדים",
-    description: "בחירת שני הצדדים להצעה",
-    icon: UserPlus,
-  },
-  {
-    title: "פרטי ההצעה",
-    description: "הגדרת פרטי ההצעה ותזמונים",
-    icon: CheckCircle,
-  },
-];
-
-const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
-  isOpen,
-  onClose,
-  candidates,
-  selectedCandidate,
-  onSubmit,
-}) => {
-  const [step, setStep] = useState(1);
+const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({ isOpen, onClose, candidates, selectedCandidate, onSubmit }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [firstParty, setFirstParty] = useState<Candidate | null>(
-    selectedCandidate || null
-  );
+  const [firstParty, setFirstParty] = useState<Candidate | null>(null);
   const [secondParty, setSecondParty] = useState<Candidate | null>(null);
-
-  const { toast } = useToast();
+  const [showAnalysisDialog, setShowAnalysisDialog] = useState(false);
 
   const form = useForm<NewSuggestionFormData>({
     resolver: zodResolver(newSuggestionSchema),
     defaultValues: {
       priority: Priority.MEDIUM,
       status: MatchSuggestionStatus.DRAFT,
-      firstPartyId: selectedCandidate?.id || "",
-      secondPartyId: "",
+      decisionDeadline: new Date(new Date().setDate(new Date().getDate() + 14)), // Default to 2 weeks
     },
   });
 
-  // Debug logging for form state changes
+  // Reset form and state when dialog opens or selectedCandidate changes
   useEffect(() => {
-    const subscription = form.watch((value, { name, type }) => {
-      console.log("Form value changed:", {
-        name,
-        value,
-        type,
-        allValues: form.getValues(),
-        formState: form.formState,
+    if (isOpen) {
+      form.reset({
+        priority: Priority.MEDIUM,
+        status: MatchSuggestionStatus.DRAFT,
+        decisionDeadline: new Date(new Date().setDate(new Date().getDate() + 14)),
+        firstPartyId: selectedCandidate?.id || "",
+        secondPartyId: "",
       });
-    });
+      setFirstParty(selectedCandidate || null);
+      setSecondParty(null);
+    }
+  }, [isOpen, selectedCandidate, form]);
 
-    return () => subscription.unsubscribe();
-  }, [form]);
+  const handleCandidateSelect = (type: "first" | "second") => (candidate: Candidate | null) => {
+    const setter = type === 'first' ? setFirstParty : setSecondParty;
+    const fieldName = type === 'first' ? 'firstPartyId' : 'secondPartyId';
+    setter(candidate);
+    form.setValue(fieldName, candidate?.id || "", { shouldValidate: true, shouldDirty: true });
+  };
 
-  // Handle candidate selection
-  const handleCandidateSelect =
-    (type: "first" | "second") => (candidate: Candidate | null) => {
-      console.log(`${type} party selection:`, { candidate });
-
-      if (type === "first") {
-        setFirstParty(candidate);
-        if (candidate) {
-          form.setValue("firstPartyId", candidate.id, {
-            shouldValidate: true,
-            shouldDirty: true,
-            shouldTouch: true,
-          });
-        } else {
-          form.setValue("firstPartyId", "", {
-            shouldValidate: true,
-            shouldDirty: true,
-            shouldTouch: true,
-          });
-        }
-      } else {
-        setSecondParty(candidate);
-        if (candidate) {
-          form.setValue("secondPartyId", candidate.id, {
-            shouldValidate: true,
-            shouldDirty: true,
-            shouldTouch: true,
-          });
-        } else {
-          form.setValue("secondPartyId", "", {
-            shouldValidate: true,
-            shouldDirty: true,
-            shouldTouch: true,
-          });
-        }
-      }
-
-      // Log form state after update
-      console.log("Form state after selection:", {
-        values: form.getValues(),
-        errors: form.formState.errors,
-        isDirty: form.formState.isDirty,
-        isValid: form.formState.isValid,
-      });
-    };
-
-  const handleSubmit = async (data: NewSuggestionFormData) => {
-    console.log("Submit attempt:", {
-      formData: data,
-      formState: form.formState,
-      firstParty,
-      secondParty,
-    });
-
+  const handleSubmit = form.handleSubmit(async (data) => {
     if (!firstParty || !secondParty) {
-      console.log("Missing parties:", { firstParty, secondParty });
+      toast.error("יש לבחור את שני הצדדים להצעה.");
       return;
     }
 
+    setIsSubmitting(true);
     try {
-      setIsSubmitting(true);
-      console.log("=== Before API call ===");
       await onSubmit(data);
-      console.log("=== After successful API call ===");
-      toast({
-        title: "ההצעה נוצרה בהצלחה",
-        description: "ההצעה נשמרה במערכת והועברה לטיפול",
-      });
+      toast.success("ההצעה נוצרה בהצלחה!");
       onClose();
     } catch (error) {
-      console.log("=== API call failed ===", error);
-      console.error("Submission error:", error);
-      toast({
-        title: "שגיאה",
-        description: "אירעה שגיאה בעת יצירת ההצעה",
-        variant: "destructive",
-      });
+      toast.error("שגיאה ביצירת ההצעה: " + (error instanceof Error ? error.message : "שגיאה לא ידועה"));
     } finally {
       setIsSubmitting(false);
     }
-  };
+  });
 
-  // Handle form validation before moving to next step
-  const handleNextStep = () => {
-    form.trigger(["firstPartyId", "secondPartyId"]).then((isValid) => {
-      if (isValid) {
-        setStep(2);
-      } else {
-        console.log("Validation failed:", form.formState.errors);
-      }
-    });
-  };
+  const maleCandidates = candidates.filter(c => c.profile.gender === 'MALE');
+  const femaleCandidates = candidates.filter(c => c.profile.gender === 'FEMALE');
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
-        <DialogHeader className="px-8 pt-6 pb-2">
-          <DialogTitle className="text-2xl">יצירת הצעת שידוך חדשה</DialogTitle>
-          <DialogDescription>
-            יצירת הצעת שידוך בין שני מועמדים והגדרת פרטי ההצעה
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-7xl w-full h-[95vh] flex flex-col p-0" dir="rtl">
+          <DialogHeader className="px-6 py-4 border-b flex-shrink-0">
+            <DialogTitle className="text-2xl flex items-center gap-3">
+              <UserPlus className="text-primary"/>
+              יצירת הצעת שידוך חדשה
+            </DialogTitle>
+            <DialogDescription>
+              בחר שני מועמדים, נתח את ההתאמה ביניהם והגדר את פרטי ההצעה.
+            </DialogDescription>
+          </DialogHeader>
 
-        {/* Steps Indicator */}
-        <div className="px-8 py-4">
-          <Steps steps={STEPS} currentStep={step} />
-        </div>
-
-        <Separator />
-
-        <FormProvider {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="p-8 pt-6">
-            {/* Step 1: Candidate Selection */}
-            <div className={step !== 1 ? "hidden" : "space-y-8"}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <FormProvider {...form}>
+            <form onSubmit={handleSubmit} className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-6 p-6 overflow-hidden">
+              
+              {/* Left Panel: Male Selector */}
+              <div className="md:col-span-3 flex flex-col gap-4">
                 <CandidateSelector
-                  label="צד א׳"
+                  label="צד א' (גבר)"
                   value={firstParty}
                   onChange={handleCandidateSelect("first")}
-                  candidates={candidates}
+                  candidates={maleCandidates}
                   otherParty={secondParty}
                   fieldName="firstPartyId"
                   error={form.formState.errors.firstPartyId?.message}
                 />
+              </div>
+              
+              {/* Center Panel: Details and Actions */}
+              <div className="md:col-span-6 flex flex-col gap-4 overflow-y-auto pr-2 pb-4">
+                {firstParty && secondParty ? (
+                  <>
+                    <MatchPreview firstParty={firstParty} secondParty={secondParty} />
+                     <div className="flex gap-2 justify-center">
+                      <Button type="button" variant="outline" onClick={() => setShowAnalysisDialog(true)}>
+                        <BarChart2 className="w-4 h-4 ml-2"/>
+                        נתח התאמה מלא (AI)
+                      </Button>
+                     </div>
+                    <SuggestionDetails firstParty={firstParty} secondParty={secondParty} />
+                  </>
+                ) : (
+                  <div className="flex items-center justify-center h-full bg-gray-50 rounded-lg border-2 border-dashed">
+                    <div className="text-center text-gray-500">
+                        <Users className="mx-auto h-12 w-12 text-gray-300" />
+                        <h3 className="mt-2 text-sm font-medium">בחר מועמדים</h3>
+                        <p className="mt-1 text-sm text-gray-500">
+                            יש לבחור מועמד ומועמדת מהעמודות בצדדים.
+                        </p>
+                    </div>
+                  </div>
+                )}
+              </div>
 
+              {/* Right Panel: Female Selector */}
+              <div className="md:col-span-3 flex flex-col gap-4">
                 <CandidateSelector
-                  label="צד ב׳"
+                  label="צד ב' (אישה)"
                   value={secondParty}
                   onChange={handleCandidateSelect("second")}
-                  candidates={candidates}
+                  candidates={femaleCandidates}
                   otherParty={firstParty}
                   fieldName="secondPartyId"
                   error={form.formState.errors.secondPartyId?.message}
                 />
               </div>
 
-              {firstParty && secondParty && (
-                <div className="rounded-lg border bg-card">
-                  <div className="px-6 py-4 border-b">
-                    <h3 className="text-lg font-semibold">
-                      התאמה בין המועמדים
-                    </h3>
-                  </div>
-                  <div className="p-6">
-                    <MatchPreview
-                      firstParty={firstParty}
-                      secondParty={secondParty}
-                    />
-                  </div>
-                </div>
-              )}
+            </form>
+          </FormProvider>
 
-              <div className="flex justify-end mt-8">
-                <Button
-                  type="button"
-                  size="lg"
-                  onClick={handleNextStep}
-                  disabled={!firstParty || !secondParty}
-                >
-                  המשך להגדרת פרטי ההצעה
-                </Button>
-              </div>
+          <DialogFooter className="p-4 border-t flex-shrink-0">
+            <div className="flex justify-between w-full items-center">
+                <span className="text-xs text-gray-500">לאחר יצירת ההצעה, היא תופיע בסטטוס טיוטה.</span>
+                <div className="flex gap-2">
+                    <DialogClose asChild><Button variant="outline">ביטול</Button></DialogClose>
+                    <Button
+                        type="submit"
+                        onClick={handleSubmit}
+                        disabled={isSubmitting || !firstParty || !secondParty}
+                    >
+                        {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin ml-2"/> : <CheckCircle className="w-4 h-4 ml-2"/>}
+                        {isSubmitting ? "יוצר הצעה..." : "צור הצעה"}
+                    </Button>
+                </div>
             </div>
-
-            {/* Step 2: Suggestion Details */}
-            <div className={step !== 2 ? "hidden" : "space-y-8"}>
-              <div className="rounded-lg border bg-card">
-                <div className="px-6 py-4 border-b">
-                  <h3 className="text-lg font-semibold">פרטי ההצעה</h3>
-                </div>
-                <div className="p-6">
-                  {firstParty && secondParty ? (
-                    <SuggestionDetails
-                      firstParty={firstParty}
-                      secondParty={secondParty}
-                    />
-                  ) : (
-                    <div className="text-center py-4 text-gray-500">
-                      יש לבחור את שני הצדדים בשלב הראשון
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex justify-between mt-8">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="lg"
-                  onClick={() => setStep(1)}
-                >
-                  חזרה לבחירת מועמדים
-                </Button>
-
-                <Button
-                  type="submit"
-                  size="lg"
-                  disabled={isSubmitting || !form.formState.isValid}
-                >
-                  {isSubmitting ? "שומר הצעה..." : "שמור הצעה"}
-                </Button>
-              </div>
-            </div>
-          </form>
-        </FormProvider>
-      </DialogContent>
-    </Dialog>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {firstParty && secondParty && (
+        <AiMatchAnalysisDialog
+          isOpen={showAnalysisDialog}
+          onClose={() => setShowAnalysisDialog(false)}
+          targetCandidate={firstParty}
+          comparisonCandidates={[secondParty]}
+        />
+      )}
+    </>
   );
 };
 
@@ -2246,11 +2065,11 @@ File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\matchm
 Content:
 "use client";
 
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Download, RefreshCw, BarChart } from "lucide-react";
+import { Plus, Download, RefreshCw, BarChart, Loader2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -2267,24 +2086,51 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter,
 } from "@/components/ui/dialog";
+import { toast } from "sonner";
+import { MatchSuggestionStatus, Priority } from "@prisma/client";
+
+// --- START: Type Imports and Definitions ---
 import type {
   Suggestion,
   SuggestionFilters,
   ActionAdditionalData,
 } from "@/types/suggestions";
 import type { NewSuggestionFormData } from "../../suggestions/NewSuggestionForm/schema";
-import { MatchSuggestionStatus, Priority } from "@prisma/client";
+import type { Candidate } from "../../new/types/candidates";
+
+// Hooks
+import { useCandidates } from "../../new/hooks/useCandidates";
+
+// Components
 import NewSuggestionForm from "../../suggestions/NewSuggestionForm";
 import SuggestionsStats from "./SuggestionsStats";
 import SuggestionActionBar from "./SuggestionActionBar";
 import SuggestionDetailsDialog from "../details/SuggestionDetailsDialog";
 import SuggestionCard from "../cards/SuggestionCard";
-import { toast } from "sonner";
 import EditSuggestionForm from "../EditSuggestionForm";
 import MessageForm from "../MessageForm";
 import MonthlyTrendModal from "./MonthlyTrendModal";
+
+// --- Defining specific payload types to replace 'any' ---
+interface SuggestionUpdatePayload {
+  priority?: Priority;
+  status?: MatchSuggestionStatus;
+  statusNotes?: string;
+  matchingReason?: string;
+  firstPartyNotes?: string;
+  secondPartyNotes?: string;
+  internalNotes?: string;
+  decisionDeadline?: Date;
+}
+
+interface SendMessagePayload {
+  suggestionId: string;
+  partyType: "first" | "second" | "both";
+  messageType: "message" | "reminder" | "update";
+  messageContent: string;
+}
+
 type DialogActionData = {
   suggestionId?: string;
   newStatus?: MatchSuggestionStatus;
@@ -2293,93 +2139,93 @@ type DialogActionData = {
   partyType?: "first" | "second" | "both";
   type?: string;
 };
+
 type ConfirmActionData = {
   suggestionId: string;
   partyType?: "first" | "second" | "both";
   type?: string;
 };
+// --- END: Type Imports and Definitions ---
 
 export default function MatchmakerDashboard() {
   // State management
-  const [activeTab, setActiveTab] = useState("pending"); // Changed default tab to "pending"
+  const [activeTab, setActiveTab] = useState("pending");
   const [showNewSuggestion, setShowNewSuggestion] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<SuggestionFilters>({});
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedSuggestion, setSelectedSuggestion] =
-    useState<Suggestion | null>(null);
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [confirmAction, setConfirmAction] = useState<{
-    type: string;
-    data: ConfirmActionData;
-  } | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  
+  // Dialogs and selected items state
+  const [selectedSuggestion, setSelectedSuggestion] = useState<Suggestion | null>(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<{ type: string; data: ConfirmActionData; } | null>(null);
   const [showEditForm, setShowEditForm] = useState(false);
   const [showMessageForm, setShowMessageForm] = useState(false);
-  const [, setMessageRecipient] = useState<"first" | "second" | "both">("both");
   const [showMonthlyTrendDialog, setShowMonthlyTrendDialog] = useState(false);
 
-  // Calculate suggestion counts
-  const activeCount = suggestions.filter((s) => s.category === "ACTIVE").length;
-  const pendingCount = suggestions.filter(
-    (s) => s.category === "PENDING"
-  ).length;
-  const historyCount = suggestions.filter(
-    (s) => s.category === "HISTORY"
-  ).length;
+  // Fetch candidates list to pass to the form
+  const { candidates: allCandidates } = useCandidates();
 
-  // Fetch suggestions data
-  const fetchSuggestions = async () => {
+  const fetchSuggestions = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await fetch("/api/matchmaker/suggestions");
-      if (!response.ok) {
-        throw new Error("Failed to fetch suggestions");
-      }
-
+      if (!response.ok) throw new Error("Failed to fetch suggestions");
       const data = await response.json();
+      
+      // =================  LOGGING START  =================
+      console.log("[MatchmakerDashboard] Fetched suggestions data:", data);
+      const createdSuggestion = data.find((s: Suggestion) => s.status === 'PENDING_FIRST_PARTY');
+      if (createdSuggestion) {
+        console.log("[MatchmakerDashboard] Found a newly created suggestion:", createdSuggestion);
+      }
+      // =================   LOGGING END   =================
+
       setSuggestions(data);
-
-      // Log suggestions data for debugging
-      console.log("Fetched suggestions:", data);
-      console.log("Total suggestions count:", data.length);
-
-      // Log suggestions by status
-      const activeCount = data.filter(
-        (s: Suggestion) => s.category === "ACTIVE"
-      ).length;
-      const pendingCount = data.filter(
-        (s: Suggestion) => s.category === "PENDING"
-      ).length;
-      const historyCount = data.filter(
-        (s: Suggestion) => s.category === "HISTORY"
-      ).length;
-      console.log("Suggestions by status:", {
-        active: activeCount,
-        pending: pendingCount,
-        history: historyCount,
-      });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error fetching suggestions:", error);
       toast.error("שגיאה בטעינת ההצעות");
     } finally {
       setIsLoading(false);
     }
-  };
-
-  useEffect(() => {
-    if (confirmAction?.type === "delete" && !showConfirmDialog) {
-      // בדיקה אם דיאלוג האישור נסגר אחרי פעולת מחיקה - ריענון הנתונים
-      fetchSuggestions();
-    }
-  }, [showConfirmDialog, confirmAction]);
-  // Initial data fetch
-  useEffect(() => {
-    fetchSuggestions();
   }, []);
 
-  // Handle refresh button
+
+  useEffect(() => {
+    fetchSuggestions();
+  }, [fetchSuggestions]);
+  
+  const filteredSuggestions = useMemo(() => {
+    return suggestions.filter((s) => {
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const match =
+          (s.firstParty.firstName + " " + s.firstParty.lastName).toLowerCase().includes(query) ||
+          (s.secondParty.firstName + " " + s.secondParty.lastName).toLowerCase().includes(query) ||
+          (s.firstParty.profile?.city && s.firstParty.profile.city.toLowerCase().includes(query)) ||
+          (s.secondParty.profile?.city && s.secondParty.profile.city.toLowerCase().includes(query));
+        if (!match) return false;
+      }
+      if (filters.priority?.length && !filters.priority.includes(s.priority)) return false;
+      if (filters.status?.length && !filters.status.includes(s.status)) return false;
+      if (filters.dateRange) {
+        const createdAt = new Date(s.createdAt);
+        if (createdAt < filters.dateRange.start || (filters.dateRange.end && createdAt > filters.dateRange.end)) return false;
+      }
+      return true;
+    });
+  }, [suggestions, searchQuery, filters]);
+  
+  const pendingSuggestions = useMemo(() => filteredSuggestions.filter(s => s.category === 'PENDING'), [filteredSuggestions]);
+  const activeSuggestions = useMemo(() => filteredSuggestions.filter(s => s.category === 'ACTIVE'), [filteredSuggestions]);
+  const historySuggestions = useMemo(() => filteredSuggestions.filter(s => s.category === 'HISTORY'), [filteredSuggestions]);
+
+  const pendingCount = pendingSuggestions.length;
+  const activeCount = activeSuggestions.length;
+  const historyCount = historySuggestions.length;
+
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await fetchSuggestions();
@@ -2387,586 +2233,140 @@ export default function MatchmakerDashboard() {
     toast.success("נתוני ההצעות עודכנו");
   };
 
-  // Handle new suggestion creation
   const handleNewSuggestion = async (data: NewSuggestionFormData) => {
     try {
-      const response = await fetch("/api/suggestions", {
+      const response = await fetch("/api/matchmaker/suggestions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-
-      if (!response.ok) throw new Error("Failed to create suggestion");
-
+      if (!response.ok) throw new Error((await response.json()).error || "Failed to create suggestion");
       setShowNewSuggestion(false);
       toast.success("ההצעה נוצרה בהצלחה");
       await fetchSuggestions();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error creating suggestion:", error);
-      toast.error("שגיאה ביצירת ההצעה");
+      toast.error("שגיאה ביצירת ההצעה: " + (error instanceof Error ? error.message : ""));
     }
   };
 
-  // Handle suggestion deletion
-  const handleSuggestionDeleted = useCallback(
-    (deletedId: string) => {
-      // הסרת ההצעה מהמצב המקומי
-      setSuggestions((prevSuggestions) =>
-        prevSuggestions.filter((suggestion) => suggestion.id !== deletedId)
-      );
-
-      // סגירת כל חלונות המודאל הפתוחים במידת הצורך
-      if (selectedSuggestion?.id === deletedId) {
-        setSelectedSuggestion(null);
-      }
-      if (showEditForm && selectedSuggestion?.id === deletedId) {
-        setShowEditForm(false);
-      }
-      if (showMessageForm && selectedSuggestion?.id === deletedId) {
-        setShowMessageForm(false);
-      }
-
-      // הוספת הודעת הצלחה (אופציונלי - כבר נוסף בhandleConfirmAction)
-      // toast.success("ההצעה נמחקה בהצלחה");
-    },
-    [selectedSuggestion, showEditForm, showMessageForm]
-  );
-
-  // Export suggestions to CSV
-  const handleExport = async () => {
-    try {
-      const response = await fetch("/api/suggestions/export", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to export suggestions");
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `suggestions-export-${new Date().toISOString()}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-      toast.success("הקובץ הורד בהצלחה");
-    } catch (error) {
-      console.error("Error exporting suggestions:", error);
-      toast.error("שגיאה בייצוא ההצעות");
-    }
-  };
-
-  // Handle suggestion actions
-  const handleSuggestionAction = (
-    type:
-      | "view"
-      | "contact"
-      | "message"
-      | "edit"
-      | "delete"
-      | "resend"
-      | "changeStatus"
-      | "reminder",
-    suggestion: Suggestion,
-    additionalData?: ActionAdditionalData
-  ) => {
-    console.log(
-      `Action ${type} for suggestion ${suggestion.id}`,
-      additionalData
-    );
-
-    switch (type) {
-      case "view":
-        setSelectedSuggestion(suggestion);
-        break;
-      case "delete":
-        // הגדר את מידע הפעולה
-        setConfirmAction({
-          type: "delete",
-          data: { suggestionId: suggestion.id },
-        });
-
-        // הצג את הדיאלוג
-        setShowConfirmDialog(true);
-        break;
-      case "contact":
-        // Show reminder sending confirmation
-        setConfirmAction({
-          type: "contact",
-          data: {
-            suggestionId: suggestion.id,
-            partyType:
-              suggestion.status === "PENDING_FIRST_PARTY" ? "first" : "second",
-          },
-        });
-        setShowConfirmDialog(true);
-        break;
-      case "reminder":
-        // Handle reminder action
-        setConfirmAction({
-          type: "contact", // או "reminder" אם יש טיפול שונה
-          data: {
-            suggestionId: suggestion.id,
-            partyType: additionalData?.partyType || "both",
-          },
-        });
-        setShowConfirmDialog(true);
-        break;
-      case "edit":
-        // לפתיחת חלון עריכה
-        setSelectedSuggestion(suggestion);
-        setShowEditForm(true);
-        break;
-      case "message":
-        // לפתיחת חלון הודעה
-        setSelectedSuggestion(suggestion);
-        setShowMessageForm(true);
-        break;
-      case "resend":
-        // Show resend confirmation
-        setConfirmAction({
-          type: "resend",
-          data: { suggestionId: suggestion.id },
-        });
-        setShowConfirmDialog(true);
-        break;
-      case "changeStatus":
-        if (additionalData?.newStatus) {
-          handleStatusChange(
-            suggestion.id,
-            additionalData.newStatus,
-            additionalData?.notes
-          );
-        } else {
-          console.error("Status change requested without providing new status");
-          toast.error("שגיאה: סטטוס חדש לא סופק");
-        }
-        break;
-    }
-  };
-  const getCategoryFromStatus = (
-    status: MatchSuggestionStatus
-  ): "ACTIVE" | "PENDING" | "HISTORY" => {
-    switch (status) {
-      case "DRAFT":
-      case "AWAITING_MATCHMAKER_APPROVAL":
-      case "PENDING_FIRST_PARTY":
-      case "PENDING_SECOND_PARTY":
-        return "PENDING";
-
-      case "FIRST_PARTY_DECLINED":
-      case "SECOND_PARTY_DECLINED":
-      case "MATCH_DECLINED":
-      case "ENDED_AFTER_FIRST_DATE":
-      case "ENGAGED":
-      case "MARRIED":
-      case "EXPIRED":
-      case "CLOSED":
-      case "CANCELLED":
-        return "HISTORY";
-
-      default:
-        return "ACTIVE";
-    }
-  };
-  // Handle status change
-  const handleStatusChange = async (
-    suggestionId: string,
-    newStatus: MatchSuggestionStatus,
-    notes?: string
-  ) => {
-    try {
-      console.log(
-        `Updating status for ${suggestionId} to ${newStatus}`,
-        notes ? `with notes: ${notes}` : ""
-      );
-
-      const response = await fetch(
-        `/api/matchmaker/suggestions/${suggestionId}/status`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            status: newStatus,
-            notes: notes || `סטטוס שונה מממשק ניהול הצעות`,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Status update API error:", errorData);
-        throw new Error(
-          errorData.error ||
-            `Failed to update status: ${response.status} ${response.statusText}`
-        );
-      }
-
-      const data = await response.json();
-      console.log("Status update success:", data);
-
-      toast.success("סטטוס ההצעה עודכן בהצלחה");
-
-      // עדכון רשימת ההצעות ללא צורך בטעינה מחדש
-      setSuggestions((prevSuggestions) =>
-        prevSuggestions.map((suggestion) =>
-          suggestion.id === suggestionId
-            ? {
-                ...suggestion,
-                status: newStatus,
-                // עדכון קטגוריית ההצעה בהתאם לסטטוס החדש
-                category: getCategoryFromStatus(newStatus),
-                lastActivity: new Date().toISOString(),
-                lastStatusChange: new Date().toISOString(),
-                previousStatus: suggestion.status,
-              }
-            : suggestion
-        )
-      );
-    } catch (error) {
-      console.error("Error updating suggestion status:", error);
-      toast.error(
-        `שגיאה בעדכון סטטוס ההצעה: ${
-          error instanceof Error ? error.message : "שגיאה לא מזוהה"
-        }`
-      );
-    }
-  };
-
-  // Handle dialog actions
-  const handleDialogAction = (action: string, data?: DialogActionData) => {
-    console.log(`Dialog action: ${action}`, data);
-
-    switch (action) {
-      case "changeStatus":
-        if (data?.suggestionId && data?.newStatus) {
-          handleStatusChange(data.suggestionId, data.newStatus, data?.notes);
-        }
-        setSelectedSuggestion(null);
-        break;
-      case "delete":
-        setConfirmAction({
-          type: "delete",
-          data: { suggestionId: data?.suggestionId as string },
-        });
-        setShowConfirmDialog(true);
-        setSelectedSuggestion(null);
-        break;
-      case "message":
-        // פתיחת טופס שליחת הודעה
-        if (data?.suggestion) {
-          setSelectedSuggestion(data.suggestion);
-          setShowMessageForm(true);
-          setMessageRecipient(data.partyType || "both");
-        }
-        break;
-      case "edit":
-        // פתיחת טופס עריכה
-        if (data?.suggestion) {
-          setSelectedSuggestion(data.suggestion);
-          setShowEditForm(true);
-        } else if (data?.suggestionId) {
-          // מצב שבו יש רק מזהה הצעה
-          const suggestion = suggestions.find(
-            (s) => s.id === data.suggestionId
-          );
-          if (suggestion) {
-            setSelectedSuggestion(suggestion);
-            setShowEditForm(true);
-          }
-        }
-        break;
-      case "contact":
-      case "reminder":
-        if (data?.partyType && data?.suggestionId) {
-          sendReminder(data.suggestionId, data.partyType);
-        }
-        break;
-      case "sendReminder":
-        if (data?.suggestionId && data?.type) {
-          sendReminder(
-            data.suggestionId,
-            data.type as "first" | "second" | "both"
-          );
-        }
-        break;
-      case "resendToAll":
-        if (data?.suggestionId) {
-          resendSuggestion(data.suggestionId, "both");
-        }
-        break;
-      case "export":
-      case "exportHistory":
-        toast.info("פונקציונליות ייצוא בפיתוח");
-        break;
-      case "scheduleMeeting":
-        toast.info("פונקציונליות תיאום פגישה בפיתוח");
-        break;
-      case "shareContacts":
-        if (data?.suggestionId) {
-          setConfirmAction({
-            type: "shareContacts",
-            data: { suggestionId: data.suggestionId },
-          });
-          setShowConfirmDialog(true);
-        }
-        break;
-    }
-  };
-  const handleUpdateSuggestion = async (data: {
-    suggestionId: string;
-    updates: {
-      priority?: Priority;
-      matchingReason?: string;
-      firstPartyNotes?: string;
-      secondPartyNotes?: string;
-      internalNotes?: string;
-      decisionDeadline?: Date;
-    };
-  }) => {
-    try {
-      const response = await fetch(`/api/suggestions/${data.suggestionId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data.updates),
-      });
-
-      if (!response.ok) throw new Error("Failed to update suggestion");
-
-      toast.success("פרטי ההצעה עודכנו בהצלחה");
-
-      // Update suggestions list without refetching
-      setSuggestions((prevSuggestions) =>
-        prevSuggestions.map((s) =>
-          s.id === data.suggestionId ? { ...s, ...data.updates } : s
-        )
-      );
-
-      setShowEditForm(false);
-    } catch (error) {
-      console.error("Error updating suggestion:", error);
-      toast.error("שגיאה בעדכון פרטי ההצעה");
-    }
-  };
-
-  // Handle sending message
-  const handleSendMessage = async (data: {
-    suggestionId: string;
-    partyType: "first" | "second" | "both";
-    messageType: "message" | "reminder" | "update";
-    messageContent: string;
-  }) => {
-    try {
-      // שימוש בנתיב API הנכון
-      const response = await fetch(
-        `/api/matchmaker/suggestions/${data.suggestionId}/message`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            partyType: data.partyType,
-            messageType: data.messageType,
-            content: data.messageContent,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to send message");
-      }
-
-      toast.success("ההודעה נשלחה בהצלחה");
-      setShowMessageForm(false);
-      fetchSuggestions(); // רענון נתונים לאחר שליחת הודעה
-    } catch (error) {
-      console.error("Error sending message:", error);
-      toast.error(
-        `שגיאה בשליחת ההודעה: ${
-          error instanceof Error ? error.message : "שגיאה לא מזוהה"
-        }`
-      );
-    }
-  };
-
-  // Send reminder function
-  const sendReminder = async (
-    suggestionId: string,
-    partyType: "first" | "second" | "both" = "both" // Default value
-  ) => {
-    try {
-      const response = await fetch(
-        `/api/matchmaker/suggestions/${suggestionId}/remind`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ partyType }),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to send reminder");
-      }
-
-      toast.success(
-        `תזכורת נשלחה ${
-          partyType === "first"
-            ? "לצד א'"
-            : partyType === "second"
-            ? "לצד ב'"
-            : "לשני הצדדים"
-        }`
-      );
-    } catch (error) {
-      console.error("Error sending reminder:", error);
-      toast.error(
-        `שגיאה בשליחת התזכורת: ${
-          error instanceof Error ? error.message : "שגיאה לא מזוהה"
-        }`
-      );
-    }
-  };
-
-  // Resend suggestion function
-  const resendSuggestion = async (
-    suggestionId: string,
-    partyType: "first" | "second" | "both"
-  ) => {
-    try {
-      const response = await fetch(`/api/suggestions/${suggestionId}/resend`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ partyType }),
-      });
-
-      if (!response.ok) throw new Error("Failed to resend suggestion");
-
-      toast.success(
-        `ההצעה נשלחה מחדש ${
-          partyType === "first"
-            ? "לצד א'"
-            : partyType === "second"
-            ? "לצד ב'"
-            : "לשני הצדדים"
-        }`
-      );
-      fetchSuggestions();
-    } catch (error) {
-      console.error("Error resending suggestion:", error);
-      toast.error("שגיאה בשליחת ההצעה מחדש");
-    }
-  };
-
-  // Share contact details function
-  /*   const shareContactDetails = async (suggestionId: string) => {
-    try {
-      const response = await fetch(
-        `/api/matchmaker/suggestions/${suggestionId}/share-contact`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to share contact details");
-      }
-
-      toast.success("פרטי הקשר שותפו בהצלחה בין שני הצדדים");
-      fetchSuggestions(); // רענון הנתונים לאחר שיתוף פרטי קשר
-    } catch (error) {
-      console.error("Error sharing contact details:", error);
-      toast.error(
-        `שגיאה בשיתוף פרטי הקשר: ${
-          error instanceof Error ? error.message : "שגיאה לא מזוהה"
-        }`
-      );
-    }
-  }; */
-
-  // Handle confirm dialog actions
+  const handleSuggestionDeleted = useCallback((deletedId: string) => {
+    setSuggestions((prev) => prev.filter((s) => s.id !== deletedId));
+    if (selectedSuggestion?.id === deletedId) setSelectedSuggestion(null);
+  }, [selectedSuggestion]);
 
   const handleConfirmAction = async () => {
     if (!confirmAction) return;
-
     try {
-      switch (confirmAction.type) {
-        case "delete":
-          // קריאה לשרת
-          const deleteResponse = await fetch(
-            `/api/matchmaker/suggestions/${confirmAction.data.suggestionId}/delete`,
-            {
-              method: "DELETE",
-            }
-          );
-
-          // בדיקת תשובה
-          if (!deleteResponse.ok) {
-            // טיפול בשגיאה
-          }
-
-          // עדכון UI
-          handleSuggestionDeleted(confirmAction.data.suggestionId);
-          toast.success("ההצעה נמחקה בהצלחה");
-          break;
+      if (confirmAction.type === "delete") {
+        const response = await fetch(`/api/matchmaker/suggestions/${confirmAction.data.suggestionId}/delete`, { method: "DELETE" });
+        if (!response.ok) throw new Error("Failed to delete suggestion");
+        handleSuggestionDeleted(confirmAction.data.suggestionId);
+        toast.success("ההצעה נמחקה בהצלחה");
       }
-    } catch (error) {
-      // טיפול בשגיאות
-      console.error("שגיאה בתהליך המחיקה:", error);
-      toast.error("אירעה שגיאה בעת מחיקת ההצעה");
+    } catch (error: unknown) {
+      toast.error("אירעה שגיאה בביצוע הפעולה");
     } finally {
       setShowConfirmDialog(false);
       setConfirmAction(null);
     }
   };
+  
+  const handleStatusChange = async (suggestionId: string, newStatus: MatchSuggestionStatus, notes?: string) => {
+    try {
+      const response = await fetch(`/api/matchmaker/suggestions/${suggestionId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus, notes: notes || `סטטוס שונה מממשק ניהול` }),
+      });
+      if (!response.ok) throw new Error((await response.json()).error || "Failed to update status");
+      toast.success("סטטוס ההצעה עודכן בהצלחה");
+      fetchSuggestions();
+    } catch (error: unknown) {
+      console.error("Error updating suggestion status:", error);
+      toast.error("שגיאה בעדכון סטטוס ההצעה: " + (error instanceof Error ? error.message : ""));
+    }
+  };
+
+  // --- START OF FIX: Replaced 'any' with specific type ---
+  const handleUpdateSuggestion = async (data: {
+    suggestionId: string;
+    updates: SuggestionUpdatePayload;
+  }) => {
+  // --- END OF FIX ---
+    try {
+        const response = await fetch(`/api/matchmaker/suggestions/${data.suggestionId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data.updates),
+        });
+        if (!response.ok) throw new Error('Failed to update suggestion');
+        toast.success("פרטי ההצעה עודכנו בהצלחה");
+        setShowEditForm(false);
+        fetchSuggestions();
+    } catch (error: unknown) {
+        console.error("Error updating suggestion:", error);
+        toast.error("שגיאה בעדכון פרטי ההצעה");
+    }
+  };
+
+  // --- START OF FIX: Replaced 'any' with specific type ---
+  const handleSendMessage = async (data: SendMessagePayload) => {
+  // --- END OF FIX ---
+    try {
+      const response = await fetch(`/api/matchmaker/suggestions/${data.suggestionId}/message`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            partyType: data.partyType,
+            messageType: data.messageType,
+            content: data.messageContent
+        }),
+      });
+      if (!response.ok) throw new Error((await response.json()).error || 'Failed to send message');
+      toast.success("ההודעה נשלחה בהצלחה");
+      setShowMessageForm(false);
+    } catch (error: unknown) {
+      toast.error("שגיאה בשליחת ההודעה: " + (error instanceof Error ? error.message : ""));
+    }
+  };
+  
+  const handleDialogAction = (action: string, data?: DialogActionData) => {
+    if (action === 'delete' && data?.suggestionId) {
+      setConfirmAction({ type: 'delete', data: { suggestionId: data.suggestionId } });
+      setShowConfirmDialog(true);
+      setSelectedSuggestion(null);
+    } else if (action === 'edit' && data?.suggestion) {
+      setSelectedSuggestion(data.suggestion);
+      setShowEditForm(true);
+    } else if (action === 'message' && data?.suggestion) {
+      setSelectedSuggestion(data.suggestion);
+      setShowMessageForm(true);
+    } else if (action === 'changeStatus' && data?.suggestionId && data.newStatus) {
+        handleStatusChange(data.suggestionId, data.newStatus, data.notes);
+    }
+  };
+  
+  const handleSuggestionAction = (type: string, suggestion: Suggestion, additionalData?: ActionAdditionalData) => {
+    handleDialogAction(type, { ...additionalData, suggestionId: suggestion.id, suggestion });
+  };
+
 
   return (
     <div className="min-h-screen bg-gray-50 p-6 rtl matchmaker-dashboard">
       <div className="container mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4 justify-end">
-            <Badge variant="outline" className="text-sm">
-              {suggestions.length} הצעות
-            </Badge>
-            <h1 className="text-2xl font-bold">ניהול הצעות שידוכים</h1>
-          </div>
-
+          <h1 className="text-2xl font-bold">ניהול הצעות שידוכים</h1>
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-            >
-              <RefreshCw
-                className={`w-4 h-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`}
-              />
-              {isRefreshing ? "מעדכן..." : "רענן נתונים"}
+            <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
+              <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
+              {isRefreshing ? "מעדכן..." : "רענן"}
             </Button>
-
-            <Button variant="outline" size="sm" onClick={handleExport}>
-              <Download className="w-4 h-4 mr-2" />
-              ייצוא
-            </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowMonthlyTrendDialog(true)}
-            >
+            <Button variant="outline" size="sm" onClick={() => setShowMonthlyTrendDialog(true)}>
               <BarChart className="w-4 h-4 mr-2" />
               מגמה חודשית
             </Button>
-
             <Button onClick={() => setShowNewSuggestion(true)}>
               <Plus className="w-4 h-4 mr-2" />
               הצעה חדשה
@@ -2974,31 +2374,30 @@ export default function MatchmakerDashboard() {
           </div>
         </div>
 
-        {/* Stats Overview */}
         <SuggestionsStats
           suggestions={suggestions}
           className="mb-6"
-          onFilterChange={(filter) => {
-            if (filter) {
-              setFilters((currentFilters) => ({
-                ...currentFilters,
-                ...filter,
-              }));
-            }
-          }}
+          onFilterChange={(filter) => setFilters(prev => ({...prev, ...filter}))}
         />
 
-        {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <div className="flex items-center justify-between mb-6">
-            <TabsList dir="rtl" className="flex-row-reverse">
-              <TabsTrigger value="pending">ממתין לאישור</TabsTrigger>
-              <TabsTrigger value="active">הצעות פעילות</TabsTrigger>
-              <TabsTrigger value="history">היסטוריה</TabsTrigger>
+                   <TabsList dir="rtl">
+              {/* --- START OF CHANGE --- */}
+              <TabsTrigger value="pending">
+                ממתין לאישור <Badge className="mr-2">{pendingCount}</Badge>
+              </TabsTrigger>
+              <TabsTrigger value="active">
+                פעילות <Badge className="mr-2">{activeCount}</Badge>
+              </TabsTrigger>
+              <TabsTrigger value="history">
+                היסטוריה <Badge className="mr-2">{historyCount}</Badge>
+              </TabsTrigger>
+              {/* --- END OF CHANGE --- */}
             </TabsList>
-          </div>
 
-          {/* Action Bar */}
+          </div>
+          
           <SuggestionActionBar
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
@@ -3009,332 +2408,91 @@ export default function MatchmakerDashboard() {
             pendingCount={pendingCount}
             historyCount={historyCount}
           />
-
-          {/* Loading State */}
+          
           {isLoading ? (
-            <div className="flex items-center justify-center h-64">
-              <div className="text-gray-500">טוען...</div>
-            </div>
+            <div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 animate-spin text-primary"/></div>
           ) : (
             <>
-              {/* Suggestions Lists */}
               <TabsContent value="pending">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 grid-flow-row-dense">
-                  {suggestions
-                    .filter((s) => s.category === "PENDING")
-                    .filter((s) => {
-                      // Apply search filter
-                      if (searchQuery) {
-                        const query = searchQuery.toLowerCase();
-                        return (
-                          s.firstParty.firstName
-                            .toLowerCase()
-                            .includes(query) ||
-                          s.firstParty.lastName.toLowerCase().includes(query) ||
-                          s.secondParty.firstName
-                            .toLowerCase()
-                            .includes(query) ||
-                          s.secondParty.lastName
-                            .toLowerCase()
-                            .includes(query) ||
-                          (s.matchingReason &&
-                            s.matchingReason.toLowerCase().includes(query)) ||
-                          (s.firstParty.profile?.city &&
-                            s.firstParty.profile.city
-                              .toLowerCase()
-                              .includes(query)) ||
-                          (s.secondParty.profile?.city &&
-                            s.secondParty.profile.city
-                              .toLowerCase()
-                              .includes(query))
-                        );
-                      }
-                      return true;
-                    })
-                    .filter((s) => {
-                      // Apply priority filter
-                      if (filters.priority && filters.priority.length > 0) {
-                        return filters.priority.includes(s.priority);
-                      }
-                      return true;
-                    })
-                    .filter((s) => {
-                      // Apply status filter
-                      if (filters.status && filters.status.length > 0) {
-                        return filters.status.includes(s.status);
-                      }
-                      return true;
-                    })
-                    .filter((s) => {
-                      // Apply date range filter
-                      if (filters.dateRange) {
-                        const createdAt = new Date(s.createdAt);
-                        return (
-                          createdAt >= filters.dateRange.start &&
-                          createdAt <= (filters.dateRange.end || new Date())
-                        );
-                      }
-                      return true;
-                    })
-                    .map((suggestion) => (
-                      <SuggestionCard
-                        key={suggestion.id}
-                        suggestion={suggestion}
-                        onAction={handleSuggestionAction}
-                      />
-                    ))}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {pendingSuggestions.map((suggestion) => (
+                    <SuggestionCard key={suggestion.id} suggestion={suggestion} onAction={handleSuggestionAction} />
+                  ))}
                 </div>
-
-                {suggestions.filter((s) => s.category === "PENDING").length ===
-                  0 && (
-                  <div className="flex flex-col items-center justify-center h-64 text-gray-400">
-                    <p>אין הצעות ממתינות</p>
-                  </div>
-                )}
+                {pendingSuggestions.length === 0 && <div className="text-center p-10 text-gray-500">אין הצעות ממתינות לאישור.</div>}
               </TabsContent>
-
               <TabsContent value="active">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 grid-flow-row-dense">
-                  {suggestions
-                    .filter((s) => s.category === "ACTIVE")
-                    .filter((s) => {
-                      // Apply search filter
-                      if (searchQuery) {
-                        const query = searchQuery.toLowerCase();
-                        return (
-                          s.firstParty.firstName
-                            .toLowerCase()
-                            .includes(query) ||
-                          s.firstParty.lastName.toLowerCase().includes(query) ||
-                          s.secondParty.firstName
-                            .toLowerCase()
-                            .includes(query) ||
-                          s.secondParty.lastName
-                            .toLowerCase()
-                            .includes(query) ||
-                          (s.matchingReason &&
-                            s.matchingReason.toLowerCase().includes(query)) ||
-                          (s.firstParty.profile?.city &&
-                            s.firstParty.profile.city
-                              .toLowerCase()
-                              .includes(query)) ||
-                          (s.secondParty.profile?.city &&
-                            s.secondParty.profile.city
-                              .toLowerCase()
-                              .includes(query))
-                        );
-                      }
-                      return true;
-                    })
-                    .filter((s) => {
-                      // Apply priority filter
-                      if (filters.priority && filters.priority.length > 0) {
-                        return filters.priority.includes(s.priority);
-                      }
-                      return true;
-                    })
-                    .filter((s) => {
-                      // Apply status filter
-                      if (filters.status && filters.status.length > 0) {
-                        return filters.status.includes(s.status);
-                      }
-                      return true;
-                    })
-                    .filter((s) => {
-                      // Apply date range filter
-                      if (filters.dateRange) {
-                        const createdAt = new Date(s.createdAt);
-                        return (
-                          createdAt >= filters.dateRange.start &&
-                          createdAt <= (filters.dateRange.end || new Date())
-                        );
-                      }
-                      return true;
-                    })
-                    .map((suggestion) => (
-                      <SuggestionCard
-                        key={suggestion.id}
-                        suggestion={suggestion}
-                        onAction={handleSuggestionAction}
-                      />
-                    ))}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {activeSuggestions.map((suggestion) => (
+                    <SuggestionCard key={suggestion.id} suggestion={suggestion} onAction={handleSuggestionAction} />
+                  ))}
                 </div>
-
-                {suggestions.filter((s) => s.category === "ACTIVE").length ===
-                  0 && (
-                  <div className="flex flex-col items-center justify-center h-64 text-gray-400">
-                    <p>אין הצעות פעילות</p>
-                  </div>
-                )}
+                {activeSuggestions.length === 0 && <div className="text-center p-10 text-gray-500">אין הצעות פעילות.</div>}
               </TabsContent>
-
               <TabsContent value="history">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 grid-flow-row-dense">
-                  {suggestions
-                    .filter((s) => s.category === "HISTORY")
-                    .filter((s) => {
-                      // Apply search filter
-                      if (searchQuery) {
-                        const query = searchQuery.toLowerCase();
-                        return (
-                          s.firstParty.firstName
-                            .toLowerCase()
-                            .includes(query) ||
-                          s.firstParty.lastName.toLowerCase().includes(query) ||
-                          s.secondParty.firstName
-                            .toLowerCase()
-                            .includes(query) ||
-                          s.secondParty.lastName
-                            .toLowerCase()
-                            .includes(query) ||
-                          (s.matchingReason &&
-                            s.matchingReason.toLowerCase().includes(query)) ||
-                          (s.firstParty.profile?.city &&
-                            s.firstParty.profile.city
-                              .toLowerCase()
-                              .includes(query)) ||
-                          (s.secondParty.profile?.city &&
-                            s.secondParty.profile.city
-                              .toLowerCase()
-                              .includes(query))
-                        );
-                      }
-                      return true;
-                    })
-                    .filter((s) => {
-                      // Apply priority filter
-                      if (filters.priority && filters.priority.length > 0) {
-                        return filters.priority.includes(s.priority);
-                      }
-                      return true;
-                    })
-                    .filter((s) => {
-                      // Apply status filter
-                      if (filters.status && filters.status.length > 0) {
-                        return filters.status.includes(s.status);
-                      }
-                      return true;
-                    })
-                    .filter((s) => {
-                      // Apply date range filter
-                      if (filters.dateRange) {
-                        const createdAt = new Date(s.createdAt);
-                        return (
-                          createdAt >= filters.dateRange.start &&
-                          createdAt <= (filters.dateRange.end || new Date())
-                        );
-                      }
-                      return true;
-                    })
-                    .map((suggestion) => (
-                      <SuggestionCard
-                        key={suggestion.id}
-                        suggestion={suggestion}
-                        onAction={handleSuggestionAction}
-                      />
-                    ))}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {historySuggestions.map((suggestion) => (
+                    <SuggestionCard key={suggestion.id} suggestion={suggestion} onAction={handleSuggestionAction} />
+                  ))}
                 </div>
-
-                {suggestions.filter((s) => s.category === "HISTORY").length ===
-                  0 && (
-                  <div className="flex flex-col items-center justify-center h-64 text-gray-400">
-                    <p>אין הצעות בהיסטוריה</p>
-                  </div>
-                )}
+                {historySuggestions.length === 0 && <div className="text-center p-10 text-gray-500">אין הצעות בהיסטוריה.</div>}
               </TabsContent>
             </>
           )}
         </Tabs>
       </div>
 
-      {/* New Suggestion Form */}
       <NewSuggestionForm
         isOpen={showNewSuggestion}
         onClose={() => setShowNewSuggestion(false)}
-        candidates={[]}
+        candidates={allCandidates}
         onSubmit={handleNewSuggestion}
       />
-
-      {/* Suggestion Details Dialog */}
+      
       <SuggestionDetailsDialog
         suggestion={selectedSuggestion}
         isOpen={!!selectedSuggestion}
         onClose={() => setSelectedSuggestion(null)}
         onAction={handleDialogAction}
       />
-
-      {/* Monthly Trend Dialog */}
-      <Dialog
-        open={showMonthlyTrendDialog}
-        onOpenChange={setShowMonthlyTrendDialog}
-      >
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>מגמה חודשית</DialogTitle>
-            <DialogDescription>ניתוח מגמות הצעות לאורך זמן</DialogDescription>
-          </DialogHeader>
-
-          <div className="p-4">
-            <MonthlyTrendModal suggestions={suggestions} />
-          </div>
-
-          <DialogFooter>
-            <Button onClick={() => setShowMonthlyTrendDialog(false)}>
-              סגור
-            </Button>
-          </DialogFooter>
+      
+      <Dialog open={showMonthlyTrendDialog} onOpenChange={setShowMonthlyTrendDialog}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader><DialogTitle>מגמה חודשית</DialogTitle></DialogHeader>
+          <MonthlyTrendModal suggestions={suggestions} />
         </DialogContent>
       </Dialog>
-
-      {/* Confirm Action Dialog */}
-      {confirmAction && (
-        <AlertDialog
-          open={showConfirmDialog}
-          onOpenChange={setShowConfirmDialog}
-        >
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>האם את/ה בטוח/ה?</AlertDialogTitle>
-              <AlertDialogDescription>
-                {confirmAction?.type === "delete" &&
-                  "פעולה זו תמחק את ההצעה לצמיתות ולא ניתן יהיה לשחזר אותה."}
-                {/* תנאים אחרים כאן */}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setShowConfirmDialog(false)}>
-                ביטול
-              </AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleConfirmAction}
-                className={
-                  confirmAction?.type === "delete"
-                    ? "bg-red-600 hover:bg-red-700"
-                    : ""
-                }
-              >
-                {confirmAction?.type === "delete" ? "מחק" : "אשר"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      )}
-
-      {/* Edit Suggestion Form */}
+      
       <EditSuggestionForm
         isOpen={showEditForm}
         onClose={() => setShowEditForm(false)}
         suggestion={selectedSuggestion}
         onSave={handleUpdateSuggestion}
       />
-
-      {/* Message Form */}
+      
       <MessageForm
         isOpen={showMessageForm}
         onClose={() => setShowMessageForm(false)}
         suggestion={selectedSuggestion}
         onSend={handleSendMessage}
       />
+
+      {confirmAction && (
+        <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>האם את/ה בטוח/ה?</AlertDialogTitle>
+              <AlertDialogDescription>
+                {confirmAction.type === "delete" && "פעולה זו תמחק את ההצעה לצמיתות."}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>ביטול</AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirmAction}>אישור</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </div>
   );
 }
@@ -8377,7 +7535,19 @@ import type {
 
 // Initialize notification service
 const notificationService = initNotificationService();
-
+const BLOCKING_SUGGESTION_STATUSES: MatchSuggestionStatus[] = [
+  'FIRST_PARTY_APPROVED',
+  'SECOND_PARTY_APPROVED',
+  'AWAITING_MATCHMAKER_APPROVAL',
+  'CONTACT_DETAILS_SHARED',
+  'AWAITING_FIRST_DATE_FEEDBACK',
+  'THINKING_AFTER_DATE',
+  'PROCEEDING_TO_SECOND_DATE',
+  'MEETING_PENDING',
+  'MEETING_SCHEDULED',
+  'MATCH_APPROVED',
+  'DATING',
+];
 export class SuggestionService {
   private static instance: SuggestionService;
 
@@ -8399,8 +7569,47 @@ export class SuggestionService {
       where: { id: data.matchmakerId },
     });
 
-    if (!matchmaker || matchmaker.role !== UserRole.MATCHMAKER) {
-      throw new Error("Unauthorized - User is not a matchmaker");
+    // קוד חדש ומתוקן
+const allowedRoles: UserRole[] = [UserRole.MATCHMAKER, UserRole.ADMIN];
+if (!matchmaker || !allowedRoles.includes(matchmaker.role)) {
+  throw new Error("Unauthorized - User must be a Matchmaker or Admin");
+}
+  // --- START: NEW VALIDATION LOGIC ---
+    // Fetch both parties to get their names for error messages
+    const [firstParty, secondParty] = await Promise.all([
+        prisma.user.findUnique({ where: { id: data.firstPartyId } }),
+        prisma.user.findUnique({ where: { id: data.secondPartyId } })
+    ]);
+
+    if (!firstParty || !secondParty) {
+        throw new Error("One or both candidates not found.");
+    }
+    
+    // Check for BLOCKING suggestions for either party
+    const blockingSuggestion = await prisma.matchSuggestion.findFirst({
+        where: {
+            OR: [
+                { firstPartyId: data.firstPartyId },
+                { secondPartyId: data.firstPartyId },
+                { firstPartyId: data.secondPartyId },
+                { secondPartyId: data.secondPartyId },
+            ],
+            status: {
+                in: BLOCKING_SUGGESTION_STATUSES,
+            },
+        },
+    });
+
+    if (blockingSuggestion) {
+        const hasBlockingSuggestion = (id: string) => 
+            blockingSuggestion.firstPartyId === id || blockingSuggestion.secondPartyId === id;
+            
+        if (hasBlockingSuggestion(data.firstPartyId)) {
+            throw new Error(`לא ניתן ליצור הצעה חדשה. ל${firstParty.firstName} ${firstParty.lastName} יש כבר הצעה פעילה.`);
+        }
+        if (hasBlockingSuggestion(data.secondPartyId)) {
+            throw new Error(`לא ניתן ליצור הצעה חדשה. ל${secondParty.firstName} ${secondParty.lastName} יש כבר הצעה פעילה.`);
+        }
     }
 
     // 4. יצירת ההצעה בטרנזקציה

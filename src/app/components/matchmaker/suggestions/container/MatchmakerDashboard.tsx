@@ -4,7 +4,7 @@ import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Download, RefreshCw, BarChart, Loader2 } from "lucide-react";
+import { Plus, RefreshCw, BarChart, Loader2, List, LayoutGrid, Filter, Search } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,8 +22,11 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { toast } from "sonner";
 import { MatchSuggestionStatus, Priority } from "@prisma/client";
+import { cn } from "@/lib/utils";
 
 // --- START: Type Imports and Definitions ---
 import type {
@@ -46,6 +49,26 @@ import SuggestionCard from "../cards/SuggestionCard";
 import EditSuggestionForm from "../EditSuggestionForm";
 import MessageForm from "../MessageForm";
 import MonthlyTrendModal from "./MonthlyTrendModal";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
+
+// --- A simple media query hook ---
+const useMediaQuery = (query: string) => {
+  const [matches, setMatches] = useState(false);
+  useEffect(() => {
+    // Ensure this runs only on the client
+    if (typeof window === 'undefined') return;
+    
+    const media = window.matchMedia(query);
+    if (media.matches !== matches) {
+      setMatches(media.matches);
+    }
+    const listener = () => setMatches(media.matches);
+    window.addEventListener("resize", listener);
+    return () => window.removeEventListener("resize", listener);
+  }, [matches, query]);
+  return matches;
+};
 
 // --- Defining specific payload types to replace 'any' ---
 interface SuggestionUpdatePayload {
@@ -83,6 +106,10 @@ type ConfirmActionData = {
 // --- END: Type Imports and Definitions ---
 
 export default function MatchmakerDashboard() {
+  const isMobile = useMediaQuery("(max-width: 768px)");
+  const [mobileView, setMobileView] = useState<'list' | 'kanban'>('list');
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+
   // State management
   const [activeTab, setActiveTab] = useState("pending");
   const [showNewSuggestion, setShowNewSuggestion] = useState(false);
@@ -109,15 +136,6 @@ export default function MatchmakerDashboard() {
       const response = await fetch("/api/matchmaker/suggestions");
       if (!response.ok) throw new Error("Failed to fetch suggestions");
       const data = await response.json();
-      
-      // =================  LOGGING START  =================
-      console.log("[MatchmakerDashboard] Fetched suggestions data:", data);
-      const createdSuggestion = data.find((s: Suggestion) => s.status === 'PENDING_FIRST_PARTY');
-      if (createdSuggestion) {
-        console.log("[MatchmakerDashboard] Found a newly created suggestion:", createdSuggestion);
-      }
-      // =================   LOGGING END   =================
-
       setSuggestions(data);
     } catch (error: unknown) {
       console.error("Error fetching suggestions:", error);
@@ -126,7 +144,6 @@ export default function MatchmakerDashboard() {
       setIsLoading(false);
     }
   }, []);
-
 
   useEffect(() => {
     fetchSuggestions();
@@ -223,12 +240,7 @@ export default function MatchmakerDashboard() {
     }
   };
 
-  // --- START OF FIX: Replaced 'any' with specific type ---
-  const handleUpdateSuggestion = async (data: {
-    suggestionId: string;
-    updates: SuggestionUpdatePayload;
-  }) => {
-  // --- END OF FIX ---
+  const handleUpdateSuggestion = async (data: { suggestionId: string; updates: SuggestionUpdatePayload; }) => {
     try {
         const response = await fetch(`/api/matchmaker/suggestions/${data.suggestionId}`, {
             method: 'PATCH',
@@ -245,9 +257,7 @@ export default function MatchmakerDashboard() {
     }
   };
 
-  // --- START OF FIX: Replaced 'any' with specific type ---
   const handleSendMessage = async (data: SendMessagePayload) => {
-  // --- END OF FIX ---
     try {
       const response = await fetch(`/api/matchmaker/suggestions/${data.suggestionId}/message`, {
         method: 'POST',
@@ -267,72 +277,65 @@ export default function MatchmakerDashboard() {
   };
   
   const handleDialogAction = (action: string, data?: DialogActionData) => {
-    if (action === 'delete' && data?.suggestionId) {
+    setSelectedSuggestion(data?.suggestion || null);
+    if (action === 'view' && data?.suggestion) {
+        setSelectedSuggestion(data.suggestion);
+    } else if (action === 'delete' && data?.suggestionId) {
       setConfirmAction({ type: 'delete', data: { suggestionId: data.suggestionId } });
       setShowConfirmDialog(true);
-      setSelectedSuggestion(null);
     } else if (action === 'edit' && data?.suggestion) {
-      setSelectedSuggestion(data.suggestion);
       setShowEditForm(true);
     } else if (action === 'message' && data?.suggestion) {
-      setSelectedSuggestion(data.suggestion);
       setShowMessageForm(true);
     } else if (action === 'changeStatus' && data?.suggestionId && data.newStatus) {
         handleStatusChange(data.suggestionId, data.newStatus, data.notes);
     }
   };
   
-  const handleSuggestionAction = (type: string, suggestion: Suggestion, additionalData?: ActionAdditionalData) => {
+  const handleSuggestionAction = (type: any, suggestion: Suggestion, additionalData?: ActionAdditionalData) => {
     handleDialogAction(type, { ...additionalData, suggestionId: suggestion.id, suggestion });
   };
+  
+  const kanbanColumns = useMemo(() => {
+    const columns: { title: string; suggestions: Suggestion[] }[] = [
+      { title: "דורש טיפול", suggestions: [] },
+      { title: "ממתין לתגובה", suggestions: [] },
+      { title: "פעילות", suggestions: [] },
+      { title: "היסטוריה", suggestions: [] },
+    ];
 
+    filteredSuggestions.forEach(s => {
+      if (['AWAITING_MATCHMAKER_APPROVAL', 'AWAITING_FIRST_DATE_FEEDBACK'].includes(s.status)) {
+        columns[0].suggestions.push(s);
+      } else if (['PENDING_FIRST_PARTY', 'PENDING_SECOND_PARTY'].includes(s.status)) {
+        columns[1].suggestions.push(s);
+      } else if (['CLOSED', 'CANCELLED', 'EXPIRED', 'MARRIED', 'ENGAGED'].includes(s.status)) {
+        columns[3].suggestions.push(s);
+      } else {
+        columns[2].suggestions.push(s);
+      }
+    });
 
-  return (
-    <div className="min-h-screen bg-gray-50 p-6 rtl matchmaker-dashboard">
-      <div className="container mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">ניהול הצעות שידוכים</h1>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
-              <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
-              {isRefreshing ? "מעדכן..." : "רענן"}
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setShowMonthlyTrendDialog(true)}>
-              <BarChart className="w-4 h-4 mr-2" />
-              מגמה חודשית
-            </Button>
-            <Button onClick={() => setShowNewSuggestion(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              הצעה חדשה
-            </Button>
-          </div>
-        </div>
+    return columns;
+  }, [filteredSuggestions]);
 
-        <SuggestionsStats
-          suggestions={suggestions}
-          className="mb-6"
-          onFilterChange={(filter) => setFilters(prev => ({...prev, ...filter}))}
-        />
+  // =========================================================================
+  // ============================ RENDER LOGIC ===============================
+  // =========================================================================
 
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <div className="flex items-center justify-between mb-6">
-                   <TabsList dir="rtl">
-              {/* --- START OF CHANGE --- */}
-              <TabsTrigger value="pending">
-                ממתין לאישור <Badge className="mr-2">{pendingCount}</Badge>
-              </TabsTrigger>
-              <TabsTrigger value="active">
-                פעילות <Badge className="mr-2">{activeCount}</Badge>
-              </TabsTrigger>
-              <TabsTrigger value="history">
-                היסטוריה <Badge className="mr-2">{historyCount}</Badge>
-              </TabsTrigger>
-              {/* --- END OF CHANGE --- */}
-            </TabsList>
-
-          </div>
-          
+  const renderMobileFilters = () => (
+    <Sheet open={showMobileFilters} onOpenChange={setShowMobileFilters}>
+      <SheetTrigger asChild>
+        <Button variant="outline" size="sm">
+          <Filter className="w-4 h-4 mr-2" />
+          סינון
+        </Button>
+      </SheetTrigger>
+      <SheetContent>
+        <SheetHeader>
+          <SheetTitle>סינון הצעות</SheetTitle>
+        </SheetHeader>
+        <div className="py-4">
           <SuggestionActionBar
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
@@ -343,91 +346,136 @@ export default function MatchmakerDashboard() {
             pendingCount={pendingCount}
             historyCount={historyCount}
           />
-          
-          {isLoading ? (
-            <div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 animate-spin text-primary"/></div>
-          ) : (
-            <>
-              <TabsContent value="pending">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {pendingSuggestions.map((suggestion) => (
-                    <SuggestionCard key={suggestion.id} suggestion={suggestion} onAction={handleSuggestionAction} />
-                  ))}
-                </div>
-                {pendingSuggestions.length === 0 && <div className="text-center p-10 text-gray-500">אין הצעות ממתינות לאישור.</div>}
-              </TabsContent>
-              <TabsContent value="active">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {activeSuggestions.map((suggestion) => (
-                    <SuggestionCard key={suggestion.id} suggestion={suggestion} onAction={handleSuggestionAction} />
-                  ))}
-                </div>
-                {activeSuggestions.length === 0 && <div className="text-center p-10 text-gray-500">אין הצעות פעילות.</div>}
-              </TabsContent>
-              <TabsContent value="history">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {historySuggestions.map((suggestion) => (
-                    <SuggestionCard key={suggestion.id} suggestion={suggestion} onAction={handleSuggestionAction} />
-                  ))}
-                </div>
-                {historySuggestions.length === 0 && <div className="text-center p-10 text-gray-500">אין הצעות בהיסטוריה.</div>}
-              </TabsContent>
-            </>
-          )}
-        </Tabs>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+
+  const renderMobileView = () => (
+    <div className="h-screen flex flex-col">
+      <div className="flex items-center justify-between p-4 border-b bg-white sticky top-0 z-10">
+        <div className="relative flex-1">
+          <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
+          <Input
+            placeholder="חיפוש..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 text-right pr-10 bg-gray-100"
+          />
+        </div>
+        <div className="mr-2">{renderMobileFilters()}</div>
+        <ToggleGroup
+          type="single"
+          value={mobileView}
+          onValueChange={(value: 'list' | 'kanban') => value && setMobileView(value)}
+          className="mr-2"
+        >
+          <ToggleGroupItem value="list" aria-label="List view"><List className="h-4 w-4" /></ToggleGroupItem>
+          <ToggleGroupItem value="kanban" aria-label="Kanban view"><LayoutGrid className="h-4 w-4" /></ToggleGroupItem>
+        </ToggleGroup>
       </div>
-
-      <NewSuggestionForm
-        isOpen={showNewSuggestion}
-        onClose={() => setShowNewSuggestion(false)}
-        candidates={allCandidates}
-        onSubmit={handleNewSuggestion}
-      />
-      
-      <SuggestionDetailsDialog
-        suggestion={selectedSuggestion}
-        isOpen={!!selectedSuggestion}
-        onClose={() => setSelectedSuggestion(null)}
-        onAction={handleDialogAction}
-      />
-      
-      <Dialog open={showMonthlyTrendDialog} onOpenChange={setShowMonthlyTrendDialog}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader><DialogTitle>מגמה חודשית</DialogTitle></DialogHeader>
-          <MonthlyTrendModal suggestions={suggestions} />
-        </DialogContent>
-      </Dialog>
-      
-      <EditSuggestionForm
-        isOpen={showEditForm}
-        onClose={() => setShowEditForm(false)}
-        suggestion={selectedSuggestion}
-        onSave={handleUpdateSuggestion}
-      />
-      
-      <MessageForm
-        isOpen={showMessageForm}
-        onClose={() => setShowMessageForm(false)}
-        suggestion={selectedSuggestion}
-        onSend={handleSendMessage}
-      />
-
-      {confirmAction && (
-        <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>האם את/ה בטוח/ה?</AlertDialogTitle>
-              <AlertDialogDescription>
-                {confirmAction.type === "delete" && "פעולה זו תמחק את ההצעה לצמיתות."}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>ביטול</AlertDialogCancel>
-              <AlertDialogAction onClick={handleConfirmAction}>אישור</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+      {isLoading ? (
+        <div className="flex-1 flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
+      ) : mobileView === 'kanban' ? (
+        <ScrollArea className="w-full whitespace-nowrap flex-1">
+          <div className="flex gap-4 p-4 h-full">
+            {kanbanColumns.map((col, idx) => (
+              <div key={idx} className="w-64 flex-shrink-0 bg-gray-100 rounded-lg flex flex-col">
+                <div className="p-3 font-semibold text-sm border-b sticky top-0 bg-gray-100/80 backdrop-blur-sm z-10">
+                  {col.title} <Badge variant="secondary" className="mr-1">{col.suggestions.length}</Badge>
+                </div>
+                <ScrollArea className="flex-1">
+                  <div className="p-2 space-y-2">
+                    {col.suggestions.length > 0 ? col.suggestions.map(s => <SuggestionCard key={s.id} suggestion={s} onAction={handleSuggestionAction} variant="compact" />)
+                    : <div className="p-4 text-center text-xs text-gray-500">אין הצעות</div>}
+                  </div>
+                </ScrollArea>
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
+      ) : (
+        <ScrollArea className="flex-1">
+          <div className="p-4 space-y-4">
+            {filteredSuggestions.map(s => <SuggestionCard key={s.id} suggestion={s} onAction={handleSuggestionAction} variant="full" />)}
+            {filteredSuggestions.length === 0 && <div className="text-center p-10 text-gray-500">לא נמצאו הצעות תואמות.</div>}
+          </div>
+        </ScrollArea>
       )}
+       <div className="p-4 bg-white border-t sticky bottom-0">
+         <Button onClick={() => setShowNewSuggestion(true)} className="w-full">
+            <Plus className="w-4 h-4 mr-2" />
+            הצעה חדשה
+         </Button>
+       </div>
+    </div>
+  );
+
+  const renderDesktopView = () => (
+    <div className="container mx-auto space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">ניהול הצעות שידוכים</h1>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}><RefreshCw className={cn("w-4 h-4 mr-2", isRefreshing && "animate-spin")} />{isRefreshing ? "מעדכן..." : "רענן"}</Button>
+          <Button variant="outline" size="sm" onClick={() => setShowMonthlyTrendDialog(true)}><BarChart className="w-4 h-4 mr-2" />מגמה חודשית</Button>
+          <Button onClick={() => setShowNewSuggestion(true)}><Plus className="w-4 h-4 mr-2" />הצעה חדשה</Button>
+        </div>
+      </div>
+      <SuggestionsStats suggestions={suggestions} onFilterChange={(filter) => setFilters(prev => ({...prev, ...filter}))} />
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <div className="flex items-center justify-between mb-6">
+          <TabsList dir="rtl">
+            <TabsTrigger value="pending">ממתין לאישור <Badge className="mr-2">{pendingCount}</Badge></TabsTrigger>
+            <TabsTrigger value="active">פעילות <Badge className="mr-2">{activeCount}</Badge></TabsTrigger>
+            <TabsTrigger value="history">היסטוריה <Badge className="mr-2">{historyCount}</Badge></TabsTrigger>
+          </TabsList>
+        </div>
+        <SuggestionActionBar
+          searchQuery={searchQuery} onSearchChange={setSearchQuery} filters={filters} onFiltersChange={setFilters}
+          totalCount={suggestions.length}
+          activeCount={activeCount}
+          pendingCount={pendingCount}
+          historyCount={historyCount}
+        />
+        {isLoading ? (
+          <div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
+        ) : (
+          <>
+            <TabsContent value="pending">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {pendingSuggestions.map((suggestion) => ( <SuggestionCard key={suggestion.id} suggestion={suggestion} onAction={handleSuggestionAction} /> ))}
+              </div>
+              {pendingSuggestions.length === 0 && <div className="text-center p-10 text-gray-500">אין הצעות ממתינות לאישור.</div>}
+            </TabsContent>
+            <TabsContent value="active">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {activeSuggestions.map((suggestion) => ( <SuggestionCard key={suggestion.id} suggestion={suggestion} onAction={handleSuggestionAction} /> ))}
+              </div>
+              {activeSuggestions.length === 0 && <div className="text-center p-10 text-gray-500">אין הצעות פעילות.</div>}
+            </TabsContent>
+            <TabsContent value="history">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {historySuggestions.map((suggestion) => ( <SuggestionCard key={suggestion.id} suggestion={suggestion} onAction={handleSuggestionAction} /> ))}
+              </div>
+              {historySuggestions.length === 0 && <div className="text-center p-10 text-gray-500">אין הצעות בהיסטוריה.</div>}
+            </TabsContent>
+          </>
+        )}
+      </Tabs>
+    </div>
+  );
+
+  return (
+    <div className={cn("min-h-screen bg-gray-50 rtl", !isMobile && "p-6", isMobile && "p-0")}>
+      {isMobile ? renderMobileView() : renderDesktopView()}
+
+      {/* Dialogs and Forms (common for both views) */}
+      <NewSuggestionForm isOpen={showNewSuggestion} onClose={() => setShowNewSuggestion(false)} candidates={allCandidates} onSubmit={handleNewSuggestion} />
+      <SuggestionDetailsDialog suggestion={selectedSuggestion} isOpen={!!selectedSuggestion} onClose={() => setSelectedSuggestion(null)} onAction={handleDialogAction as any} />
+      <Dialog open={showMonthlyTrendDialog} onOpenChange={setShowMonthlyTrendDialog}><DialogContent className="max-w-4xl"><DialogHeader><DialogTitle>מגמה חודשית</DialogTitle></DialogHeader><MonthlyTrendModal suggestions={suggestions} /></DialogContent></Dialog>
+      <EditSuggestionForm isOpen={showEditForm} onClose={() => setShowEditForm(false)} suggestion={selectedSuggestion} onSave={handleUpdateSuggestion} />
+      <MessageForm isOpen={showMessageForm} onClose={() => setShowMessageForm(false)} suggestion={selectedSuggestion} onSend={handleSendMessage} />
+      {confirmAction && <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>האם את/ה בטוח/ה?</AlertDialogTitle><AlertDialogDescription>{confirmAction.type === "delete" && "פעולה זו תמחק את ההצעה לצמיתות."}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>ביטול</AlertDialogCancel><AlertDialogAction onClick={handleConfirmAction}>אישור</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>}
     </div>
   );
 }
