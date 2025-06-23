@@ -81,6 +81,7 @@ interface StatusHistoryItem {
   createdAt: Date | string;
 }
 
+// 1. (FIX) הסרת השדה secondPartyQuestionnaire מהממשק כאן.
 interface ExtendedMatchSuggestion extends MatchSuggestion {
   matchmaker: {
     firstName: string;
@@ -89,8 +90,6 @@ interface ExtendedMatchSuggestion extends MatchSuggestion {
   firstParty: PartyInfo;
   secondParty: PartyInfo;
   statusHistory: StatusHistoryItem[];
-  // 1. (FIX) Add optional questionnaire property to align with the modal's expected type
-  secondPartyQuestionnaire?: QuestionnaireResponse | null;
 }
 
 interface SuggestionsListProps {
@@ -134,9 +133,6 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
   const [actionType, setActionType] = useState<"approve" | "decline" | null>(
     null
   );
-  // 2. (FIX) Remove the separate questionnaire state
-  // const [questionnaireResponse, setQuestionnaireResponse] =
-  //   useState<QuestionnaireResponse | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState<SortOption>("newest");
   const [filterOption, setFilterOption] = useState<FilterOption>("all");
@@ -233,69 +229,8 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
     setFilteredSuggestions(result);
   }, [initialSuggestions, searchQuery, sortOption, filterOption, userId]);
 
-  // 3. (FIX) Refactor useEffect to load questionnaire data into the selectedSuggestion object
-  useEffect(() => {
-    const loadQuestionnaire = async () => {
-      // Exit if no suggestion is selected or if its questionnaire has already been fetched
-      if (!selectedSuggestion || selectedSuggestion.secondPartyQuestionnaire) {
-        return;
-      }
-
-      const targetParty =
-        selectedSuggestion.firstPartyId === userId
-          ? selectedSuggestion.secondParty
-          : selectedSuggestion.firstParty;
-
-      try {
-        const response = await fetch(
-          `/api/profile/questionnaire?userId=${targetParty.id}`
-        );
-        const data = await response.json();
-
-        if (data.success && data.questionnaireResponse) {
-          const formattedQuestionnaire = {
-            ...data.questionnaireResponse,
-            formattedAnswers: {
-              values: data.questionnaireResponse.formattedAnswers.values || [],
-              personality:
-                data.questionnaireResponse.formattedAnswers.personality || [],
-              relationship:
-                data.questionnaireResponse.formattedAnswers.relationship || [],
-              partner:
-                data.questionnaireResponse.formattedAnswers.partner || [],
-              religion:
-                data.questionnaireResponse.formattedAnswers.religion || [],
-            },
-          };
-          // Update the selected suggestion with the new questionnaire data
-          setSelectedSuggestion((currentSuggestion) =>
-            currentSuggestion
-              ? {
-                  ...currentSuggestion,
-                  secondPartyQuestionnaire: formattedQuestionnaire,
-                }
-              : null
-          );
-        } else {
-           // Mark as fetched (even if null) to prevent re-fetching
-           setSelectedSuggestion((currentSuggestion) =>
-            currentSuggestion
-              ? {
-                  ...currentSuggestion,
-                  secondPartyQuestionnaire: null,
-                }
-              : null
-          );
-        }
-      } catch (error) {
-        console.error("Failed to load questionnaire:", error);
-        toast.error("שגיאה בטעינת השאלון");
-      }
-    };
-
-    loadQuestionnaire();
-  }, [selectedSuggestion, userId]);
-
+  // 2. (FIX) הסרת ה-useEffect שגרם ללולאה האין-סופית.
+  // הלוגיקה לטעינת השאלון תעבור ל-SuggestionDetailsModal.
 
   // Handlers
   const handleOpenDetails = (suggestion: ExtendedMatchSuggestion) => {
@@ -640,7 +575,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
         ))}
       </div>
 
-      {/* 4. (FIX) Suggestion Details Modal call no longer needs the questionnaire prop */}
+      {/* 3. (FIX) הקריאה למודאל נשארת פשוטה. הוא ינהל את טעינת השאלון בעצמו. */}
       <SuggestionDetailsModal
         suggestion={selectedSuggestion}
         userId={userId}

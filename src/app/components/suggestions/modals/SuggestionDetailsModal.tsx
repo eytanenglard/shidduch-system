@@ -3,7 +3,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useSession } from "next-auth/react"; // 1. ייבוא
+import { useSession } from "next-auth/react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -21,10 +21,11 @@ import {
   Briefcase,
   GraduationCap,
   MapPin,
-  Scroll as ScrollIcon, // שינוי שם כדי למנוע התנגשות
-  Bot, // 1. ייבוא
-  Sparkles, // 1. ייבוא
-  X, // הוספת אייקון X לסגירה
+  Scroll as ScrollIcon,
+  Bot,
+  Sparkles,
+  X,
+  Loader2, // 1. (FIX) הוספת אייקון טעינה
 } from "lucide-react";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
@@ -34,8 +35,8 @@ import { AskMatchmakerDialog } from "../dialogs/AskMatchmakerDialog";
 import type { MatchSuggestion } from "@prisma/client";
 import type { UserProfile, UserImage, QuestionnaireResponse } from "@/types/next-auth";
 import { cn } from "@/lib/utils";
-// --- 1. ייבוא קומפוננטת הדיאלוג החדשה של ניתוח ה-AI ---
 import { UserAiAnalysisDialog } from "../dialogs/UserAiAnalysisDialog";
+import { toast } from "sonner"; // 2. (FIX) הוספת toast לשגיאות
 
 // הגדרת טיפוסים מורחבים כפי שהיו בקובץ המקורי
 interface ExtendedUserProfile extends UserProfile {
@@ -63,6 +64,7 @@ interface StatusHistoryItem {
   createdAt: Date | string;
 }
 
+// 3. (FIX) הסרת השדה secondPartyQuestionnaire מהממשק
 interface ExtendedMatchSuggestion extends MatchSuggestion {
   matchmaker: {
     firstName: string;
@@ -71,8 +73,6 @@ interface ExtendedMatchSuggestion extends MatchSuggestion {
   firstParty: PartyInfo;
   secondParty: PartyInfo;
   statusHistory: StatusHistoryItem[];
-  // נוסיף את המידע על השאלון ישירות לאובייקט ההצעה כדי שיהיה זמין
-  secondPartyQuestionnaire?: QuestionnaireResponse | null; 
 }
 
 
@@ -82,7 +82,6 @@ interface SuggestionDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   onStatusChange?: (suggestionId: string, newStatus: string) => Promise<void>;
-  // הסרנו את questionnaire מפה כי הוא יגיע דרך suggestion
 }
 
 
@@ -120,18 +119,59 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   onClose,
   onStatusChange,
 }) => {
-  const { data: session } = useSession(); // 2. קבלת הסשן
-  const currentUserId = session?.user?.id; // חילוץ ה-ID של המשתמש הנוכחי
+  const { data: session } = useSession();
+  const currentUserId = session?.user?.id;
 
   const [activeTab, setActiveTab] = useState("profile");
   const [showAskDialog, setShowAskDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // 4. (FIX) הוספת state לניהול השאלון והטעינה שלו
+  const [questionnaire, setQuestionnaire] = useState<QuestionnaireResponse | null>(null);
+  const [isQuestionnaireLoading, setIsQuestionnaireLoading] = useState(false);
+
+
+  // 5. (FIX) הוספת useEffect לטעינת השאלון כאשר המודאל נפתח
   useEffect(() => {
+    // איפוס הטאב והשאלון כאשר המודאל נפתח או ההצעה משתנה
     if (isOpen) {
       setActiveTab("profile");
+      setQuestionnaire(null);
     }
-  }, [isOpen]);
+
+    if (!isOpen || !suggestion) {
+      return;
+    }
+
+    const fetchQuestionnaire = async () => {
+      setIsQuestionnaireLoading(true);
+      try {
+        const targetParty = suggestion.firstPartyId === userId
+          ? suggestion.secondParty
+          : suggestion.firstParty;
+        
+        const response = await fetch(`/api/profile/questionnaire?userId=${targetParty.id}`);
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          setQuestionnaire(data.questionnaireResponse);
+        } else {
+          setQuestionnaire(null);
+          console.error("Failed to fetch questionnaire:", data.error || "Unknown error");
+          toast.error("שגיאה בטעינת פרטי השאלון.");
+        }
+      } catch (error) {
+        setQuestionnaire(null);
+        console.error("Error fetching questionnaire:", error);
+        toast.error("שגיאה בטעינת פרטי השאלון.");
+      } finally {
+        setIsQuestionnaireLoading(false);
+      }
+    };
+
+    fetchQuestionnaire();
+  }, [isOpen, suggestion, userId]); // מופעל מחדש כשהמודאל נפתח או כשההצעה משתנה
+
 
   if (!suggestion) return null;
 
@@ -139,8 +179,8 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   const targetParty = isFirstParty ? suggestion.secondParty : suggestion.firstParty;
   const targetPartyAge = targetParty.profile?.birthDate ? calculateAge(new Date(targetParty.profile.birthDate)) : null;
 
-  // נוודא שאנחנו מעבירים את השאלון הנכון לקומפוננטת הפרופיל
-  const targetQuestionnaire = suggestion.secondPartyQuestionnaire;
+  // 6. (FIX) נשתמש ב-state המקומי במקום בנתון שהגיע מה-props
+  const targetQuestionnaire = questionnaire;
 
   const priorityInfo = getPriorityLabel(suggestion.priority);
 
@@ -210,7 +250,6 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
             <ScrollArea className="flex-1">
               <TabsContent value="profile" className="p-6">
                 
-                {/* --- 3. הוספת רכיב ה-AI --- */}
                 {currentUserId && (
                   <div className="mb-6 p-4 bg-purple-50 border border-dashed border-purple-300 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4">
                       <div>
@@ -227,19 +266,26 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                       />
                   </div>
                 )}
-                {/* --- סוף הוספת רכיב ה-AI --- */}
+                
+                {/* 7. (FIX) הוספת טיפול במצב טעינה */}
+                {isQuestionnaireLoading ? (
+                  <div className="flex justify-center items-center h-64">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                    <p className="mr-4">טוען פרטי פרופיל...</p>
+                  </div>
+                ) : (
+                  <ProfileCard
+                    profile={{ ...targetParty.profile, user: { firstName: targetParty.firstName, lastName: targetParty.lastName, email: targetParty.email } }}
+                    images={targetParty.images}
+                    questionnaire={targetQuestionnaire}
+                    viewMode="candidate"
+                  />
+                )}
 
-                <ProfileCard
-                  profile={{ ...targetParty.profile, user: { firstName: targetParty.firstName, lastName: targetParty.lastName, email: targetParty.email } }}
-                  images={targetParty.images}
-                  questionnaire={targetQuestionnaire}
-                  viewMode="candidate"
-                />
               </TabsContent>
 
               <TabsContent value="details" className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* תוכן הטאב 'פרטי ההצעה' מהקובץ המקורי */}
                     <Card><CardContent className="p-6">
                         <h3 className="text-lg font-medium mb-4">פרטי ההצעה</h3>
                         <div className="space-y-4">

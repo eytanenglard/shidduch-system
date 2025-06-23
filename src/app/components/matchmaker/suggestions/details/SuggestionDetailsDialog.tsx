@@ -49,6 +49,15 @@ import type { Suggestion, ActionAdditionalData } from "@/types/suggestions";
 import type { QuestionnaireResponse } from "@/types/next-auth";
 import Image from "next/image";
 
+// --- START OF FIX ---
+// Define a specific type for all possible suggestion actions to ensure type safety
+type SuggestionActionType =
+  | "view" | "contact" | "message" | "edit" | "delete" | "resend"
+  | "changeStatus" | "reminder" | "sendReminder" | "shareContacts"
+  | "scheduleMeeting" | "viewMeetings" | "exportHistory" | "export"
+  | "resendToAll";
+// --- END OF FIX ---
+
 interface DialogActionData extends ActionAdditionalData {
   suggestionId?: string;
   newStatus?: MatchSuggestionStatus;
@@ -63,7 +72,10 @@ interface SuggestionDetailsDialogProps {
   suggestion: Suggestion | null;
   isOpen: boolean;
   onClose: () => void;
-  onAction: (action: string, data?: DialogActionData) => void;
+  // --- START OF FIX ---
+  // Update the onAction prop to use the specific type instead of a generic string
+  onAction: (action: SuggestionActionType, data?: DialogActionData) => void;
+  // --- END OF FIX ---
 }
 
 // Map status to its display info
@@ -949,7 +961,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                           variant="outline"
                           className="justify-start"
                           onClick={() =>
-                            onAction("edit", { suggestionId: suggestion.id })
+                            onAction("edit", { suggestionId: suggestion.id, suggestion: suggestion })
                           }
                         >
                           <Edit className="w-4 h-4 ml-1" />
@@ -1566,7 +1578,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                       variant="outline"
                       className="w-full"
                       onClick={() =>
-                        onAction("edit", { suggestionId: suggestion.id })
+                        onAction("edit", { suggestionId: suggestion.id, suggestion: suggestion })
                       }
                     >
                       <Edit className="w-4 h-4 ml-2" />
