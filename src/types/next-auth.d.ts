@@ -1,4 +1,3 @@
-
 // src/types/next-auth.d.ts
 
 import type {
@@ -89,6 +88,7 @@ export interface UserProfile extends Omit<PrismaProfile, 'gender' | 'birthDate' 
 
   // Management fields
   isProfileVisible: boolean; // from PrismaProfile
+  isProfileComplete: boolean; // FIXED: Added missing property
   preferredMatchmakerGender?: Gender | null;
   verifiedBy?: string | null; // from PrismaProfile
   availabilityStatus: AvailabilityStatus; // from PrismaProfile
