@@ -127,6 +127,9 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   const [activeTab, setActiveTab] = useState("active");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [hasNewSuggestions, setHasNewSuggestions] = useState(false);
+  // --- START OF CHANGE ---
+  const [isUserInActiveProcess, setIsUserInActiveProcess] = useState(false);
+  // --- END OF CHANGE ---
 
   // Calculate counts
   const pendingCount = activeSuggestions.filter(
@@ -200,6 +203,31 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
 
     return () => clearInterval(intervalId);
   }, [userId, fetchSuggestions]);
+
+  // --- START OF CHANGE ---
+  // Effect to determine if user is in an active process
+  useEffect(() => {
+    const activeProcessStatuses: MatchSuggestion['status'][] = [
+      'FIRST_PARTY_APPROVED',
+      'SECOND_PARTY_APPROVED',
+      'AWAITING_MATCHMAKER_APPROVAL',
+      'CONTACT_DETAILS_SHARED',
+      'AWAITING_FIRST_DATE_FEEDBACK',
+      'THINKING_AFTER_DATE',
+      'PROCEEDING_TO_SECOND_DATE',
+      'MEETING_PENDING',
+      'MEETING_SCHEDULED',
+      'MATCH_APPROVED',
+      'DATING',
+      'ENGAGED',
+    ];
+
+    const hasActiveProcess = activeSuggestions.some(s =>
+      activeProcessStatuses.includes(s.status)
+    );
+    setIsUserInActiveProcess(hasActiveProcess);
+  }, [activeSuggestions]);
+  // --- END OF CHANGE ---
 
   // Clear new suggestions notification when changing to active tab
   useEffect(() => {
@@ -358,6 +386,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   isLoading={isLoading}
                   onStatusChange={handleStatusChange}
                   onRefresh={handleRefresh}
+                  isUserInActiveProcess={isUserInActiveProcess}
                 />
               </TabsContent>
 
@@ -369,6 +398,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   isLoading={isLoading}
                   isHistory={true}
                   onRefresh={handleRefresh}
+                  isUserInActiveProcess={isUserInActiveProcess}
                 />
               </TabsContent>
 
@@ -384,6 +414,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   isLoading={isLoading}
                   onStatusChange={handleStatusChange}
                   onRefresh={handleRefresh}
+                  isUserInActiveProcess={isUserInActiveProcess}
                 />
               </TabsContent>
             </Tabs>

@@ -5,7 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
-import { MatchSuggestionStatus, MatchSuggestion } from "@prisma/client";
+import { MatchSuggestionStatus, MatchSuggestion, UserRole } from "@prisma/client";
 import { statusTransitionService } from "@/app/components/matchmaker/suggestions/services/suggestions/StatusTransitionService";
 
 // Validation schema for status update
@@ -82,6 +82,49 @@ export async function PATCH(
           { status: 404 }
         );
       }
+
+      // --- START OF CHANGE ---
+      // Check if a candidate is trying to approve a suggestion while another one is already active.
+      const isCandidateApproval =
+        session.user.role === UserRole.CANDIDATE &&
+        (validatedData.status === MatchSuggestionStatus.FIRST_PARTY_APPROVED ||
+         validatedData.status === MatchSuggestionStatus.SECOND_PARTY_APPROVED);
+
+      if (isCandidateApproval) {
+        const activeProcessStatuses: MatchSuggestionStatus[] = [
+          "FIRST_PARTY_APPROVED",
+          "SECOND_PARTY_APPROVED",
+          "AWAITING_MATCHMAKER_APPROVAL",
+          "CONTACT_DETAILS_SHARED",
+          "AWAITING_FIRST_DATE_FEEDBACK",
+          "THINKING_AFTER_DATE",
+          "PROCEEDING_TO_SECOND_DATE",
+          "MEETING_PENDING",
+          "MEETING_SCHEDULED",
+          "MATCH_APPROVED",
+          "DATING",
+          "ENGAGED",
+        ];
+
+        const existingActiveSuggestion = await prisma.matchSuggestion.findFirst({
+          where: {
+            id: { not: suggestionId }, // Exclude the current suggestion being updated
+            OR: [
+              { firstPartyId: session.user.id },
+              { secondPartyId: session.user.id },
+            ],
+            status: { in: activeProcessStatuses },
+          },
+        });
+
+        if (existingActiveSuggestion) {
+          return NextResponse.json(
+            { error: "לא ניתן לאשר הצעה חדשה כאשר ישנה הצעה אחרת בתהליך פעיל." },
+            { status: 409 } // 409 Conflict
+          );
+        }
+      }
+      // --- END OF CHANGE ---
 
       // Validate user permissions
       if (

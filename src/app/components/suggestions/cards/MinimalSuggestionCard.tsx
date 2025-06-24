@@ -29,10 +29,18 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { getInitials } from "@/lib/utils";
 import type { ExtendedMatchSuggestion } from "../types";
 
+// --- START OF CHANGE ---
 interface MinimalSuggestionCardProps {
   suggestion: ExtendedMatchSuggestion;
   userId: string;
@@ -42,7 +50,9 @@ interface MinimalSuggestionCardProps {
   onDecline?: (suggestion: ExtendedMatchSuggestion) => void;
   className?: string;
   isHistory?: boolean;
+  isApprovalDisabled?: boolean; // This line was missing
 }
+// --- END OF CHANGE ---
 
 const calculateAge = (birthDate?: Date | string | null): number | null => {
     if (!birthDate) return null;
@@ -117,6 +127,7 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
   onDecline,
   className,
   isHistory = false,
+  isApprovalDisabled = false,
 }) => {
   const targetParty = suggestion.firstPartyId === userId ? suggestion.secondParty : suggestion.firstParty;
   const isFirstParty = suggestion.firstPartyId === userId;
@@ -290,15 +301,38 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                   <XCircle className="w-4 h-4 ml-2" />
                   לא מתאים
                 </Button>
-                <Button
-                  size="sm"
-                  variant="default"
-                  className="w-full bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-medium"
-                  onClick={(e) => { e.stopPropagation(); onApprove?.(suggestion); }}
-                >
-                  <Heart className="w-4 h-4 ml-2" />
-                  מעוניין/ת להכיר!
-                </Button>
+                <TooltipProvider>
+                  <Tooltip delayDuration={100}>
+                    <TooltipTrigger asChild>
+                      <div className="w-full">
+                        <Button
+                          size="sm"
+                          variant="default"
+                          className="w-full bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-medium"
+                          disabled={isApprovalDisabled}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (isApprovalDisabled) {
+                              toast.info("לא ניתן לאשר הצעה חדשה", {
+                                description: "יש לך כבר הצעה אחרת בתהליך פעיל.",
+                              });
+                            } else {
+                              onApprove?.(suggestion);
+                            }
+                          }}
+                        >
+                          <Heart className="w-4 h-4 ml-2" />
+                          מעוניין/ת להכיר!
+                        </Button>
+                      </div>
+                    </TooltipTrigger>
+                    {isApprovalDisabled && (
+                      <TooltipContent>
+                        <p>לא ניתן לאשר הצעה חדשה כשיש הצעה בתהליך פעיל.</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
              </div>
           ) : (
             <div className="grid grid-cols-2 gap-3 w-full">

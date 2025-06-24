@@ -70,6 +70,9 @@ interface SuggestionsListProps {
     notes?: string
   ) => Promise<void>;
   onRefresh?: () => void;
+  // --- START OF CHANGE ---
+  isUserInActiveProcess?: boolean;
+  // --- END OF CHANGE ---
 }
 
 type SortOption = "newest" | "oldest" | "deadline" | "priority";
@@ -191,6 +194,9 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
   className,
   onStatusChange,
   onRefresh,
+  // --- START OF CHANGE ---
+  isUserInActiveProcess = false,
+  // --- END OF CHANGE ---
 }) => {
   // State
   const [selectedSuggestion, setSelectedSuggestion] =
@@ -692,6 +698,9 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                   onApprove={() => handleStatusAction(suggestion, "approve")}
                   onDecline={() => handleStatusAction(suggestion, "decline")}
                   isHistory={isHistory}
+                  // --- START OF CHANGE ---
+                  isApprovalDisabled={isUserInActiveProcess}
+                  // --- END OF CHANGE ---
                   className={cn(
                     "card-hover-elegant",
                     viewMode === "list" ? "flex" : ""
