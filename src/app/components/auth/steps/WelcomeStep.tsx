@@ -18,9 +18,10 @@ const WelcomeStep: React.FC = () => {
       // Store this information for potential fallback
       localStorage.setItem("registration_started", "true");
 
-      // Use NextAuth to handle Google sign-in
-      // The redirect/callback will be handled by NextAuth
-      await signIn("google", { callbackUrl: "/auth/google-callback" });
+      // The 'redirect' callback in authOptions will handle where to send the user
+      // --- START: התיקון ---
+      await signIn("google"); // הסרנו את callbackUrl
+      // --- END: התיקון ---
     } catch (error) {
       console.error("Google sign-in error:", error);
       setIsGoogleLoading(false);

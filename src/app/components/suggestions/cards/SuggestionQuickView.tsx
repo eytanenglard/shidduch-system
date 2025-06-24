@@ -1,3 +1,5 @@
+// src/app/components/suggestions/cards/SuggestionQuickView.tsx
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,34 +15,7 @@ import {
   CheckCircle,
   XCircle,
 } from "lucide-react";
-import type { MatchSuggestion } from "@prisma/client";
-import type { UserProfile, UserImage } from "@/types/next-auth";
-
-interface ExtendedUserProfile extends UserProfile {
-  user: {
-    firstName: string;
-    lastName: string;
-    email: string;
-  };
-}
-
-interface PartyInfo {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  profile: ExtendedUserProfile;
-  images: UserImage[];
-}
-
-interface ExtendedMatchSuggestion extends MatchSuggestion {
-  matchmaker: {
-    firstName: string;
-    lastName: string;
-  };
-  firstParty: PartyInfo;
-  secondParty: PartyInfo;
-}
+import type { ExtendedMatchSuggestion } from "../types";
 
 interface SuggestionQuickViewProps {
   suggestion: ExtendedMatchSuggestion;

@@ -49,8 +49,7 @@ const publicPaths = [
   '/api/uploadthing',
    '/legal/privacy-policy',           // <--- הוסף
   '/legal/terms-of-service',         // <--- הוסף
-  '/auth/error',                     // <--- הוסף אם דף השגיאה צריך להיות ציבורי
-  '/auth/google-callback',           // <--- הוסף
+  '/auth/error',                     // <--- הוסף אם דף השגיאה צריך להיות ציבורי          // <--- הוסף
 '/api/auth/session',
 ];
 

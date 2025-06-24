@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\auth
-# Generated on: 2025-06-23 17:16:26
+# Generated on: 2025-06-24 07:25:10
 ################################################################################
 
 ================================================================================
@@ -1147,21 +1147,25 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
 
   const initializeFromSession = useCallback(
     (sessionUser: SessionUserType) => {
-      setData((): RegistrationData => {
+      // אנחנו משתמשים בצורת העדכון הפונקציונלית של setData
+      // כדי לקבל גישה למצב הקודם של הקונטקסט (prevData).
+      setData((prevData) => {
         const isGoogleAcc = !!(
           sessionUser.source === UserSource.REGISTRATION &&
           sessionUser.accounts?.some(acc => acc.provider === 'google')
         );
 
-        // Explicitly define the type for gender from session
+        // המרת מגדר מהסשן לטיפוס הנכון
         const sessionGender: Gender | "" = sessionUser.profile?.gender || "";
 
+        // אובייקט זה תמיד יכיל את הנתונים המעודכנים ביותר מהסשן,
+        // וישמש לעדכון שדות הטופס בקונטקסט.
         const baseStateFromSession = {
           email: sessionUser.email || "",
           firstName: sessionUser.firstName || "",
           lastName: sessionUser.lastName || "",
           phone: sessionUser.phone || "",
-          gender: sessionGender, // Use the correctly typed sessionGender
+          gender: sessionGender,
           birthDate: sessionUser.profile?.birthDate
             ? new Date(sessionUser.profile.birthDate).toISOString().split("T")[0]
             : "",
@@ -1171,14 +1175,16 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
           education: sessionUser.profile?.education || "",
         };
 
+        // תרחיש 1: משתמש חדש עם אימייל/סיסמה צריך לאמת מייל.
+        // זהו תחילתו של תהליך, ולכן זה בסדר לאפס את המצב לנקודת התחלה נקייה.
         if (
           sessionUser.status === UserStatus.PENDING_EMAIL_VERIFICATION &&
           !isGoogleAcc &&
           !sessionUser.isVerified
         ) {
           return {
-            ...initialRegistrationData,
-            ...baseStateFromSession,
+            ...initialRegistrationData, // איפוס המצב
+            ...baseStateFromSession,    // מילוי במידע הבסיסי מהסשן
             isVerifyingEmailCode: true,
             emailForVerification: sessionUser.email,
             step: 1,
@@ -1187,46 +1193,46 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
           };
         }
 
+        // תרחיש 2: המשתמש נכנס לתהליך השלמת פרופיל בפעם הראשונה
+        // (למשל, אחרי התחברות עם גוגל, או אחרי אימות מייל).
+        // גם זו התחלה של תהליך, ואיפוס המצב הוא תקין.
         if (!sessionUser.isProfileComplete) {
           return {
-            ...initialRegistrationData,
-            ...baseStateFromSession,
+            ...initialRegistrationData, // איפוס המצב
+            ...baseStateFromSession,    // מילוי במידע הבסיסי מהסשן
             isCompletingProfile: true,
             isGoogleSignup: isGoogleAcc,
-            step: 2,
+            step: 2, // התחל משלב פרטים אישיים
             isVerifyingEmailCode: false,
           };
         }
 
+        // תרחיש 3: הפרופיל הושלם, אך הטלפון עדיין לא אומת.
+        // >>> זהו התיקון הקריטי <<<
+        // מצב זה מתרחש אחרי שהמשתמש לחץ "שלח" ב-OptionalInfoStep.
+        // כאן אסור לנו לאפס את נתוני הטופס.
         if (sessionUser.isProfileComplete && !sessionUser.isPhoneVerified) {
           return {
-            ...initialRegistrationData,
-            ...baseStateFromSession,
+            ...prevData, // *** התיקון: שמור את נתוני הטופס הקיימים (גובה, עיסוק וכו') ***
+            ...baseStateFromSession, // עדכן את השדות עם המידע העדכני ביותר מה-DB
             isCompletingProfile: true,
             isGoogleSignup: isGoogleAcc,
-            step: 4,
+            step: 4, // זה יעביר נכון לרכיב CompleteStep
             isVerifyingEmailCode: false,
           };
         }
         
+        // תרחיש ברירת מחדל: המשתמש מאומת אך לא מתאים לאף תרחיש "השלמה" ספציפי.
+        // לדוגמה, בריענון עמוד. אנחנו רק רוצים לסנכרן את הקונטקסט עם הסשן
+        // מבלי לאפס את כל המצב (כמו השלב הנוכחי בתהליך).
         return { 
-            ...initialRegistrationData, 
-            email: sessionUser.email || "",
-            // Ensure all fields from RegistrationData are present
-            firstName: sessionUser.firstName || initialRegistrationData.firstName,
-            lastName: sessionUser.lastName || initialRegistrationData.lastName,
-            phone: sessionUser.phone || initialRegistrationData.phone,
-            gender: sessionGender, // Use typed gender
-            birthDate: baseStateFromSession.birthDate || initialRegistrationData.birthDate,
-            maritalStatus: baseStateFromSession.maritalStatus || initialRegistrationData.maritalStatus,
-            height: baseStateFromSession.height ?? initialRegistrationData.height,
-            occupation: baseStateFromSession.occupation || initialRegistrationData.occupation,
-            education: baseStateFromSession.education || initialRegistrationData.education,
+            ...prevData, // שמור על המצב הקיים של הקונטקסט
+            ...baseStateFromSession, // ועדכן אותו עם מידע טרי מהסשן
             isGoogleSignup: isGoogleAcc,
         };
       });
     },
-    []
+    [] // התלויות ריקות כי setData מובטח להיות יציב ולא נעשה שימוש ב-state חיצוני אחר.
   );
 
   const proceedToEmailVerification = useCallback((emailToVerify: string) => {

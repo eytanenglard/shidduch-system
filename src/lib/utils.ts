@@ -22,3 +22,29 @@ export function calculateAge(birthDate: Date | string | null): number {
   
   return age;
 }
+
+// --- START OF ADDED CODE ---
+
+/**
+ * Creates initials from a full name.
+ * @param fullName - The full name string (e.g., "Yisrael Israeli").
+ * @returns A string with the initials (e.g., "YI").
+ */
+export function getInitials(fullName?: string): string {
+  if (!fullName || typeof fullName !== 'string' || fullName.trim() === '') {
+    return 'ש'; // Default initial for "שדכן" or anonymous
+  }
+
+  const nameParts = fullName.trim().split(/\s+/); // Split by one or more spaces
+  if (nameParts.length === 1) {
+    // If only one name part, take the first one or two letters
+    return nameParts[0].length > 1 ? nameParts[0].substring(0, 2).toUpperCase() : nameParts[0].charAt(0).toUpperCase();
+  }
+
+  // Take the first letter of the first part and the first letter of the last part
+  const firstInitial = nameParts[0].charAt(0);
+  const lastInitial = nameParts[nameParts.length - 1].charAt(0);
+  
+  return `${firstInitial}${lastInitial}`.toUpperCase();
+}
+// --- END OF ADDED CODE ---

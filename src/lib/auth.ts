@@ -48,8 +48,6 @@ export const authOptions: NextAuthOptions = {
         const firstName = profile.given_name || profile.name?.split(' ')[0] || "";
         const lastName = profile.family_name || profile.name?.split(' ').slice(1).join(' ') || "";
 
-        // For new users via Google, source will default to REGISTRATION in Prisma schema.
-        // addedByMatchmakerId will be null.
         const userForAdapter: ExtendedUser = {
           id: profile.sub, 
           email: profile.email.toLowerCase(),
@@ -67,13 +65,13 @@ export const authOptions: NextAuthOptions = {
           createdAt: now,
           updatedAt: now,
            hasCompletedOnboarding: false,
-          source: UserSource.REGISTRATION, // Explicitly set for clarity, though schema has default
+          source: UserSource.REGISTRATION, 
           addedByMatchmakerId: null,  
-           termsAndPrivacyAcceptedAt: null,   // Not applicable for Google sign-up
+           termsAndPrivacyAcceptedAt: null,
           profile: null, 
           images: [], 
           questionnaireResponses: [],
-                    questionnaireCompleted: false, // הוספה כאן
+          questionnaireCompleted: false,
 
           redirectUrl: undefined,
           newlyCreated: true, 
@@ -131,12 +129,12 @@ export const authOptions: NextAuthOptions = {
           profile: profile as UserProfile | null,
           images: images as UserImage[],
           questionnaireResponses: questionnaireResponses as QuestionnaireResponse[],
-          questionnaireCompleted: questionnaireResponses.length > 0 && questionnaireResponses[0].completed, // הוספה כאן
-          hasCompletedOnboarding: userFromDb.hasCompletedOnboarding, // <-- הוספה: העבר את הערך מה-DB
+          questionnaireCompleted: questionnaireResponses.length > 0 && questionnaireResponses[0].completed,
+          hasCompletedOnboarding: userFromDb.hasCompletedOnboarding,
 
-          source: userFromDb.source, // Add source
+          source: userFromDb.source,
           addedByMatchmakerId: userFromDb.addedByMatchmakerId,
-           termsAndPrivacyAcceptedAt: userFromDb.termsAndPrivacyAcceptedAt, // Add addedByMatchmakerId
+           termsAndPrivacyAcceptedAt: userFromDb.termsAndPrivacyAcceptedAt,
         } as ExtendedUser;
       }
     }),
@@ -194,12 +192,12 @@ export const authOptions: NextAuthOptions = {
           profile: profile as UserProfile | null,
           images: images as UserImage[],
           questionnaireResponses: questionnaireResponses as QuestionnaireResponse[],
-                   questionnaireCompleted: questionnaireResponses.length > 0 && questionnaireResponses[0].completed, // הוספה כאן
-          hasCompletedOnboarding: userFromDb.hasCompletedOnboarding, // <-- הוספה: העבר את הערך מה-DB
+          questionnaireCompleted: questionnaireResponses.length > 0 && questionnaireResponses[0].completed,
+          hasCompletedOnboarding: userFromDb.hasCompletedOnboarding,
 
-          source: userFromDb.source, // Add source
+          source: userFromDb.source,
           addedByMatchmakerId: userFromDb.addedByMatchmakerId,
-           termsAndPrivacyAcceptedAt: userFromDb.termsAndPrivacyAcceptedAt, // Add addedByMatchmakerId
+           termsAndPrivacyAcceptedAt: userFromDb.termsAndPrivacyAcceptedAt,
         } as ExtendedUser;
       },
     }),
@@ -227,20 +225,17 @@ export const authOptions: NextAuthOptions = {
         where: { email: userEmail },
       });
     
-      if (dbUser) { // לאחר מציאה או יצירה של dbUser
-        typedUser.termsAndPrivacyAcceptedAt = dbUser.termsAndPrivacyAcceptedAt; // <--- העבר את הערך
-      }
-
       if (!dbUser && account?.provider === 'google') {
         console.log(`[signIn Callback] Google sign-in for potentially new user: ${userEmail}.`);
         
+        // This findUnique is slightly redundant but safe
         dbUser = await prisma.user.findUnique({ 
             where: { email: userEmail } 
         });
 
         if (!dbUser) {
             try {
-                console.log(`[signIn Callback] User ${userEmail} not found after Google sign-in via adapter. Attempting to create directly.`);
+                console.log(`[signIn Callback] User ${userEmail} not found. Attempting to create.`);
                 const createdDbUser = await prisma.user.create({
                     data: {
                         email: userEmail,
@@ -251,8 +246,7 @@ export const authOptions: NextAuthOptions = {
                         isVerified: typedUser.isVerified === undefined ? (!!oauthProfile?.email_verified) : typedUser.isVerified,
                         isProfileComplete: typedUser.isProfileComplete || false,
                         isPhoneVerified: typedUser.isPhoneVerified || false,
-                        source: UserSource.REGISTRATION, // New users via Google are REGISTRATION
-                        // addedByMatchmakerId will be null by default
+                        source: UserSource.REGISTRATION,
                     },
                 });
                 dbUser = createdDbUser; 
@@ -287,7 +281,7 @@ export const authOptions: NextAuthOptions = {
                 if (typeof error === 'object' && error !== null && 'code' in error && 'meta' in error) {
                     const prismaError = error as { code?: string; meta?: { target?: string[] } }; 
                     if (prismaError.code === 'P2002' && prismaError.meta?.target?.includes('email')) {
-                        console.log("[signIn Callback] User likely created by adapter in parallel. Attempting to re-fetch.");
+                        console.log("[signIn Callback] User likely created by adapter in parallel. Re-fetching.");
                         dbUser = await prisma.user.findUnique({ where: { email: userEmail }});
                         if (!dbUser) {
                             console.error("[signIn Callback] Failed to re-fetch user after P2002 error.");
@@ -319,14 +313,10 @@ export const authOptions: NextAuthOptions = {
       typedUser.isVerified = dbUser.isVerified;
       typedUser.isProfileComplete = dbUser.isProfileComplete;
       typedUser.isPhoneVerified = dbUser.isPhoneVerified;
-      typedUser.source = dbUser.source; // Pass source from DB
-      typedUser.addedByMatchmakerId = dbUser.addedByMatchmakerId; // Pass addedByMatchmakerId from DB
+      typedUser.source = dbUser.source;
+      typedUser.addedByMatchmakerId = dbUser.addedByMatchmakerId;
+      typedUser.termsAndPrivacyAcceptedAt = dbUser.termsAndPrivacyAcceptedAt;
       
-      console.log("[signIn Callback] Processed user. Flags:", {
-        roleFromDbUser: dbUser.role, 
-        roleSetOnTypedUser: typedUser.role, 
-      });
-
       if (account?.provider === "google") {
         if (dbUser.isVerified === false && oauthProfile?.email_verified === true) {
           console.log(`[signIn Callback] Google User ${dbUser.email} was not email-verified, but Google says it is. Updating DB.`);
@@ -344,39 +334,23 @@ export const authOptions: NextAuthOptions = {
         data: { lastLogin: new Date() }
       }).catch(err => console.error(`[signIn Callback] Failed to update lastLogin for user ${dbUser.id}:`, err));
     
-      const requiresCompletion = !dbUser.isProfileComplete || !dbUser.isPhoneVerified;
+      const requiresCompletion = !dbUser.isProfileComplete || !dbUser.isPhoneVerified || !dbUser.termsAndPrivacyAcceptedAt;
       typedUser.requiresCompletion = requiresCompletion;
 
       if (requiresCompletion) {
         typedUser.redirectUrl = '/auth/register';
-        if ((dbUser.status === UserStatus.PENDING_PHONE_VERIFICATION || 
-             dbUser.status === UserStatus.PENDING_EMAIL_VERIFICATION) && 
-            !dbUser.isProfileComplete) {
-          typedUser.newlyCreated = true;
-          console.log(`[signIn Callback] User ${dbUser.email} marked as newlyCreated.`);
-        } else {
-          typedUser.newlyCreated = typedUser.newlyCreated === undefined ? false : typedUser.newlyCreated;
-        }
       } else {
         typedUser.redirectUrl = '/profile';
-        typedUser.newlyCreated = false;
       }
     
       console.log("[signIn Callback] Processed user. Flags:", {
-        userId: typedUser.id,
-        email: typedUser.email,
-        isProfileComplete: typedUser.isProfileComplete,
-        isPhoneVerified: typedUser.isPhoneVerified,
         requiresCompletion: typedUser.requiresCompletion,
-        newlyCreated: typedUser.newlyCreated,
         redirectUrl: typedUser.redirectUrl,
-        status: typedUser.status,
-        source: typedUser.source, // Log source
       });
       return true;
     },
 
-    async jwt({ token, user, trigger, session }) {
+    async jwt({ token, user, trigger, session, account }) {
       const typedToken = token as ExtendedUserJWT;
       const typedUserFromCallback = user as ExtendedUser | undefined;
 
@@ -386,9 +360,8 @@ export const authOptions: NextAuthOptions = {
           userEmailFromCallback: typedUserFromCallback?.email
       });
 
-      // שלב 1: בזמן התחברות ראשונית, קח רק מידע בסיסי מה-user
+      // Initial sign-in: populate token from user object
       if (typedUserFromCallback) {
-        console.log("[JWT Callback] Initial population from user object.");
         typedToken.id = typedUserFromCallback.id;
         typedToken.email = typedUserFromCallback.email.toLowerCase();
         typedToken.firstName = typedUserFromCallback.firstName;
@@ -401,45 +374,32 @@ export const authOptions: NextAuthOptions = {
         typedToken.isProfileComplete = typedUserFromCallback.isProfileComplete || false;
         typedToken.isPhoneVerified = typedUserFromCallback.isPhoneVerified || false;
         typedToken.hasCompletedOnboarding = typedUserFromCallback.hasCompletedOnboarding;
-        typedToken.questionnaireCompleted = typedUserFromCallback.questionnaireCompleted;
+        typedToken.questionnaireCompleted = typedUserFromCallback.questionnaireCompleted; 
         typedToken.source = typedUserFromCallback.source;
         typedToken.addedByMatchmakerId = typedUserFromCallback.addedByMatchmakerId;
         typedToken.termsAndPrivacyAcceptedAt = typedUserFromCallback.termsAndPrivacyAcceptedAt;
         typedToken.requiresCompletion = typedUserFromCallback.requiresCompletion;
         typedToken.redirectUrl = typedUserFromCallback.redirectUrl;
-        typedToken.newlyCreated = typedUserFromCallback.newlyCreated;
         
-        // **לא** מוסיפים לכאן את `profile`, `images`, `questionnaireResponses`
+        console.log("[JWT Callback - Initial Population] Token populated from user object.");
       }
       
-      // שלב 2: רענון מה-DB רק בעת הצורך כדי לעדכן הרשאות או סטטוס
-      if (trigger === "signIn" || trigger === "signUp" || trigger === "update") {
-          console.log(`[JWT Callback - DB Refresh] Refreshing core data for user ID: ${typedToken.id} due to trigger: ${trigger}.`);
+      // On subsequent JWT calls or session updates, refresh data from DB
+      if (typedToken.id && (trigger === "update" || trigger === "signIn")) {
+          console.log(`[JWT Callback - DB Refresh] Refreshing token for user ID: ${typedToken.id}.`);
           const dbUserForJwt = await prisma.user.findUnique({
             where: { id: typedToken.id },
-            // הביא רק את המידע הנחוץ לטוקן וללוגיקת הניתוב
-            select: {
-              email: true,
-              firstName: true,
-              lastName: true,
-              role: true,
-              status: true,
-              isVerified: true,
-              isProfileComplete: true,
-              isPhoneVerified: true,
-              hasCompletedOnboarding: true,
-              source: true,
-              addedByMatchmakerId: true,
-              termsAndPrivacyAcceptedAt: true,
-              questionnaireResponses: { where: { completed: true }, take: 1 } // רק כדי לבדוק אם השלים שאלון
+            include: {
+              profile: true,
+              images: { where: { isMain: true }, take: 1 },
+              questionnaireResponses: { orderBy: { createdAt: 'desc' }, take: 1 }
             }
           });
 
           if (dbUserForJwt) {
-            typedToken.email = dbUserForJwt.email.toLowerCase(); 
             typedToken.firstName = dbUserForJwt.firstName;
             typedToken.lastName = dbUserForJwt.lastName;
-            typedToken.name = `${dbUserForJwt.firstName} ${dbUserForJwt.lastName}`.trim();
+            typedToken.picture = dbUserForJwt.images?.[0]?.url || typedToken.picture; 
             typedToken.role = dbUserForJwt.role;
             typedToken.status = dbUserForJwt.status;
             typedToken.isVerified = dbUserForJwt.isVerified;
@@ -449,21 +409,20 @@ export const authOptions: NextAuthOptions = {
             typedToken.source = dbUserForJwt.source;
             typedToken.addedByMatchmakerId = dbUserForJwt.addedByMatchmakerId;
             typedToken.termsAndPrivacyAcceptedAt = dbUserForJwt.termsAndPrivacyAcceptedAt;
+            typedToken.profile = dbUserForJwt.profile as UserProfile | null;
+            typedToken.images = dbUserForJwt.images as UserImage[];
+            typedToken.questionnaireResponses = dbUserForJwt.questionnaireResponses as QuestionnaireResponse[];
+            typedToken.questionnaireCompleted = dbUserForJwt.questionnaireResponses.length > 0 && dbUserForJwt.questionnaireResponses[0].completed === true;
 
-            // עדכון לוגיקת הניתוב על סמך המידע העדכני
-            const requiresCompletionFromDb = (!dbUserForJwt.isProfileComplete || !dbUserForJwt.isPhoneVerified);
+            const requiresCompletionFromDb = (!dbUserForJwt.isProfileComplete || !dbUserForJwt.isPhoneVerified || !dbUserForJwt.termsAndPrivacyAcceptedAt);
             typedToken.requiresCompletion = requiresCompletionFromDb;
             typedToken.redirectUrl = requiresCompletionFromDb ? '/auth/register' : '/profile';
+            
+            console.log("[JWT Callback - DB Refresh] Token updated from DB.");
           }
       }
       
-      if (trigger === "update" && session) {
-        console.log("[JWT Callback - Client Update] Processing 'update' trigger with session data.", session);
-        // כאן תוכל לעדכן שדות ספציפיים מה-session אם תרצה, למשל:
-        // typedToken.firstName = session.firstName
-      }
-
-      console.log("[JWT Callback] Returning final lightweight token.");
+      console.log("[JWT Callback] Returning final token.");
       return typedToken;
     },
 
@@ -471,103 +430,58 @@ export const authOptions: NextAuthOptions = {
       const typedToken = token as ExtendedUserJWT;
       const typedSession = session as ExtendedSession;
 
-      console.log("[Session Callback] Populating session from lightweight token.");
-
       if (typedSession.user && typedToken.id) {
-        // ---- מידע מזהה בסיסי ----
         typedSession.user.id = typedToken.id;
         typedSession.user.email = typedToken.email;
         typedSession.user.firstName = typedToken.firstName;
         typedSession.user.lastName = typedToken.lastName;
         typedSession.user.name = typedToken.name ?? null; 
-        typedSession.user.image = typedToken.picture ?? null; // פותר את שגיאת ה-undefined
+        typedSession.user.image = typedToken.picture ?? null; 
         typedSession.user.role = typedToken.role;
         typedSession.user.status = typedToken.status;
-        
-        // ---- דגלים לוגיים ----
         typedSession.user.isVerified = typedToken.isVerified;
         typedSession.user.isProfileComplete = typedToken.isProfileComplete;
         typedSession.user.isPhoneVerified = typedToken.isPhoneVerified;
         typedSession.user.questionnaireCompleted = typedToken.questionnaireCompleted;
-        typedSession.user.termsAndPrivacyAcceptedAt = typedToken.termsAndPrivacyAcceptedAt;
-        
-        // ---- מידע על מקור וניתוב ----
+        typedSession.user.hasCompletedOnboarding = typedToken.hasCompletedOnboarding as boolean;
         typedSession.user.source = typedToken.source;
         typedSession.user.addedByMatchmakerId = typedToken.addedByMatchmakerId;
+        typedSession.user.termsAndPrivacyAcceptedAt = typedToken.termsAndPrivacyAcceptedAt;
+        typedSession.user.profile = typedToken.profile; 
+        typedSession.user.images = typedToken.images; 
+        typedSession.user.questionnaireResponses = typedToken.questionnaireResponses;
+        typedSession.user.createdAt = typedToken.createdAt;
+        typedSession.user.updatedAt = typedToken.updatedAt;
+        typedSession.user.lastLogin = typedToken.lastLogin;
+
         typedSession.requiresCompletion = typedToken.requiresCompletion;
         typedSession.redirectUrl = typedToken.redirectUrl;
-        typedSession.newlyCreated = typedToken.newlyCreated;
-
-        // **הסרנו את כל האובייקטים הכבדים: profile, images, questionnaireResponses**
       }
-      
-      console.log("[Session Callback] Final lightweight session object prepared.");
       return typedSession;
     },
 
-
-
-
-    async redirect(params: { url: string; baseUrl: string; token?: unknown }) { 
-      const { url, baseUrl, token: unknownToken } = params; 
-      const typedToken = unknownToken as ExtendedUserJWT | undefined; 
-
-      console.log("[Redirect Callback] Triggered.", {
-          url,
-          baseUrl,
-          tokenId: typedToken?.id, 
-          tokenEmail: typedToken?.email,
-          tokenRequiresCompletion: typedToken?.requiresCompletion,
-          tokenRedirectUrl: typedToken?.redirectUrl,
-          isPhoneVerifiedInToken: typedToken?.isPhoneVerified
-      });
-
-      const defaultRedirectTarget = url.startsWith("/")
-        ? `${baseUrl}${url}`
-        : url.startsWith(baseUrl)
-        ? url
-        : baseUrl; 
-
-      if (typedToken) {
-        if (typedToken.redirectUrl) {
-          const finalRedirectUrl = typedToken.redirectUrl.startsWith("/")
-            ? `${baseUrl}${typedToken.redirectUrl}`
-            : typedToken.redirectUrl;
-          console.log(`[Redirect Callback] Using redirectUrl from token: ${typedToken.redirectUrl}. Final: ${finalRedirectUrl}`);
-          return finalRedirectUrl;
-        }
-
-        if (typedToken.requiresCompletion) {
-          const completionPage = `${baseUrl}/auth/register`;
-          const allowedCompletionPaths = [
-            completionPage,
-            `${baseUrl}/auth/verify-phone`,
-            `${baseUrl}/auth/update-phone`,
-          ];
-          
-          const isApiCall = url.startsWith(`${baseUrl}/api/`);
-          const isNextAuthInternal = url.includes("/api/auth/");
-          const isOnAllowedPath = allowedCompletionPaths.some(p => url.startsWith(p));
-
-          if (!isOnAllowedPath && !isApiCall && !isNextAuthInternal && !url.startsWith(completionPage)) {
-            console.log(`[Redirect Callback] User requires completion. Current URL: ${url}. Redirecting to ${completionPage}`);
-            return completionPage;
-          }
-          console.log(`[Redirect Callback] User requires completion, but current URL ${url} is allowed or is the target.`);
+    // --- START: התיקון המרכזי כאן ---
+    async redirect({ url, baseUrl }) {
+        console.log(`[Redirect Callback] Triggered with url: ${url}`);
+        
+        // מאפשר URL יחסי (למשל "/profile")
+        if (url.startsWith('/')) {
+            const finalUrl = `${baseUrl}${url}`;
+            console.log(`[Redirect Callback] Relative URL detected. Returning: ${finalUrl}`);
+            return finalUrl;
         }
         
-        if ((url === `${baseUrl}/auth/signin` || url === baseUrl || url === `${baseUrl}/`) && !typedToken.requiresCompletion) {
-            const loggedInDefault = typedToken.role === UserRole.MATCHMAKER || typedToken.role === UserRole.ADMIN ? `${baseUrl}/dashboard` : `${baseUrl}/profile`;
-            console.log(`[Redirect Callback] Authenticated user on sign-in/base page. Redirecting to ${loggedInDefault}`);
-            return loggedInDefault;
+        // מאפשר URLים באותו דומיין
+        if (new URL(url).origin === baseUrl) {
+            console.log(`[Redirect Callback] Same origin URL detected. Returning: ${url}`);
+            return url;
         }
-      } else {
-          console.log("[Redirect Callback] No token present. Defaulting to original URL or baseUrl.");
-      }
-      
-      console.log(`[Redirect Callback] No overriding conditions met or no token. Returning default target: ${defaultRedirectTarget}`);
-      return defaultRedirectTarget;
+        
+        // אם ה-URL הוא חיצוני, מפנה לדף הבית כברירת מחדל בטוחה
+        console.log(`[Redirect Callback] External URL detected. Redirecting to baseUrl: ${baseUrl}`);
+        return baseUrl;
     }
+    // --- END: התיקון המרכזי כאן ---
   },
 
   pages: {

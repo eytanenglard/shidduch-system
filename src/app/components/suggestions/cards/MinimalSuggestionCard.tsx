@@ -26,32 +26,7 @@ import { he } from "date-fns/locale";
 import type { MatchSuggestion } from "@prisma/client";
 import type { UserProfile, UserImage } from "@/types/next-auth";
 import { cn } from "@/lib/utils";
-
-interface ExtendedUserProfile extends UserProfile {
-  user: {
-    firstName: string;
-    lastName: string;
-    email: string;
-  };
-}
-
-interface PartyInfo {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  profile: ExtendedUserProfile;
-  images: UserImage[];
-}
-
-interface ExtendedMatchSuggestion extends MatchSuggestion {
-  matchmaker: {
-    firstName: string;
-    lastName: string;
-  };
-  firstParty: PartyInfo;
-  secondParty: PartyInfo;
-}
+import type { ExtendedMatchSuggestion } from "../types";
 
 interface MinimalSuggestionCardProps {
   suggestion: ExtendedMatchSuggestion;

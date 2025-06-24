@@ -75,7 +75,7 @@ const SignInForm = () => {
   };
 
   // Handle Google sign in
-  const handleGoogleSignIn = async () => {
+ const handleGoogleSignIn = async () => {
     try {
       setIsGoogleLoading(true);
       setError("");
@@ -83,8 +83,10 @@ const SignInForm = () => {
       // Store this information for potential fallback
       localStorage.setItem("signin_started", "true");
 
-      // NextAuth will handle the redirect
-      await signIn("google");
+      // NextAuth will handle the redirect. The 'redirect' callback in authOptions will determine the final destination.
+      // --- START: התיקון ---
+      await signIn("google"); // הסרנו את callbackUrl
+      // --- END: התיקון ---
     } catch (error) {
       console.error("Google sign-in error:", error);
       setError("אירעה שגיאה בהתחברות עם גוגל");

@@ -44,53 +44,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import type { MatchSuggestion } from "@prisma/client";
-import type {
-  UserProfile,
-  UserImage,
-} from "@/types/next-auth";
-
 import MinimalSuggestionCard from "../cards/MinimalSuggestionCard";
 import SuggestionDetailsModal from "../modals/SuggestionDetailsModal";
 import AskMatchmakerDialog from "../dialogs/AskMatchmakerDialog";
 import { cn } from "@/lib/utils";
-
-interface ExtendedUserProfile extends UserProfile {
-  user: {
-    firstName: string;
-    lastName: string;
-    email: string;
-  };
-}
-
-interface PartyInfo {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  profile: ExtendedUserProfile;
-  images: UserImage[];
-}
-
-interface StatusHistoryItem {
-  id: string;
-  suggestionId: string;
-  status: string;
-  notes?: string | null;
-  createdAt: Date | string;
-}
-
-// 1. (FIX) הסרת השדה secondPartyQuestionnaire מהממשק כאן.
-//    הוא היה הגורם המרכזי ללולאה האין-סופית. המודאל יטען את המידע הזה בעצמו.
-interface ExtendedMatchSuggestion extends MatchSuggestion {
-  matchmaker: {
-    firstName: string;
-    lastName: string;
-  };
-  firstParty: PartyInfo;
-  secondParty: PartyInfo;
-  statusHistory: StatusHistoryItem[];
-}
+import type { ExtendedMatchSuggestion } from "../types";
 
 interface SuggestionsListProps {
   suggestions: ExtendedMatchSuggestion[];
@@ -228,10 +186,6 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
 
     setFilteredSuggestions(result);
   }, [initialSuggestions, searchQuery, sortOption, filterOption, userId]);
-
-  // 2. (FIX) הסרת ה-useEffect שגרם ללולאה האין-סופית.
-  //    הלוגיקה לטעינת השאלון עברה במלואה ל-SuggestionDetailsModal.
-  //    זה הפיתרון המרכזי והחשוב ביותר.
 
   // Handlers
   const handleOpenDetails = (suggestion: ExtendedMatchSuggestion) => {

@@ -14,42 +14,9 @@ import type { MatchSuggestion } from "@prisma/client";
 import type { UserProfile, UserImage } from "@/types/next-auth";
 
 import SuggestionsList from "./list/SuggestionsList";
+import type { ExtendedMatchSuggestion } from "./types";
 
 // Interfaces remain the same
-interface ExtendedUserProfile extends UserProfile {
-  user: {
-    firstName: string;
-    lastName: string;
-    email: string;
-  };
-}
-
-interface PartyInfo {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  profile: ExtendedUserProfile;
-  images: UserImage[];
-}
-
-interface StatusHistoryItem {
-  id: string;
-  suggestionId: string;
-  status: string;
-  notes?: string | null;
-  createdAt: Date | string;
-}
-
-interface ExtendedMatchSuggestion extends MatchSuggestion {
-  matchmaker: {
-    firstName: string;
-    lastName: string;
-  };
-  firstParty: PartyInfo;
-  secondParty: PartyInfo;
-  statusHistory: StatusHistoryItem[];
-}
 
 interface MatchSuggestionsContainerProps {
   userId: string;
