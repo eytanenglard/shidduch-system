@@ -1,4 +1,4 @@
-// Full path: src/app/components/suggestions/timeline/SuggestionTimeline.tsx
+// src/app/components/suggestions/timeline/SuggestionTimeline.tsx
 
 import React from "react";
 import { format } from "date-fns";
@@ -11,11 +11,19 @@ import {
   Heart,
   AlertCircle,
   User,
-  Calendar
+  Calendar,
+  FileText,
+  Send,
+  UserPlus,
+  Handshake,
+  Star,
+  Gift,
+  Phone,
+  ArrowDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface StatusHistoryItem {
   id: string;
@@ -33,110 +41,205 @@ const getStatusInfo = (status: string) => {
   switch (status) {
     case "DRAFT":
       return {
-        label: "טיוטה",
-        icon: <Clock className="w-4 h-4" />,
-        color: "text-gray-500 bg-gray-100",
-        description: "ההצעה נוצרה אך טרם נשלחה למועמדים"
+        label: "טיוטה נוצרה",
+        icon: FileText,
+        color: "from-gray-400 to-gray-500",
+        bgColor: "from-gray-50 to-gray-100",
+        textColor: "text-gray-700",
+        description: "ההצעה נוצרה ונמצאת בהכנה",
+        category: "preparation"
       };
     case "PENDING_FIRST_PARTY":
       return {
-        label: "ממתין לתשובת הצד הראשון",
-        icon: <User className="w-4 h-4" />,
-        color: "text-yellow-700 bg-yellow-100",
-        description: "ההצעה נשלחה לצד הראשון וממתינה לתשובה"
+        label: "נשלח לצד הראשון",
+        icon: Send,
+        color: "from-cyan-400 to-blue-500",
+        bgColor: "from-cyan-50 to-blue-100",
+        textColor: "text-cyan-700",
+        description: "ההצעה נשלחה וממתינה לתשובת הצד הראשון",
+        category: "pending"
       };
     case "FIRST_PARTY_APPROVED":
       return {
         label: "הצד הראשון אישר",
-        icon: <CheckCircle className="w-4 h-4" />,
-        color: "text-green-700 bg-green-100",
-        description: "הצד הראשון אישר את ההצעה"
+        icon: CheckCircle,
+        color: "from-emerald-400 to-green-500",
+        bgColor: "from-emerald-50 to-green-100",
+        textColor: "text-emerald-700",
+        description: "הצד הראשון אישר את ההצעה בהתלהבות",
+        category: "success"
       };
     case "FIRST_PARTY_DECLINED":
       return {
         label: "הצד הראשון דחה",
-        icon: <XCircle className="w-4 h-4" />,
-        color: "text-red-700 bg-red-100",
-        description: "הצד הראשון דחה את ההצעה"
+        icon: XCircle,
+        color: "from-red-400 to-red-500",
+        bgColor: "from-red-50 to-red-100",
+        textColor: "text-red-700",
+        description: "הצד הראשון החליט שזה לא מתאים",
+        category: "declined"
       };
     case "PENDING_SECOND_PARTY":
       return {
-        label: "ממתין לתשובת הצד השני",
-        icon: <User className="w-4 h-4" />,
-        color: "text-blue-700 bg-blue-100",
-        description: "ההצעה נשלחה לצד השני וממתינה לתשובה"
+        label: "נשלח לצד השני",
+        icon: UserPlus,
+        color: "from-blue-400 to-cyan-500",
+        bgColor: "from-blue-50 to-cyan-100",
+        textColor: "text-blue-700",
+        description: "ההצעה הועברה לצד השני לבדיקה",
+        category: "pending"
       };
     case "SECOND_PARTY_APPROVED":
       return {
         label: "הצד השני אישר",
-        icon: <CheckCircle className="w-4 h-4" />,
-        color: "text-green-700 bg-green-100",
-        description: "הצד השני אישר את ההצעה"
+        icon: CheckCircle,
+        color: "from-emerald-400 to-green-500",
+        bgColor: "from-emerald-50 to-green-100",
+        textColor: "text-emerald-700",
+        description: "הצד השני גם הוא מעוניין להמשיך",
+        category: "success"
       };
     case "SECOND_PARTY_DECLINED":
       return {
         label: "הצד השני דחה",
-        icon: <XCircle className="w-4 h-4" />,
-        color: "text-red-700 bg-red-100",
-        description: "הצד השני דחה את ההצעה"
+        icon: XCircle,
+        color: "from-red-400 to-red-500",
+        bgColor: "from-red-50 to-red-100",
+        textColor: "text-red-700",
+        description: "הצד השני החליט שזה לא בשבילו",
+        category: "declined"
       };
     case "CONTACT_DETAILS_SHARED":
       return {
         label: "פרטי קשר שותפו",
-        icon: <MessageCircle className="w-4 h-4" />,
-        color: "text-purple-700 bg-purple-100",
-        description: "פרטי הקשר של שני הצדדים שותפו ביניהם"
+        icon: Phone,
+        color: "from-cyan-400 to-emerald-500",
+        bgColor: "from-cyan-50 to-emerald-100",
+        textColor: "text-cyan-700",
+        description: "פרטי הקשר של שני הצדדים הועברו",
+        category: "progress"
       };
     case "AWAITING_FIRST_DATE_FEEDBACK":
       return {
-        label: "ממתין למשוב פגישה ראשונה",
-        icon: <Calendar className="w-4 h-4" />,
-        color: "text-indigo-700 bg-indigo-100",
-        description: "ממתין למשוב לאחר הפגישה הראשונה"
+        label: "ממתין למשוב פגישה",
+        icon: Calendar,
+        color: "from-amber-400 to-orange-500",
+        bgColor: "from-amber-50 to-orange-100",
+        textColor: "text-amber-700",
+        description: "ממתין למשוב לאחר הפגישה הראשונה",
+        category: "pending"
       };
     case "DATING":
       return {
         label: "בתהליך היכרות",
-        icon: <Heart className="w-4 h-4" />,
-        color: "text-pink-700 bg-pink-100",
-        description: "הצדדים נמצאים בתהליך היכרות"
+        icon: Heart,
+        color: "from-pink-400 to-rose-500",
+        bgColor: "from-pink-50 to-rose-100",
+        textColor: "text-pink-700",
+        description: "הצדדים נמצאים בתהליך היכרות פעיל",
+        category: "progress"
       };
     case "ENGAGED":
       return {
-        label: "אירוסין",
-        icon: <Heart className="w-4 h-4" fill="currentColor" />,
-        color: "text-pink-700 bg-pink-100",
-        description: "הצדדים התארסו"
+        label: "אירוסין! 💍",
+        icon: Star,
+        color: "from-yellow-400 to-amber-500",
+        bgColor: "from-yellow-50 to-amber-100",
+        textColor: "text-yellow-700",
+        description: "מזל טוב! הצדדים התארסו",
+        category: "celebration"
       };
     case "MARRIED":
       return {
-        label: "נישואין",
-        icon: <Heart className="w-4 h-4" fill="currentColor" />,
-        color: "text-pink-700 bg-pink-100",
-        description: "הצדדים נישאו"
+        label: "נישואין! 🎉",
+        icon: Gift,
+        color: "from-rose-400 to-pink-500",
+        bgColor: "from-rose-50 to-pink-100",
+        textColor: "text-rose-700",
+        description: "מזל טוב! הצדדים נישאו בשמחה",
+        category: "celebration"
       };
     case "CANCELLED":
       return {
-        label: "בוטל",
-        icon: <XCircle className="w-4 h-4" />,
-        color: "text-red-700 bg-red-100",
-        description: "ההצעה בוטלה"
+        label: "ההצעה בוטלה",
+        icon: XCircle,
+        color: "from-gray-400 to-gray-500",
+        bgColor: "from-gray-50 to-gray-100",
+        textColor: "text-gray-700",
+        description: "ההצעה בוטלה מסיבות שונות",
+        category: "declined"
       };
     case "CLOSED":
       return {
-        label: "נסגר",
-        icon: <XCircle className="w-4 h-4" />,
-        color: "text-gray-700 bg-gray-100",
-        description: "ההצעה נסגרה"
+        label: "ההצעה נסגרה",
+        icon: FileText,
+        color: "from-slate-400 to-slate-500",
+        bgColor: "from-slate-50 to-slate-100",
+        textColor: "text-slate-700",
+        description: "התהליך הסתיים והקובץ נסגר",
+        category: "declined"
       };
     default:
       return {
         label: status,
-        icon: <AlertCircle className="w-4 h-4" />,
-        color: "text-gray-700 bg-gray-100",
-        description: "סטטוס אחר"
+        icon: AlertCircle,
+        color: "from-gray-400 to-gray-500",
+        bgColor: "from-gray-50 to-gray-100",
+        textColor: "text-gray-700",
+        description: "סטטוס לא מוכר במערכת",
+        category: "other"
       };
   }
+};
+
+const getCategoryColor = (category: string) => {
+  switch (category) {
+    case "preparation":
+      return "border-gray-200";
+    case "pending":
+      return "border-cyan-200";
+    case "success":
+      return "border-emerald-200";
+    case "progress":
+      return "border-blue-200";
+    case "celebration":
+      return "border-yellow-200";
+    case "declined":
+      return "border-red-200";
+    default:
+      return "border-gray-200";
+  }
+};
+
+const TimelineNode: React.FC<{
+  statusInfo: ReturnType<typeof getStatusInfo>;
+  isLatest: boolean;
+  isLast: boolean;
+}> = ({ statusInfo, isLatest, isLast }) => {
+  const IconComponent = statusInfo.icon;
+  
+  return (
+    <div className="relative flex items-center">
+      {/* Connecting Line */}
+      {!isLast && (
+        <div 
+          className={cn(
+            "absolute top-12 right-6 w-0.5 h-16 bg-gradient-to-b rounded-full",
+            isLatest ? "from-cyan-300 to-cyan-100" : "from-gray-300 to-gray-100"
+          )}
+        />
+      )}
+      
+      {/* Node Circle */}
+      <div className={cn(
+        "relative z-10 w-12 h-12 rounded-full bg-gradient-to-br shadow-lg flex items-center justify-center text-white",
+        statusInfo.color,
+        isLatest && "ring-4 ring-cyan-200 animate-pulse-subtle"
+      )}>
+        <IconComponent className="w-6 h-6" />
+      </div>
+    </div>
+  );
 };
 
 const SuggestionTimeline: React.FC<SuggestionTimelineProps> = ({ 
@@ -148,67 +251,145 @@ const SuggestionTimeline: React.FC<SuggestionTimelineProps> = ({
     new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
+  if (sortedHistory.length === 0) {
+    return (
+      <Card className={cn("border-0 shadow-lg", className)}>
+        <CardContent className="p-8 text-center">
+          <Clock className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+          <h3 className="text-lg font-semibold text-gray-600 mb-2">אין היסטוריה זמינה</h3>
+          <p className="text-gray-500">עדיין לא בוצעו פעולות על ההצעה הזו</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Get info for the latest status to use in the summary section
+  const latestStatusInfo = getStatusInfo(sortedHistory[0].status);
+
   return (
-    <div className={cn("px-4 py-2", className)}>
-      <h3 className="text-lg font-semibold mb-4 text-right">היסטוריית סטטוסים</h3>
-      
-      <div className="relative border-r-2 border-gray-200 pr-6 space-y-6">
-        {sortedHistory.map((item, index) => {
-          const statusInfo = getStatusInfo(item.status);
-          const formattedDate = format(
-            new Date(item.createdAt),
-            "dd בMMMM yyyy, HH:mm",
-            { locale: he }
-          );
-          
-          return (
-            <div 
-              key={item.id} 
-              className={cn(
-                "relative",
-                index === 0 ? "opacity-100" : "opacity-80"
-              )}
-            >
-              {/* Timeline node */}
-              <div 
-                className={cn(
-                  "absolute right-[-21px] p-1 rounded-full",
-                  statusInfo.color
-                )}
-              >
-                {statusInfo.icon}
-              </div>
-              
-              {/* Content */}
-              <div className="bg-white rounded-lg p-3 shadow-sm">
-                <div className="flex justify-between items-start">
-                  <span className="text-xs text-gray-500 mt-1">{formattedDate}</span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">{statusInfo.label}</span>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Badge className={cn("h-2 w-2 rounded-full p-0", statusInfo.color)} />
-                        </TooltipTrigger>
-                        <TooltipContent className="text-right">
-                          <p>{statusInfo.description}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                </div>
+    <Card className={cn("border-0 shadow-lg overflow-hidden", className)}>
+      <CardContent className="p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 rounded-lg bg-gradient-to-r from-cyan-500 to-emerald-500 text-white shadow-md">
+            <Clock className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-gray-800">מסלול ההצעה</h3>
+            <p className="text-sm text-gray-600">עקוב אחר התקדמות ההצעה לאורך זמן</p>
+          </div>
+        </div>
+        
+        <div className="space-y-6">
+          {sortedHistory.map((item, index) => {
+            const statusInfo = getStatusInfo(item.status);
+            const isLatest = index === 0;
+            const isLast = index === sortedHistory.length - 1;
+            
+            const formattedDate = format(
+              new Date(item.createdAt),
+              "dd בMMMM yyyy",
+              { locale: he }
+            );
+            
+            const formattedTime = format(
+              new Date(item.createdAt),
+              "HH:mm",
+              { locale: he }
+            );
+            
+            return (
+              <div key={item.id} className="flex gap-4">
+                <TimelineNode 
+                  statusInfo={statusInfo}
+                  isLatest={isLatest}
+                  isLast={isLast}
+                />
                 
-                {item.notes && (
-                  <p className="mt-2 text-sm text-gray-600 text-right">
-                    {item.notes}
-                  </p>
-                )}
+                <div className="flex-1 pb-4">
+                  <Card className={cn(
+                    "border-2 transition-all duration-300 hover:shadow-md",
+                    getCategoryColor(statusInfo.category),
+                    isLatest && "shadow-md"
+                  )}>
+                    <CardContent className={cn("p-4 bg-gradient-to-r", statusInfo.bgColor)}>
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge 
+                              className={cn(
+                                "bg-gradient-to-r text-white border-0 shadow-sm font-semibold",
+                                statusInfo.color
+                              )}
+                            >
+                              {statusInfo.label}
+                            </Badge>
+                            {isLatest && (
+                              <Badge variant="outline" className="bg-white/80 text-cyan-600 border-cyan-200 text-xs">
+                                עכשיו
+                              </Badge>
+                            )}
+                          </div>
+                          <p className={cn("text-sm font-medium mb-2", statusInfo.textColor)}>
+                            {statusInfo.description}
+                          </p>
+                        </div>
+                        
+                        <div className="text-left text-xs text-gray-500 space-y-1">
+                          <div className="font-medium">{formattedDate}</div>
+                          <div className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {formattedTime}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {item.notes && (
+                        <div className="mt-3 p-3 bg-white/60 backdrop-blur-sm rounded-lg border border-white/40">
+                          <div className="flex items-start gap-2">
+                            <MessageCircle className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                            <p className="text-sm text-gray-700 leading-relaxed">{item.notes}</p>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
+            );
+          })}
+        </div>
+
+        {/* Summary */}
+        <div className="mt-8 pt-6 border-t border-gray-200">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div className="space-y-1">
+              <div className="text-2xl font-bold text-cyan-600">{sortedHistory.length}</div>
+              <div className="text-xs text-gray-500 font-medium">שלבים סה״כ</div>
             </div>
-          );
-        })}
-      </div>
-    </div>
+            <div className="space-y-1">
+              <div className="text-2xl font-bold text-emerald-600">
+                {Math.ceil((Date.now() - new Date(sortedHistory[sortedHistory.length - 1].createdAt).getTime()) / (1000 * 60 * 60 * 24))}
+              </div>
+              <div className="text-xs text-gray-500 font-medium">ימים פעילים</div>
+            </div>
+            <div className="space-y-1">
+              <div className="text-2xl font-bold text-blue-600">
+                {sortedHistory.filter(s => s.status.includes('APPROVED')).length}
+              </div>
+              <div className="text-xs text-gray-500 font-medium">אישורים</div>
+            </div>
+            <div className="space-y-1">
+              <div className="text-2xl font-bold text-amber-600">
+                {latestStatusInfo.category === 'celebration' ? '🎉' : 
+                 latestStatusInfo.category === 'progress' ? '⏳' : 
+                 latestStatusInfo.category === 'success' ? '✅' : '📋'}
+              </div>
+              <div className="text-xs text-gray-500 font-medium">סטטוס נוכחי</div>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

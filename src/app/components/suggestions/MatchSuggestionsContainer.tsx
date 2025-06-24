@@ -1,11 +1,23 @@
-// Full path: src/app/components/suggestions/MatchSuggestionsContainer.tsx
+// src/app/components/suggestions/MatchSuggestionsContainer.tsx
 
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react"; // Import useCallback
+import React, { useState, useEffect, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Clock, History, AlertCircle, RefreshCw, Bell } from "lucide-react";
+import { 
+  Clock, 
+  History, 
+  AlertCircle, 
+  RefreshCw, 
+  Bell, 
+  TrendingUp,
+  Users,
+  CheckCircle,
+  Target,
+  Sparkles,
+  Heart
+} from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,25 +27,100 @@ import type { UserProfile, UserImage } from "@/types/next-auth";
 
 import SuggestionsList from "./list/SuggestionsList";
 import type { ExtendedMatchSuggestion } from "./types";
-
-// Interfaces remain the same
+import { cn } from "@/lib/utils";
 
 interface MatchSuggestionsContainerProps {
   userId: string;
   className?: string;
 }
 
+// קומפוננטת סטטיסטיקות מפושטת ונקייה עם עיצוב חדש
+const WelcomeStats: React.FC<{
+  activeSuggestions: ExtendedMatchSuggestion[];
+  historySuggestions: ExtendedMatchSuggestion[];
+  pendingCount: number;
+}> = ({ activeSuggestions, historySuggestions, pendingCount }) => {
+  const totalSuggestions = activeSuggestions.length + historySuggestions.length;
+  const approvedCount = [...activeSuggestions, ...historySuggestions].filter(s => 
+    s.status === "FIRST_PARTY_APPROVED" || s.status === "SECOND_PARTY_APPROVED"
+  ).length;
+
+  // עדכון בקובץ MatchSuggestionsContainer.tsx - החלק של WelcomeStats
+
+const stats = [
+  {
+    label: "הצעות חדשות",
+    value: activeSuggestions.length,
+    icon: <Sparkles className="w-5 h-5" />,
+    color: "from-cyan-500 to-blue-500", // נשאר כמו קודם
+    description: "ממתינות לתשובתך"
+  },
+  {
+    label: "בטיפול", // זה משתנה לסגול
+    value: pendingCount,
+    icon: <Clock className="w-5 h-5" />,
+    color: "from-purple-500 to-violet-500", // 🟣 סגול חדש!
+    description: "דורשות החלטה"
+  },
+  {
+    label: "אושרו", // זה משתנה לירוק
+    value: approvedCount,
+    icon: <CheckCircle className="w-5 h-5" />,
+    color: "from-emerald-500 to-green-500", // 🟢 ירוק עבר לכאן
+    description: "הצעות שאושרו"
+  },
+];
+
+  return (
+    <div className="mb-8">
+      {/* כותרת ראשית */}
+      <div className="text-center mb-8">
+        <div className="inline-flex items-center gap-3 mb-4">
+         <div className="p-3 rounded-full bg-gradient-to-r from-purple-100 to-cyan-100"> {/* 🟣 רקע סגול-תכלת */}
+  <Heart className="w-8 h-8 text-purple-600" /> {/* 🟣 לב סגול */}
+</div>
+        </div>
+    <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-cyan-600 to-emerald-600 bg-clip-text text-transparent mb-3"> {/* 🟣 מתחיל בסגול */}
+  ההצעות שלך
+</h1>
+
+        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          הזדמנויות מיוחדות להכיר את האדם המושלם עבורך
+        </p>
+      </div>
+
+      {/* סטטיסטיקות */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {stats.map((stat, index) => (
+          <Card key={index} className="border-0 shadow-lg overflow-hidden bg-white hover:shadow-xl transition-all duration-300 group">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className={cn("p-3 rounded-xl bg-gradient-to-r text-white shadow-lg group-hover:scale-110 transition-transform duration-300", stat.color)}>
+                  {stat.icon}
+                </div>
+                <div className="text-right">
+                  <div className="text-3xl font-bold text-gray-900">{stat.value}</div>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-bold text-lg text-gray-800">{stat.label}</h3>
+                <p className="text-sm text-gray-600">{stat.description}</p>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   userId,
   className,
 }) => {
   // States
-  const [activeSuggestions, setActiveSuggestions] = useState<
-    ExtendedMatchSuggestion[]
-  >([]);
-  const [historySuggestions, setHistorySuggestions] = useState<
-    ExtendedMatchSuggestion[]
-  >([]);
+  const [activeSuggestions, setActiveSuggestions] = useState<ExtendedMatchSuggestion[]>([]);
+  const [historySuggestions, setHistorySuggestions] = useState<ExtendedMatchSuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,13 +130,10 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
 
   // Calculate counts
   const pendingCount = activeSuggestions.filter(
-    (s) =>
-      s.status === "PENDING_FIRST_PARTY" || s.status === "PENDING_SECOND_PARTY"
+    (s) => s.status === "PENDING_FIRST_PARTY" || s.status === "PENDING_SECOND_PARTY"
   ).length;
 
-  // Fetch suggestions function - wrapped in useCallback
-  // Added `activeSuggestions.length` to dependency array because it's used inside
-  // for the `hasNewSuggestions` check.
+  // Fetch suggestions function
   const fetchSuggestions = useCallback(
     async (showLoadingState = true) => {
       try {
@@ -60,20 +144,14 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
         }
         setError(null);
 
-        // Assume API endpoints implicitly use authenticated user context if userId is not passed
-        // If userId *was* needed in the URL, it should be a dependency of useCallback
         const [activeResponse, historyResponse] = await Promise.all([
           fetch(`/api/suggestions/active`),
           fetch(`/api/suggestions/history`),
         ]);
 
         if (!activeResponse.ok || !historyResponse.ok) {
-          const activeError = !activeResponse.ok
-            ? await activeResponse.text()
-            : "";
-          const historyError = !historyResponse.ok
-            ? await historyResponse.text()
-            : "";
+          const activeError = !activeResponse.ok ? await activeResponse.text() : "";
+          const historyError = !historyResponse.ok ? await historyResponse.text() : "";
           console.error("Fetch errors:", { activeError, historyError });
           throw new Error(
             `Failed to fetch suggestions (${activeResponse.status}/${historyResponse.status})`
@@ -83,15 +161,13 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
         const activeData = await activeResponse.json();
         const historyData = await historyResponse.json();
 
-        // Check if there are new suggestions compared to previous state length
-        // Use functional state update for `setHasNewSuggestions` if it depended on previous state
-        // but direct comparison with `activeSuggestions.length` is okay here.
-        if (
-          !showLoadingState &&
-          activeData.suggestions.length > activeSuggestions.length
-        ) {
+        // Check for new suggestions
+        if (!showLoadingState && activeData.suggestions.length > activeSuggestions.length) {
           setHasNewSuggestions(true);
-          toast.success("התקבלו הצעות שידוך חדשות!");
+          toast.success("התקבלו הצעות שידוך חדשות!", {
+            description: "בדוק את ההצעות החדשות שמחכות לך",
+            duration: 5000,
+          });
         }
 
         setActiveSuggestions(activeData.suggestions);
@@ -103,29 +179,27 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
             error instanceof Error ? error.message : "שגיאה לא ידועה"
           }`
         );
+        toast.error("שגיאה בטעינת ההצעות", {
+          description: "נסה לרענן את הדף או פנה לתמיכה",
+        });
       } finally {
         setIsLoading(false);
         setIsRefreshing(false);
       }
-      // We include `activeSuggestions.length` because it's read inside the function for comparison.
-      // While `activeSuggestions` state itself is modified, `useCallback` depends on the value *at the time of definition*.
-      // A safer alternative might be to pass the current length as an argument if complex dependencies arise,
-      // but for this specific comparison, depending on the length should be acceptable.
-      // If the API endpoints depended on `userId`, add `userId` here too.
     },
     [activeSuggestions.length]
-  ); // Dependency array for useCallback
+  );
 
   // Initial load and periodic refresh
   useEffect(() => {
-    fetchSuggestions(); // Initial fetch
+    fetchSuggestions();
 
     const intervalId = setInterval(() => {
-      fetchSuggestions(false); // Periodic refresh without full loading state
+      fetchSuggestions(false);
     }, 5 * 60 * 1000); // Refresh every 5 minutes
 
-    return () => clearInterval(intervalId); // Cleanup interval on unmount
-  }, [userId, fetchSuggestions]); // Added fetchSuggestions to dependency array
+    return () => clearInterval(intervalId);
+  }, [userId, fetchSuggestions]);
 
   // Clear new suggestions notification when changing to active tab
   useEffect(() => {
@@ -134,28 +208,21 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     }
   }, [activeTab]);
 
-  // Handle suggestion status change - wrapped in useCallback
+  // Handle suggestion status change
   const handleStatusChange = useCallback(
     async (suggestionId: string, newStatus: string, notes?: string) => {
       try {
-        const response = await fetch(
-          `/api/suggestions/${suggestionId}/status`,
-          {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ status: newStatus, notes }),
-          }
-        );
+        const response = await fetch(`/api/suggestions/${suggestionId}/status`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: newStatus, notes }),
+        });
 
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(
-            errorData.error || "Failed to update suggestion status"
-          );
+          throw new Error(errorData.error || "Failed to update suggestion status");
         }
 
-        // Refresh suggestions to get the updated state
-        // Pass false to avoid showing the main loading spinner
         await fetchSuggestions(false);
 
         const statusMessages: Record<string, string> = {
@@ -165,7 +232,11 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
           SECOND_PARTY_DECLINED: "דחית את ההצעה בהצלחה",
         };
 
-        toast.success(statusMessages[newStatus] || "הסטטוס עודכן בהצלחה");
+        toast.success(statusMessages[newStatus] || "הסטטוס עודכן בהצלחה", {
+          description: newStatus.includes("APPROVED") 
+            ? "השדכן יקבל הודעה ויתקדם עם התהליך"
+            : "תודה על המשוב - זה עוזר לנו להציע התאמות טובות יותר"
+        });
       } catch (error) {
         console.error("Error updating suggestion status:", error);
         toast.error(
@@ -173,174 +244,153 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
             error instanceof Error ? error.message : "שגיאה לא ידועה"
           }`
         );
-        // Re-throw the error if the calling component needs to handle it (e.g., disable a button)
-        // throw error; // Uncomment if needed
       }
     },
     [fetchSuggestions]
-  ); // Depends on the memoized fetchSuggestions
+  );
 
-  // Handle manual refresh - wrapped in useCallback
+  // Handle manual refresh
   const handleRefresh = useCallback(async () => {
-    // Pass false to indicate it's a refresh, not initial load
     await fetchSuggestions(false);
-    toast.success("הנתונים עודכנו בהצלחה");
-  }, [fetchSuggestions]); // Depends on the memoized fetchSuggestions
+    toast.success("הנתונים עודכנו בהצלחה", {
+      description: "כל ההצעות עודכנו למצב הנוכחי"
+    });
+  }, [fetchSuggestions]);
 
   return (
-    <Card className={`shadow-md ${className}`}>
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          {/* Refresh Button on the left (assuming LTR context despite RTL text for UI layout) */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleRefresh}
-            disabled={isRefreshing || isLoading} // Disable if initial loading or refreshing
-            aria-label="רענן הצעות" // Accessibility
-          >
-            <RefreshCw
-              className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
-            />
-          </Button>
+    <div className={cn("min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50/20 to-emerald-50/20", className)}>
+      <div className="container mx-auto px-4 py-8">
+        {/* כותרת וסטטיסטיקות */}
+        <WelcomeStats
+          activeSuggestions={activeSuggestions}
+          historySuggestions={historySuggestions}
+          pendingCount={pendingCount}
+        />
 
-          <CardTitle className="text-xl text-right flex-grow mr-2">
-            הצעות שידוך
-          </CardTitle>
-        </div>
-      </CardHeader>
-
-      <CardContent className="pb-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab} dir="rtl">
-          {" "}
-          {/* Added dir="rtl" */}
-          <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
-            {" "}
-            {/* Responsive layout */}
-            <TabsList className="relative">
-              <TabsTrigger
-                value="active"
-                className="flex items-center gap-2 px-3"
-              >
-                {" "}
-                {/* Added padding */}
-                <Clock className="w-4 h-4 ml-1" /> {/* Icon spacing */}
-                <span>פעילות</span> {/* Shortened label */}
-                {activeSuggestions.length > 0 && (
-                  <Badge className="mr-2 px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground text-xs font-normal">
-                    {" "}
-                    {/* Adjusted badge */}
-                    {activeSuggestions.length}
-                  </Badge>
-                )}
-                {/* Keep indicator relative to trigger */}
-                {hasNewSuggestions && (
-                  <span className="absolute top-0 right-0 -mt-1 -mr-1 flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-                  </span>
-                )}
-              </TabsTrigger>
-
-              <TabsTrigger
-                value="history"
-                className="flex items-center gap-2 px-3"
-              >
-                {" "}
-                {/* Added padding */}
-                <History className="w-4 h-4 ml-1" /> {/* Icon spacing */}
-                <span>היסטוריה</span>
-                {historySuggestions.length > 0 && (
-                  <Badge
-                    variant="outline"
-                    className="mr-2 px-1.5 py-0.5 rounded-full text-xs font-normal"
-                  >
-                    {" "}
-                    {/* Adjusted badge */}
-                    {historySuggestions.length}
-                  </Badge>
-                )}
-              </TabsTrigger>
-
-              {pendingCount > 0 && (
-                <TabsTrigger
-                  value="pending"
-                  className="flex items-center gap-2 px-3"
+        {/* תוכן ראשי */}
+        <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm overflow-hidden">
+          {/* כותרת עם כפתור רענון */}
+          <CardHeader className="pb-4 bg-gradient-to-r from-white via-cyan-50/30 to-emerald-50/30 border-b border-gray-100">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleRefresh}
+                  disabled={isRefreshing || isLoading}
+                  className="rounded-full h-10 w-10 hover:bg-cyan-100 transition-colors"
+                  aria-label="רענן הצעות"
                 >
-                  {" "}
-                  {/* Added padding */}
-                  <Bell className="w-4 h-4 ml-1" /> {/* Icon spacing */}
-                  <span>ממתינות</span>
-                  <Badge className="mr-2 px-1.5 py-0.5 rounded-full bg-yellow-500 text-white text-xs font-normal">
-                    {" "}
-                    {/* Adjusted badge */}
-                    {pendingCount}
-                  </Badge>
-                </TabsTrigger>
-              )}
-            </TabsList>
-            {/* View Mode Toggle on the left */}
-            <div className="flex">
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-xs px-3" // Adjusted padding
-                onClick={() =>
-                  setViewMode(viewMode === "grid" ? "list" : "grid")
-                }
-              >
-                {viewMode === "grid" ? "תצוגת רשימה" : "תצוגת קלפים"}{" "}
-                {/* Adjusted text */}
-              </Button>
+                  <RefreshCw
+                    className={cn(
+                      "h-5 w-5 text-cyan-600",
+                      isRefreshing && "animate-spin"
+                    )}
+                  />
+                </Button>
+                
+               {hasNewSuggestions && (
+  <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 shadow-xl animate-pulse"> {/* 🧡 כתום חזק */}
+    <Bell className="w-3 h-3 ml-1" />
+    הצעות חדשות
+  </Badge>
+)}
+              </div>
+
+              <div className="text-center flex-grow">
+                <CardTitle className="text-xl font-bold text-gray-800">
+                  ניהול ההצעות
+                </CardTitle>
+              </div>
+
+              <div className="w-16"></div> {/* Spacer for balance */}
             </div>
-          </div>
-          {error && (
-            <Alert variant="destructive" className="mb-6" dir="rtl">
-              {" "}
-              {/* Added dir="rtl" */}
-              <AlertCircle className="h-4 w-4 ml-2" /> {/* Icon spacing */}
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          {/* Pass memoized handlers to child */}
-          <TabsContent value="active">
-            <SuggestionsList
-              suggestions={activeSuggestions}
-              userId={userId}
-              viewMode={viewMode}
-              isLoading={isLoading}
-              onStatusChange={handleStatusChange}
-              onRefresh={handleRefresh} // Pass handleRefresh for consistency if needed inside list items
-            />
-          </TabsContent>
-          <TabsContent value="history">
-            <SuggestionsList
-              suggestions={historySuggestions}
-              userId={userId}
-              viewMode={viewMode}
-              isLoading={isLoading}
-              isHistory={true}
-              onRefresh={handleRefresh} // Pass handleRefresh for consistency if needed inside list items
-              // No status change for history items
-            />
-          </TabsContent>
-          <TabsContent value="pending">
-            <SuggestionsList
-              suggestions={activeSuggestions.filter(
-                (s) =>
-                  s.status === "PENDING_FIRST_PARTY" ||
-                  s.status === "PENDING_SECOND_PARTY"
+          </CardHeader>
+
+          <CardContent className="p-6">
+            <Tabs value={activeTab} onValueChange={setActiveTab} dir="rtl" className="space-y-6">
+              {/* טאבים מעוצבים */}
+              <div className="flex justify-center">
+
+<TabsList className="grid grid-cols-3 bg-purple-50/50 rounded-2xl p-1 h-14 w-fit"> {/* 🟣 רקע סגול */}
+  <TabsTrigger
+    value="active"
+    className="relative flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
+  >
+    <Target className="w-5 h-5 text-purple-500" /> {/* 🟣 אייקון סגול */}
+    <span>פעילות</span>
+    {activeSuggestions.length > 0 && (
+      <Badge className="bg-purple-500 text-white border-0 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] h-6"> {/* 🟣 סגול */}
+        {activeSuggestions.length}
+      </Badge>
+    )}
+  </TabsTrigger>
+
+  {/* הטאב הדחוף עם כתום מחוזק */}
+  {pendingCount > 0 && (
+    <TabsTrigger
+      value="pending"
+      className="flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
+    >
+      <Bell className="w-5 h-5 text-orange-500" /> {/* 🧡 כתום */}
+      <span>דחוף</span>
+      <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] h-6 animate-pulse shadow-lg"> {/* 🧡 כתום מחוזק */}
+        {pendingCount}
+      </Badge>
+    </TabsTrigger>
+  )}
+</TabsList>
+              </div>
+
+              {error && (
+                <Alert variant="destructive" className="border-red-200 bg-red-50" dir="rtl">
+                  <AlertCircle className="h-5 w-5 ml-2" />
+                  <AlertDescription className="text-red-800 font-medium">{error}</AlertDescription>
+                </Alert>
               )}
-              userId={userId}
-              viewMode={viewMode}
-              isLoading={isLoading}
-              onStatusChange={handleStatusChange}
-              onRefresh={handleRefresh} // Pass handleRefresh for consistency if needed inside list items
-            />
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+
+              {/* תוכן הטאבים */}
+              <TabsContent value="active" className="space-y-6">
+                <SuggestionsList
+                  suggestions={activeSuggestions}
+                  userId={userId}
+                  viewMode={viewMode}
+                  isLoading={isLoading}
+                  onStatusChange={handleStatusChange}
+                  onRefresh={handleRefresh}
+                />
+              </TabsContent>
+
+              <TabsContent value="history" className="space-y-6">
+                <SuggestionsList
+                  suggestions={historySuggestions}
+                  userId={userId}
+                  viewMode={viewMode}
+                  isLoading={isLoading}
+                  isHistory={true}
+                  onRefresh={handleRefresh}
+                />
+              </TabsContent>
+
+              <TabsContent value="pending" className="space-y-6">
+                <SuggestionsList
+                  suggestions={activeSuggestions.filter(
+                    (s) =>
+                      s.status === "PENDING_FIRST_PARTY" ||
+                      s.status === "PENDING_SECOND_PARTY"
+                  )}
+                  userId={userId}
+                  viewMode={viewMode}
+                  isLoading={isLoading}
+                  onStatusChange={handleStatusChange}
+                  onRefresh={handleRefresh}
+                />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 };
 

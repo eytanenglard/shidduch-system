@@ -1,4 +1,4 @@
-// Full path: src/app/components/suggestions/list/SuggestionsList.tsx
+// src/app/components/suggestions/list/SuggestionsList.tsx
 
 "use client";
 import React, { useState, useEffect } from "react";
@@ -13,6 +13,12 @@ import {
   List as ListIcon,
   Check,
   XCircle,
+  Sparkles,
+  Heart,
+  Clock,
+  Users,
+  TrendingUp,
+  BarChart3,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
@@ -43,6 +49,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import MinimalSuggestionCard from "../cards/MinimalSuggestionCard";
 import SuggestionDetailsModal from "../modals/SuggestionDetailsModal";
@@ -73,6 +80,108 @@ type FilterOption =
   | "declined"
   | "contact_shared";
 
+// קומפוננטת EmptyState מעוצבת
+const EmptyState: React.FC<{
+  isFiltered: boolean;
+  isHistory: boolean;
+  onClearFilters: () => void;
+}> = ({ isFiltered, isHistory, onClearFilters }) => (
+  <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-8">
+    <div className="relative mb-8">
+      <div className="w-32 h-32 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center shadow-lg">
+        {isFiltered ? (
+          <Search className="w-16 h-16 text-purple-400" />
+        ) : isHistory ? (
+          <Clock className="w-16 h-16 text-gray-400" />
+        ) : (
+          <Heart className="w-16 h-16 text-pink-400" />
+        )}
+      </div>
+      {!isFiltered && !isHistory && (
+        <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 flex items-center justify-center shadow-lg">
+          <Sparkles className="w-4 h-4 text-white" />
+        </div>
+      )}
+    </div>
+    
+    <h3 className="text-2xl font-bold text-gray-800 mb-3">
+      {isFiltered
+        ? "לא נמצאו תוצאות"
+        : isHistory
+        ? "אין הצעות בהיסטוריה"
+        : "ההצעות בדרך אליך"}
+    </h3>
+    
+    <p className="text-gray-600 max-w-md mx-auto mb-6 leading-relaxed">
+      {isFiltered
+        ? "נסה לשנות את קריטריוני החיפוש או הסינון כדי למצוא את מה שאתה מחפש"
+        : isHistory
+        ? "כשיהיו לך הצעות שהושלמו, הן יופיעו כאן"
+        : "השדכנים שלנו עובדים עכשיו על מציאת ההתאמות המושלמות עבורך"}
+    </p>
+    
+    {isFiltered && (
+      <Button
+        onClick={onClearFilters}
+        className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
+      >
+        <XCircle className="w-4 h-4 ml-2" />
+        נקה סינון
+      </Button>
+    )}
+  </div>
+);
+
+// קומפוננטת סטטיסטיקות
+const StatsBar: React.FC<{
+  total: number;
+  filtered: number;
+  pending: number;
+  isHistory: boolean;
+}> = ({ total, filtered, pending, isHistory }) => (
+  <Card className="mb-6 border-0 shadow-lg bg-gradient-to-r from-white via-purple-50/50 to-pink-50/50">
+    <CardContent className="p-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="text-center">
+          <div className="flex items-center justify-center gap-2 mb-1">
+            <BarChart3 className="w-4 h-4 text-blue-500" />
+            <span className="text-2xl font-bold text-blue-600">{filtered}</span>
+          </div>
+          <p className="text-xs text-gray-600 font-medium">מוצגות כעת</p>
+        </div>
+        
+        <div className="text-center">
+          <div className="flex items-center justify-center gap-2 mb-1">
+            <Users className="w-4 h-4 text-purple-500" />
+            <span className="text-2xl font-bold text-purple-600">{total}</span>
+          </div>
+          <p className="text-xs text-gray-600 font-medium">סהכ הצעות</p>
+        </div>
+        
+        {!isHistory && (
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <Clock className="w-4 h-4 text-orange-500" />
+              <span className="text-2xl font-bold text-orange-600">{pending}</span>
+            </div>
+            <p className="text-xs text-gray-600 font-medium">ממתינות</p>
+          </div>
+        )}
+        
+        <div className="text-center">
+          <div className="flex items-center justify-center gap-2 mb-1">
+            <TrendingUp className="w-4 h-4 text-green-500" />
+            <span className="text-2xl font-bold text-green-600">
+              {total > 0 ? Math.round((total - pending) / total * 100) : 0}%
+            </span>
+          </div>
+          <p className="text-xs text-gray-600 font-medium">קצב התקדמות</p>
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+);
+
 const SuggestionsList: React.FC<SuggestionsListProps> = ({
   suggestions: initialSuggestions,
   isHistory = false,
@@ -97,6 +206,12 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
   const [viewMode, setViewMode] = useState<"grid" | "list">(initialViewMode);
   const [filteredSuggestions, setFilteredSuggestions] =
     useState<ExtendedMatchSuggestion[]>(initialSuggestions);
+
+  // Calculate stats
+  const pendingCount = initialSuggestions.filter(
+    (s) =>
+      s.status === "PENDING_FIRST_PARTY" || s.status === "PENDING_SECOND_PARTY"
+  ).length;
 
   // Filter and sort suggestions
   useEffect(() => {
@@ -189,7 +304,6 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
 
   // Handlers
   const handleOpenDetails = (suggestion: ExtendedMatchSuggestion) => {
-    // --- LOGGING POINT 1 ---
     console.log("[SuggestionsList] handleOpenDetails triggered. Setting selected suggestion.");
     console.log("[SuggestionsList] Suggestion data being passed to modal:", JSON.stringify(suggestion, null, 2));
     setSelectedSuggestion(suggestion);
@@ -229,7 +343,12 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
       await onStatusChange(selectedSuggestion.id, newStatus);
 
       toast.success(
-        actionType === "approve" ? "ההצעה אושרה בהצלחה" : "ההצעה נדחתה בהצלחה"
+        actionType === "approve" ? "ההצעה אושרה בהצלחה" : "ההצעה נדחתה בהצלחה",
+        {
+          description: actionType === "approve" 
+            ? "השדכן יקבל הודעה ויתקדם עם התהליך"
+            : "תודה על המשוב - זה עוזר לנו להציע התאמות טובות יותר"
+        }
       );
 
       if (onRefresh) {
@@ -262,7 +381,9 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
         throw new Error("Failed to send inquiry");
       }
 
-      toast.success("השאלה נשלחה בהצלחה לשדכן");
+      toast.success("השאלה נשלחה בהצלחה לשדכן", {
+        description: "השדכן יחזור אליך עם תשובה בהקדם"
+      });
       setShowAskDialog(false);
     } catch (error) {
       console.error("Error sending question:", error);
@@ -270,271 +391,320 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
     }
   };
 
+  const clearFilters = () => {
+    setSearchQuery("");
+    setFilterOption("all");
+  };
+
   // Render loading state
   if (isLoading) {
     return (
-      <div
-        className={cn(
-          viewMode === "grid"
-            ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-            : "space-y-4",
-          className
-        )}
-      >
-        {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} className="h-64 w-full" />
-        ))}
-      </div>
-    );
-  }
-
-  // Render empty state
-  if (filteredSuggestions.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 text-gray-400">
-        <User className="w-12 h-12 mb-4" />
-        {searchQuery || filterOption !== "all" ? (
-          <div className="text-center">
-            <p>לא נמצאו הצעות התואמות את החיפוש</p>
-            <Button
-              variant="ghost"
-              className="mt-2"
-              onClick={() => {
-                setSearchQuery("");
-                setFilterOption("all");
-              }}
-            >
-              נקה סינון
-            </Button>
+      <div className={cn("space-y-6", className)}>
+        {/* Loading stats */}
+        <Card className="border-0 shadow-lg">
+          <CardContent className="p-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="text-center space-y-2">
+                  <Skeleton className="h-6 w-12 mx-auto" />
+                  <Skeleton className="h-3 w-16 mx-auto" />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Loading filters */}
+        <div className="flex flex-col gap-4">
+          <div className="flex gap-2">
+            <Skeleton className="h-10 flex-1" />
+            <Skeleton className="h-10 w-20" />
+            <Skeleton className="h-10 w-32" />
           </div>
-        ) : (
-          <p>{isHistory ? "אין הצעות בהיסטוריה" : "אין הצעות פעילות"}</p>
-        )}
+        </div>
+        
+        {/* Loading cards */}
+        <div
+          className={cn(
+            viewMode === "grid"
+              ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              : "space-y-4"
+          )}
+        >
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-80 w-full rounded-2xl" />
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
     <>
-      {/* Filters and search bar */}
-      <div className="mb-6 flex flex-col gap-4">
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <Input
-              type="text"
-              placeholder="חיפוש לפי שם, עיר, או מקצוע..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pr-10 text-right"
-            />
-          </div>
+      <div className={cn("space-y-6", className)}>
+        {/* Stats Bar */}
+        <StatsBar
+          total={initialSuggestions.length}
+          filtered={filteredSuggestions.length}
+          pending={pendingCount}
+          isHistory={isHistory}
+        />
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon">
-                <Filter className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>סינון הצעות</DropdownMenuLabel>
-              <DropdownMenuGroup>
-                <DropdownMenuItem onClick={() => setFilterOption("all")}>
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      filterOption === "all" ? "opacity-100" : "opacity-0"
-                    )}
+        {/* Filters and search bar */}
+        <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+          <CardContent className="p-6">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-3">
+                <div className="relative flex-1">
+                  <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <Input
+                    type="text"
+                    placeholder="חיפוש לפי שם, עיר, או מקצוע..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pr-12 text-right border-gray-200 focus:border-purple-300 focus:ring-purple-200 rounded-xl h-12"
                   />
-                  הכל
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setFilterOption("pending")}>
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      filterOption === "pending" ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                  ממתינות לתשובה
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setFilterOption("accepted")}>
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      filterOption === "accepted" ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                  מאושרות
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setFilterOption("declined")}>
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      filterOption === "declined" ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                  שנדחו
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => setFilterOption("contact_shared")}
+                </div>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      className="h-12 w-12 border-gray-200 hover:border-purple-300 hover:bg-purple-50 rounded-xl transition-colors"
+                    >
+                      <Filter className="h-5 w-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel className="text-right">סינון הצעות</DropdownMenuLabel>
+                    <DropdownMenuGroup>
+                      <DropdownMenuItem onClick={() => setFilterOption("all")}>
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            filterOption === "all" ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        הכל
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setFilterOption("pending")}>
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            filterOption === "pending" ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        ממתינות לתשובה
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setFilterOption("accepted")}>
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            filterOption === "accepted" ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        מאושרות
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setFilterOption("declined")}>
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            filterOption === "declined" ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        שנדחו
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setFilterOption("contact_shared")}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            filterOption === "contact_shared"
+                              ? "opacity-100"
+                              : "opacity-0"
+                          )}
+                        />
+                        פרטי קשר שותפו
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <Select
+                  value={sortOption}
+                  onValueChange={(value) => setSortOption(value as SortOption)}
                 >
-                  <Check
+                  <SelectTrigger className="w-48 h-12 border-gray-200 focus:border-purple-300 rounded-xl">
+                    <SelectValue placeholder="מיון לפי" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">
+                      <div className="flex items-center gap-2">
+                        <SortDesc className="h-4 w-4" />
+                        החדש ביותר
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="oldest">
+                      <div className="flex items-center gap-2">
+                        <SortAsc className="h-4 w-4" />
+                        הישן ביותר
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="deadline">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        תאריך יעד
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="priority">
+                      <div className="flex items-center gap-2">
+                        <Filter className="h-4 w-4" />
+                        עדיפות
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <div className="flex border border-gray-200 rounded-xl overflow-hidden">
+                  <Button
+                    variant={viewMode === "grid" ? "default" : "ghost"}
+                    size="icon"
                     className={cn(
-                      "mr-2 h-4 w-4",
-                      filterOption === "contact_shared"
-                        ? "opacity-100"
-                        : "opacity-0"
+                      "h-12 w-12 rounded-none",
+                      viewMode === "grid" 
+                        ? "bg-purple-500 hover:bg-purple-600" 
+                        : "hover:bg-purple-50"
                     )}
-                  />
-                  פרטי קשר שותפו
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                    onClick={() => setViewMode("grid")}
+                  >
+                    <Grid3X3 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === "list" ? "default" : "ghost"}
+                    size="icon"
+                    className={cn(
+                      "h-12 w-12 rounded-none",
+                      viewMode === "list" 
+                        ? "bg-purple-500 hover:bg-purple-600" 
+                        : "hover:bg-purple-50"
+                    )}
+                    onClick={() => setViewMode("list")}
+                  >
+                    <ListIcon className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
 
-          <Select
-            value={sortOption}
-            onValueChange={(value) => setSortOption(value as SortOption)}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="מיון לפי" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="newest">
-                <div className="flex items-center gap-2">
-                  <SortDesc className="h-4 w-4" />
-                  החדש ביותר
+              {/* Active filters display */}
+              {(searchQuery || filterOption !== "all") && (
+                <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                  <span className="text-sm text-gray-500 font-medium">סינון פעיל:</span>
+                  {searchQuery && (
+                    <Badge variant="outline" className="flex items-center gap-1 bg-purple-50 text-purple-700 border-purple-200">
+                      חיפוש: {searchQuery}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-4 w-4 p-0 hover:bg-transparent"
+                        onClick={() => setSearchQuery("")}
+                      >
+                        <XCircle className="h-3 w-3" />
+                      </Button>
+                    </Badge>
+                  )}
+                  {filterOption !== "all" && (
+                    <Badge variant="outline" className="flex items-center gap-1 bg-pink-50 text-pink-700 border-pink-200">
+                      {filterOption === "pending" && "ממתינות לתשובה"}
+                      {filterOption === "accepted" && "מאושרות"}
+                      {filterOption === "declined" && "שנדחו"}
+                      {filterOption === "contact_shared" && "פרטי קשר שותפו"}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-4 w-4 p-0 hover:bg-transparent"
+                        onClick={() => setFilterOption("all")}
+                      >
+                        <XCircle className="h-3 w-3" />
+                      </Button>
+                    </Badge>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs text-gray-500 hover:text-gray-700"
+                    onClick={clearFilters}
+                  >
+                    נקה הכל
+                  </Button>
                 </div>
-              </SelectItem>
-              <SelectItem value="oldest">
-                <div className="flex items-center gap-2">
-                  <SortAsc className="h-4 w-4" />
-                  הישן ביותר
-                </div>
-              </SelectItem>
-              <SelectItem value="deadline">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  תאריך יעד
-                </div>
-              </SelectItem>
-              <SelectItem value="priority">
-                <div className="flex items-center gap-2">
-                  <Filter className="h-4 w-4" />
-                  עדיפות
-                </div>
-              </SelectItem>
-            </SelectContent>
-          </Select>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
-          <div className="flex gap-1 border rounded-md">
-            <Button
-              variant={viewMode === "grid" ? "default" : "ghost"}
-              size="icon"
-              className={cn(
-                "rounded-none",
-                viewMode === "grid" ? "" : "hover:bg-muted"
-              )}
-              onClick={() => setViewMode("grid")}
-            >
-              <Grid3X3 className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={viewMode === "list" ? "default" : "ghost"}
-              size="icon"
-              className={cn(
-                "rounded-none",
-                viewMode === "list" ? "" : "hover:bg-muted"
-              )}
-              onClick={() => setViewMode("list")}
-            >
-              <ListIcon className="h-4 w-4" />
-            </Button>
-          </div>
+        {/* Results count */}
+        <div className="flex justify-between items-center text-sm text-gray-600">
+          <span>
+            מציג {filteredSuggestions.length}{" "}
+            {filteredSuggestions.length === 1 ? "הצעה" : "הצעות"} מתוך{" "}
+            {initialSuggestions.length}
+          </span>
+          {filteredSuggestions.length > 0 && (
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-purple-500" />
+              <span className="font-medium">התאמות איכותיות עבורך</span>
+            </div>
+          )}
         </div>
 
-        {/* Active filters display */}
-        {(searchQuery || filterOption !== "all") && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500">סינון פעיל:</span>
-            {searchQuery && (
-              <Badge variant="outline" className="flex items-center gap-1">
-                חיפוש: {searchQuery}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-4 w-4 p-0 hover:bg-transparent"
-                  onClick={() => setSearchQuery("")}
-                >
-                  <XCircle className="h-3 w-3" />
-                </Button>
-              </Badge>
+        {/* Suggestions grid/list or empty state */}
+        {filteredSuggestions.length === 0 ? (
+          <EmptyState
+            isFiltered={searchQuery !== "" || filterOption !== "all"}
+            isHistory={isHistory}
+            onClearFilters={clearFilters}
+          />
+        ) : (
+          <div
+            className={cn(
+              viewMode === "grid"
+                ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                : "space-y-6",
+              "animate-fade-in-up"
             )}
-            {filterOption !== "all" && (
-              <Badge variant="outline" className="flex items-center gap-1">
-                {filterOption === "pending" && "ממתינות לתשובה"}
-                {filterOption === "accepted" && "מאושרות"}
-                {filterOption === "declined" && "שנדחו"}
-                {filterOption === "contact_shared" && "פרטי קשר שותפו"}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-4 w-4 p-0 hover:bg-transparent"
-                  onClick={() => setFilterOption("all")}
-                >
-                  <XCircle className="h-3 w-3" />
-                </Button>
-              </Badge>
-            )}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs"
-              onClick={() => {
-                setSearchQuery("");
-                setFilterOption("all");
-              }}
-            >
-              נקה הכל
-            </Button>
+          >
+            {filteredSuggestions.map((suggestion, index) => (
+              <div 
+                key={suggestion.id} 
+                className="animate-scale-in"
+                style={{ 
+                  animationDelay: `${index * 100}ms`,
+                  animationFillMode: 'both'
+                }}
+              >
+                <MinimalSuggestionCard
+                  suggestion={suggestion}
+                  userId={userId}
+                  onClick={() => handleOpenDetails(suggestion)}
+                  onInquiry={() => handleInquiry(suggestion)}
+                  onApprove={() => handleStatusAction(suggestion, "approve")}
+                  onDecline={() => handleStatusAction(suggestion, "decline")}
+                  isHistory={isHistory}
+                  className={cn(
+                    "card-hover-elegant",
+                    viewMode === "list" ? "flex" : ""
+                  )}
+                />
+              </div>
+            ))}
           </div>
         )}
       </div>
 
-      {/* Results count */}
-      <div className="mb-4 text-sm text-gray-500 text-left">
-        מציג {filteredSuggestions.length}{" "}
-        {filteredSuggestions.length === 1 ? "הצעה" : "הצעות"} מתוך{" "}
-        {initialSuggestions.length}
-      </div>
-
-      {/* Suggestions grid/list */}
-      <div
-        className={cn(
-          viewMode === "grid"
-            ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-            : "space-y-4",
-          className
-        )}
-      >
-        {filteredSuggestions.map((suggestion) => (
-          <div key={suggestion.id} className="relative">
-            <MinimalSuggestionCard
-              suggestion={suggestion}
-              userId={userId}
-              onClick={() => handleOpenDetails(suggestion)}
-              onInquiry={() => handleInquiry(suggestion)}
-              onApprove={() => handleStatusAction(suggestion, "approve")}
-              onDecline={() => handleStatusAction(suggestion, "decline")}
-              isHistory={isHistory}
-              className={viewMode === "list" ? "flex" : ""}
-            />
-          </div>
-        ))}
-      </div>
-
-      {/* 3. (FIX) הקריאה למודאל נשארת פשוטה. הוא ינהל את טעינת השאלון בעצמו. */}
-            {console.log(`[SuggestionsList] Rendering SuggestionDetailsModal. isOpen: ${!!selectedSuggestion && !showAskDialog && !showStatusDialog}`)}
+      {/* Modals */}
+      {console.log(`[SuggestionsList] Rendering SuggestionDetailsModal. isOpen: ${!!selectedSuggestion && !showAskDialog && !showStatusDialog}`)}
 
       <SuggestionDetailsModal
         suggestion={selectedSuggestion}
@@ -544,7 +714,6 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
         onStatusChange={onStatusChange}
       />
 
-      {/* Ask Matchmaker Dialog */}
       <AskMatchmakerDialog
         isOpen={showAskDialog}
         onClose={() => setShowAskDialog(false)}
@@ -553,24 +722,31 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
         suggestionId={selectedSuggestion?.id}
       />
 
-      {/* Status Change Confirmation Dialog */}
       <AlertDialog open={showStatusDialog} onOpenChange={setShowStatusDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="border-0 shadow-2xl rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>
+            <AlertDialogTitle className="text-xl font-bold text-center">
               {actionType === "approve"
                 ? "אישור הצעת השידוך"
                 : "דחיית הצעת השידוך"}
             </AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="text-center text-gray-600 leading-relaxed">
               {actionType === "approve"
-                ? "האם אתה בטוח שברצונך לאשר את הצעת השידוך? לאחר האישור, ההצעה תעבור לשלב הבא בתהליך."
-                : "האם אתה בטוח שברצונך לדחות את הצעת השידוך? פעולה זו אינה ניתנת לביטול."}
+                ? "האם אתה בטוח שברצונך לאשר את הצעת השידוך? לאחר האישור, השדכן יקבל הודעה ויתקדם עם התהליך."
+                : "האם אתה בטוח שברצונך לדחות את הצעת השידוך? המשוב שלך עוזר לנו להציע התאמות טובות יותר בעתיד."}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>ביטול</AlertDialogCancel>
-            <AlertDialogAction onClick={handleActionConfirm}>
+          <AlertDialogFooter className="gap-3">
+            <AlertDialogCancel className="rounded-xl">ביטול</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleActionConfirm}
+              className={cn(
+                "rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300",
+                actionType === "approve"
+                  ? "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
+                  : "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
+              )}
+            >
               {actionType === "approve" ? "אישור ההצעה" : "דחיית ההצעה"}
             </AlertDialogAction>
           </AlertDialogFooter>
