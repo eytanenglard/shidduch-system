@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\profile
-# Generated on: 2025-06-23 17:47:14
+# Generated on: 2025-06-24 18:14:21
 ################################################################################
 
 ================================================================================
@@ -225,6 +225,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     allCandidates = [],
     onCreateSuggestion
 }) => {
+   console.log("[ProfileCard] Entry Point: Component is now rendering.");
+    console.log("[ProfileCard] Received profile prop:", JSON.stringify(profile, null, 2));
+    console.log(`[ProfileCard] Received ${images.length} images.`);
+    console.log("[ProfileCard] Received questionnaire prop:", questionnaire ? "Exists" : "null");
+
     const [isClient, setIsClient] = useState(false);
     const [isDesktop, setIsDesktop] = useState(true);
     const [selectedImageForDialog, setSelectedImageForDialog] = useState<UserImageType | null>(null);
@@ -378,19 +383,67 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     </SectionCard>
                 </TabsContent>
                 {hasDisplayableQuestionnaireAnswers && (
-                    <TabsContent value="questionnaire" className="mt-0 space-y-4">
-                        {Object.entries(WORLDS).map(([worldKey, worldConfig]) => {
-                            const answers = (questionnaire?.formattedAnswers?.[worldKey as keyof typeof questionnaire.formattedAnswers] || []).filter(a => a.isVisible !== false && (a.answer || a.displayText));
-                            if (answers.length === 0) return null;
-                            return (
-                                <SectionCard key={worldKey} title={worldConfig.label} icon={worldConfig.icon} titleClassName={cn(`bg-${worldConfig.color}-50 border-${worldConfig.color}-200`)} contentClassName="p-2 sm:p-3">
-                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
-                                        {answers.map(answer => <QuestionnaireItem key={answer.questionId} answer={answer} worldColor={worldConfig.color} />)}
-                                    </div>
-                                </SectionCard>
-                            );
-                        })}
-                    </TabsContent>
+                  <TabsContent value="questionnaire" className="mt-0 space-y-4">
+    {
+    // שלב 1: בדיקה אם המשתנה 'hasDisplayableQuestionnaireAnswers' הוא true
+    // משתנה זה כבר בודק אם 'questionnaire' קיים ואם יש בו תשובות גלויות.
+    hasDisplayableQuestionnaireAnswers ? (
+        // אם יש תשובות להצגה, נעבור על כל ה"עולמות" ונציג אותם.
+        // Object.entries(WORLDS) הופך את אובייקט העולמות למערך שניתן לעבור עליו בלולאה.
+        Object.entries(WORLDS).map(([worldKey, worldConfig]) => {
+
+        // שלב 2: עבור כל "עולם", נשלוף את התשובות הרלוונטיות לו.
+        // נשתמש ב-Optional Chaining (?.) כדי למנוע שגיאות אם המבנה לא קיים,
+        // ונשתמש ב-Nullish Coalescing Operator (??) כדי להחזיר מערך ריק אם אין תשובות.
+        const answersForWorld = (
+            questionnaire?.formattedAnswers?.[worldKey as keyof typeof questionnaire.formattedAnswers] ?? []
+        )
+        // שלב 3: נסנן את התשובות כדי להציג רק את אלה שהן גלויות ולא ריקות.
+        .filter(answer => 
+            answer.isVisible !== false && (answer.answer || answer.displayText)
+        );
+
+        // שלב 4: אם אחרי הסינון אין תשובות לעולם הנוכחי, לא נרנדר כלום עבורו (null).
+        if (answersForWorld.length === 0) {
+            return null;
+        }
+
+        // שלב 5: אם יש תשובות, נרנדר את כרטיס ה-SectionCard עבור אותו "עולם".
+        return (
+            <SectionCard
+            key={worldKey}
+            title={worldConfig.label}
+            icon={worldConfig.icon}
+            titleClassName={cn(`bg-${worldConfig.color}-50 border-${worldConfig.color}-200`)}
+            contentClassName="p-2 sm:p-3"
+            >
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+                {/* שלב 6: נעבור על כל התשובות המסוננות ונרנדר קומפוננטת QuestionnaireItem עבור כל אחת */}
+                {answersForWorld.map(answer => (
+                <QuestionnaireItem 
+                    key={answer.questionId} 
+                    answer={answer} 
+                    worldColor={worldConfig.color} 
+                />
+                ))}
+            </div>
+            </SectionCard>
+        );
+        })
+    ) : (
+        // שלב 7: אם התנאי הראשון (hasDisplayableQuestionnaireAnswers) הוא false,
+        // זה אומר שאין שאלון או שאין בו תשובות להצגה.
+        // במקרה זה, נציג רכיב EmptyState עם הודעה ברורה.
+        <EmptyState 
+            icon={FileText} 
+            message="אין תשובות מהשאלון להצגה"
+            description="המועמד/ת עדיין לא השלים/ה את החלק הזה בפרופיל או שבחר/ה להסתיר את כל התשובות."
+            className="my-8" // הוספת מרווח ויזואלי
+        />
+    )
+    }
+</TabsContent>
+
                 )}
                 {viewMode === "matchmaker" && (
                     <TabsContent value="matchmaker_info" className="mt-0">

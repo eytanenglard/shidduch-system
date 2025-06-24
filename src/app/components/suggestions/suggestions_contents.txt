@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\suggestions
-# Generated on: 2025-06-24 13:31:41
+# Generated on: 2025-06-24 16:07:40
 ################################################################################
 
 ================================================================================
@@ -58,42 +58,45 @@ const WelcomeStats: React.FC<{
     s.status === "FIRST_PARTY_APPROVED" || s.status === "SECOND_PARTY_APPROVED"
   ).length;
 
-  const stats = [
-    {
-      label: "הצעות חדשות",
-      value: activeSuggestions.length,
-      icon: <Sparkles className="w-5 h-5" />,
-      color: "from-cyan-500 to-blue-500",
-      description: "ממתינות לתשובתך"
-    },
-    {
-      label: "בטיפול",
-      value: pendingCount,
-      icon: <Clock className="w-5 h-5" />,
-      color: "from-emerald-500 to-green-500",
-      description: "דורשות החלטה"
-    },
-    {
-      label: "אושרו",
-      value: approvedCount,
-      icon: <CheckCircle className="w-5 h-5" />,
-      color: "from-blue-500 to-cyan-500",
-      description: "הצעות שאושרו"
-    },
-  ];
+  // עדכון בקובץ MatchSuggestionsContainer.tsx - החלק של WelcomeStats
+
+const stats = [
+  {
+    label: "הצעות חדשות",
+    value: activeSuggestions.length,
+    icon: <Sparkles className="w-5 h-5" />,
+    color: "from-cyan-500 to-blue-500", // נשאר כמו קודם
+    description: "ממתינות לתשובתך"
+  },
+  {
+    label: "בטיפול", // זה משתנה לסגול
+    value: pendingCount,
+    icon: <Clock className="w-5 h-5" />,
+    color: "from-purple-500 to-violet-500", // 🟣 סגול חדש!
+    description: "דורשות החלטה"
+  },
+  {
+    label: "אושרו", // זה משתנה לירוק
+    value: approvedCount,
+    icon: <CheckCircle className="w-5 h-5" />,
+    color: "from-emerald-500 to-green-500", // 🟢 ירוק עבר לכאן
+    description: "הצעות שאושרו"
+  },
+];
 
   return (
     <div className="mb-8">
       {/* כותרת ראשית */}
       <div className="text-center mb-8">
         <div className="inline-flex items-center gap-3 mb-4">
-          <div className="p-3 rounded-full bg-gradient-to-r from-cyan-100 to-emerald-100">
-            <Heart className="w-8 h-8 text-cyan-600" />
-          </div>
+         <div className="p-3 rounded-full bg-gradient-to-r from-purple-100 to-cyan-100"> {/* 🟣 רקע סגול-תכלת */}
+  <Heart className="w-8 h-8 text-purple-600" /> {/* 🟣 לב סגול */}
+</div>
         </div>
-        <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-cyan-600 via-emerald-600 to-blue-600 bg-clip-text text-transparent mb-3">
-          ההצעות שלך
-        </h1>
+    <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-cyan-600 to-emerald-600 bg-clip-text text-transparent mb-3"> {/* 🟣 מתחיל בסגול */}
+  ההצעות שלך
+</h1>
+
         <p className="text-lg text-gray-600 max-w-2xl mx-auto">
           הזדמנויות מיוחדות להכיר את האדם המושלם עבורך
         </p>
@@ -299,12 +302,12 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   />
                 </Button>
                 
-                {hasNewSuggestions && (
-                  <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-md animate-pulse">
-                    <Bell className="w-3 h-3 ml-1" />
-                    הצעות חדשות
-                  </Badge>
-                )}
+               {hasNewSuggestions && (
+  <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 shadow-xl animate-pulse"> {/* 🧡 כתום חזק */}
+    <Bell className="w-3 h-3 ml-1" />
+    הצעות חדשות
+  </Badge>
+)}
               </div>
 
               <div className="text-center flex-grow">
@@ -321,49 +324,35 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
             <Tabs value={activeTab} onValueChange={setActiveTab} dir="rtl" className="space-y-6">
               {/* טאבים מעוצבים */}
               <div className="flex justify-center">
-                <TabsList className="grid grid-cols-3 bg-cyan-50/50 rounded-2xl p-1 h-14 w-fit">
-                  <TabsTrigger
-                    value="active"
-                    className="relative flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
-                  >
-                    <Target className="w-5 h-5 text-cyan-500" />
-                    <span>פעילות</span>
-                    {activeSuggestions.length > 0 && (
-                      <Badge className="bg-cyan-500 text-white border-0 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] h-6">
-                        {activeSuggestions.length}
-                      </Badge>
-                    )}
-                    {hasNewSuggestions && (
-                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse border-2 border-white"></div>
-                    )}
-                  </TabsTrigger>
 
-                  <TabsTrigger
-                    value="history"
-                    className="flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
-                  >
-                    <History className="w-5 h-5 text-gray-500" />
-                    <span>היסטוריה</span>
-                    {historySuggestions.length > 0 && (
-                      <Badge variant="outline" className="border-gray-300 text-gray-600 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] h-6">
-                        {historySuggestions.length}
-                      </Badge>
-                    )}
-                  </TabsTrigger>
+<TabsList className="grid grid-cols-3 bg-purple-50/50 rounded-2xl p-1 h-14 w-fit"> {/* 🟣 רקע סגול */}
+  <TabsTrigger
+    value="active"
+    className="relative flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
+  >
+    <Target className="w-5 h-5 text-purple-500" /> {/* 🟣 אייקון סגול */}
+    <span>פעילות</span>
+    {activeSuggestions.length > 0 && (
+      <Badge className="bg-purple-500 text-white border-0 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] h-6"> {/* 🟣 סגול */}
+        {activeSuggestions.length}
+      </Badge>
+    )}
+  </TabsTrigger>
 
-                  {pendingCount > 0 && (
-                    <TabsTrigger
-                      value="pending"
-                      className="flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
-                    >
-                      <Bell className="w-5 h-5 text-amber-500" />
-                      <span>דחוף</span>
-                      <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] h-6 animate-pulse">
-                        {pendingCount}
-                      </Badge>
-                    </TabsTrigger>
-                  )}
-                </TabsList>
+  {/* הטאב הדחוף עם כתום מחוזק */}
+  {pendingCount > 0 && (
+    <TabsTrigger
+      value="pending"
+      className="flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
+    >
+      <Bell className="w-5 h-5 text-orange-500" /> {/* 🧡 כתום */}
+      <span>דחוף</span>
+      <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] h-6 animate-pulse shadow-lg"> {/* 🧡 כתום מחוזק */}
+        {pendingCount}
+      </Badge>
+    </TabsTrigger>
+  )}
+</TabsList>
               </div>
 
               {error && (
@@ -541,13 +530,15 @@ const calculateAge = (birthDate?: Date | string | null): number | null => {
     return age > 0 ? age : null;
 };
 
+// עדכון בקובץ MinimalSuggestionCard.tsx - פונקציית getStatusInfo
+
 const getStatusInfo = (status: string) => {
   switch (status) {
     case "PENDING_FIRST_PARTY":
     case "PENDING_SECOND_PARTY":
       return {
         label: status === "PENDING_FIRST_PARTY" ? "ממתין לתשובתך" : "ממתין לצד השני",
-        className: "bg-gradient-to-r from-amber-50 to-orange-50 text-amber-700 border-amber-200",
+        className: "bg-gradient-to-r from-purple-50 to-violet-50 text-purple-700 border-purple-200", // 🟣 סגול!
         icon: <Clock className="w-3 h-3" />,
         pulse: true,
       };
@@ -555,7 +546,7 @@ const getStatusInfo = (status: string) => {
     case "SECOND_PARTY_APPROVED":
       return {
         label: status === "FIRST_PARTY_APPROVED" ? "אישרת" : "הצד השני אישר",
-        className: "bg-gradient-to-r from-emerald-50 to-green-50 text-emerald-700 border-emerald-200",
+        className: "bg-gradient-to-r from-emerald-50 to-green-50 text-emerald-700 border-emerald-200", // 🟢 ירוק נשאר לאישורים
         icon: <CheckCircle className="w-3 h-3" />,
         pulse: false,
       };
@@ -573,25 +564,23 @@ const getStatusInfo = (status: string) => {
         icon: <Heart className="w-3 h-3" />,
         pulse: false,
       };
-    case "FIRST_PARTY_DECLINED":
-    case "SECOND_PARTY_DECLINED":
-    case "CANCELLED":
+    // עדכון הכתום לדחוף - מחזק את הכתום
+    case "URGENT": // או כל סטטוס דחוף
       return {
-        label: "ההצעה נדחתה",
-        className: "bg-gradient-to-r from-gray-50 to-slate-50 text-gray-600 border-gray-200",
-        icon: <XCircle className="w-3 h-3" />,
-        pulse: false,
+        label: "דחוף",
+        className: "bg-gradient-to-r from-orange-100 to-amber-100 text-orange-700 border-orange-300", // 🧡 כתום מחוזק!
+        icon: <AlertTriangle className="w-3 h-3" />,
+        pulse: true,
       };
     default:
       return {
         label: "בטיפול",
-        className: "bg-gradient-to-r from-blue-50 to-cyan-50 text-blue-700 border-blue-200",
+        className: "bg-gradient-to-r from-purple-50 to-violet-50 text-purple-700 border-purple-200", // 🟣 סגול ברירת מחדל
         icon: <Clock className="w-3 h-3" />,
         pulse: false,
       };
   }
 };
-
 const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
   suggestion,
   userId,
@@ -1071,7 +1060,7 @@ const getImportanceColor = (importance: string) => {
     case 'medium':
       return 'from-amber-400 to-orange-500';
     case 'low':
-      return 'from-blue-400 to-cyan-500';
+      return 'from-cyan-400 to-blue-500';
     default:
       return 'from-gray-400 to-gray-500';
   }
@@ -1080,13 +1069,13 @@ const getImportanceColor = (importance: string) => {
 const getCategoryColor = (category: string) => {
   switch (category) {
     case 'basic':
-      return 'from-purple-50 to-pink-50';
+      return 'from-cyan-50 to-blue-50';
     case 'lifestyle':
-      return 'from-blue-50 to-cyan-50';
-    case 'values':
       return 'from-emerald-50 to-green-50';
+    case 'values':
+      return 'from-blue-50 to-cyan-50';
     case 'preferences':
-      return 'from-amber-50 to-orange-50';
+      return 'from-green-50 to-emerald-50';
     default:
       return 'from-gray-50 to-slate-50';
   }
@@ -1112,7 +1101,7 @@ const CompatibilityCard: React.FC<{
           <div className={cn(
             "flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br text-white flex items-center justify-center shadow-md",
             item.compatible 
-              ? "from-emerald-400 to-green-500" 
+              ? "from-emerald-500 to-green-500" 
               : "from-red-400 to-rose-500"
           )}>
             {item.icon}
@@ -1469,7 +1458,7 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return "text-emerald-600";
-    if (score >= 60) return "text-blue-600";
+    if (score >= 60) return "text-cyan-600";
     if (score >= 40) return "text-amber-600";
     return "text-red-600";
   };
@@ -1483,9 +1472,9 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
 
   return (
     <Card className={cn("shadow-xl border-0 overflow-hidden", className)}>
-      <CardHeader className="bg-gradient-to-r from-purple-50 via-pink-50 to-blue-50 border-b border-gray-100">
+      <CardHeader className="bg-gradient-to-r from-cyan-50/80 via-white to-emerald-50/50 border-b border-gray-100">
         <CardTitle className="flex items-center gap-3 text-2xl">
-          <div className="p-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg">
+          <div className="p-3 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 text-white shadow-lg">
             <Heart className="w-6 h-6" />
           </div>
           <div>
@@ -1531,7 +1520,7 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
               title="מידע בסיסי"
               icon={User}
               items={basicItems}
-              color="from-purple-500 to-purple-600"
+              color="from-cyan-500 to-blue-500"
               firstParty={firstParty}
               secondParty={secondParty}
             />
@@ -1541,7 +1530,7 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
               title="ערכים והשקפה"
               icon={Heart}
               items={valuesItems}
-              color="from-emerald-500 to-green-600"
+              color="from-emerald-500 to-green-500"
               firstParty={firstParty}
               secondParty={secondParty}
             />
@@ -1551,7 +1540,7 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
               title="סגנון חיים"
               icon={Target}
               items={lifestyleItems}
-              color="from-blue-500 to-cyan-600"
+              color="from-blue-500 to-cyan-500"
               firstParty={firstParty}
               secondParty={secondParty}
             />
@@ -1561,7 +1550,7 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
               title="העדפות אישיות"
               icon={Star}
               items={preferencesItems}
-              color="from-amber-500 to-orange-600"
+              color="from-green-500 to-emerald-500"
               firstParty={firstParty}
               secondParty={secondParty}
             />
@@ -1578,17 +1567,17 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
 
         {/* Matchmaker Rationale */}
         {matchingReason && (
-          <Card className="border-0 shadow-lg bg-gradient-to-r from-indigo-50 to-purple-50">
+          <Card className="border-0 shadow-lg bg-gradient-to-r from-cyan-50 to-emerald-50">
             <CardContent className="p-6">
               <div className="flex items-start gap-4">
-                <div className="p-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md flex-shrink-0">
+                <div className="p-3 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 text-white shadow-md flex-shrink-0">
                   <Users className="w-6 h-6" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-bold text-indigo-800 text-lg mb-2">
+                  <h3 className="font-bold text-cyan-800 text-lg mb-2">
                     נימוק השדכן להצעה
                   </h3>
-                  <p className="text-indigo-700 leading-relaxed">{matchingReason}</p>
+                  <p className="text-cyan-700 leading-relaxed">{matchingReason}</p>
                 </div>
               </div>
             </CardContent>
@@ -2549,8 +2538,8 @@ const MessageBubble: React.FC<{
           <AvatarFallback className={cn(
             "font-bold text-sm",
             isMyQuestion 
-              ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white" 
-              : "bg-gradient-to-br from-purple-500 to-purple-600 text-white"
+              ? "bg-gradient-to-br from-cyan-500 to-blue-500 text-white" 
+              : "bg-gradient-to-br from-emerald-500 to-green-500 text-white"
           )}>
             {getInitials(inquiry.fromUser.firstName, inquiry.fromUser.lastName)}
           </AvatarFallback>
@@ -2584,7 +2573,7 @@ const MessageBubble: React.FC<{
           <div className={cn(
             "p-4 rounded-2xl shadow-md relative max-w-full",
             isMyQuestion
-              ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-br-md"
+              ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-br-md"
               : "bg-white border border-gray-200 text-gray-800 rounded-bl-md"
           )}>
             <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
@@ -2595,7 +2584,7 @@ const MessageBubble: React.FC<{
             <div className={cn(
               "absolute top-4 w-3 h-3 transform rotate-45",
               isMyQuestion
-                ? "-right-1.5 bg-blue-600"
+                ? "-right-1.5 bg-cyan-600"
                 : "-left-1.5 bg-white border-l border-b border-gray-200"
             )} />
           </div>
@@ -2734,10 +2723,10 @@ const InquiryThreadView: React.FC<InquiryThreadViewProps> = ({
 
   return (
     <Card className={cn("shadow-xl border-0 bg-white overflow-hidden", className)}>
-      <CardHeader className="pb-4 bg-gradient-to-r from-purple-50 via-pink-50 to-blue-50 border-b border-gray-100">
+      <CardHeader className="pb-4 bg-gradient-to-r from-cyan-50/80 via-white to-emerald-50/50 border-b border-gray-100">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md">
+            <div className="p-2 rounded-lg bg-gradient-to-r from-cyan-500 to-emerald-500 text-white shadow-md">
               <MessageSquare className="w-5 h-5" />
             </div>
             <div>
@@ -2800,8 +2789,8 @@ const InquiryThreadView: React.FC<InquiryThreadViewProps> = ({
           </div>
         ) : inquiries.length === 0 ? (
           <div className="text-center py-12">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center mx-auto mb-6">
-              <MessageCircle className="w-10 h-10 text-purple-500" />
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-100 to-emerald-100 flex items-center justify-center mx-auto mb-6">
+              <MessageCircle className="w-10 h-10 text-cyan-500" />
             </div>
             <h3 className="text-xl font-semibold text-gray-700 mb-2">
               התחל שיחה עם השדכן
@@ -2811,8 +2800,8 @@ const InquiryThreadView: React.FC<InquiryThreadViewProps> = ({
             </p>
             {showComposer && (
               <div className="mt-6">
-                <Sparkles className="w-6 h-6 text-purple-500 mx-auto mb-2" />
-                <p className="text-sm text-purple-600 font-medium">
+                <Sparkles className="w-6 h-6 text-cyan-500 mx-auto mb-2" />
+                <p className="text-sm text-cyan-600 font-medium">
                   התחל לכתוב שאלה למטה
                 </p>
               </div>
@@ -2836,7 +2825,7 @@ const InquiryThreadView: React.FC<InquiryThreadViewProps> = ({
         <CardFooter className="p-6 border-t border-gray-100 bg-gradient-to-r from-gray-50 to-white space-y-4">
           <div className="w-full space-y-3">
             <div className="flex items-center gap-2 text-sm text-gray-600">
-              <User className="w-4 h-4 text-purple-500" />
+              <User className="w-4 h-4 text-cyan-500" />
               <span>שאלה חדשה לשדכן</span>
             </div>
             
@@ -2844,7 +2833,7 @@ const InquiryThreadView: React.FC<InquiryThreadViewProps> = ({
               placeholder="כתוב כאן את שאלתך... השדכן ישמח לעזור ולהשיב"
               value={newQuestion}
               onChange={(e) => setNewQuestion(e.target.value)}
-              className="text-right border-gray-200 focus:border-purple-300 focus:ring-purple-200 rounded-xl resize-none"
+              className="text-right border-gray-200 focus:border-cyan-300 focus:ring-cyan-200 rounded-xl resize-none"
               rows={3}
               disabled={isSending}
             />
@@ -2857,7 +2846,7 @@ const InquiryThreadView: React.FC<InquiryThreadViewProps> = ({
               <Button
                 onClick={handleSendQuestion}
                 disabled={!newQuestion.trim() || isSending || isLoading}
-                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
+                className="bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
               >
                 {isSending ? (
                   <>
@@ -2911,8 +2900,6 @@ import {
   Users,
   TrendingUp,
   BarChart3,
-  MessageCircle,
-  CheckCircle,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
@@ -3026,6 +3013,56 @@ const EmptyState: React.FC<{
   </div>
 );
 
+// קומפוננטת סטטיסטיקות
+const StatsBar: React.FC<{
+  total: number;
+  filtered: number;
+  pending: number;
+  isHistory: boolean;
+}> = ({ total, filtered, pending, isHistory }) => (
+  <Card className="mb-6 border-0 shadow-lg bg-gradient-to-r from-white via-purple-50/50 to-pink-50/50">
+    <CardContent className="p-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="text-center">
+          <div className="flex items-center justify-center gap-2 mb-1">
+            <BarChart3 className="w-4 h-4 text-blue-500" />
+            <span className="text-2xl font-bold text-blue-600">{filtered}</span>
+          </div>
+          <p className="text-xs text-gray-600 font-medium">מוצגות כעת</p>
+        </div>
+        
+        <div className="text-center">
+          <div className="flex items-center justify-center gap-2 mb-1">
+            <Users className="w-4 h-4 text-purple-500" />
+            <span className="text-2xl font-bold text-purple-600">{total}</span>
+          </div>
+          <p className="text-xs text-gray-600 font-medium">סהכ הצעות</p>
+        </div>
+        
+        {!isHistory && (
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <Clock className="w-4 h-4 text-orange-500" />
+              <span className="text-2xl font-bold text-orange-600">{pending}</span>
+            </div>
+            <p className="text-xs text-gray-600 font-medium">ממתינות</p>
+          </div>
+        )}
+        
+        <div className="text-center">
+          <div className="flex items-center justify-center gap-2 mb-1">
+            <TrendingUp className="w-4 h-4 text-green-500" />
+            <span className="text-2xl font-bold text-green-600">
+              {total > 0 ? Math.round((total - pending) / total * 100) : 0}%
+            </span>
+          </div>
+          <p className="text-xs text-gray-600 font-medium">קצב התקדמות</p>
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+);
+
 const SuggestionsList: React.FC<SuggestionsListProps> = ({
   suggestions: initialSuggestions,
   isHistory = false,
@@ -3051,7 +3088,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
   const [filteredSuggestions, setFilteredSuggestions] =
     useState<ExtendedMatchSuggestion[]>(initialSuggestions);
 
-  // Calculate stats for quick reference
+  // Calculate stats
   const pendingCount = initialSuggestions.filter(
     (s) =>
       s.status === "PENDING_FIRST_PARTY" || s.status === "PENDING_SECOND_PARTY"
@@ -3148,6 +3185,8 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
 
   // Handlers
   const handleOpenDetails = (suggestion: ExtendedMatchSuggestion) => {
+    console.log("[SuggestionsList] handleOpenDetails triggered. Setting selected suggestion.");
+    console.log("[SuggestionsList] Suggestion data being passed to modal:", JSON.stringify(suggestion, null, 2));
     setSelectedSuggestion(suggestion);
   };
 
@@ -3242,17 +3281,28 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
   if (isLoading) {
     return (
       <div className={cn("space-y-6", className)}>
-        {/* Loading filters */}
+        {/* Loading stats */}
         <Card className="border-0 shadow-lg">
-          <CardContent className="p-6">
-            <div className="flex gap-4">
-              <Skeleton className="h-12 flex-1" />
-              <Skeleton className="h-12 w-20" />
-              <Skeleton className="h-12 w-32" />
-              <Skeleton className="h-12 w-24" />
+          <CardContent className="p-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="text-center space-y-2">
+                  <Skeleton className="h-6 w-12 mx-auto" />
+                  <Skeleton className="h-3 w-16 mx-auto" />
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
+        
+        {/* Loading filters */}
+        <div className="flex flex-col gap-4">
+          <div className="flex gap-2">
+            <Skeleton className="h-10 flex-1" />
+            <Skeleton className="h-10 w-20" />
+            <Skeleton className="h-10 w-32" />
+          </div>
+        </div>
         
         {/* Loading cards */}
         <div
@@ -3273,12 +3323,19 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
   return (
     <>
       <div className={cn("space-y-6", className)}>
+        {/* Stats Bar */}
+        <StatsBar
+          total={initialSuggestions.length}
+          filtered={filteredSuggestions.length}
+          pending={pendingCount}
+          isHistory={isHistory}
+        />
+
         {/* Filters and search bar */}
         <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
           <CardContent className="p-6">
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-3">
-                {/* Search */}
                 <div className="relative flex-1">
                   <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <Input
@@ -3290,7 +3347,6 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                   />
                 </div>
 
-                {/* Filter dropdown */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button 
@@ -3357,7 +3413,6 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                   </DropdownMenuContent>
                 </DropdownMenu>
 
-                {/* Sort */}
                 <Select
                   value={sortOption}
                   onValueChange={(value) => setSortOption(value as SortOption)}
@@ -3393,7 +3448,6 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                   </SelectContent>
                 </Select>
 
-                {/* View mode toggle */}
                 <div className="flex border border-gray-200 rounded-xl overflow-hidden">
                   <Button
                     variant={viewMode === "grid" ? "default" : "ghost"}
@@ -3471,20 +3525,20 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
           </CardContent>
         </Card>
 
-        {/* Results summary */}
-        {filteredSuggestions.length > 0 && (
-          <div className="flex justify-between items-center text-sm text-gray-600 px-2">
-            <span>
-              מציג {filteredSuggestions.length}{" "}
-              {filteredSuggestions.length === 1 ? "הצעה" : "הצעות"}
-              {searchQuery || filterOption !== "all" ? ` מתוך ${initialSuggestions.length}` : ""}
-            </span>
+        {/* Results count */}
+        <div className="flex justify-between items-center text-sm text-gray-600">
+          <span>
+            מציג {filteredSuggestions.length}{" "}
+            {filteredSuggestions.length === 1 ? "הצעה" : "הצעות"} מתוך{" "}
+            {initialSuggestions.length}
+          </span>
+          {filteredSuggestions.length > 0 && (
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-purple-500" />
               <span className="font-medium">התאמות איכותיות עבורך</span>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Suggestions grid/list or empty state */}
         {filteredSuggestions.length === 0 ? (
@@ -3531,6 +3585,8 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
       </div>
 
       {/* Modals */}
+      {console.log(`[SuggestionsList] Rendering SuggestionDetailsModal. isOpen: ${!!selectedSuggestion && !showAskDialog && !showStatusDialog}`)}
+
       <SuggestionDetailsModal
         suggestion={selectedSuggestion}
         userId={userId}
@@ -3592,13 +3648,11 @@ Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\s
 File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\suggestions\modals\SuggestionDetailsModal.tsx
 --------------------------------------------------------------------------------
 Content:
-// src/app/components/suggestions/modals/SuggestionDetailsModal.tsx
-
 "use client";
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -3620,19 +3674,13 @@ import {
   Briefcase,
   GraduationCap,
   Scroll as ScrollIcon,
-  ChevronLeft,
   GitCompareArrows,
   Star,
-  Camera,
-  Calendar,
-  Phone,
-  Mail,
-  Brain,
-  Eye
+  Eye,
+  Calendar
 } from "lucide-react";
 import { toast } from "sonner";
 import { getInitials } from "@/lib/utils";
-import { cn } from "@/lib/utils";
 import type { QuestionnaireResponse } from "@/types/next-auth";
 
 import { ProfileCard } from "@/app/components/profile";
@@ -3641,29 +3689,58 @@ import InquiryThreadView from "../inquiries/InquiryThreadView";
 import { AskMatchmakerDialog } from "../dialogs/AskMatchmakerDialog";
 import { UserAiAnalysisDialog } from '../dialogs/UserAiAnalysisDialog';
 import MatchCompatibilityView from "../compatibility/MatchCompatibilityView";
-import type { ExtendedMatchSuggestion } from "../types"; 
+import type { ExtendedMatchSuggestion } from "../types";
 
-// --- קומפוננטות עזר מעוצבות עם העיצוב החדש ---
+// ===============================
+// TYPES & INTERFACES
+// ===============================
 
-const HeroSection: React.FC<{
+interface SuggestionDetailsModalProps {
+  suggestion: ExtendedMatchSuggestion | null;
+  userId: string;
+  isOpen: boolean;
+  onClose: () => void;
+  onStatusChange?: (suggestionId: string, newStatus: string) => Promise<void>;
+}
+
+interface HeroSectionProps {
   matchmaker: { firstName: string; lastName: string; };
   targetParty: ExtendedMatchSuggestion['secondParty'];
   personalNote?: string | null;
   onViewProfile: () => void;
-}> = ({ matchmaker, targetParty, personalNote, onViewProfile }) => {
+}
+
+interface QuickActionsProps {
+  canAct: boolean;
+  isSubmitting: boolean;
+  onApprove: () => void;
+  onDecline: () => void;
+  onAskQuestion: () => void;
+}
+
+// ===============================
+// HERO SECTION COMPONENT
+// ===============================
+
+const HeroSection: React.FC<HeroSectionProps> = ({ 
+  matchmaker, 
+  targetParty, 
+  personalNote, 
+  onViewProfile 
+}) => {
   const age = targetParty.profile?.birthDate ? 
     new Date().getFullYear() - new Date(targetParty.profile.birthDate).getFullYear() : null;
   const mainImage = targetParty.images?.find(img => img.isMain)?.url;
 
   return (
     <div className="relative overflow-hidden">
-      {/* רקע גרדיאנט חדש */}
-      <div className="absolute inset-0 bg-gradient-to-br from-cyan-50/30 via-white to-emerald-50/20"></div>
-      <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-cyan-100/20 to-emerald-100/20 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-br from-blue-100/20 to-cyan-100/20 rounded-full blur-2xl"></div>
+      {/* Background Gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-cyan-50/30 via-white to-emerald-50/20" />
+      <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-cyan-100/20 to-emerald-100/20 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-br from-blue-100/20 to-cyan-100/20 rounded-full blur-2xl" />
       
       <div className="relative z-10 p-8 md:p-12">
-        {/* כותרת מרכזית */}
+        {/* Header Section */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-3 mb-4">
             <Avatar className="w-16 h-16 border-4 border-white shadow-xl">
@@ -3689,9 +3766,9 @@ const HeroSection: React.FC<{
           )}
         </div>
 
-        {/* קלאסה ראשית - תמונה ופרטים */}
+        {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {/* תמונה */}
+          {/* Profile Image */}
           <div className="relative group">
             <div className="relative h-80 lg:h-96 rounded-3xl overflow-hidden shadow-2xl">
               {mainImage ? (
@@ -3707,9 +3784,10 @@ const HeroSection: React.FC<{
                   <User className="w-24 h-24 text-slate-400" />
                 </div>
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"></div>
               
-              {/* פרטי יסוד על התמונה */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+              
+              {/* Profile Info Overlay */}
               <div className="absolute bottom-4 right-4 left-4">
                 <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-lg">
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">
@@ -3733,7 +3811,7 @@ const HeroSection: React.FC<{
               </div>
             </div>
             
-            {/* כפתור צפייה בפרופיל */}
+            {/* View Profile Button */}
             <Button 
               onClick={onViewProfile}
               className="absolute top-4 left-4 bg-white/90 hover:bg-white text-gray-900 backdrop-blur-sm shadow-lg border-0 rounded-full"
@@ -3744,9 +3822,9 @@ const HeroSection: React.FC<{
             </Button>
           </div>
 
-          {/* פרטים ונימוק */}
+          {/* Details and Reasoning */}
           <div className="space-y-6">
-            {/* מה מיוחד כאן */}
+            {/* Special Features Card */}
             <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-cyan-50/30">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3 mb-4">
@@ -3789,7 +3867,7 @@ const HeroSection: React.FC<{
               </CardContent>
             </Card>
 
-            {/* הערות אישיות מהשדכן */}
+            {/* Personal Notes from Matchmaker */}
             {personalNote && (
               <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-cyan-50">
                 <CardContent className="p-6">
@@ -3804,7 +3882,7 @@ const HeroSection: React.FC<{
               </Card>
             )}
 
-            {/* קורא לפעולה */}
+            {/* Call to Action */}
             <div className="text-center p-6 bg-gradient-to-r from-cyan-500 to-emerald-500 rounded-2xl text-white shadow-xl">
               <Star className="w-8 h-8 mx-auto mb-3" />
               <h3 className="text-xl font-bold mb-2">מוכן/ה לצעד הבא?</h3>
@@ -3818,16 +3896,20 @@ const HeroSection: React.FC<{
   );
 };
 
-const QuickActions: React.FC<{
-  canAct: boolean;
-  isSubmitting: boolean;
-  onApprove: () => void;
-  onDecline: () => void;
-  onAskQuestion: () => void;
-}> = ({ canAct, isSubmitting, onApprove, onDecline, onAskQuestion }) => (
-  <div className="sticky bottom-0 bg-white/95 backdrop-blur-sm border-t border-gray-200 p-4">
+// ===============================
+// QUICK ACTIONS COMPONENT
+// ===============================
+
+const QuickActions: React.FC<QuickActionsProps> = ({ 
+  canAct, 
+  isSubmitting, 
+  onApprove, 
+  onDecline, 
+  onAskQuestion 
+}) => (
+  <div className="flex-shrink-0 bg-white/95 backdrop-blur-sm border-t border-gray-200 p-4">
     <div className="flex gap-3 max-w-2xl mx-auto">
-      {/* שאלה לשדכן */}
+      {/* Ask Question Button */}
       <Button 
         variant="outline" 
         onClick={onAskQuestion} 
@@ -3840,7 +3922,7 @@ const QuickActions: React.FC<{
       
       {canAct && (
         <>
-          {/* דחייה */}
+          {/* Decline Button */}
           <Button 
             variant="outline" 
             className="flex-1 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 transition-colors rounded-xl h-12 font-medium" 
@@ -3855,7 +3937,7 @@ const QuickActions: React.FC<{
             לא מתאים לי
           </Button>
           
-          {/* אישור */}
+          {/* Approve Button */}
           <Button 
             className="flex-1 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl h-12 font-medium" 
             disabled={isSubmitting} 
@@ -3874,14 +3956,9 @@ const QuickActions: React.FC<{
   </div>
 );
 
-// --- הקומפוננטה הראשית ---
-interface SuggestionDetailsModalProps {
-  suggestion: ExtendedMatchSuggestion | null;
-  userId: string;
-  isOpen: boolean;
-  onClose: () => void;
-  onStatusChange?: (suggestionId: string, newStatus: string) => Promise<void>;
-}
+// ===============================
+// MAIN COMPONENT
+// ===============================
 
 const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   suggestion,
@@ -3890,22 +3967,25 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   onClose,
   onStatusChange,
 }) => {
+  // ===============================
+  // STATE MANAGEMENT
+  // ===============================
+  
   const [activeTab, setActiveTab] = useState("presentation");
   const [showAskDialog, setShowAskDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
   const [questionnaire, setQuestionnaire] = useState<QuestionnaireResponse | null>(null);
   const [isQuestionnaireLoading, setIsQuestionnaireLoading] = useState(false);
 
-  useEffect(() => {
-    if (isOpen) {
-      setActiveTab("presentation");
-      setQuestionnaire(null);
-    } else {
-      return;
-    }
+  // ===============================
+  // EFFECTS
+  // ===============================
 
-    if (!suggestion) return;
+  useEffect(() => {
+    if (!isOpen || !suggestion) return;
+    
+    setActiveTab("presentation");
+    setQuestionnaire(null);
 
     const targetPartyId = suggestion.firstPartyId === userId
       ? suggestion.secondPartyId
@@ -3931,19 +4011,25 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
     fetchQuestionnaire();
   }, [isOpen, suggestion, userId]);
 
-  if (!suggestion) {
-    return null;
-  }
+  // ===============================
+  // COMPUTED VALUES
+  // ===============================
+  
+  if (!suggestion) return null;
 
   const isFirstParty = suggestion.firstPartyId === userId;
   const targetParty = isFirstParty ? suggestion.secondParty : suggestion.firstParty;
-  
-  const canActOnSuggestion =
+  const canActOnSuggestion = 
     (isFirstParty && suggestion.status === "PENDING_FIRST_PARTY") ||
     (!isFirstParty && suggestion.status === "PENDING_SECOND_PARTY");
 
+  // ===============================
+  // EVENT HANDLERS
+  // ===============================
+
   const handleStatusChange = async (newStatus: string) => {
     if (!onStatusChange) return;
+    
     setIsSubmitting(true);
     try {
       await onStatusChange(suggestion.id, newStatus);
@@ -3969,7 +4055,9 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question }),
       });
+      
       if (!response.ok) throw new Error("Failed to send inquiry.");
+      
       toast.success("שאלתך נשלחה בהצלחה!", {
         description: "השדכן/ית יחזור אליך בהקדם"
       });
@@ -3992,6 +4080,10 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
     handleStatusChange(newStatus);
   };
 
+  // ===============================
+  // RENDER
+  // ===============================
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -3999,166 +4091,166 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
           className="max-w-7xl w-[95vw] h-[95vh] flex flex-col p-0 shadow-2xl rounded-3xl border-0 bg-white overflow-hidden" 
           dir="rtl"
         >
-          {/* כותרת */}
+          {/* Header */}
           <DialogHeader className="px-6 py-4 border-b border-gray-100 flex-shrink-0 flex flex-row items-center justify-between bg-white/90 backdrop-blur-sm sticky top-0 z-30">
-             <DialogTitle className="text-xl font-bold text-gray-800">
-                הצעת שידוך מיוחדת
-             </DialogTitle>
-             <Button 
-               variant="ghost" 
-               size="icon" 
-               onClick={onClose} 
-               className="rounded-full h-10 w-10 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-             >
-               <X className="w-5 h-5" />
-             </Button>
+            <DialogTitle className="text-xl font-bold text-gray-800">
+              הצעת שידוך מיוחדת
+            </DialogTitle>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={onClose} 
+              className="rounded-full h-10 w-10 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </Button>
           </DialogHeader>
           
-          <div className="flex-grow min-h-0 relative">
-             <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-grow flex flex-col min-h-0 h-full">
-                {/* טאבים */}
-                <div className="border-b border-gray-100 px-6 pt-2 bg-white/80 backdrop-blur-sm sticky top-0 z-20">
-                    <TabsList className="grid w-full grid-cols-4 bg-cyan-50/50 rounded-2xl p-1 h-14">
-                        <TabsTrigger 
-                          value="presentation" 
-                          className="flex items-center gap-2 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-medium"
-                        >
-                            <Sparkles className="w-5 h-5 text-cyan-500" />
-                            <span>ההצעה</span>
-                        </TabsTrigger>
-                        <TabsTrigger 
-                          value="profile" 
-                          className="flex items-center gap-2 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-medium"
-                        >
-                            <User className="w-5 h-5 text-emerald-500" />
-                            <span>פרופיל מלא</span>
-                        </TabsTrigger>
-                        <TabsTrigger 
-                          value="compatibility" 
-                          className="flex items-center gap-2 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-medium"
-                        >
-                            <GitCompareArrows className="w-5 h-5 text-blue-500" />
-                            <span>ניתוח התאמה</span>
-                        </TabsTrigger>
-                        <TabsTrigger 
-                          value="details" 
-                          className="flex items-center gap-2 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-medium"
-                        >
-                            <Info className="w-5 h-5 text-gray-500" />
-                            <span>פרטים</span>
-                        </TabsTrigger>
-                    </TabsList>
-                </div>
-                
-                <ScrollArea className="flex-grow">
-                    {/* תוכן ההצעה */}
-                    <TabsContent value="presentation" className="mt-0 pb-20">
-                        <HeroSection 
-                            matchmaker={suggestion.matchmaker}
-                            targetParty={targetParty}
-                            personalNote={isFirstParty ? suggestion.firstPartyNotes : suggestion.secondPartyNotes}
-                            onViewProfile={() => setActiveTab('profile')}
-                        />
-                    </TabsContent>
-                    
-                    {/* פרופיל מלא */}
-                    <TabsContent value="profile" className="mt-0 p-4 md:p-6 pb-20">
-                        {isQuestionnaireLoading ? (
-                            <div className="flex justify-center items-center h-64">
-                                <div className="text-center">
-                                    <Loader2 className="w-8 h-8 animate-spin text-cyan-600 mx-auto mb-4" />
-                                    <p className="text-gray-600 font-medium">טוען פרופיל מלא...</p>
-                                </div>
-                            </div>
-                        ) : (
-                            <ProfileCard
-                                profile={targetParty.profile}
-                                images={targetParty.images}
-                                questionnaire={questionnaire}
-                                viewMode="candidate"
-                            />
+          <ScrollArea className="flex-grow min-h-0">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              {/* Tabs Navigation */}
+              <div className="border-b border-gray-100 px-6 pt-2 bg-white/80 backdrop-blur-sm sticky top-0 z-20">
+                <TabsList className="grid w-full grid-cols-4 bg-cyan-50/50 rounded-2xl p-1 h-14">
+                  <TabsTrigger 
+                    value="presentation" 
+                    className="flex items-center gap-2 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-medium"
+                  >
+                    <Sparkles className="w-5 h-5 text-cyan-500" />
+                    <span>ההצעה</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="profile" 
+                    className="flex items-center gap-2 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-medium"
+                  >
+                    <User className="w-5 h-5 text-emerald-500" />
+                    <span>פרופיל מלא</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="compatibility" 
+                    className="flex items-center gap-2 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-medium"
+                  >
+                    <GitCompareArrows className="w-5 h-5 text-blue-500" />
+                    <span>ניתוח התאמה</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="details" 
+                    className="flex items-center gap-2 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-medium"
+                  >
+                    <Info className="w-5 h-5 text-gray-500" />
+                    <span>פרטים</span>
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+              
+              {/* Tab Contents */}
+              
+              {/* Presentation Tab */}
+              <TabsContent value="presentation" className="mt-0">
+                <HeroSection 
+                  matchmaker={suggestion.matchmaker}
+                  targetParty={targetParty}
+                  personalNote={isFirstParty ? suggestion.firstPartyNotes : suggestion.secondPartyNotes}
+                  onViewProfile={() => setActiveTab('profile')}
+                />
+              </TabsContent>
+              
+              {/* Profile Tab */}
+              <TabsContent value="profile" className="mt-0 p-4 md:p-6">
+                {isQuestionnaireLoading ? (
+                  <div className="flex justify-center items-center h-64">
+                    <div className="text-center">
+                      <Loader2 className="w-8 h-8 animate-spin text-cyan-600 mx-auto mb-4" />
+                      <p className="text-gray-600 font-medium">טוען פרופיל מלא...</p>
+                    </div>
+                  </div>
+                ) : (
+                  <ProfileCard
+                    profile={targetParty.profile}
+                    images={targetParty.images}
+                    questionnaire={questionnaire}
+                    viewMode="candidate"
+                  />
+                )}
+              </TabsContent>
+
+              {/* Compatibility Tab */}
+              <TabsContent value="compatibility" className="mt-0 p-2 md:p-4">
+                <MatchCompatibilityView 
+                  firstParty={isFirstParty ? suggestion.firstParty : suggestion.secondParty}
+                  secondParty={isFirstParty ? suggestion.secondParty : suggestion.firstParty}
+                  matchingReason={suggestion.matchingReason}
+                />
+              </TabsContent>
+
+              {/* Details Tab */}
+              <TabsContent value="details" className="mt-0 p-6 md:p-8 space-y-8">
+                {/* Suggestion Information */}
+                <Card className="border-0 shadow-lg">
+                  <CardContent className="p-6">
+                    <h3 className="text-xl font-semibold mb-4 text-gray-800 flex items-center gap-2">
+                      <Calendar className="w-5 h-5 text-cyan-600" />
+                      מידע על ההצעה
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-3">
+                        <div className="flex justify-between">
+                          <span className="font-semibold text-gray-700">סטטוס נוכחי:</span>
+                          <Badge className="bg-cyan-100 text-cyan-800">
+                            {suggestion.status}
+                          </Badge>
+                        </div>
+                        {suggestion.decisionDeadline && (
+                          <div className="flex justify-between">
+                            <span className="font-semibold text-gray-700">תאריך יעד:</span>
+                            <span className="text-gray-600">
+                              {new Date(suggestion.decisionDeadline).toLocaleDateString('he-IL')}
+                            </span>
+                          </div>
                         )}
-                    </TabsContent>
+                      </div>
+                      <div className="space-y-3">
+                        <div className="flex justify-between">
+                          <span className="font-semibold text-gray-700">תאריך יצירה:</span>
+                          <span className="text-gray-600">
+                            {new Date(suggestion.createdAt).toLocaleDateString('he-IL')}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-semibold text-gray-700">עדיפות:</span>
+                          <Badge variant="outline">
+                            {suggestion.priority}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                {/* Process Timeline */}
+                <SuggestionTimeline statusHistory={suggestion.statusHistory} />
 
-                    {/* ניתוח התאמה */}
-                    <TabsContent value="compatibility" className="mt-0 p-2 md:p-4 pb-20">
-                      <MatchCompatibilityView 
-                        firstParty={isFirstParty ? suggestion.firstParty : suggestion.secondParty}
-                        secondParty={isFirstParty ? suggestion.secondParty : suggestion.firstParty}
-                        matchingReason={suggestion.matchingReason}
-                      />
-                    </TabsContent>
-
-                    {/* פרטים וניהול */}
-                    <TabsContent value="details" className="mt-0 p-6 md:p-8 space-y-8 pb-20">
-                        {/* מידע על ההצעה */}
-                        <Card className="border-0 shadow-lg">
-                            <CardContent className="p-6">
-                                <h3 className="text-xl font-semibold mb-4 text-gray-800 flex items-center gap-2">
-                                    <Calendar className="w-5 h-5 text-cyan-600" />
-                                    מידע על ההצעה
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="space-y-3">
-                                        <div className="flex justify-between">
-                                            <span className="font-semibold text-gray-700">סטטוס נוכחי:</span>
-                                            <Badge className="bg-cyan-100 text-cyan-800">
-                                                {suggestion.status}
-                                            </Badge>
-                                        </div>
-                                        {suggestion.decisionDeadline && (
-                                            <div className="flex justify-between">
-                                                <span className="font-semibold text-gray-700">תאריך יעד:</span>
-                                                <span className="text-gray-600">
-                                                    {new Date(suggestion.decisionDeadline).toLocaleDateString('he-IL')}
-                                                </span>
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="space-y-3">
-                                        <div className="flex justify-between">
-                                            <span className="font-semibold text-gray-700">תאריך יצירה:</span>
-                                            <span className="text-gray-600">
-                                                {new Date(suggestion.createdAt).toLocaleDateString('he-IL')}
-                                            </span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="font-semibold text-gray-700">עדיפות:</span>
-                                            <Badge variant="outline">
-                                                {suggestion.priority}
-                                            </Badge>
-                                        </div>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                        
-                        {/* היסטוריית התהליך */}
-                        <SuggestionTimeline statusHistory={suggestion.statusHistory} />
-
-                        {/* שיחה עם השדכן */}
-                        <InquiryThreadView 
-                          suggestionId={suggestion.id}
-                          userId={userId}
-                          showComposer={true}
-                        />
-                    </TabsContent>
-                </ScrollArea>
-             </Tabs>
-
-             {/* כפתורי פעולה */}
-             <QuickActions
-                canAct={canActOnSuggestion}
-                isSubmitting={isSubmitting}
-                onApprove={handleApprove}
-                onDecline={handleDecline}
-                onAskQuestion={() => setShowAskDialog(true)}
-             />
-          </div>
+                {/* Conversation with Matchmaker */}
+                <InquiryThreadView 
+                  suggestionId={suggestion.id}
+                  userId={userId}
+                  showComposer={true}
+                />
+              </TabsContent>
+            </Tabs>
+          </ScrollArea>
+          
+          {/* Action Buttons */}
+          <QuickActions
+            canAct={canActOnSuggestion}
+            isSubmitting={isSubmitting}
+            onApprove={handleApprove}
+            onDecline={handleDecline}
+            onAskQuestion={() => setShowAskDialog(true)}
+          />
         </DialogContent>
       </Dialog>
       
-      {/* דיאלוג שאלה לשדכן */}
+      {/* Ask Matchmaker Dialog */}
       <AskMatchmakerDialog
         isOpen={showAskDialog}
         onClose={() => setShowAskDialog(false)}
@@ -4579,6 +4671,7 @@ import {
   Star,
   Gift,
   Phone,
+  ArrowDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -4612,9 +4705,9 @@ const getStatusInfo = (status: string) => {
       return {
         label: "נשלח לצד הראשון",
         icon: Send,
-        color: "from-blue-400 to-blue-500",
-        bgColor: "from-blue-50 to-blue-100",
-        textColor: "text-blue-700",
+        color: "from-cyan-400 to-blue-500",
+        bgColor: "from-cyan-50 to-blue-100",
+        textColor: "text-cyan-700",
         description: "ההצעה נשלחה וממתינה לתשובת הצד הראשון",
         category: "pending"
       };
@@ -4642,9 +4735,9 @@ const getStatusInfo = (status: string) => {
       return {
         label: "נשלח לצד השני",
         icon: UserPlus,
-        color: "from-purple-400 to-purple-500",
-        bgColor: "from-purple-50 to-purple-100",
-        textColor: "text-purple-700",
+        color: "from-blue-400 to-cyan-500",
+        bgColor: "from-blue-50 to-cyan-100",
+        textColor: "text-blue-700",
         description: "ההצעה הועברה לצד השני לבדיקה",
         category: "pending"
       };
@@ -4672,9 +4765,9 @@ const getStatusInfo = (status: string) => {
       return {
         label: "פרטי קשר שותפו",
         icon: Phone,
-        color: "from-indigo-400 to-purple-500",
-        bgColor: "from-indigo-50 to-purple-100",
-        textColor: "text-indigo-700",
+        color: "from-cyan-400 to-emerald-500",
+        bgColor: "from-cyan-50 to-emerald-100",
+        textColor: "text-cyan-700",
         description: "פרטי הקשר של שני הצדדים הועברו",
         category: "progress"
       };
@@ -4756,11 +4849,11 @@ const getCategoryColor = (category: string) => {
     case "preparation":
       return "border-gray-200";
     case "pending":
-      return "border-blue-200";
+      return "border-cyan-200";
     case "success":
       return "border-emerald-200";
     case "progress":
-      return "border-purple-200";
+      return "border-blue-200";
     case "celebration":
       return "border-yellow-200";
     case "declined":
@@ -4784,7 +4877,7 @@ const TimelineNode: React.FC<{
         <div 
           className={cn(
             "absolute top-12 right-6 w-0.5 h-16 bg-gradient-to-b rounded-full",
-            isLatest ? "from-purple-300 to-purple-100" : "from-gray-300 to-gray-100"
+            isLatest ? "from-cyan-300 to-cyan-100" : "from-gray-300 to-gray-100"
           )}
         />
       )}
@@ -4793,7 +4886,7 @@ const TimelineNode: React.FC<{
       <div className={cn(
         "relative z-10 w-12 h-12 rounded-full bg-gradient-to-br shadow-lg flex items-center justify-center text-white",
         statusInfo.color,
-        isLatest && "ring-4 ring-purple-200 animate-pulse-subtle"
+        isLatest && "ring-4 ring-cyan-200 animate-pulse-subtle"
       )}>
         <IconComponent className="w-6 h-6" />
       </div>
@@ -4829,7 +4922,7 @@ const SuggestionTimeline: React.FC<SuggestionTimelineProps> = ({
     <Card className={cn("border-0 shadow-lg overflow-hidden", className)}>
       <CardContent className="p-6">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md">
+          <div className="p-2 rounded-lg bg-gradient-to-r from-cyan-500 to-emerald-500 text-white shadow-md">
             <Clock className="w-5 h-5" />
           </div>
           <div>
@@ -4883,7 +4976,7 @@ const SuggestionTimeline: React.FC<SuggestionTimelineProps> = ({
                               {statusInfo.label}
                             </Badge>
                             {isLatest && (
-                              <Badge variant="outline" className="bg-white/80 text-purple-600 border-purple-200 text-xs">
+                              <Badge variant="outline" className="bg-white/80 text-cyan-600 border-cyan-200 text-xs">
                                 עכשיו
                               </Badge>
                             )}
@@ -4922,17 +5015,17 @@ const SuggestionTimeline: React.FC<SuggestionTimelineProps> = ({
         <div className="mt-8 pt-6 border-t border-gray-200">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             <div className="space-y-1">
-              <div className="text-2xl font-bold text-purple-600">{sortedHistory.length}</div>
+              <div className="text-2xl font-bold text-cyan-600">{sortedHistory.length}</div>
               <div className="text-xs text-gray-500 font-medium">שלבים סה״כ</div>
             </div>
             <div className="space-y-1">
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-2xl font-bold text-emerald-600">
                 {Math.ceil((Date.now() - new Date(sortedHistory[sortedHistory.length - 1].createdAt).getTime()) / (1000 * 60 * 60 * 24))}
               </div>
               <div className="text-xs text-gray-500 font-medium">ימים פעילים</div>
             </div>
             <div className="space-y-1">
-              <div className="text-2xl font-bold text-emerald-600">
+              <div className="text-2xl font-bold text-blue-600">
                 {sortedHistory.filter(s => s.status.includes('APPROVED')).length}
               </div>
               <div className="text-xs text-gray-500 font-medium">אישורים</div>
