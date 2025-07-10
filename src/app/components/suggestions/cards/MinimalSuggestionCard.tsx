@@ -8,8 +8,6 @@ import {
   User,
   MapPin,
   Briefcase,
-  Clock,
-  UserCircle,
   Eye,
   CheckCircle,
   XCircle,
@@ -22,7 +20,8 @@ import {
   Sparkles,
   ChevronLeft,
   Star,
-  Quote
+  Quote,
+  Zap
 } from "lucide-react";
 
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -38,9 +37,9 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { getInitials } from "@/lib/utils";
+import { getEnhancedStatusInfo, getPartyIndicator } from "@/lib/utils/suggestionUtils";
 import type { ExtendedMatchSuggestion } from "../types";
 
-// --- START OF CHANGE ---
 interface MinimalSuggestionCardProps {
   suggestion: ExtendedMatchSuggestion;
   userId: string;
@@ -50,9 +49,8 @@ interface MinimalSuggestionCardProps {
   onDecline?: (suggestion: ExtendedMatchSuggestion) => void;
   className?: string;
   isHistory?: boolean;
-  isApprovalDisabled?: boolean; // This line was missing
+  isApprovalDisabled?: boolean;
 }
-// --- END OF CHANGE ---
 
 const calculateAge = (birthDate?: Date | string | null): number | null => {
     if (!birthDate) return null;
@@ -67,57 +65,6 @@ const calculateAge = (birthDate?: Date | string | null): number | null => {
     return age > 0 ? age : null;
 };
 
-// עדכון בקובץ MinimalSuggestionCard.tsx - פונקציית getStatusInfo
-
-const getStatusInfo = (status: string) => {
-  switch (status) {
-    case "PENDING_FIRST_PARTY":
-    case "PENDING_SECOND_PARTY":
-      return {
-        label: status === "PENDING_FIRST_PARTY" ? "ממתין לתשובתך" : "ממתין לצד השני",
-        className: "bg-gradient-to-r from-purple-50 to-violet-50 text-purple-700 border-purple-200", // 🟣 סגול!
-        icon: <Clock className="w-3 h-3" />,
-        pulse: true,
-      };
-    case "FIRST_PARTY_APPROVED":
-    case "SECOND_PARTY_APPROVED":
-      return {
-        label: status === "FIRST_PARTY_APPROVED" ? "אישרת" : "הצד השני אישר",
-        className: "bg-gradient-to-r from-emerald-50 to-green-50 text-emerald-700 border-emerald-200", // 🟢 ירוק נשאר לאישורים
-        icon: <CheckCircle className="w-3 h-3" />,
-        pulse: false,
-      };
-    case "CONTACT_DETAILS_SHARED":
-      return {
-        label: "פרטים שותפו",
-        className: "bg-gradient-to-r from-cyan-50 to-blue-50 text-cyan-700 border-cyan-200",
-        icon: <MessageCircle className="w-3 h-3" />,
-        pulse: false,
-      };
-    case "DATING":
-       return {
-        label: "בפגישות",
-        className: "bg-gradient-to-r from-pink-50 to-rose-50 text-pink-700 border-pink-200",
-        icon: <Heart className="w-3 h-3" />,
-        pulse: false,
-      };
-    // עדכון הכתום לדחוף - מחזק את הכתום
-    case "URGENT": // או כל סטטוס דחוף
-      return {
-        label: "דחוף",
-        className: "bg-gradient-to-r from-orange-100 to-amber-100 text-orange-700 border-orange-300", // 🧡 כתום מחוזק!
-        icon: <AlertTriangle className="w-3 h-3" />,
-        pulse: true,
-      };
-    default:
-      return {
-        label: "בטיפול",
-        className: "bg-gradient-to-r from-purple-50 to-violet-50 text-purple-700 border-purple-200", // 🟣 סגול ברירת מחדל
-        icon: <Clock className="w-3 h-3" />,
-        pulse: false,
-      };
-  }
-};
 const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
   suggestion,
   userId,
@@ -139,7 +86,10 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
 
   const mainImage = targetParty.images?.find((img) => img.isMain);
   const age = calculateAge(targetParty.profile.birthDate);
-  const statusInfo = getStatusInfo(suggestion.status);
+  
+  // Use the enhanced status info
+  const statusInfo = getEnhancedStatusInfo(suggestion.status, isFirstParty);
+  const partyIndicator = getPartyIndicator(suggestion.status, isFirstParty);
 
   const hasDeadline = suggestion.decisionDeadline && new Date(suggestion.decisionDeadline) > new Date();
   const isUrgent = hasDeadline && subDays(new Date(suggestion.decisionDeadline!), 2) < new Date();
@@ -165,7 +115,7 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
         }
       }}
     >
-      {/* Header עם מידע השדכן */}
+      {/* Header עם מידע השדכן ו-STATUS ENHANCED */}
       <div className="relative p-4 bg-gradient-to-r from-cyan-50/80 via-white to-emerald-50/50 border-b border-cyan-100/50">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -182,10 +132,28 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
             </div>
           </div>
           
-          <Badge className={cn("flex items-center gap-1.5 border shadow-sm", statusInfo.className, statusInfo.pulse && "animate-pulse")}>
-            {statusInfo.icon}
-            <span className="font-semibold text-xs">{statusInfo.label}</span>
-          </Badge>
+          {/* Enhanced Status Section */}
+          <div className="flex flex-col items-end gap-1">
+            <Badge className={cn(
+              "flex items-center gap-1.5 border shadow-sm font-semibold text-xs",
+              statusInfo.className,
+              statusInfo.pulse && "animate-pulse"
+            )}>
+              <statusInfo.icon className="w-3 h-3" />
+              <span>{statusInfo.shortLabel}</span>
+            </Badge>
+            
+            {/* Party Indicator - רק אם יש תור של מישהו */}
+            {partyIndicator.show && (
+              <Badge className={cn(
+                "text-xs px-2 py-0.5 font-bold shadow-sm",
+                partyIndicator.className
+              )}>
+                {partyIndicator.text === "תורך!" && <Zap className="w-2.5 h-2.5 ml-1" />}
+                {partyIndicator.text}
+              </Badge>
+            )}
+          </div>
         </div>
         
         {isUrgent && (
@@ -238,6 +206,18 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
       </div>
       
       <CardContent className="p-5 space-y-4">
+        {/* Enhanced Status Description */}
+        {statusInfo.description && (
+          <div className="p-3 bg-gradient-to-r from-slate-50 to-gray-50 rounded-lg border border-slate-200">
+            <div className="flex items-start gap-2">
+              <statusInfo.icon className="w-4 h-4 text-slate-600 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-slate-700 font-medium leading-relaxed">
+                {statusInfo.description}
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Core Info Grid */}
         <div className="grid grid-cols-2 gap-3">
             {targetParty.profile.city && (

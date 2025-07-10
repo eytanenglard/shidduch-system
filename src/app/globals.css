@@ -104,6 +104,63 @@
   .gender-filter-panel { border-radius: 0.5rem; padding: 0.75rem; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); border-width: 1px; }
   .male-filter-panel { border-color: #dbeaff; background-color: #f5f9ff; }
   .female-filter-panel { border-color: #f2e6ff; background-color: #faf5ff; }
+
+  /* Enhanced Suggestions Components */
+  .btn-gradient-primary {
+    background: linear-gradient(135deg, #06b6d4 0%, #10b981 100%);
+    transition: all 0.3s ease;
+  }
+
+  .btn-gradient-primary:hover {
+    background: linear-gradient(135deg, #0891b2 0%, #059669 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 15px -3px rgba(6, 182, 212, 0.3);
+  }
+
+  .btn-gradient-secondary {
+    background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+    transition: all 0.3s ease;
+  }
+
+  .btn-gradient-secondary:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #0891b2 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
+  }
+
+  .badge-gradient-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border: none;
+  }
+
+  .badge-gradient-pending {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    border: none;
+  }
+
+  .badge-gradient-info {
+    background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+    color: white;
+    border: none;
+  }
+
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .image-overlay-gradient {
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.7) 0%,
+      rgba(0, 0, 0, 0.3) 50%,
+      transparent 100%
+    );
+  }
 }
 
 /* 4. Utilities Layer: כלי עזר מותאמים אישית ותיקוני RTL */
@@ -130,24 +187,177 @@
   .slider, .rtl-slider-container { direction: ltr !important; }
   .rtl-number-display { direction: ltr; display: inline-block; text-align: center; }
 
-  /* ======================================= */
-  /* ||   הוספה: מחלקה לאנימציית המובייל   || */
-  /* ======================================= */
+  /* Enhanced Suggestions Utilities */
   .animate-fade-in-up {
     animation: fade-in-up 0.6s ease-out forwards;
   }
-    /* !!! הוסף את ה-CLASS החדש כאן !!! */
+
   .animate-mobile-match-point {
     animation: mobile-match-point-appear 0.5s ease-out forwards;
   }
 
+  .animate-scale-in {
+    animation: scale-in 0.3s ease-out forwards;
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s infinite;
+  }
+
+  .animate-pulse-subtle {
+    animation: pulse-subtle 2s ease-in-out infinite;
+  }
+
+  .animate-urgent-pulse {
+    animation: urgent-pulse 1.5s infinite;
+  }
+
+  .animate-gentle-shake {
+    animation: gentle-shake 0.3s ease-in-out;
+  }
+
+  .animate-corner-fill {
+    animation: corner-fill 0.5s ease-out forwards;
+  }
+
+  .card-hover-elegant {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-hover-elegant:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+
+  .scrollbar-elegant {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(6, 182, 212, 0.3) transparent;
+  }
+
+  .scrollbar-elegant::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-elegant::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-elegant::-webkit-scrollbar-thumb {
+    background: rgba(6, 182, 212, 0.3);
+    border-radius: 3px;
+  }
+
+  .scrollbar-elegant::-webkit-scrollbar-thumb:hover {
+    background: rgba(6, 182, 212, 0.5);
+  }
+
+  .glow-effect {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  }
+
+  .status-transition {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  }
+
+  .bg-suggestion-gradient {
+    background: linear-gradient(135deg, 
+      rgba(99, 102, 241, 0.05) 0%, 
+      rgba(139, 92, 246, 0.05) 25%,
+      rgba(59, 130, 246, 0.05) 50%,
+      rgba(6, 182, 212, 0.05) 75%,
+      rgba(16, 185, 129, 0.05) 100%);
+  }
+
+  .bg-gradient-header {
+    background: linear-gradient(135deg, 
+      rgba(6, 182, 212, 0.08) 0%, 
+      rgba(255, 255, 255, 0.95) 50%, 
+      rgba(16, 185, 129, 0.08) 100%
+    );
+  }
+
+  .text-shadow-elegant {
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .backdrop-blur-elegant {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .focus-elegant:focus {
+    outline: none;
+    ring: 2px;
+    ring-color: rgba(6, 182, 212, 0.5);
+    ring-offset: 2px;
+  }
+
+  .border-elegant {
+    border: 1px solid rgba(6, 182, 212, 0.2);
+  }
+
+  .border-elegant-hover:hover {
+    border-color: rgba(6, 182, 212, 0.4);
+  }
+
+  .loading-skeleton {
+    background: linear-gradient(
+      90deg,
+      rgba(6, 182, 212, 0.1) 25%,
+      rgba(6, 182, 212, 0.2) 50%,
+      rgba(6, 182, 212, 0.1) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  .min-h-suggestion-card {
+    min-height: 400px;
+  }
+
+  .min-h-suggestion-modal {
+    min-height: 600px;
+  }
+
+  .spacing-suggestion {
+    padding: 1.5rem;
+  }
+
+  /* Status indicators */
+  .status-indicator {
+    position: relative;
+  }
+
+  .status-indicator::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 2px solid white;
+  }
+
+  .status-indicator.status-active::before {
+    background-color: #10b981;
+  }
+
+  .status-indicator.status-pending::before {
+    background-color: #f59e0b;
+    animation: pulse-subtle 2s infinite;
+  }
+
+  .status-indicator.status-inactive::before {
+    background-color: #6b7280;
+  }
 }
 
 /* 5. Keyframes for Animations */
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes gradient-anim { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-25px); } }
-@keyframes shimmer { 100% { transform: translateX(100%); } }
+@keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
 
 /* Hero Section Synergy Visualization Animations */
 @keyframes synergy-enter-left { from { opacity: 0; transform: translate(-30px, -50%); } to { opacity: 1; transform: translate(0, -50%); } }
@@ -155,9 +365,7 @@
 @keyframes draw-line { to { stroke-dashoffset: 0; } }
 @keyframes match-point-appear { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 70% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
 
-/* ============================================== */
-/* ||   הוספה: Keyframe לאנימציית המובייל     || */
-/* ============================================== */
+/* Enhanced Suggestions Keyframes */
 @keyframes fade-in-up {
   from {
     opacity: 0;
@@ -169,7 +377,6 @@
   }
 }
 
-/* !!! הוסף את ה-KEYFRAME החדש כאן !!! */
 @keyframes mobile-match-point-appear {
   from {
     transform: scale(0.8);
@@ -181,203 +388,75 @@
   }
 }
 
-/* 6. Animation Utility Classes (עם התזמונים החדשים) */
-.animate-gradient { animation: gradient-anim 4s ease infinite; }
-.animate-gradient-slow { animation: gradient-anim 15s ease infinite; }
-.animate-float-slow { animation: float 8s ease-in-out infinite; }
-.group-hover\:animate-shimmer { animation: shimmer 2s infinite; }
-
-/* Hero Section Animation Classes - THE FULL SEQUENCE */
-.animate-synergy-enter-left { animation: synergy-enter-left 0.8s ease-out forwards 0.2s; }
-.animate-synergy-enter-right { animation: synergy-enter-right 0.8s ease-out forwards 0.2s; }
-
-/* שלב 1: הקווים נעים זה לקראת זה. מסתיים ב-1.7 שניות (0.5s delay + 1.2s duration). */
-.path-draw {
-  stroke-dasharray: 500;
-  stroke-dashoffset: 500;
-  animation: draw-line 1.2s ease-out forwards 0.5s;
-}
-
-/* 
-  [FIX] שלב 2: הלב מופיע מיד כשהקווים נפגשים.
-  השהיה של 1.7 שניות כדי להמתין לסיום אנימציית הקווים.
-*/
-.animate-match-point-appear {
-  animation: match-point-appear 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards 1.7s;
-}
-
-/* src/app/components/suggestions/suggestions.css */
-
-/* אנימציות עדינות */
-@keyframes fade-in-up {
-  0% {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 @keyframes scale-in {
-  0% {
+  from {
     opacity: 0;
     transform: scale(0.95);
   }
-  100% {
+  to {
     opacity: 1;
     transform: scale(1);
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
   }
 }
 
 @keyframes pulse-subtle {
   0%, 100% {
     opacity: 1;
+    transform: scale(1);
   }
   50% {
     opacity: 0.8;
+    transform: scale(1.02);
   }
 }
 
-/* קלאסים לאנימציות */
-.animate-fade-in-up {
-  animation: fade-in-up 0.6s ease-out;
+@keyframes urgent-pulse {
+  0%, 100% {
+    background-color: rgb(249 115 22);
+    box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.7);
+  }
+  50% {
+    background-color: rgb(234 88 12);
+    box-shadow: 0 0 0 8px rgba(249, 115, 22, 0);
+  }
 }
 
-.animate-scale-in {
-  animation: scale-in 0.4s ease-out;
+@keyframes gentle-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-1px); }
+  75% { transform: translateX(1px); }
 }
 
-.animate-shimmer {
-  animation: shimmer 2s infinite;
+@keyframes corner-fill {
+  from {
+    clip-path: polygon(0 0, 0 0, 0 100%, 0% 100%);
+  }
+  to {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
+  }
 }
 
-.animate-pulse-subtle {
-  animation: pulse-subtle 2s infinite;
+/* 6. Animation Utility Classes */
+.animate-gradient { animation: gradient-anim 4s ease infinite; }
+.animate-gradient-slow { animation: gradient-anim 15s ease infinite; }
+.animate-float-slow { animation: float 8s ease-in-out infinite; }
+.group-hover\:animate-shimmer { animation: shimmer 2s infinite; }
+
+/* Hero Section Animation Classes */
+.animate-synergy-enter-left { animation: synergy-enter-left 0.8s ease-out forwards 0.2s; }
+.animate-synergy-enter-right { animation: synergy-enter-right 0.8s ease-out forwards 0.2s; }
+
+.path-draw {
+  stroke-dasharray: 500;
+  stroke-dashoffset: 500;
+  animation: draw-line 1.2s ease-out forwards 0.5s;
 }
 
-/* Scrollbar styling */
-.scrollbar-elegant {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(6, 182, 212, 0.3) transparent;
+.animate-match-point-appear {
+  animation: match-point-appear 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards 1.7s;
 }
 
-.scrollbar-elegant::-webkit-scrollbar {
-  width: 6px;
-}
-
-.scrollbar-elegant::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.scrollbar-elegant::-webkit-scrollbar-thumb {
-  background: rgba(6, 182, 212, 0.3);
-  border-radius: 3px;
-}
-
-.scrollbar-elegant::-webkit-scrollbar-thumb:hover {
-  background: rgba(6, 182, 212, 0.5);
-}
-
-/* Card hover effects */
-.card-hover-elegant {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.card-hover-elegant:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
-
-/* גרדיאנטים מותאמים אישית */
-.bg-gradient-suggestion {
-  background: linear-gradient(135deg, 
-    rgba(6, 182, 212, 0.05) 0%, 
-    rgba(255, 255, 255, 1) 25%, 
-    rgba(16, 185, 129, 0.05) 100%
-  );
-}
-
-.bg-gradient-header {
-  background: linear-gradient(135deg, 
-    rgba(6, 182, 212, 0.08) 0%, 
-    rgba(255, 255, 255, 0.95) 50%, 
-    rgba(16, 185, 129, 0.08) 100%
-  );
-}
-
-/* טקסט עם צל לקריאות טובה יותר */
-.text-shadow-elegant {
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* אפקטים מותאמים לכפתורים */
-.btn-gradient-primary {
-  background: linear-gradient(135deg, #06b6d4 0%, #10b981 100%);
-  transition: all 0.3s ease;
-}
-
-.btn-gradient-primary:hover {
-  background: linear-gradient(135deg, #0891b2 0%, #059669 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 10px 15px -3px rgba(6, 182, 212, 0.3);
-}
-
-.btn-gradient-secondary {
-  background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
-  transition: all 0.3s ease;
-}
-
-.btn-gradient-secondary:hover {
-  background: linear-gradient(135deg, #2563eb 0%, #0891b2 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
-}
-
-/* Backdrop blur effects */
-.backdrop-blur-elegant {
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-/* Badge styles מותאמים */
-.badge-gradient-success {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
-  border: none;
-}
-
-.badge-gradient-pending {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  color: white;
-  border: none;
-}
-
-.badge-gradient-info {
-  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
-  color: white;
-  border: none;
-}
-
-/* Focus states מותאמים */
-.focus-elegant:focus {
-  outline: none;
-  ring: 2px;
-  ring-color: rgba(6, 182, 212, 0.5);
-  ring-offset: 2px;
-}
-
-/* Mobile optimizations */
+/* 7. Responsive Optimizations */
 @media (max-width: 768px) {
   .animate-fade-in-up {
     animation-duration: 0.4s;
@@ -386,11 +465,24 @@
   .card-hover-elegant:hover {
     transform: translateY(-2px);
   }
+
+  .spacing-suggestion {
+    padding: 2rem;
+  }
 }
 
-/* Dark mode support (אם נרצה בעתיד) */
+/* 8. Dark Mode Support */
 @media (prefers-color-scheme: dark) {
-  .bg-gradient-suggestion {
+  .glass-effect {
+    background: rgba(17, 24, 39, 0.95);
+    border: 1px solid rgba(75, 85, 99, 0.3);
+  }
+  
+  .scrollbar-elegant::-webkit-scrollbar-thumb {
+    background: rgba(156, 163, 175, 0.3);
+  }
+
+  .bg-suggestion-gradient {
     background: linear-gradient(135deg, 
       rgba(6, 182, 212, 0.1) 0%, 
       rgba(17, 24, 39, 1) 25%, 
@@ -399,49 +491,7 @@
   }
 }
 
-/* גבהים מינימליים למיכלים */
-.min-h-suggestion-card {
-  min-height: 400px;
-}
-
-.min-h-suggestion-modal {
-  min-height: 600px;
-}
-
-/* רווחים קבועים */
-.spacing-suggestion {
-  padding: 1.5rem;
-}
-
-@media (min-width: 768px) {
-  .spacing-suggestion {
-    padding: 2rem;
-  }
-}
-
-/* אפקטים לתמונות */
-.image-overlay-gradient {
-  background: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 0.7) 0%,
-    rgba(0, 0, 0, 0.3) 50%,
-    transparent 100%
-  );
-}
-
-/* Loading states */
-.loading-skeleton {
-  background: linear-gradient(
-    90deg,
-    rgba(6, 182, 212, 0.1) 25%,
-    rgba(6, 182, 212, 0.2) 50%,
-    rgba(6, 182, 212, 0.1) 75%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-}
-
-/* סגנונות למצב הדפסה */
+/* 9. Print Styles */
 @media print {
   .no-print {
     display: none !important;
@@ -451,42 +501,4 @@
     box-shadow: none !important;
     transform: none !important;
   }
-}
-
-/* גבולות עדינים */
-.border-elegant {
-  border: 1px solid rgba(6, 182, 212, 0.2);
-}
-
-.border-elegant-hover:hover {
-  border-color: rgba(6, 182, 212, 0.4);
-}
-
-/* סגנונות לסטטוס indicators */
-.status-indicator {
-  position: relative;
-}
-
-.status-indicator::before {
-  content: '';
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  border: 2px solid white;
-}
-
-.status-indicator.status-active::before {
-  background-color: #10b981;
-}
-
-.status-indicator.status-pending::before {
-  background-color: #f59e0b;
-  animation: pulse-subtle 2s infinite;
-}
-
-.status-indicator.status-inactive::before {
-  background-color: #6b7280;
 }

@@ -5,25 +5,14 @@ import { format } from "date-fns";
 import { he } from "date-fns/locale";
 import {
   Clock,
-  CheckCircle,
-  XCircle,
   MessageCircle,
-  Heart,
-  AlertCircle,
   User,
-  Calendar,
-  FileText,
-  Send,
-  UserPlus,
-  Handshake,
-  Star,
-  Gift,
-  Phone,
-  ArrowDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { getEnhancedStatusInfo } from "@/lib/utils/suggestionUtils";
+import type { MatchSuggestionStatus } from "@prisma/client";
 
 interface StatusHistoryItem {
   id: string;
@@ -34,175 +23,19 @@ interface StatusHistoryItem {
 
 interface SuggestionTimelineProps {
   statusHistory: StatusHistoryItem[];
+  userId?: string;
   className?: string;
 }
 
-const getStatusInfo = (status: string) => {
-  switch (status) {
-    case "DRAFT":
-      return {
-        label: "טיוטה נוצרה",
-        icon: FileText,
-        color: "from-gray-400 to-gray-500",
-        bgColor: "from-gray-50 to-gray-100",
-        textColor: "text-gray-700",
-        description: "ההצעה נוצרה ונמצאת בהכנה",
-        category: "preparation"
-      };
-    case "PENDING_FIRST_PARTY":
-      return {
-        label: "נשלח לצד הראשון",
-        icon: Send,
-        color: "from-cyan-400 to-blue-500",
-        bgColor: "from-cyan-50 to-blue-100",
-        textColor: "text-cyan-700",
-        description: "ההצעה נשלחה וממתינה לתשובת הצד הראשון",
-        category: "pending"
-      };
-    case "FIRST_PARTY_APPROVED":
-      return {
-        label: "הצד הראשון אישר",
-        icon: CheckCircle,
-        color: "from-emerald-400 to-green-500",
-        bgColor: "from-emerald-50 to-green-100",
-        textColor: "text-emerald-700",
-        description: "הצד הראשון אישר את ההצעה בהתלהבות",
-        category: "success"
-      };
-    case "FIRST_PARTY_DECLINED":
-      return {
-        label: "הצד הראשון דחה",
-        icon: XCircle,
-        color: "from-red-400 to-red-500",
-        bgColor: "from-red-50 to-red-100",
-        textColor: "text-red-700",
-        description: "הצד הראשון החליט שזה לא מתאים",
-        category: "declined"
-      };
-    case "PENDING_SECOND_PARTY":
-      return {
-        label: "נשלח לצד השני",
-        icon: UserPlus,
-        color: "from-blue-400 to-cyan-500",
-        bgColor: "from-blue-50 to-cyan-100",
-        textColor: "text-blue-700",
-        description: "ההצעה הועברה לצד השני לבדיקה",
-        category: "pending"
-      };
-    case "SECOND_PARTY_APPROVED":
-      return {
-        label: "הצד השני אישר",
-        icon: CheckCircle,
-        color: "from-emerald-400 to-green-500",
-        bgColor: "from-emerald-50 to-green-100",
-        textColor: "text-emerald-700",
-        description: "הצד השני גם הוא מעוניין להמשיך",
-        category: "success"
-      };
-    case "SECOND_PARTY_DECLINED":
-      return {
-        label: "הצד השני דחה",
-        icon: XCircle,
-        color: "from-red-400 to-red-500",
-        bgColor: "from-red-50 to-red-100",
-        textColor: "text-red-700",
-        description: "הצד השני החליט שזה לא בשבילו",
-        category: "declined"
-      };
-    case "CONTACT_DETAILS_SHARED":
-      return {
-        label: "פרטי קשר שותפו",
-        icon: Phone,
-        color: "from-cyan-400 to-emerald-500",
-        bgColor: "from-cyan-50 to-emerald-100",
-        textColor: "text-cyan-700",
-        description: "פרטי הקשר של שני הצדדים הועברו",
-        category: "progress"
-      };
-    case "AWAITING_FIRST_DATE_FEEDBACK":
-      return {
-        label: "ממתין למשוב פגישה",
-        icon: Calendar,
-        color: "from-amber-400 to-orange-500",
-        bgColor: "from-amber-50 to-orange-100",
-        textColor: "text-amber-700",
-        description: "ממתין למשוב לאחר הפגישה הראשונה",
-        category: "pending"
-      };
-    case "DATING":
-      return {
-        label: "בתהליך היכרות",
-        icon: Heart,
-        color: "from-pink-400 to-rose-500",
-        bgColor: "from-pink-50 to-rose-100",
-        textColor: "text-pink-700",
-        description: "הצדדים נמצאים בתהליך היכרות פעיל",
-        category: "progress"
-      };
-    case "ENGAGED":
-      return {
-        label: "אירוסין! 💍",
-        icon: Star,
-        color: "from-yellow-400 to-amber-500",
-        bgColor: "from-yellow-50 to-amber-100",
-        textColor: "text-yellow-700",
-        description: "מזל טוב! הצדדים התארסו",
-        category: "celebration"
-      };
-    case "MARRIED":
-      return {
-        label: "נישואין! 🎉",
-        icon: Gift,
-        color: "from-rose-400 to-pink-500",
-        bgColor: "from-rose-50 to-pink-100",
-        textColor: "text-rose-700",
-        description: "מזל טוב! הצדדים נישאו בשמחה",
-        category: "celebration"
-      };
-    case "CANCELLED":
-      return {
-        label: "ההצעה בוטלה",
-        icon: XCircle,
-        color: "from-gray-400 to-gray-500",
-        bgColor: "from-gray-50 to-gray-100",
-        textColor: "text-gray-700",
-        description: "ההצעה בוטלה מסיבות שונות",
-        category: "declined"
-      };
-    case "CLOSED":
-      return {
-        label: "ההצעה נסגרה",
-        icon: FileText,
-        color: "from-slate-400 to-slate-500",
-        bgColor: "from-slate-50 to-slate-100",
-        textColor: "text-slate-700",
-        description: "התהליך הסתיים והקובץ נסגר",
-        category: "declined"
-      };
-    default:
-      return {
-        label: status,
-        icon: AlertCircle,
-        color: "from-gray-400 to-gray-500",
-        bgColor: "from-gray-50 to-gray-100",
-        textColor: "text-gray-700",
-        description: "סטטוס לא מוכר במערכת",
-        category: "other"
-      };
-  }
-};
-
 const getCategoryColor = (category: string) => {
   switch (category) {
-    case "preparation":
-      return "border-gray-200";
     case "pending":
-      return "border-cyan-200";
-    case "success":
+      return "border-purple-200";
+    case "approved":
       return "border-emerald-200";
     case "progress":
       return "border-blue-200";
-    case "celebration":
+    case "completed":
       return "border-yellow-200";
     case "declined":
       return "border-red-200";
@@ -212,7 +45,7 @@ const getCategoryColor = (category: string) => {
 };
 
 const TimelineNode: React.FC<{
-  statusInfo: ReturnType<typeof getStatusInfo>;
+  statusInfo: ReturnType<typeof getEnhancedStatusInfo>;
   isLatest: boolean;
   isLast: boolean;
 }> = ({ statusInfo, isLatest, isLast }) => {
@@ -232,8 +65,14 @@ const TimelineNode: React.FC<{
       
       {/* Node Circle */}
       <div className={cn(
-        "relative z-10 w-12 h-12 rounded-full bg-gradient-to-br shadow-lg flex items-center justify-center text-white",
-        statusInfo.color,
+        "relative z-10 w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-white",
+        statusInfo.className.includes('purple') ? "bg-gradient-to-br from-purple-400 to-purple-500" :
+        statusInfo.className.includes('emerald') || statusInfo.className.includes('green') ? "bg-gradient-to-br from-emerald-400 to-green-500" :
+        statusInfo.className.includes('blue') || statusInfo.className.includes('cyan') ? "bg-gradient-to-br from-blue-400 to-cyan-500" :
+        statusInfo.className.includes('red') || statusInfo.className.includes('rose') ? "bg-gradient-to-br from-red-400 to-rose-500" :
+        statusInfo.className.includes('yellow') || statusInfo.className.includes('amber') ? "bg-gradient-to-br from-yellow-400 to-amber-500" :
+        statusInfo.className.includes('orange') ? "bg-gradient-to-br from-orange-400 to-orange-500" :
+        "bg-gradient-to-br from-gray-400 to-gray-500",
         isLatest && "ring-4 ring-cyan-200 animate-pulse-subtle"
       )}>
         <IconComponent className="w-6 h-6" />
@@ -244,6 +83,7 @@ const TimelineNode: React.FC<{
 
 const SuggestionTimeline: React.FC<SuggestionTimelineProps> = ({ 
   statusHistory,
+  userId,
   className
 }) => {
   // Sort history from newest to oldest
@@ -264,7 +104,10 @@ const SuggestionTimeline: React.FC<SuggestionTimelineProps> = ({
   }
 
   // Get info for the latest status to use in the summary section
-  const latestStatusInfo = getStatusInfo(sortedHistory[0].status);
+  const latestStatusInfo = getEnhancedStatusInfo(
+    sortedHistory[0].status as MatchSuggestionStatus,
+    userId ? true : false
+  );
 
   return (
     <Card className={cn("border-0 shadow-lg overflow-hidden", className)}>
@@ -281,7 +124,10 @@ const SuggestionTimeline: React.FC<SuggestionTimelineProps> = ({
         
         <div className="space-y-6">
           {sortedHistory.map((item, index) => {
-            const statusInfo = getStatusInfo(item.status);
+            const statusInfo = getEnhancedStatusInfo(
+              item.status as MatchSuggestionStatus,
+              userId ? true : false
+            );
             const isLatest = index === 0;
             const isLast = index === sortedHistory.length - 1;
             
@@ -311,14 +157,23 @@ const SuggestionTimeline: React.FC<SuggestionTimelineProps> = ({
                     getCategoryColor(statusInfo.category),
                     isLatest && "shadow-md"
                   )}>
-                    <CardContent className={cn("p-4 bg-gradient-to-r", statusInfo.bgColor)}>
+                    <CardContent className={cn(
+                      "p-4",
+                      statusInfo.className.includes('purple') ? "bg-purple-50" :
+                      statusInfo.className.includes('emerald') || statusInfo.className.includes('green') ? "bg-emerald-50" :
+                      statusInfo.className.includes('blue') || statusInfo.className.includes('cyan') ? "bg-blue-50" :
+                      statusInfo.className.includes('red') || statusInfo.className.includes('rose') ? "bg-red-50" :
+                      statusInfo.className.includes('yellow') || statusInfo.className.includes('amber') ? "bg-yellow-50" :
+                      statusInfo.className.includes('orange') ? "bg-orange-50" :
+                      "bg-gray-50"
+                    )}>
                       <div className="flex justify-between items-start mb-3">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <Badge 
                               className={cn(
-                                "bg-gradient-to-r text-white border-0 shadow-sm font-semibold",
-                                statusInfo.color
+                                "border-0 shadow-sm font-semibold",
+                                statusInfo.className
                               )}
                             >
                               {statusInfo.label}
@@ -329,7 +184,16 @@ const SuggestionTimeline: React.FC<SuggestionTimelineProps> = ({
                               </Badge>
                             )}
                           </div>
-                          <p className={cn("text-sm font-medium mb-2", statusInfo.textColor)}>
+                          <p className={cn(
+                            "text-sm font-medium mb-2",
+                            statusInfo.className.includes('purple') ? "text-purple-700" :
+                            statusInfo.className.includes('emerald') || statusInfo.className.includes('green') ? "text-emerald-700" :
+                            statusInfo.className.includes('blue') || statusInfo.className.includes('cyan') ? "text-blue-700" :
+                            statusInfo.className.includes('red') || statusInfo.className.includes('rose') ? "text-red-700" :
+                            statusInfo.className.includes('yellow') || statusInfo.className.includes('amber') ? "text-yellow-700" :
+                            statusInfo.className.includes('orange') ? "text-orange-700" :
+                            "text-gray-700"
+                          )}>
                             {statusInfo.description}
                           </p>
                         </div>
@@ -380,9 +244,9 @@ const SuggestionTimeline: React.FC<SuggestionTimelineProps> = ({
             </div>
             <div className="space-y-1">
               <div className="text-2xl font-bold text-amber-600">
-                {latestStatusInfo.category === 'celebration' ? '🎉' : 
+                {latestStatusInfo.category === 'completed' ? '🎉' : 
                  latestStatusInfo.category === 'progress' ? '⏳' : 
-                 latestStatusInfo.category === 'success' ? '✅' : '📋'}
+                 latestStatusInfo.category === 'approved' ? '✅' : '📋'}
               </div>
               <div className="text-xs text-gray-500 font-medium">סטטוס נוכחי</div>
             </div>

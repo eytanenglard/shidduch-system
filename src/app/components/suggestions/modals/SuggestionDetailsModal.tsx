@@ -1,6 +1,7 @@
+// src/app/components/suggestions/modals/SuggestionDetailsModal.tsx
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -44,18 +45,44 @@ import {
   Music,
   Camera,
   Coffee,
-  Globe
+  Globe,
+  Maximize,
+  Minimize,
+  AlertTriangle,
+  Bot
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+    Alert,
+    AlertDescription,
+    AlertTitle as UiAlertTitle, // Renamed to avoid conflict
+} from "@/components/ui/alert";
 import { toast } from "sonner";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { getInitials, cn } from "@/lib/utils";
 import type { QuestionnaireResponse } from "@/types/next-auth";
+import type { AiSuggestionAnalysisResult } from '@/lib/services/aiService';
 
 import { ProfileCard } from "@/app/components/profile";
 import SuggestionTimeline from "../timeline/SuggestionTimeline";
 import InquiryThreadView from "../inquiries/InquiryThreadView";
 import { AskMatchmakerDialog } from "../dialogs/AskMatchmakerDialog";
 import { UserAiAnalysisDialog } from '../dialogs/UserAiAnalysisDialog';
-import MatchCompatibilityView from "../compatibility/MatchCompatibilityView";
+import UserAiAnalysisDisplay from "../compatibility/UserAiAnalysisDisplay";
 import type { ExtendedMatchSuggestion } from "../types";
 
 // ===============================
@@ -336,14 +363,14 @@ const EnhancedHeroSection: React.FC<{
                       {personalNote && (
                         <div className="mb-4 p-4 bg-white/70 rounded-xl">
                           <h4 className="font-semibold text-cyan-700 mb-2">מיועד אישית עבורך:</h4>
-                          <p className="text-cyan-900 leading-relaxed italic">&ldquo;{personalNote}&rdquo;</p>
+                          <p className="text-cyan-900 leading-relaxed italic">“{personalNote}”</p>
                         </div>
                       )}
                       
                       {matchingReason && (
                         <div className="p-4 bg-white/70 rounded-xl">
                           <h4 className="font-semibold text-blue-700 mb-2">הסיבה להתאמה:</h4>
-                          <p className="text-blue-900 leading-relaxed">&ldquo;{matchingReason}&rdquo;</p>
+                          <p className="text-blue-900 leading-relaxed">“{matchingReason}”</p>
                         </div>
                       )}
                     </div>
@@ -508,49 +535,97 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   const [activeTab, setActiveTab] = useState("presentation");
   const [showAskDialog, setShowAskDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [actionToConfirm, setActionToConfirm] = useState<'approve' | 'decline' | null>(null);
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  const dialogContentRef = useRef<HTMLDivElement>(null);
+
   const [questionnaire, setQuestionnaire] = useState<QuestionnaireResponse | null>(null);
   const [isQuestionnaireLoading, setIsQuestionnaireLoading] = useState(false);
+  
+  const [aiAnalysis, setAiAnalysis] = useState<AiSuggestionAnalysisResult | null>(null);
+  const [isAnalysisLoading, setIsAnalysisLoading] = useState(false);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
 
   // ===============================
-  // EFFECTS
+  // COMPUTED VALUES & HOOKS
   // ===============================
+
+  const isFirstParty = suggestion?.firstPartyId === userId;
+  const targetParty = suggestion ? (isFirstParty ? suggestion.secondParty : suggestion.firstParty) : null;
+  const targetPartyId = targetParty?.id;
+
+  const fetchAiAnalysis = useCallback(async () => {
+    if (!suggestion || !targetPartyId) return;
+    
+    setIsAnalysisLoading(true);
+    setAnalysisError(null);
+    try {
+        const response = await fetch('/api/ai/analyze-suggestion', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ suggestedUserId: targetPartyId }),
+        });
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+            throw new Error(result.message || 'שגיאה בקבלת ניתוח ההצעה.');
+        }
+        setAiAnalysis(result.data);
+    } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'אירעה שגיאה לא צפויה.';
+        setAnalysisError(errorMessage);
+        toast.error('שגיאה בטעינת ניתוח ההתאמה.');
+    } finally {
+        setIsAnalysisLoading(false);
+    }
+  }, [suggestion, targetPartyId]);
 
   useEffect(() => {
-    if (!isOpen || !suggestion) return;
-    
-    setActiveTab("presentation");
-    setQuestionnaire(null);
+    if (isOpen && activeTab === 'compatibility' && !aiAnalysis && !analysisError) {
+      fetchAiAnalysis();
+    }
+  }, [isOpen, activeTab, aiAnalysis, analysisError, fetchAiAnalysis]);
 
-    const targetPartyId = suggestion.firstPartyId === userId
-      ? suggestion.secondPartyId
-      : suggestion.firstPartyId;
+  useEffect(() => {
+    if (!isOpen) {
+      setAiAnalysis(null);
+      setAnalysisError(null);
+      setIsAnalysisLoading(false);
+    } else {
+      setActiveTab("presentation");
+      setQuestionnaire(null);
+      setIsFullScreen(!!document.fullscreenElement);
 
-    const fetchQuestionnaire = async () => {
-      setIsQuestionnaireLoading(true);
-      try {
-        const response = await fetch(`/api/profile/questionnaire?userId=${targetPartyId}`);
-        const data = await response.json();
-        if (response.ok && data.success) {
-          setQuestionnaire(data.questionnaireResponse);
-        }
-      } catch (error) {
-        console.error("Error fetching questionnaire:", error);
-      } finally {
-        setIsQuestionnaireLoading(false);
+      if (targetPartyId) {
+        const fetchQuestionnaire = async () => {
+          setIsQuestionnaireLoading(true);
+          try {
+            const response = await fetch(`/api/profile/questionnaire?userId=${targetPartyId}`);
+            const data = await response.json();
+            if (response.ok && data.success) {
+              setQuestionnaire(data.questionnaireResponse);
+            }
+          } catch (error) {
+            console.error("Error fetching questionnaire:", error);
+          } finally {
+            setIsQuestionnaireLoading(false);
+          }
+        };
+        fetchQuestionnaire();
       }
-    };
+    }
 
-    fetchQuestionnaire();
-  }, [isOpen, suggestion, userId]);
+    const handleFullScreenChange = () => setIsFullScreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handleFullScreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullScreenChange);
+  }, [isOpen, targetPartyId]);
 
   // ===============================
-  // COMPUTED VALUES
+  // EARLY RETURN & RENDER LOGIC
   // ===============================
   
-  if (!suggestion) return null;
+  if (!suggestion || !targetParty) return null;
 
-  const isFirstParty = suggestion.firstPartyId === userId;
-  const targetParty = isFirstParty ? suggestion.secondParty : suggestion.firstParty;
   const canActOnSuggestion = 
     (isFirstParty && suggestion.status === "PENDING_FIRST_PARTY") ||
     (!isFirstParty && suggestion.status === "PENDING_SECOND_PARTY");
@@ -558,11 +633,34 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   // ===============================
   // EVENT HANDLERS
   // ===============================
+  const toggleFullScreen = () => {
+    if (!dialogContentRef.current) return;
 
-  const handleStatusChange = async (newStatus: string) => {
-    if (!onStatusChange) return;
-    
+    if (!document.fullscreenElement) {
+      dialogContentRef.current.requestFullscreen().catch(err => {
+        toast.error("לא ניתן לעבור למסך מלא", {
+          description: "יתכן שהדפדפן שלך אינו תומך או חוסם אפשרות זו."
+        });
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  };
+
+  const triggerConfirmDialog = (action: 'approve' | 'decline') => {
+    setActionToConfirm(action);
+    setShowConfirmDialog(true);
+  };
+  
+  const executeConfirmedAction = async () => {
+    if (!onStatusChange || !suggestion || !actionToConfirm) return;
+
+    const newStatus = actionToConfirm === 'approve'
+      ? (isFirstParty ? "FIRST_PARTY_APPROVED" : "SECOND_PARTY_APPROVED")
+      : (isFirstParty ? "FIRST_PARTY_DECLINED" : "SECOND_PARTY_DECLINED");
+
     setIsSubmitting(true);
+    setShowConfirmDialog(false);
     try {
       await onStatusChange(suggestion.id, newStatus);
       toast.success("הסטטוס עודכן בהצלחה! 🎉", {
@@ -576,6 +674,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
       toast.error("אירעה שגיאה בעדכון הסטטוס.");
     } finally {
       setIsSubmitting(false);
+      setActionToConfirm(null);
     }
   };
   
@@ -602,16 +701,6 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
     }
   };
 
-  const handleApprove = () => {
-    const newStatus = isFirstParty ? "FIRST_PARTY_APPROVED" : "SECOND_PARTY_APPROVED";
-    handleStatusChange(newStatus);
-  };
-
-  const handleDecline = () => {
-    const newStatus = isFirstParty ? "FIRST_PARTY_DECLINED" : "SECOND_PARTY_DECLINED";
-    handleStatusChange(newStatus);
-  };
-
   // ===============================
   // RENDER
   // ===============================
@@ -620,6 +709,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent 
+          ref={dialogContentRef}
           className="max-w-7xl w-[95vw] h-[95vh] flex flex-col p-0 shadow-2xl rounded-3xl border-0 bg-white overflow-hidden" 
           dir="rtl"
         >
@@ -631,19 +721,37 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
               </div>
               <div>
                 <DialogTitle className="text-xl font-bold text-gray-800">
-                  הצעת שידוך מיוחדת
+                  הצעה מיוחדת
                 </DialogTitle>
                 <p className="text-sm text-gray-600">אהבה אמיתית מתחילה כאן</p>
               </div>
             </div>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={onClose} 
-              className="rounded-full h-10 w-10 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </Button>
+            <div className="flex items-center gap-2">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={toggleFullScreen}
+                        className="rounded-full h-10 w-10 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                      >
+                        {isFullScreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{isFullScreen ? 'צא ממסך מלא' : 'מסך מלא'}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={onClose}
+                  className="rounded-full h-10 w-10 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
+                  <X className="w-5 h-5" />
+                </Button>
+            </div>
           </DialogHeader>
           
           <ScrollArea className="flex-grow min-h-0">
@@ -717,12 +825,43 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
               </TabsContent>
 
               {/* Compatibility Tab */}
-              <TabsContent value="compatibility" className="mt-0 p-2 md:p-4">
-                <MatchCompatibilityView 
-                  firstParty={isFirstParty ? suggestion.firstParty : suggestion.secondParty}
-                  secondParty={isFirstParty ? suggestion.secondParty : suggestion.firstParty}
-                  matchingReason={suggestion.matchingReason}
-                />
+              <TabsContent value="compatibility" className="mt-0 p-2 md:p-4 bg-slate-50 min-h-full">
+                {isAnalysisLoading ? (
+                  <div className="flex flex-col items-center justify-center h-full min-h-[500px] text-center space-y-6">
+                    <div className="relative">
+                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-200 to-emerald-200 animate-pulse"></div>
+                      <Loader2 className="w-12 h-12 text-cyan-600 animate-spin absolute inset-0 m-auto" />
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-xl font-semibold text-gray-700">ה-AI שלנו בוחן את ההתאמה...</p>
+                      <p className="text-gray-500 max-w-md">זה עשוי לקחת מספר שניות. אנו מנתחים עשרות פרמטרים להבנה מעמיקה של ההתאמה.</p>
+                    </div>
+                  </div>
+                ) : analysisError ? (
+                  <div className="flex flex-col items-center justify-center h-full min-h-[500px] text-center space-y-6">
+                    <div className="p-4 rounded-full bg-red-100">
+                      <AlertTriangle className="h-12 w-12 text-red-600" />
+                    </div>
+                    <Alert variant="destructive" className="max-w-md border-red-200 bg-red-50">
+                      <AlertTriangle className="h-5 w-5" />
+                      <UiAlertTitle className="text-red-800">אופס, משהו השתבש</UiAlertTitle>
+                      <AlertDescription className="text-red-700">
+                        <p>לא הצלחנו להשלים את ניתוח ההתאמה כרגע.</p>
+                        <p className="text-sm mt-2 opacity-90">{analysisError}</p>
+                      </AlertDescription>
+                    </Alert>
+                    <Button
+                      onClick={fetchAiAnalysis}
+                      variant="outline"
+                      className="mt-4 border-red-200 text-red-600 hover:bg-red-50"
+                    >
+                      <Bot className="w-4 h-4 ml-2" />
+                      נסה שוב
+                    </Button>
+                  </div>
+                ) : aiAnalysis ? (
+                  <UserAiAnalysisDisplay analysis={aiAnalysis} />
+                ) : null}
               </TabsContent>
 
               {/* Enhanced Details Tab */}
@@ -794,8 +933,8 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
           <EnhancedQuickActions
             canAct={canActOnSuggestion}
             isSubmitting={isSubmitting}
-            onApprove={handleApprove}
-            onDecline={handleDecline}
+            onApprove={() => triggerConfirmDialog('approve')}
+            onDecline={() => triggerConfirmDialog('decline')}
             onAskQuestion={() => setShowAskDialog(true)}
           />
         </DialogContent>
@@ -809,6 +948,49 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
         matchmakerName={`${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`}
         suggestionId={suggestion.id}
       />
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent className="border-0 shadow-2xl rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-xl font-bold text-center">
+              {actionToConfirm === "approve"
+                ? "אישור הצעת השידוך"
+                : "דחיית הצעת השידוך"}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-center text-gray-600 leading-relaxed">
+              {actionToConfirm === 'approve' ? (
+                isFirstParty ? (
+                  <>
+                    אתה עומד לאשר את ההצעה.
+                    <br />
+                    הפרטים שלך יישלחו לצד השני. במידה וגם הצד השני יאשר, פרטי הקשר של שניכם יישלחו אליכם במייל ובהודעה.
+                  </>
+                ) : (
+                  <>
+                    הצד הראשון כבר אישר את ההצעה, וזה מרגש!
+                    <br />
+                    כעת, באישור שלך, פרטי הקשר של שניכם יישלחו לכל אחד מכם ותוכלו ליצור קשר בהקדם.
+                  </>
+                )
+              ) : (
+                "האם אתה בטוח שברצונך לדחות את הצעת השידוך? המשוב שלך עוזר לנו להציע התאמות טובות יותר בעתיד."
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-3">
+            <AlertDialogCancel className="rounded-xl" disabled={isSubmitting}>ביטול</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={executeConfirmedAction}
+              disabled={isSubmitting}
+              className={cn("rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300",
+                actionToConfirm === "approve" ? "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700" : "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
+              )}>
+              {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : (actionToConfirm === "approve" ? "כן, אני מאשר/ת!" : "דחיית ההצעה")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };

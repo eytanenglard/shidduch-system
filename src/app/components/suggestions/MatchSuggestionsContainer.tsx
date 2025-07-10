@@ -16,7 +16,8 @@ import {
   CheckCircle,
   Target,
   Sparkles,
-  Heart
+  Heart,
+  Zap
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ import type { UserProfile, UserImage } from "@/types/next-auth";
 import SuggestionsList from "./list/SuggestionsList";
 import type { ExtendedMatchSuggestion } from "./types";
 import { cn } from "@/lib/utils";
+import { getEnhancedStatusInfo, getPartyIndicator } from "@/lib/utils/suggestionUtils";
 
 interface MatchSuggestionsContainerProps {
   userId: string;
@@ -39,48 +41,57 @@ const WelcomeStats: React.FC<{
   activeSuggestions: ExtendedMatchSuggestion[];
   historySuggestions: ExtendedMatchSuggestion[];
   pendingCount: number;
-}> = ({ activeSuggestions, historySuggestions, pendingCount }) => {
+  userId: string; // הוספנו את userId כדי לדעת איזה צד אנחנו
+}> = ({ activeSuggestions, historySuggestions, pendingCount, userId }) => {
   const totalSuggestions = activeSuggestions.length + historySuggestions.length;
   const approvedCount = [...activeSuggestions, ...historySuggestions].filter(s => 
     s.status === "FIRST_PARTY_APPROVED" || s.status === "SECOND_PARTY_APPROVED"
   ).length;
 
-  // עדכון בקובץ MatchSuggestionsContainer.tsx - החלק של WelcomeStats
+  // ספירת הצעות שממתינות לתורו של המשתמש
+  const myTurnCount = activeSuggestions.filter(s => {
+    const isFirstParty = s.firstPartyId === userId;
+    return (
+      (s.status === "PENDING_FIRST_PARTY" && isFirstParty) ||
+      (s.status === "PENDING_SECOND_PARTY" && !isFirstParty)
+    );
+  }).length;
 
-const stats = [
-  {
-    label: "הצעות חדשות",
-    value: activeSuggestions.length,
-    icon: <Sparkles className="w-5 h-5" />,
-    color: "from-cyan-500 to-blue-500", // נשאר כמו קודם
-    description: "ממתינות לתשובתך"
-  },
-  {
-    label: "בטיפול", // זה משתנה לסגול
-    value: pendingCount,
-    icon: <Clock className="w-5 h-5" />,
-    color: "from-purple-500 to-violet-500", // 🟣 סגול חדש!
-    description: "דורשות החלטה"
-  },
-  {
-    label: "אושרו", // זה משתנה לירוק
-    value: approvedCount,
-    icon: <CheckCircle className="w-5 h-5" />,
-    color: "from-emerald-500 to-green-500", // 🟢 ירוק עבר לכאן
-    description: "הצעות שאושרו"
-  },
-];
+  const stats = [
+    {
+      label: "הצעות חדשות",
+      value: activeSuggestions.length,
+      icon: <Sparkles className="w-5 h-5" />,
+      color: "from-cyan-500 to-blue-500",
+      description: "ממתינות לתשובתך"
+    },
+    {
+      label: "התור שלך", // התור שלך במקום "בטיפול"
+      value: myTurnCount,
+      icon: <Zap className="w-5 h-5" />,
+      color: "from-orange-500 to-amber-500", // 🧡 כתום חזק לדחיפות
+      description: "דורשות החלטה ממך",
+      pulse: myTurnCount > 0 // רק אם יש משהו בתור שלו
+    },
+    {
+      label: "אושרו",
+      value: approvedCount,
+      icon: <CheckCircle className="w-5 h-5" />,
+      color: "from-emerald-500 to-green-500",
+      description: "הצעות שאושרו"
+    },
+  ];
 
   return (
     <div className="mb-8">
       {/* כותרת ראשית */}
       <div className="text-center mb-8">
         <div className="inline-flex items-center gap-3 mb-4">
-         <div className="p-3 rounded-full bg-gradient-to-r from-purple-100 to-cyan-100"> {/* 🟣 רקע סגול-תכלת */}
-  <Heart className="w-8 h-8 text-purple-600" /> {/* 🟣 לב סגול */}
+         <div className="p-3 rounded-full bg-gradient-to-r from-purple-100 to-cyan-100">
+  <Heart className="w-8 h-8 text-purple-600" />
 </div>
         </div>
-    <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-cyan-600 to-emerald-600 bg-clip-text text-transparent mb-3"> {/* 🟣 מתחיל בסגול */}
+    <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-cyan-600 to-emerald-600 bg-clip-text text-transparent mb-3">
   ההצעות שלך
 </h1>
 
@@ -95,11 +106,18 @@ const stats = [
           <Card key={index} className="border-0 shadow-lg overflow-hidden bg-white hover:shadow-xl transition-all duration-300 group">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <div className={cn("p-3 rounded-xl bg-gradient-to-r text-white shadow-lg group-hover:scale-110 transition-transform duration-300", stat.color)}>
+                <div className={cn(
+                  "p-3 rounded-xl bg-gradient-to-r text-white shadow-lg group-hover:scale-110 transition-transform duration-300", 
+                  stat.color,
+                  stat.pulse && "animate-pulse"
+                )}>
                   {stat.icon}
                 </div>
                 <div className="text-right">
-                  <div className="text-3xl font-bold text-gray-900">{stat.value}</div>
+                  <div className={cn(
+                    "text-3xl font-bold text-gray-900",
+                    stat.pulse && "animate-bounce"
+                  )}>{stat.value}</div>
                 </div>
               </div>
               <div className="space-y-1">
@@ -127,14 +145,21 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   const [activeTab, setActiveTab] = useState("active");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [hasNewSuggestions, setHasNewSuggestions] = useState(false);
-  // --- START OF CHANGE ---
   const [isUserInActiveProcess, setIsUserInActiveProcess] = useState(false);
-  // --- END OF CHANGE ---
 
   // Calculate counts
   const pendingCount = activeSuggestions.filter(
     (s) => s.status === "PENDING_FIRST_PARTY" || s.status === "PENDING_SECOND_PARTY"
   ).length;
+
+  // ספירת הצעות שדורשות תשובה מהמשתמש הנוכחי
+  const myTurnCount = activeSuggestions.filter(s => {
+    const isFirstParty = s.firstPartyId === userId;
+    return (
+      (s.status === "PENDING_FIRST_PARTY" && isFirstParty) ||
+      (s.status === "PENDING_SECOND_PARTY" && !isFirstParty)
+    );
+  }).length;
 
   // Fetch suggestions function
   const fetchSuggestions = useCallback(
@@ -204,7 +229,6 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     return () => clearInterval(intervalId);
   }, [userId, fetchSuggestions]);
 
-  // --- START OF CHANGE ---
   // Effect to determine if user is in an active process
   useEffect(() => {
     const activeProcessStatuses: MatchSuggestion['status'][] = [
@@ -227,7 +251,6 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     );
     setIsUserInActiveProcess(hasActiveProcess);
   }, [activeSuggestions]);
-  // --- END OF CHANGE ---
 
   // Clear new suggestions notification when changing to active tab
   useEffect(() => {
@@ -293,6 +316,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
           activeSuggestions={activeSuggestions}
           historySuggestions={historySuggestions}
           pendingCount={pendingCount}
+          userId={userId}
         />
 
         {/* תוכן ראשי */}
@@ -318,7 +342,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                 </Button>
                 
                {hasNewSuggestions && (
-  <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 shadow-xl animate-pulse"> {/* 🧡 כתום חזק */}
+  <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 shadow-xl animate-pulse">
     <Bell className="w-3 h-3 ml-1" />
     הצעות חדשות
   </Badge>
@@ -340,33 +364,46 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
               {/* טאבים מעוצבים */}
               <div className="flex justify-center">
 
-<TabsList className="grid grid-cols-3 bg-purple-50/50 rounded-2xl p-1 h-14 w-fit"> {/* 🟣 רקע סגול */}
+<TabsList className="grid grid-cols-3 bg-purple-50/50 rounded-2xl p-1 h-14 w-fit">
   <TabsTrigger
     value="active"
     className="relative flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
   >
-    <Target className="w-5 h-5 text-purple-500" /> {/* 🟣 אייקון סגול */}
+    <Target className="w-5 h-5 text-purple-500" />
     <span>פעילות</span>
     {activeSuggestions.length > 0 && (
-      <Badge className="bg-purple-500 text-white border-0 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] h-6"> {/* 🟣 סגול */}
+      <Badge className="bg-purple-500 text-white border-0 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] h-6">
         {activeSuggestions.length}
       </Badge>
     )}
   </TabsTrigger>
 
   {/* הטאב הדחוף עם כתום מחוזק */}
-  {pendingCount > 0 && (
+  {myTurnCount > 0 && (
     <TabsTrigger
-      value="pending"
+      value="urgent"
       className="flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
     >
-      <Bell className="w-5 h-5 text-orange-500" /> {/* 🧡 כתום */}
-      <span>דחוף</span>
-      <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] h-6 animate-pulse shadow-lg"> {/* 🧡 כתום מחוזק */}
-        {pendingCount}
+      <Zap className="w-5 h-5 text-orange-500" />
+      <span>התור שלך</span>
+      <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] h-6 animate-pulse shadow-lg">
+        {myTurnCount}
       </Badge>
     </TabsTrigger>
   )}
+
+  <TabsTrigger
+    value="history"
+    className="flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
+  >
+    <History className="w-5 h-5 text-gray-500" />
+    <span>היסטוריה</span>
+    {historySuggestions.length > 0 && (
+      <Badge className="bg-gray-500 text-white border-0 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] h-6">
+        {historySuggestions.length}
+      </Badge>
+    )}
+  </TabsTrigger>
 </TabsList>
               </div>
 
@@ -402,13 +439,15 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                 />
               </TabsContent>
 
-              <TabsContent value="pending" className="space-y-6">
+              <TabsContent value="urgent" className="space-y-6">
                 <SuggestionsList
-                  suggestions={activeSuggestions.filter(
-                    (s) =>
-                      s.status === "PENDING_FIRST_PARTY" ||
-                      s.status === "PENDING_SECOND_PARTY"
-                  )}
+                  suggestions={activeSuggestions.filter(s => {
+                    const isFirstParty = s.firstPartyId === userId;
+                    return (
+                      (s.status === "PENDING_FIRST_PARTY" && isFirstParty) ||
+                      (s.status === "PENDING_SECOND_PARTY" && !isFirstParty)
+                    );
+                  })}
                   userId={userId}
                   viewMode={viewMode}
                   isLoading={isLoading}
