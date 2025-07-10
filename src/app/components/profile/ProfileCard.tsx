@@ -938,8 +938,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       <div
                         key={index}
                         className={cn(
-"flex items-center gap-2 px-4 py-2 rounded-full text-white font-semibold text-sm",                          `bg-gradient-to-r ${highlight.gradient}`,
-                          THEME.shadows.soft
+"flex items-center gap-2 px-4 py-2 rounded-full text-gray-700 font-semibold text-sm",                          THEME.shadows.soft
                         )}
                       >
                         <highlight.icon className="w-4 h-4" />

@@ -40,6 +40,7 @@ export async function GET(req: Request) {
         firstName: true,
         lastName: true,
         email: true,
+        isProfileComplete: true, // <--- FIX 1: Select the isProfileComplete field from the User model.
         profile: {
           select: {
             id: true,
@@ -99,7 +100,7 @@ export async function GET(req: Request) {
             updatedAt: true,
             lastActive: true,
             verifiedBy: true,
-            hasViewedProfilePreview: true, // <--- תיקון 1: הוסף את השדה לשליפה
+            hasViewedProfilePreview: true,
           }
         },
         images: {
@@ -180,6 +181,7 @@ export async function GET(req: Request) {
       preferredOccupations: dbProfile.preferredOccupations || [],
       contactPreference: dbProfile.contactPreference || undefined,
       isProfileVisible: dbProfile.isProfileVisible,
+      isProfileComplete: userWithProfile.isProfileComplete, // <--- FIX 2: Add the property to the response object.
       preferredMatchmakerGender: dbProfile.preferredMatchmakerGender as Gender | null || undefined,
       availabilityStatus: dbProfile.availabilityStatus,
       availabilityNote: dbProfile.availabilityNote || "",
@@ -198,7 +200,7 @@ export async function GET(req: Request) {
       createdAt: new Date(dbProfile.createdAt),
       updatedAt: new Date(dbProfile.updatedAt),
       lastActive: dbProfile.lastActive ? new Date(dbProfile.lastActive) : null,
-      hasViewedProfilePreview: dbProfile.hasViewedProfilePreview, // <--- תיקון 2: הוסף את השדה לאובייקט
+      hasViewedProfilePreview: dbProfile.hasViewedProfilePreview,
       user: {
         id: userWithProfile.id,
         firstName: userWithProfile.firstName,
