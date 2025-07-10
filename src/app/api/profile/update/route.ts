@@ -315,6 +315,8 @@ export async function PUT(req: NextRequest) {
       siblings: dbProfile.siblings ?? null,
       position: dbProfile.position ?? null,
       isProfileVisible: dbProfile.isProfileVisible,
+            isProfileComplete: refreshedUserWithProfile.isProfileComplete,
+
       preferredMatchmakerGender: dbProfile.preferredMatchmakerGender || undefined,
       availabilityStatus: dbProfile.availabilityStatus,
       availabilityNote: dbProfile.availabilityNote || "",

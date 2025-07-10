@@ -1429,7 +1429,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
               <SectionCard
-                title="התכונות הזהב שלי"
+                title="תכונות הזהב שלי"
                 subtitle="מה שעושה אותי מיוחד/ת"
                 icon={Sparkles}
                 variant="elegant"
