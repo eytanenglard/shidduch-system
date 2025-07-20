@@ -1,4 +1,6 @@
 // src/types/messages.ts
+import { AvailabilityInquiry, Profile} from '@prisma/client';
+
 import type { ExtendedMatchSuggestion } from "@/app/components/suggestions/types";
 
 // סוגי האירועים/הודעות האפשריים בפיד
@@ -33,3 +35,17 @@ export interface NotificationCount {
   messages: number; // For future unread messages
   total: number;
 }
+
+
+export interface ExtendedInquiry extends AvailabilityInquiry {
+    matchmaker: {
+      firstName: string;
+      lastName: string;
+    };
+    firstParty: {
+      firstName: string;
+      lastName: string;
+      email: string;
+      profile: Profile | null;
+    };
+  }
