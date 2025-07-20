@@ -354,8 +354,19 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                       תצוגה מקדימה של הפרופיל <Eye className="w-5 h-5 sm:w-6 sm:h-6" />
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="w-[95vw] max-w-6xl max-h-[90vh] overflow-y-auto p-6 bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl border-none" dir="rtl">
-                    {profileData ? <ProfileCard profile={profileData} images={images} questionnaire={questionnaireResponse} viewMode="candidate" /> : <p className="text-center text-gray-500 py-10">טוען תצוגה מקדימה...</p>}
+ <DialogContent className="w-[95vw] max-w-6xl max-h-[90vh] overflow-y-auto p-6 bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl border-none" dir="rtl">
+                    {profileData ? (
+                      <ProfileCard 
+                        profile={profileData} 
+                        images={images} 
+                        questionnaire={questionnaireResponse} 
+                        viewMode="candidate"
+                        // --- 👇 הוספתי את השורה הזו ---
+                        isProfileComplete={session?.user?.isProfileComplete ?? false} 
+                      />
+                    ) : (
+                       <p className="text-center text-gray-500 py-10">טוען תצוגה מקדימה...</p>
+                    )}
                   </DialogContent>
                 </Dialog>
               </div>

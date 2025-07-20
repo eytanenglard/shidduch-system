@@ -6,22 +6,25 @@ import React, {
   useEffect,
   useRef,
   useState,
-  useCallback, // הוסף useCallback
+  useCallback,
 } from "react";
 import { useSession } from "next-auth/react";
-import type { Session } from "next-auth"; // Import Session type
-import type { NotificationCount } from "@/types/messages"; // ודא שהנתיב לטיפוסים שלך נכון
+import type { Session } from "next-auth";
+// --- START OF CHANGE: Import new types ---
+import type { NotificationCount } from "@/types/messages"; // This type will now be defined in the new file
+import type { FeedItem } from "@/types/messages";
+// --- END OF CHANGE ---
 
 interface NotificationContextType {
   notifications: NotificationCount;
   refreshNotifications: () => Promise<void>;
-  isLoadingNotifications: boolean; // הוסף מצב טעינה
+  isLoadingNotifications: boolean;
 }
 
 const NotificationContext = createContext<NotificationContextType>({
   notifications: { availabilityRequests: 0, messages: 0, total: 0 },
   refreshNotifications: async () => {},
-  isLoadingNotifications: true, // ערך התחלתי
+  isLoadingNotifications: true,
 });
 
 export const useNotifications = () => useContext(NotificationContext);
@@ -40,107 +43,71 @@ export function NotificationProvider({
     messages: 0,
     total: 0,
   });
-  const [isLoadingNotifications, setIsLoadingNotifications] = useState(true); // מצב טעינה
+  const [isLoadingNotifications, setIsLoadingNotifications] = useState(true);
 
-  const pollingInterval = useRef<NodeJS.Timeout | undefined>(); // שנה את הטיפוס כדי לאפשר undefined
+  const pollingInterval = useRef<NodeJS.Timeout | undefined>();
 
   const fetchNotifications = useCallback(async () => {
-    if (
-      status !== "authenticated" ||
-      !session?.user?.id ||
-      !session?.user.isPhoneVerified
-    ) {
-      // console.log(
-      //   "[NotificationContext] Skipping fetchNotifications: User session not ready or phone not verified.",
-      //   { status, userId: session?.user?.id, isPhoneVerified: session?.user?.isPhoneVerified }
-      // );
+    if (status !== "authenticated" || !session?.user?.id) {
       setNotifications({ availabilityRequests: 0, messages: 0, total: 0 });
-      setIsLoadingNotifications(false); // סיים טעינה גם אם לא קוראים ל-API
+      setIsLoadingNotifications(false);
       return;
     }
 
-    // console.log("[NotificationContext] Attempting to fetch notifications...");
     setIsLoadingNotifications(true);
     try {
-      const response = await fetch("/api/notifications");
+      // --- START OF CHANGE: Call the new API endpoint ---
+      const response = await fetch("/api/messages/feed");
       if (!response.ok) {
-        // אם התגובה היא הפנייה (למשל 307), זה יגיע לכאן
-        // console.warn(
-        //   `[NotificationContext] Failed to fetch notifications. Status: ${response.status}`
-        // );
-        // במקרה של הפנייה, ה-response.json() ייכשל למטה, אז נצא כאן
-        // או שנאפס נוטיפיקציות אם רוצים
-        setNotifications({ availabilityRequests: 0, messages: 0, total: 0 });
-        // החזר שגיאה ספציפית או אל תעשה כלום
         throw new Error(`Server responded with ${response.status}`);
       }
       const data = await response.json();
-      setNotifications(data);
-      // console.log("[NotificationContext] Notifications fetched successfully:", data);
-    } catch {
-      // <-- שינוי: שימוש ב-_error כדי לציין שהמשתנה אינו בשימוש
-      // console.error(
-      //   "[NotificationContext] Error fetching or parsing notifications:",
-      //   _error // <-- גם כאן, אם נוריד את ההערה
-      // );
-      // אם יש שגיאה (כולל JSON לא תקין), אפס נוטיפיקציות
+      
+      // --- START OF CHANGE: Calculate counts from the new feed ---
+      if (data.success && Array.isArray(data.feed)) {
+        const feed: FeedItem[] = data.feed;
+        const actionRequiredCount = feed.filter(item => item.type === 'ACTION_REQUIRED').length;
+        
+        // כאן ניתן בעתיד להוסיף ספירה של הודעות שלא נקראו
+        const unreadMessagesCount = 0; 
+        
+        const newNotifications: NotificationCount = {
+          // availabilityRequests נשאר כאן למקרה שנרצה להשתמש בו בעתיד, כרגע הוא משולב ב-total
+          availabilityRequests: actionRequiredCount, 
+          messages: unreadMessagesCount,
+          total: actionRequiredCount + unreadMessagesCount,
+        };
+        setNotifications(newNotifications);
+      } else {
+        // אם ה-API לא החזיר מבנה תקין
+        setNotifications({ availabilityRequests: 0, messages: 0, total: 0 });
+      }
+      // --- END OF CHANGE ---
+      
+    } catch (error) {
+      console.error("[NotificationContext] Error fetching notifications:", error);
       setNotifications({ availabilityRequests: 0, messages: 0, total: 0 });
     } finally {
       setIsLoadingNotifications(false);
     }
-  }, [status, session?.user?.id, session?.user?.isPhoneVerified]); // תלויות של useCallback
+  }, [status, session?.user?.id]);
 
   useEffect(() => {
-    // console.log("[NotificationContext] useEffect triggered. Status:", status, "User ID:", session?.user?.id, "Phone Verified:", session?.user?.isPhoneVerified);
-
-    if (
-      status === "authenticated" &&
-      session?.user?.id &&
-      session.user.isPhoneVerified
-    ) {
-      // console.log(
-      //   "[NotificationContext] User is authenticated and phone verified. Setting up notifications fetch and polling."
-      // );
-      fetchNotifications(); // קריאה ראשונית
-
-      if (pollingInterval.current) {
-        clearInterval(pollingInterval.current);
-      }
-      pollingInterval.current = setInterval(fetchNotifications, 30000); // 30 שניות
-
-      return () => {
-        if (pollingInterval.current) {
-          clearInterval(pollingInterval.current);
-          pollingInterval.current = undefined;
-          // console.log(
-          //   "[NotificationContext] Cleared notification polling interval on cleanup."
-          // );
-        }
-      };
+    // The rest of the useEffect remains the same, it will now call the updated fetchNotifications
+    if (status === "authenticated" && session?.user?.id) {
+      fetchNotifications();
+      if (pollingInterval.current) clearInterval(pollingInterval.current);
+      pollingInterval.current = setInterval(fetchNotifications, 60000); // Poll every 60 seconds
     } else {
-      // אם המשתמש לא מחובר, או שהסשן בטעינה, או שהטלפון לא מאומת
-      // console.log(
-      //   "[NotificationContext] Conditions not met for notifications. Clearing interval and resetting notifications.",
-      //   { status, userId: session?.user?.id, isPhoneVerified: session?.user?.isPhoneVerified }
-      // );
-      if (pollingInterval.current) {
-        clearInterval(pollingInterval.current);
-        pollingInterval.current = undefined;
-      }
+      if (pollingInterval.current) clearInterval(pollingInterval.current);
       setNotifications({ availabilityRequests: 0, messages: 0, total: 0 });
-      // קבע את מצב הטעינה ל-false אם התנאים לא מתקיימים והאפקט רץ
-      // כדי למנוע מצב טעינה תמידי אם המשתמש לא יאמת טלפון
-      if (status !== "loading") {
-        // רק אם הסשן לא באמצע טעינה
-        setIsLoadingNotifications(false);
-      }
+      if (status !== "loading") setIsLoadingNotifications(false);
     }
-  }, [
-    session?.user?.id,
-    session?.user?.isPhoneVerified,
-    status,
-    fetchNotifications,
-  ]); // הוסף fetchNotifications לתלויות
+    
+    return () => {
+      if (pollingInterval.current) clearInterval(pollingInterval.current);
+    };
+  }, [session?.user?.id, status, fetchNotifications]);
 
   const value = {
     notifications,

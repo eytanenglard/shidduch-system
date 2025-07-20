@@ -25,3 +25,11 @@ export interface FeedItem {
     // availabilityInquiry?: ExtendedInquiry;
   };
 }
+// ... (הטיפוסים הקיימים: FeedItemType, FeedItem)
+
+// --- הוסף את הטיפוס הזה לקובץ ---
+export interface NotificationCount {
+  availabilityRequests: number; // Represents action_required count now
+  messages: number; // For future unread messages
+  total: number;
+}
