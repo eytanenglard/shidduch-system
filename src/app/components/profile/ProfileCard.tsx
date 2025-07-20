@@ -349,10 +349,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   allCandidates = [],
   onCreateSuggestion
 }) => {
-    const profile: UserProfile = {
-    ...profileData,
-    isProfileComplete,
-  };
+const profile = useMemo(() => ({
+  ...profileData,
+  isProfileComplete,
+}), [profileData, isProfileComplete]);
   const [isClient, setIsClient] = useState(false);
   const [isDesktop, setIsDesktop] = useState(true);
   const [selectedImageForDialog, setSelectedImageForDialog] = useState<UserImageType | null>(null);
