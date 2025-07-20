@@ -1,14 +1,16 @@
+// src/app/(authenticated)/messages/page.tsx
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { Loader2, Inbox, Filter, Zap, CheckCircle, RefreshCw } from "lucide-react";
+import { Loader2, Inbox, Filter, Zap, RefreshCw } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { FeedItem } from "@/types/messages";
 import NotificationCard from "@/app/components/messages/NotificationCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 type FilterType = 'all' | 'action_required' | 'updates';
 
@@ -44,6 +46,8 @@ export default function MessagesPage() {
   useEffect(() => {
     if (userId) {
       fetchFeed();
+    } else {
+      setIsLoading(false); // If no user, stop loading
     }
   }, [userId, fetchFeed]);
 
@@ -76,6 +80,29 @@ export default function MessagesPage() {
             כל העדכונים, ההודעות והפעולות שלך במקום אחד.
           </p>
         </header>
+        
+        {/* Action Banner */}
+        <AnimatePresence>
+          {actionRequiredCount > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -20, height: 0 }}
+              animate={{ opacity: 1, y: 0, height: 'auto' }}
+              exit={{ opacity: 0, y: -20, height: 0 }}
+              transition={{ duration: 0.5, ease: "easeInOut" }}
+              className="mb-8"
+            >
+              <Alert className="bg-gradient-to-r from-orange-400 to-amber-400 text-white border-0 shadow-2xl rounded-2xl">
+                <Zap className="h-5 w-5 text-white" />
+                <AlertTitle className="font-bold text-lg">
+                  {actionRequiredCount === 1 ? 'פעולה אחת ממתינה לך!' : `${actionRequiredCount} פעולות ממתינות לך!`}
+                </AlertTitle>
+                <AlertDescription>
+                  ישנן הצעות שממתינות לתשובתך. זה הזמן להתקדם במסע!
+                </AlertDescription>
+              </Alert>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Filters and Refresh */}
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8">
@@ -99,11 +126,11 @@ export default function MessagesPage() {
 
         {/* Feed Content */}
         {filteredItems.length === 0 && !isLoading ? (
-          <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-8 bg-white/50 rounded-2xl shadow-inner">
+          <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-8 bg-white/50 rounded-2xl shadow-inner border border-gray-200/50">
               <Inbox className="w-20 h-20 text-gray-300 mb-6" />
               <h3 className="text-2xl font-bold text-gray-700">הכל שקט ורגוע</h3>
               <p className="text-gray-500 mt-2 max-w-md">
-                {activeFilter === 'all' ? 'אין עדכונים חדשים כרגע. ברגע שתהיה התפתחות, היא תופיע כאן.' : `אין פריטים התואמים לסינון "${activeFilter === 'action_required' ? 'דורש פעולה' : 'עדכונים'}".`}
+                {activeFilter === 'all' ? 'אין עדכונים חדשים כרגע. ברגע שתהיה התפתחות, היא תופיע כאן.' : `אין פריטים התואמים לסינון.`}
               </p>
           </div>
         ) : (
@@ -117,7 +144,7 @@ export default function MessagesPage() {
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3, delay: index * 0.05 }}
                 >
-                  <NotificationCard item={item} />
+                  <NotificationCard item={item} userId={userId!} />
                 </motion.div>
               ))}
             </AnimatePresence>

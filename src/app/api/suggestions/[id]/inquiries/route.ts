@@ -5,16 +5,11 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { InquiryStatus, UserRole } from "@prisma/client";
-import type { Session } from "next-auth"; // --- START OF FIX: Import the Session type ---
+import type { Session } from "next-auth";
 
-// --- START OF FIX: Define a specific type for the session parameter ---
 type AuthSession = Session | null;
-// --- END OF FIX ---
 
-// Helper function for authorization check
-// --- START OF FIX: Use the specific type for the session parameter ---
 async function checkPermissions(suggestionId: string, session: AuthSession) {
-// --- END OF FIX ---
   if (!session?.user?.id) {
     throw new Error("Unauthorized");
   }
@@ -91,15 +86,29 @@ export async function POST(
       return NextResponse.json({ error: "Question content is required" }, { status: 400 });
     }
 
-    const inquiry = await prisma.suggestionInquiry.create({
-      data: {
-        suggestionId: params.id,
-        fromUserId: userId,
-        toUserId: suggestion.matchmakerId, // Questions always go to the matchmaker
-        question,
-        status: InquiryStatus.PENDING,
-      },
+    // --- START OF MODIFICATION ---
+    // Perform both operations in a single transaction
+    const inquiry = await prisma.$transaction(async (tx) => {
+      // 1. Create the new inquiry
+      const newInquiry = await tx.suggestionInquiry.create({
+        data: {
+          suggestionId: params.id,
+          fromUserId: userId,
+          toUserId: suggestion.matchmakerId, // Questions always go to the matchmaker
+          question,
+          status: InquiryStatus.PENDING,
+        },
+      });
+
+      // 2. Update the parent suggestion's lastActivity timestamp
+      await tx.matchSuggestion.update({
+        where: { id: params.id },
+        data: { lastActivity: new Date() },
+      });
+
+      return newInquiry;
     });
+    // --- END OF MODIFICATION ---
     
     // TODO: Add notification to matchmaker about the new question
 
@@ -144,19 +153,32 @@ export async function PATCH(
         return NextResponse.json({ error: "Inquiry not found." }, { status: 404 });
     }
 
-    // Security check: Make sure the matchmaker answering is the one the question was sent to.
     if (inquiryToUpdate.toUserId !== userId && userRole !== UserRole.ADMIN) {
         return NextResponse.json({ error: "Forbidden: You are not the recipient of this inquiry." }, { status: 403 });
     }
 
-    const updatedInquiry = await prisma.suggestionInquiry.update({
-      where: { id: inquiryId },
-      data: {
-        answer,
-        status: InquiryStatus.ANSWERED,
-        answeredAt: new Date(),
-      },
+    // --- START OF MODIFICATION ---
+    // Perform both operations in a single transaction
+    const updatedInquiry = await prisma.$transaction(async (tx) => {
+      // 1. Update the inquiry with the answer
+      const inquiry = await tx.suggestionInquiry.update({
+        where: { id: inquiryId },
+        data: {
+          answer,
+          status: InquiryStatus.ANSWERED,
+          answeredAt: new Date(),
+        },
+      });
+
+      // 2. Update the parent suggestion's lastActivity timestamp
+      await tx.matchSuggestion.update({
+        where: { id: params.id }, // params.id is the suggestionId
+        data: { lastActivity: new Date() },
+      });
+
+      return inquiry;
     });
+    // --- END OF MODIFICATION ---
     
     // TODO: Add notification to the user who asked the question
 

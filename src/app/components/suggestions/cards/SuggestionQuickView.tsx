@@ -38,6 +38,13 @@ const SuggestionQuickView: React.FC<SuggestionQuickViewProps> = ({
       : suggestion.firstParty.profile
     : suggestion.secondParty.profile;
 
+  // --- SOLUTION: Add this guard clause ---
+  // If there's no profile, don't render anything.
+  // This tells TypeScript that in the code that follows, 'profile' is guaranteed to exist.
+  if (!profile) {
+    return null;
+  }
+
   return (
     <div
       className="bg-white/95 backdrop-blur-sm p-4 rounded-lg shadow-lg flex flex-col"
@@ -45,6 +52,7 @@ const SuggestionQuickView: React.FC<SuggestionQuickViewProps> = ({
     >
       <div className="flex-1 space-y-4 text-right overflow-y-auto max-h-96">
         <div className="grid grid-cols-2 gap-3">
+          {/* Now all these accesses are safe */}
           {profile.height && (
             <div className="flex items-center justify-end gap-2 text-sm text-gray-600">
               <span>{profile.height} ס״מ</span>

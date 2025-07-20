@@ -2,6 +2,7 @@
 
 "use client";
 
+import { motion } from "framer-motion";
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -426,11 +427,17 @@ const NavItem = ({
         }`}
     >
       {text}
-      {badge !== undefined && badge > 0 && (
-        <span className="absolute -top-1 -right-1 bg-pink-500 text-white text-[0.65rem] w-4 h-4 rounded-full flex items-center justify-center font-bold border-2 border-white">
-          {badge}
-        </span>
-      )}
+ {badge !== undefined && badge > 0 && (
+  <motion.span
+    className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white text-[10px] font-bold shadow-lg border-2 border-white"
+    initial={{ scale: 0 }}
+    animate={{ scale: 1 }}
+    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+  >
+    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75"></span>
+    <span className="relative">{badge}</span>
+  </motion.span>
+)}
     </Link>
   );
 };

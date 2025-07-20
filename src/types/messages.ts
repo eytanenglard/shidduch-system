@@ -27,7 +27,8 @@ export interface FeedItem {
     // availabilityInquiry?: ExtendedInquiry;
   };
 }
-// ... (הטיפוסים הקיימים: FeedItemType, FeedItem)
+
+export type UnifiedMessage = FeedItem;
 
 // --- הוסף את הטיפוס הזה לקובץ ---
 export interface NotificationCount {
