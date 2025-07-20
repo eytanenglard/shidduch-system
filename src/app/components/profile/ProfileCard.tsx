@@ -327,7 +327,8 @@ const hobbiesMap: { [key: string]: { label: string; icon: React.ElementType; col
 
 // --- Main Profile Card Component ---
 interface ProfileCardProps {
-  profile: UserProfile;
+  profile: Omit<UserProfile, 'isProfileComplete'>; // 1. המידע מה-DB
+  isProfileComplete: boolean; // 2. המידע מגיע בנפרד
   images?: UserImageType[];
   questionnaire?: QuestionnaireResponse | null;
   viewMode?: "matchmaker" | "candidate";
@@ -338,7 +339,8 @@ interface ProfileCardProps {
 }
 
 const ProfileCard: React.FC<ProfileCardProps> = ({
-  profile,
+  profile: profileData, // שנה שם כדי למנוע התנגשות
+  isProfileComplete, // קבל את הערך החדש
   candidate,
   images = [],
   questionnaire,
@@ -347,6 +349,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   allCandidates = [],
   onCreateSuggestion
 }) => {
+    const profile: UserProfile = {
+    ...profileData,
+    isProfileComplete,
+  };
   const [isClient, setIsClient] = useState(false);
   const [isDesktop, setIsDesktop] = useState(true);
   const [selectedImageForDialog, setSelectedImageForDialog] = useState<UserImageType | null>(null);

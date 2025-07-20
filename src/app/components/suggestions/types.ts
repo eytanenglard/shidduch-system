@@ -1,25 +1,23 @@
 // src/app/components/suggestions/types.ts
 
-import type { MatchSuggestion } from "@prisma/client";
-import type { UserProfile, UserImage } from "@/types/next-auth";
+import type { MatchSuggestion, Profile, User, UserImage } from "@prisma/client";
 
-// הטיפוסים המורחבים שהגדרנו, כעת במקום מרכזי
-// ועם `export` כדי שניתן יהיה לייבא אותם בכל מקום
+// This type now accurately reflects the structure of Prisma's Profile model.
+export type UserProfile = Profile;
 
-export interface ExtendedUserProfile extends UserProfile {
-  user: {
-    firstName: string;
-    lastName: string;
-    email: string;
-  };
-}
-
+// PartyInfo now includes fields from both User and Profile, creating a complete picture.
 export interface PartyInfo {
+  // Fields from User model
   id: string;
   email: string;
   firstName: string;
   lastName: string;
-  profile: ExtendedUserProfile;
+  isProfileComplete: boolean;
+
+  // Relation to Profile (which can be null)
+  profile: UserProfile | null;
+
+  // Relation to Images (which is a full UserImage array)
   images: UserImage[];
 }
 
@@ -31,7 +29,8 @@ export interface StatusHistoryItem {
   createdAt: Date | string;
 }
 
-export interface ExtendedMatchSuggestion extends MatchSuggestion {
+// This now correctly expects PartyInfo which can have a null profile.
+export interface ExtendedMatchSuggestion extends Omit<MatchSuggestion, 'firstParty' | 'secondParty' | 'matchmaker'> {
   matchmaker: {
     firstName: string;
     lastName: string;

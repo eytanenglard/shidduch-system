@@ -815,12 +815,25 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                     </div>
                   </div>
                 ) : (
-                  <ProfileCard
-                    profile={targetParty.profile}
-                    images={targetParty.images}
-                    questionnaire={questionnaire}
-                    viewMode="candidate"
-                  />
+                   targetParty.profile ? (
+<ProfileCard
+  profile={targetParty.profile}
+  isProfileComplete={targetParty.isProfileComplete} // <-- הוסף את השורה הזו
+  images={targetParty.images}
+  questionnaire={questionnaire}
+  viewMode="candidate"
+/>
+    ) : (
+      // אם הפרופיל הוא null, נציג הודעת שגיאה ידידותית
+      <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-8">
+        <AlertTriangle className="w-16 h-16 text-red-400 mb-6" />
+        <h3 className="text-2xl font-bold text-red-700">שגיאה בטעינת הפרופיל</h3>
+        <p className="text-gray-600 mt-2 max-w-md">
+          לא הצלחנו למצוא את נתוני הפרופיל המלאים עבור מועמד/ת זה. 
+          אנא פנה/י לשדכן/ית לקבלת סיוע.
+        </p>
+      </div>
+    )
                 )}
               </TabsContent>
 
@@ -959,23 +972,21 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                 : "דחיית הצעת השידוך"}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center text-gray-600 leading-relaxed">
-              {actionToConfirm === 'approve' ? (
-                isFirstParty ? (
+              {actionToConfirm === 'approve'
+                ? isFirstParty ? (
                   <>
                     אתה עומד לאשר את ההצעה.
                     <br />
-                    הפרטים שלך יישלחו לצד השני. במידה וגם הצד השני יאשר, פרטי הקשר של שניכם יישלחו אליכם במייל ובהודעה.
+                    לאחר אישורך, ההצעה תועבר לצד השני. אם גם הוא/היא יאשרו, פרטי הקשר של שניכם יוחלפו.
                   </>
                 ) : (
                   <>
                     הצד הראשון כבר אישר את ההצעה, וזה מרגש!
                     <br />
-                    כעת, באישור שלך, פרטי הקשר של שניכם יישלחו לכל אחד מכם ותוכלו ליצור קשר בהקדם.
+                    באישור שלך, פרטי הקשר שלך יישלחו לצד הראשון ופרטיו יישלחו אליך.
                   </>
-                )
-              ) : (
-                "האם אתה בטוח שברצונך לדחות את הצעת השידוך? המשוב שלך עוזר לנו להציע התאמות טובות יותר בעתיד."
-              )}
+                ) : "האם אתה בטוח שברצונך לדחות את הצעת השידוך? המשוב שלך עוזר לנו להציע התאמות טובות יותר בעתיד."
+              }
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-3">

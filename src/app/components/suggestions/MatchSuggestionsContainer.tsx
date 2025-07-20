@@ -260,6 +260,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   }, [activeTab]);
 
   // Handle suggestion status change
+  // Handle suggestion status change
   const handleStatusChange = useCallback(
     async (suggestionId: string, newStatus: string, notes?: string) => {
       try {
@@ -283,11 +284,19 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
           SECOND_PARTY_DECLINED: "דחית את ההצעה בהצלחה",
         };
 
-        toast.success(statusMessages[newStatus] || "הסטטוס עודכן בהצלחה", {
-          description: newStatus.includes("APPROVED") 
-            ? "השדכן יקבל הודעה ויתקדם עם התהליך"
-            : "תודה על המשוב - זה עוזר לנו להציע התאמות טובות יותר"
-        });
+        let description: string;
+        if (newStatus === 'FIRST_PARTY_APPROVED') {
+          description = "באישורך, ההצעה נשלחה לצד השני. אם גם הצד השני יאשר, פרטי הקשר המלאים שלכם יוחלפו.";
+        } else if (newStatus === 'SECOND_PARTY_APPROVED') {
+          description = "מעולה! כעת, מאחר ושניכם אישרתם, פרטי הקשר שלך יישלחו לצד הראשון ופרטיו יישלחו אליך.";
+        } else if (newStatus.includes("DECLINED")) {
+          description = "תודה על המשוב - זה עוזר לנו להציע התאמות טובות יותר";
+        } else {
+          description = "השדכן יקבל הודעה ויתקדם עם התהליך";
+        }
+
+        toast.success(statusMessages[newStatus] || "הסטטוס עודכן בהצלחה", { description });
+
       } catch (error) {
         console.error("Error updating suggestion status:", error);
         toast.error(
