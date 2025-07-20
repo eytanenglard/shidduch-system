@@ -1335,27 +1335,6 @@ const profile = useMemo(() => ({
                         </div>
                       </div>
                     )}
-
-                    <div className="absolute top-4 right-4">
-                      {profile.gender === "FEMALE" && (
-                        <Badge className={cn(
-                          "bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0",
-                          THEME.shadows.warm
-                        )}>
-                          <Crown className="w-3 h-3 ml-1" />
-                          נסיכה
-                        </Badge>
-                      )}
-                      {profile.gender === "MALE" && (
-                        <Badge className={cn(
-                          "bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0",
-                          THEME.shadows.warm
-                        )}>
-                          <Zap className="w-3 h-3 ml-1" />
-                          נסיך
-                        </Badge>
-                      )}
-                    </div>
                   </div>
                 </div>
 
@@ -2179,12 +2158,24 @@ className="bg-white/20 hover:bg-white border border-white/30 text-white hover:te
   );
 
   // Mobile Header with Enhanced Toggle
+// Mobile Header with Enhanced Toggle
   const MobileHeader = () => (
     <div className={cn(
-      "p-3 flex-shrink-0 flex justify-center items-center border-b border-rose-200/50",
+      "p-3 flex-shrink-0 flex justify-between items-center border-b border-rose-200/50",
       `bg-gradient-to-r ${THEME.colors.neutral.warm}`,
       "sticky top-0 z-30 backdrop-blur-md"
     )}>
+      {/* כפתור חזרה */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="text-gray-600 hover:text-gray-800 hover:bg-white/50 rounded-full"
+        onClick={() => window.history.back()}
+      >
+        <ChevronRight className="w-5 h-5" />
+      </Button>
+
+      {/* Toggle Group במרכז */}
       <ToggleGroup
         type="single"
         value={mobileViewLayout}
@@ -2219,9 +2210,11 @@ className="bg-white/20 hover:bg-white border border-white/30 text-white hover:te
           <span className="mr-2 text-sm font-medium">מפורט</span>
         </ToggleGroupItem>
       </ToggleGroup>
+
+      {/* רווח ריק כדי לשמור על איזון */}
+      <div className="w-10"></div>
     </div>
   );
-
   // Enhanced Mobile Layouts
   const DetailedMobileLayout = () => (
     <div className="flex-1 min-h-0 overflow-y-auto">

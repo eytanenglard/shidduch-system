@@ -1,3 +1,4 @@
+
 // src/app/components/profile/sections/ProfileSection.tsx
 "use client";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -8,6 +9,7 @@ import {
   ServiceType,
   HeadCoveringType,
   KippahType,
+  
 } from "@prisma/client";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
