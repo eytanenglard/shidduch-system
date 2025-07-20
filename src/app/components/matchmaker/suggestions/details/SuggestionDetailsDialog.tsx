@@ -1140,6 +1140,8 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                   images={suggestion.firstParty.images}
                   questionnaire={firstPartyQuestionnaire}
                   viewMode="matchmaker"
+                    isProfileComplete={suggestion.firstParty.isProfileComplete}
+
                 />
 
                 <div className="mt-4 p-4 border rounded-lg bg-blue-50">
@@ -1255,6 +1257,8 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                   images={suggestion.secondParty.images}
                   questionnaire={secondPartyQuestionnaire}
                   viewMode="matchmaker"
+                    isProfileComplete={suggestion.secondParty.isProfileComplete}
+
                 />
 
                 <div className="mt-4 p-4 border rounded-lg bg-purple-50">

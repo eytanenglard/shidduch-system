@@ -492,12 +492,18 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
 
           {selectedCandidate && (
             <div className="space-y-6">
+                {selectedCandidate && (
+            <div className="space-y-6">
               <ProfileCard
                 profile={selectedCandidate.profile}
                 images={selectedCandidate.images}
                 questionnaire={questionnaireResponse}
                 viewMode={isMatchmaker ? "matchmaker" : "candidate"}
+                // --- 👇 הוספתי את השורה הזו ---
+                isProfileComplete={selectedCandidate.isProfileComplete}
               />
+            </div>
+          )}
             </div>
           )}
         </DialogContent>
