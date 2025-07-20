@@ -412,41 +412,16 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                   : "העדפות שהוגדרו לחיפוש התאמה."}
               </p>
             </div>
-            {!viewOnly && (
-              <div className="flex gap-2">
-                {!isEditing ? (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsEditing(true)}
-                    className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-cyan-400 text-cyan-700 hover:bg-cyan-50"
-                  >
-                    <Pencil className="w-3.5 h-3.5 ml-1.5" />
-                    עריכה
-                  </Button>
-                ) : (
-                  <>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleCancel}
-                      className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-gray-300 text-gray-700 hover:bg-gray-50"
-                    >
-                      <X className="w-3.5 h-3.5 ml-1.5" />
-                      ביטול
-                    </Button>
-                    <Button
-                      variant="default"
-                      size="sm"
-                      onClick={handleSave}
-                      className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 bg-cyan-600 hover:bg-cyan-700 text-white"
-                    >
-                      <Save className="w-3.5 h-3.5 ml-1.5" />
-                      שמירה
-                    </Button>
-                  </>
-                )}
-              </div>
+            {!viewOnly && !isEditing && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsEditing(true)}
+                className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-cyan-400 text-cyan-700 hover:bg-cyan-50"
+              >
+                <Pencil className="w-3.5 h-3.5 ml-1.5" />
+                עריכה
+              </Button>
             )}
           </div>
         </div>
@@ -466,19 +441,19 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
               </CardHeader>
               <CardContent className="p-4 md:p-6 space-y-5">
                 <div>
-              <div className="flex items-center gap-1.5">
-    <Label htmlFor="matchingNotes" className="text-sm font-medium text-gray-700">
-        תיאור כללי על המועמד/ת המבוקש/ת
-    </Label>
-    <TooltipProvider delayDuration={100}>
-        <Tooltip>
-            <TooltipTrigger type="button"><Info className="w-4 h-4 text-gray-400 hover:text-gray-600" /></TooltipTrigger>
-            <TooltipContent side="top" className="max-w-xs text-center">
-                <p>זהו אחד השדות החשובים ביותר! תאר/י במילים שלך את סוג האדם שאת/ה מחפש/ת. התיאור הזה יעזור לשדכנים להבין את הראש שלך מעבר לנתונים היבשים.</p>
-            </TooltipContent>
-        </Tooltip>
-    </TooltipProvider>
-</div>
+                  <div className="flex items-center gap-1.5">
+                    <Label htmlFor="matchingNotes" className="text-sm font-medium text-gray-700">
+                      תיאור כללי על המועמד/ת המבוקש/ת
+                    </Label>
+                    <TooltipProvider delayDuration={100}>
+                      <Tooltip>
+                        <TooltipTrigger type="button"><Info className="w-4 h-4 text-gray-400 hover:text-gray-600" /></TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-xs text-center">
+                          <p>זהו אחד השדות החשובים ביותר! תאר/י במילים שלך את סוג האדם שאת/ה מחפש/ת. התיאור הזה יעזור לשדכנים להבין את הראש שלך מעבר לנתונים היבשים.</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                   {isEditing ? (
                     <Textarea
                       id="matchingNotes"
@@ -554,19 +529,19 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
               <CardContent className="p-4 md:p-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
                   <div>
-                <div className="flex items-center gap-1.5">
-    <Label className="text-xs font-medium text-gray-600">
-      טווח גילאים מועדף
-    </Label>
-    <TooltipProvider delayDuration={100}>
-        <Tooltip>
-            <TooltipTrigger type="button"><Info className="w-4 h-4 text-gray-400 hover:text-gray-600" /></TooltipTrigger>
-            <TooltipContent side="top">
-                <p>הגדרת טווח גילאים רחב יותר תגדיל את כמות ההצעות שתקבל/י.</p>
-            </TooltipContent>
-        </Tooltip>
-    </TooltipProvider>
-</div>
+                    <div className="flex items-center gap-1.5">
+                      <Label className="text-xs font-medium text-gray-600">
+                        טווח גילאים מועדף
+                      </Label>
+                      <TooltipProvider delayDuration={100}>
+                        <Tooltip>
+                          <TooltipTrigger type="button"><Info className="w-4 h-4 text-gray-400 hover:text-gray-600" /></TooltipTrigger>
+                          <TooltipContent side="top">
+                            <p>הגדרת טווח גילאים רחב יותר תגדיל את כמות ההצעות שתקבל/י.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
                     <div className="flex items-center gap-2">
                       <Input
                         type="number"
@@ -698,19 +673,19 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                   )}
                 </div>
                 <div>
-                 <div className="flex items-center gap-1.5">
-    <Label className="text-xs font-medium text-gray-600">
-      רמות דתיות מועדפות
-    </Label>
-    <TooltipProvider delayDuration={100}>
-        <Tooltip>
-            <TooltipTrigger type="button"><Info className="w-4 h-4 text-gray-400 hover:text-gray-600" /></TooltipTrigger>
-            <TooltipContent side="top" className="max-w-xs text-center">
-                <p>מומלץ לבחור 1-3 רמות שמתאימות לך. בחירה רחבה מדי עלולה להוביל להצעות פחות מדויקות.</p>
-            </TooltipContent>
-        </Tooltip>
-    </TooltipProvider>
-</div>
+                  <div className="flex items-center gap-1.5">
+                    <Label className="text-xs font-medium text-gray-600">
+                      רמות דתיות מועדפות
+                    </Label>
+                    <TooltipProvider delayDuration={100}>
+                      <Tooltip>
+                        <TooltipTrigger type="button"><Info className="w-4 h-4 text-gray-400 hover:text-gray-600" /></TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-xs text-center">
+                          <p>מומלץ לבחור 1-3 רמות שמתאימות לך. בחירה רחבה מדי עלולה להוביל להצעות פחות מדויקות.</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                   {isEditing ? (
                     <div className="flex flex-wrap gap-2">
                       {religiousLevelOptions.map((level) => (
@@ -1276,7 +1251,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                           disabled={
                             !viewOnly &&
                             (formData.preferredCharacterTraits || []).length >=
-                              3 &&
+                            3 &&
                             !(formData.preferredCharacterTraits || []).includes(
                               opt.value
                             ) &&
@@ -1373,6 +1348,31 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
           </div>
         </div>
       </div>
+
+      {isEditing && !viewOnly && (
+        <div className="sticky bottom-0 z-20 mt-4 border-t border-gray-200 bg-white/80 p-4 backdrop-blur-md shadow-[0_-4px_10px_-5px_rgba(0,0,0,0.1)]">
+          <div className="container mx-auto flex max-w-screen-xl items-center justify-center gap-2 px-4 sm:justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCancel}
+              className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-gray-300 text-gray-700 hover:bg-gray-50 px-6"
+            >
+              <X className="w-3.5 h-3.5 ml-1.5" />
+              ביטול
+            </Button>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={handleSave}
+              className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 bg-cyan-600 hover:bg-cyan-700 text-white px-6"
+            >
+              <Save className="w-3.5 h-3.5 ml-1.5" />
+              שמירת שינויים
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

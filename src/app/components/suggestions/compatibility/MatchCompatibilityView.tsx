@@ -229,8 +229,40 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
   matchingReason,
   className,
 }) => {
-  const firstPartyAge = calculateAge(firstParty.profile.birthDate);
-  const secondPartyAge = calculateAge(secondParty.profile.birthDate);
+  // FIX: Add a guard clause to handle the possibility of null profiles.
+  // If either profile is null, we cannot perform the analysis and should return early.
+  if (!firstParty.profile || !secondParty.profile) {
+    return (
+      <Card className={cn("shadow-xl border-0 overflow-hidden", className)}>
+        <CardHeader className="bg-gradient-to-r from-cyan-50/80 via-white to-emerald-50/50 border-b border-gray-100">
+          <CardTitle className="flex items-center gap-3 text-2xl">
+            <div className="p-3 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 text-white shadow-lg">
+              <Heart className="w-6 h-6" />
+            </div>
+            <div>
+              <span className="font-bold text-gray-800">ניתוח התאמה</span>
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-8">
+          <div className="text-center py-12">
+            <AlertTriangle className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+            <h3 className="text-lg font-semibold text-gray-600 mb-2">לא ניתן לחשב התאמה</h3>
+            <p className="text-gray-500 max-w-md mx-auto">
+              אחד או יותר מהפרופילים אינם מלאים ולכן לא ניתן לבצע ניתוח התאמה מפורט.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // After the guard clause, TypeScript knows .profile is non-null.
+  const firstProfile = firstParty.profile;
+  const secondProfile = secondParty.profile;
+  
+  const firstPartyAge = calculateAge(firstProfile.birthDate);
+  const secondPartyAge = calculateAge(secondProfile.birthDate);
 
   // Helper functions
   const isWithinRange = (value: number | null | undefined, min: number | null | undefined, max: number | null | undefined): boolean => {
@@ -254,14 +286,14 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
     if (firstPartyAge != null && secondPartyAge != null) {
       const firstAgePreferenceMatch = isWithinRange(
         secondPartyAge,
-        firstParty.profile.preferredAgeMin,
-        firstParty.profile.preferredAgeMax
+        firstProfile.preferredAgeMin,
+        firstProfile.preferredAgeMax
       );
 
       const secondAgePreferenceMatch = isWithinRange(
         firstPartyAge,
-        secondParty.profile.preferredAgeMin,
-        secondParty.profile.preferredAgeMax
+        secondProfile.preferredAgeMin,
+        secondProfile.preferredAgeMax
       );
 
       const compatible = firstAgePreferenceMatch && secondAgePreferenceMatch;
@@ -278,19 +310,19 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
     }
 
     // Height compatibility
-    const firstHeight = firstParty.profile.height;
-    const secondHeight = secondParty.profile.height;
+    const firstHeight = firstProfile.height;
+    const secondHeight = secondProfile.height;
     if (firstHeight != null && secondHeight != null) {
       const firstHeightPreferenceMatch = isWithinRange(
         secondHeight,
-        firstParty.profile.preferredHeightMin,
-        firstParty.profile.preferredHeightMax
+        firstProfile.preferredHeightMin,
+        firstProfile.preferredHeightMax
       );
 
       const secondHeightPreferenceMatch = isWithinRange(
         firstHeight,
-        secondParty.profile.preferredHeightMin,
-        secondParty.profile.preferredHeightMax
+        secondProfile.preferredHeightMin,
+        secondProfile.preferredHeightMax
       );
 
       const compatible = firstHeightPreferenceMatch && secondHeightPreferenceMatch;
@@ -307,17 +339,17 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
     }
 
     // Location compatibility
-    const firstCity = firstParty.profile.city;
-    const secondCity = secondParty.profile.city;
+    const firstCity = firstProfile.city;
+    const secondCity = secondProfile.city;
     if (firstCity != null && secondCity != null) {
       const firstLocationPreferenceMatch = isInPreferredList(
         secondCity,
-        firstParty.profile.preferredLocations
+        firstProfile.preferredLocations
       );
 
       const secondLocationPreferenceMatch = isInPreferredList(
         firstCity,
-        secondParty.profile.preferredLocations
+        secondProfile.preferredLocations
       );
 
       const compatible = firstLocationPreferenceMatch && secondLocationPreferenceMatch;
@@ -334,17 +366,17 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
     }
 
     // Religious level compatibility
-    const firstReligious = firstParty.profile.religiousLevel;
-    const secondReligious = secondParty.profile.religiousLevel;
+    const firstReligious = firstProfile.religiousLevel;
+    const secondReligious = secondProfile.religiousLevel;
     if (firstReligious != null && secondReligious != null) {
       const firstReligiousPreferenceMatch = isInPreferredList(
         secondReligious,
-        firstParty.profile.preferredReligiousLevels
+        firstProfile.preferredReligiousLevels
       );
 
       const secondReligiousPreferenceMatch = isInPreferredList(
         firstReligious,
-        secondParty.profile.preferredReligiousLevels
+        secondProfile.preferredReligiousLevels
       );
 
       const compatible = firstReligiousPreferenceMatch && secondReligiousPreferenceMatch;
@@ -361,17 +393,17 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
     }
 
     // Education compatibility
-    const firstEdu = firstParty.profile.education;
-    const secondEdu = secondParty.profile.education;
+    const firstEdu = firstProfile.education;
+    const secondEdu = secondProfile.education;
     if (firstEdu != null && secondEdu != null) {
       const firstEducationPreferenceMatch = isInPreferredList(
         secondEdu,
-        firstParty.profile.preferredEducation
+        firstProfile.preferredEducation
       );
 
       const secondEducationPreferenceMatch = isInPreferredList(
         firstEdu,
-        secondParty.profile.preferredEducation
+        secondProfile.preferredEducation
       );
 
       const compatible = firstEducationPreferenceMatch && secondEducationPreferenceMatch;
@@ -388,17 +420,17 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
     }
 
     // Occupation compatibility
-    const firstOcc = firstParty.profile.occupation;
-    const secondOcc = secondParty.profile.occupation;
+    const firstOcc = firstProfile.occupation;
+    const secondOcc = secondProfile.occupation;
     if (firstOcc != null && secondOcc != null) {
       const firstOccupationPreferenceMatch = isInPreferredList(
         secondOcc,
-        firstParty.profile.preferredOccupations
+        firstProfile.preferredOccupations
       );
 
       const secondOccupationPreferenceMatch = isInPreferredList(
         firstOcc,
-        secondParty.profile.preferredOccupations
+        secondProfile.preferredOccupations
       );
 
       const compatible = firstOccupationPreferenceMatch && secondOccupationPreferenceMatch;
@@ -415,8 +447,8 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
     }
 
     // Origin compatibility
-    const firstOrigin = firstParty.profile.origin;
-    const secondOrigin = secondParty.profile.origin;
+    const firstOrigin = firstProfile.origin;
+    const secondOrigin = secondProfile.origin;
     if (firstOrigin != null && secondOrigin != null) {
       const sameOrigin = firstOrigin === secondOrigin;
       items.push({
@@ -432,12 +464,12 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
     }
 
     // Language compatibility
-    const firstLang = firstParty.profile.nativeLanguage;
-    const secondLang = secondParty.profile.nativeLanguage;
+    const firstLang = firstProfile.nativeLanguage;
+    const secondLang = secondProfile.nativeLanguage;
     if (firstLang != null && secondLang != null) {
       const nativeMatch = firstLang === secondLang;
-      const firstSpeaksSecondNative = firstParty.profile.additionalLanguages?.includes(secondLang) ?? false;
-      const secondSpeaksFirstNative = secondParty.profile.additionalLanguages?.includes(firstLang) ?? false;
+      const firstSpeaksSecondNative = firstProfile.additionalLanguages?.includes(secondLang) ?? false;
+      const secondSpeaksFirstNative = secondProfile.additionalLanguages?.includes(firstLang) ?? false;
 
       const sharedLanguage = nativeMatch || firstSpeaksSecondNative || secondSpeaksFirstNative;
 

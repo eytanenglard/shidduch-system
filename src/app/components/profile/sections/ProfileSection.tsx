@@ -41,7 +41,7 @@ import {
 import { UserProfile } from "@/types/next-auth";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { languageOptions } from "@/lib/languageOptions"; 
+import { languageOptions } from "@/lib/languageOptions";
 import { toast } from "sonner";
 
 const maritalStatusOptions = [
@@ -145,7 +145,7 @@ const characterTraitsOptions = [
 
 const hobbiesOptions = [
   { value: "travel", label: "טיולים", icon: MapPin },
-  { value: "sports", label: "ספורט", icon: Briefcase }, 
+  { value: "sports", label: "ספורט", icon: Briefcase },
   { value: "reading", label: "קריאה", icon: BookOpen },
   { value: "cooking_baking", label: "בישול/אפיה", icon: Palette },
   { value: "music_playing_instrument", label: "מוזיקה/נגינה", icon: Languages },
@@ -485,41 +485,16 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                   : "פרטי הפרופיל של המועמד/ת."}
               </p>
             </div>
-            {!viewOnly && (
-              <div className="flex gap-2">
-                {!isEditing ? (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsEditing(true)}
-                    className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-cyan-400 text-cyan-700 hover:bg-cyan-50"
-                  >
-                    <Pencil className="w-3.5 h-3.5 ml-1.5" />
-                    עריכה
-                  </Button>
-                ) : (
-                  <>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleCancel}
-                      className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-gray-300 text-gray-700 hover:bg-gray-50"
-                    >
-                      <X className="w-3.5 h-3.5 ml-1.5" />
-                      ביטול
-                    </Button>
-                    <Button
-                      variant="default"
-                      size="sm"
-                      onClick={handleSave}
-                      className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 bg-cyan-600 hover:bg-cyan-700 text-white"
-                    >
-                      <Save className="w-3.5 h-3.5 ml-1.5" />
-                      שמירה
-                    </Button>
-                  </>
-                )}
-              </div>
+            {!viewOnly && !isEditing && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsEditing(true)}
+                className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-cyan-400 text-cyan-700 hover:bg-cyan-50"
+              >
+                <Pencil className="w-3.5 h-3.5 ml-1.5" />
+                עריכה
+              </Button>
             )}
           </div>
         </div>
@@ -1148,23 +1123,23 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
               <CardContent className="p-4 md:p-6">
                 <div className="space-y-6">
                   <div>
-                  <div className="flex items-center gap-1.5 mb-2">
-                    <Label htmlFor="about" className="text-sm font-medium text-gray-700">
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <Label htmlFor="about" className="text-sm font-medium text-gray-700">
                         ספר/י קצת על עצמך (תיאור חופשי)
-                    </Label>
-                    <TooltipProvider delayDuration={100}>
+                      </Label>
+                      <TooltipProvider delayDuration={100}>
                         <Tooltip>
-                            <TooltipTrigger type="button" className="text-gray-400 hover:text-gray-600">
-                                <Info className="w-4 h-4" />
-                            </TooltipTrigger>
-                            <TooltipContent side="top" className="max-w-xs text-center">
-                                <p>כאן המקום שלך לבלוט! ספר/י על התשוקות שלך, מה מצחיק אותך, ומה את/ה מחפש/ת. 
-                                <br/>
-                                <strong className="text-cyan-600">שים/י לב: נדרשים לפחות 100 תווים.</strong></p>
-                            </TooltipContent>
+                          <TooltipTrigger type="button" className="text-gray-400 hover:text-gray-600">
+                            <Info className="w-4 h-4" />
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-xs text-center">
+                            <p>כאן המקום שלך לבלוט! ספר/י על התשוקות שלך, מה מצחיק אותך, ומה את/ה מחפש/ת.
+                              <br />
+                              <strong className="text-cyan-600">שים/י לב: נדרשים לפחות 100 תווים.</strong></p>
+                          </TooltipContent>
                         </Tooltip>
-                    </TooltipProvider>
-                  </div>
+                      </TooltipProvider>
+                    </div>
                     {isEditing && !viewOnly ? (
                       <div>
                         <Textarea
@@ -1178,14 +1153,14 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           placeholder="תאר/י את עצמך, מה מאפיין אותך, מה חשוב לך..."
                           rows={5}
                         />
-                         {formData.about && (
-                            <div className={cn(
-                                "text-xs mt-1 text-right",
-                                formData.about.trim().length < 100 ? "text-red-600" : "text-gray-500"
-                            )}>
-                                {formData.about.trim().length} / 100+ תווים
-                            </div>
-                         )}
+                        {formData.about && (
+                          <div className={cn(
+                            "text-xs mt-1 text-right",
+                            formData.about.trim().length < 100 ? "text-red-600" : "text-gray-500"
+                          )}>
+                            {formData.about.trim().length} / 100+ תווים
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap min-h-[60px] bg-slate-50/70 p-3 rounded-lg border border-slate-200/50">
@@ -1198,20 +1173,20 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     )}
                   </div>
                   <div>
-                   <div className="flex items-center gap-1.5 mb-2">
-                    <Label className="text-sm font-medium text-gray-700">
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <Label className="text-sm font-medium text-gray-700">
                         הערות נוספות לשדכן/ית (לא יוצג לצד השני)
-                    </Label>
-                    <TooltipProvider delayDuration={100}>
+                      </Label>
+                      <TooltipProvider delayDuration={100}>
                         <Tooltip>
-                        <TooltipTrigger type="button" className="text-gray-400 hover:text-gray-600">
+                          <TooltipTrigger type="button" className="text-gray-400 hover:text-gray-600">
                             <Info className="w-4 h-4" />
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="max-w-xs text-center">
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-xs text-center">
                             <p>מידע שחשוב לנו לדעת כדי למצוא התאמה טובה, אך לא תרצה/י שיופיע בפרופיל הגלוי. למשל: נושאים רגישים, העדפות ספציפיות מאוד, או רקע נוסף.</p>
-                        </TooltipContent>
+                          </TooltipContent>
                         </Tooltip>
-                    </TooltipProvider>
+                      </TooltipProvider>
                     </div>
                     {isEditing && !viewOnly ? (
                       <Textarea
@@ -1407,13 +1382,13 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           disabled={
                             !viewOnly &&
                             (formData.profileCharacterTraits || []).length >=
-                              3 &&
+                            3 &&
                             !(formData.profileCharacterTraits || []).includes(
                               trait.value
                             )
                           }
                           className={cn(
-                            "rounded-full text-xs px-3 py-1.5 transition-all", 
+                            "rounded-full text-xs px-3 py-1.5 transition-all",
                             (formData.profileCharacterTraits || []).includes(
                               trait.value
                             )
@@ -1500,6 +1475,31 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
           </div>
         </div>
       </div>
+
+      {isEditing && !viewOnly && (
+        <div className="sticky bottom-0 z-20 mt-4 border-t border-gray-200 bg-white/80 p-4 backdrop-blur-md shadow-[0_-4px_10px_-5px_rgba(0,0,0,0.1)]">
+          <div className="container mx-auto flex max-w-screen-xl items-center justify-center gap-2 px-4 sm:justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCancel}
+              className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-gray-300 text-gray-700 hover:bg-gray-50 px-6"
+            >
+              <X className="w-3.5 h-3.5 ml-1.5" />
+              ביטול
+            </Button>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={handleSave}
+              className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 bg-cyan-600 hover:bg-cyan-700 text-white px-6"
+            >
+              <Save className="w-3.5 h-3.5 ml-1.5" />
+              שמירת שינויים
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
