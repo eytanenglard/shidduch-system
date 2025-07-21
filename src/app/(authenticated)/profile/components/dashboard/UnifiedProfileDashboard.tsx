@@ -194,8 +194,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
       setIsLoading(false);
     }
   };
-
-// החלף את הפונקציה handleImageUpload ב-UnifiedProfileDashboard.tsx בקוד הזה:
+// החלף את handleImageUpload ב-UnifiedProfileDashboard.tsx בזה:
 
 const handleImageUpload = async (files: File[]) => {
   if (!files || files.length === 0) return;
@@ -203,37 +202,87 @@ const handleImageUpload = async (files: File[]) => {
   setIsLoading(true);
   const uploadedImages: UserImage[] = [];
   const failedUploads: string[] = [];
-  let isFirstImage = images.length === 0;
   
-  try {
-    // העלאה של כל הקבצים אחד אחד באמצעות ה-API הקיים
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
+  // פונקציה לretry עם timeout מתאים ל-Heroku (30 שניות)
+  const uploadWithRetry = async (file: File, retries = 1): Promise<UserImage | null> => {
+    for (let attempt = 1; attempt <= retries + 1; attempt++) {
       try {
         const formData = new FormData();
         formData.append("file", file);
         
+        // timeout של 20 שניות - מתחת ל-Heroku timeout של 30 שניות
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 20000);
+        
+        console.log(`[Upload] Attempt ${attempt} for ${file.name}`);
+        
         const response = await fetch("/api/profile/images", {
           method: "POST",
           body: formData,
+          signal: controller.signal,
         });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `HTTP ${response.status}`);
+        }
         
         const data = await response.json();
         if (data.success && data.image) {
-          uploadedImages.push(data.image);
-          
-          // אם זו התמונה הראשונה ואין תמונה ראשית, ה-API אוטומטית קובע אותה כראשית
-          // אבל אם זו לא התמונה הראשונה והיא התמונה הראשונה שהועלתה בקבוצה הזו
-          // ואין תמונה ראשית קיימת, נקבע אותה כראשית
-          if (isFirstImage && i === 0) {
-            isFirstImage = false; // רק התמונה הראשונה בקבוצה תהיה ראשית
-          }
+          console.log(`[Upload] Success for ${file.name} in ${data.timing || 'unknown time'}`);
+          return data.image;
         } else {
-          failedUploads.push(`${file.name}: ${data.error || data.message || "שגיאה לא ידועה"}`);
+          throw new Error(data.error || "Upload failed");
         }
       } catch (err) {
-        console.error(`Upload error for ${file.name}:`, err);
-        failedUploads.push(`${file.name}: שגיאה בהעלאה`);
+        console.error(`[Upload] Attempt ${attempt} failed for ${file.name}:`, err);
+        
+        if (attempt === retries + 1) {
+          // אחרי כל הניסיונות
+          if (err instanceof Error && err.name === 'AbortError') {
+            throw new Error("Upload timed out - server might be slow");
+          }
+          throw err;
+        }
+        
+        // המתן לפני retry (רק אם זה לא timeout)
+        if (!(err instanceof Error && err.name === 'AbortError')) {
+          await new Promise(resolve => setTimeout(resolve, 2000 * attempt));
+        }
+      }
+    }
+    return null;
+  };
+  
+  try {
+    // העלאה רציפה עם progress tracking
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      
+      try {
+        // הודעת התחלה
+        toast.loading(`מעלה ${file.name}... (${i + 1}/${files.length})`, {
+          id: `upload-${i}`,
+        });
+        
+        const uploadedImage = await uploadWithRetry(file);
+        
+        if (uploadedImage) {
+          uploadedImages.push(uploadedImage);
+          toast.success(`${file.name} הועלה בהצלחה!`, {
+            id: `upload-${i}`,
+          });
+        }
+        
+      } catch (err) {
+        console.error(`[Upload] Final error for ${file.name}:`, err);
+        const errorMessage = err instanceof Error ? err.message : "שגיאה לא ידועה";
+        failedUploads.push(`${file.name}: ${errorMessage}`);
+        toast.error(`נכשל: ${file.name} - ${errorMessage}`, {
+          id: `upload-${i}`,
+        });
       }
     }
     
@@ -242,39 +291,33 @@ const handleImageUpload = async (files: File[]) => {
       setImages((prev) => [...prev, ...uploadedImages]);
       await updateSession();
       
-      // הודעות הצלחה
-      if (uploadedImages.length === files.length) {
-        if (uploadedImages.length === 1) {
-          toast.success("התמונה הועלתה בהצלחה!");
-        } else {
-          toast.success(`כל ${uploadedImages.length} התמונות הועלו בהצלחה!`);
-        }
+      // הודעת סיכום
+      const successCount = uploadedImages.length;
+      const totalCount = files.length;
+      
+      if (successCount === totalCount) {
+        toast.success(`כל ${successCount} התמונות הועלו בהצלחה!`);
       } else {
-        toast.success(`${uploadedImages.length} מתוך ${files.length} תמונות הועלו בהצלחה.`);
+        toast.success(`${successCount} מתוך ${totalCount} תמונות הועלו בהצלחה.`);
       }
       
       setError("");
     }
     
     // הודעות שגיאה
-    if (failedUploads.length > 0) {
-      failedUploads.forEach(error => {
-        toast.error(error);
-      });
-      if (uploadedImages.length === 0) {
-        setError("כל ההעלאות נכשלו");
-      }
+    if (failedUploads.length > 0 && uploadedImages.length === 0) {
+      setError("כל ההעלאות נכשלו - בדוק חיבור אינטרנט ונסה שוב");
+      toast.error("כל ההעלאות נכשלו - נסה שוב");
     }
     
   } catch (err) {
-    console.error("General upload error:", err);
+    console.error("[Upload] General error:", err);
     setError("שגיאה כללית בהעלאת התמונות");
     toast.error("שגיאה כללית בהעלאת התמונות");
   } finally {
     setIsLoading(false);
   }
 };
-
   const handleSetMainImage = async (imageId: string) => {
     setIsLoading(true);
     try {
