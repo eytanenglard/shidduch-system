@@ -1,16 +1,11 @@
-// src/app/api/profile/images/route.ts - גרסה מתוקנת עם timeout
+// src/app/api/profile/images/route.ts - גרסה פשוטה שעובדת
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { v2 as cloudinary } from "cloudinary";
 
-type CloudinaryUploadResult = {
-  secure_url: string;
-  public_id: string;
-};
-
-// Configure Cloudinary עם timeout
+// Configure Cloudinary
 if (!process.env.CLOUDINARY_CLOUD_NAME || 
     !process.env.CLOUDINARY_API_KEY || 
     !process.env.CLOUDINARY_API_SECRET) {
@@ -22,19 +17,15 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
   secure: true,
-  timeout: 60000, // עכשיו זה אמור לעבוד
 });
 
-// פונקציה עוטפת ל-Upload עם timeout מתאים ל-Heroku
-function uploadToCloudinary(buffer: Buffer): Promise<CloudinaryUploadResult> {
+// פונקציה עוטפת ל-Upload עם Promise נכון
+function uploadToCloudinary(buffer: Buffer): Promise<{ secure_url: string; public_id: string }> {
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
       {
         folder: "profile-images",
         resource_type: "image",
-        timeout: 25000, // 25 שניות - מתאים ל-Heroku timeout של 30 שניות
-        quality: "auto",
-        fetch_format: "auto",
       },
       (error, result) => {
         if (error) {
@@ -165,7 +156,7 @@ export async function POST(req: Request) {
     console.log(`[Upload] File processed in ${Date.now() - startTime}ms, uploading to Cloudinary...`);
 
     // העלאה לCloudinary עם timeout
-    let cloudinaryResult: CloudinaryUploadResult;
+    let cloudinaryResult: { secure_url: string; public_id: string };
     try {
       cloudinaryResult = await uploadToCloudinary(buffer);
       console.log(`[Upload] Cloudinary upload completed in ${Date.now() - startTime}ms`);
@@ -204,6 +195,7 @@ export async function POST(req: Request) {
       // אם שמירת הDB נכשלה, נסה למחוק מCloudinary
       try {
         await cloudinary.uploader.destroy(cloudinaryResult.public_id);
+        console.log("[Upload] Cleaned up Cloudinary image after DB failure");
       } catch (cleanupError) {
         console.error("[Upload] Cleanup failed:", cleanupError);
       }
