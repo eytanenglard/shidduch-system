@@ -164,14 +164,17 @@ export default withAuth(
     }
 
     // --- Scenario 3: Fully verified user ---
+       // --- Scenario 3: Fully verified user on a page they shouldn't be on ---
     if (
-        (path.startsWith('/auth/signin') || path.startsWith('/auth/register')) &&
+        (path === '/' || path.startsWith('/auth/signin') || path.startsWith('/auth/register')) &&
         token.status === UserStatus.ACTIVE &&
         token.isVerified &&
         token.isProfileComplete &&
         token.isPhoneVerified &&
         token.termsAndPrivacyAcceptedAt
     ) {
+        // אם המשתמש מחובר במלואו ומנסה לגשת לדף הבית, לדף ההתחברות או לדף ההרשמה,
+        // הפנה אותו ישירות לדף הפרופיל שלו.
         return NextResponse.redirect(new URL('/profile', req.url));
     }
     
