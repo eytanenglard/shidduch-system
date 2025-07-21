@@ -75,10 +75,9 @@ const ValuePropositionSection: React.FC = () => {
             </h3>
 
             <ul className="space-y-3 relative">
-              <ComparisonItem>
-                יעילות ומידה לקנה: שדכנים מנהלים פי 7 יותר לקוחות בעזרת
-                הטכנולוגיה שלנו
-              </ComparisonItem>
+            <ComparisonItem>
+  <strong>מאגר עצום, סיכוי גבוה יותר:</strong> הטכנולוגיה שלנו מאפשרת לשדכנים לטפל במאגר מועמדים גדול פי 7, ולהגיע להתאמה המדויקת עבורך.
+</ComparisonItem>
               <ComparisonItem>
                 ליווי אנושי: הדרכה אישית משדכנים מקצועיים לאורך כל התהליך
               </ComparisonItem>

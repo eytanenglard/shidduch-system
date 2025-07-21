@@ -195,33 +195,85 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
     }
   };
 
-  const handleImageUpload = async (file: File) => {
-    const formData = new FormData();
-    formData.append("file", file);
-    setIsLoading(true);
-    try {
-      const response = await fetch("/api/profile/images", {
-        method: "POST",
-        body: formData,
-      });
-      const data = await response.json();
-      if (data.success) {
-        setImages((prev) => [...prev, data.image]);
-        await updateSession();
-        toast.success("התמונה הועלתה בהצלחה");
-        setError("");
-      } else {
-        setError(data.message || "שגיאה בהעלאת התמונה");
-        toast.error(data.message || "שגיאה בהעלאת התמונה");
+// החלף את הפונקציה handleImageUpload ב-UnifiedProfileDashboard.tsx בקוד הזה:
+
+const handleImageUpload = async (files: File[]) => {
+  if (!files || files.length === 0) return;
+  
+  setIsLoading(true);
+  const uploadedImages: UserImage[] = [];
+  const failedUploads: string[] = [];
+  let isFirstImage = images.length === 0;
+  
+  try {
+    // העלאה של כל הקבצים אחד אחד באמצעות ה-API הקיים
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+        
+        const response = await fetch("/api/profile/images", {
+          method: "POST",
+          body: formData,
+        });
+        
+        const data = await response.json();
+        if (data.success && data.image) {
+          uploadedImages.push(data.image);
+          
+          // אם זו התמונה הראשונה ואין תמונה ראשית, ה-API אוטומטית קובע אותה כראשית
+          // אבל אם זו לא התמונה הראשונה והיא התמונה הראשונה שהועלתה בקבוצה הזו
+          // ואין תמונה ראשית קיימת, נקבע אותה כראשית
+          if (isFirstImage && i === 0) {
+            isFirstImage = false; // רק התמונה הראשונה בקבוצה תהיה ראשית
+          }
+        } else {
+          failedUploads.push(`${file.name}: ${data.error || data.message || "שגיאה לא ידועה"}`);
+        }
+      } catch (err) {
+        console.error(`Upload error for ${file.name}:`, err);
+        failedUploads.push(`${file.name}: שגיאה בהעלאה`);
       }
-    } catch (err) {
-      console.error("Upload error:", err);
-      setError("שגיאה בהעלאת התמונה");
-      toast.error("שגיאה בהעלאת התמונה");
-    } finally {
-      setIsLoading(false);
     }
-  };
+    
+    // עדכון רשימת התמונות
+    if (uploadedImages.length > 0) {
+      setImages((prev) => [...prev, ...uploadedImages]);
+      await updateSession();
+      
+      // הודעות הצלחה
+      if (uploadedImages.length === files.length) {
+        if (uploadedImages.length === 1) {
+          toast.success("התמונה הועלתה בהצלחה!");
+        } else {
+          toast.success(`כל ${uploadedImages.length} התמונות הועלו בהצלחה!`);
+        }
+      } else {
+        toast.success(`${uploadedImages.length} מתוך ${files.length} תמונות הועלו בהצלחה.`);
+      }
+      
+      setError("");
+    }
+    
+    // הודעות שגיאה
+    if (failedUploads.length > 0) {
+      failedUploads.forEach(error => {
+        toast.error(error);
+      });
+      if (uploadedImages.length === 0) {
+        setError("כל ההעלאות נכשלו");
+      }
+    }
+    
+  } catch (err) {
+    console.error("General upload error:", err);
+    setError("שגיאה כללית בהעלאת התמונות");
+    toast.error("שגיאה כללית בהעלאת התמונות");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleSetMainImage = async (imageId: string) => {
     setIsLoading(true);

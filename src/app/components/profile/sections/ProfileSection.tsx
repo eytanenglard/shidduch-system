@@ -1,4 +1,3 @@
-
 // src/app/components/profile/sections/ProfileSection.tsx
 "use client";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -474,6 +473,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
 
   return (
     <div className="relative" dir="rtl">
+      {/* Sticky Header with Buttons */}
       <div className="sticky top-0 z-10 bg-gradient-to-b from-white via-white/95 to-white/0 pt-4 pb-3 backdrop-blur-sm">
         <div className="container mx-auto max-w-screen-xl px-4">
           <div className="flex items-center justify-between">
@@ -487,21 +487,50 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                   : "פרטי הפרופיל של המועמד/ת."}
               </p>
             </div>
-            {!viewOnly && !isEditing && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsEditing(true)}
-                className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-cyan-400 text-cyan-700 hover:bg-cyan-50"
-              >
-                <Pencil className="w-3.5 h-3.5 ml-1.5" />
-                עריכה
-              </Button>
+            {!viewOnly && (
+              <div className="flex gap-2">
+                {!isEditing ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsEditing(true)}
+                    className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-cyan-400 text-cyan-700 hover:bg-cyan-50"
+                  >
+                    <Pencil className="w-3.5 h-3.5 ml-1.5" />
+                    עריכה
+                  </Button>
+                ) : (
+                  <>
+                    {/* Desktop buttons - visible on larger screens */}
+                    <div className="hidden sm:flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleCancel}
+                        className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-gray-300 text-gray-700 hover:bg-gray-50"
+                      >
+                        <X className="w-3.5 h-3.5 ml-1.5" />
+                        ביטול
+                      </Button>
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={handleSave}
+                        className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 bg-cyan-600 hover:bg-cyan-700 text-white"
+                      >
+                        <Save className="w-3.5 h-3.5 ml-1.5" />
+                        שמירה
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </div>
             )}
           </div>
         </div>
       </div>
 
+      {/* Main Content */}
       <div className="container mx-auto max-w-screen-xl py-6 px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="space-y-6">
@@ -1318,7 +1347,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         </SelectContent>
                       </Select>
                     ) : (
-                      <p className="text-sm text-gray-800 font-medium mt-1">
+<p className="text-sm text-gray-800 font-medium mt-1">
                         {renderSelectDisplayValue(
                           formData.serviceType,
                           serviceTypeOptions
@@ -1478,25 +1507,26 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
         </div>
       </div>
 
+      {/* Mobile Sticky Buttons - only show on mobile when editing */}
       {isEditing && !viewOnly && (
-        <div className="sticky bottom-0 z-20 mt-4 border-t border-gray-200 bg-white/80 p-4 backdrop-blur-md shadow-[0_-4px_10px_-5px_rgba(0,0,0,0.1)]">
-          <div className="container mx-auto flex max-w-screen-xl items-center justify-center gap-2 px-4 sm:justify-end">
+        <div className="sticky bottom-0 z-20 mt-4 border-t border-gray-200 bg-white/90 p-4 backdrop-blur-md shadow-[0_-4px_15px_-5px_rgba(0,0,0,0.15)] sm:hidden">
+          <div className="flex items-center justify-center gap-3">
             <Button
               variant="outline"
               size="sm"
               onClick={handleCancel}
-              className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-gray-300 text-gray-700 hover:bg-gray-50 px-6"
+              className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-gray-300 text-gray-700 hover:bg-gray-50 px-6 py-2"
             >
-              <X className="w-3.5 h-3.5 ml-1.5" />
+              <X className="w-4 h-4 ml-1.5" />
               ביטול
             </Button>
             <Button
               variant="default"
               size="sm"
               onClick={handleSave}
-              className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 bg-cyan-600 hover:bg-cyan-700 text-white px-6"
+              className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-2"
             >
-              <Save className="w-3.5 h-3.5 ml-1.5" />
+              <Save className="w-4 h-4 ml-1.5" />
               שמירת שינויים
             </Button>
           </div>

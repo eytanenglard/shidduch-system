@@ -58,14 +58,22 @@ const locationOptions = [
   { value: 'חו"ל', label: 'חו"ל' },
 ];
 
+// רמות דתיות מתוקנות ל-PreferencesSection.tsx
+// החלף את religiousLevelOptions הקיים בזה:
+
 const religiousLevelOptions = [
-  { value: "חרדי", label: "חרדי" },
-  { value: "חרדי מודרני", label: "חרדי מודרני" },
-  { value: "דתי", label: "דתי" },
-  { value: "דתי-לייט", label: "דתי-לייט" },
-  { value: "מסורתי", label: "מסורתי" },
-  { value: "חילוני", label: "חילוני" },
-  { value: "לא משנה", label: "ללא העדפה / גמיש" },
+  { value: "charedi", label: "חרדי/ת" },
+  { value: "charedi_modern", label: "חרדי/ת מודרני/ת" },
+  { value: "dati_leumi_torani", label: "דתי/ה לאומי/ת תורני/ת" },
+  { value: "dati_leumi_liberal", label: "דתי/ה לאומי/ת ליברלי/ת" },
+  { value: "dati_leumi_standard", label: "דתי/ה לאומי/ת (סטנדרטי)" },
+  { value: "masorti_strong", label: "מסורתי/ת (קרוב/ה לדת)" },
+  { value: "masorti_light", label: "מסורתי/ת (קשר קל למסורת)" },
+  { value: "secular_traditional_connection", label: "חילוני/ת עם זיקה למסורת" },
+  { value: "secular", label: "חילוני/ת" },
+  { value: "spiritual_not_religious", label: "רוחני/ת (לאו דווקא דתי/ה)" },
+  { value: "other", label: "אחר (נא לפרט ב'אודות')" },
+  { value: "לא משנה", label: "ללא העדפה / גמיש" }, // האפשרות הייחודית לעדפות
 ];
 
 const educationPreferenceOptions = [

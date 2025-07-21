@@ -1,7 +1,6 @@
-
 "use client";
 
-import React, { useRef, useState, useEffect, useCallback } from "react"; // Added useCallback
+import React, { useRef, useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 
@@ -14,8 +13,8 @@ import {
   DialogTitle,
   DialogDescription,
   DialogHeader,
-  DialogFooter, // Added DialogFooter
-} from "@/components/ui/dialog"; // Removed Card components as we use divs/structure directly now for more control
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 import { toast } from "sonner";
 
@@ -28,7 +27,7 @@ import {
   ChevronRight,
   Upload,
   Trash2,
-  X, // Icon for closing dialog
+  X,
 } from "lucide-react";
 
 // Types
@@ -36,18 +35,17 @@ import type { UserImage } from "@/types/next-auth";
 
 interface PhotosSectionProps {
   images: UserImage[];
-  isUploading: boolean; // Note: Changed interpretation, this prop seems external loading state, use internal `isProcessing` for actions within component
+  isUploading: boolean;
   disabled?: boolean;
   maxImages?: number;
-  onUpload: (file: File) => Promise<void>;
+  onUpload: (files: File[]) => Promise<void>; // שינוי: קבלת מערך של קבצים
   onSetMain: (imageId: string) => Promise<void>;
   onDelete: (imageId: string) => Promise<void>;
-  // Removed style props as per previous fix request and current design goals
 }
 
 const PhotosSection: React.FC<PhotosSectionProps> = ({
   images,
-  isUploading: isExternallyUploading, // Renamed to avoid confusion with internal processing state
+  isUploading: isExternallyUploading,
   disabled = false,
   maxImages = 5,
   onUpload,
@@ -60,88 +58,98 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
   // State
   const [showImageViewer, setShowImageViewer] = useState(false);
   const [selectedViewerIndex, setSelectedViewerIndex] = useState<number | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false); // Internal state for actions like delete, set main
+  const [isProcessing, setIsProcessing] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [imageToDelete, setImageToDelete] = useState<string | null>(null);
-  const [lastUploadedImageId, setLastUploadedImageId] = useState<string | null>(null); // Track ID instead of index
+  const [uploadingFiles, setUploadingFiles] = useState<string[]>([]);
 
   // Combined Loading State
-  const isLoading = isExternallyUploading || isProcessing;
-
-  // Effect to open viewer for newly uploaded image
-  useEffect(() => {
-    if (lastUploadedImageId) {
-      const newIndex = images.findIndex(img => img.id === lastUploadedImageId);
-      if (newIndex !== -1) {
-          setSelectedViewerIndex(newIndex);
-          setShowImageViewer(true);
-      }
-      setLastUploadedImageId(null); // Reset tracker
-    }
-  }, [images, lastUploadedImageId]); // Depend on images array as well
+  const isLoading = isExternallyUploading || isProcessing || uploadingFiles.length > 0;
 
   // --- Event Handlers ---
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const validateFiles = (files: FileList | File[]): { validFiles: File[], errors: string[] } => {
+    const validTypes = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    const validFiles: File[] = [];
+    const errors: string[] = [];
 
-    // Basic Validations (already implemented, kept as is)
-    const validTypes = ["image/jpeg", "image/png", "image/jpg", "image/webp"]; // Added webp
-    if (!validTypes.includes(file.type)) {
-      toast.error("סוג קובץ לא חוקי. יש להעלות JPG, PNG, או WEBP.");
+    Array.from(files).forEach((file, index) => {
+      if (!validTypes.includes(file.type)) {
+        errors.push(`קובץ ${index + 1} (${file.name}): סוג קובץ לא חוקי. יש להעלות JPG, PNG, או WEBP.`);
+        return;
+      }
+      
+      if (file.size > maxSize) {
+        errors.push(`קובץ ${index + 1} (${file.name}): הקובץ גדול מדי (מקסימום 5MB).`);
+        return;
+      }
+
+      validFiles.push(file);
+    });
+
+    return { validFiles, errors };
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    // בדיקת מגבלת תמונות
+    const remainingSlots = maxImages - images.length;
+    if (remainingSlots <= 0) {
+      toast.error("הגעת למספר המקסימלי של תמונות.");
       return;
     }
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    if (file.size > maxSize) {
-      toast.error("הקובץ גדול מדי (מקסימום 5MB).");
+
+    // בדיקת כמות הקבצים שנבחרו
+    if (files.length > remainingSlots) {
+      toast.error(`ניתן להעלות עוד ${remainingSlots} תמונות בלבד.`);
       return;
     }
 
     // Prevent multiple uploads
     if (isLoading) return;
 
-    // Use the external onUpload handler
-    try {
-      // Note: We don't set isProcessing here, assuming isExternallyUploading reflects the upload state
-      await onUpload(file);
-      // We need the ID of the new image to track it.
-      // Assuming onUpload updates the `images` prop via the parent component,
-      // we'll rely on the useEffect to find and show the new image.
-      // We need a way to get the ID - this might require adjustment in the parent or API response.
-      // For now, we'll assume the parent handles setting the ID correctly and updates `images`.
-      // A potential workaround is to find the image added (if only one is added)
-      // This is brittle. A better approach is if `onUpload` returns the new image ID.
-      // Let's simulate getting the last image ID for the effect hook.
-      // This requires the parent component to update `images` prop immediately after upload success.
-      // const newImage = images[images.length - 1]; // Risky assumption
-      // if (newImage) setLastUploadedImageId(newImage.id);
-
-      toast.success("התמונה הועלתה בהצלחה.");
-
-      // Automatically set as main if it's the very first image
-      if (images.length === 0) {
-        // Need the ID here too. This logic might need to move to the parent
-        // or the API should return the ID for immediate use.
-        // Assuming the `images` prop updates quickly after onUpload resolves:
-        const newImageId = images.find(img => !img.isMain)?.id; // Find the first non-main, likely the new one
-        if (newImageId) {
-            await handleSetMainImage(newImageId, false); // Set main without toast
+    // אימות הקבצים
+    const { validFiles, errors } = validateFiles(files);
+    
+    if (errors.length > 0) {
+      errors.forEach(error => toast.error(error));
+      if (validFiles.length === 0) {
+        // Reset file input if no valid files
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
         }
+        return;
       }
+    }
+
+    if (validFiles.length === 0) {
+      toast.error("לא נבחרו קבצים תקינים להעלאה.");
+      return;
+    }
+
+    // הגדרת קבצים שנמצאים בהעלאה
+    setUploadingFiles(validFiles.map(f => f.name));
+
+    try {
+      // קריאה לפונקציית ההעלאה עם מערך הקבצים
+      await onUpload(validFiles);
+      
+      toast.success(`${validFiles.length} תמונות הועלו בהצלחה!`);
 
     } catch (error) {
       console.error("Error during upload process:", error);
-      // Toast handled by onUpload or here as fallback
       if (!(error instanceof Error && error.message.includes("Toast"))) {
-         toast.error("שגיאה בהעלאת התמונה.");
+         toast.error("שגיאה בהעלאת התמונות.");
       }
     } finally {
-      // Reset file input regardless of success/fail
+      // Reset states
+      setUploadingFiles([]);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
-      //setIsProcessing(false); // Only manage internal processing state
     }
   };
 
@@ -156,25 +164,24 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
     setShowImageViewer(true);
   };
 
-  const closeImageViewer = useCallback(() => { // Use useCallback for keydown listener
+  const closeImageViewer = useCallback(() => {
     setShowImageViewer(false);
     setSelectedViewerIndex(null);
   }, []);
 
-  const handleNextImage = useCallback(() => { // Use useCallback
+  const handleNextImage = useCallback(() => {
       setSelectedViewerIndex((prevIndex) => {
           if (prevIndex === null || prevIndex >= images.length - 1) return prevIndex;
           return prevIndex + 1;
       });
   }, [images.length]);
 
-  const handlePreviousImage = useCallback(() => { // Use useCallback
+  const handlePreviousImage = useCallback(() => {
       setSelectedViewerIndex((prevIndex) => {
           if (prevIndex === null || prevIndex <= 0) return prevIndex;
           return prevIndex - 1;
       });
-  }, []); // Dependency images.length removed as index check handles boundary
-
+  }, []);
 
   // Handler for delete confirmation
   const confirmDelete = async () => {
@@ -189,17 +196,16 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
 
       // If deleting the main image, and there are others, set a new main one
       if (imageObj.isMain && images.length > 1) {
-        const nextMainIndex = imageIndex === 0 ? 1 : 0; // Pick first or second
+        const nextMainIndex = imageIndex === 0 ? 1 : 0;
         await onSetMain(images[nextMainIndex].id);
       }
 
-      // Call the external delete handler
       await onDelete(imageToDelete);
 
       toast.success("התמונה נמחקה בהצלחה.");
-      closeImageViewer(); // Close viewer if open
-      setDeleteConfirmOpen(false); // Close confirmation dialog
-      setImageToDelete(null); // Reset delete target
+      closeImageViewer();
+      setDeleteConfirmOpen(false);
+      setImageToDelete(null);
 
     } catch (error) {
       console.error("Error deleting image:", error);
@@ -209,22 +215,19 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
     }
   };
 
-  // Open confirmation dialog
   const requestDelete = (imageId: string, event?: React.MouseEvent) => {
-    event?.stopPropagation(); // Prevent grid click or other triggers
+    event?.stopPropagation();
     if (isLoading) return;
     setImageToDelete(imageId);
     setDeleteConfirmOpen(true);
   };
 
-
-  // Handler for setting main image
   const handleSetMainImage = async (imageId: string, showToast = true, event?: React.MouseEvent) => {
     event?.stopPropagation();
     if (isLoading) return;
 
     const currentImage = images.find(img => img.id === imageId);
-    if (!currentImage || currentImage.isMain) return; // Already main or not found
+    if (!currentImage || currentImage.isMain) return;
 
     setIsProcessing(true);
     try {
@@ -240,7 +243,6 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
     }
   };
 
-   // Prevent event bubbling for controls
    const handleControlClick = (e: React.MouseEvent) => {
     e.stopPropagation();
    };
@@ -251,10 +253,10 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
       if (!showImageViewer) return;
 
       switch (e.key) {
-        case "ArrowRight": // Assuming RTL means right arrow goes to PREVIOUS visually (index decreases)
+        case "ArrowRight":
           handlePreviousImage();
           break;
-        case "ArrowLeft": // Assuming RTL means left arrow goes to NEXT visually (index increases)
+        case "ArrowLeft":
           handleNextImage();
           break;
         case "Escape":
@@ -267,13 +269,13 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [showImageViewer, handlePreviousImage, handleNextImage, closeImageViewer]); // Add dependencies
+  }, [showImageViewer, handlePreviousImage, handleNextImage, closeImageViewer]);
 
+  const getRemainingSlots = () => maxImages - images.length;
 
   // --- Render ---
 
   return (
-    // Inspired Card Structure
     <div dir="rtl" className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl p-6 md:p-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 pb-4 border-b border-gray-200/80">
@@ -282,32 +284,39 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
           <p className="mt-1 text-sm text-gray-600">
             העלה עד {maxImages} תמונות. התמונה הראשית תוצג בכרטיס. (מומלץ: תמונות ברורות של הפנים)
           </p>
+          {/* הצגת מידע על קבצים ממתינים */}
+          {uploadingFiles.length > 0 && (
+            <p className="mt-2 text-sm text-cyan-600 font-medium">
+              מעלה {uploadingFiles.length} תמונות...
+            </p>
+          )}
         </div>
         {!disabled && (
           <Button
             variant="outline"
             onClick={triggerFileInput}
             disabled={isLoading || images.length >= maxImages}
-            className="rounded-full border-2 border-cyan-300 text-cyan-700 hover:bg-cyan-50/50 hover:border-cyan-400 transition-all duration-300 px-5 py-2.5 text-sm font-medium flex items-center gap-2 self-end sm:self-center" // Adjusted padding/text size
+            className="rounded-full border-2 border-cyan-300 text-cyan-700 hover:bg-cyan-50/50 hover:border-cyan-400 transition-all duration-300 px-5 py-2.5 text-sm font-medium flex items-center gap-2 self-end sm:self-center"
           >
-            {isExternallyUploading ? ( // Show spinner only for external upload
+            {isExternallyUploading || uploadingFiles.length > 0 ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <Upload className="w-4 h-4" />
             )}
-            <span>העלאת תמונה</span>
+            <span>העלאת תמונות</span>
           </Button>
         )}
       </div>
 
-      {/* Input for file selection (hidden) */}
+      {/* Input for file selection (hidden) - עם תמיכה בבחירה מרובה */}
       <input
         type="file"
         ref={fileInputRef}
         className="hidden"
-        accept="image/jpeg,image/png,image/jpg,image/webp" // Added webp
+        accept="image/jpeg,image/png,image/jpg,image/webp"
         onChange={handleFileSelect}
         disabled={isLoading || disabled || images.length >= maxImages}
+        multiple // הוספת תמיכה בבחירה מרובה
       />
 
       {/* Images Grid */}
@@ -325,14 +334,14 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-105"
               sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-              priority={index < 2} // Prioritize loading first few images
+              priority={index < 2}
             />
 
-            {/* Controls Overlay - Always visible, subtle */}
+            {/* Controls Overlay */}
             {!disabled && (
               <div
                 className="absolute top-2 right-2 z-10 flex gap-1.5 opacity-85 group-hover:opacity-100 transition-opacity duration-200"
-                onClick={handleControlClick} // Prevent triggering image click
+                onClick={handleControlClick}
               >
                 {/* Set Main Button */}
                 <Button
@@ -340,7 +349,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
                   size="icon"
                   className={cn(
                     "w-8 h-8 rounded-full shadow-md border border-white/30 bg-black/40 text-white hover:bg-black/60 transition-colors",
-                    image.isMain ? "cursor-default" : "hover:text-yellow-300" // Visual cue for main
+                    image.isMain ? "cursor-default" : "hover:text-yellow-300"
                   )}
                   onClick={(e) => handleSetMainImage(image.id, true, e)}
                   disabled={image.isMain || isLoading}
@@ -384,26 +393,46 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
             className="flex flex-col items-center justify-center text-center p-4 aspect-square rounded-xl border-2 border-dashed border-cyan-300/70 bg-cyan-50/30 hover:bg-cyan-50/60 hover:border-cyan-400 transition-colors duration-300 cursor-pointer group"
           >
             <Upload className="w-8 h-8 text-cyan-500 mb-2 transition-transform group-hover:scale-110" />
-            <span className="text-sm font-medium text-cyan-700">העלאת תמונה</span>
+            <span className="text-sm font-medium text-cyan-700">העלאת תמונות</span>
             <span className="text-xs text-cyan-600/90 mt-1">
-              עד {maxImages - images.length} תמונות נוספות
+              עד {getRemainingSlots()} תמונות נוספות
+            </span>
+            <span className="text-xs text-cyan-500/80 mt-1">
+              (בחר מספר קבצים)
             </span>
           </div>
         )}
+
+        {/* הצגת placeholder לקבצים שבהעלאה */}
+        {uploadingFiles.map((fileName, index) => (
+          <div
+            key={`uploading-${index}`}
+            className="relative aspect-square rounded-xl overflow-hidden bg-gray-200 shadow-md"
+          >
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <Loader2 className="w-8 h-8 text-cyan-500 animate-spin mb-2" />
+              <span className="text-xs text-gray-600 text-center px-2">
+                מעלה...
+              </span>
+            </div>
+            <div className="absolute bottom-0 left-0 right-0 bg-cyan-500 h-1 animate-pulse"></div>
+          </div>
+        ))}
       </div>
 
       {/* Empty State (if no images and not disabled) */}
-      {images.length === 0 && !disabled && (
+      {images.length === 0 && uploadingFiles.length === 0 && !disabled && (
          <div className="text-center py-16 mt-6 bg-gradient-to-br from-cyan-50/20 to-pink-50/20 rounded-xl border border-dashed border-gray-300">
               <Camera className="w-12 h-12 mx-auto text-gray-400/80" />
               <p className="mt-4 text-gray-600 font-medium">
                 אין עדיין תמונות בפרופיל
               </p>
          <p className="text-sm text-gray-500 mt-1 px-4">
-  תמונה טובה היא הרושם הראשוני שלכם. כדאי להעלות אחת כדי להשלים את הפרופיל.
+  תמונות טובות הן הרושם הראשוני שלכם. כדאי להעלות תמונות כדי להשלים את הפרופיל.
 </p>
           </div>
       )}
+
       {/* Empty State (if disabled and no images) */}
        {images.length === 0 && disabled && (
          <div className="text-center py-16 mt-6 bg-gray-50/50 rounded-xl border border-gray-200">
@@ -443,7 +472,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
               {isProcessing ? (
                 <Loader2 className="w-4 h-4 ml-2 animate-spin" />
               ) : (
-                <Trash2 className="w-4 h-4 ml-2" /> // Keep icon consistent
+                <Trash2 className="w-4 h-4 ml-2" />
               )}
               <span>מחק</span>
             </Button>
@@ -455,7 +484,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
        <Dialog open={showImageViewer} onOpenChange={setShowImageViewer}>
         <DialogContent
             className="p-0 m-0 w-screen h-screen max-w-none sm:max-w-full sm:h-full bg-black/90 backdrop-blur-sm border-none rounded-none flex items-center justify-center outline-none"
-            aria-describedby={undefined} // Remove default description link if header is hidden
+            aria-describedby={undefined}
             >
             {/* Close Button */}
             <Button
@@ -477,19 +506,17 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
                             src={images[selectedViewerIndex].url}
                             alt={`תצוגה מוגדלת של תמונה ${selectedViewerIndex + 1}`}
                             fill
-                            className="object-contain select-none" // Prevent image selection/drag
-                            sizes="90vw" // Simplified sizes for viewer
-                            priority // Load the viewed image with high priority
+                            className="object-contain select-none"
+                            sizes="90vw"
+                            priority
                         />
                     </div>
 
-
-                    {/* Viewer Controls (Nav + Actions) */}
+                    {/* Viewer Controls */}
                     <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
                          {/* Navigation */}
                          {images.length > 1 && (
                             <>
-                            {/* Previous Button (Visually Right in RTL) */}
                             <Button
                                 variant="ghost"
                                 size="icon"
@@ -500,7 +527,6 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
                             >
                                 <ChevronRight className="w-7 h-7" />
                             </Button>
-                             {/* Next Button (Visually Left in RTL) */}
                             <Button
                                 variant="ghost"
                                 size="icon"
@@ -514,10 +540,9 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
                             </>
                          )}
 
-                        {/* Action Buttons (Top Right) */}
+                        {/* Action Buttons */}
                          {!disabled && (
                             <div className="absolute top-4 right-4 z-50 flex flex-col sm:flex-row gap-2 pointer-events-auto">
-                                {/* Set as Main Button */}
                                 {!images[selectedViewerIndex].isMain && (
                                 <Button
                                     variant="secondary"
@@ -531,9 +556,8 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
                                 </Button>
                                 )}
 
-                                {/* Delete Button */}
                                 <Button
-                                    variant="destructive" // Using destructive variant directly
+                                    variant="destructive"
                                     className="rounded-full bg-red-600/80 hover:bg-red-700 text-white px-3 py-1.5 text-xs sm:text-sm shadow-md border-none flex items-center gap-1.5"
                                     onClick={(e) => requestDelete(images[selectedViewerIndex].id, e)}
                                     size="sm"
@@ -561,4 +585,3 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
 };
 
 export default PhotosSection;
-
