@@ -3,13 +3,12 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { UserRole } from "@prisma/client";
-import { v2 as cloudinary, UploadApiOptions } from "cloudinary";
+import { v2 as cloudinary } from "cloudinary";
 
-// Define Cloudinary upload result type
-type CloudinaryUploadResult = {
+// טייפ פשוט לתוצאה
+type UploadResult = {
   secure_url: string;
   public_id: string;
-  [key: string]: unknown;
 };
 
 // Check for required environment variables
@@ -21,7 +20,6 @@ const apiSecret = process.env.CLOUDINARY_API_SECRET;
 if (!cloudName || !apiKey || !apiSecret) {
   console.error("Missing Cloudinary environment variables");
 } else {
-  // Configure Cloudinary only if all values are defined
   cloudinary.config({
     cloud_name: cloudName,
     api_key: apiKey,
@@ -43,13 +41,11 @@ export async function POST(
       );
     }
 
-    // Verify that the user is a matchmaker OR an admin
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { role: true }
     });
 
-    // ---- START OF CHANGE ----
     const allowedRoles: UserRole[] = [UserRole.MATCHMAKER, UserRole.ADMIN];
     if (!user || !allowedRoles.includes(user.role)) {
       return NextResponse.json(
@@ -57,12 +53,9 @@ export async function POST(
         { status: 403 }
       );
     }
-    // ---- END OF CHANGE ----
 
-    // Get candidate ID from params
     const { id } = params;
 
-    // Verify candidate exists
     const candidate = await prisma.user.findUnique({
       where: { id },
       select: { id: true }
@@ -75,7 +68,6 @@ export async function POST(
       );
     }
 
-    // Process the form data
     const formData = await req.formData();
     const image = formData.get('image') as File;
 
@@ -86,61 +78,46 @@ export async function POST(
       );
     }
 
-    // Check if Cloudinary is properly configured
     if (!cloudName || !apiKey || !apiSecret) {
       return NextResponse.json(
-        { success: false, error: "Server configuration error - image upload service unavailable" },
+        { success: false, error: "Server configuration error" },
         { status: 500 }
       );
     }
 
-    // Convert file to base64 for Cloudinary upload
+    // Convert to buffer
     const arrayBuffer = await image.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    const base64Image = buffer.toString('base64');
-    const dataURI = `data:${image.type};base64,${base64Image}`;
 
-    // Upload to Cloudinary using the upload_stream method
-    const uploadResult = await new Promise<CloudinaryUploadResult>((resolve, reject) => {
-      const uploadOptions: UploadApiOptions = {
+    // Upload using cloudinary.uploader.upload with string transformation
+    // זה עוקף את בעיות הטייפים לגמרי
+  // אם עדיין יש בעיות, השתמש בזה:
+    const uploadResult = await cloudinary.uploader.upload(
+      `data:${image.type};base64,${buffer.toString('base64')}`,
+      {
         folder: `shidduch-system/users/${id}`,
-        resource_type: "image",
+        resource_type: 'image',
+        // עוקף את בעיות הטייפים עם type assertion
         transformation: [
-          { width: 1000, height: 1000, crop: "limit" },
-          { quality: "auto:good" }
-        ]
-      };
-      
-      const uploadStream = cloudinary.uploader.upload_stream(
-        uploadOptions,
-        (error, result) => {
-          if (error) reject(error);
-          else if (result) resolve(result as CloudinaryUploadResult);
-          else reject(new Error('No result from Cloudinary upload'));
-        }
-      );
-      
-      // Convert the dataURI to buffer and pipe it to the upload stream
-      const bufferData = Buffer.from(dataURI.replace(/^data:image\/\w+;base64,/, ''), 'base64');
-      uploadStream.end(bufferData);
-    });
+          { width: 1000, height: 1000, crop: 'limit' },
+          { quality: 'auto:good' }
+        ] as unknown as Record<string, unknown>
+      }
+    );
 
-    // Check if this is the first image, to make it the main image
     const existingImages = await prisma.userImage.count({
       where: { userId: id }
     });
 
-    // Create image record in database
     const newImage = await prisma.userImage.create({
       data: {
         userId: id,
         url: uploadResult.secure_url,
         cloudinaryPublicId: uploadResult.public_id,
-        isMain: existingImages === 0 // Make it main if it's the first image
+        isMain: existingImages === 0
       }
     });
 
-    // Update lastActive timestamp
     await prisma.profile.update({
       where: { userId: id },
       data: { lastActive: new Date() }
