@@ -104,6 +104,20 @@ type ConfirmActionData = {
   type?: string;
 };
 // --- END: Type Imports and Definitions ---
+type SuggestionCardActionType =
+  | "view"
+  | "contact"
+  | "message"
+  | "edit"
+  | "delete"
+  | "resend"
+  | "changeStatus"
+  | "reminder";
+
+type SuggestionDetailsActionType =
+  | SuggestionCardActionType // Includes all actions from the card
+  | "sendReminder" | "shareContacts" | "scheduleMeeting" | "viewMeetings"
+  | "exportHistory" | "export" | "resendToAll";
 
 export default function MatchmakerDashboard() {
   const isMobile = useMediaQuery("(max-width: 768px)");
@@ -276,7 +290,7 @@ export default function MatchmakerDashboard() {
     }
   };
   
-  const handleDialogAction = (action: string, data?: DialogActionData) => {
+  const handleDialogAction = (action: SuggestionDetailsActionType, data?: DialogActionData) => {
     setSelectedSuggestion(data?.suggestion || null);
     if (action === 'view' && data?.suggestion) {
         setSelectedSuggestion(data.suggestion);
@@ -292,7 +306,7 @@ export default function MatchmakerDashboard() {
     }
   };
   
-  const handleSuggestionAction = (type: any, suggestion: Suggestion, additionalData?: ActionAdditionalData) => {
+    const handleSuggestionAction = (type: SuggestionCardActionType, suggestion: Suggestion, additionalData?: ActionAdditionalData) => {
     handleDialogAction(type, { ...additionalData, suggestionId: suggestion.id, suggestion });
   };
   
@@ -471,8 +485,12 @@ export default function MatchmakerDashboard() {
 
       {/* Dialogs and Forms (common for both views) */}
       <NewSuggestionForm isOpen={showNewSuggestion} onClose={() => setShowNewSuggestion(false)} candidates={allCandidates} onSubmit={handleNewSuggestion} />
-      <SuggestionDetailsDialog suggestion={selectedSuggestion} isOpen={!!selectedSuggestion} onClose={() => setSelectedSuggestion(null)} onAction={handleDialogAction as any} />
-      <Dialog open={showMonthlyTrendDialog} onOpenChange={setShowMonthlyTrendDialog}><DialogContent className="max-w-4xl"><DialogHeader><DialogTitle>מגמה חודשית</DialogTitle></DialogHeader><MonthlyTrendModal suggestions={suggestions} /></DialogContent></Dialog>
+  <SuggestionDetailsDialog 
+        suggestion={selectedSuggestion} 
+        isOpen={!!selectedSuggestion} 
+        onClose={() => setSelectedSuggestion(null)} 
+        onAction={handleDialogAction} 
+      />      <Dialog open={showMonthlyTrendDialog} onOpenChange={setShowMonthlyTrendDialog}><DialogContent className="max-w-4xl"><DialogHeader><DialogTitle>מגמה חודשית</DialogTitle></DialogHeader><MonthlyTrendModal suggestions={suggestions} /></DialogContent></Dialog>
       <EditSuggestionForm isOpen={showEditForm} onClose={() => setShowEditForm(false)} suggestion={selectedSuggestion} onSave={handleUpdateSuggestion} />
       <MessageForm isOpen={showMessageForm} onClose={() => setShowMessageForm(false)} suggestion={selectedSuggestion} onSend={handleSendMessage} />
       {confirmAction && <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>האם את/ה בטוח/ה?</AlertDialogTitle><AlertDialogDescription>{confirmAction.type === "delete" && "פעולה זו תמחק את ההצעה לצמיתות."}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>ביטול</AlertDialogCancel><AlertDialogAction onClick={handleConfirmAction}>אישור</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>}
