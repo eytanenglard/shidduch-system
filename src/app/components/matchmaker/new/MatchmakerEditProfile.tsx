@@ -141,10 +141,12 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
     }
   };
 
-  const handleImageUpload = async (file: File) => {
+  // --- START OF FIX ---
+  const handleImageUpload = async (files: File[]) => {
     if (!candidate) return;
     setIsUploading(true);
-    try {
+
+    const uploadPromises = files.map(async (file) => {
       const formData = new FormData();
       formData.append("image", file);
       formData.append("userId", candidate.id);
@@ -153,19 +155,33 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
         `/api/matchmaker/candidates/${candidate.id}/images`,
         { method: "POST", body: formData }
       );
+      
       const data = await response.json();
       if (!response.ok || !data.success) {
-        throw new Error(data.error || "Failed to upload image");
+        // Throw an error with the file name to identify which one failed
+        throw new Error(`שגיאה בהעלאת הקובץ ${file.name}: ${data.error || "שגיאת שרת"}`);
       }
-      setImages((prev) => [...prev, data.image]);
-      toast.success("התמונה הועלתה בהצלחה");
+      return data.image; // Return the new image object from the server
+    });
+
+    try {
+      // Use Promise.all to upload in parallel
+      const newImages = await Promise.all(uploadPromises);
+      
+      // Update the state once with all the new images
+      setImages((prev) => [...prev, ...newImages]);
+      toast.success(`${newImages.length > 1 ? `${newImages.length} תמונות הועלו` : 'התמונה הועלתה'} בהצלחה`);
+
     } catch (error) {
-      console.error("Error uploading image:", error);
-      toast.error("שגיאה בהעלאת התמונה");
+      console.error("Error uploading images:", error);
+      toast.error(
+        "אחת או יותר מהתמונות לא הועלו: " + (error instanceof Error ? error.message : "שגיאה לא ידועה")
+      );
     } finally {
       setIsUploading(false);
     }
   };
+  // --- END OF FIX ---
 
   const handleSetMainImage = async (imageId: string) => {
     if (!candidate) return;
