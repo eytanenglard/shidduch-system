@@ -59,7 +59,7 @@ import type { Candidate } from "@/app/components/matchmaker/new/types/candidates
 
 import NewSuggestionForm from "@/app/components/matchmaker/suggestions/NewSuggestionForm";
 
-// Enhanced Interfaces with Responsive Support and Gender Detection
+// Enhanced Interfaces with Responsive Support
 interface CreateSuggestionData {
   priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
   firstPartyId: string;
@@ -80,22 +80,6 @@ interface ExcitementFactor {
   gradient: string;
   shortText?: string; // הוספה למובייל
 }
-
-// Gender Detection Helper
-type GenderType = "MALE" | "FEMALE" | string;
-
-const getGenderBasedPalette = (gender: GenderType | undefined): ColorPaletteName => {
-  if (!gender) return 'professional';
-  
-  switch (gender.toUpperCase()) {
-    case 'MALE':
-      return 'masculine';
-    case 'FEMALE':
-      return 'feminine';
-    default:
-      return 'professional';
-  }
-};
 
 // Enhanced Color Palette & Theme with Responsive Support
 const COLOR_PALETTES = {
@@ -2043,12 +2027,12 @@ const ProfileHeader: React.FC<{
           <div className="relative flex-shrink-0">
             <div className={cn(
               "relative rounded-full overflow-hidden border-2 sm:border-4 border-white shadow-lg sm:shadow-2xl ring-2 sm:ring-4 ring-rose-200/50 transition-all duration-300 hover:scale-105",
-              // Responsive image sizes - גדול יותר ובולט יותר!
+              // Responsive image sizes - חיוני למובייל!
               compact 
-                ? "h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24" 
+                ? "h-12 w-12 sm:h-16 sm:w-16 md:h-20 md:w-20" 
                 : isMobile 
-                  ? "h-24 w-24 sm:h-28 sm:w-28 md:h-32 md:w-32" 
-                  : "h-28 w-28 sm:h-32 sm:w-32 md:h-40 md:w-40 lg:h-44 lg:w-44",
+                  ? "h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24" 
+                  : "h-20 w-20 sm:h-24 sm:w-24 md:h-32 md:w-32 lg:h-36 lg:w-36",
               THEME.shadows.elegant
             )}>
               {mainImageToDisplay?.url ? (
@@ -2057,7 +2041,7 @@ const ProfileHeader: React.FC<{
                   alt={`תמונת פרופיל של ${profile.user?.firstName || 'מועמד יקר'}`}
                   fill
                   className="object-cover transition-transform duration-700 hover:scale-110"
-                  sizes={compact ? "96px" : isMobile ? "128px" : "176px"}
+                  sizes={compact ? "80px" : isMobile ? "96px" : "144px"}
                   priority
                 />
               ) : (
@@ -2068,8 +2052,8 @@ const ProfileHeader: React.FC<{
                   <span className={cn(
                     "font-bold text-white",
                     compact 
-                      ? "text-xl sm:text-2xl" 
-                      : "text-3xl sm:text-4xl lg:text-6xl"
+                      ? "text-lg sm:text-xl" 
+                      : "text-2xl sm:text-3xl lg:text-5xl"
                   )}>
                     {getInitials(profile.user?.firstName, profile.user?.lastName, compact ? 1 : 2)}
                   </span>
@@ -2678,6 +2662,7 @@ const ImageDialogComponent: React.FC<{
     </Dialog>
   );
 };
+
 // --- Main Content, Tabs & Mobile Layouts with Full Responsive Support ---
 
 // Main ProfileCard Component
@@ -2706,12 +2691,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   const [activeTab, setActiveTab] = useState("essence");
   const [isSuggestDialogOpen, setIsSuggestDialogOpen] = useState(false);
   const [mobileViewLayout, setMobileViewLayout] = useState<'focus' | 'detailed'>('focus');
-  
-  // Auto-detect gender and set appropriate palette
-  const [selectedPalette, setSelectedPalette] = useState<ColorPaletteName>(() => 
-    getGenderBasedPalette(profile.gender)
-  );
-  
+  const [selectedPalette, setSelectedPalette] = useState<ColorPaletteName>('feminine');
   const [isFullscreen, setIsFullscreen] = useState(false);
   
   const activeTabRef = useRef(activeTab);
@@ -2720,29 +2700,18 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     activeTabRef.current = activeTab;
   }, [activeTab]);
 
-  // Enhanced tab change handler with scroll management - תיקון הקפצה למעלה
+  // Enhanced tab change handler with scroll management
   const handleTabChange = (newTab: string) => {
     if (activeTabRef.current === newTab) return;
     
     setActiveTab(newTab);
     
-    // במקום גלילה אוטומטית למעלה, שמור על המיקום הנוכחי
-    // רק אם באמת צריך (למשל אם התוכן חדש לא נכנס במסך)
+    // Smart scroll management for mobile
     if (window.innerWidth < 1024 && mobileViewLayout !== 'focus') {
-      // בדיקה אם יש צורך בגלילה - רק אם הטאב החדש ארוך מהמסך
       setTimeout(() => {
         const contentArea = document.getElementById('profile-card-tabs-content');
-        const newTabContent = document.getElementById(`tab-content-${newTab}`);
-        
-        if (contentArea && newTabContent) {
-          const contentHeight = contentArea.clientHeight;
-          const newTabHeight = newTabContent.scrollHeight;
-          
-          // גלול למעלה רק אם התוכן החדש ארוך משמעותית מהמסך
-          if (newTabHeight > contentHeight * 1.5) {
-            contentArea.scrollTo({ top: 0, behavior: 'smooth' });
-          }
-          // אחרת, שמור על המיקום הנוכחי
+        if (contentArea) {
+          contentArea.scrollTo({ top: 0, behavior: 'smooth' });
         }
       }, 100);
     }
@@ -2750,7 +2719,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
   // Get current theme based on selected palette
   const THEME = useMemo(() => COLOR_PALETTES[selectedPalette], [selectedPalette]);
-    
+  
   // Enhanced WORLDS configuration with responsive support
   const WORLDS: { [key: string]: { 
     label: string; 
@@ -2865,63 +2834,16 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     setIsSuggestDialogOpen(false);
   };
   
-  // Enhanced fullscreen toggle with mobile support
   const handleToggleFullscreen = () => {
     const elem = document.getElementById('profile-card-container');
     if (!elem) return;
     
-    // Define proper types for fullscreen API
-    interface FullscreenElement extends HTMLElement {
-      webkitRequestFullscreen?: () => Promise<void>;
-      mozRequestFullScreen?: () => Promise<void>;
-      msRequestFullscreen?: () => Promise<void>;
-    }
-
-    interface FullscreenDocument extends Document {
-      webkitExitFullscreen?: () => Promise<void>;
-      mozCancelFullScreen?: () => Promise<void>;
-      msExitFullscreen?: () => Promise<void>;
-    }
-    
-    try {
-      if (!document.fullscreenElement) {
-        const fullscreenElem = elem as FullscreenElement;
-        // Try different fullscreen methods for better mobile support
-        if (elem.requestFullscreen) {
-          elem.requestFullscreen();
-        } else if (fullscreenElem.webkitRequestFullscreen) {
-          fullscreenElem.webkitRequestFullscreen();
-        } else if (fullscreenElem.mozRequestFullScreen) {
-          fullscreenElem.mozRequestFullScreen();
-        } else if (fullscreenElem.msRequestFullscreen) {
-          fullscreenElem.msRequestFullscreen();
-        } else {
-          // Fallback for devices that don't support fullscreen
-          // Toggle a CSS class that makes the element take full viewport
-          elem.classList.toggle('mobile-fullscreen');
-          setIsFullscreen(!elem.classList.contains('mobile-fullscreen'));
-          return;
-        }
-      } else {
-        const fullscreenDoc = document as FullscreenDocument;
-        if (document.exitFullscreen) {
-          document.exitFullscreen();
-        } else if (fullscreenDoc.webkitExitFullscreen) {
-          fullscreenDoc.webkitExitFullscreen();
-        } else if (fullscreenDoc.mozCancelFullScreen) {
-          fullscreenDoc.mozCancelFullScreen();
-        } else if (fullscreenDoc.msExitFullscreen) {
-          fullscreenDoc.msExitFullscreen();
-        }
-      }
-    } catch (err) {
-      console.error(`Error toggling fullscreen: ${err instanceof Error ? err.message : 'Unknown error'}`);
-      // Fallback method
-      const fallbackElem = document.getElementById('profile-card-container');
-      if (fallbackElem) {
-        fallbackElem.classList.toggle('mobile-fullscreen');
-        setIsFullscreen(!fallbackElem.classList.contains('mobile-fullscreen'));
-      }
+    if (!document.fullscreenElement) {
+      elem.requestFullscreen().catch(err => {
+        console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+      });
+    } else {
+      document.exitFullscreen();
     }
   };
 
@@ -2981,7 +2903,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       gradient: THEME.colors.secondary.lavender,
       description: "מידע לשדכן בלבד"
     }] : []),
-  ], [hasDisplayableQuestionnaireAnswers, viewMode, THEME.colors]);
+  ], [hasDisplayableQuestionnaireAnswers, viewMode, THEME.colors.primary.light, THEME.colors.primary.accent, THEME.colors.primary.main, THEME.colors.secondary.sky, THEME.colors.secondary.peach, THEME.colors.secondary.lavender]);
 
   // Enhanced preference badges renderer with full responsive support
   const renderPreferenceBadges = (
@@ -3011,13 +2933,13 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             )} />
           </div>
           <h4 className={cn(
-            "font-bold text-gray-800 break-words hyphens-auto word-break-break-word min-w-0 flex-1 overflow-wrap-anywhere text-center",
+            "font-bold text-gray-800 break-words hyphens-auto word-break-break-word min-w-0 flex-1 overflow-wrap-anywhere",
             compact ? "text-sm" : "text-sm sm:text-base"
           )}>
             {title}
           </h4>
         </div>
-        <div className="flex flex-wrap gap-2 sm:gap-3 min-w-0 max-w-full justify-center">
+        <div className="flex flex-wrap gap-2 sm:gap-3 min-w-0 max-w-full">
           {values.map((val) => {
             const itemData = translationMap[val] || { 
               label: val, 
@@ -3080,7 +3002,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           </div>
           <div className="flex-1 min-w-0 overflow-hidden">
             <h4 className={cn(
-              "font-bold mb-2 sm:mb-3 text-gray-800 leading-relaxed break-words hyphens-auto word-break-break-word overflow-wrap-anywhere text-center",
+              "font-bold mb-2 sm:mb-3 text-gray-800 leading-relaxed break-words hyphens-auto word-break-break-word overflow-wrap-anywhere",
               compact ? "text-sm" : "text-sm sm:text-base"
             )}>
               {answer.question}
@@ -3091,7 +3013,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               `border-${worldColor}-400`
             )}>
               <p className={cn(
-                "text-gray-700 leading-relaxed italic break-words hyphens-auto word-break-break-word overflow-wrap-anywhere text-center",
+                "text-gray-700 leading-relaxed italic break-words hyphens-auto word-break-break-word overflow-wrap-anywhere",
                 compact ? "text-sm" : "text-sm sm:text-base"
               )}>
                 <Quote className="w-3 h-3 sm:w-4 sm:h-4 inline ml-1 text-gray-400 flex-shrink-0" />
@@ -3104,6 +3026,24 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       </div>
     );
   };
+
+  // Initialize client-side state
+  useEffect(() => {
+    setIsClient(true);
+    const checkScreenSize = () => setIsDesktop(window.innerWidth >= 1024);
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+
+    const onFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+
+    return () => {
+      window.removeEventListener("resize", checkScreenSize);
+      document.removeEventListener('fullscreenchange', onFullscreenChange);
+    };
+  }, []);
 
   // Enhanced MainContentTabs with full responsive support
   const MainContentTabs = () => (
@@ -3153,8 +3093,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       <ScrollArea id="profile-card-tabs-content" className="flex-1 overflow-auto h-full max-w-full">
         <div className="space-y-3 sm:space-y-4 md:space-y-6 p-1 sm:p-2 min-w-0 max-w-full">
           
-          {/* Essence Tab - Enhanced with centered headers */}
-          <TabsContent value="essence" className="mt-0 max-w-full min-w-0" id="tab-content-essence">
+          {/* Essence Tab - Enhanced */}
+          <TabsContent value="essence" className="mt-0 max-w-full min-w-0">
             <div className="space-y-6 sm:space-y-8 max-w-full min-w-0">
               <SectionCard
                 title="הנשמה והמהות" 
@@ -3163,7 +3103,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 variant="romantic" 
                 gradient={THEME.colors.primary.main}
                 className="max-w-full min-w-0"
-                headerClassName="text-center"
               >
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-start max-w-full min-w-0">
                   {/* Main Image */}
@@ -3200,10 +3139,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   
                   {/* Content */}
                   <div className="space-y-4 sm:space-y-6 max-w-full min-w-0">
-                    <div className="text-center max-w-full min-w-0">
+                    <div className="text-center lg:text-right max-w-full min-w-0">
                       <h2 className={cn(
                         "font-extrabold leading-tight mb-3 sm:mb-4 break-words hyphens-auto word-break-break-word overflow-wrap-anywhere",
-                        "text-2xl sm:text-3xl md:text-4xl text-center",
+                        "text-2xl sm:text-3xl md:text-4xl",
                         "bg-gradient-to-r from-rose-600 via-pink-600 to-amber-600 bg-clip-text text-transparent",
                         "max-w-full"
                       )}>
@@ -3211,7 +3150,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       </h2>
                       
                       {age > 0 && (
-                        <p className="text-lg sm:text-xl text-gray-700 font-bold mb-4 sm:mb-6 flex items-center justify-center gap-2 flex-wrap">
+                        <p className="text-lg sm:text-xl text-gray-700 font-bold mb-4 sm:mb-6 flex items-center justify-center lg:justify-start gap-2 flex-wrap">
                           <Cake className="w-5 h-5 text-rose-500 flex-shrink-0" />
                           <span>גיל: {age}</span>
                         </p>
@@ -3224,7 +3163,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           THEME.shadows.soft
                         )}>
                           <Quote className="absolute top-3 right-3 w-6 h-6 sm:w-8 sm:h-8 text-rose-300" />
-                          <p className="text-base sm:text-lg text-gray-800 leading-relaxed italic font-medium text-center break-words hyphens-auto word-break-break-word overflow-wrap-anywhere">
+                          <p className="text-base sm:text-lg text-gray-800 leading-relaxed italic font-medium text-center lg:text-right break-words hyphens-auto word-break-break-word overflow-wrap-anywhere">
                             {profile.about}
                           </p>
                           <Quote className="absolute bottom-3 left-3 w-6 h-6 sm:w-8 sm:h-8 text-rose-300 transform rotate-180" />
@@ -3285,11 +3224,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   variant="elegant" 
                   gradient={THEME.colors.primary.light}
                   className="max-w-full min-w-0"
-                  headerClassName="text-center"
                 >
                   <div className="space-y-4 max-w-full min-w-0">
                     {profile.profileCharacterTraits?.length > 0 ? (
-                      <div className="flex flex-wrap gap-2 sm:gap-3 max-w-full min-w-0 justify-center">
+                      <div className="flex flex-wrap gap-2 sm:gap-3 max-w-full min-w-0">
                         {profile.profileCharacterTraits.map(trait => {
                           const traitData = formatEnumValue(trait, characterTraitMap, trait);
                           return (
@@ -3328,11 +3266,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   variant="elegant" 
                   gradient={THEME.colors.secondary.sage}
                   className="max-w-full min-w-0"
-                  headerClassName="text-center"
                 >
                   <div className="space-y-4 max-w-full min-w-0">
                     {profile.profileHobbies?.length > 0 ? (
-                      <div className="flex flex-wrap gap-2 sm:gap-3 max-w-full min-w-0 justify-center">
+                      <div className="flex flex-wrap gap-2 sm:gap-3 max-w-full min-w-0">
                         {profile.profileHobbies.map(hobby => {
                           const hobbyData = formatEnumValue(hobby, hobbiesMap, hobby);
                           return (
@@ -3402,8 +3339,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             </div>
           </TabsContent>
 
-          {/* Story Tab - Enhanced with centered headers */}
-          <TabsContent value="story" className="mt-0 space-y-4 sm:space-y-6 max-w-full min-w-0" id="tab-content-story">
+          {/* Story Tab - Enhanced */}
+          <TabsContent value="story" className="mt-0 space-y-4 sm:space-y-6 max-w-full min-w-0">
             <div className="text-center mb-6 sm:mb-8 px-2 sm:px-4 max-w-full min-w-0 overflow-hidden">
               <h2 className={cn(
                 "font-bold mb-3 sm:mb-4 break-words hyphens-auto word-break-break-word overflow-wrap-anywhere text-center",
@@ -3425,7 +3362,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 variant="elegant" 
                 gradient={THEME.colors.primary.gold}
                 className="max-w-full min-w-0"
-                headerClassName="text-center"
               >
                 <div className="space-y-4 sm:space-y-5 max-w-full min-w-0">
                   <DetailItem 
@@ -3433,7 +3369,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     label="השקפת העולם שמנחה אותי" 
                     value={formatEnumValue(profile.religiousLevel, religiousLevelMap).label} 
                     variant="highlight" 
-                    textAlign="center"
+                    textAlign="right"
                     className="max-w-full min-w-0"
                   />
                   <DetailItem 
@@ -3441,7 +3377,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     label="שמירת נגיעה" 
                     value={formatBooleanPreference(profile.shomerNegiah, "כן, זה חשוב לי", "לא").label} 
                     variant="elegant" 
-                    textAlign="center"
+                    textAlign="right"
                     className="max-w-full min-w-0"
                   />
                   {profile.gender === "FEMALE" && profile.headCovering && (
@@ -3450,7 +3386,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       label="כיסוי ראש" 
                       value={formatEnumValue(profile.headCovering, headCoveringMap).label} 
                       variant="elegant" 
-                      textAlign="center"
+                      textAlign="right"
                       className="max-w-full min-w-0"
                     />
                   )}
@@ -3460,7 +3396,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       label="סוג כיפה" 
                       value={formatEnumValue(profile.kippahType, kippahTypeMap).label} 
                       variant="elegant" 
-                      textAlign="center"
+                      textAlign="right"
                       className="max-w-full min-w-0"
                     />
                   )}
@@ -3474,7 +3410,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 variant="elegant" 
                 gradient={THEME.colors.secondary.sky}
                 className="max-w-full min-w-0"
-                headerClassName="text-center"
               >
                 <div className="space-y-4 sm:space-y-5 max-w-full min-w-0">
                   <DetailItem 
@@ -3482,7 +3417,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     label="רמת ההשכלה" 
                     value={formatEnumValue(profile.educationLevel, educationLevelMap).label} 
                     variant="highlight" 
-                    textAlign="center"
+                    textAlign="right"
                     className="max-w-full min-w-0"
                   />
                   {profile.education && (
@@ -3492,7 +3427,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       value={profile.education} 
                       variant="elegant" 
                       valueClassName="whitespace-pre-wrap"
-                      textAlign="center"
                       className="max-w-full min-w-0"
                     />
                   )}
@@ -3501,7 +3435,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     label="התחום המקצועי" 
                     value={profile.occupation || "מקצוע מעניין מחכה לגילוי"} 
                     variant="elegant" 
-                    textAlign="center"
+                    textAlign="right"
                     className="max-w-full min-w-0"
                   />
                   <DetailItem 
@@ -3509,7 +3443,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     label="השירות הצבאי/לאומי" 
                     value={formatEnumValue(profile.serviceType, serviceTypeMap).label} 
                     variant="elegant" 
-                    textAlign="center"
+                    textAlign="right"
                     className="max-w-full min-w-0"
                   />
                   {profile.serviceDetails && (
@@ -3519,7 +3453,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       value={profile.serviceDetails} 
                       variant="elegant" 
                       valueClassName="whitespace-pre-wrap"
-                      textAlign="center"
                       className="max-w-full min-w-0"
                     />
                   )}
@@ -3535,7 +3468,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               variant="romantic" 
               gradient={THEME.colors.primary.accent}
               className="max-w-full min-w-0"
-              headerClassName="text-center"
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 max-w-full min-w-0">
                 <DetailItem 
@@ -3543,7 +3475,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   label="סטטוס ההורים" 
                   value={profile.parentStatus || "נגלה יחד"} 
                   variant="elegant" 
-                  textAlign="center"
+                  textAlign="right"
                   className="max-w-full min-w-0"
                 />
                 <DetailItem 
@@ -3551,7 +3483,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   label="אחים ואחיות" 
                   value={profile.siblings ? `${profile.siblings} אחים/אחיות` : "נגלה יחד"} 
                   variant="elegant" 
-                  textAlign="center"
+                  textAlign="right"
                   className="max-w-full min-w-0"
                 />
                 <DetailItem 
@@ -3559,7 +3491,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   label="המקום במשפחה" 
                   value={profile.position ? `מקום ${profile.position}` : "נגלה יחד"} 
                   variant="elegant" 
-                  textAlign="center"
+                  textAlign="right"
                   className="max-w-full min-w-0"
                 />
                 {profile.aliyaCountry && (
@@ -3568,7 +3500,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     label="ארץ המוצא" 
                     value={`${profile.aliyaCountry} - השורשים שלי`} 
                     variant="elegant" 
-                    textAlign="center"
+                    textAlign="right"
                     className="max-w-full min-w-0"
                   />
                 )}
@@ -3578,7 +3510,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     label="שנת העלייה" 
                     value={`${profile.aliyaYear} - הגעתי הביתה`} 
                     variant="elegant" 
-                    textAlign="center"
+                    textAlign="right"
                     className="max-w-full min-w-0"
                   />
                 )}
@@ -3588,7 +3520,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     label="השפה הראשונה" 
                     value={formatEnumValue(profile.nativeLanguage, languageMap).label} 
                     variant="elegant" 
-                    textAlign="center"
+                    textAlign="right"
                     className="max-w-full min-w-0"
                   />
                 )}
@@ -3597,11 +3529,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               {/* Additional Languages */}
               {profile.additionalLanguages && profile.additionalLanguages.length > 0 && (
                 <div className="mt-6 pt-6 border-t border-gray-200 max-w-full min-w-0">
-                  <h4 className="text-base font-bold text-gray-800 mb-4 flex items-center justify-center gap-2">
+                  <h4 className="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
                     <Languages className="w-5 h-5 text-blue-500 flex-shrink-0" />
                     <span className="break-words">שפות נוספות שאני מדבר/ת</span>
                   </h4>
-                  <div className="flex flex-wrap gap-2 sm:gap-3 max-w-full min-w-0 justify-center">
+                  <div className="flex flex-wrap gap-2 sm:gap-3 max-w-full min-w-0">
                     {profile.additionalLanguages.map(lang => {
                       const langData = formatEnumValue(lang, languageMap);
                       return (
@@ -3626,8 +3558,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             </SectionCard>
           </TabsContent>
 
-          {/* Vision Tab - Enhanced with centered headers */}
-          <TabsContent value="vision" className="mt-0 space-y-4 sm:space-y-6 max-w-full min-w-0" id="tab-content-vision">
+          {/* Vision Tab - Enhanced */}
+          <TabsContent value="vision" className="mt-0 space-y-4 sm:space-y-6 max-w-full min-w-0">
             <div className="text-center mb-6 sm:mb-8 px-2 sm:px-4 max-w-full min-w-0 overflow-hidden">
               <h2 className={cn(
                 "font-bold mb-3 sm:mb-4 break-words hyphens-auto word-break-break-word overflow-wrap-anywhere text-center",
@@ -3648,7 +3580,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               variant="romantic" 
               gradient={THEME.colors.primary.main}
               className="max-w-full min-w-0"
-              headerClassName="text-center"
             >
               {profile.matchingNotes ? (
                 <div className={cn(
@@ -3664,10 +3595,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                     </div>
                     <div className="max-w-full min-w-0 flex-1 overflow-hidden">
-                      <h4 className="font-bold text-rose-800 mb-3 text-base sm:text-lg text-center">
+                      <h4 className="font-bold text-rose-800 mb-3 text-base sm:text-lg">
                         המחשבות שלי על הזוגיות המושלמת:
                       </h4>
-                      <p className="text-rose-700 leading-relaxed whitespace-pre-wrap italic text-base sm:text-lg break-words hyphens-auto word-break-break-word overflow-wrap-anywhere text-center">
+                      <p className="text-rose-700 leading-relaxed whitespace-pre-wrap italic text-base sm:text-lg break-words hyphens-auto word-break-break-word overflow-wrap-anywhere">
                         <Quote className="w-4 h-4 sm:w-5 sm:h-5 inline ml-1 text-rose-400 flex-shrink-0" />
                         {profile.matchingNotes}
                         <Quote className="w-4 h-4 sm:w-5 sm:h-5 inline mr-1 text-rose-400 transform rotate-180 flex-shrink-0" />
@@ -3685,7 +3616,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               )}
               
               <div className="mt-6 sm:mt-8 space-y-4 sm:space-y-6 max-w-full min-w-0">
-                <h4 className="text-lg sm:text-xl font-bold text-gray-800 flex items-center justify-center gap-3">
+                <h4 className="text-lg sm:text-xl font-bold text-gray-800 flex items-center gap-3">
                   <Baby className="w-5 h-5 sm:w-6 sm:h-6 text-pink-500 flex-shrink-0" />
                   <span className="break-words">החזון למשפחה</span>
                 </h4>
@@ -3696,7 +3627,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       label="ילדים מקשר קודם" 
                       value={formatBooleanPreference(profile.hasChildrenFromPrevious, "יש ילדים יקרים", "אין ילדים", "נגלה יחד").label} 
                       variant="elegant" 
-                      textAlign="center"
+                      textAlign="right"
                       className="max-w-full min-w-0"
                     />
                   )}
@@ -3706,7 +3637,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       label="הגיל המועדף עליי" 
                       value={`${profile.preferredAgeMin || '?'} - ${profile.preferredAgeMax || '?'} שנים`} 
                       variant="highlight" 
-                      textAlign="center"
+                      textAlign="right"
                       className="max-w-full min-w-0"
                     />
                   )}
@@ -3716,7 +3647,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       label="הגובה המועדף" 
                       value={`${profile.preferredHeightMin || '?'} - ${profile.preferredHeightMax || '?'} ס״מ`} 
                       variant="highlight" 
-                      textAlign="center"
+                      textAlign="right"
                       className="max-w-full min-w-0"
                     />
                   )}
@@ -3725,7 +3656,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     label="שמירת נגיעה בזוגיות" 
                     value={formatStringBooleanPreference(profile.preferredShomerNegiah).label} 
                     variant="elegant" 
-                    textAlign="center"
+                    textAlign="right"
                     className="max-w-full min-w-0"
                   />
                 </div>
@@ -3734,7 +3665,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           </TabsContent>
 
           {/* Search Tab - Enhanced */}
-          <TabsContent value="search" className="mt-0 space-y-4 sm:space-y-6 max-w-full min-w-0" id="tab-content-search">
+          <TabsContent value="search" className="mt-0 space-y-4 sm:space-y-6 max-w-full min-w-0">
             <div className="text-center mb-6 sm:mb-8 px-2 sm:px-4 max-w-full min-w-0 overflow-hidden">
               <h2 className={cn(
                 "font-bold mb-3 sm:mb-4 break-words hyphens-auto word-break-break-word overflow-wrap-anywhere text-center",
@@ -3743,7 +3674,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               )}>
                 מה {profile.user?.firstName || "המועמד"} מחפש/ת בבן/בת הזוג
               </h2>
-              <p className="text-gray-600 text-base sm:text-lg break-words text-center">
+              <p className="text-gray-600 text-base sm:text-lg break-words">
                 התכונות והערכים שחשובים בהתאמה
               </p>
             </div>
@@ -3797,9 +3728,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       variant="elegant" 
                       gradient={THEME.colors.primary.light}
                       className="max-w-full min-w-0"
-                      headerClassName="text-center"
                     >
-                      <div className="flex flex-wrap gap-2 sm:gap-3 max-w-full min-w-0 justify-center">
+                      <div className="flex flex-wrap gap-2 sm:gap-3 max-w-full min-w-0">
                         {profile.preferredCharacterTraits.map(trait => {
                           const traitData = formatEnumValue(trait, characterTraitMap, trait);
                           return (
@@ -3830,9 +3760,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       variant="elegant" 
                       gradient={THEME.colors.secondary.sage}
                       className="max-w-full min-w-0"
-                      headerClassName="text-center"
                     >
-                      <div className="flex flex-wrap gap-2 sm:gap-3 max-w-full min-w-0 justify-center">
+                      <div className="flex flex-wrap gap-2 sm:gap-3 max-w-full min-w-0">
                         {profile.preferredHobbies.map(hobby => {
                           const hobbyData = formatEnumValue(hobby, hobbiesMap, hobby);
                           return (
@@ -3866,9 +3795,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             )}
           </TabsContent>
 
-          {/* Deeper Tab - Enhanced with centered headers */}
+          {/* Deeper Tab - Enhanced */}
           {hasDisplayableQuestionnaireAnswers && (
-            <TabsContent value="deeper" className="mt-0 space-y-4 sm:space-y-6 max-w-full min-w-0" id="tab-content-deeper">
+            <TabsContent value="deeper" className="mt-0 space-y-4 sm:space-y-6 max-w-full min-w-0">
               <div className="text-center mb-6 sm:mb-8 px-2 sm:px-4 max-w-full min-w-0 overflow-hidden">
                 <h2 className={cn(
                   "font-bold mb-3 sm:mb-4 break-words hyphens-auto word-break-break-word overflow-wrap-anywhere text-center",
@@ -3877,7 +3806,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 )}>
                   התשובות העמוקות מהלב של {profile.user?.firstName || "המועמד"}
                 </h2>
-                <p className="text-gray-600 text-base sm:text-lg break-words text-center">
+                <p className="text-gray-600 text-base sm:text-lg break-words">
                   מחשבות אישיות ותובנות על החיים והאהבה
                 </p>
               </div>
@@ -3897,7 +3826,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     variant="elegant" 
                     gradient={worldConfig.gradient}
                     className="max-w-full min-w-0"
-                    headerClassName="text-center"
                   >
                     <div className="grid grid-cols-1 gap-4 sm:gap-6 max-w-full min-w-0">
                       {answersForWorld.map(answer => (
@@ -3918,7 +3846,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
           {/* Professional Tab - Enhanced */}
           {viewMode === "matchmaker" && (
-            <TabsContent value="professional" className="mt-0 max-w-full min-w-0" id="tab-content-professional">
+            <TabsContent value="professional" className="mt-0 max-w-full min-w-0">
               <div className="text-center mb-6 sm:mb-8 px-2 sm:px-4 max-w-full min-w-0 overflow-hidden">
                 <h2 className={cn(
                   "font-bold mb-3 sm:mb-4 break-words hyphens-auto word-break-break-word overflow-wrap-anywhere text-center",
@@ -3927,19 +3855,18 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 )}>
                   מידע מקצועי לשדכן
                 </h2>
-                <p className="text-gray-600 text-base sm:text-lg break-words text-center">
+                <p className="text-gray-600 text-base sm:text-lg break-words">
                   פרטים רגישים וחשובים לתהליך השידוך
                 </p>
               </div>
               
               <SectionCard 
-                title="הערכים והעקרונות שמנחים אותי" 
+                title="מידע סודי לשדכנים בלבד" 
                 subtitle="פרטים מקצועיים לתהליך השידוך" 
                 icon={Lock} 
                 variant="elegant" 
                 gradient={THEME.colors.primary.gold}
                 className="max-w-full min-w-0"
-                headerClassName="text-center"
               >
                 <div className={cn(
                   "p-4 sm:p-6 rounded-2xl border-2 border-amber-300/70 max-w-full min-w-0 overflow-hidden",
@@ -3952,7 +3879,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       label="העדפת יצירת קשר" 
                       value={formatEnumValue(profile.contactPreference, contactPreferenceMap, "נגלה יחד").label} 
                       variant="elegant" 
-                      textAlign="center"
+                      textAlign="right"
                       className="max-w-full min-w-0"
                     />
                     <DetailItem 
@@ -3960,21 +3887,21 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       label="העדפת מגדר שדכן/ית" 
                       value={profile.preferredMatchmakerGender ? (profile.preferredMatchmakerGender === "MALE" ? "שדכן גבר" : "שדכנית אישה") : "אין העדפה מיוחדת"} 
                       variant="elegant" 
-                      textAlign="center"
+                      textAlign="right"
                       className="max-w-full min-w-0"
                     />
                   </div>
                   
                   {profile.matchingNotes && (
                     <div className="mt-4 sm:mt-6 max-w-full min-w-0 overflow-hidden">
-                      <h4 className="text-base sm:text-lg font-bold text-amber-700 mb-3 flex items-center justify-center gap-2">
+                      <h4 className="text-base sm:text-lg font-bold text-amber-700 mb-3 flex items-center gap-2">
                         <Edit3 className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" /> 
                         <span className="break-words">הערות מיוחדות לשדכנים:</span>
                       </h4>
                       <div className={cn(
                         "p-3 sm:p-4 rounded-xl border border-amber-200/80 bg-amber-100/70 shadow-inner max-w-full min-w-0 overflow-hidden"
                       )}>
-                        <p className="text-amber-800 whitespace-pre-wrap leading-relaxed font-medium break-words hyphens-auto word-break-break-word overflow-wrap-anywhere text-center">
+                        <p className="text-amber-800 whitespace-pre-wrap leading-relaxed font-medium break-words hyphens-auto word-break-break-word overflow-wrap-anywhere">
                           {profile.matchingNotes}
                         </p>
                       </div>
@@ -3984,34 +3911,34 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   <div className={cn(
                     "mt-4 sm:mt-6 p-3 sm:p-4 rounded-xl border border-indigo-200 bg-gradient-to-r from-indigo-100 to-purple-100 max-w-full min-w-0 overflow-hidden"
                   )}>
-                    <h4 className="font-bold text-indigo-800 mb-3 flex items-center justify-center gap-2">
+                    <h4 className="font-bold text-indigo-800 mb-3 flex items-center gap-2">
                       <Lightbulb className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" /> 
                       <span className="break-words">תובנות מקצועיות:</span>
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 text-indigo-700 text-sm sm:text-base max-w-full min-w-0">
-                      <div className="flex items-center justify-center gap-2 break-words">
+                      <div className="flex items-center gap-2 break-words">
                         <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                        <span className="break-words min-w-0 text-center">
+                        <span className="break-words min-w-0">
                           פרופיל נוצר: {profile.createdAt ? new Date(profile.createdAt).toLocaleDateString('he-IL') : 'לא ידוע'}
                         </span>
                       </div>
                       {profile.lastActive && (
-                        <div className="flex items-center justify-center gap-2 break-words">
+                        <div className="flex items-center gap-2 break-words">
                           <Clock className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                          <span className="break-words min-w-0 text-center">
+                          <span className="break-words min-w-0">
                             פעילות אחרונה: {new Date(profile.lastActive).toLocaleDateString('he-IL')}
                           </span>
                         </div>
                       )}
-                      <div className="flex items-center justify-center gap-2 break-words">
+                      <div className="flex items-center gap-2 break-words">
                         <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                        <span className="break-words min-w-0 text-center">
+                        <span className="break-words min-w-0">
                           השלמת פרופיל: {profile.isProfileComplete ? 'מושלם ✅' : 'דורש השלמה ⚠️'}
                         </span>
                       </div>
-                      <div className="flex items-center justify-center gap-2 break-words">
+                      <div className="flex items-center gap-2 break-words">
                         <Heart className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                        <span className="break-words min-w-0 text-center">
+                        <span className="break-words min-w-0">
                           סטטוס זמינות: {availability.text}
                         </span>
                       </div>
@@ -4026,72 +3953,83 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     </Tabs>
   );
 
-  // Enhanced Mobile Header with better responsive support
+  // Enhanced Mobile Header
   const MobileHeader = () => (
     <div className={cn(
-      "flex-shrink-0 sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-200/50 max-w-full overflow-hidden",
-      THEME.shadows.elegant
+      "flex-shrink-0 flex justify-between items-center border-b border-rose-200/50 sticky top-0 z-30 backdrop-blur-md",
+      "p-3 sm:p-4 min-h-[60px]",
+      `bg-gradient-to-r ${THEME.colors.neutral.warm}`
     )}>
-      {/* Header Controls */}
-      <div className="flex items-center justify-between p-3 sm:p-4 min-w-0 max-w-full">
-        {onClose && (
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={handleClose}
-            className="text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-full min-h-[44px] min-w-[44px] flex-shrink-0"
-          >
-            <ArrowRight className="w-5 h-5" />
-          </Button>
-        )}
-        
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 justify-center">
-          <div className={cn(
-            "p-1.5 sm:p-2 rounded-lg flex-shrink-0",
-            `bg-gradient-to-r ${THEME.colors.primary.main}`
-          )}>
-            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-          </div>
-          <h1 className={cn(
-            "font-bold text-gray-800 break-words hyphens-auto word-break-break-word min-w-0 flex-1 overflow-wrap-anywhere text-center",
-            "text-base sm:text-lg"
-          )}>
-            פרופיל {profile.user?.firstName || "מועמד מדהים"}
-          </h1>
-        </div>
-        
-        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={handleToggleFullscreen}
-            className="text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-full min-h-[44px] min-w-[44px]"
-          >
-            {isFullscreen ? <Minimize className="w-4 h-4 sm:w-5 sm:h-5" /> : <Maximize className="w-4 h-4 sm:w-5 sm:h-5" />}
-          </Button>
-        </div>
-      </div>
       
-      {/* View Mode Toggle */}
-      {mobileViewLayout === 'detailed' && (
-        <div className="px-3 sm:px-4 pb-2 sm:pb-3 max-w-full overflow-hidden">
-          <Button 
-            onClick={() => setMobileViewLayout('focus')}
-            variant="outline"
-            className="w-full bg-rose-50 hover:bg-rose-100 border-rose-200 text-rose-700 font-bold rounded-xl min-h-[44px] transition-all"
-          >
-            <Eye className="w-4 h-4 sm:w-5 sm:h-5 ml-2 flex-shrink-0" />
-            <span className="break-words">חזרה לתצוגה מהירה</span>
-          </Button>
-        </div>
-      )}
+      {/* Close Button */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className={cn(
+          "text-gray-600 hover:text-gray-800 hover:bg-white/60 rounded-full transition-all duration-300 shadow-sm hover:shadow-md",
+          "w-10 h-10 sm:w-12 sm:h-12 min-h-[44px] min-w-[44px] touch-manipulation"
+        )}
+        onClick={handleClose}
+        aria-label="סגור תצוגה מקדימה"
+      >
+        <X className="w-4 h-4 sm:w-5 sm:h-5" />
+      </Button>
+
+      {/* View Toggle */}
+      <ToggleGroup
+        type="single"
+        value={mobileViewLayout}
+        onValueChange={(value: 'focus' | 'detailed') => { if (value) setMobileViewLayout(value); }}
+        className={cn(
+          "bg-white/95 backdrop-blur-sm rounded-2xl border border-rose-200/50 shadow-lg",
+          "p-1",
+          THEME.shadows.soft
+        )}
+      >
+        <ToggleGroupItem 
+          value="focus" 
+          aria-label="תצוגת היכרות" 
+          className={cn(
+            "rounded-xl transition-all duration-300 min-h-[44px] px-3 sm:px-4 py-2 touch-manipulation",
+            "data-[state=on]:bg-gradient-to-r data-[state=on]:from-rose-500 data-[state=on]:to-pink-500 data-[state=on]:text-white data-[state=on]:shadow-md"
+          )}
+        >
+          <Heart className="h-3 h-3 sm:h-4 sm:w-4" />
+          <span className="mr-1.5 sm:mr-2 text-xs sm:text-sm font-medium">היכרות</span>
+        </ToggleGroupItem>
+        <ToggleGroupItem 
+          value="detailed" 
+          aria-label="תצוגה מפורטת" 
+          className={cn(
+            "rounded-xl transition-all duration-300 min-h-[44px] px-3 sm:px-4 py-2 touch-manipulation",
+            "data-[state=on]:bg-gradient-to-r data-[state=on]:from-purple-500 data-[state=on]:to-indigo-500 data-[state=on]:text-white data-[state=on]:shadow-md"
+          )}
+        >
+          <FileText className="h-3 h-3 sm:h-4 sm:w-4" />
+          <span className="mr-1.5 sm:mr-2 text-xs sm:text-sm font-medium">מפורט</span>
+        </ToggleGroupItem>
+      </ToggleGroup>
+
+      {/* Fullscreen Button */}
+      <Button 
+        variant="ghost" 
+        size="icon" 
+        className={cn(
+          "text-gray-600 hover:text-gray-800 hover:bg-white/60 rounded-full transition-all duration-300 shadow-sm hover:shadow-md",
+          "w-10 h-10 sm:w-12 sm:h-12 min-h-[44px] min-w-[44px] touch-manipulation"
+        )}
+        onClick={handleToggleFullscreen}
+        aria-label={isFullscreen ? "צא ממסך מלא" : "עבור למסך מלא"}
+      >
+        {isFullscreen ? <Minimize className="w-3 h-3 sm:w-4 sm:h-4" /> : <Maximize className="w-3 h-3 sm:w-4 sm:h-4" />}
+      </Button>
     </div>
   );
 
-  // Enhanced Detailed Mobile Layout with better responsive support  
+  // Enhanced Detailed Mobile Layout
   const DetailedMobileLayout = () => (
-    <div className="flex-1 min-h-0 flex flex-col max-w-full overflow-hidden">
-      <div className="flex-shrink-0 p-2 sm:p-3 max-w-full overflow-hidden">
+    <ScrollArea className="flex-1 min-h-0 max-w-full overflow-hidden">
+      <div className="flex flex-col min-w-0 max-w-full">
         <ProfileHeader
           profile={profile}
           age={age}
@@ -4101,18 +4039,27 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           onSuggestClick={() => setIsSuggestDialogOpen(true)}
           isMobile={true}
           selectedPalette={selectedPalette}
-          onPaletteChange={setSelectedPalette}
           THEME={THEME}
           compact={false}
         />
+        <MobileImageGallery 
+          orderedImages={orderedImages}
+          profile={profile}
+          onImageClick={handleOpenImageDialog}
+          THEME={THEME}
+          compact={false}
+        />
+        <div className={cn(
+          "p-3 sm:p-4 min-w-0 max-w-full overflow-hidden",
+          `bg-gradient-to-br ${THEME.colors.neutral.cool}`
+        )}>
+          <MainContentTabs />
+        </div>
       </div>
-      <div className="flex-1 min-h-0 overflow-hidden max-w-full">
-        <MainContentTabs />
-      </div>
-    </div>
+    </ScrollArea>
   );
 
-  // Enhanced Focus Mobile Layout with centered headers
+  // Enhanced Focus Mobile Layout
   const FocusMobileLayout = () => (
     <div className="flex-1 min-h-0 flex flex-col max-w-full overflow-hidden">
       <ScrollArea className="flex-1 min-h-0 max-w-full">
@@ -4145,19 +4092,18 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             {/* About Section */}
             {profile.about ? (
               <SectionCard 
-                title="הסיפור שלי" 
+                title="קצת עליי" 
                 icon={Heart} 
                 variant="romantic" 
                 gradient={THEME.colors.primary.main}
                 compact={true}
                 className="min-w-0 max-w-full"
-                headerClassName="text-center"
               >
                 <div className={cn(
                   "p-3 sm:p-4 rounded-xl border border-rose-200/50 min-w-0 max-w-full overflow-hidden",
                   `bg-gradient-to-r ${THEME.colors.neutral.warm}`
                 )}>
-                  <p className="text-gray-800 leading-relaxed italic font-medium break-words hyphens-auto word-break-break-word overflow-wrap-anywhere text-center">
+                  <p className="text-gray-800 leading-relaxed italic font-medium break-words hyphens-auto word-break-break-word overflow-wrap-anywhere">
                     <Quote className="w-3 h-3 sm:w-4 sm:h-4 inline ml-1 text-rose-400 flex-shrink-0" />
                     {profile.about}
                     <Quote className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 text-rose-400 transform rotate-180 flex-shrink-0" />
@@ -4165,13 +4111,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 </div>
               </SectionCard>
             ) : (
-              <SectionCard 
-                title="הסיפור שלי" 
-                icon={Telescope} 
-                variant="romantic" 
-                compact={true}
-                headerClassName="text-center"
-              >
+              <SectionCard title="הסיפור שלי" icon={Telescope} variant="romantic" compact={true}>
                 <EmptyState 
                   icon={Telescope} 
                   title="יש כאן הרבה לגלות!" 
@@ -4190,7 +4130,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               gradient={THEME.colors.primary.gold}
               compact={true}
               className="min-w-0 max-w-full"
-              headerClassName="text-center"
             >
               <div className="grid grid-cols-1 gap-2 sm:gap-3 min-w-0 max-w-full">
                 <DetailItem 
@@ -4241,16 +4180,15 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 gradient={THEME.colors.primary.romantic}
                 compact={true}
                 className="min-w-0 max-w-full"
-                headerClassName="text-center"
               >
                 <div className="space-y-4 sm:space-y-5 min-w-0 max-w-full">
                   {profile.profileCharacterTraits?.length > 0 && (
                     <div className="min-w-0 max-w-full">
-                      <h4 className="text-sm font-bold text-purple-700 mb-2 sm:mb-3 flex items-center justify-center gap-2">
+                      <h4 className="text-sm font-bold text-purple-700 mb-2 sm:mb-3 flex items-center gap-2">
                         <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" /> 
                         <span className="break-words">התכונות שלי:</span>
                       </h4>
-                      <div className="flex flex-wrap gap-2 min-w-0 max-w-full justify-center">
+                      <div className="flex flex-wrap gap-2 min-w-0 max-w-full">
                         {profile.profileCharacterTraits.slice(0, 4).map(trait => {
                           const traitData = formatEnumValue(trait, characterTraitMap, trait, true);
                           return (
@@ -4272,11 +4210,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   )}
                   {profile.profileHobbies?.length > 0 && (
                     <div className="min-w-0 max-w-full">
-                      <h4 className="text-sm font-bold text-emerald-700 mb-2 sm:mb-3 flex items-center justify-center gap-2">
+                      <h4 className="text-sm font-bold text-emerald-700 mb-2 sm:mb-3 flex items-center gap-2">
                         <Heart className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" /> 
                         <span className="break-words">מה אני אוהב/ת:</span>
                       </h4>
-                      <div className="flex flex-wrap gap-2 min-w-0 max-w-full justify-center">
+                      <div className="flex flex-wrap gap-2 min-w-0 max-w-full">
                         {profile.profileHobbies.slice(0, 4).map(hobby => {
                           const hobbyData = formatEnumValue(hobby, hobbiesMap, hobby, true);
                           return (
@@ -4308,14 +4246,13 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               gradient={THEME.colors.secondary.sky}
               compact={true}
               className="min-w-0 max-w-full"
-              headerClassName="text-center"
             >
               {profile.matchingNotes ? (
                 <div className={cn(
                   "p-3 sm:p-4 rounded-xl border border-blue-200/50 min-w-0 max-w-full overflow-hidden",
                   "bg-gradient-to-r from-blue-50 to-cyan-50"
                 )}>
-                  <p className="text-blue-700 leading-relaxed italic font-medium break-words hyphens-auto word-break-break-word overflow-wrap-anywhere text-center">
+                  <p className="text-blue-700 leading-relaxed italic font-medium break-words hyphens-auto word-break-break-word overflow-wrap-anywhere">
                     <Quote className="w-3 h-3 sm:w-4 sm:h-4 inline ml-1 text-blue-400 flex-shrink-0" />
                     {profile.matchingNotes}
                     <Quote className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 text-blue-400 transform rotate-180 flex-shrink-0" />
@@ -4375,32 +4312,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     </div>
   );
 
-  // Initialize client-side state with mobile fullscreen detection
-  useEffect(() => {
-    setIsClient(true);
-    const checkScreenSize = () => setIsDesktop(window.innerWidth >= 1024);
-    checkScreenSize();
-    window.addEventListener("resize", checkScreenSize);
-
-    const onFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement || document.getElementById('profile-card-container')?.classList.contains('mobile-fullscreen') || false);
-    };
-    
-    // Listen for all fullscreen events
-    document.addEventListener('fullscreenchange', onFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', onFullscreenChange);
-    document.addEventListener('mozfullscreenchange', onFullscreenChange);
-    document.addEventListener('MSFullscreenChange', onFullscreenChange);
-
-    return () => {
-      window.removeEventListener("resize", checkScreenSize);
-      document.removeEventListener('fullscreenchange', onFullscreenChange);
-      document.removeEventListener('webkitfullscreenchange', onFullscreenChange);
-      document.removeEventListener('mozfullscreenchange', onFullscreenChange);
-      document.removeEventListener('MSFullscreenChange', onFullscreenChange);
-    };
-  }, []);
-
   // Loading State
   if (!isClient) {
     return (
@@ -4436,7 +4347,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     );
   }
 
-  // Main Render with Enhanced Mobile Fullscreen Support
+  // Main Render
   return (
     <TooltipProvider>
       <Card
@@ -4446,19 +4357,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           "w-full h-full overflow-hidden flex flex-col max-w-full min-w-0",
           `bg-gradient-to-br ${THEME.colors.neutral.elegant}`,
           THEME.shadows.elegant,
-          // Mobile fullscreen classes
-          "mobile-fullscreen:fixed mobile-fullscreen:inset-0 mobile-fullscreen:z-[9999] mobile-fullscreen:w-screen mobile-fullscreen:h-screen",
           className
         )}
-        style={{
-          // Ensure fullscreen works on all devices
-          position: isFullscreen ? 'fixed' : undefined,
-          top: isFullscreen ? 0 : undefined,
-          left: isFullscreen ? 0 : undefined,
-          width: isFullscreen ? '100vw' : undefined,
-          height: isFullscreen ? '100vh' : undefined,
-          zIndex: isFullscreen ? 9999 : undefined,
-        }}
       >
         {/* Desktop Close Button */}
         {isDesktop && onClose && (
@@ -4547,7 +4447,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     variant="romantic" 
                     gradient={THEME.colors.primary.rose}
                     className="min-w-0 max-w-full"
-                    headerClassName="text-center"
                   >
                     {orderedImages.length > 0 ? (
                       <div className="space-y-4 min-w-0 max-w-full">
@@ -4611,7 +4510,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     variant="highlight" 
                     gradient={THEME.colors.primary.gold}
                     className="min-w-0 max-w-full"
-                    headerClassName="text-center"
                   >
                     <div className="space-y-3 sm:space-y-4 min-w-0 max-w-full">
                       <DetailItem 
@@ -4619,7 +4517,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         label="השקפת עולם" 
                         value={formatEnumValue(profile.religiousLevel, religiousLevelMap).label} 
                         variant="highlight" 
-                        textAlign="center"
+                        textAlign="right"
                         className="min-w-0 max-w-full"
                       />
                       <DetailItem 
@@ -4627,7 +4525,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         label="שמירת נגיעה" 
                         value={formatBooleanPreference(profile.shomerNegiah).label} 
                         variant="elegant" 
-                        textAlign="center"
+                        textAlign="right"
                         className="min-w-0 max-w-full"
                       />
                       <DetailItem 
@@ -4635,7 +4533,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         label="התחום המקצועי" 
                         value={profile.occupation || "מקצוע מעניין מחכה לגילוי"} 
                         variant="elegant" 
-                        textAlign="center"
+                        textAlign="right"
                         className="min-w-0 max-w-full"
                       />
                       <DetailItem 
@@ -4643,7 +4541,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         label="רמת השכלה" 
                         value={formatEnumValue(profile.educationLevel, educationLevelMap).label} 
                         variant="elegant" 
-                        textAlign="center"
+                        textAlign="right"
                         className="min-w-0 max-w-full"
                       />
                       <DetailItem 
@@ -4651,7 +4549,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         label="מיקום" 
                         value={profile.city || "איפה שהלב נמצא"} 
                         variant="elegant" 
-                        textAlign="center"
+                        textAlign="right"
                         className="min-w-0 max-w-full"
                       />
                       {profile.maritalStatus && ["divorced", "widowed", "annulled"].includes(profile.maritalStatus) && (
@@ -4660,7 +4558,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           label="ילדים מקשר קודם" 
                           value={formatBooleanPreference(profile.hasChildrenFromPrevious, "יש ילדים יקרים", "אין ילדים", "נגלה יחד").label} 
                           variant="elegant" 
-                          textAlign="center"
+                          textAlign="right"
                           className="min-w-0 max-w-full"
                         />
                       )}
@@ -4675,15 +4573,14 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     variant="romantic" 
                     gradient={THEME.colors.primary.romantic}
                     className="min-w-0 max-w-full"
-                    headerClassName="text-center"
                   >
                     {profile.about ? (
                       <div className={cn(
                         "p-3 sm:p-4 rounded-xl border border-rose-200/50 shadow-inner min-w-0 max-w-full overflow-hidden",
                         `bg-gradient-to-r ${THEME.colors.neutral.warm}`
                       )}>
-                        <Quote className="w-5 h-5 sm:w-6 sm:h-6 text-rose-400 mb-2 mx-auto" />
-                        <p className="text-gray-800 leading-relaxed italic font-medium break-words hyphens-auto word-break-break-word overflow-wrap-anywhere text-center">
+                        <Quote className="w-5 h-5 sm:w-6 sm:h-6 text-rose-400 mb-2" />
+                        <p className="text-gray-800 leading-relaxed italic font-medium break-words hyphens-auto word-break-break-word overflow-wrap-anywhere">
                           {profile.about}
                         </p>
                       </div>
@@ -4705,15 +4602,14 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     variant="highlight" 
                     gradient={THEME.colors.secondary.sky}
                     className="min-w-0 max-w-full"
-                    headerClassName="text-center"
                   >
                     {profile.matchingNotes ? (
                       <div className={cn(
                         "p-3 sm:p-4 rounded-xl border border-blue-200/50 shadow-inner min-w-0 max-w-full overflow-hidden",
                         "bg-gradient-to-r from-blue-50 to-cyan-50"
                       )}>
-                        <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400 mb-2 mx-auto" />
-                        <p className="text-blue-700 leading-relaxed italic font-medium break-words hyphens-auto word-break-break-word overflow-wrap-anywhere text-center">
+                        <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400 mb-2" />
+                        <p className="text-blue-700 leading-relaxed italic font-medium break-words hyphens-auto word-break-break-word overflow-wrap-anywhere">
                           {profile.matchingNotes}
                         </p>
                       </div>
@@ -4732,17 +4628,17 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           label="טווח גילאים מועדף" 
                           value={`${profile.preferredAgeMin || '?'} - ${profile.preferredAgeMax || '?'} שנים`} 
                           variant="elegant" 
-                          textAlign="center"
+                          textAlign="right"
                           className="min-w-0 max-w-full"
                         />
                       )}
                       {profile.preferredReligiousLevels && profile.preferredReligiousLevels.length > 0 && (
                         <div className="min-w-0 max-w-full">
-                          <p className="text-sm font-bold text-indigo-700 mb-2 flex items-center justify-center gap-2">
+                          <p className="text-sm font-bold text-indigo-700 mb-2 flex items-center gap-2">
                             <BookMarked className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" /> 
                             <span className="break-words">רמות דתיות מועדפות:</span>
                           </p>
-                          <div className="flex flex-wrap gap-2 min-w-0 max-w-full justify-center">
+                          <div className="flex flex-wrap gap-2 min-w-0 max-w-full">
                             {profile.preferredReligiousLevels.slice(0, 3).map(level => {
                               const levelData = formatEnumValue(level, religiousLevelMap, level);
                               return (
