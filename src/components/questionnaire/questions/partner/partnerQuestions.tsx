@@ -23,6 +23,11 @@ import {
   Sparkles,
   MessageCircle,
   TrendingUp,
+  Building2,     // עיר גדולה
+  Mountain,      // יישוב קהילתי
+  TreePine,      // מושב/קיבוץ
+  MapPin,        // מיקום גיאוגרפי
+  DollarSign,    // היבט כלכלי
 } from "lucide-react";
 
 export const partnerQuestions: Question[] = [
@@ -288,6 +293,82 @@ export const partnerQuestions: Question[] = [
     labels: { min: "לא חשוב כלל", max: "חשוב מאוד" },
     metadata: { estimatedTime: 1, helpText: "אם יש העדפה ספציפית, תוכל/י לציין זאת בהמשך או בשיחה עם השדכן." },
   },
+
+  // --- START: NEW LOCATION & COMMUNITY QUESTIONS ---
+  {
+    worldId: "PARTNER",
+    id: "partner_living_style_preference",
+    category: "partner",
+    subcategory: "location_community",
+    question: "בוא/י נדמיין את הבית העתידי שלכם. איזה סגנון מגורים וסביבה הכי מתאים לחזון שלך?",
+    type: "iconChoice",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      { icon: <Building2 />, text: "עיר גדולה ותוססת", value: "עיר גדולה ותוססת", description: "קצב מהיר, מגוון אפשרויות, קרבה למרכזי תרבות ותעסוקה." },
+      { icon: <Home />, text: "עיר קטנה או שכונה שקטה", value: "עיר קטנה או שכונה שקטה", description: "שילוב של שירותים עירוניים עם אווירה רגועה יותר." },
+      { icon: <Mountain />, text: "יישוב קהילתי", value: "יישוב קהילתי", description: "חיי קהילה חזקים, מרחבים פתוחים ותחושת שייכות." },
+      { icon: <TreePine />, text: "מושב, קיבוץ או כפר", value: "מושב, קיבוץ או כפר", description: "קרבה לטבע, אווירה כפרית ושקט." },
+    ],
+    metadata: { estimatedTime: 1, helpText: "הבחירה כאן עוזרת לנו להבין את סגנון החיים המועדף עליך." },
+  },
+  {
+    worldId: "PARTNER",
+    id: "partner_community_character_preference",
+    category: "partner",
+    subcategory: "location_community",
+    question: "מהם המאפיינים החשובים לך ביותר באופי הקהילה והסביבה הדתית שבה תגורו? (בחר/י עד 3)",
+    type: "multiSelect",
+    depth: "ADVANCED",
+    isRequired: true,
+    options: [
+      { icon: <BookOpen />, text: "קהילה תורנית חזקה עם דמות רבנית משמעותית", value: "קהילה תורנית חזקה" },
+      { icon: <Scale />, text: "קהילה מעורבת עם מגוון רמות דתיות", value: "קהילה מעורבת" },
+      { icon: <Users />, text: "קהילה צעירה ודינמית עם הרבה משפחות צעירות", value: "קהילה צעירה ודינמית" },
+      { icon: <Sparkles />, text: "קהילה פתוחה וליברלית מבחינה דתית וחברתית", value: "קהילה פתוחה וליברלית" },
+      { icon: <Heart />, text: "קהילה חמה, תומכת ומגובשת חברתית", value: "קהילה חמה ותומכת" },
+      { icon: <ShieldCheck />, text: "קהילה שקטה ומבוססת עם דגש על פרטיות", value: "קהילה שקטה ומבוססת" },
+    ],
+    minSelections: 1,
+    maxSelections: 3,
+    metadata: { estimatedTime: 1, helpText: "האופי של הקהילה משפיע ישירות על חיי החברה, חינוך הילדים והאווירה בבית." },
+  },
+  {
+    worldId: "PARTNER",
+    id: "partner_geographical_economic_preference",
+    category: "partner",
+    subcategory: "location_community",
+    question: "בהיבט הגיאוגרפי והכלכלי, אילו שיקולים הכי חשובים לך? (בחר/י עד 2)",
+    type: "multiSelect",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      { icon: <MapPin />, text: "מרכז הארץ - קרבה לתעסוקה, תרבות ומשפחה", value: "מרכז הארץ" },
+      { icon: <TrendingUp />, text: "פריפריה - איכות חיים, קהילתיות ועלויות מחיה נוחות יותר", value: "פריפריה" },
+      { icon: <DollarSign />, text: "מגורים ביישוב בעל עלות מחיה סבירה הם עדיפות עליונה", value: "עלות מחיה סבירה" },
+      { icon: <Briefcase />, text: "קרבה למרכזי תעסוקה רלוונטיים עבורי ועבור בן/בת הזוג", value: "קרבה למרכזי תעסוקה" },
+      { icon: <Home />, text: "קרבה למשפחת המוצא שלי או של בן/בת הזוג", value: "קרבה למשפחה" },
+    ],
+    minSelections: 1,
+    maxSelections: 2,
+    metadata: { estimatedTime: 1 },
+  },
+  {
+    worldId: "PARTNER",
+    id: "partner_relocation_flexibility",
+    category: "partner",
+    subcategory: "location_community",
+    question: "עד כמה את/ה פתוח/ה וגמיש/ה לגבי מעבר למקום מגורים חדש, גם אם הוא שונה מההעדפות הראשוניות שלך, עבור האדם הנכון?",
+    type: "scale",
+    depth: "ADVANCED",
+    isRequired: true,
+    min: 1, 
+    max: 10,
+    labels: { min: "מאוד מקובע/ת", max: "גמיש/ה לחלוטין", middle: "פתוח/ה לדיון" },
+    metadata: { estimatedTime: 1, helpText: "גמישות היא מפתח במציאת שידוך. כנות כאן תעזור לנו מאוד!" },
+  },
+  // --- END: NEW LOCATION & COMMUNITY QUESTIONS ---
+
 
   // --- חלק 6: תכונות "אדומות" (Deal Breakers) והכרחיות (Must-Haves) ---
   {

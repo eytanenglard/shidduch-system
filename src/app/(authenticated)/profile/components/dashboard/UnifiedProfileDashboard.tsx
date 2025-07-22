@@ -1,4 +1,3 @@
-// src/app/(authenticated)/profile/components/dashboard/UnifiedProfileDashboard.tsx
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
@@ -10,12 +9,11 @@ import { cn } from "@/lib/utils";
 import type { User as SessionUserType } from '@/types/next-auth';
 
 import { ProfileChecklist } from "./ProfileChecklist";
-// --- 1. ייבוא הקומפוננטה החדשה של יועץ ה-AI ---
 import { AIProfileAdvisorDialog } from "../advisor/AIProfileAdvisorDialog";
 
 // UI Components
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger, DialogClose } from "@/components/ui/dialog"; // *** הוספתי DialogClose ***
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -30,7 +28,7 @@ import {
 } from "@/app/components/profile";
 
 // Icons
-import { Eye, Loader2, Sparkles } from "lucide-react"; // הוספתי Sparkles לאייקונים
+import { Eye, Loader2, Sparkles, X } from "lucide-react"; // *** הוספתי X ***
 
 // Types
 import type {
@@ -194,7 +192,6 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
       setIsLoading(false);
     }
   };
-// החלף את handleImageUpload ב-UnifiedProfileDashboard.tsx בזה:
 
 const handleImageUpload = async (files: File[]) => {
   if (!files || files.length === 0) return;
@@ -203,14 +200,12 @@ const handleImageUpload = async (files: File[]) => {
   const uploadedImages: UserImage[] = [];
   const failedUploads: string[] = [];
   
-  // פונקציה לretry עם timeout מתאים ל-Heroku (30 שניות)
   const uploadWithRetry = async (file: File, retries = 1): Promise<UserImage | null> => {
     for (let attempt = 1; attempt <= retries + 1; attempt++) {
       try {
         const formData = new FormData();
         formData.append("file", file);
         
-        // timeout של 20 שניות - מתחת ל-Heroku timeout של 30 שניות
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 20000);
         
@@ -240,14 +235,12 @@ const handleImageUpload = async (files: File[]) => {
         console.error(`[Upload] Attempt ${attempt} failed for ${file.name}:`, err);
         
         if (attempt === retries + 1) {
-          // אחרי כל הניסיונות
           if (err instanceof Error && err.name === 'AbortError') {
             throw new Error("Upload timed out - server might be slow");
           }
           throw err;
         }
         
-        // המתן לפני retry (רק אם זה לא timeout)
         if (!(err instanceof Error && err.name === 'AbortError')) {
           await new Promise(resolve => setTimeout(resolve, 2000 * attempt));
         }
@@ -257,12 +250,10 @@ const handleImageUpload = async (files: File[]) => {
   };
   
   try {
-    // העלאה רציפה עם progress tracking
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       
       try {
-        // הודעת התחלה
         toast.loading(`מעלה ${file.name}... (${i + 1}/${files.length})`, {
           id: `upload-${i}`,
         });
@@ -286,12 +277,10 @@ const handleImageUpload = async (files: File[]) => {
       }
     }
     
-    // עדכון רשימת התמונות
     if (uploadedImages.length > 0) {
       setImages((prev) => [...prev, ...uploadedImages]);
       await updateSession();
       
-      // הודעת סיכום
       const successCount = uploadedImages.length;
       const totalCount = files.length;
       
@@ -304,7 +293,6 @@ const handleImageUpload = async (files: File[]) => {
       setError("");
     }
     
-    // הודעות שגיאה
     if (failedUploads.length > 0 && uploadedImages.length === 0) {
       setError("כל ההעלאות נכשלו - בדוק חיבור אינטרנט ונסה שוב");
       toast.error("כל ההעלאות נכשלו - נסה שוב");
@@ -433,7 +421,6 @@ const handleImageUpload = async (files: File[]) => {
                   onPreviewClick={handlePreviewClick}
                   questionnaireResponse={questionnaireResponse}
               />
-              {/* --- 2. הוספת הקומפוננטה החדשה כאן --- */}
               <div className="my-6 md:my-8 text-center">
                 <AIProfileAdvisorDialog userId={user.id} />
               </div>
@@ -449,16 +436,25 @@ const handleImageUpload = async (files: File[]) => {
                       תצוגה מקדימה של הפרופיל <Eye className="w-5 h-5 sm:w-6 sm:h-6" />
                     </Button>
                   </DialogTrigger>
- <DialogContent className="w-[95vw] max-w-6xl max-h-[90vh] overflow-y-auto p-6 bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl border-none" dir="rtl">
+                  {/*
+                    ---
+                    שינוי לפתרון נקודה 1: הוספת כפתור סגירה ייעודי
+                    - DialogContent: הוספתי `overflow-hidden` כדי למנוע מהגלילה של התוכן להסתיר את כפתור הסגירה.
+                    - DialogClose: הוספתי כפתור סגירה (X) שיהיה תמיד נגיש בפינה השמאלית העליונה (ימין ב-RTL), גם במובייל וגם בדסקטופ.
+                    - ProfileCard: מקבל כעת `className="h-full"` כדי לאפשר גלילה פנימית בתוך הכרטיס עצמו.
+                    ---
+                  */}
+<DialogContent className="w-screen h-screen sm:w-[95vw] sm:h-[90vh] sm:max-w-6xl p-0 bg-white/95 backdrop-blur-md sm:rounded-3xl shadow-2xl border-none overflow-hidden">                 
                     {profileData ? (
-                      <ProfileCard 
-                        profile={profileData} 
-                        images={images} 
-                        questionnaire={questionnaireResponse} 
-                        viewMode="candidate"
-                        // --- 👇 הוספתי את השורה הזו ---
-                        isProfileComplete={session?.user?.isProfileComplete ?? false} 
-                      />
+                <ProfileCard 
+  profile={profileData} 
+  images={images} 
+  questionnaire={questionnaireResponse} 
+  viewMode="candidate"
+  isProfileComplete={session?.user?.isProfileComplete ?? false} 
+  className="h-full"
+  onClose={() => setPreviewOpen(false)}
+/>
                     ) : (
                        <p className="text-center text-gray-500 py-10">טוען תצוגה מקדימה...</p>
                     )}

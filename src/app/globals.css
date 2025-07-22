@@ -502,4 +502,45 @@
     transform: none !important;
   }
 }
-
+@media (max-width: 640px) {
+  .profile-card-container * {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+  
+  .profile-card-container .text-4xl,
+  .profile-card-container .text-5xl {
+    font-size: 1.5rem !important;
+    line-height: 2rem !important;
+  }
+  
+  .profile-card-container .grid {
+    min-width: 0;
+  }
+  
+  .profile-card-container .tabs-list {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  
+  .profile-card-container .tabs-list::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .profile-card-container h1,
+  .profile-card-container h2,
+  .profile-card-container h3 {
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+  }
+  
+  .profile-card-container .flex {
+    min-width: 0;
+  }
+  
+  .profile-card-container img {
+    max-width: 100%;
+    height: auto;
+  }
+}
