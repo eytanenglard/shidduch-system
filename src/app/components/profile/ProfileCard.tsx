@@ -565,30 +565,30 @@ const handleTabChange = (newTab: string) => {
 
   // --- Enhanced Helper Components ---
 
-  // 1. DetailItem - רכיב בסיסי עם תיקוני word-break
-const DetailItem: React.FC<{
-  icon: React.ElementType;
-  label: string;
-  value: React.ReactNode;
-  className?: string;
-  iconColorClass?: string;
-  valueClassName?: string;
-  tooltip?: string;
-  variant?: "default" | "highlight" | "elegant" | "romantic";
-  size?: "sm" | "md" | "lg";
-  textAlign?: "center" | "right" | "left"; // ✅ הוספת prop חדש
-}> = ({ 
-  icon: Icon, 
-  label, 
-  value, 
-  className, 
-  iconColorClass = "text-rose-500", 
-  valueClassName, 
-  tooltip, 
-  variant = "default",
-  size = "md",
-  textAlign = "center" // ✅ ברירת מחדל
-}) => {
+  // ✅ 1. DetailItem - רכיב בסיסי עם תיקוני word-break ו-min-w-0
+  const DetailItem: React.FC<{
+    icon: React.ElementType;
+    label: string;
+    value: React.ReactNode;
+    className?: string;
+    iconColorClass?: string;
+    valueClassName?: string;
+    tooltip?: string;
+    variant?: "default" | "highlight" | "elegant" | "romantic";
+    size?: "sm" | "md" | "lg";
+    textAlign?: "center" | "right" | "left";
+  }> = ({ 
+    icon: Icon, 
+    label, 
+    value, 
+    className, 
+    iconColorClass = "text-rose-500", 
+    valueClassName, 
+    tooltip, 
+    variant = "default",
+    size = "md",
+    textAlign = "right" // ✅ שינוי ברירת מחדל לימין
+  }) => {
     const variants = {
       default: "bg-white border border-gray-200 hover:border-rose-300 hover:shadow-md",
       highlight: `bg-gradient-to-r ${THEME.colors.neutral.warm} border border-rose-200 shadow-sm`,
@@ -604,7 +604,7 @@ const DetailItem: React.FC<{
   
     const content = (
       <div className={cn(
-        "flex items-start rounded-xl transition-all duration-300 min-w-0",
+        "flex items-start rounded-xl transition-all duration-300 min-w-0", // ✅ הוספת min-w-0
         variants[variant],
         sizes[size],
         className
@@ -622,7 +622,7 @@ const DetailItem: React.FC<{
           )} />
         </div>
         <div className="min-w-0 flex-1">
-      <p className={cn(
+          <p className={cn(
             "text-xs font-semibold mb-1 tracking-wide break-words",
             textAlign === "center" ? "text-center" : textAlign === "right" ? "text-right" : "text-left",
             variant === "highlight" || variant === "elegant" 
@@ -630,7 +630,7 @@ const DetailItem: React.FC<{
               : "text-gray-600"
           )}>{label}</p>
           <div className={cn(
-            "text-sm font-medium break-words leading-relaxed overflow-wrap-anywhere",
+            "text-sm font-medium break-words leading-relaxed overflow-wrap-anywhere", // ✅ שימוש ב-break-words
             textAlign === "center" ? "text-center" : textAlign === "right" ? "text-right" : "text-left",
             variant === "highlight" || variant === "elegant" 
               ? "text-gray-800" 
@@ -829,7 +829,7 @@ const DetailItem: React.FC<{
     </div>
   );
   // --- Enhanced Profile Header ---
-  // 2. ProfileHeader - רכיב הכותרת עם תיקונים מקיפים
+  // ✅ 2. ProfileHeader - רכיב הכותרת עם תיקונים מקיפים למובייל ולדסקטופ
   const ProfileHeader: React.FC<{
     profile: UserProfile;
     age: number;
@@ -907,7 +907,7 @@ const DetailItem: React.FC<{
                     alt={`תמונת פרופיל של ${profile.user?.firstName || 'מועמד יקר'}`}
                     fill
                     className="object-cover"
-                    sizes="144px"
+                    sizes={isMobile ? "96px" : "144px"}
                     priority
                   />
                 ) : (
@@ -915,7 +915,7 @@ const DetailItem: React.FC<{
                     "w-full h-full flex items-center justify-center",
                     `bg-gradient-to-br ${THEME.colors.primary.romantic}`
                   )}>
-                    <span className="text-5xl font-bold text-white">
+                    <span className="text-4xl lg:text-5xl font-bold text-white">
                       {getInitials(profile.user?.firstName, profile.user?.lastName)}
                     </span>
                   </div>
@@ -947,10 +947,9 @@ const DetailItem: React.FC<{
                 {/* Name and Age - ✅ תיקון עיקרי כאן */}
                 <div className={cn("mb-4 w-full", isMobile && "text-center")}>
                 <h1 className={cn(
-                    "font-extrabold leading-tight mb-2 break-words text-center",
+                    "font-extrabold leading-tight mb-2 break-words", // ✅ הוספת break-words
                     isMobile ? "text-xl px-2" : "text-3xl md:text-4xl",
-                    "bg-gradient-to-r from-gray-800 via-gray-900 to-black bg-clip-text text-transparent",
-                    "mx-auto max-w-full"
+                    "bg-gradient-to-r from-gray-800 via-gray-900 to-black bg-clip-text text-transparent"
                   )}>
                     {profile.user?.firstName ? (
                       <>
@@ -964,7 +963,7 @@ const DetailItem: React.FC<{
   
                   {age > 0 && (
                     <div className="mt-3">
-                      <p className="text-lg text-gray-700 font-semibold flex items-center justify-center lg:justify-start gap-2 flex-wrap"> {/* ✅ הוספת flex-wrap */}
+                      <p className={cn("text-lg text-gray-700 font-semibold flex items-center gap-2", isMobile ? "justify-center" : "lg:justify-start")}>
                         <Cake className="w-5 h-5 text-blue-500 flex-shrink-0" />
                         <span>גיל: {age}</span>
                       </p>
@@ -981,7 +980,7 @@ const DetailItem: React.FC<{
                           <div
                             key={index}
                             className={cn(
-                              "flex items-center gap-2 px-3 py-2 rounded-full bg-white/80 border border-gray-200/50 text-gray-700 font-semibold text-sm backdrop-blur-sm flex-shrink-0", // ✅ הוספת flex-shrink-0
+                              "flex items-center gap-2 px-3 py-2 rounded-full bg-white/80 border border-gray-200/50 text-gray-700 font-semibold text-sm backdrop-blur-sm flex-shrink-0",
                               THEME.shadows.soft
                             )}
                           >
@@ -997,13 +996,13 @@ const DetailItem: React.FC<{
               </div>
   
               {/* Key Facts Grid - ✅ תיקון לגלישה אופקית במובייל */}
-              <div className={cn("mt-6 w-full", isMobile ? "overflow-hidden" : "grid grid-cols-1 md:grid-cols-3 gap-4")}>
+              <div className={cn("mt-6 w-full", !isMobile && "grid grid-cols-1 md:grid-cols-3 gap-4")}>
                 {isMobile ? (
                   <ScrollArea className="w-full" dir="rtl">
-                    <div className="flex gap-3 pb-2 px-1">
+                    <div className="flex gap-3 pb-2 px-1 min-w-max">
                       {profile.city && (
                         <div className={cn(
-                          "flex items-center gap-2 p-3 bg-white/80 backdrop-blur-sm rounded-xl border border-rose-200/50 shadow-sm hover:shadow-md transition-all flex-shrink-0 min-w-max"
+                          "flex items-center gap-2 p-3 bg-white/80 backdrop-blur-sm rounded-xl border border-rose-200/50 shadow-sm hover:shadow-md transition-all flex-shrink-0"
                         )}>
                           <MapPin className="w-4 h-4 text-rose-500 flex-shrink-0" />
                           <div>
@@ -1015,7 +1014,7 @@ const DetailItem: React.FC<{
   
                       {profile.occupation && (
                         <div className={cn(
-                          "flex items-center gap-2 p-3 bg-white/80 backdrop-blur-sm rounded-xl border border-amber-200/50 shadow-sm hover:shadow-md transition-all flex-shrink-0 min-w-max"
+                          "flex items-center gap-2 p-3 bg-white/80 backdrop-blur-sm rounded-xl border border-amber-200/50 shadow-sm hover:shadow-md transition-all flex-shrink-0"
                         )}>
                           <Briefcase className="w-4 h-4 text-amber-600 flex-shrink-0" />
                           <div>
@@ -1027,7 +1026,7 @@ const DetailItem: React.FC<{
   
                       {profile.religiousLevel && (
                         <div className={cn(
-                          "flex items-center gap-2 p-3 bg-white/80 backdrop-blur-sm rounded-xl border border-purple-200/50 shadow-sm hover:shadow-md transition-all flex-shrink-0 min-w-max"
+                          "flex items-center gap-2 p-3 bg-white/80 backdrop-blur-sm rounded-xl border border-purple-200/50 shadow-sm hover:shadow-md transition-all flex-shrink-0"
                         )}>
                           <BookMarked className="w-4 h-4 text-purple-600 flex-shrink-0" />
                           <div>
@@ -1042,7 +1041,6 @@ const DetailItem: React.FC<{
                     <ScrollBar orientation="horizontal" />
                   </ScrollArea>
                 ) : (
-                  // תצוגה דסקטופ רגילה
                   <>
                     {profile.city && (
                       <div className={cn(
@@ -1088,7 +1086,6 @@ const DetailItem: React.FC<{
                 )}
               </div>
   
-              {/* Action Button for Matchmakers */}
               {viewMode === 'matchmaker' && (
                 <div className={cn("pt-6 w-full flex", isMobile ? "justify-center" : "justify-end")}>
                   <Button
@@ -1111,14 +1108,14 @@ const DetailItem: React.FC<{
           </div>
   
           {/* Inspirational Quote - ✅ תיקון לטקסט רגיש */}
-          <div className={cn("text-center", isMobile ? "mt-4 px-4" : "mt-8")}>
+          <div className={cn("text-center", isMobile ? "mt-4 px-1" : "mt-8")}>
             <div className={cn(
-              "inline-flex items-center gap-2 px-4 py-3 rounded-full", // ✅ הקטנת gap ו padding במובייל
+              "inline-flex items-center gap-2 px-3 py-2 lg:px-4 lg:py-3 rounded-full",
               `bg-gradient-to-r ${THEME.colors.primary.romantic}`,
-              "text-white shadow-lg max-w-full flex-wrap justify-center" // ✅ הוספת max-w-full ו flex-wrap
+              "text-white shadow-lg max-w-full flex-wrap justify-center"
             )}>
               <Quote className="w-4 h-4 flex-shrink-0" />
-              <p className="text-base font-medium italic text-center break-words"> {/* ✅ הקטנת טקסט והוספת break-words */}
+              <p className="text-sm lg:text-base font-medium italic text-center break-words">
                 כל סיפור אהבה מתחיל בהכרות אחת מיוחדת...
               </p>
               <Quote className="w-4 h-4 transform rotate-180 flex-shrink-0" />
@@ -1156,7 +1153,7 @@ const DetailItem: React.FC<{
               "p-4 rounded-lg border-r-4 bg-white/60",
               `border-${worldColor}-400`
             )}>
-              <p className="text-sm text-gray-700 leading-relaxed italic">
+              <p className="text-sm text-gray-700 leading-relaxed italic break-words"> {/* ✅ הוספת break-words */}
                 <Quote className="w-4 h-4 inline ml-1 text-gray-400" />
                 {answer.displayText || answer.answer}
                 <Quote className="w-4 h-4 inline mr-1 text-gray-400 transform rotate-180" />
@@ -1251,7 +1248,6 @@ const DetailItem: React.FC<{
     }
   };
 
-  // --- פתרון נקודה 1: כפתור סגירה יחיד וברור ---
   const handleClose = () => {
     if (onClose) {
       onClose();
@@ -1259,51 +1255,15 @@ const DetailItem: React.FC<{
   };
 
   const tabItems = useMemo(() => [
-    { 
-      value: "essence", 
-      label: "המהות", 
-      icon: Sparkles, 
-      gradient: THEME.colors.primary.light, 
-      description: "מי זה האדם הזה באמת" 
-    },
-    { 
-      value: "story", 
-      label: "הסיפור", 
-      icon: BookOpen, 
-      gradient: THEME.colors.primary.accent, 
-      description: "הרקע והדרך שהובילה לכאן" 
-    },
-    { 
-      value: "vision", 
-      label: "החזון", 
-      icon: Heart, 
-      gradient: THEME.colors.primary.main, 
-      description: "החלום לזוגיות ומשפחה" 
-    },
-    { 
-      value: "search", 
-      label: "החיפוש", 
-      icon: Target, 
-      gradient: THEME.colors.secondary.sky, 
-      description: "מה מחפש בבן/בת הזוג" 
-    },
-    ...(hasDisplayableQuestionnaireAnswers ? [{
-      value: "deeper",
-      label: "עומק",
-      icon: Telescope,
-      gradient: THEME.colors.secondary.peach,
-      description: "תשובות מעמיקות מהלב"
-    }] : []),
-    ...(viewMode === "matchmaker" ? [{
-      value: "professional",
-      label: "מקצועי",
-      icon: Lock,
-      gradient: THEME.colors.secondary.lavender,
-      description: "מידע לשדכן בלבד"
-    }] : []),
+    { value: "essence", label: "המהות", icon: Sparkles, gradient: THEME.colors.primary.light, description: "מי זה האדם הזה באמת" },
+    { value: "story", label: "הסיפור", icon: BookOpen, gradient: THEME.colors.primary.accent, description: "הרקע והדרך שהובילה לכאן" },
+    { value: "vision", label: "החזון", icon: Heart, gradient: THEME.colors.primary.main, description: "החלום לזוגיות ומשפחה" },
+    { value: "search", label: "החיפוש", icon: Target, gradient: THEME.colors.secondary.sky, description: "מה מחפש בבן/בת הזוג" },
+    ...(hasDisplayableQuestionnaireAnswers ? [{ value: "deeper", label: "עומק", icon: Telescope, gradient: THEME.colors.secondary.peach, description: "תשובות מעמיקות מהלב" }] : []),
+    ...(viewMode === "matchmaker" ? [{ value: "professional", label: "מקצועי", icon: Lock, gradient: THEME.colors.secondary.lavender, description: "מידע לשדכן בלבד" }] : []),
   ], [hasDisplayableQuestionnaireAnswers, viewMode, THEME]);
 
-  // 6. renderPreferenceBadges - ✅ הוספת word-break לכל ה-Badge רכיבים
+  // ✅ 6. renderPreferenceBadges - הוספת flex-wrap ו-break-words
   const renderPreferenceBadges = (
     title: string,
     icon: React.ElementType,
@@ -1311,20 +1271,18 @@ const DetailItem: React.FC<{
     translationMap: { [key: string]: { label: string; icon: React.ElementType; color: string } },
     gradientClass: string = THEME.colors.secondary.sky
   ) => {
-    if (!values || values.length === 0) {
-      return null;
-    }
+    if (!values || values.length === 0) return null;
   
     const IconComponent = icon;
     return (
-      <div className="space-y-4 min-w-0"> {/* ✅ הוספת min-w-0 */}
+      <div className="space-y-4 min-w-0">
         <div className="flex items-center gap-3">
           <div className={cn("p-2 rounded-lg bg-gradient-to-r flex-shrink-0", gradientClass)}>
             <IconComponent className="w-5 h-5 text-white" />
           </div>
-          <h4 className="text-base font-bold text-gray-800 break-words min-w-0 flex-1">{title}</h4> {/* ✅ הוספת break-words */}
+          <h4 className="text-base font-bold text-gray-800 break-words min-w-0 flex-1">{title}</h4>
         </div>
-        <div className="flex flex-wrap gap-3 min-w-0"> {/* ✅ הוספת min-w-0 */}
+        <div className="flex flex-wrap gap-3 min-w-0"> {/* ✅ הוספת flex-wrap */}
           {values.map((val) => {
             const itemData = translationMap[val] || { label: val, icon: Sparkles, color: "text-gray-600" };
             return (
@@ -1332,14 +1290,14 @@ const DetailItem: React.FC<{
                 key={val}
                 variant="outline"
                 className={cn(
-                  "flex items-center gap-2 text-sm px-3 py-2 font-semibold border-2 min-w-0 max-w-full", // ✅ הוספת min-w-0 ו max-w-full
+                  "flex items-center gap-2 text-sm px-3 py-2 font-semibold border-2 min-w-0 max-w-full",
                   "bg-white hover:bg-gray-50 transition-all hover:scale-105",
                   "border-gray-200 hover:border-rose-300",
                   THEME.shadows.soft
                 )}
               >
                 <itemData.icon className={cn("w-4 h-4 flex-shrink-0", itemData.color)} />
-                <span className="break-words truncate">{itemData.label}</span> {/* ✅ הוספת break-words ו truncate */}
+                <span className="break-words truncate">{itemData.label}</span> {/* ✅ שימוש ב-break-words */}
               </Badge>
             );
           })}
@@ -1348,36 +1306,36 @@ const DetailItem: React.FC<{
     );
   };
   
-  // 4. MainContentTabs - ✅ הבטחת שהטאבים לא יוצאים מהמסך
+  // ✅ 4. MainContentTabs - טאבים רספונסיביים עם גלילה אופקית
   const MainContentTabs = () => (
     <Tabs 
       value={activeTab} 
       onValueChange={handleTabChange} 
       className="w-full flex flex-col flex-1 min-h-0"
     >
-<div className={cn(
-        "bg-white/95 backdrop-blur-md p-2 rounded-2xl mb-6 border border-gray-200/50 overflow-hidden",
+      <div className={cn(
+        "bg-white/95 backdrop-blur-md p-1.5 rounded-2xl mb-4 border border-gray-200/50",
         THEME.shadows.elegant,
-        "sticky top-0 z-20"
+        "sticky top-[68px] lg:top-0 z-20" // ✅ התאמה ל-sticky header במובייל
       )}>
         <ScrollArea className="w-full" dir="rtl">
-<div className="flex gap-1 justify-center min-w-max px-4">
+          <div className="flex gap-1 justify-center min-w-max px-2">
             {tabItems.map((tab) => (
               <button
                 key={tab.value}
                 onClick={() => handleTabChange(tab.value)}
-              className={cn(
-                  "flex flex-col items-center gap-1 px-2 py-1.5 text-xs rounded-xl flex-shrink-0",
+                className={cn(
+                  "flex flex-col items-center gap-1 px-2.5 py-1.5 text-xs rounded-xl flex-shrink-0",
                   "transition-all duration-300 border border-transparent",
                   "text-gray-600 hover:text-gray-800 hover:bg-rose-50",
-                  "min-w-[55px]",
+                  "min-w-[60px]", // ✅ הגדרת רוחב מינימלי לכל כפתור
                   activeTab === tab.value && cn(
                     "font-bold text-white shadow-lg border-white/20",
                     `bg-gradient-to-r ${tab.gradient}`
                   )
                 )}
               >
-<tab.icon className="w-3 h-3" />
+                <tab.icon className="w-4 h-4" />
                 <span className="font-semibold leading-tight text-center">{tab.label}</span>
               </button>
             ))}
@@ -1387,7 +1345,7 @@ const DetailItem: React.FC<{
       </div>
       
       <ScrollArea id="profile-card-tabs-content" className="flex-1 overflow-auto h-full">
-        <div className="space-y-4 p-2">
+        <div className="space-y-4 p-1 lg:p-2">
             {/* Essence Tab */}
           <TabsContent value="essence" className="mt-0">
             <div className="space-y-8">
@@ -1405,7 +1363,7 @@ const DetailItem: React.FC<{
                           src={mainImageToDisplay.url}
                           alt={`${profile.user?.firstName || 'מועמד'} נראה/ת מדהים/ה`}
                           fill className="object-cover transition-transform duration-700 hover:scale-105"
-                          sizes="(max-width: 1024px) 100vw, 50vw" priority
+                          sizes="(max-width: 1023px) 100vw, 50vw" priority
                         />
                       ) : (
                         <div className={cn("w-full h-full flex items-center justify-center", `bg-gradient-to-br ${THEME.colors.primary.romantic}`)}>
@@ -1420,7 +1378,7 @@ const DetailItem: React.FC<{
                   </div>
                   <div className="space-y-6">
                     <div className="text-center lg:text-right">
-                      <h2 className={cn("text-3xl md:text-4xl font-extrabold mb-4 leading-tight", "bg-gradient-to-r from-rose-600 via-pink-600 to-amber-600 bg-clip-text text-transparent")}>
+                      <h2 className={cn("text-3xl md:text-4xl font-extrabold mb-4 leading-tight break-words", "bg-gradient-to-r from-rose-600 via-pink-600 to-amber-600 bg-clip-text text-transparent")}>
                         {profile.user?.firstName || "מישהו מדהים"}
                       </h2>
                       {age > 0 && (
@@ -1432,7 +1390,7 @@ const DetailItem: React.FC<{
                       {profile.about ? (
                         <div className={cn("relative p-6 rounded-2xl border border-rose-200/50", `bg-gradient-to-r ${THEME.colors.neutral.warm}`, THEME.shadows.soft)}>
                           <Quote className="absolute top-3 right-3 w-8 h-8 text-rose-300" />
-                          <p className="text-lg text-gray-800 leading-relaxed italic font-medium text-center lg:text-right">
+                          <p className="text-lg text-gray-800 leading-relaxed italic font-medium text-center lg:text-right break-words">
                             {profile.about}
                           </p>
                           <Quote className="absolute bottom-3 left-3 w-8 h-8 text-rose-300 transform rotate-180" />
@@ -1512,36 +1470,39 @@ const DetailItem: React.FC<{
 
           {/* Other Tabs Content */}
           <TabsContent value="story" className="mt-0 space-y-6">
-            <div className="text-right mb-8 px-4">
-<h2 className={cn("text-2xl md:text-3xl font-bold mb-4 break-words text-center", "bg-gradient-to-r from-rose-600 via-pink-600 to-amber-600 bg-clip-text text-transparent")}>                הסיפור והמסע של {profile.user?.firstName || "המועמד"}
+            <div className="text-center lg:text-right mb-8 px-4">
+              <h2 className={cn("text-2xl md:text-3xl font-bold mb-4 break-words", "bg-gradient-to-r from-rose-600 via-pink-600 to-amber-600 bg-clip-text text-transparent")}>
+                הסיפור והמסע של {profile.user?.firstName || "המועמד"}
               </h2>
-<p className="text-gray-600 text-lg text-right">השורשים, הדרך והערכים שעיצבו את האדם הזה</p>            </div>
+              <p className="text-gray-600 text-lg">השורשים, הדרך והערכים שעיצבו את האדם הזה</p>
+            </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <SectionCard title="הזהות הדתית והרוחנית" subtitle="המקום של האמונה והמסורת בחיי" icon={BookMarked} variant="elegant" gradient={THEME.colors.primary.gold}>
                 <div className="space-y-5">
-<DetailItem icon={BookMarked} label="השקפת העולם שמנחה אותי" value={formatEnumValue(profile.religiousLevel, religiousLevelMap).label} variant="highlight" textAlign="right" />                  <DetailItem icon={Heart} label="שמירת נגיעה" value={formatBooleanPreference(profile.shomerNegiah, "כן, זה חשוב לי", "לא").label} variant="elegant" textAlign="right" />
-                  {profile.gender === "FEMALE" && profile.headCovering && <DetailItem icon={Crown} label="כיסוי ראש" value={formatEnumValue(profile.headCovering, headCoveringMap).label} variant="elegant" textAlign="right" />}
-                  {profile.gender === "MALE" && profile.kippahType && <DetailItem icon={Crown} label="סוג כיפה" value={formatEnumValue(profile.kippahType, kippahTypeMap).label} variant="elegant" textAlign="right" />}
+                  <DetailItem icon={BookMarked} label="השקפת העולם שמנחה אותי" value={formatEnumValue(profile.religiousLevel, religiousLevelMap).label} variant="highlight" />
+                  <DetailItem icon={Heart} label="שמירת נגיעה" value={formatBooleanPreference(profile.shomerNegiah, "כן, זה חשוב לי", "לא").label} variant="elegant" />
+                  {profile.gender === "FEMALE" && profile.headCovering && <DetailItem icon={Crown} label="כיסוי ראש" value={formatEnumValue(profile.headCovering, headCoveringMap).label} variant="elegant" />}
+                  {profile.gender === "MALE" && profile.kippahType && <DetailItem icon={Crown} label="סוג כיפה" value={formatEnumValue(profile.kippahType, kippahTypeMap).label} variant="elegant" />}
                 </div>
               </SectionCard>
               <SectionCard title="השכלה ועולם המקצוע" subtitle="הדרך האקדמית והמקצועית שלי" icon={GraduationCap} variant="elegant" gradient={THEME.colors.secondary.sky}>
                 <div className="space-y-5">
-                  <DetailItem icon={GraduationCap} label="רמת ההשכלה" value={formatEnumValue(profile.educationLevel, educationLevelMap).label} variant="highlight" textAlign="right" />
+                  <DetailItem icon={GraduationCap} label="רמת ההשכלה" value={formatEnumValue(profile.educationLevel, educationLevelMap).label} variant="highlight" />
                   {profile.education && <DetailItem icon={BookOpen} label="פירוט הלימודים" value={profile.education} variant="elegant" valueClassName="whitespace-pre-wrap" />}
-                  <DetailItem icon={Briefcase} label="התחום המקצועי" value={profile.occupation || "מקצוע מעניין מחכה לגילוי"} variant="elegant" textAlign="right" />
-                  <DetailItem icon={Award} label="השירות הצבאי/לאומי" value={formatEnumValue(profile.serviceType, serviceTypeMap).label} variant="elegant" textAlign="right" />
+                  <DetailItem icon={Briefcase} label="התחום המקצועי" value={profile.occupation || "מקצוע מעניין מחכה לגילוי"} variant="elegant" />
+                  <DetailItem icon={Award} label="השירות הצבאי/לאומי" value={formatEnumValue(profile.serviceType, serviceTypeMap).label} variant="elegant" />
                   {profile.serviceDetails && <DetailItem icon={InfoIcon} label="פרטי השירות" value={profile.serviceDetails} variant="elegant" valueClassName="whitespace-pre-wrap" />}
                 </div>
               </SectionCard>
             </div>
             <SectionCard title="הרקע המשפחתי והתרבותי" subtitle="המשפחה והמקורות שעיצבו אותי" icon={Users2} variant="romantic" gradient={THEME.colors.primary.accent}>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                <DetailItem icon={Users2} label="סטטוס ההורים" value={profile.parentStatus || "נגלה יחד"} variant="elegant" textAlign="right" />
-                <DetailItem icon={Users} label="אחים ואחיות" value={profile.siblings ? `${profile.siblings} אחים/אחיות` : "נגלה יחד"} variant="elegant" textAlign="right" />
-                <DetailItem icon={Crown} label="המקום במשפחה" value={profile.position ? `מקום ${profile.position}` : "נגלה יחד"} variant="elegant" textAlign="right" />
-                {profile.aliyaCountry && <DetailItem icon={Globe} label="ארץ המוצא" value={`${profile.aliyaCountry} - השורשים שלי`} variant="elegant" textAlign="right" />}
-                {profile.aliyaYear && <DetailItem icon={Calendar} label="שנת העלייה" value={`${profile.aliyaYear} - הגעתי הביתה`} variant="elegant" textAlign="right" />}
-                {profile.nativeLanguage && <DetailItem icon={Languages} label="השפה הראשונה" value={formatEnumValue(profile.nativeLanguage, languageMap).label} variant="elegant" textAlign="right" />}
+                <DetailItem icon={Users2} label="סטטוס ההורים" value={profile.parentStatus || "נגלה יחד"} variant="elegant" />
+                <DetailItem icon={Users} label="אחים ואחיות" value={profile.siblings ? `${profile.siblings} אחים/אחיות` : "נגלה יחד"} variant="elegant" />
+                <DetailItem icon={Crown} label="המקום במשפחה" value={profile.position ? `מקום ${profile.position}` : "נגלה יחד"} variant="elegant" />
+                {profile.aliyaCountry && <DetailItem icon={Globe} label="ארץ המוצא" value={`${profile.aliyaCountry} - השורשים שלי`} variant="elegant" />}
+                {profile.aliyaYear && <DetailItem icon={Calendar} label="שנת העלייה" value={`${profile.aliyaYear} - הגעתי הביתה`} variant="elegant" />}
+                {profile.nativeLanguage && <DetailItem icon={Languages} label="השפה הראשונה" value={formatEnumValue(profile.nativeLanguage, languageMap).label} variant="elegant" />}
               </div>
               {profile.additionalLanguages && profile.additionalLanguages.length > 0 && (
                 <div className="mt-6 pt-6 border-t border-gray-200">
@@ -1566,10 +1527,12 @@ const DetailItem: React.FC<{
           </TabsContent>
 
           <TabsContent value="vision" className="mt-0 space-y-6">
-            <div className="text-right mb-8 px-4">
-<h2 className={cn("text-2xl md:text-3xl font-bold mb-4 break-words text-center", "bg-gradient-to-r from-rose-600 via-pink-600 to-amber-600 bg-clip-text text-transparent")}>                החזון והחלום לזוגיות של {profile.user?.firstName || "המועמד"}
+            <div className="text-center lg:text-right mb-8 px-4">
+              <h2 className={cn("text-2xl md:text-3xl font-bold mb-4 break-words", "bg-gradient-to-r from-rose-600 via-pink-600 to-amber-600 bg-clip-text text-transparent")}>
+                החזון והחלום לזוגיות של {profile.user?.firstName || "המועמד"}
               </h2>
-<p className="text-gray-600 text-lg text-right">איך אני רואה את העתיד שלנו יחד</p>            </div>
+              <p className="text-gray-600 text-lg">איך אני רואה את העתיד שלנו יחד</p>
+            </div>
             <SectionCard title="הזוגיות שאני חולם/ת עליה" subtitle="המחשבות והרגשות שלי על אהבה ומשפחה" icon={Heart} variant="romantic" gradient={THEME.colors.primary.main}>
               {profile.matchingNotes ? (
                 <div className={cn("p-6 rounded-2xl border border-rose-200", `bg-gradient-to-r ${THEME.colors.neutral.warm}`, THEME.shadows.soft)}>
@@ -1577,9 +1540,9 @@ const DetailItem: React.FC<{
                     <div className={cn("p-3 rounded-full bg-gradient-to-r", THEME.colors.primary.rose)}>
                       <Heart className="w-6 h-6 text-white" />
                     </div>
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <h4 className="font-bold text-rose-800 mb-3 text-lg">המחשבות שלי על הזוגיות המושלמת:</h4>
-                      <p className="text-rose-700 leading-relaxed whitespace-pre-wrap italic text-lg">
+                      <p className="text-rose-700 leading-relaxed whitespace-pre-wrap italic text-lg break-words">
                         <Quote className="w-5 h-5 inline ml-1 text-rose-400" />
                         {profile.matchingNotes}
                         <Quote className="w-5 h-5 inline mr-1 text-rose-400 transform rotate-180" />
@@ -1596,17 +1559,18 @@ const DetailItem: React.FC<{
                   החזון למשפחה
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  {profile.maritalStatus && ["divorced", "widowed", "annulled"].includes(profile.maritalStatus) && <DetailItem icon={Baby} label="ילדים מקשר קודם" value={formatBooleanPreference(profile.hasChildrenFromPrevious, "יש ילדים יקרים", "אין ילדים", "נגלה יחד").label} variant="elegant" textAlign="right" />}
-                  {(profile.preferredAgeMin || profile.preferredAgeMax) && <DetailItem icon={Calendar} label="הגיל המועדף עליי" value={`${profile.preferredAgeMin || '?'} - ${profile.preferredAgeMax || '?'} שנים`} variant="highlight" textAlign="right" />}
-                  {(profile.preferredHeightMin || profile.preferredHeightMax) && <DetailItem icon={User} label="הגובה המועדף" value={`${profile.preferredHeightMin || '?'} - ${profile.preferredHeightMax || '?'} ס״מ`} variant="highlight" textAlign="right" />}
-                  <DetailItem icon={Heart} label="שמירת נגיעה בזוגיות" value={formatStringBooleanPreference(profile.preferredShomerNegiah).label} variant="elegant" textAlign="right" />
+                  {profile.maritalStatus && ["divorced", "widowed", "annulled"].includes(profile.maritalStatus) && <DetailItem icon={Baby} label="ילדים מקשר קודם" value={formatBooleanPreference(profile.hasChildrenFromPrevious, "יש ילדים יקרים", "אין ילדים", "נגלה יחד").label} variant="elegant" />}
+                  {(profile.preferredAgeMin || profile.preferredAgeMax) && <DetailItem icon={Calendar} label="הגיל המועדף עליי" value={`${profile.preferredAgeMin || '?'} - ${profile.preferredAgeMax || '?'} שנים`} variant="highlight" />}
+                  {(profile.preferredHeightMin || profile.preferredHeightMax) && <DetailItem icon={User} label="הגובה המועדף" value={`${profile.preferredHeightMin || '?'} - ${profile.preferredHeightMax || '?'} ס״מ`} variant="highlight" />}
+                  <DetailItem icon={Heart} label="שמירת נגיעה בזוגיות" value={formatStringBooleanPreference(profile.preferredShomerNegiah).label} variant="elegant" />
                 </div>
               </div>
             </SectionCard>
           </TabsContent>
           <TabsContent value="search" className="mt-0 space-y-6">
             <div className="text-center mb-8 px-4">
-<h2 className={cn("text-2xl md:text-3xl font-bold mb-4 break-words text-center", "bg-gradient-to-r from-rose-600 via-pink-600 to-amber-600 bg-clip-text text-transparent")}>                מה {profile.user?.firstName || "המועמד"} מחפש/ת בבן/בת הזוג
+              <h2 className={cn("text-2xl md:text-3xl font-bold mb-4 break-words", "bg-gradient-to-r from-rose-600 via-pink-600 to-amber-600 bg-clip-text text-transparent")}>
+                מה {profile.user?.firstName || "המועמד"} מחפש/ת בבן/בת הזוג
               </h2>
               <p className="text-gray-600 text-lg">התכונות והערכים שחשובים בהתאמה</p>
             </div>
@@ -1657,7 +1621,8 @@ const DetailItem: React.FC<{
           {hasDisplayableQuestionnaireAnswers && (
             <TabsContent value="deeper" className="mt-0 space-y-6">
               <div className="text-center mb-8 px-4">
-<h2 className={cn("text-2xl md:text-3xl font-bold mb-4 break-words text-center", "bg-gradient-to-r from-rose-600 via-pink-600 to-amber-600 bg-clip-text text-transparent")}>                  התשובות העמוקות מהלב של {profile.user?.firstName || "המועמד"}
+                <h2 className={cn("text-2xl md:text-3xl font-bold mb-4 break-words", "bg-gradient-to-r from-rose-600 via-pink-600 to-amber-600 bg-clip-text text-transparent")}>
+                  התשובות העמוקות מהלב של {profile.user?.firstName || "המועמד"}
                 </h2>
                 <p className="text-gray-600 text-lg">מחשבות אישיות ותובנות על החיים והאהבה</p>
               </div>
@@ -1677,21 +1642,22 @@ const DetailItem: React.FC<{
           {viewMode === "matchmaker" && (
             <TabsContent value="professional" className="mt-0">
               <div className="text-center mb-8 px-4">
-<h2 className={cn("text-2xl md:text-3xl font-bold mb-4 break-words text-center", "bg-gradient-to-r from-rose-600 via-pink-600 to-amber-600 bg-clip-text text-transparent")}>                  מידע מקצועי לשדכן
+                <h2 className={cn("text-2xl md:text-3xl font-bold mb-4 break-words", "bg-gradient-to-r from-rose-600 via-pink-600 to-amber-600 bg-clip-text text-transparent")}>
+                  מידע מקצועי לשדכן
                 </h2>
                 <p className="text-gray-600 text-lg">פרטים רגישים וחשובים לתהליך השידוך</p>
               </div>
               <SectionCard title="מידע סודי לשדכנים בלבד" subtitle="פרטים מקצועיים לתהליך השידוך" icon={Lock} variant="elegant" gradient={THEME.colors.primary.gold}>
                 <div className={cn("p-6 rounded-2xl border-2 border-amber-300/70", `bg-gradient-to-br ${THEME.colors.secondary.peach}`, THEME.shadows.elegant)}>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <DetailItem icon={Phone} label="העדפת יצירת קשר" value={formatEnumValue(profile.contactPreference, contactPreferenceMap, "נגלה יחד").label} variant="elegant" textAlign="right" />
-                    <DetailItem icon={Users} label="העדפת מגדר שדכן/ית" value={profile.preferredMatchmakerGender ? (profile.preferredMatchmakerGender === "MALE" ? "שדכן גבר" : "שדכנית אישה") : "אין העדפה מיוחדת"} variant="elegant" textAlign="right" />
+                    <DetailItem icon={Phone} label="העדפת יצירת קשר" value={formatEnumValue(profile.contactPreference, contactPreferenceMap, "נגלה יחד").label} variant="elegant" />
+                    <DetailItem icon={Users} label="העדפת מגדר שדכן/ית" value={profile.preferredMatchmakerGender ? (profile.preferredMatchmakerGender === "MALE" ? "שדכן גבר" : "שדכנית אישה") : "אין העדפה מיוחדת"} variant="elegant" />
                   </div>
                   {profile.matchingNotes && (
                     <div className="mt-6">
                       <h4 className="text-lg font-bold text-amber-700 mb-3 flex items-center gap-2"><Edit3 className="w-5 h-5" /> הערות מיוחדות לשדכנים:</h4>
                       <div className={cn("p-4 rounded-xl border border-amber-200/80", "bg-amber-100/70 shadow-inner")}>
-                        <p className="text-amber-800 whitespace-pre-wrap leading-relaxed font-medium">{profile.matchingNotes}</p>
+                        <p className="text-amber-800 whitespace-pre-wrap leading-relaxed font-medium break-words">{profile.matchingNotes}</p>
                       </div>
                     </div>
                   )}
@@ -1713,27 +1679,27 @@ const DetailItem: React.FC<{
     </Tabs>
   );
 
-  // 3. MobileImageGallery - ✅ הבטחת גלילה אופקית תקינה
+  // ✅ 3. MobileImageGallery - גלריה אופקית ורספונסיבית
   const MobileImageGallery = () => (
     orderedImages.length > 0 && (
       <div className={cn(
-        "px-4 pt-4 pb-3 overflow-hidden", // ✅ הוספת overflow-hidden
+        "px-2 pt-4 pb-3 overflow-hidden",
         `bg-gradient-to-r ${THEME.colors.neutral.warm}`
       )}>
-        <div className="text-center mb-4">
+        <div className="text-center mb-4 px-2">
           <h3 className="text-lg font-bold text-gray-800 mb-1 flex items-center justify-center gap-2">
             <Camera className="w-5 h-5 text-rose-500 flex-shrink-0" />
-            <span className="break-words">הגלריה של {profile.user?.firstName || "המועמד"}</span> {/* ✅ הוספת break-words */}
+            <span className="break-words">הגלריה של {profile.user?.firstName || "המועמד"}</span>
           </h3>
           <p className="text-sm text-gray-600">לחץ על תמונה להגדלה</p>
         </div>
         <ScrollArea dir="rtl" className="w-full whitespace-nowrap overflow-hidden">
-          <div className="flex gap-4 pb-3 min-w-max"> {/* ✅ הוספת min-w-max */}
+          <div className="flex gap-4 pb-3 px-2 min-w-max">
             {orderedImages.map((image, idx) => (
               <div
                 key={image.id}
                 className={cn(
-                  "relative w-32 h-40 flex-shrink-0 rounded-2xl overflow-hidden cursor-pointer group", // ✅ הקטנת גודל מ-36/48 ל-32/40
+                  "relative w-32 h-40 flex-shrink-0 rounded-2xl overflow-hidden cursor-pointer group",
                   "border-3 border-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
                 )}
                 onClick={() => handleOpenImageDialog(image)}
@@ -1743,13 +1709,12 @@ const DetailItem: React.FC<{
                   alt={`תמונה מדהימה ${idx + 1}`}
                   fill
                   className="object-cover transition-transform duration-500 group-hover:scale-110"
-                  sizes="128px" // ✅ עדכון sizes
+                  sizes="128px"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-  
                 {image.isMain && (
                   <Badge className={cn(
-                    "absolute top-1 right-1 text-[10px] font-bold gap-1 px-1.5 py-0.5", // ✅ הקטנת padding
+                    "absolute top-1 right-1 text-[10px] font-bold gap-1 px-1.5 py-0.5",
                     "bg-gradient-to-r from-yellow-400 to-amber-500 text-black",
                     THEME.shadows.warm
                   )}>
@@ -1757,12 +1722,6 @@ const DetailItem: React.FC<{
                     ראשי
                   </Badge>
                 )}
-  
-                <div className="absolute bottom-1 left-1 right-1 text-center">
-                  <p className="text-white text-xs font-medium drop-shadow-lg">
-                    תמונה {idx + 1}
-                  </p>
-                </div>
               </div>
             ))}
           </div>
@@ -1772,26 +1731,24 @@ const DetailItem: React.FC<{
     )
   );
 
-  // 7. MobileHeader - תיקון כפתורי ניווט
+  // ✅ 7. MobileHeader - כותרת עליונה דביקה עם ניווט למובייל
   const MobileHeader = () => (
     <div className={cn(
-      "p-3 flex-shrink-0 flex justify-between items-center border-b border-rose-200/50",
+      "p-2 flex-shrink-0 flex justify-between items-center border-b border-rose-200/50",
       `bg-gradient-to-r ${THEME.colors.neutral.warm}`,
       "sticky top-0 z-30 backdrop-blur-md"
     )}>
       
-      {/* כפתור סגירה (צד ימין ב-RTL) */}
       <Button
         variant="ghost"
         size="icon"
-        className="text-gray-600 hover:text-gray-800 hover:bg-white/60 rounded-full transition-all duration-300 shadow-sm hover:shadow-md order-first"
+        className="text-gray-600 hover:text-gray-800 hover:bg-white/60 rounded-full transition-all duration-300 shadow-sm hover:shadow-md order-last"
         onClick={handleClose}
         aria-label="סגור תצוגה מקדימה"
       >
         <X className="w-5 h-5" />
       </Button>
   
-      {/* כפתורי תצוגה (במרכז) */}
       <ToggleGroup
         type="single"
         value={mobileViewLayout}
@@ -1804,22 +1761,21 @@ const DetailItem: React.FC<{
         <ToggleGroupItem 
           value="focus" 
           aria-label="תצוגת היכרות" 
-          className="rounded-xl px-4 py-2 data-[state=on]:bg-gradient-to-r data-[state=on]:from-rose-500 data-[state=on]:to-pink-500 data-[state=on]:text-white data-[state=on]:shadow-md transition-all duration-300"
+          className="rounded-xl px-3 py-1.5 data-[state=on]:bg-gradient-to-r data-[state=on]:from-rose-500 data-[state=on]:to-pink-500 data-[state=on]:text-white data-[state=on]:shadow-md transition-all duration-300 flex items-center gap-1.5"
         >
           <Heart className="h-4 w-4" />
-          <span className="mr-2 text-sm font-medium">היכרות</span>
+          <span className="text-sm font-medium">היכרות</span>
         </ToggleGroupItem>
         <ToggleGroupItem 
           value="detailed" 
           aria-label="תצוגה מפורטת" 
-          className="rounded-xl px-4 py-2 data-[state=on]:bg-gradient-to-r data-[state=on]:from-purple-500 data-[state=on]:to-indigo-500 data-[state=on]:text-white data-[state=on]:shadow-md transition-all duration-300"
+          className="rounded-xl px-3 py-1.5 data-[state=on]:bg-gradient-to-r data-[state=on]:from-purple-500 data-[state=on]:to-indigo-500 data-[state=on]:text-white data-[state=on]:shadow-md transition-all duration-300 flex items-center gap-1.5"
         >
           <FileText className="h-4 w-4" />
-          <span className="mr-2 text-sm font-medium">מפורט</span>
+          <span className="text-sm font-medium">מפורט</span>
         </ToggleGroupItem>
       </ToggleGroup>
   
-      {/* כפתור מסך מלא (צד שמאל ב-RTL) */}
       <Button 
         variant="ghost" 
         size="icon" 
@@ -1832,10 +1788,10 @@ const DetailItem: React.FC<{
     </div>
   );
 
-  // 8. DetailedMobileLayout - תיקון מבנה גלילה
+  // ✅ 8. DetailedMobileLayout - תצוגה מפורטת למובייל
   const DetailedMobileLayout = () => (
-    <ScrollArea className="flex-1 min-h-0">
-      <div className="flex flex-col min-w-0"> {/* ✅ הוספת min-w-0 */}
+    <ScrollArea className="flex-1 min-h-0 bg-gradient-to-br from-gray-50 to-slate-100">
+      <div className="flex flex-col min-w-0">
         <ProfileHeader
           profile={profile}
           age={age}
@@ -1847,18 +1803,17 @@ const DetailItem: React.FC<{
           selectedPalette={selectedPalette}
         />
         <MobileImageGallery />
-        <div className={cn("p-4 min-w-0", `bg-gradient-to-br ${THEME.colors.neutral.cool}`)}> {/* ✅ הוספת min-w-0 */}
+        <div className={cn("p-2 min-w-0", `bg-gradient-to-br ${THEME.colors.neutral.cool}`)}>
           <MainContentTabs />
         </div>
       </div>
     </ScrollArea>
   );
 
-  // 5. FocusMobileLayout - ✅ הוספת padding ורוחב מינימלי נכון
+  // ✅ 5. FocusMobileLayout - תצוגת היכרות מתומצתת למובייל
   const FocusMobileLayout = () => (
-    <div className="flex-1 min-h-0 flex flex-col">
-      <ScrollArea className="flex-1 min-h-0">
-        <div className="pb-4 px-2 min-w-0"> {/* ✅ שינוי px-1 ל-px-2 והוספת min-w-0 */}
+    <ScrollArea className="flex-1 min-h-0 bg-gradient-to-br from-gray-50 to-slate-100">
+        <div className="pb-4 min-w-0">
           <ProfileHeader
             profile={profile}
             age={age}
@@ -1871,101 +1826,39 @@ const DetailItem: React.FC<{
           />
           <MobileImageGallery />
   
-          <div className={cn("px-2 py-2 space-y-2 min-w-0", `bg-gradient-to-br ${THEME.colors.neutral.warm}`)}> {/* ✅ שינוי px-1 ל-px-2 */}
-            {profile.about ? (
-              <SectionCard 
-                title="קצת עליי" 
-                icon={Heart} 
-                variant="romantic" 
-                gradient={THEME.colors.primary.main}
-                className="min-w-0" // ✅ הוספה
-              >
-                <div className={cn("p-4 rounded-xl border border-rose-200/50 min-w-0", `bg-gradient-to-r ${THEME.colors.neutral.warm}`)}>
-                  <p className="text-gray-800 leading-relaxed italic font-medium break-words overflow-wrap-anywhere"> {/* ✅ הוספת break-words ו overflow-wrap-anywhere */}
+          <div className={cn("px-2 py-4 space-y-4 min-w-0", `bg-gradient-to-br ${THEME.colors.neutral.warm}`)}>
+            {profile.about && (
+              <SectionCard title="קצת עליי" icon={Heart} variant="romantic" gradient={THEME.colors.primary.main}>
+                <div className={cn("p-4 rounded-xl border border-rose-200/50", `bg-gradient-to-r ${THEME.colors.neutral.warm}`)}>
+                  <p className="text-gray-800 leading-relaxed italic font-medium break-words overflow-wrap-anywhere">
                     <Quote className="w-4 h-4 inline ml-1 text-rose-400 flex-shrink-0" />
                     {profile.about}
                     <Quote className="w-4 h-4 inline mr-1 text-rose-400 transform rotate-180 flex-shrink-0" />
                   </p>
                 </div>
               </SectionCard>
-            ) : (
-              <SectionCard title="הסיפור שלי" icon={Telescope} variant="romantic">
-                <EmptyState icon={Telescope} title="יש כאן הרבה לגלות!" description="הסיפור האישי מחכה להיכתב יחד איתך..." variant="romantic" />
-              </SectionCard>
             )}
   
-            {/* ✅ תיקון לתמצית מהירה */}
-            <SectionCard 
-              title="תמצית מהירה" 
-              icon={Zap} 
-              variant="elegant" 
-              gradient={THEME.colors.primary.gold}
-              className="min-w-0"
-            >
-              <div className="grid grid-cols-1 gap-3 min-w-0"> {/* ✅ שינוי grid-cols-2 ל-grid-cols-1 כדי למנוע גלישה */}
-                <DetailItem 
-                  icon={BookMarked} 
-                  label="השקפה" 
-                  value={formatEnumValue(profile.religiousLevel, religiousLevelMap).label} 
-                  variant="elegant" 
-                  size="sm"
-                  className="min-w-0"
-                  valueClassName="break-words"
-                />
-                <DetailItem 
-                  icon={Heart} 
-                  label="שמירת נגיעה" 
-                  value={formatBooleanPreference(profile.shomerNegiah).label} 
-                  variant="elegant" 
-                  size="sm"
-                  className="min-w-0"
-                  valueClassName="break-words"
-                />
-                <DetailItem 
-                  icon={Briefcase} 
-                  label="עיסוק" 
-                  value={profile.occupation || "נגלה יחד"} 
-                  variant="elegant" 
-                  size="sm"
-                  className="min-w-0"
-                  valueClassName="break-words"
-                />
-                <DetailItem 
-                  icon={GraduationCap} 
-                  label="השכלה" 
-                  value={formatEnumValue(profile.educationLevel, educationLevelMap).label} 
-                  variant="elegant" 
-                  size="sm"
-                  className="min-w-0"
-                  valueClassName="break-words"
-                />
+            <SectionCard title="תמצית מהירה" icon={Zap} variant="elegant" gradient={THEME.colors.primary.gold}>
+              <div className="grid grid-cols-1 gap-3">
+                <DetailItem icon={BookMarked} label="השקפה" value={formatEnumValue(profile.religiousLevel, religiousLevelMap).label} variant="elegant" size="sm" />
+                <DetailItem icon={Heart} label="שמירת נגיעה" value={formatBooleanPreference(profile.shomerNegiah).label} variant="elegant" size="sm" />
+                <DetailItem icon={Briefcase} label="עיסוק" value={profile.occupation || "נגלה יחד"} variant="elegant" size="sm" />
+                <DetailItem icon={GraduationCap} label="השכלה" value={formatEnumValue(profile.educationLevel, educationLevelMap).label} variant="elegant" size="sm" />
               </div>
             </SectionCard>
   
-            {/* שאר התוכן עם תיקונים דומים... */}
             {(profile.profileCharacterTraits?.length > 0 || profile.profileHobbies?.length > 0) && (
-              <SectionCard 
-                title="מה מיוחד בי" 
-                icon={Sparkles} 
-                variant="romantic" 
-                gradient={THEME.colors.primary.romantic}
-                className="min-w-0"
-              >
-                <div className="space-y-5 min-w-0">
+              <SectionCard title="מה מיוחד בי" icon={Sparkles} variant="romantic" gradient={THEME.colors.primary.romantic}>
+                <div className="space-y-5">
                   {profile.profileCharacterTraits?.length > 0 && (
-                    <div className="min-w-0">
-                      <h4 className="text-sm font-bold text-purple-700 mb-3 flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 flex-shrink-0" /> התכונות שלי:
-                      </h4>
-                      <div className="flex flex-wrap gap-2 min-w-0">
-                        {profile.profileCharacterTraits.slice(0, 4).map(trait => {
+                    <div>
+                      <h4 className="text-sm font-bold text-purple-700 mb-3 flex items-center gap-2"><Sparkles className="w-4 h-4 flex-shrink-0" /> התכונות שלי:</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {profile.profileCharacterTraits.slice(0, 5).map(trait => {
                           const traitData = formatEnumValue(trait, characterTraitMap, trait);
                           return (
-                            <Badge key={trait} className={cn(
-                              "flex items-center gap-1 px-3 py-1 text-xs font-semibold min-w-0", 
-                              "bg-gradient-to-r from-purple-100 to-violet-100 text-purple-800", 
-                              "border border-purple-200 rounded-full"
-                            )}>
+                            <Badge key={trait} className={cn("flex items-center gap-1 px-3 py-1 text-xs font-semibold", "bg-gradient-to-r from-purple-100 to-violet-100 text-purple-800", "border border-purple-200 rounded-full")}>
                               <traitData.icon className="w-3 h-3 flex-shrink-0" />
                               <span className="break-words">{traitData.label}</span>
                             </Badge>
@@ -1975,19 +1868,13 @@ const DetailItem: React.FC<{
                     </div>
                   )}
                   {profile.profileHobbies?.length > 0 && (
-                    <div className="min-w-0">
-                      <h4 className="text-sm font-bold text-emerald-700 mb-3 flex items-center gap-2">
-                        <Heart className="w-4 h-4 flex-shrink-0" /> מה אני אוהב/ת:
-                      </h4>
-                      <div className="flex flex-wrap gap-2 min-w-0">
-                        {profile.profileHobbies.slice(0, 4).map(hobby => {
+                    <div>
+                      <h4 className="text-sm font-bold text-emerald-700 mb-3 flex items-center gap-2"><Heart className="w-4 h-4 flex-shrink-0" /> מה אני אוהב/ת:</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {profile.profileHobbies.slice(0, 5).map(hobby => {
                           const hobbyData = formatEnumValue(hobby, hobbiesMap, hobby);
                           return (
-                            <Badge key={hobby} className={cn(
-                              "flex items-center gap-1 px-3 py-1 text-xs font-semibold min-w-0", 
-                              "bg-gradient-to-r from-emerald-100 to-green-100 text-emerald-800", 
-                              "border border-emerald-200 rounded-full"
-                            )}>
+                            <Badge key={hobby} className={cn("flex items-center gap-1 px-3 py-1 text-xs font-semibold", "bg-gradient-to-r from-emerald-100 to-green-100 text-emerald-800", "border border-emerald-200 rounded-full")}>
                               <hobbyData.icon className="w-3 h-3 flex-shrink-0" />
                               <span className="break-words">{hobbyData.label}</span>
                             </Badge>
@@ -2000,16 +1887,10 @@ const DetailItem: React.FC<{
               </SectionCard>
             )}
   
-            <SectionCard 
-              title="מה אני מחפש/ת" 
-              icon={Target} 
-              variant="highlight" 
-              gradient={THEME.colors.secondary.sky}
-              className="min-w-0"
-            >
+            <SectionCard title="מה אני מחפש/ת" icon={Target} variant="highlight" gradient={THEME.colors.secondary.sky}>
               {profile.matchingNotes ? (
-                <div className={cn("p-4 rounded-xl border border-blue-200/50 min-w-0", "bg-gradient-to-r from-blue-50 to-cyan-50")}>
-                  <p className="text-blue-700 leading-relaxed italic font-medium break-words overflow-wrap-anywhere"> {/* ✅ הוספת break-words */}
+                <div className={cn("p-4 rounded-xl border border-blue-200/50", "bg-gradient-to-r from-blue-50 to-cyan-50")}>
+                  <p className="text-blue-700 leading-relaxed italic font-medium break-words">
                     <Quote className="w-4 h-4 inline ml-1 text-blue-400 flex-shrink-0" />
                     {profile.matchingNotes}
                     <Quote className="w-4 h-4 inline mr-1 text-blue-400 transform rotate-180 flex-shrink-0" />
@@ -2019,31 +1900,21 @@ const DetailItem: React.FC<{
                 <EmptyState icon={Heart} title="החלום שלי לזוגיות עדיין נכתב..." description="אבל בטוח שנגלה יחד מה מתאים לנו!" variant="adventure" />
               )}
               {(profile.preferredAgeMin || profile.preferredAgeMax) && (
-                <div className="mt-5">
-                  <DetailItem 
-                    icon={Calendar} 
-                    label="טווח גילאים מועדף" 
-                    value={`${profile.preferredAgeMin || '?'} - ${profile.preferredAgeMax || '?'} שנים`} 
-                    variant="elegant" 
-                    size="sm"
-                    className="min-w-0"
-                  />
-                </div>
+                <div className="mt-5"><DetailItem icon={Calendar} label="טווח גילאים מועדף" value={`${profile.preferredAgeMin || '?'} - ${profile.preferredAgeMax || '?'} שנים`} variant="elegant" size="sm" /></div>
               )}
             </SectionCard>
   
-            <div className={cn("text-center p-6 rounded-2xl text-white min-w-0", `bg-gradient-to-r ${THEME.colors.primary.main}`, THEME.shadows.elegant)}>
-              <h3 className="text-lg font-bold mb-2">רוצים לדעת עוד?</h3>
-              <p className="mb-4 opacity-90">עוד המון דברים מעניינים מחכים לגילוי...</p>
+            <div className={cn("text-center p-6 rounded-2xl text-white", `bg-gradient-to-r ${THEME.colors.primary.main}`, THEME.shadows.elegant)}>
+              <h3 className="text-lg font-bold mb-2">רוצים להכיר לעומק?</h3>
+              <p className="text-sm mb-4 opacity-90">כל הסיפור המלא מחכה לכם בלחיצת כפתור</p>
               <Button onClick={() => setMobileViewLayout('detailed')} className={cn("bg-white text-gray-600 hover:bg-gray-50 font-bold px-6 py-3 rounded-full", THEME.shadows.warm)}>
                 <Eye className="w-5 h-5 ml-2" />
-                בואו נכיר לעומק
+                לתצוגה המפורטת
               </Button>
             </div>
           </div>
         </div>
       </ScrollArea>
-    </div>
   );
 
   if (!isClient) {
@@ -2054,10 +1925,10 @@ const DetailItem: React.FC<{
       )}>
         <div className={cn("p-6 border-b border-gray-200/80", `bg-gradient-to-r ${THEME.colors.neutral.warm}`)}>
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-            <Skeleton className="h-36 w-36 rounded-full flex-shrink-0" />
+            <Skeleton className="h-24 w-24 lg:h-36 lg:w-36 rounded-full flex-shrink-0" />
             <div className="flex-grow w-full space-y-4">
-              <Skeleton className="h-12 w-3/4" />
-              <Skeleton className="h-6 w-1/2" />
+              <Skeleton className="h-10 w-3/4 mx-auto sm:mx-0" />
+              <Skeleton className="h-6 w-1/2 mx-auto sm:mx-0" />
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4">
                 <Skeleton className="h-12 w-full rounded-xl" />
                 <Skeleton className="h-12 w-full rounded-xl" />
@@ -2132,7 +2003,7 @@ const DetailItem: React.FC<{
         {isDesktop ? (
           <ResizablePanelGroup direction="horizontal" dir="rtl" className="flex-grow min-h-0">
             <ResizablePanel defaultSize={60} minSize={40} className="min-w-0 flex flex-col">
-              <div className="flex-shrink-0">
+              <ScrollArea className="flex-1">
                 <ProfileHeader
                   profile={profile}
                   age={age}
@@ -2142,10 +2013,10 @@ const DetailItem: React.FC<{
                   onSuggestClick={() => setIsSuggestDialogOpen(true)}
                   selectedPalette={selectedPalette}
                 />
-              </div>
-              <div className="flex-grow min-h-0 p-6 overflow-hidden flex">
-                <MainContentTabs />
-              </div>
+                <div className="min-h-0 p-4 lg:p-6 overflow-hidden flex">
+                  <MainContentTabs />
+                </div>
+              </ScrollArea>
             </ResizablePanel>
 
             <ResizableHandle withHandle className={cn(
@@ -2183,18 +2054,18 @@ const DetailItem: React.FC<{
                   </SectionCard>
                   <SectionCard title="הנקודות החמות" subtitle="מה שחשוב לדעת ברגע הראשון" icon={Flame} variant="highlight" gradient={THEME.colors.primary.gold}>
                     <div className="space-y-4">
-                      <DetailItem icon={BookMarked} label="השקפת עולם" value={formatEnumValue(profile.religiousLevel, religiousLevelMap).label} variant="highlight" textAlign="right" />
-                      <DetailItem icon={Heart} label="שמירת נגיעה" value={formatBooleanPreference(profile.shomerNegiah).label} variant="elegant" textAlign="right" />
-                      <DetailItem icon={Briefcase} label="התחום המקצועי" value={profile.occupation || "מקצוע מעניין מחכה לגילוי"} variant="elegant" textAlign="right" />
-                      <DetailItem icon={GraduationCap} label="רמת השכלה" value={formatEnumValue(profile.educationLevel, educationLevelMap).label} variant="elegant" textAlign="right" />
-                      <DetailItem icon={MapPin} label="מיקום" value={profile.city || "איפה שהלב נמצא"} variant="elegant" textAlign="right" />
-                      {profile.maritalStatus && ["divorced", "widowed", "annulled"].includes(profile.maritalStatus) && <DetailItem icon={Baby} label="ילדים מקשר קודם" value={formatBooleanPreference(profile.hasChildrenFromPrevious, "יש ילדים יקרים", "אין ילדים", "נגלה יחד").label} variant="elegant" textAlign="right" />}
+                      <DetailItem icon={BookMarked} label="השקפת עולם" value={formatEnumValue(profile.religiousLevel, religiousLevelMap).label} variant="highlight" />
+                      <DetailItem icon={Heart} label="שמירת נגיעה" value={formatBooleanPreference(profile.shomerNegiah).label} variant="elegant" />
+                      <DetailItem icon={Briefcase} label="התחום המקצועי" value={profile.occupation || "מקצוע מעניין מחכה לגילוי"} variant="elegant" />
+                      <DetailItem icon={GraduationCap} label="רמת השכלה" value={formatEnumValue(profile.educationLevel, educationLevelMap).label} variant="elegant" />
+                      <DetailItem icon={MapPin} label="מיקום" value={profile.city || "איפה שהלב נמצא"} variant="elegant" />
+                      {profile.maritalStatus && ["divorced", "widowed", "annulled"].includes(profile.maritalStatus) && <DetailItem icon={Baby} label="ילדים מקשר קודם" value={formatBooleanPreference(profile.hasChildrenFromPrevious, "יש ילדים יקרים", "אין ילדים", "נגלה יחד").label} variant="elegant" />}
                     </div>
                   </SectionCard>
                   <SectionCard title="הסיפור שמאחורי הפרופיל" subtitle="מילים מהלב" icon={Quote} variant="romantic" gradient={THEME.colors.primary.romantic}>
                     {profile.about ? (
                       <div className={cn("p-4 rounded-xl border border-rose-200/50 shadow-inner", `bg-gradient-to-r ${THEME.colors.neutral.warm}`)}>
-                        <Quote className="w-6 h-6 text-rose-400 mb-2" /><p className="text-gray-800 leading-relaxed italic font-medium">{profile.about}</p>
+                        <Quote className="w-6 h-6 text-rose-400 mb-2" /><p className="text-gray-800 leading-relaxed italic font-medium break-words">{profile.about}</p>
                       </div>
                     ) : (
                       <EmptyState icon={Telescope} title="הסיפור מחכה להיכתב..." description="יש כאן אדם מעניין שמחכה לגילוי!" variant="discovery" />
@@ -2203,13 +2074,13 @@ const DetailItem: React.FC<{
                   <SectionCard title="החלום לזוגיות" subtitle="מה מחכה למי שיבוא" icon={Target} variant="highlight" gradient={THEME.colors.secondary.sky}>
                     {profile.matchingNotes ? (
                       <div className={cn("p-4 rounded-xl border border-blue-200/50 shadow-inner", "bg-gradient-to-r from-blue-50 to-cyan-50")}>
-                        <Heart className="w-6 h-6 text-blue-400 mb-2" /><p className="text-blue-700 leading-relaxed italic font-medium">{profile.matchingNotes}</p>
+                        <Heart className="w-6 h-6 text-blue-400 mb-2" /><p className="text-blue-700 leading-relaxed italic font-medium break-words">{profile.matchingNotes}</p>
                       </div>
                     ) : (
                       <EmptyState icon={Heart} title="החלום עדיין לא נכתב..." description="אבל בטוח שזה יהיה משהו יפה!" variant="adventure" />
                     )}
                     <div className="mt-4 space-y-3">
-                      {(profile.preferredAgeMin || profile.preferredAgeMax) && <DetailItem icon={Calendar} label="טווח גילאים מועדף" value={`${profile.preferredAgeMin || '?'} - ${profile.preferredAgeMax || '?'} שנים`} variant="elegant" textAlign="right" />}
+                      {(profile.preferredAgeMin || profile.preferredAgeMax) && <DetailItem icon={Calendar} label="טווח גילאים מועדף" value={`${profile.preferredAgeMin || '?'} - ${profile.preferredAgeMax || '?'} שנים`} variant="elegant" />}
                       {profile.preferredReligiousLevels && profile.preferredReligiousLevels.length > 0 && (
                         <div>
                           <p className="text-sm font-bold text-indigo-700 mb-2 flex items-center gap-2"><BookMarked className="w-4 h-4" /> רמות דתיות מועדפות:</p>
@@ -2254,10 +2125,10 @@ const DetailItem: React.FC<{
                 <Image key={selectedImageForDialog.id} src={selectedImageForDialog.url} alt={`תמונה מוגדלת ${currentDialogImageIndex + 1}`} fill className="object-contain" sizes="90vw" priority />
                 {orderedImages.length > 1 && (
                   <>
-                    <Button variant="ghost" size="icon" className={cn("absolute right-4 top-1/2 -translate-y-1/2 h-14 w-14 rounded-full", "bg-black/50 hover:bg-black/70 text-white border border-white/20", "backdrop-blur-sm transition-all hover:scale-110")} onClick={() => handleDialogNav("prev")}>
+                    <Button variant="ghost" size="icon" className={cn("absolute right-4 top-1/2 -translate-y-1/2 h-12 w-12 lg:h-14 lg:w-14 rounded-full", "bg-black/50 hover:bg-black/70 text-white border border-white/20", "backdrop-blur-sm transition-all hover:scale-110")} onClick={() => handleDialogNav("prev")}>
                       <ChevronRight className="h-6 w-6" />
                     </Button>
-                    <Button variant="ghost" size="icon" className={cn("absolute left-4 top-1/2 -translate-y-1/2 h-14 w-14 rounded-full", "bg-black/50 hover:bg-black/70 text-white border border-white/20", "backdrop-blur-sm transition-all hover:scale-110")} onClick={() => handleDialogNav("next")}>
+                    <Button variant="ghost" size="icon" className={cn("absolute left-4 top-1/2 -translate-y-1/2 h-12 w-12 lg:h-14 lg:w-14 rounded-full", "bg-black/50 hover:bg-black/70 text-white border border-white/20", "backdrop-blur-sm transition-all hover:scale-110")} onClick={() => handleDialogNav("next")}>
                       <ChevronLeft className="h-6 w-6" />
                     </Button>
                   </>
