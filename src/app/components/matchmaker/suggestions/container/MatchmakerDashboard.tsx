@@ -132,7 +132,8 @@ export default function MatchmakerDashboard() {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
   // Dialogs and selected items state
   const [selectedSuggestion, setSelectedSuggestion] = useState<Suggestion | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -254,22 +255,86 @@ export default function MatchmakerDashboard() {
     }
   };
 
-  const handleUpdateSuggestion = async (data: { suggestionId: string; updates: SuggestionUpdatePayload; }) => {
-    try {
-        const response = await fetch(`/api/matchmaker/suggestions/${data.suggestionId}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data.updates),
-        });
-        if (!response.ok) throw new Error('Failed to update suggestion');
-        toast.success("פרטי ההצעה עודכנו בהצלחה");
-        setShowEditForm(false);
-        fetchSuggestions();
-    } catch (error: unknown) {
-        console.error("Error updating suggestion:", error);
-        toast.error("שגיאה בעדכון פרטי ההצעה");
-    }
+// תיקון הפונקציה handleUpdateSuggestion ב-MatchmakerDashboard.tsx
+
+const handleUpdateSuggestion = async (data: { 
+  suggestionId: string; 
+  updates: {
+    priority?: Priority;
+    status?: MatchSuggestionStatus;
+    statusNotes?: string;
+    matchingReason?: string;
+    firstPartyNotes?: string;
+    secondPartyNotes?: string;
+    internalNotes?: string;
+    decisionDeadline?: Date;
   };
+}) => {
+  try {
+    setIsSubmitting(true);
+    console.log("Updating suggestion with data:", data);
+
+    // אם יש שינוי סטטוס, נטפל בזה בנפרד
+    if (data.updates.status && data.updates.status !== selectedSuggestion?.status) {
+      console.log("Status change detected:", data.updates.status);
+      
+      // שליחת עדכון סטטוס
+      const statusResponse = await fetch(`/api/matchmaker/suggestions/${data.suggestionId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: data.updates.status,
+          notes: data.updates.statusNotes || `סטטוס שונה ל-${data.updates.status}`
+        }),
+      });
+
+      if (!statusResponse.ok) {
+        const errorData = await statusResponse.json();
+        throw new Error(errorData.error || 'Failed to update status');
+      }
+
+      console.log("Status updated successfully");
+    }
+
+    // עדכון שאר הפרטים
+    const updatePayload = {
+      priority: data.updates.priority,
+      matchingReason: data.updates.matchingReason,
+      firstPartyNotes: data.updates.firstPartyNotes,
+      secondPartyNotes: data.updates.secondPartyNotes,
+      internalNotes: data.updates.internalNotes,
+      decisionDeadline: data.updates.decisionDeadline?.toISOString()
+    };
+
+    console.log("Updating suggestion details with payload:", updatePayload);
+
+    const response = await fetch(`/api/matchmaker/suggestions/${data.suggestionId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updatePayload),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to update suggestion');
+    }
+
+    const result = await response.json();
+    console.log("Update result:", result);
+
+    toast.success("פרטי ההצעה עודכנו בהצלחה");
+    setShowEditForm(false);
+    
+    // רענון רשימת ההצעות
+    await fetchSuggestions();
+    
+  } catch (error) {
+    console.error("Error updating suggestion:", error);
+    toast.error("שגיאה בעדכון פרטי ההצעה: " + (error instanceof Error ? error.message : "שגיאה לא ידועה"));
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const handleSendMessage = async (data: SendMessagePayload) => {
     try {

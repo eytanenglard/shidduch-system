@@ -1,4 +1,4 @@
-// קוד מתוקן ב-EditSuggestionForm.tsx עם פתרון לבעיית הטיפוסים
+// EditSuggestionForm.tsx - גרסה מתוקנת ומעודכנת
 
 import React, { useState, useEffect } from "react";
 import {
@@ -23,6 +23,8 @@ import { toast } from "sonner";
 import { Priority, MatchSuggestionStatus } from "@prisma/client";
 import { DatePicker } from "@/components/ui/date-picker";
 import type { Suggestion } from "@/types/suggestions";
+import { RefreshCw, AlertTriangle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface EditSuggestionFormProps {
   isOpen: boolean;
@@ -49,39 +51,37 @@ const EditSuggestionForm: React.FC<EditSuggestionFormProps> = ({
   suggestion,
   onSave,
 }) => {
+  // State variables
   const [priority, setPriority] = useState<Priority>(Priority.MEDIUM);
-  // נשתמש בסוג נפרד לתיעוד אם נבחר סטטוס חדש או לא
-  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
-  // נשתמש במשתנה נפרד שיחזיק את הסטטוס האמיתי שיישלח לשרת
-  const [statusToUpdate, setStatusToUpdate] =
-    useState<MatchSuggestionStatus | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<MatchSuggestionStatus | null>(null);
   const [statusNotes, setStatusNotes] = useState("");
   const [matchingReason, setMatchingReason] = useState("");
   const [firstPartyNotes, setFirstPartyNotes] = useState("");
   const [secondPartyNotes, setSecondPartyNotes] = useState("");
   const [internalNotes, setInternalNotes] = useState("");
-  const [decisionDeadline, setDecisionDeadline] = useState<Date | undefined>(
-    undefined
-  );
+  const [decisionDeadline, setDecisionDeadline] = useState<Date | undefined>(undefined);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showStatusChange, setShowStatusChange] = useState(false);
 
-  // עדכון הטופס כאשר נתוני ההצעה משתנים
+  // תיקון: עדכון הטופס כאשר נתוני ההצעה משתנים
   useEffect(() => {
     if (suggestion) {
+      console.log("Loading suggestion data:", suggestion);
+      
       // עדכון כל השדות עם הנתונים הקיימים בהצעה
       setPriority(suggestion.priority as Priority);
-      setSelectedStatus(null);
-      setStatusToUpdate(null);
-      setStatusNotes("");
       setMatchingReason(suggestion.matchingReason || "");
       setFirstPartyNotes(suggestion.firstPartyNotes || "");
       setSecondPartyNotes(suggestion.secondPartyNotes || "");
       setInternalNotes(suggestion.internalNotes || "");
 
+      // איפוס שדות סטטוס
+      setSelectedStatus(null);
+      setStatusNotes("");
+      setShowStatusChange(false);
+
       // טיפול נכון בתאריך
       if (suggestion.decisionDeadline) {
-        // וידוא שמדובר בתאריך תקין
         const deadlineDate = new Date(suggestion.decisionDeadline);
         if (!isNaN(deadlineDate.getTime())) {
           setDecisionDeadline(deadlineDate);
@@ -92,68 +92,9 @@ const EditSuggestionForm: React.FC<EditSuggestionFormProps> = ({
     }
   }, [suggestion]);
 
-  const handleSubmit = async () => {
-    if (!suggestion) return;
-
-    try {
-      setIsSubmitting(true);
-
-      // מבנה העדכון עם אפשרות לסטטוס
-      const updateData: {
-        priority: Priority;
-        status?: MatchSuggestionStatus;
-        statusNotes?: string;
-        matchingReason: string;
-        firstPartyNotes: string;
-        secondPartyNotes: string;
-        internalNotes: string;
-        decisionDeadline: string | null;
-      } = {
-        priority,
-        matchingReason,
-        firstPartyNotes,
-        secondPartyNotes,
-        internalNotes,
-        decisionDeadline: decisionDeadline
-          ? decisionDeadline.toISOString()
-          : null,
-      };
-
-      // הוספת סטטוס רק אם נבחר סטטוס חדש לעדכון
-      if (statusToUpdate) {
-        updateData.status = statusToUpdate;
-        updateData.statusNotes =
-          statusNotes || `סטטוס שונה ל-${getStatusLabel(statusToUpdate)}`;
-      }
-
-      // עדכון הקומפוננטה ההורה
-      await onSave({
-        suggestionId: suggestion.id,
-        updates: {
-          priority,
-          status: statusToUpdate || undefined,
-          statusNotes: statusToUpdate ? statusNotes : undefined,
-          matchingReason,
-          firstPartyNotes,
-          secondPartyNotes,
-          internalNotes,
-          decisionDeadline,
-        },
-      });
-
-      toast.success("פרטי ההצעה עודכנו בהצלחה");
-      onClose();
-    } catch (error) {
-      console.error("Error updating suggestion:", error);
-      toast.error("שגיאה בעדכון פרטי ההצעה");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   // פונקציה להחזרת התווית המתאימה לסטטוס
-  const getStatusLabel = (statusValue: string): string => {
-    const statusLabels: Record<string, string> = {
+  const getStatusLabel = (statusValue: MatchSuggestionStatus): string => {
+    const statusLabels: Record<MatchSuggestionStatus, string> = {
       DRAFT: "טיוטה",
       PENDING_FIRST_PARTY: "ממתין לתשובת צד א׳",
       FIRST_PARTY_APPROVED: "צד א׳ אישר",
@@ -182,35 +123,103 @@ const EditSuggestionForm: React.FC<EditSuggestionFormProps> = ({
     return statusLabels[statusValue] || statusValue;
   };
 
-  // הסטטוסים שניתן לשנות אליהם - יכול להשתנות לפי הסטטוס הנוכחי
+  // תיקון: הסטטוסים הזמינים לשינוי
   const getAvailableStatuses = (): MatchSuggestionStatus[] => {
     if (!suggestion) return [];
 
-    // סטטוסים מרכזיים שתמיד זמינים
-    const commonStatuses: MatchSuggestionStatus[] = [
+    // כל הסטטוסים האפשריים במערכת
+    const allStatuses: MatchSuggestionStatus[] = [
+      "DRAFT",
       "PENDING_FIRST_PARTY",
       "FIRST_PARTY_APPROVED",
       "FIRST_PARTY_DECLINED",
       "PENDING_SECOND_PARTY",
       "SECOND_PARTY_APPROVED",
       "SECOND_PARTY_DECLINED",
+      "AWAITING_MATCHMAKER_APPROVAL",
       "CONTACT_DETAILS_SHARED",
+      "AWAITING_FIRST_DATE_FEEDBACK",
+      "THINKING_AFTER_DATE",
+      "PROCEEDING_TO_SECOND_DATE",
+      "ENDED_AFTER_FIRST_DATE",
+      "MEETING_PENDING",
+      "MEETING_SCHEDULED",
+      "MATCH_APPROVED",
+      "MATCH_DECLINED",
       "DATING",
+      "ENGAGED",
+      "MARRIED",
       "EXPIRED",
       "CLOSED",
       "CANCELLED",
     ];
 
-    return commonStatuses;
+    return allStatuses;
   };
 
+  // תיקון: הגשת הטופס
+  const handleSubmit = async () => {
+    if (!suggestion) {
+      toast.error("לא נמצאו נתוני הצעה");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // הכנת הנתונים לעדכון
+      const updateData: {
+        priority: Priority;
+        status?: MatchSuggestionStatus;
+        statusNotes?: string;
+        matchingReason: string;
+        firstPartyNotes: string;
+        secondPartyNotes: string;
+        internalNotes: string;
+        decisionDeadline?: Date;
+      } = {
+        priority,
+        matchingReason,
+        firstPartyNotes,
+        secondPartyNotes,
+        internalNotes,
+        decisionDeadline,
+      };
+
+      // הוספת סטטוס אם נבחר
+      if (selectedStatus && selectedStatus !== suggestion.status) {
+        updateData.status = selectedStatus;
+        updateData.statusNotes = statusNotes || `סטטוס שונה מ-${getStatusLabel(suggestion.status)} ל-${getStatusLabel(selectedStatus)}`;
+      }
+
+      console.log("Submitting update data:", updateData);
+
+      // שליחת העדכון
+      await onSave({
+        suggestionId: suggestion.id,
+        updates: updateData,
+      });
+
+      toast.success("פרטי ההצעה עודכנו בהצלחה");
+      onClose();
+    } catch (error) {
+      console.error("Error updating suggestion:", error);
+      toast.error("שגיאה בעדכון פרטי ההצעה");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // אם אין נתוני הצעה, לא להציג את הדיאלוג
   if (!suggestion) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>עריכת הצעת שידוך</DialogTitle>
+          <DialogTitle className="text-xl font-bold">
+            עריכת הצעת שידוך #{suggestion.id.slice(-8)}
+          </DialogTitle>
           <DialogDescription>
             עריכת הפרטים עבור ההצעה בין {suggestion.firstParty.firstName}{" "}
             {suggestion.firstParty.lastName} ל{suggestion.secondParty.firstName}{" "}
@@ -219,6 +228,20 @@ const EditSuggestionForm: React.FC<EditSuggestionFormProps> = ({
         </DialogHeader>
 
         <div className="space-y-6 pt-4">
+          {/* תיקון: מידע נוכחי על ההצעה */}
+          <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              <strong>סטטוס נוכחי:</strong> {getStatusLabel(suggestion.status as MatchSuggestionStatus)}
+              <br />
+              <strong>עדיפות נוכחית:</strong> {
+                suggestion.priority === "URGENT" ? "דחוף" :
+                suggestion.priority === "HIGH" ? "גבוהה" :
+                suggestion.priority === "MEDIUM" ? "רגילה" : "נמוכה"
+              }
+            </AlertDescription>
+          </Alert>
+
           {/* Status and Priority Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Priority */}
@@ -240,56 +263,62 @@ const EditSuggestionForm: React.FC<EditSuggestionFormProps> = ({
               </Select>
             </div>
 
-            {/* Status */}
+            {/* Status Change */}
             <div className="space-y-2">
-              <Label>שינוי סטטוס (אופציונלי)</Label>
-              <Select
-                value={selectedStatus || undefined}
-                onValueChange={(value) => {
-                  setSelectedStatus(value);
-
-                  // אם נבחר "ללא שינוי" או ערך ריק
-                  if (value === "NO_CHANGE" || !value) {
-                    setStatusToUpdate(null);
-                    setShowStatusChange(false);
-                  } else {
-                    // אחרת, מעדכנים את הסטטוס שיישלח לשרת
-                    setStatusToUpdate(value as MatchSuggestionStatus);
-                    setShowStatusChange(true);
-                  }
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="בחר/י סטטוס חדש (אופציונלי)" />
-                </SelectTrigger>
-                <SelectContent>
-                  {/* משתמשים בערך חוקי מהמערכת */}
-                  <SelectItem value="NO_CHANGE">ללא שינוי</SelectItem>
-                  {getAvailableStatuses().map((availableStatus) => (
-                    <SelectItem key={availableStatus} value={availableStatus}>
-                      {getStatusLabel(availableStatus)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex items-center justify-between">
+                <Label>שינוי סטטוס (אופציונלי)</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowStatusChange(!showStatusChange)}
+                >
+                  <RefreshCw className="w-4 h-4 ml-2" />
+                  {showStatusChange ? "ביטול שינוי" : "שנה סטטוס"}
+                </Button>
+              </div>
+              
+              {showStatusChange && (
+                <div className="space-y-3 p-4 border rounded-lg bg-gray-50">
+                  <Select
+                    value={selectedStatus || ""}
+                    onValueChange={(value) => {
+                      if (value && value !== "NO_CHANGE") {
+                        setSelectedStatus(value as MatchSuggestionStatus);
+                      } else {
+                        setSelectedStatus(null);
+                        setStatusNotes("");
+                      }
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="בחר/י סטטוס חדש" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="NO_CHANGE">ללא שינוי</SelectItem>
+                      {getAvailableStatuses().map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {getStatusLabel(status)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  {selectedStatus && (
+                    <div>
+                      <Label className="text-sm">הערות לשינוי הסטטוס</Label>
+                      <Textarea
+                        value={statusNotes}
+                        onChange={(e) => setStatusNotes(e.target.value)}
+                        placeholder="הערות אופציונליות לשינוי הסטטוס..."
+                        className="mt-1 h-20"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
-
-          {/* Status Notes - מוצג רק אם נבחר סטטוס לעדכון */}
-          {showStatusChange && statusToUpdate && (
-            <div className="space-y-2 bg-slate-50 p-4 rounded-md border">
-              <Label>הערות לשינוי הסטטוס</Label>
-              <Textarea
-                value={statusNotes}
-                onChange={(e) => setStatusNotes(e.target.value)}
-                placeholder="הערות אופציונליות לשינוי הסטטוס..."
-                className="h-20"
-              />
-              <div className="text-xs text-gray-500 mt-1">
-                הערות אלו יוצגו בהיסטוריית השינויים של ההצעה
-              </div>
-            </div>
-          )}
 
           {/* Decision Deadline */}
           <div className="space-y-2">
