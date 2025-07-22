@@ -275,6 +275,54 @@ const COLOR_PALETTES = {
 
 type ColorPaletteName = keyof typeof COLOR_PALETTES;
 
+// Enhanced Type for Theme
+type ThemeType = {
+  colors: {
+    primary: {
+      main: string;
+      mainSm: string;
+      accent: string;
+      accentSm: string;
+      light: string;
+      lightSm: string;
+      romantic: string;
+      romanticSm: string;
+      rose: string;
+      roseSm: string;
+      gold: string;
+      goldSm: string;
+      elegant: string;
+      elegantSm: string;
+    };
+    secondary: {
+      sage: string;
+      sageSm: string;
+      sky: string;
+      skySm: string;
+      lavender: string;
+      lavenderSm: string;
+      peach: string;
+      peachSm: string;
+    };
+    neutral: {
+      warm: string;
+      warmSm: string;
+      cool: string;
+      coolSm: string;
+      elegant: string;
+      elegantSm: string;
+    };
+  };
+  shadows: {
+    elegant: string;
+    elegantSm: string;
+    warm: string;
+    warmSm: string;
+    soft: string;
+    softSm: string;
+  };
+};
+
 // Enhanced Data & Translation Maps with Responsive Support
 const maritalStatusMap: { 
   [key: string]: { 
@@ -1061,7 +1109,7 @@ const calculateAge = (birthDate: Date | string | null | undefined): number => {
 /**
  * עיצוב סטטוס זמינות עם responsive badge styles
  */
-const formatAvailabilityStatus = (status: UserProfile["availabilityStatus"] | undefined, THEME: any) => {
+const formatAvailabilityStatus = (status: UserProfile["availabilityStatus"] | undefined, THEME: ThemeType) => {
   const statusMap = {
     AVAILABLE: { 
       text: "זמין/ה להכרות מרגשות", 
@@ -1221,6 +1269,7 @@ const formatStringBooleanPreference = (
     ...baseResponse
   };
 };
+
 // --- Enhanced Helper Components with Full Responsive Support ---
 
 // 1. DetailItem - רכיב בסיסי עם תיקוני רספונסיביות מלאים
@@ -1779,7 +1828,7 @@ const SectionCard: React.FC<{
 const ColorPaletteSelector: React.FC<{
   selectedPalette: ColorPaletteName;
   onPaletteChange: (palette: ColorPaletteName) => void;
-  THEME: any;
+  THEME: ThemeType;
   compact?: boolean;
 }> = ({ 
   selectedPalette, 
@@ -1868,7 +1917,7 @@ const ProfileHeader: React.FC<{
   isMobile?: boolean;
   selectedPalette: ColorPaletteName;
   onPaletteChange?: (palette: ColorPaletteName) => void;
-  THEME: any;
+  THEME: ThemeType;
   compact?: boolean;
 }> = ({ 
   profile, 
@@ -1884,7 +1933,7 @@ const ProfileHeader: React.FC<{
   compact = false 
 }) => {
   
-  // Personality highlights מעודכן לרספונסיביות
+  // Personality highlights מעודכן לרספונסיביות - תיקון dependency
   const personalityHighlights = useMemo(() => {
     const highlights: ExcitementFactor[] = [];
     
@@ -1921,7 +1970,7 @@ const ProfileHeader: React.FC<{
     }
 
     return highlights.slice(0, 3);
-  }, [profile, selectedPalette, isMobile, THEME]);
+  }, [profile.profileCharacterTraits, profile.profileHobbies, profile.city, isMobile, THEME.colors.primary.light, THEME.colors.secondary.sage, THEME.colors.secondary.sky]);
 
   return (
     <div className="relative overflow-hidden">
@@ -2357,7 +2406,7 @@ const MobileImageGallery: React.FC<{
   orderedImages: UserImageType[];
   profile: UserProfile;
   onImageClick: (image: UserImageType) => void;
-  THEME: any;
+  THEME: ThemeType;
   compact?: boolean;
 }> = ({ orderedImages, profile, onImageClick, THEME, compact = false }) => {
   if (orderedImages.length === 0) return null;
@@ -2727,7 +2776,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       description: "פרטים נוספים שמשלימים את התמונה",
       accentColor: "purple"
     }
-  }), [THEME]);
+  }), [THEME.colors.primary.accent, THEME.colors.primary.light, THEME.colors.primary.main, THEME.colors.secondary.sky, THEME.colors.secondary.peach, THEME.colors.secondary.lavender]);
 
   // Enhanced helper functions with responsive support
   const hasAnyPreferences = useMemo(() => {
@@ -2853,7 +2902,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       gradient: THEME.colors.secondary.lavender,
       description: "מידע לשדכן בלבד"
     }] : []),
-  ], [hasDisplayableQuestionnaireAnswers, viewMode, THEME]);
+  ], [hasDisplayableQuestionnaireAnswers, viewMode, THEME.colors.primary.light, THEME.colors.primary.accent, THEME.colors.primary.main, THEME.colors.secondary.sky, THEME.colors.secondary.peach, THEME.colors.secondary.lavender]);
 
   // Enhanced preference badges renderer with full responsive support
   const renderPreferenceBadges = (
