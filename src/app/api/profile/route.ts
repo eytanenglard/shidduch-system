@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { Gender, HeadCoveringType, KippahType, ServiceType } from "@prisma/client"; // Import enums if needed for casting
+import { Gender, HeadCoveringType, KippahType, ServiceType, ReligiousJourney  } from "@prisma/client"; // Import enums if needed for casting
 import type { UserProfile } from "@/types/next-auth";
 
 export async function GET(req: Request) {
@@ -65,6 +65,7 @@ export async function GET(req: Request) {
             serviceType: true,
             serviceDetails: true,
             religiousLevel: true,
+            religiousJourney: true,
             shomerNegiah: true,
             headCovering: true,
             kippahType: true,
@@ -80,6 +81,8 @@ export async function GET(req: Request) {
             preferredLocations: true,
             preferredEducation: true,
             preferredOccupations: true,
+                        preferredReligiousJourneys: true,
+
             contactPreference: true,
             isProfileVisible: true,
             preferredMatchmakerGender: true,
@@ -164,6 +167,8 @@ export async function GET(req: Request) {
       serviceType: dbProfile.serviceType as ServiceType | null || undefined,
       serviceDetails: dbProfile.serviceDetails || "",
       religiousLevel: dbProfile.religiousLevel || undefined,
+      
+      religiousJourney: dbProfile.religiousJourney || undefined,
       shomerNegiah: dbProfile.shomerNegiah ?? undefined,
       headCovering: dbProfile.headCovering as HeadCoveringType | null || undefined,
       kippahType: dbProfile.kippahType as KippahType | null || undefined,
@@ -196,6 +201,8 @@ export async function GET(req: Request) {
       preferredCharacterTraits: dbProfile.preferredCharacterTraits || [],
       preferredHobbies: dbProfile.preferredHobbies || [],
       preferredAliyaStatus: dbProfile.preferredAliyaStatus || undefined,
+            preferredReligiousJourneys: dbProfile.preferredReligiousJourneys ?? [],
+
       verifiedBy: dbProfile.verifiedBy || undefined,
       createdAt: new Date(dbProfile.createdAt),
       updatedAt: new Date(dbProfile.updatedAt),

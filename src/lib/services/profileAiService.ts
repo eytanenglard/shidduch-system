@@ -2,7 +2,9 @@
 
 import prisma from "@/lib/prisma";
 import aiService from "./aiService";
-import type { User, Profile, QuestionnaireResponse, Prisma as PrismaTypes } from '@prisma/client';
+// START OF CHANGE: Import the ReligiousJourney enum
+import type { User, Profile, QuestionnaireResponse, Prisma as PrismaTypes, ReligiousJourney } from '@prisma/client';
+// END OF CHANGE
 
 // 1. --- Import types and questions from the questionnaire module ---
 import type { Question } from '@/components/questionnaire/types/types';
@@ -215,7 +217,6 @@ function processQuestionnaireData(questionnaire: QuestionnaireResponse | null | 
         if (answers.length > 0) {
             answeredCount += answers.length;
             
-            // Generate a title for the "world" based on the question definitions
             const worldInfo = allQuestions.get(answers[0].questionId);
             const worldTitle = worldInfo?.worldId ? worldInfo.worldId.charAt(0) + worldInfo.worldId.slice(1).toLowerCase() : worldKey;
             
@@ -271,13 +272,21 @@ export async function generateNarrativeProfile(userId: string): Promise<string |
   };
   const age = calculateAge(profile.birthDate);
   
-  // --- MODIFIED SECTION ---
-  // Process questionnaire data to get stats and narrative
   const questionnaireData = processQuestionnaireData(questionnaire);
 
-  const narrativeParts: string[] = [];
+  // START OF CHANGE: Add helper map for religious journey translations
+    const religiousJourneyMap: Record<ReligiousJourney, string> = {
+      BORN_INTO_CURRENT_LIFESTYLE: "גדל/ה בסביבה דתית הדומה לרמתו/ה כיום",
+      BORN_SECULAR: "גדל/ה בסביבה חילונית", // The new translation
+      BAAL_TESHUVA: "חוזר/ת בתשובה",
+      DATLASH: "יצא/ה בשאלה (דתל\"ש)",
+      CONVERT: "גר/גיורת",
+      IN_PROCESS: "בתהליך של שינוי/התחזקות/התלבטות דתית",
+      OTHER: "בעל/ת רקע דתי אחר או מורכב"
+  };
+  // END OF CHANGE
 
-  narrativeParts.push(
+  const narrativeParts: string[] = [
     `# פרופיל AI עבור ${user.firstName} ${user.lastName}, ${profile.gender === 'MALE' ? 'גבר' : 'אישה'} בן/בת ${age}`,
     `## סיכום כללי`,
     `- **שם:** ${user.firstName} ${user.lastName}`,
@@ -285,10 +294,13 @@ export async function generateNarrativeProfile(userId: string): Promise<string |
     `- **מצב משפחתי:** ${formatDisplayValue(profile.maritalStatus)}`,
     `- **מגורים:** ${formatDisplayValue(profile.city)}`,
     `- **רמה דתית:** ${formatDisplayValue(profile.religiousLevel)}`,
+    // START OF CHANGE: Add personal religious journey to summary
+    profile.religiousJourney ? `- **רקע/מסע דתי:** ${formatDisplayValue(religiousJourneyMap[profile.religiousJourney])}` : '',
+    // END OF CHANGE
     `- **עיסוק:** ${formatDisplayValue(profile.occupation)}`,
     `- **השכלה:** ${formatDisplayValue(profile.educationLevel)}, ${formatDisplayValue(profile.education)}`,
     `- **שומר/ת נגיעה:** ${formatDisplayValue(profile.shomerNegiah)}`
-  );
+  ].filter(Boolean); // This removes any empty strings from conditional entries
 
   if (user.source === 'MANUAL_ENTRY' && profile.manualEntryText) {
     narrativeParts.push(`\n**הערת שדכן (למועמד ידני):** ${profile.manualEntryText}`);
@@ -304,17 +316,22 @@ export async function generateNarrativeProfile(userId: string): Promise<string |
     `- **תחביבים עיקריים:** ${formatArray(profile.profileHobbies)}`
   );
   
+  // START OF CHANGE: Add preferred religious journey to preferences section
+  const preferredJourneysText = (profile.preferredReligiousJourneys && profile.preferredReligiousJourneys.length > 0)
+    ? formatArray(profile.preferredReligiousJourneys.map(j => religiousJourneyMap[j] || j))
+    : "לא צוין";
+
   narrativeParts.push(
     `## מה אני מחפש/ת בבן/בת הזוג (העדפות מהפרופיל)`,
     `- **תיאור כללי:** ${formatDisplayValue(profile.matchingNotes)}`,
     `- **טווח גילאים מועדף:** ${formatDisplayValue(profile.preferredAgeMin, '?')} - ${formatDisplayValue(profile.preferredAgeMax, '?')}`,
     `- **רמות דתיות מועדפות:** ${formatArray(profile.preferredReligiousLevels)}`,
+    `- **רקע/מסע דתי מועדף:** ${preferredJourneysText}`,
     `- **רמות השכלה מועדפות:** ${formatArray(profile.preferredEducation)}`,
     `- **מוצאים מועדפים:** ${formatArray(profile.preferredOrigins)}`
   );
+  // END OF CHANGE
 
-  // --- NEW SECTION IN NARRATIVE ---
-  // Add the questionnaire analysis to the narrative
   narrativeParts.push(
     `\n## ניתוח השלמת השאלון`,
     `- **סך הכל שאלות במערכת:** ${questionnaireData.totalCount}`,

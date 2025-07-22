@@ -20,17 +20,17 @@ import {
   Pencil,
   Save,
   X,
-  FileText, // Icon for General Description
-  SlidersHorizontal, // Icon for Age/Height
-  MapPin, // Icon for Location/Religious (expanded)
-  GraduationCap, // Icon for Education/Occupation (expanded)
-  Users, // Icon for Family/Personal Background (new)
-  Sparkles, // Icon for Character/Hobbies (new)
-  Heart, // For shomer negiah, children etc.
-  Briefcase, // For service type
-  Shield, // Could be for traits
-  Palette, // Could be for hobbies
-  Smile, // Could be for traits
+  FileText,
+  SlidersHorizontal,
+  MapPin,
+  GraduationCap,
+  Users,
+  Sparkles,
+  Heart,
+  Briefcase,
+  Shield,
+  Palette,
+  Smile,
 } from "lucide-react";
 import { UserProfile } from "@/types/next-auth";
 import { cn } from "@/lib/utils";
@@ -39,7 +39,9 @@ import {
   ServiceType,
   HeadCoveringType,
   KippahType,
+  ReligiousJourney, // START OF CHANGE
 } from "@prisma/client";
+
 interface PreferencesSectionProps {
   profile: UserProfile | null;
   isEditing: boolean;
@@ -58,9 +60,6 @@ const locationOptions = [
   { value: 'חו"ל', label: 'חו"ל' },
 ];
 
-// רמות דתיות מתוקנות ל-PreferencesSection.tsx
-// החלף את religiousLevelOptions הקיים בזה:
-
 const religiousLevelOptions = [
   { value: "charedi", label: "חרדי/ת" },
   { value: "charedi_modern", label: "חרדי/ת מודרני/ת" },
@@ -73,8 +72,20 @@ const religiousLevelOptions = [
   { value: "secular", label: "חילוני/ת" },
   { value: "spiritual_not_religious", label: "רוחני/ת (לאו דווקא דתי/ה)" },
   { value: "other", label: "אחר (נא לפרט ב'אודות')" },
-  { value: "לא משנה", label: "ללא העדפה / גמיש" }, // האפשרות הייחודית לעדפות
+  { value: "לא משנה", label: "ללא העדפה / גמיש" },
 ];
+
+// START OF CHANGE: Add new options for Religious Journey Preference
+const preferredReligiousJourneyOptions = [
+    { value: "BORN_INTO_CURRENT_LIFESTYLE", label: "גדל/ה בסביבה דומה" },
+    { value: "BORN_SECULAR", label: "גדל/ה בסביבה חילונית" },
+    { value: "BAAL_TESHUVA", label: "חוזר/ת בתשובה" },
+    { value: "DATLASH", label: "יצא/ה בשאלה (דתל\"ש)" },
+    { value: "CONVERT", label: "גר/ה / גיורת" },
+    { value: "IN_PROCESS", label: "בתהליך שינוי" },
+    { value: "no_preference", label: "ללא העדפה / גמיש" },
+];
+// END OF CHANGE
 
 const educationPreferenceOptions = [
   { value: "תיכונית", label: "תיכונית" },
@@ -93,10 +104,9 @@ const occupationPreferenceOptions = [
   { value: "ללא העדפה", label: "ללא העדפה" },
 ];
 
-// --- Options for NEW fields ---
 const preferredShomerNegiahOptions = [
   { value: "yes", label: "כן, חשוב לי" },
-  { value: "no", label: "לא, אין העדפה" }, // Or "לא, לא רלוונטי"
+  { value: "no", label: "לא, אין העדפה" },
   { value: "flexible", label: "גמיש/תלוי באדם" },
 ];
 
@@ -128,9 +138,7 @@ const preferredAliyaStatusOptions = [
   { value: "no_preference", label: "ללא העדפה" },
 ];
 
-// Options copied/adapted from ProfileSection.tsx (or similar source)
 const maritalStatusOptions = [
-  // For preferredMaritalStatuses
   { value: "single", label: "רווק/ה" },
   { value: "divorced", label: "גרוש/ה" },
   { value: "widowed", label: "אלמן/ה" },
@@ -139,7 +147,6 @@ const maritalStatusOptions = [
 ];
 
 const serviceTypeOptions = [
-  // For preferredServiceTypes
   { value: ServiceType.MILITARY_COMBATANT, label: "צבאי - לוחם/ת" },
   { value: ServiceType.MILITARY_SUPPORT, label: "צבאי - תומכ/ת לחימה" },
   { value: ServiceType.MILITARY_OFFICER, label: "צבאי - קצונה" },
@@ -168,7 +175,6 @@ const serviceTypeOptions = [
 ];
 
 const headCoveringOptions = [
-  // For preferredHeadCoverings (if user is Male)
   { value: HeadCoveringType.FULL_COVERAGE, label: "כיסוי ראש מלא" },
   { value: HeadCoveringType.PARTIAL_COVERAGE, label: "כיסוי ראש חלקי" },
   { value: HeadCoveringType.HAT_BERET, label: "כובע / ברט" },
@@ -181,7 +187,6 @@ const headCoveringOptions = [
 ];
 
 const kippahTypeOptions = [
-  // For preferredKippahTypes (if user is Female)
   { value: KippahType.BLACK_VELVET, label: "קטיפה שחורה" },
   { value: KippahType.KNITTED_SMALL, label: "סרוגה קטנה" },
   { value: KippahType.KNITTED_LARGE, label: "סרוגה גדולה" },
@@ -194,7 +199,6 @@ const kippahTypeOptions = [
 ];
 
 const characterTraitsOptions = [
-  // For preferredCharacterTraits
   { value: "empathetic", label: "אמפתי/ת", icon: Heart },
   { value: "driven", label: "שאפתן/ית", icon: Briefcase },
   { value: "optimistic", label: "אופטימי/ת", icon: Smile },
@@ -205,7 +209,7 @@ const characterTraitsOptions = [
   { value: "humorous", label: "בעל/ת חוש הומור", icon: Smile },
   { value: "sociable", label: "חברותי/ת", icon: Users },
   { value: "sensitive", label: "רגיש/ה", icon: Heart },
-  { value: "independent", label: "עצמאי/ת", icon: MapPin }, // Icon might need adjustment
+  { value: "independent", label: "עצמאי/ת", icon: MapPin },
   { value: "creative", label: "יצירתי/ת", icon: Palette },
   { value: "honest", label: "כן/ה וישר/ה", icon: Shield },
   { value: "responsible", label: "אחראי/ת", icon: Shield },
@@ -214,12 +218,11 @@ const characterTraitsOptions = [
 ];
 
 const hobbiesOptions = [
-  // For preferredHobbies
   { value: "travel", label: "טיולים", icon: MapPin },
-  { value: "sports", label: "ספורט", icon: Briefcase }, // Icon might need adjustment
+  { value: "sports", label: "ספורט", icon: Briefcase },
   { value: "reading", label: "קריאה", icon: GraduationCap },
   { value: "cooking_baking", label: "בישול/אפיה", icon: Palette },
-  { value: "music_playing_instrument", label: "מוזיקה/נגינה", icon: Palette }, // Icon might need adjustment
+  { value: "music_playing_instrument", label: "מוזיקה/נגינה", icon: Palette },
   { value: "art_crafts", label: "אומנות/יצירה", icon: Palette },
   { value: "volunteering", label: "התנדבות", icon: Heart },
   { value: "learning_courses", label: "למידה/קורסים", icon: GraduationCap },
@@ -249,13 +252,10 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
 
       const newFormData: Partial<UserProfile> = {
         ...profile,
-        // Numeric fields
         preferredAgeMin: nullToUndefined(profile.preferredAgeMin),
         preferredAgeMax: nullToUndefined(profile.preferredAgeMax),
         preferredHeightMin: nullToUndefined(profile.preferredHeightMin),
         preferredHeightMax: nullToUndefined(profile.preferredHeightMax),
-
-        // String fields
         matchingNotes: profile.matchingNotes ?? "",
         contactPreference: nullToUndefined(profile.contactPreference),
         preferredShomerNegiah: nullToUndefined(profile.preferredShomerNegiah),
@@ -263,8 +263,6 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
           profile.preferredPartnerHasChildren
         ),
         preferredAliyaStatus: nullToUndefined(profile.preferredAliyaStatus),
-
-        // Array fields
         preferredLocations: profile.preferredLocations ?? [],
         preferredReligiousLevels: profile.preferredReligiousLevels ?? [],
         preferredEducation: profile.preferredEducation ?? [],
@@ -276,6 +274,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
         preferredKippahTypes: profile.preferredKippahTypes ?? [],
         preferredCharacterTraits: profile.preferredCharacterTraits ?? [],
         preferredHobbies: profile.preferredHobbies ?? [],
+        preferredReligiousJourneys: profile.preferredReligiousJourneys ?? [], // START OF CHANGE
       };
       setFormData(newFormData);
       setInitialData(newFormData);
@@ -284,7 +283,6 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
 
   useEffect(() => {
     if (!isEditing && initialData) {
-      // Check initialData to prevent reset before it's set
       setFormData(initialData);
     }
   }, [isEditing, initialData]);
@@ -301,7 +299,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
         const num = parseInt(value, 10);
         processedValue = isNaN(num) ? undefined : num;
       } else {
-        processedValue = value === "" ? undefined : value; // Treat empty string as undefined for optional fields
+        processedValue = value === "" ? undefined : value;
       }
       return { ...prev, [field]: processedValue };
     });
@@ -331,9 +329,8 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
         value === "לא_משנה" ||
         value === "no_strong_preference"
       ) {
-        newValues = currentValues.includes(value) ? [] : [value]; // Select "any" deselects others, or selects only "any"
+        newValues = currentValues.includes(value) ? [] : [value];
       } else {
-        // Remove "any" or "no_preference" if another specific option is selected
         const filteredValues = currentValues.filter(
           (v) =>
             v !== "any" &&
@@ -350,9 +347,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
   };
 
   const handleSave = () => {
-    // Filter out empty strings from array fields before saving, if desired
     const dataToSave = { ...formData };
-    // Example: dataToSave.preferredLocations = dataToSave.preferredLocations?.filter(loc => loc !== "");
     onChange(dataToSave);
     setIsEditing(false);
     setInitialData(dataToSave);
@@ -464,7 +459,6 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* --- Column 1 --- */}
           <div className="space-y-6">
-            {/* Card: General Description & Contact Preferences */}
             <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-slate-50/40 to-gray-100/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
                 <FileText className="w-5 h-5 text-slate-600" />
@@ -551,7 +545,6 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
               </CardContent>
             </Card>
 
-            {/* Card: Age & Height Preferences */}
             <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-indigo-50/40 to-purple-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
                 <SlidersHorizontal className="w-5 h-5 text-indigo-700" />
@@ -648,7 +641,6 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
 
           {/* --- Column 2 --- */}
           <div className="space-y-6">
-            {/* Card: Location, Religious & Lifestyle Preferences */}
             <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-sky-50/40 to-blue-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
                 <MapPin className="w-5 h-5 text-sky-700" />
@@ -763,6 +755,56 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                     </div>
                   )}
                 </div>
+                {/* START OF CHANGE: New Religious Journey Preference */}
+                <div>
+                  <Label className="block mb-2 text-xs font-medium text-gray-600">
+                    העדפה לגבי מסע/רקע דתי
+                  </Label>
+                  {isEditing ? (
+                    <div className="flex flex-wrap gap-2">
+                      {preferredReligiousJourneyOptions.map((opt) => (
+                        <Button
+                          key={opt.value}
+                          type="button"
+                          variant={
+                            (formData.preferredReligiousJourneys || []).includes(
+                              opt.value as ReligiousJourney
+                            )
+                              ? "default"
+                              : "outline"
+                          }
+                          size="sm"
+                          onClick={() =>
+                            handleMultiSelectChange(
+                              "preferredReligiousJourneys",
+                              opt.value
+                            )
+                          }
+                          className={cn(
+                            "rounded-full text-xs px-3 py-1.5 transition-all",
+                            (formData.preferredReligiousJourneys || []).includes(
+                              opt.value as ReligiousJourney
+                            )
+                              ? "bg-cyan-500 hover:bg-cyan-600 text-white border-cyan-500"
+                              : "border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400"
+                          )}
+                        >
+                          {opt.label}
+                        </Button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="mt-1 flex flex-wrap gap-1.5">
+                      {renderMultiSelectBadges(
+                        formData.preferredReligiousJourneys as string[],
+                        preferredReligiousJourneyOptions,
+                        "bg-cyan-100 text-cyan-700",
+                        "לא נבחרו העדפות רקע דתי."
+                      )}
+                    </div>
+                  )}
+                </div>
+                {/* END OF CHANGE */}
                 <div>
                   <Label
                     htmlFor="preferredShomerNegiah"
@@ -801,7 +843,6 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                     </p>
                   )}
                 </div>
-                {/* Conditional rendering for preferredHeadCoverings / preferredKippahTypes */}
                 {profile?.gender === Gender.MALE && (
                   <div>
                     <Label className="block mb-2 text-xs font-medium text-gray-600">
@@ -904,8 +945,6 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                 )}
               </CardContent>
             </Card>
-
-            {/* Card: Education, Occupation & Service Preferences */}
             <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-teal-50/40 to-green-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
                 <GraduationCap className="w-5 h-5 text-teal-700" />
@@ -1064,7 +1103,6 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
 
           {/* --- Column 3 --- */}
           <div className="space-y-6">
-            {/* Card: Personal & Family Background Preferences */}
             <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-rose-50/40 to-fuchsia-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
                 <Users className="w-5 h-5 text-rose-700" />
@@ -1247,8 +1285,6 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                 </div>
               </CardContent>
             </Card>
-
-            {/* Card: Character & Hobbies Preferences */}
             <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-amber-50/40 to-yellow-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
                 <Sparkles className="w-5 h-5 text-amber-700" />

@@ -141,6 +141,8 @@ model Profile {
   city                    String?
   origin                  String? // Origin of the user
   religiousLevel          String? // Religious level of the user
+  religiousJourney        ReligiousJourney? // <--- הוספת השדה החדש
+
   shomerNegiah            Boolean?
   serviceType             ServiceType? // Service type of the user
   serviceDetails          String?
@@ -180,6 +182,7 @@ model Profile {
   preferredCharacterTraits    String[]           @default([]) // Preferred character trait(s) of the partner
   preferredHobbies            String[]           @default([]) // Preferred hobbies of the partner
   preferredAliyaStatus        String? // e.g., "oleh", "tzabar", "no_preference"
+preferredReligiousJourneys  ReligiousJourney[] @default([]) 
 
   isProfileVisible          Boolean            @default(true)
   preferredMatchmakerGender Gender?
@@ -537,6 +540,16 @@ enum AvailabilityStatus {
   PAUSED
   ENGAGED
   MARRIED
+}
+
+enum ReligiousJourney {
+  BORN_INTO_CURRENT_LIFESTYLE // גדלתי בסביבה דומה
+  BORN_SECULAR
+  BAAL_TESHUVA                // חזרתי בתשובה
+  DATLASH                     // יצאתי בשאלה
+  CONVERT                     // גר/גיורת
+  IN_PROCESS                  // בתהליך של שינוי
+  OTHER                       // אחר
 }
 
 enum InvitationStatus {

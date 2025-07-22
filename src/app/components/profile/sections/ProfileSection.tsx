@@ -8,6 +8,7 @@ import {
   ServiceType,
   HeadCoveringType,
   KippahType,
+  ReligiousJourney,
   
 } from "@prisma/client";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -64,6 +65,15 @@ const religiousLevelOptions = [
   { value: "secular", label: "חילוני/ת" },
   { value: "spiritual_not_religious", label: "רוחני/ת (לאו דווקא דתי/ה)" },
   { value: "other", label: "אחר (נא לפרט ב'אודות')" },
+];
+const religiousJourneyOptions = [
+    { value: "BORN_INTO_CURRENT_LIFESTYLE", label: "גדלתי בסביבה דומה להגדרתי כיום" },
+    { value: "BORN_SECULAR", label: "גדלתי בסביבה חילונית" },
+    { value: "BAAL_TESHUVA", label: "חזרתי בתשובה" },
+    { value: "DATLASH", label: "יצאתי בשאלה (דתל\"ש)" },
+    { value: "CONVERT", label: "גר/ה / גיורת" },
+    { value: "IN_PROCESS", label: "בתהליך של שינוי / התלבטות" },
+    { value: "OTHER", label: "אחר (נא לפרט בהערות)" },
 ];
 
 const educationLevelOptions = [
@@ -215,6 +225,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
       educationLevel: profileData?.educationLevel || undefined,
       city: profileData?.city || "",
       origin: profileData?.origin || "",
+            religiousJourney: profileData?.religiousJourney || undefined, // START OF CHANGE
+
       religiousLevel: profileData?.religiousLevel || undefined,
       about: profileData?.about || "",
       parentStatus: profileData?.parentStatus || undefined,
@@ -341,6 +353,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
           "city",
           "origin",
           "religiousLevel",
+          "religiousJourney",
           "about",
           "parentStatus",
           "serviceDetails",
@@ -996,6 +1009,39 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         {renderSelectDisplayValue(
                           formData.religiousLevel,
                           religiousLevelOptions
+                        )}
+                      </p>
+                    )}
+                  </div>
+                     {/* START OF CHANGE: New Religious Journey field */}
+                  <div>
+                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                      מסע דתי
+                    </Label>
+                    {isEditing && !viewOnly ? (
+                      <Select
+                        value={formData.religiousJourney || ""}
+                        onValueChange={(value) =>
+                          handleChange("religiousJourney", (value as ReligiousJourney) || undefined)
+                        }
+                      >
+                        <SelectTrigger className="h-9 text-sm focus:ring-cyan-500">
+                          <SelectValue placeholder="בחר/י רקע דתי" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[250px]">
+                          {religiousJourneyOptions.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-sm text-gray-800 font-medium mt-1">
+                        {renderSelectDisplayValue(
+                          formData.religiousJourney,
+                          religiousJourneyOptions,
+                          "לא צוין"
                         )}
                       </p>
                     )}

@@ -11,6 +11,7 @@ import {
   HeadCoveringType,
   KippahType,
   AvailabilityStatus,
+  ReligiousJourney,
   Profile, // Import Prisma's Profile type
 } from "@prisma/client";
 import type { UserProfile } from "@/types/next-auth";
@@ -99,6 +100,8 @@ export async function PUT(req: NextRequest) {
       city,
       origin,
       religiousLevel,
+      religiousJourney,
+      preferredReligiousJourneys, 
       about,
       parentStatus,
       siblings,
@@ -179,6 +182,8 @@ export async function PUT(req: NextRequest) {
 
     // --- Religion & Lifestyle (User's own) ---
     if (religiousLevel !== undefined) dataToUpdate.religiousLevel = emptyStringToNull(religiousLevel);
+        if (religiousJourney !== undefined) dataToUpdate.religiousJourney = emptyStringToNull(religiousJourney) as ReligiousJourney | null;
+
     if (shomerNegiah !== undefined) dataToUpdate.shomerNegiah = shomerNegiah;
 
     const existingProfileMinimal = await prisma.profile.findUnique({ where: { userId }, select: { gender: true }});
@@ -235,6 +240,7 @@ export async function PUT(req: NextRequest) {
     if (preferredCharacterTraits !== undefined) dataToUpdate.preferredCharacterTraits = preferredCharacterTraits || []; // Preference for partner
     if (preferredHobbies !== undefined) dataToUpdate.preferredHobbies = preferredHobbies || []; // Preference for partner's hobbies
     if (preferredAliyaStatus !== undefined) dataToUpdate.preferredAliyaStatus = emptyStringToNull(preferredAliyaStatus);
+    if (preferredReligiousJourneys !== undefined) dataToUpdate.preferredReligiousJourneys = preferredReligiousJourneys || [];
 
     // --- Profile Management ---
     if (isProfileVisible !== undefined) dataToUpdate.isProfileVisible = isProfileVisible;
@@ -310,6 +316,8 @@ export async function PUT(req: NextRequest) {
       city: dbProfile.city || "",
       origin: dbProfile.origin || "",
       religiousLevel: dbProfile.religiousLevel || undefined,
+       religiousJourney: dbProfile.religiousJourney || undefined,
+      preferredReligiousJourneys: dbProfile.preferredReligiousJourneys ?? [],
       about: dbProfile.about || "",
       parentStatus: dbProfile.parentStatus || undefined,
       siblings: dbProfile.siblings ?? null,

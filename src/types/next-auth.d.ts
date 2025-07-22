@@ -14,6 +14,7 @@ import type {
   KippahType, // Ensure this is imported
   Prisma,
   UserSource,
+  ReligiousJourney,
 } from '@prisma/client';
 import { DefaultSession, DefaultUser } from 'next-auth';
 import { DefaultJWT } from 'next-auth/jwt';
@@ -43,6 +44,7 @@ export interface UserProfile extends Omit<PrismaProfile, 'gender' | 'birthDate' 
   religiousLevel?: string | null;
   about?: string | null;
   shomerNegiah?: boolean | null;
+  religiousJourney?: ReligiousJourney | null; 
   serviceType?: ServiceType | null;
   serviceDetails?: string | null;
   headCovering?: HeadCoveringType | null;
@@ -85,7 +87,7 @@ export interface UserProfile extends Omit<PrismaProfile, 'gender' | 'birthDate' 
   preferredHobbies: string[]; // UserProfile was missing this
   preferredAliyaStatus?: string | null;
  preferredHasChildrenFromPrevious?: boolean | null; // Added this as it was in the error message from before
-
+preferredReligiousJourneys: ReligiousJourney[]; 
   // Management fields
   isProfileVisible: boolean; // from PrismaProfile
   isProfileComplete: boolean; // FIXED: Added missing property
