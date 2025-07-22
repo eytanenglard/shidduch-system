@@ -27,6 +27,8 @@ type LogMetadata = {
   hasFirstName?: boolean;
   hasLastName?: boolean;
   verificationId?: string;
+    marketingConsent?: boolean;
+
 };
 
 const logger = {
@@ -58,6 +60,9 @@ interface InitialRegistrationData {
   password: string;
   firstName: string;
   lastName: string;
+  // --- START OF CHANGE ---
+  marketingConsent?: boolean;
+  // --- END OF CHANGE ---
 }
 
 function handleError(error: unknown): { message: string; status: number } {
@@ -130,7 +135,10 @@ export async function POST(req: Request) {
       email: body.email,
       firstName: body.firstName,
       lastName: body.lastName,
-      hasPassword: !!body.password
+      hasPassword: !!body.password,
+      // --- START OF CHANGE ---
+      marketingConsent: body.marketingConsent,
+      // --- END OF CHANGE ---
     });
 
     if (!body.email || !body.password || !body.firstName || !body.lastName) {
@@ -184,7 +192,10 @@ export async function POST(req: Request) {
             isProfileComplete: false, 
             isPhoneVerified: false, 
             source: UserSource.REGISTRATION,
-            termsAndPrivacyAcceptedAt: new Date(), 
+            termsAndPrivacyAcceptedAt: new Date(),
+            // --- START OF CHANGE ---
+            marketingConsent: body.marketingConsent || false,
+            // --- END OF CHANGE ---
           },
       });
       logger.info('User created successfully within transaction', { userId: user.id });

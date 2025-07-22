@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
+import { Switch } from "@/components/ui/switch"; // Import the Switch component
 import {
   User,
   Mail,
@@ -42,7 +43,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useSession, signOut } from "next-auth/react";
-import { UserRole, UserStatus } from "@prisma/client"; // Assuming Prisma types are globally available or adjust path
+import { UserRole, UserStatus } from "@prisma/client";
 
 interface AccountSettingsProps {
   user: {
@@ -55,6 +56,7 @@ interface AccountSettingsProps {
     isVerified: boolean;
     lastLogin: Date | null;
     createdAt: Date;
+    marketingConsent?: boolean; // Add marketingConsent to the user prop type
   };
 }
 
@@ -64,7 +66,7 @@ const DELETE_CONFIRMATION_PHRASE = "אני מאשר מחיקה";
 const AccountSettings: React.FC<AccountSettingsProps> = ({
   user: propUser,
 }) => {
-  const { data: session, status: sessionStatus } = useSession();
+  const { data: session, status: sessionStatus, update: updateSession } = useSession();
 
   // States for UI control
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -97,6 +99,12 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
 
   // Animations and effects
   const [activeSection, setActiveSection] = useState<string | null>(null);
+
+  // --- START OF NEW CODE ---
+  // State for marketing consent
+  const [marketingConsent, setMarketingConsent] = useState(propUser.marketingConsent || false);
+  const [isMarketingLoading, setIsMarketingLoading] = useState(false);
+  // --- END OF NEW CODE ---
 
   const canChangePassword = useMemo(() => {
     if (sessionStatus === "authenticated" && session?.user?.accounts) {
@@ -251,7 +259,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
           icon: <AlertCircle className="h-5 w-5 text-red-500" />,
         }
       );
-      resetPasswordForm(); // Reset form but keep dialog open for retry
+      resetPasswordForm();
     } finally {
       setIsLoading(false);
     }
@@ -345,10 +353,48 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
       );
     } finally {
       setIsLoading(false);
-      // Do not close dialog or reset text on error, allow retry.
-      // On success, signOut handles redirection.
     }
   };
+  
+  // --- START OF NEW CODE ---
+  const handleMarketingConsentChange = async (checked: boolean) => {
+    setIsMarketingLoading(true);
+    setMarketingConsent(checked); // Optimistic UI update
+
+    try {
+        const response = await fetch('/api/user/marketing-consent', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ marketingConsent: checked }),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            setMarketingConsent(!checked); // Revert optimistic update on failure
+            throw new Error(result.error || "Failed to update marketing preferences.");
+        }
+
+        toast.success("העדפות דיוור עודכנו בהצלחה", {
+            icon: <CheckCircle className="h-5 w-5 text-green-500" />
+        });
+
+        // Update the session to reflect the change immediately
+        await updateSession({ marketingConsent: checked });
+
+    } catch (error) {
+        setMarketingConsent(!checked); // Revert optimistic update on failure
+        toast.error(
+            error instanceof Error ? error.message : "שגיאה בעדכון העדפות הדיוור",
+            {
+                icon: <AlertCircle className="h-5 w-5 text-red-500" />,
+            }
+        );
+    } finally {
+        setIsMarketingLoading(false);
+    }
+  };
+  // --- END OF NEW CODE ---
 
   const getPasswordStrengthColor = () => {
     if (passwordStrength === 0) return "bg-gray-200";
@@ -367,7 +413,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
   };
 
   if (!propUser) {
-    return <div>טוען פרטי משתמש...</div>; // Or some loading indicator
+    return <div>טוען פרטי משתמש...</div>;
   }
 
   return (
@@ -404,7 +450,6 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                   השם והמייל המשמשים אותך באתר
                 </p>
               </div>
-              {/* Edit Name button removed */}
             </div>
 
             <div className="grid gap-3">
@@ -527,6 +572,31 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
               </div>
             </div>
           </div>
+          
+          {/* --- START OF NEW CODE --- */}
+          {/* Marketing Preferences Section */}
+          <div className="py-4">
+              <h3 className="text-base font-semibold mb-4 flex items-center">
+                  <Bell className="w-4 h-4 text-blue-600 mr-2" />
+                  העדפות דיוור
+              </h3>
+              <div className="bg-gray-50 p-3 rounded-lg flex items-center justify-between transition-all hover:bg-gray-100 duration-300">
+                  <div>
+                      <Label htmlFor="marketing-switch" className="text-sm font-medium text-gray-700 cursor-pointer">
+                        מידע שיווקי ועדכונים
+                      </Label>
+                      <p className="text-xs text-gray-600">קבלת עדכונים על אירועים, מבצעים וחדשות מהחברה.</p>
+                  </div>
+                  <Switch
+                      id="marketing-switch"
+                      checked={marketingConsent}
+                      onCheckedChange={handleMarketingConsentChange}
+                      disabled={isMarketingLoading}
+                      aria-label="Toggle marketing consent"
+                  />
+              </div>
+          </div>
+          {/* --- END OF NEW CODE --- */}
 
           {/* Security Section */}
           <div className="py-4">
@@ -631,13 +701,13 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
         </CardFooter>
       </Card>
 
-      {/* Change Password Dialog (only rendered if canChangePassword, but controlled by isChangingPassword state) */}
+      {/* Change Password Dialog */}
       {canChangePassword && (
         <Dialog
           open={isChangingPassword}
           onOpenChange={(open) => {
             if (!open) resetPasswordForm();
-            else setIsChangingPassword(true); // Ensure it opens if button clicked
+            else setIsChangingPassword(true);
           }}
         >
           <DialogContent className="sm:max-w-md">
@@ -994,7 +1064,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
         onOpenChange={(open) => {
           if (!open) {
             setIsDeletingAccount(false);
-            setDeleteConfirmText(""); // Reset confirmation text when dialog is closed
+            setDeleteConfirmText("");
           } else {
             setIsDeletingAccount(true);
           }

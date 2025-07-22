@@ -183,6 +183,8 @@ export interface User extends DefaultUser {
     source: UserSource; // Add new field
   addedByMatchmakerId?: string | null; // Add new field
    termsAndPrivacyAcceptedAt?: Date | null;
+     marketingConsent?: boolean;
+
 }
 
 export interface Verification {
@@ -222,6 +224,8 @@ declare module 'next-auth' {
         source: UserSource; // Add new field
       addedByMatchmakerId?: string | null; // Add new field
        termsAndPrivacyAcceptedAt?: Date | null;
+             marketingConsent?: boolean;
+
     }; // Omit to avoid type conflicts if DefaultSession changes
 
     redirectUrl?: string;
@@ -288,6 +292,7 @@ declare module 'next-auth/jwt' {
      source: UserSource; // Add new field
     addedByMatchmakerId?: string | null; // Add new field
         termsAndPrivacyAcceptedAt?: Date | null; // <--- הוספה
+    marketingConsent?: boolean;
 
 
   }

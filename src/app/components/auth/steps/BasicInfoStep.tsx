@@ -37,9 +37,13 @@ const BasicInfoStep: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
-  // --- הוספת State עבור תיבת ההסכמה ---
   const [consentChecked, setConsentChecked] = useState(false);
   const [consentError, setConsentError] = useState<string | null>(null);
+
+  // --- START OF CHANGE ---
+  // State for marketing consent
+  const [marketingConsent, setMarketingConsent] = useState(false);
+  // --- END OF CHANGE ---
 
   useEffect(() => {
     const isEmailValid = isValidEmail(data.email);
@@ -56,12 +60,11 @@ const BasicInfoStep: React.FC = () => {
         : ""
     );
 
-    // --- עדכון תנאי תקינות הטופס ---
     setIsFormValid(
       isEmailValid &&
         isPasswordValid &&
         isNameValid &&
-        consentChecked && // <-- הוספת בדיקת הסכמה
+        consentChecked &&
         !isLoading
     );
   }, [
@@ -69,7 +72,7 @@ const BasicInfoStep: React.FC = () => {
     data.password,
     data.firstName,
     data.lastName,
-    consentChecked, // <-- הוספת תלות
+    consentChecked,
     isLoading,
   ]);
 
@@ -95,10 +98,10 @@ const BasicInfoStep: React.FC = () => {
   };
 
   const handleRegisterSubmit = async () => {
-    setConsentError(null); // איפוס שגיאת הסכמה
+    setConsentError(null);
     if (!consentChecked) {
       setConsentError("חובה לאשר את תנאי השימוש ומדיניות הפרטיות.");
-      setIsFormValid(false); // ודא שהטופס לא יישלח
+      setIsFormValid(false);
       return;
     }
 
@@ -130,7 +133,6 @@ const BasicInfoStep: React.FC = () => {
     setApiError(null);
 
     try {
-      // כאן, ה-API /api/auth/register אמור לשמור את termsAndPrivacyAcceptedAt: new Date()
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -139,8 +141,9 @@ const BasicInfoStep: React.FC = () => {
           password: data.password,
           firstName: data.firstName,
           lastName: data.lastName,
-          // אין צורך לשלוח את סטטוס ההסכמה, עצם השליחה מפה (לאחר שהכפתור הופעל) מעידה על הסכמה.
-          // ה-API בצד השרת יקבע את חתימת הזמן.
+          // --- START OF CHANGE ---
+          marketingConsent: marketingConsent,
+          // --- END OF CHANGE ---
         }),
       });
 
@@ -350,7 +353,6 @@ const BasicInfoStep: React.FC = () => {
         </motion.div>
       </motion.div>
 
-      {/* --- הוספת תיבת ההסכמה --- */}
       <motion.div variants={itemVariants} className="mt-6">
         <ConsentCheckbox
           checked={consentChecked}
@@ -361,6 +363,24 @@ const BasicInfoStep: React.FC = () => {
           error={consentError}
         />
       </motion.div>
+      
+      {/* --- START OF CHANGE --- */}
+      {/* Marketing Consent Checkbox */}
+      <motion.div variants={itemVariants} className="mt-4">
+        <div className="flex items-start space-x-2 rtl:space-x-reverse">
+          <input
+            type="checkbox"
+            id="marketingConsent"
+            checked={marketingConsent}
+            onChange={(e) => setMarketingConsent(e.target.checked)}
+            className="mt-1 h-4 w-4 text-cyan-600 border-gray-300 rounded focus:ring-cyan-500"
+          />
+          <label htmlFor="marketingConsent" className="text-sm text-gray-700">
+            אני מסכים/ה לקבל מידע שיווקי ועדכונים מהחברה
+          </label>
+        </div>
+      </motion.div>
+      {/* --- END OF CHANGE --- */}
 
       <motion.div
         variants={itemVariants}

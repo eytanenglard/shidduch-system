@@ -316,7 +316,8 @@ export const authOptions: NextAuthOptions = {
       typedUser.source = dbUser.source;
       typedUser.addedByMatchmakerId = dbUser.addedByMatchmakerId;
       typedUser.termsAndPrivacyAcceptedAt = dbUser.termsAndPrivacyAcceptedAt;
-      
+            typedUser.marketingConsent = dbUser.marketingConsent;
+
       if (account?.provider === "google") {
         if (dbUser.isVerified === false && oauthProfile?.email_verified === true) {
           console.log(`[signIn Callback] Google User ${dbUser.email} was not email-verified, but Google says it is. Updating DB.`);
@@ -380,7 +381,8 @@ export const authOptions: NextAuthOptions = {
         typedToken.termsAndPrivacyAcceptedAt = typedUserFromCallback.termsAndPrivacyAcceptedAt;
         typedToken.requiresCompletion = typedUserFromCallback.requiresCompletion;
         typedToken.redirectUrl = typedUserFromCallback.redirectUrl;
-        
+                typedToken.marketingConsent = typedUserFromCallback.marketingConsent;
+
         console.log("[JWT Callback - Initial Population] Token populated from user object.");
       }
       
@@ -409,6 +411,8 @@ export const authOptions: NextAuthOptions = {
             typedToken.source = dbUserForJwt.source;
             typedToken.addedByMatchmakerId = dbUserForJwt.addedByMatchmakerId;
             typedToken.termsAndPrivacyAcceptedAt = dbUserForJwt.termsAndPrivacyAcceptedAt;
+                       typedToken.marketingConsent = dbUserForJwt.marketingConsent;
+
             typedToken.profile = dbUserForJwt.profile as UserProfile | null;
             typedToken.images = dbUserForJwt.images as UserImage[];
             typedToken.questionnaireResponses = dbUserForJwt.questionnaireResponses as QuestionnaireResponse[];
@@ -447,6 +451,8 @@ export const authOptions: NextAuthOptions = {
         typedSession.user.source = typedToken.source;
         typedSession.user.addedByMatchmakerId = typedToken.addedByMatchmakerId;
         typedSession.user.termsAndPrivacyAcceptedAt = typedToken.termsAndPrivacyAcceptedAt;
+        typedSession.user.marketingConsent = typedToken.marketingConsent;
+
         typedSession.user.profile = typedToken.profile; 
         typedSession.user.images = typedToken.images; 
         typedSession.user.questionnaireResponses = typedToken.questionnaireResponses;
