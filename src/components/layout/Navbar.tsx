@@ -1,17 +1,17 @@
 // src/components/layout/Navbar.tsx
 
-"use client";
+'use client';
 
-import { motion } from "framer-motion";
-import React, { useState, useEffect, useRef } from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { useSession, signOut } from "next-auth/react";
-import { usePathname } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import AvailabilityStatus from "@/components/AvailabilityStatus";
-import { useLanguage } from "@/app/contexts/LanguageContext";
-import { useNotifications } from "@/app/contexts/NotificationContext";
+import { motion } from 'framer-motion';
+import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { useSession, signOut } from 'next-auth/react';
+import { usePathname } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import AvailabilityStatus from '@/components/AvailabilityStatus';
+import { useLanguage } from '@/app/contexts/LanguageContext';
+import { useNotifications } from '@/app/contexts/NotificationContext';
 import {
   Users,
   User,
@@ -24,9 +24,10 @@ import {
   Menu,
   X,
   Globe,
-} from "lucide-react";
-import type { Session as NextAuthSession } from "next-auth";
-import type { UserImage } from "@/types/next-auth";
+} from 'lucide-react';
+import type { Session as NextAuthSession } from 'next-auth';
+import type { UserImage } from '@/types/next-auth';
+import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
 
 // רכיב התפריט הנפתח של המשתמש, מותאם לעיצוב החדש
 const UserDropdown = ({
@@ -47,12 +48,15 @@ const UserDropdown = ({
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   if (!session) return null;
@@ -61,16 +65,15 @@ const UserDropdown = ({
     <div className="relative" ref={dropdownRef}>
       <button
         id="onboarding-target-profile-dropdown"
-
         onClick={() => setIsOpen(!isOpen)}
         className={`relative ${profileIconSize} rounded-full flex items-center justify-center text-sm shadow-md transition-all duration-300 cursor-pointer group overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-400 focus:ring-offset-white`}
-        title={session.user?.name || "פרופיל"}
+        title={session.user?.name || 'פרופיל'}
       >
         <div className="absolute inset-0 rounded-full transition-all duration-300 group-hover:ring-2 group-hover:ring-cyan-400"></div>
         {mainProfileImage ? (
           <Image
-            src={mainProfileImage.url}
-            alt={session.user?.name || "תמונת פרופיל"}
+            src={getRelativeCloudinaryPath(mainProfileImage.url)}
+            alt={session.user?.name || 'תמונת פרופיל'}
             fill
             className="object-cover rounded-full"
             sizes="(max-width: 768px) 40px, 40px"
@@ -83,13 +86,22 @@ const UserDropdown = ({
       </button>
 
       {isOpen && (
-        <div className={`absolute mt-3 w-56 origin-top-left bg-white rounded-xl shadow-2xl z-20 border border-gray-100 ${
-          typeof window !== 'undefined' && document.documentElement.dir === 'rtl' ? 'left-0' : 'right-0'
-        }`}>
+        <div
+          className={`absolute mt-3 w-56 origin-top-left bg-white rounded-xl shadow-2xl z-20 border border-gray-100 ${
+            typeof window !== 'undefined' &&
+            document.documentElement.dir === 'rtl'
+              ? 'left-0'
+              : 'right-0'
+          }`}
+        >
           <div className="p-1">
             <div className="px-4 py-3 border-b border-gray-100">
-              <p className="text-sm font-semibold text-gray-800 truncate">{session.user?.name}</p>
-              <p className="text-xs text-gray-500 truncate">{session.user?.email}</p>
+              <p className="text-sm font-semibold text-gray-800 truncate">
+                {session.user?.name}
+              </p>
+              <p className="text-xs text-gray-500 truncate">
+                {session.user?.email}
+              </p>
             </div>
             <div className="py-1">
               <Link
@@ -131,13 +143,17 @@ const UserDropdown = ({
 // רכיב הלוגו
 const Logo = () => {
   return (
-    <Link href="/" className="flex items-center gap-x-2 group shrink-0" aria-label="Keystone Match Homepage">
+    <Link
+      href="/"
+      className="flex items-center gap-x-2 group shrink-0"
+      aria-label="Keystone Match Homepage"
+    >
       <div className="relative h-9 w-9">
         <Image
-          src="/images/keystone-icon.png" 
+          src="/images/keystone-icon.png"
           alt="Keystone Match Icon"
-          fill 
-          className="object-contain transition-transform duration-300 group-hover:scale-110" 
+          fill
+          className="object-contain transition-transform duration-300 group-hover:scale-110"
           priority
         />
       </div>
@@ -154,7 +170,8 @@ const Navbar = () => {
     data: (NextAuthSession & { user?: { images?: UserImage[] } }) | null;
   };
   const pathname = usePathname();
-  const isMatchmaker = session?.user?.role === "MATCHMAKER" || session?.user?.role === "ADMIN";
+  const isMatchmaker =
+    session?.user?.role === 'MATCHMAKER' || session?.user?.role === 'ADMIN';
   const { notifications } = useNotifications();
   const { language, setLanguage } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -164,9 +181,9 @@ const Navbar = () => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 10);
     };
-    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   useEffect(() => {
@@ -180,15 +197,16 @@ const Navbar = () => {
 
   const handleSignOut = () => {
     setMobileMenuOpen(false);
-    signOut({ callbackUrl: "/" });
+    signOut({ callbackUrl: '/' });
   };
 
   const getInitials = () => {
     const fullName = session?.user?.name;
-    if (!fullName) return "P";
-    const names = fullName.split(" ");
+    if (!fullName) return 'P';
+    const names = fullName.split(' ');
     return (
-      (names[0]?.[0] || "") + (names.length > 1 ? names[names.length - 1]?.[0] || "" : "")
+      (names[0]?.[0] || '') +
+      (names.length > 1 ? names[names.length - 1]?.[0] || '' : '')
     ).toUpperCase();
   };
 
@@ -198,14 +216,16 @@ const Navbar = () => {
   const mainProfileImage = getMainProfileImage();
 
   const navbarClasses = scrolled
-    ? "bg-white/80 backdrop-blur-lg shadow-sm border-b border-gray-200/80"
-    : "bg-transparent border-b border-transparent";
-  
-  const profileIconSize = "w-10 h-10";
+    ? 'bg-white/80 backdrop-blur-lg shadow-sm border-b border-gray-200/80'
+    : 'bg-transparent border-b border-transparent';
+
+  const profileIconSize = 'w-10 h-10';
 
   return (
     <>
-      <nav className={`sticky top-0 z-50 w-full transition-all duration-300 ${navbarClasses}`}>
+      <nav
+        className={`sticky top-0 z-50 w-full transition-all duration-300 ${navbarClasses}`}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             {/* צד ימין: לוגו וניווט ראשי */}
@@ -216,17 +236,34 @@ const Navbar = () => {
                   <>
                     {isMatchmaker ? (
                       <>
-                        <NavItem href="/matchmaker/suggestions" text="הצעות שידוך" pathname={pathname} />
-                        <NavItem href="/matchmaker/clients" text="מועמדים" pathname={pathname} />
+                        <NavItem
+                          href="/matchmaker/suggestions"
+                          text="הצעות שידוך"
+                          pathname={pathname}
+                        />
+                        <NavItem
+                          href="/matchmaker/clients"
+                          text="מועמדים"
+                          pathname={pathname}
+                        />
                       </>
                     ) : (
-                      <NavItem id="onboarding-target-matches-link" href="/matches" text="ההצעות שלי" pathname={pathname} />
+                      <NavItem
+                        id="onboarding-target-matches-link"
+                        href="/matches"
+                        text="ההצעות שלי"
+                        pathname={pathname}
+                      />
                     )}
                     <NavItem
                       href="/messages"
                       id="onboarding-target-messages-link"
                       text="הודעות"
-                      badge={notifications.total > 0 ? notifications.total : undefined}
+                      badge={
+                        notifications.total > 0
+                          ? notifications.total
+                          : undefined
+                      }
                       pathname={pathname}
                     />
                   </>
@@ -239,15 +276,20 @@ const Navbar = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setLanguage(language === "he" ? "en" : "he")}
+                onClick={() => setLanguage(language === 'he' ? 'en' : 'he')}
                 className="text-gray-600 hover:text-cyan-600 hover:bg-cyan-100/50 rounded-full"
-                title={language === "he" ? "Switch to English" : "עבור לעברית"}
+                title={language === 'he' ? 'Switch to English' : 'עבור לעברית'}
               >
                 <Globe className="h-5 w-5" />
               </Button>
 
               {session && (
-                <div id="onboarding-target-availability-status" className="hidden md:block"> {/* ID הועבר ל-wrapper */}
+                <div
+                  id="onboarding-target-availability-status"
+                  className="hidden md:block"
+                >
+                  {' '}
+                  {/* ID הועבר ל-wrapper */}
                   <AvailabilityStatus />
                 </div>
               )}
@@ -263,7 +305,10 @@ const Navbar = () => {
               ) : (
                 <div className="hidden md:flex items-center gap-2">
                   <Link href="/auth/signin">
-                    <Button variant="ghost" className="text-gray-700 hover:text-cyan-600 hover:bg-cyan-50/70 rounded-full px-4">
+                    <Button
+                      variant="ghost"
+                      className="text-gray-700 hover:text-cyan-600 hover:bg-cyan-50/70 rounded-full px-4"
+                    >
                       התחברות
                     </Button>
                   </Link>
@@ -304,15 +349,21 @@ const Navbar = () => {
       )}
       <div
         className={`fixed top-0 ${
-          language === "he" ? "right-0" : "left-0"
+          language === 'he' ? 'right-0' : 'left-0'
         } z-50 h-full w-4/5 max-w-sm bg-white shadow-2xl transform transition-transform duration-300 ease-in-out md:hidden 
-        ${mobileMenuOpen ? "translate-x-0" : (language === "he" ? "translate-x-full" : "-translate-x-full")}`}
+        ${mobileMenuOpen ? 'translate-x-0' : language === 'he' ? 'translate-x-full' : '-translate-x-full'}`}
         role="dialog"
         aria-modal="true"
       >
         <div className="flex justify-between items-center p-4 border-b border-gray-100">
           <Logo />
-          <Button variant="ghost" size="icon" onClick={toggleMobileMenu} className="text-gray-500 hover:text-gray-800 rounded-full" aria-label="סגור תפריט">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleMobileMenu}
+            className="text-gray-500 hover:text-gray-800 rounded-full"
+            aria-label="סגור תפריט"
+          >
             <X className="h-5 w-5" />
           </Button>
         </div>
@@ -322,11 +373,13 @@ const Navbar = () => {
             <div className="p-4">
               <div className="p-4 border rounded-xl bg-gray-50/80">
                 <div className="flex items-center gap-4">
-                  <div className={`relative ${profileIconSize} rounded-full flex-shrink-0 flex items-center justify-center shadow-sm overflow-hidden`}>
+                  <div
+                    className={`relative ${profileIconSize} rounded-full flex-shrink-0 flex items-center justify-center shadow-sm overflow-hidden`}
+                  >
                     {mainProfileImage ? (
                       <Image
-                        src={mainProfileImage.url}
-                        alt={session.user?.name || "תמונת פרופיל"}
+                        src={getRelativeCloudinaryPath(mainProfileImage.url)}
+                        alt={session.user?.name || 'תמונת פרופיל'}
                         fill
                         className="object-cover rounded-full"
                         sizes="40px"
@@ -338,11 +391,20 @@ const Navbar = () => {
                     )}
                   </div>
                   <div className="flex-grow min-w-0">
-                    <div className="font-semibold text-gray-800 truncate">{session.user?.name}</div>
-                    <div className="text-sm text-gray-500 truncate">{session.user?.email}</div>
+                    <div className="font-semibold text-gray-800 truncate">
+                      {session.user?.name}
+                    </div>
+                    <div className="text-sm text-gray-500 truncate">
+                      {session.user?.email}
+                    </div>
                   </div>
                 </div>
-                <div id="onboarding-target-availability-status" className="mt-4 pt-4 border-t border-gray-200"> {/* ID הועבר גם למובייל */}
+                <div
+                  id="onboarding-target-availability-status"
+                  className="mt-4 pt-4 border-t border-gray-200"
+                >
+                  {' '}
+                  {/* ID הועבר גם למובייל */}
                   <AvailabilityStatus />
                 </div>
               </div>
@@ -354,17 +416,58 @@ const Navbar = () => {
               <>
                 {isMatchmaker ? (
                   <>
-                    <MobileNavItem href="/matchmaker/suggestions" text="הצעות שידוך" icon={<Heart className="ml-2 h-5 w-5"/>} onClick={toggleMobileMenu} pathname={pathname} />
-                    <MobileNavItem href="/matchmaker/clients" text="מועמדים" icon={<Users className="ml-2 h-5 w-5"/>} onClick={toggleMobileMenu} pathname={pathname} />
+                    <MobileNavItem
+                      href="/matchmaker/suggestions"
+                      text="הצעות שידוך"
+                      icon={<Heart className="ml-2 h-5 w-5" />}
+                      onClick={toggleMobileMenu}
+                      pathname={pathname}
+                    />
+                    <MobileNavItem
+                      href="/matchmaker/clients"
+                      text="מועמדים"
+                      icon={<Users className="ml-2 h-5 w-5" />}
+                      onClick={toggleMobileMenu}
+                      pathname={pathname}
+                    />
                   </>
                 ) : (
-                  <MobileNavItem id="onboarding-target-matches-link" href="/matches" text="ההצעות שלי" icon={<Users className="ml-2 h-5 w-5"/>} onClick={toggleMobileMenu} pathname={pathname} />
+                  <MobileNavItem
+                    id="onboarding-target-matches-link"
+                    href="/matches"
+                    text="ההצעות שלי"
+                    icon={<Users className="ml-2 h-5 w-5" />}
+                    onClick={toggleMobileMenu}
+                    pathname={pathname}
+                  />
                 )}
                 {/* --- שינוי --- הוספת ID לכפתור הודעות במובייל */}
-                <MobileNavItem id="onboarding-target-messages-link" href="/messages" text="הודעות" icon={<MessageCircle className="ml-2 h-5 w-5"/>} badge={notifications.total > 0 ? notifications.total : undefined} onClick={toggleMobileMenu} pathname={pathname} />
-                <hr className="my-3"/>
-                <MobileNavItem href="/profile" text="פרופיל אישי" icon={<User className="ml-2 h-5 w-5"/>} onClick={toggleMobileMenu} pathname={pathname} />
-                <MobileNavItem href="/settings" text="הגדרות חשבון" icon={<Settings className="ml-2 h-5 w-5"/>} onClick={toggleMobileMenu} pathname={pathname} />
+                <MobileNavItem
+                  id="onboarding-target-messages-link"
+                  href="/messages"
+                  text="הודעות"
+                  icon={<MessageCircle className="ml-2 h-5 w-5" />}
+                  badge={
+                    notifications.total > 0 ? notifications.total : undefined
+                  }
+                  onClick={toggleMobileMenu}
+                  pathname={pathname}
+                />
+                <hr className="my-3" />
+                <MobileNavItem
+                  href="/profile"
+                  text="פרופיל אישי"
+                  icon={<User className="ml-2 h-5 w-5" />}
+                  onClick={toggleMobileMenu}
+                  pathname={pathname}
+                />
+                <MobileNavItem
+                  href="/settings"
+                  text="הגדרות חשבון"
+                  icon={<Settings className="ml-2 h-5 w-5" />}
+                  onClick={toggleMobileMenu}
+                  pathname={pathname}
+                />
                 <button
                   onClick={handleSignOut}
                   className="w-full flex items-center text-right px-4 py-3 rounded-lg text-base font-medium text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"
@@ -375,23 +478,37 @@ const Navbar = () => {
               </>
             ) : (
               <>
-                <MobileNavItem href="/auth/signin" text="התחברות" icon={<LogIn className="ml-2 h-5 w-5"/>} onClick={toggleMobileMenu} pathname={pathname} />
-                <MobileNavItem href="/auth/register" text="הרשמה" icon={<UserPlus className="ml-2 h-5 w-5"/>} onClick={toggleMobileMenu} pathname={pathname} />
+                <MobileNavItem
+                  href="/auth/signin"
+                  text="התחברות"
+                  icon={<LogIn className="ml-2 h-5 w-5" />}
+                  onClick={toggleMobileMenu}
+                  pathname={pathname}
+                />
+                <MobileNavItem
+                  href="/auth/register"
+                  text="הרשמה"
+                  icon={<UserPlus className="ml-2 h-5 w-5" />}
+                  onClick={toggleMobileMenu}
+                  pathname={pathname}
+                />
               </>
             )}
           </nav>
-          
+
           <div className="absolute bottom-4 left-0 right-0 px-4">
             <Button
               variant="outline"
               onClick={() => {
-                setLanguage(language === "he" ? "en" : "he");
+                setLanguage(language === 'he' ? 'en' : 'he');
                 toggleMobileMenu();
               }}
               className="w-full font-medium border-gray-300 text-gray-600 hover:bg-gray-100 hover:border-gray-400 flex items-center justify-center py-6 text-base"
             >
-              <Globe className={`h-5 w-5 ${language === 'he' ? 'ml-2' : 'mr-2'}`} /> 
-              {language === "he" ? "Switch to English" : "החלף לעברית"}
+              <Globe
+                className={`h-5 w-5 ${language === 'he' ? 'ml-2' : 'mr-2'}`}
+              />
+              {language === 'he' ? 'Switch to English' : 'החלף לעברית'}
             </Button>
           </div>
         </div>
@@ -406,38 +523,41 @@ const NavItem = ({
   text,
   badge,
   pathname,
-   id,
+  id,
 }: {
   href: string;
   text: string;
   badge?: number;
   pathname: string;
-   id?: string;
+  id?: string;
 }) => {
-  const isActive = pathname === href || (href === "/matchmaker/suggestions" && pathname.startsWith("/matchmaker"));
+  const isActive =
+    pathname === href ||
+    (href === '/matchmaker/suggestions' && pathname.startsWith('/matchmaker'));
 
   return (
     <Link
-    id={id}
+      id={id}
       href={href}
       className={`relative px-3 py-2 rounded-full text-sm transition-colors duration-200
-        ${isActive
-          ? "font-semibold text-cyan-600 bg-cyan-500/10"
-          : "font-medium text-gray-700 hover:text-cyan-600 hover:bg-cyan-500/10"
+        ${
+          isActive
+            ? 'font-semibold text-cyan-600 bg-cyan-500/10'
+            : 'font-medium text-gray-700 hover:text-cyan-600 hover:bg-cyan-500/10'
         }`}
     >
       {text}
- {badge !== undefined && badge > 0 && (
-  <motion.span
-    className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white text-[10px] font-bold shadow-lg border-2 border-white"
-    initial={{ scale: 0 }}
-    animate={{ scale: 1 }}
-    transition={{ type: "spring", stiffness: 500, damping: 30 }}
-  >
-    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75"></span>
-    <span className="relative">{badge}</span>
-  </motion.span>
-)}
+      {badge !== undefined && badge > 0 && (
+        <motion.span
+          className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white text-[10px] font-bold shadow-lg border-2 border-white"
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+        >
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75"></span>
+          <span className="relative">{badge}</span>
+        </motion.span>
+      )}
     </Link>
   );
 };
@@ -460,19 +580,28 @@ const MobileNavItem = ({
   pathname: string;
   id?: string; // <-- שינוי 1: הוספת id לפרופס
 }) => {
-  const isActive = pathname === href || (href === "/matchmaker/suggestions" && pathname.startsWith("/matchmaker"));
+  const isActive =
+    pathname === href ||
+    (href === '/matchmaker/suggestions' && pathname.startsWith('/matchmaker'));
   return (
     <Link
       id={id} // <-- שינוי 2: שימוש ב-id
       href={href}
       onClick={onClick}
       className={`flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 group
-        ${isActive
-          ? "bg-cyan-100 text-cyan-800 shadow-inner"
-          : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+        ${
+          isActive
+            ? 'bg-cyan-100 text-cyan-800 shadow-inner'
+            : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
         }`}
     >
-      {icon && <span className={`transition-colors ${isActive ? "text-cyan-600" : "text-gray-500 group-hover:text-gray-700"}`}>{icon}</span>}
+      {icon && (
+        <span
+          className={`transition-colors ${isActive ? 'text-cyan-600' : 'text-gray-500 group-hover:text-gray-700'}`}
+        >
+          {icon}
+        </span>
+      )}
       <span className="flex-grow">{text}</span>
       {badge !== undefined && badge > 0 && (
         <span className="ml-auto bg-pink-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-semibold">

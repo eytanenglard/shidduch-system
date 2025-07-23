@@ -23,8 +23,6 @@ export function calculateAge(birthDate: Date | string | null): number {
   return age;
 }
 
-// --- START OF ADDED CODE ---
-
 /**
  * Creates initials from a full name.
  * @param fullName - The full name string (e.g., "Yisrael Israeli").
@@ -47,4 +45,34 @@ export function getInitials(fullName?: string): string {
   
   return `${firstInitial}${lastInitial}`.toUpperCase();
 }
-// --- END OF ADDED CODE ---
+
+// --- START OF NEW CODE ---
+// ===================================================================
+// זו הפונקציה החדשה שהוספנו כדי לתקן את נתיבי התמונות
+// ===================================================================
+
+/**
+ * מקבלת כתובת URL מלאה של תמונה מ-Cloudinary ומחזירה
+ * את הנתיב היחסי שהרכיב Image של Next.js צריך.
+ * @param fullUrl - הכתובת המלאה של התמונה.
+ * @returns הנתיב היחסי, לדוגמה: /v12345/profile-images/image.jpg
+ */
+export const getRelativeCloudinaryPath = (fullUrl: string | undefined | null): string => {
+  if (!fullUrl) {
+    // אם אין URL, מחזירים מחרוזת ריקה כדי למנוע שגיאות
+    return '';
+  }
+
+  // זו הכתובת הבסיסית שהגדרנו בקובץ next.config.js
+  const basePath = 'https://res.cloudinary.com/dmfxoi6g0/image/upload/';
+  
+  // אם ה-URL מתחיל בכתובת הבסיסית, אנחנו מחליפים אותה בתו /
+  if (fullUrl.startsWith(basePath)) {
+    // התוצאה תהיה למשל: '/v1625.../profile-images/abc.jpg'
+    return fullUrl.replace(basePath, '/');
+  }
+  
+  // אם מסיבה כלשהי ה-URL הוא כבר נתיב יחסי או לא תקין, נחזיר אותו כמו שהוא
+  return fullUrl;
+};
+// --- END OF NEW CODE ---

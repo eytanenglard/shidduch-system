@@ -8,7 +8,7 @@ import React, {
   useRef,
 } from 'react';
 import Image from 'next/image';
-import { cn } from '@/lib/utils';
+import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
 import {
   ResizableHandle,
   ResizablePanel,
@@ -1468,7 +1468,7 @@ const DetailItem: React.FC<{
   tooltip?: string;
   variant?: 'default' | 'highlight' | 'elegant' | 'romantic';
   size?: 'sm' | 'md' | 'lg';
-textAlign?: 'center' | 'right' | 'left';
+  textAlign?: 'center' | 'right' | 'left';
   responsive?: boolean; // פרמטר חדש לקביעת רמת רספונסיביות
   useMobileLayout?: boolean; // האם להשתמש בפריסה מותאמת למובייל
 }> = ({
@@ -1585,46 +1585,46 @@ textAlign?: 'center' | 'right' | 'left';
           </div>
         </div>
         {/* Label */}
-<p
-  className={cn(
-    'font-semibold mb-1 tracking-wide leading-tight text-center',
-    currentSize.label,
-    // מניעת חריגת טקסט - חיוני!
-    'break-words hyphens-auto word-break-break-word overflow-wrap-anywhere',
-    // צבעים לפי וריאנט
-    variant === 'highlight' || variant === 'elegant'
-      ? 'text-rose-700 sm:text-gray-700'
-      : 'text-gray-600 sm:text-gray-700',
-    // פדינג קל במובייל
-    useMobileLayout && 'px-1'
-  )}
->
-  {label}
-</p>
+        <p
+          className={cn(
+            'font-semibold mb-1 tracking-wide leading-tight text-center',
+            currentSize.label,
+            // מניעת חריגת טקסט - חיוני!
+            'break-words hyphens-auto word-break-break-word overflow-wrap-anywhere',
+            // צבעים לפי וריאנט
+            variant === 'highlight' || variant === 'elegant'
+              ? 'text-rose-700 sm:text-gray-700'
+              : 'text-gray-600 sm:text-gray-700',
+            // פדינג קל במובייל
+            useMobileLayout && 'px-1'
+          )}
+        >
+          {label}
+        </p>
 
-{/* Value */}
-<div
-  className={cn(
-    'font-medium leading-relaxed text-center',
-    currentSize.value,
-    // מניעת חריגת טקסט - הכי חיוני!
-    'break-words hyphens-auto word-break-break-word overflow-wrap-anywhere',
-    'max-w-full overflow-hidden',
-    // צבעים
-    variant === 'highlight' || variant === 'elegant'
-      ? 'text-gray-800 sm:text-gray-900'
-      : 'text-gray-700 sm:text-gray-800',
-    // פדינג קל במובייל
-    useMobileLayout && 'px-1',
-    valueClassName
-  )}
->
-  {value || (
-    <span className="text-gray-400 italic text-xs sm:text-sm">
-      עוד נגלה יחד...
-    </span>
-  )}
-</div>
+        {/* Value */}
+        <div
+          className={cn(
+            'font-medium leading-relaxed text-center',
+            currentSize.value,
+            // מניעת חריגת טקסט - הכי חיוני!
+            'break-words hyphens-auto word-break-break-word overflow-wrap-anywhere',
+            'max-w-full overflow-hidden',
+            // צבעים
+            variant === 'highlight' || variant === 'elegant'
+              ? 'text-gray-800 sm:text-gray-900'
+              : 'text-gray-700 sm:text-gray-800',
+            // פדינג קל במובייל
+            useMobileLayout && 'px-1',
+            valueClassName
+          )}
+        >
+          {value || (
+            <span className="text-gray-400 italic text-xs sm:text-sm">
+              עוד נגלה יחד...
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -2302,7 +2302,7 @@ const ProfileHeader: React.FC<{
             >
               {mainImageToDisplay?.url ? (
                 <Image
-                  src={mainImageToDisplay.url}
+                  src={getRelativeCloudinaryPath(mainImageToDisplay.url)}
                   alt={`תמונת פרופיל של ${profile.user?.firstName || 'מועמד יקר'}`}
                   fill
                   className="object-cover transition-transform duration-700 hover:scale-110"
@@ -2829,7 +2829,7 @@ const MobileImageGallery: React.FC<{
               onClick={() => onImageClick(image)}
             >
               <Image
-                src={image.url}
+                src={getRelativeCloudinaryPath(image.url)}
                 alt={`תמונה מדהימה ${idx + 1}`}
                 fill
                 className="object-cover transition-transform duration-500 group-hover:scale-110"
@@ -2974,7 +2974,7 @@ const ImageDialogComponent: React.FC<{
         <div className="relative flex-1 w-full min-h-0 overflow-hidden">
           <Image
             key={selectedImageForDialog.id}
-            src={selectedImageForDialog.url}
+            src={getRelativeCloudinaryPath(selectedImageForDialog.url)}
             alt={`תמונה מוגדלת ${currentDialogImageIndex + 1}`}
             fill
             className="object-contain"
@@ -3035,7 +3035,7 @@ const ImageDialogComponent: React.FC<{
                     } // Simplified for demo
                   >
                     <Image
-                      src={img.url}
+                      src={getRelativeCloudinaryPath(img.url)}
                       alt="תמונה קטנה"
                       fill
                       className="object-cover"
@@ -3618,7 +3618,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     >
                       {mainImageToDisplay?.url ? (
                         <Image
-                          src={mainImageToDisplay.url}
+                          src={getRelativeCloudinaryPath(
+                            mainImageToDisplay.url
+                          )}
                           alt={`${profile.user?.firstName || 'מועמד'} נראה/ת מדהים/ה`}
                           fill
                           className="object-cover transition-transform duration-700 hover:scale-105"
@@ -4992,8 +4994,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             {/* Search Criteria */}
             <SectionCard
               title="מה אני מחפש/ת"
-                subtitle="החלום שלי לזוגיות - איך אני רואה את בן/בת הזוג המושלם/ת"
-
+              subtitle="החלום שלי לזוגיות - איך אני רואה את בן/בת הזוג המושלם/ת"
               icon={Target}
               variant="highlight"
               gradient={THEME.colors.secondary.sky}
@@ -5240,7 +5241,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           }
                         >
                           <Image
-                            src={orderedImages[0].url}
+                            src={getRelativeCloudinaryPath(
+                              orderedImages[0].url
+                            )}
                             alt="תמונה ראשית מדהימה"
                             fill
                             className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -5267,7 +5270,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                                 onClick={() => handleOpenImageDialog(img)}
                               >
                                 <Image
-                                  src={img.url}
+                                  src={getRelativeCloudinaryPath(img.url)}
                                   alt="תמונת פרופיל נוספת"
                                   fill
                                   className="object-cover hover:scale-110 transition-transform duration-300"

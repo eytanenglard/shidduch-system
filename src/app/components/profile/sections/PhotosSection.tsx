@@ -1,12 +1,11 @@
-"use client";
+'use client';
 
-import React, { useRef, useState, useEffect, useCallback } from "react";
-import Image from "next/image";
-import { cn } from "@/lib/utils";
-
+import React, { useRef, useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
+import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
 // UI Components
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
   DialogContent,
@@ -14,9 +13,9 @@ import {
   DialogDescription,
   DialogHeader,
   DialogFooter,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 
-import { toast } from "sonner";
+import { toast } from 'sonner';
 
 // Icons
 import {
@@ -28,10 +27,10 @@ import {
   Upload,
   Trash2,
   X,
-} from "lucide-react";
+} from 'lucide-react';
 
 // Types
-import type { UserImage } from "@/types/next-auth";
+import type { UserImage } from '@/types/next-auth';
 
 interface PhotosSectionProps {
   images: UserImage[];
@@ -57,31 +56,40 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
 
   // State
   const [showImageViewer, setShowImageViewer] = useState(false);
-  const [selectedViewerIndex, setSelectedViewerIndex] = useState<number | null>(null);
+  const [selectedViewerIndex, setSelectedViewerIndex] = useState<number | null>(
+    null
+  );
   const [isProcessing, setIsProcessing] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [imageToDelete, setImageToDelete] = useState<string | null>(null);
   const [uploadingFiles, setUploadingFiles] = useState<string[]>([]);
 
   // Combined Loading State
-  const isLoading = isExternallyUploading || isProcessing || uploadingFiles.length > 0;
+  const isLoading =
+    isExternallyUploading || isProcessing || uploadingFiles.length > 0;
 
   // --- Event Handlers ---
 
-  const validateFiles = (files: FileList | File[]): { validFiles: File[], errors: string[] } => {
-    const validTypes = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
+  const validateFiles = (
+    files: FileList | File[]
+  ): { validFiles: File[]; errors: string[] } => {
+    const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
     const maxSize = 5 * 1024 * 1024; // 5MB
     const validFiles: File[] = [];
     const errors: string[] = [];
 
     Array.from(files).forEach((file, index) => {
       if (!validTypes.includes(file.type)) {
-        errors.push(`קובץ ${index + 1} (${file.name}): סוג קובץ לא חוקי. יש להעלות JPG, PNG, או WEBP.`);
+        errors.push(
+          `קובץ ${index + 1} (${file.name}): סוג קובץ לא חוקי. יש להעלות JPG, PNG, או WEBP.`
+        );
         return;
       }
-      
+
       if (file.size > maxSize) {
-        errors.push(`קובץ ${index + 1} (${file.name}): הקובץ גדול מדי (מקסימום 5MB).`);
+        errors.push(
+          `קובץ ${index + 1} (${file.name}): הקובץ גדול מדי (מקסימום 5MB).`
+        );
         return;
       }
 
@@ -98,7 +106,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
     // בדיקת מגבלת תמונות
     const remainingSlots = maxImages - images.length;
     if (remainingSlots <= 0) {
-      toast.error("הגעת למספר המקסימלי של תמונות.");
+      toast.error('הגעת למספר המקסימלי של תמונות.');
       return;
     }
 
@@ -113,42 +121,41 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
 
     // אימות הקבצים
     const { validFiles, errors } = validateFiles(files);
-    
+
     if (errors.length > 0) {
-      errors.forEach(error => toast.error(error));
+      errors.forEach((error) => toast.error(error));
       if (validFiles.length === 0) {
         // Reset file input if no valid files
         if (fileInputRef.current) {
-          fileInputRef.current.value = "";
+          fileInputRef.current.value = '';
         }
         return;
       }
     }
 
     if (validFiles.length === 0) {
-      toast.error("לא נבחרו קבצים תקינים להעלאה.");
+      toast.error('לא נבחרו קבצים תקינים להעלאה.');
       return;
     }
 
     // הגדרת קבצים שנמצאים בהעלאה
-    setUploadingFiles(validFiles.map(f => f.name));
+    setUploadingFiles(validFiles.map((f) => f.name));
 
     try {
       // קריאה לפונקציית ההעלאה עם מערך הקבצים
       await onUpload(validFiles);
-      
-      toast.success(`${validFiles.length} תמונות הועלו בהצלחה!`);
 
+      toast.success(`${validFiles.length} תמונות הועלו בהצלחה!`);
     } catch (error) {
-      console.error("Error during upload process:", error);
-      if (!(error instanceof Error && error.message.includes("Toast"))) {
-         toast.error("שגיאה בהעלאת התמונות.");
+      console.error('Error during upload process:', error);
+      if (!(error instanceof Error && error.message.includes('Toast'))) {
+        toast.error('שגיאה בהעלאת התמונות.');
       }
     } finally {
       // Reset states
       setUploadingFiles([]);
       if (fileInputRef.current) {
-        fileInputRef.current.value = "";
+        fileInputRef.current.value = '';
       }
     }
   };
@@ -170,17 +177,18 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
   }, []);
 
   const handleNextImage = useCallback(() => {
-      setSelectedViewerIndex((prevIndex) => {
-          if (prevIndex === null || prevIndex >= images.length - 1) return prevIndex;
-          return prevIndex + 1;
-      });
+    setSelectedViewerIndex((prevIndex) => {
+      if (prevIndex === null || prevIndex >= images.length - 1)
+        return prevIndex;
+      return prevIndex + 1;
+    });
   }, [images.length]);
 
   const handlePreviousImage = useCallback(() => {
-      setSelectedViewerIndex((prevIndex) => {
-          if (prevIndex === null || prevIndex <= 0) return prevIndex;
-          return prevIndex - 1;
-      });
+    setSelectedViewerIndex((prevIndex) => {
+      if (prevIndex === null || prevIndex <= 0) return prevIndex;
+      return prevIndex - 1;
+    });
   }, []);
 
   // Handler for delete confirmation
@@ -190,7 +198,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
     setIsProcessing(true);
     try {
       const imageIndex = images.findIndex((img) => img.id === imageToDelete);
-      if (imageIndex === -1) throw new Error("Image not found for deletion.");
+      if (imageIndex === -1) throw new Error('Image not found for deletion.');
 
       const imageObj = images[imageIndex];
 
@@ -202,14 +210,13 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
 
       await onDelete(imageToDelete);
 
-      toast.success("התמונה נמחקה בהצלחה.");
+      toast.success('התמונה נמחקה בהצלחה.');
       closeImageViewer();
       setDeleteConfirmOpen(false);
       setImageToDelete(null);
-
     } catch (error) {
-      console.error("Error deleting image:", error);
-      toast.error("שגיאה במחיקת התמונה.");
+      console.error('Error deleting image:', error);
+      toast.error('שגיאה במחיקת התמונה.');
     } finally {
       setIsProcessing(false);
     }
@@ -222,52 +229,56 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
     setDeleteConfirmOpen(true);
   };
 
-  const handleSetMainImage = async (imageId: string, showToast = true, event?: React.MouseEvent) => {
+  const handleSetMainImage = async (
+    imageId: string,
+    showToast = true,
+    event?: React.MouseEvent
+  ) => {
     event?.stopPropagation();
     if (isLoading) return;
 
-    const currentImage = images.find(img => img.id === imageId);
+    const currentImage = images.find((img) => img.id === imageId);
     if (!currentImage || currentImage.isMain) return;
 
     setIsProcessing(true);
     try {
       await onSetMain(imageId);
       if (showToast) {
-        toast.success("התמונה הראשית עודכנה.");
+        toast.success('התמונה הראשית עודכנה.');
       }
     } catch (error) {
-      console.error("Error setting main image:", error);
-      toast.error("שגיאה בעדכון התמונה הראשית.");
+      console.error('Error setting main image:', error);
+      toast.error('שגיאה בעדכון התמונה הראשית.');
     } finally {
       setIsProcessing(false);
     }
   };
 
-   const handleControlClick = (e: React.MouseEvent) => {
+  const handleControlClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-   };
+  };
 
-   // Keyboard navigation for viewer
-   useEffect(() => {
+  // Keyboard navigation for viewer
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!showImageViewer) return;
 
       switch (e.key) {
-        case "ArrowRight":
+        case 'ArrowRight':
           handlePreviousImage();
           break;
-        case "ArrowLeft":
+        case 'ArrowLeft':
           handleNextImage();
           break;
-        case "Escape":
+        case 'Escape':
           closeImageViewer();
           break;
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener('keydown', handleKeyDown);
     };
   }, [showImageViewer, handlePreviousImage, handleNextImage, closeImageViewer]);
 
@@ -276,13 +287,17 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
   // --- Render ---
 
   return (
-    <div dir="rtl" className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl p-6 md:p-8">
+    <div
+      dir="rtl"
+      className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl p-6 md:p-8"
+    >
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 pb-4 border-b border-gray-200/80">
         <div className="mb-3 sm:mb-0 text-right">
           <h2 className="text-xl font-semibold text-gray-800">תמונות פרופיל</h2>
           <p className="mt-1 text-sm text-gray-600">
-            העלה עד {maxImages} תמונות. התמונה הראשית תוצג בכרטיס. (מומלץ: תמונות ברורות של הפנים)
+            העלה עד {maxImages} תמונות. התמונה הראשית תוצג בכרטיס. (מומלץ:
+            תמונות ברורות של הפנים)
           </p>
           {/* הצגת מידע על קבצים ממתינים */}
           {uploadingFiles.length > 0 && (
@@ -329,7 +344,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
             onClick={() => handleImageClick(index)}
           >
             <Image
-              src={image.url}
+              src={getRelativeCloudinaryPath(image.url)}
               alt={`תמונת פרופיל ${index + 1}`}
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -348,17 +363,19 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
                   variant="secondary"
                   size="icon"
                   className={cn(
-                    "w-8 h-8 rounded-full shadow-md border border-white/30 bg-black/40 text-white hover:bg-black/60 transition-colors",
-                    image.isMain ? "cursor-default" : "hover:text-yellow-300"
+                    'w-8 h-8 rounded-full shadow-md border border-white/30 bg-black/40 text-white hover:bg-black/60 transition-colors',
+                    image.isMain ? 'cursor-default' : 'hover:text-yellow-300'
                   )}
                   onClick={(e) => handleSetMainImage(image.id, true, e)}
                   disabled={image.isMain || isLoading}
-                  title={image.isMain ? "תמונה ראשית" : "הפוך לתמונה ראשית"}
+                  title={image.isMain ? 'תמונה ראשית' : 'הפוך לתמונה ראשית'}
                 >
                   <Star
                     className={cn(
-                      "w-4 h-4 transition-colors",
-                      image.isMain ? "text-yellow-400 fill-yellow-400" : "text-white"
+                      'w-4 h-4 transition-colors',
+                      image.isMain
+                        ? 'text-yellow-400 fill-yellow-400'
+                        : 'text-white'
                     )}
                   />
                 </Button>
@@ -393,7 +410,9 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
             className="flex flex-col items-center justify-center text-center p-4 aspect-square rounded-xl border-2 border-dashed border-cyan-300/70 bg-cyan-50/30 hover:bg-cyan-50/60 hover:border-cyan-400 transition-colors duration-300 cursor-pointer group"
           >
             <Upload className="w-8 h-8 text-cyan-500 mb-2 transition-transform group-hover:scale-110" />
-            <span className="text-sm font-medium text-cyan-700">העלאת תמונות</span>
+            <span className="text-sm font-medium text-cyan-700">
+              העלאת תמונות
+            </span>
             <span className="text-xs text-cyan-600/90 mt-1">
               עד {getRemainingSlots()} תמונות נוספות
             </span>
@@ -422,32 +441,38 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
 
       {/* Empty State (if no images and not disabled) */}
       {images.length === 0 && uploadingFiles.length === 0 && !disabled && (
-         <div className="text-center py-16 mt-6 bg-gradient-to-br from-cyan-50/20 to-pink-50/20 rounded-xl border border-dashed border-gray-300">
-              <Camera className="w-12 h-12 mx-auto text-gray-400/80" />
-              <p className="mt-4 text-gray-600 font-medium">
-                אין עדיין תמונות בפרופיל
-              </p>
-         <p className="text-sm text-gray-500 mt-1 px-4">
-  תמונות טובות הן הרושם הראשוני שלכם. כדאי להעלות תמונות כדי להשלים את הפרופיל.
-</p>
-          </div>
+        <div className="text-center py-16 mt-6 bg-gradient-to-br from-cyan-50/20 to-pink-50/20 rounded-xl border border-dashed border-gray-300">
+          <Camera className="w-12 h-12 mx-auto text-gray-400/80" />
+          <p className="mt-4 text-gray-600 font-medium">
+            אין עדיין תמונות בפרופיל
+          </p>
+          <p className="text-sm text-gray-500 mt-1 px-4">
+            תמונות טובות הן הרושם הראשוני שלכם. כדאי להעלות תמונות כדי להשלים את
+            הפרופיל.
+          </p>
+        </div>
       )}
 
       {/* Empty State (if disabled and no images) */}
-       {images.length === 0 && disabled && (
-         <div className="text-center py-16 mt-6 bg-gray-50/50 rounded-xl border border-gray-200">
-              <Camera className="w-12 h-12 mx-auto text-gray-400" />
-              <p className="mt-4 text-gray-500 font-medium">
-                לא הועלו תמונות לפרופיל זה.
-              </p>
-          </div>
+      {images.length === 0 && disabled && (
+        <div className="text-center py-16 mt-6 bg-gray-50/50 rounded-xl border border-gray-200">
+          <Camera className="w-12 h-12 mx-auto text-gray-400" />
+          <p className="mt-4 text-gray-500 font-medium">
+            לא הועלו תמונות לפרופיל זה.
+          </p>
+        </div>
       )}
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
-        <DialogContent className="sm:max-w-md bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border-none p-6" dir="rtl">
+        <DialogContent
+          className="sm:max-w-md bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border-none p-6"
+          dir="rtl"
+        >
           <DialogHeader>
-            <DialogTitle className="text-lg font-semibold text-gray-800">אישור מחיקת תמונה</DialogTitle>
+            <DialogTitle className="text-lg font-semibold text-gray-800">
+              אישור מחיקת תמונה
+            </DialogTitle>
             <DialogDescription className="text-sm text-gray-600 mt-2">
               האם למחוק את התמונה לצמיתות? לא ניתן לשחזר פעולה זו.
             </DialogDescription>
@@ -467,7 +492,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
               variant="destructive"
               onClick={confirmDelete}
               disabled={isLoading}
-               className="rounded-full px-5"
+              className="rounded-full px-5"
             >
               {isProcessing ? (
                 <Loader2 className="w-4 h-4 ml-2 animate-spin" />
@@ -480,106 +505,122 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
         </DialogContent>
       </Dialog>
 
-       {/* Image Viewer Dialog */}
-       <Dialog open={showImageViewer} onOpenChange={setShowImageViewer}>
+      {/* Image Viewer Dialog */}
+      <Dialog open={showImageViewer} onOpenChange={setShowImageViewer}>
         <DialogContent
-            className="p-0 m-0 w-screen h-screen max-w-none sm:max-w-full sm:h-full bg-black/90 backdrop-blur-sm border-none rounded-none flex items-center justify-center outline-none"
-            aria-describedby={undefined}
-            >
-            {/* Close Button */}
-            <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-4 left-4 z-50 bg-black/40 hover:bg-black/60 text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 transition-colors"
-                onClick={closeImageViewer}
-                aria-label="סגור תצוגת תמונה"
-            >
-                <X className="w-6 h-6" />
-            </Button>
+          className="p-0 m-0 w-screen h-screen max-w-none sm:max-w-full sm:h-full bg-black/90 backdrop-blur-sm border-none rounded-none flex items-center justify-center outline-none"
+          aria-describedby={undefined}
+        >
+          {/* Close Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-4 left-4 z-50 bg-black/40 hover:bg-black/60 text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 transition-colors"
+            onClick={closeImageViewer}
+            aria-label="סגור תצוגת תמונה"
+          >
+            <X className="w-6 h-6" />
+          </Button>
 
-            {/* Image Display Area */}
-            {selectedViewerIndex !== null && images[selectedViewerIndex] && (
-                <div className="relative w-full h-full flex items-center justify-center">
-                    {/* Image */}
-                     <div className="relative w-[95%] h-[85%] sm:w-[90%] sm:h-[90%]">
-                        <Image
-                            src={images[selectedViewerIndex].url}
-                            alt={`תצוגה מוגדלת של תמונה ${selectedViewerIndex + 1}`}
-                            fill
-                            className="object-contain select-none"
-                            sizes="90vw"
-                            priority
-                        />
-                    </div>
+          {/* Image Display Area */}
+          {selectedViewerIndex !== null && images[selectedViewerIndex] && (
+            <div className="relative w-full h-full flex items-center justify-center">
+              {/* Image */}
+              <div className="relative w-[95%] h-[85%] sm:w-[90%] sm:h-[90%]">
+                <Image
+                  src={getRelativeCloudinaryPath(
+                    images[selectedViewerIndex].url
+                  )}
+                  alt={`תצוגה מוגדלת של תמונה ${selectedViewerIndex + 1}`}
+                  fill
+                  className="object-contain select-none"
+                  sizes="90vw"
+                  priority
+                />
+              </div>
 
-                    {/* Viewer Controls */}
-                    <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
-                         {/* Navigation */}
-                         {images.length > 1 && (
-                            <>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 z-40 bg-black/40 hover:bg-black/60 text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 transition-colors pointer-events-auto"
-                                onClick={(e) => {e.stopPropagation(); handlePreviousImage();}}
-                                disabled={selectedViewerIndex === 0}
-                                aria-label="התמונה הקודמת"
-                            >
-                                <ChevronRight className="w-7 h-7" />
-                            </Button>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 z-40 bg-black/40 hover:bg-black/60 text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 transition-colors pointer-events-auto"
-                                onClick={(e) => {e.stopPropagation(); handleNextImage();}}
-                                disabled={selectedViewerIndex === images.length - 1}
-                                aria-label="התמונה הבאה"
-                            >
-                                <ChevronLeft className="w-7 h-7" />
-                            </Button>
-                            </>
-                         )}
+              {/* Viewer Controls */}
+              <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+                {/* Navigation */}
+                {images.length > 1 && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 z-40 bg-black/40 hover:bg-black/60 text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 transition-colors pointer-events-auto"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePreviousImage();
+                      }}
+                      disabled={selectedViewerIndex === 0}
+                      aria-label="התמונה הקודמת"
+                    >
+                      <ChevronRight className="w-7 h-7" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 z-40 bg-black/40 hover:bg-black/60 text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 transition-colors pointer-events-auto"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleNextImage();
+                      }}
+                      disabled={selectedViewerIndex === images.length - 1}
+                      aria-label="התמונה הבאה"
+                    >
+                      <ChevronLeft className="w-7 h-7" />
+                    </Button>
+                  </>
+                )}
 
-                        {/* Action Buttons */}
-                         {!disabled && (
-                            <div className="absolute top-4 right-4 z-50 flex flex-col sm:flex-row gap-2 pointer-events-auto">
-                                {!images[selectedViewerIndex].isMain && (
-                                <Button
-                                    variant="secondary"
-                                    className="rounded-full bg-white/70 backdrop-blur-sm shadow-md hover:bg-white/90 text-gray-800 px-3 py-1.5 text-xs sm:text-sm border border-white/20 flex items-center gap-1.5"
-                                    onClick={(e) => handleSetMainImage(images[selectedViewerIndex].id, true, e)}
-                                    size="sm"
-                                    disabled={isLoading}
-                                >
-                                    <Star className="w-4 h-4" />
-                                    <span>הפוך לראשי</span>
-                                </Button>
-                                )}
+                {/* Action Buttons */}
+                {!disabled && (
+                  <div className="absolute top-4 right-4 z-50 flex flex-col sm:flex-row gap-2 pointer-events-auto">
+                    {!images[selectedViewerIndex].isMain && (
+                      <Button
+                        variant="secondary"
+                        className="rounded-full bg-white/70 backdrop-blur-sm shadow-md hover:bg-white/90 text-gray-800 px-3 py-1.5 text-xs sm:text-sm border border-white/20 flex items-center gap-1.5"
+                        onClick={(e) =>
+                          handleSetMainImage(
+                            images[selectedViewerIndex].id,
+                            true,
+                            e
+                          )
+                        }
+                        size="sm"
+                        disabled={isLoading}
+                      >
+                        <Star className="w-4 h-4" />
+                        <span>הפוך לראשי</span>
+                      </Button>
+                    )}
 
-                                <Button
-                                    variant="destructive"
-                                    className="rounded-full bg-red-600/80 hover:bg-red-700 text-white px-3 py-1.5 text-xs sm:text-sm shadow-md border-none flex items-center gap-1.5"
-                                    onClick={(e) => requestDelete(images[selectedViewerIndex].id, e)}
-                                    size="sm"
-                                    disabled={isLoading}
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                    <span>מחק תמונה</span>
-                                </Button>
-                            </div>
-                        )}
+                    <Button
+                      variant="destructive"
+                      className="rounded-full bg-red-600/80 hover:bg-red-700 text-white px-3 py-1.5 text-xs sm:text-sm shadow-md border-none flex items-center gap-1.5"
+                      onClick={(e) =>
+                        requestDelete(images[selectedViewerIndex].id, e)
+                      }
+                      size="sm"
+                      disabled={isLoading}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span>מחק תמונה</span>
+                    </Button>
+                  </div>
+                )}
 
-                        {/* Counter */}
-                        {images.length > 0 && (
-                           <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/60 text-white px-3 py-1 rounded-full text-xs sm:text-sm font-medium select-none">
-                             {selectedViewerIndex + 1} / {images.length}
-                           </div>
-                        )}
-                    </div>
-                 </div>
-            )}
+                {/* Counter */}
+                {images.length > 0 && (
+                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/60 text-white px-3 py-1 rounded-full text-xs sm:text-sm font-medium select-none">
+                    {selectedViewerIndex + 1} / {images.length}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </DialogContent>
-       </Dialog>
+      </Dialog>
     </div>
   );
 };
