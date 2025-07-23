@@ -1468,7 +1468,7 @@ const DetailItem: React.FC<{
   tooltip?: string;
   variant?: 'default' | 'highlight' | 'elegant' | 'romantic';
   size?: 'sm' | 'md' | 'lg';
-  textAlign?: 'center' | 'right' | 'left';
+textAlign?: 'center' | 'right' | 'left';
   responsive?: boolean; // פרמטר חדש לקביעת רמת רספונסיביות
   useMobileLayout?: boolean; // האם להשתמש בפריסה מותאמת למובייל
 }> = ({
@@ -1585,54 +1585,46 @@ const DetailItem: React.FC<{
           </div>
         </div>
         {/* Label */}
-        <p
-          className={cn(
-            'font-semibold mb-1 tracking-wide leading-tight',
-            currentSize.label,
-            // Text alignment responsive
-            textAlign === 'center' && 'text-center',
-            textAlign === 'right' && 'text-right',
-            textAlign === 'left' && 'text-left',
-            // מניעת חריגת טקסט - חיוני!
-            'break-words hyphens-auto word-break-break-word overflow-wrap-anywhere',
-            // צבעים לפי וריאנט
-            variant === 'highlight' || variant === 'elegant'
-              ? 'text-rose-700 sm:text-gray-700'
-              : 'text-gray-600 sm:text-gray-700',
-            // פדינג קל במובייל
-            useMobileLayout && 'px-1'
-          )}
-        >
-          {label}
-        </p>
+<p
+  className={cn(
+    'font-semibold mb-1 tracking-wide leading-tight text-center',
+    currentSize.label,
+    // מניעת חריגת טקסט - חיוני!
+    'break-words hyphens-auto word-break-break-word overflow-wrap-anywhere',
+    // צבעים לפי וריאנט
+    variant === 'highlight' || variant === 'elegant'
+      ? 'text-rose-700 sm:text-gray-700'
+      : 'text-gray-600 sm:text-gray-700',
+    // פדינג קל במובייל
+    useMobileLayout && 'px-1'
+  )}
+>
+  {label}
+</p>
 
-        {/* Value */}
-        <div
-          className={cn(
-            'font-medium leading-relaxed',
-            currentSize.value,
-            // Text alignment responsive
-            textAlign === 'center' && 'text-center',
-            textAlign === 'right' && 'text-right',
-            textAlign === 'left' && 'text-left',
-            // מניעת חריגת טקסט - הכי חיוני!
-            'break-words hyphens-auto word-break-break-word overflow-wrap-anywhere',
-            'max-w-full overflow-hidden',
-            // צבעים
-            variant === 'highlight' || variant === 'elegant'
-              ? 'text-gray-800 sm:text-gray-900'
-              : 'text-gray-700 sm:text-gray-800',
-            // פדינג קל במובייל
-            useMobileLayout && 'px-1',
-            valueClassName
-          )}
-        >
-          {value || (
-            <span className="text-gray-400 italic text-xs sm:text-sm">
-              עוד נגלה יחד...
-            </span>
-          )}
-        </div>
+{/* Value */}
+<div
+  className={cn(
+    'font-medium leading-relaxed text-center',
+    currentSize.value,
+    // מניעת חריגת טקסט - הכי חיוני!
+    'break-words hyphens-auto word-break-break-word overflow-wrap-anywhere',
+    'max-w-full overflow-hidden',
+    // צבעים
+    variant === 'highlight' || variant === 'elegant'
+      ? 'text-gray-800 sm:text-gray-900'
+      : 'text-gray-700 sm:text-gray-800',
+    // פדינג קל במובייל
+    useMobileLayout && 'px-1',
+    valueClassName
+  )}
+>
+  {value || (
+    <span className="text-gray-400 italic text-xs sm:text-sm">
+      עוד נגלה יחד...
+    </span>
+  )}
+</div>
       </div>
     </div>
   );
