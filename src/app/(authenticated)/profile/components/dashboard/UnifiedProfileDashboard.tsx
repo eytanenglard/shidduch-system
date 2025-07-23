@@ -329,17 +329,30 @@ const handleImageUpload = async (files: File[]) => {
     }
   };
 
-  const handleDeleteImage = async (imageId: string) => {
+// החלף את הפונקציה הקיימת בזו:
+const handleDeleteImage = async (imageIds: string[]) => {
+    if (!imageIds || imageIds.length === 0) {
+      toast.info("לא נבחרו תמונות למחיקה.");
+      return;
+    }
+    
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/profile/images/${imageId}`, {
+      // אנחנו משתמשים בנקודת קצה חדשה שמטפלת במחיקה מרובה
+      const response = await fetch(`/api/profile/images`, {
         method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ imageIds }), // שלח מערך של מזהים
       });
+
       const data = await response.json();
       if (data.success) {
-        setImages((prev) => prev.filter((img) => img.id !== imageId));
+        // השרת מחזיר את רשימת התמונות המעודכנת
+        setImages(data.images); 
         await updateSession();
-        toast.success("התמונה נמחקה בהצלחה");
+        toast.success(`${imageIds.length} תמונ${imageIds.length > 1 ? 'ות' : 'ה'} נמחקו בהצלחה`);
         setError("");
       } else {
         setError(data.message || "שגיאה במחיקת התמונה");
