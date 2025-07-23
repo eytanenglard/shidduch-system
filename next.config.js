@@ -1,4 +1,3 @@
-
 // next.config.js
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -9,7 +8,7 @@ const nextConfig = {
     }
   },
   webpack: (config, { dev, isServer }) => {
-    // Handle Handlebars templates
+    // ... (חלק זה נשאר ללא שינוי)
     config.module.rules.push({
       test: /\.hbs$/,
       use: [
@@ -23,8 +22,6 @@ const nextConfig = {
         }
       ]
     });
-    
-    // Properly resolve handlebars
     config.resolve = {
       ...config.resolve,
       fallback: {
@@ -33,8 +30,6 @@ const nextConfig = {
         path: false
       }
     };
-
-    // Optimize chunks
     if (!dev && !isServer) {
       config.optimization = {
         ...config.optimization,
@@ -53,13 +48,10 @@ const nextConfig = {
               test: /[\\/]node_modules[\\/]/,
               name(module) {
                 if (!module.context) return 'vendor';
-                
                 const match = module.context.match(
                   /[\\/]node_modules[\\/](.*?)([\\/]|$)/
                 );
-                
                 if (!match || !match[1]) return 'vendor';
-                
                 return `npm.${match[1].replace('@', '')}`;
               },
               chunks: 'all',
@@ -72,7 +64,6 @@ const nextConfig = {
         }
       };
     }
-
     return config;
   },
   poweredByHeader: false,
@@ -92,10 +83,27 @@ const nextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
+  
+  // ==================== הקטע שעודכן ====================
   images: {
-    domains: ['localhost', 'res.cloudinary.com'],
+    // 1. זו השורה שמעבירה את עבודת עיבוד התמונות ל-Cloudinary
+    loader: 'cloudinary',
+
+    // 2. זו הכתובת הבסיסית של התמונות בחשבון שלך
+    path: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/',
+
+    // 3. עדכון לשיטה המודרנית והמאובטחת יותר במקום 'domains'
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+      },
+    ],
+    
+    // את השורה הזו אפשר להשאיר, זה לא מזיק
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
   }
+  // =======================================================
 };
 
 module.exports = nextConfig;
