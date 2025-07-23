@@ -59,20 +59,13 @@ export function getInitials(fullName?: string): string {
  */
 export const getRelativeCloudinaryPath = (fullUrl: string | undefined | null): string => {
   if (!fullUrl) {
-    // אם אין URL, מחזירים מחרוזת ריקה כדי למנוע שגיאות
     return '';
   }
-
-  // זו הכתובת הבסיסית שהגדרנו בקובץ next.config.js
   const basePath = 'https://res.cloudinary.com/dmfxoi6g0/image/upload/';
-  
-  // אם ה-URL מתחיל בכתובת הבסיסית, אנחנו מחליפים אותה בתו /
   if (fullUrl.startsWith(basePath)) {
-    // התוצאה תהיה למשל: '/v1625.../profile-images/abc.jpg'
-    return fullUrl.replace(basePath, '/');
+    // התיקון: החלפנו את הכתובת הבסיסית במחרוזת ריקה, ולא בלוכסן
+    return fullUrl.replace(basePath, ''); 
   }
-  
-  // אם מסיבה כלשהי ה-URL הוא כבר נתיב יחסי או לא תקין, נחזיר אותו כמו שהוא
   return fullUrl;
 };
 // --- END OF NEW CODE ---
