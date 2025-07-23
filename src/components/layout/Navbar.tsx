@@ -149,13 +149,14 @@ const Logo = () => {
       aria-label="Keystone Match Homepage"
     >
       <div className="relative h-9 w-9">
-        <Image
-          src="/images/keystone-icon.png"
-          alt="Keystone Match Icon"
-          fill
-          className="object-contain transition-transform duration-300 group-hover:scale-110"
-          priority
-        />
+     <Image
+  src="/images/keystone-icon.png" 
+  alt="Keystone Match Icon"
+  fill 
+  className="object-contain transition-transform duration-300 group-hover:scale-110" 
+  priority
+  unoptimized // <--- הוספנו את השורה הזו
+/>
       </div>
       <span className="text-xl font-bold text-gray-800 group-hover:text-cyan-600 transition-colors duration-300">
         Keystone Match

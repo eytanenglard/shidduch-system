@@ -85,24 +85,24 @@ const nextConfig = {
   },
   
   // ==================== הקטע שעודכן ====================
-  images: {
-    // 1. זו השורה שמעבירה את עבודת עיבוד התמונות ל-Cloudinary
-    loader: 'cloudinary',
+ // בקובץ next.config.js
 
-    // 2. זו הכתובת הבסיסית של התמונות בחשבון שלך
-    path: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/',
-
-    // 3. עדכון לשיטה המודרנית והמאובטחת יותר במקום 'domains'
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'res.cloudinary.com',
-      },
-    ],
-    
-    // את השורה הזו אפשר להשאיר, זה לא מזיק
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
-  }
+images: {
+  // נשתמש ב-loader מותאם אישית במקום ב-loader המובנה של cloudinary
+  loader: 'custom',
+  // נגדיר את הקובץ שיטפל בלוגיקה של יצירת ה-URL
+  loaderFile: './cloudinary-loader.js',
+  
+  // אין צורך יותר בהגדרת path, כי ה-loaderFile יטפל בזה
+  
+  remotePatterns: [
+    {
+      protocol: 'https',
+      hostname: 'res.cloudinary.com',
+    },
+  ],
+  deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+}
   // =======================================================
 };
 

@@ -57,14 +57,16 @@ export function getInitials(fullName?: string): string {
  * @param fullUrl - הכתובת המלאה של התמונה.
  * @returns הנתיב היחסי, לדוגמה: /v12345/profile-images/image.jpg
  */
+// בקובץ src/lib/utils.ts
+
 export const getRelativeCloudinaryPath = (fullUrl: string | undefined | null): string => {
   if (!fullUrl) {
     return '';
   }
   const basePath = 'https://res.cloudinary.com/dmfxoi6g0/image/upload/';
   if (fullUrl.startsWith(basePath)) {
-    // התיקון: החלפנו את הכתובת הבסיסית במחרוזת ריקה, ולא בלוכסן
-    return fullUrl.replace(basePath, ''); 
+    // ודא שההחלפה היא עם לוכסן בהתחלה
+    return fullUrl.replace(basePath, '/'); 
   }
   return fullUrl;
 };
