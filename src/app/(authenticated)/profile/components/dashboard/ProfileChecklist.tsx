@@ -1,7 +1,3 @@
-// src/app/(authenticated)/profile/components/dashboard/ProfileChecklist.tsx
-
-"use client";
-
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { Progress } from "@/components/ui/progress";
@@ -11,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from "@/lib/utils";
 import type { User as SessionUserType } from '@/types/next-auth';
 import type { QuestionnaireResponse } from '@/types/next-auth';
+import { Gender } from '@prisma/client';
 
 // Helper Types & Constants
 const QUESTION_COUNTS: Record<'VALUES' | 'PERSONALITY' | 'RELATIONSHIP' | 'PARTNER' | 'RELIGION', number> = {
@@ -125,27 +122,60 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({ user, onPrev
     const getMissingItems = useMemo(() => {
         const p = user.profile;
         if (!p) return { personalDetails: [], partnerPreferences: [] };
+        
+        const personalDetails = [
+            (!p.about || p.about.trim().length < 100) && 'כתיבת "קצת עליי" (100+ תווים)',
+            !p.height && 'גובה',
+            !p.maritalStatus && 'מצב משפחתי',
+            (p.hasChildrenFromPrevious === null || p.hasChildrenFromPrevious === undefined) && 'ילדים מקשר קודם',
+            !p.city && 'עיר מגורים',
+            !p.occupation && 'עיסוק',
+            !p.educationLevel && 'רמת השכלה',
+            !p.origin && 'מוצא/עדה',
+            !p.religiousLevel && 'רמה דתית',
+            !p.religiousJourney && 'מסע דתי',
+            (p.shomerNegiah === null || p.shomerNegiah === undefined) && 'שמירת נגיעה',
+            !p.serviceType && 'שירות צבאי/לאומי',
+            !p.serviceDetails && 'פרטי שירות',
+            (!p.profileHobbies || p.profileHobbies.length === 0) && 'תחביבים',
+            (!p.profileCharacterTraits || p.profileCharacterTraits.length === 0) && 'תכונות אופי',
+            !p.nativeLanguage && 'שפת אם',
+            (!p.additionalLanguages || p.additionalLanguages.length === 0) && 'שפות נוספות',
+            !p.parentStatus && 'סטטוס הורים',
+            (p.siblings === null || p.siblings === undefined) && 'מספר אחים',
+            (p.position === null || p.position === undefined) && 'מיקום במשפחה',
+            (!p.aliyaCountry || !p.aliyaYear) && 'ארץ ושנת עלייה',
+        ];
+
+        const partnerPreferences = [
+            (!p.preferredAgeMin || !p.preferredAgeMax) && 'טווח גילאים מועדף',
+            (!p.preferredHeightMin || !p.preferredHeightMax) && 'טווח גובה מועדף',
+            (!p.preferredReligiousLevels || p.preferredReligiousLevels.length === 0) && 'רמות דתיות מועדפות',
+            (!p.preferredReligiousJourneys || p.preferredReligiousJourneys.length === 0) && 'מסעות דתיים מועדפים',
+            (!p.preferredLocations || p.preferredLocations.length === 0) && 'אזורי מגורים מועדפים',
+            (!p.preferredMaritalStatuses || p.preferredMaritalStatuses.length === 0) && 'מצב משפחתי מועדף',
+            (!p.preferredOrigins || p.preferredOrigins.length === 0) && 'מוצא/עדה מועדפים',
+            (p.preferredShomerNegiah === null || p.preferredShomerNegiah === undefined) && 'העדפת שמירת נגיעה',
+            (p.preferredPartnerHasChildren === null || p.preferredPartnerHasChildren === undefined) && 'העדפה לגבי ילדים מקשר קודם',
+            (!p.preferredServiceTypes || p.preferredServiceTypes.length === 0) && 'סוג שירות מועדף',
+            !p.preferredAliyaStatus && 'העדפה לגבי עלייה',
+            (!p.preferredCharacterTraits || p.preferredCharacterTraits.length === 0) && 'תכונות אופי מועדפות',
+            (!p.preferredHobbies || p.preferredHobbies.length === 0) && 'תחביבים מועדפים',
+        ];
+
+        // --- START OF CHANGE: Conditional gender-specific items ---
+        if (p.gender === Gender.FEMALE) {
+            personalDetails.push(!p.headCovering && 'כיסוי ראש');
+            partnerPreferences.push((!p.preferredKippahTypes || p.preferredKippahTypes.length === 0) && 'סוג כיפה מועדף');
+        } else if (p.gender === Gender.MALE) {
+            personalDetails.push(!p.kippahType && 'סוג כיפה');
+            partnerPreferences.push((!p.preferredHeadCoverings || p.preferredHeadCoverings.length === 0) && 'כיסוי ראש מועדף');
+        }
+        // --- END OF CHANGE ---
+
         return {
-            personalDetails: [
-                (!p.about || p.about.trim().length < 100) && 'כתיבת "קצת עליי" (100+ תווים)',
-                !p.height && 'גובה', !p.maritalStatus && 'מצב משפחתי', !p.city && 'עיר מגורים',
-                !p.occupation && 'עיסוק', !p.educationLevel && 'רמת השכלה', !p.origin && 'מוצא/עדה',
-                !p.religiousLevel && 'רמה דתית', !p.serviceType && 'סוג שירות צבאי/לאומי',
-                (!p.profileHobbies || p.profileHobbies.length === 0) && 'תחביבים',
-                (!p.profileCharacterTraits || p.profileCharacterTraits.length === 0) && 'תכונות אופי',
-            ].filter((item): item is string => !!item),
-            
-            partnerPreferences: [
-                (!p.preferredAgeMin || !p.preferredAgeMax) && 'טווח גילאים מועדף',
-                (!p.preferredHeightMin || !p.preferredHeightMax) && 'טווח גובה מועדף',
-                (!p.preferredReligiousLevels || p.preferredReligiousLevels.length === 0) && 'רמות דתיות מועדפות',
-                (!p.preferredLocations || p.preferredLocations.length === 0) && 'אזורי מגורים מועדפים',
-                (!p.preferredMaritalStatuses || p.preferredMaritalStatuses.length === 0) && 'מצב משפחתי מועדף',
-                (p.preferredShomerNegiah === null || p.preferredShomerNegiah === undefined) && 'העדפת שמירת נגיעה',
-                (p.preferredPartnerHasChildren === null || p.preferredPartnerHasChildren === undefined) && 'העדפה לגבי ילדים מקשר קודם',
-                (!p.preferredCharacterTraits || p.preferredCharacterTraits.length === 0) && 'תכונות אופי מועדפות',
-                (!p.preferredHobbies || p.preferredHobbies.length === 0) && 'תחביבים מועדפים',
-            ].filter((item): item is string => !!item),
+            personalDetails: personalDetails.filter((item): item is string => !!item),
+            partnerPreferences: partnerPreferences.filter((item): item is string => !!item),
         };
     }, [user.profile]);
 
@@ -188,58 +218,75 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({ user, onPrev
         { id: 'review', isCompleted: hasSeenPreview, title: 'תצוגה מקדימה', description: 'לראות איך אחרים רואים אותך.', onClick: onPreviewClick, icon: Edit3, missingItems: !hasSeenPreview ? ['יש לצפות בתצוגה המקדימה של הפרופיל'] : [] },
     ];
     
-    // ✅✅✅ לוגיקת חישוב אחוזי ההתקדמות החדשה ✅✅✅
     const completionPercentage = useMemo(() => {
-        const QUESTIONNAIRE_WEIGHT = 20; // 20% מהציון הכולל
-        const OTHER_TASKS_WEIGHT = 80;   // 80% מהציון הכולל
+        const QUESTIONNAIRE_WEIGHT = 20;
+        const OTHER_TASKS_WEIGHT = 80;
 
-        // --- חלק 1: חישוב תרומת השאלון (0-20%) ---
         const totalQuestions = Object.values(QUESTION_COUNTS).reduce((sum, count) => sum + count, 0);
         const answeredQuestions = questionnaireProgress.reduce((sum, world) => sum + world.completed, 0);
         const questionnaireContribution = totalQuestions > 0
             ? (answeredQuestions / totalQuestions) * QUESTIONNAIRE_WEIGHT
             : 0;
 
-        // --- חלק 2: חישוב תרומת שאר המשימות (0-80%) ---
         const p = user.profile;
         const otherTasksStatus: boolean[] = [];
 
-        // משימה 1: תמונות
         otherTasksStatus.push((user.images?.length ?? 0) >= 3);
 
-        // 11 משימות של פרטים אישיים
         if (p) {
+            // Personal Details (21 common items + 1 gender-specific)
             otherTasksStatus.push(!!(p.about && p.about.trim().length >= 100));
             otherTasksStatus.push(!!p.height);
             otherTasksStatus.push(!!p.maritalStatus);
+            otherTasksStatus.push(p.hasChildrenFromPrevious !== null && p.hasChildrenFromPrevious !== undefined);
             otherTasksStatus.push(!!p.city);
             otherTasksStatus.push(!!p.occupation);
             otherTasksStatus.push(!!p.educationLevel);
             otherTasksStatus.push(!!p.origin);
             otherTasksStatus.push(!!p.religiousLevel);
+            otherTasksStatus.push(!!p.religiousJourney);
+            otherTasksStatus.push(p.shomerNegiah !== null && p.shomerNegiah !== undefined);
             otherTasksStatus.push(!!p.serviceType);
+            otherTasksStatus.push(!!p.serviceDetails);
             otherTasksStatus.push(!!(p.profileHobbies && p.profileHobbies.length > 0));
             otherTasksStatus.push(!!(p.profileCharacterTraits && p.profileCharacterTraits.length > 0));
-        } else {
-            otherTasksStatus.push(...Array(11).fill(false)); // אם אין פרופיל, כל המשימות לא הושלמו
-        }
-        
-        // 9 משימות של העדפות בן/בת זוג
-        if (p) {
+            otherTasksStatus.push(!!p.nativeLanguage);
+            otherTasksStatus.push(!!(p.additionalLanguages && p.additionalLanguages.length > 0));
+            otherTasksStatus.push(!!p.parentStatus);
+            otherTasksStatus.push(p.siblings !== null && p.siblings !== undefined);
+            otherTasksStatus.push(p.position !== null && p.position !== undefined);
+            otherTasksStatus.push(!!p.aliyaCountry && !!p.aliyaYear);
+
+            // Partner Preferences (13 common items + 1 gender-specific)
             otherTasksStatus.push(!!(p.preferredAgeMin && p.preferredAgeMax));
             otherTasksStatus.push(!!(p.preferredHeightMin && p.preferredHeightMax));
             otherTasksStatus.push(!!(p.preferredReligiousLevels && p.preferredReligiousLevels.length > 0));
+            otherTasksStatus.push(!!(p.preferredReligiousJourneys && p.preferredReligiousJourneys.length > 0));
             otherTasksStatus.push(!!(p.preferredLocations && p.preferredLocations.length > 0));
             otherTasksStatus.push(!!(p.preferredMaritalStatuses && p.preferredMaritalStatuses.length > 0));
+            otherTasksStatus.push(!!(p.preferredOrigins && p.preferredOrigins.length > 0));
             otherTasksStatus.push(p.preferredShomerNegiah !== null && p.preferredShomerNegiah !== undefined);
             otherTasksStatus.push(p.preferredPartnerHasChildren !== null && p.preferredPartnerHasChildren !== undefined);
+            otherTasksStatus.push(!!(p.preferredServiceTypes && p.preferredServiceTypes.length > 0));
+            otherTasksStatus.push(!!p.preferredAliyaStatus);
             otherTasksStatus.push(!!(p.preferredCharacterTraits && p.preferredCharacterTraits.length > 0));
             otherTasksStatus.push(!!(p.preferredHobbies && p.preferredHobbies.length > 0));
+            
+            // --- START OF CHANGE: Conditional gender-specific checks ---
+            if (p.gender === Gender.FEMALE) {
+                otherTasksStatus.push(!!p.headCovering); // personal
+                otherTasksStatus.push(!!(p.preferredKippahTypes && p.preferredKippahTypes.length > 0)); // preference
+            } else if (p.gender === Gender.MALE) {
+                otherTasksStatus.push(!!p.kippahType); // personal
+                otherTasksStatus.push(!!(p.preferredHeadCoverings && p.preferredHeadCoverings.length > 0)); // preference
+            }
+            // --- END OF CHANGE ---
+
         } else {
-             otherTasksStatus.push(...Array(9).fill(false)); // אם אין פרופיל, כל המשימות לא הושלמו
+             // If no profile, add placeholders for all items (21+1 personal, 13+1 preference) = 36
+             otherTasksStatus.push(...Array(36).fill(false)); 
         }
         
-        // משימה אחרונה: צפייה בתצוגה מקדימה
         otherTasksStatus.push(hasSeenPreview);
         
         const totalOtherTasks = otherTasksStatus.length;
@@ -249,7 +296,6 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({ user, onPrev
             ? (completedOtherTasks / totalOtherTasks) * OTHER_TASKS_WEIGHT
             : 0;
 
-        // --- חלק 3: חישוב סופי ---
         return Math.round(questionnaireContribution + otherTasksContribution);
 
     }, [user, questionnaireProgress, hasSeenPreview]);
