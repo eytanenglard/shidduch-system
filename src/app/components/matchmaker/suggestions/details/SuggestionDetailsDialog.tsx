@@ -1,7 +1,7 @@
 // SuggestionDetailsDialog.tsx
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -9,20 +9,20 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { ProfileCard } from "@/app/components/profile";
-import { Timeline } from "@/components/ui/timeline";
+} from '@/components/ui/select';
+import { ProfileCard } from '@/app/components/profile';
+import { Timeline } from '@/components/ui/timeline';
 import {
   AlertCircle,
   CheckCircle,
@@ -41,21 +41,32 @@ import {
   Phone,
   User,
   ExternalLink,
-} from "lucide-react";
-import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner";
-import { MatchSuggestionStatus } from "@prisma/client";
-import type { Suggestion, ActionAdditionalData } from "@/types/suggestions";
-import type { QuestionnaireResponse } from "@/types/next-auth";
-import Image from "next/image";
-
+} from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
+import { MatchSuggestionStatus } from '@prisma/client';
+import type { Suggestion, ActionAdditionalData } from '@/types/suggestions';
+import type { QuestionnaireResponse } from '@/types/next-auth';
+import Image from 'next/image';
+import { getRelativeCloudinaryPath } from '@/lib/utils';
 // --- START OF FIX ---
 // Define a specific type for all possible suggestion actions to ensure type safety
 type SuggestionActionType =
-  | "view" | "contact" | "message" | "edit" | "delete" | "resend"
-  | "changeStatus" | "reminder" | "sendReminder" | "shareContacts"
-  | "scheduleMeeting" | "viewMeetings" | "exportHistory" | "export"
-  | "resendToAll";
+  | 'view'
+  | 'contact'
+  | 'message'
+  | 'edit'
+  | 'delete'
+  | 'resend'
+  | 'changeStatus'
+  | 'reminder'
+  | 'sendReminder'
+  | 'shareContacts'
+  | 'scheduleMeeting'
+  | 'viewMeetings'
+  | 'exportHistory'
+  | 'export'
+  | 'resendToAll';
 // --- END OF FIX ---
 
 interface DialogActionData extends ActionAdditionalData {
@@ -65,7 +76,7 @@ interface DialogActionData extends ActionAdditionalData {
   suggestion?: Suggestion;
   partyId?: string;
   type?: string;
-  partyType?: "first" | "second" | "both";
+  partyType?: 'first' | 'second' | 'both';
 }
 
 interface SuggestionDetailsDialogProps {
@@ -84,104 +95,104 @@ const getStatusInfo = (status: MatchSuggestionStatus) => {
     string,
     { label: string; icon: React.ElementType; color: string }
   > = {
-    DRAFT: { label: "טיוטה", icon: Edit, color: "text-gray-600" },
+    DRAFT: { label: 'טיוטה', icon: Edit, color: 'text-gray-600' },
     PENDING_FIRST_PARTY: {
-      label: "ממתין לתשובת צד א׳",
+      label: 'ממתין לתשובת צד א׳',
       icon: Clock,
-      color: "text-yellow-600",
+      color: 'text-yellow-600',
     },
     FIRST_PARTY_APPROVED: {
-      label: "צד א׳ אישר",
+      label: 'צד א׳ אישר',
       icon: CheckCircle,
-      color: "text-green-600",
+      color: 'text-green-600',
     },
     FIRST_PARTY_DECLINED: {
-      label: "צד א׳ דחה",
+      label: 'צד א׳ דחה',
       icon: XCircle,
-      color: "text-red-600",
+      color: 'text-red-600',
     },
     PENDING_SECOND_PARTY: {
-      label: "ממתין לתשובת צד ב׳",
+      label: 'ממתין לתשובת צד ב׳',
       icon: Clock,
-      color: "text-blue-600",
+      color: 'text-blue-600',
     },
     SECOND_PARTY_APPROVED: {
-      label: "צד ב׳ אישר",
+      label: 'צד ב׳ אישר',
       icon: CheckCircle,
-      color: "text-green-600",
+      color: 'text-green-600',
     },
     SECOND_PARTY_DECLINED: {
-      label: "צד ב׳ דחה",
+      label: 'צד ב׳ דחה',
       icon: XCircle,
-      color: "text-red-600",
+      color: 'text-red-600',
     },
     AWAITING_MATCHMAKER_APPROVAL: {
-      label: "ממתין לאישור שדכן",
+      label: 'ממתין לאישור שדכן',
       icon: AlertCircle,
-      color: "text-purple-600",
+      color: 'text-purple-600',
     },
     CONTACT_DETAILS_SHARED: {
-      label: "פרטי קשר שותפו",
+      label: 'פרטי קשר שותפו',
       icon: Send,
-      color: "text-purple-600",
+      color: 'text-purple-600',
     },
     AWAITING_FIRST_DATE_FEEDBACK: {
-      label: "ממתין למשוב פגישה",
+      label: 'ממתין למשוב פגישה',
       icon: MessageCircle,
-      color: "text-orange-600",
+      color: 'text-orange-600',
     },
     DATING: {
-      label: "בתהליך היכרות",
+      label: 'בתהליך היכרות',
       icon: Calendar,
-      color: "text-pink-600",
+      color: 'text-pink-600',
     },
-    EXPIRED: { label: "פג תוקף", icon: AlarmClock, color: "text-gray-600" },
-    CLOSED: { label: "סגור", icon: XCircle, color: "text-gray-600" },
+    EXPIRED: { label: 'פג תוקף', icon: AlarmClock, color: 'text-gray-600' },
+    CLOSED: { label: 'סגור', icon: XCircle, color: 'text-gray-600' },
   };
   return (
     statusMap[status] || {
       label: status as string,
       icon: AlertCircle as React.ElementType,
-      color: "text-gray-600",
+      color: 'text-gray-600',
     }
   );
 };
 
 // Status groups for the progress indicator
 const statusGroups = [
-  ["DRAFT", "PENDING_FIRST_PARTY"],
-  ["FIRST_PARTY_APPROVED", "PENDING_SECOND_PARTY"],
-  ["SECOND_PARTY_APPROVED", "AWAITING_MATCHMAKER_APPROVAL"],
-  ["CONTACT_DETAILS_SHARED", "AWAITING_FIRST_DATE_FEEDBACK"],
-  ["DATING", "ENGAGED", "MARRIED"],
+  ['DRAFT', 'PENDING_FIRST_PARTY'],
+  ['FIRST_PARTY_APPROVED', 'PENDING_SECOND_PARTY'],
+  ['SECOND_PARTY_APPROVED', 'AWAITING_MATCHMAKER_APPROVAL'],
+  ['CONTACT_DETAILS_SHARED', 'AWAITING_FIRST_DATE_FEEDBACK'],
+  ['DATING', 'ENGAGED', 'MARRIED'],
 ];
 // הוספת מיפוי מלא של כל הסטטוסים האפשריים
 const getAllStatusLabels = () => {
   // יצירת מיפוי של כל הסטטוסים האפשריים לפי הסכמה
   const statusLabels: Record<MatchSuggestionStatus, string> = {
-    DRAFT: "טיוטה",
-    PENDING_FIRST_PARTY: "ממתין לתשובת צד א׳",
-    FIRST_PARTY_APPROVED: "צד א׳ אישר",
-    FIRST_PARTY_DECLINED: "צד א׳ דחה",
-    PENDING_SECOND_PARTY: "ממתין לתשובת צד ב׳",
-    SECOND_PARTY_APPROVED: "צד ב׳ אישר",
-    SECOND_PARTY_DECLINED: "צד ב׳ דחה",
-    AWAITING_MATCHMAKER_APPROVAL: "ממתין לאישור שדכן",
-    CONTACT_DETAILS_SHARED: "פרטי קשר שותפו",
-    AWAITING_FIRST_DATE_FEEDBACK: "ממתין למשוב פגישה ראשונה",
-    THINKING_AFTER_DATE: "בשלב מחשבה אחרי פגישה",
-    PROCEEDING_TO_SECOND_DATE: "ממשיכים לפגישה שניה",
-    ENDED_AFTER_FIRST_DATE: "הסתיים אחרי פגישה ראשונה",
-    MEETING_PENDING: "ממתין לקביעת פגישה",
-    MEETING_SCHEDULED: "פגישה נקבעה",
-    MATCH_APPROVED: "ההצעה אושרה",
-    MATCH_DECLINED: "ההצעה נדחתה",
-    DATING: "בתהליך היכרות",
-    ENGAGED: "מאורסים",
-    MARRIED: "נישאו",
-    EXPIRED: "פג תוקף",
-    CLOSED: "סגור",
-    CANCELLED: "בוטל",
+    DRAFT: 'טיוטה',
+    PENDING_FIRST_PARTY: 'ממתין לתשובת צד א׳',
+    FIRST_PARTY_APPROVED: 'צד א׳ אישר',
+    FIRST_PARTY_DECLINED: 'צד א׳ דחה',
+    PENDING_SECOND_PARTY: 'ממתין לתשובת צד ב׳',
+    SECOND_PARTY_APPROVED: 'צד ב׳ אישר',
+    SECOND_PARTY_DECLINED: 'צד ב׳ דחה',
+    AWAITING_MATCHMAKER_APPROVAL: 'ממתין לאישור שדכן',
+    CONTACT_DETAILS_SHARED: 'פרטי קשר שותפו',
+    AWAITING_FIRST_DATE_FEEDBACK: 'ממתין למשוב פגישה ראשונה',
+    THINKING_AFTER_DATE: 'בשלב מחשבה אחרי פגישה',
+    PROCEEDING_TO_SECOND_DATE: 'ממשיכים לפגישה שניה',
+    ENDED_AFTER_FIRST_DATE: 'הסתיים אחרי פגישה ראשונה',
+    MEETING_PENDING: 'ממתין לקביעת פגישה',
+    MEETING_SCHEDULED: 'פגישה נקבעה',
+    MATCH_APPROVED: 'ההצעה אושרה',
+    MATCH_DECLINED: 'ההצעה נדחתה',
+    DATING: 'בתהליך היכרות',
+    ENGAGED: 'מאורסים',
+    MARRIED: 'נישאו',
+    EXPIRED: 'פג תוקף',
+    CLOSED: 'סגור',
+    CANCELLED: 'בוטל',
   };
 
   return statusLabels;
@@ -195,56 +206,56 @@ const canChangeStatus = (
     Record<MatchSuggestionStatus, MatchSuggestionStatus[]>
   > = {
     // סטטוסים קיימים
-    DRAFT: ["PENDING_FIRST_PARTY", "CANCELLED", "CLOSED"],
+    DRAFT: ['PENDING_FIRST_PARTY', 'CANCELLED', 'CLOSED'],
     PENDING_FIRST_PARTY: [
-      "FIRST_PARTY_APPROVED",
-      "FIRST_PARTY_DECLINED",
-      "EXPIRED",
-      "CANCELLED",
-      "CLOSED",
+      'FIRST_PARTY_APPROVED',
+      'FIRST_PARTY_DECLINED',
+      'EXPIRED',
+      'CANCELLED',
+      'CLOSED',
     ],
-    FIRST_PARTY_APPROVED: ["PENDING_SECOND_PARTY", "CANCELLED", "CLOSED"],
-    FIRST_PARTY_DECLINED: ["PENDING_FIRST_PARTY", "CANCELLED", "CLOSED"],
+    FIRST_PARTY_APPROVED: ['PENDING_SECOND_PARTY', 'CANCELLED', 'CLOSED'],
+    FIRST_PARTY_DECLINED: ['PENDING_FIRST_PARTY', 'CANCELLED', 'CLOSED'],
     PENDING_SECOND_PARTY: [
-      "SECOND_PARTY_APPROVED",
-      "SECOND_PARTY_DECLINED",
-      "EXPIRED",
-      "CANCELLED",
-      "CLOSED",
+      'SECOND_PARTY_APPROVED',
+      'SECOND_PARTY_DECLINED',
+      'EXPIRED',
+      'CANCELLED',
+      'CLOSED',
     ],
-    SECOND_PARTY_APPROVED: ["CONTACT_DETAILS_SHARED", "CANCELLED", "CLOSED"],
-    SECOND_PARTY_DECLINED: ["PENDING_SECOND_PARTY", "CANCELLED", "CLOSED"],
+    SECOND_PARTY_APPROVED: ['CONTACT_DETAILS_SHARED', 'CANCELLED', 'CLOSED'],
+    SECOND_PARTY_DECLINED: ['PENDING_SECOND_PARTY', 'CANCELLED', 'CLOSED'],
     CONTACT_DETAILS_SHARED: [
-      "AWAITING_FIRST_DATE_FEEDBACK",
-      "DATING",
-      "CANCELLED",
-      "CLOSED",
+      'AWAITING_FIRST_DATE_FEEDBACK',
+      'DATING',
+      'CANCELLED',
+      'CLOSED',
     ],
-    AWAITING_FIRST_DATE_FEEDBACK: ["DATING", "CANCELLED", "CLOSED"],
-    DATING: ["ENGAGED", "CLOSED"],
-    ENGAGED: ["MARRIED", "CLOSED"],
-    MARRIED: ["CLOSED"],
-    EXPIRED: ["PENDING_FIRST_PARTY", "PENDING_SECOND_PARTY", "CLOSED"],
-    CANCELLED: ["DRAFT"],
+    AWAITING_FIRST_DATE_FEEDBACK: ['DATING', 'CANCELLED', 'CLOSED'],
+    DATING: ['ENGAGED', 'CLOSED'],
+    ENGAGED: ['MARRIED', 'CLOSED'],
+    MARRIED: ['CLOSED'],
+    EXPIRED: ['PENDING_FIRST_PARTY', 'PENDING_SECOND_PARTY', 'CLOSED'],
+    CANCELLED: ['DRAFT'],
     CLOSED: [],
 
     // הוספת הסטטוסים החסרים
     AWAITING_MATCHMAKER_APPROVAL: [
-      "CONTACT_DETAILS_SHARED",
-      "CANCELLED",
-      "CLOSED",
+      'CONTACT_DETAILS_SHARED',
+      'CANCELLED',
+      'CLOSED',
     ],
     THINKING_AFTER_DATE: [
-      "PROCEEDING_TO_SECOND_DATE",
-      "ENDED_AFTER_FIRST_DATE",
-      "CLOSED",
+      'PROCEEDING_TO_SECOND_DATE',
+      'ENDED_AFTER_FIRST_DATE',
+      'CLOSED',
     ],
-    PROCEEDING_TO_SECOND_DATE: ["DATING", "CLOSED"],
-    ENDED_AFTER_FIRST_DATE: ["CLOSED"],
-    MEETING_PENDING: ["MEETING_SCHEDULED", "CANCELLED", "CLOSED"],
-    MEETING_SCHEDULED: ["AWAITING_FIRST_DATE_FEEDBACK", "CANCELLED", "CLOSED"],
-    MATCH_APPROVED: ["CONTACT_DETAILS_SHARED", "CANCELLED", "CLOSED"],
-    MATCH_DECLINED: ["CLOSED"],
+    PROCEEDING_TO_SECOND_DATE: ['DATING', 'CLOSED'],
+    ENDED_AFTER_FIRST_DATE: ['CLOSED'],
+    MEETING_PENDING: ['MEETING_SCHEDULED', 'CANCELLED', 'CLOSED'],
+    MEETING_SCHEDULED: ['AWAITING_FIRST_DATE_FEEDBACK', 'CANCELLED', 'CLOSED'],
+    MATCH_APPROVED: ['CONTACT_DETAILS_SHARED', 'CANCELLED', 'CLOSED'],
+    MATCH_DECLINED: ['CLOSED'],
   };
 
   return allowedChanges[currentStatus] || [];
@@ -253,22 +264,22 @@ const canChangeStatus = (
 const formatDateSafely = (
   dateInput: Date | string | null | undefined
 ): string => {
-  if (!dateInput) return "לא נקבע";
+  if (!dateInput) return 'לא נקבע';
 
   // Ensure we're working with a Date object
-  const date = typeof dateInput === "string" ? new Date(dateInput) : dateInput;
+  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
 
   // Validate that the date is valid before formatting
   if (!(date instanceof Date) || isNaN(date.getTime())) {
-    return "תאריך לא תקין";
+    return 'תאריך לא תקין';
   }
 
-  return new Intl.DateTimeFormat("he-IL", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
+  return new Intl.DateTimeFormat('he-IL', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
   }).format(date);
 };
 
@@ -279,7 +290,7 @@ const getDaysRemaining = (
 
   // Convert string to Date if needed
   const deadlineDate =
-    typeof deadline === "string" ? new Date(deadline) : deadline;
+    typeof deadline === 'string' ? new Date(deadline) : deadline;
 
   // Validate date
   if (!(deadlineDate instanceof Date) || isNaN(deadlineDate.getTime())) {
@@ -309,13 +320,13 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
   onClose,
   onAction,
 }) => {
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState('overview');
   const [firstPartyQuestionnaire, setFirstPartyQuestionnaire] =
     useState<QuestionnaireResponse | null>(null);
   const [secondPartyQuestionnaire, setSecondPartyQuestionnaire] =
     useState<QuestionnaireResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [statusChangeNote, setStatusChangeNote] = useState("");
+  const [statusChangeNote, setStatusChangeNote] = useState('');
   const [newStatus, setNewStatus] = useState<MatchSuggestionStatus | null>(
     null
   );
@@ -352,8 +363,8 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
         }
         return null;
       } catch (error) {
-        console.error("Failed to load questionnaire:", error);
-        toast.error("שגיאה בטעינת השאלון");
+        console.error('Failed to load questionnaire:', error);
+        toast.error('שגיאה בטעינת השאלון');
         return null;
       }
     };
@@ -375,8 +386,8 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
         setFirstPartyQuestionnaire(firstParty);
         setSecondPartyQuestionnaire(secondParty);
       } catch (error) {
-        console.error("Error loading questionnaires:", error);
-        toast.error("שגיאה בטעינת השאלונים");
+        console.error('Error loading questionnaires:', error);
+        toast.error('שגיאה בטעינת השאלונים');
       } finally {
         setIsLoading(false);
       }
@@ -393,11 +404,11 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
     try {
       console.log(
         `שולח בקשה לשינוי סטטוס: ${newStatus} עם הערות: ${
-          statusChangeNote || "ללא הערות"
+          statusChangeNote || 'ללא הערות'
         }`
       );
       // עדכון הקומפוננטה ההורה
-      onAction("changeStatus", {
+      onAction('changeStatus', {
         suggestionId: suggestion.id,
         newStatus,
         notes: statusChangeNote,
@@ -405,13 +416,13 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
 
       // איפוס מצב הטופס
       setShowStatusChange(false);
-      setStatusChangeNote("");
+      setStatusChangeNote('');
       setNewStatus(null);
     } catch (error) {
-      console.error("Error changing status:", error);
+      console.error('Error changing status:', error);
       toast.error(
         `שגיאה בעדכון הסטטוס: ${
-          error instanceof Error ? error.message : "שגיאה לא מזוהה"
+          error instanceof Error ? error.message : 'שגיאה לא מזוהה'
         }`
       );
     } finally {
@@ -446,7 +457,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
         className="max-w-6xl max-h-[90vh] flex flex-col p-0"
-        style={{ direction: "rtl" }}
+        style={{ direction: 'rtl' }}
       >
         {/* Header with Progress Bar */}
         <div className="bg-gradient-to-r from-slate-50 to-white border-b flex-shrink-0">
@@ -454,12 +465,12 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
             <div className="flex items-center justify-between">
               <div>
                 <DialogTitle className="text-2xl font-bold">
-                  הצעת שידוך #{suggestion.id.toString().split("-")[0]}
+                  הצעת שידוך #{suggestion.id.toString().split('-')[0]}
                 </DialogTitle>
                 <DialogDescription className="text-lg mt-1">
-                  {suggestion.firstParty.firstName}{" "}
+                  {suggestion.firstParty.firstName}{' '}
                   {suggestion.firstParty.lastName} ו
-                  {suggestion.secondParty.firstName}{" "}
+                  {suggestion.secondParty.firstName}{' '}
                   {suggestion.secondParty.lastName}
                 </DialogDescription>
               </div>
@@ -473,22 +484,22 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                 <Badge
                   variant="outline"
                   className={`px-3 shadow-sm ${
-                    suggestion.priority === "URGENT"
-                      ? "bg-red-50 text-red-600 border-red-200"
-                      : suggestion.priority === "HIGH"
-                      ? "bg-orange-50 text-orange-600 border-orange-200"
-                      : suggestion.priority === "MEDIUM"
-                      ? "bg-blue-50 text-blue-600 border-blue-200"
-                      : "bg-gray-50 text-gray-600 border-gray-200"
+                    suggestion.priority === 'URGENT'
+                      ? 'bg-red-50 text-red-600 border-red-200'
+                      : suggestion.priority === 'HIGH'
+                        ? 'bg-orange-50 text-orange-600 border-orange-200'
+                        : suggestion.priority === 'MEDIUM'
+                          ? 'bg-blue-50 text-blue-600 border-blue-200'
+                          : 'bg-gray-50 text-gray-600 border-gray-200'
                   }`}
                 >
-                  {suggestion.priority === "URGENT"
-                    ? "דחוף"
-                    : suggestion.priority === "HIGH"
-                    ? "עדיפות גבוהה"
-                    : suggestion.priority === "MEDIUM"
-                    ? "עדיפות רגילה"
-                    : "עדיפות נמוכה"}
+                  {suggestion.priority === 'URGENT'
+                    ? 'דחוף'
+                    : suggestion.priority === 'HIGH'
+                      ? 'עדיפות גבוהה'
+                      : suggestion.priority === 'MEDIUM'
+                        ? 'עדיפות רגילה'
+                        : 'עדיפות נמוכה'}
                 </Badge>
               </div>
             </div>
@@ -513,8 +524,8 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                   key={index}
                   className={`relative z-10 w-6 h-6 rounded-full flex items-center justify-center border-2 ${
                     index <= statusGroupIndex
-                      ? "bg-blue-600 border-blue-700 text-white"
-                      : "bg-white border-gray-300"
+                      ? 'bg-blue-600 border-blue-700 text-white'
+                      : 'bg-white border-gray-300'
                   }`}
                 >
                   {index + 1}
@@ -623,22 +634,22 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                         <span className="text-gray-500">דחיפות:</span>
                         <span
                           className={`font-medium mr-1 ${
-                            suggestion.priority === "URGENT"
-                              ? "text-red-600"
-                              : suggestion.priority === "HIGH"
-                              ? "text-orange-600"
-                              : suggestion.priority === "MEDIUM"
-                              ? "text-blue-600"
-                              : "text-gray-600"
+                            suggestion.priority === 'URGENT'
+                              ? 'text-red-600'
+                              : suggestion.priority === 'HIGH'
+                                ? 'text-orange-600'
+                                : suggestion.priority === 'MEDIUM'
+                                  ? 'text-blue-600'
+                                  : 'text-gray-600'
                           }`}
                         >
-                          {suggestion.priority === "URGENT"
-                            ? "דחוף"
-                            : suggestion.priority === "HIGH"
-                            ? "עדיפות גבוהה"
-                            : suggestion.priority === "MEDIUM"
-                            ? "עדיפות רגילה"
-                            : "עדיפות נמוכה"}
+                          {suggestion.priority === 'URGENT'
+                            ? 'דחוף'
+                            : suggestion.priority === 'HIGH'
+                              ? 'עדיפות גבוהה'
+                              : suggestion.priority === 'MEDIUM'
+                                ? 'עדיפות רגילה'
+                                : 'עדיפות נמוכה'}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
@@ -646,7 +657,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                         <span className="font-medium mr-1">
                           {suggestion.responseDeadline
                             ? formatDateSafely(suggestion.responseDeadline)
-                            : "לא נקבע"}
+                            : 'לא נקבע'}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
@@ -655,21 +666,21 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                           className={
                             daysRemaining !== null &&
                             daysRemaining < 3 &&
-                            suggestion.status !== "EXPIRED"
-                              ? "text-red-600 font-medium"
-                              : "font-medium"
+                            suggestion.status !== 'EXPIRED'
+                              ? 'text-red-600 font-medium'
+                              : 'font-medium'
                           }
                         >
                           {decisionDeadlineDate
                             ? formatDateSafely(decisionDeadlineDate)
-                            : "לא נקבע"}
+                            : 'לא נקבע'}
                           {daysRemaining !== null &&
                             daysRemaining < 3 &&
-                            suggestion.status !== "EXPIRED" && (
+                            suggestion.status !== 'EXPIRED' && (
                               <span className="mr-1 text-red-600 text-xs">
                                 (
                                 {daysRemaining === 0
-                                  ? "היום!"
+                                  ? 'היום!'
                                   : `נותרו ${daysRemaining} ימים`}
                                 )
                               </span>
@@ -698,18 +709,18 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                     <div className="bg-white rounded-xl shadow-sm border border-blue-100 p-5 space-y-3 hover:shadow-md transition-shadow">
                       <h3 className="text-lg font-semibold flex items-center text-blue-800">
                         <User className="w-5 h-5 ml-2 text-blue-600" />
-                        צד א׳: {suggestion.firstParty.firstName}{" "}
+                        צד א׳: {suggestion.firstParty.firstName}{' '}
                         {suggestion.firstParty.lastName}
                       </h3>
 
                       <div className="flex items-center gap-3 mb-3">
                         <div className="relative h-14 w-14">
                           <Image
-                            src={
+                            src={getRelativeCloudinaryPath(
                               suggestion.firstParty.images.find(
                                 (img) => img.isMain
-                              )?.url || "/placeholders/user.png"
-                            }
+                              )?.url || '/placeholders/user.png'
+                            )}
                             alt={`${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName}`}
                             fill
                             className="rounded-full object-cover border-2 border-blue-200"
@@ -717,12 +728,12 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                         </div>
                         <div>
                           <div className="font-medium">
-                            {suggestion.firstParty.firstName}{" "}
+                            {suggestion.firstParty.firstName}{' '}
                             {suggestion.firstParty.lastName}
                           </div>
                           <div className="text-sm text-gray-500 flex items-center">
                             <MapPin className="w-3 h-3 ml-1" />
-                            {suggestion.firstParty.profile?.city || "לא צוין"}
+                            {suggestion.firstParty.profile?.city || 'לא צוין'}
                           </div>
                         </div>
                       </div>
@@ -733,29 +744,29 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                           <span className="font-medium">
                             {suggestion.firstPartySent
                               ? formatDateSafely(suggestion.firstPartySent)
-                              : "טרם נשלח"}
+                              : 'טרם נשלח'}
                           </span>
                         </div>
                         <div className="flex justify-between py-1">
                           <span className="text-gray-500">תגובה:</span>
                           <Badge
                             className={
-                              suggestion.status === "FIRST_PARTY_APPROVED"
-                                ? "bg-green-100 text-green-800 border-green-200"
-                                : suggestion.status === "FIRST_PARTY_DECLINED"
-                                ? "bg-red-100 text-red-800 border-red-200"
-                                : suggestion.status === "PENDING_FIRST_PARTY"
-                                ? "bg-yellow-100 text-yellow-800 border-yellow-200"
-                                : "bg-gray-100 text-gray-800 border-gray-200"
+                              suggestion.status === 'FIRST_PARTY_APPROVED'
+                                ? 'bg-green-100 text-green-800 border-green-200'
+                                : suggestion.status === 'FIRST_PARTY_DECLINED'
+                                  ? 'bg-red-100 text-red-800 border-red-200'
+                                  : suggestion.status === 'PENDING_FIRST_PARTY'
+                                    ? 'bg-yellow-100 text-yellow-800 border-yellow-200'
+                                    : 'bg-gray-100 text-gray-800 border-gray-200'
                             }
                           >
-                            {suggestion.status === "FIRST_PARTY_APPROVED"
-                              ? "אישר"
-                              : suggestion.status === "FIRST_PARTY_DECLINED"
-                              ? "דחה"
-                              : suggestion.status === "PENDING_FIRST_PARTY"
-                              ? "ממתין לתשובה"
-                              : "לא רלוונטי"}
+                            {suggestion.status === 'FIRST_PARTY_APPROVED'
+                              ? 'אישר'
+                              : suggestion.status === 'FIRST_PARTY_DECLINED'
+                                ? 'דחה'
+                                : suggestion.status === 'PENDING_FIRST_PARTY'
+                                  ? 'ממתין לתשובה'
+                                  : 'לא רלוונטי'}
                           </Badge>
                         </div>
                       </div>
@@ -777,10 +788,10 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                           variant="outline"
                           className="flex-1 border-blue-200 hover:bg-blue-50"
                           onClick={() =>
-                            onAction("contact", {
+                            onAction('contact', {
                               suggestionId: suggestion.id,
                               partyId: suggestion.firstParty.id,
-                              partyType: "first",
+                              partyType: 'first',
                             })
                           }
                         >
@@ -788,15 +799,15 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                           צור קשר
                         </Button>
 
-                        {suggestion.status === "PENDING_FIRST_PARTY" && (
+                        {suggestion.status === 'PENDING_FIRST_PARTY' && (
                           <Button
                             size="sm"
                             className="flex-1 bg-yellow-500 hover:bg-yellow-600"
                             onClick={() =>
-                              onAction("reminder", {
+                              onAction('reminder', {
                                 suggestionId: suggestion.id,
                                 partyId: suggestion.firstParty.id,
-                                partyType: "first",
+                                partyType: 'first',
                               })
                             }
                           >
@@ -811,18 +822,18 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                     <div className="bg-white rounded-xl shadow-sm border border-purple-100 p-5 space-y-3 hover:shadow-md transition-shadow">
                       <h3 className="text-lg font-semibold flex items-center text-purple-800">
                         <User className="w-5 h-5 ml-2 text-purple-600" />
-                        צד ב׳: {suggestion.secondParty.firstName}{" "}
+                        צד ב׳: {suggestion.secondParty.firstName}{' '}
                         {suggestion.secondParty.lastName}
                       </h3>
 
                       <div className="flex items-center gap-3 mb-3">
                         <div className="relative h-14 w-14">
                           <Image
-                            src={
+                            src={getRelativeCloudinaryPath(
                               suggestion.secondParty.images.find(
                                 (img) => img.isMain
-                              )?.url || "/placeholders/user.png"
-                            }
+                              )?.url || '/placeholders/user.png'
+                            )}
                             alt={`${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName}`}
                             fill
                             className="rounded-full object-cover border-2 border-purple-200"
@@ -830,12 +841,12 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                         </div>
                         <div>
                           <div className="font-medium">
-                            {suggestion.secondParty.firstName}{" "}
+                            {suggestion.secondParty.firstName}{' '}
                             {suggestion.secondParty.lastName}
                           </div>
                           <div className="text-sm text-gray-500 flex items-center">
                             <MapPin className="w-3 h-3 ml-1" />
-                            {suggestion.secondParty.profile?.city || "לא צוין"}
+                            {suggestion.secondParty.profile?.city || 'לא צוין'}
                           </div>
                         </div>
                       </div>
@@ -846,29 +857,29 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                           <span className="font-medium">
                             {suggestion.secondPartySent
                               ? formatDateSafely(suggestion.secondPartySent)
-                              : "טרם נשלח"}
+                              : 'טרם נשלח'}
                           </span>
                         </div>
                         <div className="flex justify-between py-1">
                           <span className="text-gray-500">תגובה:</span>
                           <Badge
                             className={
-                              suggestion.status === "SECOND_PARTY_APPROVED"
-                                ? "bg-green-100 text-green-800 border-green-200"
-                                : suggestion.status === "SECOND_PARTY_DECLINED"
-                                ? "bg-red-100 text-red-800 border-red-200"
-                                : suggestion.status === "PENDING_SECOND_PARTY"
-                                ? "bg-yellow-100 text-yellow-800 border-yellow-200"
-                                : "bg-gray-100 text-gray-800 border-gray-200"
+                              suggestion.status === 'SECOND_PARTY_APPROVED'
+                                ? 'bg-green-100 text-green-800 border-green-200'
+                                : suggestion.status === 'SECOND_PARTY_DECLINED'
+                                  ? 'bg-red-100 text-red-800 border-red-200'
+                                  : suggestion.status === 'PENDING_SECOND_PARTY'
+                                    ? 'bg-yellow-100 text-yellow-800 border-yellow-200'
+                                    : 'bg-gray-100 text-gray-800 border-gray-200'
                             }
                           >
-                            {suggestion.status === "SECOND_PARTY_APPROVED"
-                              ? "אישר"
-                              : suggestion.status === "SECOND_PARTY_DECLINED"
-                              ? "דחה"
-                              : suggestion.status === "PENDING_SECOND_PARTY"
-                              ? "ממתין לתשובה"
-                              : "לא רלוונטי"}
+                            {suggestion.status === 'SECOND_PARTY_APPROVED'
+                              ? 'אישר'
+                              : suggestion.status === 'SECOND_PARTY_DECLINED'
+                                ? 'דחה'
+                                : suggestion.status === 'PENDING_SECOND_PARTY'
+                                  ? 'ממתין לתשובה'
+                                  : 'לא רלוונטי'}
                           </Badge>
                         </div>
                       </div>
@@ -890,10 +901,10 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                           variant="outline"
                           className="flex-1 border-purple-200 hover:bg-purple-50"
                           onClick={() =>
-                            onAction("contact", {
+                            onAction('contact', {
                               suggestionId: suggestion.id,
                               partyId: suggestion.secondParty.id,
-                              partyType: "second",
+                              partyType: 'second',
                             })
                           }
                         >
@@ -901,15 +912,15 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                           צור קשר
                         </Button>
 
-                        {suggestion.status === "PENDING_SECOND_PARTY" && (
+                        {suggestion.status === 'PENDING_SECOND_PARTY' && (
                           <Button
                             size="sm"
                             className="flex-1 bg-purple-600 hover:bg-purple-700"
                             onClick={() =>
-                              onAction("reminder", {
+                              onAction('reminder', {
                                 suggestionId: suggestion.id,
                                 partyId: suggestion.secondParty.id,
-                                partyType: "second",
+                                partyType: 'second',
                               })
                             }
                           >
@@ -961,25 +972,28 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                           variant="outline"
                           className="justify-start"
                           onClick={() =>
-                            onAction("edit", { suggestionId: suggestion.id, suggestion: suggestion })
+                            onAction('edit', {
+                              suggestionId: suggestion.id,
+                              suggestion: suggestion,
+                            })
                           }
                         >
                           <Edit className="w-4 h-4 ml-1" />
                           ערוך הצעה
                         </Button>
 
-                        {(suggestion.status === "PENDING_FIRST_PARTY" ||
-                          suggestion.status === "PENDING_SECOND_PARTY") && (
+                        {(suggestion.status === 'PENDING_FIRST_PARTY' ||
+                          suggestion.status === 'PENDING_SECOND_PARTY') && (
                           <Button
                             variant="outline"
                             className="justify-start"
                             onClick={() =>
-                              onAction("sendReminder", {
+                              onAction('sendReminder', {
                                 suggestionId: suggestion.id,
                                 type:
-                                  suggestion.status === "PENDING_FIRST_PARTY"
-                                    ? "first"
-                                    : "second",
+                                  suggestion.status === 'PENDING_FIRST_PARTY'
+                                    ? 'first'
+                                    : 'second',
                               })
                             }
                           >
@@ -988,13 +1002,13 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                           </Button>
                         )}
 
-                        {(suggestion.status === "FIRST_PARTY_APPROVED" ||
-                          suggestion.status === "SECOND_PARTY_APPROVED") && (
+                        {(suggestion.status === 'FIRST_PARTY_APPROVED' ||
+                          suggestion.status === 'SECOND_PARTY_APPROVED') && (
                           <Button
                             variant="default"
                             className="justify-start bg-green-600 hover:bg-green-700"
                             onClick={() =>
-                              onAction("shareContacts", {
+                              onAction('shareContacts', {
                                 suggestionId: suggestion.id,
                               })
                             }
@@ -1016,7 +1030,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                 <div className="bg-white rounded-xl shadow-sm border border-blue-100 p-5 space-y-3 mb-6">
                   <div className="flex items-center justify-between">
                     <h3 className="text-xl font-semibold text-blue-800">
-                      {suggestion.firstParty.firstName}{" "}
+                      {suggestion.firstParty.firstName}{' '}
                       {suggestion.firstParty.lastName}
                     </h3>
                     <Badge className="px-3 py-1.5 bg-blue-100 text-blue-700 border-blue-200">
@@ -1027,10 +1041,11 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                   <div className="flex items-center gap-3 py-2">
                     <div className="relative h-16 w-16">
                       <Image
-                        src={
+                        src={getRelativeCloudinaryPath(
+                          // <-- FIX
                           suggestion.firstParty.images.find((img) => img.isMain)
-                            ?.url || "/placeholders/user.png"
-                        }
+                            ?.url || '/placeholders/user.png'
+                        )}
                         alt={`${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName}`}
                         fill
                         className="rounded-full object-cover border-2 border-blue-200"
@@ -1041,19 +1056,19 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                         <div className="flex items-center">
                           <MapPin className="w-4 h-4 ml-1 text-blue-500" />
                           <span>
-                            {suggestion.firstParty.profile?.city || "לא צוין"}
+                            {suggestion.firstParty.profile?.city || 'לא צוין'}
                           </span>
                         </div>
                         <div className="flex items-center">
                           <Mail className="w-4 h-4 ml-1 text-blue-500" />
                           <span>
-                            {suggestion.firstParty.email || "לא צוין"}
+                            {suggestion.firstParty.email || 'לא צוין'}
                           </span>
                         </div>
                         <div className="flex items-center">
                           <Phone className="w-4 h-4 ml-1 text-blue-500" />
                           <span>
-                            {suggestion.firstParty?.phone || "לא צוין"}
+                            {suggestion.firstParty?.phone || 'לא צוין'}
                           </span>
                         </div>
                         <div className="flex items-center">
@@ -1062,8 +1077,8 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                             {suggestion.firstParty.profile?.birthDate
                               ? new Date(
                                   suggestion.firstParty.profile.birthDate
-                                ).toLocaleDateString("he-IL")
-                              : "לא צוין"}
+                                ).toLocaleDateString('he-IL')
+                              : 'לא צוין'}
                           </span>
                         </div>
                       </div>
@@ -1075,10 +1090,10 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                       variant="outline"
                       className="flex-1 border-blue-200 hover:bg-blue-50"
                       onClick={() =>
-                        onAction("contact", {
+                        onAction('contact', {
                           suggestionId: suggestion.id,
                           partyId: suggestion.firstParty.id,
-                          partyType: "first",
+                          partyType: 'first',
                         })
                       }
                     >
@@ -1086,14 +1101,14 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                       צור קשר
                     </Button>
 
-                    {suggestion.status === "PENDING_FIRST_PARTY" && (
+                    {suggestion.status === 'PENDING_FIRST_PARTY' && (
                       <Button
                         className="w-full justify-start bg-yellow-500 hover:bg-yellow-600"
                         onClick={() =>
-                          onAction("reminder", {
+                          onAction('reminder', {
                             suggestionId: suggestion.id,
                             partyId: suggestion.firstParty.id,
-                            partyType: "first",
+                            partyType: 'first',
                           })
                         }
                       >
@@ -1102,14 +1117,14 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                       </Button>
                     )}
 
-                    {suggestion.status === "PENDING_SECOND_PARTY" && (
+                    {suggestion.status === 'PENDING_SECOND_PARTY' && (
                       <Button
                         className="w-full justify-start bg-yellow-500 hover:bg-yellow-600"
                         onClick={() =>
-                          onAction("reminder", {
+                          onAction('reminder', {
                             suggestionId: suggestion.id,
                             partyId: suggestion.secondParty.id,
-                            partyType: "second",
+                            partyType: 'second',
                           })
                         }
                       >
@@ -1118,13 +1133,13 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                       </Button>
                     )}
 
-                    {suggestion.status === "AWAITING_FIRST_DATE_FEEDBACK" && (
+                    {suggestion.status === 'AWAITING_FIRST_DATE_FEEDBACK' && (
                       <Button
                         className="w-full justify-start bg-yellow-500 hover:bg-yellow-600"
                         onClick={() =>
-                          onAction("reminder", {
+                          onAction('reminder', {
                             suggestionId: suggestion.id,
-                            partyType: "both",
+                            partyType: 'both',
                           })
                         }
                       >
@@ -1140,8 +1155,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                   images={suggestion.firstParty.images}
                   questionnaire={firstPartyQuestionnaire}
                   viewMode="matchmaker"
-                    isProfileComplete={suggestion.firstParty.isProfileComplete}
-
+                  isProfileComplete={suggestion.firstParty.isProfileComplete}
                 />
 
                 <div className="mt-4 p-4 border rounded-lg bg-blue-50">
@@ -1163,7 +1177,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                 <div className="bg-white rounded-xl shadow-sm border border-purple-100 p-5 space-y-3 mb-6">
                   <div className="flex items-center justify-between">
                     <h3 className="text-xl font-semibold text-purple-800">
-                      {suggestion.secondParty.firstName}{" "}
+                      {suggestion.secondParty.firstName}{' '}
                       {suggestion.secondParty.lastName}
                     </h3>
                     <Badge className="px-3 py-1.5 bg-purple-100 text-purple-700 border-purple-200">
@@ -1174,11 +1188,12 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                   <div className="flex items-center gap-3 py-2">
                     <div className="relative h-16 w-16">
                       <Image
-                        src={
+                        src={getRelativeCloudinaryPath(
+                          // <-- FIX
                           suggestion.secondParty.images.find(
                             (img) => img.isMain
-                          )?.url || "/placeholders/user.png"
-                        }
+                          )?.url || '/placeholders/user.png'
+                        )}
                         alt={`${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName}`}
                         fill
                         className="rounded-full object-cover border-2 border-purple-200"
@@ -1189,19 +1204,19 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                         <div className="flex items-center">
                           <MapPin className="w-4 h-4 ml-1 text-purple-500" />
                           <span>
-                            {suggestion.secondParty.profile?.city || "לא צוין"}
+                            {suggestion.secondParty.profile?.city || 'לא צוין'}
                           </span>
                         </div>
                         <div className="flex items-center">
                           <Mail className="w-4 h-4 ml-1 text-purple-500" />
                           <span>
-                            {suggestion.secondParty.email || "לא צוין"}
+                            {suggestion.secondParty.email || 'לא צוין'}
                           </span>
                         </div>
                         <div className="flex items-center">
                           <Phone className="w-4 h-4 ml-1 text-purple-500" />
                           <span>
-                            {suggestion.secondParty.phone || "לא צוין"}
+                            {suggestion.secondParty.phone || 'לא צוין'}
                           </span>
                         </div>
                         <div className="flex items-center">
@@ -1210,8 +1225,8 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                             {suggestion.secondParty.profile?.birthDate
                               ? new Date(
                                   suggestion.secondParty.profile.birthDate
-                                ).toLocaleDateString("he-IL")
-                              : "לא צוין"}
+                                ).toLocaleDateString('he-IL')
+                              : 'לא צוין'}
                           </span>
                         </div>
                       </div>
@@ -1223,10 +1238,10 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                       variant="outline"
                       className="flex-1 border-purple-200 hover:bg-purple-50"
                       onClick={() =>
-                        onAction("contact", {
+                        onAction('contact', {
                           suggestionId: suggestion.id,
                           partyId: suggestion.secondParty.id,
-                          partyType: "second",
+                          partyType: 'second',
                         })
                       }
                     >
@@ -1234,14 +1249,14 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                       צור קשר
                     </Button>
 
-                    {suggestion.status === "PENDING_SECOND_PARTY" && (
+                    {suggestion.status === 'PENDING_SECOND_PARTY' && (
                       <Button
                         className="flex-1 bg-purple-600 hover:bg-purple-700"
                         onClick={() =>
-                          onAction("reminder", {
+                          onAction('reminder', {
                             suggestionId: suggestion.id,
                             partyId: suggestion.secondParty.id,
-                            partyType: "second",
+                            partyType: 'second',
                           })
                         }
                       >
@@ -1257,8 +1272,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                   images={suggestion.secondParty.images}
                   questionnaire={secondPartyQuestionnaire}
                   viewMode="matchmaker"
-                    isProfileComplete={suggestion.secondParty.isProfileComplete}
-
+                  isProfileComplete={suggestion.secondParty.isProfileComplete}
                 />
 
                 <div className="mt-4 p-4 border rounded-lg bg-purple-50">
@@ -1292,7 +1306,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                           נוצר: {formatDateSafely(suggestion.createdAt)}
                         </div>
                         <div className="text-sm text-gray-500">
-                          פעילות אחרונה:{" "}
+                          פעילות אחרונה:{' '}
                           {formatDateSafely(suggestion.lastActivity)}
                         </div>
                       </div>
@@ -1323,25 +1337,25 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                             title: getStatusInfo(
                               history.status as MatchSuggestionStatus
                             ).label,
-                            description: history.notes || "אין הערות",
+                            description: history.notes || 'אין הערות',
                             date:
-                              typeof history.createdAt === "string"
+                              typeof history.createdAt === 'string'
                                 ? new Date(history.createdAt)
                                 : history.createdAt,
-                            icon: history.status.includes("APPROVED")
+                            icon: history.status.includes('APPROVED')
                               ? CheckCircle
-                              : history.status.includes("DECLINED")
-                              ? XCircle
-                              : history.status.includes("PENDING")
-                              ? Clock
-                              : AlertCircle,
-                            iconColor: history.status.includes("APPROVED")
-                              ? "text-green-600"
-                              : history.status.includes("DECLINED")
-                              ? "text-red-600"
-                              : history.status.includes("PENDING")
-                              ? "text-yellow-600"
-                              : "text-blue-600",
+                              : history.status.includes('DECLINED')
+                                ? XCircle
+                                : history.status.includes('PENDING')
+                                  ? Clock
+                                  : AlertCircle,
+                            iconColor: history.status.includes('APPROVED')
+                              ? 'text-green-600'
+                              : history.status.includes('DECLINED')
+                                ? 'text-red-600'
+                                : history.status.includes('PENDING')
+                                  ? 'text-yellow-600'
+                                  : 'text-blue-600',
                           })
                         )}
                       />
@@ -1353,7 +1367,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                       variant="outline"
                       size="sm"
                       onClick={() =>
-                        onAction("exportHistory", {
+                        onAction('exportHistory', {
                           suggestionId: suggestion.id,
                         })
                       }
@@ -1381,7 +1395,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                   <div className="bg-white rounded-xl shadow-sm border border-blue-100 p-5 hover:shadow-md transition-shadow">
                     <h4 className="text-lg font-semibold mb-4 text-blue-800 flex items-center">
                       <User className="w-5 h-5 ml-2 text-blue-600" />
-                      תקשורת עם {suggestion.firstParty.firstName}{" "}
+                      תקשורת עם {suggestion.firstParty.firstName}{' '}
                       {suggestion.firstParty.lastName}
                     </h4>
 
@@ -1390,10 +1404,10 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                         variant="outline"
                         className="w-full justify-start border-blue-200 hover:bg-blue-50"
                         onClick={() =>
-                          onAction("message", {
+                          onAction('message', {
                             suggestionId: suggestion.id,
                             partyId: suggestion.firstParty.id,
-                            partyType: "first",
+                            partyType: 'first',
                             suggestion: suggestion, // הוסף את ההצעה המלאה
                           })
                         }
@@ -1402,14 +1416,14 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                         שלח הודעה
                       </Button>
 
-                      {suggestion.status === "PENDING_FIRST_PARTY" && (
+                      {suggestion.status === 'PENDING_FIRST_PARTY' && (
                         <Button
                           className="w-full justify-start bg-yellow-500 hover:bg-yellow-600"
                           onClick={() =>
-                            onAction("reminder", {
+                            onAction('reminder', {
                               suggestionId: suggestion.id,
                               partyId: suggestion.firstParty.id,
-                              partyType: "first",
+                              partyType: 'first',
                             })
                           }
                         >
@@ -1418,13 +1432,13 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                         </Button>
                       )}
 
-                      {(suggestion.status === "FIRST_PARTY_APPROVED" ||
-                        suggestion.status === "SECOND_PARTY_APPROVED") && (
+                      {(suggestion.status === 'FIRST_PARTY_APPROVED' ||
+                        suggestion.status === 'SECOND_PARTY_APPROVED') && (
                         <Button
                           variant="default"
                           className="w-full justify-start bg-green-600 hover:bg-green-700"
                           onClick={() =>
-                            onAction("shareContacts", {
+                            onAction('shareContacts', {
                               suggestionId: suggestion.id,
                               partyId: suggestion.firstParty.id,
                             })
@@ -1441,7 +1455,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                   <div className="bg-white rounded-xl shadow-sm border border-purple-100 p-5 hover:shadow-md transition-shadow">
                     <h4 className="text-lg font-semibold mb-4 text-purple-800 flex items-center">
                       <User className="w-5 h-5 ml-2 text-purple-600" />
-                      תקשורת עם {suggestion.secondParty.firstName}{" "}
+                      תקשורת עם {suggestion.secondParty.firstName}{' '}
                       {suggestion.secondParty.lastName}
                     </h4>
 
@@ -1450,7 +1464,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                         variant="outline"
                         className="w-full"
                         onClick={() =>
-                          onAction("edit", {
+                          onAction('edit', {
                             suggestionId: suggestion.id,
                             suggestion: suggestion, // הוסף את ההצעה המלאה
                           })
@@ -1460,14 +1474,14 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                         ערוך פרטי הצעה
                       </Button>
 
-                      {suggestion.status === "PENDING_SECOND_PARTY" && (
+                      {suggestion.status === 'PENDING_SECOND_PARTY' && (
                         <Button
                           className="w-full justify-start bg-yellow-500 hover:bg-yellow-600"
                           onClick={() =>
-                            onAction("reminder", {
+                            onAction('reminder', {
                               suggestionId: suggestion.id,
                               partyId: suggestion.secondParty.id,
-                              partyType: "second",
+                              partyType: 'second',
                             })
                           }
                         >
@@ -1476,13 +1490,13 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                         </Button>
                       )}
 
-                      {(suggestion.status === "FIRST_PARTY_APPROVED" ||
-                        suggestion.status === "SECOND_PARTY_APPROVED") && (
+                      {(suggestion.status === 'FIRST_PARTY_APPROVED' ||
+                        suggestion.status === 'SECOND_PARTY_APPROVED') && (
                         <Button
                           variant="default"
                           className="w-full justify-start bg-green-600 hover:bg-green-700"
                           onClick={() =>
-                            onAction("shareContacts", {
+                            onAction('shareContacts', {
                               suggestionId: suggestion.id,
                               partyId: suggestion.secondParty.id,
                             })
@@ -1497,8 +1511,8 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                 </div>
 
                 {/* Meeting Arrangement Section */}
-                {(suggestion.status === "CONTACT_DETAILS_SHARED" ||
-                  suggestion.status === "DATING") && (
+                {(suggestion.status === 'CONTACT_DETAILS_SHARED' ||
+                  suggestion.status === 'DATING') && (
                   <div className="mt-6 bg-white rounded-xl shadow-sm border p-5 hover:shadow-md transition-shadow">
                     <h4 className="text-lg font-semibold mb-3 flex items-center">
                       <Calendar className="w-5 h-5 ml-2 text-pink-600" />
@@ -1512,7 +1526,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                         <Button
                           className="flex-1 bg-pink-600 hover:bg-pink-700"
                           onClick={() =>
-                            onAction("scheduleMeeting", {
+                            onAction('scheduleMeeting', {
                               suggestionId: suggestion.id,
                             })
                           }
@@ -1524,7 +1538,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                           variant="outline"
                           className="flex-1"
                           onClick={() =>
-                            onAction("viewMeetings", {
+                            onAction('viewMeetings', {
                               suggestionId: suggestion.id,
                             })
                           }
@@ -1582,7 +1596,10 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                       variant="outline"
                       className="w-full"
                       onClick={() =>
-                        onAction("edit", { suggestionId: suggestion.id, suggestion: suggestion })
+                        onAction('edit', {
+                          suggestionId: suggestion.id,
+                          suggestion: suggestion,
+                        })
                       }
                     >
                       <Edit className="w-4 h-4 ml-2" />
@@ -1603,7 +1620,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                       variant="outline"
                       className="border-red-200 hover:bg-red-50 text-red-600"
                       onClick={() =>
-                        onAction("delete", { suggestionId: suggestion.id })
+                        onAction('delete', { suggestionId: suggestion.id })
                       }
                     >
                       <Trash2 className="w-4 h-4 ml-1" />
@@ -1616,7 +1633,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                   {/* Resend to Both Parties */}
                   {canChangeStatus(
                     suggestion.status as MatchSuggestionStatus
-                  ).includes("PENDING_FIRST_PARTY") && (
+                  ).includes('PENDING_FIRST_PARTY') && (
                     <div className="bg-white rounded-xl shadow-sm border p-5 hover:shadow-md transition-shadow">
                       <h4 className="text-lg font-semibold mb-3 flex items-center">
                         <Send className="w-5 h-5 ml-2 text-purple-600" />
@@ -1628,7 +1645,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                       <Button
                         className="w-full bg-purple-600 hover:bg-purple-700"
                         onClick={() =>
-                          onAction("resendToAll", {
+                          onAction('resendToAll', {
                             suggestionId: suggestion.id,
                           })
                         }
@@ -1652,7 +1669,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                       variant="outline"
                       className="w-full border-green-200 hover:bg-green-50 text-green-700"
                       onClick={() =>
-                        onAction("export", { suggestionId: suggestion.id })
+                        onAction('export', { suggestionId: suggestion.id })
                       }
                     >
                       <Download className="w-4 h-4 ml-2" />
@@ -1693,7 +1710,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                   <Select
                     value={newStatus || undefined}
                     onValueChange={(value) => {
-                      console.log("Selected new status:", value);
+                      console.log('Selected new status:', value);
                       setNewStatus(value as MatchSuggestionStatus);
                     }}
                   >
@@ -1731,7 +1748,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                     onClick={() => {
                       setShowStatusChange(false);
                       setNewStatus(null);
-                      setStatusChangeNote("");
+                      setStatusChangeNote('');
                     }}
                   >
                     ביטול
@@ -1747,7 +1764,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                         מעדכן...
                       </>
                     ) : (
-                      "שמור שינוי"
+                      'שמור שינוי'
                     )}
                   </Button>
                 </div>
@@ -1761,7 +1778,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
               variant="outline"
               className="border-red-200 hover:bg-red-50 text-red-600"
               onClick={() =>
-                onAction("delete", { suggestionId: suggestion.id })
+                onAction('delete', { suggestionId: suggestion.id })
               }
             >
               <Trash2 className="w-4 h-4 ml-1" />

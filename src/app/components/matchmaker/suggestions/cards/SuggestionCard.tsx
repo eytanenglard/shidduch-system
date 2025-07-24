@@ -1,16 +1,16 @@
 // src/app/components/matchmaker/suggestions/cards/SuggestionCard.tsx
 
-import React, { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import Image from "next/image";
+} from '@/components/ui/dropdown-menu';
+import Image from 'next/image';
 import {
   Clock,
   User,
@@ -31,13 +31,15 @@ import {
   Star,
   ChevronDown,
   ChevronUp,
-} from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-import { he } from "date-fns/locale";
-import type { MatchSuggestionStatus, Priority } from "@prisma/client";
-import type { Suggestion, ActionAdditionalData } from "@/types/suggestions";
-import { Progress } from "@/components/ui/progress";
-import { cn } from "@/lib/utils";
+} from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import { he } from 'date-fns/locale';
+import type { MatchSuggestionStatus, Priority } from '@prisma/client';
+import type { Suggestion, ActionAdditionalData } from '@/types/suggestions';
+import { Progress } from '@/components/ui/progress';
+// --- START OF FIX ---
+import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
+// --- END OF FIX ---
 
 // A simple media query hook
 const useMediaQuery = (query: string) => {
@@ -48,8 +50,8 @@ const useMediaQuery = (query: string) => {
       setMatches(media.matches);
     }
     const listener = () => setMatches(media.matches);
-    window.addEventListener("resize", listener);
-    return () => window.removeEventListener("resize", listener);
+    window.addEventListener('resize', listener);
+    return () => window.removeEventListener('resize', listener);
   }, [matches, query]);
   return matches;
 };
@@ -58,19 +60,19 @@ interface SuggestionCardProps {
   suggestion: Suggestion;
   onAction: (
     type:
-      | "view"
-      | "contact"
-      | "message"
-      | "edit"
-      | "delete"
-      | "resend"
-      | "changeStatus"
-      | "reminder",
+      | 'view'
+      | 'contact'
+      | 'message'
+      | 'edit'
+      | 'delete'
+      | 'resend'
+      | 'changeStatus'
+      | 'reminder',
     suggestion: Suggestion,
     additionalData?: ActionAdditionalData
   ) => void;
   className?: string;
-  variant?: "full" | "compact";
+  variant?: 'full' | 'compact';
 }
 
 const calculateAge = (birthDate: Date): number => {
@@ -87,102 +89,102 @@ const calculateAge = (birthDate: Date): number => {
 const getStatusInfo = (status: MatchSuggestionStatus) => {
   // ... (no changes to this function)
   switch (status) {
-    case "PENDING_FIRST_PARTY":
+    case 'PENDING_FIRST_PARTY':
       return {
-        label: "ממתין לצד א׳",
-        className: "bg-yellow-100 text-yellow-800 border-yellow-200",
-        color: "text-yellow-600",
-        bgColor: "bg-yellow-50",
+        label: 'ממתין לצד א׳',
+        className: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+        color: 'text-yellow-600',
+        bgColor: 'bg-yellow-50',
         icon: Clock,
         progress: 25,
       };
-    case "PENDING_SECOND_PARTY":
+    case 'PENDING_SECOND_PARTY':
       return {
-        label: "ממתין לצד ב׳",
-        className: "bg-blue-100 text-blue-800 border-blue-200",
-        color: "text-blue-600",
-        bgColor: "bg-blue-50",
+        label: 'ממתין לצד ב׳',
+        className: 'bg-blue-100 text-blue-800 border-blue-200',
+        color: 'text-blue-600',
+        bgColor: 'bg-blue-50',
         icon: Clock,
         progress: 50,
       };
-    case "FIRST_PARTY_APPROVED":
+    case 'FIRST_PARTY_APPROVED':
       return {
-        label: "צד א׳ אישר",
-        className: "bg-green-100 text-green-800 border-green-200",
-        color: "text-green-600",
-        bgColor: "bg-green-50",
+        label: 'צד א׳ אישר',
+        className: 'bg-green-100 text-green-800 border-green-200',
+        color: 'text-green-600',
+        bgColor: 'bg-green-50',
         icon: CheckCircle,
         progress: 40,
       };
-    case "SECOND_PARTY_APPROVED":
+    case 'SECOND_PARTY_APPROVED':
       return {
-        label: "צד ב׳ אישר",
-        className: "bg-green-100 text-green-800 border-green-200",
-        color: "text-green-600",
-        bgColor: "bg-green-50",
+        label: 'צד ב׳ אישר',
+        className: 'bg-green-100 text-green-800 border-green-200',
+        color: 'text-green-600',
+        bgColor: 'bg-green-50',
         icon: CheckCircle,
         progress: 60,
       };
-    case "FIRST_PARTY_DECLINED":
+    case 'FIRST_PARTY_DECLINED':
       return {
-        label: "צד א׳ דחה",
-        className: "bg-red-100 text-red-800 border-red-200",
-        color: "text-red-600",
-        bgColor: "bg-red-50",
+        label: 'צד א׳ דחה',
+        className: 'bg-red-100 text-red-800 border-red-200',
+        color: 'text-red-600',
+        bgColor: 'bg-red-50',
         icon: XCircle,
         progress: 100,
       };
-    case "SECOND_PARTY_DECLINED":
+    case 'SECOND_PARTY_DECLINED':
       return {
-        label: "צד ב׳ דחה",
-        className: "bg-red-100 text-red-800 border-red-200",
-        color: "text-red-600",
-        bgColor: "bg-red-50",
+        label: 'צד ב׳ דחה',
+        className: 'bg-red-100 text-red-800 border-red-200',
+        color: 'text-red-600',
+        bgColor: 'bg-red-50',
         icon: XCircle,
         progress: 100,
       };
-    case "CONTACT_DETAILS_SHARED":
+    case 'CONTACT_DETAILS_SHARED':
       return {
-        label: "פרטי קשר שותפו",
-        className: "bg-purple-100 text-purple-800 border-purple-200",
-        color: "text-purple-600",
-        bgColor: "bg-purple-50",
+        label: 'פרטי קשר שותפו',
+        className: 'bg-purple-100 text-purple-800 border-purple-200',
+        color: 'text-purple-600',
+        bgColor: 'bg-purple-50',
         icon: Send,
         progress: 70,
       };
-    case "DATING":
+    case 'DATING':
       return {
-        label: "בתהליך היכרות",
-        className: "bg-pink-100 text-pink-800 border-pink-200",
-        color: "text-pink-600",
-        bgColor: "bg-pink-50",
+        label: 'בתהליך היכרות',
+        className: 'bg-pink-100 text-pink-800 border-pink-200',
+        color: 'text-pink-600',
+        bgColor: 'bg-pink-50',
         icon: Heart,
         progress: 80,
       };
-    case "AWAITING_FIRST_DATE_FEEDBACK":
+    case 'AWAITING_FIRST_DATE_FEEDBACK':
       return {
-        label: "ממתין למשוב פגישה",
-        className: "bg-orange-100 text-orange-800 border-orange-200",
-        color: "text-orange-600",
-        bgColor: "bg-orange-50",
+        label: 'ממתין למשוב פגישה',
+        className: 'bg-orange-100 text-orange-800 border-orange-200',
+        color: 'text-orange-600',
+        bgColor: 'bg-orange-50',
         icon: AlertCircle,
         progress: 75,
       };
-    case "EXPIRED":
+    case 'EXPIRED':
       return {
-        label: "פג תוקף",
-        className: "bg-gray-100 text-gray-800 border-gray-200",
-        color: "text-gray-600",
-        bgColor: "bg-gray-50",
+        label: 'פג תוקף',
+        className: 'bg-gray-100 text-gray-800 border-gray-200',
+        color: 'text-gray-600',
+        bgColor: 'bg-gray-50',
         icon: Clock,
         progress: 100,
       };
     default:
       return {
-        label: "בטיפול",
-        className: "bg-gray-100 text-gray-800 border-gray-200",
-        color: "text-gray-600",
-        bgColor: "bg-gray-50",
+        label: 'בטיפול',
+        className: 'bg-gray-100 text-gray-800 border-gray-200',
+        color: 'text-gray-600',
+        bgColor: 'bg-gray-50',
         icon: RefreshCw,
         progress: 30,
       };
@@ -263,8 +265,12 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
   const daysLeft = getDaysLeft(suggestion.decisionDeadline);
   const firstPartyAge = calculateAge(firstParty.profile.birthDate);
   const secondPartyAge = calculateAge(secondParty.profile.birthDate);
-  const firstPartyMainImage = firstParty.images.find((img) => img.isMain);
-  const secondPartyMainImage = secondParty.images.find((img) => img.isMain);
+
+  // --- START OF FIX ---
+  const firstPartyImageUrl = firstParty.images.find((img) => img.isMain)?.url || '/placeholders/user.png';
+  const secondPartyImageUrl = secondParty.images.find((img) => img.isMain)?.url || '/placeholders/user.png';
+  // --- END OF FIX ---
+
 
   // ######################################################################
   // #                        MOBILE - KANBAN VIEW                        #
@@ -288,20 +294,22 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
             </h4>
             <div className="flex items-center gap-2">
               <div className="flex -space-x-2">
+                {/* --- START OF FIX --- */}
                 <Image
-                  src={firstPartyMainImage?.url || "/placeholders/user.png"}
+                  src={getRelativeCloudinaryPath(firstPartyImageUrl)}
                   alt={firstParty.firstName}
                   width={24}
                   height={24}
                   className="rounded-full border-2 border-white"
                 />
                 <Image
-                  src={secondPartyMainImage?.url || "/placeholders/user.png"}
+                  src={getRelativeCloudinaryPath(secondPartyImageUrl)}
                   alt={secondParty.firstName}
                   width={24}
                   height={24}
                   className="rounded-full border-2 border-white"
                 />
+                {/* --- END OF FIX --- */}
               </div>
               <p className="text-xs text-gray-500">
                 {firstPartyAge}, {secondPartyAge}
@@ -346,13 +354,15 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
           {/* Parties Info */}
           <div className="flex items-center gap-4">
             <div className="flex-1 text-center space-y-1">
+              {/* --- START OF FIX --- */}
               <Image
-                src={firstPartyMainImage?.url || "/placeholders/user.png"}
+                src={getRelativeCloudinaryPath(firstPartyImageUrl)}
                 alt={firstParty.firstName}
                 width={64}
                 height={64}
                 className="rounded-full mx-auto border-2 border-blue-200"
               />
+              {/* --- END OF FIX --- */}
               <h4 className="font-bold">{firstParty.firstName}</h4>
               <p className="text-xs text-gray-600">
                 {firstPartyAge}, {firstParty.profile.city}
@@ -360,13 +370,15 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
             </div>
             <Heart className="w-6 h-6 text-pink-400 flex-shrink-0" />
             <div className="flex-1 text-center space-y-1">
+              {/* --- START OF FIX --- */}
               <Image
-                src={secondPartyMainImage?.url || "/placeholders/user.png"}
+                src={getRelativeCloudinaryPath(secondPartyImageUrl)}
                 alt={secondParty.firstName}
                 width={64}
                 height={64}
                 className="rounded-full mx-auto border-2 border-purple-200"
               />
+              {/* --- END OF FIX --- */}
               <h4 className="font-bold">{secondParty.firstName}</h4>
               <p className="text-xs text-gray-600">
                 {secondPartyAge}, {secondParty.profile.city}
@@ -481,7 +493,9 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
             </div>
             <div className="flex gap-3">
               <div className="relative h-16 w-16 rounded-full overflow-hidden bg-gray-100 border">
-                {firstPartyMainImage ? <Image src={firstPartyMainImage.url} alt={firstParty.firstName} className="object-cover" fill sizes="4rem" /> : <div className="w-full h-full flex items-center justify-center"><User className="w-8 h-8 text-gray-400" /></div>}
+                {/* --- START OF FIX --- */}
+                <Image src={getRelativeCloudinaryPath(firstPartyImageUrl)} alt={firstParty.firstName} className="object-cover" fill sizes="4rem" />
+                {/* --- END OF FIX --- */}
               </div>
               <div>
                 <h4 className="font-semibold">{firstParty.firstName} {firstParty.lastName}</h4>
@@ -500,7 +514,9 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
             </div>
             <div className="flex gap-3">
               <div className="relative h-16 w-16 rounded-full overflow-hidden bg-gray-100 border">
-                {secondPartyMainImage ? <Image src={secondPartyMainImage.url} alt={secondParty.firstName} className="object-cover" fill sizes="4rem" /> : <div className="w-full h-full flex items-center justify-center"><User className="w-8 h-8 text-gray-400" /></div>}
+                 {/* --- START OF FIX --- */}
+                <Image src={getRelativeCloudinaryPath(secondPartyImageUrl)} alt={secondParty.firstName} className="object-cover" fill sizes="4rem" />
+                 {/* --- END OF FIX --- */}
               </div>
               <div>
                 <h4 className="font-semibold">{secondParty.firstName} {secondParty.lastName}</h4>
