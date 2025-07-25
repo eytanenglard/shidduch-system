@@ -73,15 +73,22 @@ export const personalityQuestions: Question[] = [
     id: "personality_introversion_extroversion",
     category: "personality",
     subcategory: "self_perception",
-    question: "היכן היית ממקם/ת את עצמך על הספקטרום בין מופנמות למוחצנות?",
+    question: "שאלה על 'הסוללה החברתית' שלך: ממה את/ה בדרך כלל שואב/ת אנרגיה?",
     type: "scale",
     depth: "BASIC",
     isRequired: true,
-    min: 1, // מופנם/ת מאוד
-    max: 10, // מוחצן/ת מאוד
-    labels: { min: "מופנם/ת מאוד", max: "מוחצן/ת מאוד", middle: "מאוזן/ת" },
-    metadata: { estimatedTime: 1, helpText: "1 - נטייה חזקה למופנמות (טוענ/ת אנרגיה לבד), 10 - נטייה חזקה למוחצנות (טוענ/ת אנרגיה בחברה)." },
-  },
+    min: 1,
+    max: 10,
+    labels: {
+      min: "מזמן שקט עם עצמי",
+      max: "ממפגשים ואינטראקציה חברתית",
+      middle: "שילוב מאוזן בין השניים",
+    },
+    metadata: {
+      estimatedTime: 1,
+      helpText: "חשוב/י על זה כך: 1 משמעותו שאת/ה 'טוענ/ת מצברים' בעיקר לבד, ו-10 משמעותו שאת/ה 'טוענ/ת מצברים' בעיקר בחברת אנשים.",
+    },
+},
   {
     worldId: "PERSONALITY",
     id: "personality_core_trait_selection",
