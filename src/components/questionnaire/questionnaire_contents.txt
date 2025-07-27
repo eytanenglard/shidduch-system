@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\questionnaire
-# Generated on: 2025-07-22 11:37:59
+# Generated on: 2025-07-27 16:17:25
 ################################################################################
 
 ================================================================================
@@ -2643,16 +2643,16 @@ File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\questionna
 --------------------------------------------------------------------------------
 Content:
 // src/components/questionnaire/common/QuestionsList.tsx
-import React from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { CheckCircle, AlertCircle, CircleDot, ChevronLeft } from "lucide-react"; // הוספנו חץ שמאלה
-import { cn } from "@/lib/utils";
+import React from 'react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { CheckCircle, AlertCircle, CircleDot, ChevronLeft } from 'lucide-react'; // הוספנו חץ שמאלה
+import { cn } from '@/lib/utils';
 import type {
   Question,
   QuestionnaireAnswer,
   AnswerValue,
-} from "../types/types";
-import { Badge } from "@/components/ui/badge"; // נוסיף Badge לרמת הקושי
+} from '../types/types';
+import { Badge } from '@/components/ui/badge'; // נוסיף Badge לרמת הקושי
 
 interface QuestionsListProps {
   allQuestions: Question[];
@@ -2669,11 +2669,11 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
   currentQuestionIndex,
   setCurrentQuestionIndex,
   answers,
-  language = "he",
-  className = "",
+  language = 'he',
+  className = '',
   onClose, // קבלת הפונקציה
 }) => {
-  const isRTL = language === "he";
+  const isRTL = language === 'he';
 
   const findAnswer = (questionId: string): AnswerValue | undefined => {
     return answers.find((a) => a.questionId === questionId)?.value;
@@ -2681,10 +2681,10 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
 
   const isAnswerNotEmpty = (answer: AnswerValue | undefined): boolean => {
     if (answer === undefined || answer === null) return false;
-    if (typeof answer === "string" && answer.trim() === "") return false;
+    if (typeof answer === 'string' && answer.trim() === '') return false;
     if (Array.isArray(answer) && answer.length === 0) return false;
     if (
-      typeof answer === "object" &&
+      typeof answer === 'object' &&
       !Array.isArray(answer) &&
       Object.keys(answer).length === 0
     )
@@ -2700,16 +2700,17 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
 
   // הגדרת צבעים ותוויות לרמות קושי
   const depthBadgeColors = {
-    BASIC: "bg-blue-100 text-blue-700 hover:bg-blue-200",
-    ADVANCED: "bg-purple-100 text-purple-700 hover:bg-purple-200",
-    EXPERT: "bg-green-100 text-green-700 hover:bg-green-200",
+    BASIC: 'bg-blue-100 text-blue-700 hover:bg-blue-200',
+    ADVANCED: 'bg-purple-100 text-purple-700 hover:bg-purple-200',
+    EXPERT: 'bg-green-100 text-green-700 hover:bg-green-200',
   };
-  const depthLabels = { BASIC: "בסיסי", ADVANCED: "מתקדם", EXPERT: "מעמיק" };
+  const depthLabels = { BASIC: 'בסיסי', ADVANCED: 'מתקדם', EXPERT: 'מעמיק' };
 
   return (
-    <ScrollArea className={cn("h-[60vh] lg:h-[calc(100vh-18rem)]", className)}>
-      <div className="space-y-2 p-1" dir={isRTL ? "rtl" : "ltr"}>
-        {" "}
+    // התיקון כאן: הסרנו את הגובה הקבוע והשארנו רק h-full
+    <ScrollArea className={cn('h-full', className)}>
+      <div className="space-y-2 p-1" dir={isRTL ? 'rtl' : 'ltr'}>
+        {' '}
         {/* הוספנו dir */}
         {allQuestions.map((q, index) => {
           const answer = findAnswer(q.id);
@@ -2718,25 +2719,25 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
 
           let StatusIcon = <CircleDot className="h-4 w-4 text-gray-400" />; // אייקון ברירת מחדל
           let statusColorClass =
-            "border-gray-200 hover:bg-gray-100 hover:border-gray-300"; // ברירת מחדל
-          let textColorClass = "text-gray-700";
+            'border-gray-200 hover:bg-gray-100 hover:border-gray-300'; // ברירת מחדל
+          let textColorClass = 'text-gray-700';
 
           if (isAnswered) {
             StatusIcon = <CheckCircle className="h-4 w-4 text-green-600" />;
             statusColorClass =
-              "border-green-300 bg-green-50/60 hover:bg-green-100 hover:border-green-400";
-            textColorClass = "text-gray-800"; // טקסט רגיל, לא ירוק
+              'border-green-300 bg-green-50/60 hover:bg-green-100 hover:border-green-400';
+            textColorClass = 'text-gray-800'; // טקסט רגיל, לא ירוק
           } else if (q.isRequired) {
             StatusIcon = <AlertCircle className="h-4 w-4 text-red-600" />;
             statusColorClass =
-              "border-red-300 bg-red-50/60 hover:bg-red-100 hover:border-red-400";
-            textColorClass = "text-gray-800"; // טקסט רגיל, לא אדום
+              'border-red-300 bg-red-50/60 hover:bg-red-100 hover:border-red-400';
+            textColorClass = 'text-gray-800'; // טקסט רגיל, לא אדום
           }
 
           if (isCurrent) {
             statusColorClass =
-              "bg-blue-100 border-blue-400 ring-2 ring-blue-500 ring-offset-1"; // טבעת בולטת
-            textColorClass = "text-blue-900 font-semibold"; // טקסט כחול כהה ומודגש
+              'bg-blue-100 border-blue-400 ring-2 ring-blue-500 ring-offset-1'; // טבעת בולטת
+            textColorClass = 'text-blue-900 font-semibold'; // טקסט כחול כהה ומודגש
           }
 
           return (
@@ -2744,33 +2745,33 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
               key={q.id}
               type="button"
               className={cn(
-                "w-full flex items-center justify-between text-start p-3 rounded-lg transition-all duration-150 border shadow-sm group", // שימוש ב-flex ו-justify-between
+                'w-full flex items-center justify-between text-start p-3 rounded-lg transition-all duration-150 border shadow-sm group', // שימוש ב-flex ו-justify-between
                 statusColorClass
               )}
               onClick={() => handleItemClick(index)}
-              aria-current={isCurrent ? "step" : undefined}
+              aria-current={isCurrent ? 'step' : undefined}
             >
               {/* תוכן ראשי - אייקון סטטוס, מספר וטקסט שאלה */}
               <div
                 className={cn(
-                  "flex items-start gap-3 flex-1 min-w-0",
+                  'flex items-start gap-3 flex-1 min-w-0',
                   textColorClass
                 )}
               >
-                {" "}
+                {' '}
                 {/* שימוש ב-gap */}
                 <div className="flex-shrink-0 pt-0.5">{StatusIcon}</div>
                 <div className="flex-1">
                   <span
-                    className={cn("font-medium", isCurrent ? "font-bold" : "")}
+                    className={cn('font-medium', isCurrent ? 'font-bold' : '')}
                   >
                     {index + 1}.
                   </span>
                   <span
                     className="ms-1.5 text-sm leading-relaxed"
-                    style={{ whiteSpace: "normal" }}
+                    style={{ whiteSpace: 'normal' }}
                   >
-                    {" "}
+                    {' '}
                     {/* שימוש ב-ms (margin-start) שמתאים ל-RTL/LTR */}
                     {q.question}
                   </span>
@@ -2779,7 +2780,7 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
                     <Badge
                       variant="outline"
                       className={cn(
-                        "text-xs px-1.5 py-0.5 rounded-full font-normal border", // גבול דק
+                        'text-xs px-1.5 py-0.5 rounded-full font-normal border', // גבול דק
                         depthBadgeColors[q.depth]
                       )}
                     >
@@ -2793,8 +2794,8 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
               {isCurrent && (
                 <ChevronLeft
                   className={cn(
-                    "h-5 w-5 text-blue-600 flex-shrink-0 transform transition-transform",
-                    isRTL ? "rotate-180" : "" // היפוך החץ ב-RTL
+                    'h-5 w-5 text-blue-600 flex-shrink-0 transform transition-transform',
+                    isRTL ? 'rotate-180' : '' // היפוך החץ ב-RTL
                   )}
                 />
               )}
@@ -2802,8 +2803,8 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
               {!isCurrent && (
                 <ChevronLeft
                   className={cn(
-                    "h-5 w-5 text-gray-400 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity", // מופיע ב-hover
-                    isRTL ? "rotate-180" : ""
+                    'h-5 w-5 text-gray-400 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity', // מופיע ב-hover
+                    isRTL ? 'rotate-180' : ''
                   )}
                 />
               )}
@@ -8369,14 +8370,23 @@ import {
   Activity,      // אנרגטיות, סגנון חיים פעיל
   Coffee,        // בילויים, פנאי
   Eye,           // מראה חיצוני
+  Car,
+  Flag,
+  Globe,
   HandHeart,     // אמפתיה, תמיכה, נתינה (מהפרטנר)
   Lightbulb,     // פתיחות מחשבתית, יצירתיות (בפרטנר)
   Briefcase,     // קריירה, עיסוק (של הפרטנר)
   PiggyBank,     // גישה לכסף (של הפרטנר)
   Info,
   Sparkles,
+  Palette,
   MessageCircle,
   TrendingUp,
+  Building2,     // עיר גדולה
+  Mountain,      // יישוב קהילתי
+  TreePine,      // מושב/קיבוץ
+  MapPin,        // מיקום גיאוגרפי
+  DollarSign,    // היבט כלכלי
 } from "lucide-react";
 
 export const partnerQuestions: Question[] = [
@@ -8643,6 +8653,167 @@ export const partnerQuestions: Question[] = [
     metadata: { estimatedTime: 1, helpText: "אם יש העדפה ספציפית, תוכל/י לציין זאת בהמשך או בשיחה עם השדכן." },
   },
 
+  // --- START: NEW LOCATION & COMMUNITY QUESTIONS ---
+{
+  worldId: "VALUES", // עבר לעולם הערכים כי הוא משקף ערכים עמוקים יותר מסגנון חיים בלבד
+  id: "values_living_style_and_community_vision", // ID חדש וברור יותר
+  category: "values",
+  subcategory: "community_social",
+  question: "איזה סגנון חיים, מגורים וקהילה מתאימים לחזון שלך עבור הבית העתידי? (בחר/י עד 4 אפשרויות שמשקפות אותך)",
+  type: "multiSelect",
+  depth: "ADVANCED", // שודרג ל-ADVANCED כי הוא דורש חשיבה מעמיקה
+  isRequired: true,
+  minSelections: 1,
+  maxSelections: 4, // הורחב ל-4 כדי לאפשר יותר גמישות
+  options: [
+    { 
+      icon: <Building2 />, 
+      text: "חיים עירוניים קלאסיים", 
+      value: "חיים עירוניים קלאסיים", 
+      description: "עיר גדולה או שכונה פרברית. הדגש הוא על נגישות, שירותים ואנונימיות יחסית." 
+    },
+    { 
+      icon: <Users />, 
+      text: "קהילה דתית מגובשת בעיר", 
+      value: "קהילה דתית מגובשת בעיר", 
+      description: "ליהנות מיתרונות העיר, אך עם חיי קהילה חמים, בית כנסת פעיל ומעורבות חברתית."
+    },
+    { 
+      icon: <Sparkles />, 
+      text: "גרעין תורני / חיים של שליחות", 
+      value: "גרעין תורני / חיים של שליחות", 
+      description: "חיים עם אידיאל, במטרה לחזק את הזהות היהודית בסביבה הטרוגנית."
+    },
+    { 
+      icon: <Mountain />, 
+      text: "יישוב קהילתי (דתי/מעורב)", 
+      value: "יישוב קהילתי (דתי/מעורב)", 
+      description: "קהילה חזקה, מרחבים פתוחים, חינוך משותף ותחושת שייכות עמוקה." 
+    },
+    { 
+      icon: <Car />, // אייקון חדש
+      text: "יישוב קרוב למרכז/לעיר גדולה", 
+      value: "יישוב קרוב למרכז/לעיר גדולה", 
+      description: "השילוב המושלם: איכות חיים של יישוב, במרחק נסיעה קצר ממרכזי תעסוקה ובילוי."
+    },
+    {
+      icon: <BookOpen />,
+      text: "עיר או שכונה חרדית",
+      value: "עיר או שכונה חרדית",
+      description: "סביבה הומוגנית עם מוסדות תורה וחינוך, ושמירה קהילתית על צביון החיים."
+    },
+    { 
+      icon: <TreePine />, 
+      text: "מושב, קיבוץ או חיים כפריים", 
+      value: "מושב, קיבוץ או חיים כפריים", 
+      description: "חיבור חזק לטבע ולאדמה, מרחב אישי גדול, אווירה פסטורלית ושקטה." 
+    },
+    {
+      icon: <Palette />, // אייקון חדש
+      text: "יישוב אומנותי / רוחני",
+      value: "יישוב אומנותי / רוחני",
+      description: "קהילה עם דגש על יצירתיות, ביטוי אישי, פשטות וחיבור פנימי (כמו צפת, פרדס חנה)."
+    },
+    {
+      icon: <Flag />,
+      text: "התיישבות אידיאולוגית (יו\"ש, גולן, נגב, גליל)",
+      value: "התיישבות אידיאולוגית",
+      description: "חיים מתוך אידיאל ציוני, חיבור לשורשים, אהבת הארץ והתמודדות עם אתגרים."
+    },
+    { 
+      icon: <Heart />, 
+      text: "השיקול המרכזי: קרבה למשפחה", 
+      value: "השיקול המרכזי: קרבה למשפחה", 
+      description: "הגמישות שלי לגבי מיקום תלויה בעיקר בקרבה למשפחות המוצא שלנו."
+    },
+    { 
+      icon: <Briefcase />, 
+      text: "השיקול המרכזי: קרבה לתעסוקה", 
+      value: "השיקול המרכזי: קרבה לתעסוקה", 
+      description: "חשוב לי לגור במקום עם אפשרויות תעסוקה רחבות בתחומי העיסוק שלנו."
+    },
+    {
+      icon: <PiggyBank />, // אייקון חדש
+      text: "השיקול המרכזי: עלויות מחיה נמוכות",
+      value: "השיקול המרכזי: עלויות מחיה נמוכות",
+      description: "העדיפות היא למצוא מקום המאפשר איכות חיים כלכלית גבוהה, גם במחיר של ריחוק מהמרכז."
+    },
+    { 
+      icon: <Globe />, // אייקון חדש
+      text: "פתוח/ה למגורים בקהילה יהודית בחו\"ל", 
+      value: "פתוח/ה למגורים בקהילה יהודית בחו\"ל", 
+      description: "עבור האדם הנכון, ובנסיבות המתאימות, אני רואה אפשרות בחיים מחוץ לישראל."
+    },
+    {
+      icon: <Scale />,
+      text: "מאוד גמיש/ה - ההחלטה תהיה משותפת",
+      value: "מאוד גמיש/ה - ההחלטה תהיה משותפת",
+      description: "אין לי העדפה חזקה. מאמינ/ה שנמצא את המקום הנכון עבורנו ביחד."
+    }
+  ],
+  metadata: { 
+    estimatedTime: 3, 
+    helpText: "הבחירות כאן מספרות סיפור שלם על סדרי העדיפויות שלך. בחר/י את האפשרויות שהכי מדברות אל ליבך." 
+  },
+},
+  {
+    worldId: "PARTNER",
+    id: "partner_community_character_preference",
+    category: "partner",
+    subcategory: "location_community",
+    question: "מהם המאפיינים החשובים לך ביותר באופי הקהילה והסביבה הדתית שבה תגורו? (בחר/י עד 3)",
+    type: "multiSelect",
+    depth: "ADVANCED",
+    isRequired: true,
+    options: [
+      { icon: <BookOpen />, text: "קהילה תורנית חזקה עם דמות רבנית משמעותית", value: "קהילה תורנית חזקה" },
+      { icon: <Scale />, text: "קהילה מעורבת עם מגוון רמות דתיות", value: "קהילה מעורבת" },
+      { icon: <Users />, text: "קהילה צעירה ודינמית עם הרבה משפחות צעירות", value: "קהילה צעירה ודינמית" },
+      { icon: <Sparkles />, text: "קהילה פתוחה וליברלית מבחינה דתית וחברתית", value: "קהילה פתוחה וליברלית" },
+      { icon: <Heart />, text: "קהילה חמה, תומכת ומגובשת חברתית", value: "קהילה חמה ותומכת" },
+      { icon: <ShieldCheck />, text: "קהילה שקטה ומבוססת עם דגש על פרטיות", value: "קהילה שקטה ומבוססת" },
+    ],
+    minSelections: 1,
+    maxSelections: 3,
+    metadata: { estimatedTime: 1, helpText: "האופי של הקהילה משפיע ישירות על חיי החברה, חינוך הילדים והאווירה בבית." },
+  },
+  {
+    worldId: "PARTNER",
+    id: "partner_geographical_economic_preference",
+    category: "partner",
+    subcategory: "location_community",
+    question: "בהיבט הגיאוגרפי והכלכלי, אילו שיקולים הכי חשובים לך? (בחר/י עד 2)",
+    type: "multiSelect",
+    depth: "BASIC",
+    isRequired: true,
+    options: [
+      { icon: <MapPin />, text: "מרכז הארץ - קרבה לתעסוקה, תרבות ומשפחה", value: "מרכז הארץ" },
+      { icon: <TrendingUp />, text: "פריפריה - איכות חיים, קהילתיות ועלויות מחיה נוחות יותר", value: "פריפריה" },
+      { icon: <DollarSign />, text: "מגורים ביישוב בעל עלות מחיה סבירה הם עדיפות עליונה", value: "עלות מחיה סבירה" },
+      { icon: <Briefcase />, text: "קרבה למרכזי תעסוקה רלוונטיים עבורי ועבור בן/בת הזוג", value: "קרבה למרכזי תעסוקה" },
+      { icon: <Home />, text: "קרבה למשפחת המוצא שלי או של בן/בת הזוג", value: "קרבה למשפחה" },
+    ],
+    minSelections: 1,
+    maxSelections: 2,
+    metadata: { estimatedTime: 1 },
+  },
+  {
+    worldId: "PARTNER",
+    id: "partner_relocation_flexibility",
+    category: "partner",
+    subcategory: "location_community",
+    question: "עד כמה את/ה פתוח/ה וגמיש/ה לגבי מעבר למקום מגורים חדש, גם אם הוא שונה מההעדפות הראשוניות שלך, עבור האדם הנכון?",
+    type: "scale",
+    depth: "ADVANCED",
+    isRequired: true,
+    min: 1, 
+    max: 10,
+    labels: { min: "מאוד מקובע/ת", max: "גמיש/ה לחלוטין", middle: "פתוח/ה לדיון" },
+    metadata: { estimatedTime: 1, helpText: "גמישות היא מפתח במציאת שידוך. כנות כאן תעזור לנו מאוד!" },
+  },
+  // --- END: NEW LOCATION & COMMUNITY QUESTIONS ---
+
+
   // --- חלק 6: תכונות "אדומות" (Deal Breakers) והכרחיות (Must-Haves) ---
   {
     worldId: "PARTNER",
@@ -8758,15 +8929,22 @@ export const personalityQuestions: Question[] = [
     id: "personality_introversion_extroversion",
     category: "personality",
     subcategory: "self_perception",
-    question: "היכן היית ממקם/ת את עצמך על הספקטרום בין מופנמות למוחצנות?",
+    question: "שאלה על 'הסוללה החברתית' שלך: ממה את/ה בדרך כלל שואב/ת אנרגיה?",
     type: "scale",
     depth: "BASIC",
     isRequired: true,
-    min: 1, // מופנם/ת מאוד
-    max: 10, // מוחצן/ת מאוד
-    labels: { min: "מופנם/ת מאוד", max: "מוחצן/ת מאוד", middle: "מאוזן/ת" },
-    metadata: { estimatedTime: 1, helpText: "1 - נטייה חזקה למופנמות (טוענ/ת אנרגיה לבד), 10 - נטייה חזקה למוחצנות (טוענ/ת אנרגיה בחברה)." },
-  },
+    min: 1,
+    max: 10,
+    labels: {
+      min: "מזמן שקט עם עצמי",
+      max: "ממפגשים ואינטראקציה חברתית",
+      middle: "שילוב מאוזן בין השניים",
+    },
+    metadata: {
+      estimatedTime: 1,
+      helpText: "חשוב/י על זה כך: 1 משמעותו שאת/ה 'טוענ/ת מצברים' בעיקר לבד, ו-10 משמעותו שאת/ה 'טוענ/ת מצברים' בעיקר בחברת אנשים.",
+    },
+},
   {
     worldId: "PERSONALITY",
     id: "personality_core_trait_selection",
@@ -10615,8 +10793,6 @@ import {
   List,
   PanelLeftClose,
   PanelRightClose,
-  PanelLeftOpen,
-  PanelRightOpen,
   ListChecks,
   CircleDot,
 } from "lucide-react";
@@ -10790,12 +10966,12 @@ export default function PartnerWorld({
     return (
       <WorldIntro
         worldId="PARTNER"
-        title="עולם הפרטנר: במי תרצה/י לבחור?" // עדכון כותרת
-        description="בעולם זה נגדיר יחד את התכונות, הערכים, סגנון החיים והציפיות החשובים לך ביותר בבן/בת הזוג האידיאלי/ת. ככל שתהיי/ה מדויק/ת יותר, כך נוכל לכוון אותך להתאמות בעלות פוטנציאל גבוה יותר להצלחה ואושר." // עדכון תיאור
+        title="עולם הפרטנר: במי תרצה/י לבחור?"
+        description="בעולם זה נגדיר יחד את התכונות, הערכים, סגנון החיים והציפיות החשובים לך ביותר בבן/בת הזוג האידיאלי/ת. ככל שתהיי/ה מדויק/ת יותר, כך נוכל לכוון אותך להתאמות בעלות פוטנציאל גבוה יותר להצלחה ואושר."
         estimatedTime={allQuestions.reduce((sum, q) => sum + (q.metadata?.estimatedTime || 1), 0)}
         totalQuestions={allQuestions.length}
         requiredQuestions={allQuestions.filter((q) => q.isRequired).length}
-        depths={Array.from(new Set(allQuestions.map(q => q.depth)))} // דינמי
+        depths={Array.from(new Set(allQuestions.map(q => q.depth)))}
         onStart={() => setIsIntroComplete(true)}
       />
     );
@@ -10831,7 +11007,7 @@ export default function PartnerWorld({
     (answeredQuestionsCount / allQuestions.length) * 100
   );
 
-   const renderHeader = (showSheetButton: boolean) => (
+   const renderHeader = () => (
     <div className="bg-white p-3 rounded-lg shadow-sm border space-y-2 mb-6">
       <div className="flex items-center justify-between">
         <div>
@@ -10841,17 +11017,35 @@ export default function PartnerWorld({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <div className={cn("hidden sm:flex items-center text-sm", completionPercentage === 100 ? "text-green-600" : "text-gray-600")}>
-            <CheckCircle className={cn("h-4 w-4 me-1", completionPercentage === 100 ? "text-green-500" : "text-gray-400")} />
-            <span>{completionPercentage}% הושלם</span>
-          </div>
-          {showSheetButton && (
+          {isDesktop && (
+             <Button 
+                variant={isListVisible ? "secondary" : "outline"}
+                size="sm"
+                onClick={() => setIsListVisible(!isListVisible)}
+                className="gap-2"
+             >
+                {isListVisible ? (isRTL ? <PanelRightClose className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />) : <List className="h-4 w-4" />}
+                {isListVisible ? "הסתר רשימה" : "הצג רשימה"}
+             </Button>
+          )}
+          {!isDesktop && (
             <Sheet>
-              <SheetTrigger asChild><Button variant="outline" size="sm" className="gap-1"><List className="h-4 w-4" /><span className="hidden sm:inline">רשימת שאלות</span></Button></SheetTrigger>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-1">
+                  <List className="h-4 w-4" />
+                  <span className="hidden sm:inline">רשימת שאלות</span>
+                </Button>
+              </SheetTrigger>
               <SheetContent side={isRTL ? "left" : "right"} className="w-[300px] sm:w-[400px]">
                 <SheetHeader>
-                  <SheetTitle><div className="flex items-center gap-2"><ListChecks className="h-5 w-5 text-blue-600" /><span>כל השאלות בעולם הפרטנר</span></div></SheetTitle>
-                   <SheetDescription>לחץ על שאלה כדי לעבור אליה ישירות.
+                  <SheetTitle>
+                    <div className="flex items-center gap-2">
+                      <ListChecks className="h-5 w-5 text-blue-600" />
+                      <span>כל השאלות בעולם הפרטנר</span>
+                    </div>
+                  </SheetTitle>
+                   <SheetDescription>
+                     לחץ על שאלה כדי לעבור אליה ישירות.
                      <div className="mt-3 pt-3 border-t space-y-1">
                        <div className="flex items-center text-xs text-gray-600"><CheckCircle className="h-3 w-3 text-green-500 me-1.5" /><span>הושלם</span></div>
                        <div className="flex items-center text-xs text-gray-600"><AlertCircle className="h-3 w-3 text-red-500 me-1.5" /><span>חובה (לא נענה)</span></div>
@@ -10859,7 +11053,9 @@ export default function PartnerWorld({
                      </div>
                   </SheetDescription>
                 </SheetHeader>
-                <div className="mt-4"><QuestionsList allQuestions={allQuestions} currentQuestionIndex={currentQuestionIndex} setCurrentQuestionIndex={setCurrentQuestionIndex} answers={answers} language={language} /></div>
+                <div className="mt-4">
+                  <QuestionsList allQuestions={allQuestions} currentQuestionIndex={currentQuestionIndex} setCurrentQuestionIndex={setCurrentQuestionIndex} answers={answers} language={language} />
+                </div>
               </SheetContent>
             </Sheet>
           )}
@@ -10887,26 +11083,11 @@ export default function PartnerWorld({
       )}
     </div>
   );
-
-  const ListToggleButton = () => (
-      <TooltipProvider delayDuration={100}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button variant="outline" size="icon" onClick={() => setIsListVisible(!isListVisible)} className="fixed top-[80px] z-30 bg-white/80 backdrop-blur-sm shadow-md hover:bg-gray-100 rounded-full w-10 h-10" style={isRTL ? { left: "1.5rem" } : { right: "1.5rem" }}>
-            {isListVisible ? (isRTL ? <PanelRightClose className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />) : (isRTL ? <PanelRightOpen className="h-5 w-5" /> : <PanelLeftOpen className="h-5 w-5" />)}
-            <span className="sr-only">{isListVisible ? "הסתר רשימה" : "הצג רשימה"}</span>
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side={isRTL ? "right" : "left"}><p>{isListVisible ? "הסתר רשימת שאלות" : "הצג רשימת שאלות"}</p></TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
-
+  
   if (isDesktop) {
      return (
       <div className="w-full relative" dir={isRTL ? "rtl" : "ltr"}>
-        <ListToggleButton />
-        {renderHeader(false)}
+        {renderHeader()}
         <div className={cn("transition-all duration-300 ease-in-out", isListVisible ? "grid grid-cols-12 gap-8" : "flex justify-center")}>
           <div className={cn("space-y-6", isListVisible ? "col-span-12 lg:col-span-7 xl:col-span-8" : "w-full max-w-4xl")}>
             {renderQuestionCard()}
@@ -10934,11 +11115,54 @@ export default function PartnerWorld({
     );
   } else {
      return (
-      <div className="max-w-2xl mx-auto p-2 sm:p-4 space-y-6" dir={isRTL ? "rtl" : "ltr"}>
-        {renderHeader(true)}
-        {renderQuestionCard()}
-        {renderNavigationButtons()}
-      </div>
+      <Sheet>
+        <div className="max-w-2xl mx-auto p-2 sm:p-4 space-y-6" dir={isRTL ? "rtl" : "ltr"}>
+          {renderHeader()}
+          {renderQuestionCard()}
+          {renderNavigationButtons()}
+        </div>
+
+        <SheetTrigger asChild>
+            <Button
+                variant="default"
+                className="fixed bottom-6 left-6 z-40 h-14 w-14 rounded-full shadow-lg flex items-center justify-center bg-blue-600 hover:bg-blue-700"
+                aria-label="הצג רשימת שאלות"
+            >
+                <List className="h-6 w-6 text-white" />
+            </Button>
+        </SheetTrigger>
+
+        <SheetContent
+            side={isRTL ? 'left' : 'right'}
+            className="w-[300px] sm:w-[400px]"
+        >
+            <SheetHeader>
+                <SheetTitle>
+                    <div className="flex items-center gap-2">
+                        <ListChecks className="h-5 w-5 text-blue-600" />
+                        <span>כל השאלות בעולם הפרטנר</span>
+                    </div>
+                </SheetTitle>
+                <SheetDescription>
+                    לחץ על שאלה כדי לעבור אליה ישירות.
+                    <div className="mt-3 pt-3 border-t space-y-1">
+                        <div className="flex items-center text-xs text-gray-600"><CheckCircle className="h-3 w-3 text-green-500 me-1.5" /><span>הושלם</span></div>
+                        <div className="flex items-center text-xs text-gray-600"><AlertCircle className="h-3 w-3 text-red-500 me-1.5" /><span>חובה (לא נענה)</span></div>
+                        <div className="flex items-center text-xs text-gray-600"><CircleDot className="h-3 w-3 text-gray-400 me-1.5" /><span>לא נענה</span></div>
+                    </div>
+                </SheetDescription>
+            </SheetHeader>
+            <div className="mt-4">
+                <QuestionsList
+                    allQuestions={allQuestions}
+                    currentQuestionIndex={currentQuestionIndex}
+                    setCurrentQuestionIndex={setCurrentQuestionIndex}
+                    answers={answers}
+                    language={language}
+                />
+            </div>
+        </SheetContent>
+      </Sheet>
     );
   }
 }
@@ -10964,8 +11188,6 @@ import {
   List,
   PanelLeftClose,
   PanelRightClose,
-  PanelLeftOpen,
-  PanelRightOpen,
   ListChecks,
   CircleDot,
 } from "lucide-react";
@@ -11138,12 +11360,12 @@ export default function PersonalityWorld({
     return (
       <WorldIntro
         worldId="PERSONALITY"
-        title="עולם האישיות: מי אני באמת?" // עדכון כותרת
-        description="המסע שלך מתחיל כאן! בעולם זה נצא יחד לגלות את התכונות, סגנון החיים, החוזקות והשאיפות המיוחדות שלך. ככל שנכיר אותך טוב יותר, כך נוכל לסייע במציאת התאמה שמבינה ומעריכה את מי שאת/ה." // עדכון תיאור
-        estimatedTime={allQuestions.reduce((sum, q) => sum + (q.metadata?.estimatedTime || 1), 0)} // סכום זמנים מהשאלות
+        title="עולם האישיות: מי אני באמת?"
+        description="המסע שלך מתחיל כאן! בעולם זה נצא יחד לגלות את התכונות, סגנון החיים, החוזקות והשאיפות המיוחדות שלך. ככל שנכיר אותך טוב יותר, כך נוכל לסייע במציאת התאמה שמבינה ומעריכה את מי שאת/ה."
+        estimatedTime={allQuestions.reduce((sum, q) => sum + (q.metadata?.estimatedTime || 1), 0)}
         totalQuestions={allQuestions.length}
         requiredQuestions={allQuestions.filter((q) => q.isRequired).length}
-        depths={["BASIC", "ADVANCED"]} // יש לוודא שאלו רמות העומק הקיימות בשאלות האישיות
+        depths={["BASIC", "ADVANCED"]}
         onStart={() => setIsIntroComplete(true)}
       />
     );
@@ -11179,7 +11401,7 @@ export default function PersonalityWorld({
     (answeredQuestionsCount / allQuestions.length) * 100
   );
 
-  const renderHeader = (showSheetButton: boolean) => (
+  const renderHeader = () => (
     <div className="bg-white p-3 rounded-lg shadow-sm border space-y-2 mb-6">
       <div className="flex items-center justify-between">
         <div>
@@ -11189,17 +11411,35 @@ export default function PersonalityWorld({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <div className={cn("hidden sm:flex items-center text-sm", completionPercentage === 100 ? "text-green-600" : "text-gray-600")}>
-            <CheckCircle className={cn("h-4 w-4 me-1", completionPercentage === 100 ? "text-green-500" : "text-gray-400")} />
-            <span>{completionPercentage}% הושלם</span>
-          </div>
-          {showSheetButton && (
+          {isDesktop && (
+             <Button 
+                variant={isListVisible ? "secondary" : "outline"}
+                size="sm"
+                onClick={() => setIsListVisible(!isListVisible)}
+                className="gap-2"
+             >
+                {isListVisible ? (isRTL ? <PanelRightClose className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />) : <List className="h-4 w-4" />}
+                {isListVisible ? "הסתר רשימה" : "הצג רשימה"}
+             </Button>
+          )}
+          {!isDesktop && (
             <Sheet>
-              <SheetTrigger asChild><Button variant="outline" size="sm" className="gap-1"><List className="h-4 w-4" /><span className="hidden sm:inline">רשימת שאלות</span></Button></SheetTrigger>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-1">
+                  <List className="h-4 w-4" />
+                  <span className="hidden sm:inline">רשימת שאלות</span>
+                </Button>
+              </SheetTrigger>
               <SheetContent side={isRTL ? "left" : "right"} className="w-[300px] sm:w-[400px]">
                 <SheetHeader>
-                  <SheetTitle><div className="flex items-center gap-2"><ListChecks className="h-5 w-5 text-blue-600" /><span>כל השאלות בעולם האישיות</span></div></SheetTitle>
-                   <SheetDescription>לחץ על שאלה כדי לעבור אליה ישירות.
+                  <SheetTitle>
+                    <div className="flex items-center gap-2">
+                      <ListChecks className="h-5 w-5 text-blue-600" />
+                      <span>כל השאלות בעולם האישיות</span>
+                    </div>
+                  </SheetTitle>
+                   <SheetDescription>
+                     לחץ על שאלה כדי לעבור אליה ישירות.
                      <div className="mt-3 pt-3 border-t space-y-1">
                        <div className="flex items-center text-xs text-gray-600"><CheckCircle className="h-3 w-3 text-green-500 me-1.5" /><span>הושלם</span></div>
                        <div className="flex items-center text-xs text-gray-600"><AlertCircle className="h-3 w-3 text-red-500 me-1.5" /><span>חובה (לא נענה)</span></div>
@@ -11207,7 +11447,9 @@ export default function PersonalityWorld({
                      </div>
                   </SheetDescription>
                 </SheetHeader>
-                <div className="mt-4"><QuestionsList allQuestions={allQuestions} currentQuestionIndex={currentQuestionIndex} setCurrentQuestionIndex={setCurrentQuestionIndex} answers={answers} language={language} /></div>
+                <div className="mt-4">
+                  <QuestionsList allQuestions={allQuestions} currentQuestionIndex={currentQuestionIndex} setCurrentQuestionIndex={setCurrentQuestionIndex} answers={answers} language={language} />
+                </div>
               </SheetContent>
             </Sheet>
           )}
@@ -11236,25 +11478,10 @@ export default function PersonalityWorld({
     </div>
   );
 
-  const ListToggleButton = () => (
-    <TooltipProvider delayDuration={100}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button variant="outline" size="icon" onClick={() => setIsListVisible(!isListVisible)} className="fixed top-[80px] z-30 bg-white/80 backdrop-blur-sm shadow-md hover:bg-gray-100 rounded-full w-10 h-10" style={isRTL ? { left: "1.5rem" } : { right: "1.5rem" }}>
-            {isListVisible ? (isRTL ? <PanelRightClose className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />) : (isRTL ? <PanelRightOpen className="h-5 w-5" /> : <PanelLeftOpen className="h-5 w-5" />)}
-            <span className="sr-only">{isListVisible ? "הסתר רשימה" : "הצג רשימה"}</span>
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side={isRTL ? "right" : "left"}><p>{isListVisible ? "הסתר רשימת שאלות" : "הצג רשימת שאלות"}</p></TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
-
   if (isDesktop) {
     return (
       <div className="w-full relative" dir={isRTL ? "rtl" : "ltr"}>
-        <ListToggleButton />
-        {renderHeader(false)}
+        {renderHeader()}
         <div className={cn("transition-all duration-300 ease-in-out", isListVisible ? "grid grid-cols-12 gap-8" : "flex justify-center")}>
           <div className={cn("space-y-6", isListVisible ? "col-span-12 lg:col-span-7 xl:col-span-8" : "w-full max-w-4xl")}>
             {renderQuestionCard()}
@@ -11282,11 +11509,54 @@ export default function PersonalityWorld({
     );
   } else {
     return (
-      <div className="max-w-2xl mx-auto p-2 sm:p-4 space-y-6" dir={isRTL ? "rtl" : "ltr"}>
-        {renderHeader(true)}
-        {renderQuestionCard()}
-        {renderNavigationButtons()}
-      </div>
+      <Sheet>
+        <div className="max-w-2xl mx-auto p-2 sm:p-4 space-y-6" dir={isRTL ? "rtl" : "ltr"}>
+          {renderHeader()}
+          {renderQuestionCard()}
+          {renderNavigationButtons()}
+        </div>
+
+        <SheetTrigger asChild>
+            <Button
+                variant="default"
+                className="fixed bottom-6 left-6 z-40 h-14 w-14 rounded-full shadow-lg flex items-center justify-center bg-blue-600 hover:bg-blue-700"
+                aria-label="הצג רשימת שאלות"
+            >
+                <List className="h-6 w-6 text-white" />
+            </Button>
+        </SheetTrigger>
+
+        <SheetContent
+            side={isRTL ? 'left' : 'right'}
+            className="w-[300px] sm:w-[400px]"
+        >
+            <SheetHeader>
+                <SheetTitle>
+                    <div className="flex items-center gap-2">
+                        <ListChecks className="h-5 w-5 text-blue-600" />
+                        <span>כל השאלות בעולם האישיות</span>
+                    </div>
+                </SheetTitle>
+                <SheetDescription>
+                    לחץ על שאלה כדי לעבור אליה ישירות.
+                    <div className="mt-3 pt-3 border-t space-y-1">
+                        <div className="flex items-center text-xs text-gray-600"><CheckCircle className="h-3 w-3 text-green-500 me-1.5" /><span>הושלם</span></div>
+                        <div className="flex items-center text-xs text-gray-600"><AlertCircle className="h-3 w-3 text-red-500 me-1.5" /><span>חובה (לא נענה)</span></div>
+                        <div className="flex items-center text-xs text-gray-600"><CircleDot className="h-3 w-3 text-gray-400 me-1.5" /><span>לא נענה</span></div>
+                    </div>
+                </SheetDescription>
+            </SheetHeader>
+            <div className="mt-4">
+                <QuestionsList
+                    allQuestions={allQuestions}
+                    currentQuestionIndex={currentQuestionIndex}
+                    setCurrentQuestionIndex={setCurrentQuestionIndex}
+                    answers={answers}
+                    language={language}
+                />
+            </div>
+        </SheetContent>
+      </Sheet>
     );
   }
 }
@@ -11312,8 +11582,6 @@ import {
   List,
   PanelLeftClose,
   PanelRightClose,
-  PanelLeftOpen,
-  PanelRightOpen,
   ListChecks,
   CircleDot,
 } from "lucide-react";
@@ -11486,12 +11754,12 @@ export default function RelationshipWorld({
     return (
       <WorldIntro
         worldId="RELATIONSHIP"
-        title="עולם הזוגיות: לבנות קשר משמעותי" // עדכון כותרת
-        description="ברוכים הבאים לעולם הזוגיות! כאן נבחן יחד את הציפיות שלך מקשר, את סגנון התקשורת המועדף עליך, ואיך את/ה רואה את חיי היומיום המשותפים והחזון המשפחתי. הבנה מעמיקה של צרכיך ורצונותיך תסייע לנו למצוא התאמה שיש לה פוטנציאל לקשר חזק ויציב." // עדכון תיאור
+        title="עולם הזוגיות: לבנות קשר משמעותי"
+        description="ברוכים הבאים לעולם הזוגיות! כאן נבחן יחד את הציפיות שלך מקשר, את סגנון התקשורת המועדף עליך, ואיך את/ה רואה את חיי היומיום המשותפים והחזון המשפחתי. הבנה מעמיקה של צרכיך ורצונותיך תסייע לנו למצוא התאמה שיש לה פוטנציאל לקשר חזק ויציב."
         estimatedTime={allQuestions.reduce((sum, q) => sum + (q.metadata?.estimatedTime || 1), 0)}
         totalQuestions={allQuestions.length}
         requiredQuestions={allQuestions.filter((q) => q.isRequired).length}
-        depths={Array.from(new Set(allQuestions.map(q => q.depth)))} // דינמי
+        depths={Array.from(new Set(allQuestions.map(q => q.depth)))}
         onStart={() => setIsIntroComplete(true)}
       />
     );
@@ -11527,7 +11795,7 @@ export default function RelationshipWorld({
     (answeredQuestionsCount / allQuestions.length) * 100
   );
 
-  const renderHeader = (showSheetButton: boolean) => (
+  const renderHeader = () => (
     <div className="bg-white p-3 rounded-lg shadow-sm border space-y-2 mb-6">
       <div className="flex items-center justify-between">
         <div>
@@ -11537,17 +11805,35 @@ export default function RelationshipWorld({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <div className={cn("hidden sm:flex items-center text-sm", completionPercentage === 100 ? "text-green-600" : "text-gray-600")}>
-            <CheckCircle className={cn("h-4 w-4 me-1", completionPercentage === 100 ? "text-green-500" : "text-gray-400")} />
-            <span>{completionPercentage}% הושלם</span>
-          </div>
-          {showSheetButton && (
+          {isDesktop && (
+             <Button 
+                variant={isListVisible ? "secondary" : "outline"}
+                size="sm"
+                onClick={() => setIsListVisible(!isListVisible)}
+                className="gap-2"
+             >
+                {isListVisible ? (isRTL ? <PanelRightClose className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />) : <List className="h-4 w-4" />}
+                {isListVisible ? "הסתר רשימה" : "הצג רשימה"}
+             </Button>
+          )}
+          {!isDesktop && (
             <Sheet>
-              <SheetTrigger asChild><Button variant="outline" size="sm" className="gap-1"><List className="h-4 w-4" /><span className="hidden sm:inline">רשימת שאלות</span></Button></SheetTrigger>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-1">
+                  <List className="h-4 w-4" />
+                  <span className="hidden sm:inline">רשימת שאלות</span>
+                </Button>
+              </SheetTrigger>
               <SheetContent side={isRTL ? "left" : "right"} className="w-[300px] sm:w-[400px]">
                 <SheetHeader>
-                  <SheetTitle><div className="flex items-center gap-2"><ListChecks className="h-5 w-5 text-blue-600" /><span>כל השאלות בעולם הזוגיות</span></div></SheetTitle>
-                   <SheetDescription>לחץ על שאלה כדי לעבור אליה ישירות.
+                  <SheetTitle>
+                    <div className="flex items-center gap-2">
+                      <ListChecks className="h-5 w-5 text-blue-600" />
+                      <span>כל השאלות בעולם הזוגיות</span>
+                    </div>
+                  </SheetTitle>
+                   <SheetDescription>
+                     לחץ על שאלה כדי לעבור אליה ישירות.
                      <div className="mt-3 pt-3 border-t space-y-1">
                        <div className="flex items-center text-xs text-gray-600"><CheckCircle className="h-3 w-3 text-green-500 me-1.5" /><span>הושלם</span></div>
                        <div className="flex items-center text-xs text-gray-600"><AlertCircle className="h-3 w-3 text-red-500 me-1.5" /><span>חובה (לא נענה)</span></div>
@@ -11555,7 +11841,9 @@ export default function RelationshipWorld({
                      </div>
                   </SheetDescription>
                 </SheetHeader>
-                <div className="mt-4"><QuestionsList allQuestions={allQuestions} currentQuestionIndex={currentQuestionIndex} setCurrentQuestionIndex={setCurrentQuestionIndex} answers={answers} language={language} /></div>
+                <div className="mt-4">
+                  <QuestionsList allQuestions={allQuestions} currentQuestionIndex={currentQuestionIndex} setCurrentQuestionIndex={setCurrentQuestionIndex} answers={answers} language={language} />
+                </div>
               </SheetContent>
             </Sheet>
           )}
@@ -11584,25 +11872,10 @@ export default function RelationshipWorld({
     </div>
   );
 
-  const ListToggleButton = () => (
-    <TooltipProvider delayDuration={100}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button variant="outline" size="icon" onClick={() => setIsListVisible(!isListVisible)} className="fixed top-[80px] z-30 bg-white/80 backdrop-blur-sm shadow-md hover:bg-gray-100 rounded-full w-10 h-10" style={isRTL ? { left: "1.5rem" } : { right: "1.5rem" }}>
-            {isListVisible ? (isRTL ? <PanelRightClose className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />) : (isRTL ? <PanelRightOpen className="h-5 w-5" /> : <PanelLeftOpen className="h-5 w-5" />)}
-            <span className="sr-only">{isListVisible ? "הסתר רשימה" : "הצג רשימה"}</span>
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side={isRTL ? "right" : "left"}><p>{isListVisible ? "הסתר רשימת שאלות" : "הצג רשימת שאלות"}</p></TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
-
   if (isDesktop) {
     return (
       <div className="w-full relative" dir={isRTL ? "rtl" : "ltr"}>
-        <ListToggleButton />
-        {renderHeader(false)}
+        {renderHeader()}
         <div className={cn("transition-all duration-300 ease-in-out", isListVisible ? "grid grid-cols-12 gap-8" : "flex justify-center")}>
           <div className={cn("space-y-6", isListVisible ? "col-span-12 lg:col-span-7 xl:col-span-8" : "w-full max-w-4xl")}>
             {renderQuestionCard()}
@@ -11630,11 +11903,54 @@ export default function RelationshipWorld({
     );
   } else {
     return (
-      <div className="max-w-2xl mx-auto p-2 sm:p-4 space-y-6" dir={isRTL ? "rtl" : "ltr"}>
-        {renderHeader(true)}
-        {renderQuestionCard()}
-        {renderNavigationButtons()}
-      </div>
+      <Sheet>
+        <div className="max-w-2xl mx-auto p-2 sm:p-4 space-y-6" dir={isRTL ? "rtl" : "ltr"}>
+          {renderHeader()}
+          {renderQuestionCard()}
+          {renderNavigationButtons()}
+        </div>
+
+        <SheetTrigger asChild>
+            <Button
+                variant="default"
+                className="fixed bottom-6 left-6 z-40 h-14 w-14 rounded-full shadow-lg flex items-center justify-center bg-blue-600 hover:bg-blue-700"
+                aria-label="הצג רשימת שאלות"
+            >
+                <List className="h-6 w-6 text-white" />
+            </Button>
+        </SheetTrigger>
+
+        <SheetContent
+            side={isRTL ? 'left' : 'right'}
+            className="w-[300px] sm:w-[400px]"
+        >
+            <SheetHeader>
+                <SheetTitle>
+                    <div className="flex items-center gap-2">
+                        <ListChecks className="h-5 w-5 text-blue-600" />
+                        <span>כל השאלות בעולם הזוגיות</span>
+                    </div>
+                </SheetTitle>
+                <SheetDescription>
+                    לחץ על שאלה כדי לעבור אליה ישירות.
+                    <div className="mt-3 pt-3 border-t space-y-1">
+                        <div className="flex items-center text-xs text-gray-600"><CheckCircle className="h-3 w-3 text-green-500 me-1.5" /><span>הושלם</span></div>
+                        <div className="flex items-center text-xs text-gray-600"><AlertCircle className="h-3 w-3 text-red-500 me-1.5" /><span>חובה (לא נענה)</span></div>
+                        <div className="flex items-center text-xs text-gray-600"><CircleDot className="h-3 w-3 text-gray-400 me-1.5" /><span>לא נענה</span></div>
+                    </div>
+                </SheetDescription>
+            </SheetHeader>
+            <div className="mt-4">
+                <QuestionsList
+                    allQuestions={allQuestions}
+                    currentQuestionIndex={currentQuestionIndex}
+                    setCurrentQuestionIndex={setCurrentQuestionIndex}
+                    answers={answers}
+                    language={language}
+                />
+            </div>
+        </SheetContent>
+      </Sheet>
     );
   }
 }
@@ -11645,13 +11961,13 @@ File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\questionna
 --------------------------------------------------------------------------------
 Content:
 // src/components/questionnaire/worlds/ReligionWorld.tsx
-import React, { useState, useEffect } from "react";
-import WorldIntro from "../common/WorldIntro";
-import QuestionCard from "../common/QuestionCard";
-import AnswerInput from "../common/AnswerInput";
-import QuestionsList from "../common/QuestionsList";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
+import React, { useState, useEffect } from 'react';
+import WorldIntro from '../common/WorldIntro';
+import QuestionCard from '../common/QuestionCard';
+import AnswerInput from '../common/AnswerInput';
+import QuestionsList from '../common/QuestionsList';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import {
   ArrowLeft,
   ArrowRight,
@@ -11660,12 +11976,10 @@ import {
   List,
   PanelLeftClose,
   PanelRightClose,
-  PanelLeftOpen,
-  PanelRightOpen,
   ListChecks,
   CircleDot,
-} from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+} from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Sheet,
   SheetContent,
@@ -11673,22 +11987,22 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet";
+} from '@/components/ui/sheet';
 import type {
   WorldComponentProps,
   AnswerValue,
   Question,
-} from "../types/types";
-import { religionQuestions } from "../questions/religion/religionQuestions";
-import { cn } from "@/lib/utils";
-import { useMediaQuery } from "../hooks/useMediaQuery";
-import { motion, AnimatePresence } from "framer-motion";
+} from '../types/types';
+import { religionQuestions } from '../questions/religion/religionQuestions';
+import { cn } from '@/lib/utils';
+import { useMediaQuery } from '../hooks/useMediaQuery';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from '@/components/ui/tooltip';
 
 const allQuestions = religionQuestions;
 
@@ -11697,15 +12011,17 @@ export default function ReligionWorld({
   onComplete,
   onBack,
   answers,
-  language = "he",
+  language = 'he',
   currentQuestionIndex,
   setCurrentQuestionIndex,
 }: WorldComponentProps) {
   const [isIntroComplete, setIsIntroComplete] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-  const [, setAnimateDirection] = useState<"left" | "right" | null>(null);
-  const isDesktop = useMediaQuery("(min-width: 1024px)");
-  const isRTL = language === "he";
+  const [validationErrors, setValidationErrors] = useState<
+    Record<string, string>
+  >({});
+  const [, setAnimateDirection] = useState<'left' | 'right' | null>(null);
+  const isDesktop = useMediaQuery('(min-width: 1024px)');
+  const isRTL = language === 'he';
   const [isListVisible, setIsListVisible] = useState(true);
 
   useEffect(() => {
@@ -11717,28 +12033,35 @@ export default function ReligionWorld({
     return answers.find((a) => a.questionId === questionId)?.value;
   };
 
-  const validateAnswer = (question: Question, value: AnswerValue): string | null => {
+  const validateAnswer = (
+    question: Question,
+    value: AnswerValue
+  ): string | null => {
     const isValueEmpty =
       value === undefined ||
       value === null ||
-      (typeof value === "string" && value.trim() === "") ||
+      (typeof value === 'string' && value.trim() === '') ||
       (Array.isArray(value) && value.length === 0) ||
-      (typeof value === "object" &&
+      (typeof value === 'object' &&
         !Array.isArray(value) &&
         Object.keys(value || {}).length === 0);
 
     if (question.isRequired && isValueEmpty) {
-      return "נדרשת תשובה לשאלה זו";
+      return 'נדרשת תשובה לשאלה זו';
     }
     if (!question.isRequired && isValueEmpty) {
       return null;
     }
 
     switch (question.type) {
-      case "openText": {
+      case 'openText': {
         const textValue = value as string;
         const trimmedLength = textValue?.trim().length || 0;
-        if (question.minLength && trimmedLength < question.minLength && question.isRequired) {
+        if (
+          question.minLength &&
+          trimmedLength < question.minLength &&
+          question.isRequired
+        ) {
           return `התשובה חייבת להכיל לפחות ${question.minLength} תווים`;
         }
         if (question.maxLength && trimmedLength > question.maxLength) {
@@ -11746,9 +12069,9 @@ export default function ReligionWorld({
         }
         break;
       }
-      case "multiSelect":
-      case "multiChoice":
-      case "multiSelectWithOther": {
+      case 'multiSelect':
+      case 'multiChoice':
+      case 'multiSelectWithOther': {
         const selectedValues = value as string[] | undefined;
         const count = selectedValues?.length ?? 0;
         if (question.minSelections && count < question.minSelections) {
@@ -11759,16 +12082,23 @@ export default function ReligionWorld({
         }
         break;
       }
-      case "budgetAllocation": {
+      case 'budgetAllocation': {
         const allocationValue = value as Record<string, number> | undefined;
         if (allocationValue) {
-            const totalAllocated = Object.values(allocationValue).reduce((sum, val) => sum + (val || 0), 0);
-            if (question.totalPoints && totalAllocated !== question.totalPoints && question.isRequired) {
-                return `יש להקצות בדיוק ${question.totalPoints} נקודות.`;
-            }
+          const totalAllocated = Object.values(allocationValue).reduce(
+            (sum, val) => sum + (val || 0),
+            0
+          );
+          if (
+            question.totalPoints &&
+            totalAllocated !== question.totalPoints &&
+            question.isRequired
+          ) {
+            return `יש להקצות בדיוק ${question.totalPoints} נקודות.`;
+          }
         } else if (question.isRequired && !isValueEmpty) {
-             return "נדרשת הקצאת תקציב.";
-         }
+          return 'נדרשת הקצאת תקציב.';
+        }
         break;
       }
     }
@@ -11784,33 +12114,39 @@ export default function ReligionWorld({
       setValidationErrors({ ...validationErrors, [currentQuestion.id]: error });
       return;
     }
-    setValidationErrors(prev => ({ ...prev, [currentQuestion.id]: '' }));
+    setValidationErrors((prev) => ({ ...prev, [currentQuestion.id]: '' }));
 
     if (currentQuestionIndex < allQuestions.length - 1) {
-      setAnimateDirection("left");
+      setAnimateDirection('left');
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-        const firstUnansweredRequired = allQuestions.find(q =>
-            q.isRequired && validateAnswer(q, findAnswer(q.id)) !== null
+      const firstUnansweredRequired = allQuestions.find(
+        (q) => q.isRequired && validateAnswer(q, findAnswer(q.id)) !== null
+      );
+      if (firstUnansweredRequired) {
+        const errorIndex = allQuestions.findIndex(
+          (q) => q.id === firstUnansweredRequired.id
         );
-        if (firstUnansweredRequired) {
-            const errorIndex = allQuestions.findIndex(q => q.id === firstUnansweredRequired.id);
-            if (errorIndex !== -1) {
-                setCurrentQuestionIndex(errorIndex);
-                setValidationErrors({
-                    ...validationErrors,
-                    [firstUnansweredRequired.id]: validateAnswer(firstUnansweredRequired, findAnswer(firstUnansweredRequired.id)) || "נדרשת תשובה לשאלה זו"
-                });
-            }
-        } else {
-            onComplete();
+        if (errorIndex !== -1) {
+          setCurrentQuestionIndex(errorIndex);
+          setValidationErrors({
+            ...validationErrors,
+            [firstUnansweredRequired.id]:
+              validateAnswer(
+                firstUnansweredRequired,
+                findAnswer(firstUnansweredRequired.id)
+              ) || 'נדרשת תשובה לשאלה זו',
+          });
         }
+      } else {
+        onComplete();
+      }
     }
   };
 
   const handlePrevious = () => {
     if (currentQuestionIndex > 0) {
-      setAnimateDirection("right");
+      setAnimateDirection('right');
       setCurrentQuestionIndex(currentQuestionIndex - 1);
     } else {
       onBack();
@@ -11821,25 +12157,37 @@ export default function ReligionWorld({
     const currentQuestion = allQuestions[currentQuestionIndex];
     let emptyValue: AnswerValue;
     switch (currentQuestion.type) {
-      case "multiChoice": case "multiSelect": case "multiSelectWithOther": emptyValue = []; break;
-      case "budgetAllocation": emptyValue = {}; break;
-      case "scale": emptyValue = undefined; break;
-      default: emptyValue = "";
+      case 'multiChoice':
+      case 'multiSelect':
+      case 'multiSelectWithOther':
+        emptyValue = [];
+        break;
+      case 'budgetAllocation':
+        emptyValue = {};
+        break;
+      case 'scale':
+        emptyValue = undefined;
+        break;
+      default:
+        emptyValue = '';
     }
     onAnswer(currentQuestion.id, emptyValue);
-    setValidationErrors(prev => ({ ...prev, [currentQuestion.id]: '' }));
+    setValidationErrors((prev) => ({ ...prev, [currentQuestion.id]: '' }));
   };
 
   if (!isIntroComplete) {
     return (
       <WorldIntro
         worldId="RELIGION"
-        title="עולם הדת והמסורת: אמונה והלכה בחייך" // עדכון כותרת
-        description="ברוכים הבאים לעולם הדת והמסורת. כאן נבחן את זהותך והשקפתך הדתית, את מידת שמירת המצוות שלך בחיי היומיום, את הקשר שלך לקהילה, ואת החזון שלך לחינוך דתי במשפחה. הבנה הדדית בתחום זה היא מפתח לקשר יציב ומלא משמעות." // עדכון תיאור
-        estimatedTime={allQuestions.reduce((sum, q) => sum + (q.metadata?.estimatedTime || 1), 0)}
+        title="עולם הדת והמסורת: אמונה והלכה בחייך"
+        description="ברוכים הבאים לעולם הדת והמסורת. כאן נבחן את זהותך והשקפתך הדתית, את מידת שמירת המצוות שלך בחיי היומיום, את הקשר שלך לקהילה, ואת החזון שלך לחינוך דתי במשפחה. הבנה הדדית בתחום זה היא מפתח לקשר יציב ומלא משמעות."
+        estimatedTime={allQuestions.reduce(
+          (sum, q) => sum + (q.metadata?.estimatedTime || 1),
+          0
+        )}
         totalQuestions={allQuestions.length}
         requiredQuestions={allQuestions.filter((q) => q.isRequired).length}
-        depths={Array.from(new Set(allQuestions.map(q => q.depth)))} // דינמי
+        depths={Array.from(new Set(allQuestions.map((q) => q.depth)))}
         onStart={() => setIsIntroComplete(true)}
       />
     );
@@ -11850,32 +12198,41 @@ export default function ReligionWorld({
       <div className="p-4 bg-red-50 rounded-lg border border-red-300 text-red-800 text-center">
         <h3 className="font-bold text-lg mb-2">שגיאה בטעינת השאלות</h3>
         <p>לא ניתן היה לטעון את השאלות עבור עולם זה.</p>
-        <Button className="mt-4" variant="outline" onClick={onBack}>חזרה למפה</Button>
+        <Button className="mt-4" variant="outline" onClick={onBack}>
+          חזרה למפה
+        </Button>
       </div>
     );
   }
 
   const currentQuestion = allQuestions[currentQuestionIndex];
   if (!currentQuestion) {
-     console.error(`Error: Invalid question index ${currentQuestionIndex} for ReligionWorld.`);
-     setCurrentQuestionIndex(0);
-     return <div>שגיאה בטעינת השאלה...</div>;
+    console.error(
+      `Error: Invalid question index ${currentQuestionIndex} for ReligionWorld.`
+    );
+    setCurrentQuestionIndex(0);
+    return <div>שגיאה בטעינת השאלה...</div>;
   }
 
   const progress = ((currentQuestionIndex + 1) / allQuestions.length) * 100;
   const currentValue = findAnswer(currentQuestion.id);
   const answeredQuestionsCount = allQuestions.filter((q) => {
-        const answerValue = findAnswer(q.id);
-        return answerValue !== undefined && answerValue !== null &&
-               (typeof answerValue !== 'string' || answerValue.trim() !== '') &&
-               (!Array.isArray(answerValue) || answerValue.length > 0) &&
-               (typeof answerValue !== 'object' || Array.isArray(answerValue) || Object.keys(answerValue).length > 0);
-   }).length;
+    const answerValue = findAnswer(q.id);
+    return (
+      answerValue !== undefined &&
+      answerValue !== null &&
+      (typeof answerValue !== 'string' || answerValue.trim() !== '') &&
+      (!Array.isArray(answerValue) || answerValue.length > 0) &&
+      (typeof answerValue !== 'object' ||
+        Array.isArray(answerValue) ||
+        Object.keys(answerValue).length > 0)
+    );
+  }).length;
   const completionPercentage = Math.round(
     (answeredQuestionsCount / allQuestions.length) * 100
   );
 
-  const renderHeader = (showSheetButton: boolean) => (
+  const renderHeader = () => (
     <div className="bg-white p-3 rounded-lg shadow-sm border space-y-2 mb-6">
       <div className="flex items-center justify-between">
         <div>
@@ -11885,25 +12242,71 @@ export default function ReligionWorld({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <div className={cn("hidden sm:flex items-center text-sm", completionPercentage === 100 ? "text-green-600" : "text-gray-600")}>
-            <CheckCircle className={cn("h-4 w-4 me-1", completionPercentage === 100 ? "text-green-500" : "text-gray-400")} />
-            <span>{completionPercentage}% הושלם</span>
-          </div>
-          {showSheetButton && (
+          {isDesktop && (
+            <Button
+              variant={isListVisible ? 'secondary' : 'outline'}
+              size="sm"
+              onClick={() => setIsListVisible(!isListVisible)}
+              className="gap-2"
+            >
+              {isListVisible ? (
+                isRTL ? (
+                  <PanelRightClose className="h-4 w-4" />
+                ) : (
+                  <PanelLeftClose className="h-4 w-4" />
+                )
+              ) : (
+                <List className="h-4 w-4" />
+              )}
+              {isListVisible ? 'הסתר רשימה' : 'הצג רשימה'}
+            </Button>
+          )}
+          {!isDesktop && (
             <Sheet>
-              <SheetTrigger asChild><Button variant="outline" size="sm" className="gap-1"><List className="h-4 w-4" /><span className="hidden sm:inline">רשימת שאלות</span></Button></SheetTrigger>
-              <SheetContent side={isRTL ? "left" : "right"} className="w-[300px] sm:w-[400px]">
+              <SheetTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-1">
+                  <List className="h-4 w-4" />
+                  <span className="hidden sm:inline">רשימת שאלות</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent
+                side={isRTL ? 'left' : 'right'}
+                className="w-[300px] sm:w-[400px]"
+              >
                 <SheetHeader>
-                  <SheetTitle><div className="flex items-center gap-2"><ListChecks className="h-5 w-5 text-blue-600" /><span>כל השאלות בעולם הדת</span></div></SheetTitle>
-                   <SheetDescription>לחץ על שאלה כדי לעבור אליה ישירות.
-                     <div className="mt-3 pt-3 border-t space-y-1">
-                       <div className="flex items-center text-xs text-gray-600"><CheckCircle className="h-3 w-3 text-green-500 me-1.5" /><span>הושלם</span></div>
-                       <div className="flex items-center text-xs text-gray-600"><AlertCircle className="h-3 w-3 text-red-500 me-1.5" /><span>חובה (לא נענה)</span></div>
-                       <div className="flex items-center text-xs text-gray-600"><CircleDot className="h-3 w-3 text-gray-400 me-1.5" /><span>לא נענה</span></div>
-                     </div>
+                  <SheetTitle>
+                    <div className="flex items-center gap-2">
+                      <ListChecks className="h-5 w-5 text-blue-600" />
+                      <span>כל השאלות בעולם הדת</span>
+                    </div>
+                  </SheetTitle>
+                  <SheetDescription>
+                    לחץ על שאלה כדי לעבור אליה ישירות.
+                    <div className="mt-3 pt-3 border-t space-y-1">
+                      <div className="flex items-center text-xs text-gray-600">
+                        <CheckCircle className="h-3 w-3 text-green-500 me-1.5" />
+                        <span>הושלם</span>
+                      </div>
+                      <div className="flex items-center text-xs text-gray-600">
+                        <AlertCircle className="h-3 w-3 text-red-500 me-1.5" />
+                        <span>חובה (לא נענה)</span>
+                      </div>
+                      <div className="flex items-center text-xs text-gray-600">
+                        <CircleDot className="h-3 w-3 text-gray-400 me-1.5" />
+                        <span>לא נענה</span>
+                      </div>
+                    </div>
                   </SheetDescription>
                 </SheetHeader>
-                <div className="mt-4"><QuestionsList allQuestions={allQuestions} currentQuestionIndex={currentQuestionIndex} setCurrentQuestionIndex={setCurrentQuestionIndex} answers={answers} language={language} /></div>
+                <div className="mt-4">
+                  <QuestionsList
+                    allQuestions={allQuestions}
+                    currentQuestionIndex={currentQuestionIndex}
+                    setCurrentQuestionIndex={setCurrentQuestionIndex}
+                    answers={answers}
+                    language={language}
+                  />
+                </div>
               </SheetContent>
             </Sheet>
           )}
@@ -11914,61 +12317,146 @@ export default function ReligionWorld({
   );
 
   const renderQuestionCard = () => (
-    <motion.div className={cn("transition-opacity duration-300")} key={currentQuestionIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-      <QuestionCard question={currentQuestion} depth={currentQuestion.depth} isRequired={currentQuestion.isRequired} validationError={validationErrors[currentQuestion.id]} language={language}>
-        <AnswerInput question={currentQuestion} value={currentValue} onChange={(value) => { setValidationErrors(prev => ({ ...prev, [currentQuestion.id]: '' })); onAnswer(currentQuestion.id, value); }} onClear={handleClearAnswer} language={language} showValidation={!!validationErrors[currentQuestion.id]} />
+    <motion.div
+      className={cn('transition-opacity duration-300')}
+      key={currentQuestionIndex}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <QuestionCard
+        question={currentQuestion}
+        depth={currentQuestion.depth}
+        isRequired={currentQuestion.isRequired}
+        validationError={validationErrors[currentQuestion.id]}
+        language={language}
+      >
+        <AnswerInput
+          question={currentQuestion}
+          value={currentValue}
+          onChange={(value) => {
+            setValidationErrors((prev) => ({
+              ...prev,
+              [currentQuestion.id]: '',
+            }));
+            onAnswer(currentQuestion.id, value);
+          }}
+          onClear={handleClearAnswer}
+          language={language}
+          showValidation={!!validationErrors[currentQuestion.id]}
+        />
       </QuestionCard>
     </motion.div>
   );
 
   const renderNavigationButtons = () => (
     <div className="flex justify-between pt-4 mt-6 border-t">
-      <Button variant="outline" onClick={handlePrevious} className="flex items-center gap-2"><ArrowRight className="h-4 w-4" /><span>{currentQuestionIndex === 0 ? "חזור למפה" : "שאלה קודמת"}</span></Button>
+      <Button
+        variant="outline"
+        onClick={handlePrevious}
+        className="flex items-center gap-2"
+      >
+        <ArrowRight className="h-4 w-4" />
+        <span>{currentQuestionIndex === 0 ? 'חזור למפה' : 'שאלה קודמת'}</span>
+      </Button>
       {currentQuestionIndex < allQuestions.length - 1 ? (
-        <Button variant="default" onClick={handleNext} className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2"><span>שאלה הבאה</span><ArrowLeft className="h-4 w-4" /></Button>
+        <Button
+          variant="default"
+          onClick={handleNext}
+          className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2"
+        >
+          <span>שאלה הבאה</span>
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
       ) : (
-        <Button onClick={handleNext} className="bg-green-600 hover:bg-green-700 flex items-center gap-2"><span>סיים עולם זה</span><CheckCircle className="h-4 w-4" /></Button>
+        <Button
+          onClick={handleNext}
+          className="bg-green-600 hover:bg-green-700 flex items-center gap-2"
+        >
+          <span>סיים עולם זה</span>
+          <CheckCircle className="h-4 w-4" />
+        </Button>
       )}
     </div>
   );
 
-  const ListToggleButton = () => (
-    <TooltipProvider delayDuration={100}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button variant="outline" size="icon" onClick={() => setIsListVisible(!isListVisible)} className="fixed top-[80px] z-30 bg-white/80 backdrop-blur-sm shadow-md hover:bg-gray-100 rounded-full w-10 h-10" style={isRTL ? { left: "1.5rem" } : { right: "1.5rem" }}>
-            {isListVisible ? (isRTL ? <PanelRightClose className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />) : (isRTL ? <PanelRightOpen className="h-5 w-5" /> : <PanelLeftOpen className="h-5 w-5" />)}
-            <span className="sr-only">{isListVisible ? "הסתר רשימה" : "הצג רשימה"}</span>
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side={isRTL ? "right" : "left"}><p>{isListVisible ? "הסתר רשימת שאלות" : "הצג רשימת שאלות"}</p></TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
-
   if (isDesktop) {
     return (
-      <div className="w-full relative" dir={isRTL ? "rtl" : "ltr"}>
-        <ListToggleButton />
-        {renderHeader(false)}
-        <div className={cn("transition-all duration-300 ease-in-out", isListVisible ? "grid grid-cols-12 gap-8" : "flex justify-center")}>
-          <div className={cn("space-y-6", isListVisible ? "col-span-12 lg:col-span-7 xl:col-span-8" : "w-full max-w-4xl")}>
+      <div className="w-full relative" dir={isRTL ? 'rtl' : 'ltr'}>
+        {renderHeader()}
+        <div
+          className={cn(
+            'transition-all duration-300 ease-in-out',
+            isListVisible ? 'grid grid-cols-12 gap-8' : 'flex justify-center'
+          )}
+        >
+          <div
+            className={cn(
+              'space-y-6',
+              isListVisible
+                ? 'col-span-12 lg:col-span-7 xl:col-span-8'
+                : 'w-full max-w-4xl'
+            )}
+          >
             {renderQuestionCard()}
             {renderNavigationButtons()}
           </div>
           <AnimatePresence>
             {isListVisible && (
-              <motion.div className="col-span-12 lg:col-span-5 xl:col-span-4" initial={{ opacity: 0, width: 0, marginInlineStart: isRTL ? "-2rem" : undefined, marginInlineEnd: isRTL ? undefined : "-2rem" }} animate={{ opacity: 1, width: "auto", marginInlineStart: 0, marginInlineEnd: 0 }} exit={{ opacity: 0, width: 0, marginInlineStart: isRTL ? "-2rem" : undefined, marginInlineEnd: isRTL ? undefined : "-2rem" }} transition={{ duration: 0.3, ease: "easeInOut" }} layout>
+              <motion.div
+                className="col-span-12 lg:col-span-5 xl:col-span-4"
+                initial={{
+                  opacity: 0,
+                  width: 0,
+                  marginInlineStart: isRTL ? '-2rem' : undefined,
+                  marginInlineEnd: isRTL ? undefined : '-2rem',
+                }}
+                animate={{
+                  opacity: 1,
+                  width: 'auto',
+                  marginInlineStart: 0,
+                  marginInlineEnd: 0,
+                }}
+                exit={{
+                  opacity: 0,
+                  width: 0,
+                  marginInlineStart: isRTL ? '-2rem' : undefined,
+                  marginInlineEnd: isRTL ? undefined : '-2rem',
+                }}
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                layout
+              >
                 <Card className="sticky top-6 shadow-lg border border-gray-200 h-[calc(100vh-5rem)] overflow-hidden flex flex-col">
-                   <CardHeader className="pb-3 pt-4 border-b bg-gray-50/50 flex-shrink-0">
-                    <CardTitle className="text-lg font-semibold flex items-center gap-2 text-gray-800"><ListChecks className="h-5 w-5 text-blue-600" /><span>שאלות בעולם זה</span></CardTitle>
+                  <CardHeader className="pb-3 pt-4 border-b bg-gray-50/50 flex-shrink-0">
+                    <CardTitle className="text-lg font-semibold flex items-center gap-2 text-gray-800">
+                      <ListChecks className="h-5 w-5 text-blue-600" />
+                      <span>שאלות בעולם זה</span>
+                    </CardTitle>
                     <div className="pt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
-                       <div className="flex items-center"><CheckCircle className="h-3 w-3 text-green-500 me-1.5" /><span>הושלם</span></div>
-                       <div className="flex items-center"><AlertCircle className="h-3 w-3 text-red-500 me-1.5" /><span>חובה</span></div>
-                       <div className="flex items-center"><CircleDot className="h-3 w-3 text-gray-400 me-1.5" /><span>לא נענה</span></div>
+                      <div className="flex items-center">
+                        <CheckCircle className="h-3 w-3 text-green-500 me-1.5" />
+                        <span>הושלם</span>
+                      </div>
+                      <div className="flex items-center">
+                        <AlertCircle className="h-3 w-3 text-red-500 me-1.5" />
+                        <span>חובה</span>
+                      </div>
+                      <div className="flex items-center">
+                        <CircleDot className="h-3 w-3 text-gray-400 me-1.5" />
+                        <span>לא נענה</span>
+                      </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-2 flex-grow overflow-hidden"><QuestionsList allQuestions={allQuestions} currentQuestionIndex={currentQuestionIndex} setCurrentQuestionIndex={setCurrentQuestionIndex} answers={answers} language={language} className="h-full" /></CardContent>
+                  <CardContent className="p-2 flex-grow overflow-hidden">
+                    <QuestionsList
+                      allQuestions={allQuestions}
+                      currentQuestionIndex={currentQuestionIndex}
+                      setCurrentQuestionIndex={setCurrentQuestionIndex}
+                      answers={answers}
+                      language={language}
+                      className="h-full"
+                    />
+                  </CardContent>
                 </Card>
               </motion.div>
             )}
@@ -11978,11 +12466,66 @@ export default function ReligionWorld({
     );
   } else {
     return (
-      <div className="max-w-2xl mx-auto p-2 sm:p-4 space-y-6" dir={isRTL ? "rtl" : "ltr"}>
-        {renderHeader(true)}
-        {renderQuestionCard()}
-        {renderNavigationButtons()}
-      </div>
+      <Sheet>
+        <div
+          className="max-w-2xl mx-auto p-2 sm:p-4 space-y-6"
+          dir={isRTL ? 'rtl' : 'ltr'}
+        >
+          {renderHeader()}
+          {renderQuestionCard()}
+          {renderNavigationButtons()}
+        </div>
+
+        <SheetTrigger asChild>
+          <Button
+            variant="default"
+            className="fixed bottom-6 left-6 z-40 h-14 w-14 rounded-full shadow-lg flex items-center justify-center bg-blue-600 hover:bg-blue-700"
+            aria-label="הצג רשימת שאלות"
+          >
+            <List className="h-6 w-6 text-white" />
+          </Button>
+        </SheetTrigger>
+
+        <SheetContent
+          side={isRTL ? 'left' : 'right'}
+          className="w-[300px] sm:w-[400px]"
+        >
+          <SheetHeader>
+            <SheetTitle>
+              <div className="flex items-center gap-2">
+                <ListChecks className="h-5 w-5 text-blue-600" />
+                <span>כל השאלות בעולם הדת</span>
+              </div>
+            </SheetTitle>
+            <SheetDescription>
+              לחץ על שאלה כדי לעבור אליה ישירות.
+              <div className="mt-3 pt-3 border-t space-y-1">
+                <div className="flex items-center text-xs text-gray-600">
+                  <CheckCircle className="h-3 w-3 text-green-500 me-1.5" />
+                  <span>הושלם</span>
+                </div>
+                <div className="flex items-center text-xs text-gray-600">
+                  <AlertCircle className="h-3 w-3 text-red-500 me-1.5" />
+                  <span>חובה (לא נענה)</span>
+                </div>
+                <div className="flex items-center text-xs text-gray-600">
+                  <CircleDot className="h-3 w-3 text-gray-400 me-1.5" />
+                  <span>לא נענה</span>
+                </div>
+              </div>
+            </SheetDescription>
+          </SheetHeader>
+          <div className="mt-4">
+            <QuestionsList
+              allQuestions={allQuestions}
+              currentQuestionIndex={currentQuestionIndex}
+              setCurrentQuestionIndex={setCurrentQuestionIndex}
+              answers={answers}
+              language={language}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
     );
   }
 }
@@ -11993,13 +12536,13 @@ File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\questionna
 --------------------------------------------------------------------------------
 Content:
 // src/components/questionnaire/worlds/ValuesWorld.tsx
-import React, { useState, useEffect } from "react";
-import WorldIntro from "../common/WorldIntro";
-import QuestionCard from "../common/QuestionCard";
-import AnswerInput from "../common/AnswerInput";
-import QuestionsList from "../common/QuestionsList";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
+import React, { useState, useEffect } from 'react';
+import WorldIntro from '../common/WorldIntro';
+import QuestionCard from '../common/QuestionCard';
+import AnswerInput from '../common/AnswerInput';
+import QuestionsList from '../common/QuestionsList';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import {
   ArrowLeft,
   ArrowRight,
@@ -12008,12 +12551,10 @@ import {
   List,
   PanelLeftClose,
   PanelRightClose,
-  PanelLeftOpen,
-  PanelRightOpen,
   ListChecks,
   CircleDot,
-} from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+} from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Sheet,
   SheetContent,
@@ -12021,22 +12562,22 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet";
+} from '@/components/ui/sheet';
 import type {
   WorldComponentProps,
   AnswerValue,
   Question,
-} from "../types/types";
-import { valuesQuestions } from "../questions/values/valuesQuestions";
-import { cn } from "@/lib/utils";
-import { useMediaQuery } from "../hooks/useMediaQuery";
-import { motion, AnimatePresence } from "framer-motion";
+} from '../types/types';
+import { valuesQuestions } from '../questions/values/valuesQuestions';
+import { cn } from '@/lib/utils';
+import { useMediaQuery } from '../hooks/useMediaQuery';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from '@/components/ui/tooltip';
 
 const allQuestions = valuesQuestions;
 
@@ -12045,15 +12586,17 @@ export default function ValuesWorld({
   onComplete,
   onBack,
   answers,
-  language = "he",
+  language = 'he',
   currentQuestionIndex,
   setCurrentQuestionIndex,
 }: WorldComponentProps) {
   const [isIntroComplete, setIsIntroComplete] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-  const [, setAnimateDirection] = useState<"left" | "right" | null>(null);
-  const isDesktop = useMediaQuery("(min-width: 1024px)");
-  const isRTL = language === "he";
+  const [validationErrors, setValidationErrors] = useState<
+    Record<string, string>
+  >({});
+  const [, setAnimateDirection] = useState<'left' | 'right' | null>(null);
+  const isDesktop = useMediaQuery('(min-width: 1024px)');
+  const isRTL = language === 'he';
   const [isListVisible, setIsListVisible] = useState(true);
 
   useEffect(() => {
@@ -12065,28 +12608,35 @@ export default function ValuesWorld({
     return answers.find((a) => a.questionId === questionId)?.value;
   };
 
-  const validateAnswer = (question: Question, value: AnswerValue): string | null => {
+  const validateAnswer = (
+    question: Question,
+    value: AnswerValue
+  ): string | null => {
     const isValueEmpty =
       value === undefined ||
       value === null ||
-      (typeof value === "string" && value.trim() === "") ||
+      (typeof value === 'string' && value.trim() === '') ||
       (Array.isArray(value) && value.length === 0) ||
-      (typeof value === "object" &&
+      (typeof value === 'object' &&
         !Array.isArray(value) &&
         Object.keys(value || {}).length === 0);
 
     if (question.isRequired && isValueEmpty) {
-      return "נדרשת תשובה לשאלה זו";
+      return 'נדרשת תשובה לשאלה זו';
     }
     if (!question.isRequired && isValueEmpty) {
       return null;
     }
 
     switch (question.type) {
-      case "openText": {
+      case 'openText': {
         const textValue = value as string;
         const trimmedLength = textValue?.trim().length || 0;
-        if (question.minLength && trimmedLength < question.minLength && question.isRequired) {
+        if (
+          question.minLength &&
+          trimmedLength < question.minLength &&
+          question.isRequired
+        ) {
           return `התשובה חייבת להכיל לפחות ${question.minLength} תווים`;
         }
         if (question.maxLength && trimmedLength > question.maxLength) {
@@ -12094,9 +12644,9 @@ export default function ValuesWorld({
         }
         break;
       }
-      case "multiSelect":
-      case "multiChoice":
-      case "multiSelectWithOther": {
+      case 'multiSelect':
+      case 'multiChoice':
+      case 'multiSelectWithOther': {
         const selectedValues = value as string[] | undefined;
         const count = selectedValues?.length ?? 0;
         if (question.minSelections && count < question.minSelections) {
@@ -12107,20 +12657,27 @@ export default function ValuesWorld({
         }
         break;
       }
-      case "budgetAllocation": {
+      case 'budgetAllocation': {
         const allocationValue = value as Record<string, number> | undefined;
         if (allocationValue) {
-            const totalAllocated = Object.values(allocationValue).reduce((sum, val) => sum + (val || 0), 0);
-            if (question.totalPoints && totalAllocated !== question.totalPoints && question.isRequired) {
-                 if (totalAllocated < question.totalPoints) {
-                    return `יש להקצות בדיוק ${question.totalPoints} נקודות. חסרות ${question.totalPoints - totalAllocated} נקודות.`;
-                 } else {
-                    return `יש להקצות בדיוק ${question.totalPoints} נקודות. יש עודף של ${totalAllocated - question.totalPoints} נקודות.`;
-                 }
+          const totalAllocated = Object.values(allocationValue).reduce(
+            (sum, val) => sum + (val || 0),
+            0
+          );
+          if (
+            question.totalPoints &&
+            totalAllocated !== question.totalPoints &&
+            question.isRequired
+          ) {
+            if (totalAllocated < question.totalPoints) {
+              return `יש להקצות בדיוק ${question.totalPoints} נקודות. חסרות ${question.totalPoints - totalAllocated} נקודות.`;
+            } else {
+              return `יש להקצות בדיוק ${question.totalPoints} נקודות. יש עודף של ${totalAllocated - question.totalPoints} נקודות.`;
             }
+          }
         } else if (question.isRequired && !isValueEmpty) {
-             return "נדרשת הקצאת תקציב.";
-         }
+          return 'נדרשת הקצאת תקציב.';
+        }
         break;
       }
     }
@@ -12136,37 +12693,43 @@ export default function ValuesWorld({
       setValidationErrors({ ...validationErrors, [currentQuestion.id]: error });
       return;
     }
-    setValidationErrors(prev => {
+    setValidationErrors((prev) => {
       const newErrors = { ...prev };
       delete newErrors[currentQuestion.id];
       return newErrors;
     });
 
     if (currentQuestionIndex < allQuestions.length - 1) {
-      setAnimateDirection("left");
+      setAnimateDirection('left');
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-        const firstUnansweredRequired = allQuestions.find(q =>
-            q.isRequired && validateAnswer(q, findAnswer(q.id)) !== null
+      const firstUnansweredRequired = allQuestions.find(
+        (q) => q.isRequired && validateAnswer(q, findAnswer(q.id)) !== null
+      );
+      if (firstUnansweredRequired) {
+        const errorIndex = allQuestions.findIndex(
+          (q) => q.id === firstUnansweredRequired.id
         );
-        if (firstUnansweredRequired) {
-            const errorIndex = allQuestions.findIndex(q => q.id === firstUnansweredRequired.id);
-            if (errorIndex !== -1) {
-                setCurrentQuestionIndex(errorIndex);
-                setValidationErrors({
-                    ...validationErrors,
-                    [firstUnansweredRequired.id]: validateAnswer(firstUnansweredRequired, findAnswer(firstUnansweredRequired.id)) || "נדרשת תשובה לשאלה זו"
-                });
-            }
-        } else {
-            onComplete();
+        if (errorIndex !== -1) {
+          setCurrentQuestionIndex(errorIndex);
+          setValidationErrors({
+            ...validationErrors,
+            [firstUnansweredRequired.id]:
+              validateAnswer(
+                firstUnansweredRequired,
+                findAnswer(firstUnansweredRequired.id)
+              ) || 'נדרשת תשובה לשאלה זו',
+          });
         }
+      } else {
+        onComplete();
+      }
     }
   };
 
   const handlePrevious = () => {
     if (currentQuestionIndex > 0) {
-      setAnimateDirection("right");
+      setAnimateDirection('right');
       setCurrentQuestionIndex(currentQuestionIndex - 1);
     } else {
       onBack();
@@ -12177,13 +12740,22 @@ export default function ValuesWorld({
     const currentQuestion = allQuestions[currentQuestionIndex];
     let emptyValue: AnswerValue;
     switch (currentQuestion.type) {
-      case "multiChoice": case "multiSelect": case "multiSelectWithOther": emptyValue = []; break;
-      case "budgetAllocation": emptyValue = {}; break;
-      case "scale": emptyValue = undefined; break;
-      default: emptyValue = "";
+      case 'multiChoice':
+      case 'multiSelect':
+      case 'multiSelectWithOther':
+        emptyValue = [];
+        break;
+      case 'budgetAllocation':
+        emptyValue = {};
+        break;
+      case 'scale':
+        emptyValue = undefined;
+        break;
+      default:
+        emptyValue = '';
     }
     onAnswer(currentQuestion.id, emptyValue);
-    setValidationErrors(prev => {
+    setValidationErrors((prev) => {
       const newErrors = { ...prev };
       delete newErrors[currentQuestion.id];
       return newErrors;
@@ -12194,12 +12766,15 @@ export default function ValuesWorld({
     return (
       <WorldIntro
         worldId="VALUES"
-        title="עולם הערכים: מה באמת מניע אותך?" // עדכון כותרת
-        description="כאן נצלול יחד אל מה שבאמת חשוב לך: העקרונות שמנחים אותך בחיים, האיזון הרצוי בין משפחה, קריירה ורוחניות, והשקפת עולמך. הבנה מעמיקה של ערכי הליבה שלך היא צעד קריטי בדרך למציאת בן/בת זוג שחולק/ת איתך את מה שבאמת משמעותי ובונה חיים משותפים." // עדכון תיאור
-        estimatedTime={allQuestions.reduce((sum, q) => sum + (q.metadata?.estimatedTime || 1), 0)}
+        title="עולם הערכים: מה באמת מניע אותך?"
+        description="כאן נצלול יחד אל מה שבאמת חשוב לך: העקרונות שמנחים אותך בחיים, האיזון הרצוי בין משפחה, קריירה ורוחניות, והשקפת עולמך. הבנה מעמיקה של ערכי הליבה שלך היא צעד קריטי בדרך למציאת בן/בת זוג שחולק/ת איתך את מה שבאמת משמעותי ובונה חיים משותפים."
+        estimatedTime={allQuestions.reduce(
+          (sum, q) => sum + (q.metadata?.estimatedTime || 1),
+          0
+        )}
         totalQuestions={allQuestions.length}
         requiredQuestions={allQuestions.filter((q) => q.isRequired).length}
-        depths={Array.from(new Set(allQuestions.map(q => q.depth)))} // דינמי
+        depths={Array.from(new Set(allQuestions.map((q) => q.depth)))}
         onStart={() => setIsIntroComplete(true)}
       />
     );
@@ -12210,19 +12785,29 @@ export default function ValuesWorld({
       <div className="p-4 bg-red-50 rounded-lg border border-red-300 text-red-800 text-center">
         <h3 className="font-bold text-lg mb-2">שגיאה בטעינת השאלות</h3>
         <p>לא ניתן היה לטעון את השאלות עבור עולם זה.</p>
-        <Button className="mt-4" variant="outline" onClick={onBack}>חזרה למפה</Button>
+        <Button className="mt-4" variant="outline" onClick={onBack}>
+          חזרה למפה
+        </Button>
       </div>
     );
   }
 
   const currentQuestion = allQuestions[currentQuestionIndex];
   if (!currentQuestion) {
-     console.error(`Error: Invalid question index ${currentQuestionIndex} for ValuesWorld.`);
-     setCurrentQuestionIndex(0);
-     return (
+    console.error(
+      `Error: Invalid question index ${currentQuestionIndex} for ValuesWorld.`
+    );
+    setCurrentQuestionIndex(0);
+    return (
       <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-300 text-yellow-800 text-center">
         <p>אירעה שגיאה בטעינת השאלה. מחזיר לשאלה הראשונה...</p>
-        <Button className="mt-2" variant="outline" onClick={() => setCurrentQuestionIndex(0)}>אישור</Button>
+        <Button
+          className="mt-2"
+          variant="outline"
+          onClick={() => setCurrentQuestionIndex(0)}
+        >
+          אישור
+        </Button>
       </div>
     );
   }
@@ -12230,17 +12815,22 @@ export default function ValuesWorld({
   const progress = ((currentQuestionIndex + 1) / allQuestions.length) * 100;
   const currentValue = findAnswer(currentQuestion.id);
   const answeredQuestionsCount = allQuestions.filter((q) => {
-        const answerValue = findAnswer(q.id);
-        return answerValue !== undefined && answerValue !== null &&
-               (typeof answerValue !== 'string' || answerValue.trim() !== '') &&
-               (!Array.isArray(answerValue) || answerValue.length > 0) &&
-               (typeof answerValue !== 'object' || Array.isArray(answerValue) || Object.keys(answerValue).length > 0);
-   }).length;
+    const answerValue = findAnswer(q.id);
+    return (
+      answerValue !== undefined &&
+      answerValue !== null &&
+      (typeof answerValue !== 'string' || answerValue.trim() !== '') &&
+      (!Array.isArray(answerValue) || answerValue.length > 0) &&
+      (typeof answerValue !== 'object' ||
+        Array.isArray(answerValue) ||
+        Object.keys(answerValue).length > 0)
+    );
+  }).length;
   const completionPercentage = Math.round(
     (answeredQuestionsCount / allQuestions.length) * 100
   );
 
-  const renderHeader = (showSheetButton: boolean) => (
+  const renderHeader = () => (
     <div className="bg-white p-3 rounded-lg shadow-sm border space-y-2 mb-6">
       <div className="flex items-center justify-between">
         <div>
@@ -12250,25 +12840,71 @@ export default function ValuesWorld({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <div className={cn("hidden sm:flex items-center text-sm", completionPercentage === 100 ? "text-green-600" : "text-gray-600")}>
-            <CheckCircle className={cn("h-4 w-4 me-1", completionPercentage === 100 ? "text-green-500" : "text-gray-400")} />
-            <span>{completionPercentage}% הושלם</span>
-          </div>
-          {showSheetButton && (
+          {isDesktop && (
+            <Button
+              variant={isListVisible ? 'secondary' : 'outline'}
+              size="sm"
+              onClick={() => setIsListVisible(!isListVisible)}
+              className="gap-2"
+            >
+              {isListVisible ? (
+                isRTL ? (
+                  <PanelRightClose className="h-4 w-4" />
+                ) : (
+                  <PanelLeftClose className="h-4 w-4" />
+                )
+              ) : (
+                <List className="h-4 w-4" />
+              )}
+              {isListVisible ? 'הסתר רשימה' : 'הצג רשימה'}
+            </Button>
+          )}
+          {!isDesktop && (
             <Sheet>
-              <SheetTrigger asChild><Button variant="outline" size="sm" className="gap-1"><List className="h-4 w-4" /><span className="hidden sm:inline">רשימת שאלות</span></Button></SheetTrigger>
-              <SheetContent side={isRTL ? "left" : "right"} className="w-[300px] sm:w-[400px]">
+              <SheetTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-1">
+                  <List className="h-4 w-4" />
+                  <span className="hidden sm:inline">רשימת שאלות</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent
+                side={isRTL ? 'left' : 'right'}
+                className="w-[300px] sm:w-[400px]"
+              >
                 <SheetHeader>
-                  <SheetTitle><div className="flex items-center gap-2"><ListChecks className="h-5 w-5 text-blue-600" /><span>כל השאלות בעולם הערכים</span></div></SheetTitle>
-                   <SheetDescription>לחץ על שאלה כדי לעבור אליה ישירות.
-                     <div className="mt-3 pt-3 border-t space-y-1">
-                       <div className="flex items-center text-xs text-gray-600"><CheckCircle className="h-3 w-3 text-green-500 me-1.5" /><span>הושלם</span></div>
-                       <div className="flex items-center text-xs text-gray-600"><AlertCircle className="h-3 w-3 text-red-500 me-1.5" /><span>חובה (לא נענה)</span></div>
-                       <div className="flex items-center text-xs text-gray-600"><CircleDot className="h-3 w-3 text-gray-400 me-1.5" /><span>לא נענה</span></div>
-                     </div>
+                  <SheetTitle>
+                    <div className="flex items-center gap-2">
+                      <ListChecks className="h-5 w-5 text-blue-600" />
+                      <span>כל השאלות בעולם הערכים</span>
+                    </div>
+                  </SheetTitle>
+                  <SheetDescription>
+                    לחץ על שאלה כדי לעבור אליה ישירות.
+                    <div className="mt-3 pt-3 border-t space-y-1">
+                      <div className="flex items-center text-xs text-gray-600">
+                        <CheckCircle className="h-3 w-3 text-green-500 me-1.5" />
+                        <span>הושלם</span>
+                      </div>
+                      <div className="flex items-center text-xs text-gray-600">
+                        <AlertCircle className="h-3 w-3 text-red-500 me-1.5" />
+                        <span>חובה (לא נענה)</span>
+                      </div>
+                      <div className="flex items-center text-xs text-gray-600">
+                        <CircleDot className="h-3 w-3 text-gray-400 me-1.5" />
+                        <span>לא נענה</span>
+                      </div>
+                    </div>
                   </SheetDescription>
                 </SheetHeader>
-                <div className="mt-4"><QuestionsList allQuestions={allQuestions} currentQuestionIndex={currentQuestionIndex} setCurrentQuestionIndex={setCurrentQuestionIndex} answers={answers} language={language} /></div>
+                <div className="mt-4">
+                  <QuestionsList
+                    allQuestions={allQuestions}
+                    currentQuestionIndex={currentQuestionIndex}
+                    setCurrentQuestionIndex={setCurrentQuestionIndex}
+                    answers={answers}
+                    language={language}
+                  />
+                </div>
               </SheetContent>
             </Sheet>
           )}
@@ -12279,61 +12915,151 @@ export default function ValuesWorld({
   );
 
   const renderQuestionCard = () => (
-    <motion.div id="onboarding-target-question-card" className={cn("transition-opacity duration-300")} key={currentQuestionIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-      <QuestionCard question={currentQuestion} depth={currentQuestion.depth} isRequired={currentQuestion.isRequired} validationError={validationErrors[currentQuestion.id]} language={language}>
-        <AnswerInput question={currentQuestion} value={currentValue} onChange={(value) => { setValidationErrors(prev => ({ ...prev, [currentQuestion.id]: '' })); onAnswer(currentQuestion.id, value); }} onClear={handleClearAnswer} language={language} showValidation={!!validationErrors[currentQuestion.id]} />
+    <motion.div
+      id="onboarding-target-question-card"
+      className={cn('transition-opacity duration-300')}
+      key={currentQuestionIndex}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <QuestionCard
+        question={currentQuestion}
+        depth={currentQuestion.depth}
+        isRequired={currentQuestion.isRequired}
+        validationError={validationErrors[currentQuestion.id]}
+        language={language}
+      >
+        <AnswerInput
+          question={currentQuestion}
+          value={currentValue}
+          onChange={(value) => {
+            setValidationErrors((prev) => ({
+              ...prev,
+              [currentQuestion.id]: '',
+            }));
+            onAnswer(currentQuestion.id, value);
+          }}
+          onClear={handleClearAnswer}
+          language={language}
+          showValidation={!!validationErrors[currentQuestion.id]}
+        />
       </QuestionCard>
     </motion.div>
   );
 
   const renderNavigationButtons = () => (
-    <div id="onboarding-target-navigation-buttons" className="flex justify-between pt-4 mt-6 border-t">
-      <Button variant="outline" onClick={handlePrevious} className="flex items-center gap-2"><ArrowRight className="h-4 w-4" /><span>{currentQuestionIndex === 0 ? "חזור למפה" : "שאלה קודמת"}</span></Button>
+    <div
+      id="onboarding-target-navigation-buttons"
+      className="flex justify-between pt-4 mt-6 border-t"
+    >
+      <Button
+        variant="outline"
+        onClick={handlePrevious}
+        className="flex items-center gap-2"
+      >
+        <ArrowRight className="h-4 w-4" />
+        <span>{currentQuestionIndex === 0 ? 'חזור למפה' : 'שאלה קודמת'}</span>
+      </Button>
       {currentQuestionIndex < allQuestions.length - 1 ? (
-        <Button variant="default" onClick={handleNext} className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2"><span>שאלה הבאה</span><ArrowLeft className="h-4 w-4" /></Button>
+        <Button
+          variant="default"
+          onClick={handleNext}
+          className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2"
+        >
+          <span>שאלה הבאה</span>
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
       ) : (
-        <Button onClick={handleNext} className="bg-green-600 hover:bg-green-700 flex items-center gap-2"><span>סיים עולם זה</span><CheckCircle className="h-4 w-4" /></Button>
+        <Button
+          onClick={handleNext}
+          className="bg-green-600 hover:bg-green-700 flex items-center gap-2"
+        >
+          <span>סיים עולם זה</span>
+          <CheckCircle className="h-4 w-4" />
+        </Button>
       )}
     </div>
   );
 
-  const ListToggleButton = () => (
-    <TooltipProvider delayDuration={100}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button variant="outline" size="icon" onClick={() => setIsListVisible(!isListVisible)} className="fixed top-[80px] z-30 bg-white/80 backdrop-blur-sm shadow-md hover:bg-gray-100 rounded-full w-10 h-10" style={isRTL ? { left: "1.5rem" } : { right: "1.5rem" }}>
-            {isListVisible ? (isRTL ? <PanelRightClose className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />) : (isRTL ? <PanelRightOpen className="h-5 w-5" /> : <PanelLeftOpen className="h-5 w-5" />)}
-            <span className="sr-only">{isListVisible ? "הסתר רשימה" : "הצג רשימה"}</span>
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side={isRTL ? "right" : "left"}><p>{isListVisible ? "הסתר רשימת שאלות" : "הצג רשימת שאלות"}</p></TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
-
   if (isDesktop) {
     return (
-      <div className="w-full relative" dir={isRTL ? "rtl" : "ltr"}>
-        <ListToggleButton />
-        {renderHeader(false)}
-        <div className={cn("transition-all duration-300 ease-in-out", isListVisible ? "grid grid-cols-12 gap-8" : "flex justify-center")}>
-          <div className={cn("space-y-6", isListVisible ? "col-span-12 lg:col-span-7 xl:col-span-8" : "w-full max-w-4xl")}>
+      <div className="w-full relative" dir={isRTL ? 'rtl' : 'ltr'}>
+        {renderHeader()}
+        <div
+          className={cn(
+            'transition-all duration-300 ease-in-out',
+            isListVisible ? 'grid grid-cols-12 gap-8' : 'flex justify-center'
+          )}
+        >
+          <div
+            className={cn(
+              'space-y-6',
+              isListVisible
+                ? 'col-span-12 lg:col-span-7 xl:col-span-8'
+                : 'w-full max-w-4xl'
+            )}
+          >
             {renderQuestionCard()}
             {renderNavigationButtons()}
           </div>
           <AnimatePresence>
             {isListVisible && (
-              <motion.div id="onboarding-target-progress-sidebar" className="col-span-12 lg:col-span-5 xl:col-span-4" initial={{ opacity: 0, width: 0, marginInlineStart: isRTL ? "-2rem" : undefined, marginInlineEnd: isRTL ? undefined : "-2rem" }} animate={{ opacity: 1, width: "auto", marginInlineStart: 0, marginInlineEnd: 0 }} exit={{ opacity: 0, width: 0, marginInlineStart: isRTL ? "-2rem" : undefined, marginInlineEnd: isRTL ? undefined : "-2rem" }} transition={{ duration: 0.3, ease: "easeInOut" }} layout>
+              <motion.div
+                id="onboarding-target-progress-sidebar"
+                className="col-span-12 lg:col-span-5 xl:col-span-4"
+                initial={{
+                  opacity: 0,
+                  width: 0,
+                  marginInlineStart: isRTL ? '-2rem' : undefined,
+                  marginInlineEnd: isRTL ? undefined : '-2rem',
+                }}
+                animate={{
+                  opacity: 1,
+                  width: 'auto',
+                  marginInlineStart: 0,
+                  marginInlineEnd: 0,
+                }}
+                exit={{
+                  opacity: 0,
+                  width: 0,
+                  marginInlineStart: isRTL ? '-2rem' : undefined,
+                  marginInlineEnd: isRTL ? undefined : '-2rem',
+                }}
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                layout
+              >
                 <Card className="sticky top-6 shadow-lg border border-gray-200 h-[calc(100vh-5rem)] overflow-hidden flex flex-col">
-                   <CardHeader className="pb-3 pt-4 border-b bg-gray-50/50 flex-shrink-0">
-                    <CardTitle className="text-lg font-semibold flex items-center gap-2 text-gray-800"><ListChecks className="h-5 w-5 text-blue-600" /><span>שאלות בעולם זה</span></CardTitle>
+                  <CardHeader className="pb-3 pt-4 border-b bg-gray-50/50 flex-shrink-0">
+                    <CardTitle className="text-lg font-semibold flex items-center gap-2 text-gray-800">
+                      <ListChecks className="h-5 w-5 text-blue-600" />
+                      <span>שאלות בעולם זה</span>
+                    </CardTitle>
                     <div className="pt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
-                       <div className="flex items-center"><CheckCircle className="h-3 w-3 text-green-500 me-1.5" /><span>הושלם</span></div>
-                       <div className="flex items-center"><AlertCircle className="h-3 w-3 text-red-500 me-1.5" /><span>חובה</span></div>
-                       <div className="flex items-center"><CircleDot className="h-3 w-3 text-gray-400 me-1.5" /><span>לא נענה</span></div>
+                      <div className="flex items-center">
+                        <CheckCircle className="h-3 w-3 text-green-500 me-1.5" />
+                        <span>הושלם</span>
+                      </div>
+                      <div className="flex items-center">
+                        <AlertCircle className="h-3 w-3 text-red-500 me-1.5" />
+                        <span>חובה</span>
+                      </div>
+                      <div className="flex items-center">
+                        <CircleDot className="h-3 w-3 text-gray-400 me-1.5" />
+                        <span>לא נענה</span>
+                      </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-2 flex-grow overflow-hidden"><QuestionsList allQuestions={allQuestions} currentQuestionIndex={currentQuestionIndex} setCurrentQuestionIndex={setCurrentQuestionIndex} answers={answers} language={language} className="h-full" /></CardContent>
+                  <CardContent className="p-2 flex-grow overflow-hidden">
+                    <QuestionsList
+                      allQuestions={allQuestions}
+                      currentQuestionIndex={currentQuestionIndex}
+                      setCurrentQuestionIndex={setCurrentQuestionIndex}
+                      answers={answers}
+                      language={language}
+                      className="h-full"
+                    />
+                  </CardContent>
                 </Card>
               </motion.div>
             )}
@@ -12343,11 +13069,66 @@ export default function ValuesWorld({
     );
   } else {
     return (
-      <div className="max-w-2xl mx-auto p-2 sm:p-4 space-y-6" dir={isRTL ? "rtl" : "ltr"}>
-        {renderHeader(true)}
-        {renderQuestionCard()}
-        {renderNavigationButtons()}
-      </div>
+      <Sheet>
+        <div
+          className="max-w-2xl mx-auto p-2 sm:p-4 space-y-6"
+          dir={isRTL ? 'rtl' : 'ltr'}
+        >
+          {renderHeader()}
+          {renderQuestionCard()}
+          {renderNavigationButtons()}
+        </div>
+
+        <SheetTrigger asChild>
+          <Button
+            variant="default"
+            className="fixed bottom-6 left-6 z-40 h-14 w-14 rounded-full shadow-lg flex items-center justify-center bg-blue-600 hover:bg-blue-700"
+            aria-label="הצג רשימת שאלות"
+          >
+            <List className="h-6 w-6 text-white" />
+          </Button>
+        </SheetTrigger>
+
+        <SheetContent
+          side={isRTL ? 'left' : 'right'}
+          className="w-[300px] sm:w-[400px]"
+        >
+          <SheetHeader>
+            <SheetTitle>
+              <div className="flex items-center gap-2">
+                <ListChecks className="h-5 w-5 text-blue-600" />
+                <span>כל השאלות בעולם הערכים</span>
+              </div>
+            </SheetTitle>
+            <SheetDescription>
+              לחץ על שאלה כדי לעבור אליה ישירות.
+              <div className="mt-3 pt-3 border-t space-y-1">
+                <div className="flex items-center text-xs text-gray-600">
+                  <CheckCircle className="h-3 w-3 text-green-500 me-1.5" />
+                  <span>הושלם</span>
+                </div>
+                <div className="flex items-center text-xs text-gray-600">
+                  <AlertCircle className="h-3 w-3 text-red-500 me-1.5" />
+                  <span>חובה (לא נענה)</span>
+                </div>
+                <div className="flex items-center text-xs text-gray-600">
+                  <CircleDot className="h-3 w-3 text-gray-400 me-1.5" />
+                  <span>לא נענה</span>
+                </div>
+              </div>
+            </SheetDescription>
+          </SheetHeader>
+          <div className="mt-4">
+            <QuestionsList
+              allQuestions={allQuestions}
+              currentQuestionIndex={currentQuestionIndex}
+              setCurrentQuestionIndex={setCurrentQuestionIndex}
+              answers={answers}
+              language={language}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
     );
   }
 }

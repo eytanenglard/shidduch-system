@@ -14,8 +14,6 @@ import {
   List,
   PanelLeftClose,
   PanelRightClose,
-  PanelLeftOpen,
-  PanelRightOpen,
   ListChecks,
   CircleDot,
 } from "lucide-react";
@@ -189,12 +187,12 @@ export default function PartnerWorld({
     return (
       <WorldIntro
         worldId="PARTNER"
-        title="עולם הפרטנר: במי תרצה/י לבחור?" // עדכון כותרת
-        description="בעולם זה נגדיר יחד את התכונות, הערכים, סגנון החיים והציפיות החשובים לך ביותר בבן/בת הזוג האידיאלי/ת. ככל שתהיי/ה מדויק/ת יותר, כך נוכל לכוון אותך להתאמות בעלות פוטנציאל גבוה יותר להצלחה ואושר." // עדכון תיאור
+        title="עולם הפרטנר: במי תרצה/י לבחור?"
+        description="בעולם זה נגדיר יחד את התכונות, הערכים, סגנון החיים והציפיות החשובים לך ביותר בבן/בת הזוג האידיאלי/ת. ככל שתהיי/ה מדויק/ת יותר, כך נוכל לכוון אותך להתאמות בעלות פוטנציאל גבוה יותר להצלחה ואושר."
         estimatedTime={allQuestions.reduce((sum, q) => sum + (q.metadata?.estimatedTime || 1), 0)}
         totalQuestions={allQuestions.length}
         requiredQuestions={allQuestions.filter((q) => q.isRequired).length}
-        depths={Array.from(new Set(allQuestions.map(q => q.depth)))} // דינמי
+        depths={Array.from(new Set(allQuestions.map(q => q.depth)))}
         onStart={() => setIsIntroComplete(true)}
       />
     );
@@ -230,7 +228,7 @@ export default function PartnerWorld({
     (answeredQuestionsCount / allQuestions.length) * 100
   );
 
-   const renderHeader = (showSheetButton: boolean) => (
+   const renderHeader = () => (
     <div className="bg-white p-3 rounded-lg shadow-sm border space-y-2 mb-6">
       <div className="flex items-center justify-between">
         <div>
@@ -240,17 +238,35 @@ export default function PartnerWorld({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <div className={cn("hidden sm:flex items-center text-sm", completionPercentage === 100 ? "text-green-600" : "text-gray-600")}>
-            <CheckCircle className={cn("h-4 w-4 me-1", completionPercentage === 100 ? "text-green-500" : "text-gray-400")} />
-            <span>{completionPercentage}% הושלם</span>
-          </div>
-          {showSheetButton && (
+          {isDesktop && (
+             <Button 
+                variant={isListVisible ? "secondary" : "outline"}
+                size="sm"
+                onClick={() => setIsListVisible(!isListVisible)}
+                className="gap-2"
+             >
+                {isListVisible ? (isRTL ? <PanelRightClose className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />) : <List className="h-4 w-4" />}
+                {isListVisible ? "הסתר רשימה" : "הצג רשימה"}
+             </Button>
+          )}
+          {!isDesktop && (
             <Sheet>
-              <SheetTrigger asChild><Button variant="outline" size="sm" className="gap-1"><List className="h-4 w-4" /><span className="hidden sm:inline">רשימת שאלות</span></Button></SheetTrigger>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-1">
+                  <List className="h-4 w-4" />
+                  <span className="hidden sm:inline">רשימת שאלות</span>
+                </Button>
+              </SheetTrigger>
               <SheetContent side={isRTL ? "left" : "right"} className="w-[300px] sm:w-[400px]">
                 <SheetHeader>
-                  <SheetTitle><div className="flex items-center gap-2"><ListChecks className="h-5 w-5 text-blue-600" /><span>כל השאלות בעולם הפרטנר</span></div></SheetTitle>
-                   <SheetDescription>לחץ על שאלה כדי לעבור אליה ישירות.
+                  <SheetTitle>
+                    <div className="flex items-center gap-2">
+                      <ListChecks className="h-5 w-5 text-blue-600" />
+                      <span>כל השאלות בעולם הפרטנר</span>
+                    </div>
+                  </SheetTitle>
+                   <SheetDescription>
+                     לחץ על שאלה כדי לעבור אליה ישירות.
                      <div className="mt-3 pt-3 border-t space-y-1">
                        <div className="flex items-center text-xs text-gray-600"><CheckCircle className="h-3 w-3 text-green-500 me-1.5" /><span>הושלם</span></div>
                        <div className="flex items-center text-xs text-gray-600"><AlertCircle className="h-3 w-3 text-red-500 me-1.5" /><span>חובה (לא נענה)</span></div>
@@ -258,7 +274,9 @@ export default function PartnerWorld({
                      </div>
                   </SheetDescription>
                 </SheetHeader>
-                <div className="mt-4"><QuestionsList allQuestions={allQuestions} currentQuestionIndex={currentQuestionIndex} setCurrentQuestionIndex={setCurrentQuestionIndex} answers={answers} language={language} /></div>
+                <div className="mt-4">
+                  <QuestionsList allQuestions={allQuestions} currentQuestionIndex={currentQuestionIndex} setCurrentQuestionIndex={setCurrentQuestionIndex} answers={answers} language={language} />
+                </div>
               </SheetContent>
             </Sheet>
           )}
@@ -286,26 +304,11 @@ export default function PartnerWorld({
       )}
     </div>
   );
-
-  const ListToggleButton = () => (
-      <TooltipProvider delayDuration={100}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button variant="outline" size="icon" onClick={() => setIsListVisible(!isListVisible)} className="fixed top-[80px] z-30 bg-white/80 backdrop-blur-sm shadow-md hover:bg-gray-100 rounded-full w-10 h-10" style={isRTL ? { left: "1.5rem" } : { right: "1.5rem" }}>
-            {isListVisible ? (isRTL ? <PanelRightClose className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />) : (isRTL ? <PanelRightOpen className="h-5 w-5" /> : <PanelLeftOpen className="h-5 w-5" />)}
-            <span className="sr-only">{isListVisible ? "הסתר רשימה" : "הצג רשימה"}</span>
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side={isRTL ? "right" : "left"}><p>{isListVisible ? "הסתר רשימת שאלות" : "הצג רשימת שאלות"}</p></TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
-
+  
   if (isDesktop) {
      return (
       <div className="w-full relative" dir={isRTL ? "rtl" : "ltr"}>
-        <ListToggleButton />
-        {renderHeader(false)}
+        {renderHeader()}
         <div className={cn("transition-all duration-300 ease-in-out", isListVisible ? "grid grid-cols-12 gap-8" : "flex justify-center")}>
           <div className={cn("space-y-6", isListVisible ? "col-span-12 lg:col-span-7 xl:col-span-8" : "w-full max-w-4xl")}>
             {renderQuestionCard()}
@@ -333,11 +336,54 @@ export default function PartnerWorld({
     );
   } else {
      return (
-      <div className="max-w-2xl mx-auto p-2 sm:p-4 space-y-6" dir={isRTL ? "rtl" : "ltr"}>
-        {renderHeader(true)}
-        {renderQuestionCard()}
-        {renderNavigationButtons()}
-      </div>
+      <Sheet>
+        <div className="max-w-2xl mx-auto p-2 sm:p-4 space-y-6" dir={isRTL ? "rtl" : "ltr"}>
+          {renderHeader()}
+          {renderQuestionCard()}
+          {renderNavigationButtons()}
+        </div>
+
+        <SheetTrigger asChild>
+            <Button
+                variant="default"
+                className="fixed bottom-6 left-6 z-40 h-14 w-14 rounded-full shadow-lg flex items-center justify-center bg-blue-600 hover:bg-blue-700"
+                aria-label="הצג רשימת שאלות"
+            >
+                <List className="h-6 w-6 text-white" />
+            </Button>
+        </SheetTrigger>
+
+        <SheetContent
+            side={isRTL ? 'left' : 'right'}
+            className="w-[300px] sm:w-[400px]"
+        >
+            <SheetHeader>
+                <SheetTitle>
+                    <div className="flex items-center gap-2">
+                        <ListChecks className="h-5 w-5 text-blue-600" />
+                        <span>כל השאלות בעולם הפרטנר</span>
+                    </div>
+                </SheetTitle>
+                <SheetDescription>
+                    לחץ על שאלה כדי לעבור אליה ישירות.
+                    <div className="mt-3 pt-3 border-t space-y-1">
+                        <div className="flex items-center text-xs text-gray-600"><CheckCircle className="h-3 w-3 text-green-500 me-1.5" /><span>הושלם</span></div>
+                        <div className="flex items-center text-xs text-gray-600"><AlertCircle className="h-3 w-3 text-red-500 me-1.5" /><span>חובה (לא נענה)</span></div>
+                        <div className="flex items-center text-xs text-gray-600"><CircleDot className="h-3 w-3 text-gray-400 me-1.5" /><span>לא נענה</span></div>
+                    </div>
+                </SheetDescription>
+            </SheetHeader>
+            <div className="mt-4">
+                <QuestionsList
+                    allQuestions={allQuestions}
+                    currentQuestionIndex={currentQuestionIndex}
+                    setCurrentQuestionIndex={setCurrentQuestionIndex}
+                    answers={answers}
+                    language={language}
+                />
+            </div>
+        </SheetContent>
+      </Sheet>
     );
   }
 }
