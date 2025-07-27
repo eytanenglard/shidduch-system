@@ -122,7 +122,6 @@ import {
   Waves,
   Wind,
   Shield,
-
   ArrowLeft,
 } from 'lucide-react';
 
@@ -5106,8 +5105,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           </div>
         )}
 
-    
-
         {/* Main Content */}
         {isDesktop ? (
           // Desktop Layout
@@ -5121,7 +5118,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               minSize={40}
               className="min-w-0 flex flex-col max-w-full overflow-hidden"
             >
-              <div className="flex-shrink-0">
+              <ScrollArea className="flex-1 min-h-0 max-w-full">
                 <ProfileHeader
                   profile={profile}
                   age={age}
@@ -5133,10 +5130,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   onPaletteChange={setSelectedPalette}
                   THEME={THEME}
                 />
-              </div>
-              <div className="flex-grow min-h-0 p-4 sm:p-6 overflow-hidden flex max-w-full">
-                <MainContentTabs />
-              </div>
+                <div className="p-4 sm:p-6 overflow-hidden flex max-w-full">
+                  <MainContentTabs />
+                </div>
+              </ScrollArea>
             </ResizablePanel>
 
             <ResizableHandle
