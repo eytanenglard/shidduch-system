@@ -122,8 +122,7 @@ import {
   Waves,
   Wind,
   Shield,
-  Maximize,
-  Minimize,
+
   ArrowLeft,
 } from 'lucide-react';
 
@@ -3092,7 +3091,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       return profile.gender === 'MALE' ? 'masculine' : 'feminine';
     }
   );
-  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const activeTabRef = useRef(activeTab);
 
@@ -3271,21 +3269,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       await onCreateSuggestion(data);
     }
     setIsSuggestDialogOpen(false);
-  };
-
-  const handleToggleFullscreen = () => {
-    const elem = document.getElementById('profile-card-container');
-    if (!elem) return;
-
-    if (!document.fullscreenElement) {
-      elem.requestFullscreen().catch((err) => {
-        console.error(
-          `Error attempting to enable full-screen mode: ${err.message} (${err.name})`
-        );
-      });
-    } else {
-      document.exitFullscreen();
-    }
   };
 
   const handleClose = () => {
@@ -3526,14 +3509,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
 
-    const onFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-    document.addEventListener('fullscreenchange', onFullscreenChange);
-
     return () => {
       window.removeEventListener('resize', checkScreenSize);
-      document.removeEventListener('fullscreenchange', onFullscreenChange);
     };
   }, []);
 
@@ -4664,7 +4641,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       </Button>
 
       {/* Center - View Toggle and Color Selector */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 flex-1 justify-center">
         <ToggleGroup
           type="single"
           value={mobileViewLayout}
@@ -4713,24 +4690,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           compact={true}
         />
       </div>
-
-      {/* Left side - Fullscreen Button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className={cn(
-          'text-gray-600 hover:text-gray-800 hover:bg-white/60 rounded-full transition-all duration-300 shadow-sm hover:shadow-md',
-          'w-10 h-10 sm:w-12 sm:h-12 min-h-[44px] min-w-[44px] touch-manipulation'
-        )}
-        onClick={handleToggleFullscreen}
-        aria-label={isFullscreen ? 'צא ממסך מלא' : 'עבור למסך מלא'}
-      >
-        {isFullscreen ? (
-          <Minimize className="w-3 h-3 sm:w-4 sm:h-4" />
-        ) : (
-          <Maximize className="w-3 h-3 sm:w-4 sm:h-4" />
-        )}
-      </Button>
     </div>
   );
 
@@ -5147,33 +5106,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           </div>
         )}
 
-        {/* Desktop Fullscreen Button */}
-        {isDesktop && (
-          <div className="absolute top-4 right-4 z-40">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className={cn(
-                    'text-gray-600 hover:text-gray-800 bg-white/80 hover:bg-white/90 rounded-full shadow-lg hover:shadow-xl transition-all duration-300',
-                    'w-10 h-10 sm:w-12 sm:h-12 min-h-[44px] min-w-[44px]'
-                  )}
-                  onClick={handleToggleFullscreen}
-                >
-                  {isFullscreen ? (
-                    <Minimize className="w-4 h-4 sm:w-5 sm:h-5" />
-                  ) : (
-                    <Maximize className="w-4 h-4 sm:w-5 sm:h-5" />
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{isFullscreen ? 'צא ממסך מלא' : 'מסך מלא'}</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        )}
+    
 
         {/* Main Content */}
         {isDesktop ? (
