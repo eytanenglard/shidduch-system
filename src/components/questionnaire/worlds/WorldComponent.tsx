@@ -57,31 +57,36 @@ const worldConfig: Record<
     questions: personalityQuestions,
     title: 'עולם האישיות',
     introTitle: 'עולם האישיות: מי אני באמת?',
-    introDescription: 'המסע שלך מתחיל כאן! בעולם זה נצא יחד לגלות את התכונות, סגנון החיים, החוזקות והשאיפות המיוחדות שלך. ככל שנכיר אותך טוב יותר, כך נוכל לסייע במציאת התאמה שמבינה ומעריכה את מי שאת/ה.',
+    introDescription:
+      'המסע שלך מתחיל כאן! בעולם זה נצא יחד לגלות את התכונות, סגנון החיים, החוזקות והשאיפות המיוחדות שלך. ככל שנכיר אותך טוב יותר, כך נוכל לסייע במציאת התאמה שמבינה ומעריכה את מי שאת/ה.',
   },
   VALUES: {
     questions: valuesQuestions,
     title: 'עולם הערכים והאמונות',
     introTitle: 'עולם הערכים: מה באמת מניע אותך?',
-    introDescription: 'כאן נצלול יחד אל מה שבאמת חשוב לך: העקרונות שמנחים אותך בחיים, האיזון הרצוי בין משפחה, קריירה ורוחניות, והשקפת עולמך. הבנה מעמיקה של ערכי הליבה שלך היא צעד קריטי בדרך למציאת בן/בת זוג שחולק/ת איתך את מה שבאמת משמעותי ובונה חיים משותפים.',
+    introDescription:
+      'כאן נצלול יחד אל מה שבאמת חשוב לך: העקרונות שמנחים אותך בחיים, האיזון הרצוי בין משפחה, קריירה ורוחניות, והשקפת עולמך. הבנה מעמיקה של ערכי הליבה שלך היא צעד קריטי בדרך למציאת בן/בת זוג שחולק/ת איתך את מה שבאמת משמעותי ובונה חיים משותפים.',
   },
   RELATIONSHIP: {
     questions: relationshipQuestions,
     title: 'עולם הזוגיות',
     introTitle: 'עולם הזוגיות: לבנות קשר משמעותי',
-    introDescription: 'ברוכים הבאים לעולם הזוגיות! כאן נבחן יחד את הציפיות שלך מקשר, את סגנון התקשורת המועדף עליך, ואיך את/ה רואה את חיי היומיום המשותפים והחזון המשפחתי. הבנה מעמיקה של צרכיך ורצונותיך תסייע לנו למצוא התאמה שיש לה פוטנציאל לקשר חזק ויציב.',
+    introDescription:
+      'ברוכים הבאים לעולם הזוגיות! כאן נבחן יחד את הציפיות שלך מקשר, את סגנון התקשורת המועדף עליך, ואיך את/ה רואה את חיי היומיום המשותפים והחזון המשפחתי. הבנה מעמיקה של צרכיך ורצונותיך תסייע לנו למצוא התאמה שיש לה פוטנציאל לקשר חזק ויציב.',
   },
   PARTNER: {
     questions: partnerQuestions,
     title: 'עולם הפרטנר',
     introTitle: 'עולם הפרטנר: במי תרצה/י לבחור?',
-    introDescription: 'בעולם זה נגדיר יחד את התכונות, הערכים, סגנון החיים והציפיות החשובים לך ביותר בבן/בת הזוג האידיאלי/ת. ככל שתהיי/ה מדויק/ת יותר, כך נוכל לכוון אותך להתאמות בעלות פוטנציאל גבוה יותר להצלחה ואושר.',
+    introDescription:
+      'בעולם זה נגדיר יחד את התכונות, הערכים, סגנון החיים והציפיות החשובים לך ביותר בבן/בת הזוג האידיאלי/ת. ככל שתהיי/ה מדויק/ת יותר, כך נוכל לכוון אותך להתאמות בעלות פוטנציאל גבוה יותר להצלחה ואושר.',
   },
   RELIGION: {
     questions: religionQuestions,
     title: 'עולם הדת והמסורת',
     introTitle: 'עולם הדת והמסורת: אמונה והלכה בחייך',
-    introDescription: 'ברוכים הבאים לעולם הדת והמסורת. כאן נבחן את זהותך והשקפתך הדתית, את מידת שמירת המצוות שלך בחיי היומיום, את הקשר שלך לקהילה, ואת החזון שלך לחינוך דתי במשפחה. הבנה הדדית בתחום זה היא מפתח לקשר יציב ומלא משמעות.',
+    introDescription:
+      'ברוכים הבאים לעולם הדת והמסורת. כאן נבחן את זהותך והשקפתך הדתית, את מידת שמירת המצוות שלך בחיי היומיום, את הקשר שלך לקהילה, ואת החזון שלך לחינוך דתי במשפחה. הבנה הדדית בתחום זה היא מפתח לקשר יציב ומלא משמעות.',
   },
 };
 
@@ -101,10 +106,17 @@ export default function WorldComponent({
   setCurrentQuestionIndex,
 }: WorldComponentDynamicProps) {
   // 4. שימוש ב-worldId כדי לשלוף את הנתונים הנכונים מהקונפיגורציה
-  const { questions: allQuestions, title, introTitle, introDescription } = worldConfig[worldId];
+  const {
+    questions: allQuestions,
+    title,
+    introTitle,
+    introDescription,
+  } = worldConfig[worldId];
 
   const [isIntroComplete, setIsIntroComplete] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [validationErrors, setValidationErrors] = useState<
+    Record<string, string>
+  >({});
   const isDesktop = useMediaQuery('(min-width: 1024px)');
   const isRTL = language === 'he';
   const [isListVisible, setIsListVisible] = useState(true);
@@ -113,7 +125,10 @@ export default function WorldComponent({
     return answers.find((a) => a.questionId === questionId)?.value;
   };
 
-  const validateAnswer = (question: Question, value: AnswerValue): string | null => {
+  const validateAnswer = (
+    question: Question,
+    value: AnswerValue
+  ): string | null => {
     const isValueEmpty =
       value === undefined ||
       value === null ||
@@ -134,7 +149,11 @@ export default function WorldComponent({
       case 'openText': {
         const textValue = value as string;
         const trimmedLength = textValue?.trim().length || 0;
-        if (question.minLength && trimmedLength < question.minLength && question.isRequired) {
+        if (
+          question.minLength &&
+          trimmedLength < question.minLength &&
+          question.isRequired
+        ) {
           return `התשובה חייבת להכיל לפחות ${question.minLength} תווים`;
         }
         if (question.maxLength && trimmedLength > question.maxLength) {
@@ -158,13 +177,20 @@ export default function WorldComponent({
       case 'budgetAllocation': {
         const allocationValue = value as Record<string, number> | undefined;
         if (allocationValue) {
-            const totalAllocated = Object.values(allocationValue).reduce((sum, val) => sum + (val || 0), 0);
-            if (question.totalPoints && totalAllocated !== question.totalPoints && question.isRequired) {
-                return `יש להקצות בדיוק ${question.totalPoints} נקודות.`;
-            }
+          const totalAllocated = Object.values(allocationValue).reduce(
+            (sum, val) => sum + (val || 0),
+            0
+          );
+          if (
+            question.totalPoints &&
+            totalAllocated !== question.totalPoints &&
+            question.isRequired
+          ) {
+            return `יש להקצות בדיוק ${question.totalPoints} נקודות.`;
+          }
         } else if (question.isRequired && !isValueEmpty) {
-             return "נדרשת הקצאת תקציב.";
-         }
+          return 'נדרשת הקצאת תקציב.';
+        }
         break;
       }
     }
@@ -180,26 +206,32 @@ export default function WorldComponent({
       setValidationErrors({ ...validationErrors, [currentQuestion.id]: error });
       return;
     }
-    setValidationErrors(prev => ({ ...prev, [currentQuestion.id]: '' }));
+    setValidationErrors((prev) => ({ ...prev, [currentQuestion.id]: '' }));
 
     if (currentQuestionIndex < allQuestions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-        const firstUnansweredRequired = allQuestions.find(q =>
-            q.isRequired && validateAnswer(q, findAnswer(q.id)) !== null
+      const firstUnansweredRequired = allQuestions.find(
+        (q) => q.isRequired && validateAnswer(q, findAnswer(q.id)) !== null
+      );
+      if (firstUnansweredRequired) {
+        const errorIndex = allQuestions.findIndex(
+          (q) => q.id === firstUnansweredRequired.id
         );
-        if (firstUnansweredRequired) {
-            const errorIndex = allQuestions.findIndex(q => q.id === firstUnansweredRequired.id);
-            if (errorIndex !== -1) {
-                setCurrentQuestionIndex(errorIndex);
-                setValidationErrors({
-                    ...validationErrors,
-                    [firstUnansweredRequired.id]: validateAnswer(firstUnansweredRequired, findAnswer(firstUnansweredRequired.id)) || "נדרשת תשובה לשאלה זו"
-                });
-            }
-        } else {
-            onComplete();
+        if (errorIndex !== -1) {
+          setCurrentQuestionIndex(errorIndex);
+          setValidationErrors({
+            ...validationErrors,
+            [firstUnansweredRequired.id]:
+              validateAnswer(
+                firstUnansweredRequired,
+                findAnswer(firstUnansweredRequired.id)
+              ) || 'נדרשת תשובה לשאלה זו',
+          });
         }
+      } else {
+        onComplete();
+      }
     }
   };
 
@@ -215,13 +247,22 @@ export default function WorldComponent({
     const currentQuestion = allQuestions[currentQuestionIndex];
     let emptyValue: AnswerValue;
     switch (currentQuestion.type) {
-      case 'multiChoice': case 'multiSelect': case 'multiSelectWithOther': emptyValue = []; break;
-      case 'budgetAllocation': emptyValue = {}; break;
-      case 'scale': emptyValue = undefined; break;
-      default: emptyValue = '';
+      case 'multiChoice':
+      case 'multiSelect':
+      case 'multiSelectWithOther':
+        emptyValue = [];
+        break;
+      case 'budgetAllocation':
+        emptyValue = {};
+        break;
+      case 'scale':
+        emptyValue = undefined;
+        break;
+      default:
+        emptyValue = '';
     }
     onAnswer(currentQuestion.id, emptyValue);
-    setValidationErrors(prev => ({ ...prev, [currentQuestion.id]: '' }));
+    setValidationErrors((prev) => ({ ...prev, [currentQuestion.id]: '' }));
   };
 
   if (!isIntroComplete) {
@@ -230,10 +271,13 @@ export default function WorldComponent({
         worldId={worldId}
         title={introTitle}
         description={introDescription}
-        estimatedTime={allQuestions.reduce((sum, q) => sum + (q.metadata?.estimatedTime || 1), 0)}
+        estimatedTime={allQuestions.reduce(
+          (sum, q) => sum + (q.metadata?.estimatedTime || 1),
+          0
+        )}
         totalQuestions={allQuestions.length}
         requiredQuestions={allQuestions.filter((q) => q.isRequired).length}
-        depths={Array.from(new Set(allQuestions.map(q => q.depth)))}
+        depths={Array.from(new Set(allQuestions.map((q) => q.depth)))}
         onStart={() => setIsIntroComplete(true)}
       />
     );
@@ -244,18 +288,22 @@ export default function WorldComponent({
       <div className="p-4 bg-red-50 rounded-lg border border-red-300 text-red-800 text-center">
         <h3 className="font-bold text-lg mb-2">שגיאה בטעינת השאלות</h3>
         <p>לא ניתן היה לטעון את השאלות עבור עולם זה.</p>
-        <Button className="mt-4" variant="outline" onClick={onBack}>חזרה למפה</Button>
+        <Button className="mt-4" variant="outline" onClick={onBack}>
+          חזרה למפה
+        </Button>
       </div>
     );
   }
 
   const currentQuestion = allQuestions[currentQuestionIndex];
   if (!currentQuestion) {
-     console.error(`Error: Invalid question index ${currentQuestionIndex} for ${worldId} World.`);
-     setCurrentQuestionIndex(0);
-     return <div>שגיאה בטעינת השאלה...</div>;
+    console.error(
+      `Error: Invalid question index ${currentQuestionIndex} for ${worldId} World.`
+    );
+    setCurrentQuestionIndex(0);
+    return <div>שגיאה בטעינת השאלה...</div>;
   }
-  
+
   const progress = ((currentQuestionIndex + 1) / allQuestions.length) * 100;
   const currentValue = findAnswer(currentQuestion.id);
 
@@ -270,15 +318,23 @@ export default function WorldComponent({
         </div>
         <div className="flex items-center gap-2">
           {isDesktop && (
-             <Button 
-                variant={isListVisible ? "secondary" : "outline"}
-                size="sm"
-                onClick={() => setIsListVisible(!isListVisible)}
-                className="gap-2"
-             >
-                {isListVisible ? (isRTL ? <PanelRightClose className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />) : <List className="h-4 w-4" />}
-                {isListVisible ? "הסתר רשימה" : "הצג רשימה"}
-             </Button>
+            <Button
+              variant={isListVisible ? 'secondary' : 'outline'}
+              size="sm"
+              onClick={() => setIsListVisible(!isListVisible)}
+              className="gap-2"
+            >
+              {isListVisible ? (
+                isRTL ? (
+                  <PanelRightClose className="h-4 w-4" />
+                ) : (
+                  <PanelLeftClose className="h-4 w-4" />
+                )
+              ) : (
+                <List className="h-4 w-4" />
+              )}
+              {isListVisible ? 'הסתר רשימה' : 'הצג רשימה'}
+            </Button>
           )}
           {!isDesktop && (
             <Sheet>
@@ -288,7 +344,10 @@ export default function WorldComponent({
                   <span className="hidden sm:inline">רשימת שאלות</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side={isRTL ? "left" : "right"} className="w-[300px] sm:w-[400px]">
+              <SheetContent
+                side={isRTL ? 'left' : 'right'}
+                className="w-[300px] sm:w-[400px]"
+              >
                 <SheetHeader>
                   <SheetTitle>
                     <div className="flex items-center gap-2">
@@ -296,17 +355,32 @@ export default function WorldComponent({
                       <span>כל השאלות ב{title}</span>
                     </div>
                   </SheetTitle>
-                   <SheetDescription>
-                     לחץ על שאלה כדי לעבור אליה ישירות.
-                     <div className="mt-3 pt-3 border-t space-y-1">
-                       <div className="flex items-center text-xs text-gray-600"><CheckCircle className="h-3 w-3 text-green-500 me-1.5" /><span>הושלם</span></div>
-                       <div className="flex items-center text-xs text-gray-600"><AlertCircle className="h-3 w-3 text-red-500 me-1.5" /><span>חובה (לא נענה)</span></div>
-                       <div className="flex items-center text-xs text-gray-600"><CircleDot className="h-3 w-3 text-gray-400 me-1.5" /><span>לא נענה</span></div>
-                     </div>
+                  <SheetDescription>
+                    לחץ על שאלה כדי לעבור אליה ישירות.
+                    <div className="mt-3 pt-3 border-t space-y-1">
+                      <div className="flex items-center text-xs text-gray-600">
+                        <CheckCircle className="h-3 w-3 text-green-500 me-1.5" />
+                        <span>הושלם</span>
+                      </div>
+                      <div className="flex items-center text-xs text-gray-600">
+                        <AlertCircle className="h-3 w-3 text-red-500 me-1.5" />
+                        <span>חובה (לא נענה)</span>
+                      </div>
+                      <div className="flex items-center text-xs text-gray-600">
+                        <CircleDot className="h-3 w-3 text-gray-400 me-1.5" />
+                        <span>לא נענה</span>
+                      </div>
+                    </div>
                   </SheetDescription>
                 </SheetHeader>
                 <div className="mt-4">
-                  <QuestionsList allQuestions={allQuestions} currentQuestionIndex={currentQuestionIndex} setCurrentQuestionIndex={setCurrentQuestionIndex} answers={answers} language={language} />
+                  <QuestionsList
+                    allQuestions={allQuestions}
+                    currentQuestionIndex={currentQuestionIndex}
+                    setCurrentQuestionIndex={setCurrentQuestionIndex}
+                    answers={answers}
+                    language={language}
+                  />
                 </div>
               </SheetContent>
             </Sheet>
@@ -316,48 +390,148 @@ export default function WorldComponent({
       <Progress value={progress} className="h-2" />
     </div>
   );
-  
+
   const renderQuestionCard = () => (
-    <motion.div className={cn("transition-opacity duration-300")} key={currentQuestionIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-      <QuestionCard question={currentQuestion} depth={currentQuestion.depth} isRequired={currentQuestion.isRequired} validationError={validationErrors[currentQuestion.id]} language={language}>
-        <AnswerInput question={currentQuestion} value={currentValue} onChange={(value) => { setValidationErrors(prev => ({ ...prev, [currentQuestion.id]: '' })); onAnswer(currentQuestion.id, value); }} onClear={handleClearAnswer} language={language} showValidation={!!validationErrors[currentQuestion.id]} />
+    <motion.div
+      className={cn('transition-opacity duration-300')}
+      key={currentQuestionIndex}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <QuestionCard
+        question={currentQuestion}
+        depth={currentQuestion.depth}
+        isRequired={currentQuestion.isRequired}
+        validationError={validationErrors[currentQuestion.id]}
+        language={language}
+      >
+        <AnswerInput
+          question={currentQuestion}
+          value={currentValue}
+          onChange={(value) => {
+            setValidationErrors((prev) => ({
+              ...prev,
+              [currentQuestion.id]: '',
+            }));
+            onAnswer(currentQuestion.id, value);
+          }}
+          onClear={handleClearAnswer}
+          language={language}
+          showValidation={!!validationErrors[currentQuestion.id]}
+        />
       </QuestionCard>
     </motion.div>
   );
 
   const renderNavigationButtons = () => (
     <div className="flex justify-between pt-4 mt-6 border-t">
-      <Button variant="outline" onClick={handlePrevious} className="flex items-center gap-2"><ArrowRight className="h-4 w-4" /><span>{currentQuestionIndex === 0 ? "חזור למפה" : "שאלה קודמת"}</span></Button>
+      <Button
+        variant="outline"
+        onClick={handlePrevious}
+        className="flex items-center gap-2"
+      >
+        <ArrowRight className="h-4 w-4" />
+        <span>{currentQuestionIndex === 0 ? 'חזור למפה' : 'שאלה קודמת'}</span>
+      </Button>
       {currentQuestionIndex < allQuestions.length - 1 ? (
-        <Button variant="default" onClick={handleNext} className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2"><span>שאלה הבאה</span><ArrowLeft className="h-4 w-4" /></Button>
+        <Button
+          variant="default"
+          onClick={handleNext}
+          className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2"
+        >
+          <span>שאלה הבאה</span>
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
       ) : (
-        <Button onClick={handleNext} className="bg-green-600 hover:bg-green-700 flex items-center gap-2"><span>סיים עולם זה</span><CheckCircle className="h-4 w-4" /></Button>
+        <Button
+          onClick={handleNext}
+          className="bg-green-600 hover:bg-green-700 flex items-center gap-2"
+        >
+          <span>סיים עולם זה</span>
+          <CheckCircle className="h-4 w-4" />
+        </Button>
       )}
     </div>
   );
 
   if (isDesktop) {
     return (
-      <div className="w-full relative" dir={isRTL ? "rtl" : "ltr"}>
+      <div className="w-full relative" dir={isRTL ? 'rtl' : 'ltr'}>
         {renderHeader()}
-        <div className={cn("transition-all duration-300 ease-in-out", isListVisible ? "grid grid-cols-12 gap-8" : "flex justify-center")}>
-          <div className={cn("space-y-6", isListVisible ? "col-span-12 lg:col-span-7 xl:col-span-8" : "w-full max-w-4xl")}>
+        <div
+          className={cn(
+            'transition-all duration-300 ease-in-out',
+            isListVisible ? 'grid grid-cols-12 gap-8' : 'flex justify-center'
+          )}
+        >
+          <div
+            className={cn(
+              'space-y-6',
+              isListVisible
+                ? 'col-span-12 lg:col-span-7 xl:col-span-8'
+                : 'w-full max-w-4xl'
+            )}
+          >
             {renderQuestionCard()}
             {renderNavigationButtons()}
           </div>
           <AnimatePresence>
             {isListVisible && (
-              <motion.div className="col-span-12 lg:col-span-5 xl:col-span-4" initial={{ opacity: 0, width: 0, marginInlineStart: isRTL ? "-2rem" : undefined, marginInlineEnd: isRTL ? undefined : "-2rem" }} animate={{ opacity: 1, width: "auto", marginInlineStart: 0, marginInlineEnd: 0 }} exit={{ opacity: 0, width: 0, marginInlineStart: isRTL ? "-2rem" : undefined, marginInlineEnd: isRTL ? undefined : "-2rem" }} transition={{ duration: 0.3, ease: "easeInOut" }} layout>
+              <motion.div
+                className="col-span-12 lg:col-span-5 xl:col-span-4"
+                initial={{
+                  opacity: 0,
+                  width: 0,
+                  marginInlineStart: isRTL ? '-2rem' : undefined,
+                  marginInlineEnd: isRTL ? undefined : '-2rem',
+                }}
+                animate={{
+                  opacity: 1,
+                  width: 'auto',
+                  marginInlineStart: 0,
+                  marginInlineEnd: 0,
+                }}
+                exit={{
+                  opacity: 0,
+                  width: 0,
+                  marginInlineStart: isRTL ? '-2rem' : undefined,
+                  marginInlineEnd: isRTL ? undefined : '-2rem',
+                }}
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                layout
+              >
                 <Card className="sticky top-6 shadow-lg border border-gray-200 h-[calc(100vh-5rem)] overflow-hidden flex flex-col">
-                   <CardHeader className="pb-3 pt-4 border-b bg-gray-50/50 flex-shrink-0">
-                    <CardTitle className="text-lg font-semibold flex items-center gap-2 text-gray-800"><ListChecks className="h-5 w-5 text-blue-600" /><span>שאלות בעולם זה</span></CardTitle>
-                     <div className="pt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
-                       <div className="flex items-center"><CheckCircle className="h-3 w-3 text-green-500 me-1.5" /><span>הושלם</span></div>
-                       <div className="flex items-center"><AlertCircle className="h-3 w-3 text-red-500 me-1.5" /><span>חובה</span></div>
-                       <div className="flex items-center"><CircleDot className="h-3 w-3 text-gray-400 me-1.5" /><span>לא נענה</span></div>
+                  <CardHeader className="pb-3 pt-4 border-b bg-gray-50/50 flex-shrink-0">
+                    <CardTitle className="text-lg font-semibold flex items-center gap-2 text-gray-800">
+                      <ListChecks className="h-5 w-5 text-blue-600" />
+                      <span>שאלות בעולם זה</span>
+                    </CardTitle>
+                    <div className="pt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
+                      <div className="flex items-center">
+                        <CheckCircle className="h-3 w-3 text-green-500 me-1.5" />
+                        <span>הושלם</span>
+                      </div>
+                      <div className="flex items-center">
+                        <AlertCircle className="h-3 w-3 text-red-500 me-1.5" />
+                        <span>חובה</span>
+                      </div>
+                      <div className="flex items-center">
+                        <CircleDot className="h-3 w-3 text-gray-400 me-1.5" />
+                        <span>לא נענה</span>
+                      </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-2 flex-grow overflow-hidden"><QuestionsList allQuestions={allQuestions} currentQuestionIndex={currentQuestionIndex} setCurrentQuestionIndex={setCurrentQuestionIndex} answers={answers} language={language} className="h-full" /></CardContent>
+                  <CardContent className="p-2 flex-grow overflow-hidden">
+                    <QuestionsList
+                      allQuestions={allQuestions}
+                      currentQuestionIndex={currentQuestionIndex}
+                      setCurrentQuestionIndex={setCurrentQuestionIndex}
+                      answers={answers}
+                      language={language}
+                      className="h-full"
+                    />
+                  </CardContent>
                 </Card>
               </motion.div>
             )}
@@ -368,51 +542,66 @@ export default function WorldComponent({
   } else {
     return (
       <Sheet>
-        <div className="max-w-2xl mx-auto p-2 sm:p-4 space-y-6" dir={isRTL ? "rtl" : "ltr"}>
+        <div
+          className="max-w-2xl mx-auto p-2 sm:p-4 space-y-6 pb-24"
+          dir={isRTL ? 'rtl' : 'ltr'}
+        >
           {renderHeader()}
           {renderQuestionCard()}
           {renderNavigationButtons()}
         </div>
 
         <SheetTrigger asChild>
-            <Button
-                variant="default"
-                className="fixed bottom-6 left-6 z-40 h-14 w-14 rounded-full shadow-lg flex items-center justify-center bg-blue-600 hover:bg-blue-700"
-                aria-label="הצג רשימת שאלות"
-            >
-                <List className="h-6 w-6 text-white" />
-            </Button>
+          <Button
+            variant="default"
+            className="fixed bottom-6 left-6 z-40 h-14 w-14 rounded-full shadow-lg flex items-center justify-center bg-blue-600 hover:bg-blue-700"
+            aria-label="הצג רשימת שאלות"
+          >
+            <List className="h-6 w-6 text-white" />
+          </Button>
         </SheetTrigger>
 
         <SheetContent
-            side={isRTL ? 'left' : 'right'}
-            className="w-[300px] sm:w-[400px]"
+          side={isRTL ? 'left' : 'right'}
+          className="w-[300px] sm:w-[400px] flex flex-col" // 1. הוספת flexbox
         >
-            <SheetHeader>
-                <SheetTitle>
-                    <div className="flex items-center gap-2">
-                        <ListChecks className="h-5 w-5 text-blue-600" />
-                        <span>כל השאלות ב{title}</span>
-                    </div>
-                </SheetTitle>
-                <SheetDescription>
-                    לחץ על שאלה כדי לעבור אליה ישירות.
-                    <div className="mt-3 pt-3 border-t space-y-1">
-                        <div className="flex items-center text-xs text-gray-600"><CheckCircle className="h-3 w-3 text-green-500 me-1.5" /><span>הושלם</span></div>
-                        <div className="flex items-center text-xs text-gray-600"><AlertCircle className="h-3 w-3 text-red-500 me-1.5" /><span>חובה (לא נענה)</span></div>
-                        <div className="flex items-center text-xs text-gray-600"><CircleDot className="h-3 w-3 text-gray-400 me-1.5" /><span>לא נענה</span></div>
-                    </div>
-                </SheetDescription>
-            </SheetHeader>
-            <div className="mt-4">
-                <QuestionsList
-                    allQuestions={allQuestions}
-                    currentQuestionIndex={currentQuestionIndex}
-                    setCurrentQuestionIndex={setCurrentQuestionIndex}
-                    answers={answers}
-                    language={language}
-                />
-            </div>
+          <SheetHeader>
+            <SheetTitle>
+              <div className="flex items-center gap-2">
+                <ListChecks className="h-5 w-5 text-blue-600" />
+                <span>כל השאלות ב{title}</span>
+              </div>
+            </SheetTitle>
+            <SheetDescription>
+              לחץ על שאלה כדי לעבור אליה ישירות.
+              <div className="mt-3 pt-3 border-t space-y-1">
+                <div className="flex items-center text-xs text-gray-600">
+                  <CheckCircle className="h-3 w-3 text-green-500 me-1.5" />
+                  <span>הושלם</span>
+                </div>
+                <div className="flex items-center text-xs text-gray-600">
+                  <AlertCircle className="h-3 w-3 text-red-500 me-1.5" />
+                  <span>חובה (לא נענה)</span>
+                </div>
+                <div className="flex items-center text-xs text-gray-600">
+                  <CircleDot className="h-3 w-3 text-gray-400 me-1.5" />
+                  <span>לא נענה</span>
+                </div>
+              </div>
+            </SheetDescription>
+          </SheetHeader>
+          {/* 2. הוספת flex-1 ו-overflow-hidden ל-div שעוטף */}
+          <div className="mt-4 flex-1 overflow-hidden">
+            <QuestionsList
+              allQuestions={allQuestions}
+              currentQuestionIndex={currentQuestionIndex}
+              setCurrentQuestionIndex={setCurrentQuestionIndex}
+              answers={answers}
+              language={language}
+              // 3. לוודא ש-QuestionsList משתמש בכל הגובה
+              className="h-full"
+            />
+          </div>
         </SheetContent>
       </Sheet>
     );
