@@ -1,11 +1,11 @@
-// src/components/questionnaire/worlds/PartnerWorld.tsx
-import React, { useState, useEffect } from "react";
-import WorldIntro from "../common/WorldIntro";
-import QuestionCard from "../common/QuestionCard";
-import AnswerInput from "../common/AnswerInput";
-import QuestionsList from "../common/QuestionsList";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
+// src/components/questionnaire/worlds/WorldComponent.tsx
+import React, { useState, useEffect } from 'react';
+import WorldIntro from '../common/WorldIntro';
+import QuestionCard from '../common/QuestionCard';
+import AnswerInput from '../common/AnswerInput';
+import QuestionsList from '../common/QuestionsList';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import {
   ArrowLeft,
   ArrowRight,
@@ -16,8 +16,8 @@ import {
   PanelRightClose,
   ListChecks,
   CircleDot,
-} from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+} from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Sheet,
   SheetContent,
@@ -25,46 +25,89 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet";
+} from '@/components/ui/sheet';
 import type {
   WorldComponentProps,
   AnswerValue,
   Question,
-} from "../types/types";
-import { partnerQuestions } from "../questions/partner/partnerQuestions";
-import { cn } from "@/lib/utils";
-import { useMediaQuery } from "../hooks/useMediaQuery";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  WorldId,
+} from '../types/types';
+import { cn } from '@/lib/utils';
+import { useMediaQuery } from '../hooks/useMediaQuery';
+import { motion, AnimatePresence } from 'framer-motion';
 
-const allQuestions = partnerQuestions;
+// 1. ייבוא כל קבצי השאלות
+import { personalityQuestions } from '../questions/personality/personalityQuestions';
+import { valuesQuestions } from '../questions/values/valuesQuestions';
+import { relationshipQuestions } from '../questions/relationship/relationshipQuestions';
+import { partnerQuestions } from '../questions/partner/partnerQuestions';
+import { religionQuestions } from '../questions/religion/religionQuestions';
 
-export default function PartnerWorld({
+// 2. יצירת אובייקט קונפיגורציה מרכזי לניהול הנתונים של כל עולם
+const worldConfig: Record<
+  WorldId,
+  {
+    questions: Question[];
+    title: string;
+    introTitle: string;
+    introDescription: string;
+  }
+> = {
+  PERSONALITY: {
+    questions: personalityQuestions,
+    title: 'עולם האישיות',
+    introTitle: 'עולם האישיות: מי אני באמת?',
+    introDescription: 'המסע שלך מתחיל כאן! בעולם זה נצא יחד לגלות את התכונות, סגנון החיים, החוזקות והשאיפות המיוחדות שלך. ככל שנכיר אותך טוב יותר, כך נוכל לסייע במציאת התאמה שמבינה ומעריכה את מי שאת/ה.',
+  },
+  VALUES: {
+    questions: valuesQuestions,
+    title: 'עולם הערכים והאמונות',
+    introTitle: 'עולם הערכים: מה באמת מניע אותך?',
+    introDescription: 'כאן נצלול יחד אל מה שבאמת חשוב לך: העקרונות שמנחים אותך בחיים, האיזון הרצוי בין משפחה, קריירה ורוחניות, והשקפת עולמך. הבנה מעמיקה של ערכי הליבה שלך היא צעד קריטי בדרך למציאת בן/בת זוג שחולק/ת איתך את מה שבאמת משמעותי ובונה חיים משותפים.',
+  },
+  RELATIONSHIP: {
+    questions: relationshipQuestions,
+    title: 'עולם הזוגיות',
+    introTitle: 'עולם הזוגיות: לבנות קשר משמעותי',
+    introDescription: 'ברוכים הבאים לעולם הזוגיות! כאן נבחן יחד את הציפיות שלך מקשר, את סגנון התקשורת המועדף עליך, ואיך את/ה רואה את חיי היומיום המשותפים והחזון המשפחתי. הבנה מעמיקה של צרכיך ורצונותיך תסייע לנו למצוא התאמה שיש לה פוטנציאל לקשר חזק ויציב.',
+  },
+  PARTNER: {
+    questions: partnerQuestions,
+    title: 'עולם הפרטנר',
+    introTitle: 'עולם הפרטנר: במי תרצה/י לבחור?',
+    introDescription: 'בעולם זה נגדיר יחד את התכונות, הערכים, סגנון החיים והציפיות החשובים לך ביותר בבן/בת הזוג האידיאלי/ת. ככל שתהיי/ה מדויק/ת יותר, כך נוכל לכוון אותך להתאמות בעלות פוטנציאל גבוה יותר להצלחה ואושר.',
+  },
+  RELIGION: {
+    questions: religionQuestions,
+    title: 'עולם הדת והמסורת',
+    introTitle: 'עולם הדת והמסורת: אמונה והלכה בחייך',
+    introDescription: 'ברוכים הבאים לעולם הדת והמסורת. כאן נבחן את זהותך והשקפתך הדתית, את מידת שמירת המצוות שלך בחיי היומיום, את הקשר שלך לקהילה, ואת החזון שלך לחינוך דתי במשפחה. הבנה הדדית בתחום זה היא מפתח לקשר יציב ומלא משמעות.',
+  },
+};
+
+// 3. הרחבת ה-Props של הקומפוננטה כדי שתקבל worldId
+interface WorldComponentDynamicProps extends WorldComponentProps {
+  worldId: WorldId;
+}
+
+export default function WorldComponent({
+  worldId,
   onAnswer,
   onComplete,
   onBack,
   answers,
-  language = "he",
+  language = 'he',
   currentQuestionIndex,
   setCurrentQuestionIndex,
-}: WorldComponentProps) {
+}: WorldComponentDynamicProps) {
+  // 4. שימוש ב-worldId כדי לשלוף את הנתונים הנכונים מהקונפיגורציה
+  const { questions: allQuestions, title, introTitle, introDescription } = worldConfig[worldId];
 
   const [isIntroComplete, setIsIntroComplete] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-  const [, setAnimateDirection] = useState<"left" | "right" | null>(null);
-  const isDesktop = useMediaQuery("(min-width: 1024px)");
-  const isRTL = language === "he";
+  const isDesktop = useMediaQuery('(min-width: 1024px)');
+  const isRTL = language === 'he';
   const [isListVisible, setIsListVisible] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setAnimateDirection(null), 300);
-    return () => clearTimeout(timer);
-  }, [currentQuestionIndex]);
 
   const findAnswer = (questionId: string) => {
     return answers.find((a) => a.questionId === questionId)?.value;
@@ -74,21 +117,21 @@ export default function PartnerWorld({
     const isValueEmpty =
       value === undefined ||
       value === null ||
-      (typeof value === "string" && value.trim() === "") ||
+      (typeof value === 'string' && value.trim() === '') ||
       (Array.isArray(value) && value.length === 0) ||
-      (typeof value === "object" &&
+      (typeof value === 'object' &&
         !Array.isArray(value) &&
         Object.keys(value || {}).length === 0);
 
     if (question.isRequired && isValueEmpty) {
-      return "נדרשת תשובה לשאלה זו";
+      return 'נדרשת תשובה לשאלה זו';
     }
     if (!question.isRequired && isValueEmpty) {
       return null;
     }
 
     switch (question.type) {
-      case "openText": {
+      case 'openText': {
         const textValue = value as string;
         const trimmedLength = textValue?.trim().length || 0;
         if (question.minLength && trimmedLength < question.minLength && question.isRequired) {
@@ -99,9 +142,9 @@ export default function PartnerWorld({
         }
         break;
       }
-      case "multiSelect":
-      case "multiChoice":
-      case "multiSelectWithOther": {
+      case 'multiSelect':
+      case 'multiChoice':
+      case 'multiSelectWithOther': {
         const selectedValues = value as string[] | undefined;
         const count = selectedValues?.length ?? 0;
         if (question.minSelections && count < question.minSelections) {
@@ -112,12 +155,12 @@ export default function PartnerWorld({
         }
         break;
       }
-      case "budgetAllocation": {
+      case 'budgetAllocation': {
         const allocationValue = value as Record<string, number> | undefined;
         if (allocationValue) {
             const totalAllocated = Object.values(allocationValue).reduce((sum, val) => sum + (val || 0), 0);
             if (question.totalPoints && totalAllocated !== question.totalPoints && question.isRequired) {
-                 return `יש להקצות בדיוק ${question.totalPoints} נקודות.`;
+                return `יש להקצות בדיוק ${question.totalPoints} נקודות.`;
             }
         } else if (question.isRequired && !isValueEmpty) {
              return "נדרשת הקצאת תקציב.";
@@ -137,10 +180,9 @@ export default function PartnerWorld({
       setValidationErrors({ ...validationErrors, [currentQuestion.id]: error });
       return;
     }
-     setValidationErrors(prev => ({ ...prev, [currentQuestion.id]: '' }));
+    setValidationErrors(prev => ({ ...prev, [currentQuestion.id]: '' }));
 
     if (currentQuestionIndex < allQuestions.length - 1) {
-      setAnimateDirection("left");
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
         const firstUnansweredRequired = allQuestions.find(q =>
@@ -148,7 +190,7 @@ export default function PartnerWorld({
         );
         if (firstUnansweredRequired) {
             const errorIndex = allQuestions.findIndex(q => q.id === firstUnansweredRequired.id);
-             if (errorIndex !== -1) {
+            if (errorIndex !== -1) {
                 setCurrentQuestionIndex(errorIndex);
                 setValidationErrors({
                     ...validationErrors,
@@ -163,7 +205,6 @@ export default function PartnerWorld({
 
   const handlePrevious = () => {
     if (currentQuestionIndex > 0) {
-      setAnimateDirection("right");
       setCurrentQuestionIndex(currentQuestionIndex - 1);
     } else {
       onBack();
@@ -174,10 +215,10 @@ export default function PartnerWorld({
     const currentQuestion = allQuestions[currentQuestionIndex];
     let emptyValue: AnswerValue;
     switch (currentQuestion.type) {
-      case "multiChoice": case "multiSelect": case "multiSelectWithOther": emptyValue = []; break;
-      case "budgetAllocation": emptyValue = {}; break;
-      case "scale": emptyValue = undefined; break;
-      default: emptyValue = "";
+      case 'multiChoice': case 'multiSelect': case 'multiSelectWithOther': emptyValue = []; break;
+      case 'budgetAllocation': emptyValue = {}; break;
+      case 'scale': emptyValue = undefined; break;
+      default: emptyValue = '';
     }
     onAnswer(currentQuestion.id, emptyValue);
     setValidationErrors(prev => ({ ...prev, [currentQuestion.id]: '' }));
@@ -186,9 +227,9 @@ export default function PartnerWorld({
   if (!isIntroComplete) {
     return (
       <WorldIntro
-        worldId="PARTNER"
-        title="עולם הפרטנר: במי תרצה/י לבחור?"
-        description="בעולם זה נגדיר יחד את התכונות, הערכים, סגנון החיים והציפיות החשובים לך ביותר בבן/בת הזוג האידיאלי/ת. ככל שתהיי/ה מדויק/ת יותר, כך נוכל לכוון אותך להתאמות בעלות פוטנציאל גבוה יותר להצלחה ואושר."
+        worldId={worldId}
+        title={introTitle}
+        description={introDescription}
         estimatedTime={allQuestions.reduce((sum, q) => sum + (q.metadata?.estimatedTime || 1), 0)}
         totalQuestions={allQuestions.length}
         requiredQuestions={allQuestions.filter((q) => q.isRequired).length}
@@ -210,29 +251,19 @@ export default function PartnerWorld({
 
   const currentQuestion = allQuestions[currentQuestionIndex];
   if (!currentQuestion) {
-     console.error(`Error: Invalid question index ${currentQuestionIndex} for PartnerWorld.`);
+     console.error(`Error: Invalid question index ${currentQuestionIndex} for ${worldId} World.`);
      setCurrentQuestionIndex(0);
      return <div>שגיאה בטעינת השאלה...</div>;
   }
-
+  
   const progress = ((currentQuestionIndex + 1) / allQuestions.length) * 100;
   const currentValue = findAnswer(currentQuestion.id);
-   const answeredQuestionsCount = allQuestions.filter((q) => {
-        const answerValue = findAnswer(q.id);
-        return answerValue !== undefined && answerValue !== null &&
-               (typeof answerValue !== 'string' || answerValue.trim() !== '') &&
-               (!Array.isArray(answerValue) || answerValue.length > 0) &&
-               (typeof answerValue !== 'object' || Array.isArray(answerValue) || Object.keys(answerValue).length > 0);
-   }).length;
-  const completionPercentage = Math.round(
-    (answeredQuestionsCount / allQuestions.length) * 100
-  );
 
-   const renderHeader = () => (
+  const renderHeader = () => (
     <div className="bg-white p-3 rounded-lg shadow-sm border space-y-2 mb-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-medium">עולם הפרטנר</h2>
+          <h2 className="text-lg font-medium">{title}</h2>
           <div className="text-sm text-gray-500">
             שאלה {currentQuestionIndex + 1} מתוך {allQuestions.length}
           </div>
@@ -262,7 +293,7 @@ export default function PartnerWorld({
                   <SheetTitle>
                     <div className="flex items-center gap-2">
                       <ListChecks className="h-5 w-5 text-blue-600" />
-                      <span>כל השאלות בעולם הפרטנר</span>
+                      <span>כל השאלות ב{title}</span>
                     </div>
                   </SheetTitle>
                    <SheetDescription>
@@ -285,7 +316,7 @@ export default function PartnerWorld({
       <Progress value={progress} className="h-2" />
     </div>
   );
-
+  
   const renderQuestionCard = () => (
     <motion.div className={cn("transition-opacity duration-300")} key={currentQuestionIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
       <QuestionCard question={currentQuestion} depth={currentQuestion.depth} isRequired={currentQuestion.isRequired} validationError={validationErrors[currentQuestion.id]} language={language}>
@@ -304,9 +335,9 @@ export default function PartnerWorld({
       )}
     </div>
   );
-  
+
   if (isDesktop) {
-     return (
+    return (
       <div className="w-full relative" dir={isRTL ? "rtl" : "ltr"}>
         {renderHeader()}
         <div className={cn("transition-all duration-300 ease-in-out", isListVisible ? "grid grid-cols-12 gap-8" : "flex justify-center")}>
@@ -335,7 +366,7 @@ export default function PartnerWorld({
       </div>
     );
   } else {
-     return (
+    return (
       <Sheet>
         <div className="max-w-2xl mx-auto p-2 sm:p-4 space-y-6" dir={isRTL ? "rtl" : "ltr"}>
           {renderHeader()}
@@ -361,7 +392,7 @@ export default function PartnerWorld({
                 <SheetTitle>
                     <div className="flex items-center gap-2">
                         <ListChecks className="h-5 w-5 text-blue-600" />
-                        <span>כל השאלות בעולם הפרטנר</span>
+                        <span>כל השאלות ב{title}</span>
                     </div>
                 </SheetTitle>
                 <SheetDescription>

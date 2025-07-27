@@ -6,11 +6,7 @@ import { useRouter } from "next/navigation";
 import QuestionnaireLayout from "./layout/QuestionnaireLayout";
 import Welcome from "./onboarding/Welcome";
 import TrackSelection from "./onboarding/TrackSelection";
-import ValuesWorld from "./worlds/ValuesWorld";
-import RelationshipWorld from "./worlds/RelationshipWorld";
-import PersonalityWorld from "./worlds/PersonalityWorld";
-import PartnerWorld from "./worlds/PartnerWorld";
-import ReligionWorld from "./worlds/ReligionWorld";
+import WorldComponent from "./worlds/WorldComponent"; // <-- שינוי: ייבוא הקומפוננטה המאוחדת
 import QuestionnaireCompletion from "./common/QuestionnaireCompletion";
 import { useLanguage } from "@/app/contexts/LanguageContext";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -451,6 +447,7 @@ export default function MatchmakingQuestionnaire({
     setCurrentStep(OnboardingStep.MAP);
   }, []);
 
+  // --- שינוי מרכזי כאן ---
   function renderCurrentWorld() {
     const worldProps: WorldComponentProps = {
       onAnswer: handleAnswer,
@@ -465,17 +462,9 @@ export default function MatchmakingQuestionnaire({
       },
     };
 
-    switch (currentWorld) {
-      case "VALUES": return <ValuesWorld {...worldProps} />;
-      case "RELATIONSHIP": return <RelationshipWorld {...worldProps} />;
-      case "PERSONALITY": return <PersonalityWorld {...worldProps} />;
-      case "PARTNER": return <PartnerWorld {...worldProps} />;
-      case "RELIGION": return <ReligionWorld {...worldProps} />;
-      default:
-        setCurrentWorld(WORLD_ORDER[0]);
-        return <div>טוען עולם...</div>;
-    }
+    return <WorldComponent {...worldProps} worldId={currentWorld} />;
   }
+  // --- סוף השינוי ---
 
   function renderCurrentStep() {
     if (isLoading) {
