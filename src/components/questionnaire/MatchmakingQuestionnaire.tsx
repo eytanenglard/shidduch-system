@@ -1,21 +1,27 @@
 // src/components/questionnaire/MatchmakingQuestionnaire.tsx
-"use client";
+'use client';
 
-import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
-import { useRouter } from "next/navigation";
-import QuestionnaireLayout from "./layout/QuestionnaireLayout";
-import Welcome from "./onboarding/Welcome";
-import TrackSelection from "./onboarding/TrackSelection";
-import WorldComponent from "./worlds/WorldComponent"; // <-- שינוי: ייבוא הקומפוננטה המאוחדת
-import QuestionnaireCompletion from "./common/QuestionnaireCompletion";
-import { useLanguage } from "@/app/contexts/LanguageContext";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { cn } from "@/lib/utils";
-import WorldsMap from "./layout/WorldsMap";
+import React, {
+  useState,
+  useMemo,
+  useEffect,
+  useCallback,
+  useRef,
+} from 'react';
+import { useRouter } from 'next/navigation';
+import QuestionnaireLayout from './layout/QuestionnaireLayout';
+import Welcome from './onboarding/Welcome';
+import TrackSelection from './onboarding/TrackSelection';
+import WorldComponent from './worlds/WorldComponent'; // <-- שינוי: ייבוא הקומפוננטה המאוחדת
+import QuestionnaireCompletion from './common/QuestionnaireCompletion';
+import { useLanguage } from '@/app/contexts/LanguageContext';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { cn } from '@/lib/utils';
+import WorldsMap from './layout/WorldsMap';
 import { useIdleTimeout } from './hooks/useIdleTimeout';
-import { signOut } from "next-auth/react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { signOut } from 'next-auth/react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import {
   Loader2,
   CheckCircle,
@@ -24,7 +30,7 @@ import {
   Info,
   Clock,
   LogOut,
-} from "lucide-react";
+} from 'lucide-react';
 import type {
   WorldId,
   UserTrack,
@@ -32,30 +38,30 @@ import type {
   QuestionnaireAnswer,
   AnswerValue,
   WorldComponentProps,
-} from "./types/types";
+} from './types/types';
 
 const worldLabels = {
-  PERSONALITY: "אישיות",
-  VALUES: "ערכים ואמונות",
-  RELATIONSHIP: "זוגיות",
-  PARTNER: "פרטנר",
-  RELIGION: "דת ומסורת",
+  PERSONALITY: 'אישיות',
+  VALUES: 'ערכים ואמונות',
+  RELATIONSHIP: 'זוגיות',
+  PARTNER: 'פרטנר',
+  RELIGION: 'דת ומסורת',
 } as const;
 
 enum OnboardingStep {
-  WELCOME = "WELCOME",
-  TRACK_SELECTION = "TRACK_SELECTION",
-  WORLDS = "WORLDS",
-  COMPLETED = "COMPLETED",
-  MAP = "MAP",
+  WELCOME = 'WELCOME',
+  TRACK_SELECTION = 'TRACK_SELECTION',
+  WORLDS = 'WORLDS',
+  COMPLETED = 'COMPLETED',
+  MAP = 'MAP',
 }
 
 const WORLD_ORDER: WorldId[] = [
-  "PERSONALITY",
-  "VALUES",
-  "RELATIONSHIP",
-  "PARTNER",
-  "RELIGION",
+  'PERSONALITY',
+  'VALUES',
+  'RELATIONSHIP',
+  'PARTNER',
+  'RELIGION',
 ];
 
 export interface MatchmakingQuestionnaireProps {
@@ -77,9 +83,9 @@ export default function MatchmakingQuestionnaire({
     OnboardingStep.WELCOME
   );
   const [currentWorld, setCurrentWorld] = useState<WorldId>(
-    initialWorld || "VALUES"
+    initialWorld || 'VALUES'
   );
-  const [userTrack, setUserTrack] = useState<UserTrack>("חילוני");
+  const [userTrack, setUserTrack] = useState<UserTrack>('חילוני');
   const [answers, setAnswers] = useState<QuestionnaireAnswer[]>([]);
   const [completedWorlds, setCompletedWorlds] = useState<WorldId[]>([]);
   const [startTime] = useState(() => new Date().toISOString());
@@ -102,12 +108,12 @@ export default function MatchmakingQuestionnaire({
 
   const [toastState, setToastState] = useState<{
     message: string;
-    type: "success" | "error" | "info";
+    type: 'success' | 'error' | 'info';
     isVisible: boolean;
     action?: { label: string; onClick: () => void };
   }>({
-    message: "",
-    type: "info",
+    message: '',
+    type: 'info',
     isVisible: false,
   });
 
@@ -123,7 +129,10 @@ export default function MatchmakingQuestionnaire({
     }
   }, [userId]);
 
-  const { resetTimer: resetIdleTimer } = useIdleTimeout({ onIdle: handleIdle, idleTimeSeconds: 7200 });
+  const { resetTimer: resetIdleTimer } = useIdleTimeout({
+    onIdle: handleIdle,
+    idleTimeSeconds: 7200,
+  });
 
   const handleStayActive = useCallback(() => {
     if (logoutTimer.current) {
@@ -142,7 +151,7 @@ export default function MatchmakingQuestionnaire({
   const showToast = useCallback(
     (
       message: string,
-      type: "success" | "error" | "info" = "info",
+      type: 'success' | 'error' | 'info' = 'info',
       duration: number = 3000,
       action?: { label: string; onClick: () => void }
     ) => {
@@ -189,75 +198,85 @@ export default function MatchmakingQuestionnaire({
         const validateSubmission = (data: QuestionnaireSubmission): boolean => {
           if (!data.userId) return false;
           if (!Array.isArray(data.worldsCompleted)) return false;
-          if (typeof data.completed !== "boolean") return false;
+          if (typeof data.completed !== 'boolean') return false;
           if (!data.startedAt) return false;
           if (data.completed && !data.completedAt) return false;
           return true;
         };
 
         if (!validateSubmission(submissionData)) {
-          throw new Error("Invalid submission data");
+          throw new Error('Invalid submission data');
         }
 
         if (!userId) {
-          localStorage.setItem("tempQuestionnaire", JSON.stringify(submissionData));
+          localStorage.setItem(
+            'tempQuestionnaire',
+            JSON.stringify(submissionData)
+          );
           if (currentStep === OnboardingStep.COMPLETED) {
-            router.push("/auth/signin?callbackUrl=/questionnaire/restore");
+            router.push('/auth/signin?callbackUrl=/questionnaire/restore');
           }
         } else {
-          const response = await fetch("/api/questionnaire", {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
+          const response = await fetch('/api/questionnaire', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(submissionData),
           });
 
           if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error || "Failed to save questionnaire");
+            throw new Error(errorData.error || 'Failed to save questionnaire');
           }
         }
 
         setLastSavedTime(new Date());
         setIsDirty(false);
-        setToastState(prev => ({ ...prev, isVisible: false }));
-        
+        setToastState((prev) => ({ ...prev, isVisible: false }));
+
         if (!isAutoSave) {
-          showToast("השאלון נשמר בהצלחה", "success");
+          showToast('השאלון נשמר בהצלחה', 'success');
         }
 
-        if (submissionData.completed && currentStep === OnboardingStep.COMPLETED) {
+        if (
+          submissionData.completed &&
+          currentStep === OnboardingStep.COMPLETED
+        ) {
           if (onComplete) onComplete();
         }
       } catch (err) {
-        console.error("Failed to save questionnaire:", err);
-        const errorMessage = err instanceof Error ? err.message : "אירעה שגיאה בשמירת השאלון.";
+        console.error('Failed to save questionnaire:', err);
+        const errorMessage =
+          err instanceof Error ? err.message : 'אירעה שגיאה בשמירת השאלון.';
         setError(errorMessage);
         if (!isAutoSave) {
-          showToast(errorMessage, "error");
+          showToast(errorMessage, 'error');
         } else {
-          showToast("שגיאה בשמירה אוטומטית", "error");
+          showToast('שגיאה בשמירה אוטומטית', 'error');
         }
       } finally {
         setIsSaving(false);
       }
     },
-    [isSaving, prepareSubmissionData, userId, router, onComplete, showToast, currentStep]
+    [
+      isSaving,
+      prepareSubmissionData,
+      userId,
+      router,
+      onComplete,
+      showToast,
+      currentStep,
+    ]
   );
-  
+
   useEffect(() => {
     let autoSaveInterval: NodeJS.Timeout;
     if (currentStep === OnboardingStep.WORLDS && userId) {
       autoSaveInterval = setInterval(() => {
         if (isDirty) {
-          showToast(
-            "יש לך שינויים שלא נשמרו.",
-            "info",
-            10000,
-            {
-              label: "שמור עכשיו",
-              onClick: () => handleQuestionnaireSave(false),
-            }
-          );
+          showToast('יש לך שינויים שלא נשמרו.', 'info', 10000, {
+            label: 'שמור עכשיו',
+            onClick: () => handleQuestionnaireSave(false),
+          });
         }
       }, 180000);
     }
@@ -283,23 +302,27 @@ export default function MatchmakingQuestionnaire({
     const loadExistingAnswers = async () => {
       if (!userId) {
         setIsLoading(false);
-        const tempData = localStorage.getItem("tempQuestionnaire");
+        const tempData = localStorage.getItem('tempQuestionnaire');
         if (tempData) {
-          console.warn("Found temp data but user ID is missing. This should be handled by /questionnaire/restore.");
+          console.warn(
+            'Found temp data but user ID is missing. This should be handled by /questionnaire/restore.'
+          );
         }
         return;
       }
 
       setIsLoading(true);
       try {
-        const response = await fetch("/api/questionnaire");
+        const response = await fetch('/api/questionnaire');
         if (!response.ok) {
           if (response.status === 404) {
-            console.log("No existing questionnaire data found for user.");
+            console.log('No existing questionnaire data found for user.');
             setCurrentStep(OnboardingStep.WELCOME);
           } else {
             const errorData = await response.json();
-            throw new Error(errorData.error || "Failed to load existing answers");
+            throw new Error(
+              errorData.error || 'Failed to load existing answers'
+            );
           }
         } else {
           const data = await response.json();
@@ -311,14 +334,20 @@ export default function MatchmakingQuestionnaire({
               ...(data.data.relationshipAnswers || []),
               ...(data.data.partnerAnswers || []),
               ...(data.data.religionAnswers || []),
-            ].filter((answer, index, self) => index === self.findIndex((a) => a.questionId === answer.questionId));
+            ].filter(
+              (answer, index, self) =>
+                index ===
+                self.findIndex((a) => a.questionId === answer.questionId)
+            );
 
             setAnswers(allAnswers);
             const loadedCompletedWorlds = data.data.worldsCompleted || [];
             setCompletedWorlds(loadedCompletedWorlds);
-            setUserTrack(data.data.userTrack || "חילוני");
+            setUserTrack(data.data.userTrack || 'חילוני');
 
-            const isQuestionnaireComplete = data.data.completed || loadedCompletedWorlds.length === WORLD_ORDER.length;
+            const isQuestionnaireComplete =
+              data.data.completed ||
+              loadedCompletedWorlds.length === WORLD_ORDER.length;
 
             if (isQuestionnaireComplete) {
               if (initialWorld && WORLD_ORDER.includes(initialWorld)) {
@@ -328,9 +357,18 @@ export default function MatchmakingQuestionnaire({
                 setCurrentWorld(WORLD_ORDER[0]);
                 setCurrentStep(OnboardingStep.MAP);
               }
-            } else if (loadedCompletedWorlds.length > 0 || allAnswers.length > 0 || initialWorld) {
-              const nextWorld = WORLD_ORDER.find((world) => !loadedCompletedWorlds.includes(world));
-              const worldToSet = initialWorld && WORLD_ORDER.includes(initialWorld) ? initialWorld : nextWorld || WORLD_ORDER[0];
+            } else if (
+              loadedCompletedWorlds.length > 0 ||
+              allAnswers.length > 0 ||
+              initialWorld
+            ) {
+              const nextWorld = WORLD_ORDER.find(
+                (world) => !loadedCompletedWorlds.includes(world)
+              );
+              const worldToSet =
+                initialWorld && WORLD_ORDER.includes(initialWorld)
+                  ? initialWorld
+                  : nextWorld || WORLD_ORDER[0];
               setCurrentWorld(worldToSet);
               if (initialWorld && WORLD_ORDER.includes(initialWorld)) {
                 setCurrentStep(OnboardingStep.WORLDS);
@@ -345,13 +383,13 @@ export default function MatchmakingQuestionnaire({
               setCurrentQuestionIndices(data.data.currentQuestionIndices);
             }
           } else {
-            console.log("Questionnaire data structure invalid or missing.");
+            console.log('Questionnaire data structure invalid or missing.');
             setCurrentStep(OnboardingStep.WELCOME);
           }
         }
       } catch (err) {
-        console.error("Failed to load existing answers:", err);
-        setError("אירעה שגיאה בטעינת התשובות הקיימות");
+        console.error('Failed to load existing answers:', err);
+        setError('אירעה שגיאה בטעינת התשובות הקיימות');
         setCurrentStep(OnboardingStep.WELCOME);
       } finally {
         setIsLoading(false);
@@ -360,20 +398,23 @@ export default function MatchmakingQuestionnaire({
     loadExistingAnswers();
   }, [userId, initialWorld]);
 
-  const handleAnswer = useCallback((questionId: string, value: AnswerValue) => {
-    setError(null);
-    setIsDirty(true);
-    const newAnswer: QuestionnaireAnswer = {
-      questionId,
-      worldId: currentWorld,
-      value,
-      answeredAt: new Date().toISOString(),
-    };
-    setAnswers((prev) => {
-      const filtered = prev.filter((a) => a.questionId !== questionId);
-      return [...filtered, newAnswer];
-    });
-  }, [currentWorld]);
+  const handleAnswer = useCallback(
+    (questionId: string, value: AnswerValue) => {
+      setError(null);
+      setIsDirty(true);
+      const newAnswer: QuestionnaireAnswer = {
+        questionId,
+        worldId: currentWorld,
+        value,
+        answeredAt: new Date().toISOString(),
+      };
+      setAnswers((prev) => {
+        const filtered = prev.filter((a) => a.questionId !== questionId);
+        return [...filtered, newAnswer];
+      });
+    },
+    [currentWorld]
+  );
 
   const handleWorldChange = useCallback((newWorld: WorldId) => {
     setCurrentWorld(newWorld);
@@ -381,67 +422,87 @@ export default function MatchmakingQuestionnaire({
     setError(null);
   }, []);
 
-  const handleWorldComplete = useCallback(async (worldId: WorldId) => {
-    let updatedCompletedWorlds = completedWorlds;
-    if (!completedWorlds.includes(worldId)) {
-      updatedCompletedWorlds = [...completedWorlds, worldId];
-      setCompletedWorlds(updatedCompletedWorlds);
-    }
+  const handleWorldComplete = useCallback(
+    async (worldId: WorldId) => {
+      let updatedCompletedWorlds = completedWorlds;
+      if (!completedWorlds.includes(worldId)) {
+        updatedCompletedWorlds = [...completedWorlds, worldId];
+        setCompletedWorlds(updatedCompletedWorlds);
+      }
 
-    showToast(`כל הכבוד! סיימת את עולם ה${worldLabels[worldId] ?? worldId.toLowerCase()}`, "success");
+      showToast(
+        `כל הכבוד! סיימת את עולם ה${worldLabels[worldId] ?? worldId.toLowerCase()}`,
+        'success'
+      );
 
-    const isQuestionnaireNowFullyCompleted = updatedCompletedWorlds.length === WORLD_ORDER.length;
-    const submissionDataForWorldComplete = {
-      ...prepareSubmissionData(),
-      worldsCompleted: updatedCompletedWorlds,
-      completed: isQuestionnaireNowFullyCompleted,
-      completedAt: isQuestionnaireNowFullyCompleted ? new Date().toISOString() : undefined,
-    };
+      const isQuestionnaireNowFullyCompleted =
+        updatedCompletedWorlds.length === WORLD_ORDER.length;
+      const submissionDataForWorldComplete = {
+        ...prepareSubmissionData(),
+        worldsCompleted: updatedCompletedWorlds,
+        completed: isQuestionnaireNowFullyCompleted,
+        completedAt: isQuestionnaireNowFullyCompleted
+          ? new Date().toISOString()
+          : undefined,
+      };
 
-    if (userId) {
-      try {
-        setIsSaving(true);
-        const response = await fetch("/api/questionnaire", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(submissionDataForWorldComplete),
-        });
-        if (!response.ok) throw new Error("Failed to save after world completion");
+      if (userId) {
+        try {
+          setIsSaving(true);
+          const response = await fetch('/api/questionnaire', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(submissionDataForWorldComplete),
+          });
+          if (!response.ok)
+            throw new Error('Failed to save after world completion');
+          setLastSavedTime(new Date());
+          setIsDirty(false);
+          showToast('התקדמות העולם נשמרה', 'success');
+        } catch (e) {
+          console.error('Error saving after world complete:', e);
+          showToast('שגיאה בשמירת התקדמות העולם', 'error');
+          setError('שגיאה בשמירת התקדמות העולם.');
+          setIsSaving(false);
+          return;
+        } finally {
+          setIsSaving(false);
+        }
+      } else {
+        localStorage.setItem(
+          'tempQuestionnaire',
+          JSON.stringify(submissionDataForWorldComplete)
+        );
         setLastSavedTime(new Date());
-        setIsDirty(false);
-        showToast("התקדמות העולם נשמרה", "success");
-      } catch (e) {
-        console.error("Error saving after world complete:", e);
-        showToast("שגיאה בשמירת התקדמות העולם", "error");
-        setError("שגיאה בשמירת התקדמות העולם.");
-        setIsSaving(false);
-        return;
-      } finally {
-        setIsSaving(false);
+        showToast('התקדמות העולם נשמרה בדפדפן', 'info');
       }
-    } else {
-      localStorage.setItem("tempQuestionnaire", JSON.stringify(submissionDataForWorldComplete));
-      setLastSavedTime(new Date());
-      showToast("התקדמות העולם נשמרה בדפדפן", "info");
-    }
 
-    if (isQuestionnaireNowFullyCompleted) {
-      if (!userId) {
-        router.push("/auth/signin?callbackUrl=/questionnaire/restore");
+      if (isQuestionnaireNowFullyCompleted) {
+        if (!userId) {
+          router.push('/auth/signin?callbackUrl=/questionnaire/restore');
+        } else {
+          setCurrentStep(OnboardingStep.COMPLETED);
+          if (onComplete) onComplete();
+        }
       } else {
-        setCurrentStep(OnboardingStep.COMPLETED);
-        if (onComplete) onComplete();
+        const nextWorld = getNextWorld(worldId);
+        if (nextWorld) {
+          setCurrentWorld(nextWorld);
+          setCurrentStep(OnboardingStep.MAP);
+        } else {
+          setCurrentStep(OnboardingStep.MAP);
+        }
       }
-    } else {
-      const nextWorld = getNextWorld(worldId);
-      if (nextWorld) {
-        setCurrentWorld(nextWorld);
-        setCurrentStep(OnboardingStep.MAP);
-      } else {
-        setCurrentStep(OnboardingStep.MAP);
-      }
-    }
-  }, [completedWorlds, showToast, userId, prepareSubmissionData, router, onComplete]);
+    },
+    [
+      completedWorlds,
+      showToast,
+      userId,
+      prepareSubmissionData,
+      router,
+      onComplete,
+    ]
+  );
 
   const handleExit = useCallback(() => {
     setCurrentStep(OnboardingStep.MAP);
@@ -458,7 +519,10 @@ export default function MatchmakingQuestionnaire({
       language,
       currentQuestionIndex: currentQuestionIndices[currentWorld],
       setCurrentQuestionIndex: (index: number) => {
-        setCurrentQuestionIndices((prev) => ({ ...prev, [currentWorld]: index }));
+        setCurrentQuestionIndices((prev) => ({
+          ...prev,
+          [currentWorld]: index,
+        }));
       },
     };
 
@@ -479,15 +543,61 @@ export default function MatchmakingQuestionnaire({
 
     switch (currentStep) {
       case OnboardingStep.MAP:
-        return <WorldsMap currentWorld={currentWorld} completedWorlds={completedWorlds} onWorldChange={handleWorldChange} />;
+        return (
+          <WorldsMap
+            currentWorld={currentWorld}
+            completedWorlds={completedWorlds}
+            onWorldChange={handleWorldChange}
+          />
+        );
       case OnboardingStep.WELCOME:
-        return <Welcome onStart={() => setCurrentStep(OnboardingStep.TRACK_SELECTION)} onLearnMore={() => router.push("/profile")} isLoggedIn={!!userId} />;
+        return (
+          <Welcome
+            onStart={() => setCurrentStep(OnboardingStep.TRACK_SELECTION)}
+            onLearnMore={() => router.push('/profile')}
+            isLoggedIn={!!userId}
+            hasSavedProgress={answers.length > 0 || completedWorlds.length > 0}
+          />
+        );
       case OnboardingStep.TRACK_SELECTION:
-        return <TrackSelection onSelect={(track: UserTrack) => { setUserTrack(track); setCurrentWorld(WORLD_ORDER[0]); setCurrentStep(OnboardingStep.MAP); }} onBack={() => setCurrentStep(OnboardingStep.WELCOME)} selectedTrack={userTrack} />;
+        return (
+          <TrackSelection
+            onSelect={(track: UserTrack) => {
+              setUserTrack(track);
+              setCurrentWorld(WORLD_ORDER[0]);
+              setCurrentStep(OnboardingStep.MAP);
+            }}
+            onBack={() => setCurrentStep(OnboardingStep.WELCOME)}
+            selectedTrack={userTrack}
+          />
+        );
       case OnboardingStep.WORLDS:
-        return <QuestionnaireLayout currentWorld={currentWorld} userTrack={userTrack} completedWorlds={completedWorlds} onWorldChange={handleWorldChange} onExit={handleExit} onSaveProgress={() => handleQuestionnaireSave(false)} language={language} isLoggedIn={!!userId}> {renderCurrentWorld()} </QuestionnaireLayout>;
+        return (
+          <QuestionnaireLayout
+            currentWorld={currentWorld}
+            userTrack={userTrack}
+            completedWorlds={completedWorlds}
+            onWorldChange={handleWorldChange}
+            onExit={handleExit}
+            onSaveProgress={() => handleQuestionnaireSave(false)}
+            language={language}
+            isLoggedIn={!!userId}
+          >
+            {' '}
+            {renderCurrentWorld()}{' '}
+          </QuestionnaireLayout>
+        );
       case OnboardingStep.COMPLETED:
-        return <QuestionnaireCompletion onSendToMatching={async () => { if (onComplete) onComplete(); else router.push("/dashboard"); }} isLoading={isSaving} isLoggedIn={!!userId} />;
+        return (
+          <QuestionnaireCompletion
+            onSendToMatching={async () => {
+              if (onComplete) onComplete();
+              else router.push('/dashboard');
+            }}
+            isLoading={isSaving}
+            isLoggedIn={!!userId}
+          />
+        );
       default:
         return <div>שגיאה בטעינת השלב</div>;
     }
@@ -496,13 +606,39 @@ export default function MatchmakingQuestionnaire({
   const Toast = ({ message, type, isVisible, action }) => {
     if (!isVisible) return null;
     return (
-      <div className={cn("fixed bottom-4 right-4 z-[100] p-4 rounded-lg shadow-lg max-w-md transition-all duration-300", type === "success" && "bg-green-500", type === "error" && "bg-red-500", type === "info" && "bg-blue-500", "text-white")}>
+      <div
+        className={cn(
+          'fixed bottom-4 right-4 z-[100] p-4 rounded-lg shadow-lg max-w-md transition-all duration-300',
+          type === 'success' && 'bg-green-500',
+          type === 'error' && 'bg-red-500',
+          type === 'info' && 'bg-blue-500',
+          'text-white'
+        )}
+      >
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center">
-            {type === 'success' ? <CheckCircle className="h-5 w-5 mr-2" /> : type === 'error' ? <XCircle className="h-5 w-5 mr-2" /> : <Info className="h-5 w-5 mr-2" />}
+            {type === 'success' ? (
+              <CheckCircle className="h-5 w-5 mr-2" />
+            ) : type === 'error' ? (
+              <XCircle className="h-5 w-5 mr-2" />
+            ) : (
+              <Info className="h-5 w-5 mr-2" />
+            )}
             <p>{message}</p>
           </div>
-          {action && (<Button variant="ghost" size="sm" onClick={() => { action.onClick(); setToastState((prev) => ({ ...prev, isVisible: false })); }} className="mr-4 text-white hover:bg-white/20 font-bold">{action.label}</Button>)}
+          {action && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                action.onClick();
+                setToastState((prev) => ({ ...prev, isVisible: false }));
+              }}
+              className="mr-4 text-white hover:bg-white/20 font-bold"
+            >
+              {action.label}
+            </Button>
+          )}
         </div>
       </div>
     );
@@ -520,9 +656,15 @@ export default function MatchmakingQuestionnaire({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-600 mb-4">לא זיהינו פעילות בחשבונך. למען אבטחת המידע, תתבצע יציאה אוטומטית מהמערכת בעוד כדקה.</p>
+            <p className="text-gray-600 mb-4">
+              לא זיהינו פעילות בחשבונך. למען אבטחת המידע, תתבצע יציאה אוטומטית
+              מהמערכת בעוד כדקה.
+            </p>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => signOut({ callbackUrl: '/' })}>
+              <Button
+                variant="outline"
+                onClick={() => signOut({ callbackUrl: '/' })}
+              >
                 <LogOut className="w-4 h-4 mr-2" />
                 צא מהמערכת
               </Button>
@@ -535,7 +677,12 @@ export default function MatchmakingQuestionnaire({
   };
 
   return (
-    <div className={cn("min-h-screen bg-gray-50", language === "he" ? "dir-rtl" : "dir-ltr")}>
+    <div
+      className={cn(
+        'min-h-screen bg-gray-50',
+        language === 'he' ? 'dir-rtl' : 'dir-ltr'
+      )}
+    >
       <IdleModal />
       {lastSavedTime && currentStep === OnboardingStep.WORLDS && userId && (
         <div className="fixed bottom-4 left-4 z-40 bg-white p-2 rounded-lg shadow-md text-xs text-gray-600 border">
@@ -552,7 +699,12 @@ export default function MatchmakingQuestionnaire({
         </Alert>
       )}
       {renderCurrentStep()}
-      <Toast message={toastState.message} type={toastState.type} isVisible={toastState.isVisible} action={toastState.action} />
+      <Toast
+        message={toastState.message}
+        type={toastState.type}
+        isVisible={toastState.isVisible}
+        action={toastState.action}
+      />
     </div>
   );
 }

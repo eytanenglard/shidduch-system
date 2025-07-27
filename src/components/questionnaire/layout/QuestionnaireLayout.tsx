@@ -21,7 +21,9 @@ import {
   ArrowRightLeft,
   LogIn,
   UserPlus,
-  Scroll, // Added for Religion
+  Scroll,
+  ChevronLeft, // אייקון חדש
+  Edit, // אייקון חדש
 } from 'lucide-react';
 import type { WorldId, QuestionnaireLayoutProps } from '../types/types';
 import { cn } from '@/lib/utils';
@@ -44,13 +46,13 @@ import FAQ from '../components/FAQ';
 import AccessibilityFeatures from '../components/AccessibilityFeatures';
 
 // ============================================================================
-// NEW: Central configuration object for worlds
+// CONFIGURATION OBJECT FOR WORLDS
 // ============================================================================
 const worldConfig = {
   PERSONALITY: { icon: User, label: 'אישיות', themeColor: 'sky' },
   VALUES: { icon: Heart, label: 'ערכים ואמונות', themeColor: 'rose' },
   RELATIONSHIP: { icon: Users, label: 'זוגיות', themeColor: 'purple' },
-  PARTNER: { icon: User, label: 'הפרטנר האידיאלי', themeColor: 'teal' }, // Changed Icon for differentiation
+  PARTNER: { icon: User, label: 'הפרטנר האידיאלי', themeColor: 'teal' },
   RELIGION: { icon: Scroll, label: 'דת ומסורת', themeColor: 'amber' },
 } as const;
 
@@ -109,7 +111,7 @@ export default function QuestionnaireLayout({
     isVisible: false,
   });
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const [saveCount, setSaveCount] = useState(0);
+  const [isAccessibilityPanelOpen, setAccessibilityPanelOpen] = useState(false);
 
   const isSmallScreen = useMediaQuery('(max-width: 640px)');
   const currentThemeColor = worldConfig[currentWorld]?.themeColor || 'sky';
@@ -135,7 +137,6 @@ export default function QuestionnaireLayout({
       try {
         await onSaveProgress();
         setLastSaved(new Date());
-        setSaveCount((prev) => prev + 1);
         if (!isAutoSave) showToast('השאלון נשמר בהצלחה', 'success');
       } catch {
         setError('אירעה שגיאה בשמירת השאלון');
@@ -160,20 +161,42 @@ export default function QuestionnaireLayout({
   const isRTL = language === 'he';
   const directionClass = isRTL ? 'rtl' : 'ltr';
 
+  // ============================================================================
+  // START OF IMPROVED NavButton COMPONENT
+  // ============================================================================
   const NavButton = ({ worldId, isMobile }) => {
     const {
       icon: Icon,
       label,
       themeColor,
     } = worldConfig[worldId as keyof typeof worldConfig];
+
     const isActive = currentWorld === worldId;
     const isCompleted = completedWorlds.includes(worldId as WorldId);
+    let status: 'active' | 'completed' | 'pending' = 'pending';
+    if (isActive) status = 'active';
+    else if (isCompleted) status = 'completed';
 
-    const activeClasses = `bg-${themeColor}-600 text-white shadow-md hover:bg-${themeColor}-700`;
-    const completedClasses =
-      'border-green-300 bg-green-50 text-green-800 hover:bg-green-100';
-    const defaultClasses =
-      'bg-white hover:bg-slate-50 border-slate-200 text-slate-700';
+    const statusConfig = {
+      active: {
+        classes: `bg-${themeColor}-600 text-white shadow-lg hover:bg-${themeColor}-700 ring-2 ring-offset-2 ring-${themeColor}-400`,
+        tooltip: 'את/ה בעולם זה כעת',
+        actionIcon: <ChevronLeft className="h-5 w-5 animate-pulse" />,
+      },
+      completed: {
+        classes:
+          'border-green-300 bg-green-50 text-green-800 hover:bg-green-100 opacity-90 hover:opacity-100',
+        tooltip: 'השלמת את העולם הזה. לחץ/י כדי לערוך.',
+        actionIcon: <Edit className="h-4 w-4 text-green-600" />,
+      },
+      pending: {
+        classes: 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700',
+        tooltip: `עבור לעולם ה${label}`,
+        actionIcon: null,
+      },
+    };
+
+    const currentStatusConfig = statusConfig[status];
 
     return (
       <TooltipProvider delayDuration={300}>
@@ -183,12 +206,8 @@ export default function QuestionnaireLayout({
               variant={'outline'}
               size={isMobile ? 'sm' : 'default'}
               className={cn(
-                'flex items-center justify-start gap-3 w-full mb-2 transition-all duration-200 rounded-lg',
-                isActive
-                  ? activeClasses
-                  : isCompleted
-                    ? completedClasses
-                    : defaultClasses,
+                'flex items-center justify-between w-full mb-2 transition-all duration-200 rounded-lg',
+                currentStatusConfig.classes,
                 isMobile ? 'py-2 text-sm' : 'p-3'
               )}
               onClick={() => {
@@ -196,25 +215,33 @@ export default function QuestionnaireLayout({
                 if (isMobile) setShowMobileNav(false);
               }}
             >
-              <Icon
-                className={cn(
-                  'h-5 w-5',
-                  isActive ? 'text-white' : `text-${themeColor}-500`
-                )}
-              />
-              <span className="truncate flex-1 text-right">{label}</span>
-              {isCompleted && !isActive && (
-                <CheckCircle className="h-4 w-4 text-green-500 ml-auto" />
-              )}
+              {/* Right side: Icon and Text */}
+              <div className="flex items-center gap-3">
+                <Icon
+                  className={cn(
+                    'h-5 w-5',
+                    isActive ? 'text-white' : `text-${themeColor}-500`
+                  )}
+                />
+                <span className="truncate text-right font-medium">{label}</span>
+              </div>
+
+              {/* Left side: Action Icon */}
+              <div className="flex-shrink-0">
+                {currentStatusConfig.actionIcon}
+              </div>
             </Button>
           </TooltipTrigger>
           <TooltipContent side={isRTL ? 'left' : 'right'}>
-            <p>{isCompleted ? 'הושלם' : isActive ? 'פעיל כעת' : 'טרם הושלם'}</p>
+            <p>{currentStatusConfig.tooltip}</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
     );
   };
+  // ============================================================================
+  // END OF IMPROVED NavButton COMPONENT
+  // ============================================================================
 
   const renderFAQButton = (isMobile: boolean) => (
     <Sheet>
@@ -290,7 +317,9 @@ export default function QuestionnaireLayout({
             animate={{ x: 0 }}
             exit={{ x: isRTL ? '100%' : '-100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className={`fixed top-0 ${isRTL ? 'right-0' : 'left-0'} h-full w-3/4 max-w-xs bg-white shadow-lg p-4 z-50 ${directionClass} flex flex-col overflow-y-auto`}
+            className={`fixed top-0 ${
+              isRTL ? 'right-0' : 'left-0'
+            } h-full w-3/4 max-w-xs bg-white shadow-lg p-4 z-50 ${directionClass} flex flex-col overflow-y-auto`}
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-medium flex items-center">
@@ -355,7 +384,7 @@ export default function QuestionnaireLayout({
           className="inline-flex items-center"
         >
           <Menu className="h-5 w-5" />
-          !isSmallScreen && <span className="ml-2">תפריט</span>
+          {!isSmallScreen && <span className="ml-2">תפריט</span>}
         </Button>
         <div className="flex flex-col items-center">
           <h1
@@ -454,12 +483,13 @@ export default function QuestionnaireLayout({
                     variant="ghost"
                     size="icon"
                     className="w-8 h-8 p-0 rounded-full text-slate-500"
+                    onClick={() => setAccessibilityPanelOpen(true)}
                   >
                     <Settings className="w-4 h-4" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>הגדרות</p>
+                  <p>נגישות ותצוגה</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -468,9 +498,12 @@ export default function QuestionnaireLayout({
       </aside>
 
       <main className="flex-1 p-3 md:p-6 lg:pb-16 overflow-y-auto relative scroll-smooth">
-        {' '}
         {children}
-        <AccessibilityFeatures className="fixed bottom-4 right-4 lg:bottom-6 lg:right-6 z-50" />
+        <AccessibilityFeatures
+          isPanelOpen={isAccessibilityPanelOpen}
+          onPanelOpenChange={setAccessibilityPanelOpen}
+          className="fixed bottom-4 right-4 lg:bottom-6 lg:left-6 lg:right-auto z-50"
+        />
       </main>
 
       <AnimatePresence>

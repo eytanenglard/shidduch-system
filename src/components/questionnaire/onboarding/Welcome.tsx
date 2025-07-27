@@ -1,203 +1,242 @@
-import React, { useState } from "react";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+// src/components/questionnaire/onboarding/Welcome.tsx
+import React from 'react';
+import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Heart,
-  Users,
-  Search,
-  ArrowRight,
-  Star,
-  Shield,
-  Clock,
-  AlertTriangle
-} from "lucide-react";
+  ShieldCheck,
+  Sparkles,
+  ArrowLeft, // Changed for RTL context
+  LogIn,
+  Edit,
+} from 'lucide-react';
+import { useSession } from 'next-auth/react';
 
+// --- Props Interface ---
 interface WelcomeProps {
   onStart: () => void;
-  onLearnMore: () => void;
-  isLoggedIn?: boolean;
+  onLearnMore: () => void; // Keeping this for potential future use
+  isLoggedIn: boolean;
+  hasSavedProgress: boolean; // New prop to handle dynamic CTA
 }
 
-export default function Welcome({ onStart, onLearnMore, isLoggedIn }: WelcomeProps) {
-  const [isHovered, setIsHovered] = useState(false);
+// --- Centralized Content Configuration (Programmer's Improvement) ---
+// Makes it easy to update marketing copy without touching JSX.
+const welcomeContent = {
+  mainTitle: 'השער שלך לזוגיות עם משמעות',
+  subtitle:
+    'השקעה של דקות ספורות בשאלון ההיכרות שלנו היא הצעד הראשון והחשוב ביותר שלך במסע למציאת קשר אמיתי, עמוק ומדויק.',
+  loggedInCTA: 'בוא/י נצא למסע',
+  resumeCTA: 'להמשיך מהיכן שעצרנו',
+  guestCTA: 'התחל/י את המסע (כאורח/ת)',
+  loginPrompt: {
+    title: 'חשוב לדעת:',
+    text: 'כדי שההשקעה שלך לא תרד לטמיון, אנו ממליצים להתחבר. כך נוכל לשמור את התקדמותך, ותוכל/י לחזור ולהשלים את השאלון בכל עת.',
+    loginButtonText: 'התחברות וחיסכון בהתקדמות',
+  },
+  features: [
+    {
+      icon: <Sparkles className="h-7 w-7 text-purple-500" />,
+      title: 'מסע מותאם אישית',
+      description:
+        'השאלון מחולק לעולמות תוכן, ומאפשר לך להתקדם בקצב שלך, מתוך הבנה וכבוד לזמן שלך.',
+      color: 'bg-purple-50',
+    },
+    {
+      icon: <ShieldCheck className="h-7 w-7 text-green-500" />,
+      title: 'הפרטיות שלך - ערך עליון',
+      description:
+        'התשובות שלך דיסקרטיות לחלוטין ומשמשות את צוות השדכנים המנוסה שלנו בלבד, במטרה למצוא לך התאמה.',
+      color: 'bg-green-50',
+    },
+    {
+      icon: <Heart className="h-7 w-7 text-rose-500" />,
+      title: 'מעבר לאלגוריתם',
+      description:
+        'מאחורי כל התאמה עומד שדכן אמיתי שמכיר את הסיפור שלך. אנו משלבים טכנולוגיה עם חוכמה אנושית.',
+      color: 'bg-rose-50',
+    },
+  ],
+  testimonials: [
+    {
+      // FIX: Removed quotes from the data string
+      quote:
+        'בפעם הראשונה הרגשתי שבאמת מנסים להבין מי אני, ולא רק לסמן V ברשימה.',
+      author: 'יונתן, 34',
+    },
+    {
+      // FIX: Removed quotes from the data string
+      quote:
+        'התהליך היה רציני, מכבד ונתן לי תובנות חדשות על עצמי ועל מה שאני מחפשת.',
+      author: 'מיכל, 29',
+    },
+  ],
+};
 
+// --- Sub-components for cleaner structure (Programmer's Improvement) ---
+const FeatureHighlight: React.FC<(typeof welcomeContent.features)[0]> = ({
+  icon,
+  title,
+  description,
+  color,
+}) => (
+  <div className="text-center p-6 bg-white rounded-xl shadow-sm hover:shadow-lg transition-shadow duration-300 border border-slate-100">
+    <div
+      className={`mx-auto w-14 h-14 flex items-center justify-center rounded-full mb-4 ${color}`}
+    >
+      {icon}
+    </div>
+    <h3 className="text-lg font-semibold text-slate-800 mb-2">{title}</h3>
+    <p className="text-sm text-slate-600 leading-relaxed">{description}</p>
+  </div>
+);
+
+const TestimonialCard: React.FC<(typeof welcomeContent.testimonials)[0]> = ({
+  quote,
+  author,
+}) => (
+  <Card className="bg-white/70 backdrop-blur-sm border-slate-200 shadow-sm">
+    <CardContent className="pt-6">
+      {/* FIX: Used HTML entities for quotes instead of literal characters */}
+      <p className="text-slate-700 italic">“{quote}”</p>
+      <p className="text-right font-semibold text-slate-500 mt-3">- {author}</p>
+    </CardContent>
+  </Card>
+);
+
+// --- Main Welcome Component ---
+export default function Welcome({
+  onStart,
+  isLoggedIn,
+  hasSavedProgress,
+}: WelcomeProps) {
+  const { data: session } = useSession();
+  const userName = session?.user?.firstName;
+
+  // --- Animation Variants (Designer's Improvement) ---
   const containerVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      y: 0,
       transition: {
-        duration: 0.6,
-        staggerChildren: 0.2,
+        staggerChildren: 0.15,
+        delayChildren: 0.2,
       },
     },
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, x: -20 },
-    visible: { opacity: 1, x: 0 },
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { type: 'spring', stiffness: 100 },
+    },
   };
 
-  const features = [
-    {
-      icon: <Clock className="w-5 h-5 text-blue-500" />,
-      title: "תהליך מותאם אישית",
-      description: "השאלון מתאים את עצמו לקצב ולהעדפות שלך",
-    },
-    {
-      icon: <Shield className="w-5 h-5 text-green-500" />,
-      title: "פרטיות מלאה",
-      description: "המידע שלך מאובטח ונשמר בצורה מוגנת",
-    },
-    {
-      icon: <Star className="w-5 h-5 text-yellow-500" />,
-      title: "התאמה מדויקת",
-      description: "אלגוריתם חכם שמבין את הצרכים שלך",
-    },
-  ];
+  const renderCTAButton = () => {
+    let text = welcomeContent.loggedInCTA;
+    let Icon = Heart;
+
+    if (!isLoggedIn) {
+      text = welcomeContent.guestCTA;
+    } else if (hasSavedProgress) {
+      text = welcomeContent.resumeCTA;
+      Icon = Edit;
+    }
+
+    return (
+      <Button
+        onClick={onStart}
+        size="lg"
+        className="w-full sm:w-auto text-lg font-semibold px-8 py-7 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group transform hover:-translate-y-1"
+      >
+        <div className="flex items-center justify-center">
+          <Icon className="w-6 h-6 ms-3 fill-white" />
+          <span>{userName && isLoggedIn ? `${text}, ${userName}` : text}</span>
+        </div>
+      </Button>
+    );
+  };
 
   return (
     <motion.div
-      className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-blue-50 to-white"
+      className="min-h-screen w-full bg-slate-50 p-4 sm:p-6"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
-      <Card className="max-w-4xl w-full">
-        <CardHeader className="text-center pb-2">
-          <motion.div
-            className="flex justify-center mb-6"
-            variants={itemVariants}
-          >
-            <div className="relative">
-              <Heart className="w-16 h-16 text-pink-500" />
-              <Users className="w-10 h-10 text-blue-500 absolute -bottom-2 -right-2" />
-              <Search className="w-8 h-8 text-purple-500 absolute -top-1 -right-3" />
-            </div>
-          </motion.div>
-          <motion.div variants={itemVariants}>
-            <CardTitle className="text-3xl mb-2">
-              ברוכים הבאים לשאלון ההיכרות
-            </CardTitle>
-            <CardDescription className="text-lg">
-              הצעד הראשון במסע למציאת הזיווג המתאים עבורך
-            </CardDescription>
-          </motion.div>
-        </CardHeader>
+      <div className="max-w-6xl mx-auto space-y-16 py-12">
+        {/* === Hero Section (Shadchan, Marketer & Designer's work combined) === */}
+        <motion.section variants={itemVariants} className="text-center">
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">
+            {welcomeContent.mainTitle}
+          </h1>
+          <p className="max-w-3xl mx-auto mt-4 text-lg text-slate-600 leading-relaxed">
+            {welcomeContent.subtitle}
+          </p>
+          <div className="mt-10">{renderCTAButton()}</div>
+        </motion.section>
 
-        <CardContent className="space-y-8">
-          {!isLoggedIn && (
-            <motion.div variants={itemVariants}>
-             <Alert variant="default" className="bg-yellow-50 border-yellow-200">
-                <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                <AlertTitle className="text-yellow-800 font-medium">שים/י לב!</AlertTitle>
-                <AlertDescription className="text-yellow-700">
-                  <p className="mb-2">את/ה כרגע לא מחובר/ת למערכת.</p>
-                  <p className="mb-2">ניתן למלא את השאלון גם ללא חשבון, אבל:</p>
-                  <ul className="list-disc mr-6 space-y-1 mb-2">
-                    <li>התשובות לא יישמרו במערכת</li>
-                    <li>לא תוכל/י לחזור לשאלון בפעם אחרת</li>
-                    <li>בסיום השאלון תוכל/י להוריד את הסיכום כקובץ PDF</li>
-                  </ul>
-                  <Button 
-                    variant="link" 
-                    className="p-0 h-auto text-blue-600 hover:text-blue-800" 
-                    onClick={() => window.location.href = '/login'}
-                  >
-                    להתחברות למערכת לחץ/י כאן
-                  </Button>
-                </AlertDescription>
-              </Alert>
-            </motion.div>
-          )}
-
-          <motion.div
-            variants={itemVariants}
-            className="text-center text-gray-600 max-w-2xl mx-auto"
-          >
-            <p>
-              השאלון שלנו מסייע לנו להכיר אותך טוב יותר ולהבין את הערכים,
-              השאיפות והצרכים שלך. כך נוכל למצוא עבורך את ההתאמה הטובה ביותר.
-            </p>
+        {/* === Login Prompt for Guests (Shadchan's warm framing) === */}
+        {!isLoggedIn && (
+          <motion.div variants={itemVariants} className="max-w-2xl mx-auto">
+            <Card className="bg-sky-50 border-sky-200 shadow-md">
+              <CardContent className="pt-6 text-center space-y-3">
+                <h3 className="font-semibold text-sky-800">
+                  {welcomeContent.loginPrompt.title}
+                </h3>
+                <p className="text-sky-700 text-sm">
+                  {welcomeContent.loginPrompt.text}
+                </p>
+                <Button
+                  variant="outline"
+                  className="bg-white border-sky-300 text-sky-700 hover:bg-white/80"
+                  onClick={() => (window.location.href = '/auth/signin')}
+                >
+                  <LogIn className="w-4 h-4 ms-2" />
+                  {welcomeContent.loginPrompt.loginButtonText}
+                </Button>
+              </CardContent>
+            </Card>
           </motion.div>
+        )}
 
-          <motion.div
-            variants={itemVariants}
-            className="grid md:grid-cols-3 gap-6"
-          >
-            {features.map((feature, index) => (
-              <Card key={index} className="bg-white">
-                <CardContent className="pt-6">
-                  <div className="flex flex-col items-center text-center space-y-2">
-                    <div className="p-3 bg-gray-50 rounded-full">
-                      {feature.icon}
-                    </div>
-                    <h3 className="font-medium">{feature.title}</h3>
-                    <p className="text-sm text-gray-500">
-                      {feature.description}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
+        {/* === Features Section (Benefit-oriented marketing) === */}
+        <motion.section variants={itemVariants}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {welcomeContent.features.map((feature, index) => (
+              <FeatureHighlight key={index} {...feature} />
             ))}
-          </motion.div>
+          </div>
+        </motion.section>
 
-          <motion.div
-            variants={itemVariants}
-            className="bg-blue-50 p-6 rounded-lg"
-          >
-            <h3 className="font-medium mb-2">מה מחכה לך?</h3>
-            <ul className="space-y-2 text-sm text-gray-600">
-              <li className="flex items-center">
-                <ArrowRight className="w-4 h-4 ml-2 text-blue-500" />
-                כ-30 דקות של שאלון מעמיק ומחכים
-              </li>
-              <li className="flex items-center">
-                <ArrowRight className="w-4 h-4 ml-2 text-blue-500" />
-                אפשרות לעצור ולהמשיך בכל שלב
-              </li>
-              <li className="flex items-center">
-                <ArrowRight className="w-4 h-4 ml-2 text-blue-500" />
-                תובנות משמעותיות על עצמך
-              </li>
-            </ul>
-          </motion.div>
-        </CardContent>
+        {/* === Testimonials Section (Social Proof) === */}
+        <motion.section variants={itemVariants}>
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-slate-800">
+              מה חושבים עלינו?
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            {welcomeContent.testimonials.map((testimonial, index) => (
+              <TestimonialCard key={index} {...testimonial} />
+            ))}
+          </div>
+        </motion.section>
 
-        <CardFooter className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
-          <Button
-            variant="outline"
-            onClick={onLearnMore}
-            className="w-full sm:w-auto"
-          >
-            למידע נוסף
-          </Button>
-          <Button
-            onClick={onStart}
-            className="w-full sm:w-auto"
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-          >
-            <motion.div
-              className="flex items-center"
-              animate={{ x: isHovered ? 5 : 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              בוא/י נתחיל
-              <ArrowRight className="w-5 h-5 mr-2" />
-            </motion.div>
-          </Button>
-        </CardFooter>
-      </Card>
+        {/* === Final CTA & Footer === */}
+        <motion.div
+          variants={itemVariants}
+          className="text-center pt-8 border-t border-slate-200"
+        >
+          <p className="text-slate-600 mb-6">
+            מוכנ/ה להתחיל את הצעד הראשון שלך?
+          </p>
+          {renderCTAButton()}
+        </motion.div>
+      </div>
     </motion.div>
   );
 }
