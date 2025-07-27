@@ -467,7 +467,7 @@ export default function QuestionnaireLayout({
         </div>
       </aside>
 
-      <main className="flex-1 pt-0 px-3 pb-3 md:px-6 md:pb-6 lg:pb-16 overflow-y-auto relative">
+      <main className="flex-1 p-3 md:p-6 lg:pb-16 overflow-y-auto relative scroll-smooth">
         {' '}
         {children}
         <AccessibilityFeatures className="fixed bottom-4 right-4 lg:bottom-6 lg:right-6 z-50" />
