@@ -1,5 +1,5 @@
-import React from "react";
-import Image from "next/image";
+import React from 'react';
+import Image from 'next/image';
 
 // עדכון רכיב הכרטיס עם תצוגה מרכזית ומקצועית
 interface MatchmakerCardProps {
@@ -21,34 +21,34 @@ const MatchmakerCard: React.FC<MatchmakerCardProps> = ({
 }) => {
   const getGradientByColor = () => {
     switch (color) {
-      case "cyan":
-        return "from-cyan-500 to-cyan-700";
-      case "green":
-        return "from-teal-500 to-teal-700";
+      case 'cyan':
+        return 'from-cyan-500 to-cyan-700';
+      case 'green':
+        return 'from-teal-500 to-teal-700';
       default:
-        return "from-cyan-500 to-cyan-700";
+        return 'from-cyan-500 to-cyan-700';
     }
   };
 
   const getButtonColorByColor = () => {
     switch (color) {
-      case "cyan":
-        return "bg-cyan-600 hover:bg-cyan-700";
-      case "green":
-        return "bg-teal-600 hover:bg-teal-700";
+      case 'cyan':
+        return 'bg-cyan-600 hover:bg-cyan-700';
+      case 'green':
+        return 'bg-teal-600 hover:bg-teal-700';
       default:
-        return "bg-cyan-600 hover:bg-cyan-700";
+        return 'bg-cyan-600 hover:bg-cyan-700';
     }
   };
 
   const getTagColorByColor = () => {
     switch (color) {
-      case "cyan":
-        return "bg-cyan-100 text-cyan-800";
-      case "green":
-        return "bg-teal-100 text-teal-800";
+      case 'cyan':
+        return 'bg-cyan-100 text-cyan-800';
+      case 'green':
+        return 'bg-teal-100 text-teal-800';
       default:
-        return "bg-cyan-100 text-cyan-800";
+        return 'bg-cyan-100 text-cyan-800';
     }
   };
 
@@ -117,7 +117,10 @@ const MatchmakerCard: React.FC<MatchmakerCardProps> = ({
 
 const MatchmakerTeamSection: React.FC = () => {
   return (
-    <section className="py-16 md:py-24 px-4 bg-gradient-to-b from-blue-50 to-white relative overflow-hidden">
+    <section
+      id="our-team"
+      className="py-16 md:py-24 px-4 bg-gradient-to-b from-blue-50 to-white relative overflow-hidden"
+    >
       {/* רקע דקורטיבי */}
       <div className="absolute top-0 left-0 w-64 h-64 bg-cyan-100/30 rounded-full blur-3xl"></div>
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-100/30 rounded-full blur-3xl"></div>
@@ -128,8 +131,8 @@ const MatchmakerTeamSection: React.FC = () => {
           <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
             הכירו את
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-teal-600">
-              {" "}
-              המייסדים{" "}
+              {' '}
+              המייסדים{' '}
             </span>
             שלנו
           </h2>
@@ -147,7 +150,7 @@ const MatchmakerTeamSection: React.FC = () => {
             role="שדכנית ראשית"
             description="עם ניסיון של 8 שנים בתחום השידוכים, דינה מביאה כישורים בינאישיים יוצאי דופן והבנה עמוקה של צרכי המועמדים. הגישה האישית והאמפתית שלה יצרה עשרות זוגות מאושרים והיא מלווה כל מועמד בדרך מותאמת אישית."
             color="cyan"
-            tags={["מומחית התאמה", "ליווי אישי", "2+ שנות ניסיון"]}
+            tags={['מומחית התאמה', 'ליווי אישי', '2+ שנות ניסיון']}
             imageSrc="/images/team/dina4.jpg"
           />
           <MatchmakerCard
@@ -155,7 +158,7 @@ const MatchmakerTeamSection: React.FC = () => {
             role="מייסד ומנכ״ל"
             description="יזם טכנולוגי עם התמחות בשידוכים. איתן פיתח את פלטפורמת התוכנה הייחודית שלנו ומשלב ידע טכנולוגי עם הבנה עמוקה של פסיכולוגיה חברתית. הגישה החדשנית שלו יצרה את השיטה הייחודית שמאפיינת את המשרד שלנו."
             color="green"
-            tags={["חדשנות טכנולוגית", "אלגוריתם התאמה", "יזמות"]}
+            tags={['חדשנות טכנולוגית', 'אלגוריתם התאמה', 'יזמות']}
             imageSrc="/images/team/eitan.jpg"
           />
         </div>

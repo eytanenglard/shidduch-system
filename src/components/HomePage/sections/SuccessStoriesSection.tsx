@@ -1,9 +1,9 @@
-import React from "react";
-import TestimonialCard from "../components/TestimonialCard";
+import React from 'react';
+import TestimonialCard from '../components/TestimonialCard';
 
 const SuccessStoriesSection: React.FC = () => {
   return (
-    <section className="py-16 md:py-20 px-4 relative">
+    <section id="success-stories" className="py-16 md:py-20 px-4 relative">
       {/* Subtle background pattern */}
       <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:20px_20px]"></div>
 
@@ -13,10 +13,10 @@ const SuccessStoriesSection: React.FC = () => {
             סיפורי
             <span
               className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-cyan-700 animate-gradient"
-              style={{ backgroundSize: "200% 200%" }}
+              style={{ backgroundSize: '200% 200%' }}
             >
-              {" "}
-              הצלחה{" "}
+              {' '}
+              הצלחה{' '}
             </span>
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-cyan-600 to-cyan-700 mx-auto rounded-full" />

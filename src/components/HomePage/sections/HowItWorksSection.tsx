@@ -1,21 +1,24 @@
-import React from "react";
-import Step from "../components/Step";
-import { DemoSuggestionCard } from "../components/DemoSuggestionCard"; // <-- 1. ייבוא הקומפוננטה החדשה
+import React from 'react';
+import Step from '../components/Step';
+import { DemoSuggestionCard } from '../components/DemoSuggestionCard'; // <-- 1. ייבוא הקומפוננטה החדשה
 
 const HowItWorksSection: React.FC = () => {
   return (
-    <section id="onboarding-target-how-it-works" className="py-16 md:py-20 px-4 bg-white relative overflow-hidden">
+    <section
+      id="how-it-works"
+      className="py-16 md:py-20 px-4 bg-white relative overflow-hidden"
+    >
+      {' '}
       {/* Enhanced background effects */}
       <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:20px_20px]"></div>
-
       <div className="relative max-w-4xl mx-auto">
         <div className="text-center mb-12 md:mb-16">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4">
             <span
               className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-cyan-700 animate-gradient"
-              style={{ backgroundSize: "200% 200%" }}
+              style={{ backgroundSize: '200% 200%' }}
             >
-              איך זה{" "}
+              איך זה{' '}
             </span>
             עובד?
           </h2>
@@ -86,10 +89,12 @@ const HowItWorksSection: React.FC = () => {
             isLast={true}
             color="cyan"
           />
-           <div>
-        <h4 className="text-center font-semibold mb-4 text-gray-700">כך תיראה הצעה לדוגמה:</h4>
-        <DemoSuggestionCard />
-    </div>
+          <div>
+            <h4 className="text-center font-semibold mb-4 text-gray-700">
+              כך תיראה הצעה לדוגמה:
+            </h4>
+            <DemoSuggestionCard />
+          </div>
         </div>
       </div>
     </section>

@@ -1,14 +1,17 @@
 // src/components/HomePage/sections/FAQSection.tsx
 
-import React from "react";
-import FAQItem from "../components/FAQItem";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import React from 'react';
+import FAQItem from '../components/FAQItem';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 
 const FAQSection: React.FC = () => {
   return (
-    <section id="onboarding-target-faq" className="py-16 md:py-20 px-4 bg-white relative overflow-hidden">
+    <section
+      id="faq"
+      className="py-16 md:py-20 px-4 bg-white relative overflow-hidden"
+    >
       <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-white opacity-50"></div>
 
       <div className="max-w-4xl mx-auto relative">
@@ -16,8 +19,8 @@ const FAQSection: React.FC = () => {
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4">
             שאלות
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-cyan-700">
-              {" "}
-              נפוצות{" "}
+              {' '}
+              נפוצות{' '}
             </span>
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-cyan-600 to-cyan-700 mx-auto rounded-full mb-6" />

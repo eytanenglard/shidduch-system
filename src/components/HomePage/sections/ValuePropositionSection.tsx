@@ -1,9 +1,12 @@
-import React from "react";
-import ComparisonItem from "../components/ComparisonItem";
+import React from 'react';
+import ComparisonItem from '../components/ComparisonItem';
 
 const ValuePropositionSection: React.FC = () => {
   return (
-    <section className="py-16 md:py-20 px-4 bg-cyan-50 relative overflow-hidden">
+    <section
+      id="our-method"
+      className="py-16 md:py-20 px-4 bg-cyan-50 relative overflow-hidden"
+    >
       <div className="absolute inset-0 bg-gradient-to-br from-cyan-50 to-white opacity-70"></div>
       <div className="absolute top-0 right-0 w-full h-full overflow-hidden">
         <svg
@@ -29,8 +32,8 @@ const ValuePropositionSection: React.FC = () => {
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4">
             מה הופך את
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-cyan-700">
-              {" "}
-              Match Point{" "}
+              {' '}
+              Match Point{' '}
             </span>
             לייחודית?
           </h2>
@@ -75,9 +78,11 @@ const ValuePropositionSection: React.FC = () => {
             </h3>
 
             <ul className="space-y-3 relative">
-            <ComparisonItem>
-  <strong>מאגר עצום, סיכוי גבוה יותר:</strong> הטכנולוגיה שלנו מאפשרת לשדכנים לטפל במאגר מועמדים גדול פי 7, ולהגיע להתאמה המדויקת עבורך.
-</ComparisonItem>
+              <ComparisonItem>
+                <strong>מאגר עצום, סיכוי גבוה יותר:</strong> הטכנולוגיה שלנו
+                מאפשרת לשדכנים לטפל במאגר מועמדים גדול פי 7, ולהגיע להתאמה
+                המדויקת עבורך.
+              </ComparisonItem>
               <ComparisonItem>
                 ליווי אנושי: הדרכה אישית משדכנים מקצועיים לאורך כל התהליך
               </ComparisonItem>

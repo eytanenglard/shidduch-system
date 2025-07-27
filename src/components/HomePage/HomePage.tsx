@@ -1,26 +1,34 @@
-"use client";
+'use client';
 
-import React, { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
-// import { Button } from "@/components/ui/button"; // כבר לא צריך את Button ישירות כאן
-// import { MessageCircle } from "lucide-react"; // גם את האייקון הישן לא צריך
+import React, { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
 
 // Import all sections
-import HeroSection from "./sections/HeroSection";
-import ValuePropositionSection from "./sections/ValuePropositionSection";
-import FeaturesSection from "./sections/FeaturesSection";
-import AlgorithmSection from "./sections/AlgorithmSection";
-import HowItWorksSection from "./sections/HowItWorksSection";
-import MatchmakerTeamSection from "./sections/MatchmakerTeamSection";
-import SuccessStoriesSection from "./sections/SuccessStoriesSection";
-import FAQSection from "./sections/FAQSection";
-import PrivacyAssuranceSection from "./sections/PrivacyAssuranceSection";
-import CTASection from "./sections/CTASection";
-import FooterSection from "./sections/FooterSection";
+import HeroSection from './sections/HeroSection';
+import ValuePropositionSection from './sections/ValuePropositionSection';
+import FeaturesSection from './sections/FeaturesSection';
+import AlgorithmSection from './sections/AlgorithmSection';
+import HowItWorksSection from './sections/HowItWorksSection';
+import MatchmakerTeamSection from './sections/MatchmakerTeamSection';
+import SuccessStoriesSection from './sections/SuccessStoriesSection';
+import FAQSection from './sections/FAQSection';
+import PrivacyAssuranceSection from './sections/PrivacyAssuranceSection';
+import CTASection from './sections/CTASection';
+import FooterSection from './sections/FooterSection';
 
-// 1. Import our new ChatWidget
-//    הנתיב היחסי מ-HomePage ל-ChatWidget
-import ChatWidget from "../ChatWidget/ChatWidget";
+// 1. Import our new components
+import ChatWidget from '../ChatWidget/ChatWidget';
+import StickyNav, { NavLink } from './components/StickyNav';
+
+// 2. Define the navigation links in a single, manageable constant.
+//    The 'id' must match the 'id' attribute of the corresponding section component.
+const navLinks: NavLink[] = [
+  { id: 'how-it-works', label: 'איך זה עובד?' },
+  { id: 'our-method', label: 'השיטה שלנו' },
+  { id: 'our-team', label: 'הצוות שלנו' },
+  { id: 'success-stories', label: 'סיפורי הצלחה' },
+  { id: 'faq', label: 'שאלות נפוצות' },
+];
 
 export default function HomePage() {
   const { data: session } = useSession();
@@ -31,8 +39,12 @@ export default function HomePage() {
   }, []);
 
   return (
-    // The main div should allow the chat widget to be fixed relative to the viewport
+    // The main div allows the chat widget and sticky nav to be fixed relative to the viewport
     <div className="min-h-screen w-full overflow-x-hidden">
+      {/* 3. Add the StickyNav component at the top of the page */}
+      <StickyNav navLinks={navLinks} />
+
+      {/* Page Sections */}
       <HeroSection session={session} isVisible={isVisible} />
       <ValuePropositionSection />
       <HowItWorksSection />
@@ -45,7 +57,7 @@ export default function HomePage() {
       <CTASection />
       <FooterSection />
 
-      {/* 2. Remove the old floating button */}
+      {/* 4. The old floating button is now removed/commented out */}
       {/*
       <div className="fixed bottom-8 left-8 z-50 animate-bounce-slow">
         <Button
@@ -57,8 +69,8 @@ export default function HomePage() {
         </Button>
       </div>
       */}
-      
-      {/* 3. Add our new, shiny Chat Widget */}
+
+      {/* 5. The ChatWidget remains */}
       <ChatWidget />
     </div>
   );
