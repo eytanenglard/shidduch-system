@@ -82,22 +82,36 @@ export default withAuth(
 
     // --- START: Rate Limiting Logic ---
     // Check if the current path needs to be rate-limited
-    if (rateLimitedPaths.some(p => path.startsWith(p))) {
-        const token = req.nextauth.token;
-        // Identifier can be user ID (if logged in) or IP address (for guests)
-        const identifier = token?.id || req.ip || '127.0.0.1';
-        
-        console.log(`[RateLimit] Checking request for identifier: ${identifier} on path: ${path}`);
-        
+  // --- START: MODIFIED Rate Limiting Logic ---
+// Only apply rate limiting in production environment. In development, let it pass.
+if (process.env.NODE_ENV === 'production' && rateLimitedPaths.some(p => path.startsWith(p))) {
+    const token = req.nextauth.token;
+    // Identifier can be user ID (if logged in) or IP address (for guests)
+    const identifier = token?.id || req.ip || '127.0.0.1';
+    
+    console.log(`[RateLimit PROD] Checking request for identifier: ${identifier} on path: ${path}`);
+    
+    try {
         const { success, limit, remaining, reset } = await ratelimit.limit(identifier);
 
         if (!success) {
-            console.warn(`[RateLimit] Blocked request for identifier: ${identifier}. Remaining: ${remaining}/${limit}. Resets in: ${new Date(reset).toLocaleTimeString()}`);
+            console.warn(`[RateLimit PROD] Blocked request for identifier: ${identifier}. Remaining: ${remaining}/${limit}. Resets in: ${new Date(reset).toLocaleTimeString()}`);
             return NextResponse.json({ error: 'יותר מדי בקשות, אנא המתן מספר שניות ונסה שוב.' }, { status: 429 });
         }
         
-        console.log(`[RateLimit] Allowed request for identifier: ${identifier}. Remaining: ${remaining}/${limit}.`);
+        console.log(`[RateLimit PROD] Allowed request for identifier: ${identifier}. Remaining: ${remaining}/${limit}.`);
+
+    } catch (error) {
+        console.error("[RateLimit ERROR] Failed to connect to Upstash Redis. Allowing request to pass to avoid blocking app.", error);
+        // In case of a Redis connection error, we'll let the request pass to avoid blocking the entire app.
+        // You might want to handle this differently in production (e.g., return an error).
     }
+
+} else if (rateLimitedPaths.some(p => path.startsWith(p))) {
+    // In development or if not a production env, just log and skip the check.
+    console.log(`[RateLimit DEV] Skipping rate limit check for path: ${path}`);
+}
+// --- END: MODIFIED Rate Limiting Logic ---
     // --- END: Rate Limiting Logic ---
 
     // --- START: Your existing middleware logic ---

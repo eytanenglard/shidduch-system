@@ -92,6 +92,19 @@ const knowledgeContext = knowledgeBase
   .map(item => `שאלה: ${item.question}\nתשובה: ${item.answer}`)
   .join('\n\n');
 
+  // --- START: Debugging checks for environment variables ---
+console.log("--- Loading /api/chat route handler ---");
+if (!process.env.GOOGLE_API_KEY) {
+  console.error("[CHAT API ERROR] GOOGLE_API_KEY is not defined!");
+}
+if (!process.env.GMAIL_USER && !process.env.EMAIL_USER) {
+    console.error("[CHAT API ERROR] GMAIL_USER or EMAIL_USER is not defined!");
+}
+if (!process.env.GMAIL_APP_PASSWORD && !process.env.EMAIL_PASS) {
+    console.error("[CHAT API ERROR] GMAIL_APP_PASSWORD or EMAIL_PASS is not defined!");
+}
+// --- END: Debugging checks ---
+
 // Initialize the Generative AI client
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
 

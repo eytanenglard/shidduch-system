@@ -29,7 +29,8 @@ const promptQuestions = [
 const EMAIL_REGEX = /\S+@\S+\.\S+/; // Simple email validation
 
 export default function ChatWidget() {
-  const [isOpen, setIsOpen] = useState(false);
+  // [MODIFICATION] Changed the initial state from false to true to open the chat on load.
+  const [isOpen, setIsOpen] = useState(true);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
