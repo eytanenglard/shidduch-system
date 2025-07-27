@@ -3,352 +3,232 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
-  Scroll,
-  Heart,
-  Users,
-  User,
-  ArrowRight,
-  Star,
-  Award,
-  Brain,
-  Sparkles,
-  Clock,
-  HelpCircle,
-  CheckCircle2,
+  Scroll, Heart, Users, UserCheck, ArrowRight, Star, Brain, Sparkles, Clock, HelpCircle, CheckCircle2, User
 } from "lucide-react";
-import type { WorldId, QuestionDepth } from "../types/types";
+import type { WorldId, Question } from "../types/types";
 import { cn } from "@/lib/utils";
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
+// --- ממשק Props חדש ופשוט יותר ---
 interface WorldIntroProps {
   worldId: WorldId;
-  title: string;
-  description: string;
-  // estimatedTime עדיין יכול להתקבל, אך לא נשתמש בו ישירות לתצוגה אם נרצה טווח קבוע
-  estimatedTime: number;
-  totalQuestions: number;
-  requiredQuestions: number;
-  depths: Array<QuestionDepth>;
+  allQuestions: Question[];
   onStart: () => void;
   className?: string;
 }
 
-// --- Configuration for World Icons and Styles (נשאר כפי שהוא) ---
-const worldDisplayConfig: Record<
-  WorldId,
-  {
-    Icon: React.ElementType;
-    primaryColor: string;
-    gradientFrom: string;
-    gradientTo: string;
-    bgLight: string;
-    textLight: string;
-    iconBg: string;
-  }
-> = {
-  RELIGION: {
-    Icon: Scroll,
-    primaryColor: "amber-500",
-    gradientFrom: "from-amber-500",
-    gradientTo: "to-yellow-400",
-    bgLight: "bg-amber-50 dark:bg-amber-900/30",
-    textLight: "text-amber-700 dark:text-amber-300",
-    iconBg: "bg-amber-100 dark:bg-amber-800/50",
+// --- אובייקט קונפיגורציה מרכזי לכל התוכן והעיצוב ---
+const worldDisplayConfig = {
+  PERSONALITY: {
+    Icon: User,
+    themeColor: "sky",
+    title: "עולם האישיות",
+    subtitle: "מי אני באמת?",
+    whyIsItImportant: "הבנה עמוקה של מי שאת/ה היא הבסיס לכל קשר בריא. כאן תקבלי/י הזדמנות להציג את עצמך בצורה אותנטית, כדי שנמצא מישהו שיתאהב באדם האמיתי שאת/ה.",
+    whatYouWillDiscover: [
+      "מהם הכוחות המניעים אותך בחיים",
+      "סגנון התקשורת והאינטראקציה החברתית שלך",
+      "איך את/ה מתמודד/ת עם אתגרים ומקבל/ת החלטות",
+    ],
+    guidingThought: "היופי שבזוגיות הוא לא למצוא מישהו מושלם, אלא למצוא מישהו שהחלקים שלכם משלימים זה את זה.",
   },
   VALUES: {
     Icon: Heart,
-    primaryColor: "rose-500",
-    gradientFrom: "from-rose-500",
-    gradientTo: "to-pink-500",
-    bgLight: "bg-rose-50 dark:bg-rose-900/30",
-    textLight: "text-rose-700 dark:text-rose-300",
-    iconBg: "bg-rose-100 dark:bg-rose-800/50",
+    themeColor: "rose",
+    title: "עולם הערכים",
+    subtitle: "מה באמת מניע אותך?",
+    whyIsItImportant: "ערכים משותפים הם עמוד השדרה של קשר יציב ומאושר. בעולם זה, נעזור לך לזקק את עקרונות הליבה שלך, כדי לבנות יסודות איתנים לבית המשותף העתידי.",
+    whatYouWillDiscover: [
+      "מהם סדרי העדיפויות שלך בין משפחה, קריירה ורוחניות",
+      "גישתך לכסף, נתינה וצמיחה אישית",
+      "איזו קהילה וסביבה חברתית מתאימות לך",
+    ],
+    guidingThought: "כאשר הערכים שלכם נפגשים, הדרך המשותפת הופכת להיות ברורה וקלה יותר.",
   },
   RELATIONSHIP: {
     Icon: Users,
-    primaryColor: "purple-500",
-    gradientFrom: "from-purple-500",
-    gradientTo: "to-violet-500",
-    bgLight: "bg-purple-50 dark:bg-purple-900/30",
-    textLight: "text-purple-700 dark:text-purple-300",
-    iconBg: "bg-purple-100 dark:bg-purple-800/50",
-  },
-  PERSONALITY: {
-    Icon: User,
-    primaryColor: "sky-500",
-    gradientFrom: "from-sky-500",
-    gradientTo: "to-cyan-400",
-    bgLight: "bg-sky-50 dark:bg-sky-900/30",
-    textLight: "text-sky-700 dark:text-sky-300",
-    iconBg: "bg-sky-100 dark:bg-sky-800/50",
+    themeColor: "purple",
+    title: "עולם הזוגיות",
+    subtitle: "איך נראית השותפות האידיאלית שלך?",
+    whyIsItImportant: "זוגיות טובה היא שותפות. כאן נבין את הציפיות שלך מקשר, את 'שפות האהבה' שלך, ואיך את/ה רואה את חיי היומיום המשותפים. זה המפתח ליצירת קשר שמבוסס על הבנה, כבוד וחברות אמת.",
+    whatYouWillDiscover: [
+      "מהי תמצית הזוגיות הבריאה בעיניך",
+      "סגנון פתרון הקונפליקטים המועדף עליך",
+      "האיזון הנכון עבורך בין 'ביחד' ל'לחוד'",
+    ],
+    guidingThought: "השאלה אינה 'האם תהיו מאושרים?', אלא 'איך תתמודדו יחד כשתהיו פחות מאושרים?'.",
   },
   PARTNER: {
-    Icon: CheckCircle2,
-    primaryColor: "teal-500",
-    gradientFrom: "from-teal-500",
-    gradientTo: "to-emerald-500",
-    bgLight: "bg-teal-50 dark:bg-teal-900/30",
-    textLight: "text-teal-700 dark:text-teal-300",
-    iconBg: "bg-teal-100 dark:bg-teal-800/50",
+    Icon: UserCheck,
+    themeColor: "teal",
+    title: "עולם הפרטנר",
+    subtitle: "במי תרצה/י לבחור?",
+    whyIsItImportant: "הגדרת בן/בת הזוג האידיאלי/ת היא יותר מרשימת תכונות; זו הבנה של מה באמת נחוץ לך כדי לפרוח. כאן נמקד את החיפוש ונבין מהם הדברים שאינם ניתנים לפשרה עבורך.",
+    whatYouWillDiscover: [
+      "אילו תכונות אופי הן החיוניות ביותר עבורך",
+      "מהן העדפותיך לגבי סגנון חיים ורקע",
+      "מהם ה'קווים האדומים' שלך בזוגיות",
+    ],
+    guidingThought: "אל תחפש/י את האדם שתוכל/י לחיות איתו, חפש/י את האדם שאינך יכול/ה לחיות בלעדיו.",
+  },
+  RELIGION: {
+    Icon: Scroll,
+    themeColor: "amber",
+    title: "דת ומסורת",
+    subtitle: "אמונה והלכה בחייך",
+    whyIsItImportant: "העולם הרוחני והדתי הוא נדבך יסודי בבניית בית נאמן בישראל. בעולם זה נבין את החיבור האישי שלך, את ההשקפה שלך, ואת החזון שלך לבית יהודי. זהו בסיס הכרחי להרמוניה זוגית וחינוך ילדים.",
+    whatYouWillDiscover: [
+      "ההגדרה האישית שלך על הרצף הדתי",
+      "כיצד ההלכה והמסורת באות לידי ביטוי בחייך",
+      "החזון שלך לחינוך דתי ורוחני במשפחה",
+    ],
+    guidingThought: "בית יהודי נבנה לא רק מלבנים, אלא גם מתפילות, מערכים וממסורת שעוברת מדור לדור.",
   },
 };
 
-// --- Configuration for Depth Levels (נשאר כפי שהוא) ---
-const depthDisplayConfig: Record<
-  QuestionDepth,
-  {
-    label: string;
-    description: string;
-    Icon: React.ElementType;
-    iconColor: string;
-    bgColor: string;
-    borderColor: string;
-  }
-> = {
-  BASIC: {
-    label: "יסודות",
-    description: "שאלות ליבה להבנת הבסיס וההעדפות המרכזיות שלך.",
-    Icon: Star,
-    iconColor: "text-sky-500",
-    bgColor: "bg-sky-50 dark:bg-sky-900/50",
-    borderColor: "border-sky-200 dark:border-sky-700",
-  },
-  ADVANCED: {
-    label: "העמקה",
-    description: "שאלות מורכבות יותר החוקרות ניואנסים ונקודות מבט מעמיקות.",
-    Icon: Brain,
-    iconColor: "text-purple-500",
-    bgColor: "bg-purple-50 dark:bg-purple-900/50",
-    borderColor: "border-purple-200 dark:border-purple-700",
-  },
-  EXPERT: {
-    label: "מומחיות", // אפשר לשנות ל"התבוננות" או "רפלקציה"
-    description: "שאלות רפלקטיביות הדורשות התבוננות פנימית עמוקה במיוחד.",
-    Icon: Award,
-    iconColor: "text-amber-500",
-    bgColor: "bg-amber-50 dark:bg-amber-900/50",
-    borderColor: "border-amber-200 dark:border-amber-700",
-  },
-};
+const WORLD_ORDER: WorldId[] = ["PERSONALITY", "VALUES", "RELATIONSHIP", "PARTNER", "RELIGION"];
 
 // --- Main Component ---
 export default function WorldIntro({
   worldId,
-  title,
-  description,
-  // estimatedTime, // לא נשתמש בו ישירות לתצוגה
-  totalQuestions,
-  requiredQuestions,
-  depths,
+  allQuestions,
   onStart,
   className = "",
 }: WorldIntroProps) {
   const config = worldDisplayConfig[worldId];
-  const { Icon, gradientFrom, gradientTo, bgLight, textLight, iconBg } = config;
+  const { Icon, title, subtitle, whyIsItImportant, whatYouWillDiscover, guidingThought, themeColor } = config;
+  const isMobile = useMediaQuery('(max-width: 1023px)');
 
-  // קביעת טווח הזמן לתצוגה
-  const displayEstimatedTime = "10-20 דקות"; // <-- שינוי כאן
+  // חישובים דינמיים
+  const totalQuestions = allQuestions.length;
+  const requiredQuestions = allQuestions.filter((q) => q.isRequired).length;
+  const estimatedTime = Math.max(5, Math.round(totalQuestions * 0.4)); // כ-24 שניות לשאלה, מינימום 5 דקות
+  const worldIndex = WORLD_ORDER.indexOf(worldId) + 1;
 
-  // Framer Motion Variants (נשאר כפי שהוא)
+  // Framer Motion Variants
   const containerVariants = {
     hidden: { opacity: 0, scale: 0.98 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      transition: {
-        duration: 0.5,
-        ease: "circOut",
-        staggerChildren: 0.1,
-      },
-    },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: "circOut", staggerChildren: 0.1 } },
   };
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.4, ease: "easeOut" },
-    },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
   };
 
-  const statItemVariants = {
-    hidden: { opacity: 0, scale: 0.8 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      transition: { type: "spring", stiffness: 300, damping: 15, delay: 0.2 },
-    },
-  };
+  const stats = [
+    { label: "זמן משוער", value: `~${estimatedTime} דקות`, IconComp: Clock },
+    { label: "סך כל שאלות", value: totalQuestions, IconComp: HelpCircle },
+    { label: "שאלות חובה", value: requiredQuestions, IconComp: CheckCircle2 },
+  ];
 
-  return (
-    <div
+  const ActionButton = () => (
+    <Button
+      onClick={onStart}
+      size="lg"
       className={cn(
-        "min-h-screen flex items-center justify-center p-4 sm:p-6 bg-slate-50 dark:bg-slate-900",
-        className
+        "w-full text-lg font-medium py-3 rounded-lg shadow-md transition-all duration-300 ease-in-out transform hover:scale-105",
+        `bg-${themeColor}-600 hover:bg-${themeColor}-700 text-white`
       )}
     >
+      בוא/י נתחיל את המסע
+      <ArrowRight className="w-5 h-5 mr-2 animate-pulse-fast" />
+    </Button>
+  );
+
+  return (
+    <div className={cn("min-h-screen flex items-center justify-center p-4 sm:p-6 bg-slate-50", className)}>
       <motion.div
-        className="w-full max-w-2xl"
+        className="w-full max-w-4xl"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-        <Card className="overflow-hidden shadow-2xl rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/60 backdrop-blur-md">
-          <CardContent className="p-6 sm:p-8 space-y-8">
-            {/* World Icon, Title, and Description */}
-            <motion.div variants={itemVariants} className="text-center">
-              <div
-                className={cn(
-                  "mx-auto mb-6 w-20 h-20 rounded-2xl flex items-center justify-center shadow-lg",
-                  iconBg,
-                  `bg-gradient-to-br ${gradientFrom} ${gradientTo}`
-                )}
-              >
-                <Icon className={cn("w-10 h-10 text-white")} />
+        <Card className="overflow-hidden shadow-xl rounded-xl border-slate-200 bg-white">
+          <CardContent className="p-0">
+            {isMobile && (
+              <div className="p-6 border-b">
+                 <ActionButton />
               </div>
-              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
-                {title}
-              </h1>
-              <p className="mt-3 text-base sm:text-lg text-slate-600 dark:text-slate-300 max-w-md mx-auto">
-                {description}
-              </p>
-            </motion.div>
-
-            {/* Key Statistics */}
-            <motion.div
-              variants={itemVariants}
-              className="grid grid-cols-1 sm:grid-cols-3 gap-4"
-            >
-              {[
-                {
-                  label: "זמן משוער",
-                  value: displayEstimatedTime, // <-- שימוש במשתנה החדש
-                  IconComp: Clock,
-                },
-                {
-                  label: "סך כל שאלות",
-                  value: totalQuestions,
-                  IconComp: HelpCircle,
-                },
-                {
-                  label: "שאלות חובה",
-                  value: requiredQuestions,
-                  IconComp: CheckCircle2,
-                },
-              ].map((stat, index) => (
-                <motion.div
-                  key={index}
-                  variants={statItemVariants}
-                  className={cn(
-                    "p-4 rounded-lg text-center",
-                    bgLight,
-                    "border border-slate-200 dark:border-slate-700/70 shadow-sm"
-                  )}
-                >
-                  <stat.IconComp
-                    className={cn("w-6 h-6 mx-auto mb-2", textLight)}
-                  />
-                  <div className="text-2xl font-semibold text-slate-700 dark:text-slate-200">
-                    {stat.value}
+            )}
+            <div className="grid lg:grid-cols-2">
+              {/* Left Column: Visuals & Stats */}
+              <motion.div variants={itemVariants} className={`bg-${themeColor}-50/50 p-6 sm:p-8 flex flex-col justify-between`}>
+                <div>
+                  <Badge variant="outline" className={`border-${themeColor}-300 bg-white text-${themeColor}-700 mb-4`}>
+                    עולם {worldIndex} מתוך {WORLD_ORDER.length}
+                  </Badge>
+                  <div className={`mb-4 inline-block p-4 rounded-xl bg-gradient-to-br from-${themeColor}-500 to-${themeColor}-600 shadow-lg`}>
+                    <Icon className="w-12 h-12 text-white" />
                   </div>
-                  <div className="text-sm text-slate-500 dark:text-slate-400">
-                    {stat.label}
+                  <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-800">
+                    {title}
+                  </h1>
+                  <p className={`mt-2 text-lg text-${themeColor}-800 font-medium`}>
+                    {subtitle}
+                  </p>
+                </div>
+                <div className="mt-8 space-y-4">
+                  {stats.map((stat, index) => (
+                    <div key={index} className="flex items-center gap-3">
+                      <div className={`p-2 rounded-md bg-${themeColor}-100`}>
+                        <stat.IconComp className={`w-5 h-5 text-${themeColor}-600`} />
+                      </div>
+                      <div>
+                        <div className="text-sm text-slate-500">{stat.label}</div>
+                        <div className="font-semibold text-slate-700">{stat.value}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+
+              {/* Right Column: Content & CTA */}
+              <motion.div variants={itemVariants} className="p-6 sm:p-8 flex flex-col justify-between">
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-700 flex items-center">
+                      <Sparkles className={`w-5 h-5 mr-2 text-${themeColor}-500`} />
+                      למה העולם הזה קריטי להצלחה שלך?
+                    </h3>
+                    <p className="mt-2 text-slate-600 leading-relaxed">{whyIsItImportant}</p>
                   </div>
-                </motion.div>
-              ))}
-            </motion.div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-700 flex items-center">
+                      <Brain className={`w-5 h-5 mr-2 text-${themeColor}-500`} />
+                      מה תגלה/י על עצמך?
+                    </h3>
+                    <ul className="mt-2 space-y-1 list-disc list-inside text-slate-600">
+                      {whatYouWillDiscover.map((item, index) => <li key={index}>{item}</li>)}
+                    </ul>
+                  </div>
+                  <div className={`border-r-4 border-${themeColor}-300 pr-4 py-2 bg-${themeColor}-50/60 rounded-r-md`}>
+                    <p className="text-slate-700 italic">{guidingThought}</p>
+                  </div>
+                </div>
 
-            {/* Depth Levels Information (נשאר כפי שהוא) */}
-            <motion.div variants={itemVariants} className="space-y-4">
-              <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200 flex items-center">
-                <Sparkles className={cn("w-5 h-5 mr-2", textLight)} />
-                רמות העומק בעולם זה:
-              </h3>
-              {depths.map((depthKey) => {
-                const depthConfig = depthDisplayConfig[depthKey];
-                if (!depthConfig) { // הוספת בדיקה למקרה שרמת עומק לא מוגדרת
-                    console.warn(`Depth configuration for "${depthKey}" not found.`);
-                    return null;
-                }
-                return (
-                  <motion.div
-                    key={depthKey}
-                    variants={itemVariants}
-                    className={cn(
-                      "flex items-start gap-4 p-4 rounded-lg border shadow-sm",
-                      depthConfig.bgColor,
-                      depthConfig.borderColor
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        "p-2 rounded-md flex-shrink-0",
-                        depthConfig.iconColor,
-                        depthConfig.bgColor.replace("-50", "-100")
-                      )}
-                    >
-                      <depthConfig.Icon className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4
-                        className={cn(
-                          "font-semibold",
-                          depthConfig.iconColor.replace("text-", "text-slate-")
-                        )}
-                      >
-                        {depthConfig.label}
-                      </h4>
-                      <p className="text-sm text-slate-600 dark:text-slate-400">
-                        {depthConfig.description}
-                      </p>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </motion.div>
-
-            {/* Start Button (נשאר כפי שהוא) */}
-            <motion.div variants={itemVariants} className="pt-4">
-              <Button
-                onClick={onStart}
-                size="lg"
-                className={cn(
-                  "w-full text-lg font-medium py-3 rounded-lg shadow-md transition-all duration-300 ease-in-out transform hover:scale-105",
-                  `bg-gradient-to-r ${gradientFrom} ${gradientTo} text-white hover:shadow-xl`
+                {!isMobile && (
+                  <div className="mt-8 pt-6 border-t border-slate-200">
+                    <ActionButton />
+                  </div>
                 )}
-              >
-                בוא/י נתחיל את המסע
-                <ArrowRight className="w-5 h-5 mr-2 animate-pulse-fast" />
-              </Button>
-            </motion.div>
-
-            {/* Subtle Footer/Hint (נשאר כפי שהוא) */}
-            <motion.p
-              variants={itemVariants}
-              className="text-center text-xs text-slate-400 dark:text-slate-500 pt-2"
-            >
-              התשובות שלך עוזרות לנו להכיר אותך טוב יותר. ניתן לחזור ולערוך בכל
-              שלב.
-            </motion.p>
+              </motion.div>
+            </div>
           </CardContent>
         </Card>
       </motion.div>
       <style jsx global>{`
-        @keyframes pulse-fast {
-          0%,
-          100% {
-            opacity: 1;
-            transform: translateX(0);
-          }
-          50% {
-            opacity: 0.7;
-            transform: translateX(2px);
-          }
-        }
-        .animate-pulse-fast {
-          animation: pulse-fast 1.5s ease-in-out infinite;
-        }
+        @keyframes pulse-fast { 0%, 100% { opacity: 1; transform: translateX(0); } 50% { opacity: 0.8; transform: translateX(2px); } }
+        .animate-pulse-fast { animation: pulse-fast 1.5s ease-in-out infinite; }
+        
+        /* Tailwind CSS JIT Purge-safe classes */
+        .bg-sky-50\/50, .bg-sky-100, .bg-sky-600, .hover\:bg-sky-700, .text-sky-600, .text-sky-700, .text-sky-800, .border-sky-300 { }
+        .bg-rose-50\/50, .bg-rose-100, .bg-rose-600, .hover\:bg-rose-700, .text-rose-600, .text-rose-700, .text-rose-800, .border-rose-300 { }
+        .bg-purple-50\/50, .bg-purple-100, .bg-purple-600, .hover\:bg-purple-700, .text-purple-600, .text-purple-700, .text-purple-800, .border-purple-300 { }
+        .bg-teal-50\/50, .bg-teal-100, .bg-teal-600, .hover\:bg-teal-700, .text-teal-600, .text-teal-700, .text-teal-800, .border-teal-300 { }
+        .bg-amber-50\/50, .bg-amber-100, .bg-amber-600, .hover\:bg-amber-700, .text-amber-600, .text-amber-700, .text-amber-800, .border-amber-300 { }
       `}</style>
     </div>
   );

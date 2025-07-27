@@ -1,120 +1,90 @@
-// WorldsMap.tsx
-import React, { useMemo } from "react";
-import { motion } from "framer-motion";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+// src/components/questionnaire/layout/WorldsMap.tsx
+
+import React from "react";
+import { motion } from 'framer-motion';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Progress } from "@/components/ui/progress";
-import { Badge, BadgeProps } from "@/components/ui/badge";
-import {
-  Scroll,
-  Heart,
-  Users,
-  User,
-  CheckCircle2,
-  Lock,
-  ArrowRight,
-  Info,
-  Star,
-  Play,
-  UserCheck,
-  Sparkles,
-  Edit3,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+  Scroll, Heart, Users, User, CheckCircle2, Lock, ArrowRight, Star, UserCheck, Sparkles, Edit3, Award, Brain,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useSession } from 'next-auth/react';
+
+// ============================================================================
+// 1. CONFIGURATION OBJECT (ENHANCED WITH MARKETING & MOTIVATIONAL CONTENT)
+// ============================================================================
 
 const worldsConfig = {
   PERSONALITY: {
     icon: User,
     label: "אישיות",
-    description: "המאפיינים האישיותיים שלך וכיצד הם משפיעים על תפיסתך.",
+    description: "מי אני באמת? גלה את הכוחות הייחודיים שלך, את סגנון התקשורת שלך ומה מניע אותך בחיים.",
     order: 1,
     themeColor: "sky",
-    baseBg: "bg-sky-50 dark:bg-sky-900/30",
-    iconBg: "bg-sky-100 dark:bg-sky-800/50",
-    iconColor: "text-sky-600 dark:text-sky-400",
-    activeRing: "ring-sky-500",
-    currentTopBarBg: "bg-sky-500 dark:bg-sky-600",
-    currentActionButtonBg: "bg-sky-600 dark:bg-sky-500",
-    currentActionButtonHoverBg: "hover:bg-sky-700 dark:hover:bg-sky-600",
-    activeBadgeBg: "bg-sky-100 text-sky-800 border-sky-300",
+    why: "הבנה עמוקה של מי שאת/ה היא הבסיס לכל קשר בריא. כאן תציג/י את עצמך בצורה אותנטית, כדי שנמצא מישהו שיתאהב בך באמת.",
+    discover: [
+      "הכוחות המניעים אותך בחיים",
+      "סגנון התקשורת שלך",
+      "איך את/ה מתמודד/ת עם אתגרים",
+    ],
   },
   VALUES: {
     icon: Heart,
     label: "ערכים ואמונות",
-    description: "עולם הערכים המרכזי שלך והאמונות שמנחות אותך בחיים.",
+    description: "מה באמת מניע אותך? זקק את עקרונות הליבה שלך ובנה יסודות איתנים לבית המשותף.",
     order: 2,
     themeColor: "rose",
-    baseBg: "bg-rose-50 dark:bg-rose-900/30",
-    iconBg: "bg-rose-100 dark:bg-rose-800/50",
-    iconColor: "text-rose-600 dark:text-rose-400",
-    activeRing: "ring-rose-500",
-    currentTopBarBg: "bg-rose-500 dark:bg-rose-600",
-    currentActionButtonBg: "bg-rose-600 dark:bg-rose-500",
-    currentActionButtonHoverBg: "hover:bg-rose-700 dark:hover:bg-rose-600",
-    activeBadgeBg: "bg-rose-100 text-rose-800 border-rose-300",
+    why: "ערכים משותפים הם עמוד השדרה של קשר יציב ומאושר. כאן נבין מהם סדרי העדיפויות שלך ואיזו סביבה מתאימה לך.",
+    discover: [
+      "סדרי העדיפויות שלך בחיים",
+      "גישתך לכסף, נתינה וצמיחה",
+      "איזו סביבה חברתית מתאימה לך",
+    ],
   },
   RELATIONSHIP: {
     icon: Users,
     label: "זוגיות",
-    description: "תפיסת הזוגיות שלך, ציפיות ומה חשוב לך במערכת יחסים.",
+    description: "איך נראית השותפות האידיאלית שלך? עצב את החזון שלך לקשר המבוסס על הבנה, כבוד וחברות.",
     order: 3,
     themeColor: "purple",
-    baseBg: "bg-purple-50 dark:bg-purple-900/30",
-    iconBg: "bg-purple-100 dark:bg-purple-800/50",
-    iconColor: "text-purple-600 dark:text-purple-400",
-    activeRing: "ring-purple-500",
-    currentTopBarBg: "bg-purple-500 dark:bg-purple-600",
-    currentActionButtonBg: "bg-purple-600 dark:bg-purple-500",
-    currentActionButtonHoverBg: "hover:bg-purple-700 dark:hover:bg-purple-600",
-    activeBadgeBg: "bg-purple-100 text-purple-800 border-purple-300",
+    why: "זוגיות טובה היא שותפות. כאן נבין את הציפיות שלך, את 'שפות האהבה' שלך ואיך את/ה רואה את חיי היומיום המשותפים.",
+    discover: [
+      "תמצית הזוגיות הבריאה בעיניך",
+      "סגנון פתרון הקונפליקטים שלך",
+      "האיזון הנכון בין 'ביחד' ל'לחוד'",
+    ],
   },
   PARTNER: {
     icon: UserCheck,
-    label: "העדפות לפרטנר",
-    description: "העדפותיך ותכונות שחשובות לך בבן/בת הזוג האידיאליים.",
+    label: "הפרטנר האידיאלי",
+    description: "במי תרצה/י לבחור? הגדר את התכונות והערכים החשובים לך ביותר בבן/בת הזוג.",
     order: 4,
     themeColor: "teal",
-    baseBg: "bg-teal-50 dark:bg-teal-900/30",
-    iconBg: "bg-teal-100 dark:bg-teal-800/50",
-    iconColor: "text-teal-600 dark:text-teal-400",
-    activeRing: "ring-teal-500",
-    currentTopBarBg: "bg-teal-500 dark:bg-teal-600",
-    currentActionButtonBg: "bg-teal-600 dark:bg-teal-500",
-    currentActionButtonHoverBg: "hover:bg-teal-700 dark:hover:bg-teal-600",
-    activeBadgeBg: "bg-teal-100 text-teal-800 border-teal-300",
+    why: "הגדרת בן/בת הזוג היא יותר מרשימת תכונות; זו הבנה של מה באמת נחוץ לך כדי לפרוח. כאן נמקד את החיפוש.",
+    discover: [
+      "אילו תכונות אופי חיוניות לך",
+      "העדפותיך לגבי סגנון חיים ורקע",
+      "מהם ה'קווים האדומים' שלך",
+    ],
   },
   RELIGION: {
     icon: Scroll,
     label: "דת ומסורת",
-    description: "חיבורך לדת, אמונה ומסורת ישראל, וכיצד זה בא לידי ביטוי בחייך.",
+    description: "מה מקום האמונה וההלכה בחייך? נבין את החיבור האישי שלך ואת החזון לבית יהודי.",
     order: 5,
     themeColor: "amber",
-    baseBg: "bg-amber-50 dark:bg-amber-900/30",
-    iconBg: "bg-amber-100 dark:bg-amber-800/50",
-    iconColor: "text-amber-600 dark:text-amber-400",
-    activeRing: "ring-amber-500",
-    currentTopBarBg: "bg-amber-500 dark:bg-amber-600",
-    currentActionButtonBg: "bg-amber-600 dark:bg-amber-500",
-    currentActionButtonHoverBg: "hover:bg-amber-700 dark:hover:bg-amber-600",
-    activeBadgeBg: "bg-amber-100 text-amber-800 border-amber-300",
+    why: "העולם הרוחני הוא נדבך יסודי בבניית בית נאמן בישראל. זהו בסיס הכרחי להרמוניה זוגית וחינוך ילדים.",
+    discover: [
+      "ההגדרה האישית שלך על הרצף הדתי",
+      "כיצד ההלכה באה לידי ביטוי בחייך",
+      "החזון שלך לחינוך דתי במשפחה",
+    ],
   },
 } as const;
 
 type WorldId = keyof typeof worldsConfig;
-type SingleWorldConfig = (typeof worldsConfig)[WorldId];
-
-interface WorldsMapProps {
-  currentWorld: WorldId;
-  completedWorlds: WorldId[];
-  onWorldChange?: (worldId: WorldId) => void;
-  className?: string;
-}
 
 const WORLD_ORDER: WorldId[] = [
   "PERSONALITY",
@@ -124,153 +94,160 @@ const WORLD_ORDER: WorldId[] = [
   "RELIGION",
 ];
 
-const statusStyles = {
-  completed: {
-    badge: "bg-green-100 text-green-800 border-green-300",
-    actionButton: "bg-green-600 hover:bg-green-700 text-white",
-    trackerRing: "ring-green-500",
-    trackerIcon: "text-green-500",
-  },
-  recommended: {
-    badge: "bg-indigo-100 text-indigo-800 border-indigo-300",
-    actionButton: "bg-indigo-600 hover:bg-indigo-700 text-white",
-    trackerRing: "ring-indigo-500",
-    trackerIcon: "text-indigo-500 fill-indigo-200",
-  },
-  locked: {
-    badge: "bg-slate-200 text-slate-600 border-slate-300",
-    actionButton: "bg-slate-400 cursor-not-allowed text-white",
-    trackerRing: "ring-slate-400",
-    trackerIcon: "text-slate-400",
-  },
+type WorldStatus = 'completed' | 'recommended' | 'active' | 'available' | 'locked';
+
+// ============================================================================
+// 2. TYPE DEFINITIONS & PROPS
+// ============================================================================
+interface WorldsMapProps {
+  currentWorld: WorldId;
+  completedWorlds: WorldId[];
+  onWorldChange: (worldId: WorldId) => void;
+  className?: string;
+}
+
+interface WorldCardProps {
+  worldId: WorldId;
+  status: WorldStatus;
+  onSelect: () => void;
+}
+
+interface ProgressHeaderProps {
+  userName?: string | null;
+  completionPercent: number;
+  completedCount: number;
+  totalCount: number;
+  nextRecommendedWorld?: WorldId;
+  onGoToRecommended: () => void;
+}
+
+// ============================================================================
+// 3. SUB-COMPONENTS
+// ============================================================================
+
+const ProgressHeader: React.FC<ProgressHeaderProps> = ({ userName, completionPercent, completedCount, totalCount, nextRecommendedWorld, onGoToRecommended }) => (
+  <motion.div 
+    className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 space-y-4"
+    initial={{ opacity: 0, y: -20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5, ease: "easeOut" }}
+  >
+    <div>
+      <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-100">
+        {userName ? `שלום, ${userName}! ברוך הבא למסע שלך` : 'הנתיב שלך לזוגיות משמעותית'}
+      </h1>
+      <p className="text-md text-slate-500 dark:text-slate-400 mt-1">
+        השלמת <span className="font-semibold text-indigo-600 dark:text-indigo-400">{completedCount}</span> מתוך <span className="font-semibold">{totalCount}</span> עולמות.
+      </p>
+    </div>
+    <div className="flex items-center gap-4">
+      <Progress value={completionPercent} className="h-2.5 rounded-full" indicatorClassName="bg-gradient-to-r from-sky-400 to-indigo-500" />
+      <span className="font-bold text-indigo-600 dark:text-indigo-400 text-lg">{completionPercent}%</span>
+    </div>
+    {nextRecommendedWorld && (
+      <Button
+        size="lg"
+        onClick={onGoToRecommended}
+        className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 ease-in-out transform hover:-translate-y-0.5 animate-pulse-slow"
+      >
+        <Sparkles className="h-5 w-5 mr-2 fill-current" />
+        המשך לעולם המומלץ: {worldsConfig[nextRecommendedWorld].label}
+      </Button>
+    )}
+  </motion.div>
+);
+
+const WorldCard: React.FC<WorldCardProps> = ({ worldId, status, onSelect }) => {
+  const config = worldsConfig[worldId];
+  
+  const statusInfo = {
+    completed: { Icon: CheckCircle2, text: "הושלם", badge: "bg-green-100 text-green-800 border-green-300", action: "ערוך תשובות", ActionIcon: Edit3 },
+    recommended: { Icon: Star, text: "הצעד הבא", badge: "bg-indigo-100 text-indigo-800 border-indigo-300", action: "התחל עולם זה", ActionIcon: Sparkles },
+    active: { Icon: Sparkles, text: "פעיל כעת", badge: `bg-${config.themeColor}-100 text-${config.themeColor}-800 border-${config.themeColor}-300`, action: "המשך כאן", ActionIcon: ArrowRight },
+    available: { Icon: ArrowRight, text: "זמין", badge: "bg-slate-100 text-slate-800 border-slate-300", action: "התחל עולם זה", ActionIcon: ArrowRight },
+    locked: { Icon: Lock, text: "נעול", badge: "bg-slate-200 text-slate-600 border-slate-300", action: "נעול", ActionIcon: Lock },
+  }[status];
+
+  const themeClasses = {
+    ring: `ring-${config.themeColor}-500`,
+    iconBg: `bg-${config.themeColor}-100 dark:bg-${config.themeColor}-800/50`,
+    iconColor: `text-${config.themeColor}-600 dark:text-${config.themeColor}-400`,
+    actionButton: `bg-${config.themeColor}-600 hover:bg-${config.themeColor}-700 text-white`,
+  };
+
+  const isLocked = status === 'locked';
+
+  return (
+    <Card 
+      className={cn(
+        "flex flex-col h-full transition-all duration-300 ease-in-out overflow-hidden shadow-lg hover:shadow-xl dark:bg-slate-800 border-2",
+        status === 'recommended' && `border-${config.themeColor}-300 dark:border-${config.themeColor}-600 scale-105 shadow-2xl`,
+        isLocked ? "opacity-60 bg-slate-50 dark:bg-slate-800/60 cursor-not-allowed border-slate-200 dark:border-slate-700" : "border-transparent hover:-translate-y-1"
+      )}
+    >
+      <div className="p-6 flex-grow space-y-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className={cn("p-3 rounded-xl flex-shrink-0", themeClasses.iconBg)}>
+            <config.icon className={cn("w-8 h-8", themeClasses.iconColor)} />
+          </div>
+          <Badge variant="outline" className={cn("text-xs font-medium", statusInfo.badge)}>
+            <statusInfo.Icon className="w-3.5 h-3.5 ml-1.5" />
+            {statusInfo.text}
+          </Badge>
+        </div>
+        <div>
+          <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">{config.label}</h3>
+          <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mt-1">{config.description}</p>
+        </div>
+        
+        {status === 'recommended' && (
+           <div className="pt-2">
+              <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2 flex items-center">
+                 <Brain className="w-4 h-4 mr-2 text-indigo-500"/>
+                 מה תגלה/י על עצמך?
+              </h4>
+              <ul className="space-y-1.5">
+                {config.discover.map((item, index) => (
+                  <li key={index} className="flex items-start text-xs text-slate-600 dark:text-slate-400">
+                    <CheckCircle2 className="w-3 h-3 mr-2 mt-0.5 text-green-500 flex-shrink-0" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+           </div>
+        )}
+      </div>
+      <div className="p-4 bg-slate-50 dark:bg-slate-800/50 mt-auto">
+        <Button
+          className={cn("w-full font-medium", themeClasses.actionButton)}
+          onClick={onSelect}
+          disabled={isLocked}
+        >
+          <statusInfo.ActionIcon className="w-4 h-4 ml-2" />
+          {statusInfo.action}
+        </Button>
+      </div>
+    </Card>
+  );
 };
 
-interface WorldDisplayInfo {
-  statusText: string;
-  StatusIcon: React.ElementType;
-  badgeClass: string;
-  actionButtonText: string;
-  ActionButtonIcon: React.ElementType;
-  actionButtonClass: string;
-  isLocked: boolean;
-  trackerRingClass: string;
-  trackerStatusIcon?: React.ReactElement;
-}
-
-function getWorldDisplayInfo(
-  worldId: WorldId,
-  config: SingleWorldConfig,
-  currentWorld: WorldId,
-  completedWorlds: WorldId[],
-  nextRecommendedWorld: WorldId | undefined,
-  isAccessible: boolean
-): WorldDisplayInfo {
-  const isCurrent = currentWorld === worldId;
-  const isCompleted = completedWorlds.includes(worldId);
-  const isRecommended = worldId === nextRecommendedWorld && !isCompleted;
-
-  if (!isAccessible) {
-    return {
-      statusText: "נעול",
-      StatusIcon: Lock,
-      badgeClass: statusStyles.locked.badge,
-      actionButtonText: "נעול",
-      ActionButtonIcon: Lock,
-      actionButtonClass: statusStyles.locked.actionButton,
-      isLocked: true,
-      trackerRingClass: "",
-      trackerStatusIcon: (
-        <Lock className={`w-3.5 h-3.5 ${statusStyles.locked.trackerIcon}`} />
-      ),
-    };
-  }
-
-  if (isCompleted) {
-    return {
-      statusText: "הושלם",
-      StatusIcon: CheckCircle2,
-      badgeClass: statusStyles.completed.badge,
-      actionButtonText: "ערוך תשובות",
-      ActionButtonIcon: Edit3,
-      actionButtonClass: statusStyles.completed.actionButton,
-      isLocked: false,
-      trackerRingClass: `ring-2 ${statusStyles.completed.trackerRing}`,
-      trackerStatusIcon: (
-        <CheckCircle2
-          className={`w-4 h-4 ${statusStyles.completed.trackerIcon}`}
-        />
-      ),
-    };
-  }
-
-  if (isCurrent) {
-    return {
-      statusText: "פעיל כעת",
-      StatusIcon: Play,
-      badgeClass: config.activeBadgeBg,
-      actionButtonText: "המשך בעולם זה",
-      ActionButtonIcon: Play,
-      actionButtonClass: `${config.currentActionButtonBg} ${config.currentActionButtonHoverBg} text-white`,
-      isLocked: false,
-      trackerRingClass: `ring-2 ${config.activeRing}`,
-    };
-  }
-
-  if (isRecommended) {
-    return {
-      statusText: "מומלץ הבא",
-      StatusIcon: Star,
-      badgeClass: statusStyles.recommended.badge,
-      actionButtonText: "התחל עולם מומלץ",
-      ActionButtonIcon: Sparkles,
-      actionButtonClass: statusStyles.recommended.actionButton,
-      isLocked: false,
-      trackerRingClass: `ring-2 ${statusStyles.recommended.trackerRing}`,
-      trackerStatusIcon: (
-        <Star className={`w-4 h-4 ${statusStyles.recommended.trackerIcon}`} />
-      ),
-    };
-  }
-
-  return {
-    statusText: "זמין",
-    StatusIcon: Info,
-    badgeClass: "bg-slate-100 text-slate-800 border-slate-300",
-    actionButtonText: "התחל עולם זה",
-    ActionButtonIcon: ArrowRight,
-    actionButtonClass: "bg-sky-600 hover:bg-sky-700 text-white",
-    isLocked: false,
-    trackerRingClass: "",
-  };
-}
-
+// ============================================================================
+// 4. MAIN COMPONENT
+// ============================================================================
 export default function WorldsMap({
   currentWorld,
   completedWorlds,
   onWorldChange,
   className = "",
 }: WorldsMapProps) {
-  const isWorldAccessible = (): boolean => true;
+  const { data: session } = useSession();
 
-  const completionPercent = useMemo(
-    () =>
-      WORLD_ORDER.length > 0
-        ? Math.round((completedWorlds.length / WORLD_ORDER.length) * 100)
-        : 0,
-    [completedWorlds.length]
-  );
-
-  const nextRecommendedWorld = useMemo(
-    () => WORLD_ORDER.find((world) => !completedWorlds.includes(world)),
-    [completedWorlds]
-  );
+  const completionPercent = Math.round((completedWorlds.length / WORLD_ORDER.length) * 100);
+  const nextRecommendedWorld = WORLD_ORDER.find((world) => !completedWorlds.includes(world));
 
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1, delayChildren: 0.2 },
-    },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.2 } },
   };
 
   const itemVariants = {
@@ -278,206 +255,76 @@ export default function WorldsMap({
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
   };
 
+  const getWorldStatus = (worldId: WorldId): WorldStatus => {
+    if (completedWorlds.includes(worldId)) return 'completed';
+    if (worldId === nextRecommendedWorld) return 'recommended';
+    if (worldId === currentWorld) return 'active';
+    // Add locking logic if needed, for now all are available
+    return 'available';
+  };
+  
+  const recommendedCard = nextRecommendedWorld ? (
+    <motion.div variants={itemVariants} className="md:col-span-2 lg:col-span-1 lg:row-span-2">
+      <WorldCard 
+        worldId={nextRecommendedWorld} 
+        status="recommended" 
+        onSelect={() => onWorldChange(nextRecommendedWorld)}
+      />
+    </motion.div>
+  ) : null;
+
+  const otherCards = WORLD_ORDER
+    .filter(worldId => worldId !== nextRecommendedWorld)
+    .map(worldId => (
+      <motion.div variants={itemVariants} key={worldId}>
+        <WorldCard 
+          worldId={worldId}
+          status={getWorldStatus(worldId)} 
+          onSelect={() => onWorldChange(worldId)}
+        />
+      </motion.div>
+  ));
+
   return (
-    <div
-      className={cn("space-y-8 font-sans", className)}
-      id="onboarding-target-worlds-map"
-    >
-      <motion.header
-        variants={itemVariants}
-        initial="hidden"
-        animate="visible"
-        className="bg-white dark:bg-slate-800/50 p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700"
-      >
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100">
-              מפת העולמות שלך
-            </h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-              השלמת {completedWorlds.length} מתוך {WORLD_ORDER.length} עולמות
-            </p>
-            <div className="mt-3 w-full sm:max-w-xs">
-              <Progress
-                value={completionPercent}
-                className="h-2 rounded-full"
-                indicatorClassName="bg-gradient-to-r from-sky-400 to-indigo-500"
-              />
-            </div>
-          </div>
-          {nextRecommendedWorld && (
-            <Button
-              size="lg"
-              onClick={() => onWorldChange?.(nextRecommendedWorld)}
-              className="bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 ease-in-out transform hover:-translate-y-0.5 w-full sm:w-auto animate-pulse-slow"
-            >
-              <Sparkles className="h-5 w-5 mr-2 fill-current" />
-              לעולם המומלץ: {worldsConfig[nextRecommendedWorld].label}
-            </Button>
-          )}
-        </div>
-      </motion.header>
+    <div className={cn("p-4 sm:p-6 bg-slate-50 dark:bg-slate-900 min-h-screen", className)}>
+      <div className="max-w-7xl mx-auto space-y-8">
+        <ProgressHeader
+          userName={session?.user?.firstName}
+          completionPercent={completionPercent}
+          completedCount={completedWorlds.length}
+          totalCount={WORLD_ORDER.length}
+          nextRecommendedWorld={nextRecommendedWorld}
+          onGoToRecommended={() => nextRecommendedWorld && onWorldChange(nextRecommendedWorld)}
+        />
+        
+        <motion.div 
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          {recommendedCard}
+          {otherCards}
+        </motion.div>
 
-      {/* --- World Journey Tracker --- */}
-      <motion.div
-        variants={itemVariants}
-        initial="hidden"
-        animate="visible"
-        className="relative bg-slate-50 dark:bg-slate-800/30 rounded-xl shadow-inner p-4"
-      >
-        <div className="overflow-x-auto scrollbar-hide py-4">
-          <div className="relative flex items-center justify-between min-w-max w-full max-w-3xl mx-auto">
-            <div className="absolute top-1/2 left-0 right-0 h-1 bg-slate-200 dark:bg-slate-700 -translate-y-1/2"></div>
-            {WORLD_ORDER.map((worldId) => {
-              const config = worldsConfig[worldId];
-              const accessible = isWorldAccessible();
-              const info = getWorldDisplayInfo(
-                worldId,
-                config,
-                currentWorld,
-                completedWorlds,
-                nextRecommendedWorld,
-                accessible
-              );
-
-              return (
-                <TooltipProvider key={worldId} delayDuration={150}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        onClick={() => accessible && onWorldChange?.(worldId)}
-                        disabled={!accessible}
-                        className="relative z-10 flex flex-col items-center gap-2 group focus:outline-none"
-                      >
-                        <motion.div
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.95 }}
-                          className={cn(
-                            "w-12 h-12 rounded-full flex items-center justify-center shadow-md transition-all duration-200 ease-in-out relative bg-white dark:bg-slate-800",
-                            info.trackerRingClass
-                          )}
-                        >
-                          <config.icon
-                            className={cn(
-                              "w-6 h-6",
-                              config.iconColor,
-                              !accessible && "opacity-50"
-                            )}
-                          />
-                          {info.trackerStatusIcon && (
-                            <motion.div
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              className="absolute -top-1 -right-1 bg-white dark:bg-slate-700 rounded-full p-0.5"
-                            >
-                              {info.trackerStatusIcon}
-                            </motion.div>
-                          )}
-                        </motion.div>
-                        <span className="text-xs font-medium text-center text-slate-700 dark:text-slate-300 w-20">
-                          {config.label}
-                        </span>
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom" className="dark:bg-slate-800">
-                      <p>{config.description}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              );
-            })}
-          </div>
-        </div>
-      </motion.div>
-
-      {/* --- World Cards Grid --- */}
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6"
-      >
-        {WORLD_ORDER.map((worldId) => {
-          const config = worldsConfig[worldId];
-          const accessible = isWorldAccessible();
-          const info = getWorldDisplayInfo(
-            worldId,
-            config,
-            currentWorld,
-            completedWorlds,
-            nextRecommendedWorld,
-            accessible
-          );
-
-          return (
-            <motion.div
-              key={worldId}
-              variants={itemVariants}
-              id={worldId === "PERSONALITY" ? "onboarding-target-world-card" : undefined}
-              layout
-            >
-              <Card
-                className={cn(
-                  "flex flex-col h-full transition-all duration-300 ease-in-out overflow-hidden shadow-lg hover:shadow-xl dark:bg-slate-800 border-2",
-                  accessible
-                    ? "border-transparent hover:-translate-y-1"
-                    : "opacity-70 bg-slate-50 dark:bg-slate-800/60 cursor-not-allowed border-slate-200 dark:border-slate-700"
-                )}
-              >
-                <div className="p-5 sm:p-6 flex-grow">
-                  <div className="flex items-start justify-between gap-4 mb-3">
-                    <div
-                      className={cn(
-                        "p-3 rounded-lg flex-shrink-0",
-                        config.iconBg
-                      )}
-                    >
-                      <config.icon className={cn("w-7 h-7", config.iconColor)} />
-                    </div>
-                    <Badge variant="outline" className={cn("text-xs", info.badgeClass)}>
-                      <info.StatusIcon className="w-3.5 h-3.5 ml-1" />
-                      {info.statusText}
-                    </Badge>
-                  </div>
-                  <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">
-                    {config.label}
-                  </h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mt-1 h-16 line-clamp-3">
-                    {config.description}
-                  </p>
-                </div>
-                <div className="p-4 bg-slate-50 dark:bg-slate-800/50 mt-auto">
-                  <Button
-                    className={cn("w-full font-medium", info.actionButtonClass)}
-                    onClick={() => onWorldChange?.(worldId)}
-                    disabled={info.isLocked}
-                  >
-                    <info.ActionButtonIcon className="w-4 h-4 ml-2" />
-                    {info.actionButtonText}
-                  </Button>
-                </div>
-              </Card>
-            </motion.div>
-          );
-        })}
-      </motion.div>
+        {completionPercent === 100 && (
+          <motion.div variants={itemVariants} initial="hidden" animate="visible">
+            <Card className="bg-gradient-to-r from-green-500 to-emerald-600 text-white text-center p-8 rounded-2xl shadow-2xl">
+              <Award className="w-16 h-16 mx-auto mb-4"/>
+              <h2 className="text-3xl font-bold">כל הכבוד, {session?.user?.firstName}!</h2>
+              <p className="mt-2 text-lg opacity-90">סיימת את כל עולמות השאלון. עשית צעד ענק במסע שלך!</p>
+              <p className="mt-1 text-sm opacity-80">הפרופיל המלא שלך מוכן כעת עבור השדכנים שלנו.</p>
+            </Card>
+          </motion.div>
+        )}
+      </div>
 
       <style jsx global>{`
         @keyframes pulse-slow {
-          50% {
-            opacity: 0.85;
-            transform: scale(1.02);
-          }
+          50% { opacity: 0.9; transform: scale(1.02); }
         }
         .animate-pulse-slow {
           animation: pulse-slow 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-        .scrollbar-hide {
-          -ms-overflow-style: none; /* IE and Edge */
-          scrollbar-width: none; /* Firefox */
         }
       `}</style>
     </div>

@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\questionnaire
-# Generated on: 2025-07-27 16:29:58
+# Generated on: 2025-07-27 18:08:30
 ################################################################################
 
 ================================================================================
@@ -2151,7 +2151,6 @@ import {
   Info,
   Star,
   X,
-  CornerRightDown, // Corrected from CornerDownRight
   MessageCircle,
   Lightbulb,
 } from "lucide-react";
@@ -2164,7 +2163,6 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import type {
   Question,
-  Answer,
   AnswerValue,
   QuestionDepth,
 } from "../types/types";
@@ -2173,51 +2171,27 @@ import { useMediaQuery } from "../hooks/useMediaQuery";
 
 interface QuestionCardProps {
   question: Question;
-  answer?: Answer; // Assuming Answer type is defined elsewhere, includes value and potentially status
   depth: QuestionDepth;
   isRequired?: boolean;
-  onAnswer?: (value: AnswerValue) => void; // Kept for potential direct answer handling if needed
   onSkip?: () => void;
   onBookmark?: () => void;
   onHelp?: () => void;
   className?: string;
   validationError?: string;
   isDisabled?: boolean;
-  children?: React.ReactNode; // This is where AnswerInput will be rendered
+  children?: React.ReactNode;
   language?: string;
-  onNext?: () => void; // Kept for potential future use
-  onPrevious?: () => void; // Kept for potential future use
-  isLastQuestion?: boolean; // Kept for potential future use
-  isFirstQuestion?: boolean; // Kept for potential future use
-isFirstInList?: boolean;
+  isFirstInList?: boolean;
+  themeColor?: 'sky' | 'rose' | 'purple' | 'teal' | 'amber'; // NEW: Added theme color prop
 }
 
-// קונפיגורציה של צבעים ותוויות עבור רמות שאלה שונות
-const depthColors = {
-  BASIC: "border-blue-200 bg-blue-50/80",
-  ADVANCED: "border-purple-200 bg-purple-50/80",
-  EXPERT: "border-green-200 bg-green-50/80",
-};
-
-const depthGradients = {
-  BASIC: "from-blue-50 to-white",
-  ADVANCED: "from-purple-50 to-white",
-  EXPERT: "from-green-50 to-white",
-};
-
-const depthBadgeColors = {
-  BASIC: "bg-blue-100 text-blue-700 hover:bg-blue-200",
-  ADVANCED: "bg-purple-100 text-purple-700 hover:bg-purple-200",
-  EXPERT: "bg-green-100 text-green-700 hover:bg-green-200",
-};
-
-const depthLabels = {
+const depthLabels: Record<QuestionDepth, string> = {
   BASIC: "בסיסי",
   ADVANCED: "מתקדם",
   EXPERT: "מעמיק",
 };
 
-const depthDescriptions = {
+const depthDescriptions: Record<QuestionDepth, string> = {
   BASIC: "שאלות חובה המהוות את הבסיס להיכרות",
   ADVANCED: "שאלות מומלצות להיכרות מעמיקה יותר",
   EXPERT: "שאלות העשרה לחיבור מעמיק במיוחד",
@@ -2233,18 +2207,19 @@ export default function QuestionCard({
   className = "",
   validationError,
   isDisabled = false,
-  children, // Children will contain the AnswerInput component
-  isFirstInList = false, 
+  children,
+  isFirstInList = false,
+  themeColor = 'sky', // Default theme color
 }: QuestionCardProps) {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const isMobile = useMediaQuery("(max-width: 640px)");
 
-  // אפקטים ויזואליים באמצעות framer-motion
+  // REFINED: Motion variants for smoother animations
   const cardVariants = {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+    initial: { opacity: 0, y: 30, scale: 0.98 },
+    animate: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.4, ease: "easeOut" } },
     exit: { opacity: 0, y: -20, transition: { duration: 0.2 } },
   };
 
@@ -2253,59 +2228,18 @@ export default function QuestionCard({
     animate: { opacity: 1, transition: { delay: 0.1, duration: 0.3 } },
   };
 
-  const handleBookmark = () => {
-    setIsBookmarked(!isBookmarked);
-    onBookmark?.();
-  };
-
-  const handleHelp = () => {
-    setShowHelp(!showHelp);
-    onHelp?.();
-  };
-
-  // הרנדור משתנה בהתאם למכשיר
-  const renderFooter = () => {
-    if (isMobile) {
-      // למובייל - לאחר הסרת הזמן המוערך, אין תוכן להציג
-      return (
-        <div className="text-center text-xs text-gray-500">
-          {/* התוכן של זמן מוערך הוסר */}
-        </div>
-      );
-    }
-
-    // למסך רגיל - מציג רק את כפתור הדילוג אם קיים
-    return (
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          {onSkip && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onSkip}
-              disabled={isRequired || isDisabled}
-              className={cn(
-                "text-gray-500",
-                (isRequired || isDisabled) && "opacity-50 cursor-not-allowed"
-              )}
-            >
-              <SkipForward className="w-4 h-4 ml-1" />
-              דלג
-            </Button>
-          )}
-        </div>
-
-        <div className="flex items-center">
-          {/* התוכן של זמן מוערך הוסר */}
-        </div>
-      </div>
-    );
+  const themeClasses = {
+    border: `border-${themeColor}-500`,
+    text: `text-${themeColor}-700`,
+    bg: `bg-${themeColor}-100`,
+    bgSoft: `bg-${themeColor}-50`,
+    ring: `ring-${themeColor}-300`,
+    icon: `text-${themeColor}-500`,
   };
 
   return (
     <motion.div
-      // Using question.id as key might interfere with animations between questions
-      // key={question.id}
+      key={question.id}
       initial="initial"
       animate="animate"
       exit="exit"
@@ -2313,41 +2247,22 @@ export default function QuestionCard({
     >
       <Card
         className={cn(
-          "transition-all duration-200 border shadow-sm",
-          "relative", // Ensure relative positioning for the absolute background
-          depthColors[depth],
-          isDisabled ? "opacity-75 cursor-not-allowed" : "hover:shadow-md",
-          "overflow-hidden",
+          "transition-all duration-300 shadow-lg rounded-xl overflow-hidden border",
+          "bg-white",
+          isDisabled ? "opacity-75 cursor-not-allowed" : "hover:shadow-xl",
+          `border-t-4 ${themeClasses.border}`, // NEW: Thematic top border for atmosphere
           className
         )}
       >
-        {/* רקע גרדיאנט עדין - *** תוקן עם pointer-events-none *** */}
-        <div
-          className={cn(
-            "absolute inset-0 bg-gradient-to-b opacity-50",
-            depthGradients[depth],
-            "pointer-events-none" // Add this class to prevent blocking clicks
-          )}
-        />
-
-        {/* Header Section */}
-        <CardHeader className="relative flex flex-col space-y-2 pb-2 z-10">
-          {" "}
-          {/* Added z-10 */}
+        <CardHeader className="relative flex flex-col space-y-2 pb-3">
           <div className="flex items-center justify-between">
+            {/* Left side: Metadata badges */}
             <div className="flex flex-wrap items-center gap-2">
-              <TooltipProvider delayDuration={300}>
+              <TooltipProvider delayDuration={200}>
                 <Tooltip>
-                  <TooltipTrigger asChild>
-                    {/* Changed from asChild to avoid ref issues if Badge doesn't support it */}
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        "text-xs px-2 py-1 rounded-full font-normal cursor-default", // Added cursor-default
-                        depthBadgeColors[depth]
-                      )}
-                    >
-                      <Star className="h-3 w-3 mr-1" />
+                  <TooltipTrigger>
+                    <Badge variant="outline" className={cn("text-xs font-medium border-2", themeClasses.border, themeClasses.bgSoft, themeClasses.text)}>
+                      <Star className="h-3.5 w-3.5 mr-1.5" />
                       {depthLabels[depth]}
                     </Badge>
                   </TooltipTrigger>
@@ -2359,135 +2274,49 @@ export default function QuestionCard({
 
               {isRequired && (
                 <Badge variant="destructive" className="text-xs animate-pulse">
-                  חובה *
+                  שאלת חובה *
                 </Badge>
               )}
             </div>
 
+            {/* Right side: Action buttons */}
             <div className="flex items-center gap-1">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleBookmark}
-                      className={cn(
-                        "h-8 w-8 p-0 rounded-full transition-colors",
-                        isBookmarked
-                          ? "text-amber-500 bg-amber-50"
-                          : "text-gray-400 hover:bg-gray-100"
-                      )}
-                      aria-label={isBookmarked ? "הסר סימניה" : "הוסף סימניה"}
-                    >
-                      <Bookmark className="w-4 h-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{isBookmarked ? "הסר סימניה" : "הוסף סימניה"}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleHelp}
-                      className={cn(
-                        "h-8 w-8 p-0 rounded-full transition-colors",
-                        showHelp
-                          ? "text-blue-500 bg-blue-50"
-                          : "text-gray-400 hover:bg-gray-100"
-                      )}
-                      aria-label={showHelp ? "הסתר עזרה" : "הצג עזרה"}
-                    >
-                      <HelpCircle className="w-4 h-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{showHelp ? "הסתר עזרה" : "הצג עזרה"}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              {onBookmark && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" onClick={() => setIsBookmarked(!isBookmarked)} className={cn("h-8 w-8 rounded-full", isBookmarked ? "text-amber-500 bg-amber-100" : "text-slate-400 hover:bg-slate-100")} aria-label={isBookmarked ? "הסר סימניה" : "הוסף סימניה"}>
+                        <Bookmark className="w-4 h-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent><p>{isBookmarked ? "הסר סימניה" : "שמור לעיון חוזר"}</p></TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+               {question.metadata?.helpText && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" onClick={() => setShowHelp(!showHelp)} className={cn("h-8 w-8 rounded-full", showHelp ? `${themeClasses.bg} ${themeClasses.text}` : "text-slate-400 hover:bg-slate-100")} aria-label={showHelp ? "הסתר עזרה" : "הצג עזרה"}>
+                          <HelpCircle className="w-4 h-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent><p>{showHelp ? "הסתר עזרה" : "למה אנחנו שואלים את זה?"}</p></TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+               )}
             </div>
           </div>
 
-          {/* Question Text */}
-          <motion.div variants={contentVariants} className="relative">
-            <div className="text-lg font-medium mt-2">{question.question}</div>
-
-            {/* רמז קריאה למשתמשים לשאלות טקסט פתוח */}
-            {question.type === "openText" && !isMobile && (
-              <div className="absolute -right-4 -bottom-4 text-gray-400">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={cn(
-                    "h-8 w-8 p-0 rounded-full text-blue-500 opacity-70 hover:opacity-100",
-                    "flex items-center justify-center"
-                  )}
-                  onClick={() => setShowHint(!showHint)}
-                  aria-label="הצג טיפים" // Added aria-label
-                >
-                  <Lightbulb className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
+          {/* REFINED: Improved typography for the question itself */}
+          <motion.div variants={contentVariants}>
+            <h2 className="text-xl sm:text-2xl font-semibold mt-3 text-slate-800 leading-snug">
+              {question.question}
+            </h2>
           </motion.div>
         </CardHeader>
 
-        {/* Content Section */}
-        <CardContent className="relative pt-2 space-y-4 z-10">
-          {" "}
-          {/* Added z-10 */}
-          {/* Tips for writing */}
-          <AnimatePresence>
-            {showHint && question.type === "openText" && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3 }}
-                className="bg-blue-50 p-3 rounded-md border border-blue-100 mb-3"
-              >
-                <div className="flex items-start">
-                  <MessageCircle className="h-4 w-4 text-blue-500 mt-0.5 ml-2 flex-shrink-0" />
-                  <div className="text-sm text-blue-700">
-                    <p className="font-medium mb-1">טיפים לכתיבה:</p>
-                    <ul className="list-disc mr-4 space-y-1 text-xs">
-                      <li>התמקד/י בדוגמאות ספציפיות</li>
-                      <li>שתף/י תחושות ומחשבות אישיות</li>
-                      <li>הדגש/י את הנקודות החשובות עבורך ביותר</li>
-                    </ul>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="p-0 h-6 w-6 ml-1 text-blue-500"
-                    onClick={() => setShowHint(false)}
-                    aria-label="סגור טיפים" // Added aria-label
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Description if exists */}
-          {question.description && (
-            <div className="bg-gray-50 p-3 rounded-md border border-gray-100">
-              <p className="text-sm text-gray-600 flex items-start">
-                <Info className="inline-block h-4 w-4 mr-2 mt-0.5 text-blue-500 flex-shrink-0" />
-                <span>{question.description}</span>
-              </p>
-            </div>
-          )}
-
-          {/* Help Text when shown */}
+        <CardContent className="relative pt-2 space-y-4">
           <AnimatePresence>
             {showHelp && question.metadata?.helpText && (
               <motion.div
@@ -2496,56 +2325,43 @@ export default function QuestionCard({
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
               >
-                <Alert className="bg-blue-50 border-blue-200">
-                  <CornerRightDown className="h-4 w-4 text-blue-500 mr-2" />
-                  <AlertDescription className="text-sm text-blue-700">
+                {/* REFINED: Nicer alert for help text */}
+                <Alert className={cn(themeClasses.bgSoft, `border-${themeColor}-200`)}>
+                  <Lightbulb className={cn("h-4 w-4", themeClasses.icon)} />
+                  <AlertDescription className={cn(themeClasses.text, 'font-medium')}>
                     {question.metadata.helpText}
                   </AlertDescription>
                 </Alert>
               </motion.div>
             )}
           </AnimatePresence>
-
-          {/* Validation Error */}
+          
           <AnimatePresence>
             {validationError && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-              >
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                 <Alert variant="destructive" className="py-2">
                   <AlertCircle className="h-4 w-4 mr-2" />
-                  <AlertDescription className="text-sm">
-                    {validationError}
-                  </AlertDescription>
+                  <AlertDescription className="text-sm">{validationError}</AlertDescription>
                 </Alert>
               </motion.div>
             )}
           </AnimatePresence>
 
-          {/* Required Indicator */}
-          {isRequired && !validationError && ( // Only show if no error is present
-            <div className="text-xs text-red-500 flex items-center">
-              <AlertCircle className="h-3 w-3 mr-1" />
-              שאלת חובה
-            </div>
-          )}
-
-          {/* Answer Component */}
           <div className="mt-4">
             <motion.div variants={contentVariants} className="relative">
-              {children} {/* This renders the AnswerInput */}
+              {children}
             </motion.div>
           </div>
         </CardContent>
 
-        {/* Footer Section */}
-        <CardFooter className="relative flex justify-between items-center pt-4 border-t border-gray-100 bg-gray-50/50 z-10">
-          {" "}
-          {/* Added z-10 */}
-          {renderFooter()}
-        </CardFooter>
+        {onSkip && (
+          <CardFooter className="relative flex justify-end items-center pt-4 border-t border-slate-100 bg-slate-50/50">
+            <Button variant="ghost" size="sm" onClick={onSkip} disabled={isRequired || isDisabled} className={cn("text-slate-500 hover:text-slate-800", (isRequired || isDisabled) && "opacity-50 cursor-not-allowed")}>
+              {isRequired ? "שאלת חובה" : "דלג על שאלה זו"}
+              {!isRequired && <SkipForward className="w-4 h-4 mr-2" />}
+            </Button>
+          </CardFooter>
+        )}
       </Card>
     </motion.div>
   );
@@ -2634,14 +2450,10 @@ Content:
 // src/components/questionnaire/common/QuestionsList.tsx
 import React from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { CheckCircle, AlertCircle, CircleDot, ChevronLeft } from 'lucide-react'; // הוספנו חץ שמאלה
+import { CheckCircle, AlertCircle, Circle, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type {
-  Question,
-  QuestionnaireAnswer,
-  AnswerValue,
-} from '../types/types';
-import { Badge } from '@/components/ui/badge'; // נוסיף Badge לרמת הקושי
+import type { Question, QuestionnaireAnswer, AnswerValue } from '../types/types';
+import { Badge } from '@/components/ui/badge';
 
 interface QuestionsListProps {
   allQuestions: Question[];
@@ -2650,7 +2462,8 @@ interface QuestionsListProps {
   answers: QuestionnaireAnswer[];
   language?: string;
   className?: string;
-  onClose?: () => void; // פונקציה לסגירת הרשימה (שימושי במובייל)
+  onClose?: () => void;
+  themeColor?: 'sky' | 'rose' | 'purple' | 'teal' | 'amber'; // NEW: Added theme color prop
 }
 
 const QuestionsList: React.FC<QuestionsListProps> = ({
@@ -2660,7 +2473,8 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
   answers,
   language = 'he',
   className = '',
-  onClose, // קבלת הפונקציה
+  onClose,
+  themeColor = 'sky', // Default theme color
 }) => {
   const isRTL = language === 'he';
 
@@ -2672,61 +2486,53 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
     if (answer === undefined || answer === null) return false;
     if (typeof answer === 'string' && answer.trim() === '') return false;
     if (Array.isArray(answer) && answer.length === 0) return false;
-    if (
-      typeof answer === 'object' &&
-      !Array.isArray(answer) &&
-      Object.keys(answer).length === 0
-    )
-      return false;
+    if (typeof answer === 'object' && !Array.isArray(answer) && Object.keys(answer).length === 0) return false;
     return true;
   };
 
-  // פונקציה לטיפול בלחיצה על פריט ברשימה
   const handleItemClick = (index: number) => {
     setCurrentQuestionIndex(index);
-    onClose?.(); // קורא לפונקציית הסגירה אם היא קיימת (רלוונטי בעיקר למובייל)
+    onClose?.();
+  };
+  
+  const themeClasses = {
+    text: `text-${themeColor}-700`,
+    bgSoft: `bg-${themeColor}-50`,
+    border: `border-${themeColor}-300`,
+    ring: `ring-${themeColor}-400`,
+    icon: `text-${themeColor}-600`,
   };
 
-  // הגדרת צבעים ותוויות לרמות קושי
-  const depthBadgeColors = {
-    BASIC: 'bg-blue-100 text-blue-700 hover:bg-blue-200',
-    ADVANCED: 'bg-purple-100 text-purple-700 hover:bg-purple-200',
-    EXPERT: 'bg-green-100 text-green-700 hover:bg-green-200',
-  };
   const depthLabels = { BASIC: 'בסיסי', ADVANCED: 'מתקדם', EXPERT: 'מעמיק' };
 
   return (
-    // התיקון כאן: הסרנו את הגובה הקבוע והשארנו רק h-full
     <ScrollArea className={cn('h-full', className)}>
-      <div className="space-y-2 p-1" dir={isRTL ? 'rtl' : 'ltr'}>
-        {' '}
-        {/* הוספנו dir */}
+      {/* NEW: Relative container for the timeline pseudo-element */}
+      <div className="relative space-y-2 p-2" dir={isRTL ? 'rtl' : 'ltr'}>
+        {/* NEW: Timeline connecting line */}
+        <div className="absolute top-0 bottom-0 w-0.5 bg-slate-200" style={isRTL ? { right: '1.625rem' } : { left: '1.625rem' }}></div>
+        
         {allQuestions.map((q, index) => {
           const answer = findAnswer(q.id);
           const isAnswered = isAnswerNotEmpty(answer);
           const isCurrent = index === currentQuestionIndex;
 
-          let StatusIcon = <CircleDot className="h-4 w-4 text-gray-400" />; // אייקון ברירת מחדל
-          let statusColorClass =
-            'border-gray-200 hover:bg-gray-100 hover:border-gray-300'; // ברירת מחדל
-          let textColorClass = 'text-gray-700';
-
+          let StatusIcon;
+          let itemClasses = 'bg-white hover:bg-slate-50 border-slate-200';
+          let textClasses = 'text-slate-700';
+          
           if (isAnswered) {
-            StatusIcon = <CheckCircle className="h-4 w-4 text-green-600" />;
-            statusColorClass =
-              'border-green-300 bg-green-50/60 hover:bg-green-100 hover:border-green-400';
-            textColorClass = 'text-gray-800'; // טקסט רגיל, לא ירוק
+            StatusIcon = <CheckCircle className={cn("h-5 w-5", themeClasses.icon)} />;
           } else if (q.isRequired) {
-            StatusIcon = <AlertCircle className="h-4 w-4 text-red-600" />;
-            statusColorClass =
-              'border-red-300 bg-red-50/60 hover:bg-red-100 hover:border-red-400';
-            textColorClass = 'text-gray-800'; // טקסט רגיל, לא אדום
+            StatusIcon = <AlertCircle className="h-5 w-5 text-red-500" />;
+          } else {
+            StatusIcon = <Circle className="h-5 w-5 text-slate-300" />;
           }
 
           if (isCurrent) {
-            statusColorClass =
-              'bg-blue-100 border-blue-400 ring-2 ring-blue-500 ring-offset-1'; // טבעת בולטת
-            textColorClass = 'text-blue-900 font-semibold'; // טקסט כחול כהה ומודגש
+            StatusIcon = <Sparkles className={cn("h-5 w-5", themeClasses.icon)} />;
+            itemClasses = `${themeClasses.bgSoft} ${themeClasses.border} ring-2 ${themeClasses.ring}`;
+            textClasses = `${themeClasses.text} font-semibold`;
           }
 
           return (
@@ -2734,69 +2540,30 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
               key={q.id}
               type="button"
               className={cn(
-                'w-full flex items-center justify-between text-start p-3 rounded-lg transition-all duration-150 border shadow-sm group', // שימוש ב-flex ו-justify-between
-                statusColorClass
+                'relative w-full flex items-start text-start p-3 rounded-lg transition-all duration-200 border shadow-sm group',
+                itemClasses
               )}
               onClick={() => handleItemClick(index)}
               aria-current={isCurrent ? 'step' : undefined}
             >
-              {/* תוכן ראשי - אייקון סטטוס, מספר וטקסט שאלה */}
-              <div
-                className={cn(
-                  'flex items-start gap-3 flex-1 min-w-0',
-                  textColorClass
-                )}
-              >
-                {' '}
-                {/* שימוש ב-gap */}
-                <div className="flex-shrink-0 pt-0.5">{StatusIcon}</div>
-                <div className="flex-1">
-                  <span
-                    className={cn('font-medium', isCurrent ? 'font-bold' : '')}
-                  >
-                    {index + 1}.
-                  </span>
-                  <span
-                    className="ms-1.5 text-sm leading-relaxed"
-                    style={{ whiteSpace: 'normal' }}
-                  >
-                    {' '}
-                    {/* שימוש ב-ms (margin-start) שמתאים ל-RTL/LTR */}
-                    {q.question}
-                  </span>
-                  {/* הצגת תגית רמת קושי מתחת לשאלה */}
-                  <div className="mt-1.5">
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        'text-xs px-1.5 py-0.5 rounded-full font-normal border', // גבול דק
-                        depthBadgeColors[q.depth]
-                      )}
-                    >
-                      {depthLabels[q.depth]}
-                    </Badge>
-                  </div>
-                </div>
+              {/* Status Icon with timeline dot */}
+              <div className="flex-shrink-0 z-10 bg-white rounded-full p-1">
+                 {StatusIcon}
               </div>
 
-              {/* חץ המצביע על הפריט הנוכחי (מופיע רק בפריט הנוכחי) */}
-              {isCurrent && (
-                <ChevronLeft
-                  className={cn(
-                    'h-5 w-5 text-blue-600 flex-shrink-0 transform transition-transform',
-                    isRTL ? 'rotate-180' : '' // היפוך החץ ב-RTL
-                  )}
-                />
-              )}
-              {/* אייקון חץ כללי להצביע על אפשרות לחיצה (אופציונלי) */}
-              {!isCurrent && (
-                <ChevronLeft
-                  className={cn(
-                    'h-5 w-5 text-gray-400 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity', // מופיע ב-hover
-                    isRTL ? 'rotate-180' : ''
-                  )}
-                />
-              )}
+              {/* Content */}
+              <div className={cn('flex-1 min-w-0 ml-3', textClasses)}>
+                <p className="text-sm leading-relaxed" style={{ whiteSpace: 'normal' }}>
+                  <span className="font-medium">{index + 1}. </span>
+                  {q.question}
+                </p>
+                {/* REFINED: Badge styling */}
+                <div className="mt-2">
+                  <Badge variant="outline" className="text-xs font-normal bg-white">
+                    {depthLabels[q.depth]}
+                  </Badge>
+                </div>
+              </div>
             </button>
           );
         })}
@@ -2817,352 +2584,232 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
-  Scroll,
-  Heart,
-  Users,
-  User,
-  ArrowRight,
-  Star,
-  Award,
-  Brain,
-  Sparkles,
-  Clock,
-  HelpCircle,
-  CheckCircle2,
+  Scroll, Heart, Users, UserCheck, ArrowRight, Star, Brain, Sparkles, Clock, HelpCircle, CheckCircle2, User
 } from "lucide-react";
-import type { WorldId, QuestionDepth } from "../types/types";
+import type { WorldId, Question } from "../types/types";
 import { cn } from "@/lib/utils";
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
+// --- ממשק Props חדש ופשוט יותר ---
 interface WorldIntroProps {
   worldId: WorldId;
-  title: string;
-  description: string;
-  // estimatedTime עדיין יכול להתקבל, אך לא נשתמש בו ישירות לתצוגה אם נרצה טווח קבוע
-  estimatedTime: number;
-  totalQuestions: number;
-  requiredQuestions: number;
-  depths: Array<QuestionDepth>;
+  allQuestions: Question[];
   onStart: () => void;
   className?: string;
 }
 
-// --- Configuration for World Icons and Styles (נשאר כפי שהוא) ---
-const worldDisplayConfig: Record<
-  WorldId,
-  {
-    Icon: React.ElementType;
-    primaryColor: string;
-    gradientFrom: string;
-    gradientTo: string;
-    bgLight: string;
-    textLight: string;
-    iconBg: string;
-  }
-> = {
-  RELIGION: {
-    Icon: Scroll,
-    primaryColor: "amber-500",
-    gradientFrom: "from-amber-500",
-    gradientTo: "to-yellow-400",
-    bgLight: "bg-amber-50 dark:bg-amber-900/30",
-    textLight: "text-amber-700 dark:text-amber-300",
-    iconBg: "bg-amber-100 dark:bg-amber-800/50",
+// --- אובייקט קונפיגורציה מרכזי לכל התוכן והעיצוב ---
+const worldDisplayConfig = {
+  PERSONALITY: {
+    Icon: User,
+    themeColor: "sky",
+    title: "עולם האישיות",
+    subtitle: "מי אני באמת?",
+    whyIsItImportant: "הבנה עמוקה של מי שאת/ה היא הבסיס לכל קשר בריא. כאן תקבלי/י הזדמנות להציג את עצמך בצורה אותנטית, כדי שנמצא מישהו שיתאהב באדם האמיתי שאת/ה.",
+    whatYouWillDiscover: [
+      "מהם הכוחות המניעים אותך בחיים",
+      "סגנון התקשורת והאינטראקציה החברתית שלך",
+      "איך את/ה מתמודד/ת עם אתגרים ומקבל/ת החלטות",
+    ],
+    guidingThought: "היופי שבזוגיות הוא לא למצוא מישהו מושלם, אלא למצוא מישהו שהחלקים שלכם משלימים זה את זה.",
   },
   VALUES: {
     Icon: Heart,
-    primaryColor: "rose-500",
-    gradientFrom: "from-rose-500",
-    gradientTo: "to-pink-500",
-    bgLight: "bg-rose-50 dark:bg-rose-900/30",
-    textLight: "text-rose-700 dark:text-rose-300",
-    iconBg: "bg-rose-100 dark:bg-rose-800/50",
+    themeColor: "rose",
+    title: "עולם הערכים",
+    subtitle: "מה באמת מניע אותך?",
+    whyIsItImportant: "ערכים משותפים הם עמוד השדרה של קשר יציב ומאושר. בעולם זה, נעזור לך לזקק את עקרונות הליבה שלך, כדי לבנות יסודות איתנים לבית המשותף העתידי.",
+    whatYouWillDiscover: [
+      "מהם סדרי העדיפויות שלך בין משפחה, קריירה ורוחניות",
+      "גישתך לכסף, נתינה וצמיחה אישית",
+      "איזו קהילה וסביבה חברתית מתאימות לך",
+    ],
+    guidingThought: "כאשר הערכים שלכם נפגשים, הדרך המשותפת הופכת להיות ברורה וקלה יותר.",
   },
   RELATIONSHIP: {
     Icon: Users,
-    primaryColor: "purple-500",
-    gradientFrom: "from-purple-500",
-    gradientTo: "to-violet-500",
-    bgLight: "bg-purple-50 dark:bg-purple-900/30",
-    textLight: "text-purple-700 dark:text-purple-300",
-    iconBg: "bg-purple-100 dark:bg-purple-800/50",
-  },
-  PERSONALITY: {
-    Icon: User,
-    primaryColor: "sky-500",
-    gradientFrom: "from-sky-500",
-    gradientTo: "to-cyan-400",
-    bgLight: "bg-sky-50 dark:bg-sky-900/30",
-    textLight: "text-sky-700 dark:text-sky-300",
-    iconBg: "bg-sky-100 dark:bg-sky-800/50",
+    themeColor: "purple",
+    title: "עולם הזוגיות",
+    subtitle: "איך נראית השותפות האידיאלית שלך?",
+    whyIsItImportant: "זוגיות טובה היא שותפות. כאן נבין את הציפיות שלך מקשר, את 'שפות האהבה' שלך, ואיך את/ה רואה את חיי היומיום המשותפים. זה המפתח ליצירת קשר שמבוסס על הבנה, כבוד וחברות אמת.",
+    whatYouWillDiscover: [
+      "מהי תמצית הזוגיות הבריאה בעיניך",
+      "סגנון פתרון הקונפליקטים המועדף עליך",
+      "האיזון הנכון עבורך בין 'ביחד' ל'לחוד'",
+    ],
+    guidingThought: "השאלה אינה 'האם תהיו מאושרים?', אלא 'איך תתמודדו יחד כשתהיו פחות מאושרים?'.",
   },
   PARTNER: {
-    Icon: CheckCircle2,
-    primaryColor: "teal-500",
-    gradientFrom: "from-teal-500",
-    gradientTo: "to-emerald-500",
-    bgLight: "bg-teal-50 dark:bg-teal-900/30",
-    textLight: "text-teal-700 dark:text-teal-300",
-    iconBg: "bg-teal-100 dark:bg-teal-800/50",
+    Icon: UserCheck,
+    themeColor: "teal",
+    title: "עולם הפרטנר",
+    subtitle: "במי תרצה/י לבחור?",
+    whyIsItImportant: "הגדרת בן/בת הזוג האידיאלי/ת היא יותר מרשימת תכונות; זו הבנה של מה באמת נחוץ לך כדי לפרוח. כאן נמקד את החיפוש ונבין מהם הדברים שאינם ניתנים לפשרה עבורך.",
+    whatYouWillDiscover: [
+      "אילו תכונות אופי הן החיוניות ביותר עבורך",
+      "מהן העדפותיך לגבי סגנון חיים ורקע",
+      "מהם ה'קווים האדומים' שלך בזוגיות",
+    ],
+    guidingThought: "אל תחפש/י את האדם שתוכל/י לחיות איתו, חפש/י את האדם שאינך יכול/ה לחיות בלעדיו.",
+  },
+  RELIGION: {
+    Icon: Scroll,
+    themeColor: "amber",
+    title: "דת ומסורת",
+    subtitle: "אמונה והלכה בחייך",
+    whyIsItImportant: "העולם הרוחני והדתי הוא נדבך יסודי בבניית בית נאמן בישראל. בעולם זה נבין את החיבור האישי שלך, את ההשקפה שלך, ואת החזון שלך לבית יהודי. זהו בסיס הכרחי להרמוניה זוגית וחינוך ילדים.",
+    whatYouWillDiscover: [
+      "ההגדרה האישית שלך על הרצף הדתי",
+      "כיצד ההלכה והמסורת באות לידי ביטוי בחייך",
+      "החזון שלך לחינוך דתי ורוחני במשפחה",
+    ],
+    guidingThought: "בית יהודי נבנה לא רק מלבנים, אלא גם מתפילות, מערכים וממסורת שעוברת מדור לדור.",
   },
 };
 
-// --- Configuration for Depth Levels (נשאר כפי שהוא) ---
-const depthDisplayConfig: Record<
-  QuestionDepth,
-  {
-    label: string;
-    description: string;
-    Icon: React.ElementType;
-    iconColor: string;
-    bgColor: string;
-    borderColor: string;
-  }
-> = {
-  BASIC: {
-    label: "יסודות",
-    description: "שאלות ליבה להבנת הבסיס וההעדפות המרכזיות שלך.",
-    Icon: Star,
-    iconColor: "text-sky-500",
-    bgColor: "bg-sky-50 dark:bg-sky-900/50",
-    borderColor: "border-sky-200 dark:border-sky-700",
-  },
-  ADVANCED: {
-    label: "העמקה",
-    description: "שאלות מורכבות יותר החוקרות ניואנסים ונקודות מבט מעמיקות.",
-    Icon: Brain,
-    iconColor: "text-purple-500",
-    bgColor: "bg-purple-50 dark:bg-purple-900/50",
-    borderColor: "border-purple-200 dark:border-purple-700",
-  },
-  EXPERT: {
-    label: "מומחיות", // אפשר לשנות ל"התבוננות" או "רפלקציה"
-    description: "שאלות רפלקטיביות הדורשות התבוננות פנימית עמוקה במיוחד.",
-    Icon: Award,
-    iconColor: "text-amber-500",
-    bgColor: "bg-amber-50 dark:bg-amber-900/50",
-    borderColor: "border-amber-200 dark:border-amber-700",
-  },
-};
+const WORLD_ORDER: WorldId[] = ["PERSONALITY", "VALUES", "RELATIONSHIP", "PARTNER", "RELIGION"];
 
 // --- Main Component ---
 export default function WorldIntro({
   worldId,
-  title,
-  description,
-  // estimatedTime, // לא נשתמש בו ישירות לתצוגה
-  totalQuestions,
-  requiredQuestions,
-  depths,
+  allQuestions,
   onStart,
   className = "",
 }: WorldIntroProps) {
   const config = worldDisplayConfig[worldId];
-  const { Icon, gradientFrom, gradientTo, bgLight, textLight, iconBg } = config;
+  const { Icon, title, subtitle, whyIsItImportant, whatYouWillDiscover, guidingThought, themeColor } = config;
+  const isMobile = useMediaQuery('(max-width: 1023px)');
 
-  // קביעת טווח הזמן לתצוגה
-  const displayEstimatedTime = "10-20 דקות"; // <-- שינוי כאן
+  // חישובים דינמיים
+  const totalQuestions = allQuestions.length;
+  const requiredQuestions = allQuestions.filter((q) => q.isRequired).length;
+  const estimatedTime = Math.max(5, Math.round(totalQuestions * 0.4)); // כ-24 שניות לשאלה, מינימום 5 דקות
+  const worldIndex = WORLD_ORDER.indexOf(worldId) + 1;
 
-  // Framer Motion Variants (נשאר כפי שהוא)
+  // Framer Motion Variants
   const containerVariants = {
     hidden: { opacity: 0, scale: 0.98 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      transition: {
-        duration: 0.5,
-        ease: "circOut",
-        staggerChildren: 0.1,
-      },
-    },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: "circOut", staggerChildren: 0.1 } },
   };
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.4, ease: "easeOut" },
-    },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
   };
 
-  const statItemVariants = {
-    hidden: { opacity: 0, scale: 0.8 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      transition: { type: "spring", stiffness: 300, damping: 15, delay: 0.2 },
-    },
-  };
+  const stats = [
+    { label: "זמן משוער", value: `~${estimatedTime} דקות`, IconComp: Clock },
+    { label: "סך כל שאלות", value: totalQuestions, IconComp: HelpCircle },
+    { label: "שאלות חובה", value: requiredQuestions, IconComp: CheckCircle2 },
+  ];
 
-  return (
-    <div
+  const ActionButton = () => (
+    <Button
+      onClick={onStart}
+      size="lg"
       className={cn(
-        "min-h-screen flex items-center justify-center p-4 sm:p-6 bg-slate-50 dark:bg-slate-900",
-        className
+        "w-full text-lg font-medium py-3 rounded-lg shadow-md transition-all duration-300 ease-in-out transform hover:scale-105",
+        `bg-${themeColor}-600 hover:bg-${themeColor}-700 text-white`
       )}
     >
+      בוא/י נתחיל את המסע
+      <ArrowRight className="w-5 h-5 mr-2 animate-pulse-fast" />
+    </Button>
+  );
+
+  return (
+    <div className={cn("min-h-screen flex items-center justify-center p-4 sm:p-6 bg-slate-50", className)}>
       <motion.div
-        className="w-full max-w-2xl"
+        className="w-full max-w-4xl"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-        <Card className="overflow-hidden shadow-2xl rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/60 backdrop-blur-md">
-          <CardContent className="p-6 sm:p-8 space-y-8">
-            {/* World Icon, Title, and Description */}
-            <motion.div variants={itemVariants} className="text-center">
-              <div
-                className={cn(
-                  "mx-auto mb-6 w-20 h-20 rounded-2xl flex items-center justify-center shadow-lg",
-                  iconBg,
-                  `bg-gradient-to-br ${gradientFrom} ${gradientTo}`
-                )}
-              >
-                <Icon className={cn("w-10 h-10 text-white")} />
+        <Card className="overflow-hidden shadow-xl rounded-xl border-slate-200 bg-white">
+          <CardContent className="p-0">
+            {isMobile && (
+              <div className="p-6 border-b">
+                 <ActionButton />
               </div>
-              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
-                {title}
-              </h1>
-              <p className="mt-3 text-base sm:text-lg text-slate-600 dark:text-slate-300 max-w-md mx-auto">
-                {description}
-              </p>
-            </motion.div>
-
-            {/* Key Statistics */}
-            <motion.div
-              variants={itemVariants}
-              className="grid grid-cols-1 sm:grid-cols-3 gap-4"
-            >
-              {[
-                {
-                  label: "זמן משוער",
-                  value: displayEstimatedTime, // <-- שימוש במשתנה החדש
-                  IconComp: Clock,
-                },
-                {
-                  label: "סך כל שאלות",
-                  value: totalQuestions,
-                  IconComp: HelpCircle,
-                },
-                {
-                  label: "שאלות חובה",
-                  value: requiredQuestions,
-                  IconComp: CheckCircle2,
-                },
-              ].map((stat, index) => (
-                <motion.div
-                  key={index}
-                  variants={statItemVariants}
-                  className={cn(
-                    "p-4 rounded-lg text-center",
-                    bgLight,
-                    "border border-slate-200 dark:border-slate-700/70 shadow-sm"
-                  )}
-                >
-                  <stat.IconComp
-                    className={cn("w-6 h-6 mx-auto mb-2", textLight)}
-                  />
-                  <div className="text-2xl font-semibold text-slate-700 dark:text-slate-200">
-                    {stat.value}
+            )}
+            <div className="grid lg:grid-cols-2">
+              {/* Left Column: Visuals & Stats */}
+              <motion.div variants={itemVariants} className={`bg-${themeColor}-50/50 p-6 sm:p-8 flex flex-col justify-between`}>
+                <div>
+                  <Badge variant="outline" className={`border-${themeColor}-300 bg-white text-${themeColor}-700 mb-4`}>
+                    עולם {worldIndex} מתוך {WORLD_ORDER.length}
+                  </Badge>
+                  <div className={`mb-4 inline-block p-4 rounded-xl bg-gradient-to-br from-${themeColor}-500 to-${themeColor}-600 shadow-lg`}>
+                    <Icon className="w-12 h-12 text-white" />
                   </div>
-                  <div className="text-sm text-slate-500 dark:text-slate-400">
-                    {stat.label}
+                  <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-800">
+                    {title}
+                  </h1>
+                  <p className={`mt-2 text-lg text-${themeColor}-800 font-medium`}>
+                    {subtitle}
+                  </p>
+                </div>
+                <div className="mt-8 space-y-4">
+                  {stats.map((stat, index) => (
+                    <div key={index} className="flex items-center gap-3">
+                      <div className={`p-2 rounded-md bg-${themeColor}-100`}>
+                        <stat.IconComp className={`w-5 h-5 text-${themeColor}-600`} />
+                      </div>
+                      <div>
+                        <div className="text-sm text-slate-500">{stat.label}</div>
+                        <div className="font-semibold text-slate-700">{stat.value}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+
+              {/* Right Column: Content & CTA */}
+              <motion.div variants={itemVariants} className="p-6 sm:p-8 flex flex-col justify-between">
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-700 flex items-center">
+                      <Sparkles className={`w-5 h-5 mr-2 text-${themeColor}-500`} />
+                      למה העולם הזה קריטי להצלחה שלך?
+                    </h3>
+                    <p className="mt-2 text-slate-600 leading-relaxed">{whyIsItImportant}</p>
                   </div>
-                </motion.div>
-              ))}
-            </motion.div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-700 flex items-center">
+                      <Brain className={`w-5 h-5 mr-2 text-${themeColor}-500`} />
+                      מה תגלה/י על עצמך?
+                    </h3>
+                    <ul className="mt-2 space-y-1 list-disc list-inside text-slate-600">
+                      {whatYouWillDiscover.map((item, index) => <li key={index}>{item}</li>)}
+                    </ul>
+                  </div>
+                  <div className={`border-r-4 border-${themeColor}-300 pr-4 py-2 bg-${themeColor}-50/60 rounded-r-md`}>
+                    <p className="text-slate-700 italic">{guidingThought}</p>
+                  </div>
+                </div>
 
-            {/* Depth Levels Information (נשאר כפי שהוא) */}
-            <motion.div variants={itemVariants} className="space-y-4">
-              <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200 flex items-center">
-                <Sparkles className={cn("w-5 h-5 mr-2", textLight)} />
-                רמות העומק בעולם זה:
-              </h3>
-              {depths.map((depthKey) => {
-                const depthConfig = depthDisplayConfig[depthKey];
-                if (!depthConfig) { // הוספת בדיקה למקרה שרמת עומק לא מוגדרת
-                    console.warn(`Depth configuration for "${depthKey}" not found.`);
-                    return null;
-                }
-                return (
-                  <motion.div
-                    key={depthKey}
-                    variants={itemVariants}
-                    className={cn(
-                      "flex items-start gap-4 p-4 rounded-lg border shadow-sm",
-                      depthConfig.bgColor,
-                      depthConfig.borderColor
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        "p-2 rounded-md flex-shrink-0",
-                        depthConfig.iconColor,
-                        depthConfig.bgColor.replace("-50", "-100")
-                      )}
-                    >
-                      <depthConfig.Icon className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4
-                        className={cn(
-                          "font-semibold",
-                          depthConfig.iconColor.replace("text-", "text-slate-")
-                        )}
-                      >
-                        {depthConfig.label}
-                      </h4>
-                      <p className="text-sm text-slate-600 dark:text-slate-400">
-                        {depthConfig.description}
-                      </p>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </motion.div>
-
-            {/* Start Button (נשאר כפי שהוא) */}
-            <motion.div variants={itemVariants} className="pt-4">
-              <Button
-                onClick={onStart}
-                size="lg"
-                className={cn(
-                  "w-full text-lg font-medium py-3 rounded-lg shadow-md transition-all duration-300 ease-in-out transform hover:scale-105",
-                  `bg-gradient-to-r ${gradientFrom} ${gradientTo} text-white hover:shadow-xl`
+                {!isMobile && (
+                  <div className="mt-8 pt-6 border-t border-slate-200">
+                    <ActionButton />
+                  </div>
                 )}
-              >
-                בוא/י נתחיל את המסע
-                <ArrowRight className="w-5 h-5 mr-2 animate-pulse-fast" />
-              </Button>
-            </motion.div>
-
-            {/* Subtle Footer/Hint (נשאר כפי שהוא) */}
-            <motion.p
-              variants={itemVariants}
-              className="text-center text-xs text-slate-400 dark:text-slate-500 pt-2"
-            >
-              התשובות שלך עוזרות לנו להכיר אותך טוב יותר. ניתן לחזור ולערוך בכל
-              שלב.
-            </motion.p>
+              </motion.div>
+            </div>
           </CardContent>
         </Card>
       </motion.div>
       <style jsx global>{`
-        @keyframes pulse-fast {
-          0%,
-          100% {
-            opacity: 1;
-            transform: translateX(0);
-          }
-          50% {
-            opacity: 0.7;
-            transform: translateX(2px);
-          }
-        }
-        .animate-pulse-fast {
-          animation: pulse-fast 1.5s ease-in-out infinite;
-        }
+        @keyframes pulse-fast { 0%, 100% { opacity: 1; transform: translateX(0); } 50% { opacity: 0.8; transform: translateX(2px); } }
+        .animate-pulse-fast { animation: pulse-fast 1.5s ease-in-out infinite; }
+        
+        /* Tailwind CSS JIT Purge-safe classes */
+        .bg-sky-50\/50, .bg-sky-100, .bg-sky-600, .hover\:bg-sky-700, .text-sky-600, .text-sky-700, .text-sky-800, .border-sky-300 { }
+        .bg-rose-50\/50, .bg-rose-100, .bg-rose-600, .hover\:bg-rose-700, .text-rose-600, .text-rose-700, .text-rose-800, .border-rose-300 { }
+        .bg-purple-50\/50, .bg-purple-100, .bg-purple-600, .hover\:bg-purple-700, .text-purple-600, .text-purple-700, .text-purple-800, .border-purple-300 { }
+        .bg-teal-50\/50, .bg-teal-100, .bg-teal-600, .hover\:bg-teal-700, .text-teal-600, .text-teal-700, .text-teal-800, .border-teal-300 { }
+        .bg-amber-50\/50, .bg-amber-100, .bg-amber-600, .hover\:bg-amber-700, .text-amber-600, .text-amber-700, .text-amber-800, .border-amber-300 { }
       `}</style>
     </div>
   );
@@ -6172,11 +5819,11 @@ File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\questionna
 Content:
 // src/components/questionnaire/layout/QuestionnaireLayout.tsx
 
-import React, { useState, useEffect, useCallback } from "react";
-import Link from "next/link"; // --- הוספנו ייבוא ל-Link ---
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import React, { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Heart,
   User,
@@ -6191,45 +5838,39 @@ import {
   X,
   Home,
   ArrowRightLeft,
-  LogIn, // --- הוספנו אייקון ---
-  UserPlus, // --- הוספנו אייקון ---
-} from "lucide-react";
-import type { WorldId, QuestionnaireLayoutProps } from "../types/types";
-import { cn } from "@/lib/utils";
-import { useMediaQuery } from "../hooks/useMediaQuery";
-import { motion, AnimatePresence } from "framer-motion";
+  LogIn,
+  UserPlus,
+  Scroll, // Added for Religion
+} from 'lucide-react';
+import type { WorldId, QuestionnaireLayoutProps } from '../types/types';
+import { cn } from '@/lib/utils';
+import { useMediaQuery } from '../hooks/useMediaQuery';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from '@/components/ui/tooltip';
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet";
-import FAQ from "../components/FAQ";
-import AccessibilityFeatures from "../components/AccessibilityFeatures";
+} from '@/components/ui/sheet';
+import FAQ from '../components/FAQ';
+import AccessibilityFeatures from '../components/AccessibilityFeatures';
 
-// Mapping icons for different "worlds" in the system
-const worldIcons = {
-  PERSONALITY: User,
-  VALUES: Heart,
-  RELATIONSHIP: Users,
-  PARTNER: Heart,
-  RELIGION: CheckCircle,
-} as const;
-
-// Mapping labels for different "worlds"
-const worldLabels = {
-  PERSONALITY: "אישיות",
-  VALUES: "ערכים ואמונות",
-  RELATIONSHIP: "זוגיות",
-  PARTNER: "תכונות וערכים בבן/בת הזוג",
-  RELIGION: "דת ומסורת",
+// ============================================================================
+// NEW: Central configuration object for worlds
+// ============================================================================
+const worldConfig = {
+  PERSONALITY: { icon: User, label: 'אישיות', themeColor: 'sky' },
+  VALUES: { icon: Heart, label: 'ערכים ואמונות', themeColor: 'rose' },
+  RELATIONSHIP: { icon: Users, label: 'זוגיות', themeColor: 'purple' },
+  PARTNER: { icon: User, label: 'הפרטנר האידיאלי', themeColor: 'teal' }, // Changed Icon for differentiation
+  RELIGION: { icon: Scroll, label: 'דת ומסורת', themeColor: 'amber' },
 } as const;
 
 // Enhanced Toast component
@@ -6242,11 +5883,11 @@ const Toast = ({ message, type, isVisible, onClose }) => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 20 }}
       className={cn(
-        "fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 px-4 py-3 rounded-lg shadow-lg",
-        "max-w-md w-full flex items-center justify-between",
-        type === "success" && "bg-green-500 text-white",
-        type === "error" && "bg-red-500 text-white",
-        type === "info" && "bg-blue-500 text-white"
+        'fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 px-4 py-3 rounded-lg shadow-lg',
+        'max-w-md w-full flex items-center justify-between',
+        type === 'success' && 'bg-green-500 text-white',
+        type === 'error' && 'bg-red-500 text-white',
+        type === 'info' && 'bg-blue-500 text-white'
       )}
     >
       <span className="font-medium">{message}</span>
@@ -6270,8 +5911,8 @@ export default function QuestionnaireLayout({
   onWorldChange,
   onExit,
   onSaveProgress,
-  language = "he",
-  isLoggedIn = false, // --- הוספנו prop עם ערך ברירת מחדל ---
+  language = 'he',
+  isLoggedIn = false,
 }: QuestionnaireLayoutProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [showExitPrompt, setShowExitPrompt] = useState(false);
@@ -6279,20 +5920,21 @@ export default function QuestionnaireLayout({
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<{
     message: string;
-    type: "success" | "error" | "info";
+    type: 'success' | 'error' | 'info';
     isVisible: boolean;
   }>({
-    message: "",
-    type: "info",
+    message: '',
+    type: 'info',
     isVisible: false,
   });
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [saveCount, setSaveCount] = useState(0);
 
-  const isSmallScreen = useMediaQuery("(max-width: 640px)");
+  const isSmallScreen = useMediaQuery('(max-width: 640px)');
+  const currentThemeColor = worldConfig[currentWorld]?.themeColor || 'sky';
 
   const showToast = useCallback(
-    (message: string, type: "success" | "error" | "info" = "info") => {
+    (message: string, type: 'success' | 'error' | 'info' = 'info') => {
       setToast({ message, type, isVisible: true });
       setTimeout(() => {
         setToast((prev) => ({ ...prev, isVisible: false }));
@@ -6304,98 +5946,95 @@ export default function QuestionnaireLayout({
   const handleSave = useCallback(
     async (isAutoSave = false) => {
       if (!onSaveProgress) {
-        if (!isAutoSave) {
-          showToast("לא ניתן לשמור את השאלון כרגע", "error");
-        }
+        if (!isAutoSave) showToast('לא ניתן לשמור את השאלון כרגע', 'error');
         return;
       }
-
       setIsSaving(true);
       setError(null);
-
       try {
         await onSaveProgress();
         setLastSaved(new Date());
         setSaveCount((prev) => prev + 1);
-        if (!isAutoSave) {
-          showToast("השאלון נשמר בהצלחה", "success");
-        }
+        if (!isAutoSave) showToast('השאלון נשמר בהצלחה', 'success');
       } catch {
-        setError("אירעה שגיאה בשמירת השאלון");
-        if (!isAutoSave) {
-          showToast("אירעה שגיאה בשמירת השאלון", "error");
-        }
+        setError('אירעה שגיאה בשמירת השאלון');
+        if (!isAutoSave) showToast('אירעה שגיאה בשמירת השאלון', 'error');
       } finally {
         setIsSaving(false);
       }
     },
     [onSaveProgress, showToast]
   );
+  useEffect(() => {
+    const mainElement = document.querySelector('main');
+    if (mainElement) {
+      mainElement.scrollTop = 0;
+    }
+  }, [currentWorld]);
 
   useEffect(() => {
     let saveTimer: NodeJS.Timeout;
-
     if (onSaveProgress) {
-      saveTimer = setInterval(() => {
-        handleSave(true);
-      }, 120000); // Auto-save every 2 minutes
+      saveTimer = setInterval(() => handleSave(true), 120000); // Auto-save every 2 minutes
     }
-
     return () => {
       if (saveTimer) clearInterval(saveTimer);
     };
   }, [onSaveProgress, handleSave]);
 
-  const isRTL = language === "he";
-  const directionClass = isRTL ? "rtl" : "ltr";
+  const isRTL = language === 'he';
+  const directionClass = isRTL ? 'rtl' : 'ltr';
 
   const NavButton = ({ worldId, isMobile }) => {
-    const Icon = worldIcons[worldId as keyof typeof worldIcons];
+    const {
+      icon: Icon,
+      label,
+      themeColor,
+    } = worldConfig[worldId as keyof typeof worldConfig];
     const isActive = currentWorld === worldId;
     const isCompleted = completedWorlds.includes(worldId as WorldId);
+
+    const activeClasses = `bg-${themeColor}-600 text-white shadow-md hover:bg-${themeColor}-700`;
+    const completedClasses =
+      'border-green-300 bg-green-50 text-green-800 hover:bg-green-100';
+    const defaultClasses =
+      'bg-white hover:bg-slate-50 border-slate-200 text-slate-700';
 
     return (
       <TooltipProvider delayDuration={300}>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              variant={isActive ? "default" : "outline"}
-              size={isMobile ? "sm" : "default"}
+              variant={'outline'}
+              size={isMobile ? 'sm' : 'default'}
               className={cn(
-                "flex items-center justify-start gap-2 w-full mb-2 transition-all",
-                isActive ? "bg-primary text-white" : "",
-                isCompleted ? "border-green-500" : "",
-                isMobile ? "text-xs py-1" : ""
+                'flex items-center justify-start gap-3 w-full mb-2 transition-all duration-200 rounded-lg',
+                isActive
+                  ? activeClasses
+                  : isCompleted
+                    ? completedClasses
+                    : defaultClasses,
+                isMobile ? 'py-2 text-sm' : 'p-3'
               )}
               onClick={() => {
                 onWorldChange(worldId as WorldId);
-                if (isMobile) {
-                  setShowMobileNav(false);
-                }
+                if (isMobile) setShowMobileNav(false);
               }}
             >
-              <Icon className={cn("h-4 w-4", isMobile ? "mr-1" : "mr-2")} />
-              <span className="truncate">
-                {worldLabels[worldId as keyof typeof worldLabels]}
-              </span>
-              {isCompleted && (
-                <CheckCircle className="h-3 w-3 text-green-500 ml-auto" />
+              <Icon
+                className={cn(
+                  'h-5 w-5',
+                  isActive ? 'text-white' : `text-${themeColor}-500`
+                )}
+              />
+              <span className="truncate flex-1 text-right">{label}</span>
+              {isCompleted && !isActive && (
+                <CheckCircle className="h-4 w-4 text-green-500 ml-auto" />
               )}
             </Button>
           </TooltipTrigger>
-          <TooltipContent side={isRTL ? "left" : "right"}>
-            <div className="text-sm">
-              <p className="font-medium">
-                {worldLabels[worldId as keyof typeof worldLabels]}
-              </p>
-              <p>
-                {isCompleted
-                  ? "✓ הושלם"
-                  : isActive
-                  ? "◉ פעיל כעת"
-                  : "○ טרם הושלם"}
-              </p>
-            </div>
+          <TooltipContent side={isRTL ? 'left' : 'right'}>
+            <p>{isCompleted ? 'הושלם' : isActive ? 'פעיל כעת' : 'טרם הושלם'}</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -6407,22 +6046,21 @@ export default function QuestionnaireLayout({
       <SheetTrigger asChild>
         <Button
           variant="ghost"
-          size={isMobile ? "sm" : "icon"}
+          size={isMobile ? 'sm' : 'icon'}
           className={cn(
-            "flex items-center justify-center",
+            'text-slate-500 hover:text-slate-800',
             isMobile
-              ? "justify-start gap-2 w-full mb-2 text-xs py-1"
-              : "w-8 h-8 p-0 rounded-full"
+              ? 'w-full justify-start gap-3 p-3'
+              : 'w-8 h-8 p-0 rounded-full'
           )}
           aria-label="שאלות נפוצות"
         >
-          <HelpCircle className={cn("h-4 w-4", isMobile ? "mr-1" : "")} />
-          {!isMobile && <span className="sr-only">שאלות נפוצות</span>}
+          <HelpCircle className="h-5 w-5" />
           {isMobile && <span>שאלות נפוצות</span>}
         </Button>
       </SheetTrigger>
       <SheetContent
-        side={isRTL ? "left" : "right"}
+        side={isRTL ? 'left' : 'right'}
         className="w-[90vw] max-w-lg overflow-y-auto"
       >
         <SheetHeader>
@@ -6435,7 +6073,6 @@ export default function QuestionnaireLayout({
     </Sheet>
   );
 
-  // --- START: Added for unauthenticated user prompt ---
   const UnauthenticatedPrompt = () => (
     <div className="p-3 my-3 bg-cyan-50/70 border border-cyan-200 rounded-lg text-center space-y-2">
       <p className="text-sm text-cyan-800 font-medium">
@@ -6446,7 +6083,7 @@ export default function QuestionnaireLayout({
       </p>
       <div className="flex gap-2 justify-center pt-1">
         <Link href="/auth/signin">
-          <Button id="onboarding-target-exit-map" variant="outline" size="sm" className="bg-white/80">
+          <Button variant="outline" size="sm" className="bg-white/80">
             <LogIn className="w-3 h-3 ml-1" />
             התחברות
           </Button>
@@ -6460,7 +6097,6 @@ export default function QuestionnaireLayout({
       </div>
     </div>
   );
-  // --- END: Added for unauthenticated user prompt ---
 
   const MobileNav = () => (
     <AnimatePresence>
@@ -6475,13 +6111,11 @@ export default function QuestionnaireLayout({
             onClick={() => setShowMobileNav(false)}
           />
           <motion.div
-            initial={{ x: isRTL ? "100%" : "-100%" }}
+            initial={{ x: isRTL ? '100%' : '-100%' }}
             animate={{ x: 0 }}
-            exit={{ x: isRTL ? "100%" : "-100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className={`fixed top-0 ${
-              isRTL ? "right-0" : "left-0"
-            } h-full w-3/4 max-w-xs bg-white shadow-lg p-4 z-50 ${directionClass} flex flex-col overflow-y-auto`}
+            exit={{ x: isRTL ? '100%' : '-100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            className={`fixed top-0 ${isRTL ? 'right-0' : 'left-0'} h-full w-3/4 max-w-xs bg-white shadow-lg p-4 z-50 ${directionClass} flex flex-col overflow-y-auto`}
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-medium flex items-center">
@@ -6497,65 +6131,31 @@ export default function QuestionnaireLayout({
                 <X className="h-4 w-4" />
               </Button>
             </div>
-
-            <div className="mb-4">
-              {Object.keys(worldIcons).map((worldId) => (
+            <div className="flex-grow">
+              {Object.keys(worldConfig).map((worldId) => (
                 <NavButton key={worldId} worldId={worldId} isMobile={true} />
               ))}
-              {renderFAQButton(true)}
             </div>
-            
-            {/* --- START: Added prompt for mobile --- */}
             {!isLoggedIn && <UnauthenticatedPrompt />}
-            {/* --- END: Added prompt for mobile --- */}
-
-            <div className="pt-4 border-t space-y-4">
-              {lastSaved && (
-                <div className="flex items-center text-xs text-gray-500 mb-2">
-                  <CheckCircle className="h-3 w-3 mr-1 text-green-500" />
-                  <span>
-                    נשמר לאחרונה: {lastSaved.toLocaleTimeString()}
-                    {saveCount > 0 && ` (${saveCount} שמירות)`}
-                  </span>
-                </div>
-              )}
-
-              <div className="flex flex-col gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="justify-start"
-                  onClick={() => handleSave()}
-                  disabled={isSaving}
-                >
-                  {isSaving ? (
-                    <Loader2 className="h-3 w-3 mr-2 animate-spin" />
-                  ) : (
-                    <Save className="h-3 w-3 mr-2" />
-                  )}
-                  שמור מצב נוכחי
-                </Button>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="justify-start"
-                  onClick={onExit}
-                >
-                  <Home className="h-3 w-3 mr-2" />
-                  חזרה למפת העולמות
-                </Button>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="justify-start text-red-500 hover:text-red-700"
-                  onClick={() => setShowExitPrompt(true)}
-                >
-                  <LogOut className="h-3 w-3 mr-2" />
-                  יציאה
-                </Button>
-              </div>
+            <div className="pt-4 mt-4 border-t space-y-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-start gap-2"
+                onClick={onExit}
+              >
+                <Home className="h-4 w-4" />
+                חזרה למפת העולמות
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-start text-red-500 hover:text-red-700"
+                onClick={() => setShowExitPrompt(true)}
+              >
+                <LogOut className="h-4 w-4" />
+                יציאה
+              </Button>
             </div>
           </motion.div>
         </>
@@ -6565,9 +6165,14 @@ export default function QuestionnaireLayout({
 
   return (
     <div
-      className={`flex flex-col min-h-screen lg:flex-row bg-gray-50 ${directionClass}`}
+      className={`flex flex-col min-h-screen lg:flex-row bg-slate-50 ${directionClass}`}
     >
-      <header className="lg:hidden sticky top-0 z-40 bg-white shadow-sm p-3 flex items-center justify-between">
+      <header
+        className={cn(
+          'lg:hidden sticky top-0 z-40 bg-white shadow-sm p-3 flex items-center justify-between',
+          `border-b-2 border-${currentThemeColor}-200`
+        )}
+      >
         <Button
           variant="ghost"
           size="sm"
@@ -6575,56 +6180,30 @@ export default function QuestionnaireLayout({
           className="inline-flex items-center"
         >
           <Menu className="h-5 w-5" />
-          {!isSmallScreen && <span className="ml-2">תפריט</span>}
+          !isSmallScreen && <span className="ml-2">תפריט</span>
         </Button>
-
         <div className="flex flex-col items-center">
-          <h1 className="text-sm font-medium">
-            {worldLabels[currentWorld as keyof typeof worldLabels]}
+          <h1
+            className={cn(
+              'text-sm font-semibold',
+              `text-${currentThemeColor}-800`
+            )}
+          >
+            {worldConfig[currentWorld]?.label}
           </h1>
-          {completedWorlds.length > 0 && (
-            <div className="text-xs text-gray-500">
-              {completedWorlds.length} / {Object.keys(worldLabels).length}{" "}
-              הושלמו
-            </div>
-          )}
+          <div className="text-xs text-slate-500">
+            {completedWorlds.length} / {Object.keys(worldConfig).length} הושלמו
+          </div>
         </div>
-
         <div className="flex items-center gap-1">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 rounded-full"
-              >
-                <HelpCircle className="h-4 w-4" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent
-              side={isRTL ? "left" : "right"}
-              className="w-[90vw] max-w-lg overflow-y-auto"
-            >
-              <SheetHeader>
-                <SheetTitle>שאלות נפוצות</SheetTitle>
-              </SheetHeader>
-              <div className="mt-4">
-                <FAQ />
-              </div>
-            </SheetContent>
-          </Sheet>
-          {lastSaved && !isSmallScreen && (
-            <span className="text-xs text-gray-500 mr-1">
-              <CheckCircle className="inline-block h-3 w-3 mr-1 text-green-500" />
-              נשמר
-            </span>
-          )}
           <Button
             variant="ghost"
             size="icon"
             className={cn(
-              "h-8 w-8 rounded-full",
-              isSaving ? "bg-blue-100" : "bg-green-50 text-green-600"
+              'h-8 w-8 rounded-full',
+              isSaving
+                ? `bg-${currentThemeColor}-100`
+                : 'bg-green-50 text-green-600'
             )}
             onClick={() => handleSave()}
             disabled={isSaving}
@@ -6642,94 +6221,79 @@ export default function QuestionnaireLayout({
 
       <aside
         className={cn(
-          "w-60 bg-white border-r hidden lg:flex lg:flex-col overflow-y-auto",
-          isRTL ? "border-l" : "border-r"
+          'w-64 bg-white border-r hidden lg:flex lg:flex-col overflow-y-auto',
+          isRTL ? 'border-l' : 'border-r'
         )}
       >
         <div className="p-4 border-b">
-          <div className="flex items-center justify-between">
-            <h3 className="font-medium text-lg">עולמות השאלון</h3>
-            <div className="flex gap-1">
-              {renderFAQButton(false)}
-              <TooltipProvider delayDuration={300}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="w-8 h-8 p-0 rounded-full"
-                    >
-                      <Settings className="w-4 h-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">
-                    <p>הגדרות</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-          </div>
+          <h3 className="font-semibold text-lg text-slate-800">
+            עולמות השאלון
+          </h3>
+          <p className="text-xs text-slate-500">נווט בין חלקי השאלון השונים</p>
         </div>
-
-        <div className="p-4 space-y-2">
-          {Object.keys(worldIcons).map((worldId) => (
+        <div className="p-4 flex-grow">
+          {Object.keys(worldConfig).map((worldId) => (
             <NavButton key={worldId} worldId={worldId} isMobile={false} />
           ))}
         </div>
-        
-        {/* --- START: Added prompt for desktop sidebar --- */}
-        {!isLoggedIn && <div className="px-4"><UnauthenticatedPrompt /></div>}
-        {/* --- END: Added prompt for desktop sidebar --- */}
-
-        <div className="p-4 border-t mt-auto">
+        {!isLoggedIn && (
+          <div className="px-4">
+            <UnauthenticatedPrompt />
+          </div>
+        )}
+        <div className="p-4 border-t mt-auto space-y-2">
           {lastSaved && (
-            <div className="flex items-center text-xs text-gray-500 mb-3">
-              <CheckCircle className="h-3 w-3 mr-1 text-green-500" />
-              <span>
-                נשמר לאחרונה: {lastSaved.toLocaleTimeString()}
-                {saveCount > 0 && ` (${saveCount} שמירות)`}
-              </span>
+            <div className="flex items-center text-xs text-slate-500 mb-2">
+              <CheckCircle className="h-3.5 w-3.5 mr-1.5 text-green-500" />
+              <span>נשמר: {lastSaved.toLocaleTimeString()}</span>
             </div>
           )}
-
-          <div className="space-y-2">
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => handleSave()}
-              disabled={isSaving}
-            >
-              {isSaving ? (
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => handleSave()}
+            disabled={isSaving}
+          >
+            {isSaving ? (
+              <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
+                שומר...
+              </>
+            ) : (
+              <>
                 <Save className="w-4 h-4 mr-2" />
-              )}
-              שמור התקדמות
-            </Button>
-
-            <Button variant="outline" className="w-full" onClick={onExit}>
-              <Home className="w-4 h-4 mr-2" />
-              מפת העולמות
-            </Button>
-
-            <Button
-              variant="outline"
-              className="w-full text-red-500 hover:text-red-700"
-              onClick={() => setShowExitPrompt(true)}
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              יציאה
-            </Button>
+                שמור התקדמות
+              </>
+            )}
+          </Button>
+          <Button variant="outline" className="w-full" onClick={onExit}>
+            <Home className="w-4 h-4 mr-2" />
+            מפת העולמות
+          </Button>
+          <div className="flex gap-2 pt-2">
+            {renderFAQButton(false)}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="w-8 h-8 p-0 rounded-full text-slate-500"
+                  >
+                    <Settings className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>הגדרות</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
       </aside>
 
-      <main className="flex-1 p-3 md:p-6 lg:pb-16 overflow-y-auto relative">
-        {error && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
+      <main className="flex-1 p-3 md:p-6 lg:pb-16 overflow-y-auto relative scroll-smooth">
+        {' '}
         {children}
         <AccessibilityFeatures className="fixed bottom-4 right-4 lg:bottom-6 lg:right-6 z-50" />
       </main>
@@ -6753,7 +6317,7 @@ export default function QuestionnaireLayout({
                   <h3 className="text-lg font-medium mb-4">
                     האם אתה בטוח שברצונך לצאת?
                   </h3>
-                  <p className="text-gray-600 mb-6">
+                  <p className="text-slate-600 mb-6">
                     כל התשובות שלא נשמרו יאבדו. האם ברצונך לשמור לפני היציאה?
                   </p>
                   <div className="flex flex-col sm:flex-row justify-end gap-2">
@@ -6769,9 +6333,7 @@ export default function QuestionnaireLayout({
                       size="sm"
                       onClick={async () => {
                         await handleSave();
-                        if (onExit) {
-                          onExit();
-                        }
+                        if (onExit) onExit();
                         setShowExitPrompt(false);
                       }}
                       disabled={isSaving}
@@ -6786,9 +6348,7 @@ export default function QuestionnaireLayout({
                       size="sm"
                       onClick={() => {
                         setShowExitPrompt(false);
-                        if (onExit) {
-                          onExit();
-                        }
+                        if (onExit) onExit();
                       }}
                     >
                       צא ללא שמירה
@@ -6820,123 +6380,93 @@ export default function QuestionnaireLayout({
 File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\questionnaire\layout\WorldsMap.tsx
 --------------------------------------------------------------------------------
 Content:
-// WorldsMap.tsx
-import React, { useMemo } from "react";
-import { motion } from "framer-motion";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+// src/components/questionnaire/layout/WorldsMap.tsx
+
+import React from "react";
+import { motion } from 'framer-motion';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Progress } from "@/components/ui/progress";
-import { Badge, BadgeProps } from "@/components/ui/badge";
-import {
-  Scroll,
-  Heart,
-  Users,
-  User,
-  CheckCircle2,
-  Lock,
-  ArrowRight,
-  Info,
-  Star,
-  Play,
-  UserCheck,
-  Sparkles,
-  Edit3,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+  Scroll, Heart, Users, User, CheckCircle2, Lock, ArrowRight, Star, UserCheck, Sparkles, Edit3, Award, Brain,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useSession } from 'next-auth/react';
+
+// ============================================================================
+// 1. CONFIGURATION OBJECT (ENHANCED WITH MARKETING & MOTIVATIONAL CONTENT)
+// ============================================================================
 
 const worldsConfig = {
   PERSONALITY: {
     icon: User,
     label: "אישיות",
-    description: "המאפיינים האישיותיים שלך וכיצד הם משפיעים על תפיסתך.",
+    description: "מי אני באמת? גלה את הכוחות הייחודיים שלך, את סגנון התקשורת שלך ומה מניע אותך בחיים.",
     order: 1,
     themeColor: "sky",
-    baseBg: "bg-sky-50 dark:bg-sky-900/30",
-    iconBg: "bg-sky-100 dark:bg-sky-800/50",
-    iconColor: "text-sky-600 dark:text-sky-400",
-    activeRing: "ring-sky-500",
-    currentTopBarBg: "bg-sky-500 dark:bg-sky-600",
-    currentActionButtonBg: "bg-sky-600 dark:bg-sky-500",
-    currentActionButtonHoverBg: "hover:bg-sky-700 dark:hover:bg-sky-600",
-    activeBadgeBg: "bg-sky-100 text-sky-800 border-sky-300",
+    why: "הבנה עמוקה של מי שאת/ה היא הבסיס לכל קשר בריא. כאן תציג/י את עצמך בצורה אותנטית, כדי שנמצא מישהו שיתאהב בך באמת.",
+    discover: [
+      "הכוחות המניעים אותך בחיים",
+      "סגנון התקשורת שלך",
+      "איך את/ה מתמודד/ת עם אתגרים",
+    ],
   },
   VALUES: {
     icon: Heart,
     label: "ערכים ואמונות",
-    description: "עולם הערכים המרכזי שלך והאמונות שמנחות אותך בחיים.",
+    description: "מה באמת מניע אותך? זקק את עקרונות הליבה שלך ובנה יסודות איתנים לבית המשותף.",
     order: 2,
     themeColor: "rose",
-    baseBg: "bg-rose-50 dark:bg-rose-900/30",
-    iconBg: "bg-rose-100 dark:bg-rose-800/50",
-    iconColor: "text-rose-600 dark:text-rose-400",
-    activeRing: "ring-rose-500",
-    currentTopBarBg: "bg-rose-500 dark:bg-rose-600",
-    currentActionButtonBg: "bg-rose-600 dark:bg-rose-500",
-    currentActionButtonHoverBg: "hover:bg-rose-700 dark:hover:bg-rose-600",
-    activeBadgeBg: "bg-rose-100 text-rose-800 border-rose-300",
+    why: "ערכים משותפים הם עמוד השדרה של קשר יציב ומאושר. כאן נבין מהם סדרי העדיפויות שלך ואיזו סביבה מתאימה לך.",
+    discover: [
+      "סדרי העדיפויות שלך בחיים",
+      "גישתך לכסף, נתינה וצמיחה",
+      "איזו סביבה חברתית מתאימה לך",
+    ],
   },
   RELATIONSHIP: {
     icon: Users,
     label: "זוגיות",
-    description: "תפיסת הזוגיות שלך, ציפיות ומה חשוב לך במערכת יחסים.",
+    description: "איך נראית השותפות האידיאלית שלך? עצב את החזון שלך לקשר המבוסס על הבנה, כבוד וחברות.",
     order: 3,
     themeColor: "purple",
-    baseBg: "bg-purple-50 dark:bg-purple-900/30",
-    iconBg: "bg-purple-100 dark:bg-purple-800/50",
-    iconColor: "text-purple-600 dark:text-purple-400",
-    activeRing: "ring-purple-500",
-    currentTopBarBg: "bg-purple-500 dark:bg-purple-600",
-    currentActionButtonBg: "bg-purple-600 dark:bg-purple-500",
-    currentActionButtonHoverBg: "hover:bg-purple-700 dark:hover:bg-purple-600",
-    activeBadgeBg: "bg-purple-100 text-purple-800 border-purple-300",
+    why: "זוגיות טובה היא שותפות. כאן נבין את הציפיות שלך, את 'שפות האהבה' שלך ואיך את/ה רואה את חיי היומיום המשותפים.",
+    discover: [
+      "תמצית הזוגיות הבריאה בעיניך",
+      "סגנון פתרון הקונפליקטים שלך",
+      "האיזון הנכון בין 'ביחד' ל'לחוד'",
+    ],
   },
   PARTNER: {
     icon: UserCheck,
-    label: "העדפות לפרטנר",
-    description: "העדפותיך ותכונות שחשובות לך בבן/בת הזוג האידיאליים.",
+    label: "הפרטנר האידיאלי",
+    description: "במי תרצה/י לבחור? הגדר את התכונות והערכים החשובים לך ביותר בבן/בת הזוג.",
     order: 4,
     themeColor: "teal",
-    baseBg: "bg-teal-50 dark:bg-teal-900/30",
-    iconBg: "bg-teal-100 dark:bg-teal-800/50",
-    iconColor: "text-teal-600 dark:text-teal-400",
-    activeRing: "ring-teal-500",
-    currentTopBarBg: "bg-teal-500 dark:bg-teal-600",
-    currentActionButtonBg: "bg-teal-600 dark:bg-teal-500",
-    currentActionButtonHoverBg: "hover:bg-teal-700 dark:hover:bg-teal-600",
-    activeBadgeBg: "bg-teal-100 text-teal-800 border-teal-300",
+    why: "הגדרת בן/בת הזוג היא יותר מרשימת תכונות; זו הבנה של מה באמת נחוץ לך כדי לפרוח. כאן נמקד את החיפוש.",
+    discover: [
+      "אילו תכונות אופי חיוניות לך",
+      "העדפותיך לגבי סגנון חיים ורקע",
+      "מהם ה'קווים האדומים' שלך",
+    ],
   },
   RELIGION: {
     icon: Scroll,
     label: "דת ומסורת",
-    description: "חיבורך לדת, אמונה ומסורת ישראל, וכיצד זה בא לידי ביטוי בחייך.",
+    description: "מה מקום האמונה וההלכה בחייך? נבין את החיבור האישי שלך ואת החזון לבית יהודי.",
     order: 5,
     themeColor: "amber",
-    baseBg: "bg-amber-50 dark:bg-amber-900/30",
-    iconBg: "bg-amber-100 dark:bg-amber-800/50",
-    iconColor: "text-amber-600 dark:text-amber-400",
-    activeRing: "ring-amber-500",
-    currentTopBarBg: "bg-amber-500 dark:bg-amber-600",
-    currentActionButtonBg: "bg-amber-600 dark:bg-amber-500",
-    currentActionButtonHoverBg: "hover:bg-amber-700 dark:hover:bg-amber-600",
-    activeBadgeBg: "bg-amber-100 text-amber-800 border-amber-300",
+    why: "העולם הרוחני הוא נדבך יסודי בבניית בית נאמן בישראל. זהו בסיס הכרחי להרמוניה זוגית וחינוך ילדים.",
+    discover: [
+      "ההגדרה האישית שלך על הרצף הדתי",
+      "כיצד ההלכה באה לידי ביטוי בחייך",
+      "החזון שלך לחינוך דתי במשפחה",
+    ],
   },
 } as const;
 
 type WorldId = keyof typeof worldsConfig;
-type SingleWorldConfig = (typeof worldsConfig)[WorldId];
-
-interface WorldsMapProps {
-  currentWorld: WorldId;
-  completedWorlds: WorldId[];
-  onWorldChange?: (worldId: WorldId) => void;
-  className?: string;
-}
 
 const WORLD_ORDER: WorldId[] = [
   "PERSONALITY",
@@ -6946,153 +6476,160 @@ const WORLD_ORDER: WorldId[] = [
   "RELIGION",
 ];
 
-const statusStyles = {
-  completed: {
-    badge: "bg-green-100 text-green-800 border-green-300",
-    actionButton: "bg-green-600 hover:bg-green-700 text-white",
-    trackerRing: "ring-green-500",
-    trackerIcon: "text-green-500",
-  },
-  recommended: {
-    badge: "bg-indigo-100 text-indigo-800 border-indigo-300",
-    actionButton: "bg-indigo-600 hover:bg-indigo-700 text-white",
-    trackerRing: "ring-indigo-500",
-    trackerIcon: "text-indigo-500 fill-indigo-200",
-  },
-  locked: {
-    badge: "bg-slate-200 text-slate-600 border-slate-300",
-    actionButton: "bg-slate-400 cursor-not-allowed text-white",
-    trackerRing: "ring-slate-400",
-    trackerIcon: "text-slate-400",
-  },
+type WorldStatus = 'completed' | 'recommended' | 'active' | 'available' | 'locked';
+
+// ============================================================================
+// 2. TYPE DEFINITIONS & PROPS
+// ============================================================================
+interface WorldsMapProps {
+  currentWorld: WorldId;
+  completedWorlds: WorldId[];
+  onWorldChange: (worldId: WorldId) => void;
+  className?: string;
+}
+
+interface WorldCardProps {
+  worldId: WorldId;
+  status: WorldStatus;
+  onSelect: () => void;
+}
+
+interface ProgressHeaderProps {
+  userName?: string | null;
+  completionPercent: number;
+  completedCount: number;
+  totalCount: number;
+  nextRecommendedWorld?: WorldId;
+  onGoToRecommended: () => void;
+}
+
+// ============================================================================
+// 3. SUB-COMPONENTS
+// ============================================================================
+
+const ProgressHeader: React.FC<ProgressHeaderProps> = ({ userName, completionPercent, completedCount, totalCount, nextRecommendedWorld, onGoToRecommended }) => (
+  <motion.div 
+    className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 space-y-4"
+    initial={{ opacity: 0, y: -20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5, ease: "easeOut" }}
+  >
+    <div>
+      <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-100">
+        {userName ? `שלום, ${userName}! ברוך הבא למסע שלך` : 'הנתיב שלך לזוגיות משמעותית'}
+      </h1>
+      <p className="text-md text-slate-500 dark:text-slate-400 mt-1">
+        השלמת <span className="font-semibold text-indigo-600 dark:text-indigo-400">{completedCount}</span> מתוך <span className="font-semibold">{totalCount}</span> עולמות.
+      </p>
+    </div>
+    <div className="flex items-center gap-4">
+      <Progress value={completionPercent} className="h-2.5 rounded-full" indicatorClassName="bg-gradient-to-r from-sky-400 to-indigo-500" />
+      <span className="font-bold text-indigo-600 dark:text-indigo-400 text-lg">{completionPercent}%</span>
+    </div>
+    {nextRecommendedWorld && (
+      <Button
+        size="lg"
+        onClick={onGoToRecommended}
+        className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 ease-in-out transform hover:-translate-y-0.5 animate-pulse-slow"
+      >
+        <Sparkles className="h-5 w-5 mr-2 fill-current" />
+        המשך לעולם המומלץ: {worldsConfig[nextRecommendedWorld].label}
+      </Button>
+    )}
+  </motion.div>
+);
+
+const WorldCard: React.FC<WorldCardProps> = ({ worldId, status, onSelect }) => {
+  const config = worldsConfig[worldId];
+  
+  const statusInfo = {
+    completed: { Icon: CheckCircle2, text: "הושלם", badge: "bg-green-100 text-green-800 border-green-300", action: "ערוך תשובות", ActionIcon: Edit3 },
+    recommended: { Icon: Star, text: "הצעד הבא", badge: "bg-indigo-100 text-indigo-800 border-indigo-300", action: "התחל עולם זה", ActionIcon: Sparkles },
+    active: { Icon: Sparkles, text: "פעיל כעת", badge: `bg-${config.themeColor}-100 text-${config.themeColor}-800 border-${config.themeColor}-300`, action: "המשך כאן", ActionIcon: ArrowRight },
+    available: { Icon: ArrowRight, text: "זמין", badge: "bg-slate-100 text-slate-800 border-slate-300", action: "התחל עולם זה", ActionIcon: ArrowRight },
+    locked: { Icon: Lock, text: "נעול", badge: "bg-slate-200 text-slate-600 border-slate-300", action: "נעול", ActionIcon: Lock },
+  }[status];
+
+  const themeClasses = {
+    ring: `ring-${config.themeColor}-500`,
+    iconBg: `bg-${config.themeColor}-100 dark:bg-${config.themeColor}-800/50`,
+    iconColor: `text-${config.themeColor}-600 dark:text-${config.themeColor}-400`,
+    actionButton: `bg-${config.themeColor}-600 hover:bg-${config.themeColor}-700 text-white`,
+  };
+
+  const isLocked = status === 'locked';
+
+  return (
+    <Card 
+      className={cn(
+        "flex flex-col h-full transition-all duration-300 ease-in-out overflow-hidden shadow-lg hover:shadow-xl dark:bg-slate-800 border-2",
+        status === 'recommended' && `border-${config.themeColor}-300 dark:border-${config.themeColor}-600 scale-105 shadow-2xl`,
+        isLocked ? "opacity-60 bg-slate-50 dark:bg-slate-800/60 cursor-not-allowed border-slate-200 dark:border-slate-700" : "border-transparent hover:-translate-y-1"
+      )}
+    >
+      <div className="p-6 flex-grow space-y-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className={cn("p-3 rounded-xl flex-shrink-0", themeClasses.iconBg)}>
+            <config.icon className={cn("w-8 h-8", themeClasses.iconColor)} />
+          </div>
+          <Badge variant="outline" className={cn("text-xs font-medium", statusInfo.badge)}>
+            <statusInfo.Icon className="w-3.5 h-3.5 ml-1.5" />
+            {statusInfo.text}
+          </Badge>
+        </div>
+        <div>
+          <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">{config.label}</h3>
+          <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mt-1">{config.description}</p>
+        </div>
+        
+        {status === 'recommended' && (
+           <div className="pt-2">
+              <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2 flex items-center">
+                 <Brain className="w-4 h-4 mr-2 text-indigo-500"/>
+                 מה תגלה/י על עצמך?
+              </h4>
+              <ul className="space-y-1.5">
+                {config.discover.map((item, index) => (
+                  <li key={index} className="flex items-start text-xs text-slate-600 dark:text-slate-400">
+                    <CheckCircle2 className="w-3 h-3 mr-2 mt-0.5 text-green-500 flex-shrink-0" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+           </div>
+        )}
+      </div>
+      <div className="p-4 bg-slate-50 dark:bg-slate-800/50 mt-auto">
+        <Button
+          className={cn("w-full font-medium", themeClasses.actionButton)}
+          onClick={onSelect}
+          disabled={isLocked}
+        >
+          <statusInfo.ActionIcon className="w-4 h-4 ml-2" />
+          {statusInfo.action}
+        </Button>
+      </div>
+    </Card>
+  );
 };
 
-interface WorldDisplayInfo {
-  statusText: string;
-  StatusIcon: React.ElementType;
-  badgeClass: string;
-  actionButtonText: string;
-  ActionButtonIcon: React.ElementType;
-  actionButtonClass: string;
-  isLocked: boolean;
-  trackerRingClass: string;
-  trackerStatusIcon?: React.ReactElement;
-}
-
-function getWorldDisplayInfo(
-  worldId: WorldId,
-  config: SingleWorldConfig,
-  currentWorld: WorldId,
-  completedWorlds: WorldId[],
-  nextRecommendedWorld: WorldId | undefined,
-  isAccessible: boolean
-): WorldDisplayInfo {
-  const isCurrent = currentWorld === worldId;
-  const isCompleted = completedWorlds.includes(worldId);
-  const isRecommended = worldId === nextRecommendedWorld && !isCompleted;
-
-  if (!isAccessible) {
-    return {
-      statusText: "נעול",
-      StatusIcon: Lock,
-      badgeClass: statusStyles.locked.badge,
-      actionButtonText: "נעול",
-      ActionButtonIcon: Lock,
-      actionButtonClass: statusStyles.locked.actionButton,
-      isLocked: true,
-      trackerRingClass: "",
-      trackerStatusIcon: (
-        <Lock className={`w-3.5 h-3.5 ${statusStyles.locked.trackerIcon}`} />
-      ),
-    };
-  }
-
-  if (isCompleted) {
-    return {
-      statusText: "הושלם",
-      StatusIcon: CheckCircle2,
-      badgeClass: statusStyles.completed.badge,
-      actionButtonText: "ערוך תשובות",
-      ActionButtonIcon: Edit3,
-      actionButtonClass: statusStyles.completed.actionButton,
-      isLocked: false,
-      trackerRingClass: `ring-2 ${statusStyles.completed.trackerRing}`,
-      trackerStatusIcon: (
-        <CheckCircle2
-          className={`w-4 h-4 ${statusStyles.completed.trackerIcon}`}
-        />
-      ),
-    };
-  }
-
-  if (isCurrent) {
-    return {
-      statusText: "פעיל כעת",
-      StatusIcon: Play,
-      badgeClass: config.activeBadgeBg,
-      actionButtonText: "המשך בעולם זה",
-      ActionButtonIcon: Play,
-      actionButtonClass: `${config.currentActionButtonBg} ${config.currentActionButtonHoverBg} text-white`,
-      isLocked: false,
-      trackerRingClass: `ring-2 ${config.activeRing}`,
-    };
-  }
-
-  if (isRecommended) {
-    return {
-      statusText: "מומלץ הבא",
-      StatusIcon: Star,
-      badgeClass: statusStyles.recommended.badge,
-      actionButtonText: "התחל עולם מומלץ",
-      ActionButtonIcon: Sparkles,
-      actionButtonClass: statusStyles.recommended.actionButton,
-      isLocked: false,
-      trackerRingClass: `ring-2 ${statusStyles.recommended.trackerRing}`,
-      trackerStatusIcon: (
-        <Star className={`w-4 h-4 ${statusStyles.recommended.trackerIcon}`} />
-      ),
-    };
-  }
-
-  return {
-    statusText: "זמין",
-    StatusIcon: Info,
-    badgeClass: "bg-slate-100 text-slate-800 border-slate-300",
-    actionButtonText: "התחל עולם זה",
-    ActionButtonIcon: ArrowRight,
-    actionButtonClass: "bg-sky-600 hover:bg-sky-700 text-white",
-    isLocked: false,
-    trackerRingClass: "",
-  };
-}
-
+// ============================================================================
+// 4. MAIN COMPONENT
+// ============================================================================
 export default function WorldsMap({
   currentWorld,
   completedWorlds,
   onWorldChange,
   className = "",
 }: WorldsMapProps) {
-  const isWorldAccessible = (): boolean => true;
+  const { data: session } = useSession();
 
-  const completionPercent = useMemo(
-    () =>
-      WORLD_ORDER.length > 0
-        ? Math.round((completedWorlds.length / WORLD_ORDER.length) * 100)
-        : 0,
-    [completedWorlds.length]
-  );
-
-  const nextRecommendedWorld = useMemo(
-    () => WORLD_ORDER.find((world) => !completedWorlds.includes(world)),
-    [completedWorlds]
-  );
+  const completionPercent = Math.round((completedWorlds.length / WORLD_ORDER.length) * 100);
+  const nextRecommendedWorld = WORLD_ORDER.find((world) => !completedWorlds.includes(world));
 
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1, delayChildren: 0.2 },
-    },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.2 } },
   };
 
   const itemVariants = {
@@ -7100,206 +6637,76 @@ export default function WorldsMap({
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
   };
 
+  const getWorldStatus = (worldId: WorldId): WorldStatus => {
+    if (completedWorlds.includes(worldId)) return 'completed';
+    if (worldId === nextRecommendedWorld) return 'recommended';
+    if (worldId === currentWorld) return 'active';
+    // Add locking logic if needed, for now all are available
+    return 'available';
+  };
+  
+  const recommendedCard = nextRecommendedWorld ? (
+    <motion.div variants={itemVariants} className="md:col-span-2 lg:col-span-1 lg:row-span-2">
+      <WorldCard 
+        worldId={nextRecommendedWorld} 
+        status="recommended" 
+        onSelect={() => onWorldChange(nextRecommendedWorld)}
+      />
+    </motion.div>
+  ) : null;
+
+  const otherCards = WORLD_ORDER
+    .filter(worldId => worldId !== nextRecommendedWorld)
+    .map(worldId => (
+      <motion.div variants={itemVariants} key={worldId}>
+        <WorldCard 
+          worldId={worldId}
+          status={getWorldStatus(worldId)} 
+          onSelect={() => onWorldChange(worldId)}
+        />
+      </motion.div>
+  ));
+
   return (
-    <div
-      className={cn("space-y-8 font-sans", className)}
-      id="onboarding-target-worlds-map"
-    >
-      <motion.header
-        variants={itemVariants}
-        initial="hidden"
-        animate="visible"
-        className="bg-white dark:bg-slate-800/50 p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700"
-      >
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100">
-              מפת העולמות שלך
-            </h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-              השלמת {completedWorlds.length} מתוך {WORLD_ORDER.length} עולמות
-            </p>
-            <div className="mt-3 w-full sm:max-w-xs">
-              <Progress
-                value={completionPercent}
-                className="h-2 rounded-full"
-                indicatorClassName="bg-gradient-to-r from-sky-400 to-indigo-500"
-              />
-            </div>
-          </div>
-          {nextRecommendedWorld && (
-            <Button
-              size="lg"
-              onClick={() => onWorldChange?.(nextRecommendedWorld)}
-              className="bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 ease-in-out transform hover:-translate-y-0.5 w-full sm:w-auto animate-pulse-slow"
-            >
-              <Sparkles className="h-5 w-5 mr-2 fill-current" />
-              לעולם המומלץ: {worldsConfig[nextRecommendedWorld].label}
-            </Button>
-          )}
-        </div>
-      </motion.header>
+    <div className={cn("p-4 sm:p-6 bg-slate-50 dark:bg-slate-900 min-h-screen", className)}>
+      <div className="max-w-7xl mx-auto space-y-8">
+        <ProgressHeader
+          userName={session?.user?.firstName}
+          completionPercent={completionPercent}
+          completedCount={completedWorlds.length}
+          totalCount={WORLD_ORDER.length}
+          nextRecommendedWorld={nextRecommendedWorld}
+          onGoToRecommended={() => nextRecommendedWorld && onWorldChange(nextRecommendedWorld)}
+        />
+        
+        <motion.div 
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          {recommendedCard}
+          {otherCards}
+        </motion.div>
 
-      {/* --- World Journey Tracker --- */}
-      <motion.div
-        variants={itemVariants}
-        initial="hidden"
-        animate="visible"
-        className="relative bg-slate-50 dark:bg-slate-800/30 rounded-xl shadow-inner p-4"
-      >
-        <div className="overflow-x-auto scrollbar-hide py-4">
-          <div className="relative flex items-center justify-between min-w-max w-full max-w-3xl mx-auto">
-            <div className="absolute top-1/2 left-0 right-0 h-1 bg-slate-200 dark:bg-slate-700 -translate-y-1/2"></div>
-            {WORLD_ORDER.map((worldId) => {
-              const config = worldsConfig[worldId];
-              const accessible = isWorldAccessible();
-              const info = getWorldDisplayInfo(
-                worldId,
-                config,
-                currentWorld,
-                completedWorlds,
-                nextRecommendedWorld,
-                accessible
-              );
-
-              return (
-                <TooltipProvider key={worldId} delayDuration={150}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        onClick={() => accessible && onWorldChange?.(worldId)}
-                        disabled={!accessible}
-                        className="relative z-10 flex flex-col items-center gap-2 group focus:outline-none"
-                      >
-                        <motion.div
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.95 }}
-                          className={cn(
-                            "w-12 h-12 rounded-full flex items-center justify-center shadow-md transition-all duration-200 ease-in-out relative bg-white dark:bg-slate-800",
-                            info.trackerRingClass
-                          )}
-                        >
-                          <config.icon
-                            className={cn(
-                              "w-6 h-6",
-                              config.iconColor,
-                              !accessible && "opacity-50"
-                            )}
-                          />
-                          {info.trackerStatusIcon && (
-                            <motion.div
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              className="absolute -top-1 -right-1 bg-white dark:bg-slate-700 rounded-full p-0.5"
-                            >
-                              {info.trackerStatusIcon}
-                            </motion.div>
-                          )}
-                        </motion.div>
-                        <span className="text-xs font-medium text-center text-slate-700 dark:text-slate-300 w-20">
-                          {config.label}
-                        </span>
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom" className="dark:bg-slate-800">
-                      <p>{config.description}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              );
-            })}
-          </div>
-        </div>
-      </motion.div>
-
-      {/* --- World Cards Grid --- */}
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6"
-      >
-        {WORLD_ORDER.map((worldId) => {
-          const config = worldsConfig[worldId];
-          const accessible = isWorldAccessible();
-          const info = getWorldDisplayInfo(
-            worldId,
-            config,
-            currentWorld,
-            completedWorlds,
-            nextRecommendedWorld,
-            accessible
-          );
-
-          return (
-            <motion.div
-              key={worldId}
-              variants={itemVariants}
-              id={worldId === "PERSONALITY" ? "onboarding-target-world-card" : undefined}
-              layout
-            >
-              <Card
-                className={cn(
-                  "flex flex-col h-full transition-all duration-300 ease-in-out overflow-hidden shadow-lg hover:shadow-xl dark:bg-slate-800 border-2",
-                  accessible
-                    ? "border-transparent hover:-translate-y-1"
-                    : "opacity-70 bg-slate-50 dark:bg-slate-800/60 cursor-not-allowed border-slate-200 dark:border-slate-700"
-                )}
-              >
-                <div className="p-5 sm:p-6 flex-grow">
-                  <div className="flex items-start justify-between gap-4 mb-3">
-                    <div
-                      className={cn(
-                        "p-3 rounded-lg flex-shrink-0",
-                        config.iconBg
-                      )}
-                    >
-                      <config.icon className={cn("w-7 h-7", config.iconColor)} />
-                    </div>
-                    <Badge variant="outline" className={cn("text-xs", info.badgeClass)}>
-                      <info.StatusIcon className="w-3.5 h-3.5 ml-1" />
-                      {info.statusText}
-                    </Badge>
-                  </div>
-                  <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">
-                    {config.label}
-                  </h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mt-1 h-16 line-clamp-3">
-                    {config.description}
-                  </p>
-                </div>
-                <div className="p-4 bg-slate-50 dark:bg-slate-800/50 mt-auto">
-                  <Button
-                    className={cn("w-full font-medium", info.actionButtonClass)}
-                    onClick={() => onWorldChange?.(worldId)}
-                    disabled={info.isLocked}
-                  >
-                    <info.ActionButtonIcon className="w-4 h-4 ml-2" />
-                    {info.actionButtonText}
-                  </Button>
-                </div>
-              </Card>
-            </motion.div>
-          );
-        })}
-      </motion.div>
+        {completionPercent === 100 && (
+          <motion.div variants={itemVariants} initial="hidden" animate="visible">
+            <Card className="bg-gradient-to-r from-green-500 to-emerald-600 text-white text-center p-8 rounded-2xl shadow-2xl">
+              <Award className="w-16 h-16 mx-auto mb-4"/>
+              <h2 className="text-3xl font-bold">כל הכבוד, {session?.user?.firstName}!</h2>
+              <p className="mt-2 text-lg opacity-90">סיימת את כל עולמות השאלון. עשית צעד ענק במסע שלך!</p>
+              <p className="mt-1 text-sm opacity-80">הפרופיל המלא שלך מוכן כעת עבור השדכנים שלנו.</p>
+            </Card>
+          </motion.div>
+        )}
+      </div>
 
       <style jsx global>{`
         @keyframes pulse-slow {
-          50% {
-            opacity: 0.85;
-            transform: scale(1.02);
-          }
+          50% { opacity: 0.9; transform: scale(1.02); }
         }
         .animate-pulse-slow {
           animation: pulse-slow 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-        .scrollbar-hide {
-          -ms-overflow-style: none; /* IE and Edge */
-          scrollbar-width: none; /* Firefox */
         }
       `}</style>
     </div>
@@ -10767,7 +10174,7 @@ File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\questionna
 --------------------------------------------------------------------------------
 Content:
 // src/components/questionnaire/worlds/WorldComponent.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import WorldIntro from '../common/WorldIntro';
 import QuestionCard from '../common/QuestionCard';
 import AnswerInput from '../common/AnswerInput';
@@ -10811,45 +10218,39 @@ import { relationshipQuestions } from '../questions/relationship/relationshipQue
 import { partnerQuestions } from '../questions/partner/partnerQuestions';
 import { religionQuestions } from '../questions/religion/religionQuestions';
 
-// 2. יצירת אובייקט קונפיגורציה מרכזי לניהול הנתונים של כל עולם
+// 2. יצירת אובייקט קונפיגורציה מרכזי לניהול הנתונים של כל עולם, כולל צבע נושא
 const worldConfig: Record<
   WorldId,
   {
     questions: Question[];
     title: string;
-    introTitle: string;
-    introDescription: string;
+    themeColor: 'sky' | 'rose' | 'purple' | 'teal' | 'amber';
   }
 > = {
   PERSONALITY: {
     questions: personalityQuestions,
     title: 'עולם האישיות',
-    introTitle: 'עולם האישיות: מי אני באמת?',
-    introDescription: 'המסע שלך מתחיל כאן! בעולם זה נצא יחד לגלות את התכונות, סגנון החיים, החוזקות והשאיפות המיוחדות שלך. ככל שנכיר אותך טוב יותר, כך נוכל לסייע במציאת התאמה שמבינה ומעריכה את מי שאת/ה.',
+    themeColor: 'sky', // גוונים של כחול-שמיים לאישיות ורפלקציה
   },
   VALUES: {
     questions: valuesQuestions,
     title: 'עולם הערכים והאמונות',
-    introTitle: 'עולם הערכים: מה באמת מניע אותך?',
-    introDescription: 'כאן נצלול יחד אל מה שבאמת חשוב לך: העקרונות שמנחים אותך בחיים, האיזון הרצוי בין משפחה, קריירה ורוחניות, והשקפת עולמך. הבנה מעמיקה של ערכי הליבה שלך היא צעד קריטי בדרך למציאת בן/בת זוג שחולק/ת איתך את מה שבאמת משמעותי ובונה חיים משותפים.',
+    themeColor: 'rose', // גוונים של ורוד-אדמדם לערכים ורגשות
   },
   RELATIONSHIP: {
     questions: relationshipQuestions,
     title: 'עולם הזוגיות',
-    introTitle: 'עולם הזוגיות: לבנות קשר משמעותי',
-    introDescription: 'ברוכים הבאים לעולם הזוגיות! כאן נבחן יחד את הציפיות שלך מקשר, את סגנון התקשורת המועדף עליך, ואיך את/ה רואה את חיי היומיום המשותפים והחזון המשפחתי. הבנה מעמיקה של צרכיך ורצונותיך תסייע לנו למצוא התאמה שיש לה פוטנציאל לקשר חזק ויציב.',
+    themeColor: 'purple', // גוונים של סגול לשותפות ואינטימיות
   },
   PARTNER: {
     questions: partnerQuestions,
     title: 'עולם הפרטנר',
-    introTitle: 'עולם הפרטנר: במי תרצה/י לבחור?',
-    introDescription: 'בעולם זה נגדיר יחד את התכונות, הערכים, סגנון החיים והציפיות החשובים לך ביותר בבן/בת הזוג האידיאלי/ת. ככל שתהיי/ה מדויק/ת יותר, כך נוכל לכוון אותך להתאמות בעלות פוטנציאל גבוה יותר להצלחה ואושר.',
+    themeColor: 'teal', // גוונים של טורקיז למיקוד ובהירות
   },
   RELIGION: {
     questions: religionQuestions,
     title: 'עולם הדת והמסורת',
-    introTitle: 'עולם הדת והמסורת: אמונה והלכה בחייך',
-    introDescription: 'ברוכים הבאים לעולם הדת והמסורת. כאן נבחן את זהותך והשקפתך הדתית, את מידת שמירת המצוות שלך בחיי היומיום, את הקשר שלך לקהילה, ואת החזון שלך לחינוך דתי במשפחה. הבנה הדדית בתחום זה היא מפתח לקשר יציב ומלא משמעות.',
+    themeColor: 'amber', // גוונים של ענבר/זהב למסורת ורוחניות
   },
 };
 
@@ -10869,10 +10270,12 @@ export default function WorldComponent({
   setCurrentQuestionIndex,
 }: WorldComponentDynamicProps) {
   // 4. שימוש ב-worldId כדי לשלוף את הנתונים הנכונים מהקונפיגורציה
-  const { questions: allQuestions, title, introTitle, introDescription } = worldConfig[worldId];
+  const { questions: allQuestions, title, themeColor } = worldConfig[worldId];
 
   const [isIntroComplete, setIsIntroComplete] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [validationErrors, setValidationErrors] = useState<
+    Record<string, string>
+  >({});
   const isDesktop = useMediaQuery('(min-width: 1024px)');
   const isRTL = language === 'he';
   const [isListVisible, setIsListVisible] = useState(true);
@@ -10881,7 +10284,10 @@ export default function WorldComponent({
     return answers.find((a) => a.questionId === questionId)?.value;
   };
 
-  const validateAnswer = (question: Question, value: AnswerValue): string | null => {
+  const validateAnswer = (
+    question: Question,
+    value: AnswerValue
+  ): string | null => {
     const isValueEmpty =
       value === undefined ||
       value === null ||
@@ -10902,7 +10308,11 @@ export default function WorldComponent({
       case 'openText': {
         const textValue = value as string;
         const trimmedLength = textValue?.trim().length || 0;
-        if (question.minLength && trimmedLength < question.minLength && question.isRequired) {
+        if (
+          question.minLength &&
+          trimmedLength < question.minLength &&
+          question.isRequired
+        ) {
           return `התשובה חייבת להכיל לפחות ${question.minLength} תווים`;
         }
         if (question.maxLength && trimmedLength > question.maxLength) {
@@ -10926,13 +10336,20 @@ export default function WorldComponent({
       case 'budgetAllocation': {
         const allocationValue = value as Record<string, number> | undefined;
         if (allocationValue) {
-            const totalAllocated = Object.values(allocationValue).reduce((sum, val) => sum + (val || 0), 0);
-            if (question.totalPoints && totalAllocated !== question.totalPoints && question.isRequired) {
-                return `יש להקצות בדיוק ${question.totalPoints} נקודות.`;
-            }
+          const totalAllocated = Object.values(allocationValue).reduce(
+            (sum, val) => sum + (val || 0),
+            0
+          );
+          if (
+            question.totalPoints &&
+            totalAllocated !== question.totalPoints &&
+            question.isRequired
+          ) {
+            return `יש להקצות בדיוק ${question.totalPoints} נקודות.`;
+          }
         } else if (question.isRequired && !isValueEmpty) {
-             return "נדרשת הקצאת תקציב.";
-         }
+          return 'נדרשת הקצאת תקציב.';
+        }
         break;
       }
     }
@@ -10948,26 +10365,32 @@ export default function WorldComponent({
       setValidationErrors({ ...validationErrors, [currentQuestion.id]: error });
       return;
     }
-    setValidationErrors(prev => ({ ...prev, [currentQuestion.id]: '' }));
+    setValidationErrors((prev) => ({ ...prev, [currentQuestion.id]: '' }));
 
     if (currentQuestionIndex < allQuestions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-        const firstUnansweredRequired = allQuestions.find(q =>
-            q.isRequired && validateAnswer(q, findAnswer(q.id)) !== null
+      const firstUnansweredRequired = allQuestions.find(
+        (q) => q.isRequired && validateAnswer(q, findAnswer(q.id)) !== null
+      );
+      if (firstUnansweredRequired) {
+        const errorIndex = allQuestions.findIndex(
+          (q) => q.id === firstUnansweredRequired.id
         );
-        if (firstUnansweredRequired) {
-            const errorIndex = allQuestions.findIndex(q => q.id === firstUnansweredRequired.id);
-            if (errorIndex !== -1) {
-                setCurrentQuestionIndex(errorIndex);
-                setValidationErrors({
-                    ...validationErrors,
-                    [firstUnansweredRequired.id]: validateAnswer(firstUnansweredRequired, findAnswer(firstUnansweredRequired.id)) || "נדרשת תשובה לשאלה זו"
-                });
-            }
-        } else {
-            onComplete();
+        if (errorIndex !== -1) {
+          setCurrentQuestionIndex(errorIndex);
+          setValidationErrors({
+            ...validationErrors,
+            [firstUnansweredRequired.id]:
+              validateAnswer(
+                firstUnansweredRequired,
+                findAnswer(firstUnansweredRequired.id)
+              ) || 'נדרשת תשובה לשאלה זו',
+          });
         }
+      } else {
+        onComplete();
+      }
     }
   };
 
@@ -10983,25 +10406,29 @@ export default function WorldComponent({
     const currentQuestion = allQuestions[currentQuestionIndex];
     let emptyValue: AnswerValue;
     switch (currentQuestion.type) {
-      case 'multiChoice': case 'multiSelect': case 'multiSelectWithOther': emptyValue = []; break;
-      case 'budgetAllocation': emptyValue = {}; break;
-      case 'scale': emptyValue = undefined; break;
-      default: emptyValue = '';
+      case 'multiChoice':
+      case 'multiSelect':
+      case 'multiSelectWithOther':
+        emptyValue = [];
+        break;
+      case 'budgetAllocation':
+        emptyValue = {};
+        break;
+      case 'scale':
+        emptyValue = undefined;
+        break;
+      default:
+        emptyValue = '';
     }
     onAnswer(currentQuestion.id, emptyValue);
-    setValidationErrors(prev => ({ ...prev, [currentQuestion.id]: '' }));
+    setValidationErrors((prev) => ({ ...prev, [currentQuestion.id]: '' }));
   };
 
   if (!isIntroComplete) {
     return (
       <WorldIntro
         worldId={worldId}
-        title={introTitle}
-        description={introDescription}
-        estimatedTime={allQuestions.reduce((sum, q) => sum + (q.metadata?.estimatedTime || 1), 0)}
-        totalQuestions={allQuestions.length}
-        requiredQuestions={allQuestions.filter((q) => q.isRequired).length}
-        depths={Array.from(new Set(allQuestions.map(q => q.depth)))}
+        allQuestions={allQuestions}
         onStart={() => setIsIntroComplete(true)}
       />
     );
@@ -11012,18 +10439,22 @@ export default function WorldComponent({
       <div className="p-4 bg-red-50 rounded-lg border border-red-300 text-red-800 text-center">
         <h3 className="font-bold text-lg mb-2">שגיאה בטעינת השאלות</h3>
         <p>לא ניתן היה לטעון את השאלות עבור עולם זה.</p>
-        <Button className="mt-4" variant="outline" onClick={onBack}>חזרה למפה</Button>
+        <Button className="mt-4" variant="outline" onClick={onBack}>
+          חזרה למפה
+        </Button>
       </div>
     );
   }
 
   const currentQuestion = allQuestions[currentQuestionIndex];
   if (!currentQuestion) {
-     console.error(`Error: Invalid question index ${currentQuestionIndex} for ${worldId} World.`);
-     setCurrentQuestionIndex(0);
-     return <div>שגיאה בטעינת השאלה...</div>;
+    console.error(
+      `Error: Invalid question index ${currentQuestionIndex} for ${worldId} World.`
+    );
+    setCurrentQuestionIndex(0);
+    return <div>שגיאה בטעינת השאלה...</div>;
   }
-  
+
   const progress = ((currentQuestionIndex + 1) / allQuestions.length) * 100;
   const currentValue = findAnswer(currentQuestion.id);
 
@@ -11031,22 +10462,30 @@ export default function WorldComponent({
     <div className="bg-white p-3 rounded-lg shadow-sm border space-y-2 mb-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-medium">{title}</h2>
-          <div className="text-sm text-gray-500">
+          <h2 className="text-lg font-medium text-slate-800">{title}</h2>
+          <div className="text-sm text-slate-500">
             שאלה {currentQuestionIndex + 1} מתוך {allQuestions.length}
           </div>
         </div>
         <div className="flex items-center gap-2">
           {isDesktop && (
-             <Button 
-                variant={isListVisible ? "secondary" : "outline"}
-                size="sm"
-                onClick={() => setIsListVisible(!isListVisible)}
-                className="gap-2"
-             >
-                {isListVisible ? (isRTL ? <PanelRightClose className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />) : <List className="h-4 w-4" />}
-                {isListVisible ? "הסתר רשימה" : "הצג רשימה"}
-             </Button>
+            <Button
+              variant={isListVisible ? 'secondary' : 'outline'}
+              size="sm"
+              onClick={() => setIsListVisible(!isListVisible)}
+              className="gap-2"
+            >
+              {isListVisible ? (
+                isRTL ? (
+                  <PanelRightClose className="h-4 w-4" />
+                ) : (
+                  <PanelLeftClose className="h-4 w-4" />
+                )
+              ) : (
+                <List className="h-4 w-4" />
+              )}
+              {isListVisible ? 'הסתר רשימה' : 'הצג רשימה'}
+            </Button>
           )}
           {!isDesktop && (
             <Sheet>
@@ -11056,7 +10495,10 @@ export default function WorldComponent({
                   <span className="hidden sm:inline">רשימת שאלות</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side={isRTL ? "left" : "right"} className="w-[300px] sm:w-[400px]">
+              <SheetContent
+                side={isRTL ? 'left' : 'right'}
+                className="w-[300px] sm:w-[400px] flex flex-col"
+              >
                 <SheetHeader>
                   <SheetTitle>
                     <div className="flex items-center gap-2">
@@ -11064,68 +10506,172 @@ export default function WorldComponent({
                       <span>כל השאלות ב{title}</span>
                     </div>
                   </SheetTitle>
-                   <SheetDescription>
-                     לחץ על שאלה כדי לעבור אליה ישירות.
-                     <div className="mt-3 pt-3 border-t space-y-1">
-                       <div className="flex items-center text-xs text-gray-600"><CheckCircle className="h-3 w-3 text-green-500 me-1.5" /><span>הושלם</span></div>
-                       <div className="flex items-center text-xs text-gray-600"><AlertCircle className="h-3 w-3 text-red-500 me-1.5" /><span>חובה (לא נענה)</span></div>
-                       <div className="flex items-center text-xs text-gray-600"><CircleDot className="h-3 w-3 text-gray-400 me-1.5" /><span>לא נענה</span></div>
-                     </div>
+                  <SheetDescription>
+                    לחץ על שאלה כדי לעבור אליה ישירות.
+                    <div className="mt-3 pt-3 border-t space-y-1">
+                      <div className="flex items-center text-xs text-slate-600">
+                        <CheckCircle className={cn("h-3 w-3 me-1.5", `text-${themeColor}-600`)} />
+                        <span>הושלם</span>
+                      </div>
+                      <div className="flex items-center text-xs text-slate-600">
+                        <AlertCircle className="h-3 w-3 text-red-500 me-1.5" />
+                        <span>חובה (לא נענה)</span>
+                      </div>
+                      <div className="flex items-center text-xs text-slate-600">
+                        <CircleDot className="h-3 w-3 text-slate-400 me-1.5" />
+                        <span>לא נענה</span>
+                      </div>
+                    </div>
                   </SheetDescription>
                 </SheetHeader>
-                <div className="mt-4">
-                  <QuestionsList allQuestions={allQuestions} currentQuestionIndex={currentQuestionIndex} setCurrentQuestionIndex={setCurrentQuestionIndex} answers={answers} language={language} />
+                <div className="mt-4 flex-1 overflow-hidden">
+                  <QuestionsList
+                    allQuestions={allQuestions}
+                    currentQuestionIndex={currentQuestionIndex}
+                    setCurrentQuestionIndex={setCurrentQuestionIndex}
+                    answers={answers}
+                    language={language}
+                    themeColor={themeColor}
+                    className="h-full"
+                  />
                 </div>
               </SheetContent>
             </Sheet>
           )}
         </div>
       </div>
-      <Progress value={progress} className="h-2" />
+      <Progress value={progress} className="h-2" indicatorClassName={`bg-${themeColor}-500`} />
     </div>
   );
-  
+
   const renderQuestionCard = () => (
-    <motion.div className={cn("transition-opacity duration-300")} key={currentQuestionIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-      <QuestionCard question={currentQuestion} depth={currentQuestion.depth} isRequired={currentQuestion.isRequired} validationError={validationErrors[currentQuestion.id]} language={language}>
-        <AnswerInput question={currentQuestion} value={currentValue} onChange={(value) => { setValidationErrors(prev => ({ ...prev, [currentQuestion.id]: '' })); onAnswer(currentQuestion.id, value); }} onClear={handleClearAnswer} language={language} showValidation={!!validationErrors[currentQuestion.id]} />
+    <motion.div
+      className={cn('transition-opacity duration-300')}
+      key={currentQuestionIndex}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <QuestionCard
+        question={currentQuestion}
+        depth={currentQuestion.depth}
+        isRequired={currentQuestion.isRequired}
+        validationError={validationErrors[currentQuestion.id]}
+        language={language}
+        themeColor={themeColor}
+      >
+        <AnswerInput
+          question={currentQuestion}
+          value={currentValue}
+          onChange={(value) => {
+            setValidationErrors((prev) => ({
+              ...prev,
+              [currentQuestion.id]: '',
+            }));
+            onAnswer(currentQuestion.id, value);
+          }}
+          onClear={handleClearAnswer}
+          language={language}
+          showValidation={!!validationErrors[currentQuestion.id]}
+        />
       </QuestionCard>
     </motion.div>
   );
 
   const renderNavigationButtons = () => (
-    <div className="flex justify-between pt-4 mt-6 border-t">
-      <Button variant="outline" onClick={handlePrevious} className="flex items-center gap-2"><ArrowRight className="h-4 w-4" /><span>{currentQuestionIndex === 0 ? "חזור למפה" : "שאלה קודמת"}</span></Button>
+    <div className="flex justify-between pt-4 mt-6 border-t border-slate-200">
+      <Button
+        variant="outline"
+        onClick={handlePrevious}
+        className="flex items-center gap-2"
+      >
+        {isRTL ? <ArrowRight className="h-4 w-4" /> : <ArrowLeft className="h-4 w-4" />}
+        <span>{currentQuestionIndex === 0 ? 'חזרה למפה' : 'שאלה קודמת'}</span>
+      </Button>
       {currentQuestionIndex < allQuestions.length - 1 ? (
-        <Button variant="default" onClick={handleNext} className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2"><span>שאלה הבאה</span><ArrowLeft className="h-4 w-4" /></Button>
+        <Button
+          variant="default"
+          onClick={handleNext}
+          className={cn("flex items-center gap-2", `bg-${themeColor}-600 hover:bg-${themeColor}-700 text-white`)}
+        >
+          <span>שאלה הבאה</span>
+          {isRTL ? <ArrowLeft className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
+        </Button>
       ) : (
-        <Button onClick={handleNext} className="bg-green-600 hover:bg-green-700 flex items-center gap-2"><span>סיים עולם זה</span><CheckCircle className="h-4 w-4" /></Button>
+        <Button
+          onClick={handleNext}
+          className="bg-green-600 hover:bg-green-700 flex items-center gap-2"
+        >
+          <span>סיים עולם זה</span>
+          <CheckCircle className="h-4 w-4" />
+        </Button>
       )}
     </div>
   );
 
   if (isDesktop) {
     return (
-      <div className="w-full relative" dir={isRTL ? "rtl" : "ltr"}>
+      <div className="w-full relative" dir={isRTL ? 'rtl' : 'ltr'}>
         {renderHeader()}
-        <div className={cn("transition-all duration-300 ease-in-out", isListVisible ? "grid grid-cols-12 gap-8" : "flex justify-center")}>
-          <div className={cn("space-y-6", isListVisible ? "col-span-12 lg:col-span-7 xl:col-span-8" : "w-full max-w-4xl")}>
+        <div
+          className={cn(
+            'transition-all duration-300 ease-in-out',
+            isListVisible ? 'grid grid-cols-12 gap-8' : 'flex justify-center'
+          )}
+        >
+          <div
+            className={cn(
+              'space-y-6',
+              isListVisible
+                ? 'col-span-12 lg:col-span-7 xl:col-span-8'
+                : 'w-full max-w-4xl'
+            )}
+          >
             {renderQuestionCard()}
             {renderNavigationButtons()}
           </div>
           <AnimatePresence>
             {isListVisible && (
-              <motion.div className="col-span-12 lg:col-span-5 xl:col-span-4" initial={{ opacity: 0, width: 0, marginInlineStart: isRTL ? "-2rem" : undefined, marginInlineEnd: isRTL ? undefined : "-2rem" }} animate={{ opacity: 1, width: "auto", marginInlineStart: 0, marginInlineEnd: 0 }} exit={{ opacity: 0, width: 0, marginInlineStart: isRTL ? "-2rem" : undefined, marginInlineEnd: isRTL ? undefined : "-2rem" }} transition={{ duration: 0.3, ease: "easeInOut" }} layout>
-                <Card className="sticky top-6 shadow-lg border border-gray-200 h-[calc(100vh-5rem)] overflow-hidden flex flex-col">
-                   <CardHeader className="pb-3 pt-4 border-b bg-gray-50/50 flex-shrink-0">
-                    <CardTitle className="text-lg font-semibold flex items-center gap-2 text-gray-800"><ListChecks className="h-5 w-5 text-blue-600" /><span>שאלות בעולם זה</span></CardTitle>
-                     <div className="pt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
-                       <div className="flex items-center"><CheckCircle className="h-3 w-3 text-green-500 me-1.5" /><span>הושלם</span></div>
-                       <div className="flex items-center"><AlertCircle className="h-3 w-3 text-red-500 me-1.5" /><span>חובה</span></div>
-                       <div className="flex items-center"><CircleDot className="h-3 w-3 text-gray-400 me-1.5" /><span>לא נענה</span></div>
+              <motion.div
+                className="col-span-12 lg:col-span-5 xl:col-span-4"
+                initial={{ opacity: 0, width: 0, [isRTL ? 'marginRight' : 'marginLeft']: '-2rem' }}
+                animate={{ opacity: 1, width: 'auto', [isRTL ? 'marginRight' : 'marginLeft']: '0' }}
+                exit={{ opacity: 0, width: 0, [isRTL ? 'marginRight' : 'marginLeft']: '-2rem' }}
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                layout
+              >
+                <Card className="sticky top-6 shadow-lg border-slate-200 h-[calc(100vh-10rem)] overflow-hidden flex flex-col">
+                  <CardHeader className="pb-3 pt-4 border-b bg-slate-50/50 flex-shrink-0">
+                    <CardTitle className="text-lg font-semibold flex items-center gap-2 text-slate-800">
+                      <ListChecks className="h-5 w-5 text-blue-600" />
+                      <span>שאלות בעולם זה</span>
+                    </CardTitle>
+                    <div className="pt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
+                      <div className="flex items-center">
+                        <CheckCircle className={cn("h-3 w-3 me-1.5", `text-${themeColor}-600`)} />
+                        <span>הושלם</span>
+                      </div>
+                      <div className="flex items-center">
+                        <AlertCircle className="h-3 w-3 text-red-500 me-1.5" />
+                        <span>חובה</span>
+                      </div>
+                      <div className="flex items-center">
+                        <CircleDot className="h-3 w-3 text-slate-400 me-1.5" />
+                        <span>לא נענה</span>
+                      </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-2 flex-grow overflow-hidden"><QuestionsList allQuestions={allQuestions} currentQuestionIndex={currentQuestionIndex} setCurrentQuestionIndex={setCurrentQuestionIndex} answers={answers} language={language} className="h-full" /></CardContent>
+                  <CardContent className="p-2 flex-grow overflow-hidden">
+                    <QuestionsList
+                      allQuestions={allQuestions}
+                      currentQuestionIndex={currentQuestionIndex}
+                      setCurrentQuestionIndex={setCurrentQuestionIndex}
+                      answers={answers}
+                      language={language}
+                      themeColor={themeColor}
+                      className="h-full"
+                    />
+                  </CardContent>
                 </Card>
               </motion.div>
             )}
@@ -11134,55 +10680,16 @@ export default function WorldComponent({
       </div>
     );
   } else {
+    // Mobile View
     return (
-      <Sheet>
-        <div className="max-w-2xl mx-auto p-2 sm:p-4 space-y-6" dir={isRTL ? "rtl" : "ltr"}>
+        <div
+          className="max-w-2xl mx-auto p-2 sm:p-4 space-y-6 pb-24"
+          dir={isRTL ? 'rtl' : 'ltr'}
+        >
           {renderHeader()}
           {renderQuestionCard()}
           {renderNavigationButtons()}
         </div>
-
-        <SheetTrigger asChild>
-            <Button
-                variant="default"
-                className="fixed bottom-6 left-6 z-40 h-14 w-14 rounded-full shadow-lg flex items-center justify-center bg-blue-600 hover:bg-blue-700"
-                aria-label="הצג רשימת שאלות"
-            >
-                <List className="h-6 w-6 text-white" />
-            </Button>
-        </SheetTrigger>
-
-        <SheetContent
-            side={isRTL ? 'left' : 'right'}
-            className="w-[300px] sm:w-[400px]"
-        >
-            <SheetHeader>
-                <SheetTitle>
-                    <div className="flex items-center gap-2">
-                        <ListChecks className="h-5 w-5 text-blue-600" />
-                        <span>כל השאלות ב{title}</span>
-                    </div>
-                </SheetTitle>
-                <SheetDescription>
-                    לחץ על שאלה כדי לעבור אליה ישירות.
-                    <div className="mt-3 pt-3 border-t space-y-1">
-                        <div className="flex items-center text-xs text-gray-600"><CheckCircle className="h-3 w-3 text-green-500 me-1.5" /><span>הושלם</span></div>
-                        <div className="flex items-center text-xs text-gray-600"><AlertCircle className="h-3 w-3 text-red-500 me-1.5" /><span>חובה (לא נענה)</span></div>
-                        <div className="flex items-center text-xs text-gray-600"><CircleDot className="h-3 w-3 text-gray-400 me-1.5" /><span>לא נענה</span></div>
-                    </div>
-                </SheetDescription>
-            </SheetHeader>
-            <div className="mt-4">
-                <QuestionsList
-                    allQuestions={allQuestions}
-                    currentQuestionIndex={currentQuestionIndex}
-                    setCurrentQuestionIndex={setCurrentQuestionIndex}
-                    answers={answers}
-                    language={language}
-                />
-            </div>
-        </SheetContent>
-      </Sheet>
     );
   }
 }

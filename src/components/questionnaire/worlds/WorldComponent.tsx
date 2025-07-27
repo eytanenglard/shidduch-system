@@ -1,5 +1,5 @@
 // src/components/questionnaire/worlds/WorldComponent.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import WorldIntro from '../common/WorldIntro';
 import QuestionCard from '../common/QuestionCard';
 import AnswerInput from '../common/AnswerInput';
@@ -43,50 +43,39 @@ import { relationshipQuestions } from '../questions/relationship/relationshipQue
 import { partnerQuestions } from '../questions/partner/partnerQuestions';
 import { religionQuestions } from '../questions/religion/religionQuestions';
 
-// 2. יצירת אובייקט קונפיגורציה מרכזי לניהול הנתונים של כל עולם
+// 2. יצירת אובייקט קונפיגורציה מרכזי לניהול הנתונים של כל עולם, כולל צבע נושא
 const worldConfig: Record<
   WorldId,
   {
     questions: Question[];
     title: string;
-    introTitle: string;
-    introDescription: string;
+    themeColor: 'sky' | 'rose' | 'purple' | 'teal' | 'amber';
   }
 > = {
   PERSONALITY: {
     questions: personalityQuestions,
     title: 'עולם האישיות',
-    introTitle: 'עולם האישיות: מי אני באמת?',
-    introDescription:
-      'המסע שלך מתחיל כאן! בעולם זה נצא יחד לגלות את התכונות, סגנון החיים, החוזקות והשאיפות המיוחדות שלך. ככל שנכיר אותך טוב יותר, כך נוכל לסייע במציאת התאמה שמבינה ומעריכה את מי שאת/ה.',
+    themeColor: 'sky', // גוונים של כחול-שמיים לאישיות ורפלקציה
   },
   VALUES: {
     questions: valuesQuestions,
     title: 'עולם הערכים והאמונות',
-    introTitle: 'עולם הערכים: מה באמת מניע אותך?',
-    introDescription:
-      'כאן נצלול יחד אל מה שבאמת חשוב לך: העקרונות שמנחים אותך בחיים, האיזון הרצוי בין משפחה, קריירה ורוחניות, והשקפת עולמך. הבנה מעמיקה של ערכי הליבה שלך היא צעד קריטי בדרך למציאת בן/בת זוג שחולק/ת איתך את מה שבאמת משמעותי ובונה חיים משותפים.',
+    themeColor: 'rose', // גוונים של ורוד-אדמדם לערכים ורגשות
   },
   RELATIONSHIP: {
     questions: relationshipQuestions,
     title: 'עולם הזוגיות',
-    introTitle: 'עולם הזוגיות: לבנות קשר משמעותי',
-    introDescription:
-      'ברוכים הבאים לעולם הזוגיות! כאן נבחן יחד את הציפיות שלך מקשר, את סגנון התקשורת המועדף עליך, ואיך את/ה רואה את חיי היומיום המשותפים והחזון המשפחתי. הבנה מעמיקה של צרכיך ורצונותיך תסייע לנו למצוא התאמה שיש לה פוטנציאל לקשר חזק ויציב.',
+    themeColor: 'purple', // גוונים של סגול לשותפות ואינטימיות
   },
   PARTNER: {
     questions: partnerQuestions,
     title: 'עולם הפרטנר',
-    introTitle: 'עולם הפרטנר: במי תרצה/י לבחור?',
-    introDescription:
-      'בעולם זה נגדיר יחד את התכונות, הערכים, סגנון החיים והציפיות החשובים לך ביותר בבן/בת הזוג האידיאלי/ת. ככל שתהיי/ה מדויק/ת יותר, כך נוכל לכוון אותך להתאמות בעלות פוטנציאל גבוה יותר להצלחה ואושר.',
+    themeColor: 'teal', // גוונים של טורקיז למיקוד ובהירות
   },
   RELIGION: {
     questions: religionQuestions,
     title: 'עולם הדת והמסורת',
-    introTitle: 'עולם הדת והמסורת: אמונה והלכה בחייך',
-    introDescription:
-      'ברוכים הבאים לעולם הדת והמסורת. כאן נבחן את זהותך והשקפתך הדתית, את מידת שמירת המצוות שלך בחיי היומיום, את הקשר שלך לקהילה, ואת החזון שלך לחינוך דתי במשפחה. הבנה הדדית בתחום זה היא מפתח לקשר יציב ומלא משמעות.',
+    themeColor: 'amber', // גוונים של ענבר/זהב למסורת ורוחניות
   },
 };
 
@@ -106,12 +95,7 @@ export default function WorldComponent({
   setCurrentQuestionIndex,
 }: WorldComponentDynamicProps) {
   // 4. שימוש ב-worldId כדי לשלוף את הנתונים הנכונים מהקונפיגורציה
-  const {
-    questions: allQuestions,
-    title,
-    introTitle,
-    introDescription,
-  } = worldConfig[worldId];
+  const { questions: allQuestions, title, themeColor } = worldConfig[worldId];
 
   const [isIntroComplete, setIsIntroComplete] = useState(false);
   const [validationErrors, setValidationErrors] = useState<
@@ -269,15 +253,7 @@ export default function WorldComponent({
     return (
       <WorldIntro
         worldId={worldId}
-        title={introTitle}
-        description={introDescription}
-        estimatedTime={allQuestions.reduce(
-          (sum, q) => sum + (q.metadata?.estimatedTime || 1),
-          0
-        )}
-        totalQuestions={allQuestions.length}
-        requiredQuestions={allQuestions.filter((q) => q.isRequired).length}
-        depths={Array.from(new Set(allQuestions.map((q) => q.depth)))}
+        allQuestions={allQuestions}
         onStart={() => setIsIntroComplete(true)}
       />
     );
@@ -311,8 +287,8 @@ export default function WorldComponent({
     <div className="bg-white p-3 rounded-lg shadow-sm border space-y-2 mb-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-medium">{title}</h2>
-          <div className="text-sm text-gray-500">
+          <h2 className="text-lg font-medium text-slate-800">{title}</h2>
+          <div className="text-sm text-slate-500">
             שאלה {currentQuestionIndex + 1} מתוך {allQuestions.length}
           </div>
         </div>
@@ -346,7 +322,7 @@ export default function WorldComponent({
               </SheetTrigger>
               <SheetContent
                 side={isRTL ? 'left' : 'right'}
-                className="w-[300px] sm:w-[400px]"
+                className="w-[300px] sm:w-[400px] flex flex-col"
               >
                 <SheetHeader>
                   <SheetTitle>
@@ -358,28 +334,30 @@ export default function WorldComponent({
                   <SheetDescription>
                     לחץ על שאלה כדי לעבור אליה ישירות.
                     <div className="mt-3 pt-3 border-t space-y-1">
-                      <div className="flex items-center text-xs text-gray-600">
-                        <CheckCircle className="h-3 w-3 text-green-500 me-1.5" />
+                      <div className="flex items-center text-xs text-slate-600">
+                        <CheckCircle className={cn("h-3 w-3 me-1.5", `text-${themeColor}-600`)} />
                         <span>הושלם</span>
                       </div>
-                      <div className="flex items-center text-xs text-gray-600">
+                      <div className="flex items-center text-xs text-slate-600">
                         <AlertCircle className="h-3 w-3 text-red-500 me-1.5" />
                         <span>חובה (לא נענה)</span>
                       </div>
-                      <div className="flex items-center text-xs text-gray-600">
-                        <CircleDot className="h-3 w-3 text-gray-400 me-1.5" />
+                      <div className="flex items-center text-xs text-slate-600">
+                        <CircleDot className="h-3 w-3 text-slate-400 me-1.5" />
                         <span>לא נענה</span>
                       </div>
                     </div>
                   </SheetDescription>
                 </SheetHeader>
-                <div className="mt-4">
+                <div className="mt-4 flex-1 overflow-hidden">
                   <QuestionsList
                     allQuestions={allQuestions}
                     currentQuestionIndex={currentQuestionIndex}
                     setCurrentQuestionIndex={setCurrentQuestionIndex}
                     answers={answers}
                     language={language}
+                    themeColor={themeColor}
+                    className="h-full"
                   />
                 </div>
               </SheetContent>
@@ -387,7 +365,7 @@ export default function WorldComponent({
           )}
         </div>
       </div>
-      <Progress value={progress} className="h-2" />
+      <Progress value={progress} className="h-2" indicatorClassName={`bg-${themeColor}-500`} />
     </div>
   );
 
@@ -405,6 +383,7 @@ export default function WorldComponent({
         isRequired={currentQuestion.isRequired}
         validationError={validationErrors[currentQuestion.id]}
         language={language}
+        themeColor={themeColor}
       >
         <AnswerInput
           question={currentQuestion}
@@ -425,23 +404,23 @@ export default function WorldComponent({
   );
 
   const renderNavigationButtons = () => (
-    <div className="flex justify-between pt-4 mt-6 border-t">
+    <div className="flex justify-between pt-4 mt-6 border-t border-slate-200">
       <Button
         variant="outline"
         onClick={handlePrevious}
         className="flex items-center gap-2"
       >
-        <ArrowRight className="h-4 w-4" />
-        <span>{currentQuestionIndex === 0 ? 'חזור למפה' : 'שאלה קודמת'}</span>
+        {isRTL ? <ArrowRight className="h-4 w-4" /> : <ArrowLeft className="h-4 w-4" />}
+        <span>{currentQuestionIndex === 0 ? 'חזרה למפה' : 'שאלה קודמת'}</span>
       </Button>
       {currentQuestionIndex < allQuestions.length - 1 ? (
         <Button
           variant="default"
           onClick={handleNext}
-          className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2"
+          className={cn("flex items-center gap-2", `bg-${themeColor}-600 hover:bg-${themeColor}-700 text-white`)}
         >
           <span>שאלה הבאה</span>
-          <ArrowLeft className="h-4 w-4" />
+          {isRTL ? <ArrowLeft className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
         </Button>
       ) : (
         <Button
@@ -480,36 +459,21 @@ export default function WorldComponent({
             {isListVisible && (
               <motion.div
                 className="col-span-12 lg:col-span-5 xl:col-span-4"
-                initial={{
-                  opacity: 0,
-                  width: 0,
-                  marginInlineStart: isRTL ? '-2rem' : undefined,
-                  marginInlineEnd: isRTL ? undefined : '-2rem',
-                }}
-                animate={{
-                  opacity: 1,
-                  width: 'auto',
-                  marginInlineStart: 0,
-                  marginInlineEnd: 0,
-                }}
-                exit={{
-                  opacity: 0,
-                  width: 0,
-                  marginInlineStart: isRTL ? '-2rem' : undefined,
-                  marginInlineEnd: isRTL ? undefined : '-2rem',
-                }}
+                initial={{ opacity: 0, width: 0, [isRTL ? 'marginRight' : 'marginLeft']: '-2rem' }}
+                animate={{ opacity: 1, width: 'auto', [isRTL ? 'marginRight' : 'marginLeft']: '0' }}
+                exit={{ opacity: 0, width: 0, [isRTL ? 'marginRight' : 'marginLeft']: '-2rem' }}
                 transition={{ duration: 0.3, ease: 'easeInOut' }}
                 layout
               >
-                <Card className="sticky top-6 shadow-lg border border-gray-200 h-[calc(100vh-5rem)] overflow-hidden flex flex-col">
-                  <CardHeader className="pb-3 pt-4 border-b bg-gray-50/50 flex-shrink-0">
-                    <CardTitle className="text-lg font-semibold flex items-center gap-2 text-gray-800">
+                <Card className="sticky top-6 shadow-lg border-slate-200 h-[calc(100vh-10rem)] overflow-hidden flex flex-col">
+                  <CardHeader className="pb-3 pt-4 border-b bg-slate-50/50 flex-shrink-0">
+                    <CardTitle className="text-lg font-semibold flex items-center gap-2 text-slate-800">
                       <ListChecks className="h-5 w-5 text-blue-600" />
                       <span>שאלות בעולם זה</span>
                     </CardTitle>
-                    <div className="pt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
+                    <div className="pt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
                       <div className="flex items-center">
-                        <CheckCircle className="h-3 w-3 text-green-500 me-1.5" />
+                        <CheckCircle className={cn("h-3 w-3 me-1.5", `text-${themeColor}-600`)} />
                         <span>הושלם</span>
                       </div>
                       <div className="flex items-center">
@@ -517,7 +481,7 @@ export default function WorldComponent({
                         <span>חובה</span>
                       </div>
                       <div className="flex items-center">
-                        <CircleDot className="h-3 w-3 text-gray-400 me-1.5" />
+                        <CircleDot className="h-3 w-3 text-slate-400 me-1.5" />
                         <span>לא נענה</span>
                       </div>
                     </div>
@@ -529,6 +493,7 @@ export default function WorldComponent({
                       setCurrentQuestionIndex={setCurrentQuestionIndex}
                       answers={answers}
                       language={language}
+                      themeColor={themeColor}
                       className="h-full"
                     />
                   </CardContent>
@@ -540,8 +505,8 @@ export default function WorldComponent({
       </div>
     );
   } else {
+    // Mobile View
     return (
-      <Sheet>
         <div
           className="max-w-2xl mx-auto p-2 sm:p-4 space-y-6 pb-24"
           dir={isRTL ? 'rtl' : 'ltr'}
@@ -550,60 +515,6 @@ export default function WorldComponent({
           {renderQuestionCard()}
           {renderNavigationButtons()}
         </div>
-
-        <SheetTrigger asChild>
-          <Button
-            variant="default"
-            className="fixed bottom-6 left-6 z-40 h-14 w-14 rounded-full shadow-lg flex items-center justify-center bg-blue-600 hover:bg-blue-700"
-            aria-label="הצג רשימת שאלות"
-          >
-            <List className="h-6 w-6 text-white" />
-          </Button>
-        </SheetTrigger>
-
-        <SheetContent
-          side={isRTL ? 'left' : 'right'}
-          className="w-[300px] sm:w-[400px] flex flex-col" // 1. הוספת flexbox
-        >
-          <SheetHeader>
-            <SheetTitle>
-              <div className="flex items-center gap-2">
-                <ListChecks className="h-5 w-5 text-blue-600" />
-                <span>כל השאלות ב{title}</span>
-              </div>
-            </SheetTitle>
-            <SheetDescription>
-              לחץ על שאלה כדי לעבור אליה ישירות.
-              <div className="mt-3 pt-3 border-t space-y-1">
-                <div className="flex items-center text-xs text-gray-600">
-                  <CheckCircle className="h-3 w-3 text-green-500 me-1.5" />
-                  <span>הושלם</span>
-                </div>
-                <div className="flex items-center text-xs text-gray-600">
-                  <AlertCircle className="h-3 w-3 text-red-500 me-1.5" />
-                  <span>חובה (לא נענה)</span>
-                </div>
-                <div className="flex items-center text-xs text-gray-600">
-                  <CircleDot className="h-3 w-3 text-gray-400 me-1.5" />
-                  <span>לא נענה</span>
-                </div>
-              </div>
-            </SheetDescription>
-          </SheetHeader>
-          {/* 2. הוספת flex-1 ו-overflow-hidden ל-div שעוטף */}
-          <div className="mt-4 flex-1 overflow-hidden">
-            <QuestionsList
-              allQuestions={allQuestions}
-              currentQuestionIndex={currentQuestionIndex}
-              setCurrentQuestionIndex={setCurrentQuestionIndex}
-              answers={answers}
-              language={language}
-              // 3. לוודא ש-QuestionsList משתמש בכל הגובה
-              className="h-full"
-            />
-          </div>
-        </SheetContent>
-      </Sheet>
     );
   }
 }
