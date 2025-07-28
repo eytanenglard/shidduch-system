@@ -29,7 +29,7 @@ import type { Session as NextAuthSession } from 'next-auth';
 import type { UserImage } from '@/types/next-auth';
 import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
 
-// רכיב התפריט הנפתח של המשתמש, מותאם לעיצוב החדש
+// רכיב התפריט הנפתח של המשתמש, מעודכן לצבעי המותג החדשים
 const UserDropdown = ({
   session,
   mainProfileImage,
@@ -66,10 +66,10 @@ const UserDropdown = ({
       <button
         id="onboarding-target-profile-dropdown"
         onClick={() => setIsOpen(!isOpen)}
-        className={`relative ${profileIconSize} rounded-full flex items-center justify-center text-sm shadow-md transition-all duration-300 cursor-pointer group overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-400 focus:ring-offset-white`}
+        className={`relative ${profileIconSize} rounded-full flex items-center justify-center text-sm shadow-md transition-all duration-300 cursor-pointer group overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-400 focus:ring-offset-white`}
         title={session.user?.name || 'פרופיל'}
       >
-        <div className="absolute inset-0 rounded-full transition-all duration-300 group-hover:ring-2 group-hover:ring-cyan-400"></div>
+        <div className="absolute inset-0 rounded-full transition-all duration-300 group-hover:ring-2 group-hover:ring-teal-400"></div>
         {mainProfileImage ? (
           <Image
             src={getRelativeCloudinaryPath(mainProfileImage.url)}
@@ -79,7 +79,7 @@ const UserDropdown = ({
             sizes="(max-width: 768px) 40px, 40px"
           />
         ) : (
-          <span className="font-semibold text-lg text-cyan-700 bg-cyan-100 w-full h-full flex items-center justify-center rounded-full">
+          <span className="font-semibold text-lg text-teal-700 bg-teal-100 w-full h-full flex items-center justify-center rounded-full">
             {getInitials()}
           </span>
         )}
@@ -106,7 +106,7 @@ const UserDropdown = ({
             <div className="py-1">
               <Link
                 href="/profile"
-                className="flex items-center w-full text-right px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-cyan-50 hover:text-cyan-700 transition-colors"
+                className="flex items-center w-full text-right px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-teal-50 hover:text-teal-700 transition-colors"
                 onClick={() => setIsOpen(false)}
               >
                 <User className="ml-2 h-4 w-4" />
@@ -114,7 +114,7 @@ const UserDropdown = ({
               </Link>
               <Link
                 href="/settings"
-                className="flex items-center w-full text-right px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-cyan-50 hover:text-cyan-700 transition-colors"
+                className="flex items-center w-full text-right px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-teal-50 hover:text-teal-700 transition-colors"
                 onClick={() => setIsOpen(false)}
               >
                 <Settings className="ml-2 h-4 w-4" />
@@ -140,7 +140,7 @@ const UserDropdown = ({
   );
 };
 
-// רכיב הלוגו
+
 // רכיב הלוגו - גרסה 2.0: "הלהבה הנושמת"
 const Logo = () => {
   return (
@@ -152,7 +152,7 @@ const Logo = () => {
       <div className="relative h-9 w-9">
         <Image
           src={getRelativeCloudinaryPath(
-          'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png'
+            'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png'
           )}
           alt="NeshamaTech Icon"
           fill
@@ -160,34 +160,16 @@ const Logo = () => {
           priority
         />
       </div>
-      
-      {/* ====================== הטקסט המעוצב והמשודרג ====================== */}
       <span className="
         text-xl 
         font-bold 
-        
-        // יצירת הגראדינט המדויק
-        bg-gradient-to-r 
-        from-teal-600         // צבע טיל עמוק יותר
-        via-orange-500        // נגיעת כתום במעבר
-        to-amber-400          // סיומת עם זוהר של ענבר
-        
-        // הקסם שיוצר את האפקט
-        text-transparent      
-        bg-clip-text
-        
-        // אנימציה עדינה של הגראדינט במעבר עכבר
-        bg-size-200           // מגדילים את הרקע פי 2
-        bg-pos-0              // מתחילים אותו מהקצה
-        group-hover:bg-pos-100// במעבר עכבר, מזיזים את הרקע לקצה השני
-        transition-all 
-        duration-700          // תנועה איטית ואלגנטית
-        ease-in-out
+        bg-gradient-to-r from-teal-600 via-orange-500 to-amber-400
+        text-transparent bg-clip-text
+        bg-size-200 bg-pos-0 group-hover:bg-pos-100
+        transition-all duration-700 ease-in-out
       ">
         NeshamaTech
       </span>
-      {/* ==================================================================== */}
-
     </Link>
   );
 };
@@ -305,7 +287,7 @@ const Navbar = () => {
                 variant="ghost"
                 size="icon"
                 onClick={() => setLanguage(language === 'he' ? 'en' : 'he')}
-                className="text-gray-600 hover:text-cyan-600 hover:bg-cyan-100/50 rounded-full"
+                className="text-gray-600 hover:text-teal-600 hover:bg-teal-100/50 rounded-full"
                 title={language === 'he' ? 'Switch to English' : 'עבור לעברית'}
               >
                 <Globe className="h-5 w-5" />
@@ -316,8 +298,6 @@ const Navbar = () => {
                   id="onboarding-target-availability-status"
                   className="hidden md:block"
                 >
-                  {' '}
-                  {/* ID הועבר ל-wrapper */}
                   <AvailabilityStatus />
                 </div>
               )}
@@ -335,13 +315,13 @@ const Navbar = () => {
                   <Link href="/auth/signin">
                     <Button
                       variant="ghost"
-                      className="text-gray-700 hover:text-cyan-600 hover:bg-cyan-50/70 rounded-full px-4"
+                      className="text-gray-700 hover:text-teal-600 hover:bg-teal-50/70 rounded-full px-4"
                     >
                       התחברות
                     </Button>
                   </Link>
                   <Link href="/auth/register">
-                    <Button className="group relative overflow-hidden bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 px-5 py-2.5">
+                    <Button className="group relative overflow-hidden bg-gradient-to-r from-teal-600 to-orange-500 hover:from-teal-700 hover:to-orange-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 px-5 py-2.5">
                       <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
                       <span className="relative z-10 flex items-center">
                         <UserPlus className="ml-1.5 h-4 w-4" />
@@ -356,7 +336,7 @@ const Navbar = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden text-gray-600 hover:text-cyan-600 hover:bg-cyan-100/50 rounded-full"
+                className="md:hidden text-gray-600 hover:text-teal-600 hover:bg-teal-100/50 rounded-full"
                 onClick={toggleMobileMenu}
                 aria-label="פתח תפריט"
               >
@@ -413,7 +393,7 @@ const Navbar = () => {
                         sizes="40px"
                       />
                     ) : (
-                      <span className="font-semibold text-xl text-cyan-700 bg-cyan-100 w-full h-full flex items-center justify-center rounded-full">
+                      <span className="font-semibold text-xl text-teal-700 bg-teal-100 w-full h-full flex items-center justify-center rounded-full">
                         {getInitials()}
                       </span>
                     )}
@@ -431,8 +411,6 @@ const Navbar = () => {
                   id="onboarding-target-availability-status"
                   className="mt-4 pt-4 border-t border-gray-200"
                 >
-                  {' '}
-                  {/* ID הועבר גם למובייל */}
                   <AvailabilityStatus />
                 </div>
               </div>
@@ -469,7 +447,6 @@ const Navbar = () => {
                     pathname={pathname}
                   />
                 )}
-                {/* --- שינוי --- הוספת ID לכפתור הודעות במובייל */}
                 <MobileNavItem
                   id="onboarding-target-messages-link"
                   href="/messages"
@@ -545,7 +522,7 @@ const Navbar = () => {
   );
 };
 
-// רכיב פריט ניווט לדסקטופ
+// רכיב פריט ניווט לדסקטופ - מעודכן
 const NavItem = ({
   href,
   text,
@@ -570,8 +547,8 @@ const NavItem = ({
       className={`relative px-3 py-2 rounded-full text-sm transition-colors duration-200
         ${
           isActive
-            ? 'font-semibold text-cyan-600 bg-cyan-500/10'
-            : 'font-medium text-gray-700 hover:text-cyan-600 hover:bg-cyan-500/10'
+            ? 'font-semibold text-teal-600 bg-teal-500/10'
+            : 'font-medium text-gray-700 hover:text-teal-600 hover:bg-teal-500/10'
         }`}
     >
       {text}
@@ -590,7 +567,7 @@ const NavItem = ({
   );
 };
 
-// רכיב פריט ניווט למובייל
+// רכיב פריט ניווט למובייל - מעודכן
 const MobileNavItem = ({
   href,
   text,
@@ -598,7 +575,7 @@ const MobileNavItem = ({
   badge,
   onClick,
   pathname,
-  id, // <-- שינוי 1: הוספת id לפרופס
+  id,
 }: {
   href: string;
   text: string;
@@ -606,33 +583,33 @@ const MobileNavItem = ({
   badge?: number;
   onClick: () => void;
   pathname: string;
-  id?: string; // <-- שינוי 1: הוספת id לפרופס
+  id?: string;
 }) => {
   const isActive =
     pathname === href ||
     (href === '/matchmaker/suggestions' && pathname.startsWith('/matchmaker'));
   return (
     <Link
-      id={id} // <-- שינוי 2: שימוש ב-id
+      id={id}
       href={href}
       onClick={onClick}
       className={`flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 group
         ${
           isActive
-            ? 'bg-cyan-100 text-cyan-800 shadow-inner'
+            ? 'bg-teal-100 text-teal-800 shadow-inner'
             : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
         }`}
     >
       {icon && (
         <span
-          className={`transition-colors ${isActive ? 'text-cyan-600' : 'text-gray-500 group-hover:text-gray-700'}`}
+          className={`transition-colors ${isActive ? 'text-teal-600' : 'text-gray-500 group-hover:text-gray-700'}`}
         >
           {icon}
         </span>
       )}
       <span className="flex-grow">{text}</span>
       {badge !== undefined && badge > 0 && (
-        <span className="ml-auto bg-pink-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-semibold">
+        <span className="ml-auto bg-orange-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-semibold">
           {badge}
         </span>
       )}

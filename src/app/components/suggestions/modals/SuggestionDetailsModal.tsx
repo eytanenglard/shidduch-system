@@ -1,20 +1,25 @@
 // src/app/components/suggestions/modals/SuggestionDetailsModal.tsx
-"use client";
+'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import Image from "next/image";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { 
-  CheckCircle, 
-  XCircle, 
-  MessageCircle, 
-  X, 
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import Image from 'next/image';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Card, CardContent } from '@/components/ui/card';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import {
+  CheckCircle,
+  XCircle,
+  MessageCircle,
+  X,
   Loader2,
   Sparkles,
   User,
@@ -49,8 +54,10 @@ import {
   Maximize,
   Minimize,
   AlertTriangle,
-  Bot
-} from "lucide-react";
+  Bot,
+} from 'lucide-react';
+import { getRelativeCloudinaryPath } from '@/lib/utils';
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -60,30 +67,30 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog';
 import {
-    Alert,
-    AlertDescription,
-    AlertTitle as UiAlertTitle, // Renamed to avoid conflict
-} from "@/components/ui/alert";
-import { toast } from "sonner";
+  Alert,
+  AlertDescription,
+  AlertTitle as UiAlertTitle, // Renamed to avoid conflict
+} from '@/components/ui/alert';
+import { toast } from 'sonner';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { getInitials, cn } from "@/lib/utils";
-import type { QuestionnaireResponse } from "@/types/next-auth";
+} from '@/components/ui/tooltip';
+import { getInitials, cn } from '@/lib/utils';
+import type { QuestionnaireResponse } from '@/types/next-auth';
 import type { AiSuggestionAnalysisResult } from '@/lib/services/aiService';
 
-import { ProfileCard } from "@/app/components/profile";
-import SuggestionTimeline from "../timeline/SuggestionTimeline";
-import InquiryThreadView from "../inquiries/InquiryThreadView";
-import { AskMatchmakerDialog } from "../dialogs/AskMatchmakerDialog";
+import { ProfileCard } from '@/app/components/profile';
+import SuggestionTimeline from '../timeline/SuggestionTimeline';
+import InquiryThreadView from '../inquiries/InquiryThreadView';
+import { AskMatchmakerDialog } from '../dialogs/AskMatchmakerDialog';
 import { UserAiAnalysisDialog } from '../dialogs/UserAiAnalysisDialog';
-import UserAiAnalysisDisplay from "../compatibility/UserAiAnalysisDisplay";
-import type { ExtendedMatchSuggestion } from "../types";
+import UserAiAnalysisDisplay from '../compatibility/UserAiAnalysisDisplay';
+import type { ExtendedMatchSuggestion } from '../types';
 
 // ===============================
 // TYPES & INTERFACES
@@ -102,23 +109,25 @@ interface SuggestionDetailsModalProps {
 // ===============================
 
 const EnhancedHeroSection: React.FC<{
-  matchmaker: { firstName: string; lastName: string; };
+  matchmaker: { firstName: string; lastName: string };
   targetParty: ExtendedMatchSuggestion['secondParty'];
   personalNote?: string | null;
   matchingReason?: string | null;
   onViewProfile: () => void;
   onStartConversation: () => void;
-}> = ({ 
-  matchmaker, 
-  targetParty, 
-  personalNote, 
+}> = ({
+  matchmaker,
+  targetParty,
+  personalNote,
   matchingReason,
   onViewProfile,
-  onStartConversation
+  onStartConversation,
 }) => {
-  const age = targetParty.profile?.birthDate ? 
-    new Date().getFullYear() - new Date(targetParty.profile.birthDate).getFullYear() : null;
-  const mainImage = targetParty.images?.find(img => img.isMain)?.url;
+  const age = targetParty.profile?.birthDate
+    ? new Date().getFullYear() -
+      new Date(targetParty.profile.birthDate).getFullYear()
+    : null;
+  const mainImage = targetParty.images?.find((img) => img.isMain)?.url;
 
   // Define the excitement factor type
   interface ExcitementFactor {
@@ -131,40 +140,40 @@ const EnhancedHeroSection: React.FC<{
   // Generate excitement factors
   const getExcitementFactors = (): ExcitementFactor[] => {
     const factors: ExcitementFactor[] = [];
-    
+
     if (targetParty.profile?.religiousLevel) {
       factors.push({
         icon: ScrollIcon,
-        label: "השקפת עולם משותפת",
+        label: 'השקפת עולם משותפת',
         value: targetParty.profile.religiousLevel,
-        color: "from-purple-500 to-violet-600"
+        color: 'from-purple-500 to-violet-600',
       });
     }
-    
+
     if (targetParty.profile?.city) {
       factors.push({
         icon: MapPin,
-        label: "מיקום נוח",
+        label: 'מיקום נוח',
         value: targetParty.profile.city,
-        color: "from-emerald-500 to-green-600"
+        color: 'from-emerald-500 to-green-600',
       });
     }
-    
+
     if (targetParty.profile?.education) {
       factors.push({
         icon: GraduationCap,
-        label: "רקע השכלתי",
+        label: 'רקע השכלתי',
         value: targetParty.profile.education,
-        color: "from-blue-500 to-cyan-600"
+        color: 'from-blue-500 to-cyan-600',
       });
     }
-    
+
     if (targetParty.profile?.occupation) {
       factors.push({
         icon: Briefcase,
-        label: "תחום מקצועי",
+        label: 'תחום מקצועי',
         value: targetParty.profile.occupation,
-        color: "from-amber-500 to-orange-600"
+        color: 'from-amber-500 to-orange-600',
       });
     }
 
@@ -178,8 +187,14 @@ const EnhancedHeroSection: React.FC<{
       {/* Animated Background Elements */}
       <div className="absolute inset-0">
         <div className="absolute top-10 right-10 w-72 h-72 bg-gradient-to-br from-purple-200/30 to-pink-200/30 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-10 left-10 w-64 h-64 bg-gradient-to-br from-cyan-200/30 to-blue-200/30 rounded-full blur-2xl animate-pulse" style={{ animationDelay: "1s" }}></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-emerald-200/20 to-green-200/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "2s" }}></div>
+        <div
+          className="absolute bottom-10 left-10 w-64 h-64 bg-gradient-to-br from-cyan-200/30 to-blue-200/30 rounded-full blur-2xl animate-pulse"
+          style={{ animationDelay: '1s' }}
+        ></div>
+        <div
+          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-emerald-200/20 to-green-200/20 rounded-full blur-3xl animate-pulse"
+          style={{ animationDelay: '2s' }}
+        ></div>
       </div>
 
       <div className="relative z-10 p-8 md:p-12">
@@ -189,7 +204,9 @@ const EnhancedHeroSection: React.FC<{
             <div className="relative">
               <Avatar className="w-16 h-16 border-4 border-white shadow-xl">
                 <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-white text-xl font-bold">
-                  {getInitials(`${matchmaker.firstName} ${matchmaker.lastName}`)}
+                  {getInitials(
+                    `${matchmaker.firstName} ${matchmaker.lastName}`
+                  )}
                 </AvatarFallback>
               </Avatar>
               <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-yellow-400 to-amber-500 rounded-full flex items-center justify-center shadow-lg">
@@ -199,9 +216,13 @@ const EnhancedHeroSection: React.FC<{
             <div className="text-right">
               <div className="flex items-center gap-2 mb-1">
                 <Sparkles className="w-4 h-4 text-purple-500" />
-                <p className="text-sm font-bold text-purple-600">הצעה מיוחדת מהשדכן המוביל</p>
+                <p className="text-sm font-bold text-purple-600">
+                  הצעה מיוחדת מהשדכן המוביל
+                </p>
               </div>
-              <p className="text-xl font-bold text-gray-800">{matchmaker.firstName} {matchmaker.lastName}</p>
+              <p className="text-xl font-bold text-gray-800">
+                {matchmaker.firstName} {matchmaker.lastName}
+              </p>
               <p className="text-sm text-gray-600">מומחה בהתאמות מוצלחות</p>
             </div>
           </div>
@@ -215,10 +236,10 @@ const EnhancedHeroSection: React.FC<{
               <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-400 rounded-3xl blur opacity-75 group-hover:opacity-100 transition-opacity animate-pulse"></div>
               <div className="relative h-96 lg:h-[500px] rounded-3xl overflow-hidden shadow-2xl">
                 {mainImage ? (
-                  <Image 
-                    src={mainImage} 
-                    alt={`תמונה של ${targetParty.firstName}`} 
-                    fill 
+                  <Image
+                    src={getRelativeCloudinaryPath(mainImage)}
+                    alt={`תמונה של ${targetParty.firstName}`}
+                    fill
                     className="object-cover transition-transform duration-700 group-hover:scale-105"
                     sizes="(max-width: 1024px) 100vw, 50vw"
                   />
@@ -226,14 +247,18 @@ const EnhancedHeroSection: React.FC<{
                   <div className="w-full h-full bg-gradient-to-br from-purple-100 via-pink-100 to-blue-100 flex items-center justify-center">
                     <div className="text-center">
                       <User className="w-24 h-24 text-purple-400 mx-auto mb-4" />
-                      <p className="text-purple-600 font-semibold">תמונה בדרך אליך</p>
-                      <p className="text-sm text-purple-500">כל הפרטים בפרופיל המלא</p>
+                      <p className="text-purple-600 font-semibold">
+                        תמונה בדרך אליך
+                      </p>
+                      <p className="text-sm text-purple-500">
+                        כל הפרטים בפרופיל המלא
+                      </p>
                     </div>
                   </div>
                 )}
-                
+
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                
+
                 {/* Profile Overlay */}
                 <div className="absolute bottom-6 right-6 left-6">
                   <div className="bg-white/95 backdrop-blur-md rounded-2xl p-6 shadow-2xl">
@@ -254,7 +279,7 @@ const EnhancedHeroSection: React.FC<{
                           </div>
                         )}
                       </div>
-                      <Button 
+                      <Button
                         onClick={onViewProfile}
                         className="bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white shadow-xl rounded-full px-6 py-3 font-bold"
                       >
@@ -262,19 +287,23 @@ const EnhancedHeroSection: React.FC<{
                         גלה עוד
                       </Button>
                     </div>
-                    
+
                     {/* Key Info Grid */}
                     <div className="grid grid-cols-2 gap-3">
                       {targetParty.profile?.city && (
                         <div className="flex items-center gap-2 p-2 bg-purple-50 rounded-lg">
                           <MapPin className="w-4 h-4 text-purple-500" />
-                          <span className="text-sm font-medium text-gray-700">{targetParty.profile.city}</span>
+                          <span className="text-sm font-medium text-gray-700">
+                            {targetParty.profile.city}
+                          </span>
                         </div>
                       )}
                       {targetParty.profile?.occupation && (
                         <div className="flex items-center gap-2 p-2 bg-blue-50 rounded-lg">
                           <Briefcase className="w-4 h-4 text-blue-500" />
-                          <span className="text-sm font-medium text-gray-700 truncate">{targetParty.profile.occupation}</span>
+                          <span className="text-sm font-medium text-gray-700 truncate">
+                            {targetParty.profile.occupation}
+                          </span>
                         </div>
                       )}
                     </div>
@@ -292,14 +321,21 @@ const EnhancedHeroSection: React.FC<{
                 <div className="text-center mb-6">
                   <div className="inline-flex items-center gap-2 mb-4">
                     <div className="w-3 h-3 bg-purple-500 rounded-full animate-pulse"></div>
-                    <div className="w-2 h-2 bg-pink-500 rounded-full animate-pulse" style={{ animationDelay: "0.5s" }}></div>
-                    <div className="w-4 h-4 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: "1s" }}></div>
+                    <div
+                      className="w-2 h-2 bg-pink-500 rounded-full animate-pulse"
+                      style={{ animationDelay: '0.5s' }}
+                    ></div>
+                    <div
+                      className="w-4 h-4 bg-blue-500 rounded-full animate-pulse"
+                      style={{ animationDelay: '1s' }}
+                    ></div>
                   </div>
                   <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-4">
                     זו יכולה להיות הנשמה התאומה שלך
                   </h2>
                   <p className="text-lg text-gray-600 leading-relaxed">
-                    השדכן שלנו זיהה כאן משהו מיוחד - שילוב נדיר של התאמה עמוקה ופוטנציאל אמיתי
+                    השדכן שלנו זיהה כאן משהו מיוחד - שילוב נדיר של התאמה עמוקה
+                    ופוטנציאל אמיתי
                   </p>
                 </div>
 
@@ -307,17 +343,26 @@ const EnhancedHeroSection: React.FC<{
                 {excitementFactors.length > 0 && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     {excitementFactors.map((factor, index) => (
-                      <div 
+                      <div
                         key={index}
                         className="relative p-4 bg-white/70 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
                       >
                         <div className="flex items-center gap-3">
-                          <div className={cn("w-10 h-10 rounded-full bg-gradient-to-r text-white flex items-center justify-center shadow-md", factor.color)}>
+                          <div
+                            className={cn(
+                              'w-10 h-10 rounded-full bg-gradient-to-r text-white flex items-center justify-center shadow-md',
+                              factor.color
+                            )}
+                          >
                             <factor.icon className="w-5 h-5" />
                           </div>
                           <div className="flex-1">
-                            <p className="font-semibold text-gray-800 text-sm">{factor.label}</p>
-                            <p className="text-gray-600 text-xs truncate">{factor.value}</p>
+                            <p className="font-semibold text-gray-800 text-sm">
+                              {factor.label}
+                            </p>
+                            <p className="text-gray-600 text-xs truncate">
+                              {factor.value}
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -327,14 +372,14 @@ const EnhancedHeroSection: React.FC<{
 
                 {/* CTA Buttons */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Button 
+                  <Button
                     onClick={onViewProfile}
                     className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-xl rounded-xl h-12 font-bold text-base"
                   >
                     <User className="w-5 h-5 ml-2" />
                     רוצה לראות הכל
                   </Button>
-                  <Button 
+                  <Button
                     onClick={onStartConversation}
                     variant="outline"
                     className="border-2 border-purple-300 text-purple-600 hover:bg-purple-50 shadow-lg rounded-xl h-12 font-bold text-base"
@@ -359,18 +404,26 @@ const EnhancedHeroSection: React.FC<{
                         <Quote className="w-5 h-5" />
                         התובנה המיוחדת של השדכן
                       </h3>
-                      
+
                       {personalNote && (
                         <div className="mb-4 p-4 bg-white/70 rounded-xl">
-                          <h4 className="font-semibold text-cyan-700 mb-2">מיועד אישית עבורך:</h4>
-                          <p className="text-cyan-900 leading-relaxed italic">“{personalNote}”</p>
+                          <h4 className="font-semibold text-cyan-700 mb-2">
+                            מיועד אישית עבורך:
+                          </h4>
+                          <p className="text-cyan-900 leading-relaxed italic">
+                            “{personalNote}”
+                          </p>
                         </div>
                       )}
-                      
+
                       {matchingReason && (
                         <div className="p-4 bg-white/70 rounded-xl">
-                          <h4 className="font-semibold text-blue-700 mb-2">הסיבה להתאמה:</h4>
-                          <p className="text-blue-900 leading-relaxed">“{matchingReason}”</p>
+                          <h4 className="font-semibold text-blue-700 mb-2">
+                            הסיבה להתאמה:
+                          </h4>
+                          <p className="text-blue-900 leading-relaxed">
+                            “{matchingReason}”
+                          </p>
                         </div>
                       )}
                     </div>
@@ -411,11 +464,9 @@ const EnhancedHeroSection: React.FC<{
                   <Zap className="w-6 h-6 text-yellow-400" />
                   <h3 className="text-xl font-bold">רגע האמת</h3>
                 </div>
-                <p className="text-gray-300">
-                  כל סיפור אהבה מתחיל בהחלטה אחת
-                </p>
+                <p className="text-gray-300">כל סיפור אהבה מתחיל בהחלטה אחת</p>
               </div>
-              
+
               <div className="text-center">
                 <div className="w-20 h-20 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 flex items-center justify-center mx-auto mb-4 animate-pulse">
                   <Heart className="w-10 h-10 text-white" />
@@ -424,15 +475,13 @@ const EnhancedHeroSection: React.FC<{
                   {targetParty.firstName} מחכה להכיר אותך
                 </p>
               </div>
-              
+
               <div className="text-center md:text-left">
                 <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
                   <Target className="w-6 h-6 text-green-400" />
                   <h3 className="text-xl font-bold">הזמן הוא עכשיו</h3>
                 </div>
-                <p className="text-gray-300">
-                  ההזדמנויות הטובות לא מחכות
-                </p>
+                <p className="text-gray-300">ההזדמנויות הטובות לא מחכות</p>
               </div>
             </div>
           </CardContent>
@@ -452,33 +501,27 @@ const EnhancedQuickActions: React.FC<{
   onApprove: () => void;
   onDecline: () => void;
   onAskQuestion: () => void;
-}> = ({ 
-  canAct, 
-  isSubmitting, 
-  onApprove, 
-  onDecline, 
-  onAskQuestion 
-}) => (
+}> = ({ canAct, isSubmitting, onApprove, onDecline, onAskQuestion }) => (
   <div className="flex-shrink-0 bg-gradient-to-r from-white via-purple-50/30 to-pink-50/30 backdrop-blur-sm border-t border-purple-100 p-6">
     <div className="flex gap-4 max-w-4xl mx-auto">
       {/* Ask Question Button */}
-      <Button 
-        variant="outline" 
-        onClick={onAskQuestion} 
+      <Button
+        variant="outline"
+        onClick={onAskQuestion}
         disabled={isSubmitting}
         className="flex-1 border-2 border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300 transition-all duration-300 rounded-xl h-14 font-semibold text-base shadow-lg"
       >
         <MessageCircle className="w-5 h-5 ml-2" />
         שאלות לשדכן
       </Button>
-      
+
       {canAct && (
         <>
           {/* Decline Button */}
-          <Button 
-            variant="outline" 
-            className="flex-1 text-gray-600 border-2 border-gray-200 hover:bg-gray-50 hover:text-gray-700 hover:border-gray-300 transition-all duration-300 rounded-xl h-14 font-semibold text-base shadow-lg" 
-            disabled={isSubmitting} 
+          <Button
+            variant="outline"
+            className="flex-1 text-gray-600 border-2 border-gray-200 hover:bg-gray-50 hover:text-gray-700 hover:border-gray-300 transition-all duration-300 rounded-xl h-14 font-semibold text-base shadow-lg"
+            disabled={isSubmitting}
             onClick={onDecline}
           >
             {isSubmitting ? (
@@ -488,11 +531,11 @@ const EnhancedQuickActions: React.FC<{
             )}
             לא מתאים כרגע
           </Button>
-          
+
           {/* Approve Button */}
-          <Button 
-            className="flex-1 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 hover:from-emerald-600 hover:via-green-600 hover:to-emerald-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-xl h-14 font-bold text-base transform hover:scale-105" 
-            disabled={isSubmitting} 
+          <Button
+            className="flex-1 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 hover:from-emerald-600 hover:via-green-600 hover:to-emerald-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-xl h-14 font-bold text-base transform hover:scale-105"
+            disabled={isSubmitting}
             onClick={onApprove}
           >
             {isSubmitting ? (
@@ -507,7 +550,7 @@ const EnhancedQuickActions: React.FC<{
         </>
       )}
     </div>
-    
+
     {/* Motivational Footer */}
     <div className="text-center mt-4">
       <p className="text-sm text-gray-600 font-medium">
@@ -531,19 +574,23 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   // ===============================
   // STATE MANAGEMENT
   // ===============================
-  
-  const [activeTab, setActiveTab] = useState("presentation");
+
+  const [activeTab, setActiveTab] = useState('presentation');
   const [showAskDialog, setShowAskDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [actionToConfirm, setActionToConfirm] = useState<'approve' | 'decline' | null>(null);
+  const [actionToConfirm, setActionToConfirm] = useState<
+    'approve' | 'decline' | null
+  >(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const dialogContentRef = useRef<HTMLDivElement>(null);
 
-  const [questionnaire, setQuestionnaire] = useState<QuestionnaireResponse | null>(null);
+  const [questionnaire, setQuestionnaire] =
+    useState<QuestionnaireResponse | null>(null);
   const [isQuestionnaireLoading, setIsQuestionnaireLoading] = useState(false);
-  
-  const [aiAnalysis, setAiAnalysis] = useState<AiSuggestionAnalysisResult | null>(null);
+
+  const [aiAnalysis, setAiAnalysis] =
+    useState<AiSuggestionAnalysisResult | null>(null);
   const [isAnalysisLoading, setIsAnalysisLoading] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
 
@@ -552,36 +599,46 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   // ===============================
 
   const isFirstParty = suggestion?.firstPartyId === userId;
-  const targetParty = suggestion ? (isFirstParty ? suggestion.secondParty : suggestion.firstParty) : null;
+  const targetParty = suggestion
+    ? isFirstParty
+      ? suggestion.secondParty
+      : suggestion.firstParty
+    : null;
   const targetPartyId = targetParty?.id;
 
   const fetchAiAnalysis = useCallback(async () => {
     if (!suggestion || !targetPartyId) return;
-    
+
     setIsAnalysisLoading(true);
     setAnalysisError(null);
     try {
-        const response = await fetch('/api/ai/analyze-suggestion', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ suggestedUserId: targetPartyId }),
-        });
-        const result = await response.json();
-        if (!response.ok || !result.success) {
-            throw new Error(result.message || 'שגיאה בקבלת ניתוח ההצעה.');
-        }
-        setAiAnalysis(result.data);
+      const response = await fetch('/api/ai/analyze-suggestion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ suggestedUserId: targetPartyId }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'שגיאה בקבלת ניתוח ההצעה.');
+      }
+      setAiAnalysis(result.data);
     } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'אירעה שגיאה לא צפויה.';
-        setAnalysisError(errorMessage);
-        toast.error('שגיאה בטעינת ניתוח ההתאמה.');
+      const errorMessage =
+        err instanceof Error ? err.message : 'אירעה שגיאה לא צפויה.';
+      setAnalysisError(errorMessage);
+      toast.error('שגיאה בטעינת ניתוח ההתאמה.');
     } finally {
-        setIsAnalysisLoading(false);
+      setIsAnalysisLoading(false);
     }
   }, [suggestion, targetPartyId]);
 
   useEffect(() => {
-    if (isOpen && activeTab === 'compatibility' && !aiAnalysis && !analysisError) {
+    if (
+      isOpen &&
+      activeTab === 'compatibility' &&
+      !aiAnalysis &&
+      !analysisError
+    ) {
       fetchAiAnalysis();
     }
   }, [isOpen, activeTab, aiAnalysis, analysisError, fetchAiAnalysis]);
@@ -592,7 +649,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
       setAnalysisError(null);
       setIsAnalysisLoading(false);
     } else {
-      setActiveTab("presentation");
+      setActiveTab('presentation');
       setQuestionnaire(null);
       setIsFullScreen(!!document.fullscreenElement);
 
@@ -600,13 +657,15 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
         const fetchQuestionnaire = async () => {
           setIsQuestionnaireLoading(true);
           try {
-            const response = await fetch(`/api/profile/questionnaire?userId=${targetPartyId}`);
+            const response = await fetch(
+              `/api/profile/questionnaire?userId=${targetPartyId}`
+            );
             const data = await response.json();
             if (response.ok && data.success) {
               setQuestionnaire(data.questionnaireResponse);
             }
           } catch (error) {
-            console.error("Error fetching questionnaire:", error);
+            console.error('Error fetching questionnaire:', error);
           } finally {
             setIsQuestionnaireLoading(false);
           }
@@ -615,20 +674,22 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
       }
     }
 
-    const handleFullScreenChange = () => setIsFullScreen(!!document.fullscreenElement);
+    const handleFullScreenChange = () =>
+      setIsFullScreen(!!document.fullscreenElement);
     document.addEventListener('fullscreenchange', handleFullScreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullScreenChange);
+    return () =>
+      document.removeEventListener('fullscreenchange', handleFullScreenChange);
   }, [isOpen, targetPartyId]);
 
   // ===============================
   // EARLY RETURN & RENDER LOGIC
   // ===============================
-  
+
   if (!suggestion || !targetParty) return null;
 
-  const canActOnSuggestion = 
-    (isFirstParty && suggestion.status === "PENDING_FIRST_PARTY") ||
-    (!isFirstParty && suggestion.status === "PENDING_SECOND_PARTY");
+  const canActOnSuggestion =
+    (isFirstParty && suggestion.status === 'PENDING_FIRST_PARTY') ||
+    (!isFirstParty && suggestion.status === 'PENDING_SECOND_PARTY');
 
   // ===============================
   // EVENT HANDLERS
@@ -637,9 +698,9 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
     if (!dialogContentRef.current) return;
 
     if (!document.fullscreenElement) {
-      dialogContentRef.current.requestFullscreen().catch(err => {
-        toast.error("לא ניתן לעבור למסך מלא", {
-          description: "יתכן שהדפדפן שלך אינו תומך או חוסם אפשרות זו."
+      dialogContentRef.current.requestFullscreen().catch((err) => {
+        toast.error('לא ניתן לעבור למסך מלא', {
+          description: 'יתכן שהדפדפן שלך אינו תומך או חוסם אפשרות זו.',
         });
       });
     } else {
@@ -651,51 +712,59 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
     setActionToConfirm(action);
     setShowConfirmDialog(true);
   };
-  
+
   const executeConfirmedAction = async () => {
     if (!onStatusChange || !suggestion || !actionToConfirm) return;
 
-    const newStatus = actionToConfirm === 'approve'
-      ? (isFirstParty ? "FIRST_PARTY_APPROVED" : "SECOND_PARTY_APPROVED")
-      : (isFirstParty ? "FIRST_PARTY_DECLINED" : "SECOND_PARTY_DECLINED");
+    const newStatus =
+      actionToConfirm === 'approve'
+        ? isFirstParty
+          ? 'FIRST_PARTY_APPROVED'
+          : 'SECOND_PARTY_APPROVED'
+        : isFirstParty
+          ? 'FIRST_PARTY_DECLINED'
+          : 'SECOND_PARTY_DECLINED';
 
     setIsSubmitting(true);
     setShowConfirmDialog(false);
     try {
       await onStatusChange(suggestion.id, newStatus);
-      toast.success("הסטטוס עודכן בהצלחה! 🎉", {
-        description: newStatus.includes("APPROVED") 
-          ? "השדכן/ית יקבל הודעה ויתקדם עם התהליך - זה מרגש!"
-          : "תודה על המשוב הכנה - זה עוזר לנו להכיר אותך טוב יותר"
+      toast.success('הסטטוס עודכן בהצלחה! 🎉', {
+        description: newStatus.includes('APPROVED')
+          ? 'השדכן/ית יקבל הודעה ויתקדם עם התהליך - זה מרגש!'
+          : 'תודה על המשוב הכנה - זה עוזר לנו להכיר אותך טוב יותר',
       });
       onClose();
     } catch (error) {
-      console.error("Failed to update status:", error);
-      toast.error("אירעה שגיאה בעדכון הסטטוס.");
+      console.error('Failed to update status:', error);
+      toast.error('אירעה שגיאה בעדכון הסטטוס.');
     } finally {
       setIsSubmitting(false);
       setActionToConfirm(null);
     }
   };
-  
+
   const handleSendQuestion = async (question: string) => {
     setIsSubmitting(true);
     try {
-      const response = await fetch(`/api/suggestions/${suggestion.id}/inquiries`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question }),
-      });
-      
-      if (!response.ok) throw new Error("Failed to send inquiry.");
-      
-      toast.success("שאלתך נשלחה בהצלחה! 📩", {
-        description: "השדכן/ית יחזור אליך בהקדם עם תשובה מקצועית"
+      const response = await fetch(
+        `/api/suggestions/${suggestion.id}/inquiries`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question }),
+        }
+      );
+
+      if (!response.ok) throw new Error('Failed to send inquiry.');
+
+      toast.success('שאלתך נשלחה בהצלחה! 📩', {
+        description: 'השדכן/ית יחזור אליך בהקדם עם תשובה מקצועית',
       });
       setShowAskDialog(false);
     } catch (error) {
-      console.error("Error sending question:", error);
-      toast.error("אירעה שגיאה בשליחת השאלה.");
+      console.error('Error sending question:', error);
+      toast.error('אירעה שגיאה בשליחת השאלה.');
     } finally {
       setIsSubmitting(false);
     }
@@ -708,9 +777,9 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent 
+        <DialogContent
           ref={dialogContentRef}
-          className="max-w-7xl w-[95vw] h-[95vh] flex flex-col p-0 shadow-2xl rounded-3xl border-0 bg-white overflow-hidden" 
+          className="max-w-7xl w-[95vw] h-[95vh] flex flex-col p-0 shadow-2xl rounded-3xl border-0 bg-white overflow-hidden"
           dir="rtl"
         >
           {/* Enhanced Header */}
@@ -727,61 +796,66 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
               </div>
             </div>
             <div className="flex items-center gap-2">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={toggleFullScreen}
-                        className="rounded-full h-10 w-10 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-                      >
-                        {isFullScreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{isFullScreen ? 'צא ממסך מלא' : 'מסך מלא'}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={onClose}
-                  className="rounded-full h-10 w-10 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
-                  <X className="w-5 h-5" />
-                </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={toggleFullScreen}
+                      className="rounded-full h-10 w-10 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                    >
+                      {isFullScreen ? (
+                        <Minimize className="w-5 h-5" />
+                      ) : (
+                        <Maximize className="w-5 h-5" />
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{isFullScreen ? 'צא ממסך מלא' : 'מסך מלא'}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onClose}
+                className="rounded-full h-10 w-10 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </Button>
             </div>
           </DialogHeader>
-          
+
           <ScrollArea className="flex-grow min-h-0">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               {/* Enhanced Tabs Navigation */}
               <div className="border-b border-purple-100 px-6 pt-2 bg-gradient-to-r from-purple-50/50 to-pink-50/50 backdrop-blur-sm sticky top-0 z-20">
                 <TabsList className="grid w-full grid-cols-4 bg-white/80 backdrop-blur-sm rounded-2xl p-1 h-16 shadow-lg border border-purple-100">
-                  <TabsTrigger 
-                    value="presentation" 
+                  <TabsTrigger
+                    value="presentation"
                     className="flex items-center gap-2 rounded-xl transition-all data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-lg font-semibold"
                   >
                     <Sparkles className="w-5 h-5" />
                     <span>ההצעה המיוחדת</span>
                   </TabsTrigger>
-                  <TabsTrigger 
-                    value="profile" 
+                  <TabsTrigger
+                    value="profile"
                     className="flex items-center gap-2 rounded-xl transition-all data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-lg font-semibold"
                   >
                     <User className="w-5 h-5" />
                     <span>פרופיל מלא</span>
                   </TabsTrigger>
-                  <TabsTrigger 
-                    value="compatibility" 
+                  <TabsTrigger
+                    value="compatibility"
                     className="flex items-center gap-2 rounded-xl transition-all data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg font-semibold"
                   >
                     <GitCompareArrows className="w-5 h-5" />
                     <span>ניתוח התאמה</span>
                   </TabsTrigger>
-                  <TabsTrigger 
-                    value="details" 
+                  <TabsTrigger
+                    value="details"
                     className="flex items-center gap-2 rounded-xl transition-all data-[state=active]:bg-gradient-to-r data-[state=active]:from-gray-500 data-[state=active]:to-slate-500 data-[state=active]:text-white data-[state=active]:shadow-lg font-semibold"
                   >
                     <Info className="w-5 h-5" />
@@ -789,56 +863,67 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                   </TabsTrigger>
                 </TabsList>
               </div>
-              
+
               {/* Tab Contents */}
-              
+
               {/* Enhanced Presentation Tab */}
               <TabsContent value="presentation" className="mt-0">
-                <EnhancedHeroSection 
+                <EnhancedHeroSection
                   matchmaker={suggestion.matchmaker}
                   targetParty={targetParty}
-                  personalNote={isFirstParty ? suggestion.firstPartyNotes : suggestion.secondPartyNotes}
+                  personalNote={
+                    isFirstParty
+                      ? suggestion.firstPartyNotes
+                      : suggestion.secondPartyNotes
+                  }
                   matchingReason={suggestion.matchingReason}
                   onViewProfile={() => setActiveTab('profile')}
                   onStartConversation={() => setShowAskDialog(true)}
                 />
               </TabsContent>
-              
+
               {/* Profile Tab */}
               <TabsContent value="profile" className="mt-0 p-4 md:p-6">
                 {isQuestionnaireLoading ? (
                   <div className="flex justify-center items-center h-64">
                     <div className="text-center">
                       <Loader2 className="w-8 h-8 animate-spin text-purple-600 mx-auto mb-4" />
-                      <p className="text-gray-600 font-medium">טוען פרופיל מלא...</p>
-                      <p className="text-sm text-gray-500">הכנו משהו מיוחד בשבילך</p>
+                      <p className="text-gray-600 font-medium">
+                        טוען פרופיל מלא...
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        הכנו משהו מיוחד בשבילך
+                      </p>
                     </div>
                   </div>
+                ) : targetParty.profile ? (
+                  <ProfileCard
+                    profile={targetParty.profile}
+                    isProfileComplete={targetParty.isProfileComplete} // <-- הוסף את השורה הזו
+                    images={targetParty.images}
+                    questionnaire={questionnaire}
+                    viewMode="candidate"
+                  />
                 ) : (
-                   targetParty.profile ? (
-<ProfileCard
-  profile={targetParty.profile}
-  isProfileComplete={targetParty.isProfileComplete} // <-- הוסף את השורה הזו
-  images={targetParty.images}
-  questionnaire={questionnaire}
-  viewMode="candidate"
-/>
-    ) : (
-      // אם הפרופיל הוא null, נציג הודעת שגיאה ידידותית
-      <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-8">
-        <AlertTriangle className="w-16 h-16 text-red-400 mb-6" />
-        <h3 className="text-2xl font-bold text-red-700">שגיאה בטעינת הפרופיל</h3>
-        <p className="text-gray-600 mt-2 max-w-md">
-          לא הצלחנו למצוא את נתוני הפרופיל המלאים עבור מועמד/ת זה. 
-          אנא פנה/י לשדכן/ית לקבלת סיוע.
-        </p>
-      </div>
-    )
+                  // אם הפרופיל הוא null, נציג הודעת שגיאה ידידותית
+                  <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-8">
+                    <AlertTriangle className="w-16 h-16 text-red-400 mb-6" />
+                    <h3 className="text-2xl font-bold text-red-700">
+                      שגיאה בטעינת הפרופיל
+                    </h3>
+                    <p className="text-gray-600 mt-2 max-w-md">
+                      לא הצלחנו למצוא את נתוני הפרופיל המלאים עבור מועמד/ת זה.
+                      אנא פנה/י לשדכן/ית לקבלת סיוע.
+                    </p>
+                  </div>
                 )}
               </TabsContent>
 
               {/* Compatibility Tab */}
-              <TabsContent value="compatibility" className="mt-0 p-2 md:p-4 bg-slate-50 min-h-full">
+              <TabsContent
+                value="compatibility"
+                className="mt-0 p-2 md:p-4 bg-slate-50 min-h-full"
+              >
                 {isAnalysisLoading ? (
                   <div className="flex flex-col items-center justify-center h-full min-h-[500px] text-center space-y-6">
                     <div className="relative">
@@ -846,8 +931,13 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                       <Loader2 className="w-12 h-12 text-cyan-600 animate-spin absolute inset-0 m-auto" />
                     </div>
                     <div className="space-y-2">
-                      <p className="text-xl font-semibold text-gray-700">ה-AI שלנו בוחן את ההתאמה...</p>
-                      <p className="text-gray-500 max-w-md">זה עשוי לקחת מספר שניות. אנו מנתחים עשרות פרמטרים להבנה מעמיקה של ההתאמה.</p>
+                      <p className="text-xl font-semibold text-gray-700">
+                        ה-AI שלנו בוחן את ההתאמה...
+                      </p>
+                      <p className="text-gray-500 max-w-md">
+                        זה עשוי לקחת מספר שניות. אנו מנתחים עשרות פרמטרים להבנה
+                        מעמיקה של ההתאמה.
+                      </p>
                     </div>
                   </div>
                 ) : analysisError ? (
@@ -855,12 +945,19 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                     <div className="p-4 rounded-full bg-red-100">
                       <AlertTriangle className="h-12 w-12 text-red-600" />
                     </div>
-                    <Alert variant="destructive" className="max-w-md border-red-200 bg-red-50">
+                    <Alert
+                      variant="destructive"
+                      className="max-w-md border-red-200 bg-red-50"
+                    >
                       <AlertTriangle className="h-5 w-5" />
-                      <UiAlertTitle className="text-red-800">אופס, משהו השתבש</UiAlertTitle>
+                      <UiAlertTitle className="text-red-800">
+                        אופס, משהו השתבש
+                      </UiAlertTitle>
                       <AlertDescription className="text-red-700">
                         <p>לא הצלחנו להשלים את ניתוח ההתאמה כרגע.</p>
-                        <p className="text-sm mt-2 opacity-90">{analysisError}</p>
+                        <p className="text-sm mt-2 opacity-90">
+                          {analysisError}
+                        </p>
                       </AlertDescription>
                     </Alert>
                     <Button
@@ -878,7 +975,10 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
               </TabsContent>
 
               {/* Enhanced Details Tab */}
-              <TabsContent value="details" className="mt-0 p-6 md:p-8 space-y-8">
+              <TabsContent
+                value="details"
+                className="mt-0 p-6 md:p-8 space-y-8"
+              >
                 {/* Suggestion Information */}
                 <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-gray-50">
                   <CardContent className="p-6">
@@ -889,36 +989,50 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-3">
                         <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
-                          <span className="font-semibold text-gray-700">סטטוס נוכחי:</span>
+                          <span className="font-semibold text-gray-700">
+                            סטטוס נוכחי:
+                          </span>
                           <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 shadow-md">
                             {suggestion.status}
                           </Badge>
                         </div>
                         {suggestion.decisionDeadline && (
                           <div className="flex justify-between items-center p-3 bg-amber-50 rounded-lg">
-                            <span className="font-semibold text-gray-700">תאריך יעד:</span>
+                            <span className="font-semibold text-gray-700">
+                              תאריך יעד:
+                            </span>
                             <span className="text-gray-600 font-medium">
-                              {new Date(suggestion.decisionDeadline).toLocaleDateString('he-IL')}
+                              {new Date(
+                                suggestion.decisionDeadline
+                              ).toLocaleDateString('he-IL')}
                             </span>
                           </div>
                         )}
                       </div>
                       <div className="space-y-3">
                         <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
-                          <span className="font-semibold text-gray-700">תאריך יצירה:</span>
+                          <span className="font-semibold text-gray-700">
+                            תאריך יצירה:
+                          </span>
                           <span className="text-gray-600 font-medium">
-                            {new Date(suggestion.createdAt).toLocaleDateString('he-IL')}
+                            {new Date(suggestion.createdAt).toLocaleDateString(
+                              'he-IL'
+                            )}
                           </span>
                         </div>
                         <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                          <span className="font-semibold text-gray-700">עדיפות:</span>
-                          <Badge 
-                            variant="outline" 
+                          <span className="font-semibold text-gray-700">
+                            עדיפות:
+                          </span>
+                          <Badge
+                            variant="outline"
                             className={cn(
-                              "border-2 font-semibold",
-                              suggestion.priority === "HIGH" ? "border-red-300 text-red-700 bg-red-50" :
-                              suggestion.priority === "MEDIUM" ? "border-amber-300 text-amber-700 bg-amber-50" :
-                              "border-green-300 text-green-700 bg-green-50"
+                              'border-2 font-semibold',
+                              suggestion.priority === 'HIGH'
+                                ? 'border-red-300 text-red-700 bg-red-50'
+                                : suggestion.priority === 'MEDIUM'
+                                  ? 'border-amber-300 text-amber-700 bg-amber-50'
+                                  : 'border-green-300 text-green-700 bg-green-50'
                             )}
                           >
                             {suggestion.priority}
@@ -928,12 +1042,12 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                     </div>
                   </CardContent>
                 </Card>
-                
+
                 {/* Process Timeline */}
                 <SuggestionTimeline statusHistory={suggestion.statusHistory} />
 
                 {/* Conversation with Matchmaker */}
-                <InquiryThreadView 
+                <InquiryThreadView
                   suggestionId={suggestion.id}
                   userId={userId}
                   showComposer={true}
@@ -941,7 +1055,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
               </TabsContent>
             </Tabs>
           </ScrollArea>
-          
+
           {/* Enhanced Action Buttons */}
           <EnhancedQuickActions
             canAct={canActOnSuggestion}
@@ -952,7 +1066,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
           />
         </DialogContent>
       </Dialog>
-      
+
       {/* Ask Matchmaker Dialog */}
       <AskMatchmakerDialog
         isOpen={showAskDialog}
@@ -967,37 +1081,53 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
         <AlertDialogContent className="border-0 shadow-2xl rounded-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-xl font-bold text-center">
-              {actionToConfirm === "approve"
-                ? "אישור הצעת השידוך"
-                : "דחיית הצעת השידוך"}
+              {actionToConfirm === 'approve'
+                ? 'אישור הצעת השידוך'
+                : 'דחיית הצעת השידוך'}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center text-gray-600 leading-relaxed">
-              {actionToConfirm === 'approve'
-                ? isFirstParty ? (
+              {actionToConfirm === 'approve' ? (
+                isFirstParty ? (
                   <>
                     אתה עומד לאשר את ההצעה.
                     <br />
-                    לאחר אישורך, ההצעה תועבר לצד השני. אם גם הוא/היא יאשרו, פרטי הקשר של שניכם יוחלפו.
+                    לאחר אישורך, ההצעה תועבר לצד השני. אם גם הוא/היא יאשרו, פרטי
+                    הקשר של שניכם יוחלפו.
                   </>
                 ) : (
                   <>
                     הצד הראשון כבר אישר את ההצעה, וזה מרגש!
                     <br />
-                    באישור שלך, פרטי הקשר שלך יישלחו לצד הראשון ופרטיו יישלחו אליך.
+                    באישור שלך, פרטי הקשר שלך יישלחו לצד הראשון ופרטיו יישלחו
+                    אליך.
                   </>
-                ) : "האם אתה בטוח שברצונך לדחות את הצעת השידוך? המשוב שלך עוזר לנו להציע התאמות טובות יותר בעתיד."
-              }
+                )
+              ) : (
+                'האם אתה בטוח שברצונך לדחות את הצעת השידוך? המשוב שלך עוזר לנו להציע התאמות טובות יותר בעתיד.'
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-3">
-            <AlertDialogCancel className="rounded-xl" disabled={isSubmitting}>ביטול</AlertDialogCancel>
+            <AlertDialogCancel className="rounded-xl" disabled={isSubmitting}>
+              ביטול
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={executeConfirmedAction}
               disabled={isSubmitting}
-              className={cn("rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300",
-                actionToConfirm === "approve" ? "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700" : "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
-              )}>
-              {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : (actionToConfirm === "approve" ? "כן, אני מאשר/ת!" : "דחיית ההצעה")}
+              className={cn(
+                'rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300',
+                actionToConfirm === 'approve'
+                  ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'
+                  : 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700'
+              )}
+            >
+              {isSubmitting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : actionToConfirm === 'approve' ? (
+                'כן, אני מאשר/ת!'
+              ) : (
+                'דחיית ההצעה'
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

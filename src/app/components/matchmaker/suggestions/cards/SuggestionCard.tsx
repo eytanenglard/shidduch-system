@@ -29,6 +29,7 @@ import {
   MapPin,
   Calendar,
   Star,
+  Sparkles,
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
@@ -37,9 +38,8 @@ import { he } from 'date-fns/locale';
 import type { MatchSuggestionStatus, Priority } from '@prisma/client';
 import type { Suggestion, ActionAdditionalData } from '@/types/suggestions';
 import { Progress } from '@/components/ui/progress';
-// --- START OF FIX ---
 import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
-// --- END OF FIX ---
+
 
 // A simple media query hook
 const useMediaQuery = (query: string) => {
@@ -249,6 +249,17 @@ const getDaysLeft = (decisionDeadline?: Date | string | null) => {
   return diffDays > 0 ? diffDays : 0;
 };
 
+// --- START OF NEW COMPONENT ---
+// Helper component for highlight pills in the new mobile card
+const HighlightPill: React.FC<{ icon: React.ElementType; text: string }> = ({ icon: Icon, text }) => (
+    <div className="flex items-center gap-2 rounded-full bg-blue-50 border border-blue-200 px-3 py-1.5 text-xs text-blue-800 font-medium">
+        <Icon className="w-4 h-4 text-blue-500" />
+        <span>{text}</span>
+    </div>
+);
+// --- END OF NEW COMPONENT ---
+
+
 const SuggestionCard: React.FC<SuggestionCardProps> = ({
   suggestion,
   onAction,
@@ -256,21 +267,25 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
   variant = "full",
 }) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
-  const [isExpanded, setIsExpanded] = useState(false);
 
   // Common data
-  const { firstParty, secondParty } = suggestion;
+  const { firstParty, secondParty, matchmaker } = suggestion;
   const statusInfo = getStatusInfo(suggestion.status);
   const priorityInfo = getPriorityInfo(suggestion.priority);
   const daysLeft = getDaysLeft(suggestion.decisionDeadline);
   const firstPartyAge = calculateAge(firstParty.profile.birthDate);
   const secondPartyAge = calculateAge(secondParty.profile.birthDate);
-
-  // --- START OF FIX ---
   const firstPartyImageUrl = firstParty.images.find((img) => img.isMain)?.url || '/placeholders/user.png';
   const secondPartyImageUrl = secondParty.images.find((img) => img.isMain)?.url || '/placeholders/user.png';
-  // --- END OF FIX ---
 
+  // --- START: Hardcoded highlights for demonstration. In a real scenario, this would be dynamically generated. ---
+  // This logic can be moved to a helper function `extractHighlights(suggestion)`
+  const highlights = [
+    { icon: Heart, text: "ערכים משפחתיים דומים" },
+    { icon: Sparkles, text: "השקפה דתית תואמת" },
+    { icon: MapPin, text: "קרבה גאוגרפית" },
+  ].slice(0, 3); // Show up to 3 highlights
+  // --- END: Hardcoded highlights ---
 
   // ######################################################################
   // #                        MOBILE - KANBAN VIEW                        #
@@ -294,7 +309,6 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
             </h4>
             <div className="flex items-center gap-2">
               <div className="flex -space-x-2">
-                {/* --- START OF FIX --- */}
                 <Image
                   src={getRelativeCloudinaryPath(firstPartyImageUrl)}
                   alt={firstParty.firstName}
@@ -309,7 +323,6 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
                   height={24}
                   className="rounded-full border-2 border-white"
                 />
-                {/* --- END OF FIX --- */}
               </div>
               <p className="text-xs text-gray-500">
                 {firstPartyAge}, {secondPartyAge}
@@ -325,127 +338,109 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
   }
 
   // ######################################################################
-  // #                      MOBILE - SMART LIST VIEW                      #
+  // #               NEW MOBILE - "STORY CARD" LIST VIEW                  #
   // ######################################################################
   if (isMobile && variant === "full") {
-    const StatusIcon = statusInfo.icon;
-    const isWaitingForResponse = suggestion.status.includes("PENDING");
-
     return (
-      <Card className={cn("overflow-hidden shadow-sm", className)}>
-        {/* Progress Bar and Status */}
-        <div className={cn("p-3", statusInfo.bgColor)}>
-          <div className="flex justify-between items-center mb-1.5">
-            <div className="flex items-center gap-2">
-              <StatusIcon className={cn("w-5 h-5", statusInfo.color)} />
-              <span className="font-medium text-sm">{statusInfo.label}</span>
-            </div>
-            {daysLeft !== null && daysLeft <= 3 && (
-              <Badge variant="destructive" className="text-xs">
-                <Clock className="w-3 h-3 ml-1" />
-                {daysLeft === 0 ? "היום אחרון!" : `${daysLeft} ימים`}
-              </Badge>
-            )}
-          </div>
-          <Progress value={statusInfo.progress} className="h-1" />
-        </div>
+        <Card className={cn("overflow-hidden shadow-sm border border-gray-200/80 bg-white", className)}>
+            <CardContent className="p-4 space-y-5">
+                {/* Header */}
+                <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-bold text-gray-800">הצעה חדשה עבורך</h3>
+                    <Badge className={cn("text-xs", statusInfo.className)}>{statusInfo.label}</Badge>
+                </div>
 
-        <CardContent className="p-4 space-y-4">
-          {/* Parties Info */}
-          <div className="flex items-center gap-4">
-            <div className="flex-1 text-center space-y-1">
-              {/* --- START OF FIX --- */}
-              <Image
-                src={getRelativeCloudinaryPath(firstPartyImageUrl)}
-                alt={firstParty.firstName}
-                width={64}
-                height={64}
-                className="rounded-full mx-auto border-2 border-blue-200"
-              />
-              {/* --- END OF FIX --- */}
-              <h4 className="font-bold">{firstParty.firstName}</h4>
-              <p className="text-xs text-gray-600">
-                {firstPartyAge}, {firstParty.profile.city}
-              </p>
-            </div>
-            <Heart className="w-6 h-6 text-pink-400 flex-shrink-0" />
-            <div className="flex-1 text-center space-y-1">
-              {/* --- START OF FIX --- */}
-              <Image
-                src={getRelativeCloudinaryPath(secondPartyImageUrl)}
-                alt={secondParty.firstName}
-                width={64}
-                height={64}
-                className="rounded-full mx-auto border-2 border-purple-200"
-              />
-              {/* --- END OF FIX --- */}
-              <h4 className="font-bold">{secondParty.firstName}</h4>
-              <p className="text-xs text-gray-600">
-                {secondPartyAge}, {secondParty.profile.city}
-              </p>
-            </div>
-          </div>
-
-          {/* Collapsible Matching Reason */}
-          {suggestion.matchingReason && (
-            <div className="bg-gray-50 p-3 rounded-lg border">
-              <p className={cn("text-sm text-gray-700", !isExpanded && "line-clamp-2")}>
+             {/* Matchmaker's Touch */}
+{matchmaker && (
+    <div className="text-center bg-slate-50 border border-slate-200 rounded-lg p-3">
+        <p className="text-sm text-gray-700">
+            השדכן/ית <span className="font-semibold text-blue-600">{matchmaker.firstName} {matchmaker.lastName}</span> חשב/ה שעשויה להיות פה התאמה מיוחדת.
+        </p>
+        {suggestion.matchingReason && (
+            <p className="text-xs text-gray-500 mt-1 italic line-clamp-2">
                 {suggestion.matchingReason}
-              </p>
-              <button
-                onClick={() => setIsExpanded(!isExpanded)}
-                className="text-xs text-blue-600 font-semibold mt-1 flex items-center"
-              >
-                {isExpanded ? "הצג פחות" : "הצג יותר"}
-                {isExpanded ? <ChevronUp className="w-4 h-4 mr-1" /> : <ChevronDown className="w-4 h-4 mr-1" />}
-              </button>
-            </div>
-          )}
+            </p>
+        )}
+    </div>
+)}
 
-          {/* Thumb-friendly Action Bar */}
-          <div className="flex items-center justify-between pt-3 border-t">
-            <span className="text-xs text-gray-500">
-              {formatDistanceToNow(new Date(suggestion.createdAt), { addSuffix: true, locale: he })}
-            </span>
-            <div className="flex items-center gap-2">
-              {isWaitingForResponse && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => onAction("reminder", suggestion, { partyType: suggestion.status === 'PENDING_FIRST_PARTY' ? 'first' : 'second' })}
-                >
-                  <Send className="w-4 h-4" />
-                </Button>
-              )}
-              <Button size="sm" onClick={() => onAction("view", suggestion)}>
-                <Eye className="w-4 h-4 ml-1" />
-                פרטים
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button size="sm" variant="ghost" className="px-1">
-                    <MoreHorizontal className="w-5 h-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => onAction("edit", suggestion)}>
-                    <Edit className="w-4 h-4 ml-2" />
-                    <span>ערוך הצעה</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onAction("message", suggestion)}>
-                    <MessageCircle className="w-4 h-4 ml-2" />
-                    <span>שלח הודעה</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onAction("delete", suggestion)} className="text-red-600">
-                    <Trash2 className="w-4 h-4 ml-2" />
-                    <span>מחק הצעה</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+                {/* Connection Highlights */}
+                <div>
+                    <h4 className="font-semibold text-sm mb-3 text-center text-gray-600">נקודות חיבור מרכזיות</h4>
+                    <div className="flex flex-wrap justify-center gap-2">
+                        {highlights.map((highlight, index) => (
+                           <HighlightPill key={index} icon={highlight.icon} text={highlight.text} />
+                        ))}
+                    </div>
+                </div>
+
+                {/* The People */}
+                <div className="space-y-4">
+                    {/* First Party */}
+                    <div className="flex items-center gap-4">
+                        <Image
+                          src={getRelativeCloudinaryPath(firstPartyImageUrl)}
+                          alt={firstParty.firstName}
+                          width={60}
+                          height={60}
+                          className="rounded-full border-2 border-white shadow-md"
+                        />
+                        <div className="flex-1">
+                            <h5 className="font-bold">{firstParty.firstName}, {firstPartyAge}</h5>
+                            <p className="text-sm text-gray-500">{firstParty.profile.city}</p>
+                        </div>
+                    </div>
+                    {/* Second Party */}
+                     <div className="flex items-center gap-4">
+                        <Image
+                          src={getRelativeCloudinaryPath(secondPartyImageUrl)}
+                          alt={secondParty.firstName}
+                          width={60}
+                          height={60}
+                          className="rounded-full border-2 border-white shadow-md"
+                        />
+                        <div className="flex-1">
+                            <h5 className="font-bold">{secondParty.firstName}, {secondPartyAge}</h5>
+                            <p className="text-sm text-gray-500">{secondParty.profile.city}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Actions */}
+                <div className="pt-4 border-t border-gray-100 space-y-3">
+                    <Button size="lg" className="w-full bg-blue-600 hover:bg-blue-700" onClick={() => onAction("view", suggestion)}>
+                        <Eye className="w-4 h-4 ml-2" />
+                        לפרטים המלאים ולסיפור המלא
+                    </Button>
+                    <div className="flex justify-between items-center">
+                        <span className="text-xs text-gray-500">
+                           נשלח {formatDistanceToNow(new Date(suggestion.createdAt), { addSuffix: true, locale: he })}
+                        </span>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button size="sm" variant="ghost" className="text-gray-500">
+                                    <MoreHorizontal className="w-5 h-5" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => onAction("edit", suggestion)}>
+                                    <Edit className="w-4 h-4 ml-2" />
+                                    <span>ערוך הצעה</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => onAction("message", suggestion)}>
+                                    <MessageCircle className="w-4 h-4 ml-2" />
+                                    <span>שלח הודעה</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => onAction("delete", suggestion)} className="text-red-600">
+                                    <Trash2 className="w-4 h-4 ml-2" />
+                                    <span>מחק הצעה</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
     );
   }
 
@@ -455,9 +450,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
   const StatusIcon = statusInfo.icon;
   const PriorityIcon = priorityInfo.icon;
   const canBeResent = ["EXPIRED", "FIRST_PARTY_DECLINED", "SECOND_PARTY_DECLINED"].includes(suggestion.status);
-  const isWaitingForResponse = suggestion.status === "PENDING_FIRST_PARTY" || suggestion.status === "PENDING_SECOND_PARTY";
-  const needsFeedback = suggestion.status === "AWAITING_FIRST_DATE_FEEDBACK";
-
+  
   return (
     <Card className={cn("overflow-hidden hover:shadow-md transition-shadow", className)}>
       {/* Header with status and progress */}
@@ -493,9 +486,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
             </div>
             <div className="flex gap-3">
               <div className="relative h-16 w-16 rounded-full overflow-hidden bg-gray-100 border">
-                {/* --- START OF FIX --- */}
                 <Image src={getRelativeCloudinaryPath(firstPartyImageUrl)} alt={firstParty.firstName} className="object-cover" fill sizes="4rem" />
-                {/* --- END OF FIX --- */}
               </div>
               <div>
                 <h4 className="font-semibold">{firstParty.firstName} {firstParty.lastName}</h4>
@@ -514,9 +505,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
             </div>
             <div className="flex gap-3">
               <div className="relative h-16 w-16 rounded-full overflow-hidden bg-gray-100 border">
-                 {/* --- START OF FIX --- */}
                 <Image src={getRelativeCloudinaryPath(secondPartyImageUrl)} alt={secondParty.firstName} className="object-cover" fill sizes="4rem" />
-                 {/* --- END OF FIX --- */}
               </div>
               <div>
                 <h4 className="font-semibold">{secondParty.firstName} {secondParty.lastName}</h4>

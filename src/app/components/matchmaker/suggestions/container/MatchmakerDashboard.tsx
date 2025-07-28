@@ -475,7 +475,7 @@ const handleUpdateSuggestion = async (data: {
         </ScrollArea>
       ) : (
         <ScrollArea className="flex-1">
-          <div className="p-4 space-y-4">
+            <div className="p-2 sm:p-4 space-y-4"> 
             {filteredSuggestions.map(s => <SuggestionCard key={s.id} suggestion={s} onAction={handleSuggestionAction} variant="full" />)}
             {filteredSuggestions.length === 0 && <div className="text-center p-10 text-gray-500">לא נמצאו הצעות תואמות.</div>}
           </div>
