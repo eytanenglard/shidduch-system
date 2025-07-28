@@ -20,16 +20,9 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
   const [isSticky, setIsSticky] = useState(false);
   const [activeSection, setActiveSection] = useState('');
   const sectionRefs = useRef<(HTMLElement | null)[]>([]);
-
-  // ======================= FIX #1: SIMPLIFIED STATE FOR MOBILE NAV =======================
-  // We only need two states: 'open' or 'closed'.
-  // The nav starts as 'open' by default when it appears.
-  // The scroll direction no longer affects its state.
   const [mobileNavState, setMobileNavState] = useState<'open' | 'closed'>(
     'open'
   );
-  // =====================================================================================
-
   const [isMobile, setIsMobile] = useState(false);
   const lastScrollY = useRef(0);
 
@@ -46,7 +39,6 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
       const currentScrollY = window.scrollY;
       setIsSticky(currentScrollY > 10);
 
-      // We keep scroll detection for active section highlighting, but remove its effect on nav visibility.
       lastScrollY.current = currentScrollY;
 
       let currentSection = '';
@@ -77,19 +69,15 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleResize);
     };
-    // The dependency array is simplified as mobileNavState is now independent of scroll.
   }, [navLinks, isMobile]);
 
+  // ======================= THE FIX =======================
+  // The line that sets the mobile nav state to 'closed' is now removed.
   const handleLinkClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
     href: string
   ) => {
     e.preventDefault();
-    // When a link is clicked on mobile, we can optionally close the nav.
-    // Here we choose to close it for a better UX.
-    if (isMobile) {
-      setMobileNavState('closed');
-    }
     const element = document.querySelector(href);
     if (element) {
       const headerOffset = isMobile ? 80 : 160;
@@ -99,11 +87,9 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
       window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
     }
   };
+  // =======================================================
 
-  // ======================= FIX #2: SIMPLIFIED VISIBILITY LOGIC =======================
-  // The nav's visibility on mobile now depends ONLY on its state.
   const isNavOpen = mobileNavState === 'open';
-  // =====================================================================================
 
   const navVariants = {
     hidden: { y: '-120%', opacity: 0 },
@@ -117,16 +103,13 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
           <motion.header
             variants={navVariants}
             initial="hidden"
-            // The animation now correctly uses the simplified 'isNavOpen' state
             animate={isMobile ? (isNavOpen ? 'visible' : 'hidden') : 'visible'}
             exit="hidden"
             transition={{ duration: 0.3, ease: 'easeOut' }}
-            // FIX #3: The existing position fix 'top-20' is preserved and works with the new logic.
             className="fixed top-20 md:top-0 left-0 right-0 z-40 w-full h-16 md:h-20"
           >
             <div className="absolute inset-0 bg-white/80 backdrop-blur-lg shadow-sm border-b border-gray-200/80"></div>
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
-              {/* Desktop Elements */}
               <Link
                 href="/"
                 className="hidden md:flex items-center gap-x-2 group shrink-0"
@@ -165,7 +148,6 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
                 ))}
               </nav>
 
-              {/* Mobile Layout */}
               <div className="flex md:hidden items-center justify-between w-full">
                 <nav className="flex-grow overflow-x-auto scrollbar-hide">
                   <div className="flex items-center gap-2 px-1">
@@ -191,7 +173,6 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
                     variant="ghost"
                     size="icon"
                     className="rounded-full text-gray-500 hover:bg-gray-200"
-                    // The 'X' button explicitly sets the state to 'closed'
                     onClick={() => setMobileNavState('closed')}
                     aria-label="סגור ניווט"
                   >
@@ -200,7 +181,6 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
                 </div>
               </div>
 
-              {/* Desktop CTA */}
               <div className="hidden md:flex items-center gap-2">
                 <Link href="/auth/register">
                   <Button className="group relative overflow-hidden bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 px-5">
@@ -217,9 +197,7 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
         )}
       </AnimatePresence>
 
-      {/* Floating Toggle Button */}
       <AnimatePresence>
-        {/* The icon now appears only when the nav is sticky and explicitly closed */}
         {isMobile && isSticky && !isNavOpen && (
           <motion.div
             initial={{ scale: 0, opacity: 0, y: 50 }}
@@ -231,7 +209,6 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
             <Button
               size="icon"
               className="rounded-full h-14 w-14 bg-white/80 backdrop-blur-md border border-gray-200/80 shadow-lg hover:bg-gray-100"
-              // The Menu button explicitly sets the state to 'open'
               onClick={() => setMobileNavState('open')}
               aria-label="פתח ניווט"
             >

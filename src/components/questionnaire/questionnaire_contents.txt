@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\questionnaire
-# Generated on: 2025-07-27 21:26:03
+# Generated on: 2025-07-28 14:59:13
 ################################################################################
 
 ================================================================================
@@ -3101,50 +3101,44 @@ Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\quest
 File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\questionnaire\components\AccessibilityFeatures.tsx
 --------------------------------------------------------------------------------
 Content:
-// src/components/questionnaire/components/AccessibilityFeatures.tsx
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardFooter,
-} from '@/components/ui/card';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import {
   Accessibility,
   Plus,
   Minus,
-  Moon,
-  Sun,
+  MoonStar,
+  SunMedium,
   Type,
   MousePointer,
   Hand,
   Contrast,
   Speech,
   X,
-  Undo2,
+  Settings,
+  Volume2,
+  VolumeX,
+  Palette,
+  Eye,
+  RefreshCw,
+  Check,
+  Sparkles,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Separator } from '@/components/ui/separator';
 
-// --- Default Settings ---
-const DEFAULT_SETTINGS = {
-  fontScale: 1,
-  contrastMode: 'normal' as 'normal' | 'high' | 'dark',
-  reducedMotion: false,
-  readableFont: false,
-  bigCursor: false,
-};
-
-type AccessibilitySettings = typeof DEFAULT_SETTINGS;
+// FIX: Teach TypeScript about the non-standard webkitAudioContext
+declare global {
+  interface Window {
+    webkitAudioContext: typeof AudioContext;
+  }
+}
 
 interface AccessibilityFeaturesProps {
   className?: string;
@@ -3152,346 +3146,360 @@ interface AccessibilityFeaturesProps {
   onPanelOpenChange?: (isOpen: boolean) => void;
 }
 
+interface AccessibilitySettings {
+  fontScale: number;
+  contrastMode: 'normal' | 'high' | 'dark';
+  reducedMotion: boolean;
+  readableMode: boolean;
+  bigCursor: boolean;
+  textReader: boolean;
+  soundEnabled: boolean;
+}
+
+const defaultSettings: AccessibilitySettings = {
+  fontScale: 1,
+  contrastMode: 'normal',
+  reducedMotion: false,
+  readableMode: false,
+  bigCursor: false,
+  textReader: false,
+  soundEnabled: true,
+};
+
 export default function AccessibilityFeatures({
   className,
   isPanelOpen,
   onPanelOpenChange,
 }: AccessibilityFeaturesProps) {
-  // --- State Management ---
   const [settings, setSettings] =
-    useState<AccessibilitySettings>(DEFAULT_SETTINGS);
-  const [textReader, setTextReader] = useState(false);
+    useState<AccessibilitySettings>(defaultSettings);
   const [internalShowPanel, setInternalShowPanel] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [showToast, setShowToast] = useState<{
+    message: string;
+    type: 'success' | 'info';
+    visible: boolean;
+  }>({ message: '', type: 'info', visible: false });
 
-  const showPanel = isPanelOpen !== undefined ? isPanelOpen : internalShowPanel;
-  const setShowPanel = onPanelOpenChange || setInternalShowPanel;
+  const panelRef = useRef<HTMLDivElement>(null);
+  const toastTimeoutRef = useRef<NodeJS.Timeout>();
 
-  // --- Load & Save Settings ---
+  const showAccessibilityPanel =
+    isPanelOpen !== undefined ? isPanelOpen : internalShowPanel;
+  const setShowAccessibilityPanel = onPanelOpenChange || setInternalShowPanel;
+
   useEffect(() => {
-    try {
-      const savedSettings = localStorage.getItem('accessibilitySettings');
-      if (savedSettings) {
-        setSettings(JSON.parse(savedSettings));
+    const savedSettings = localStorage.getItem('accessibilitySettings');
+    if (savedSettings) {
+      try {
+        const parsed = JSON.parse(savedSettings);
+        setSettings({ ...defaultSettings, ...parsed });
+      } catch (error) {
+        console.error('Error loading accessibility settings:', error);
       }
-    } catch (error) {
-      console.error('Failed to load accessibility settings:', error);
     }
   }, []);
 
   useEffect(() => {
+    const htmlElement = document.documentElement;
+    htmlElement.style.fontSize = `${settings.fontScale * 100}%`;
+    htmlElement.classList.toggle(
+      'high-contrast',
+      settings.contrastMode === 'high'
+    );
+    htmlElement.classList.toggle('dark-mode', settings.contrastMode === 'dark');
+    htmlElement.classList.toggle('reduce-motion', settings.reducedMotion);
+    htmlElement.classList.toggle('readable-font', settings.readableMode);
+    htmlElement.classList.toggle('big-cursor', settings.bigCursor);
+    updateAccessibilityStyles();
     localStorage.setItem('accessibilitySettings', JSON.stringify(settings));
-    const html = document.documentElement;
-    html.dataset.contrastMode = settings.contrastMode;
-    html.dataset.reducedMotion = String(settings.reducedMotion);
-    html.dataset.readableFont = String(settings.readableFont);
-    html.dataset.bigCursor = String(settings.bigCursor);
-    html.style.fontSize = `${settings.fontScale * 100}%`;
   }, [settings]);
 
-  // --- Functions ---
-  const updateSetting = useCallback(
-    <K extends keyof AccessibilitySettings>(
-      key: K,
-      value: AccessibilitySettings[K]
-    ) => {
-      setSettings((prev) => ({ ...prev, [key]: value }));
-    },
-    []
-  );
-
-  const readSelectedText = useCallback((e: MouseEvent) => {
-    const element = e.target as HTMLElement;
-    if (element?.textContent && window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(
-        element.textContent.trim()
-      );
-      utterance.lang = 'he-IL';
-      window.speechSynthesis.speak(utterance);
+  const updateAccessibilityStyles = () => {
+    const styleElement =
+      document.getElementById('accessibility-styles') ||
+      document.createElement('style');
+    styleElement.id = 'accessibility-styles';
+    styleElement.textContent = `
+      .high-contrast { filter: contrast(1.5) brightness(1.1); }
+      .dark-mode { filter: invert(1) hue-rotate(180deg); background: #1a1a1a !important; }
+      .reduce-motion * { animation-duration: 0.001s !important; transition-duration: 0.001s !important; }
+      .readable-font * { font-family: 'Arial', 'Helvetica', sans-serif !important; letter-spacing: 0.05em !important; word-spacing: 0.1em !important; line-height: 1.6 !important; }
+      .big-cursor, .big-cursor * { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 16 16"><circle fill="%23000" stroke="%23fff" stroke-width="2" cx="8" cy="8" r="6"/></svg>') 16 16, auto !important; }
+      .accessibility-panel-enter { opacity: 0; transform: scale(0.95) translateY(10px); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+      .accessibility-panel-enter-active { opacity: 1; transform: scale(1) translateY(0); }
+      .accessibility-panel-exit { opacity: 1; transform: scale(1) translateY(0); transition: all 0.2s ease-in; }
+      .accessibility-panel-exit-active { opacity: 0; transform: scale(0.95) translateY(10px); }
+      .accessibility-button { transition: all 0.3s ease; }
+      .accessibility-button:hover { transform: scale(1.05); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15); }
+      .accessibility-button:active { transform: scale(0.95); }
+      .toast-enter { opacity: 0; transform: translateY(20px) scale(0.9); transition: all 0.3s ease; }
+      .toast-enter-active { opacity: 1; transform: translateY(0) scale(1); }
+      .toast-exit { opacity: 1; transform: translateY(0) scale(1); transition: all 0.2s ease; }
+      .toast-exit-active { opacity: 0; transform: translateY(20px) scale(0.9); }
+      .pulse-animation { animation: pulse 2s infinite; }
+      @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.1); } }
+      .setting-card { transition: all 0.2s ease; border-radius: 8px; }
+      .setting-card:hover { background-color: rgba(59, 130, 246, 0.05); transform: translateX(-2px); }
+    `;
+    if (!document.getElementById('accessibility-styles')) {
+      document.head.appendChild(styleElement);
     }
-  }, []);
+  };
 
-  const toggleTextReader = useCallback(
-    (isActive: boolean) => {
-      setTextReader(isActive);
-      if (isActive) {
-        document.addEventListener('click', readSelectedText);
-      } else {
-        document.removeEventListener('click', readSelectedText);
-        window.speechSynthesis.cancel();
+  const updateSetting = <K extends keyof AccessibilitySettings>(
+    key: K,
+    value: AccessibilitySettings[K]
+  ) => {
+    setSettings((prev) => ({ ...prev, [key]: value }));
+    setHasChanges(true);
+    if (settings.soundEnabled) playClickSound();
+    showSuccessToast(`הגדרת ${getSettingName(key)} עודכנה`);
+  };
+
+  const getSettingName = (key: keyof AccessibilitySettings): string => {
+    const names = {
+      fontScale: 'גודל הטקסט',
+      contrastMode: 'מצב התצוגה',
+      reducedMotion: 'הפחתת אנימציות',
+      readableMode: 'פונט קריא',
+      bigCursor: 'סמן גדול',
+      textReader: 'הקראת תוכן',
+      soundEnabled: 'צלילים',
+    };
+    return names[key] || key;
+  };
+
+  const showSuccessToast = (message: string) => {
+    setShowToast({ message, type: 'success', visible: true });
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    toastTimeoutRef.current = setTimeout(() => {
+      setShowToast((prev) => ({ ...prev, visible: false }));
+    }, 2500);
+  };
+
+  const playClickSound = () => {
+    try {
+      // Get the correct AudioContext class, depending on the browser
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) {
+        console.warn('Browser does not support AudioContext.');
+        return;
       }
-    },
-    [readSelectedText]
-  );
+      const audioContext = new AudioContext();
 
-  const resetSettings = useCallback(() => {
-    setSettings(DEFAULT_SETTINGS);
-    toggleTextReader(false);
-  }, [toggleTextReader]);
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.1);
+    } catch (error) {
+      console.log('Could not play sound:', error);
+    }
+  };
 
-  // --- Configuration for Tools ---
-  const accessibilityTools = useMemo(
-    () => [
-      {
-        id: 'text-reader',
-        label: 'הקראת תוכן',
-        icon: Speech,
-        component: (
-          <Switch checked={textReader} onCheckedChange={toggleTextReader} />
-        ),
-      },
-      {
-        id: 'big-cursor',
-        label: 'סמן גדול',
-        icon: MousePointer,
-        component: (
-          <Switch
-            checked={settings.bigCursor}
-            onCheckedChange={(v) => updateSetting('bigCursor', v)}
-          />
-        ),
-      },
-      {
-        id: 'readable-font',
-        label: 'פונט קריא',
-        icon: Type,
-        component: (
-          <Switch
-            checked={settings.readableFont}
-            onCheckedChange={(v) => updateSetting('readableFont', v)}
-          />
-        ),
-      },
-      {
-        id: 'reduce-motion',
-        label: 'הפחתת אנימציות',
-        icon: Hand,
-        component: (
-          <Switch
-            checked={settings.reducedMotion}
-            onCheckedChange={(v) => updateSetting('reducedMotion', v)}
-          />
-        ),
-      },
-    ],
-    [settings, textReader, toggleTextReader, updateSetting]
-  );
+  const resetSettings = () => {
+    setSettings(defaultSettings);
+    setHasChanges(false);
+    showSuccessToast('כל ההגדרות אופסו');
+    if (settings.soundEnabled) playClickSound();
+  };
+
+  const toggleTextReader = () => {
+    const willBeActive = !settings.textReader;
+    updateSetting('textReader', willBeActive);
+    if (willBeActive) {
+      document.addEventListener('click', readSelectedText);
+      showSuccessToast('הקראת תוכן הופעלה - לחץ על טקסט כדי להקריא');
+    } else {
+      document.removeEventListener('click', readSelectedText);
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+    }
+  };
+
+  const readSelectedText = (e: MouseEvent) => {
+    const element = e.target as HTMLElement;
+    if (element && element.textContent && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const text = element.textContent.trim();
+      if (text && text.length > 0) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'he-IL';
+        utterance.rate = 0.9;
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (panelRef.current && !panelRef.current.contains(event.target as Node)) {
+        const target = event.target as HTMLElement;
+        if (!target.closest('[data-accessibility-trigger]')) {
+          setShowAccessibilityPanel(false);
+        }
+      }
+    };
+    if (showAccessibilityPanel) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showAccessibilityPanel, setShowAccessibilityPanel]);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    };
+  }, []);
+  
+  const contrastOptions: {
+    value: AccessibilitySettings['contrastMode'];
+    label: string;
+    icon: React.ElementType;
+    desc: string;
+  }[] = [
+    { value: 'normal', label: 'רגיל', icon: SunMedium, desc: 'מצב רגיל' },
+    { value: 'high', label: 'ניגודיות', icon: Contrast, desc: 'ניגודיות גבוהה' },
+    { value: 'dark', label: 'חשוך', icon: MoonStar, desc: 'מצב לילה' },
+  ];
+
+  const advancedOptions = [
+    { key: 'soundEnabled' as const, label: 'צלילי משוב', icon: settings.soundEnabled ? Volume2 : VolumeX, description: 'השמע צלילים קצרים על פעולות ושינויים' },
+    { key: 'textReader' as const, label: 'הקראת תוכן', icon: Speech, description: 'לחץ על כל טקסט באתר כדי להקריא אותו בקול' },
+    { key: 'bigCursor' as const, label: 'סמן עכבר גדול', icon: MousePointer, description: 'סמן עכבר מוגדל ובולט יותר' },
+    { key: 'readableMode' as const, label: 'פונט קריא', icon: Eye, description: 'פונט ברור עם ריווח מוגדל בין האותיות' },
+    { key: 'reducedMotion' as const, label: 'הפחתת אנימציות', icon: Hand, description: 'מפחית תנועות ואנימציות ברחבי האתר' },
+  ];
 
   return (
     <>
-      <style jsx global>{`
-        /* Injected global styles for accessibility */
-        :root {
-          --font-scale: 1;
-        }
-        html[data-contrast-mode='high'] {
-          filter: contrast(1.75);
-        }
-        html[data-contrast-mode='dark'] {
-          filter: invert(1) hue-rotate(180deg);
-        }
-        html[data-contrast-mode='dark'] img,
-        html[data-contrast-mode='dark'] video {
-          filter: invert(1) hue-rotate(180deg);
-        }
-        html[data-reduced-motion='true'] * {
-          animation-duration: 0.01ms !important;
-          animation-iteration-count: 1 !important;
-          transition-duration: 0.01ms !important;
-          scroll-behavior: auto !important;
-        }
-        html[data-readable-font='true'] body {
-          font-family: 'Arial', sans-serif !important;
-          letter-spacing: 0.05em !important;
-          word-spacing: 0.1em !important;
-        }
-        html[data-big-cursor='true'] *,
-        html[data-big-cursor='true'] button,
-        html[data-big-cursor='true'] a {
-          cursor:
-            url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 16 16"><path fill="black" stroke="white" stroke-width="1.5" d="M8.293 1.293a1 1 0 0 0-1.414 0L.293 7.879a1 1 0 0 0 0 1.414l6.586 6.586a1 1 0 0 0 1.414-1.414L2.414 9H15a1 1 0 0 0 0-2H2.414l5.879-5.293a1 1 0 0 0 0-1.414Z" transform="rotate(-45 8 8)"/></svg>')
-              0 0,
-            auto !important;
-        }
-      `}</style>
-
-      {/* ======================= START OF CHANGE ======================= */}
-      <Button
-        variant="outline"
-        size="icon"
-        className={cn(
-          'fixed z-[201] bottom-4 right-4 h-14 w-14 rounded-full shadow-lg bg-background',
-          'border-2 border-slate-400/50 hover:border-slate-500 transition-colors',
-          className
-        )}
-        onClick={() => setShowPanel(!showPanel)}
-        aria-label="פתח תפריט נגישות"
-      >
-        <AnimatePresence initial={false} mode="wait">
-          <motion.div
-            key={showPanel ? 'close' : 'open'}
-            initial={{ rotate: -45, opacity: 0, scale: 0.5 }}
-            animate={{ rotate: 0, opacity: 1, scale: 1 }}
-            exit={{ rotate: 45, opacity: 0, scale: 0.5 }}
-            transition={{ duration: 0.2 }}
-          >
-            {showPanel ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Accessibility className="h-6 w-6" />
+      <div className="fixed z-50 bottom-4 right-4">
+        <Button
+          data-accessibility-trigger
+          variant={showAccessibilityPanel ? 'default' : 'outline'}
+          size="icon"
+          className={cn(
+            'accessibility-button rounded-full shadow-lg transition-all duration-300',
+            'hover:shadow-xl bg-white border-2',
+            showAccessibilityPanel
+              ? 'bg-blue-600 border-blue-600 text-white shadow-blue-200'
+              : 'border-blue-200 hover:border-blue-400 hover:bg-blue-50',
+            hasChanges && 'ring-2 ring-blue-400 ring-opacity-50 ring-offset-2',
+            className
+          )}
+          onClick={() => setShowAccessibilityPanel(!showAccessibilityPanel)}
+          title={showAccessibilityPanel ? 'סגור הגדרות נגישות' : 'פתח הגדרות נגישות'}
+        >
+          <div className="relative">
+            {showAccessibilityPanel ? <X className="h-5 w-5" /> : <Accessibility className="h-5 w-5" />}
+            {hasChanges && !showAccessibilityPanel && (
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-600 rounded-full pulse-animation" />
             )}
-          </motion.div>
-        </AnimatePresence>
-      </Button>
-      {/* ======================== END OF CHANGE ======================== */}
+          </div>
+        </Button>
+      </div>
 
-      <AnimatePresence>
-        {showPanel && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/40 z-[200] backdrop-blur-sm"
-              onClick={() => setShowPanel(false)}
-            />
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              transition={{ duration: 0.3, ease: 'easeInOut' }}
-              className="fixed z-[201] bottom-24 right-4 max-w-sm w-[calc(100vw-2rem)]"
-              aria-modal="true"
-              role="dialog"
-            >
-              <Card className="shadow-2xl border-slate-300">
-                <CardHeader className="flex flex-row items-center justify-between pb-4">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Accessibility className="h-5 w-5 text-blue-600" />
-                    תפריט נגישות ותצוגה
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* --- Text Size Section --- */}
-                  <div className="space-y-3">
-                    <Label className="font-medium flex items-center gap-1.5">
-                      <Type className="w-4 h-4" /> הגדלת טקסט
-                    </Label>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() =>
-                          updateSetting(
-                            'fontScale',
-                            Math.max(0.8, settings.fontScale - 0.1)
-                          )
-                        }
-                      >
-                        <Minus className="h-4 w-4" />
-                      </Button>
-                      <Slider
-                        value={[settings.fontScale]}
-                        min={0.8}
-                        max={1.5}
-                        step={0.1}
-                        onValueChange={([val]) =>
-                          updateSetting('fontScale', val)
-                        }
-                        className="flex-1"
-                      />
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() =>
-                          updateSetting(
-                            'fontScale',
-                            Math.min(1.5, settings.fontScale + 0.1)
-                          )
-                        }
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
+      {showAccessibilityPanel && (
+        <div
+          ref={panelRef}
+          className={cn('fixed z-40 bottom-20 right-4 max-w-sm w-[340px]', 'accessibility-panel-enter accessibility-panel-enter-active')}
+        >
+          <Card className="shadow-2xl border-2 border-blue-100 bg-white">
+            <CardHeader className="pb-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg flex items-center gap-2 text-slate-800">
+                  <div className="p-1.5 bg-blue-100 rounded-lg"><Settings className="h-4 w-4 text-blue-600" /></div>
+                  הגדרות נגישות
+                  {hasChanges && (
+                    <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700 border-blue-200">
+                      <Sparkles className="h-3 w-3 mr-1" />שונה
+                    </Badge>
+                  )}
+                </CardTitle>
+              </div>
+              <p className="text-xs text-slate-600 mt-1">התאם את האתר לצרכיך האישיים</p>
+            </CardHeader>
+
+            <CardContent className="space-y-6 pt-5 max-h-[65vh] overflow-y-auto">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <Label className="text-sm font-medium flex items-center gap-2"><Type className="h-4 w-4 text-blue-500" />גודל טקסט</Label>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" className="h-8 w-8 p-0 hover:bg-blue-50 border-blue-200" onClick={() => updateSetting('fontScale', Math.max(0.8, settings.fontScale - 0.1))} disabled={settings.fontScale <= 0.8}><Minus className="h-3 w-3" /></Button>
+                    <Badge variant="outline" className="min-w-[55px] text-center font-mono bg-blue-50 border-blue-200">{Math.round(settings.fontScale * 100)}%</Badge>
+                    <Button variant="outline" size="sm" className="h-8 w-8 p-0 hover:bg-blue-50 border-blue-200" onClick={() => updateSetting('fontScale', Math.min(1.6, settings.fontScale + 0.1))} disabled={settings.fontScale >= 1.6}><Plus className="h-3 w-3" /></Button>
                   </div>
+                </div>
+                <Slider value={[settings.fontScale * 100]} min={80} max={160} step={5} onValueChange={(value) => updateSetting('fontScale', value[0] / 100)} className="py-2" />
+                <p className="text-xs text-slate-500">הגדל או הקטן את גודל הטקסט בכל האתר</p>
+              </div>
 
-                  <Separator />
-
-                  {/* --- Display Mode Section --- */}
-                  <div className="space-y-3">
-                    <Label className="font-medium flex items-center gap-1.5">
-                      <Sun className="w-4 h-4" /> מצב תצוגה
-                    </Label>
-                    <ToggleGroup
-                      type="single"
-                      value={settings.contrastMode}
-                      onValueChange={(
-                        value: AccessibilitySettings['contrastMode']
-                      ) => value && updateSetting('contrastMode', value)}
-                      className="grid grid-cols-3 gap-2"
+              <div className="space-y-4">
+                <Label className="text-sm font-medium flex items-center gap-2"><Palette className="h-4 w-4 text-blue-500" />מצב תצוגה ונגישות</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {contrastOptions.map(({ value, label, icon: Icon, desc }) => (
+                    <Button
+                      key={value}
+                      variant={settings.contrastMode === value ? 'default' : 'outline'}
+                      size="sm"
+                      className={cn('h-14 flex flex-col gap-1 text-xs transition-all relative', settings.contrastMode === value ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'hover:bg-blue-50 border-blue-200')}
+                      onClick={() => updateSetting('contrastMode', value)}
+                      title={desc}
                     >
-                      <ToggleGroupItem
-                        value="normal"
-                        className="flex flex-col h-auto gap-1 p-2"
-                      >
-                        <Sun className="w-5 h-5" />{' '}
-                        <span className="text-xs">רגיל</span>
-                      </ToggleGroupItem>
-                      <ToggleGroupItem
-                        value="high"
-                        className="flex flex-col h-auto gap-1 p-2"
-                      >
-                        <Contrast className="w-5 h-5" />{' '}
-                        <span className="text-xs">ניגודיות</span>
-                      </ToggleGroupItem>
-                      <ToggleGroupItem
-                        value="dark"
-                        className="flex flex-col h-auto gap-1 p-2"
-                      >
-                        <Moon className="w-5 h-5" />{' '}
-                        <span className="text-xs">כהה</span>
-                      </ToggleGroupItem>
-                    </ToggleGroup>
-                  </div>
+                      <Icon className="h-4 w-4" />
+                      <span className="font-medium">{label}</span>
+                      {settings.contrastMode === value && (<div className="absolute top-1 right-1"><Check className="h-3 w-3" /></div>)}
+                    </Button>
+                  ))}
+                </div>
+              </div>
 
-                  <Separator />
-
-                  {/* --- Tools Section --- */}
-                  <div className="space-y-3">
-                    {accessibilityTools.map((tool) => (
-                      <div
-                        key={tool.id}
-                        className="flex items-center justify-between"
-                      >
-                        <Label
-                          htmlFor={tool.id}
-                          className="flex items-center gap-2 cursor-pointer"
-                        >
-                          <tool.icon className="w-4 h-4 text-slate-500" />
-                          <span>{tool.label}</span>
-                        </Label>
-                        {React.cloneElement(tool.component, { id: tool.id })}
+              <div className="space-y-4 pt-2 border-t border-slate-200">
+                <Label className="text-sm font-medium text-slate-700">הגדרות נוספות</Label>
+                {advancedOptions.map(({ key, label, icon: Icon, description }) => (
+                  <div key={key} className="setting-card flex items-center justify-between group p-3 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className={cn('p-2 rounded-lg transition-colors', settings[key] ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-500')}>
+                        <Icon className="h-4 w-4" />
                       </div>
-                    ))}
+                      <div className="flex-1">
+                        <Label className="text-sm font-medium cursor-pointer">{label}</Label>
+                        <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{description}</p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={settings[key]}
+                      onCheckedChange={(checked) => {
+                        if (key === 'textReader') toggleTextReader();
+                        else updateSetting(key, checked);
+                      }}
+                    />
                   </div>
-                </CardContent>
-                <CardFooter>
-                  <Button
-                    variant="ghost"
-                    className="w-full text-blue-600 hover:text-blue-700"
-                    onClick={resetSettings}
-                  >
-                    <Undo2 className="w-4 h-4 ml-2" />
-                    איפוס כל ההגדרות
-                  </Button>
-                </CardFooter>
-              </Card>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+                ))}
+              </div>
+
+              <div className="pt-4 border-t border-slate-200">
+                <Button variant="outline" size="sm" className={cn('w-full flex items-center gap-2 transition-all', hasChanges ? 'hover:bg-red-50 hover:border-red-200 hover:text-red-700' : 'opacity-50 cursor-not-allowed')} onClick={resetSettings} disabled={!hasChanges}>
+                  <RefreshCw className="h-4 w-4" />איפוס כל ההגדרות
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {showToast.visible && (
+        <div className="fixed bottom-4 left-4 z-50 toast-enter toast-enter-active">
+          <div className="bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 border border-green-500">
+            <div className="p-1 bg-green-500 rounded-full"><Check className="h-3 w-3" /></div>
+            <span className="text-sm font-medium">{showToast.message}</span>
+          </div>
+        </div>
+      )}
     </>
   );
 }
@@ -6132,6 +6140,8 @@ import {
   LogIn,
   UserPlus,
   Scroll,
+  ChevronLeft, // אייקון חדש
+  Edit, // אייקון חדש
 } from 'lucide-react';
 import type { WorldId, QuestionnaireLayoutProps } from '../types/types';
 import { cn } from '@/lib/utils';
@@ -6269,20 +6279,42 @@ export default function QuestionnaireLayout({
   const isRTL = language === 'he';
   const directionClass = isRTL ? 'rtl' : 'ltr';
 
+  // ============================================================================
+  // START OF IMPROVED NavButton COMPONENT
+  // ============================================================================
   const NavButton = ({ worldId, isMobile }) => {
     const {
       icon: Icon,
       label,
       themeColor,
     } = worldConfig[worldId as keyof typeof worldConfig];
+
     const isActive = currentWorld === worldId;
     const isCompleted = completedWorlds.includes(worldId as WorldId);
+    let status: 'active' | 'completed' | 'pending' = 'pending';
+    if (isActive) status = 'active';
+    else if (isCompleted) status = 'completed';
 
-    const activeClasses = `bg-${themeColor}-600 text-white shadow-md hover:bg-${themeColor}-700`;
-    const completedClasses =
-      'border-green-300 bg-green-50 text-green-800 hover:bg-green-100';
-    const defaultClasses =
-      'bg-white hover:bg-slate-50 border-slate-200 text-slate-700';
+    const statusConfig = {
+      active: {
+        classes: `bg-${themeColor}-600 text-white shadow-lg hover:bg-${themeColor}-700 ring-2 ring-offset-2 ring-${themeColor}-400`,
+        tooltip: 'את/ה בעולם זה כעת',
+        actionIcon: <ChevronLeft className="h-5 w-5 animate-pulse" />,
+      },
+      completed: {
+        classes:
+          'border-green-300 bg-green-50 text-green-800 hover:bg-green-100 opacity-90 hover:opacity-100',
+        tooltip: 'השלמת את העולם הזה. לחץ/י כדי לערוך.',
+        actionIcon: <Edit className="h-4 w-4 text-green-600" />,
+      },
+      pending: {
+        classes: 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700',
+        tooltip: `עבור לעולם ה${label}`,
+        actionIcon: null,
+      },
+    };
+
+    const currentStatusConfig = statusConfig[status];
 
     return (
       <TooltipProvider delayDuration={300}>
@@ -6292,12 +6324,8 @@ export default function QuestionnaireLayout({
               variant={'outline'}
               size={isMobile ? 'sm' : 'default'}
               className={cn(
-                'flex items-center justify-start gap-3 w-full mb-2 transition-all duration-200 rounded-lg',
-                isActive
-                  ? activeClasses
-                  : isCompleted
-                    ? completedClasses
-                    : defaultClasses,
+                'flex items-center justify-between w-full mb-2 transition-all duration-200 rounded-lg',
+                currentStatusConfig.classes,
                 isMobile ? 'py-2 text-sm' : 'p-3'
               )}
               onClick={() => {
@@ -6305,25 +6333,33 @@ export default function QuestionnaireLayout({
                 if (isMobile) setShowMobileNav(false);
               }}
             >
-              <Icon
-                className={cn(
-                  'h-5 w-5',
-                  isActive ? 'text-white' : `text-${themeColor}-500`
-                )}
-              />
-              <span className="truncate flex-1 text-right">{label}</span>
-              {isCompleted && !isActive && (
-                <CheckCircle className="h-4 w-4 text-green-500 ml-auto" />
-              )}
+              {/* Right side: Icon and Text */}
+              <div className="flex items-center gap-3">
+                <Icon
+                  className={cn(
+                    'h-5 w-5',
+                    isActive ? 'text-white' : `text-${themeColor}-500`
+                  )}
+                />
+                <span className="truncate text-right font-medium">{label}</span>
+              </div>
+
+              {/* Left side: Action Icon */}
+              <div className="flex-shrink-0">
+                {currentStatusConfig.actionIcon}
+              </div>
             </Button>
           </TooltipTrigger>
           <TooltipContent side={isRTL ? 'left' : 'right'}>
-            <p>{isCompleted ? 'הושלם' : isActive ? 'פעיל כעת' : 'טרם הושלם'}</p>
+            <p>{currentStatusConfig.tooltip}</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
     );
   };
+  // ============================================================================
+  // END OF IMPROVED NavButton COMPONENT
+  // ============================================================================
 
   const renderFAQButton = (isMobile: boolean) => (
     <Sheet>
@@ -6399,7 +6435,9 @@ export default function QuestionnaireLayout({
             animate={{ x: 0 }}
             exit={{ x: isRTL ? '100%' : '-100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className={`fixed top-0 ${isRTL ? 'right-0' : 'left-0'} h-full w-3/4 max-w-xs bg-white shadow-lg p-4 z-50 ${directionClass} flex flex-col overflow-y-auto`}
+            className={`fixed top-0 ${
+              isRTL ? 'right-0' : 'left-0'
+            } h-full w-3/4 max-w-xs bg-white shadow-lg p-4 z-50 ${directionClass} flex flex-col overflow-y-auto`}
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-medium flex items-center">

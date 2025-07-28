@@ -3050,8 +3050,8 @@ const ImageDialogComponent: React.FC<{
     </Dialog>
   );
 };
-// START: רכיב עזר משופר לניווט בין טאבים במובייל
-// START: רכיב עזר בעיצוב חדש, נקי ואלגנטי לניווט במובייל
+
+// START: רכיב ניווט מובייל מתוקן, אלגנטי ונקי
 const MobileTabNavigation: React.FC<{
   activeTab: string;
   tabItems: {
@@ -3059,11 +3059,11 @@ const MobileTabNavigation: React.FC<{
     label: string;
     shortLabel?: string;
     icon: React.ElementType;
-    gradient: string;
+    gradient: string; // The gradient is kept for potential future use or consistency
   }[];
   onTabChange: (newTab: string) => void;
-  THEME: ThemeType;
-}> = ({ activeTab, tabItems, onTabChange, THEME }) => {
+  THEME: ThemeType; // THEME is kept for consistency
+}> = ({ activeTab, tabItems, onTabChange }) => {
   const currentIndex = useMemo(
     () => tabItems.findIndex((tab) => tab.value === activeTab),
     [tabItems, activeTab]
@@ -3082,66 +3082,68 @@ const MobileTabNavigation: React.FC<{
   if (!prevTab && !nextTab) {
     return null;
   }
-
-  // Helper to extract the start color from a gradient string for the background
-  const getGradientStartColor = (gradient: string | undefined) => {
-    if (!gradient) return 'bg-gray-50';
-    const fromColor = gradient.split(' ')[0].replace('from-', '');
-    return `bg-${fromColor}/20`; // Use a very light variant of the color
-  };
+  
+  // Base classes for both buttons for consistency
+  const baseButtonClasses = "flex-1 flex flex-col p-4 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2";
 
   return (
-    <div className="mt-8 pt-6 border-t border-gray-200/80 flex flex-col sm:flex-row gap-3 sm:gap-4">
-      {
-        prevTab ? (
-          <button
-            className="relative w-full flex-1 flex flex-col items-start p-4 bg-white border border-gray-200 hover:border-gray-300 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2"
-            onClick={() => onTabChange(prevTab.value)}
-          >
-            <ChevronRight className="absolute top-3 right-3 w-6 h-6 text-gray-400" />
-            <p className="text-xs text-gray-500 font-medium">הקודם</p>
-            <div className="flex items-center gap-2 mt-1">
-              <prevTab.icon className="w-5 h-5 text-gray-600" />
-              <span className="text-base font-bold text-gray-800">
-                {prevTab.label}
-              </span>
-            </div>
-          </button>
-        ) : (
-          <div className="hidden sm:block sm:flex-1" />
-        ) /* Spacer for alignment on desktop-like mobile views */
-      }
+    // The main container FIX: "flex" ensures it's a row, "items-stretch" makes buttons same height.
+    <div className="mt-8 pt-6 border-t border-gray-200/80 flex items-stretch justify-between gap-3 sm:gap-4 w-full">
+      
+      {/* PREVIOUS BUTTON (Right in RTL) */}
+      {prevTab ? (
+        <button
+          className={cn(
+            baseButtonClasses,
+            "items-start text-right", // Aligns content to the right
+            "bg-white border border-gray-200/80 hover:border-gray-300",
+            "focus-visible:ring-gray-400"
+          )}
+          onClick={() => onTabChange(prevTab.value)}
+        >
+          <div className="flex items-center gap-2">
+             <ChevronRight className="w-6 h-6 text-gray-400 flex-shrink-0" />
+             <p className="text-xs font-medium text-gray-500">הקודם</p>
+          </div>
+          <div className="flex items-center gap-2 mt-1.5">
+            <prevTab.icon className="w-5 h-5 text-gray-600 flex-shrink-0" />
+            <span className="text-base font-bold text-gray-800 text-right break-words min-w-0">
+              {prevTab.label}
+            </span>
+          </div>
+        </button>
+      ) : (
+        <div className="flex-1" /> // Spacer to keep the 'Next' button aligned to the left
+      )}
 
-      {
-        nextTab ? (
-          <button
-            className={cn(
-              'relative w-full flex-1 flex flex-col items-end p-4 border rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2',
-              getGradientStartColor(nextTab.gradient),
-              'border-gray-200 hover:border-rose-300'
-            )}
-            onClick={() => onTabChange(nextTab.value)}
-          >
-            <ChevronLeft className="absolute top-3 left-3 w-6 h-6 text-rose-500" />
-            <p className="text-xs text-rose-800/80 font-medium">הבא</p>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-base font-bold text-rose-900">
-                {nextTab.label}
-              </span>
-              <nextTab.icon className="w-5 h-5 text-rose-600" />
-            </div>
-          </button>
-        ) : (
-          <div className="hidden sm:block sm:flex-1" />
-        ) /* Spacer */
-      }
+      {/* NEXT BUTTON (Left in RTL) - The "Hero" button */}
+      {nextTab ? (
+        <button
+          className={cn(
+            baseButtonClasses,
+            "items-end text-left", // Aligns content to the left
+            "bg-rose-50 border border-rose-200/80 hover:border-rose-300",
+            "focus-visible:ring-rose-500"
+          )}
+          onClick={() => onTabChange(nextTab.value)}
+        >
+          <div className="flex items-center gap-2">
+             <p className="text-xs font-medium text-rose-700">הבא</p>
+             <ChevronLeft className="w-6 h-6 text-rose-500 flex-shrink-0" />
+          </div>
+          <div className="flex items-center justify-end gap-2 mt-1.5">
+            <span className="text-base font-bold text-rose-900 text-left break-words min-w-0">
+              {nextTab.label}
+            </span>
+            <nextTab.icon className="w-5 h-5 text-rose-600 flex-shrink-0" />
+          </div>
+        </button>
+      ) : (
+        <div className="flex-1" /> // Spacer
+      )}
     </div>
   );
 };
-// END: רכיב ניווט בעיצוב חדש
-// END: רכיב עזר משופר
-// END: הוספת רכיב עזר חדש
-// --- Main Content, Tabs & Mobile Layouts with Full Responsive Support ---
 
 // Main ProfileCard Component
 const ProfileCard: React.FC<ProfileCardProps> = ({
