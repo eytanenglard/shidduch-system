@@ -3050,7 +3050,57 @@ const ImageDialogComponent: React.FC<{
     </Dialog>
   );
 };
+// START: הוספת רכיב עזר חדש לניווט בין טאבים במובייל
+const MobileTabNavigation: React.FC<{
+  activeTab: string;
+  tabItems: { value: string; label: string; shortLabel?: string; icon: React.ElementType }[];
+  onTabChange: (newTab: string) => void;
+  THEME: ThemeType;
+}> = ({ activeTab, tabItems, onTabChange, THEME }) => {
+  const currentIndex = useMemo(() => tabItems.findIndex(tab => tab.value === activeTab), [tabItems, activeTab]);
+  
+  const prevTab = useMemo(() => (currentIndex > 0 ? tabItems[currentIndex - 1] : null), [tabItems, currentIndex]);
+  const nextTab = useMemo(() => (currentIndex < tabItems.length - 1 ? tabItems[currentIndex + 1] : null), [tabItems, currentIndex]);
 
+  if (!prevTab && !nextTab) {
+    return null;
+  }
+
+  return (
+    <div className="mt-6 pt-6 border-t border-gray-200/80 flex justify-between items-center gap-4">
+      {prevTab ? (
+        <Button
+          variant="outline"
+          className="flex-1 flex-col h-auto p-3 text-right bg-white/50 border-gray-300 hover:bg-white"
+          onClick={() => onTabChange(prevTab.value)}
+        >
+          <div className="flex items-center gap-2 self-start text-gray-500 text-xs font-medium">
+             <ChevronRight className="w-4 h-4" />
+             <span>החלק הקודם</span>
+          </div>
+          <span className="font-bold text-gray-800 text-sm">{prevTab.label}</span>
+        </Button>
+      ) : <div className="flex-1" /> /* Spacer */}
+
+      {nextTab ? (
+        <Button
+          className={cn(
+            "flex-1 flex-col h-auto p-3 text-left text-white shadow-lg hover:shadow-xl transition-all",
+            `bg-gradient-to-r ${THEME.colors.primary.main}`
+            )}
+          onClick={() => onTabChange(nextTab.value)}
+        >
+          <div className="flex items-center gap-2 self-end text-white/80 text-xs font-medium">
+            <span>החלק הבא</span>
+            <ChevronLeft className="w-4 h-4" />
+          </div>
+          <span className="font-bold text-sm">{nextTab.label}</span>
+        </Button>
+      ) : <div className="flex-1" /> /* Spacer */}
+    </div>
+  );
+};
+// END: הוספת רכיב עזר חדש
 // --- Main Content, Tabs & Mobile Layouts with Full Responsive Support ---
 
 // Main ProfileCard Component
@@ -3514,6 +3564,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   }, []);
 
   // Enhanced MainContentTabs with full responsive support
+  // Enhanced MainContentTabs with full responsive support
   const MainContentTabs = () => (
     <Tabs
       value={activeTab}
@@ -3854,6 +3905,16 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   </Button>
                 </div>
               </div>
+
+              {/* Mobile Navigation */}
+              {!isDesktop && mobileViewLayout === 'detailed' && (
+                <MobileTabNavigation
+                  activeTab={activeTab}
+                  tabItems={tabItems}
+                  onTabChange={handleTabChange}
+                  THEME={THEME}
+                />
+              )}
             </div>
           </TabsContent>
 
@@ -4116,6 +4177,16 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   </div>
                 )}
             </SectionCard>
+            
+            {/* Mobile Navigation */}
+            {!isDesktop && mobileViewLayout === 'detailed' && (
+              <MobileTabNavigation
+                activeTab={activeTab}
+                tabItems={tabItems}
+                onTabChange={handleTabChange}
+                THEME={THEME}
+              />
+            )}
           </TabsContent>
 
           {/* Vision Tab - Enhanced */}
@@ -4246,6 +4317,16 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 </div>
               </div>
             </SectionCard>
+            
+            {/* Mobile Navigation */}
+            {!isDesktop && mobileViewLayout === 'detailed' && (
+              <MobileTabNavigation
+                activeTab={activeTab}
+                tabItems={tabItems}
+                onTabChange={handleTabChange}
+                THEME={THEME}
+              />
+            )}
           </TabsContent>
 
           {/* Search Tab - Enhanced */}
@@ -4408,6 +4489,16 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 variant="discovery"
               />
             )}
+            
+            {/* Mobile Navigation */}
+            {!isDesktop && mobileViewLayout === 'detailed' && (
+              <MobileTabNavigation
+                activeTab={activeTab}
+                tabItems={tabItems}
+                onTabChange={handleTabChange}
+                THEME={THEME}
+              />
+            )}
           </TabsContent>
 
           {/* Deeper Tab - Enhanced */}
@@ -4468,6 +4559,16 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   </SectionCard>
                 );
               })}
+              
+              {/* Mobile Navigation */}
+              {!isDesktop && mobileViewLayout === 'detailed' && (
+                <MobileTabNavigation
+                  activeTab={activeTab}
+                  tabItems={tabItems}
+                  onTabChange={handleTabChange}
+                  THEME={THEME}
+                />
+              )}
             </TabsContent>
           )}
 
@@ -4609,6 +4710,16 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   </div>
                 </div>
               </SectionCard>
+              
+              {/* Mobile Navigation */}
+              {!isDesktop && mobileViewLayout === 'detailed' && (
+                <MobileTabNavigation
+                  activeTab={activeTab}
+                  tabItems={tabItems}
+                  onTabChange={handleTabChange}
+                  THEME={THEME}
+                />
+              )}
             </TabsContent>
           )}
         </div>
