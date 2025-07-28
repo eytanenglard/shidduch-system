@@ -1,5 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
+import { getRelativeCloudinaryPath } from '@/lib/utils'; // <--- 1. ייבוא פונקציית העזר החדשה
 
 // עדכון רכיב הכרטיס עם תצוגה מרכזית ומקצועית
 interface MatchmakerCardProps {
@@ -59,7 +60,8 @@ const MatchmakerCard: React.FC<MatchmakerCardProps> = ({
         <div className="w-48 h-48 mb-6 overflow-hidden rounded-full border-4 border-white shadow-md relative">
           {imageSrc ? (
             <Image
-              src={imageSrc}
+              // 2. שימוש בפונקציה החדשה לעיבוד נתיב התמונה
+              src={getRelativeCloudinaryPath(imageSrc)}
               alt={name}
               fill
               sizes="(max-width: 768px) 100vw, 192px"
@@ -151,7 +153,8 @@ const MatchmakerTeamSection: React.FC = () => {
             description="עם ניסיון של 8 שנים בתחום השידוכים, דינה מביאה כישורים בינאישיים יוצאי דופן והבנה עמוקה של צרכי המועמדים. הגישה האישית והאמפתית שלה יצרה עשרות זוגות מאושרים והיא מלווה כל מועמד בדרך מותאמת אישית."
             color="cyan"
             tags={['מומחית התאמה', 'ליווי אישי', '2+ שנות ניסיון']}
-            imageSrc="/images/team/dina4.jpg"
+            // 3. עדכון נתיב התמונה ל-public ID של Cloudinary
+            imageSrc="team/dina4.jpg"
           />
           <MatchmakerCard
             name="איתן אנגלרד"
@@ -159,7 +162,8 @@ const MatchmakerTeamSection: React.FC = () => {
             description="יזם טכנולוגי עם התמחות בשידוכים. איתן פיתח את פלטפורמת התוכנה הייחודית שלנו ומשלב ידע טכנולוגי עם הבנה עמוקה של פסיכולוגיה חברתית. הגישה החדשנית שלו יצרה את השיטה הייחודית שמאפיינת את המשרד שלנו."
             color="green"
             tags={['חדשנות טכנולוגית', 'אלגוריתם התאמה', 'יזמות']}
-            imageSrc="/images/team/eitan.jpg"
+            // 3. עדכון נתיב התמונה ל-public ID של Cloudinary
+            imageSrc="team/eitan.jpg"
           />
         </div>
       </div>

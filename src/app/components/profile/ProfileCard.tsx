@@ -3054,14 +3054,30 @@ const ImageDialogComponent: React.FC<{
 // START: רכיב עזר בעיצוב חדש, נקי ואלגנטי לניווט במובייל
 const MobileTabNavigation: React.FC<{
   activeTab: string;
-  tabItems: { value: string; label: string; shortLabel?: string; icon: React.ElementType, gradient: string }[];
+  tabItems: {
+    value: string;
+    label: string;
+    shortLabel?: string;
+    icon: React.ElementType;
+    gradient: string;
+  }[];
   onTabChange: (newTab: string) => void;
   THEME: ThemeType;
 }> = ({ activeTab, tabItems, onTabChange, THEME }) => {
-  const currentIndex = useMemo(() => tabItems.findIndex(tab => tab.value === activeTab), [tabItems, activeTab]);
-  
-  const prevTab = useMemo(() => (currentIndex > 0 ? tabItems[currentIndex - 1] : null), [tabItems, currentIndex]);
-  const nextTab = useMemo(() => (currentIndex < tabItems.length - 1 ? tabItems[currentIndex + 1] : null), [tabItems, currentIndex]);
+  const currentIndex = useMemo(
+    () => tabItems.findIndex((tab) => tab.value === activeTab),
+    [tabItems, activeTab]
+  );
+
+  const prevTab = useMemo(
+    () => (currentIndex > 0 ? tabItems[currentIndex - 1] : null),
+    [tabItems, currentIndex]
+  );
+  const nextTab = useMemo(
+    () =>
+      currentIndex < tabItems.length - 1 ? tabItems[currentIndex + 1] : null,
+    [tabItems, currentIndex]
+  );
 
   if (!prevTab && !nextTab) {
     return null;
@@ -3076,37 +3092,49 @@ const MobileTabNavigation: React.FC<{
 
   return (
     <div className="mt-8 pt-6 border-t border-gray-200/80 flex flex-col sm:flex-row gap-3 sm:gap-4">
-      {prevTab ? (
-        <button
-          className="relative w-full flex-1 flex flex-col items-start p-4 bg-white border border-gray-200 hover:border-gray-300 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2"
-          onClick={() => onTabChange(prevTab.value)}
-        >
-          <ChevronRight className="absolute top-3 right-3 w-6 h-6 text-gray-400" />
-          <p className="text-xs text-gray-500 font-medium">הקודם</p>
-          <div className="flex items-center gap-2 mt-1">
-            <prevTab.icon className="w-5 h-5 text-gray-600" />
-            <span className="text-base font-bold text-gray-800">{prevTab.label}</span>
-          </div>
-        </button>
-      ) : <div className="hidden sm:block sm:flex-1" /> /* Spacer for alignment on desktop-like mobile views */}
+      {
+        prevTab ? (
+          <button
+            className="relative w-full flex-1 flex flex-col items-start p-4 bg-white border border-gray-200 hover:border-gray-300 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2"
+            onClick={() => onTabChange(prevTab.value)}
+          >
+            <ChevronRight className="absolute top-3 right-3 w-6 h-6 text-gray-400" />
+            <p className="text-xs text-gray-500 font-medium">הקודם</p>
+            <div className="flex items-center gap-2 mt-1">
+              <prevTab.icon className="w-5 h-5 text-gray-600" />
+              <span className="text-base font-bold text-gray-800">
+                {prevTab.label}
+              </span>
+            </div>
+          </button>
+        ) : (
+          <div className="hidden sm:block sm:flex-1" />
+        ) /* Spacer for alignment on desktop-like mobile views */
+      }
 
-      {nextTab ? (
-        <button
-          className={cn(
-            "relative w-full flex-1 flex flex-col items-end p-4 border rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2",
-            getGradientStartColor(nextTab.gradient),
-            'border-gray-200 hover:border-rose-300'
-          )}
-          onClick={() => onTabChange(nextTab.value)}
-        >
-          <ChevronLeft className="absolute top-3 left-3 w-6 h-6 text-rose-500" />
-          <p className="text-xs text-rose-800/80 font-medium">הבא</p>
-          <div className="flex items-center gap-2 mt-1">
-            <span className="text-base font-bold text-rose-900">{nextTab.label}</span>
-            <nextTab.icon className="w-5 h-5 text-rose-600" />
-          </div>
-        </button>
-      ) : <div className="hidden sm:block sm:flex-1" /> /* Spacer */}
+      {
+        nextTab ? (
+          <button
+            className={cn(
+              'relative w-full flex-1 flex flex-col items-end p-4 border rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2',
+              getGradientStartColor(nextTab.gradient),
+              'border-gray-200 hover:border-rose-300'
+            )}
+            onClick={() => onTabChange(nextTab.value)}
+          >
+            <ChevronLeft className="absolute top-3 left-3 w-6 h-6 text-rose-500" />
+            <p className="text-xs text-rose-800/80 font-medium">הבא</p>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-base font-bold text-rose-900">
+                {nextTab.label}
+              </span>
+              <nextTab.icon className="w-5 h-5 text-rose-600" />
+            </div>
+          </button>
+        ) : (
+          <div className="hidden sm:block sm:flex-1" />
+        ) /* Spacer */
+      }
     </div>
   );
 };
