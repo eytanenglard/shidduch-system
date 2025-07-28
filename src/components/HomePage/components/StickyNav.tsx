@@ -19,6 +19,7 @@ interface StickyNavProps {
 }
 
 // ======================== קומפוננטת הלוגו המעודכנת ========================
+// אין צורך לשנות, היא כבר תואמת
 const StickyLogo = () => {
   return (
     <Link
@@ -29,7 +30,6 @@ const StickyLogo = () => {
       <div className="relative h-8 w-8">
         <Image
           src={getRelativeCloudinaryPath(
-            // זה ה-URL המדויק שסיפקת
             'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png'
           )}
           alt="NeshamaTech Icon"
@@ -142,12 +142,14 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
             animate={isMobile ? (isNavOpen ? 'visible' : 'hidden') : 'visible'}
             exit="hidden"
             transition={{ duration: 0.3, ease: 'easeOut' }}
+            // סגנון הרקע כבר היה תואם ל-Navbar במצב גלילה
             className="fixed top-20 md:top-0 left-0 right-0 z-40 w-full h-16 md:h-20"
           >
             <div className="absolute inset-0 bg-white/80 backdrop-blur-lg shadow-sm border-b border-gray-200/80"></div>
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
               <StickyLogo />
 
+              {/* ======================= שינוי 1: סגנון קישורי ניווט (דסקטופ) ======================= */}
               <nav className="hidden md:flex items-center gap-2 relative">
                 {navLinks.map((link) => (
                   <a
@@ -155,16 +157,16 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
                     href={`#${link.id}`}
                     onClick={(e) => handleLinkClick(e, `#${link.id}`)}
                     className={cn(
-                      'relative px-3 py-2 rounded-full text-sm font-medium transition-colors duration-200',
+                      'relative px-3 py-2 rounded-full text-sm transition-colors duration-200',
                       activeSection === link.id
-                        ? 'text-teal-600'
-                        : 'text-gray-700 hover:text-teal-600'
+                        ? 'font-semibold text-cyan-600' // <--- שינוי מ-teal
+                        : 'font-medium text-gray-700 hover:text-cyan-600 hover:bg-cyan-500/10' // <--- שינוי מ-teal + הוספת רקע במעבר
                     )}
                   >
                     {activeSection === link.id && (
                       <motion.div
                         layoutId="active-nav-link"
-                        className="absolute inset-0 bg-teal-500/10 rounded-full z-0"
+                        className="absolute inset-0 bg-cyan-500/10 rounded-full z-0" // <--- שינוי מ-teal
                         transition={{
                           type: 'spring',
                           stiffness: 300,
@@ -178,6 +180,7 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
               </nav>
 
               <div className="flex md:hidden items-center justify-between w-full">
+                {/* ======================= שינוי 2: סגנון קישורי ניווט (מובייל) ======================= */}
                 <nav className="flex-grow overflow-x-auto scrollbar-hide">
                   <div className="flex items-center gap-2 px-1">
                     {navLinks.map((link) => (
@@ -188,8 +191,8 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
                         className={cn(
                           'relative px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0',
                           activeSection === link.id
-                            ? 'bg-teal-600 text-white shadow'
-                            : 'text-gray-700 hover:bg-gray-100'
+                            ? 'font-semibold text-cyan-600 bg-cyan-500/10' // <--- התאמה לסגנון הפעיל של Navbar
+                            : 'font-medium text-gray-700 hover:text-cyan-600 hover:bg-cyan-500/10' // <--- התאמה לסגנון הרגיל של Navbar
                         )}
                       >
                         {link.label}
@@ -210,9 +213,10 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
                 </div>
               </div>
 
+              {/* ======================= שינוי 3: סגנון כפתור הרשמה ======================= */}
               <div className="hidden md:flex items-center gap-2">
                 <Link href="/auth/register">
-                  <Button className="group relative overflow-hidden bg-gradient-to-r from-teal-600 to-orange-500 hover:from-teal-700 hover:to-orange-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 px-5">
+                  <Button className="group relative overflow-hidden bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 px-5 py-2.5">
                     <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
                     <span className="relative z-10 flex items-center">
                       <UserPlus className="ml-1.5 h-4 w-4" />
@@ -241,7 +245,9 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
               onClick={() => setMobileNavState('open')}
               aria-label="פתח ניווט"
             >
-              <Menu className="h-6 w-6 text-teal-600" />
+              {/* ======================= שינוי 4: צבע אייקון התפריט במובייל ======================= */}
+              <Menu className="h-6 w-6 text-cyan-600" />{' '}
+              {/* <--- שינוי מ-teal */}
             </Button>
           </motion.div>
         )}

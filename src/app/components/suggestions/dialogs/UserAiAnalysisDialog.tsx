@@ -1,5 +1,5 @@
 // src/app/components/suggestions/dialogs/UserAiAnalysisDialog.tsx
-"use client";
+'use client';
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -12,28 +12,40 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, Sparkles, AlertTriangle, Bot, Brain, Heart } from 'lucide-react';
+import {
+  Loader2,
+  Sparkles,
+  AlertTriangle,
+  Bot,
+  Brain,
+  Heart,
+} from 'lucide-react';
 import { toast } from 'sonner';
 
-import UserAiAnalysisDisplay from '../compatibility/UserAiAnalysisDisplay'; 
+import UserAiAnalysisDisplay from '../compatibility/UserAiAnalysisDisplay';
 import type { AiSuggestionAnalysisResult } from '@/lib/services/aiService';
 
 interface UserAiAnalysisDialogProps {
   suggestedUserId: string;
 }
 
-export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = ({ suggestedUserId }) => {
+export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = ({
+  suggestedUserId,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [analysis, setAnalysis] = useState<AiSuggestionAnalysisResult | null>(null);
+  const [analysis, setAnalysis] = useState<AiSuggestionAnalysisResult | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleGetAnalysis = async () => {
+    // אם הניתוח כבר קיים, פשוט פותחים את הדיאלוג בלי לבצע קריאה נוספת
     if (analysis) {
       setIsOpen(true);
       return;
     }
-    
+
     setIsOpen(true);
     setIsLoading(true);
     setError(null);
@@ -54,9 +66,9 @@ export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = ({ sugg
       }
 
       setAnalysis(result.data);
-
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'אירעה שגיאה לא צפויה.';
+      const errorMessage =
+        err instanceof Error ? err.message : 'אירעה שגיאה לא צפויה.';
       setError(errorMessage);
       toast.error('שגיאה בתהליך הניתוח', {
         description: errorMessage,
@@ -65,11 +77,13 @@ export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = ({ sugg
       setIsLoading(false);
     }
   };
-  
+
+  // פונקציה לניהול פתיחה וסגירה של הדיאלוג
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
+    // אם המשתמש סוגר את הדיאלוג, נאפס את השגיאה כדי שבפעם הבאה לא תוצג ישר
     if (!open) {
-      setError(null); 
+      setError(null);
     }
   };
 
@@ -83,9 +97,9 @@ export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = ({ sugg
           className="relative overflow-hidden group bg-gradient-to-r from-cyan-50 to-emerald-50 border-2 border-cyan-200 text-cyan-700 hover:from-cyan-100 hover:to-emerald-100 hover:border-cyan-300 transition-all duration-300 shadow-lg hover:shadow-xl rounded-2xl px-8 py-4 font-semibold"
           disabled={isLoading}
         >
-          {/* Shimmer effect */}
+          {/* Shimmer effect for that extra marketing touch */}
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -translate-x-full group-hover:animate-shimmer"></div>
-          
+
           <div className="relative z-10 flex items-center gap-3">
             {isLoading ? (
               <Loader2 className="w-5 h-5 animate-spin text-cyan-600" />
@@ -99,8 +113,8 @@ export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = ({ sugg
           </div>
         </Button>
       </DialogTrigger>
-      
-      <DialogContent 
+
+      <DialogContent
         className="max-w-5xl w-[95vw] h-[90vh] flex flex-col p-0 border-0 shadow-2xl rounded-3xl bg-gradient-to-br from-white via-cyan-50/20 to-emerald-50/20"
         dir="rtl"
       >
@@ -118,51 +132,81 @@ export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = ({ sugg
 
         <div className="flex-grow overflow-y-auto p-6 md:p-8">
           {isLoading ? (
+            // מצב טעינה מעוצב ומרשים
             <div className="flex flex-col items-center justify-center h-full text-center space-y-6">
               <div className="relative">
                 <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-200 to-emerald-200 animate-pulse"></div>
                 <Loader2 className="w-12 h-12 text-cyan-600 animate-spin absolute inset-0 m-auto" />
               </div>
               <div className="space-y-2">
-                <p className="text-xl font-semibold text-gray-700">ה-AI שלנו בוחן את ההתאמה...</p>
-                <p className="text-gray-500 max-w-md">זה עשוי לקחת מספר שניות. אנו מנתחים עשרות פרמטרים להבנה מעמיקה של ההתאמה.</p>
+                <p className="text-xl font-semibold text-gray-700">
+                  ה-AI שלנו בוחן את ההתאמה...
+                </p>
+                <p className="text-gray-500 max-w-md">
+                  זה עשוי לקחת מספר שניות. אנו מנתחים עשרות פרמטרים להבנה מעמיקה
+                  של ההתאמה.
+                </p>
               </div>
-              
+
+              {/* אנימציה קטנה שמראה מה "נבדק" */}
               <div className="grid grid-cols-3 gap-4 mt-8">
                 {[
-                  { icon: Brain, label: 'ניתוח אישיות', delay: '0ms', color: 'text-cyan-600' },
-                  { icon: Heart, label: 'התאמת ערכים', delay: '200ms', color: 'text-emerald-600' },
-                  { icon: Sparkles, label: 'פוטנציאל יחד', delay: '400ms', color: 'text-blue-600' }
+                  {
+                    icon: Brain,
+                    label: 'ניתוח אישיות',
+                    delay: '0ms',
+                    color: 'text-cyan-600',
+                  },
+                  {
+                    icon: Heart,
+                    label: 'התאמת ערכים',
+                    delay: '200ms',
+                    color: 'text-emerald-600',
+                  },
+                  {
+                    icon: Sparkles,
+                    label: 'פוטנציאל יחד',
+                    delay: '400ms',
+                    color: 'text-blue-600',
+                  },
                 ].map((item, index) => (
-                  <div 
-                    key={index} 
+                  <div
+                    key={index}
                     className="flex flex-col items-center gap-2 opacity-50 animate-pulse"
                     style={{ animationDelay: item.delay }}
                   >
                     <div className="p-3 rounded-full bg-white shadow-md">
                       <item.icon className={`w-6 h-6 ${item.color}`} />
                     </div>
-                    <span className="text-sm text-gray-600 font-medium">{item.label}</span>
+                    <span className="text-sm text-gray-600 font-medium">
+                      {item.label}
+                    </span>
                   </div>
                 ))}
               </div>
             </div>
           ) : error ? (
+            // מצב שגיאה ידידותי
             <div className="flex flex-col items-center justify-center h-full text-center space-y-6">
               <div className="p-4 rounded-full bg-red-100">
                 <AlertTriangle className="h-12 w-12 text-red-600" />
               </div>
-              <Alert variant="destructive" className="max-w-md border-red-200 bg-red-50">
+              <Alert
+                variant="destructive"
+                className="max-w-md border-red-200 bg-red-50"
+              >
                 <AlertTriangle className="h-5 w-5" />
-                <AlertTitle className="text-red-800">אופס, משהו השתבש</AlertTitle>
+                <AlertTitle className="text-red-800">
+                  אופס, משהו השתבש
+                </AlertTitle>
                 <AlertDescription className="text-red-700">
                   <p>לא הצלחנו להשלים את ניתוח ההתאמה כרגע.</p>
                   <p className="text-sm mt-2 opacity-90">{error}</p>
                 </AlertDescription>
               </Alert>
-              <Button 
-                onClick={handleGetAnalysis} 
-                variant="outline" 
+              <Button
+                onClick={handleGetAnalysis}
+                variant="outline"
                 className="mt-4 border-red-200 text-red-600 hover:bg-red-50"
               >
                 <Brain className="w-4 h-4 ml-2" />
@@ -170,8 +214,10 @@ export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = ({ sugg
               </Button>
             </div>
           ) : analysis ? (
+            // הצגת התוצאה
             <UserAiAnalysisDisplay analysis={analysis} />
           ) : (
+            // מצב התחלתי (לא אמור להופיע בדרך כלל, אבל טוב שיהיה)
             <div className="flex items-center justify-center h-full">
               <div className="text-center space-y-4">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-100 to-emerald-100 flex items-center justify-center mx-auto">
