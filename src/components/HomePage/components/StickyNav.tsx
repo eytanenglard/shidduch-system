@@ -1,3 +1,5 @@
+// src/components/StickyNav.tsx (הקובץ המלא והמתוקן)
+
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -32,6 +34,7 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
     // Check for window existence for SSR safety
     if (typeof window === 'undefined') return;
 
+    // This initialization can be moved outside if it doesn't depend on navLinks, but here is fine.
     setIsMobile(window.innerWidth < 768);
 
     sectionRefs.current = navLinks.map((link) =>
@@ -41,36 +44,32 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       const scrollDelta = currentScrollY - lastScrollY.current;
+      const scrollThreshold = 5;
 
       setIsSticky(currentScrollY > 10);
 
       // ======================= START OF CORRECTED SCROLL LOGIC =======================
-      // This logic is now more robust and respects the user's manual choices.
-      const scrollThreshold = 5;
-
       if (scrollDelta > scrollThreshold && currentScrollY > 150) {
         setIsScrollingDown(true);
         // When scrolling down, if the menu was manually opened,
-        // reset it to 'auto' so it hides.
-        // CRUCIAL: We do NOT touch the 'closed' state.
+        // reset it to 'auto' so it can hide. This is good UX.
         if (mobileNavState === 'open') {
           setMobileNavState('auto');
         }
       } else if (scrollDelta < -scrollThreshold) {
         setIsScrollingDown(false);
-        // When scrolling up, if the menu was manually closed,
-        // this is a signal the user might want it again.
-        // Reset to 'auto' to allow it to reappear.
-        if (mobileNavState === 'closed') {
-          setMobileNavState('auto');
-        }
+        // -----------------------------------------------------------------------------
+        // <<< FIX APPLIED HERE >>>
+        // The problematic logic that automatically reset 'closed' to 'auto' was removed.
+        // A user's decision to close the nav should be respected until they open it again.
+        // -----------------------------------------------------------------------------
       }
       lastScrollY.current = currentScrollY;
       // ======================== END OF CORRECTED SCROLL LOGIC =========================
 
       // Active section highlighting logic (no changes needed here)
       let currentSection = '';
-      const offset = isMobile ? 200 : 150;
+      const offset = isMobile ? 200 : 150; // This read of 'isMobile' is why it's needed in the deps array
       sectionRefs.current.forEach((section, index) => {
         if (section) {
           const sectionTop = section.offsetTop - offset;
@@ -90,6 +89,8 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('resize', handleResize);
+
+    // Initial calls to set state correctly on load
     handleScroll();
     handleResize();
 
@@ -97,7 +98,8 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleResize);
     };
-  }, [navLinks, mobileNavState]); // Added mobileNavState to dependency array
+    // <<< FIX APPLIED HERE >>> Added 'isMobile' to the dependency array to fix the ESLint warning.
+  }, [navLinks, mobileNavState, isMobile]);
 
   const handleLinkClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
@@ -105,7 +107,8 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
   ) => {
     e.preventDefault();
     if (isMobile) {
-      setMobileNavState('closed'); // Close nav after clicking a link
+      // Set to 'closed' instead of 'auto' to ensure it stays hidden after the scroll.
+      setMobileNavState('closed');
     }
     const element = document.querySelector(href);
     if (element) {
@@ -144,6 +147,7 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
             transition={{ duration: 0.3, ease: 'easeOut' }}
             className="fixed top-20 md:top-0 left-0 right-0 z-40 w-full h-16 md:h-20"
           >
+            {/* The rest of the component remains unchanged... */}
             <div className="absolute inset-0 bg-white/80 backdrop-blur-lg shadow-sm border-b border-gray-200/80"></div>
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
               {/* Desktop Elements */}
