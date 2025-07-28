@@ -3050,10 +3050,11 @@ const ImageDialogComponent: React.FC<{
     </Dialog>
   );
 };
-// START: הוספת רכיב עזר חדש לניווט בין טאבים במובייל
+// START: רכיב עזר משופר לניווט בין טאבים במובייל
+// START: רכיב עזר בעיצוב חדש, נקי ואלגנטי לניווט במובייל
 const MobileTabNavigation: React.FC<{
   activeTab: string;
-  tabItems: { value: string; label: string; shortLabel?: string; icon: React.ElementType }[];
+  tabItems: { value: string; label: string; shortLabel?: string; icon: React.ElementType, gradient: string }[];
   onTabChange: (newTab: string) => void;
   THEME: ThemeType;
 }> = ({ activeTab, tabItems, onTabChange, THEME }) => {
@@ -3066,40 +3067,51 @@ const MobileTabNavigation: React.FC<{
     return null;
   }
 
+  // Helper to extract the start color from a gradient string for the background
+  const getGradientStartColor = (gradient: string | undefined) => {
+    if (!gradient) return 'bg-gray-50';
+    const fromColor = gradient.split(' ')[0].replace('from-', '');
+    return `bg-${fromColor}/20`; // Use a very light variant of the color
+  };
+
   return (
-    <div className="mt-6 pt-6 border-t border-gray-200/80 flex justify-between items-center gap-4">
+    <div className="mt-8 pt-6 border-t border-gray-200/80 flex flex-col sm:flex-row gap-3 sm:gap-4">
       {prevTab ? (
-        <Button
-          variant="outline"
-          className="flex-1 flex-col h-auto p-3 text-right bg-white/50 border-gray-300 hover:bg-white"
+        <button
+          className="relative w-full flex-1 flex flex-col items-start p-4 bg-white border border-gray-200 hover:border-gray-300 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2"
           onClick={() => onTabChange(prevTab.value)}
         >
-          <div className="flex items-center gap-2 self-start text-gray-500 text-xs font-medium">
-             <ChevronRight className="w-4 h-4" />
-             <span>החלק הקודם</span>
+          <ChevronRight className="absolute top-3 right-3 w-6 h-6 text-gray-400" />
+          <p className="text-xs text-gray-500 font-medium">הקודם</p>
+          <div className="flex items-center gap-2 mt-1">
+            <prevTab.icon className="w-5 h-5 text-gray-600" />
+            <span className="text-base font-bold text-gray-800">{prevTab.label}</span>
           </div>
-          <span className="font-bold text-gray-800 text-sm">{prevTab.label}</span>
-        </Button>
-      ) : <div className="flex-1" /> /* Spacer */}
+        </button>
+      ) : <div className="hidden sm:block sm:flex-1" /> /* Spacer for alignment on desktop-like mobile views */}
 
       {nextTab ? (
-        <Button
+        <button
           className={cn(
-            "flex-1 flex-col h-auto p-3 text-left text-white shadow-lg hover:shadow-xl transition-all",
-            `bg-gradient-to-r ${THEME.colors.primary.main}`
-            )}
+            "relative w-full flex-1 flex flex-col items-end p-4 border rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2",
+            getGradientStartColor(nextTab.gradient),
+            'border-gray-200 hover:border-rose-300'
+          )}
           onClick={() => onTabChange(nextTab.value)}
         >
-          <div className="flex items-center gap-2 self-end text-white/80 text-xs font-medium">
-            <span>החלק הבא</span>
-            <ChevronLeft className="w-4 h-4" />
+          <ChevronLeft className="absolute top-3 left-3 w-6 h-6 text-rose-500" />
+          <p className="text-xs text-rose-800/80 font-medium">הבא</p>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-base font-bold text-rose-900">{nextTab.label}</span>
+            <nextTab.icon className="w-5 h-5 text-rose-600" />
           </div>
-          <span className="font-bold text-sm">{nextTab.label}</span>
-        </Button>
-      ) : <div className="flex-1" /> /* Spacer */}
+        </button>
+      ) : <div className="hidden sm:block sm:flex-1" /> /* Spacer */}
     </div>
   );
 };
+// END: רכיב ניווט בעיצוב חדש
+// END: רכיב עזר משופר
 // END: הוספת רכיב עזר חדש
 // --- Main Content, Tabs & Mobile Layouts with Full Responsive Support ---
 
@@ -3326,7 +3338,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     }
   };
 
-  // Enhanced tab configuration with responsive support
+  // Enhanced tab configuration with responsive support AND CORRECT ORDER
+  // Enhanced tab configuration with responsive support AND CORRECT ORDER
   const tabItems = useMemo(
     () => [
       {
@@ -3565,13 +3578,14 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
   // Enhanced MainContentTabs with full responsive support
   // Enhanced MainContentTabs with full responsive support
+  // Enhanced MainContentTabs with full responsive support
   const MainContentTabs = () => (
     <Tabs
       value={activeTab}
       onValueChange={handleTabChange}
       className="w-full flex flex-col flex-1 min-h-0 max-w-full overflow-hidden"
     >
-      {/* Enhanced Tab Navigation */}
+      {/* Enhanced Tab Navigation Bar */}
       <div
         className={cn(
           'bg-white/95 backdrop-blur-md rounded-2xl border border-gray-200/50 overflow-hidden sticky top-0 z-20',
@@ -3588,7 +3602,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 className={cn(
                   'flex flex-col items-center gap-1 rounded-xl flex-shrink-0 transition-all duration-300 border border-transparent',
                   'text-gray-600 hover:text-gray-800 hover:bg-rose-50',
-                  // Critical touch targets for mobile
                   'min-w-[50px] min-h-[44px] touch-manipulation',
                   'sm:min-w-[60px] md:min-w-[80px]',
                   'px-1.5 py-1.5 sm:px-2 sm:py-2 md:px-3 md:py-2',
@@ -3602,7 +3615,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               >
                 <tab.icon className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                 <span className="leading-tight text-center break-words hyphens-auto word-break-break-word max-w-full">
-                  {window.innerWidth < 640 && tab.shortLabel
+                  {typeof window !== 'undefined' &&
+                  window.innerWidth < 640 &&
+                  tab.shortLabel
                     ? tab.shortLabel
                     : tab.label}
                 </span>
@@ -3619,7 +3634,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         className="flex-1 overflow-auto h-full max-w-full"
       >
         <div className="space-y-3 sm:space-y-4 md:space-y-6 p-1 sm:p-2 min-w-0 max-w-full">
-          {/* Essence Tab - Enhanced */}
+          {/* Essence Tab */}
           <TabsContent value="essence" className="mt-0 max-w-full min-w-0">
             <div className="space-y-6 sm:space-y-8 max-w-full min-w-0">
               <SectionCard
@@ -3631,7 +3646,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 className="max-w-full min-w-0"
               >
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-start max-w-full min-w-0">
-                  {/* Main Image */}
                   <div className="relative max-w-full min-w-0">
                     <div
                       className={cn(
@@ -3672,8 +3686,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       )}
                     </div>
                   </div>
-
-                  {/* Content */}
                   <div className="space-y-4 sm:space-y-6 max-w-full min-w-0">
                     <div className="text-center lg:text-right max-w-full min-w-0">
                       <h2
@@ -3686,14 +3698,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       >
                         {profile.user?.firstName || 'מישהו מדהים'}
                       </h2>
-
                       {age > 0 && (
                         <p className="text-lg sm:text-xl text-gray-700 font-bold mb-4 sm:mb-6 flex items-center justify-center lg:justify-start gap-2 flex-wrap">
                           <Cake className="w-5 h-5 text-rose-500 flex-shrink-0" />
                           <span>גיל: {age}</span>
                         </p>
                       )}
-
                       {profile.about ? (
                         <div
                           className={cn(
@@ -3717,8 +3727,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         />
                       )}
                     </div>
-
-                    {/* Key Details */}
                     <div className="grid grid-cols-1 gap-3 sm:gap-4 max-w-full min-w-0">
                       {profile.city && (
                         <DetailItem
@@ -3759,8 +3767,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   </div>
                 </div>
               </SectionCard>
-
-              {/* Character Traits & Hobbies */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-full min-w-0">
                 <SectionCard
                   title="תכונות הזהב שלי"
@@ -3795,7 +3801,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                                   'w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0',
                                   traitData.color
                                 )}
-                              />
+                              />{' '}
                               <span className="break-words min-w-0">
                                 {traitData.label}
                               </span>
@@ -3814,7 +3820,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     )}
                   </div>
                 </SectionCard>
-
                 <SectionCard
                   title="מה שאני אוהב/ת לעשות"
                   subtitle="התחביבים והתשוקות שלי"
@@ -3848,7 +3853,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                                   'w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0',
                                   hobbyData.color
                                 )}
-                              />
+                              />{' '}
                               <span className="break-words min-w-0">
                                 {hobbyData.label}
                               </span>
@@ -3868,8 +3873,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   </div>
                 </SectionCard>
               </div>
-
-              {/* Call to Action */}
               <div
                 className={cn(
                   'text-center p-6 sm:p-8 rounded-2xl text-white max-w-full min-w-0 overflow-hidden',
@@ -3892,7 +3895,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       THEME.shadows.warm
                     )}
                   >
-                    <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 ml-2 flex-shrink-0" />
+                    <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 ml-2 flex-shrink-0" />{' '}
                     <span className="break-words">בואו נכיר את הסיפור</span>
                   </Button>
                   <Button
@@ -3900,13 +3903,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     variant="outline"
                     className="bg-white/20 hover:bg-white border border-white/30 text-white hover:text-rose-600 font-bold rounded-full backdrop-blur-sm transition-all min-h-[44px] px-4 py-2 sm:px-6 sm:py-3 text-sm sm:text-base"
                   >
-                    <Heart className="w-4 h-4 sm:w-5 sm:h-5 ml-2 flex-shrink-0" />
+                    <Heart className="w-4 h-4 sm:w-5 sm:h-5 ml-2 flex-shrink-0" />{' '}
                     <span className="break-words">מה החלום לזוגיות</span>
                   </Button>
                 </div>
               </div>
-
-              {/* Mobile Navigation */}
               {!isDesktop && mobileViewLayout === 'detailed' && (
                 <MobileTabNavigation
                   activeTab={activeTab}
@@ -3918,7 +3919,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             </div>
           </TabsContent>
 
-          {/* Story Tab - Enhanced */}
+          {/* Story Tab */}
           <TabsContent
             value="story"
             className="mt-0 space-y-4 sm:space-y-6 max-w-full min-w-0"
@@ -3937,7 +3938,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 השורשים, הדרך והערכים שעיצבו את האדם הזה
               </p>
             </div>
-
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 max-w-full min-w-0">
               <SectionCard
                 title="הזהות הדתית והרוחנית"
@@ -4000,7 +4000,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   )}
                 </div>
               </SectionCard>
-
               <SectionCard
                 title="השכלה ועולם המקצוע"
                 subtitle="הדרך האקדמית והמקצועית שלי"
@@ -4062,8 +4061,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 </div>
               </SectionCard>
             </div>
-
-            {/* Family Background */}
             <SectionCard
               title="הרקע המשפחתי והתרבותי"
               subtitle="המשפחה והמקורות שעיצבו אותי"
@@ -4136,8 +4133,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   />
                 )}
               </div>
-
-              {/* Additional Languages */}
               {profile.additionalLanguages &&
                 profile.additionalLanguages.length > 0 && (
                   <div className="mt-6 pt-6 border-t border-gray-200 max-w-full min-w-0">
@@ -4166,7 +4161,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                                 'w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0',
                                 langData.color
                               )}
-                            />
+                            />{' '}
                             <span className="break-words min-w-0">
                               {langData.label}
                             </span>
@@ -4177,8 +4172,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   </div>
                 )}
             </SectionCard>
-            
-            {/* Mobile Navigation */}
             {!isDesktop && mobileViewLayout === 'detailed' && (
               <MobileTabNavigation
                 activeTab={activeTab}
@@ -4189,7 +4182,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             )}
           </TabsContent>
 
-          {/* Vision Tab - Enhanced */}
+          {/* Vision Tab */}
           <TabsContent
             value="vision"
             className="mt-0 space-y-4 sm:space-y-6 max-w-full min-w-0"
@@ -4208,7 +4201,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 איך אני רואה את העתיד שלנו יחד
               </p>
             </div>
-
             <SectionCard
               title="הזוגיות שאני חולם/ת עליה"
               subtitle="המחשבות והרגשות שלי על אהבה ומשפחה"
@@ -4254,10 +4246,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   variant="romantic"
                 />
               )}
-
               <div className="mt-6 sm:mt-8 space-y-4 sm:space-y-6 max-w-full min-w-0">
                 <h4 className="text-lg sm:text-xl font-bold text-gray-800 flex items-center gap-3">
-                  <Baby className="w-5 h-5 sm:w-6 sm:h-6 text-pink-500 flex-shrink-0" />
+                  <Baby className="w-5 h-5 sm:w-6 sm:h-6 text-pink-500 flex-shrink-0" />{' '}
                   <span className="break-words">החזון למשפחה</span>
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 max-w-full min-w-0">
@@ -4317,8 +4308,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 </div>
               </div>
             </SectionCard>
-            
-            {/* Mobile Navigation */}
             {!isDesktop && mobileViewLayout === 'detailed' && (
               <MobileTabNavigation
                 activeTab={activeTab}
@@ -4329,7 +4318,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             )}
           </TabsContent>
 
-          {/* Search Tab - Enhanced */}
+          {/* Search Tab */}
           <TabsContent
             value="search"
             className="mt-0 space-y-4 sm:space-y-6 max-w-full min-w-0"
@@ -4348,7 +4337,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 התכונות והערכים שחשובים בהתאמה
               </p>
             </div>
-
             {hasAnyPreferences ? (
               <div className="space-y-6 sm:space-y-8 max-w-full min-w-0">
                 {renderPreferenceBadges(
@@ -4390,7 +4378,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     {},
                     THEME.colors.secondary.peach
                   )}
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-full min-w-0">
                   {profile.preferredCharacterTraits &&
                     profile.preferredCharacterTraits.length > 0 && (
@@ -4425,7 +4412,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                                     'w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0',
                                     traitData.color
                                   )}
-                                />
+                                />{' '}
                                 <span className="break-words min-w-0">
                                   {traitData.label}
                                 </span>
@@ -4435,7 +4422,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         </div>
                       </SectionCard>
                     )}
-
                   {profile.preferredHobbies &&
                     profile.preferredHobbies.length > 0 && (
                       <SectionCard
@@ -4469,7 +4455,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                                     'w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0',
                                     hobbyData.color
                                   )}
-                                />
+                                />{' '}
                                 <span className="break-words min-w-0">
                                   {hobbyData.label}
                                 </span>
@@ -4489,8 +4475,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 variant="discovery"
               />
             )}
-            
-            {/* Mobile Navigation */}
             {!isDesktop && mobileViewLayout === 'detailed' && (
               <MobileTabNavigation
                 activeTab={activeTab}
@@ -4501,7 +4485,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             )}
           </TabsContent>
 
-          {/* Deeper Tab - Enhanced */}
+          {/* Deeper Tab */}
           {hasDisplayableQuestionnaireAnswers && (
             <TabsContent
               value="deeper"
@@ -4521,7 +4505,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   מחשבות אישיות ותובנות על החיים והאהבה
                 </p>
               </div>
-
               {Object.entries(WORLDS).map(([worldKey, worldConfig]) => {
                 const answersForWorld = (
                   questionnaire?.formattedAnswers?.[
@@ -4532,9 +4515,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     answer.isVisible !== false &&
                     (answer.answer || answer.displayText)
                 );
-
                 if (answersForWorld.length === 0) return null;
-
                 return (
                   <SectionCard
                     key={worldKey}
@@ -4559,8 +4540,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   </SectionCard>
                 );
               })}
-              
-              {/* Mobile Navigation */}
               {!isDesktop && mobileViewLayout === 'detailed' && (
                 <MobileTabNavigation
                   activeTab={activeTab}
@@ -4572,7 +4551,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             </TabsContent>
           )}
 
-          {/* Professional Tab - Enhanced */}
+          {/* Professional Tab */}
           {viewMode === 'matchmaker' && (
             <TabsContent
               value="professional"
@@ -4592,7 +4571,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   פרטים רגישים וחשובים לתהליך השידוך
                 </p>
               </div>
-
               <SectionCard
                 title="מידע סודי לשדכנים בלבד"
                 subtitle="פרטים מקצועיים לתהליך השידוך"
@@ -4638,11 +4616,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       className="max-w-full min-w-0"
                     />
                   </div>
-
                   {profile.matchingNotes && (
                     <div className="mt-4 sm:mt-6 max-w-full min-w-0 overflow-hidden">
                       <h4 className="text-base sm:text-lg font-bold text-amber-700 mb-3 flex items-center gap-2">
-                        <Edit3 className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                        <Edit3 className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />{' '}
                         <span className="break-words">
                           הערות מיוחדות לשדכנים:
                         </span>
@@ -4658,19 +4635,18 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       </div>
                     </div>
                   )}
-
                   <div
                     className={cn(
                       'mt-4 sm:mt-6 p-3 sm:p-4 rounded-xl border border-indigo-200 bg-gradient-to-r from-indigo-100 to-purple-100 max-w-full min-w-0 overflow-hidden'
                     )}
                   >
                     <h4 className="font-bold text-indigo-800 mb-3 flex items-center gap-2">
-                      <Lightbulb className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                      <Lightbulb className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />{' '}
                       <span className="break-words">תובנות מקצועיות:</span>
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 text-indigo-700 text-sm sm:text-base max-w-full min-w-0">
                       <div className="flex items-center gap-2 break-words">
-                        <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                        <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />{' '}
                         <span className="break-words min-w-0">
                           פרופיל נוצר:{' '}
                           {profile.createdAt
@@ -4682,7 +4658,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       </div>
                       {profile.lastActive && (
                         <div className="flex items-center gap-2 break-words">
-                          <Clock className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                          <Clock className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />{' '}
                           <span className="break-words min-w-0">
                             פעילות אחרונה:{' '}
                             {new Date(profile.lastActive).toLocaleDateString(
@@ -4692,7 +4668,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         </div>
                       )}
                       <div className="flex items-center gap-2 break-words">
-                        <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                        <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />{' '}
                         <span className="break-words min-w-0">
                           השלמת פרופיל:{' '}
                           {profile.isProfileComplete
@@ -4701,7 +4677,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         </span>
                       </div>
                       <div className="flex items-center gap-2 break-words">
-                        <Heart className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                        <Heart className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />{' '}
                         <span className="break-words min-w-0">
                           סטטוס זמינות: {availability.text}
                         </span>
@@ -4710,8 +4686,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   </div>
                 </div>
               </SectionCard>
-              
-              {/* Mobile Navigation */}
               {!isDesktop && mobileViewLayout === 'detailed' && (
                 <MobileTabNavigation
                   activeTab={activeTab}

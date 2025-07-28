@@ -1,4 +1,3 @@
-// src/components/HomePage/components/StickyNav.tsx
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -22,18 +21,17 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
   const [activeSection, setActiveSection] = useState('');
   const sectionRefs = useRef<(HTMLElement | null)[]>([]);
 
-  // ======================= START OF ROBUST STATE MANAGEMENT =======================
-  // State to track scroll direction
   const [isScrollingDown, setIsScrollingDown] = useState(false);
-  // NEW: Tri-state for manual control: 'auto', 'open', 'closed'
   const [mobileNavState, setMobileNavState] = useState<
     'auto' | 'open' | 'closed'
   >('auto');
   const [isMobile, setIsMobile] = useState(false);
   const lastScrollY = useRef(0);
-  // ======================== END OF ROBUST STATE MANAGEMENT =========================
 
   useEffect(() => {
+    // Check for window existence for SSR safety
+    if (typeof window === 'undefined') return;
+
     setIsMobile(window.innerWidth < 768);
 
     sectionRefs.current = navLinks.map((link) =>
@@ -46,17 +44,29 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
 
       setIsSticky(currentScrollY > 10);
 
-      // ======================= START OF REFINED SCROLL LOGIC =======================
-      // Use a threshold to prevent jittery behavior
-      if (scrollDelta > 5 && currentScrollY > 150) {
+      // ======================= START OF CORRECTED SCROLL LOGIC =======================
+      // This logic is now more robust and respects the user's manual choices.
+      const scrollThreshold = 5;
+
+      if (scrollDelta > scrollThreshold && currentScrollY > 150) {
         setIsScrollingDown(true);
-        // Scrolling down ALWAYS resets the manual state to 'auto'
-        setMobileNavState('auto');
-      } else if (scrollDelta < -5) {
+        // When scrolling down, if the menu was manually opened,
+        // reset it to 'auto' so it hides.
+        // CRUCIAL: We do NOT touch the 'closed' state.
+        if (mobileNavState === 'open') {
+          setMobileNavState('auto');
+        }
+      } else if (scrollDelta < -scrollThreshold) {
         setIsScrollingDown(false);
+        // When scrolling up, if the menu was manually closed,
+        // this is a signal the user might want it again.
+        // Reset to 'auto' to allow it to reappear.
+        if (mobileNavState === 'closed') {
+          setMobileNavState('auto');
+        }
       }
       lastScrollY.current = currentScrollY;
-      // ======================== END OF REFINED SCROLL LOGIC =========================
+      // ======================== END OF CORRECTED SCROLL LOGIC =========================
 
       // Active section highlighting logic (no changes needed here)
       let currentSection = '';
@@ -87,7 +97,7 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleResize);
     };
-  }, [navLinks, isMobile]); // isMobile dependency added
+  }, [navLinks, mobileNavState]); // Added mobileNavState to dependency array
 
   const handleLinkClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
@@ -107,15 +117,9 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
     }
   };
 
-  // ======================= START OF NEW VISIBILITY LOGIC =======================
-  // The nav is visible on mobile if:
-  // 1. The user manually set it to 'open'.
-  // 2. OR, it's in 'auto' mode AND the user is scrolling up.
-  // It is NEVER visible if the state is 'closed'.
   const isNavVisibleOnMobile =
     mobileNavState === 'open' ||
     (mobileNavState === 'auto' && !isScrollingDown);
-  // ======================== END OF NEW VISIBILITY LOGIC ========================
 
   const navVariants = {
     hidden: { y: '-100%', opacity: 0.8 },
@@ -207,7 +211,6 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
                     variant="ghost"
                     size="icon"
                     className="rounded-full text-gray-500 hover:bg-gray-200"
-                    // Pressing X explicitly sets the state to 'closed'
                     onClick={() => setMobileNavState('closed')}
                     aria-label="סגור ניווט"
                   >
@@ -235,7 +238,6 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
 
       {/* Floating Toggle Button */}
       <AnimatePresence>
-        {/* The toggle button now appears if the nav is NOT visible */}
         {isMobile && isSticky && !isNavVisibleOnMobile && (
           <motion.div
             initial={{ scale: 0, opacity: 0, y: 50 }}
@@ -247,7 +249,6 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
             <Button
               size="icon"
               className="rounded-full h-14 w-14 bg-white/80 backdrop-blur-md border border-gray-200/80 shadow-lg hover:bg-gray-100"
-              // Pressing the Menu button explicitly sets the state to 'open'
               onClick={() => setMobileNavState('open')}
               aria-label="פתח ניווט"
             >
