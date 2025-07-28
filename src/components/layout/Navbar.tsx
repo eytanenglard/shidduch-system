@@ -146,20 +146,24 @@ const Logo = () => {
     <Link
       href="/"
       className="flex items-center gap-x-2 group shrink-0"
-      aria-label="Keystone Match Homepage"
+      aria-label="NeshamaTech Homepage"
     >
       <div className="relative h-9 w-9">
-     <Image
-  src="/images/keystone-icon.png" 
-  alt="Keystone Match Icon"
-  fill 
-  className="object-contain transition-transform duration-300 group-hover:scale-110" 
-  priority
-  unoptimized // <--- הוספנו את השורה הזו
-/>
+        {/* ======================= התיקון כאן ======================= */}
+        <Image
+          // עטפנו את ה-URL המלא בפונקציית העזר שלנו
+          src={getRelativeCloudinaryPath(
+            'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753712543/Adobe_Express_-_file_ihel3a.png'
+          )}
+          alt="NeshamaTech Icon"
+          fill
+          className="object-contain transition-transform duration-300 group-hover:scale-110"
+          priority
+        />
+        {/* ========================================================== */}
       </div>
       <span className="text-xl font-bold text-gray-800 group-hover:text-cyan-600 transition-colors duration-300">
-        Keystone Match
+        NeshamaTech
       </span>
     </Link>
   );

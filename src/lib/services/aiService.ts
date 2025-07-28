@@ -1,12 +1,14 @@
 // src/lib/services/aiService.ts
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const apiKey = process.env.GOOGLE_API_KEY;
 
 if (!apiKey) {
-  console.error("[FATAL ERROR] GOOGLE_API_KEY is not set in .env or .env.local!");
-  throw new Error("GOOGLE_API_KEY must be set.");
+  console.error(
+    '[FATAL ERROR] GOOGLE_API_KEY is not set in .env or .env.local!'
+  );
+  throw new Error('GOOGLE_API_KEY must be set.');
 }
 
 const genAI = new GoogleGenerativeAI(apiKey);
@@ -16,18 +18,20 @@ const genAI = new GoogleGenerativeAI(apiKey);
  * @param text הטקסט להטמעה.
  * @returns Promise שמחזיר מערך של מספרים (הווקטור), או null במקרה של כישלון.
  */
-export async function generateTextEmbedding(text: string): Promise<number[] | null> {
+export async function generateTextEmbedding(
+  text: string
+): Promise<number[] | null> {
   try {
-    const model = genAI.getGenerativeModel({ model: "text-embedding-004" });
+    const model = genAI.getGenerativeModel({ model: 'text-embedding-004' });
     const result = await model.embedContent(text);
     const embedding = result.embedding;
     if (embedding && embedding.values) {
       return embedding.values;
     }
-    console.error("Embedding generation returned no values.");
+    console.error('Embedding generation returned no values.');
     return null;
   } catch (error) {
-    console.error("Error generating text embedding:", error);
+    console.error('Error generating text embedding:', error);
     return null;
   }
 }
@@ -38,8 +42,16 @@ export async function generateTextEmbedding(text: string): Promise<number[] | nu
 export interface AiAnalysisResult {
   overallScore: number;
   matchSummary: string;
-  compatibilityPoints: Array<{ area: string; explanation: string; strength: 'HIGH' | 'MEDIUM' | 'LOW' }>;
-  potentialChallenges: Array<{ area: string; explanation: string; severity: 'HIGH' | 'MEDIUM' | 'LOW' }>;
+  compatibilityPoints: Array<{
+    area: string;
+    explanation: string;
+    strength: 'HIGH' | 'MEDIUM' | 'LOW';
+  }>;
+  potentialChallenges: Array<{
+    area: string;
+    explanation: string;
+    severity: 'HIGH' | 'MEDIUM' | 'LOW';
+  }>;
   suggestedConversationStarters: string[];
 }
 
@@ -55,22 +67,27 @@ export async function analyzePairCompatibility(
   profileBText: string,
   language: 'he' | 'en' = 'he'
 ): Promise<AiAnalysisResult | null> {
-  console.log(`--- Attempting to analyze compatibility for matchmaker in ${language} ---`);
+  console.log(
+    `--- Attempting to analyze compatibility for matchmaker in ${language} ---`
+  );
   if (!profileAText || !profileBText) {
-    console.error("analyzePairCompatibility called with one or more empty profiles.");
+    console.error(
+      'analyzePairCompatibility called with one or more empty profiles.'
+    );
     return null;
   }
   const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-pro-latest",
+    model: 'gemini-1.5-pro-latest',
     generationConfig: {
-      responseMimeType: "application/json",
-      temperature: 0.3, 
-    }
+      responseMimeType: 'application/json',
+      temperature: 0.3,
+    },
   });
-  
-  const languageInstruction = language === 'he' 
-    ? "Your entire JSON output, including all string values (keys and explanations), must be in Hebrew." 
-    : "Your entire JSON output, including all string values, must be in English.";
+
+  const languageInstruction =
+    language === 'he'
+      ? 'Your entire JSON output, including all string values (keys and explanations), must be in Hebrew.'
+      : 'Your entire JSON output, including all string values, must be in English.';
 
   const prompt = `
     You are a "Matchmaking AI Expert" for a religious Jewish dating platform. Your goal is to analyze the compatibility of two user profiles and provide a structured, insightful, and helpful analysis for the matchmaker.
@@ -82,21 +99,26 @@ export async function analyzePairCompatibility(
     --- Profile 2 ---
     ${profileBText}
     `;
-    
+
   try {
     const result = await model.generateContent(prompt);
     const response = result.response;
     const jsonString = response.text();
-    
+
     if (!jsonString) {
-      console.error("Direct Gemini API returned an empty response.");
+      console.error('Direct Gemini API returned an empty response.');
       return null;
     }
-    
-    console.log(`--- Successfully received compatibility analysis from Gemini API in ${language} ---`);
+
+    console.log(
+      `--- Successfully received compatibility analysis from Gemini API in ${language} ---`
+    );
     return JSON.parse(jsonString) as AiAnalysisResult;
   } catch (error) {
-    console.error(`Error generating compatibility analysis from Direct Gemini API in ${language}:`, error);
+    console.error(
+      `Error generating compatibility analysis from Direct Gemini API in ${language}:`,
+      error
+    );
     return null;
   }
 }
@@ -104,23 +126,22 @@ export async function analyzePairCompatibility(
 /**
  * מגדיר את מבנה ה-JSON של ניתוח פרופיל עבור המשתמש עצמו.
  */
+// --- START OF CHANGE ---
 export interface AiProfileAnalysisResult {
   personalitySummary: string;
   lookingForSummary: string;
-  completenessReport: Array<{ 
-    area: string; 
-    status: 'COMPLETE' | 'PARTIAL' | 'MISSING'; 
-    feedback: string; 
+  completenessReport: Array<{
+    area: string;
+    status: 'COMPLETE' | 'PARTIAL' | 'MISSING';
+    feedback: string;
   }>;
-  actionableTips: Array<{ 
-    area: string; 
-    tip: string; 
+  actionableTips: Array<{
+    area: string;
+    tip: string;
   }>;
-  photoFeedback: { 
-    imageCount: number; 
-    feedback: string; 
-  };
+  // photoFeedback הוסר
 }
+// --- END OF CHANGE ---
 
 /**
  * מנתח פרופיל של משתמש ומספק משוב וטיפים לשיפור.
@@ -130,28 +151,35 @@ export interface AiProfileAnalysisResult {
 export async function getProfileAnalysis(
   userNarrativeProfile: string
 ): Promise<AiProfileAnalysisResult | null> {
-  console.log("--- [AI Profile Advisor] Starting profile analysis with Gemini API ---");
-  
+  console.log(
+    '--- [AI Profile Advisor] Starting profile analysis with Gemini API ---'
+  );
+
   if (!userNarrativeProfile) {
-    console.error("[AI Profile Advisor] Called with an empty user narrative profile.");
+    console.error(
+      '[AI Profile Advisor] Called with an empty user narrative profile.'
+    );
     return null;
   }
 
   const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-pro-latest",
+    model: 'gemini-1.5-pro-latest',
     generationConfig: {
-      responseMimeType: "application/json",
+      responseMimeType: 'application/json',
       temperature: 0.4,
-    }
+    },
   });
 
+  // --- START OF CHANGE ---
+  // עודכנה ההנחיה כדי להסיר את photoFeedback ממבנה ה-JSON המבוקש
   const prompt = `
     You are an expert, warm, and encouraging dating profile coach for a religious Jewish audience. Your goal is to help the user improve their profile to attract the best possible matches. Based on the following comprehensive user profile, provide a structured JSON analysis. The entire output MUST be a valid JSON object in Hebrew.
-    The JSON structure must be: { "personalitySummary": "string", "lookingForSummary": "string", "completenessReport": [{ "area": "string", "status": "COMPLETE" | "PARTIAL" | "MISSING", "feedback": "string" }], "actionableTips": [{ "area": "string", "tip": "string" }], "photoFeedback": { "imageCount": number, "feedback": "string" } }
+    The JSON structure must be: { "personalitySummary": "string", "lookingForSummary": "string", "completenessReport": [{ "area": "string", "status": "COMPLETE" | "PARTIAL" | "MISSING", "feedback": "string" }], "actionableTips": [{ "area": "string", "tip": "string" }] }
     --- User Profile Narrative ---
     ${userNarrativeProfile}
     --- End of User Profile Narrative ---
   `;
+  // --- END OF CHANGE ---
 
   try {
     const result = await model.generateContent(prompt);
@@ -159,14 +187,21 @@ export async function getProfileAnalysis(
     const jsonString = response.text();
 
     if (!jsonString) {
-      console.error("[AI Profile Advisor] Gemini API returned an empty response.");
+      console.error(
+        '[AI Profile Advisor] Gemini API returned an empty response.'
+      );
       return null;
     }
 
-    console.log("--- [AI Profile Advisor] Successfully received analysis from Gemini API. ---");
+    console.log(
+      '--- [AI Profile Advisor] Successfully received analysis from Gemini API. ---'
+    );
     return JSON.parse(jsonString) as AiProfileAnalysisResult;
   } catch (error) {
-    console.error("[AI Profile Advisor] Error generating profile analysis:", error);
+    console.error(
+      '[AI Profile Advisor] Error generating profile analysis:',
+      error
+    );
     return null;
   }
 }
@@ -194,19 +229,23 @@ export async function analyzeSuggestionForUser(
   currentUserProfileText: string,
   suggestedUserProfileText: string
 ): Promise<AiSuggestionAnalysisResult | null> {
-  console.log("--- [AI Suggestion Advisor] Starting suggestion analysis for user ---");
+  console.log(
+    '--- [AI Suggestion Advisor] Starting suggestion analysis for user ---'
+  );
 
   if (!currentUserProfileText || !suggestedUserProfileText) {
-    console.error("[AI Suggestion Advisor] Called with one or more empty profiles.");
+    console.error(
+      '[AI Suggestion Advisor] Called with one or more empty profiles.'
+    );
     return null;
   }
 
   const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-pro-latest",
+    model: 'gemini-1.5-pro-latest',
     generationConfig: {
-      responseMimeType: "application/json",
+      responseMimeType: 'application/json',
       temperature: 0.5,
-    }
+    },
   });
 
   const prompt = `
@@ -227,19 +266,25 @@ export async function analyzeSuggestionForUser(
     const jsonString = response.text();
 
     if (!jsonString) {
-      console.error("[AI Suggestion Advisor] Gemini API returned an empty response.");
+      console.error(
+        '[AI Suggestion Advisor] Gemini API returned an empty response.'
+      );
       return null;
     }
 
-    console.log("--- [AI Suggestion Advisor] Successfully received analysis from Gemini API. ---");
+    console.log(
+      '--- [AI Suggestion Advisor] Successfully received analysis from Gemini API. ---'
+    );
     return JSON.parse(jsonString) as AiSuggestionAnalysisResult;
   } catch (error) {
-    console.error("[AI Suggestion Advisor] Error generating suggestion analysis:", error);
+    console.error(
+      '[AI Suggestion Advisor] Error generating suggestion analysis:',
+      error
+    );
     return null;
   }
 }
 
-// --- START OF CHANGE ---
 /**
  * מייצר טקסט נימוק מותאם אישית עבור הצעת שידוך.
  * @param profile1Text הפרופיל הנרטיבי של צד א'.
@@ -250,13 +295,17 @@ export async function generateSuggestionRationale(
   profile1Text: string,
   profile2Text: string
 ): Promise<string | null> {
-  console.log("--- [AI Rationale Writer] Starting suggestion rationale generation ---");
+  console.log(
+    '--- [AI Rationale Writer] Starting suggestion rationale generation ---'
+  );
   if (!profile1Text || !profile2Text) {
-    console.error("[AI Rationale Writer] Called with one or more empty profiles.");
+    console.error(
+      '[AI Rationale Writer] Called with one or more empty profiles.'
+    );
     return null;
   }
 
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
   const prompt = `
     You are a professional and sensitive matchmaker in the religious Jewish community. Your task is to write a warm, personal, and compelling justification ('matchingReason') for a match suggestion.
@@ -279,18 +328,24 @@ export async function generateSuggestionRationale(
     const text = response.text();
 
     if (!text) {
-      console.error("[AI Rationale Writer] Gemini API returned an empty response.");
+      console.error(
+        '[AI Rationale Writer] Gemini API returned an empty response.'
+      );
       return null;
     }
 
-    console.log("--- [AI Rationale Writer] Successfully generated rationale. ---");
+    console.log(
+      '--- [AI Rationale Writer] Successfully generated rationale. ---'
+    );
     return text.trim();
   } catch (error) {
-    console.error("[AI Rationale Writer] Error generating suggestion rationale:", error);
+    console.error(
+      '[AI Rationale Writer] Error generating suggestion rationale:',
+      error
+    );
     return null;
   }
 }
-// --- END OF CHANGE ---
 
 /**
  * מגדיר את מבנה ה-JSON של אובייקט הנימוקים המלא.
@@ -311,18 +366,22 @@ export async function generateFullSuggestionRationale(
   profile1Text: string,
   profile2Text: string
 ): Promise<FullRationaleResult | null> {
-  console.log("--- [AI Rationale Writer] Starting full rationale package generation ---");
+  console.log(
+    '--- [AI Rationale Writer] Starting full rationale package generation ---'
+  );
   if (!profile1Text || !profile2Text) {
-    console.error("[AI Rationale Writer] Called with one or more empty profiles.");
+    console.error(
+      '[AI Rationale Writer] Called with one or more empty profiles.'
+    );
     return null;
   }
 
-  const model = genAI.getGenerativeModel({ 
-    model: "gemini-1.5-pro-latest",
+  const model = genAI.getGenerativeModel({
+    model: 'gemini-1.5-pro-latest',
     generationConfig: {
-      responseMimeType: "application/json",
-      temperature: 0.6, // מעט יותר יצירתיות לניסוח אישי
-    }
+      responseMimeType: 'application/json',
+      temperature: 0.6,
+    },
   });
 
   const prompt = `
@@ -354,23 +413,31 @@ export async function generateFullSuggestionRationale(
     const jsonString = response.text();
 
     if (!jsonString) {
-      console.error("[AI Rationale Writer] Gemini API returned an empty response for full rationale.");
+      console.error(
+        '[AI Rationale Writer] Gemini API returned an empty response for full rationale.'
+      );
       return null;
     }
 
-    console.log("--- [AI Rationale Writer] Successfully generated full rationale package. ---");
+    console.log(
+      '--- [AI Rationale Writer] Successfully generated full rationale package. ---'
+    );
     return JSON.parse(jsonString) as FullRationaleResult;
   } catch (error) {
-    console.error("[AI Rationale Writer] Error generating full suggestion rationale:", error);
+    console.error(
+      '[AI Rationale Writer] Error generating full suggestion rationale:',
+      error
+    );
     return null;
   }
 }
+
 const aiService = {
   generateTextEmbedding,
   analyzePairCompatibility,
   getProfileAnalysis,
   analyzeSuggestionForUser,
-  generateSuggestionRationale, // --- ADDED ---
+  generateSuggestionRationale,
   generateFullSuggestionRationale,
 };
 
