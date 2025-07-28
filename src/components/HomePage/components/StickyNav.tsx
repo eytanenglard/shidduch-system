@@ -1,4 +1,4 @@
-// src/components/StickyNav.tsx (הקובץ המלא והמתוקן)
+// src/app/components/StickyNav.tsx - VERSION מתוקנת ומלאה
 
 'use client';
 
@@ -31,10 +31,8 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
   const lastScrollY = useRef(0);
 
   useEffect(() => {
-    // Check for window existence for SSR safety
     if (typeof window === 'undefined') return;
 
-    // This initialization can be moved outside if it doesn't depend on navLinks, but here is fine.
     setIsMobile(window.innerWidth < 768);
 
     sectionRefs.current = navLinks.map((link) =>
@@ -48,28 +46,18 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
 
       setIsSticky(currentScrollY > 10);
 
-      // ======================= START OF CORRECTED SCROLL LOGIC =======================
       if (scrollDelta > scrollThreshold && currentScrollY > 150) {
         setIsScrollingDown(true);
-        // When scrolling down, if the menu was manually opened,
-        // reset it to 'auto' so it can hide. This is good UX.
         if (mobileNavState === 'open') {
           setMobileNavState('auto');
         }
       } else if (scrollDelta < -scrollThreshold) {
         setIsScrollingDown(false);
-        // -----------------------------------------------------------------------------
-        // <<< FIX APPLIED HERE >>>
-        // The problematic logic that automatically reset 'closed' to 'auto' was removed.
-        // A user's decision to close the nav should be respected until they open it again.
-        // -----------------------------------------------------------------------------
       }
       lastScrollY.current = currentScrollY;
-      // ======================== END OF CORRECTED SCROLL LOGIC =========================
 
-      // Active section highlighting logic (no changes needed here)
       let currentSection = '';
-      const offset = isMobile ? 200 : 150; // This read of 'isMobile' is why it's needed in the deps array
+      const offset = isMobile ? 200 : 150;
       sectionRefs.current.forEach((section, index) => {
         if (section) {
           const sectionTop = section.offsetTop - offset;
@@ -89,8 +77,6 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('resize', handleResize);
-
-    // Initial calls to set state correctly on load
     handleScroll();
     handleResize();
 
@@ -98,7 +84,6 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleResize);
     };
-    // <<< FIX APPLIED HERE >>> Added 'isMobile' to the dependency array to fix the ESLint warning.
   }, [navLinks, mobileNavState, isMobile]);
 
   const handleLinkClick = (
@@ -107,7 +92,6 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
   ) => {
     e.preventDefault();
     if (isMobile) {
-      // Set to 'closed' instead of 'auto' to ensure it stays hidden after the scroll.
       setMobileNavState('closed');
     }
     const element = document.querySelector(href);
@@ -124,10 +108,14 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
     mobileNavState === 'open' ||
     (mobileNavState === 'auto' && !isScrollingDown);
 
+  // ======================= FIX #1: CORRECTED ANIMATION VARIANTS =======================
+  // The 'hidden' state now moves the element further up ('-120%') and fades it out completely.
+  // This ensures it disappears from view even with the 'top-20' class on mobile.
   const navVariants = {
-    hidden: { y: '-100%', opacity: 0.8 },
+    hidden: { y: '-120%', opacity: 0 },
     visible: { y: 0, opacity: 1 },
   };
+  // ===================================================================================
 
   return (
     <>
@@ -147,7 +135,6 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
             transition={{ duration: 0.3, ease: 'easeOut' }}
             className="fixed top-20 md:top-0 left-0 right-0 z-40 w-full h-16 md:h-20"
           >
-            {/* The rest of the component remains unchanged... */}
             <div className="absolute inset-0 bg-white/80 backdrop-blur-lg shadow-sm border-b border-gray-200/80"></div>
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
               {/* Desktop Elements */}
@@ -248,7 +235,9 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0, opacity: 0, y: 50 }}
             transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-            className="fixed bottom-24 right-4 z-40"
+            // ================== FIX #2: HIGHER Z-INDEX ==================
+            className="fixed bottom-24 right-4 z-50"
+            // ==========================================================
           >
             <Button
               size="icon"
