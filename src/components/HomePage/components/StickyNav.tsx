@@ -5,10 +5,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Menu, X, UserPlus, Heart } from 'lucide-react';
+import { UserPlus, Heart, Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// Data structure for navigation links for easy management
 export interface NavLink {
   id: string;
   label: string;
@@ -21,36 +20,54 @@ interface StickyNavProps {
 const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
   const [isSticky, setIsSticky] = useState(false);
   const [activeSection, setActiveSection] = useState('');
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const sectionRefs = useRef<(HTMLElement | null)[]>([]);
 
-  // Effect to manage sticky state and active section on scroll
+  // ======================= START OF ROBUST STATE MANAGEMENT =======================
+  // State to track scroll direction
+  const [isScrollingDown, setIsScrollingDown] = useState(false);
+  // NEW: Tri-state for manual control: 'auto', 'open', 'closed'
+  const [mobileNavState, setMobileNavState] = useState<
+    'auto' | 'open' | 'closed'
+  >('auto');
+  const [isMobile, setIsMobile] = useState(false);
+  const lastScrollY = useRef(0);
+  // ======================== END OF ROBUST STATE MANAGEMENT =========================
+
   useEffect(() => {
-    // Populate refs for each section
+    setIsMobile(window.innerWidth < 768);
+
     sectionRefs.current = navLinks.map((link) =>
       document.getElementById(link.id)
     );
 
     const handleScroll = () => {
-      // ======================= START OF CHANGE 1 (The likely fix) =======================
-      // The old condition was too strict. This new one makes the nav appear
-      // as soon as the user scrolls just a little bit.
-      if (window.scrollY > 10) {
-        setIsSticky(true);
-      } else {
-        setIsSticky(false);
-      }
-      // ======================== END OF CHANGE 1 =========================
+      const currentScrollY = window.scrollY;
+      const scrollDelta = currentScrollY - lastScrollY.current;
 
-      // Logic for active section highlighting
+      setIsSticky(currentScrollY > 10);
+
+      // ======================= START OF REFINED SCROLL LOGIC =======================
+      // Use a threshold to prevent jittery behavior
+      if (scrollDelta > 5 && currentScrollY > 150) {
+        setIsScrollingDown(true);
+        // Scrolling down ALWAYS resets the manual state to 'auto'
+        setMobileNavState('auto');
+      } else if (scrollDelta < -5) {
+        setIsScrollingDown(false);
+      }
+      lastScrollY.current = currentScrollY;
+      // ======================== END OF REFINED SCROLL LOGIC =========================
+
+      // Active section highlighting logic (no changes needed here)
       let currentSection = '';
+      const offset = isMobile ? 200 : 150;
       sectionRefs.current.forEach((section, index) => {
         if (section) {
-          const sectionTop = section.offsetTop - 150; // Offset for better accuracy
+          const sectionTop = section.offsetTop - offset;
           const sectionHeight = section.clientHeight;
           if (
-            window.scrollY >= sectionTop &&
-            window.scrollY < sectionTop + sectionHeight
+            currentScrollY >= sectionTop &&
+            currentScrollY < sectionTop + sectionHeight
           ) {
             currentSection = navLinks[index].id;
           }
@@ -59,77 +76,82 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
       setActiveSection(currentSection);
     };
 
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+
     window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll(); // Initial check on load
+    window.addEventListener('resize', handleResize);
+    handleScroll();
+    handleResize();
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleResize);
     };
-  }, [navLinks]);
-
-  // Effect to handle body scroll lock when mobile menu is open
-  useEffect(() => {
-    if (isMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isMenuOpen]);
+  }, [navLinks, isMobile]); // isMobile dependency added
 
   const handleLinkClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
     href: string
   ) => {
     e.preventDefault();
-    document.querySelector(href)?.scrollIntoView({
-      behavior: 'smooth',
-    });
-    setIsMenuOpen(false); // Close mobile menu on link click
+    if (isMobile) {
+      setMobileNavState('closed'); // Close nav after clicking a link
+    }
+    const element = document.querySelector(href);
+    if (element) {
+      const headerOffset = isMobile ? 80 : 160;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition =
+        elementPosition + window.pageYOffset - headerOffset;
+      window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+    }
   };
 
-  // Animation variants for the mobile menu
-  const menuVariants = {
-    closed: { opacity: 0, y: '-100%' },
-    open: { opacity: 1, y: '0%' },
+  // ======================= START OF NEW VISIBILITY LOGIC =======================
+  // The nav is visible on mobile if:
+  // 1. The user manually set it to 'open'.
+  // 2. OR, it's in 'auto' mode AND the user is scrolling up.
+  // It is NEVER visible if the state is 'closed'.
+  const isNavVisibleOnMobile =
+    mobileNavState === 'open' ||
+    (mobileNavState === 'auto' && !isScrollingDown);
+  // ======================== END OF NEW VISIBILITY LOGIC ========================
+
+  const navVariants = {
+    hidden: { y: '-100%', opacity: 0.8 },
+    visible: { y: 0, opacity: 1 },
   };
 
   return (
     <>
-      {/* Ensures smooth scrolling behavior is enabled */}
-      <style jsx global>{`
-        html {
-          scroll-behavior: smooth;
-        }
-      `}</style>
       <AnimatePresence>
         {isSticky && (
           <motion.header
-            initial={{ y: -100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -100, opacity: 0 }}
+            variants={navVariants}
+            initial="hidden"
+            animate={
+              isMobile
+                ? isNavVisibleOnMobile
+                  ? 'visible'
+                  : 'hidden'
+                : 'visible'
+            }
+            exit="hidden"
             transition={{ duration: 0.3, ease: 'easeOut' }}
-            // ======================= START OF CHANGE 2 (Safety measure) =======================
-            // Increased z-index from z-40 to z-50 to ensure it's on top of everything.
-            className="fixed top-0 left-0 right-0 z-50 w-full h-20"
-            // ======================== END OF CHANGE 2 =========================
+            className="fixed top-20 md:top-0 left-0 right-0 z-40 w-full h-16 md:h-20"
           >
             <div className="absolute inset-0 bg-white/80 backdrop-blur-lg shadow-sm border-b border-gray-200/80"></div>
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
-              {/* Logo */}
+              {/* Desktop Elements */}
               <Link
                 href="/"
-                className="flex items-center gap-x-2 group shrink-0"
+                className="hidden md:flex items-center gap-x-2 group shrink-0"
               >
                 <Heart className="h-7 w-7 text-cyan-500 transition-transform duration-300 group-hover:scale-110" />
                 <span className="text-xl font-bold text-gray-800 group-hover:text-cyan-600 transition-colors">
                   Match Point
                 </span>
               </Link>
-
-              {/* Desktop Navigation */}
               <nav className="hidden md:flex items-center gap-2 relative">
                 {navLinks.map((link) => (
                   <a
@@ -159,9 +181,44 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
                 ))}
               </nav>
 
-              {/* Actions: Desktop CTA and Mobile Menu Toggle */}
-              <div className="flex items-center gap-2">
-                <Link href="/auth/register" className="hidden md:block">
+              {/* Mobile Layout */}
+              <div className="flex md:hidden items-center justify-between w-full">
+                <nav className="flex-grow overflow-x-auto scrollbar-hide">
+                  <div className="flex items-center gap-2 px-1">
+                    {navLinks.map((link) => (
+                      <a
+                        key={link.id}
+                        href={`#${link.id}`}
+                        onClick={(e) => handleLinkClick(e, `#${link.id}`)}
+                        className={cn(
+                          'relative px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0',
+                          activeSection === link.id
+                            ? 'bg-cyan-600 text-white shadow'
+                            : 'text-gray-700 hover:bg-gray-100'
+                        )}
+                      >
+                        {link.label}
+                      </a>
+                    ))}
+                  </div>
+                </nav>
+                <div className="pl-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="rounded-full text-gray-500 hover:bg-gray-200"
+                    // Pressing X explicitly sets the state to 'closed'
+                    onClick={() => setMobileNavState('closed')}
+                    aria-label="סגור ניווט"
+                  >
+                    <X className="h-5 w-5" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Desktop CTA */}
+              <div className="hidden md:flex items-center gap-2">
+                <Link href="/auth/register">
                   <Button className="group relative overflow-hidden bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 px-5">
                     <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
                     <span className="relative z-10 flex items-center">
@@ -170,88 +227,32 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
                     </span>
                   </Button>
                 </Link>
-
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="md:hidden text-gray-600 hover:text-cyan-600 hover:bg-cyan-100/50 rounded-full"
-                  onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  aria-label="פתח תפריט"
-                >
-                  <Menu className="h-6 w-6" />
-                </Button>
               </div>
             </div>
           </motion.header>
         )}
       </AnimatePresence>
 
-      {/* Mobile Menu */}
+      {/* Floating Toggle Button */}
       <AnimatePresence>
-        {isMenuOpen && (
+        {/* The toggle button now appears if the nav is NOT visible */}
+        {isMobile && isSticky && !isNavVisibleOnMobile && (
           <motion.div
-            variants={menuVariants}
-            initial="closed"
-            animate="open"
-            exit="closed"
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
-            className="fixed inset-0 bg-white z-50 p-6 flex flex-col md:hidden"
+            initial={{ scale: 0, opacity: 0, y: 50 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0, opacity: 0, y: 50 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+            className="fixed bottom-24 right-4 z-40"
           >
-            <div className="flex justify-between items-center mb-10">
-              <Link href="/" className="flex items-center gap-x-2 group">
-                <Heart className="h-7 w-7 text-cyan-500" />
-                <span className="text-xl font-bold text-gray-800">
-                  Match Point
-                </span>
-              </Link>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsMenuOpen(false)}
-                className="rounded-full"
-              >
-                <X className="h-6 w-6" />
-              </Button>
-            </div>
-
-            <nav className="flex flex-col gap-4 text-center">
-              {navLinks.map((link) => (
-                <a
-                  key={link.id}
-                  href={`#${link.id}`}
-                  onClick={(e) => handleLinkClick(e, `#${link.id}`)}
-                  className={cn(
-                    'text-2xl font-medium py-3 rounded-lg transition-colors',
-                    activeSection === link.id
-                      ? 'bg-cyan-50 text-cyan-600'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  )}
-                >
-                  {link.label}
-                </a>
-              ))}
-            </nav>
-
-            <div className="mt-auto pt-10 flex flex-col gap-4">
-              <Link href="/auth/register">
-                <Button
-                  size="lg"
-                  className="w-full text-lg bg-gradient-to-r from-cyan-500 to-pink-500 text-white rounded-full"
-                >
-                  <UserPlus className="ml-2 h-5 w-5" />
-                  הרשמה
-                </Button>
-              </Link>
-              <Link href="/auth/signin">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="w-full text-lg rounded-full"
-                >
-                  כבר יש לי חשבון
-                </Button>
-              </Link>
-            </div>
+            <Button
+              size="icon"
+              className="rounded-full h-14 w-14 bg-white/80 backdrop-blur-md border border-gray-200/80 shadow-lg hover:bg-gray-100"
+              // Pressing the Menu button explicitly sets the state to 'open'
+              onClick={() => setMobileNavState('open')}
+              aria-label="פתח ניווט"
+            >
+              <Menu className="h-6 w-6 text-cyan-600" />
+            </Button>
           </motion.div>
         )}
       </AnimatePresence>
