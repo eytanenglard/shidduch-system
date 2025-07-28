@@ -29,6 +29,7 @@ import {
   MapPin,
   Briefcase,
   GraduationCap,
+  ChevronUp,
   Scroll as ScrollIcon,
   GitCompareArrows,
   Star,
@@ -78,7 +79,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { getInitials, cn } from '@/lib/utils';
+import { getInitials, cn, getRelativeCloudinaryPath } from '@/lib/utils';
 import type { QuestionnaireResponse } from '@/types/next-auth';
 import type { AiSuggestionAnalysisResult } from '@/lib/services/aiService';
 
@@ -208,7 +209,7 @@ const EnhancedHeroSection: React.FC<{
             <div className="relative h-96 lg:h-[500px] rounded-3xl overflow-hidden shadow-2xl">
               {mainImage ? (
                 <Image
-                  src={mainImage}
+                  src={getRelativeCloudinaryPath(mainImage)} // <-- זה השינוי העיקרי
                   alt={`תמונה של ${targetParty.firstName}`}
                   fill
                   className="object-cover transition-transform duration-700 group-hover:scale-105"
@@ -338,75 +339,106 @@ const EnhancedHeroSection: React.FC<{
 // QUICK ACTIONS ENHANCED - MOBILE OPTIMIZED
 // ===============================
 
+// ===============================
+// QUICK ACTIONS ENHANCED - COLLAPSIBLE & MOBILE OPTIMIZED
+// ===============================
+
 const EnhancedQuickActions: React.FC<{
+  isExpanded: boolean;
+  onToggleExpand: () => void;
   canAct: boolean;
   isSubmitting: boolean;
   onApprove: () => void;
   onDecline: () => void;
   onAskQuestion: () => void;
-}> = ({ canAct, isSubmitting, onApprove, onDecline, onAskQuestion }) => (
-  <div className="flex-shrink-0 bg-gradient-to-r from-white via-purple-50/30 to-pink-50/30 backdrop-blur-sm border-t border-purple-100 p-4 md:p-6">
-    {/* ======================= START OF CHANGE FOR MOBILE ======================= */}
-    {/*
-      Here is the core change.
-      On mobile (default), we use a `grid` layout for vertical stacking.
-      On medium screens and up (`md:`), we switch to a `flex` layout for horizontal arrangement.
-    */}
-    <div className="max-w-4xl mx-auto grid grid-cols-1 gap-3 md:flex md:gap-4">
-      {canAct && (
-        // Approve Button (Primary Action) - always visible if user can act
-        <Button
-          className="w-full md:flex-1 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 hover:from-emerald-600 hover:via-green-600 hover:to-emerald-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-xl h-14 font-bold text-base transform hover:scale-105"
-          disabled={isSubmitting}
-          onClick={onApprove}
-        >
-          {isSubmitting ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
-          ) : (
-            <div className="flex items-center justify-center">
-              <Heart className="w-5 h-5 ml-2 animate-pulse" />
-              <span>מעוניין/ת להכיר!</span>
-            </div>
-          )}
-        </Button>
-      )}
-
-      {/* Ask Question Button (Secondary Action) */}
-      <Button
-        variant="outline"
-        onClick={onAskQuestion}
-        disabled={isSubmitting}
-        className="w-full md:flex-1 border-2 border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300 transition-all duration-300 rounded-xl h-14 font-semibold text-base shadow-lg"
+}> = ({
+  isExpanded,
+  onToggleExpand,
+  canAct,
+  isSubmitting,
+  onApprove,
+  onDecline,
+  onAskQuestion,
+}) => (
+  <div
+    className={cn(
+      'flex-shrink-0 bg-gradient-to-r from-white via-purple-50/30 to-pink-50/30 backdrop-blur-sm border-t border-purple-100 transition-all duration-300 ease-in-out',
+      isExpanded ? 'p-4 md:p-6' : 'py-3 px-4 md:px-6'
+    )}
+  >
+    <div className="max-w-4xl mx-auto">
+      {/* --- Collapsible Header (Always Visible) --- */}
+      <div
+        className="flex justify-between items-center cursor-pointer"
+        onClick={onToggleExpand}
       >
-        <MessageCircle className="w-5 h-5 ml-2" />
-        שאלות לשדכן
-      </Button>
-
-      {canAct && (
-        // Decline Button (Tertiary Action) - styled to be less prominent
+        <p className="text-sm font-bold text-purple-700">
+          {isExpanded ? '✨ כל סיפור אהבה מתחיל בהחלטה אחת' : 'פעולות מהירות'}
+        </p>
         <Button
-          variant="ghost" // Using ghost variant for a more subtle look on mobile
-          className="w-full md:flex-1 text-gray-600 hover:bg-gray-100 hover:text-gray-700 transition-all duration-300 rounded-xl h-14 font-semibold text-base md:border-2 md:border-gray-200 md:shadow-lg md:hover:border-gray-300"
-          disabled={isSubmitting}
-          onClick={onDecline}
+          variant="ghost"
+          size="icon"
+          className="rounded-full h-8 w-8 text-purple-500 hover:bg-purple-100/50"
         >
-          {isSubmitting ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
+          {isExpanded ? (
+            <ChevronDown className="w-5 h-5" />
           ) : (
-            <>
-              <XCircle className="w-5 h-5 ml-2" />
-              <span>לא מתאים כרגע</span>
-            </>
+            <ChevronUp className="w-5 h-5" />
           )}
         </Button>
-      )}
-    </div>
-    {/* ======================== END OF CHANGE FOR MOBILE ======================== */}
+      </div>
 
-    <div className="text-center mt-4">
-      <p className="text-sm text-gray-600 font-medium">
-        ✨ כל סיפור אהבה מתחיל בהחלטה אחת ✨
-      </p>
+      {/* --- Collapsible Content (The Buttons) --- */}
+      {isExpanded && (
+        <div className="mt-4 animate-in fade-in-50 slide-in-from-bottom-2 duration-300">
+          <div className="grid grid-cols-1 gap-3 md:flex md:gap-4">
+            {canAct && (
+              <Button
+                className="w-full md:flex-1 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 hover:from-emerald-600 hover:via-green-600 hover:to-emerald-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-xl h-14 font-bold text-base transform hover:scale-105"
+                disabled={isSubmitting}
+                onClick={onApprove}
+              >
+                {isSubmitting ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <div className="flex items-center justify-center">
+                    <Heart className="w-5 h-5 ml-2 animate-pulse" />
+                    <span>מעוניין/ת להכיר!</span>
+                  </div>
+                )}
+              </Button>
+            )}
+
+            <Button
+              variant="outline"
+              onClick={onAskQuestion}
+              disabled={isSubmitting}
+              className="w-full md:flex-1 border-2 border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300 transition-all duration-300 rounded-xl h-14 font-semibold text-base shadow-lg"
+            >
+              <MessageCircle className="w-5 h-5 ml-2" />
+              שאלות לשדכן
+            </Button>
+
+            {canAct && (
+              <Button
+                variant="ghost"
+                className="w-full md:flex-1 text-gray-600 hover:bg-gray-100 hover:text-gray-700 transition-all duration-300 rounded-xl h-14 font-semibold text-base md:border-2 md:border-gray-200 md:shadow-lg md:hover:border-gray-300"
+                disabled={isSubmitting}
+                onClick={onDecline}
+              >
+                {isSubmitting ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <>
+                    <XCircle className="w-5 h-5 ml-2" />
+                    <span>לא מתאים כרגע</span>
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   </div>
 );
@@ -429,12 +461,11 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   const [actionToConfirm, setActionToConfirm] = useState<
     'approve' | 'decline' | null
   >(null);
-  const [isFullScreen, setIsFullScreen] = useState(false);
-  const dialogContentRef = useRef<HTMLDivElement>(null);
+
   const [questionnaire, setQuestionnaire] =
     useState<QuestionnaireResponse | null>(null);
   const [isQuestionnaireLoading, setIsQuestionnaireLoading] = useState(false);
-
+  const [isActionsExpanded, setIsActionsExpanded] = useState(true);
   const isFirstParty = suggestion?.firstPartyId === userId;
   const targetParty = suggestion
     ? isFirstParty
@@ -443,55 +474,11 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
     : null;
   const targetPartyId = targetParty?.id;
 
-  useEffect(() => {
-    if (isOpen) {
-      setActiveTab('presentation');
-      setQuestionnaire(null);
-      setIsFullScreen(!!document.fullscreenElement);
-
-      if (targetPartyId) {
-        const fetchQuestionnaire = async () => {
-          setIsQuestionnaireLoading(true);
-          try {
-            const response = await fetch(
-              `/api/profile/questionnaire?userId=${targetPartyId}`
-            );
-            const data = await response.json();
-            if (response.ok && data.success)
-              setQuestionnaire(data.questionnaireResponse);
-          } catch (error) {
-            console.error('Error fetching questionnaire:', error);
-          } finally {
-            setIsQuestionnaireLoading(false);
-          }
-        };
-        fetchQuestionnaire();
-      }
-    }
-
-    const handleFullScreenChange = () =>
-      setIsFullScreen(!!document.fullscreenElement);
-    document.addEventListener('fullscreenchange', handleFullScreenChange);
-    return () =>
-      document.removeEventListener('fullscreenchange', handleFullScreenChange);
-  }, [isOpen, targetPartyId]);
-
   if (!suggestion || !targetParty) return null;
 
   const canActOnSuggestion =
     (isFirstParty && suggestion.status === 'PENDING_FIRST_PARTY') ||
     (!isFirstParty && suggestion.status === 'PENDING_SECOND_PARTY');
-
-  const toggleFullScreen = () => {
-    if (!dialogContentRef.current) return;
-    if (!document.fullscreenElement) {
-      dialogContentRef.current
-        .requestFullscreen()
-        .catch(() => toast.error('לא ניתן לעבור למסך מלא'));
-    } else {
-      document.exitFullscreen();
-    }
-  };
 
   const triggerConfirmDialog = (action: 'approve' | 'decline') => {
     setActionToConfirm(action);
@@ -547,8 +534,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent
-          ref={dialogContentRef}
-          className="max-w-7xl w-[95vw] h-[95vh] flex flex-col p-0 shadow-2xl rounded-3xl border-0 bg-white overflow-hidden"
+          className="w-screen h-screen rounded-none md:max-w-7xl md:w-[95vw] md:h-[95vh] md:rounded-3xl flex flex-col p-0 shadow-2xl border-0 bg-white overflow-hidden"
           dir="rtl"
         >
           <DialogHeader className="px-6 py-4 border-b border-purple-100 flex-shrink-0 flex flex-row items-center justify-between bg-gradient-to-r from-purple-50/80 via-white to-pink-50/80 backdrop-blur-sm sticky top-0 z-30">
@@ -564,27 +550,6 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={toggleFullScreen}
-                      className="rounded-full h-10 w-10 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-                    >
-                      {isFullScreen ? (
-                        <Minimize className="w-5 h-5" />
-                      ) : (
-                        <Maximize className="w-5 h-5" />
-                      )}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{isFullScreen ? 'צא ממסך מלא' : 'מסך מלא'}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
               <Button
                 variant="ghost"
                 size="icon"
@@ -710,6 +675,8 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
           </ScrollArea>
 
           <EnhancedQuickActions
+            isExpanded={isActionsExpanded}
+            onToggleExpand={() => setIsActionsExpanded((prev) => !prev)}
             canAct={canActOnSuggestion}
             isSubmitting={isSubmitting}
             onApprove={() => triggerConfirmDialog('approve')}
