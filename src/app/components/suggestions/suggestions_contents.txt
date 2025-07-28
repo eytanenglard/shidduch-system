@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\suggestions
-# Generated on: 2025-07-28 18:12:26
+# Generated on: 2025-07-28 23:06:49
 ################################################################################
 
 ================================================================================
@@ -551,10 +551,10 @@ File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\sugges
 Content:
 // src/app/components/suggestions/cards/MinimalSuggestionCard.tsx
 
-import React from "react";
-import Image from "next/image";
-import { formatDistanceToNow, isAfter, subDays } from "date-fns";
-import { he } from "date-fns/locale";
+import React from 'react';
+import Image from 'next/image';
+import { formatDistanceToNow, isAfter, subDays } from 'date-fns';
+import { he } from 'date-fns/locale';
 import {
   User,
   MapPin,
@@ -572,24 +572,26 @@ import {
   ChevronLeft,
   Star,
   Quote,
-  Zap
-} from "lucide-react";
+  Zap,
+} from 'lucide-react';
 
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { toast } from "sonner";
-import { cn } from "@/lib/utils";
-import { getInitials } from "@/lib/utils";
-import { getEnhancedStatusInfo, getPartyIndicator } from "@/lib/utils/suggestionUtils";
-import type { ExtendedMatchSuggestion } from "../types";
+} from '@/components/ui/tooltip';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import { getRelativeCloudinaryPath, getInitials } from "@/lib/utils";import {
+  getEnhancedStatusInfo,
+  getPartyIndicator,
+} from '@/lib/utils/suggestionUtils';
+import type { ExtendedMatchSuggestion } from '../types';
 
 interface MinimalSuggestionCardProps {
   suggestion: ExtendedMatchSuggestion;
@@ -604,16 +606,16 @@ interface MinimalSuggestionCardProps {
 }
 
 const calculateAge = (birthDate?: Date | string | null): number | null => {
-    if (!birthDate) return null;
-    const today = new Date();
-    const birth = new Date(birthDate);
-    if (isNaN(birth.getTime())) return null;
-    let age = today.getFullYear() - birth.getFullYear();
-    const m = today.getMonth() - birth.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
-        age--;
-    }
-    return age > 0 ? age : null;
+  if (!birthDate) return null;
+  const today = new Date();
+  const birth = new Date(birthDate);
+  if (isNaN(birth.getTime())) return null;
+  let age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age > 0 ? age : null;
 };
 
 const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
@@ -627,24 +629,33 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
   isHistory = false,
   isApprovalDisabled = false,
 }) => {
-  const targetParty = suggestion.firstPartyId === userId ? suggestion.secondParty : suggestion.firstParty;
+  const targetParty =
+    suggestion.firstPartyId === userId
+      ? suggestion.secondParty
+      : suggestion.firstParty;
   const isFirstParty = suggestion.firstPartyId === userId;
 
   if (!targetParty || !targetParty.profile) {
-    console.error("MinimalSuggestionCard: targetParty or profile is missing.", { suggestion });
+    console.error('MinimalSuggestionCard: targetParty or profile is missing.', {
+      suggestion,
+    });
     return null;
   }
 
   const mainImage = targetParty.images?.find((img) => img.isMain);
   const age = calculateAge(targetParty.profile.birthDate);
-  
+
   // Use the enhanced status info
   const statusInfo = getEnhancedStatusInfo(suggestion.status, isFirstParty);
   const partyIndicator = getPartyIndicator(suggestion.status, isFirstParty);
 
-  const hasDeadline = suggestion.decisionDeadline && new Date(suggestion.decisionDeadline) > new Date();
-  const isUrgent = hasDeadline && subDays(new Date(suggestion.decisionDeadline!), 2) < new Date();
-  
+  const hasDeadline =
+    suggestion.decisionDeadline &&
+    new Date(suggestion.decisionDeadline) > new Date();
+  const isUrgent =
+    hasDeadline &&
+    subDays(new Date(suggestion.decisionDeadline!), 2) < new Date();
+
   // Truncate matching reason for the teaser
   const reasonTeaser = suggestion.matchingReason
     ? suggestion.matchingReason.length > 100
@@ -655,13 +666,13 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
   return (
     <Card
       className={cn(
-        "group w-full rounded-2xl overflow-hidden shadow-lg border-0 bg-white transition-all duration-500 hover:shadow-xl hover:-translate-y-1 cursor-pointer",
-        isUrgent && "ring-2 ring-orange-300 ring-opacity-60",
+        'group w-full rounded-2xl overflow-hidden shadow-lg border-0 bg-white transition-all duration-500 hover:shadow-xl hover:-translate-y-1 cursor-pointer',
+        isUrgent && 'ring-2 ring-orange-300 ring-opacity-60',
         className
       )}
       onClick={(e) => {
         // Allow clicking the card to open details, but not if a button was clicked
-        if (!(e.target as Element).closest("button")) {
+        if (!(e.target as Element).closest('button')) {
           onClick(suggestion);
         }
       }}
@@ -672,46 +683,55 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
           <div className="flex items-center gap-3">
             <Avatar className="w-10 h-10 border-2 border-white shadow-md">
               <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-emerald-500 text-white font-bold text-sm">
-                {getInitials(`${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`)}
+                {getInitials(
+                  `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`
+                )}
               </AvatarFallback>
             </Avatar>
             <div>
               <p className="text-xs text-cyan-600 font-medium">הצעה מ</p>
               <p className="text-sm font-bold text-gray-800">
-                {suggestion.matchmaker.firstName} {suggestion.matchmaker.lastName}
+                {suggestion.matchmaker.firstName}{' '}
+                {suggestion.matchmaker.lastName}
               </p>
             </div>
           </div>
-          
+
           {/* Enhanced Status Section */}
           <div className="flex flex-col items-end gap-1">
-            <Badge className={cn(
-              "flex items-center gap-1.5 border shadow-sm font-semibold text-xs",
-              statusInfo.className,
-              statusInfo.pulse && "animate-pulse"
-            )}>
+            <Badge
+              className={cn(
+                'flex items-center gap-1.5 border shadow-sm font-semibold text-xs',
+                statusInfo.className,
+                statusInfo.pulse && 'animate-pulse'
+              )}
+            >
               <statusInfo.icon className="w-3 h-3" />
               <span>{statusInfo.shortLabel}</span>
             </Badge>
-            
+
             {/* Party Indicator - רק אם יש תור של מישהו */}
             {partyIndicator.show && (
-              <Badge className={cn(
-                "text-xs px-2 py-0.5 font-bold shadow-sm",
-                partyIndicator.className
-              )}>
-                {partyIndicator.text === "תורך!" && <Zap className="w-2.5 h-2.5 ml-1" />}
+              <Badge
+                className={cn(
+                  'text-xs px-2 py-0.5 font-bold shadow-sm',
+                  partyIndicator.className
+                )}
+              >
+                {partyIndicator.text === 'תורך!' && (
+                  <Zap className="w-2.5 h-2.5 ml-1" />
+                )}
                 {partyIndicator.text}
               </Badge>
             )}
           </div>
         </div>
-        
+
         {isUrgent && (
           <div className="absolute top-2 left-2">
             <Badge className="flex items-center gap-1.5 bg-gradient-to-r from-orange-500 to-red-500 text-white border-0 shadow-lg animate-pulse">
-                <AlertTriangle className="w-3 h-3" />
-                <span className="font-semibold text-xs">דחוף</span>
+              <AlertTriangle className="w-3 h-3" />
+              <span className="font-semibold text-xs">דחוף</span>
             </Badge>
           </div>
         )}
@@ -721,7 +741,7 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
       <div className="relative h-64">
         {mainImage?.url ? (
           <Image
-            src={mainImage.url}
+            src={getRelativeCloudinaryPath(mainImage.url)}
             alt={`תמונה של ${targetParty.firstName}`}
             fill
             className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
@@ -733,7 +753,7 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-        
+
         {/* Name and Age overlay */}
         <div className="absolute bottom-4 right-4 left-4 text-white">
           <div className="flex items-end justify-between">
@@ -747,7 +767,7 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                 </p>
               )}
             </div>
-            
+
             {/* אייקון מיוחד */}
             <div className="p-2 rounded-full bg-white/20 backdrop-blur-sm">
               <Sparkles className="w-5 h-5 text-white" />
@@ -755,7 +775,7 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
           </div>
         </div>
       </div>
-      
+
       <CardContent className="p-5 space-y-4">
         {/* Enhanced Status Description */}
         {statusInfo.description && (
@@ -771,121 +791,140 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
 
         {/* Core Info Grid */}
         <div className="grid grid-cols-2 gap-3">
-            {targetParty.profile.city && (
-              <div className="flex items-center gap-2 p-2 bg-cyan-50/50 rounded-lg border border-cyan-100/50">
-                  <MapPin className="w-4 h-4 text-cyan-600 flex-shrink-0" />
-                  <span className="text-sm font-medium text-gray-700 truncate">{targetParty.profile.city}</span>
-              </div>
-            )}
-            {targetParty.profile.occupation && (
-              <div className="flex items-center gap-2 p-2 bg-emerald-50/50 rounded-lg border border-emerald-100/50">
-                  <Briefcase className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                  <span className="text-sm font-medium text-gray-700 truncate">{targetParty.profile.occupation}</span>
-              </div>
-            )}
-            {targetParty.profile.religiousLevel && (
-              <div className="flex items-center gap-2 p-2 bg-blue-50/50 rounded-lg border border-blue-100/50">
-                  <Scroll className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                  <span className="text-sm font-medium text-gray-700 truncate">{targetParty.profile.religiousLevel}</span>
-              </div>
-            )}
-            {targetParty.profile.education && (
-              <div className="flex items-center gap-2 p-2 bg-green-50/50 rounded-lg border border-green-100/50">
-                  <BookOpen className="w-4 h-4 text-green-600 flex-shrink-0" />
-                  <span className="text-sm font-medium text-gray-700 truncate">{targetParty.profile.education}</span>
-              </div>
-            )}
+          {targetParty.profile.city && (
+            <div className="flex items-center gap-2 p-2 bg-cyan-50/50 rounded-lg border border-cyan-100/50">
+              <MapPin className="w-4 h-4 text-cyan-600 flex-shrink-0" />
+              <span className="text-sm font-medium text-gray-700 truncate">
+                {targetParty.profile.city}
+              </span>
+            </div>
+          )}
+          {targetParty.profile.occupation && (
+            <div className="flex items-center gap-2 p-2 bg-emerald-50/50 rounded-lg border border-emerald-100/50">
+              <Briefcase className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+              <span className="text-sm font-medium text-gray-700 truncate">
+                {targetParty.profile.occupation}
+              </span>
+            </div>
+          )}
+          {targetParty.profile.religiousLevel && (
+            <div className="flex items-center gap-2 p-2 bg-blue-50/50 rounded-lg border border-blue-100/50">
+              <Scroll className="w-4 h-4 text-blue-600 flex-shrink-0" />
+              <span className="text-sm font-medium text-gray-700 truncate">
+                {targetParty.profile.religiousLevel}
+              </span>
+            </div>
+          )}
+          {targetParty.profile.education && (
+            <div className="flex items-center gap-2 p-2 bg-green-50/50 rounded-lg border border-green-100/50">
+              <BookOpen className="w-4 h-4 text-green-600 flex-shrink-0" />
+              <span className="text-sm font-medium text-gray-700 truncate">
+                {targetParty.profile.education}
+              </span>
+            </div>
+          )}
         </div>
-        
+
         {/* Matchmaker's reasoning highlight */}
         <div className="relative p-4 bg-gradient-to-r from-cyan-50/50 to-blue-50/50 border border-cyan-100/50 rounded-xl">
-            <div className="flex items-start gap-3">
-              <Quote className="w-4 h-4 text-cyan-500 mt-1 flex-shrink-0" />
-              <div className="flex-1">
-                <h4 className="text-sm font-bold text-cyan-800 mb-1">למה זו התאמה מיוחדת?</h4>
-                <p className="text-sm text-cyan-700 leading-relaxed">
-                    {reasonTeaser}
-                </p>
-              </div>
+          <div className="flex items-start gap-3">
+            <Quote className="w-4 h-4 text-cyan-500 mt-1 flex-shrink-0" />
+            <div className="flex-1">
+              <h4 className="text-sm font-bold text-cyan-800 mb-1">
+                למה זו התאמה מיוחדת?
+              </h4>
+              <p className="text-sm text-cyan-700 leading-relaxed">
+                {reasonTeaser}
+              </p>
             </div>
-            
-            {/* זווית עיצובית */}
-            <div className="absolute top-0 right-0 w-6 h-6 bg-gradient-to-br from-cyan-200/50 to-blue-200/50 rounded-bl-xl"></div>
+          </div>
+
+          {/* זווית עיצובית */}
+          <div className="absolute top-0 right-0 w-6 h-6 bg-gradient-to-br from-cyan-200/50 to-blue-200/50 rounded-bl-xl"></div>
         </div>
-        
+
         {/* CTA hint */}
         <div className="text-center py-2">
-          <p className="text-xs text-gray-500 font-medium">לחץ לפרטים מלאים ועוד תובנות</p>
+          <p className="text-xs text-gray-500 font-medium">
+            לחץ לפרטים מלאים ועוד תובנות
+          </p>
         </div>
       </CardContent>
 
       {!isHistory && (
         <CardFooter className="p-4 bg-gradient-to-r from-gray-50/50 to-slate-50/50 border-t border-gray-100">
-          {((suggestion.status === "PENDING_FIRST_PARTY" && isFirstParty) || (suggestion.status === "PENDING_SECOND_PARTY" && !isFirstParty)) ? (
-             <div className="grid grid-cols-2 gap-3 w-full">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="w-full text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 rounded-xl font-medium transition-all duration-300"
-                  onClick={(e) => { e.stopPropagation(); onDecline?.(suggestion); }}
-                >
-                  <XCircle className="w-4 h-4 ml-2" />
-                  לא מתאים
-                </Button>
-                <TooltipProvider>
-                  <Tooltip delayDuration={100}>
-                    <TooltipTrigger asChild>
-                      <div className="w-full">
-                        <Button
-                          size="sm"
-                          variant="default"
-                          className="w-full bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-medium"
-                          disabled={isApprovalDisabled}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (isApprovalDisabled) {
-                              toast.info("לא ניתן לאשר הצעה חדשה", {
-                                description: "יש לך כבר הצעה אחרת בתהליך פעיל.",
-                              });
-                            } else {
-                              onApprove?.(suggestion);
-                            }
-                          }}
-                        >
-                          <Heart className="w-4 h-4 ml-2" />
-                          מעוניין/ת להכיר!
-                        </Button>
-                      </div>
-                    </TooltipTrigger>
-                    {isApprovalDisabled && (
-                      <TooltipContent>
-                        <p>לא ניתן לאשר הצעה חדשה כשיש הצעה בתהליך פעיל.</p>
-                      </TooltipContent>
-                    )}
-                  </Tooltip>
-                </TooltipProvider>
-             </div>
+          {(suggestion.status === 'PENDING_FIRST_PARTY' && isFirstParty) ||
+          (suggestion.status === 'PENDING_SECOND_PARTY' && !isFirstParty) ? (
+            <div className="grid grid-cols-2 gap-3 w-full">
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 rounded-xl font-medium transition-all duration-300"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDecline?.(suggestion);
+                }}
+              >
+                <XCircle className="w-4 h-4 ml-2" />
+                לא מתאים
+              </Button>
+              <TooltipProvider>
+                <Tooltip delayDuration={100}>
+                  <TooltipTrigger asChild>
+                    <div className="w-full">
+                      <Button
+                        size="sm"
+                        variant="default"
+                        className="w-full bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-medium"
+                        disabled={isApprovalDisabled}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (isApprovalDisabled) {
+                            toast.info('לא ניתן לאשר הצעה חדשה', {
+                              description: 'יש לך כבר הצעה אחרת בתהליך פעיל.',
+                            });
+                          } else {
+                            onApprove?.(suggestion);
+                          }
+                        }}
+                      >
+                        <Heart className="w-4 h-4 ml-2" />
+                        מעוניין/ת להכיר!
+                      </Button>
+                    </div>
+                  </TooltipTrigger>
+                  {isApprovalDisabled && (
+                    <TooltipContent>
+                      <p>לא ניתן לאשר הצעה חדשה כשיש הצעה בתהליך פעיל.</p>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           ) : (
             <div className="grid grid-cols-2 gap-3 w-full">
-                <Button
-                    size="sm"
-                    variant="outline"
-                    className="w-full border-gray-200 hover:bg-cyan-50 hover:border-cyan-200 rounded-xl font-medium transition-all duration-300"
-                    onClick={(e) => { e.stopPropagation(); onInquiry?.(suggestion); }}
-                >
-                    <MessageCircle className="w-4 h-4 ml-2" />
-                    שאלה לשדכן/ית
-                </Button>
-                <Button
-                    size="sm"
-                    variant="default"
-                    className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-medium"
-                    onClick={() => onClick(suggestion)}
-                >
-                    <Eye className="w-4 h-4 ml-2" />
-                    צפה בפרטים
-                    <ChevronLeft className="w-3 h-3 mr-1" />
-                </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full border-gray-200 hover:bg-cyan-50 hover:border-cyan-200 rounded-xl font-medium transition-all duration-300"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onInquiry?.(suggestion);
+                }}
+              >
+                <MessageCircle className="w-4 h-4 ml-2" />
+                שאלה לשדכן/ית
+              </Button>
+              <Button
+                size="sm"
+                variant="default"
+                className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-medium"
+                onClick={() => onClick(suggestion)}
+              >
+                <Eye className="w-4 h-4 ml-2" />
+                צפה בפרטים
+                <ChevronLeft className="w-3 h-3 mr-1" />
+              </Button>
             </div>
           )}
         </CardFooter>
@@ -2341,7 +2380,7 @@ File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\sugges
 --------------------------------------------------------------------------------
 Content:
 // src/app/components/suggestions/dialogs/UserAiAnalysisDialog.tsx
-"use client";
+'use client';
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -2354,28 +2393,40 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, Sparkles, AlertTriangle, Bot, Brain, Heart } from 'lucide-react';
+import {
+  Loader2,
+  Sparkles,
+  AlertTriangle,
+  Bot,
+  Brain,
+  Heart,
+} from 'lucide-react';
 import { toast } from 'sonner';
 
-import UserAiAnalysisDisplay from '../compatibility/UserAiAnalysisDisplay'; 
+import UserAiAnalysisDisplay from '../compatibility/UserAiAnalysisDisplay';
 import type { AiSuggestionAnalysisResult } from '@/lib/services/aiService';
 
 interface UserAiAnalysisDialogProps {
   suggestedUserId: string;
 }
 
-export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = ({ suggestedUserId }) => {
+export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = ({
+  suggestedUserId,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [analysis, setAnalysis] = useState<AiSuggestionAnalysisResult | null>(null);
+  const [analysis, setAnalysis] = useState<AiSuggestionAnalysisResult | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleGetAnalysis = async () => {
+    // אם הניתוח כבר קיים, פשוט פותחים את הדיאלוג בלי לבצע קריאה נוספת
     if (analysis) {
       setIsOpen(true);
       return;
     }
-    
+
     setIsOpen(true);
     setIsLoading(true);
     setError(null);
@@ -2396,9 +2447,9 @@ export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = ({ sugg
       }
 
       setAnalysis(result.data);
-
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'אירעה שגיאה לא צפויה.';
+      const errorMessage =
+        err instanceof Error ? err.message : 'אירעה שגיאה לא צפויה.';
       setError(errorMessage);
       toast.error('שגיאה בתהליך הניתוח', {
         description: errorMessage,
@@ -2407,11 +2458,13 @@ export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = ({ sugg
       setIsLoading(false);
     }
   };
-  
+
+  // פונקציה לניהול פתיחה וסגירה של הדיאלוג
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
+    // אם המשתמש סוגר את הדיאלוג, נאפס את השגיאה כדי שבפעם הבאה לא תוצג ישר
     if (!open) {
-      setError(null); 
+      setError(null);
     }
   };
 
@@ -2425,9 +2478,9 @@ export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = ({ sugg
           className="relative overflow-hidden group bg-gradient-to-r from-cyan-50 to-emerald-50 border-2 border-cyan-200 text-cyan-700 hover:from-cyan-100 hover:to-emerald-100 hover:border-cyan-300 transition-all duration-300 shadow-lg hover:shadow-xl rounded-2xl px-8 py-4 font-semibold"
           disabled={isLoading}
         >
-          {/* Shimmer effect */}
+          {/* Shimmer effect for that extra marketing touch */}
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -translate-x-full group-hover:animate-shimmer"></div>
-          
+
           <div className="relative z-10 flex items-center gap-3">
             {isLoading ? (
               <Loader2 className="w-5 h-5 animate-spin text-cyan-600" />
@@ -2441,8 +2494,8 @@ export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = ({ sugg
           </div>
         </Button>
       </DialogTrigger>
-      
-      <DialogContent 
+
+      <DialogContent
         className="max-w-5xl w-[95vw] h-[90vh] flex flex-col p-0 border-0 shadow-2xl rounded-3xl bg-gradient-to-br from-white via-cyan-50/20 to-emerald-50/20"
         dir="rtl"
       >
@@ -2460,51 +2513,81 @@ export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = ({ sugg
 
         <div className="flex-grow overflow-y-auto p-6 md:p-8">
           {isLoading ? (
+            // מצב טעינה מעוצב ומרשים
             <div className="flex flex-col items-center justify-center h-full text-center space-y-6">
               <div className="relative">
                 <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-200 to-emerald-200 animate-pulse"></div>
                 <Loader2 className="w-12 h-12 text-cyan-600 animate-spin absolute inset-0 m-auto" />
               </div>
               <div className="space-y-2">
-                <p className="text-xl font-semibold text-gray-700">ה-AI שלנו בוחן את ההתאמה...</p>
-                <p className="text-gray-500 max-w-md">זה עשוי לקחת מספר שניות. אנו מנתחים עשרות פרמטרים להבנה מעמיקה של ההתאמה.</p>
+                <p className="text-xl font-semibold text-gray-700">
+                  ה-AI שלנו בוחן את ההתאמה...
+                </p>
+                <p className="text-gray-500 max-w-md">
+                  זה עשוי לקחת מספר שניות. אנו מנתחים עשרות פרמטרים להבנה מעמיקה
+                  של ההתאמה.
+                </p>
               </div>
-              
+
+              {/* אנימציה קטנה שמראה מה "נבדק" */}
               <div className="grid grid-cols-3 gap-4 mt-8">
                 {[
-                  { icon: Brain, label: 'ניתוח אישיות', delay: '0ms', color: 'text-cyan-600' },
-                  { icon: Heart, label: 'התאמת ערכים', delay: '200ms', color: 'text-emerald-600' },
-                  { icon: Sparkles, label: 'פוטנציאל יחד', delay: '400ms', color: 'text-blue-600' }
+                  {
+                    icon: Brain,
+                    label: 'ניתוח אישיות',
+                    delay: '0ms',
+                    color: 'text-cyan-600',
+                  },
+                  {
+                    icon: Heart,
+                    label: 'התאמת ערכים',
+                    delay: '200ms',
+                    color: 'text-emerald-600',
+                  },
+                  {
+                    icon: Sparkles,
+                    label: 'פוטנציאל יחד',
+                    delay: '400ms',
+                    color: 'text-blue-600',
+                  },
                 ].map((item, index) => (
-                  <div 
-                    key={index} 
+                  <div
+                    key={index}
                     className="flex flex-col items-center gap-2 opacity-50 animate-pulse"
                     style={{ animationDelay: item.delay }}
                   >
                     <div className="p-3 rounded-full bg-white shadow-md">
                       <item.icon className={`w-6 h-6 ${item.color}`} />
                     </div>
-                    <span className="text-sm text-gray-600 font-medium">{item.label}</span>
+                    <span className="text-sm text-gray-600 font-medium">
+                      {item.label}
+                    </span>
                   </div>
                 ))}
               </div>
             </div>
           ) : error ? (
+            // מצב שגיאה ידידותי
             <div className="flex flex-col items-center justify-center h-full text-center space-y-6">
               <div className="p-4 rounded-full bg-red-100">
                 <AlertTriangle className="h-12 w-12 text-red-600" />
               </div>
-              <Alert variant="destructive" className="max-w-md border-red-200 bg-red-50">
+              <Alert
+                variant="destructive"
+                className="max-w-md border-red-200 bg-red-50"
+              >
                 <AlertTriangle className="h-5 w-5" />
-                <AlertTitle className="text-red-800">אופס, משהו השתבש</AlertTitle>
+                <AlertTitle className="text-red-800">
+                  אופס, משהו השתבש
+                </AlertTitle>
                 <AlertDescription className="text-red-700">
                   <p>לא הצלחנו להשלים את ניתוח ההתאמה כרגע.</p>
                   <p className="text-sm mt-2 opacity-90">{error}</p>
                 </AlertDescription>
               </Alert>
-              <Button 
-                onClick={handleGetAnalysis} 
-                variant="outline" 
+              <Button
+                onClick={handleGetAnalysis}
+                variant="outline"
                 className="mt-4 border-red-200 text-red-600 hover:bg-red-50"
               >
                 <Brain className="w-4 h-4 ml-2" />
@@ -2512,8 +2595,10 @@ export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = ({ sugg
               </Button>
             </div>
           ) : analysis ? (
+            // הצגת התוצאה
             <UserAiAnalysisDisplay analysis={analysis} />
           ) : (
+            // מצב התחלתי (לא אמור להופיע בדרך כלל, אבל טוב שיהיה)
             <div className="flex items-center justify-center h-full">
               <div className="text-center space-y-4">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-100 to-emerald-100 flex items-center justify-center mx-auto">
@@ -3790,22 +3875,27 @@ File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\sugges
 --------------------------------------------------------------------------------
 Content:
 // src/app/components/suggestions/modals/SuggestionDetailsModal.tsx
-"use client";
+'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import Image from "next/image";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { 
-  CheckCircle, 
-  XCircle, 
-  MessageCircle, 
-  X, 
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import Image from 'next/image';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Card, CardContent } from '@/components/ui/card';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import {
+  CheckCircle,
+  XCircle,
+  MessageCircle,
+  X,
   Loader2,
   Sparkles,
   User,
@@ -3815,6 +3905,7 @@ import {
   MapPin,
   Briefcase,
   GraduationCap,
+  ChevronUp,
   Scroll as ScrollIcon,
   GitCompareArrows,
   Star,
@@ -3840,8 +3931,8 @@ import {
   Maximize,
   Minimize,
   AlertTriangle,
-  Bot
-} from "lucide-react";
+  Bot,
+} from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -3851,30 +3942,30 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog';
 import {
-    Alert,
-    AlertDescription,
-    AlertTitle as UiAlertTitle, // Renamed to avoid conflict
-} from "@/components/ui/alert";
-import { toast } from "sonner";
+  Alert,
+  AlertDescription,
+  AlertTitle as UiAlertTitle,
+} from '@/components/ui/alert';
+import { toast } from 'sonner';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { getInitials, cn } from "@/lib/utils";
-import type { QuestionnaireResponse } from "@/types/next-auth";
+} from '@/components/ui/tooltip';
+import { getInitials, cn, getRelativeCloudinaryPath } from '@/lib/utils';
+import type { QuestionnaireResponse } from '@/types/next-auth';
 import type { AiSuggestionAnalysisResult } from '@/lib/services/aiService';
 
-import { ProfileCard } from "@/app/components/profile";
-import SuggestionTimeline from "../timeline/SuggestionTimeline";
-import InquiryThreadView from "../inquiries/InquiryThreadView";
-import { AskMatchmakerDialog } from "../dialogs/AskMatchmakerDialog";
+import { ProfileCard } from '@/app/components/profile';
+import SuggestionTimeline from '../timeline/SuggestionTimeline';
+import InquiryThreadView from '../inquiries/InquiryThreadView';
+import { AskMatchmakerDialog } from '../dialogs/AskMatchmakerDialog';
 import { UserAiAnalysisDialog } from '../dialogs/UserAiAnalysisDialog';
-import UserAiAnalysisDisplay from "../compatibility/UserAiAnalysisDisplay";
-import type { ExtendedMatchSuggestion } from "../types";
+import UserAiAnalysisDisplay from '../compatibility/UserAiAnalysisDisplay';
+import type { ExtendedMatchSuggestion } from '../types';
 
 // ===============================
 // TYPES & INTERFACES
@@ -3889,29 +3980,30 @@ interface SuggestionDetailsModalProps {
 }
 
 // ===============================
-// ENHANCED HERO SECTION
+// ENHANCED HERO SECTION (No changes here)
 // ===============================
 
 const EnhancedHeroSection: React.FC<{
-  matchmaker: { firstName: string; lastName: string; };
+  matchmaker: { firstName: string; lastName: string };
   targetParty: ExtendedMatchSuggestion['secondParty'];
   personalNote?: string | null;
   matchingReason?: string | null;
   onViewProfile: () => void;
   onStartConversation: () => void;
-}> = ({ 
-  matchmaker, 
-  targetParty, 
-  personalNote, 
+}> = ({
+  matchmaker,
+  targetParty,
+  personalNote,
   matchingReason,
   onViewProfile,
-  onStartConversation
+  onStartConversation,
 }) => {
-  const age = targetParty.profile?.birthDate ? 
-    new Date().getFullYear() - new Date(targetParty.profile.birthDate).getFullYear() : null;
-  const mainImage = targetParty.images?.find(img => img.isMain)?.url;
+  const age = targetParty.profile?.birthDate
+    ? new Date().getFullYear() -
+      new Date(targetParty.profile.birthDate).getFullYear()
+    : null;
+  const mainImage = targetParty.images?.find((img) => img.isMain)?.url;
 
-  // Define the excitement factor type
   interface ExcitementFactor {
     icon: React.ElementType;
     label: string;
@@ -3919,68 +4011,58 @@ const EnhancedHeroSection: React.FC<{
     color: string;
   }
 
-  // Generate excitement factors
   const getExcitementFactors = (): ExcitementFactor[] => {
     const factors: ExcitementFactor[] = [];
-    
-    if (targetParty.profile?.religiousLevel) {
+    if (targetParty.profile?.religiousLevel)
       factors.push({
         icon: ScrollIcon,
-        label: "השקפת עולם משותפת",
+        label: 'השקפת עולם משותפת',
         value: targetParty.profile.religiousLevel,
-        color: "from-purple-500 to-violet-600"
+        color: 'from-purple-500 to-violet-600',
       });
-    }
-    
-    if (targetParty.profile?.city) {
+    if (targetParty.profile?.city)
       factors.push({
         icon: MapPin,
-        label: "מיקום נוח",
+        label: 'מיקום נוח',
         value: targetParty.profile.city,
-        color: "from-emerald-500 to-green-600"
+        color: 'from-emerald-500 to-green-600',
       });
-    }
-    
-    if (targetParty.profile?.education) {
+    if (targetParty.profile?.education)
       factors.push({
         icon: GraduationCap,
-        label: "רקע השכלתי",
+        label: 'רקע השכלתי',
         value: targetParty.profile.education,
-        color: "from-blue-500 to-cyan-600"
+        color: 'from-blue-500 to-cyan-600',
       });
-    }
-    
-    if (targetParty.profile?.occupation) {
+    if (targetParty.profile?.occupation)
       factors.push({
         icon: Briefcase,
-        label: "תחום מקצועי",
+        label: 'תחום מקצועי',
         value: targetParty.profile.occupation,
-        color: "from-amber-500 to-orange-600"
+        color: 'from-amber-500 to-orange-600',
       });
-    }
-
     return factors;
   };
-
   const excitementFactors = getExcitementFactors();
 
   return (
-    <div className="relative min-h-[80vh] overflow-hidden bg-gradient-to-br from-slate-50 via-white to-blue-50">
-      {/* Animated Background Elements */}
+    <div className="relative min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
       <div className="absolute inset-0">
         <div className="absolute top-10 right-10 w-72 h-72 bg-gradient-to-br from-purple-200/30 to-pink-200/30 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-10 left-10 w-64 h-64 bg-gradient-to-br from-cyan-200/30 to-blue-200/30 rounded-full blur-2xl animate-pulse" style={{ animationDelay: "1s" }}></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-emerald-200/20 to-green-200/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "2s" }}></div>
+        <div
+          className="absolute bottom-10 left-10 w-64 h-64 bg-gradient-to-br from-cyan-200/30 to-blue-200/30 rounded-full blur-2xl animate-pulse"
+          style={{ animationDelay: '1s' }}
+        ></div>
       </div>
-
       <div className="relative z-10 p-8 md:p-12">
-        {/* Matchmaker Introduction with Crown */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-4 mb-6 p-6 bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-purple-100">
+          <div className="inline-flex items-center gap-4 mb-6 p-4 bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-purple-100">
             <div className="relative">
               <Avatar className="w-16 h-16 border-4 border-white shadow-xl">
                 <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-white text-xl font-bold">
-                  {getInitials(`${matchmaker.firstName} ${matchmaker.lastName}`)}
+                  {getInitials(
+                    `${matchmaker.firstName} ${matchmaker.lastName}`
+                  )}
                 </AvatarFallback>
               </Avatar>
               <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-yellow-400 to-amber-500 rounded-full flex items-center justify-center shadow-lg">
@@ -3988,156 +4070,114 @@ const EnhancedHeroSection: React.FC<{
               </div>
             </div>
             <div className="text-right">
-              <div className="flex items-center gap-2 mb-1">
-                <Sparkles className="w-4 h-4 text-purple-500" />
-                <p className="text-sm font-bold text-purple-600">הצעה מיוחדת מהשדכן המוביל</p>
-              </div>
-              <p className="text-xl font-bold text-gray-800">{matchmaker.firstName} {matchmaker.lastName}</p>
-              <p className="text-sm text-gray-600">מומחה בהתאמות מוצלחות</p>
+              <p className="text-sm font-bold text-purple-600">
+                הצעה מיוחדת מהשדכן/ית
+              </p>
+              <p className="text-xl font-bold text-gray-800">
+                {matchmaker.firstName} {matchmaker.lastName}
+              </p>
             </div>
           </div>
         </div>
-
-        {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
-          {/* Enhanced Profile Image Section */}
-          <div className="relative">
-            <div className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-400 rounded-3xl blur opacity-75 group-hover:opacity-100 transition-opacity animate-pulse"></div>
-              <div className="relative h-96 lg:h-[500px] rounded-3xl overflow-hidden shadow-2xl">
-                {mainImage ? (
-                  <Image 
-                    src={mainImage} 
-                    alt={`תמונה של ${targetParty.firstName}`} 
-                    fill 
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
-                    sizes="(max-width: 1024px) 100vw, 50vw"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-purple-100 via-pink-100 to-blue-100 flex items-center justify-center">
-                    <div className="text-center">
-                      <User className="w-24 h-24 text-purple-400 mx-auto mb-4" />
-                      <p className="text-purple-600 font-semibold">תמונה בדרך אליך</p>
-                      <p className="text-sm text-purple-500">כל הפרטים בפרופיל המלא</p>
-                    </div>
-                  </div>
-                )}
-                
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                
-                {/* Profile Overlay */}
-                <div className="absolute bottom-6 right-6 left-6">
-                  <div className="bg-white/95 backdrop-blur-md rounded-2xl p-6 shadow-2xl">
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <h3 className="text-3xl font-bold text-gray-900 mb-1">
-                          {targetParty.firstName}
-                        </h3>
-                        {age && (
-                          <div className="flex items-center gap-2">
-                            <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 shadow-lg">
-                              {age} שנים
-                            </Badge>
-                            <Badge className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white border-0 shadow-lg">
-                              <Heart className="w-3 h-3 ml-1" />
-                              זמין להכרות
-                            </Badge>
-                          </div>
-                        )}
-                      </div>
-                      <Button 
-                        onClick={onViewProfile}
-                        className="bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white shadow-xl rounded-full px-6 py-3 font-bold"
-                      >
-                        <Telescope className="w-4 h-4 ml-2" />
-                        גלה עוד
-                      </Button>
-                    </div>
-                    
-                    {/* Key Info Grid */}
-                    <div className="grid grid-cols-2 gap-3">
-                      {targetParty.profile?.city && (
-                        <div className="flex items-center gap-2 p-2 bg-purple-50 rounded-lg">
-                          <MapPin className="w-4 h-4 text-purple-500" />
-                          <span className="text-sm font-medium text-gray-700">{targetParty.profile.city}</span>
-                        </div>
-                      )}
-                      {targetParty.profile?.occupation && (
-                        <div className="flex items-center gap-2 p-2 bg-blue-50 rounded-lg">
-                          <Briefcase className="w-4 h-4 text-blue-500" />
-                          <span className="text-sm font-medium text-gray-700 truncate">{targetParty.profile.occupation}</span>
-                        </div>
+          <div className="relative group">
+            <div className="absolute -inset-2 bg-gradient-to-r from-purple-400 to-pink-400 rounded-3xl blur opacity-50 group-hover:opacity-75 transition-opacity animate-pulse"></div>
+            <div className="relative h-96 lg:h-[500px] rounded-3xl overflow-hidden shadow-2xl">
+              {mainImage ? (
+                <Image
+                  src={getRelativeCloudinaryPath(mainImage)} // <-- זה השינוי העיקרי
+                  alt={`תמונה של ${targetParty.firstName}`}
+                  fill
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-purple-100 via-pink-100 to-blue-100 flex items-center justify-center">
+                  <User className="w-24 h-24 text-purple-400" />
+                </div>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+              <div className="absolute bottom-6 right-6 left-6">
+                <div className="bg-white/95 backdrop-blur-md rounded-2xl p-6 shadow-2xl">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-3xl font-bold text-gray-900 mb-1">
+                        {targetParty.firstName}
+                      </h3>
+                      {age && (
+                        <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 shadow-lg">
+                          {age} שנים
+                        </Badge>
                       )}
                     </div>
+                    <Button
+                      onClick={onViewProfile}
+                      className="bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white shadow-xl rounded-full px-6 py-3 font-bold"
+                    >
+                      <Telescope className="w-4 h-4 ml-2" /> גלה עוד
+                    </Button>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-
-          {/* Enhanced Content Section */}
           <div className="space-y-8">
-            {/* Excitement Header */}
-            <Card className="border-0 shadow-2xl bg-gradient-to-br from-purple-50 via-pink-50 to-white overflow-hidden">
+            <Card className="border-0 shadow-2xl bg-gradient-to-br from-purple-50 via-pink-50 to-white">
               <CardContent className="p-8">
                 <div className="text-center mb-6">
-                  <div className="inline-flex items-center gap-2 mb-4">
-                    <div className="w-3 h-3 bg-purple-500 rounded-full animate-pulse"></div>
-                    <div className="w-2 h-2 bg-pink-500 rounded-full animate-pulse" style={{ animationDelay: "0.5s" }}></div>
-                    <div className="w-4 h-4 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: "1s" }}></div>
-                  </div>
                   <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-4">
-                    זו יכולה להיות הנשמה התאומה שלך
+                    זו יכולה להיות ההתאמה המושלמת
                   </h2>
-                  <p className="text-lg text-gray-600 leading-relaxed">
-                    השדכן שלנו זיהה כאן משהו מיוחד - שילוב נדיר של התאמה עמוקה ופוטנציאל אמיתי
+                  <p className="text-lg text-gray-600">
+                    השדכן זיהה כאן שילוב נדיר של התאמה ופוטנציאל.
                   </p>
                 </div>
-
-                {/* Excitement Factors */}
                 {excitementFactors.length > 0 && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     {excitementFactors.map((factor, index) => (
-                      <div 
+                      <div
                         key={index}
                         className="relative p-4 bg-white/70 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
                       >
                         <div className="flex items-center gap-3">
-                          <div className={cn("w-10 h-10 rounded-full bg-gradient-to-r text-white flex items-center justify-center shadow-md", factor.color)}>
+                          <div
+                            className={cn(
+                              'w-10 h-10 rounded-full bg-gradient-to-r text-white flex items-center justify-center shadow-md',
+                              factor.color
+                            )}
+                          >
                             <factor.icon className="w-5 h-5" />
                           </div>
-                          <div className="flex-1">
-                            <p className="font-semibold text-gray-800 text-sm">{factor.label}</p>
-                            <p className="text-gray-600 text-xs truncate">{factor.value}</p>
+                          <div>
+                            <p className="font-semibold text-gray-800 text-sm">
+                              {factor.label}
+                            </p>
+                            <p className="text-gray-600 text-xs truncate">
+                              {factor.value}
+                            </p>
                           </div>
                         </div>
                       </div>
                     ))}
                   </div>
                 )}
-
-                {/* CTA Buttons */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Button 
+                  <Button
                     onClick={onViewProfile}
                     className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-xl rounded-xl h-12 font-bold text-base"
                   >
-                    <User className="w-5 h-5 ml-2" />
-                    רוצה לראות הכל
+                    <User className="w-5 h-5 ml-2" /> צפה בפרופיל המלא
                   </Button>
-                  <Button 
+                  <Button
                     onClick={onStartConversation}
                     variant="outline"
                     className="border-2 border-purple-300 text-purple-600 hover:bg-purple-50 shadow-lg rounded-xl h-12 font-bold text-base"
                   >
-                    <MessageSquare className="w-5 h-5 ml-2" />
-                    יש לי שאלות
+                    <MessageSquare className="w-5 h-5 ml-2" /> יש לי שאלה לשדכן
                   </Button>
                 </div>
               </CardContent>
             </Card>
-
-            {/* Matchmaker's Special Insight */}
             {(personalNote || matchingReason) && (
               <Card className="border-0 shadow-xl bg-gradient-to-br from-cyan-50 to-blue-50">
                 <CardContent className="p-6">
@@ -4145,165 +4185,136 @@ const EnhancedHeroSection: React.FC<{
                     <div className="p-3 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg flex-shrink-0">
                       <Lightbulb className="w-6 h-6" />
                     </div>
-                    <div className="flex-1">
-                      <h3 className="font-bold text-cyan-800 text-lg mb-3 flex items-center gap-2">
-                        <Quote className="w-5 h-5" />
-                        התובנה המיוחדת של השדכן
+                    <div>
+                      <h3 className="font-bold text-cyan-800 text-lg mb-3">
+                        התובנה של השדכן
                       </h3>
-                      
                       {personalNote && (
-                        <div className="mb-4 p-4 bg-white/70 rounded-xl">
-                          <h4 className="font-semibold text-cyan-700 mb-2">מיועד אישית עבורך:</h4>
-                          <p className="text-cyan-900 leading-relaxed italic">“{personalNote}”</p>
-                        </div>
+                        <p className="text-cyan-900 leading-relaxed italic mb-2">
+                          “{personalNote}”
+                        </p>
                       )}
-                      
                       {matchingReason && (
-                        <div className="p-4 bg-white/70 rounded-xl">
-                          <h4 className="font-semibold text-blue-700 mb-2">הסיבה להתאמה:</h4>
-                          <p className="text-blue-900 leading-relaxed">“{matchingReason}”</p>
-                        </div>
+                        <p className="text-blue-900 leading-relaxed">
+                          “{matchingReason}”
+                        </p>
                       )}
                     </div>
                   </div>
                 </CardContent>
               </Card>
             )}
-
-            {/* Success Stories Teaser */}
-            <Card className="border-0 shadow-xl bg-gradient-to-br from-green-50 to-emerald-50">
-              <CardContent className="p-6 text-center">
-                <div className="flex justify-center mb-4">
-                  <div className="relative">
-                    <Star className="w-12 h-12 text-yellow-500 fill-current" />
-                    <Sparkles className="w-6 h-6 text-emerald-500 absolute -top-1 -right-1" />
-                  </div>
-                </div>
-                <h3 className="text-xl font-bold text-emerald-800 mb-2">
-                  הצלחות מדברות בעד עצמן
-                </h3>
-                <p className="text-emerald-700 mb-4">
-                  השדכן שלנו כבר הוביל זוגות מאושרים השנה
-                </p>
-                <div className="flex justify-center">
-                  <UserAiAnalysisDialog suggestedUserId={targetParty.id} />
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
-
-        {/* Bottom Action Section */}
-        <Card className="border-0 shadow-2xl bg-gradient-to-r from-gray-900 via-purple-900 to-blue-900 text-white overflow-hidden">
-          <CardContent className="p-8">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
-              <div className="text-center md:text-right">
-                <div className="flex items-center justify-center md:justify-end gap-2 mb-2">
-                  <Zap className="w-6 h-6 text-yellow-400" />
-                  <h3 className="text-xl font-bold">רגע האמת</h3>
-                </div>
-                <p className="text-gray-300">
-                  כל סיפור אהבה מתחיל בהחלטה אחת
-                </p>
-              </div>
-              
-              <div className="text-center">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 flex items-center justify-center mx-auto mb-4 animate-pulse">
-                  <Heart className="w-10 h-10 text-white" />
-                </div>
-                <p className="text-sm text-gray-300">
-                  {targetParty.firstName} מחכה להכיר אותך
-                </p>
-              </div>
-              
-              <div className="text-center md:text-left">
-                <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
-                  <Target className="w-6 h-6 text-green-400" />
-                  <h3 className="text-xl font-bold">הזמן הוא עכשיו</h3>
-                </div>
-                <p className="text-gray-300">
-                  ההזדמנויות הטובות לא מחכות
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
 };
 
 // ===============================
-// QUICK ACTIONS ENHANCED
+// QUICK ACTIONS ENHANCED - MOBILE OPTIMIZED
+// ===============================
+
+// ===============================
+// QUICK ACTIONS ENHANCED - COLLAPSIBLE & MOBILE OPTIMIZED
 // ===============================
 
 const EnhancedQuickActions: React.FC<{
+  isExpanded: boolean;
+  onToggleExpand: () => void;
   canAct: boolean;
   isSubmitting: boolean;
   onApprove: () => void;
   onDecline: () => void;
   onAskQuestion: () => void;
-}> = ({ 
-  canAct, 
-  isSubmitting, 
-  onApprove, 
-  onDecline, 
-  onAskQuestion 
+}> = ({
+  isExpanded,
+  onToggleExpand,
+  canAct,
+  isSubmitting,
+  onApprove,
+  onDecline,
+  onAskQuestion,
 }) => (
-  <div className="flex-shrink-0 bg-gradient-to-r from-white via-purple-50/30 to-pink-50/30 backdrop-blur-sm border-t border-purple-100 p-6">
-    <div className="flex gap-4 max-w-4xl mx-auto">
-      {/* Ask Question Button */}
-      <Button 
-        variant="outline" 
-        onClick={onAskQuestion} 
-        disabled={isSubmitting}
-        className="flex-1 border-2 border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300 transition-all duration-300 rounded-xl h-14 font-semibold text-base shadow-lg"
+  <div
+    className={cn(
+      'flex-shrink-0 bg-gradient-to-r from-white via-purple-50/30 to-pink-50/30 backdrop-blur-sm border-t border-purple-100 transition-all duration-300 ease-in-out',
+      isExpanded ? 'p-4 md:p-6' : 'py-3 px-4 md:px-6'
+    )}
+  >
+    <div className="max-w-4xl mx-auto">
+      {/* --- Collapsible Header (Always Visible) --- */}
+      <div
+        className="flex justify-between items-center cursor-pointer"
+        onClick={onToggleExpand}
       >
-        <MessageCircle className="w-5 h-5 ml-2" />
-        שאלות לשדכן
-      </Button>
-      
-      {canAct && (
-        <>
-          {/* Decline Button */}
-          <Button 
-            variant="outline" 
-            className="flex-1 text-gray-600 border-2 border-gray-200 hover:bg-gray-50 hover:text-gray-700 hover:border-gray-300 transition-all duration-300 rounded-xl h-14 font-semibold text-base shadow-lg" 
-            disabled={isSubmitting} 
-            onClick={onDecline}
-          >
-            {isSubmitting ? (
-              <Loader2 className="w-5 h-5 ml-2 animate-spin" />
-            ) : (
-              <XCircle className="w-5 h-5 ml-2" />
+        <p className="text-sm font-bold text-purple-700">
+          {isExpanded ? '✨ כל סיפור אהבה מתחיל בהחלטה אחת' : 'פעולות מהירות'}
+        </p>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="rounded-full h-8 w-8 text-purple-500 hover:bg-purple-100/50"
+        >
+          {isExpanded ? (
+            <ChevronDown className="w-5 h-5" />
+          ) : (
+            <ChevronUp className="w-5 h-5" />
+          )}
+        </Button>
+      </div>
+
+      {/* --- Collapsible Content (The Buttons) --- */}
+      {isExpanded && (
+        <div className="mt-4 animate-in fade-in-50 slide-in-from-bottom-2 duration-300">
+          <div className="grid grid-cols-1 gap-3 md:flex md:gap-4">
+            {canAct && (
+              <Button
+                className="w-full md:flex-1 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 hover:from-emerald-600 hover:via-green-600 hover:to-emerald-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-xl h-14 font-bold text-base transform hover:scale-105"
+                disabled={isSubmitting}
+                onClick={onApprove}
+              >
+                {isSubmitting ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <div className="flex items-center justify-center">
+                    <Heart className="w-5 h-5 ml-2 animate-pulse" />
+                    <span>מעוניין/ת להכיר!</span>
+                  </div>
+                )}
+              </Button>
             )}
-            לא מתאים כרגע
-          </Button>
-          
-          {/* Approve Button */}
-          <Button 
-            className="flex-1 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 hover:from-emerald-600 hover:via-green-600 hover:to-emerald-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-xl h-14 font-bold text-base transform hover:scale-105" 
-            disabled={isSubmitting} 
-            onClick={onApprove}
-          >
-            {isSubmitting ? (
-              <Loader2 className="w-5 h-5 ml-2 animate-spin" />
-            ) : (
-              <div className="flex items-center">
-                <Heart className="w-5 h-5 ml-2 animate-pulse" />
-                <span>בואו נכיר! 💫</span>
-              </div>
+
+            <Button
+              variant="outline"
+              onClick={onAskQuestion}
+              disabled={isSubmitting}
+              className="w-full md:flex-1 border-2 border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300 transition-all duration-300 rounded-xl h-14 font-semibold text-base shadow-lg"
+            >
+              <MessageCircle className="w-5 h-5 ml-2" />
+              שאלות לשדכן
+            </Button>
+
+            {canAct && (
+              <Button
+                variant="ghost"
+                className="w-full md:flex-1 text-gray-600 hover:bg-gray-100 hover:text-gray-700 transition-all duration-300 rounded-xl h-14 font-semibold text-base md:border-2 md:border-gray-200 md:shadow-lg md:hover:border-gray-300"
+                disabled={isSubmitting}
+                onClick={onDecline}
+              >
+                {isSubmitting ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <>
+                    <XCircle className="w-5 h-5 ml-2" />
+                    <span>לא מתאים כרגע</span>
+                  </>
+                )}
+              </Button>
             )}
-          </Button>
-        </>
+          </div>
+        </div>
       )}
-    </div>
-    
-    {/* Motivational Footer */}
-    <div className="text-center mt-4">
-      <p className="text-sm text-gray-600 font-medium">
-        ✨ כל סיפור אהבה מתחיל במילה אחת: כן ✨
-      </p>
     </div>
   </div>
 );
@@ -4319,192 +4330,89 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   onClose,
   onStatusChange,
 }) => {
-  // ===============================
-  // STATE MANAGEMENT
-  // ===============================
-  
-  const [activeTab, setActiveTab] = useState("presentation");
+  const [activeTab, setActiveTab] = useState('presentation');
   const [showAskDialog, setShowAskDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [actionToConfirm, setActionToConfirm] = useState<'approve' | 'decline' | null>(null);
-  const [isFullScreen, setIsFullScreen] = useState(false);
-  const dialogContentRef = useRef<HTMLDivElement>(null);
+  const [actionToConfirm, setActionToConfirm] = useState<
+    'approve' | 'decline' | null
+  >(null);
 
-  const [questionnaire, setQuestionnaire] = useState<QuestionnaireResponse | null>(null);
+  const [questionnaire, setQuestionnaire] =
+    useState<QuestionnaireResponse | null>(null);
   const [isQuestionnaireLoading, setIsQuestionnaireLoading] = useState(false);
-  
-  const [aiAnalysis, setAiAnalysis] = useState<AiSuggestionAnalysisResult | null>(null);
-  const [isAnalysisLoading, setIsAnalysisLoading] = useState(false);
-  const [analysisError, setAnalysisError] = useState<string | null>(null);
-
-  // ===============================
-  // COMPUTED VALUES & HOOKS
-  // ===============================
-
+  const [isActionsExpanded, setIsActionsExpanded] = useState(true);
   const isFirstParty = suggestion?.firstPartyId === userId;
-  const targetParty = suggestion ? (isFirstParty ? suggestion.secondParty : suggestion.firstParty) : null;
+  const targetParty = suggestion
+    ? isFirstParty
+      ? suggestion.secondParty
+      : suggestion.firstParty
+    : null;
   const targetPartyId = targetParty?.id;
 
-  const fetchAiAnalysis = useCallback(async () => {
-    if (!suggestion || !targetPartyId) return;
-    
-    setIsAnalysisLoading(true);
-    setAnalysisError(null);
-    try {
-        const response = await fetch('/api/ai/analyze-suggestion', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ suggestedUserId: targetPartyId }),
-        });
-        const result = await response.json();
-        if (!response.ok || !result.success) {
-            throw new Error(result.message || 'שגיאה בקבלת ניתוח ההצעה.');
-        }
-        setAiAnalysis(result.data);
-    } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'אירעה שגיאה לא צפויה.';
-        setAnalysisError(errorMessage);
-        toast.error('שגיאה בטעינת ניתוח ההתאמה.');
-    } finally {
-        setIsAnalysisLoading(false);
-    }
-  }, [suggestion, targetPartyId]);
-
-  useEffect(() => {
-    if (isOpen && activeTab === 'compatibility' && !aiAnalysis && !analysisError) {
-      fetchAiAnalysis();
-    }
-  }, [isOpen, activeTab, aiAnalysis, analysisError, fetchAiAnalysis]);
-
-  useEffect(() => {
-    if (!isOpen) {
-      setAiAnalysis(null);
-      setAnalysisError(null);
-      setIsAnalysisLoading(false);
-    } else {
-      setActiveTab("presentation");
-      setQuestionnaire(null);
-      setIsFullScreen(!!document.fullscreenElement);
-
-      if (targetPartyId) {
-        const fetchQuestionnaire = async () => {
-          setIsQuestionnaireLoading(true);
-          try {
-            const response = await fetch(`/api/profile/questionnaire?userId=${targetPartyId}`);
-            const data = await response.json();
-            if (response.ok && data.success) {
-              setQuestionnaire(data.questionnaireResponse);
-            }
-          } catch (error) {
-            console.error("Error fetching questionnaire:", error);
-          } finally {
-            setIsQuestionnaireLoading(false);
-          }
-        };
-        fetchQuestionnaire();
-      }
-    }
-
-    const handleFullScreenChange = () => setIsFullScreen(!!document.fullscreenElement);
-    document.addEventListener('fullscreenchange', handleFullScreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullScreenChange);
-  }, [isOpen, targetPartyId]);
-
-  // ===============================
-  // EARLY RETURN & RENDER LOGIC
-  // ===============================
-  
   if (!suggestion || !targetParty) return null;
 
-  const canActOnSuggestion = 
-    (isFirstParty && suggestion.status === "PENDING_FIRST_PARTY") ||
-    (!isFirstParty && suggestion.status === "PENDING_SECOND_PARTY");
-
-  // ===============================
-  // EVENT HANDLERS
-  // ===============================
-  const toggleFullScreen = () => {
-    if (!dialogContentRef.current) return;
-
-    if (!document.fullscreenElement) {
-      dialogContentRef.current.requestFullscreen().catch(err => {
-        toast.error("לא ניתן לעבור למסך מלא", {
-          description: "יתכן שהדפדפן שלך אינו תומך או חוסם אפשרות זו."
-        });
-      });
-    } else {
-      document.exitFullscreen();
-    }
-  };
+  const canActOnSuggestion =
+    (isFirstParty && suggestion.status === 'PENDING_FIRST_PARTY') ||
+    (!isFirstParty && suggestion.status === 'PENDING_SECOND_PARTY');
 
   const triggerConfirmDialog = (action: 'approve' | 'decline') => {
     setActionToConfirm(action);
     setShowConfirmDialog(true);
   };
-  
+
   const executeConfirmedAction = async () => {
     if (!onStatusChange || !suggestion || !actionToConfirm) return;
-
-    const newStatus = actionToConfirm === 'approve'
-      ? (isFirstParty ? "FIRST_PARTY_APPROVED" : "SECOND_PARTY_APPROVED")
-      : (isFirstParty ? "FIRST_PARTY_DECLINED" : "SECOND_PARTY_DECLINED");
-
+    const newStatus =
+      actionToConfirm === 'approve'
+        ? isFirstParty
+          ? 'FIRST_PARTY_APPROVED'
+          : 'SECOND_PARTY_APPROVED'
+        : isFirstParty
+          ? 'FIRST_PARTY_DECLINED'
+          : 'SECOND_PARTY_DECLINED';
     setIsSubmitting(true);
     setShowConfirmDialog(false);
     try {
       await onStatusChange(suggestion.id, newStatus);
-      toast.success("הסטטוס עודכן בהצלחה! 🎉", {
-        description: newStatus.includes("APPROVED") 
-          ? "השדכן/ית יקבל הודעה ויתקדם עם התהליך - זה מרגש!"
-          : "תודה על המשוב הכנה - זה עוזר לנו להכיר אותך טוב יותר"
-      });
+      toast.success('הסטטוס עודכן בהצלחה!');
       onClose();
     } catch (error) {
-      console.error("Failed to update status:", error);
-      toast.error("אירעה שגיאה בעדכון הסטטוס.");
+      toast.error('אירעה שגיאה בעדכון הסטטוס.');
     } finally {
       setIsSubmitting(false);
       setActionToConfirm(null);
     }
   };
-  
+
   const handleSendQuestion = async (question: string) => {
     setIsSubmitting(true);
     try {
-      const response = await fetch(`/api/suggestions/${suggestion.id}/inquiries`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question }),
-      });
-      
-      if (!response.ok) throw new Error("Failed to send inquiry.");
-      
-      toast.success("שאלתך נשלחה בהצלחה! 📩", {
-        description: "השדכן/ית יחזור אליך בהקדם עם תשובה מקצועית"
-      });
+      const response = await fetch(
+        `/api/suggestions/${suggestion.id}/inquiries`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question }),
+        }
+      );
+      if (!response.ok) throw new Error('Failed to send inquiry.');
+      toast.success('שאלתך נשלחה בהצלחה!');
       setShowAskDialog(false);
     } catch (error) {
-      console.error("Error sending question:", error);
-      toast.error("אירעה שגיאה בשליחת השאלה.");
+      toast.error('אירעה שגיאה בשליחת השאלה.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // ===============================
-  // RENDER
-  // ===============================
-
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent 
-          ref={dialogContentRef}
-          className="max-w-7xl w-[95vw] h-[95vh] flex flex-col p-0 shadow-2xl rounded-3xl border-0 bg-white overflow-hidden" 
+        <DialogContent
+          className="w-screen h-screen rounded-none md:max-w-7xl md:w-[95vw] md:h-[95vh] md:rounded-3xl flex flex-col p-0 shadow-2xl border-0 bg-white overflow-hidden"
           dir="rtl"
         >
-          {/* Enhanced Header */}
           <DialogHeader className="px-6 py-4 border-b border-purple-100 flex-shrink-0 flex flex-row items-center justify-between bg-gradient-to-r from-purple-50/80 via-white to-pink-50/80 backdrop-blur-sm sticky top-0 z-30">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
@@ -4514,217 +4422,126 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                 <DialogTitle className="text-xl font-bold text-gray-800">
                   הצעה מיוחדת
                 </DialogTitle>
-                <p className="text-sm text-gray-600">אהבה אמיתית מתחילה כאן</p>
+                <p className="text-sm text-gray-600">הצצה להזדמנות חדשה</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={toggleFullScreen}
-                        className="rounded-full h-10 w-10 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-                      >
-                        {isFullScreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{isFullScreen ? 'צא ממסך מלא' : 'מסך מלא'}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={onClose}
-                  className="rounded-full h-10 w-10 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
-                  <X className="w-5 h-5" />
-                </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onClose}
+                className="rounded-full h-10 w-10 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </Button>
             </div>
           </DialogHeader>
-          
+
           <ScrollArea className="flex-grow min-h-0">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              {/* Enhanced Tabs Navigation */}
-              <div className="border-b border-purple-100 px-6 pt-2 bg-gradient-to-r from-purple-50/50 to-pink-50/50 backdrop-blur-sm sticky top-0 z-20">
+              {/* ======================= START OF CHANGE FOR TABS ======================= */}
+              <div className="border-b border-purple-100 px-2 sm:px-6 pt-2 bg-gradient-to-r from-purple-50/50 to-pink-50/50 backdrop-blur-sm sticky top-0 z-20">
                 <TabsList className="grid w-full grid-cols-4 bg-white/80 backdrop-blur-sm rounded-2xl p-1 h-16 shadow-lg border border-purple-100">
-                  <TabsTrigger 
-                    value="presentation" 
-                    className="flex items-center gap-2 rounded-xl transition-all data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-lg font-semibold"
+                  <TabsTrigger
+                    value="presentation"
+                    className="flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-lg font-semibold"
                   >
-                    <Sparkles className="w-5 h-5" />
-                    <span>ההצעה המיוחדת</span>
+                    <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <span className="hidden md:inline">הצגה</span>
+                    <span className="md:hidden">הצגה</span>
                   </TabsTrigger>
-                  <TabsTrigger 
-                    value="profile" 
-                    className="flex items-center gap-2 rounded-xl transition-all data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-lg font-semibold"
+
+                  <TabsTrigger
+                    value="profile"
+                    className="flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-lg font-semibold"
                   >
-                    <User className="w-5 h-5" />
-                    <span>פרופיל מלא</span>
+                    <User className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <span className="hidden md:inline">פרופיל מלא</span>
+                    <span className="md:hidden">פרופיל</span>
                   </TabsTrigger>
-                  <TabsTrigger 
-                    value="compatibility" 
-                    className="flex items-center gap-2 rounded-xl transition-all data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg font-semibold"
+
+                  <TabsTrigger
+                    value="compatibility"
+                    className="flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg font-semibold"
                   >
-                    <GitCompareArrows className="w-5 h-5" />
-                    <span>ניתוח התאמה</span>
+                    <GitCompareArrows className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <span className="hidden md:inline">ניתוח התאמה</span>
+                    <span className="md:hidden">התאמה</span>
                   </TabsTrigger>
-                  <TabsTrigger 
-                    value="details" 
-                    className="flex items-center gap-2 rounded-xl transition-all data-[state=active]:bg-gradient-to-r data-[state=active]:from-gray-500 data-[state=active]:to-slate-500 data-[state=active]:text-white data-[state=active]:shadow-lg font-semibold"
+
+                  <TabsTrigger
+                    value="details"
+                    className="flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-gray-500 data-[state=active]:to-slate-500 data-[state=active]:text-white data-[state=active]:shadow-lg font-semibold"
                   >
-                    <Info className="w-5 h-5" />
-                    <span>פרטים נוספים</span>
+                    <Info className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <span className="hidden md:inline">פרטים ותקשורת</span>
+                    <span className="md:hidden">פרטים</span>
                   </TabsTrigger>
                 </TabsList>
               </div>
-              
-              {/* Tab Contents */}
-              
-              {/* Enhanced Presentation Tab */}
+              {/* ======================== END OF CHANGE FOR TABS ======================== */}
+
               <TabsContent value="presentation" className="mt-0">
-                <EnhancedHeroSection 
+                <EnhancedHeroSection
                   matchmaker={suggestion.matchmaker}
                   targetParty={targetParty}
-                  personalNote={isFirstParty ? suggestion.firstPartyNotes : suggestion.secondPartyNotes}
+                  personalNote={
+                    isFirstParty
+                      ? suggestion.firstPartyNotes
+                      : suggestion.secondPartyNotes
+                  }
                   matchingReason={suggestion.matchingReason}
                   onViewProfile={() => setActiveTab('profile')}
                   onStartConversation={() => setShowAskDialog(true)}
                 />
               </TabsContent>
-              
-              {/* Profile Tab */}
               <TabsContent value="profile" className="mt-0 p-4 md:p-6">
                 {isQuestionnaireLoading ? (
                   <div className="flex justify-center items-center h-64">
-                    <div className="text-center">
-                      <Loader2 className="w-8 h-8 animate-spin text-purple-600 mx-auto mb-4" />
-                      <p className="text-gray-600 font-medium">טוען פרופיל מלא...</p>
-                      <p className="text-sm text-gray-500">הכנו משהו מיוחד בשבילך</p>
-                    </div>
+                    <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
                   </div>
+                ) : targetParty.profile ? (
+                  <ProfileCard
+                    profile={targetParty.profile}
+                    isProfileComplete={targetParty.isProfileComplete}
+                    images={targetParty.images}
+                    questionnaire={questionnaire}
+                    viewMode="candidate"
+                  />
                 ) : (
-                   targetParty.profile ? (
-<ProfileCard
-  profile={targetParty.profile}
-  isProfileComplete={targetParty.isProfileComplete} // <-- הוסף את השורה הזו
-  images={targetParty.images}
-  questionnaire={questionnaire}
-  viewMode="candidate"
-/>
-    ) : (
-      // אם הפרופיל הוא null, נציג הודעת שגיאה ידידותית
-      <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-8">
-        <AlertTriangle className="w-16 h-16 text-red-400 mb-6" />
-        <h3 className="text-2xl font-bold text-red-700">שגיאה בטעינת הפרופיל</h3>
-        <p className="text-gray-600 mt-2 max-w-md">
-          לא הצלחנו למצוא את נתוני הפרופיל המלאים עבור מועמד/ת זה. 
-          אנא פנה/י לשדכן/ית לקבלת סיוע.
-        </p>
-      </div>
-    )
+                  <div className="text-center p-8">
+                    <AlertTriangle className="w-16 h-16 text-red-400 mb-4 mx-auto" />
+                    <h3 className="text-xl font-bold">שגיאה בטעינת פרופיל</h3>
+                    <p>לא הצלחנו לטעון את הפרופיל. אנא פנה לשדכן.</p>
+                  </div>
                 )}
               </TabsContent>
-
-              {/* Compatibility Tab */}
-              <TabsContent value="compatibility" className="mt-0 p-2 md:p-4 bg-slate-50 min-h-full">
-                {isAnalysisLoading ? (
-                  <div className="flex flex-col items-center justify-center h-full min-h-[500px] text-center space-y-6">
-                    <div className="relative">
-                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-200 to-emerald-200 animate-pulse"></div>
-                      <Loader2 className="w-12 h-12 text-cyan-600 animate-spin absolute inset-0 m-auto" />
-                    </div>
-                    <div className="space-y-2">
-                      <p className="text-xl font-semibold text-gray-700">ה-AI שלנו בוחן את ההתאמה...</p>
-                      <p className="text-gray-500 max-w-md">זה עשוי לקחת מספר שניות. אנו מנתחים עשרות פרמטרים להבנה מעמיקה של ההתאמה.</p>
-                    </div>
+              <TabsContent
+                value="compatibility"
+                className="mt-0 p-2 md:p-4 bg-slate-50 min-h-full"
+              >
+                <div className="flex flex-col items-center justify-center h-full min-h-[500px] text-center space-y-8 p-4">
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center mx-auto shadow-lg">
+                    <Bot className="w-12 h-12 text-blue-500" />
                   </div>
-                ) : analysisError ? (
-                  <div className="flex flex-col items-center justify-center h-full min-h-[500px] text-center space-y-6">
-                    <div className="p-4 rounded-full bg-red-100">
-                      <AlertTriangle className="h-12 w-12 text-red-600" />
-                    </div>
-                    <Alert variant="destructive" className="max-w-md border-red-200 bg-red-50">
-                      <AlertTriangle className="h-5 w-5" />
-                      <UiAlertTitle className="text-red-800">אופס, משהו השתבש</UiAlertTitle>
-                      <AlertDescription className="text-red-700">
-                        <p>לא הצלחנו להשלים את ניתוח ההתאמה כרגע.</p>
-                        <p className="text-sm mt-2 opacity-90">{analysisError}</p>
-                      </AlertDescription>
-                    </Alert>
-                    <Button
-                      onClick={fetchAiAnalysis}
-                      variant="outline"
-                      className="mt-4 border-red-200 text-red-600 hover:bg-red-50"
-                    >
-                      <Bot className="w-4 h-4 ml-2" />
-                      נסה שוב
-                    </Button>
-                  </div>
-                ) : aiAnalysis ? (
-                  <UserAiAnalysisDisplay analysis={aiAnalysis} />
-                ) : null}
-              </TabsContent>
-
-              {/* Enhanced Details Tab */}
-              <TabsContent value="details" className="mt-0 p-6 md:p-8 space-y-8">
-                {/* Suggestion Information */}
-                <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-gray-50">
-                  <CardContent className="p-6">
-                    <h3 className="text-xl font-semibold mb-4 text-gray-800 flex items-center gap-2">
-                      <Calendar className="w-5 h-5 text-purple-600" />
-                      מידע על ההצעה
+                  <div className="space-y-3">
+                    <h3 className="text-2xl font-bold text-gray-800">
+                      רוצה מבט מעמיק יותר?
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
-                          <span className="font-semibold text-gray-700">סטטוס נוכחי:</span>
-                          <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 shadow-md">
-                            {suggestion.status}
-                          </Badge>
-                        </div>
-                        {suggestion.decisionDeadline && (
-                          <div className="flex justify-between items-center p-3 bg-amber-50 rounded-lg">
-                            <span className="font-semibold text-gray-700">תאריך יעד:</span>
-                            <span className="text-gray-600 font-medium">
-                              {new Date(suggestion.decisionDeadline).toLocaleDateString('he-IL')}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
-                          <span className="font-semibold text-gray-700">תאריך יצירה:</span>
-                          <span className="text-gray-600 font-medium">
-                            {new Date(suggestion.createdAt).toLocaleDateString('he-IL')}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                          <span className="font-semibold text-gray-700">עדיפות:</span>
-                          <Badge 
-                            variant="outline" 
-                            className={cn(
-                              "border-2 font-semibold",
-                              suggestion.priority === "HIGH" ? "border-red-300 text-red-700 bg-red-50" :
-                              suggestion.priority === "MEDIUM" ? "border-amber-300 text-amber-700 bg-amber-50" :
-                              "border-green-300 text-green-700 bg-green-50"
-                            )}
-                          >
-                            {suggestion.priority}
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                {/* Process Timeline */}
+                    <p className="text-gray-600 max-w-lg mx-auto">
+                      ה-AI שלנו יכול לנתח את הנתונים ולספק לך תובנות על פוטנציאל
+                      החיבור.
+                    </p>
+                  </div>
+                  <UserAiAnalysisDialog suggestedUserId={targetParty.id} />
+                </div>
+              </TabsContent>
+              <TabsContent
+                value="details"
+                className="mt-0 p-6 md:p-8 space-y-8"
+              >
                 <SuggestionTimeline statusHistory={suggestion.statusHistory} />
-
-                {/* Conversation with Matchmaker */}
-                <InquiryThreadView 
+                <InquiryThreadView
                   suggestionId={suggestion.id}
                   userId={userId}
                   showComposer={true}
@@ -4732,9 +4549,10 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
               </TabsContent>
             </Tabs>
           </ScrollArea>
-          
-          {/* Enhanced Action Buttons */}
+
           <EnhancedQuickActions
+            isExpanded={isActionsExpanded}
+            onToggleExpand={() => setIsActionsExpanded((prev) => !prev)}
             canAct={canActOnSuggestion}
             isSubmitting={isSubmitting}
             onApprove={() => triggerConfirmDialog('approve')}
@@ -4743,8 +4561,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
           />
         </DialogContent>
       </Dialog>
-      
-      {/* Ask Matchmaker Dialog */}
+
       <AskMatchmakerDialog
         isOpen={showAskDialog}
         onClose={() => setShowAskDialog(false)}
@@ -4753,42 +4570,43 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
         suggestionId={suggestion.id}
       />
 
-      {/* Confirmation Dialog */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent className="border-0 shadow-2xl rounded-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-xl font-bold text-center">
-              {actionToConfirm === "approve"
-                ? "אישור הצעת השידוך"
-                : "דחיית הצעת השידוך"}
+              {actionToConfirm === 'approve'
+                ? 'אישור הצעת השידוך'
+                : 'דחיית הצעת השידוך'}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center text-gray-600 leading-relaxed">
               {actionToConfirm === 'approve'
-                ? isFirstParty ? (
-                  <>
-                    אתה עומד לאשר את ההצעה.
-                    <br />
-                    לאחר אישורך, ההצעה תועבר לצד השני. אם גם הוא/היא יאשרו, פרטי הקשר של שניכם יוחלפו.
-                  </>
-                ) : (
-                  <>
-                    הצד הראשון כבר אישר את ההצעה, וזה מרגש!
-                    <br />
-                    באישור שלך, פרטי הקשר שלך יישלחו לצד הראשון ופרטיו יישלחו אליך.
-                  </>
-                ) : "האם אתה בטוח שברצונך לדחות את הצעת השידוך? המשוב שלך עוזר לנו להציע התאמות טובות יותר בעתיד."
-              }
+                ? isFirstParty
+                  ? 'אתה מאשר את ההצעה. היא תועבר לצד השני לאישור.'
+                  : 'הצד הראשון כבר אישר! באישור שלך, פרטי הקשר יוחלפו.'
+                : 'האם אתה בטוח שברצונך לדחות את ההצעה?'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-3">
-            <AlertDialogCancel className="rounded-xl" disabled={isSubmitting}>ביטול</AlertDialogCancel>
+            <AlertDialogCancel className="rounded-xl" disabled={isSubmitting}>
+              ביטול
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={executeConfirmedAction}
               disabled={isSubmitting}
-              className={cn("rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300",
-                actionToConfirm === "approve" ? "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700" : "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
-              )}>
-              {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : (actionToConfirm === "approve" ? "כן, אני מאשר/ת!" : "דחיית ההצעה")}
+              className={cn(
+                'rounded-xl font-medium shadow-lg',
+                actionToConfirm === 'approve'
+                  ? 'bg-gradient-to-r from-green-500 to-green-600'
+                  : 'bg-gradient-to-r from-red-500 to-red-600'
+              )}
+            >
+              {isSubmitting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : actionToConfirm === 'approve' ? (
+                'כן, לאשר!'
+              ) : (
+                'דחיית ההצעה'
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -4892,9 +4710,10 @@ export default CompatibilityHighlights;
 File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\suggestions\presentation\MatchPresentationView.tsx
 --------------------------------------------------------------------------------
 Content:
-"use client";
-import React from "react";
-import Image from "next/image";
+// src/app/components/suggestions/presentation/MatchPresentationView.tsx
+'use client';
+import React from 'react';
+import Image from 'next/image';
 import {
   Heart,
   Sparkles,
@@ -4906,15 +4725,15 @@ import {
   Quote,
   GraduationCap,
   ChevronLeft,
-  type LucideProps // Import LucideProps for type safety if needed, though ElementType is simpler
-} from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+  type LucideProps,
+} from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { UserAiAnalysisDialog } from '../dialogs/UserAiAnalysisDialog';
 import { getInitials } from '@/lib/utils';
-import { cn } from "@/lib/utils";
-import type { ExtendedMatchSuggestion } from "../types";
+import { cn } from '@/lib/utils';
+import type { ExtendedMatchSuggestion } from '../types';
 
 // --- קומפוננטות עזר פנימיות לעיצוב החדש ---
 
@@ -4923,7 +4742,7 @@ import type { ExtendedMatchSuggestion } from "../types";
  * יוצר את המסגרת הרגשית להצעה.
  */
 const HeroIntroduction: React.FC<{
-  matchmaker: { firstName: string; lastName: string; };
+  matchmaker: { firstName: string; lastName: string };
   personalNote?: string | null;
 }> = ({ matchmaker, personalNote }) => (
   <div className="text-center p-6 rounded-2xl bg-gradient-to-br from-purple-100/50 via-pink-100/50 to-blue-100/50 border border-purple-200/40 shadow-lg">
@@ -4934,8 +4753,12 @@ const HeroIntroduction: React.FC<{
         </AvatarFallback>
       </Avatar>
     </div>
-    <h2 className="text-2xl md:text-3xl font-bold text-gray-800 tracking-tight">הצעה מיוחדת בדרך אליך...</h2>
-    <p className="text-gray-600 mt-2">מחשבות מהשדכן/ית, {matchmaker.firstName}:</p>
+    <h2 className="text-2xl md:text-3xl font-bold text-gray-800 tracking-tight">
+      הצעה מיוחדת בדרך אליך...
+    </h2>
+    <p className="text-gray-600 mt-2">
+      מחשבות מהשדכן/ית, {matchmaker.firstName}:
+    </p>
     {personalNote && (
       <div className="mt-4 max-w-2xl mx-auto">
         <div className="relative bg-white/60 p-4 rounded-xl shadow-inner border border-purple-100">
@@ -4958,14 +4781,22 @@ const ProfilePeek: React.FC<{
   targetParty: ExtendedMatchSuggestion['secondParty'];
   onViewProfileClick: () => void;
 }> = ({ targetParty, onViewProfileClick }) => {
-  const age = targetParty.profile?.birthDate ? new Date().getFullYear() - new Date(targetParty.profile.birthDate).getFullYear() : null;
-  const mainImage = targetParty.images?.find(img => img.isMain)?.url;
+  const age = targetParty.profile?.birthDate
+    ? new Date().getFullYear() -
+      new Date(targetParty.profile.birthDate).getFullYear()
+    : null;
+  const mainImage = targetParty.images?.find((img) => img.isMain)?.url;
   return (
     <Card className="overflow-hidden shadow-xl transition-all hover:shadow-2xl">
       <div className="grid grid-cols-1 md:grid-cols-3">
         <div className="relative h-64 md:h-auto">
           {mainImage ? (
-            <Image src={mainImage} alt={`תמונה של ${targetParty.firstName}`} fill className="object-cover" />
+            <Image
+              src={mainImage}
+              alt={`תמונה של ${targetParty.firstName}`}
+              fill
+              className="object-cover"
+            />
           ) : (
             <div className="w-full h-full bg-slate-200 flex items-center justify-center">
               <User className="w-16 h-16 text-slate-400" />
@@ -4974,24 +4805,34 @@ const ProfilePeek: React.FC<{
         </div>
         <div className="md:col-span-2 p-6 flex flex-col justify-between bg-white">
           <div>
-            <p className="text-sm font-semibold text-blue-600">הזדמנות להכיר את</p>
+            <p className="text-sm font-semibold text-blue-600">
+              הזדמנות להכיר את
+            </p>
             <h3 className="text-3xl font-extrabold text-gray-900 mt-1">
               {targetParty.firstName} {targetParty.lastName}
-              {age && <span className="text-2xl font-bold text-gray-500 ml-2">, {age}</span>}
+              {age && (
+                <span className="text-2xl font-bold text-gray-500 ml-2">
+                  , {age}
+                </span>
+              )}
             </h3>
             <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
               <div className="flex items-center gap-2 text-gray-700">
                 <MapPin className="w-4 h-4 text-teal-500" />
-                <span>{targetParty.profile?.city || "לא צוין"}</span>
+                <span>{targetParty.profile?.city || 'לא צוין'}</span>
               </div>
               <div className="flex items-center gap-2 text-gray-700">
                 <Briefcase className="w-4 h-4 text-emerald-500" />
-                <span>{targetParty.profile?.occupation || "לא צוין"}</span>
+                <span>{targetParty.profile?.occupation || 'לא צוין'}</span>
               </div>
             </div>
           </div>
           <div className="mt-6 text-left">
-            <Button onClick={onViewProfileClick} size="lg" className="font-bold">
+            <Button
+              onClick={onViewProfileClick}
+              size="lg"
+              className="font-bold"
+            >
               לפרופיל המלא
               <ChevronLeft className="w-5 h-5 mr-2" />
             </Button>
@@ -5011,7 +4852,6 @@ const KeyIngredients: React.FC<{
 }> = ({ matchingReason }) => {
   // לוגיקה פשוטה לחילוץ נקודות מסיבת ההתאמה
   const getHighlightsFromReason = () => {
-    // FIX: Explicitly type the array to prevent it from being inferred as 'never[]'
     const highlights: { icon: React.ElementType; text: string }[] = [];
     const reason = matchingReason?.toLowerCase() || '';
     if (reason.includes('ערכים') || reason.includes('השקפה')) {
@@ -5027,15 +4867,23 @@ const KeyIngredients: React.FC<{
       highlights.push({ icon: Sparkles, text: 'ניצוץ מיוחד' });
     }
     return highlights;
-  }
+  };
+
   const highlights = getHighlightsFromReason();
+
   if (highlights.length === 0) return null;
+
   return (
     <div className="text-center">
-      <h3 className="text-2xl font-bold text-gray-800 mb-6">רכיבי מפתח להתאמה מוצלחת</h3>
+      <h3 className="text-2xl font-bold text-gray-800 mb-6">
+        רכיבי מפתח להתאמה מוצלחת
+      </h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {highlights.map((item, index) => (
-          <div key={index} className="bg-white p-6 rounded-xl shadow-lg border-t-4 border-blue-500 transform transition-transform hover:-translate-y-2">
+          <div
+            key={index}
+            className="bg-white p-6 rounded-xl shadow-lg border-t-4 border-blue-500 transform transition-transform hover:-translate-y-2"
+          >
             <div className="mx-auto w-14 h-14 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mb-4">
               <item.icon className="w-7 h-7" />
             </div>
@@ -5043,37 +4891,52 @@ const KeyIngredients: React.FC<{
           </div>
         ))}
       </div>
-      {matchingReason &&
+      {matchingReason && (
         <Card className="mt-6 bg-blue-50 border-blue-200">
           <CardContent className="p-4">
-            <p className="text-gray-700 text-center"><span className="font-semibold">פירוט מהשדכן/ית:</span> {matchingReason}</p>
+            <p className="text-gray-700 text-center">
+              <span className="font-semibold">פירוט מהשדכן/ית:</span>{' '}
+              {matchingReason}
+            </p>
           </CardContent>
         </Card>
-      }
+      )}
     </div>
   );
 };
-
 
 // --- הקומפוננטה הראשית המעודכנת ---
 interface MatchPresentationViewProps {
   suggestion: ExtendedMatchSuggestion;
   userId: string;
-  onSwitchTab: (tab: 'profile' | 'details') => void;
+  onSwitchTab: (tab: 'profile' | 'details' | 'compatibility') => void;
 }
-const MatchPresentationView: React.FC<MatchPresentationViewProps> = ({ suggestion, userId, onSwitchTab }) => {
+
+const MatchPresentationView: React.FC<MatchPresentationViewProps> = ({
+  suggestion,
+  userId,
+  onSwitchTab,
+}) => {
   const isFirstParty = suggestion.firstPartyId === userId;
-  const targetParty = isFirstParty ? suggestion.secondParty : suggestion.firstParty;
+  const targetParty = isFirstParty
+    ? suggestion.secondParty
+    : suggestion.firstParty;
+
   // פונקציה שתעביר את המשתמש לטאב הפרופיל
   const handleViewProfile = () => {
     onSwitchTab('profile');
   };
+
   return (
     <div className="p-4 md:p-8 space-y-8 bg-gradient-to-b from-slate-50 to-blue-50">
       {/* 1. הפתיח האישי */}
       <HeroIntroduction
         matchmaker={suggestion.matchmaker}
-        personalNote={isFirstParty ? suggestion.firstPartyNotes : suggestion.secondPartyNotes}
+        personalNote={
+          isFirstParty
+            ? suggestion.firstPartyNotes
+            : suggestion.secondPartyNotes
+        }
       />
 
       {/* 2. כרטיס הצצה למועמד/ת */}
@@ -5083,19 +4946,23 @@ const MatchPresentationView: React.FC<MatchPresentationViewProps> = ({ suggestio
       />
 
       {/* 3. רכיבי המפתח להתאמה */}
-      <KeyIngredients
-        matchingReason={suggestion.matchingReason}
-      />
+      <KeyIngredients matchingReason={suggestion.matchingReason} />
 
       {/* 4. חוות דעת נוספת - AI */}
       <div className="text-center pt-4 border-t border-gray-200">
-        <h3 className="text-xl font-semibold text-gray-700 mb-3">רוצה חוות דעת נוספת?</h3>
+        <h3 className="text-xl font-semibold text-gray-700 mb-3">
+          רוצה חוות דעת נוספת?
+        </h3>
+        <p className="text-gray-600 max-w-xl mx-auto mb-4">
+          קבל ניתוח מעמיק מבוסס AI על נקודות החיבור, פוטנציאל לצמיחה ואפילו
+          רעיונות לפתיחת שיחה.
+        </p>
         <UserAiAnalysisDialog suggestedUserId={targetParty.id} />
       </div>
-
     </div>
   );
 };
+
 export default MatchPresentationView;
 --- End of Content for MatchPresentationView.tsx ---
 

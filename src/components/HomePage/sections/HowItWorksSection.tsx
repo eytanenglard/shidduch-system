@@ -32,56 +32,54 @@ const HowItWorksSection: React.FC = () => {
             description="מילוי פרופיל אישי מפורט והגדרת העדפות לחיפוש לאחר תהליך רישום פשוט וידידותי"
             color="cyan"
           />
-
+          <div className="mt-16 text-center">
+            <h4 className="text-xl font-bold mb-6 text-gray-800">
+              כך תיראה הצעה לדוגמה:
+            </h4>
+            <DemoSuggestionCard />
+          </div>
           <Step
             number="2"
             title="שאלון ערכים מקיף"
             description="מיפוי אישיות, רקע משפחתי ומסורות, והשקפות עולם שיאפשרו למערכת להכיר אותך לעומק"
             color="green"
           />
-
           <Step
             number="3"
             title="שיפור פרופיל בעזרת AI"
             description="המערכת מציעה שאלות ממוקדות להרחבת הפרופיל ומספקת תובנות להדגשת האיכויות הייחודיות שלך"
             color="orange"
           />
-
           <Step
             number="4"
             title="סקירה אישית של שדכן"
             description="שדכן מקצועי סוקר את הפרופיל שלך באופן אישי, מוסיף הערות והמלצות, ומכין אסטרטגיית התאמה מותאמת"
             color="pink"
           />
-
           <Step
             number="5"
             title="ניתוח התאמה חכם"
             description="האלגוריתם מנתח עשרות אלפי פרופילים לפי 50+ ממדי התאמה ומייצר רשימת מועמדים פוטנציאליים"
             color="cyan"
           />
-
           <Step
             number="6"
             title="התאמה אישית מהשדכן"
             description="השדכן בוחר את ההתאמות האופטימליות מתוך הצעות האלגוריתם, תוך שקילת גורמי התאמה מעודנים"
             color="green"
           />
-
           <Step
             number="7"
             title="הצעת התאמה וקבלת משוב"
             description="הצגת הצעת ההתאמה, איסוף משוב מפורט במקרה של דחייה, ולמידה מתמדת לשיפור התאמות עתידיות"
             color="orange"
           />
-
           <Step
             number="8"
             title="יצירת קשר ראשוני"
             description="תקשורת מאובטחת וליווי מהשדכן המקצועי לאורך כל שלבי ההיכרות הראשונית"
             color="pink"
           />
-
           <Step
             number="9"
             title="בניית קשר משמעותי"
