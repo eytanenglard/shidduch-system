@@ -4,8 +4,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { UserPlus, Heart, Menu, X } from 'lucide-react';
+import { UserPlus, Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
+import { getRelativeCloudinaryPath } from '@/lib/utils';
 
 export interface NavLink {
   id: string;
@@ -15,6 +17,43 @@ export interface NavLink {
 interface StickyNavProps {
   navLinks: NavLink[];
 }
+
+// ======================== קומפוננטת הלוגו המעודכנת ========================
+const StickyLogo = () => {
+  return (
+    <Link
+      href="/"
+      className="hidden md:flex items-center gap-x-2 group shrink-0"
+      aria-label="NeshamaTech Homepage"
+    >
+      <div className="relative h-8 w-8">
+        <Image
+          src={getRelativeCloudinaryPath(
+            // זה ה-URL המדויק שסיפקת
+            'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png'
+          )}
+          alt="NeshamaTech Icon"
+          fill
+          className="object-contain transition-transform duration-300 group-hover:scale-110"
+          priority
+        />
+      </div>
+      <span
+        className="
+        text-xl 
+        font-bold 
+        bg-gradient-to-r from-teal-600 via-orange-500 to-amber-400
+        text-transparent bg-clip-text
+        bg-size-200 bg-pos-0 group-hover:bg-pos-100
+        transition-all duration-700 ease-in-out
+      "
+      >
+        NeshamaTech
+      </span>
+    </Link>
+  );
+};
+// ========================================================================
 
 const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
   const [isSticky, setIsSticky] = useState(false);
@@ -71,8 +110,6 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
     };
   }, [navLinks, isMobile]);
 
-  // ======================= THE FIX =======================
-  // The line that sets the mobile nav state to 'closed' is now removed.
   const handleLinkClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
     href: string
@@ -87,7 +124,6 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
       window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
     }
   };
-  // =======================================================
 
   const isNavOpen = mobileNavState === 'open';
 
@@ -110,15 +146,8 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
           >
             <div className="absolute inset-0 bg-white/80 backdrop-blur-lg shadow-sm border-b border-gray-200/80"></div>
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
-              <Link
-                href="/"
-                className="hidden md:flex items-center gap-x-2 group shrink-0"
-              >
-                <Heart className="h-7 w-7 text-cyan-500 transition-transform duration-300 group-hover:scale-110" />
-                <span className="text-xl font-bold text-gray-800 group-hover:text-cyan-600 transition-colors">
-                  Match Point
-                </span>
-              </Link>
+              <StickyLogo />
+
               <nav className="hidden md:flex items-center gap-2 relative">
                 {navLinks.map((link) => (
                   <a
@@ -128,14 +157,14 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
                     className={cn(
                       'relative px-3 py-2 rounded-full text-sm font-medium transition-colors duration-200',
                       activeSection === link.id
-                        ? 'text-cyan-600'
-                        : 'text-gray-700 hover:text-cyan-600'
+                        ? 'text-teal-600'
+                        : 'text-gray-700 hover:text-teal-600'
                     )}
                   >
                     {activeSection === link.id && (
                       <motion.div
                         layoutId="active-nav-link"
-                        className="absolute inset-0 bg-cyan-500/10 rounded-full z-0"
+                        className="absolute inset-0 bg-teal-500/10 rounded-full z-0"
                         transition={{
                           type: 'spring',
                           stiffness: 300,
@@ -159,7 +188,7 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
                         className={cn(
                           'relative px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0',
                           activeSection === link.id
-                            ? 'bg-cyan-600 text-white shadow'
+                            ? 'bg-teal-600 text-white shadow'
                             : 'text-gray-700 hover:bg-gray-100'
                         )}
                       >
@@ -183,7 +212,7 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
 
               <div className="hidden md:flex items-center gap-2">
                 <Link href="/auth/register">
-                  <Button className="group relative overflow-hidden bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 px-5">
+                  <Button className="group relative overflow-hidden bg-gradient-to-r from-teal-600 to-orange-500 hover:from-teal-700 hover:to-orange-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 px-5">
                     <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
                     <span className="relative z-10 flex items-center">
                       <UserPlus className="ml-1.5 h-4 w-4" />
@@ -212,7 +241,7 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
               onClick={() => setMobileNavState('open')}
               aria-label="פתח ניווט"
             >
-              <Menu className="h-6 w-6 text-cyan-600" />
+              <Menu className="h-6 w-6 text-teal-600" />
             </Button>
           </motion.div>
         )}

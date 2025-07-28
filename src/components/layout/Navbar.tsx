@@ -141,6 +141,7 @@ const UserDropdown = ({
 };
 
 // רכיב הלוגו
+// רכיב הלוגו - גרסה 2.0: "הלהבה הנושמת"
 const Logo = () => {
   return (
     <Link
@@ -149,22 +150,44 @@ const Logo = () => {
       aria-label="NeshamaTech Homepage"
     >
       <div className="relative h-9 w-9">
-        {/* ======================= התיקון כאן ======================= */}
         <Image
-          // עטפנו את ה-URL המלא בפונקציית העזר שלנו
           src={getRelativeCloudinaryPath(
-            'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753712543/Adobe_Express_-_file_ihel3a.png'
+          'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png'
           )}
           alt="NeshamaTech Icon"
           fill
           className="object-contain transition-transform duration-300 group-hover:scale-110"
           priority
         />
-        {/* ========================================================== */}
       </div>
-      <span className="text-xl font-bold text-gray-800 group-hover:text-cyan-600 transition-colors duration-300">
+      
+      {/* ====================== הטקסט המעוצב והמשודרג ====================== */}
+      <span className="
+        text-xl 
+        font-bold 
+        
+        // יצירת הגראדינט המדויק
+        bg-gradient-to-r 
+        from-teal-600         // צבע טיל עמוק יותר
+        via-orange-500        // נגיעת כתום במעבר
+        to-amber-400          // סיומת עם זוהר של ענבר
+        
+        // הקסם שיוצר את האפקט
+        text-transparent      
+        bg-clip-text
+        
+        // אנימציה עדינה של הגראדינט במעבר עכבר
+        bg-size-200           // מגדילים את הרקע פי 2
+        bg-pos-0              // מתחילים אותו מהקצה
+        group-hover:bg-pos-100// במעבר עכבר, מזיזים את הרקע לקצה השני
+        transition-all 
+        duration-700          // תנועה איטית ואלגנטית
+        ease-in-out
+      ">
         NeshamaTech
       </span>
+      {/* ==================================================================== */}
+
     </Link>
   );
 };

@@ -3082,28 +3082,28 @@ const MobileTabNavigation: React.FC<{
   if (!prevTab && !nextTab) {
     return null;
   }
-  
+
   // Base classes for both buttons for consistency
-  const baseButtonClasses = "flex-1 flex flex-col p-4 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2";
+  const baseButtonClasses =
+    'flex-1 flex flex-col p-4 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2';
 
   return (
     // The main container FIX: "flex" ensures it's a row, "items-stretch" makes buttons same height.
     <div className="mt-8 pt-6 border-t border-gray-200/80 flex items-stretch justify-between gap-3 sm:gap-4 w-full">
-      
       {/* PREVIOUS BUTTON (Right in RTL) */}
       {prevTab ? (
         <button
           className={cn(
             baseButtonClasses,
-            "items-start text-right", // Aligns content to the right
-            "bg-white border border-gray-200/80 hover:border-gray-300",
-            "focus-visible:ring-gray-400"
+            'items-start text-right', // Aligns content to the right
+            'bg-white border border-gray-200/80 hover:border-gray-300',
+            'focus-visible:ring-gray-400'
           )}
           onClick={() => onTabChange(prevTab.value)}
         >
           <div className="flex items-center gap-2">
-             <ChevronRight className="w-6 h-6 text-gray-400 flex-shrink-0" />
-             <p className="text-xs font-medium text-gray-500">הקודם</p>
+            <ChevronRight className="w-6 h-6 text-gray-400 flex-shrink-0" />
+            <p className="text-xs font-medium text-gray-500">הקודם</p>
           </div>
           <div className="flex items-center gap-2 mt-1.5">
             <prevTab.icon className="w-5 h-5 text-gray-600 flex-shrink-0" />
@@ -3121,15 +3121,15 @@ const MobileTabNavigation: React.FC<{
         <button
           className={cn(
             baseButtonClasses,
-            "items-end text-left", // Aligns content to the left
-            "bg-rose-50 border border-rose-200/80 hover:border-rose-300",
-            "focus-visible:ring-rose-500"
+            'items-end text-left', // Aligns content to the left
+            'bg-rose-50 border border-rose-200/80 hover:border-rose-300',
+            'focus-visible:ring-rose-500'
           )}
           onClick={() => onTabChange(nextTab.value)}
         >
           <div className="flex items-center gap-2">
-             <p className="text-xs font-medium text-rose-700">הבא</p>
-             <ChevronLeft className="w-6 h-6 text-rose-500 flex-shrink-0" />
+            <p className="text-xs font-medium text-rose-700">הבא</p>
+            <ChevronLeft className="w-6 h-6 text-rose-500 flex-shrink-0" />
           </div>
           <div className="flex items-center justify-end gap-2 mt-1.5">
             <span className="text-base font-bold text-rose-900 text-left break-words min-w-0">
@@ -3192,20 +3192,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   // Enhanced tab change handler with scroll management
   const handleTabChange = (newTab: string) => {
     if (activeTabRef.current === newTab) return;
-
     setActiveTab(newTab);
-
-    // Smart scroll management for mobile
-    if (window.innerWidth < 1024 && mobileViewLayout !== 'focus') {
-      setTimeout(() => {
-        const contentArea = document.getElementById(
-          'profile-card-tabs-content'
-        );
-        if (contentArea) {
-          contentArea.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-      }, 100);
-    }
   };
 
   // Get current theme based on selected palette
