@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\profile
-# Generated on: 2025-07-23 16:48:39
+# Generated on: 2025-07-28 23:31:30
 ################################################################################
 
 ================================================================================
@@ -21,7 +21,7 @@ import React, {
   useRef,
 } from 'react';
 import Image from 'next/image';
-import { cn } from '@/lib/utils';
+import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
 import {
   ResizableHandle,
   ResizablePanel,
@@ -135,8 +135,6 @@ import {
   Waves,
   Wind,
   Shield,
-  Maximize,
-  Minimize,
   ArrowLeft,
 } from 'lucide-react';
 
@@ -1481,7 +1479,7 @@ const DetailItem: React.FC<{
   tooltip?: string;
   variant?: 'default' | 'highlight' | 'elegant' | 'romantic';
   size?: 'sm' | 'md' | 'lg';
-textAlign?: 'center' | 'right' | 'left';
+  textAlign?: 'center' | 'right' | 'left';
   responsive?: boolean; // פרמטר חדש לקביעת רמת רספונסיביות
   useMobileLayout?: boolean; // האם להשתמש בפריסה מותאמת למובייל
 }> = ({
@@ -1598,46 +1596,46 @@ textAlign?: 'center' | 'right' | 'left';
           </div>
         </div>
         {/* Label */}
-<p
-  className={cn(
-    'font-semibold mb-1 tracking-wide leading-tight text-center',
-    currentSize.label,
-    // מניעת חריגת טקסט - חיוני!
-    'break-words hyphens-auto word-break-break-word overflow-wrap-anywhere',
-    // צבעים לפי וריאנט
-    variant === 'highlight' || variant === 'elegant'
-      ? 'text-rose-700 sm:text-gray-700'
-      : 'text-gray-600 sm:text-gray-700',
-    // פדינג קל במובייל
-    useMobileLayout && 'px-1'
-  )}
->
-  {label}
-</p>
+        <p
+          className={cn(
+            'font-semibold mb-1 tracking-wide leading-tight text-center',
+            currentSize.label,
+            // מניעת חריגת טקסט - חיוני!
+            'break-words hyphens-auto word-break-break-word overflow-wrap-anywhere',
+            // צבעים לפי וריאנט
+            variant === 'highlight' || variant === 'elegant'
+              ? 'text-rose-700 sm:text-gray-700'
+              : 'text-gray-600 sm:text-gray-700',
+            // פדינג קל במובייל
+            useMobileLayout && 'px-1'
+          )}
+        >
+          {label}
+        </p>
 
-{/* Value */}
-<div
-  className={cn(
-    'font-medium leading-relaxed text-center',
-    currentSize.value,
-    // מניעת חריגת טקסט - הכי חיוני!
-    'break-words hyphens-auto word-break-break-word overflow-wrap-anywhere',
-    'max-w-full overflow-hidden',
-    // צבעים
-    variant === 'highlight' || variant === 'elegant'
-      ? 'text-gray-800 sm:text-gray-900'
-      : 'text-gray-700 sm:text-gray-800',
-    // פדינג קל במובייל
-    useMobileLayout && 'px-1',
-    valueClassName
-  )}
->
-  {value || (
-    <span className="text-gray-400 italic text-xs sm:text-sm">
-      עוד נגלה יחד...
-    </span>
-  )}
-</div>
+        {/* Value */}
+        <div
+          className={cn(
+            'font-medium leading-relaxed text-center',
+            currentSize.value,
+            // מניעת חריגת טקסט - הכי חיוני!
+            'break-words hyphens-auto word-break-break-word overflow-wrap-anywhere',
+            'max-w-full overflow-hidden',
+            // צבעים
+            variant === 'highlight' || variant === 'elegant'
+              ? 'text-gray-800 sm:text-gray-900'
+              : 'text-gray-700 sm:text-gray-800',
+            // פדינג קל במובייל
+            useMobileLayout && 'px-1',
+            valueClassName
+          )}
+        >
+          {value || (
+            <span className="text-gray-400 italic text-xs sm:text-sm">
+              עוד נגלה יחד...
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -2315,7 +2313,7 @@ const ProfileHeader: React.FC<{
             >
               {mainImageToDisplay?.url ? (
                 <Image
-                  src={mainImageToDisplay.url}
+                  src={getRelativeCloudinaryPath(mainImageToDisplay.url)}
                   alt={`תמונת פרופיל של ${profile.user?.firstName || 'מועמד יקר'}`}
                   fill
                   className="object-cover transition-transform duration-700 hover:scale-110"
@@ -2842,7 +2840,7 @@ const MobileImageGallery: React.FC<{
               onClick={() => onImageClick(image)}
             >
               <Image
-                src={image.url}
+                src={getRelativeCloudinaryPath(image.url)}
                 alt={`תמונה מדהימה ${idx + 1}`}
                 fill
                 className="object-cover transition-transform duration-500 group-hover:scale-110"
@@ -2987,7 +2985,7 @@ const ImageDialogComponent: React.FC<{
         <div className="relative flex-1 w-full min-h-0 overflow-hidden">
           <Image
             key={selectedImageForDialog.id}
-            src={selectedImageForDialog.url}
+            src={getRelativeCloudinaryPath(selectedImageForDialog.url)}
             alt={`תמונה מוגדלת ${currentDialogImageIndex + 1}`}
             fill
             className="object-contain"
@@ -3048,7 +3046,7 @@ const ImageDialogComponent: React.FC<{
                     } // Simplified for demo
                   >
                     <Image
-                      src={img.url}
+                      src={getRelativeCloudinaryPath(img.url)}
                       alt="תמונה קטנה"
                       fill
                       className="object-cover"
@@ -3066,7 +3064,99 @@ const ImageDialogComponent: React.FC<{
   );
 };
 
-// --- Main Content, Tabs & Mobile Layouts with Full Responsive Support ---
+// START: רכיב ניווט מובייל מתוקן, אלגנטי ונקי
+const MobileTabNavigation: React.FC<{
+  activeTab: string;
+  tabItems: {
+    value: string;
+    label: string;
+    shortLabel?: string;
+    icon: React.ElementType;
+    gradient: string; // The gradient is kept for potential future use or consistency
+  }[];
+  onTabChange: (newTab: string) => void;
+  THEME: ThemeType; // THEME is kept for consistency
+}> = ({ activeTab, tabItems, onTabChange }) => {
+  const currentIndex = useMemo(
+    () => tabItems.findIndex((tab) => tab.value === activeTab),
+    [tabItems, activeTab]
+  );
+
+  const prevTab = useMemo(
+    () => (currentIndex > 0 ? tabItems[currentIndex - 1] : null),
+    [tabItems, currentIndex]
+  );
+  const nextTab = useMemo(
+    () =>
+      currentIndex < tabItems.length - 1 ? tabItems[currentIndex + 1] : null,
+    [tabItems, currentIndex]
+  );
+
+  if (!prevTab && !nextTab) {
+    return null;
+  }
+
+  // Base classes for both buttons for consistency
+  const baseButtonClasses =
+    'flex-1 flex flex-col p-4 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2';
+
+  return (
+    // The main container FIX: "flex" ensures it's a row, "items-stretch" makes buttons same height.
+    <div className="mt-8 pt-6 border-t border-gray-200/80 flex items-stretch justify-between gap-3 sm:gap-4 w-full">
+      {/* PREVIOUS BUTTON (Right in RTL) */}
+      {prevTab ? (
+        <button
+          className={cn(
+            baseButtonClasses,
+            'items-start text-right', // Aligns content to the right
+            'bg-white border border-gray-200/80 hover:border-gray-300',
+            'focus-visible:ring-gray-400'
+          )}
+          onClick={() => onTabChange(prevTab.value)}
+        >
+          <div className="flex items-center gap-2">
+            <ChevronRight className="w-6 h-6 text-gray-400 flex-shrink-0" />
+            <p className="text-xs font-medium text-gray-500">הקודם</p>
+          </div>
+          <div className="flex items-center gap-2 mt-1.5">
+            <prevTab.icon className="w-5 h-5 text-gray-600 flex-shrink-0" />
+            <span className="text-base font-bold text-gray-800 text-right break-words min-w-0">
+              {prevTab.label}
+            </span>
+          </div>
+        </button>
+      ) : (
+        <div className="flex-1" /> // Spacer to keep the 'Next' button aligned to the left
+      )}
+
+      {/* NEXT BUTTON (Left in RTL) - The "Hero" button */}
+      {nextTab ? (
+        <button
+          className={cn(
+            baseButtonClasses,
+            'items-end text-left', // Aligns content to the left
+            'bg-rose-50 border border-rose-200/80 hover:border-rose-300',
+            'focus-visible:ring-rose-500'
+          )}
+          onClick={() => onTabChange(nextTab.value)}
+        >
+          <div className="flex items-center gap-2">
+            <p className="text-xs font-medium text-rose-700">הבא</p>
+            <ChevronLeft className="w-6 h-6 text-rose-500 flex-shrink-0" />
+          </div>
+          <div className="flex items-center justify-end gap-2 mt-1.5">
+            <span className="text-base font-bold text-rose-900 text-left break-words min-w-0">
+              {nextTab.label}
+            </span>
+            <nextTab.icon className="w-5 h-5 text-rose-600 flex-shrink-0" />
+          </div>
+        </button>
+      ) : (
+        <div className="flex-1" /> // Spacer
+      )}
+    </div>
+  );
+};
 
 // Main ProfileCard Component
 const ProfileCard: React.FC<ProfileCardProps> = ({
@@ -3105,7 +3195,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       return profile.gender === 'MALE' ? 'masculine' : 'feminine';
     }
   );
-  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const activeTabRef = useRef(activeTab);
 
@@ -3116,20 +3205,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   // Enhanced tab change handler with scroll management
   const handleTabChange = (newTab: string) => {
     if (activeTabRef.current === newTab) return;
-
     setActiveTab(newTab);
-
-    // Smart scroll management for mobile
-    if (window.innerWidth < 1024 && mobileViewLayout !== 'focus') {
-      setTimeout(() => {
-        const contentArea = document.getElementById(
-          'profile-card-tabs-content'
-        );
-        if (contentArea) {
-          contentArea.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-      }, 100);
-    }
   };
 
   // Get current theme based on selected palette
@@ -3286,28 +3362,14 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     setIsSuggestDialogOpen(false);
   };
 
-  const handleToggleFullscreen = () => {
-    const elem = document.getElementById('profile-card-container');
-    if (!elem) return;
-
-    if (!document.fullscreenElement) {
-      elem.requestFullscreen().catch((err) => {
-        console.error(
-          `Error attempting to enable full-screen mode: ${err.message} (${err.name})`
-        );
-      });
-    } else {
-      document.exitFullscreen();
-    }
-  };
-
   const handleClose = () => {
     if (onClose) {
       onClose();
     }
   };
 
-  // Enhanced tab configuration with responsive support
+  // Enhanced tab configuration with responsive support AND CORRECT ORDER
+  // Enhanced tab configuration with responsive support AND CORRECT ORDER
   const tabItems = useMemo(
     () => [
       {
@@ -3539,17 +3601,13 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
 
-    const onFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-    document.addEventListener('fullscreenchange', onFullscreenChange);
-
     return () => {
       window.removeEventListener('resize', checkScreenSize);
-      document.removeEventListener('fullscreenchange', onFullscreenChange);
     };
   }, []);
 
+  // Enhanced MainContentTabs with full responsive support
+  // Enhanced MainContentTabs with full responsive support
   // Enhanced MainContentTabs with full responsive support
   const MainContentTabs = () => (
     <Tabs
@@ -3557,7 +3615,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       onValueChange={handleTabChange}
       className="w-full flex flex-col flex-1 min-h-0 max-w-full overflow-hidden"
     >
-      {/* Enhanced Tab Navigation */}
+      {/* Enhanced Tab Navigation Bar */}
       <div
         className={cn(
           'bg-white/95 backdrop-blur-md rounded-2xl border border-gray-200/50 overflow-hidden sticky top-0 z-20',
@@ -3574,7 +3632,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 className={cn(
                   'flex flex-col items-center gap-1 rounded-xl flex-shrink-0 transition-all duration-300 border border-transparent',
                   'text-gray-600 hover:text-gray-800 hover:bg-rose-50',
-                  // Critical touch targets for mobile
                   'min-w-[50px] min-h-[44px] touch-manipulation',
                   'sm:min-w-[60px] md:min-w-[80px]',
                   'px-1.5 py-1.5 sm:px-2 sm:py-2 md:px-3 md:py-2',
@@ -3588,7 +3645,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               >
                 <tab.icon className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                 <span className="leading-tight text-center break-words hyphens-auto word-break-break-word max-w-full">
-                  {window.innerWidth < 640 && tab.shortLabel
+                  {typeof window !== 'undefined' &&
+                  window.innerWidth < 640 &&
+                  tab.shortLabel
                     ? tab.shortLabel
                     : tab.label}
                 </span>
@@ -3605,7 +3664,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         className="flex-1 overflow-auto h-full max-w-full"
       >
         <div className="space-y-3 sm:space-y-4 md:space-y-6 p-1 sm:p-2 min-w-0 max-w-full">
-          {/* Essence Tab - Enhanced */}
+          {/* Essence Tab */}
           <TabsContent value="essence" className="mt-0 max-w-full min-w-0">
             <div className="space-y-6 sm:space-y-8 max-w-full min-w-0">
               <SectionCard
@@ -3617,7 +3676,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 className="max-w-full min-w-0"
               >
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-start max-w-full min-w-0">
-                  {/* Main Image */}
                   <div className="relative max-w-full min-w-0">
                     <div
                       className={cn(
@@ -3631,7 +3689,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     >
                       {mainImageToDisplay?.url ? (
                         <Image
-                          src={mainImageToDisplay.url}
+                          src={getRelativeCloudinaryPath(
+                            mainImageToDisplay.url
+                          )}
                           alt={`${profile.user?.firstName || 'מועמד'} נראה/ת מדהים/ה`}
                           fill
                           className="object-cover transition-transform duration-700 hover:scale-105"
@@ -3656,8 +3716,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       )}
                     </div>
                   </div>
-
-                  {/* Content */}
                   <div className="space-y-4 sm:space-y-6 max-w-full min-w-0">
                     <div className="text-center lg:text-right max-w-full min-w-0">
                       <h2
@@ -3670,14 +3728,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       >
                         {profile.user?.firstName || 'מישהו מדהים'}
                       </h2>
-
                       {age > 0 && (
                         <p className="text-lg sm:text-xl text-gray-700 font-bold mb-4 sm:mb-6 flex items-center justify-center lg:justify-start gap-2 flex-wrap">
                           <Cake className="w-5 h-5 text-rose-500 flex-shrink-0" />
                           <span>גיל: {age}</span>
                         </p>
                       )}
-
                       {profile.about ? (
                         <div
                           className={cn(
@@ -3701,8 +3757,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         />
                       )}
                     </div>
-
-                    {/* Key Details */}
                     <div className="grid grid-cols-1 gap-3 sm:gap-4 max-w-full min-w-0">
                       {profile.city && (
                         <DetailItem
@@ -3743,8 +3797,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   </div>
                 </div>
               </SectionCard>
-
-              {/* Character Traits & Hobbies */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-full min-w-0">
                 <SectionCard
                   title="תכונות הזהב שלי"
@@ -3779,7 +3831,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                                   'w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0',
                                   traitData.color
                                 )}
-                              />
+                              />{' '}
                               <span className="break-words min-w-0">
                                 {traitData.label}
                               </span>
@@ -3798,7 +3850,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     )}
                   </div>
                 </SectionCard>
-
                 <SectionCard
                   title="מה שאני אוהב/ת לעשות"
                   subtitle="התחביבים והתשוקות שלי"
@@ -3832,7 +3883,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                                   'w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0',
                                   hobbyData.color
                                 )}
-                              />
+                              />{' '}
                               <span className="break-words min-w-0">
                                 {hobbyData.label}
                               </span>
@@ -3852,8 +3903,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   </div>
                 </SectionCard>
               </div>
-
-              {/* Call to Action */}
               <div
                 className={cn(
                   'text-center p-6 sm:p-8 rounded-2xl text-white max-w-full min-w-0 overflow-hidden',
@@ -3876,7 +3925,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       THEME.shadows.warm
                     )}
                   >
-                    <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 ml-2 flex-shrink-0" />
+                    <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 ml-2 flex-shrink-0" />{' '}
                     <span className="break-words">בואו נכיר את הסיפור</span>
                   </Button>
                   <Button
@@ -3884,15 +3933,23 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     variant="outline"
                     className="bg-white/20 hover:bg-white border border-white/30 text-white hover:text-rose-600 font-bold rounded-full backdrop-blur-sm transition-all min-h-[44px] px-4 py-2 sm:px-6 sm:py-3 text-sm sm:text-base"
                   >
-                    <Heart className="w-4 h-4 sm:w-5 sm:h-5 ml-2 flex-shrink-0" />
+                    <Heart className="w-4 h-4 sm:w-5 sm:h-5 ml-2 flex-shrink-0" />{' '}
                     <span className="break-words">מה החלום לזוגיות</span>
                   </Button>
                 </div>
               </div>
+              {!isDesktop && mobileViewLayout === 'detailed' && (
+                <MobileTabNavigation
+                  activeTab={activeTab}
+                  tabItems={tabItems}
+                  onTabChange={handleTabChange}
+                  THEME={THEME}
+                />
+              )}
             </div>
           </TabsContent>
 
-          {/* Story Tab - Enhanced */}
+          {/* Story Tab */}
           <TabsContent
             value="story"
             className="mt-0 space-y-4 sm:space-y-6 max-w-full min-w-0"
@@ -3911,7 +3968,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 השורשים, הדרך והערכים שעיצבו את האדם הזה
               </p>
             </div>
-
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 max-w-full min-w-0">
               <SectionCard
                 title="הזהות הדתית והרוחנית"
@@ -3974,7 +4030,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   )}
                 </div>
               </SectionCard>
-
               <SectionCard
                 title="השכלה ועולם המקצוע"
                 subtitle="הדרך האקדמית והמקצועית שלי"
@@ -4036,8 +4091,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 </div>
               </SectionCard>
             </div>
-
-            {/* Family Background */}
             <SectionCard
               title="הרקע המשפחתי והתרבותי"
               subtitle="המשפחה והמקורות שעיצבו אותי"
@@ -4110,8 +4163,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   />
                 )}
               </div>
-
-              {/* Additional Languages */}
               {profile.additionalLanguages &&
                 profile.additionalLanguages.length > 0 && (
                   <div className="mt-6 pt-6 border-t border-gray-200 max-w-full min-w-0">
@@ -4140,7 +4191,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                                 'w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0',
                                 langData.color
                               )}
-                            />
+                            />{' '}
                             <span className="break-words min-w-0">
                               {langData.label}
                             </span>
@@ -4151,9 +4202,17 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   </div>
                 )}
             </SectionCard>
+            {!isDesktop && mobileViewLayout === 'detailed' && (
+              <MobileTabNavigation
+                activeTab={activeTab}
+                tabItems={tabItems}
+                onTabChange={handleTabChange}
+                THEME={THEME}
+              />
+            )}
           </TabsContent>
 
-          {/* Vision Tab - Enhanced */}
+          {/* Vision Tab */}
           <TabsContent
             value="vision"
             className="mt-0 space-y-4 sm:space-y-6 max-w-full min-w-0"
@@ -4172,7 +4231,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 איך אני רואה את העתיד שלנו יחד
               </p>
             </div>
-
             <SectionCard
               title="הזוגיות שאני חולם/ת עליה"
               subtitle="המחשבות והרגשות שלי על אהבה ומשפחה"
@@ -4218,10 +4276,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   variant="romantic"
                 />
               )}
-
               <div className="mt-6 sm:mt-8 space-y-4 sm:space-y-6 max-w-full min-w-0">
                 <h4 className="text-lg sm:text-xl font-bold text-gray-800 flex items-center gap-3">
-                  <Baby className="w-5 h-5 sm:w-6 sm:h-6 text-pink-500 flex-shrink-0" />
+                  <Baby className="w-5 h-5 sm:w-6 sm:h-6 text-pink-500 flex-shrink-0" />{' '}
                   <span className="break-words">החזון למשפחה</span>
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 max-w-full min-w-0">
@@ -4281,9 +4338,17 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 </div>
               </div>
             </SectionCard>
+            {!isDesktop && mobileViewLayout === 'detailed' && (
+              <MobileTabNavigation
+                activeTab={activeTab}
+                tabItems={tabItems}
+                onTabChange={handleTabChange}
+                THEME={THEME}
+              />
+            )}
           </TabsContent>
 
-          {/* Search Tab - Enhanced */}
+          {/* Search Tab */}
           <TabsContent
             value="search"
             className="mt-0 space-y-4 sm:space-y-6 max-w-full min-w-0"
@@ -4302,7 +4367,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 התכונות והערכים שחשובים בהתאמה
               </p>
             </div>
-
             {hasAnyPreferences ? (
               <div className="space-y-6 sm:space-y-8 max-w-full min-w-0">
                 {renderPreferenceBadges(
@@ -4344,7 +4408,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     {},
                     THEME.colors.secondary.peach
                   )}
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-full min-w-0">
                   {profile.preferredCharacterTraits &&
                     profile.preferredCharacterTraits.length > 0 && (
@@ -4379,7 +4442,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                                     'w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0',
                                     traitData.color
                                   )}
-                                />
+                                />{' '}
                                 <span className="break-words min-w-0">
                                   {traitData.label}
                                 </span>
@@ -4389,7 +4452,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         </div>
                       </SectionCard>
                     )}
-
                   {profile.preferredHobbies &&
                     profile.preferredHobbies.length > 0 && (
                       <SectionCard
@@ -4423,7 +4485,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                                     'w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0',
                                     hobbyData.color
                                   )}
-                                />
+                                />{' '}
                                 <span className="break-words min-w-0">
                                   {hobbyData.label}
                                 </span>
@@ -4443,9 +4505,17 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 variant="discovery"
               />
             )}
+            {!isDesktop && mobileViewLayout === 'detailed' && (
+              <MobileTabNavigation
+                activeTab={activeTab}
+                tabItems={tabItems}
+                onTabChange={handleTabChange}
+                THEME={THEME}
+              />
+            )}
           </TabsContent>
 
-          {/* Deeper Tab - Enhanced */}
+          {/* Deeper Tab */}
           {hasDisplayableQuestionnaireAnswers && (
             <TabsContent
               value="deeper"
@@ -4465,7 +4535,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   מחשבות אישיות ותובנות על החיים והאהבה
                 </p>
               </div>
-
               {Object.entries(WORLDS).map(([worldKey, worldConfig]) => {
                 const answersForWorld = (
                   questionnaire?.formattedAnswers?.[
@@ -4476,9 +4545,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     answer.isVisible !== false &&
                     (answer.answer || answer.displayText)
                 );
-
                 if (answersForWorld.length === 0) return null;
-
                 return (
                   <SectionCard
                     key={worldKey}
@@ -4503,10 +4570,18 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   </SectionCard>
                 );
               })}
+              {!isDesktop && mobileViewLayout === 'detailed' && (
+                <MobileTabNavigation
+                  activeTab={activeTab}
+                  tabItems={tabItems}
+                  onTabChange={handleTabChange}
+                  THEME={THEME}
+                />
+              )}
             </TabsContent>
           )}
 
-          {/* Professional Tab - Enhanced */}
+          {/* Professional Tab */}
           {viewMode === 'matchmaker' && (
             <TabsContent
               value="professional"
@@ -4526,7 +4601,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   פרטים רגישים וחשובים לתהליך השידוך
                 </p>
               </div>
-
               <SectionCard
                 title="מידע סודי לשדכנים בלבד"
                 subtitle="פרטים מקצועיים לתהליך השידוך"
@@ -4572,11 +4646,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       className="max-w-full min-w-0"
                     />
                   </div>
-
                   {profile.matchingNotes && (
                     <div className="mt-4 sm:mt-6 max-w-full min-w-0 overflow-hidden">
                       <h4 className="text-base sm:text-lg font-bold text-amber-700 mb-3 flex items-center gap-2">
-                        <Edit3 className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                        <Edit3 className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />{' '}
                         <span className="break-words">
                           הערות מיוחדות לשדכנים:
                         </span>
@@ -4592,19 +4665,18 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       </div>
                     </div>
                   )}
-
                   <div
                     className={cn(
                       'mt-4 sm:mt-6 p-3 sm:p-4 rounded-xl border border-indigo-200 bg-gradient-to-r from-indigo-100 to-purple-100 max-w-full min-w-0 overflow-hidden'
                     )}
                   >
                     <h4 className="font-bold text-indigo-800 mb-3 flex items-center gap-2">
-                      <Lightbulb className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                      <Lightbulb className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />{' '}
                       <span className="break-words">תובנות מקצועיות:</span>
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 text-indigo-700 text-sm sm:text-base max-w-full min-w-0">
                       <div className="flex items-center gap-2 break-words">
-                        <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                        <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />{' '}
                         <span className="break-words min-w-0">
                           פרופיל נוצר:{' '}
                           {profile.createdAt
@@ -4616,7 +4688,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       </div>
                       {profile.lastActive && (
                         <div className="flex items-center gap-2 break-words">
-                          <Clock className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                          <Clock className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />{' '}
                           <span className="break-words min-w-0">
                             פעילות אחרונה:{' '}
                             {new Date(profile.lastActive).toLocaleDateString(
@@ -4626,7 +4698,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         </div>
                       )}
                       <div className="flex items-center gap-2 break-words">
-                        <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                        <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />{' '}
                         <span className="break-words min-w-0">
                           השלמת פרופיל:{' '}
                           {profile.isProfileComplete
@@ -4635,7 +4707,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         </span>
                       </div>
                       <div className="flex items-center gap-2 break-words">
-                        <Heart className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                        <Heart className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />{' '}
                         <span className="break-words min-w-0">
                           סטטוס זמינות: {availability.text}
                         </span>
@@ -4644,6 +4716,14 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   </div>
                 </div>
               </SectionCard>
+              {!isDesktop && mobileViewLayout === 'detailed' && (
+                <MobileTabNavigation
+                  activeTab={activeTab}
+                  tabItems={tabItems}
+                  onTabChange={handleTabChange}
+                  THEME={THEME}
+                />
+              )}
             </TabsContent>
           )}
         </div>
@@ -4675,7 +4755,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       </Button>
 
       {/* Center - View Toggle and Color Selector */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 flex-1 justify-center">
         <ToggleGroup
           type="single"
           value={mobileViewLayout}
@@ -4724,24 +4804,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           compact={true}
         />
       </div>
-
-      {/* Left side - Fullscreen Button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className={cn(
-          'text-gray-600 hover:text-gray-800 hover:bg-white/60 rounded-full transition-all duration-300 shadow-sm hover:shadow-md',
-          'w-10 h-10 sm:w-12 sm:h-12 min-h-[44px] min-w-[44px] touch-manipulation'
-        )}
-        onClick={handleToggleFullscreen}
-        aria-label={isFullscreen ? 'צא ממסך מלא' : 'עבור למסך מלא'}
-      >
-        {isFullscreen ? (
-          <Minimize className="w-3 h-3 sm:w-4 sm:h-4" />
-        ) : (
-          <Maximize className="w-3 h-3 sm:w-4 sm:h-4" />
-        )}
-      </Button>
     </div>
   );
 
@@ -5005,8 +5067,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             {/* Search Criteria */}
             <SectionCard
               title="מה אני מחפש/ת"
-                subtitle="החלום שלי לזוגיות - איך אני רואה את בן/בת הזוג המושלם/ת"
-
+              subtitle="החלום שלי לזוגיות - איך אני רואה את בן/בת הזוג המושלם/ת"
               icon={Target}
               variant="highlight"
               gradient={THEME.colors.secondary.sky}
@@ -5159,34 +5220,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           </div>
         )}
 
-        {/* Desktop Fullscreen Button */}
-        {isDesktop && (
-          <div className="absolute top-4 right-4 z-40">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className={cn(
-                    'text-gray-600 hover:text-gray-800 bg-white/80 hover:bg-white/90 rounded-full shadow-lg hover:shadow-xl transition-all duration-300',
-                    'w-10 h-10 sm:w-12 sm:h-12 min-h-[44px] min-w-[44px]'
-                  )}
-                  onClick={handleToggleFullscreen}
-                >
-                  {isFullscreen ? (
-                    <Minimize className="w-4 h-4 sm:w-5 sm:h-5" />
-                  ) : (
-                    <Maximize className="w-4 h-4 sm:w-5 sm:h-5" />
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{isFullscreen ? 'צא ממסך מלא' : 'מסך מלא'}</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        )}
-
         {/* Main Content */}
         {isDesktop ? (
           // Desktop Layout
@@ -5200,7 +5233,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               minSize={40}
               className="min-w-0 flex flex-col max-w-full overflow-hidden"
             >
-              <div className="flex-shrink-0">
+              <ScrollArea className="flex-1 min-h-0 max-w-full">
                 <ProfileHeader
                   profile={profile}
                   age={age}
@@ -5212,10 +5245,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   onPaletteChange={setSelectedPalette}
                   THEME={THEME}
                 />
-              </div>
-              <div className="flex-grow min-h-0 p-4 sm:p-6 overflow-hidden flex max-w-full">
-                <MainContentTabs />
-              </div>
+                <div className="p-4 sm:p-6 overflow-hidden flex max-w-full">
+                  <MainContentTabs />
+                </div>
+              </ScrollArea>
             </ResizablePanel>
 
             <ResizableHandle
@@ -5253,7 +5286,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           }
                         >
                           <Image
-                            src={orderedImages[0].url}
+                            src={getRelativeCloudinaryPath(
+                              orderedImages[0].url
+                            )}
                             alt="תמונה ראשית מדהימה"
                             fill
                             className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -5280,7 +5315,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                                 onClick={() => handleOpenImageDialog(img)}
                               >
                                 <Image
-                                  src={img.url}
+                                  src={getRelativeCloudinaryPath(img.url)}
                                   alt="תמונת פרופיל נוספת"
                                   fill
                                   className="object-cover hover:scale-110 transition-transform duration-300"
@@ -6152,15 +6187,14 @@ Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\p
 File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\components\profile\sections\PhotosSection.tsx
 --------------------------------------------------------------------------------
 Content:
-"use client";
+'use client';
 
-import React, { useRef, useState, useEffect, useCallback } from "react";
-import Image from "next/image";
-import { cn } from "@/lib/utils";
-
+import React, { useRef, useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
+import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
 // UI Components
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
   DialogContent,
@@ -6168,9 +6202,8 @@ import {
   DialogDescription,
   DialogHeader,
   DialogFooter,
-} from "@/components/ui/dialog";
-
-import { toast } from "sonner";
+} from '@/components/ui/dialog';
+import { toast } from 'sonner';
 
 // Icons
 import {
@@ -6182,19 +6215,21 @@ import {
   Upload,
   Trash2,
   X,
-} from "lucide-react";
+  CheckCircle2, // New Icon
+  MinusSquare, // New Icon
+} from 'lucide-react';
 
 // Types
-import type { UserImage } from "@/types/next-auth";
+import type { UserImage } from '@/types/next-auth';
 
 interface PhotosSectionProps {
   images: UserImage[];
   isUploading: boolean;
   disabled?: boolean;
   maxImages?: number;
-  onUpload: (files: File[]) => Promise<void>; // שינוי: קבלת מערך של קבצים
+  onUpload: (files: File[]) => Promise<void>;
   onSetMain: (imageId: string) => Promise<void>;
-  onDelete: (imageId: string) => Promise<void>;
+  onDelete: (imageIds: string[]) => Promise<void>; // Changed to array
 }
 
 const PhotosSection: React.FC<PhotosSectionProps> = ({
@@ -6206,104 +6241,58 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
   onSetMain,
   onDelete,
 }) => {
-  // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // State
   const [showImageViewer, setShowImageViewer] = useState(false);
   const [selectedViewerIndex, setSelectedViewerIndex] = useState<number | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [imageToDelete, setImageToDelete] = useState<string | null>(null);
   const [uploadingFiles, setUploadingFiles] = useState<string[]>([]);
+  
+  // --- NEW --- State for selection mode
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedImageIds, setSelectedImageIds] = useState<Set<string>>(new Set());
 
-  // Combined Loading State
   const isLoading = isExternallyUploading || isProcessing || uploadingFiles.length > 0;
 
-  // --- Event Handlers ---
+  // --- File Handling and Upload ---
 
-  const validateFiles = (files: FileList | File[]): { validFiles: File[], errors: string[] } => {
-    const validTypes = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
+  const validateFiles = (files: FileList | File[]): { validFiles: File[]; errors: string[] } => {
+    // (Implementation remains the same)
+    const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
     const maxSize = 5 * 1024 * 1024; // 5MB
     const validFiles: File[] = [];
     const errors: string[] = [];
-
-    Array.from(files).forEach((file, index) => {
-      if (!validTypes.includes(file.type)) {
-        errors.push(`קובץ ${index + 1} (${file.name}): סוג קובץ לא חוקי. יש להעלות JPG, PNG, או WEBP.`);
-        return;
-      }
-      
-      if (file.size > maxSize) {
-        errors.push(`קובץ ${index + 1} (${file.name}): הקובץ גדול מדי (מקסימום 5MB).`);
-        return;
-      }
-
+    Array.from(files).forEach((file) => {
+      if (!validTypes.includes(file.type)) { errors.push(`קובץ ${file.name}: סוג קובץ לא חוקי.`); return; }
+      if (file.size > maxSize) { errors.push(`קובץ ${file.name}: הקובץ גדול מדי (מקסימום 5MB).`); return; }
       validFiles.push(file);
     });
-
     return { validFiles, errors };
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    // (Implementation remains the same)
     const files = e.target.files;
     if (!files || files.length === 0) return;
-
-    // בדיקת מגבלת תמונות
     const remainingSlots = maxImages - images.length;
-    if (remainingSlots <= 0) {
-      toast.error("הגעת למספר המקסימלי של תמונות.");
-      return;
-    }
-
-    // בדיקת כמות הקבצים שנבחרו
-    if (files.length > remainingSlots) {
-      toast.error(`ניתן להעלות עוד ${remainingSlots} תמונות בלבד.`);
-      return;
-    }
-
-    // Prevent multiple uploads
+    if (remainingSlots <= 0) { toast.error('הגעת למספר המקסימלי של תמונות.'); return; }
+    if (files.length > remainingSlots) { toast.error(`ניתן להעלות עוד ${remainingSlots} תמונות בלבד.`); return; }
     if (isLoading) return;
-
-    // אימות הקבצים
     const { validFiles, errors } = validateFiles(files);
-    
-    if (errors.length > 0) {
-      errors.forEach(error => toast.error(error));
-      if (validFiles.length === 0) {
-        // Reset file input if no valid files
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-        }
-        return;
-      }
-    }
-
-    if (validFiles.length === 0) {
-      toast.error("לא נבחרו קבצים תקינים להעלאה.");
-      return;
-    }
-
-    // הגדרת קבצים שנמצאים בהעלאה
+    if (errors.length > 0) { errors.forEach(error => toast.error(error)); }
+    if (validFiles.length === 0) return;
     setUploadingFiles(validFiles.map(f => f.name));
-
     try {
-      // קריאה לפונקציית ההעלאה עם מערך הקבצים
       await onUpload(validFiles);
-      
       toast.success(`${validFiles.length} תמונות הועלו בהצלחה!`);
-
     } catch (error) {
-      console.error("Error during upload process:", error);
-      if (!(error instanceof Error && error.message.includes("Toast"))) {
-         toast.error("שגיאה בהעלאת התמונות.");
-      }
+      console.error('Error during upload process:', error);
+      toast.error('שגיאה בהעלאת התמונות.');
     } finally {
-      // Reset states
       setUploadingFiles([]);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -6313,226 +6302,231 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
     }
   };
 
-  const handleImageClick = (index: number) => {
-    setSelectedViewerIndex(index);
-    setShowImageViewer(true);
+  // --- NEW --- Handlers for Selection Mode ---
+
+  const handleToggleSelectionMode = () => {
+    setSelectionMode(prev => !prev);
+    setSelectedImageIds(new Set()); // Clear selection when toggling mode
   };
 
-  const closeImageViewer = useCallback(() => {
-    setShowImageViewer(false);
-    setSelectedViewerIndex(null);
-  }, []);
+  const handleSelectAll = () => {
+    if (selectedImageIds.size === images.length) {
+      setSelectedImageIds(new Set()); // Deselect all
+    } else {
+      setSelectedImageIds(new Set(images.map(img => img.id))); // Select all
+    }
+  };
+  
+  const toggleImageSelection = (imageId: string) => {
+    setSelectedImageIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(imageId)) {
+        newSet.delete(imageId);
+      } else {
+        newSet.add(imageId);
+      }
+      return newSet;
+    });
+  };
 
-  const handleNextImage = useCallback(() => {
-      setSelectedViewerIndex((prevIndex) => {
-          if (prevIndex === null || prevIndex >= images.length - 1) return prevIndex;
-          return prevIndex + 1;
-      });
-  }, [images.length]);
+  // --- UPDATED --- Image Click and Deletion Handlers ---
 
-  const handlePreviousImage = useCallback(() => {
-      setSelectedViewerIndex((prevIndex) => {
-          if (prevIndex === null || prevIndex <= 0) return prevIndex;
-          return prevIndex - 1;
-      });
-  }, []);
+  const handleImageClick = (index: number) => {
+    if (selectionMode) {
+      toggleImageSelection(images[index].id);
+    } else {
+      setSelectedViewerIndex(index);
+      setShowImageViewer(true);
+    }
+  };
 
-  // Handler for delete confirmation
-  const confirmDelete = async () => {
-    if (!imageToDelete || isProcessing) return;
+  // Handles bulk deletion
+  const handleBulkDelete = async () => {
+    if (selectedImageIds.size === 0) {
+      toast.info('יש לבחור לפחות תמונה אחת למחיקה.');
+      return;
+    }
+
+    if (!window.confirm(`האם למחוק ${selectedImageIds.size} תמונות נבחרות? הפעולה אינה הפיכה.`)) {
+      return;
+    }
 
     setIsProcessing(true);
     try {
-      const imageIndex = images.findIndex((img) => img.id === imageToDelete);
-      if (imageIndex === -1) throw new Error("Image not found for deletion.");
-
-      const imageObj = images[imageIndex];
-
-      // If deleting the main image, and there are others, set a new main one
-      if (imageObj.isMain && images.length > 1) {
-        const nextMainIndex = imageIndex === 0 ? 1 : 0;
-        await onSetMain(images[nextMainIndex].id);
-      }
-
-      await onDelete(imageToDelete);
-
-      toast.success("התמונה נמחקה בהצלחה.");
-      closeImageViewer();
-      setDeleteConfirmOpen(false);
-      setImageToDelete(null);
-
+      await onDelete(Array.from(selectedImageIds));
+      toast.success(`${selectedImageIds.size} תמונות נמחקו בהצלחה.`);
+      setSelectionMode(false);
+      setSelectedImageIds(new Set());
     } catch (error) {
-      console.error("Error deleting image:", error);
-      toast.error("שגיאה במחיקת התמונה.");
+      console.error('Error during bulk delete:', error);
+      toast.error('שגיאה במחיקת התמונות.');
     } finally {
       setIsProcessing(false);
     }
   };
 
+  // Requests single image deletion
   const requestDelete = (imageId: string, event?: React.MouseEvent) => {
     event?.stopPropagation();
     if (isLoading) return;
     setImageToDelete(imageId);
     setDeleteConfirmOpen(true);
   };
-
-  const handleSetMainImage = async (imageId: string, showToast = true, event?: React.MouseEvent) => {
-    event?.stopPropagation();
-    if (isLoading) return;
-
-    const currentImage = images.find(img => img.id === imageId);
-    if (!currentImage || currentImage.isMain) return;
-
+  
+  // Confirms single image deletion from dialog
+  const confirmDelete = async () => {
+    if (!imageToDelete || isProcessing) return;
     setIsProcessing(true);
     try {
-      await onSetMain(imageId);
-      if (showToast) {
-        toast.success("התמונה הראשית עודכנה.");
-      }
+      await onDelete([imageToDelete]); // Pass as an array
+      toast.success('התמונה נמחקה בהצלחה.');
+      closeImageViewer();
+      setDeleteConfirmOpen(false);
+      setImageToDelete(null);
     } catch (error) {
-      console.error("Error setting main image:", error);
-      toast.error("שגיאה בעדכון התמונה הראשית.");
+      console.error('Error deleting image:', error);
+      toast.error('שגיאה במחיקת התמונה.');
     } finally {
       setIsProcessing(false);
     }
   };
 
-   const handleControlClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-   };
+  // --- Viewer and Other Handlers ---
 
-   // Keyboard navigation for viewer
-   useEffect(() => {
+  const closeImageViewer = useCallback(() => {
+    setShowImageViewer(false);
+    setSelectedViewerIndex(null);
+  }, []);
+
+  const handleNextImage = useCallback(() => setSelectedViewerIndex(prev => (prev === null || prev >= images.length - 1) ? prev : prev + 1), [images.length]);
+  const handlePreviousImage = useCallback(() => setSelectedViewerIndex(prev => (prev === null || prev <= 0) ? prev : prev - 1), []);
+
+  const handleSetMainImage = async (imageId: string, showToast = true, event?: React.MouseEvent) => {
+    // (Implementation remains the same)
+    event?.stopPropagation();
+    if (isLoading) return;
+    const currentImage = images.find(img => img.id === imageId);
+    if (!currentImage || currentImage.isMain) return;
+    setIsProcessing(true);
+    try {
+      await onSetMain(imageId);
+      if (showToast) toast.success('התמונה הראשית עודכנה.');
+    } catch (error) {
+      console.error('Error setting main image:', error);
+      toast.error('שגיאה בעדכון התמונה הראשית.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleControlClick = (e: React.MouseEvent) => e.stopPropagation();
+
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!showImageViewer) return;
-
-      switch (e.key) {
-        case "ArrowRight":
-          handlePreviousImage();
-          break;
-        case "ArrowLeft":
-          handleNextImage();
-          break;
-        case "Escape":
-          closeImageViewer();
-          break;
-      }
+      if (e.key === 'ArrowRight') handlePreviousImage();
+      if (e.key === 'ArrowLeft') handleNextImage();
+      if (e.key === 'Escape') closeImageViewer();
     };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showImageViewer, handlePreviousImage, handleNextImage, closeImageViewer]);
 
   const getRemainingSlots = () => maxImages - images.length;
-
-  // --- Render ---
 
   return (
     <div dir="rtl" className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl p-6 md:p-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 pb-4 border-b border-gray-200/80">
-        <div className="mb-3 sm:mb-0 text-right">
-          <h2 className="text-xl font-semibold text-gray-800">תמונות פרופיל</h2>
-          <p className="mt-1 text-sm text-gray-600">
-            העלה עד {maxImages} תמונות. התמונה הראשית תוצג בכרטיס. (מומלץ: תמונות ברורות של הפנים)
-          </p>
-          {/* הצגת מידע על קבצים ממתינים */}
-          {uploadingFiles.length > 0 && (
-            <p className="mt-2 text-sm text-cyan-600 font-medium">
-              מעלה {uploadingFiles.length} תמונות...
-            </p>
-          )}
-        </div>
-        {!disabled && (
-          <Button
-            variant="outline"
-            onClick={triggerFileInput}
-            disabled={isLoading || images.length >= maxImages}
-            className="rounded-full border-2 border-cyan-300 text-cyan-700 hover:bg-cyan-50/50 hover:border-cyan-400 transition-all duration-300 px-5 py-2.5 text-sm font-medium flex items-center gap-2 self-end sm:self-center"
-          >
-            {isExternallyUploading || uploadingFiles.length > 0 ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Upload className="w-4 h-4" />
-            )}
-            <span>העלאת תמונות</span>
-          </Button>
+        {!selectionMode ? (
+          <>
+            <div className="mb-3 sm:mb-0 text-right">
+              <h2 className="text-xl font-semibold text-gray-800">תמונות פרופיל</h2>
+              <p className="mt-1 text-sm text-gray-600">העלה עד {maxImages} תמונות. התמונה הראשית תוצג בכרטיס.</p>
+              {uploadingFiles.length > 0 && <p className="mt-2 text-sm text-cyan-600 font-medium">מעלה {uploadingFiles.length} תמונות...</p>}
+            </div>
+            <div className="flex gap-2 self-end sm:self-center">
+              {images.length > 0 && !disabled && (
+                <Button variant="outline" onClick={handleToggleSelectionMode} className="rounded-full px-4 text-sm">
+                  בחר למחיקה
+                </Button>
+              )}
+              {!disabled && (
+                <Button variant="outline" onClick={triggerFileInput} disabled={isLoading || images.length >= maxImages} className="rounded-full border-2 border-cyan-300 text-cyan-700 hover:bg-cyan-50/50 hover:border-cyan-400 transition-all duration-300 px-5 py-2.5 text-sm font-medium flex items-center gap-2">
+                  {isExternallyUploading || uploadingFiles.length > 0 ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                  <span>העלאת תמונות</span>
+                </Button>
+              )}
+            </div>
+          </>
+        ) : (
+          <div className="w-full flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="icon" onClick={handleToggleSelectionMode} className="rounded-full text-gray-600 hover:bg-gray-100">
+                <X className="w-5 h-5" />
+              </Button>
+              <span className="font-semibold text-gray-700">{selectedImageIds.size} תמונות נבחרו</span>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={handleSelectAll} className="rounded-full px-4 text-sm">
+                {selectedImageIds.size === images.length ? 'בטל הכל' : 'בחר הכל'}
+              </Button>
+              <Button variant="destructive" onClick={handleBulkDelete} disabled={isProcessing || selectedImageIds.size === 0} className="rounded-full px-4 text-sm flex items-center gap-2">
+                {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                מחק נבחרים
+              </Button>
+            </div>
+          </div>
         )}
       </div>
 
-      {/* Input for file selection (hidden) - עם תמיכה בבחירה מרובה */}
-      <input
-        type="file"
-        ref={fileInputRef}
-        className="hidden"
-        accept="image/jpeg,image/png,image/jpg,image/webp"
-        onChange={handleFileSelect}
-        disabled={isLoading || disabled || images.length >= maxImages}
-        multiple // הוספת תמיכה בבחירה מרובה
-      />
+      <input type="file" ref={fileInputRef} className="hidden" accept="image/jpeg,image/png,image/jpg,image/webp" onChange={handleFileSelect} disabled={isLoading || disabled || images.length >= maxImages} multiple />
 
       {/* Images Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-5">
-        {/* Render Images */}
         {images.map((image, index) => (
           <div
             key={image.id}
-            className="relative group aspect-square rounded-xl overflow-hidden cursor-pointer bg-gray-100 shadow-md hover:shadow-lg transition-all duration-300 ease-in-out"
+            className={cn(
+              'relative group aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-md transition-all duration-300 ease-in-out',
+              selectionMode ? 'cursor-pointer' : 'cursor-pointer hover:shadow-lg',
+              selectedImageIds.has(image.id) && 'ring-4 ring-offset-2 ring-cyan-500'
+            )}
             onClick={() => handleImageClick(index)}
           >
             <Image
-              src={image.url}
+              src={getRelativeCloudinaryPath(image.url)}
               alt={`תמונת פרופיל ${index + 1}`}
               fill
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
+              className={cn('object-cover transition-transform duration-300', !selectionMode && 'group-hover:scale-105')}
               sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
               priority={index < 2}
             />
 
-            {/* Controls Overlay */}
-            {!disabled && (
-              <div
-                className="absolute top-2 right-2 z-10 flex gap-1.5 opacity-85 group-hover:opacity-100 transition-opacity duration-200"
-                onClick={handleControlClick}
-              >
-                {/* Set Main Button */}
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  className={cn(
-                    "w-8 h-8 rounded-full shadow-md border border-white/30 bg-black/40 text-white hover:bg-black/60 transition-colors",
-                    image.isMain ? "cursor-default" : "hover:text-yellow-300"
-                  )}
-                  onClick={(e) => handleSetMainImage(image.id, true, e)}
-                  disabled={image.isMain || isLoading}
-                  title={image.isMain ? "תמונה ראשית" : "הפוך לתמונה ראשית"}
-                >
-                  <Star
-                    className={cn(
-                      "w-4 h-4 transition-colors",
-                      image.isMain ? "text-yellow-400 fill-yellow-400" : "text-white"
-                    )}
-                  />
-                </Button>
+            {/* Selection Overlay */}
+            {selectionMode && (
+              <div className="absolute inset-0 bg-black/30 flex items-center justify-center transition-opacity opacity-0 group-hover:opacity-100">
+                  {selectedImageIds.has(image.id) 
+                      ? <CheckCircle2 className="w-10 h-10 text-white drop-shadow-lg" />
+                      : <MinusSquare className="w-10 h-10 text-white/70 drop-shadow-lg" />
+                  }
+              </div>
+            )}
 
-                {/* Delete Button */}
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  className="w-8 h-8 rounded-full shadow-md border border-white/30 bg-black/40 text-white hover:bg-red-600 hover:border-red-700 transition-colors"
-                  onClick={(e) => requestDelete(image.id, e)}
-                  disabled={isLoading}
-                  title="מחק תמונה"
-                >
+            {/* Controls Overlay (not in selection mode) */}
+            {!disabled && !selectionMode && (
+              <div className="absolute top-2 right-2 z-10 flex gap-1.5 opacity-85 group-hover:opacity-100 transition-opacity duration-200" onClick={handleControlClick}>
+                <Button variant="secondary" size="icon" className={cn('w-8 h-8 rounded-full shadow-md border border-white/30 bg-black/40 text-white hover:bg-black/60 transition-colors', image.isMain ? 'cursor-default' : 'hover:text-yellow-300')} onClick={(e) => handleSetMainImage(image.id, true, e)} disabled={image.isMain || isLoading} title={image.isMain ? 'תמונה ראשית' : 'הפוך לתמונה ראשית'}>
+                  <Star className={cn('w-4 h-4 transition-colors', image.isMain ? 'text-yellow-400 fill-yellow-400' : 'text-white')} />
+                </Button>
+                <Button variant="secondary" size="icon" className="w-8 h-8 rounded-full shadow-md border border-white/30 bg-black/40 text-white hover:bg-red-600 hover:border-red-700 transition-colors" onClick={(e) => requestDelete(image.id, e)} disabled={isLoading} title="מחק תמונה">
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </div>
             )}
 
             {/* Main Image Badge */}
-            {image.isMain && (
+            {image.isMain && !selectionMode && (
               <Badge className="absolute bottom-2 left-2 rounded-full px-2.5 py-0.5 text-xs font-medium shadow-md text-white bg-gradient-to-r from-cyan-500 to-pink-500 border-none">
                 ראשי
               </Badge>
@@ -6541,199 +6535,81 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
         ))}
 
         {/* Upload Placeholder */}
-        {!disabled && images.length < maxImages && (
-          <div
-            onClick={triggerFileInput}
-            className="flex flex-col items-center justify-center text-center p-4 aspect-square rounded-xl border-2 border-dashed border-cyan-300/70 bg-cyan-50/30 hover:bg-cyan-50/60 hover:border-cyan-400 transition-colors duration-300 cursor-pointer group"
-          >
+        {!disabled && !selectionMode && images.length < maxImages && (
+          <div onClick={triggerFileInput} className="flex flex-col items-center justify-center text-center p-4 aspect-square rounded-xl border-2 border-dashed border-cyan-300/70 bg-cyan-50/30 hover:bg-cyan-50/60 hover:border-cyan-400 transition-colors duration-300 cursor-pointer group">
             <Upload className="w-8 h-8 text-cyan-500 mb-2 transition-transform group-hover:scale-110" />
             <span className="text-sm font-medium text-cyan-700">העלאת תמונות</span>
-            <span className="text-xs text-cyan-600/90 mt-1">
-              עד {getRemainingSlots()} תמונות נוספות
-            </span>
-            <span className="text-xs text-cyan-500/80 mt-1">
-              (בחר מספר קבצים)
-            </span>
+            <span className="text-xs text-cyan-600/90 mt-1">עד {getRemainingSlots()} תמונות נוספות</span>
+            <span className="text-xs text-cyan-500/80 mt-1">(בחר מספר קבצים)</span>
           </div>
         )}
 
-        {/* הצגת placeholder לקבצים שבהעלאה */}
-        {uploadingFiles.map((fileName, index) => (
-          <div
-            key={`uploading-${index}`}
-            className="relative aspect-square rounded-xl overflow-hidden bg-gray-200 shadow-md"
-          >
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <Loader2 className="w-8 h-8 text-cyan-500 animate-spin mb-2" />
-              <span className="text-xs text-gray-600 text-center px-2">
-                מעלה...
-              </span>
-            </div>
+        {/* Uploading Files Placeholders */}
+        {uploadingFiles.map((_, index) => (
+          <div key={`uploading-${index}`} className="relative aspect-square rounded-xl overflow-hidden bg-gray-200 shadow-md">
+            <div className="absolute inset-0 flex flex-col items-center justify-center"><Loader2 className="w-8 h-8 text-cyan-500 animate-spin mb-2" /><span className="text-xs text-gray-600 text-center px-2">מעלה...</span></div>
             <div className="absolute bottom-0 left-0 right-0 bg-cyan-500 h-1 animate-pulse"></div>
           </div>
         ))}
       </div>
 
-      {/* Empty State (if no images and not disabled) */}
-      {images.length === 0 && uploadingFiles.length === 0 && !disabled && (
-         <div className="text-center py-16 mt-6 bg-gradient-to-br from-cyan-50/20 to-pink-50/20 rounded-xl border border-dashed border-gray-300">
-              <Camera className="w-12 h-12 mx-auto text-gray-400/80" />
-              <p className="mt-4 text-gray-600 font-medium">
-                אין עדיין תמונות בפרופיל
-              </p>
-         <p className="text-sm text-gray-500 mt-1 px-4">
-  תמונות טובות הן הרושם הראשוני שלכם. כדאי להעלות תמונות כדי להשלים את הפרופיל.
-</p>
-          </div>
+      {/* Empty States */}
+      {images.length === 0 && uploadingFiles.length === 0 && !disabled && !selectionMode && (
+        <div className="text-center py-16 mt-6 bg-gradient-to-br from-cyan-50/20 to-pink-50/20 rounded-xl border border-dashed border-gray-300">
+          <Camera className="w-12 h-12 mx-auto text-gray-400/80" />
+          <p className="mt-4 text-gray-600 font-medium">אין עדיין תמונות בפרופיל</p>
+          <p className="text-sm text-gray-500 mt-1 px-4">תמונות טובות הן הרושם הראשוני שלכם. כדאי להעלות תמונות.</p>
+        </div>
       )}
-
-      {/* Empty State (if disabled and no images) */}
-       {images.length === 0 && disabled && (
+      {images.length === 0 && disabled && (
          <div className="text-center py-16 mt-6 bg-gray-50/50 rounded-xl border border-gray-200">
-              <Camera className="w-12 h-12 mx-auto text-gray-400" />
-              <p className="mt-4 text-gray-500 font-medium">
-                לא הועלו תמונות לפרופיל זה.
-              </p>
-          </div>
+           <Camera className="w-12 h-12 mx-auto text-gray-400" />
+           <p className="mt-4 text-gray-500 font-medium">לא הועלו תמונות לפרופיל זה.</p>
+         </div>
       )}
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Confirmation Dialog (for single delete) */}
       <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
         <DialogContent className="sm:max-w-md bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border-none p-6" dir="rtl">
           <DialogHeader>
             <DialogTitle className="text-lg font-semibold text-gray-800">אישור מחיקת תמונה</DialogTitle>
-            <DialogDescription className="text-sm text-gray-600 mt-2">
-              האם למחוק את התמונה לצמיתות? לא ניתן לשחזר פעולה זו.
-            </DialogDescription>
+            <DialogDescription className="text-sm text-gray-600 mt-2">האם למחוק את התמונה לצמיתות? לא ניתן לשחזר פעולה זו.</DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 sm:space-x-reverse gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setDeleteConfirmOpen(false)}
-              disabled={isLoading}
-              className="rounded-full px-5"
-            >
-              ביטול
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={confirmDelete}
-              disabled={isLoading}
-               className="rounded-full px-5"
-            >
-              {isProcessing ? (
-                <Loader2 className="w-4 h-4 ml-2 animate-spin" />
-              ) : (
-                <Trash2 className="w-4 h-4 ml-2" />
-              )}
+            <Button type="button" variant="outline" onClick={() => setDeleteConfirmOpen(false)} disabled={isLoading} className="rounded-full px-5">ביטול</Button>
+            <Button type="button" variant="destructive" onClick={confirmDelete} disabled={isLoading} className="rounded-full px-5">
+              {isProcessing ? <Loader2 className="w-4 h-4 ml-2 animate-spin" /> : <Trash2 className="w-4 h-4 ml-2" />}
               <span>מחק</span>
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-       {/* Image Viewer Dialog */}
-       <Dialog open={showImageViewer} onOpenChange={setShowImageViewer}>
-        <DialogContent
-            className="p-0 m-0 w-screen h-screen max-w-none sm:max-w-full sm:h-full bg-black/90 backdrop-blur-sm border-none rounded-none flex items-center justify-center outline-none"
-            aria-describedby={undefined}
-            >
-            {/* Close Button */}
-            <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-4 left-4 z-50 bg-black/40 hover:bg-black/60 text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 transition-colors"
-                onClick={closeImageViewer}
-                aria-label="סגור תצוגת תמונה"
-            >
-                <X className="w-6 h-6" />
-            </Button>
-
-            {/* Image Display Area */}
+      {/* Image Viewer Dialog */}
+      {/* (Viewer implementation remains the same) */}
+      <Dialog open={showImageViewer} onOpenChange={setShowImageViewer}>
+        <DialogContent className="p-0 m-0 w-screen h-screen max-w-none sm:max-w-full sm:h-full bg-black/90 backdrop-blur-sm border-none rounded-none flex items-center justify-center outline-none" aria-describedby={undefined}>
+            <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-50 bg-black/40 hover:bg-black/60 text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 transition-colors" onClick={closeImageViewer} aria-label="סגור תצוגת תמונה"><X className="w-6 h-6" /></Button>
             {selectedViewerIndex !== null && images[selectedViewerIndex] && (
                 <div className="relative w-full h-full flex items-center justify-center">
-                    {/* Image */}
-                     <div className="relative w-[95%] h-[85%] sm:w-[90%] sm:h-[90%]">
-                        <Image
-                            src={images[selectedViewerIndex].url}
-                            alt={`תצוגה מוגדלת של תמונה ${selectedViewerIndex + 1}`}
-                            fill
-                            className="object-contain select-none"
-                            sizes="90vw"
-                            priority
-                        />
-                    </div>
-
-                    {/* Viewer Controls */}
+                    <div className="relative w-[95%] h-[85%] sm:w-[90%] sm:h-[90%]"><Image src={getRelativeCloudinaryPath(images[selectedViewerIndex].url)} alt={`תצוגה מוגדלת של תמונה ${selectedViewerIndex + 1}`} fill className="object-contain select-none" sizes="90vw" priority /></div>
                     <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
-                         {/* Navigation */}
-                         {images.length > 1 && (
-                            <>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 z-40 bg-black/40 hover:bg-black/60 text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 transition-colors pointer-events-auto"
-                                onClick={(e) => {e.stopPropagation(); handlePreviousImage();}}
-                                disabled={selectedViewerIndex === 0}
-                                aria-label="התמונה הקודמת"
-                            >
-                                <ChevronRight className="w-7 h-7" />
-                            </Button>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 z-40 bg-black/40 hover:bg-black/60 text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 transition-colors pointer-events-auto"
-                                onClick={(e) => {e.stopPropagation(); handleNextImage();}}
-                                disabled={selectedViewerIndex === images.length - 1}
-                                aria-label="התמונה הבאה"
-                            >
-                                <ChevronLeft className="w-7 h-7" />
-                            </Button>
-                            </>
-                         )}
-
-                        {/* Action Buttons */}
-                         {!disabled && (
+                        {images.length > 1 && (<>
+                            <Button variant="ghost" size="icon" className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 z-40 bg-black/40 hover:bg-black/60 text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 transition-colors pointer-events-auto" onClick={(e) => { e.stopPropagation(); handlePreviousImage(); }} disabled={selectedViewerIndex === 0} aria-label="התמונה הקודמת"><ChevronRight className="w-7 h-7" /></Button>
+                            <Button variant="ghost" size="icon" className="absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 z-40 bg-black/40 hover:bg-black/60 text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 transition-colors pointer-events-auto" onClick={(e) => { e.stopPropagation(); handleNextImage(); }} disabled={selectedViewerIndex === images.length - 1} aria-label="התמונה הבאה"><ChevronLeft className="w-7 h-7" /></Button>
+                        </>)}
+                        {!disabled && (
                             <div className="absolute top-4 right-4 z-50 flex flex-col sm:flex-row gap-2 pointer-events-auto">
-                                {!images[selectedViewerIndex].isMain && (
-                                <Button
-                                    variant="secondary"
-                                    className="rounded-full bg-white/70 backdrop-blur-sm shadow-md hover:bg-white/90 text-gray-800 px-3 py-1.5 text-xs sm:text-sm border border-white/20 flex items-center gap-1.5"
-                                    onClick={(e) => handleSetMainImage(images[selectedViewerIndex].id, true, e)}
-                                    size="sm"
-                                    disabled={isLoading}
-                                >
-                                    <Star className="w-4 h-4" />
-                                    <span>הפוך לראשי</span>
-                                </Button>
-                                )}
-
-                                <Button
-                                    variant="destructive"
-                                    className="rounded-full bg-red-600/80 hover:bg-red-700 text-white px-3 py-1.5 text-xs sm:text-sm shadow-md border-none flex items-center gap-1.5"
-                                    onClick={(e) => requestDelete(images[selectedViewerIndex].id, e)}
-                                    size="sm"
-                                    disabled={isLoading}
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                    <span>מחק תמונה</span>
-                                </Button>
+                                {!images[selectedViewerIndex].isMain && <Button variant="secondary" className="rounded-full bg-white/70 backdrop-blur-sm shadow-md hover:bg-white/90 text-gray-800 px-3 py-1.5 text-xs sm:text-sm border border-white/20 flex items-center gap-1.5" onClick={(e) => handleSetMainImage(images[selectedViewerIndex].id, true, e)} size="sm" disabled={isLoading}><Star className="w-4 h-4" /><span>הפוך לראשי</span></Button>}
+                                <Button variant="destructive" className="rounded-full bg-red-600/80 hover:bg-red-700 text-white px-3 py-1.5 text-xs sm:text-sm shadow-md border-none flex items-center gap-1.5" onClick={(e) => requestDelete(images[selectedViewerIndex].id, e)} size="sm" disabled={isLoading}><Trash2 className="w-4 h-4" /><span>מחק תמונה</span></Button>
                             </div>
                         )}
-
-                        {/* Counter */}
-                        {images.length > 0 && (
-                           <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/60 text-white px-3 py-1 rounded-full text-xs sm:text-sm font-medium select-none">
-                             {selectedViewerIndex + 1} / {images.length}
-                           </div>
-                        )}
+                        {images.length > 0 && <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/60 text-white px-3 py-1 rounded-full text-xs sm:text-sm font-medium select-none">{selectedViewerIndex + 1} / {images.length}</div>}
                     </div>
-                 </div>
+                </div>
             )}
         </DialogContent>
-       </Dialog>
+      </Dialog>
     </div>
   );
 };
