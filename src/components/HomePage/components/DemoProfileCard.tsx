@@ -15,13 +15,13 @@ import {
   MapPin,
   Briefcase,
   Star,
-  ArrowLeft, // <--- תיקון 1: הוספת ייבוא
+  ArrowLeft,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
-// --- Demo Data ---
+// --- Demo Data (תוכן עשיר יותר שמספר סיפור) ---
 const DEMO_PROFILE = {
   firstName: 'נועה',
   age: 29,
@@ -60,7 +60,7 @@ const TABS = [
   { id: 'vision', label: 'החזון', icon: Target },
 ];
 
-// --- Sub-components ---
+// --- Sub-components (מפרק את הקוד ליחידות קטנות וברורות) ---
 const TabContentWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <motion.div
     initial={{ opacity: 0, y: 10 }}
@@ -76,7 +76,6 @@ const TabContentWrapper: React.FC<{ children: React.ReactNode }> = ({ children }
 const QandAItem: React.FC<{ q: string; a: string }> = ({ q, a }) => (
   <div className="bg-white/70 p-4 rounded-xl shadow-inner border border-purple-100/50">
     <h4 className="font-bold text-purple-800 mb-2">{q}</h4>
-    {/* <--- תיקון 2: שימוש ב-HTML entities במקום מירכאות ישירות --- */}
     <p className="text-gray-700 leading-relaxed italic">“{a}”</p>
   </div>
 );
@@ -105,7 +104,7 @@ export const DemoProfileCard = () => {
       className="w-full max-w-4xl mx-auto bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 rounded-3xl shadow-2xl p-4 sm:p-6 border border-white"
     >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left Side: Image Gallery */}
+        {/* Left Side: Image Gallery (אינטראקטיבי ודינמי) */}
         <div className="flex flex-col gap-4">
           <div className="relative aspect-[3/4] rounded-2xl overflow-hidden shadow-lg group">
             <AnimatePresence initial={false}>
@@ -162,7 +161,7 @@ export const DemoProfileCard = () => {
           </div>
         </div>
 
-        {/* Right Side: Profile Info */}
+        {/* Right Side: Profile Info (עם טאבים שמציגים עומק) */}
         <div className="bg-white/70 backdrop-blur-md p-4 sm:p-6 rounded-2xl border border-white flex flex-col">
           {/* Header */}
           <div className="text-center mb-4">
@@ -181,7 +180,7 @@ export const DemoProfileCard = () => {
             </div>
           </div>
 
-          {/* Tabs */}
+          {/* Tabs - החלק שמציג את העומק */}
           <div className="mb-4 bg-purple-100/50 p-1 rounded-full grid grid-cols-3 gap-1">
             {TABS.map((tab) => (
               <button

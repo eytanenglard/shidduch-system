@@ -1,6 +1,6 @@
 // src/app/components/suggestions/types.ts
 
-import type { MatchSuggestion, Profile, User, UserImage } from "@prisma/client";
+import type { MatchSuggestion, Profile, User, UserImage, QuestionnaireResponse  } from '@prisma/client';
 
 // This type now accurately reflects the structure of Prisma's Profile model.
 export type UserProfile = Profile;
@@ -19,6 +19,8 @@ export interface PartyInfo {
 
   // Relation to Images (which is a full UserImage array)
   images: UserImage[];
+
+  questionnaireResponses?: QuestionnaireResponse[];
 }
 
 export interface StatusHistoryItem {
@@ -30,7 +32,8 @@ export interface StatusHistoryItem {
 }
 
 // This now correctly expects PartyInfo which can have a null profile.
-export interface ExtendedMatchSuggestion extends Omit<MatchSuggestion, 'firstParty' | 'secondParty' | 'matchmaker'> {
+export interface ExtendedMatchSuggestion
+  extends Omit<MatchSuggestion, 'firstParty' | 'secondParty' | 'matchmaker'> {
   matchmaker: {
     firstName: string;
     lastName: string;
