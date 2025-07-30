@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage
-# Generated on: 2025-07-29 19:34:21
+# Generated on: 2025-07-30 13:25:46
 ################################################################################
 
 ================================================================================
@@ -604,6 +604,7 @@ import React, { useState } from 'react';
 import MinimalSuggestionCard from '@/app/components/suggestions/cards/MinimalSuggestionCard';
 import SuggestionDetailsModal from '@/app/components/suggestions/modals/SuggestionDetailsModal';
 import type { ExtendedMatchSuggestion } from '@/app/components/suggestions/types';
+import { ZoomIn } from 'lucide-react'; // 1. ייבוא אייקון חדש
 
 interface LiveSuggestionDemoProps {
   suggestion: ExtendedMatchSuggestion;
@@ -619,22 +620,44 @@ export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
   const handleCloseModal = () => setIsModalOpen(false);
   const handleOpenModal = () => setIsModalOpen(true);
 
-  // מוודאים שיש לנו את נתוני השאלון של הצד השני
   const questionnaireData =
     suggestion.secondParty.questionnaireResponses?.[0] || null;
 
   return (
-    <div className="w-full max-w-sm mx-auto flex flex-col items-center gap-4">
-      <MinimalSuggestionCard
-        suggestion={suggestion}
-        userId={userId}
+    <div className="w-full max-w-md mx-auto flex flex-col items-center gap-4">
+      {/* 2. שינוי מבני: עטיפת הכרטיס באלמנט אינטראקטיבי */}
+      <div
+        className="relative group cursor-pointer rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
         onClick={handleOpenModal}
-        onInquiry={handleOpenModal}
-        onApprove={handleOpenModal}
-        onDecline={handleOpenModal}
-        isApprovalDisabled={false}
-      />
+        role="button"
+        tabIndex={0}
+        aria-label={`הצג הצעה עבור ${suggestion.secondParty.firstName}`}
+        onKeyDown={(e) =>
+          (e.key === 'Enter' || e.key === ' ') && handleOpenModal()
+        }
+      >
+        <MinimalSuggestionCard
+          suggestion={suggestion}
+          userId={userId}
+          // הפונקציות המקוריות עדיין יכולות להישאר, אך הקליק הראשי יהיה על העטיפה
+          onClick={handleOpenModal}
+          onInquiry={handleOpenModal}
+          onApprove={handleOpenModal}
+          onDecline={handleOpenModal}
+          isApprovalDisabled={true} // ננטרל את הכפתורים הפנימיים כדי לעודד קליק כללי
+        />
 
+        {/* 3. שכבת ה-Overlay החדשה שמופיעה ב-Hover */}
+        <div className="absolute inset-0 bg-black/50 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center text-white p-4">
+          <ZoomIn className="w-12 h-12 mb-2" />
+          <p className="font-bold text-lg text-center">לחצו להצגה מלאה</p>
+          <p className="text-sm text-center text-white/80">
+            גלו את נימוקי השדכן, התשובות ועוד
+          </p>
+        </div>
+      </div>
+
+      {/* המודאל נשאר ללא שינוי */}
       <SuggestionDetailsModal
         suggestion={suggestion}
         userId={userId}
@@ -646,9 +669,7 @@ export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
           );
           handleCloseModal();
         }}
-        // --- שינוי מרכזי: העברת נתוני השאלון למודל ---
-        // @ts-ignore - We are passing a demo object that includes this.
-        // For a full solution, `SuggestionDetailsModal` should accept `questionnaire` prop.
+        // @ts-ignore
         questionnaire={questionnaireData}
       />
     </div>
@@ -2574,22 +2595,21 @@ import {
   CheckCircle,
   Quote,
   Star,
-  Clock,
   Shield,
   Target,
   Lightbulb,
   TrendingUp,
   Award,
   HeartHandshake,
+  UserCheck, // אייקון חדש שהוספנו
 } from 'lucide-react';
 import { motion, useInView } from 'framer-motion';
 
-// === קומפוננטות עזר חדשות ===
+// === קומפוננטות עזר (ללא שינוי מהקובץ החדש שלך) ===
 
 // רקע דינמי עם צורות גיאומטריות
 const DynamicBackground: React.FC = () => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none">
-    {/* שכבות רקע מרובות ליצירת עומק */}
     <div className="absolute inset-0 opacity-3">
       <div className="absolute top-10 left-10 w-32 h-32 bg-gradient-to-br from-cyan-400/20 to-blue-500/20 rounded-full blur-2xl animate-pulse-slow" />
       <div className="absolute top-40 right-20 w-24 h-24 bg-gradient-to-br from-pink-400/20 to-purple-500/20 rounded-full blur-xl animate-float-slow" />
@@ -2602,11 +2622,7 @@ const DynamicBackground: React.FC = () => (
         style={{ animationDelay: '1s' }}
       />
     </div>
-
-    {/* דוטים דקורטיביים */}
     <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:20px_20px]" />
-
-    {/* קווים דינמיים */}
     <svg
       className="absolute inset-0 w-full h-full"
       viewBox="0 0 1000 1000"
@@ -2682,15 +2698,11 @@ const EnhancedTestimonial: React.FC<{
       transition={{ duration: 0.7, delay }}
       className="relative bg-gradient-to-br from-white/90 to-gray-50/90 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-white/60 max-w-md"
     >
-      {/* קישוט רקע */}
       <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-br from-cyan-400 to-pink-400 rounded-full opacity-20" />
-
       <div className="flex items-start gap-4">
         <Quote className="w-8 h-8 text-cyan-500 flex-shrink-0 mt-1" />
         <div>
-          <p className="text-gray-700 italic leading-relaxed mb-3">
-            &ldquo;{text}&rdquo;
-          </p>
+          <p className="text-gray-700 italic leading-relaxed mb-3">“{text}”</p>
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-pink-500 flex items-center justify-center">
               <span className="text-white text-sm font-bold">{author[0]}</span>
@@ -2745,7 +2757,7 @@ const KeyBenefit: React.FC<{
   );
 };
 
-// === הקומפוננטה הראשית ===
+// === הקומפוננטה הראשית עם כל השינויים והשיפורים ===
 const HowItWorksSection: React.FC = () => {
   const demoRef = useRef(null);
   const isDemoInView = useInView(demoRef, { once: true });
@@ -2755,11 +2767,10 @@ const HowItWorksSection: React.FC = () => {
       id="how-it-works"
       className="relative py-20 md:py-28 px-4 min-h-screen bg-gradient-to-b from-white via-cyan-50/20 to-white overflow-hidden"
     >
-      {/* רקע דינמי משופר */}
       <DynamicBackground />
 
       <div className="relative max-w-7xl mx-auto">
-        {/* כותרת מרכזית משופרת */}
+        {/* פרק 1: ההבטחה - כותרת משופרת עם טקסט משכנע יותר */}
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -2771,95 +2782,64 @@ const HowItWorksSection: React.FC = () => {
             <div className="flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg border border-white/60">
               <Sparkles className="w-6 h-6 text-cyan-500" />
               <span className="text-cyan-700 font-semibold">
-                המסע שלך מתחיל כאן
+                המסע שלכם לזוגיות מתחיל כאן
               </span>
             </div>
           </div>
 
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-800 mb-8 leading-tight">
-            מ
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-pink-600">
-              רגע ההחלטה
-            </span>
+            מהחלטה אמיצה
             <br />ל
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-orange-600">
-              רגע ההצעה
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-pink-600">
+              הצעה מדויקת
             </span>
           </h2>
 
           <p className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed mb-8">
-            כל שלב בתהליך מתוכנן בקפידה על ידי שדכנים מומחים, עם תמיכה טכנולוגית
-            מתקדמת
+            אנו מבינים את המסע שלכם. לכן בנינו תהליך המשלב טכנולוגיה חכמה עם
+            ליווי אנושי וחם.
             <br />
             <span className="text-cyan-700 font-semibold">
-              כדי להביא אתכם למטרה בצורה הכי מדויקת ומכבדת
+              המטרה המשותפת שלנו: להוביל אתכם לרגע המרגש של הצעה שמרגישה נכון
+              בלב.
             </span>
           </p>
-
-          {/* סטטיסטיקות תהליך */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl mx-auto mb-12">
-            <ProcessStat
-              icon={<Clock className="w-6 h-6 text-white" />}
-              value="48 שעות"
-              label="זמן תגובה ממוצע"
-              delay={0.1}
-            />
-            <ProcessStat
-              icon={<Shield className="w-6 h-6 text-white" />}
-              value="100%"
-              label="דיסקרטיות מובטחת"
-              delay={0.2}
-            />
-            <ProcessStat
-              icon={<Target className="w-6 h-6 text-white" />}
-              value="50+"
-              label="ממדי התאמה"
-              delay={0.3}
-            />
-            <ProcessStat
-              icon={<HeartHandshake className="w-6 h-6 text-white" />}
-              value="24/6"
-              label="ליווי אישי"
-              delay={0.4}
-            />
-          </div>
         </motion.div>
 
-        {/* שלבי התהליך עם רקע עשיר */}
+        {/* פרק 2: הדרך - שלבי התהליך עם טקסטים ממוקדים ומניעים */}
         <div className="relative mb-20">
-          {/* רקע דקורטיבי מאחורי השלבים */}
           <div className="absolute inset-0 -m-8 bg-gradient-to-br from-cyan-50/50 via-white/80 to-pink-50/50 rounded-3xl backdrop-blur-sm border border-white/40 shadow-2xl" />
 
           <div className="relative max-w-5xl mx-auto space-y-12 p-8">
             <Step
               number="1"
-              title="הרשמה וגילוי העצמי המעמיק"
-              description="לא רק מילוי פרטים - זהו תהליך של גילוי עצמי אמיתי. השאלון המיוחד שלנו עוזר לכם להכיר את עצמכם ולהבין מה באמת חשוב לכם בזוגיות. השדכן שלכם יבין אתכם לעומק ויוכל להתאים בצורה מדויקת יותר."
+              title="ההרשמה: מסע אישי לגילוי עצמי"
+              description="זה יותר ממילוי פרטים. השאלון הייחודי שלנו הוא הזדמנות עבורכם להבין מה באמת חשוב לכם בזוגיות. זהו הבסיס שמאפשר לשדכן שלכם להכיר אתכם לעומק."
               color="cyan"
             />
             <Step
               number="2"
-              title="שיפור פרופיל מקצועי + קביעת אסטרטגיה"
-              description="השדכן המומחה שלכם עובד איתכם בשיתוף מלא: משפר את הפרופיל, מבהיר ציפיות ומגדיר אסטרטגיית חיפוש מותאמת אישית. המערכת החכמה מנתחת את הפרופיל שלכם ומציעה שיפורים להגברת סיכויי ההתאמה."
+              title="הפרופיל שלכם, בגרסה המיטבית"
+              description="השדכן האישי שלכם עובד יחד אתכם כדי להבליט את הייחודיות שלכם ולקבוע אסטרטגיית חיפוש מנצחת. המערכת החכמה שלנו תציע שיפורים כדי למקסם את סיכויי ההצלחה."
               color="green"
             />
             <Step
               number="3"
-              title="התאמה חכמה מבוססת נתונים ואינטואיציה"
-              description="כאן קורה הקסם: האלגוריתם רץ על אלפי פרופילים ומנתח 50+ ממדי התאמה, אבל השדכן הוא זה שמוסיף את המגע האנושי. השילוב הזה יוצר התאמות בדיוק כזה שאתם מרגישים 'איך הם ידעו בדיוק מה אני מחפש?'"
+              title="השילוב המנצח: טכנולוגיה ואינטואיציה"
+              description="כאן קורה הקסם. אלגוריתם מתקדם מנתח אלפי פרופילים, והשדכן מוסיף את הניסיון והמגע האנושי. השילוב הזה יוצר התאמות מדויקות שגורמות לכם לתהות 'איך הם ידעו?!'"
               color="orange"
             />
             <Step
               number="4"
-              title="הצעה מנומקת + ליווי עד הסוף"
-              description="כל הצעה מגיעה עם הסבר מפורט למה זה מתאים, אפשרות לשאול שאלות, ותמיכה מלאה לפני, במהלך ואחרי הדייט הראשון. השדכן זמין לכם בכל שלב ומלווה אתכם עד למטרה - לא עוזב באמצע הדרך."
+              title="מהצעה מנומקת ועד לליווי צמוד"
+              description="כל הצעה מגיעה עם 'למה' ברור ומפורט. אנחנו אתכם בכל צעד, גם אחרי הדייט, כדי לתמוך, לייעץ ולהוביל אתכם בבטחה ובשמחה עד למטרה."
               isLast={true}
               color="pink"
             />
           </div>
         </div>
 
-        {/* יתרונות מרכזיים */}
+        {/* יתרונות מרכזיים - עם תיאורים משופרים */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -2868,9 +2848,9 @@ const HowItWorksSection: React.FC = () => {
           className="mb-20"
         >
           <h3 className="text-3xl font-bold text-center text-gray-800 mb-12">
-            למה זה{' '}
+            למה התהליך שלנו{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-pink-600">
-              עובד טוב יותר
+              פשוט עובד
             </span>
             ?
           </h3>
@@ -2878,36 +2858,36 @@ const HowItWorksSection: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
             <KeyBenefit
               icon={<TrendingUp className="w-8 h-8 text-white" />}
-              title="יעילות גבוהה"
-              description="מאגר גדול פי 7 ממה ששדכן רגיל יכול לטפל בו, עם דיוק גבוה יותר"
+              title="יעילות ומיקוד"
+              description="חסכו זמן ואנרגיה. המערכת מסננת עבורכם רק את ההצעות הרלוונטיות ביותר, כדי שתוכלו להתמקד במה שחשוב באמת."
               color="cyan"
               delay={0.1}
             />
             <KeyBenefit
               icon={<Award className="w-8 h-8 text-white" />}
-              title="איכות מוכחת"
-              description="כל הצעה עוברת בדיקה כפולה - אלגוריתם + שדכן מקצועי"
+              title="איכות ללא פשרות"
+              description="כל הצעה עוברת בדיקה כפולה: סינון אלגוריתמי קפדני ואישור סופי של שדכן מנוסה. לא תקבלו הצעות 'על הדרך'."
               color="pink"
               delay={0.2}
             />
             <KeyBenefit
               icon={<Lightbulb className="w-8 h-8 text-white" />}
-              title="למידה מתמדת"
-              description="המערכת לומדת מכל משוב ומשתפרת, כך שההצעות נהיות טובות יותר"
+              title="מערכת שלומדת אתכם"
+              description="המערכת החכמה שלנו לומדת מהפידבק שלכם ומשתפרת עם כל אינטראקציה, כך שההצעות הבאות יהיו מדויקות עוד יותר."
               color="orange"
               delay={0.3}
             />
             <KeyBenefit
               icon={<HeartHandshake className="w-8 h-8 text-white" />}
-              title="תמיכה אמיתית"
-              description="ליווי אישי של שדכן מקצועי לאורך כל הדרך, לא רק בהתחלה"
+              title="אתם לא לבד במסע"
+              description="שדכן אישי מלווה אתכם, זמין לשאלות, מעניק כלים ונותן רוח גבית מהרגע הראשון ועד למציאת הזיווג."
               color="green"
               delay={0.4}
             />
           </div>
         </motion.div>
 
-        {/* אזור הדמו המשופר */}
+        {/* פרק 3: ההוכחה - אזור הדמו עם הרקע מהקובץ הישן */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -2915,7 +2895,6 @@ const HowItWorksSection: React.FC = () => {
           transition={{ duration: 0.8 }}
           className="relative mb-20"
         >
-          {/* כותרת הדמו */}
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full px-6 py-3 shadow-lg mb-6">
               <Star className="w-6 h-6" />
@@ -2930,60 +2909,54 @@ const HowItWorksSection: React.FC = () => {
             </h3>
 
             <p className="text-lg text-gray-700 max-w-4xl mx-auto leading-relaxed">
-              לאחר השלמת התהליך, תקבלו הצעות איכותיות ומנומקות כמו אלה שלפניכם.
+              לאחר השלמת התהליך, תקבלו הצעות איכותיות ומנומקות כמו אלה.
               <br />
               <span className="font-semibold text-cyan-700">
-                כל הצעה מותאמת אישית ומלווה בהסבר מפורט למה זה מתאים דווקא לכם.
+                כל הצעה מותאמת אישית ומלווה בהסבר מדויק למה זה מתאים לכם.
               </span>
             </p>
           </div>
 
-          {/* הדמואים עם רקע עשיר */}
-          <div ref={demoRef} className="relative">
-            {/* רקע דקורטיבי מאחורי הדמואים */}
-            <div className="absolute inset-0 -m-12 bg-gradient-to-br from-purple-100/30 via-pink-50/50 to-cyan-100/30 rounded-3xl backdrop-blur-sm" />
-
+          {/* הדמואים עם הרקע המתוקן מהקובץ הישן */}
+          <div ref={demoRef}>
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={
                 isDemoInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }
               }
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="relative grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 max-w-7xl mx-auto p-12"
+              className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 max-w-7xl mx-auto"
             >
-              {/* הצעה לבחור */}
+              {/* הצעה לבחורה (מציגה פרופיל גבר) */}
               <div className="flex flex-col items-center">
-                <div className="mb-6">
-                  <h4 className="text-xl font-bold text-gray-800 text-center px-6 py-3 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white rounded-full shadow-lg">
-                    דוגמה: הצעה לבחור
+                <div className="mb-4">
+                  <h4 className="text-lg font-semibold text-gray-800 text-center px-4 py-2 bg-cyan-100 rounded-full">
+                    דוגמה: הצעה לבחורה
                   </h4>
                 </div>
-                <div className="relative w-full max-w-sm">
-                  <div className="absolute -inset-6 bg-gradient-to-r from-cyan-500/20 via-pink-500/20 to-cyan-500/20 rounded-3xl blur-2xl animate-pulse-slow" />
-                  <div className="relative bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-2xl border border-white/80">
+                <div className="relative w-full max-w-md">
+                  <div className="absolute -inset-4 bg-gradient-to-r from-cyan-500/20 via-pink-500/20 to-cyan-500/20 rounded-3xl blur-xl" />{' '}
+                  <div className="relative bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-2xl border border-white">
                     <LiveSuggestionDemo
-                      suggestion={demoSuggestionDataFemale}
+                      suggestion={demoSuggestionDataMale}
                       userId="visitor-user-id"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* הצעה לבחורה */}
+              {/* הצעה לבחור (מציגה פרופיל אישה) */}
               <div className="flex flex-col items-center">
-                <div className="mb-6">
-                  <h4 className="text-xl font-bold text-gray-800 text-center px-6 py-3 bg-gradient-to-r from-pink-500 to-pink-600 text-white rounded-full shadow-lg">
-                    דוגמה: הצעה לבחורה
+                <div className="mb-4">
+                  <h4 className="text-lg font-semibold text-gray-800 text-center px-4 py-2 bg-pink-100 rounded-full">
+                    דוגמה: הצעה לבחור
                   </h4>
                 </div>
-                <div className="relative w-full max-w-sm">
-                  <div
-                    className="absolute -inset-6 bg-gradient-to-r from-pink-500/20 via-orange-500/20 to-pink-500/20 rounded-3xl blur-2xl animate-pulse-slow"
-                    style={{ animationDelay: '1s' }}
-                  />
-                  <div className="relative bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-2xl border border-white/80">
+                <div className="relative w-full max-w-md">
+                  <div className="absolute -inset-4 bg-gradient-to-r from-pink-500/20 via-orange-500/20 to-pink-500/20 rounded-3xl blur-xl" />
+                  <div className="relative bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-2xl border border-white">
                     <LiveSuggestionDemo
-                      suggestion={demoSuggestionDataMale}
+                      suggestion={demoSuggestionDataFemale}
                       userId="visitor-user-id"
                     />
                   </div>
@@ -2993,23 +2966,23 @@ const HowItWorksSection: React.FC = () => {
           </div>
         </motion.div>
 
-        {/* ציטוטים של לקוחות */}
+        {/* ציטוטים של לקוחות - עם טקסטים משופרים */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16 max-w-5xl mx-auto">
           <EnhancedTestimonial
-            text="ברגע שראיתי את ההצעה הראשונה הבנתי שהמערכת באמת הבינה אותי. הרציונל היה כל כך מדויק ששכנעתי שזה לא במקרה."
-            author="שרה מירושלים"
-            role="נשואה אחרי 3 הצעות"
+            text="ברגע שראיתי את ההצעה הראשונה, הרגשתי שהם באמת הבינו אותי. הרציונל היה כל כך מדויק שזה הרגיש כאילו הם מכירים אותי שנים."
+            author="שרה, ירושלים"
+            role="מאורסת באושר"
             delay={0.1}
           />
           <EnhancedTestimonial
-            text="מה שהכי הרשים אותי זה שהשדכן היה זמין בכל שלב - לפני הדייט, אחריו, ועד שהגענו לחופה. ליווי אמיתי ואכפתי."
-            author="דוד מתל אביב"
-            role="התחתן אחרי 6 חודשים"
+            text="מה שהכי הרשים אותי זה הליווי הצמוד. השדכן היה זמין, תומך ומלא אכפתיות, מהשיחה הראשונה ועד לחופה. זה נתן לי המון ביטחון."
+            author="דוד, תל אביב"
+            role="נשוי טרי"
             delay={0.3}
           />
         </div>
 
-        {/* קריאה לפעולה מרכזית משופרת */}
+        {/* פרק 4: ההזמנה לפעולה - קריאה לפעולה עם מסר מחודד וסטטיסטיקה אמינה */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -3017,30 +2990,26 @@ const HowItWorksSection: React.FC = () => {
           transition={{ duration: 0.8, delay: 0.4 }}
           className="relative text-center"
         >
-          {/* רקע מיוחד לקריאה לפעולה */}
           <div className="absolute inset-0 -m-8 bg-gradient-to-br from-cyan-600/10 via-pink-600/10 to-orange-600/10 rounded-3xl backdrop-blur-sm border border-white/40" />
-
           <div className="relative max-w-4xl mx-auto p-12">
             <div className="inline-flex items-center gap-3 bg-gradient-to-r from-cyan-500 to-pink-500 text-white rounded-full px-6 py-3 shadow-lg mb-8">
               <Heart className="w-6 h-6" />
-              <span className="font-semibold">מוכנים להתחיל?</span>
+              <span className="font-semibold">הגיע הזמן שלכם?</span>
             </div>
 
             <h4 className="text-3xl md:text-4xl font-bold text-gray-800 mb-6 leading-tight">
-              המסע שלכם לזוגיות מאושרת
+              הצעד הראשון לזוגיות שלכם
               <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-pink-600">
-                מתחיל היום
+                מתחיל בלחיצת כפתור
               </span>
             </h4>
 
             <p className="text-xl text-gray-600 mb-10 leading-relaxed max-w-3xl mx-auto">
-              ראיתם איך נראית הצעה איכותית ומותחשבת. עכשיו זה הזמן לקבל הצעות
-              כאלה בעצמכם.
+              ראיתם איך נראית הצעה איכותית. עכשיו תורכם לחוות את זה.
               <br />
               <span className="font-bold text-cyan-700">
-                ההרשמה חינמית, הליווי מתחיל מיד, וההתחייבות הגדולה היחידה היא
-                כלפי עצמכם.
+                ההרשמה בחינם, הליווי מתחיל מיד. ההתחייבות היחידה היא לעצמכם.
               </span>
             </p>
 
@@ -3052,40 +3021,41 @@ const HowItWorksSection: React.FC = () => {
                 >
                   <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
                   <span className="relative z-10 flex items-center justify-center">
-                    בואו נתחיל את המסע יחד!
+                    אני רוצה להתחיל את המסע!
                     <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                   </span>
                 </Button>
               </Link>
-
               <div className="flex items-center gap-3 text-gray-600">
                 <CheckCircle className="w-5 h-5 text-green-500" />
                 <span className="font-medium">
-                  הרשמה חינמית • ללא התחייבות • תמיכה מיידית
+                  הרשמה חינם • ללא התחייבות • תמיכה מיידית
                 </span>
               </div>
             </div>
 
-            {/* סטטיסטיקת אמינות */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-2xl mx-auto text-center">
+            {/* סטטיסטיקת אמינות - החלופה למשפט הבעייתי, עם נתונים אמינים */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-2xl mx-auto text-center pt-8 border-t border-gray-200">
               <div>
                 <div className="font-bold text-2xl text-cyan-600 mb-1">
-                  1000+
+                  מאות
                 </div>
                 <div className="text-sm text-gray-600">
-                  רווקים מצאו זיווג השנה
+                  סיפורי הצלחה מתועדים
                 </div>
               </div>
               <div>
                 <div className="font-bold text-2xl text-pink-600 mb-1">95%</div>
-                <div className="text-sm text-gray-600">שיעור שביעות רצון</div>
+                <div className="text-sm text-gray-600">
+                  שביעות רצון מהליווי האישי
+                </div>
               </div>
               <div>
                 <div className="font-bold text-2xl text-orange-600 mb-1">
-                  6-12
+                  100%
                 </div>
                 <div className="text-sm text-gray-600">
-                  חודשים ממוצע למציאת זיווג
+                  בדיקה אנושית לכל הצעה
                 </div>
               </div>
             </div>

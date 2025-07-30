@@ -1,7 +1,7 @@
 // src/app/components/suggestions/modals/SuggestionDetailsModal.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import {
   Dialog,
@@ -121,6 +121,92 @@ interface SuggestionDetailsModalProps {
   onStatusChange?: (suggestionId: string, newStatus: string) => Promise<void>;
 }
 
+// Hook לזיהוי מובייל עם ניהול מתקדם
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkDevice = () => {
+      const isMobileDevice = window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      setIsMobile(isMobileDevice);
+    };
+    
+    checkDevice();
+    window.addEventListener('resize', checkDevice);
+    window.addEventListener('orientationchange', checkDevice);
+    
+    return () => {
+      window.removeEventListener('resize', checkDevice);
+      window.removeEventListener('orientationchange', checkDevice);
+    };
+  }, []);
+
+  return isMobile;
+};
+
+// Hook לניהול viewport במובייל
+const useViewportHeight = () => {
+  const [viewportHeight, setViewportHeight] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerHeight;
+    }
+    return 0;
+  });
+
+  useEffect(() => {
+    const updateHeight = () => {
+      // שימוש ב-visualViewport API אם זמין (תמיכה במקלדת וירטואלית)
+      if (window.visualViewport) {
+        setViewportHeight(window.visualViewport.height);
+      } else {
+        setViewportHeight(window.innerHeight);
+      }
+    };
+
+    updateHeight();
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', updateHeight);
+      return () => window.visualViewport?.removeEventListener('resize', updateHeight);
+    } else {
+      window.addEventListener('resize', updateHeight);
+      return () => window.removeEventListener('resize', updateHeight);
+    }
+  }, []);
+
+  return viewportHeight;
+};
+
+// Hook לניהול פולסקרין
+const useFullscreenModal = (isOpen: boolean) => {
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  const toggleFullscreen = useCallback(() => {
+    setIsTransitioning(true);
+    setIsFullscreen(prev => !prev);
+    
+    // סיום מעבר אחרי זמן האנימציה
+    setTimeout(() => {
+      setIsTransitioning(false);
+    }, 300);
+  }, []);
+
+  // איפוס מצב כשהמודל נסגר
+  useEffect(() => {
+    if (!isOpen) {
+      setIsFullscreen(false);
+      setIsTransitioning(false);
+    }
+  }, [isOpen]);
+
+  return {
+    isFullscreen,
+    isTransitioning,
+    toggleFullscreen
+  };
+};
+
 // ===============================
 // ENHANCED HERO SECTION - המרכז הרגשי של ההצעה
 // ===============================
@@ -210,30 +296,18 @@ const EnhancedHeroSection: React.FC<{
       <div className="relative z-10 p-4 md:p-8 lg:p-12">
         {/* כותרת פתיחה מרשימה */}
         <div className="text-center mb-8 lg:mb-12">
-          <div className="inline-flex items-center gap-4 mb-6 p-6 bg-white/90 backdrop-blur-lg rounded-3xl shadow-2xl border border-purple-100 animate-fade-in-up">
-            <div className="relative">
-              <Avatar className="w-20 h-20 border-4 border-white shadow-xl">
-                <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-white text-2xl font-bold">
-                  {getInitials(
-                    `${matchmaker.firstName} ${matchmaker.lastName}`
-                  )}
-                </AvatarFallback>
-              </Avatar>
-              <div className="absolute -top-3 -right-3 w-10 h-10 bg-gradient-to-r from-yellow-400 to-amber-500 rounded-full flex items-center justify-center shadow-lg animate-bounce">
-                <Crown className="w-5 h-5 text-white" />
-              </div>
-            </div>
+          {/* חלק השדכן - צמצום משמעותי */}
+          <div className="inline-flex items-center gap-2 mb-6 p-3 bg-white/90 backdrop-blur-lg rounded-2xl shadow-lg border border-purple-100 animate-fade-in-up">
+            <Avatar className="w-12 h-12 border-2 border-white shadow-lg">
+              <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-white text-sm font-bold">
+                {getInitials(`${matchmaker.firstName} ${matchmaker.lastName}`)}
+              </AvatarFallback>
+            </Avatar>
             <div className="text-right">
-              <div className="flex items-center gap-2 mb-2">
-                <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 px-3 py-1 shadow-lg animate-pulse">
-                  <Sparkles className="w-3 h-3 ml-1" />
-                  הצעה מיוחדת
-                </Badge>
-              </div>
-              <p className="text-sm font-bold text-purple-600 mb-1">
-                נבחרת במיוחד על ידי
+              <p className="text-xs font-medium text-purple-600 mb-1">
+                הצעה מ-
               </p>
-              <p className="text-2xl font-bold text-gray-800">
+              <p className="text-lg font-bold text-gray-800">
                 {matchmaker.firstName} {matchmaker.lastName}
               </p>
             </div>
@@ -681,69 +755,115 @@ const EnhancedQuickActions: React.FC<{
 );
 
 // ===============================
-// ENHANCED TABS DESIGN - עיצוב טאבים משופר
+// ENHANCED TABS DESIGN - עיצוב טאבים משופר עם כפתור פולסקרין
 // ===============================
 
 const EnhancedTabsSection: React.FC<{
   activeTab: string;
   onTabChange: (tab: string) => void;
-}> = ({ activeTab, onTabChange }) => (
+  onClose: () => void;
+  isFullscreen: boolean;
+  onToggleFullscreen: () => void;
+  isMobile: boolean;
+  isTransitioning?: boolean;
+}> = ({ activeTab, onTabChange, onClose, isFullscreen, onToggleFullscreen, isMobile, isTransitioning = false }) => (
   <div className="border-b border-purple-100 px-2 sm:px-6 pt-4 bg-gradient-to-r from-purple-50/80 to-pink-50/80 backdrop-blur-sm sticky top-0 z-20">
-    <TabsList className="grid w-full grid-cols-4 bg-white/90 backdrop-blur-sm rounded-3xl p-2 h-20 shadow-xl border-2 border-purple-100 overflow-hidden">
-      <TabsTrigger
-        value="presentation"
-        className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold transition-all duration-300 hover:scale-105 relative overflow-hidden group"
-      >
-        {/* רקע מאנימציה לטאב פעיל */}
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/0 to-pink-600/0 group-data-[state=active]:from-purple-600/20 group-data-[state=active]:to-pink-600/20 transition-all"></div>
-        <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 relative z-10" />
-        <span className="relative z-10">
-          <span className="hidden sm:inline">הצגה מרשימה</span>
-          <span className="sm:hidden">הצגה</span>
-        </span>
-      </TabsTrigger>
+    <div className="flex items-center justify-between mb-4">
+      <TabsList className="grid w-full grid-cols-4 bg-white/90 backdrop-blur-sm rounded-3xl p-2 h-20 shadow-xl border-2 border-purple-100 overflow-hidden">
+        <TabsTrigger
+          value="presentation"
+          className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold transition-all duration-300 hover:scale-105 relative overflow-hidden group"
+        >
+          {/* רקע מאנימציה לטאב פעיל */}
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-600/0 to-pink-600/0 group-data-[state=active]:from-purple-600/20 group-data-[state=active]:to-pink-600/20 transition-all"></div>
+          <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 relative z-10" />
+          <span className="relative z-10">
+            <span className="hidden sm:inline">הצגה מרשימה</span>
+            <span className="sm:hidden">הצגה</span>
+          </span>
+        </TabsTrigger>
 
-      <TabsTrigger
-        value="profile"
-        className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold transition-all duration-300 hover:scale-105 relative overflow-hidden group"
-      >
-        <div className="absolute inset-0 bg-gradient-to-r from-emerald-600/0 to-green-600/0 group-data-[state=active]:from-emerald-600/20 group-data-[state=active]:to-green-600/20 transition-all"></div>
-        <User className="w-5 h-5 sm:w-6 sm:h-6 relative z-10" />
-        <span className="relative z-10">
-          <span className="hidden sm:inline">פרופיל מלא</span>
-          <span className="sm:hidden">פרופיל</span>
-        </span>
-      </TabsTrigger>
+        <TabsTrigger
+          value="profile"
+          className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold transition-all duration-300 hover:scale-105 relative overflow-hidden group"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-emerald-600/0 to-green-600/0 group-data-[state=active]:from-emerald-600/20 group-data-[state=active]:to-green-600/20 transition-all"></div>
+          <User className="w-5 h-5 sm:w-6 sm:h-6 relative z-10" />
+          <span className="relative z-10">
+            <span className="hidden sm:inline">פרופיל מלא</span>
+            <span className="sm:hidden">פרופיל</span>
+          </span>
+        </TabsTrigger>
 
-      <TabsTrigger
-        value="compatibility"
-        className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold transition-all duration-300 hover:scale-105 relative overflow-hidden group"
-      >
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/0 to-cyan-600/0 group-data-[state=active]:from-blue-600/20 group-data-[state=active]:to-cyan-600/20 transition-all"></div>
-        <GitCompareArrows className="w-5 h-5 sm:w-6 sm:h-6 relative z-10" />
-        <span className="relative z-10">
-          <span className="hidden sm:inline">ניתוח התאמה</span>
-          <span className="sm:hidden">התאמה</span>
-        </span>
-      </TabsTrigger>
+        <TabsTrigger
+          value="compatibility"
+          className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold transition-all duration-300 hover:scale-105 relative overflow-hidden group"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/0 to-cyan-600/0 group-data-[state=active]:from-blue-600/20 group-data-[state=active]:to-cyan-600/20 transition-all"></div>
+          <GitCompareArrows className="w-5 h-5 sm:w-6 sm:h-6 relative z-10" />
+          <span className="relative z-10">
+            <span className="hidden sm:inline">ניתוח התאמה</span>
+            <span className="sm:hidden">התאמה</span>
+          </span>
+        </TabsTrigger>
 
-      <TabsTrigger
-        value="details"
-        className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-gray-500 data-[state=active]:to-slate-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold transition-all duration-300 hover:scale-105 relative overflow-hidden group"
-      >
-        <div className="absolute inset-0 bg-gradient-to-r from-gray-600/0 to-slate-600/0 group-data-[state=active]:from-gray-600/20 group-data-[state=active]:to-slate-600/20 transition-all"></div>
-        <Info className="w-5 h-5 sm:w-6 sm:h-6 relative z-10" />
-        <span className="relative z-10">
-          <span className="hidden sm:inline">פרטים ותקשורת</span>
-          <span className="sm:hidden">פרטים</span>
-        </span>
-      </TabsTrigger>
-    </TabsList>
+        <TabsTrigger
+          value="details"
+          className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-gray-500 data-[state=active]:to-slate-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold transition-all duration-300 hover:scale-105 relative overflow-hidden group"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-gray-600/0 to-slate-600/0 group-data-[state=active]:from-gray-600/20 group-data-[state=active]:to-slate-600/20 transition-all"></div>
+          <Info className="w-5 h-5 sm:w-6 sm:h-6 relative z-10" />
+          <span className="relative z-10">
+            <span className="hidden sm:inline">פרטים ותקשורת</span>
+            <span className="sm:hidden">פרטים</span>
+          </span>
+        </TabsTrigger>
+      </TabsList>
+
+      {/* כפתורי בקרה */}
+      <div className="flex items-center gap-2 ml-4">
+        {/* כפתור פולסקרין - רק במחשב */}
+        {!isMobile && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={onToggleFullscreen}
+                  className="rounded-full h-12 w-12 text-blue-500 hover:text-blue-600 hover:bg-blue-50 transition-all hover:scale-110 fullscreen-button icon-transition"
+                  disabled={isTransitioning}
+                >
+                  {isFullscreen ? (
+                    <Minimize className="w-6 h-6" />
+                  ) : (
+                    <Maximize className="w-6 h-6" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p>{isFullscreen ? 'צמצם חלון' : 'הגדל למסך מלא'}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+
+        {/* כפתור סגירה */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onClose}
+          className="rounded-full h-12 w-12 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all hover:scale-110"
+        >
+          <X className="w-6 h-6" />
+        </Button>
+      </div>
+    </div>
   </div>
 );
 
 // ===============================
-// MAIN COMPONENT - הקומפוננטה הראשית
+// MAIN COMPONENT - הקומפוננטה הראשית עם תמיכה בפולסקרין
 // ===============================
 
 const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
@@ -764,15 +884,42 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   const [questionnaire, setQuestionnaire] =
     useState<QuestionnaireResponse | null>(null);
   const [isQuestionnaireLoading, setIsQuestionnaireLoading] = useState(false);
-  const [isActionsExpanded, setIsActionsExpanded] = useState(true);
+  const [isActionsExpanded, setIsActionsExpanded] = useState(false);
+  
+  // חדש: סטייט לפולסקרין וניהול viewport
+  const isMobile = useIsMobile();
+  const viewportHeight = useViewportHeight();
+  const { isFullscreen, isTransitioning, toggleFullscreen } = useFullscreenModal(isOpen);
 
-  // אפקטים - רק אחד כדי למנוע בעיות הוקים
+  // אפקטים - ניהול מצב פולסקרין וגלילה
   useEffect(() => {
     if (isOpen) {
       setActiveTab('presentation');
-      setIsActionsExpanded(true);
+      setIsActionsExpanded(false);
+      
+      // מניעת גלילה של הרקע
+      if (isMobile || isFullscreen) {
+        document.body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden';
+        
+        // התמודדות עם safe area במובייל
+        if (isMobile) {
+          document.documentElement.style.setProperty('--vh', `${viewportHeight * 0.01}px`);
+        }
+      }
+    } else {
+      // החזרת גלילה רגילה
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+      document.documentElement.style.removeProperty('--vh');
     }
-  }, [isOpen, suggestion?.id]);
+
+    return () => {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+      document.documentElement.style.removeProperty('--vh');
+    };
+  }, [isOpen, suggestion?.id, isMobile, isFullscreen, viewportHeight]);
 
   const isFirstParty = suggestion?.firstPartyId === userId;
   const targetParty = suggestion
@@ -793,6 +940,12 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   const triggerConfirmDialog = (action: 'approve' | 'decline') => {
     setActionToConfirm(action);
     setShowConfirmDialog(true);
+  };
+
+  const handleToggleFullscreen = () => {
+    if (!isMobile) {
+      toggleFullscreen();
+    }
   };
 
   const executeConfirmedAction = async () => {
@@ -852,55 +1005,58 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
     }
   };
 
+  // חישוב מחלקות CSS על בסיס מצב פולסקרין ומובייל עם אנימציות
+  const getModalClasses = () => {
+    const baseClasses = "p-0 shadow-2xl border-0 bg-white overflow-hidden z-[50] flex flex-col transition-all duration-300 ease-in-out";
+    
+    if (isMobile) {
+      // במובייל תמיד מסך מלא עם גובה דינמי
+      return `${baseClasses} !w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0`;
+    } else if (isFullscreen) {
+      // במחשב במצב פולסקרין עם כיסוי מלא של המסך
+      return `${baseClasses} !w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0 !m-0 !translate-x-0 !translate-y-0 !transform-none`;
+    } else {
+      // במחשב במצב רגיל
+      return `${baseClasses} md:max-w-7xl md:w-[95vw] md:h-[95vh] md:rounded-3xl`;
+    }
+  };
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent
-          className="w-screen h-screen rounded-none md:max-w-7xl md:w-[95vw] md:h-[95vh] md:rounded-3xl flex flex-col p-0 shadow-2xl border-0 bg-white overflow-hidden z-[50]"
+          className={cn(getModalClasses())}
           dir="rtl"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+          data-fullscreen={isFullscreen}
+          data-mobile={isMobile}
+          style={isFullscreen && !isMobile ? {
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            width: '100vw',
+            height: '100vh',
+            maxWidth: 'none',
+            maxHeight: 'none',
+            borderRadius: 0,
+            margin: 0,
+            transform: 'none'
+          } : undefined}
         >
-          {/* כותרת מודל */}
-          <DialogHeader className="px-6 py-4 border-b border-purple-100 flex-shrink-0 flex flex-row items-center justify-between bg-gradient-to-r from-purple-50/90 via-white to-pink-50/90 backdrop-blur-sm sticky top-0 z-40">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center shadow-xl">
-                <Heart className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <DialogTitle className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                  💝 הצעה מיוחדת
-                  <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0 shadow-lg animate-pulse">
-                    <Crown className="w-3 h-3 ml-1" />
-                    פרימיום
-                  </Badge>
-                </DialogTitle>
-                <p className="text-sm text-gray-600">
-                  הזדמנות יוצאת דופן שנבחרה במיוחד עבורך
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Badge className="bg-gradient-to-r from-emerald-500 to-cyan-500 text-white border-0 shadow-lg">
-                <Target className="w-3 h-3 ml-1" />
-                התאמה גבוהה
-              </Badge>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onClose}
-                className="rounded-full h-12 w-12 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all hover:scale-110"
-              >
-                <X className="w-6 h-6" />
-              </Button>
-            </div>
-          </DialogHeader>
-
           {/* תוכן מודל עם טאבים */}
-          <ScrollArea className="flex-grow min-h-0">
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              {/* טאבים משופרים */}
+          <ScrollArea className="flex-grow min-h-0 modal-scroll">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
+              {/* טאבים משופרים עם כפתור פולסקרין */}
               <EnhancedTabsSection
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
+                onClose={onClose}
+                isFullscreen={isFullscreen}
+                onToggleFullscreen={handleToggleFullscreen}
+                isMobile={isMobile}
+                isTransitioning={isTransitioning}
               />
 
               {/* תוכן הטאבים */}

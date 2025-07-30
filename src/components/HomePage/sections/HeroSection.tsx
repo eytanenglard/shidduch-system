@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image'; // <-- 1. הוספת ייבוא
+import Image from 'next/image'; // ודא שהייבוא קיים
 import { Button } from '@/components/ui/button';
 import {
   ArrowLeft,
@@ -15,7 +15,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { Session } from 'next-auth';
-import { getRelativeCloudinaryPath } from '@/lib/utils'; // <-- 1. הוספת ייבוא
+import { getRelativeCloudinaryPath } from '@/lib/utils'; // ודא שהייבוא קיים
 
 interface HeroSectionProps {
   session: Session | null;
@@ -56,6 +56,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
     transitionDelay: `${100 + index * 150}ms`,
   });
 
+  // ======================= שינוי 1: שימוש בלוגו החדש =======================
   const logoUrl =
     'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png';
 
@@ -74,7 +75,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
       ></div>
 
       <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col items-center">
-        {/* --- 1. Main Content: Headline, Description, Buttons --- */}
+        {/* --- Main Content: Headline, Description, Buttons --- */}
         <div
           className={`text-center transition-all duration-700 ${
             isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
@@ -119,7 +120,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
           </div>
         </div>
 
-        {/* --- 2. Synergy Visualization --- */}
+        {/* --- Synergy Visualization --- */}
         <div
           className={`w-full max-w-4xl mt-12 md:mt-16 transition-opacity duration-700 ${
             isVisible ? 'opacity-100' : 'opacity-0'
@@ -127,7 +128,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
           style={getStaggerDelay(1)}
         >
           {/* ========================================================== */}
-          {/* ||      גרסה מעודכנת למובייל (אנכית)                  || */}
+          {/* ||      גרסה חדשה ומשופרת למובייל (אנכית)              || */}
           {/* ========================================================== */}
           <div className="md:hidden flex flex-col items-center gap-3">
             {/* AI Technology */}
@@ -171,7 +172,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
             >
               <ChevronDown className="w-7 h-7 text-gray-400 my-2" />
             </div>
-
+            
             {/* ======================= שינוי 3: החלפת לוגו ושם (מובייל) ======================= */}
             <div
               className={`opacity-0 ${
@@ -277,7 +278,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
           </div>
         </div>
 
-        {/* --- 3. Stats Bar (Social Proof) --- */}
+        {/* ======================= שינוי 5: שדרוג ה-Stats Bar ======================= */}
         <div
           className={`mt-12 md:mt-20 w-full max-w-5xl transition-all duration-700 ${
             isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
@@ -300,7 +301,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
             <StatItem
               icon={<User className="h-5 w-5 text-cyan-600" />}
               label="ליווי אישי"
-              value="24/6"
+              value="צמוד"
               color="cyan"
             />
             <StatItem
@@ -311,8 +312,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
             />
             <StatItem
               icon={<Sparkles className="h-5 w-5 text-cyan-600" />}
-              label="מסורת וחדשנות"
-              value="מושלם"
+              label="חדשנות"
+              value="מסורת ו"
               color="cyan"
             />
             <StatItem

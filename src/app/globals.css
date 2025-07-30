@@ -1132,7 +1132,8 @@ button,
 
 /* אנימציות מותאמות אישית */
 @keyframes pulse-slow {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.3;
     transform: scale(1);
   }
@@ -1143,7 +1144,8 @@ button,
 }
 
 @keyframes float-slow {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px);
   }
   50% {
@@ -1172,7 +1174,8 @@ button,
 }
 
 @keyframes gradient-shift {
-  0%, 100% {
+  0%,
+  100% {
     background-position: 0% 50%;
   }
   50% {
@@ -1245,7 +1248,9 @@ button,
 
 /* אפקטי hover משופרים */
 .hover-lift {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .hover-lift:hover {
@@ -1275,11 +1280,21 @@ button,
   animation: fade-in-up 0.6s ease-out forwards;
 }
 
-.stagger-animation > *:nth-child(1) { animation-delay: 0.1s; }
-.stagger-animation > *:nth-child(2) { animation-delay: 0.2s; }
-.stagger-animation > *:nth-child(3) { animation-delay: 0.3s; }
-.stagger-animation > *:nth-child(4) { animation-delay: 0.4s; }
-.stagger-animation > *:nth-child(5) { animation-delay: 0.5s; }
+.stagger-animation > *:nth-child(1) {
+  animation-delay: 0.1s;
+}
+.stagger-animation > *:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.stagger-animation > *:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.stagger-animation > *:nth-child(4) {
+  animation-delay: 0.4s;
+}
+.stagger-animation > *:nth-child(5) {
+  animation-delay: 0.5s;
+}
 
 /* מותאם לצבעי החברה */
 .brand-gradient-primary {
@@ -1296,4 +1311,557 @@ button,
 
 .brand-shadow-pink {
   box-shadow: 0 4px 14px 0 rgba(236, 72, 153, 0.25);
+}
+
+/* In your globals.css or equivalent */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes synergy-enter-left {
+  from {
+    opacity: 0;
+    transform: translate(-50px, -50%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(0, -50%);
+  }
+}
+
+@keyframes synergy-enter-right {
+  from {
+    opacity: 0;
+    transform: translate(50px, -50%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(0, -50%);
+  }
+}
+
+@keyframes path-draw {
+  from {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+  }
+  to {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes match-point-appear {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes mobile-match-point {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out forwards;
+}
+.animate-synergy-enter-left {
+  animation: synergy-enter-left 0.8s 0.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+.animate-synergy-enter-right {
+  animation: synergy-enter-right 0.8s 0.2s cubic-bezier(0.25, 1, 0.5, 1)
+    forwards;
+}
+.path-draw {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: path-draw 1.5s 0.5s ease-out forwards;
+}
+.animate-match-point-appear {
+  animation: match-point-appear 0.8s 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+.animate-mobile-match-point {
+  animation: mobile-match-point 0.6s ease-out forwards;
+}
+
+/* להוסיף לקובץ ה-CSS הגלובלי */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* הוסף את הקוד הזה לקובץ globals.css שלך */
+
+/* כיסוי מאוד חזק למודל פולסקרין */
+[data-fullscreen="true"] {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none !important;
+  max-height: none !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+  transform: none !important;
+  z-index: 9999 !important;
+}
+
+/* כיסוי למובייל */
+[data-mobile="true"] {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none !important;
+  max-height: none !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+  transform: none !important;
+  z-index: 9999 !important;
+}
+
+/* כיסוי לכל DialogContent שבמצב פולסקרין */
+[data-radix-dialog-content][data-fullscreen="true"] {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none !important;
+  max-height: none !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+  transform: none !important;
+  z-index: 9999 !important;
+}
+
+/* תמיכה בפולסקרין מודל */
+@layer utilities {
+  /* אנימציות למעברים של פולסקרין */
+  @keyframes modal-scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes modal-scale-out {
+    from {
+      opacity: 1;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+  }
+
+  @keyframes fullscreen-expand {
+    from {
+      width: 95vw;
+      height: 95vh;
+      border-radius: 1.5rem;
+    }
+    to {
+      width: 100vw;
+      height: 100vh;
+      border-radius: 0;
+    }
+  }
+
+  @keyframes fullscreen-contract {
+    from {
+      width: 100vw;
+      height: 100vh;
+      border-radius: 0;
+    }
+    to {
+      width: 95vw;
+      height: 95vh;
+      border-radius: 1.5rem;
+    }
+  }
+
+  /* כלאסים לאנימציות */
+  .animate-scale-in {
+    animation: modal-scale-in 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  .animate-scale-out {
+    animation: modal-scale-out 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  .animate-fullscreen-expand {
+    animation: fullscreen-expand 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  .animate-fullscreen-contract {
+    animation: fullscreen-contract 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  /* סגנונות למודל פולסקרין */
+  .modal-fullscreen {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none !important;
+    max-height: none !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    transform: none !important;
+  }
+
+  .modal-windowed {
+    position: relative;
+    max-width: 90vw;
+    max-height: 95vh;
+    width: 95vw;
+    height: 95vh;
+    border-radius: 1.5rem;
+    margin: auto;
+  }
+
+  /* תמיכה במובייל */
+  .modal-mobile {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: calc(var(--vh, 1vh) * 100) !important;
+    max-width: none !important;
+    max-height: none !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* אפקטי מעבר חלקים */
+  .modal-transition {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* סגנון לכפתור פולסקרין */
+  .fullscreen-button {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s ease;
+  }
+
+  .fullscreen-button:hover {
+    transform: scale(1.05);
+  }
+
+  .fullscreen-button:active {
+    transform: scale(0.95);
+  }
+
+  /* אפקט ריפל לכפתור */
+  .fullscreen-button::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(59, 130, 246, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.3s ease, height 0.3s ease;
+  }
+
+  .fullscreen-button:active::after {
+    width: 100px;
+    height: 100px;
+  }
+
+  /* תיקון z-index לדיאלוג פולסקרין */
+  [data-state="open"][data-fullscreen="true"] {
+    z-index: 9999 !important;
+  }
+
+  /* וידוא שהמודל תמיד נראה */
+  .modal-content {
+    z-index: 9999;
+    position: relative;
+  }
+
+  /* סקרול מותאם למודל */
+  .modal-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(168, 85, 247, 0.3) transparent;
+  }
+
+  .modal-scroll::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .modal-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .modal-scroll::-webkit-scrollbar-thumb {
+    background: rgba(168, 85, 247, 0.3);
+    border-radius: 4px;
+  }
+
+  .modal-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(168, 85, 247, 0.5);
+  }
+
+  /* אנימציה לאייקונים */
+  .icon-transition {
+    transition: transform 0.2s ease;
+  }
+
+  .icon-transition:hover {
+    transform: rotate(5deg) scale(1.1);
+  }
+
+  /* רקע מטושטש כשמודל פתוח */
+  .modal-backdrop {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+
+  /* תמיכה במצב לילה */
+  @media (prefers-color-scheme: dark) {
+    .modal-content {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      color: white;
+    }
+    
+    .modal-scroll::-webkit-scrollbar-thumb {
+      background: rgba(156, 163, 175, 0.3);
+    }
+  }
+
+  /* אופטימיזציה למכשירים עם ביצועים נמוכים */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-scale-in,
+    .animate-scale-out,
+    .animate-fullscreen-expand,
+    .animate-fullscreen-contract {
+      animation: none;
+      transition: none;
+    }
+    
+    .modal-transition {
+      transition: none;
+    }
+  }
+
+  /* תמיכה במכשירים עם מסכים קטנים */
+  @media (max-width: 640px) {
+    .modal-windowed {
+      width: 100vw;
+      height: 100vh;
+      max-width: 100vw;
+      max-height: 100vh;
+      border-radius: 0;
+    }
+  }
+
+  /* תמיכה במכשירים עם מסכים גדולים */
+  @media (min-width: 1920px) {
+    .modal-windowed {
+      max-width: 80vw;
+      max-height: 90vh;
+    }
+  }
+
+  /* אפקטים ויזואליים נוספים */
+  .modal-shadow {
+    box-shadow: 
+      0 25px 50px -12px rgba(0, 0, 0, 0.25),
+      0 0 0 1px rgba(255, 255, 255, 0.1);
+  }
+
+  .modal-border {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  /* אנימציה לטעינה */
+  .modal-loading {
+    position: relative;
+  }
+
+  .modal-loading::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent
+    );
+    animation: shimmer 1.5s infinite;
+    z-index: 1;
+  }
+
+  /* מיקרו-אינטראקציות */
+  .button-press {
+    transition: transform 0.1s ease;
+  }
+
+  .button-press:active {
+    transform: scale(0.98);
+  }
+
+  /* הודעות טעינה */
+  .loading-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .loading-dots {
+    display: inline-flex;
+    gap: 0.25rem;
+  }
+
+  .loading-dots span {
+    width: 4px;
+    height: 4px;
+    background: currentColor;
+    border-radius: 50%;
+    animation: loading-bounce 1.4s ease-in-out infinite both;
+  }
+
+  .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+  .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0s; }
+
+  @keyframes loading-bounce {
+    0%, 80%, 100% {
+      transform: scale(0.8);
+      opacity: 0.5;
+    }
+    40% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+}
+
+/* תיקונים ספציפיים לRadix UI */
+[data-radix-popper-content-wrapper] {
+  z-index: 10000 !important;
+}
+
+[data-radix-dialog-overlay] {
+  background-color: rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+[data-radix-dialog-content] {
+  z-index: 9999 !important;
+  position: relative !important;
+}
+
+/* וידוא שכל הכפתורים לחיצים */
+button,
+[role="button"],
+[data-radix-dialog-close] {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  position: relative !important;
+  z-index: 10 !important;
+}
+
+/* סגנונות נוספים לשיפור החוויה */
+.modal-enhanced {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+.modal-smooth {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* תמיכה בתצוגות עם DPI גבוה */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .modal-content {
+    transform: translateZ(0);
+  }
+}
+
+/* הגדרות להבטחת נגישות */
+.modal-focus-trap {
+  outline: none;
+}
+
+.modal-focus-trap:focus-visible {
+  outline: 2px solid rgba(59, 130, 246, 0.7);
+  outline-offset: 2px;
 }

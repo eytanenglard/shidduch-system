@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import MinimalSuggestionCard from '@/app/components/suggestions/cards/MinimalSuggestionCard';
 import SuggestionDetailsModal from '@/app/components/suggestions/modals/SuggestionDetailsModal';
 import type { ExtendedMatchSuggestion } from '@/app/components/suggestions/types';
-import { ZoomIn } from 'lucide-react'; // 1. ייבוא אייקון חדש
+import { ZoomIn } from 'lucide-react';
 
 interface LiveSuggestionDemoProps {
   suggestion: ExtendedMatchSuggestion;
@@ -25,8 +25,8 @@ export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
     suggestion.secondParty.questionnaireResponses?.[0] || null;
 
   return (
-    <div className="w-full max-w-sm mx-auto flex flex-col items-center gap-4">
-      {/* 2. שינוי מבני: עטיפת הכרטיס באלמנט אינטראקטיבי */}
+    // === שינוי === הוספת רוחב רספונסיבי
+    <div className="w-full max-w-sm lg:max-w-md mx-auto flex flex-col items-center gap-4">
       <div
         className="relative group cursor-pointer rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
         onClick={handleOpenModal}
@@ -40,15 +40,12 @@ export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
         <MinimalSuggestionCard
           suggestion={suggestion}
           userId={userId}
-          // הפונקציות המקוריות עדיין יכולות להישאר, אך הקליק הראשי יהיה על העטיפה
           onClick={handleOpenModal}
           onInquiry={handleOpenModal}
           onApprove={handleOpenModal}
           onDecline={handleOpenModal}
-          isApprovalDisabled={true} // ננטרל את הכפתורים הפנימיים כדי לעודד קליק כללי
+          isApprovalDisabled={true}
         />
-
-        {/* 3. שכבת ה-Overlay החדשה שמופיעה ב-Hover */}
         <div className="absolute inset-0 bg-black/50 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center text-white p-4">
           <ZoomIn className="w-12 h-12 mb-2" />
           <p className="font-bold text-lg text-center">לחצו להצגה מלאה</p>
@@ -58,7 +55,6 @@ export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
         </div>
       </div>
 
-      {/* המודאל נשאר ללא שינוי */}
       <SuggestionDetailsModal
         suggestion={suggestion}
         userId={userId}
