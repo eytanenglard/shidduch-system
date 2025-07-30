@@ -89,7 +89,6 @@ if (process.env.NODE_ENV === 'production' && rateLimitedPaths.some(p => path.sta
     // Identifier can be user ID (if logged in) or IP address (for guests)
     const identifier = token?.id || req.ip || '127.0.0.1';
     
-    console.log(`[RateLimit PROD] Checking request for identifier: ${identifier} on path: ${path}`);
     
     try {
         const { success, limit, remaining, reset } = await ratelimit.limit(identifier);
@@ -99,7 +98,6 @@ if (process.env.NODE_ENV === 'production' && rateLimitedPaths.some(p => path.sta
             return NextResponse.json({ error: 'יותר מדי בקשות, אנא המתן מספר שניות ונסה שוב.' }, { status: 429 });
         }
         
-        console.log(`[RateLimit PROD] Allowed request for identifier: ${identifier}. Remaining: ${remaining}/${limit}.`);
 
     } catch (error) {
         console.error("[RateLimit ERROR] Failed to connect to Upstash Redis. Allowing request to pass to avoid blocking app.", error);
@@ -109,7 +107,6 @@ if (process.env.NODE_ENV === 'production' && rateLimitedPaths.some(p => path.sta
 
 } else if (rateLimitedPaths.some(p => path.startsWith(p))) {
     // In development or if not a production env, just log and skip the check.
-    console.log(`[RateLimit DEV] Skipping rate limit check for path: ${path}`);
 }
 // --- END: MODIFIED Rate Limiting Logic ---
     // --- END: Rate Limiting Logic ---

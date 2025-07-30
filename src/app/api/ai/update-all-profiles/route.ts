@@ -16,11 +16,7 @@ import { updateUserAiProfile } from '@/lib/services/profileAiService';
 async function runBulkUpdateAndLog(userIds: string[], adminId: string) {
   const totalUsers = userIds.length;
   // הודעת התחלה ברורה לתהליך הרקע
-  console.log(`\n\n======================================================================`);
-  console.log(`[AI Bulk Update - BG] Starting background process for ${totalUsers} users.`);
-  console.log(`                 Initiated by admin: ${adminId}`);
-  console.log(`======================================================================\n`);
-
+ 
   try {
     // נשתמש ב-Promise.allSettled כדי להמתין לסיום כל העדכונים, גם אם חלקם נכשלים
     const results = await Promise.allSettled(
@@ -37,13 +33,7 @@ async function runBulkUpdateAndLog(userIds: string[], adminId: string) {
       .map(({ userId }) => userId);
 
     // הדפסת סיכום מפורט
-    console.log(`\n======================================================================`);
-    console.log(`[AI Bulk Update - BG] Process Finished. Final Summary:`);
-    console.log(`----------------------------------------------------------------------`);
-    console.log(`  Total profiles to update: ${totalUsers}`);
-    console.log(`  ✅ Successfully updated:    ${successCount}`);
-    console.log(`  ❌ Failed to update:        ${failedCount}`);
-    if (failedCount > 0) {
+      if (failedCount > 0) {
       console.log(`  Failed User IDs: ${failedUserIds.join(', ')}`);
     }
     console.log(`======================================================================\n\n`);

@@ -103,7 +103,6 @@ const VerifyPhonePage = () => {
 
       setIsLoading(true);
       try {
-        console.log("[VerifyPhonePage] Verifying code:", otp);
         const response = await fetch("/api/auth/verify-phone-code", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -116,10 +115,7 @@ const VerifyPhonePage = () => {
           throw new Error(result.error || "אימות הקוד נכשל. אנא נסה שנית.");
         }
 
-        console.log(
-          "[VerifyPhonePage] Code verified successfully. Result:",
-          result
-        );
+       
         setVerifySuccessMessage("מספר הטלפון אומת בהצלחה! מעדכן את הפרופיל שלך...");
 
         console.log(
@@ -131,9 +127,7 @@ const VerifyPhonePage = () => {
           isProfileComplete: true,
           status: "ACTIVE",
         });
-        console.log(
-          "[VerifyPhonePage] Session update initiated. Performing full page redirect to /profile."
-        );
+       
 
         window.location.href = "/profile";
       } catch (err: unknown) {
@@ -163,7 +157,6 @@ const VerifyPhonePage = () => {
     setIsResending(true);
 
     try {
-      console.log("[VerifyPhonePage] Resending code...");
       const response = await fetch("/api/auth/resend-phone-code", {
         method: "POST",
       });

@@ -75,9 +75,7 @@ export default function VerifyEmailPage() {
 
     const processVerification = async () => {
       if (verificationApiCallMadeRef.current) {
-        console.log(
-          "VerifyEmailPage: API call already made or in progress, skipping."
-        );
+      
         return;
       }
       verificationApiCallMadeRef.current = true; // Mark that we are making the call
@@ -86,7 +84,6 @@ export default function VerifyEmailPage() {
       const emailFromQuery = searchParams.get("email");
       let actualToken: string | null = null;
 
-      console.log("VerifyEmailPage: Raw token from URL:", rawTokenParam);
       if (rawTokenParam) {
         // ... (token extraction logic)
         if (
@@ -96,10 +93,7 @@ export default function VerifyEmailPage() {
           try {
             const nestedUrl = new URL(rawTokenParam);
             actualToken = nestedUrl.searchParams.get("token");
-            console.log(
-              "VerifyEmailPage: Extracted token from nested URL:",
-              actualToken
-            );
+           
           } catch (error) {
             console.warn(
               "VerifyEmailPage: Could not parse rawTokenParam as a URL:",
@@ -110,27 +104,20 @@ export default function VerifyEmailPage() {
           }
         } else {
           actualToken = rawTokenParam;
-          console.log(
-            "VerifyEmailPage: Using raw token directly:",
-            actualToken
-          );
+        
         }
       }
 
       if (!actualToken) {
         if (emailFromQuery) {
-          console.log(
-            "VerifyEmailPage: No token, but email found. Setting to pending."
-          );
+         
           if (isEffectMounted)
             setVerification({
               status: "pending",
               message: "שלחנו מייל אימות לכתובת:",
             });
         } else {
-          console.log(
-            "VerifyEmailPage: No token and no email. Setting to error."
-          );
+         
           if (isEffectMounted)
             setVerification({
               status: "error",
@@ -142,10 +129,7 @@ export default function VerifyEmailPage() {
 
       if (isEffectMounted)
         setVerification({ status: "verifying", message: "" });
-      console.log(
-        "VerifyEmailPage: ==> Attempting API verification for token:",
-        actualToken
-      );
+    
 
       // Session check
       if (
@@ -188,7 +172,6 @@ export default function VerifyEmailPage() {
         }
 
         if (controller.signal.aborted) {
-          console.log("VerifyEmailPage (API): Fetch aborted by cleanup.");
           return;
         }
 
@@ -198,7 +181,6 @@ export default function VerifyEmailPage() {
           throw new Error(errorMessage);
         }
 
-        console.log("VerifyEmailPage (API): Verification successful.");
         if (isEffectMounted) {
           setVerification({
             status: "success",
@@ -207,21 +189,16 @@ export default function VerifyEmailPage() {
           navigationTimeoutIdRef.current = setTimeout(() => {
             if (isEffectMounted) {
               // Check mount status again before navigating
-              console.log("VerifyEmailPage: Navigating now to /auth/signin.");
               router.push("/auth/signin");
             } else {
-              console.log(
-                "VerifyEmailPage: Effect unmounted before navigation timeout."
-              );
+            
             }
           }, 1500);
         }
       } catch (error: unknown) {
         if (controller.signal.aborted) {
           // Check if the error is due to our own abort
-          console.log(
-            "VerifyEmailPage (API) [catch]: Fetch aborted by controller during operation."
-          );
+        
         } else if (isEffectMounted) {
           console.error(
             "VerifyEmailPage (API) [catch]: Error during API verification:",
@@ -249,16 +226,12 @@ export default function VerifyEmailPage() {
     processVerification();
 
     return () => {
-      console.log(
-        "VerifyEmailPage (useEffect cleanup): Cleaning up. Aborting API call."
-      );
+     
       isEffectMounted = false; // Mark that this effect instance is being cleaned up
       controller.abort();
       if (navigationTimeoutIdRef.current) {
         clearTimeout(navigationTimeoutIdRef.current);
-        console.log(
-          "VerifyEmailPage (useEffect cleanup): Cleared navigation timeout."
-        );
+   
       }
       // Do NOT reset verificationApiCallMadeRef.current here.
       // It should ensure the logic runs only once per component true lifecycle.

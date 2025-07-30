@@ -1,13 +1,15 @@
 // src/components/HomePage/sections/HowItWorksSection.tsx
 
 import React, { useRef } from 'react';
-import Image from 'next/image'; // === שינוי: ייבוא רכיב התמונה ===
-import { getRelativeCloudinaryPath } from '@/lib/utils'; // === שינוי: ייבוא פונקציית עזר ===
+import Image from 'next/image';
+import { getRelativeCloudinaryPath } from '@/lib/utils';
 import Step from '../components/Step';
 import { LiveSuggestionDemo } from '../components/LiveSuggestionDemo';
 import {
   demoSuggestionDataFemale,
   demoSuggestionDataMale,
+  demoAiAnalysisForDaniel,
+  demoAiAnalysisForNoa,
 } from '../components/demo-data';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -29,7 +31,7 @@ import {
 } from 'lucide-react';
 import { motion, useInView } from 'framer-motion';
 
-// === קומפוננטות עזר (עם תיקון linting) ===
+// === קומפוננטות עזר (ללא שינוי) ===
 
 const DynamicBackground: React.FC = () => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -95,7 +97,6 @@ const EnhancedTestimonial: React.FC<{
       <div className="flex items-start gap-4">
         <Quote className="w-8 h-8 text-cyan-500 flex-shrink-0 mt-1" />
         <div>
-          {/* === שינוי: תיקון שגיאת linting === */}
           <p className="text-gray-700 italic leading-relaxed mb-3">“{text}”</p>
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-pink-500 flex items-center justify-center">
@@ -163,6 +164,8 @@ const HowItWorksSection: React.FC = () => {
       <DynamicBackground />
 
       <div className="relative max-w-7xl mx-auto">
+        {/* ... (כל החלקים הקודמים נשארים ללא שינוי) ... */}
+
         {/* פרק 1: ההבטחה */}
         <motion.div
           initial={{ opacity: 0, y: 50 }}
@@ -216,14 +219,12 @@ const HowItWorksSection: React.FC = () => {
             <Step
               number="3"
               title="השילוב המנצח: טכנולוגיה ואינטואיציה"
-              // === שינוי: תיקון שגיאת linting ===
               description="כאן קורה הקסם. אלגוריתם מתקדם מנתח אלפי פרופילים, והשדכן מוסיף את הניסיון והמגע האנושי. השילוב הזה יוצר התאמות מדויקות שגורמות לכם לתהות ‘איך הם ידעו?!’"
               color="orange"
             />
             <Step
               number="4"
               title="מהצעה מנומקת ועד לליווי צמוד"
-              // === שינוי: תיקון שגיאת linting ===
               description="כל הצעה מגיעה עם ‘למה’ ברור ומפורט. אנחנו אתכם בכל צעד, גם אחרי הדייט, כדי לתמוך, לייעץ ולהוביל אתכם בבטחה ובשמחה עד למטרה."
               isLast={true}
               color="pink"
@@ -257,7 +258,6 @@ const HowItWorksSection: React.FC = () => {
             <KeyBenefit
               icon={<Award className="w-8 h-8 text-white" />}
               title="איכות ללא פשרות"
-              // === שינוי: תיקון שגיאת linting ===
               description="כל הצעה עוברת בדיקה כפולה: סינון אלגוריתמי קפדני ואישור סופי של שדכן מנוסה. לא תקבלו הצעות ‘על הדרך’."
               color="pink"
               delay={0.2}
@@ -330,6 +330,7 @@ const HowItWorksSection: React.FC = () => {
                     <LiveSuggestionDemo
                       suggestion={demoSuggestionDataMale}
                       userId="visitor-user-id"
+                      demoAiAnalysis={demoAiAnalysisForDaniel}
                     />
                   </div>
                 </div>
@@ -348,6 +349,7 @@ const HowItWorksSection: React.FC = () => {
                     <LiveSuggestionDemo
                       suggestion={demoSuggestionDataFemale}
                       userId="visitor-user-id"
+                      demoAiAnalysis={demoAiAnalysisForNoa}
                     />
                   </div>
                 </div>
@@ -396,17 +398,23 @@ const HowItWorksSection: React.FC = () => {
 
               {/* הכרטיס הראשי */}
               <div className="relative bg-white/95 backdrop-blur-xl rounded-3xl p-12 shadow-2xl border border-white/60">
-                {/* אייקון ציטוט */}
+                {/* אייקון ציטוט פותח (ימין למעלה) */}
                 <div className="absolute -top-4 right-8">
                   <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
                     <Quote className="w-6 h-6 text-white" />
                   </div>
                 </div>
 
+                {/* === שינוי: הוספת אייקון ציטוט סוגר (שמאל למטה) === */}
+                <div className="absolute -bottom-4 left-8">
+                  <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
+                    <Quote className="w-6 h-6 text-white transform rotate-180" />
+                  </div>
+                </div>
+
                 {/* הטקסט */}
                 <div className="text-center mb-10">
                   <p className="text-xl md:text-2xl text-gray-700 leading-relaxed mb-6 font-medium">
-                    {/* === שינוי: תיקון שגיאת linting === */}
                     “הקמתי את החברה הזו מתוך אמונה שלכל אחד מגיעה הזדמנות אמיתית
                     לאהבה. אני יודע שהדרך יכולה להיות מתסכלת, ולכן אני מתחייב
                     אישית ללוות כל אחד ואחת מכם עם שירות שמבוסס על הקשבה, דיוק
@@ -420,7 +428,6 @@ const HowItWorksSection: React.FC = () => {
                 {/* פרופיל המייסד */}
                 <div className="flex items-center justify-center gap-6 p-6 bg-gradient-to-r from-gray-50/80 to-white/80 rounded-2xl backdrop-blur-sm border border-gray-100">
                   <div className="relative">
-                    {/* === שינוי: הוספת תמונה של המייסד === */}
                     <div className="relative w-20 h-20 rounded-full overflow-hidden shadow-lg border-2 border-white">
                       <Image
                         src={getRelativeCloudinaryPath(
@@ -444,7 +451,6 @@ const HowItWorksSection: React.FC = () => {
                     <div className="text-lg text-cyan-600 font-semibold mb-2">
                       מייסד החברה
                     </div>
-                    {/* === שינוי: הסרת הכוכבים === */}
                   </div>
                 </div>
               </div>
@@ -467,11 +473,12 @@ const HowItWorksSection: React.FC = () => {
               </div>
             </div>
 
+            {/* <<< הדבק את ה-div החדש כאן >>> */}
             <div className="text-center p-8 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/60">
-              <div className="text-4xl font-bold text-pink-600 mb-2">1,247</div>
-              <div className="text-gray-700 font-semibold">זוגות מאושרים</div>
+              <div className="text-4xl font-bold text-pink-600 mb-2">100%</div>
+              <div className="text-gray-700 font-semibold">התאמה אישית</div>
               <div className="text-sm text-gray-500 mt-1">
-                שהקימו משפחה דרכנו
+                כל תהליך מותאם אישית לצרכים ולרצונות שלכם
               </div>
             </div>
 
@@ -486,6 +493,8 @@ const HowItWorksSection: React.FC = () => {
             </div>
           </motion.div>
         </div>
+
+        {/* ... (חלק ה-CTA נשאר ללא שינוי) ... */}
 
         {/* פרק 4: ההזמנה לפעולה */}
         <motion.div

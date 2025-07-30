@@ -21,7 +21,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
     const userId = session.user.id;
-    console.log(`[API analyze-my-profile] התחלת ניתוח עבור משתמש: ${userId}`);
 
     // שלב 2: ודא שהמשתמש והפרופיל קיימים לפני יצירת הנרטיב
     const userProfileExists = await prisma.profile.findUnique({
@@ -42,7 +41,6 @@ export async function POST(req: Request) {
       console.error(`[API analyze-my-profile] נכשל ביצירת פרופיל נרטיבי עבור: ${userId}`);
       return NextResponse.json({ success: false, message: 'Could not generate user profile narrative.' }, { status: 500 });
     }
-    console.log(`[API analyze-my-profile] פרופיל נרטיבי נוצר בהצלחה. שולח לניתוח AI...`);
 
     // שלב 4: שליחת הנרטיב לניתוח AI
     const analysisResult = await aiService.getProfileAnalysis(narrativeProfile);
@@ -51,7 +49,6 @@ export async function POST(req: Request) {
       console.error(`[API analyze-my-profile] שירות ה-AI לא החזיר תוצאה עבור: ${userId}`);
       return NextResponse.json({ success: false, message: 'AI service failed to produce an analysis.' }, { status: 500 });
     }
-    console.log(`[API analyze-my-profile] ניתוח AI התקבל בהצלחה.`);
 
     // שלב 5: החזרת התוצאה ללקוח
     return NextResponse.json({ success: true, data: analysisResult });

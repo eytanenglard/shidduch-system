@@ -27,10 +27,14 @@ import type { AiSuggestionAnalysisResult } from '@/lib/services/aiService';
 
 interface UserAiAnalysisDialogProps {
   suggestedUserId: string;
+  isDemo?: boolean;
+  demoAnalysisData?: AiSuggestionAnalysisResult | null;
 }
 
 export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = ({
   suggestedUserId,
+  isDemo = false,
+  demoAnalysisData = null,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [analysis, setAnalysis] = useState<AiSuggestionAnalysisResult | null>(
@@ -40,8 +44,8 @@ export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   const handleGetAnalysis = async () => {
-    // אם הניתוח כבר קיים, פשוט פותחים את הדיאלוג בלי לבצע קריאה נוספת
-    if (analysis) {
+    // אם הניתוח כבר קיים (לא במצב דמו), פשוט פותחים בלי קריאה נוספת
+    if (analysis && !isDemo) {
       setIsOpen(true);
       return;
     }
@@ -50,6 +54,21 @@ export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = ({
     setIsLoading(true);
     setError(null);
 
+    // לוגיקה ייעודית למצב הדגמה
+    if (isDemo) {
+      // לדמות טעינה של 2 שניות
+      setTimeout(() => {
+        if (demoAnalysisData) {
+          setAnalysis(demoAnalysisData);
+        } else {
+          setError('אירעה שגיאה בטעינת נתוני ההדגמה.');
+        }
+        setIsLoading(false);
+      }, 2000);
+      return; // חשוב: למנוע המשך לקריאת ה-API
+    }
+
+    // --- לוגיקה קיימת עבור המערכת החיה ---
     try {
       const response = await fetch('/api/ai/analyze-suggestion', {
         method: 'POST',
@@ -81,9 +100,12 @@ export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = ({
   // פונקציה לניהול פתיחה וסגירה של הדיאלוג
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
-    // אם המשתמש סוגר את הדיאלוג, נאפס את השגיאה כדי שבפעם הבאה לא תוצג ישר
+    // איפוס במצב דמו כשהדיאלוג נסגר, כדי שהאנימציה תפעל כל פעם מחדש
     if (!open) {
       setError(null);
+      if (isDemo) {
+        setAnalysis(null);
+      }
     }
   };
 

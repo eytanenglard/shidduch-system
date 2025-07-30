@@ -43,7 +43,6 @@ const UpdatePhonePage = () => {
             }
 
             // Success! Redirect back to the verification page to enter the new code
-            console.log("Phone updated, redirecting back to verify page.");
             router.push('/auth/verify-phone');
 
         } catch (err: unknown) { // Catch error as unknown

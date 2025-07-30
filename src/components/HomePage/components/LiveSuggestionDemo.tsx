@@ -6,15 +6,20 @@ import MinimalSuggestionCard from '@/app/components/suggestions/cards/MinimalSug
 import SuggestionDetailsModal from '@/app/components/suggestions/modals/SuggestionDetailsModal';
 import type { ExtendedMatchSuggestion } from '@/app/components/suggestions/types';
 import { ZoomIn } from 'lucide-react';
+// (הייבוא של UserAiAnalysisDialog לא נדרש יותר ישירות כאן, אך נשאיר אותו כי הוא לא מזיק)
+import { UserAiAnalysisDialog } from '@/app/components/suggestions/dialogs/UserAiAnalysisDialog';
+import type { AiSuggestionAnalysisResult } from '@/lib/services/aiService';
 
 interface LiveSuggestionDemoProps {
   suggestion: ExtendedMatchSuggestion;
   userId: string;
+  demoAiAnalysis: AiSuggestionAnalysisResult | null;
 }
 
 export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
   suggestion,
   userId,
+  demoAiAnalysis,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -25,7 +30,6 @@ export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
     suggestion.secondParty.questionnaireResponses?.[0] || null;
 
   return (
-    // === שינוי === הוספת רוחב רספונסיבי
     <div className="w-full max-w-sm lg:max-w-md mx-auto flex flex-col items-center gap-4">
       <div
         className="relative group cursor-pointer rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
@@ -55,6 +59,11 @@ export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
         </div>
       </div>
 
+      {/* --- שינוי --- */}
+      {/* הסרנו את הקומפוננטה UserAiAnalysisDialog שהייתה כאן. */}
+      {/* הכפתור לניתוח AI יופיע רק בתוך המודאל הגדול (SuggestionDetailsModal) */}
+      {/* תחת הטאב "ניתוח התאמה". */}
+
       <SuggestionDetailsModal
         suggestion={suggestion}
         userId={userId}
@@ -68,6 +77,8 @@ export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
         }}
         // @ts-ignore
         questionnaire={questionnaireData}
+        isDemo={true}
+        demoAnalysisData={demoAiAnalysis}
       />
     </div>
   );

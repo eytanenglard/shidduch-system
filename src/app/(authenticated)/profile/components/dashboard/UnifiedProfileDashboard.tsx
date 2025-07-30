@@ -97,7 +97,6 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
       const questionnaireFetchResponse = await fetch(questionnaireUrl);
       
       if (questionnaireFetchResponse.status === 404) {
-        console.log("No questionnaire response found for user, setting to null.");
         setQuestionnaireResponse(null);
       } else if (questionnaireFetchResponse.ok) {
         const questionnaireJson = await questionnaireFetchResponse.json();
@@ -134,7 +133,6 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && sessionStatus === 'authenticated') {
-        console.log("Tab is visible again, refetching data...");
         loadData();
       }
     };
@@ -209,7 +207,6 @@ const handleImageUpload = async (files: File[]) => {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 20000);
         
-        console.log(`[Upload] Attempt ${attempt} for ${file.name}`);
         
         const response = await fetch("/api/profile/images", {
           method: "POST",
@@ -226,7 +223,6 @@ const handleImageUpload = async (files: File[]) => {
         
         const data = await response.json();
         if (data.success && data.image) {
-          console.log(`[Upload] Success for ${file.name} in ${data.timing || 'unknown time'}`);
           return data.image;
         } else {
           throw new Error(data.error || "Upload failed");

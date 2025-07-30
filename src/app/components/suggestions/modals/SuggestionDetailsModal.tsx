@@ -99,7 +99,7 @@ import {
 } from '@/components/ui/tooltip';
 import { getInitials, cn, getRelativeCloudinaryPath } from '@/lib/utils';
 import type { QuestionnaireResponse } from '@/types/next-auth';
-import type { AiSuggestionAnalysisResult } from '@/lib/services/aiService';
+import type { AiSuggestionAnalysisResult } from '@/lib/services/aiService'; // <-- ייבוא חשוב
 
 import { ProfileCard } from '@/app/components/profile';
 import SuggestionTimeline from '../timeline/SuggestionTimeline';
@@ -110,17 +110,19 @@ import UserAiAnalysisDisplay from '../compatibility/UserAiAnalysisDisplay';
 import type { ExtendedMatchSuggestion } from '../types';
 
 // ===============================
-// TYPES & INTERFACES
+// 1. עדכון ה-props
 // ===============================
-
 interface SuggestionDetailsModalProps {
   suggestion: ExtendedMatchSuggestion | null;
   userId: string;
   isOpen: boolean;
   onClose: () => void;
   onStatusChange?: (suggestionId: string, newStatus: string) => Promise<void>;
+  isDemo?: boolean; // prop חדש למצב הדגמה
+  demoAnalysisData?: AiSuggestionAnalysisResult | null; // prop חדש לנתוני הדגמה
 }
 
+// ... (כל ההוקים והקומפוננטות הפנימיות נשארים ללא שינוי) ...
 // Hook לזיהוי מובייל עם ניהול מתקדם
 const useIsMobile = () => {
   const [isMobile, setIsMobile] = useState(false);
@@ -206,10 +208,6 @@ const useFullscreenModal = (isOpen: boolean) => {
     toggleFullscreen
   };
 };
-
-// ===============================
-// ENHANCED HERO SECTION - המרכז הרגשי של ההצעה
-// ===============================
 
 const EnhancedHeroSection: React.FC<{
   matchmaker: { firstName: string; lastName: string };
@@ -536,7 +534,7 @@ const EnhancedHeroSection: React.FC<{
                                   למה זה מתאים דווקא לך:
                                 </h4>
                                 <p className="text-cyan-900 leading-relaxed italic font-medium">
-                                  &ldquo;{personalNote}&rdquo;
+                                  “{personalNote}”
                                 </p>
                               </div>
                             </div>
@@ -552,7 +550,7 @@ const EnhancedHeroSection: React.FC<{
                                   החיבור שאנחנו רואים:
                                 </h4>
                                 <p className="text-blue-900 leading-relaxed font-medium">
-                                  &ldquo;{matchingReason}&rdquo;
+                                  “{matchingReason}”
                                 </p>
                               </div>
                             </div>
@@ -600,11 +598,6 @@ const EnhancedHeroSection: React.FC<{
     </div>
   );
 };
-
-// ===============================
-// ENHANCED QUICK ACTIONS - פעולות מהירות מעוצבות
-// ===============================
-
 const EnhancedQuickActions: React.FC<{
   isExpanded: boolean;
   onToggleExpand: () => void;
@@ -754,10 +747,6 @@ const EnhancedQuickActions: React.FC<{
   </div>
 );
 
-// ===============================
-// ENHANCED TABS DESIGN - עיצוב טאבים משופר עם כפתור פולסקרין
-// ===============================
-
 const EnhancedTabsSection: React.FC<{
   activeTab: string;
   onTabChange: (tab: string) => void;
@@ -862,16 +851,14 @@ const EnhancedTabsSection: React.FC<{
   </div>
 );
 
-// ===============================
-// MAIN COMPONENT - הקומפוננטה הראשית עם תמיכה בפולסקרין
-// ===============================
-
 const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   suggestion,
   userId,
   isOpen,
   onClose,
   onStatusChange,
+  isDemo = false,
+  demoAnalysisData = null,
 }) => {
   const [activeTab, setActiveTab] = useState('presentation');
   const [showAskDialog, setShowAskDialog] = useState(false);
@@ -886,29 +873,24 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   const [isQuestionnaireLoading, setIsQuestionnaireLoading] = useState(false);
   const [isActionsExpanded, setIsActionsExpanded] = useState(false);
   
-  // חדש: סטייט לפולסקרין וניהול viewport
   const isMobile = useIsMobile();
   const viewportHeight = useViewportHeight();
   const { isFullscreen, isTransitioning, toggleFullscreen } = useFullscreenModal(isOpen);
 
-  // אפקטים - ניהול מצב פולסקרין וגלילה
   useEffect(() => {
     if (isOpen) {
       setActiveTab('presentation');
       setIsActionsExpanded(false);
       
-      // מניעת גלילה של הרקע
       if (isMobile || isFullscreen) {
         document.body.style.overflow = 'hidden';
         document.documentElement.style.overflow = 'hidden';
         
-        // התמודדות עם safe area במובייל
         if (isMobile) {
           document.documentElement.style.setProperty('--vh', `${viewportHeight * 0.01}px`);
         }
       }
     } else {
-      // החזרת גלילה רגילה
       document.body.style.overflow = '';
       document.documentElement.style.overflow = '';
       document.documentElement.style.removeProperty('--vh');
@@ -929,14 +911,12 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
     : null;
   const targetPartyId = targetParty?.id;
 
-  // אם אין הצעה או צד מטרה, לא להציג כלום
   if (!suggestion || !targetParty) return null;
 
   const canActOnSuggestion =
     (isFirstParty && suggestion.status === 'PENDING_FIRST_PARTY') ||
     (!isFirstParty && suggestion.status === 'PENDING_SECOND_PARTY');
 
-  // פונקציות לטיפול בפעולות
   const triggerConfirmDialog = (action: 'approve' | 'decline') => {
     setActionToConfirm(action);
     setShowConfirmDialog(true);
@@ -975,7 +955,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
       );
       onClose();
     } catch (error) {
-      toast.error('אירעה שגיאה בעדכון הסטטוס.');
+      toast.error('אירעה שגיאה בעדכון הסטטטוס.');
     } finally {
       setIsSubmitting(false);
       setActionToConfirm(null);
@@ -1005,18 +985,14 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
     }
   };
 
-  // חישוב מחלקות CSS על בסיס מצב פולסקרין ומובייל עם אנימציות
   const getModalClasses = () => {
     const baseClasses = "p-0 shadow-2xl border-0 bg-white overflow-hidden z-[50] flex flex-col transition-all duration-300 ease-in-out";
     
     if (isMobile) {
-      // במובייל תמיד מסך מלא עם גובה דינמי
       return `${baseClasses} !w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0`;
     } else if (isFullscreen) {
-      // במחשב במצב פולסקרין עם כיסוי מלא של המסך
       return `${baseClasses} !w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0 !m-0 !translate-x-0 !translate-y-0 !transform-none`;
     } else {
-      // במחשב במצב רגיל
       return `${baseClasses} md:max-w-7xl md:w-[95vw] md:h-[95vh] md:rounded-3xl`;
     }
   };
@@ -1045,10 +1021,8 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
             transform: 'none'
           } : undefined}
         >
-          {/* תוכן מודל עם טאבים */}
           <ScrollArea className="flex-grow min-h-0 modal-scroll">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
-              {/* טאבים משופרים עם כפתור פולסקרין */}
               <EnhancedTabsSection
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
@@ -1059,7 +1033,6 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                 isTransitioning={isTransitioning}
               />
 
-              {/* תוכן הטאבים */}
               <TabsContent value="presentation" className="mt-0">
                 <EnhancedHeroSection
                   matchmaker={suggestion.matchmaker}
@@ -1080,7 +1053,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                 className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen"
               >
                 {isQuestionnaireLoading ? (
-                  <div className="flex justify-center items-center h-64">
+                   <div className="flex justify-center items-center h-64">
                     <div className="text-center">
                       <Loader2 className="w-12 h-12 animate-spin text-purple-600 mx-auto mb-4" />
                       <p className="text-lg font-semibold text-gray-700">
@@ -1126,6 +1099,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                 value="compatibility"
                 className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen"
               >
+                 {/* 2. העברת ה-props החדשים לדיאלוג */}
                 <div className="flex flex-col items-center justify-center h-full min-h-[600px] text-center space-y-8 p-6">
                   <div className="relative">
                     <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center mx-auto shadow-2xl">
@@ -1160,8 +1134,12 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                       </div>
                     </div>
                   </div>
-
-                  <UserAiAnalysisDialog suggestedUserId={targetParty.id} />
+                  
+                  <UserAiAnalysisDialog
+                    suggestedUserId={targetParty.id}
+                    isDemo={isDemo}
+                    demoAnalysisData={demoAnalysisData}
+                  />
                 </div>
               </TabsContent>
 
@@ -1183,7 +1161,6 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
             </Tabs>
           </ScrollArea>
 
-          {/* פעולות מהירות משופרות */}
           <EnhancedQuickActions
             isExpanded={isActionsExpanded}
             onToggleExpand={() => setIsActionsExpanded((prev) => !prev)}
@@ -1196,7 +1173,6 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
         </DialogContent>
       </Dialog>
 
-      {/* דיאלוג שאלות לשדכן */}
       <AskMatchmakerDialog
         isOpen={showAskDialog}
         onClose={() => setShowAskDialog(false)}
@@ -1205,7 +1181,6 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
         suggestionId={suggestion.id}
       />
 
-      {/* דיאלוג אישור פעולה */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent className="border-0 shadow-2xl rounded-3xl max-w-md bg-gradient-to-br from-white to-purple-50 z-[9999]">
           <AlertDialogHeader className="text-center pb-6 relative z-10">

@@ -32,7 +32,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: 'Bad Request: suggestedUserId is required.' }, { status: 400 });
     }
 
-    console.log(`[API analyze-suggestion] התחלת ניתוח הצעה עבור משתמש: ${currentUserId} מול ${suggestedUserId}`);
 
     // 3. ודא ששני הפרופילים קיימים
     const profilesExist = await prisma.profile.findMany({
@@ -57,7 +56,6 @@ export async function POST(req: Request) {
       console.error(`[API analyze-suggestion] נכשל ביצירת פרופיל נרטיבי עבור אחד המשתמשים.`);
       return NextResponse.json({ success: false, message: 'Could not generate user profile narratives.' }, { status: 500 });
     }
-    console.log(`[API analyze-suggestion] שני הפרופילים הנרטיביים נוצרו בהצלחה. שולח לניתוח AI...`);
 
     // 5. שליחת הנרטיבים לניתוח AI מותאם למשתמש
     const analysisResult = await aiService.analyzeSuggestionForUser(
@@ -69,7 +67,6 @@ export async function POST(req: Request) {
       console.error(`[API analyze-suggestion] שירות ה-AI לא החזיר תוצאת ניתוח הצעה.`);
       return NextResponse.json({ success: false, message: 'AI service failed to produce a suggestion analysis.' }, { status: 500 });
     }
-    console.log(`[API analyze-suggestion] ניתוח הצעה התקבל בהצלחה.`);
 
     // 6. החזרת התוצאה ללקוח
     return NextResponse.json({ success: true, data: analysisResult });

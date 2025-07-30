@@ -32,17 +32,7 @@ const RegisterStepsContent: React.FC = () => {
   const [initializationAttempted, setInitializationAttempted] = useState(false);
 
   // הדפסה ראשונית של מצב הקומפוננטה בעת טעינה/עדכון
-  console.log('[RegisterStepsContent RENDER] Initial State Check:', {
-    sessionStatus,
-    sessionUserExists: !!session?.user,
-    registrationContextData_step: registrationContextData.step,
-    registrationContextData_isCompletingProfile:
-      registrationContextData.isCompletingProfile,
-    registrationContextData_isVerifyingEmailCode:
-      registrationContextData.isVerifyingEmailCode,
-    initializationAttempted,
-    searchParams: searchParams.toString(),
-  });
+
 
   useEffect(() => {
     const reasonParam = searchParams.get('reason');
@@ -72,9 +62,7 @@ const RegisterStepsContent: React.FC = () => {
     });
 
     if (sessionStatus === 'loading') {
-      console.log(
-        '[RegisterStepsContent useEffect] Session loading, returning.'
-      );
+     
       return;
     }
 
