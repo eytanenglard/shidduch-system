@@ -6,7 +6,6 @@ import MinimalSuggestionCard from '@/app/components/suggestions/cards/MinimalSug
 import SuggestionDetailsModal from '@/app/components/suggestions/modals/SuggestionDetailsModal';
 import type { ExtendedMatchSuggestion } from '@/app/components/suggestions/types';
 import { ZoomIn } from 'lucide-react';
-// (הייבוא של UserAiAnalysisDialog לא נדרש יותר ישירות כאן, אך נשאיר אותו כי הוא לא מזיק)
 import { UserAiAnalysisDialog } from '@/app/components/suggestions/dialogs/UserAiAnalysisDialog';
 import type { AiSuggestionAnalysisResult } from '@/lib/services/aiService';
 
@@ -59,22 +58,24 @@ export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
         </div>
       </div>
 
-      {/* --- שינוי --- */}
-      {/* הסרנו את הקומפוננטה UserAiAnalysisDialog שהייתה כאן. */}
-      {/* הכפתור לניתוח AI יופיע רק בתוך המודאל הגדול (SuggestionDetailsModal) */}
-      {/* תחת הטאב "ניתוח התאמה". */}
-
       <SuggestionDetailsModal
         suggestion={suggestion}
         userId={userId}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
+        // onStatusChange נשאר כפי שהוא, להדגמה
         onStatusChange={async () => {
           alert(
             'זוהי הדגמה בלבד. במערכת האמיתית, הפעולה שלך הייתה מעדכנת את סטטוס ההצעה.'
           );
-          handleCloseModal();
         }}
+        // --- START: הוספת ה-prop החסר ---
+        onActionRequest={(suggestion, action) => {
+          alert(
+            `זוהי הדגמה בלבד. הפעולה המבוקשת היא "${action === 'approve' ? 'אישור' : 'דחייה'}" עבור ההצעה ל${suggestion.secondParty.firstName}. במערכת האמיתית, היה נפתח חלון אישור.`
+          );
+        }}
+        // --- END: הוספת ה-prop החסר ---
         questionnaire={questionnaireData}
         isDemo={true}
         demoAnalysisData={demoAiAnalysis}

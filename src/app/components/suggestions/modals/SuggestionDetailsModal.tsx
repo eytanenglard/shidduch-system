@@ -1,18 +1,13 @@
 // src/app/components/suggestions/modals/SuggestionDetailsModal.tsx
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Image from 'next/image';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -75,21 +70,6 @@ import {
   Sunrise,
   Mountain,
 } from 'lucide-react';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle as UiAlertTitle,
-} from '@/components/ui/alert';
 import { toast } from 'sonner';
 import {
   Tooltip,
@@ -99,7 +79,7 @@ import {
 } from '@/components/ui/tooltip';
 import { getInitials, cn, getRelativeCloudinaryPath } from '@/lib/utils';
 import type { QuestionnaireResponse } from '@/types/next-auth';
-import type { AiSuggestionAnalysisResult } from '@/lib/services/aiService'; // <-- ייבוא חשוב
+import type { AiSuggestionAnalysisResult } from '@/lib/services/aiService';
 
 import { ProfileCard } from '@/app/components/profile';
 import SuggestionTimeline from '../timeline/SuggestionTimeline';
@@ -108,9 +88,6 @@ import { AskMatchmakerDialog } from '../dialogs/AskMatchmakerDialog';
 import { UserAiAnalysisDialog } from '../dialogs/UserAiAnalysisDialog';
 import type { ExtendedMatchSuggestion } from '../types';
 
-// ===============================
-// 1. עדכון ה-props
-// ===============================
 interface SuggestionDetailsModalProps {
   suggestion: ExtendedMatchSuggestion | null;
   userId: string;
@@ -118,16 +95,16 @@ interface SuggestionDetailsModalProps {
   onClose: () => void;
   onStatusChange?: (suggestionId: string, newStatus: string) => Promise<void>;
   questionnaire: QuestionnaireResponse | null;
-
-  isDemo?: boolean; // prop חדש למצב הדגמה
-  demoAnalysisData?: AiSuggestionAnalysisResult | null; // prop חדש לנתוני הדגמה
+  onActionRequest: (
+    suggestion: ExtendedMatchSuggestion,
+    action: 'approve' | 'decline'
+  ) => void;
+  isDemo?: boolean;
+  demoAnalysisData?: AiSuggestionAnalysisResult | null;
 }
 
-// ... (כל ההוקים והקומפוננטות הפנימיות נשארים ללא שינוי) ...
-// Hook לזיהוי מובייל עם ניהול מתקדם
 const useIsMobile = () => {
   const [isMobile, setIsMobile] = useState(false);
-
   useEffect(() => {
     const checkDevice = () => {
       const isMobileDevice =
@@ -137,41 +114,30 @@ const useIsMobile = () => {
         );
       setIsMobile(isMobileDevice);
     };
-
     checkDevice();
     window.addEventListener('resize', checkDevice);
     window.addEventListener('orientationchange', checkDevice);
-
     return () => {
       window.removeEventListener('resize', checkDevice);
       window.removeEventListener('orientationchange', checkDevice);
     };
   }, []);
-
   return isMobile;
 };
 
-// Hook לניהול viewport במובייל
 const useViewportHeight = () => {
-  const [viewportHeight, setViewportHeight] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return window.innerHeight;
-    }
-    return 0;
-  });
-
+  const [viewportHeight, setViewportHeight] = useState(() =>
+    typeof window !== 'undefined' ? window.innerHeight : 0
+  );
   useEffect(() => {
     const updateHeight = () => {
-      // שימוש ב-visualViewport API אם זמין (תמיכה במקלדת וירטואלית)
       if (window.visualViewport) {
         setViewportHeight(window.visualViewport.height);
       } else {
         setViewportHeight(window.innerHeight);
       }
     };
-
     updateHeight();
-
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', updateHeight);
       return () =>
@@ -181,38 +147,24 @@ const useViewportHeight = () => {
       return () => window.removeEventListener('resize', updateHeight);
     }
   }, []);
-
   return viewportHeight;
 };
 
-// Hook לניהול פולסקרין
 const useFullscreenModal = (isOpen: boolean) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
-
   const toggleFullscreen = useCallback(() => {
     setIsTransitioning(true);
     setIsFullscreen((prev) => !prev);
-
-    // סיום מעבר אחרי זמן האנימציה
-    setTimeout(() => {
-      setIsTransitioning(false);
-    }, 300);
+    setTimeout(() => setIsTransitioning(false), 300);
   }, []);
-
-  // איפוס מצב כשהמודל נסגר
   useEffect(() => {
     if (!isOpen) {
       setIsFullscreen(false);
       setIsTransitioning(false);
     }
   }, [isOpen]);
-
-  return {
-    isFullscreen,
-    isTransitioning,
-    toggleFullscreen,
-  };
+  return { isFullscreen, isTransitioning, toggleFullscreen };
 };
 
 const EnhancedHeroSection: React.FC<{
@@ -284,7 +236,6 @@ const EnhancedHeroSection: React.FC<{
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 overflow-hidden">
-      {/* רקע מאנימציה */}
       <div className="absolute inset-0">
         <div className="absolute top-10 right-10 w-72 h-72 bg-gradient-to-br from-purple-200/40 to-pink-200/40 rounded-full blur-3xl animate-float"></div>
         <div
@@ -296,11 +247,8 @@ const EnhancedHeroSection: React.FC<{
           style={{ animationDelay: '4s' }}
         ></div>
       </div>
-
       <div className="relative z-10 p-4 md:p-8 lg:p-12">
-        {/* כותרת פתיחה מרשימה */}
         <div className="text-center mb-8 lg:mb-12">
-          {/* חלק השדכן - צמצום משמעותי */}
           <div className="inline-flex items-center gap-2 mb-6 p-3 bg-white/90 backdrop-blur-lg rounded-2xl shadow-lg border border-purple-100 animate-fade-in-up">
             <Avatar className="w-12 h-12 border-2 border-white shadow-lg">
               <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-white text-sm font-bold">
@@ -316,8 +264,6 @@ const EnhancedHeroSection: React.FC<{
               </p>
             </div>
           </div>
-
-          {/* מסר פתיחה רגשי */}
           <div className="max-w-4xl mx-auto mb-8">
             <h1
               className="text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-6 leading-tight animate-fade-in-up"
@@ -337,10 +283,7 @@ const EnhancedHeroSection: React.FC<{
             </p>
           </div>
         </div>
-
-        {/* התוכן הראשי */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-12">
-          {/* תמונה ומידע בסיסי */}
           <div
             className="relative group animate-fade-in-up"
             style={{ animationDelay: '1.5s' }}
@@ -362,8 +305,6 @@ const EnhancedHeroSection: React.FC<{
                   </div>
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-
-                {/* מידע על התמונה */}
                 <div className="absolute bottom-0 right-0 left-0 p-6">
                   <div className="bg-white/95 backdrop-blur-lg rounded-2xl p-6 shadow-2xl">
                     <div className="flex items-center justify-between mb-4">
@@ -390,8 +331,6 @@ const EnhancedHeroSection: React.FC<{
                         </Button>
                       </div>
                     </div>
-
-                    {/* פרטים מהירים */}
                     <div className="grid grid-cols-2 gap-3 text-sm">
                       {targetParty.profile?.city && (
                         <div className="flex items-center gap-2 p-2 bg-emerald-50 rounded-lg">
@@ -415,19 +354,14 @@ const EnhancedHeroSection: React.FC<{
               </div>
             </Card>
           </div>
-
-          {/* תוכן ההתלהבות */}
           <div
             className="space-y-8 animate-fade-in-up"
             style={{ animationDelay: '2s' }}
           >
-            {/* קופסת התלהבות ראשית */}
             <Card className="border-0 shadow-2xl bg-gradient-to-br from-purple-50 via-pink-50 to-white overflow-hidden">
               <CardContent className="p-8 relative">
-                {/* קישוטים */}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-200/30 to-pink-200/30 rounded-full blur-2xl"></div>
                 <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-br from-blue-200/30 to-cyan-200/30 rounded-full blur-xl"></div>
-
                 <div className="relative z-10">
                   <div className="text-center mb-8">
                     <div className="inline-flex items-center gap-2 mb-4">
@@ -446,8 +380,6 @@ const EnhancedHeroSection: React.FC<{
                       </span>
                     </p>
                   </div>
-
-                  {/* גורמי התלהבות */}
                   {excitementFactors.length > 0 && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                       {excitementFactors.map((factor, index) => (
@@ -483,8 +415,6 @@ const EnhancedHeroSection: React.FC<{
                       ))}
                     </div>
                   )}
-
-                  {/* כפתורי פעולה */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Button
                       onClick={onViewProfile}
@@ -508,13 +438,10 @@ const EnhancedHeroSection: React.FC<{
                 </div>
               </CardContent>
             </Card>
-
-            {/* תובנות השדכן */}
             {(personalNote || matchingReason) && (
               <Card className="border-0 shadow-xl bg-gradient-to-br from-cyan-50 to-blue-50 overflow-hidden">
                 <CardContent className="p-6 relative">
                   <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-cyan-200/30 to-blue-200/30 rounded-full blur-xl"></div>
-
                   <div className="relative z-10">
                     <div className="flex items-start gap-4">
                       <div className="p-4 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg flex-shrink-0">
@@ -530,7 +457,6 @@ const EnhancedHeroSection: React.FC<{
                             מומחה
                           </Badge>
                         </div>
-
                         {personalNote && (
                           <div className="mb-4 p-4 bg-white/70 rounded-xl shadow-inner border border-cyan-100">
                             <div className="flex items-start gap-2">
@@ -546,7 +472,6 @@ const EnhancedHeroSection: React.FC<{
                             </div>
                           </div>
                         )}
-
                         {matchingReason && (
                           <div className="p-4 bg-white/70 rounded-xl shadow-inner border border-blue-100">
                             <div className="flex items-start gap-2">
@@ -568,8 +493,6 @@ const EnhancedHeroSection: React.FC<{
                 </CardContent>
               </Card>
             )}
-
-            {/* קריאה לפעולה אחרונה */}
             <Card className="border-0 shadow-xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-white overflow-hidden">
               <CardContent className="p-6 text-center relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-emerald-600/20 to-cyan-600/20"></div>
@@ -604,6 +527,7 @@ const EnhancedHeroSection: React.FC<{
     </div>
   );
 };
+
 const EnhancedQuickActions: React.FC<{
   isExpanded: boolean;
   onToggleExpand: () => void;
@@ -627,11 +551,8 @@ const EnhancedQuickActions: React.FC<{
       isExpanded ? 'p-4 md:p-6' : 'py-3 px-4 md:px-6'
     )}
   >
-    {/* רקע מאנימציה */}
     <div className="absolute inset-0 bg-gradient-to-r from-purple-100/20 via-pink-100/20 to-blue-100/20"></div>
-
     <div className="max-w-4xl mx-auto relative z-10">
-      {/* כותרת מתקפלת */}
       <div
         className="flex justify-between items-center cursor-pointer group"
         onClick={onToggleExpand}
@@ -653,7 +574,6 @@ const EnhancedQuickActions: React.FC<{
             )}
           </div>
         </div>
-
         <Button
           variant="ghost"
           size="icon"
@@ -666,12 +586,9 @@ const EnhancedQuickActions: React.FC<{
           )}
         </Button>
       </div>
-
-      {/* תוכן מתקפל - הכפתורים */}
       {isExpanded && (
         <div className="mt-6 animate-in fade-in-50 slide-in-from-bottom-4 duration-500">
           <div className="grid grid-cols-1 gap-4 md:flex md:gap-6">
-            {/* כפתור אישור - הכי בולט */}
             {canAct && (
               <div className="relative md:flex-1">
                 <div className="absolute -inset-1 bg-gradient-to-r from-emerald-400 to-green-500 rounded-2xl blur opacity-60 animate-pulse"></div>
@@ -680,9 +597,7 @@ const EnhancedQuickActions: React.FC<{
                   disabled={isSubmitting}
                   onClick={onApprove}
                 >
-                  {/* רקע מאנימציה */}
                   <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 hover:opacity-100 transition-opacity"></div>
-
                   {isSubmitting ? (
                     <div className="flex items-center">
                       <Loader2 className="w-6 h-6 animate-spin ml-3" />
@@ -700,8 +615,6 @@ const EnhancedQuickActions: React.FC<{
                 </Button>
               </div>
             )}
-
-            {/* כפתור שאלות */}
             <Button
               variant="outline"
               onClick={onAskQuestion}
@@ -713,8 +626,6 @@ const EnhancedQuickActions: React.FC<{
                 <span>🤔 שאלות לשדכן</span>
               </div>
             </Button>
-
-            {/* כפתור דחייה */}
             {canAct && (
               <Button
                 variant="ghost"
@@ -736,8 +647,6 @@ const EnhancedQuickActions: React.FC<{
               </Button>
             )}
           </div>
-
-          {/* הודעת עידוד */}
           {canAct && (
             <div className="mt-4 text-center">
               <p className="text-sm text-gray-600 leading-relaxed">
@@ -777,7 +686,6 @@ const EnhancedTabsSection: React.FC<{
           value="presentation"
           className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold transition-all duration-300 hover:scale-105 relative overflow-hidden group"
         >
-          {/* רקע מאנימציה לטאב פעיל */}
           <div className="absolute inset-0 bg-gradient-to-r from-purple-600/0 to-pink-600/0 group-data-[state=active]:from-purple-600/20 group-data-[state=active]:to-pink-600/20 transition-all"></div>
           <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 relative z-10" />
           <span className="relative z-10">
@@ -785,7 +693,6 @@ const EnhancedTabsSection: React.FC<{
             <span className="sm:hidden">הצגה</span>
           </span>
         </TabsTrigger>
-
         <TabsTrigger
           value="profile"
           className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold transition-all duration-300 hover:scale-105 relative overflow-hidden group"
@@ -797,7 +704,6 @@ const EnhancedTabsSection: React.FC<{
             <span className="sm:hidden">פרופיל</span>
           </span>
         </TabsTrigger>
-
         <TabsTrigger
           value="compatibility"
           className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold transition-all duration-300 hover:scale-105 relative overflow-hidden group"
@@ -809,7 +715,6 @@ const EnhancedTabsSection: React.FC<{
             <span className="sm:hidden">התאמה</span>
           </span>
         </TabsTrigger>
-
         <TabsTrigger
           value="details"
           className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-gray-500 data-[state=active]:to-slate-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold transition-all duration-300 hover:scale-105 relative overflow-hidden group"
@@ -822,10 +727,7 @@ const EnhancedTabsSection: React.FC<{
           </span>
         </TabsTrigger>
       </TabsList>
-
-      {/* כפתורי בקרה */}
       <div className="flex items-center gap-2 ml-4">
-        {/* כפתור פולסקרין - רק במחשב */}
         {!isMobile && (
           <TooltipProvider>
             <Tooltip>
@@ -850,8 +752,6 @@ const EnhancedTabsSection: React.FC<{
             </Tooltip>
           </TooltipProvider>
         )}
-
-        {/* כפתור סגירה */}
         <Button
           variant="ghost"
           size="icon"
@@ -872,16 +772,13 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   onClose,
   onStatusChange,
   questionnaire,
+  onActionRequest,
   isDemo = false,
   demoAnalysisData = null,
 }) => {
   const [activeTab, setActiveTab] = useState('presentation');
   const [showAskDialog, setShowAskDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [actionToConfirm, setActionToConfirm] = useState<
-    'approve' | 'decline' | null
-  >(null);
   const [isQuestionnaireLoading, setIsQuestionnaireLoading] = useState(false);
   const [isActionsExpanded, setIsActionsExpanded] = useState(false);
 
@@ -894,11 +791,9 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
     if (isOpen) {
       setActiveTab('presentation');
       setIsActionsExpanded(false);
-
       if (isMobile || isFullscreen) {
         document.body.style.overflow = 'hidden';
         document.documentElement.style.overflow = 'hidden';
-
         if (isMobile) {
           document.documentElement.style.setProperty(
             '--vh',
@@ -911,7 +806,6 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
       document.documentElement.style.overflow = '';
       document.documentElement.style.removeProperty('--vh');
     }
-
     return () => {
       document.body.style.overflow = '';
       document.documentElement.style.overflow = '';
@@ -925,55 +819,30 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
       ? suggestion.secondParty
       : suggestion.firstParty
     : null;
-
+  const profileWithUser = useMemo(() => {
+    if (!targetParty || !targetParty.profile) {
+      return null;
+    }
+    // מרכיבים אובייקט חדש שמכיל את כל השדות של targetParty.profile
+    // ומוסיפים לו את תת-האובייקט 'user' עם השמות מהרמה העליונה של targetParty
+    return {
+      ...targetParty.profile,
+      user: {
+        firstName: targetParty.firstName,
+        lastName: targetParty.lastName,
+      },
+    };
+  }, [targetParty]);
   if (!suggestion || !targetParty) return null;
+  if (!suggestion || !targetParty || !profileWithUser) return null;
 
   const canActOnSuggestion =
     (isFirstParty && suggestion.status === 'PENDING_FIRST_PARTY') ||
     (!isFirstParty && suggestion.status === 'PENDING_SECOND_PARTY');
 
   const triggerConfirmDialog = (action: 'approve' | 'decline') => {
-    setActionToConfirm(action);
-    setShowConfirmDialog(true);
-  };
-
-  const handleToggleFullscreen = () => {
-    if (!isMobile) {
-      toggleFullscreen();
-    }
-  };
-
-  const executeConfirmedAction = async () => {
-    if (!onStatusChange || !suggestion || !actionToConfirm) return;
-    const newStatus =
-      actionToConfirm === 'approve'
-        ? isFirstParty
-          ? 'FIRST_PARTY_APPROVED'
-          : 'SECOND_PARTY_APPROVED'
-        : isFirstParty
-          ? 'FIRST_PARTY_DECLINED'
-          : 'SECOND_PARTY_DECLINED';
-    setIsSubmitting(true);
-    setShowConfirmDialog(false);
-    try {
-      await onStatusChange(suggestion.id, newStatus);
-      toast.success(
-        actionToConfirm === 'approve'
-          ? '🎉 ההצעה אושרה בהצלחה!'
-          : '✅ ההצעה נדחתה בהצלחה',
-        {
-          description:
-            actionToConfirm === 'approve'
-              ? 'השדכן יקבל הודעה ויתקדם עם התהליך'
-              : 'תודה על המשוב - זה עוזר לנו להציע התאמות טובות יותר',
-        }
-      );
-      onClose();
-    } catch (error) {
-      toast.error('אירעה שגיאה בעדכון הסטטטוס.');
-    } finally {
-      setIsSubmitting(false);
-      setActionToConfirm(null);
+    if (suggestion) {
+      onActionRequest(suggestion, action);
     }
   };
 
@@ -1003,7 +872,6 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   const getModalClasses = () => {
     const baseClasses =
       'p-0 shadow-2xl border-0 bg-white overflow-hidden z-[50] flex flex-col transition-all duration-300 ease-in-out';
-
     if (isMobile) {
       return `${baseClasses} !w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0`;
     } else if (isFullscreen) {
@@ -1052,11 +920,10 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                 onTabChange={setActiveTab}
                 onClose={onClose}
                 isFullscreen={isFullscreen}
-                onToggleFullscreen={handleToggleFullscreen}
+                onToggleFullscreen={!isMobile ? toggleFullscreen : () => {}}
                 isMobile={isMobile}
                 isTransitioning={isTransitioning}
               />
-
               <TabsContent value="presentation" className="mt-0">
                 <EnhancedHeroSection
                   matchmaker={suggestion.matchmaker}
@@ -1071,7 +938,6 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                   onStartConversation={() => setShowAskDialog(true)}
                 />
               </TabsContent>
-
               <TabsContent
                 value="profile"
                 className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen"
@@ -1088,9 +954,9 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                       </p>
                     </div>
                   </div>
-                ) : targetParty.profile ? (
+                ) : profileWithUser ? (
                   <ProfileCard
-                    profile={targetParty.profile}
+                    profile={profileWithUser} // עכשיו טייפסקריפט יודע שזה לא יכול להיות null
                     isProfileComplete={targetParty.isProfileComplete}
                     images={targetParty.images}
                     questionnaire={questionnaire}
@@ -1118,12 +984,10 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                   </div>
                 )}
               </TabsContent>
-
               <TabsContent
                 value="compatibility"
                 className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen"
               >
-                {/* 2. העברת ה-props החדשים לדיאלוג */}
                 <div className="flex flex-col items-center justify-center h-full min-h-[600px] text-center space-y-8 p-6">
                   <div className="relative">
                     <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center mx-auto shadow-2xl">
@@ -1133,7 +997,6 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                       <Wand2 className="w-6 h-6 text-white" />
                     </div>
                   </div>
-
                   <div className="space-y-4 max-w-2xl">
                     <h3 className="text-3xl font-bold text-gray-800">
                       🔮 רוצה מבט מעמיק יותר?
@@ -1158,7 +1021,6 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                       </div>
                     </div>
                   </div>
-
                   <UserAiAnalysisDialog
                     suggestedUserId={targetParty.id}
                     isDemo={isDemo}
@@ -1166,7 +1028,6 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                   />
                 </div>
               </TabsContent>
-
               <TabsContent
                 value="details"
                 className="mt-0 p-6 md:p-8 space-y-8 bg-gradient-to-br from-slate-50 to-gray-50 min-h-screen"
@@ -1184,7 +1045,6 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
               </TabsContent>
             </Tabs>
           </ScrollArea>
-
           <EnhancedQuickActions
             isExpanded={isActionsExpanded}
             onToggleExpand={() => setIsActionsExpanded((prev) => !prev)}
@@ -1196,7 +1056,6 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
           />
         </DialogContent>
       </Dialog>
-
       <AskMatchmakerDialog
         isOpen={showAskDialog}
         onClose={() => setShowAskDialog(false)}
@@ -1204,67 +1063,6 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
         matchmakerName={`${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`}
         suggestionId={suggestion.id}
       />
-
-      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <AlertDialogContent className="border-0 shadow-2xl rounded-3xl max-w-md bg-gradient-to-br from-white to-purple-50 z-[9999]">
-          <AlertDialogHeader className="text-center pb-6 relative z-10">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center mx-auto mb-4 shadow-xl relative z-10">
-              {actionToConfirm === 'approve' ? (
-                <Heart className="w-10 h-10 text-white" />
-              ) : (
-                <XCircle className="w-10 h-10 text-white" />
-              )}
-            </div>
-            <AlertDialogTitle className="text-2xl font-bold text-center relative z-10">
-              {actionToConfirm === 'approve'
-                ? '💝 אישור הצעת השידוך'
-                : '😔 דחיית הצעת השידוך'}
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-center text-gray-600 leading-relaxed text-base mt-4 relative z-10">
-              {actionToConfirm === 'approve'
-                ? isFirstParty
-                  ? 'באישור שלך, ההצעה תועבר לצד השני לאישור. אם גם הוא יאשר, פרטי הקשר שלכם יוחלפו.'
-                  : 'מדהים! הצד הראשון כבר אישר. באישור שלך, פרטי הקשר יישלחו לשניכם ותוכלו ליצור קשר.'
-                : 'האם אתה בטוח שברצונך לדחות את ההצעה? המשוב שלך עוזר לנו להציע התאמות טובות יותר בעתיד.'}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="gap-4 pt-6 relative z-10">
-            <AlertDialogCancel
-              className="rounded-2xl flex-1 h-12 font-semibold relative z-10"
-              disabled={isSubmitting}
-            >
-              ביטול
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={executeConfirmedAction}
-              disabled={isSubmitting}
-              className={cn(
-                'rounded-2xl font-bold shadow-xl hover:shadow-2xl transition-all duration-300 flex-1 h-12 relative z-10',
-                actionToConfirm === 'approve'
-                  ? 'bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700'
-                  : 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700'
-              )}
-            >
-              {isSubmitting ? (
-                <div className="flex items-center">
-                  <Loader2 className="w-4 h-4 animate-spin ml-2" />
-                  <span>מעדכן...</span>
-                </div>
-              ) : actionToConfirm === 'approve' ? (
-                <div className="flex items-center">
-                  <Heart className="w-4 h-4 ml-2" />
-                  <span>כן, לאשר!</span>
-                </div>
-              ) : (
-                <div className="flex items-center">
-                  <XCircle className="w-4 h-4 ml-2" />
-                  <span>דחיית ההצעה</span>
-                </div>
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 };
