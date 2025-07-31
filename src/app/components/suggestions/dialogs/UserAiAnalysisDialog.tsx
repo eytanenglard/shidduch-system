@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -122,7 +122,7 @@ const mockAnalysisResult: AiSuggestionAnalysisResult = {
     {
       area: 'תוכניות קריירה ועתיד',
       explanation:
-        'כדאי לדון בתוכניות המקצועיות לטווח הארוך ובאופן שבו תוכלו לתמוך זה בזה בהגשמת החلומות האישיים תוך בניית עתיד משותף.',
+        'כדאי לדון בתוכניות המקצועיות לטווח הארוך ובאופן שבו תוכלו לתמוך זה בזה בהגשמת החלומות האישיים תוך בניית עתיד משותף.',
     },
     {
       area: 'סגנון חיים דתי ומסורת',
@@ -506,7 +506,7 @@ const DialogBody: React.FC<
   );
   const [activeTab, setActiveTab] = useState('overview');
 
-  const fetchAnalysis = async () => {
+  const fetchAnalysis = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     setLoadingProgress(0);
@@ -562,11 +562,11 @@ const DialogBody: React.FC<
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [isDemo, demoAnalysisData, suggestedUserId]);
 
   useEffect(() => {
     fetchAnalysis();
-  }, [fetchAnalysis]); // <-- התלות היחידה היא הפונקציה הממוקבלת (memoized)
+  }, [fetchAnalysis]);
 
   const toggleInsight = (index: number) => {
     setExpandedInsights((prev) => {
