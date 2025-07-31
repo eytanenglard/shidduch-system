@@ -83,12 +83,6 @@ const teamMembers = [
     description: 'יזם טכנולוגי ומומחה התאמות',
   },
 ];
-const stats = [
-  { icon: Heart, value: '95%', label: 'שיעור הצלחה' },
-  { icon: Clock, value: '6', label: 'חודשים ממוצע' },
-  { icon: Star, value: '24/7', label: 'תמיכה אישית' },
-  { icon: Shield, value: '100%', label: 'דיסקרטיות מובטחת' },
-];
 
 // ===== MAIN COMPONENT =====
 export default function ContactPage() {
@@ -109,10 +103,8 @@ export default function ContactPage() {
   // Animation refs
   const heroRef = useRef(null);
   const formRef = useRef(null);
-  const statsRef = useRef(null);
   const isHeroInView = useInView(heroRef, { once: true });
   const isFormInView = useInView(formRef, { once: true });
-  const isStatsInView = useInView(statsRef, { once: true });
 
   // Form handler
   const handleSubmit = async (e: React.FormEvent) => {
@@ -237,41 +229,8 @@ export default function ContactPage() {
         </div>
       </motion.section>
 
-      {/* ===== STATS SECTION ===== */}
-      <motion.section
-        ref={statsRef}
-        className="py-8 px-4"
-        initial={{ opacity: 0, y: 30 }}
-        animate={isStatsInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-        transition={{ duration: 0.8 }}
-      >
-        <div className="max-w-4xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 bg-white/80 backdrop-blur-md rounded-2xl p-8 shadow-xl border border-white/60">
-            {stats.map((stat, index) => (
-              <motion.div
-                key={index}
-                className="text-center"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={
-                  isStatsInView
-                    ? { opacity: 1, scale: 1 }
-                    : { opacity: 0, scale: 0.8 }
-                }
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-              >
-                <stat.icon className="w-8 h-8 mx-auto mb-3 text-cyan-600" />
-                <div className="text-2xl md:text-3xl font-bold text-gray-800 mb-1">
-                  {stat.value}
-                </div>
-                <div className="text-sm text-gray-600">{stat.label}</div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </motion.section>
-
       {/* ===== MAIN CONTENT ===== */}
-      <div className="max-w-7xl mx-auto px-4 pb-20">
+      <div className="max-w-7xl mx-auto px-4 pb-20 pt-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* ===== CONTACT FORM ===== */}
           <motion.div
@@ -663,28 +622,42 @@ export default function ContactPage() {
 
       {/* ===== CUSTOM STYLES ===== */}
       <style jsx>{`
-    @keyframes shimmer {
-      0% { transform: translateX(-100%); }
-      100% { transform: translateX(100%); }
-    }
-    @keyframes pulse-slow {
-      0%, 100% { opacity: 0.3; }
-      50% { opacityRetryאאContinueEdit0.6; }
-}
-@keyframes float-slow {
-0%, 100% { transform: translateY(0px); }
-50% { transform: translateY(-20px); }
-}
-.animate-shimmer {
-animation: shimmer 1.5s ease-in-out;
-}
-.animate-pulse-slow {
-animation: pulse-slow 4s ease-in-out infinite;
-}
-.animate-float-slow {
-animation: float-slow 6s ease-in-out infinite;
-}
-`}</style>
+        @keyframes shimmer {
+          0% {
+            transform: translateX(-100%);
+          }
+          100% {
+            transform: translateX(100%);
+          }
+        }
+        @keyframes pulse-slow {
+          0%,
+          100% {
+            opacity: 0.3;
+          }
+          50% {
+            opacity: 0.6;
+          }
+        }
+        @keyframes float-slow {
+          0%,
+          100% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(-20px);
+          }
+        }
+        .animate-shimmer {
+          animation: shimmer 1.5s ease-in-out;
+        }
+        .animate-pulse-slow {
+          animation: pulse-slow 4s ease-in-out infinite;
+        }
+        .animate-float-slow {
+          animation: float-slow 6s ease-in-out infinite;
+        }
+      `}</style>
     </div>
   );
 }

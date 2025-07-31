@@ -1,16 +1,16 @@
 // src/app/components/suggestions/MatchSuggestionsContainer.tsx
 
-"use client";
+'use client';
 
-import React, { useState, useEffect, useCallback } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { 
-  Clock, 
-  History, 
-  AlertCircle, 
-  RefreshCw, 
-  Bell, 
+import React, { useState, useEffect, useCallback } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import {
+  Clock,
+  History,
+  AlertCircle,
+  RefreshCw,
+  Bell,
   TrendingUp,
   Users,
   CheckCircle,
@@ -18,21 +18,24 @@ import {
   Sparkles,
   Heart,
   Zap,
-  XCircle // הוספת אייקון לדחייה
-} from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
-import type { MatchSuggestion } from "@prisma/client";
-import type { UserProfile, UserImage } from "@/types/next-auth";
+  XCircle,
+  Loader2, // הוספת אייקון טעינה מה-AI
+} from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
+import type { MatchSuggestion } from '@prisma/client';
+import type { UserProfile, UserImage } from '@/types/next-auth';
 
-import SuggestionsList from "./list/SuggestionsList";
-import type { ExtendedMatchSuggestion } from "./types";
-import { cn } from "@/lib/utils";
-import { getEnhancedStatusInfo, getPartyIndicator } from "@/lib/utils/suggestionUtils";
+import SuggestionsList from './list/SuggestionsList';
+import type { ExtendedMatchSuggestion } from './types';
+import { cn } from '@/lib/utils';
+import {
+  getEnhancedStatusInfo,
+  getPartyIndicator,
+} from '@/lib/utils/suggestionUtils';
 
-// --- START: הוספת imports עבור AlertDialog ---
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,8 +45,109 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-// --- END: הוספת imports ---
+} from '@/components/ui/alert-dialog';
+
+// קומפוננטת מסך הטעינה המשופר, כפי שהוצע על ידי ה-AI
+const LoadingSkeleton: React.FC = () => (
+  <div className="min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50/20 to-emerald-50/20">
+    <div className="container mx-auto px-4 py-8">
+      {/* Hero Skeleton */}
+      <div className="mb-8">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-3 mb-4">
+            <div className="p-3 rounded-full bg-gradient-to-r from-purple-100 to-cyan-100 animate-pulse">
+              <div className="w-8 h-8 bg-gray-300 rounded-full animate-pulse"></div>
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div className="h-12 bg-gradient-to-r from-gray-200 to-gray-300 rounded-2xl mx-auto w-80 animate-pulse"></div>
+            <div className="h-6 bg-gray-200 rounded-xl mx-auto w-96 animate-pulse"></div>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div
+              key={index}
+              className="border-0 shadow-lg overflow-hidden bg-white rounded-2xl animate-pulse"
+            >
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-3 rounded-xl bg-gray-200 w-12 h-12"></div>
+                  <div className="text-right">
+                    <div className="w-16 h-8 bg-gray-200 rounded-lg mb-2"></div>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="h-6 bg-gray-200 rounded-lg w-3/4"></div>
+                  <div className="h-4 bg-gray-200 rounded-lg w-1/2"></div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Main Card Skeleton */}
+      <div className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm overflow-hidden rounded-3xl">
+        {/* Header Skeleton */}
+        <div className="px-8 py-6 bg-gradient-to-r from-cyan-50/80 via-white to-emerald-50/30 border-b border-gray-100">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse"></div>
+            </div>
+            <div className="h-6 bg-gray-200 rounded-lg w-32 animate-pulse"></div>
+            <div className="w-16 h-4"></div>
+          </div>
+        </div>
+
+        {/* Content Skeleton */}
+        <div className="p-6">
+          {/* Tabs Skeleton */}
+          <div className="flex justify-center mb-6">
+            <div className="grid grid-cols-3 bg-purple-50/50 rounded-2xl p-1 h-14 w-fit gap-2">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="px-6 py-3 rounded-xl bg-gray-200 animate-pulse w-24 h-10"
+                ></div>
+              ))}
+            </div>
+          </div>
+
+          {/* Loading Animation */}
+          <div className="flex flex-col items-center justify-center min-h-[400px] text-center space-y-6">
+            <div className="relative">
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-100 via-cyan-100 to-emerald-100 animate-pulse border-4 border-white shadow-xl"></div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Loader2 className="w-12 h-12 text-purple-600 animate-spin" />
+              </div>
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-400 via-cyan-400 to-emerald-400 opacity-20 animate-ping"></div>
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-cyan-600 to-emerald-600 bg-clip-text text-transparent">
+                טוען את ההצעות שלך...
+              </h3>
+              <p className="text-gray-600 max-w-md leading-relaxed">
+                אנחנו מכינים עבורך את ההצעות המתאימות ביותר
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="w-3 h-3 rounded-full bg-gradient-to-r from-purple-500 to-cyan-500 animate-bounce"
+                  style={{ animationDelay: `${index * 0.2}s` }}
+                ></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
 
 // קומפוננטת סטטיסטיקות מפושטת ונקייה עם עיצוב חדש
 const WelcomeStats: React.FC<{
@@ -53,40 +157,42 @@ const WelcomeStats: React.FC<{
   userId: string;
 }> = ({ activeSuggestions, historySuggestions, pendingCount, userId }) => {
   const totalSuggestions = activeSuggestions.length + historySuggestions.length;
-  const approvedCount = [...activeSuggestions, ...historySuggestions].filter(s => 
-    s.status === "FIRST_PARTY_APPROVED" || s.status === "SECOND_PARTY_APPROVED"
+  const approvedCount = [...activeSuggestions, ...historySuggestions].filter(
+    (s) =>
+      s.status === 'FIRST_PARTY_APPROVED' ||
+      s.status === 'SECOND_PARTY_APPROVED'
   ).length;
 
-  const myTurnCount = activeSuggestions.filter(s => {
+  const myTurnCount = activeSuggestions.filter((s) => {
     const isFirstParty = s.firstPartyId === userId;
     return (
-      (s.status === "PENDING_FIRST_PARTY" && isFirstParty) ||
-      (s.status === "PENDING_SECOND_PARTY" && !isFirstParty)
+      (s.status === 'PENDING_FIRST_PARTY' && isFirstParty) ||
+      (s.status === 'PENDING_SECOND_PARTY' && !isFirstParty)
     );
   }).length;
 
   const stats = [
     {
-      label: "הצעות חדשות",
+      label: 'הצעות חדשות',
       value: activeSuggestions.length,
       icon: <Sparkles className="w-5 h-5" />,
-      color: "from-cyan-500 to-blue-500",
-      description: "ממתינות לתשובתך"
+      color: 'from-cyan-500 to-blue-500',
+      description: 'ממתינות לתשובתך',
     },
     {
-      label: "התור שלך",
+      label: 'התור שלך',
       value: myTurnCount,
       icon: <Zap className="w-5 h-5" />,
-      color: "from-orange-500 to-amber-500",
-      description: "דורשות החלטה ממך",
-      pulse: myTurnCount > 0
+      color: 'from-orange-500 to-amber-500',
+      description: 'דורשות החלטה ממך',
+      pulse: myTurnCount > 0,
     },
     {
-      label: "אושרו",
+      label: 'אושרו',
       value: approvedCount,
       icon: <CheckCircle className="w-5 h-5" />,
-      color: "from-emerald-500 to-green-500",
-      description: "הצעות שאושרו"
+      color: 'from-emerald-500 to-green-500',
+      description: 'הצעות שאושרו',
     },
   ];
 
@@ -94,9 +200,9 @@ const WelcomeStats: React.FC<{
     <div className="mb-8">
       <div className="text-center mb-8">
         <div className="inline-flex items-center gap-3 mb-4">
-         <div className="p-3 rounded-full bg-gradient-to-r from-purple-100 to-cyan-100">
-          <Heart className="w-8 h-8 text-purple-600" />
-        </div>
+          <div className="p-3 rounded-full bg-gradient-to-r from-purple-100 to-cyan-100">
+            <Heart className="w-8 h-8 text-purple-600" />
+          </div>
         </div>
         <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-cyan-600 to-emerald-600 bg-clip-text text-transparent mb-3">
           ההצעות שלך
@@ -107,25 +213,36 @@ const WelcomeStats: React.FC<{
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {stats.map((stat, index) => (
-          <Card key={index} className="border-0 shadow-lg overflow-hidden bg-white hover:shadow-xl transition-all duration-300 group">
+          <Card
+            key={index}
+            className="border-0 shadow-lg overflow-hidden bg-white hover:shadow-xl transition-all duration-300 group"
+          >
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <div className={cn(
-                  "p-3 rounded-xl bg-gradient-to-r text-white shadow-lg group-hover:scale-110 transition-transform duration-300", 
-                  stat.color,
-                  stat.pulse && "animate-pulse"
-                )}>
+                <div
+                  className={cn(
+                    'p-3 rounded-xl bg-gradient-to-r text-white shadow-lg group-hover:scale-110 transition-transform duration-300',
+                    stat.color,
+                    stat.pulse && 'animate-pulse'
+                  )}
+                >
                   {stat.icon}
                 </div>
                 <div className="text-right">
-                  <div className={cn(
-                    "text-3xl font-bold text-gray-900",
-                    stat.pulse && "animate-bounce"
-                  )}>{stat.value}</div>
+                  <div
+                    className={cn(
+                      'text-3xl font-bold text-gray-900',
+                      stat.pulse && 'animate-bounce'
+                    )}
+                  >
+                    {stat.value}
+                  </div>
                 </div>
               </div>
               <div className="space-y-1">
-                <h3 className="font-bold text-lg text-gray-800">{stat.label}</h3>
+                <h3 className="font-bold text-lg text-gray-800">
+                  {stat.label}
+                </h3>
                 <p className="text-sm text-gray-600">{stat.description}</p>
               </div>
             </CardContent>
@@ -141,43 +258,51 @@ interface MatchSuggestionsContainerProps {
   className?: string;
 }
 
-const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({  userId,
+const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
+  userId,
   className,
 }) => {
   // States
-  const [activeSuggestions, setActiveSuggestions] = useState<ExtendedMatchSuggestion[]>([]);
-  const [historySuggestions, setHistorySuggestions] = useState<ExtendedMatchSuggestion[]>([]);
+  const [activeSuggestions, setActiveSuggestions] = useState<
+    ExtendedMatchSuggestion[]
+  >([]);
+  const [historySuggestions, setHistorySuggestions] = useState<
+    ExtendedMatchSuggestion[]
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState("active");
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [activeTab, setActiveTab] = useState('active');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [hasNewSuggestions, setHasNewSuggestions] = useState(false);
   const [isUserInActiveProcess, setIsUserInActiveProcess] = useState(false);
 
   // --- START: State חדש לניהול חלון האישור ---
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [suggestionForAction, setSuggestionForAction] = useState<ExtendedMatchSuggestion | null>(null);
-  const [actionType, setActionType] = useState<'approve' | 'decline' | null>(null);
+  const [suggestionForAction, setSuggestionForAction] =
+    useState<ExtendedMatchSuggestion | null>(null);
+  const [actionType, setActionType] = useState<'approve' | 'decline' | null>(
+    null
+  );
   // --- END: State חדש ---
 
   // Calculate counts
   const pendingCount = activeSuggestions.filter(
-    (s) => s.status === "PENDING_FIRST_PARTY" || s.status === "PENDING_SECOND_PARTY"
+    (s) =>
+      s.status === 'PENDING_FIRST_PARTY' || s.status === 'PENDING_SECOND_PARTY'
   ).length;
 
-  const myTurnCount = activeSuggestions.filter(s => {
+  const myTurnCount = activeSuggestions.filter((s) => {
     const isFirstParty = s.firstPartyId === userId;
     return (
-      (s.status === "PENDING_FIRST_PARTY" && isFirstParty) ||
-      (s.status === "PENDING_SECOND_PARTY" && !isFirstParty)
+      (s.status === 'PENDING_FIRST_PARTY' && isFirstParty) ||
+      (s.status === 'PENDING_SECOND_PARTY' && !isFirstParty)
     );
   }).length;
 
   // Fetch suggestions function
   const fetchSuggestions = useCallback(
     async (showLoadingState = true) => {
-      // ... (ללא שינוי)
       try {
         if (showLoadingState) {
           setIsLoading(true);
@@ -192,9 +317,13 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({  
         ]);
 
         if (!activeResponse.ok || !historyResponse.ok) {
-          const activeError = !activeResponse.ok ? await activeResponse.text() : "";
-          const historyError = !historyResponse.ok ? await historyResponse.text() : "";
-          console.error("Fetch errors:", { activeError, historyError });
+          const activeError = !activeResponse.ok
+            ? await activeResponse.text()
+            : '';
+          const historyError = !historyResponse.ok
+            ? await historyResponse.text()
+            : '';
+          console.error('Fetch errors:', { activeError, historyError });
           throw new Error(
             `Failed to fetch suggestions (${activeResponse.status}/${historyResponse.status})`
           );
@@ -203,10 +332,13 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({  
         const activeData = await activeResponse.json();
         const historyData = await historyResponse.json();
 
-        if (!showLoadingState && activeData.suggestions.length > activeSuggestions.length) {
+        if (
+          !showLoadingState &&
+          activeData.suggestions.length > activeSuggestions.length
+        ) {
           setHasNewSuggestions(true);
-          toast.success("התקבלו הצעות שידוך חדשות!", {
-            description: "בדוק את ההצעות החדשות שמחכות לך",
+          toast.success('התקבלו הצעות שידוך חדשות!', {
+            description: 'בדוק את ההצעות החדשות שמחכות לך',
             duration: 5000,
           });
         }
@@ -214,14 +346,14 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({  
         setActiveSuggestions(activeData.suggestions);
         setHistorySuggestions(historyData.suggestions);
       } catch (error) {
-        console.error("Error loading suggestions:", error);
+        console.error('Error loading suggestions:', error);
         setError(
           `אירעה שגיאה בטעינת ההצעות: ${
-            error instanceof Error ? error.message : "שגיאה לא ידועה"
+            error instanceof Error ? error.message : 'שגיאה לא ידועה'
           }`
         );
-        toast.error("שגיאה בטעינת ההצעות", {
-          description: "נסה לרענן את הדף או פנה לתמיכה",
+        toast.error('שגיאה בטעינת ההצעות', {
+          description: 'נסה לרענן את הדף או פנה לתמיכה',
         });
       } finally {
         setIsLoading(false);
@@ -235,44 +367,52 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({  
   const handleStatusChange = useCallback(
     async (suggestionId: string, newStatus: string, notes?: string) => {
       try {
-        const response = await fetch(`/api/suggestions/${suggestionId}/status`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: newStatus, notes }),
-        });
+        const response = await fetch(
+          `/api/suggestions/${suggestionId}/status`,
+          {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus, notes }),
+          }
+        );
 
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.error || "Failed to update suggestion status");
+          throw new Error(
+            errorData.error || 'Failed to update suggestion status'
+          );
         }
 
         await fetchSuggestions(false);
 
         const statusMessages: Record<string, string> = {
-          FIRST_PARTY_APPROVED: "אישרת את ההצעה בהצלחה",
-          SECOND_PARTY_APPROVED: "אישרת את ההצעה בהצלחה",
-          FIRST_PARTY_DECLINED: "דחית את ההצעה בהצלחה",
-          SECOND_PARTY_DECLINED: "דחית את ההצעה בהצלחה",
+          FIRST_PARTY_APPROVED: 'אישרת את ההצעה בהצלחה',
+          SECOND_PARTY_APPROVED: 'אישרת את ההצעה בהצלחה',
+          FIRST_PARTY_DECLINED: 'דחית את ההצעה בהצלחה',
+          SECOND_PARTY_DECLINED: 'דחית את ההצעה בהצלחה',
         };
 
         let description: string;
         if (newStatus === 'FIRST_PARTY_APPROVED') {
-          description = "באישורך, ההצעה נשלחה לצד השני. אם גם הצד השני יאשר, פרטי הקשר המלאים שלכם יוחלפו.";
+          description =
+            'באישורך, ההצעה נשלחה לצד השני. אם גם הצד השני יאשר, פרטי הקשר המלאים שלכם יוחלפו.';
         } else if (newStatus === 'SECOND_PARTY_APPROVED') {
-          description = "מעולה! כעת, מאחר ושניכם אישרתם, פרטי הקשר שלך יישלחו לצד הראשון ופרטיו יישלחו אליך.";
-        } else if (newStatus.includes("DECLINED")) {
-          description = "תודה על המשוב - זה עוזר לנו להציע התאמות טובות יותר";
+          description =
+            'מעולה! כעת, מאחר ושניכם אישרתם, פרטי הקשר שלך יישלחו לצד הראשון ופרטיו יישלחו אליך.';
+        } else if (newStatus.includes('DECLINED')) {
+          description = 'תודה על המשוב - זה עוזר לנו להציע התאמות טובות יותר';
         } else {
-          description = "השדכן יקבל הודעה ויתקדם עם התהליך";
+          description = 'השדכן יקבל הודעה ויתקדם עם התהליך';
         }
 
-        toast.success(statusMessages[newStatus] || "הסטטוס עודכן בהצלחה", { description });
-
+        toast.success(statusMessages[newStatus] || 'הסטטוס עודכן בהצלחה', {
+          description,
+        });
       } catch (error) {
-        console.error("Error updating suggestion status:", error);
+        console.error('Error updating suggestion status:', error);
         toast.error(
           `אירעה שגיאה בעדכון הסטטוס: ${
-            error instanceof Error ? error.message : "שגיאה לא ידועה"
+            error instanceof Error ? error.message : 'שגיאה לא ידועה'
           }`
         );
       }
@@ -283,32 +423,38 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({  
   // --- START: פונקציות חדשות לניהול הדיאלוג ---
 
   // פונקציה שמופעלת מהילדים כדי לבקש פתיחת דיאלוג
-  const handleRequestAction = useCallback((suggestion: ExtendedMatchSuggestion, action: 'approve' | 'decline') => {
+  const handleRequestAction = useCallback(
+    (suggestion: ExtendedMatchSuggestion, action: 'approve' | 'decline') => {
       setSuggestionForAction(suggestion);
       setActionType(action);
       setShowConfirmDialog(true);
-  }, []);
+    },
+    []
+  );
 
   // פונקציה שמופעלת בלחיצה על "אישור" בתוך הדיאלוג
   const handleConfirmAction = useCallback(async () => {
     if (!suggestionForAction || !actionType) return;
 
     const isFirstParty = suggestionForAction.firstPartyId === userId;
-    let newStatus = "";
-    if (actionType === "approve") {
-      newStatus = isFirstParty ? "FIRST_PARTY_APPROVED" : "SECOND_PARTY_APPROVED";
+    let newStatus = '';
+    if (actionType === 'approve') {
+      newStatus = isFirstParty
+        ? 'FIRST_PARTY_APPROVED'
+        : 'SECOND_PARTY_APPROVED';
     } else {
-      newStatus = isFirstParty ? "FIRST_PARTY_DECLINED" : "SECOND_PARTY_DECLINED";
+      newStatus = isFirstParty
+        ? 'FIRST_PARTY_DECLINED'
+        : 'SECOND_PARTY_DECLINED';
     }
 
     // קריאה לפונקציה המרכזית שמעדכנת סטטוס
     await handleStatusChange(suggestionForAction.id, newStatus);
-    
+
     // סגירת הדיאלוג ואיפוס ה-state
     setShowConfirmDialog(false);
     setSuggestionForAction(null);
     setActionType(null);
-
   }, [suggestionForAction, actionType, userId, handleStatusChange]);
 
   // --- END: פונקציות חדשות ---
@@ -317,9 +463,12 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({  
   useEffect(() => {
     fetchSuggestions();
 
-    const intervalId = setInterval(() => {
-      fetchSuggestions(false);
-    }, 5 * 60 * 1000); // Refresh every 5 minutes
+    const intervalId = setInterval(
+      () => {
+        fetchSuggestions(false);
+      },
+      5 * 60 * 1000
+    ); // Refresh every 5 minutes
 
     return () => clearInterval(intervalId);
   }, [userId, fetchSuggestions]);
@@ -341,7 +490,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({  
       'ENGAGED',
     ];
 
-    const hasActiveProcess = activeSuggestions.some(s =>
+    const hasActiveProcess = activeSuggestions.some((s) =>
       activeProcessStatuses.includes(s.status)
     );
     setIsUserInActiveProcess(hasActiveProcess);
@@ -349,22 +498,31 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({  
 
   // Clear new suggestions notification when changing to active tab
   useEffect(() => {
-    if (activeTab === "active") {
+    if (activeTab === 'active') {
       setHasNewSuggestions(false);
     }
   }, [activeTab]);
 
-
   // Handle manual refresh
   const handleRefresh = useCallback(async () => {
     await fetchSuggestions(false);
-    toast.success("הנתונים עודכנו בהצלחה", {
-      description: "כל ההצעות עודכנו למצב הנוכחי"
+    toast.success('הנתונים עודכנו בהצלחה', {
+      description: 'כל ההצעות עודכנו למצב הנוכחי',
     });
   }, [fetchSuggestions]);
 
+  // אם נמצא במצב טעינה, הצג את מסך הטעינה המשופר
+  if (isLoading) {
+    return <LoadingSkeleton />;
+  }
+
   return (
-    <div className={cn("min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50/20 to-emerald-50/20", className)}>
+    <div
+      className={cn(
+        'min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50/20 to-emerald-50/20',
+        className
+      )}
+    >
       <div className="container mx-auto px-4 py-8">
         <WelcomeStats
           activeSuggestions={activeSuggestions}
@@ -381,19 +539,19 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({  
                   variant="ghost"
                   size="icon"
                   onClick={handleRefresh}
-                  disabled={isRefreshing || isLoading}
+                  disabled={isRefreshing}
                   className="rounded-full h-10 w-10 hover:bg-cyan-100 transition-colors"
                   aria-label="רענן הצעות"
                 >
                   <RefreshCw
                     className={cn(
-                      "h-5 w-5 text-cyan-600",
-                      isRefreshing && "animate-spin"
+                      'h-5 w-5 text-cyan-600',
+                      isRefreshing && 'animate-spin'
                     )}
                   />
                 </Button>
-                
-               {hasNewSuggestions && (
+
+                {hasNewSuggestions && (
                   <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 shadow-xl animate-pulse">
                     <Bell className="w-3 h-3 ml-1" />
                     הצעות חדשות
@@ -410,7 +568,12 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({  
           </CardHeader>
 
           <CardContent className="p-6">
-            <Tabs value={activeTab} onValueChange={setActiveTab} dir="rtl" className="space-y-6">
+            <Tabs
+              value={activeTab}
+              onValueChange={setActiveTab}
+              dir="rtl"
+              className="space-y-6"
+            >
               <div className="flex justify-center">
                 <TabsList className="grid grid-cols-3 bg-purple-50/50 rounded-2xl p-1 h-14 w-fit">
                   <TabsTrigger
@@ -455,9 +618,15 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({  
               </div>
 
               {error && (
-                <Alert variant="destructive" className="border-red-200 bg-red-50" dir="rtl">
+                <Alert
+                  variant="destructive"
+                  className="border-red-200 bg-red-50"
+                  dir="rtl"
+                >
                   <AlertCircle className="h-5 w-5 ml-2" />
-                  <AlertDescription className="text-red-800 font-medium">{error}</AlertDescription>
+                  <AlertDescription className="text-red-800 font-medium">
+                    {error}
+                  </AlertDescription>
                 </Alert>
               )}
 
@@ -466,7 +635,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({  
                   suggestions={activeSuggestions}
                   userId={userId}
                   viewMode={viewMode}
-                  isLoading={isLoading}
+                  isLoading={isRefreshing}
                   onStatusChange={handleStatusChange}
                   onActionRequest={handleRequestAction}
                   onRefresh={handleRefresh}
@@ -479,7 +648,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({  
                   suggestions={historySuggestions}
                   userId={userId}
                   viewMode={viewMode}
-                  isLoading={isLoading}
+                  isLoading={isRefreshing}
                   isHistory={true}
                   onStatusChange={handleStatusChange}
                   onActionRequest={handleRequestAction}
@@ -490,16 +659,16 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({  
 
               <TabsContent value="urgent" className="space-y-6">
                 <SuggestionsList
-                  suggestions={activeSuggestions.filter(s => {
+                  suggestions={activeSuggestions.filter((s) => {
                     const isFirstParty = s.firstPartyId === userId;
                     return (
-                      (s.status === "PENDING_FIRST_PARTY" && isFirstParty) ||
-                      (s.status === "PENDING_SECOND_PARTY" && !isFirstParty)
+                      (s.status === 'PENDING_FIRST_PARTY' && isFirstParty) ||
+                      (s.status === 'PENDING_SECOND_PARTY' && !isFirstParty)
                     );
                   })}
                   userId={userId}
                   viewMode={viewMode}
-                  isLoading={isLoading}
+                  isLoading={isRefreshing}
                   onStatusChange={handleStatusChange}
                   onActionRequest={handleRequestAction}
                   onRefresh={handleRefresh}
@@ -511,33 +680,32 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({  
         </Card>
       </div>
 
-      {/* --- START: רינדור ה-AlertDialog ברמה הגבוהה --- */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent className="border-0 shadow-2xl rounded-2xl z-[9999]">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-xl font-bold text-center">
-              {actionType === "approve"
-                ? "אישור הצעת השידוך"
-                : "דחיית הצעת השידוך"}
+              {actionType === 'approve'
+                ? 'אישור הצעת השידוך'
+                : 'דחיית הצעת השידוך'}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center text-gray-600 leading-relaxed">
-              {actionType === "approve"
-                ? "האם אתה בטוח שברצונך לאשר את הצעת השידוך? לאחר האישור, השדכן יקבל הודעה ויתקדם עם התהליך."
-                : "האם אתה בטוח שברצונך לדחות את הצעת השידוך? המשוב שלך עוזר לנו להציע התאמות טובות יותר בעתיד."}
+              {actionType === 'approve'
+                ? 'האם אתה בטוח שברצונך לאשר את הצעת השידוך? לאחר האישור, השדכן יקבל הודעה ויתקדם עם התהליך.'
+                : 'האם אתה בטוח שברצונך לדחות את הצעת השידוך? המשוב שלך עוזר לנו להציע התאמות טובות יותר בעתיד.'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-3">
             <AlertDialogCancel className="rounded-xl">ביטול</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleConfirmAction}
               className={cn(
-                "rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300",
-                actionType === "approve"
-                  ? "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
-                  : "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
+                'rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300',
+                actionType === 'approve'
+                  ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'
+                  : 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700'
               )}
             >
-              {actionType === "approve" ? (
+              {actionType === 'approve' ? (
                 <>
                   <CheckCircle className="w-4 h-4 ml-2" />
                   אישור ההצעה
@@ -552,7 +720,6 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({  
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      {/* --- END: רינדור ה-AlertDialog --- */}
     </div>
   );
 };
