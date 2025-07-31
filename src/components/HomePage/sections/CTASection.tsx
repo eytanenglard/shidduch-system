@@ -1,11 +1,98 @@
-import React from "react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import React, { useRef } from 'react';
+import { motion, useInView } from 'framer-motion';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft, Sparkles } from 'lucide-react';
 
 const CTASection: React.FC = () => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.2 });
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2,
+        delayChildren: 0.1,
+      },
+    },
+  };
+
+  const cardVariants = {
+    hidden: { opacity: 0, scale: 0.9, y: 40 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      y: 0,
+      transition: {
+        duration: 0.8,
+        ease: 'easeOut',
+        scale: {
+          type: 'spring',
+          stiffness: 260,
+          damping: 20,
+        },
+      },
+    },
+  };
+
+  const iconVariants = {
+    hidden: { opacity: 0, scale: 0, rotate: -180 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      rotate: 0,
+      transition: {
+        duration: 0.6,
+        delay: 0.3,
+        type: 'spring',
+        stiffness: 260,
+        damping: 15,
+      },
+    },
+  };
+
+  const textVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: 'easeOut' },
+    },
+  };
+
+  const buttonsVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: 'easeOut',
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const buttonVariants = {
+    hidden: { opacity: 0, scale: 0.9 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: { duration: 0.4, ease: 'easeOut' },
+    },
+  };
+
   return (
-    <section className="py-16 md:py-20 px-4 bg-white relative overflow-hidden">
+    <motion.section
+      ref={ref}
+      className="py-16 md:py-20 px-4 bg-white relative overflow-hidden"
+      variants={containerVariants}
+      initial="hidden"
+      animate={isInView ? 'visible' : 'hidden'}
+    >
       <div className="absolute inset-0 bg-gradient-to-br from-cyan-50 to-white opacity-70"></div>
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
         <svg
@@ -27,48 +114,106 @@ const CTASection: React.FC = () => {
       </div>
 
       <div className="max-w-4xl mx-auto text-center relative">
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 md:p-12 shadow-xl border border-cyan-100">
-          <div className="inline-block mb-6 p-3 bg-cyan-100 rounded-full text-cyan-600">
+        <motion.div
+          className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 md:p-12 shadow-xl border border-cyan-100"
+          variants={cardVariants}
+          whileHover={{
+            y: -5,
+            transition: { duration: 0.3 },
+          }}
+        >
+          {/* Icon */}
+          <motion.div
+            className="inline-block mb-6 p-3 bg-cyan-100 rounded-full text-cyan-600"
+            variants={iconVariants}
+            whileHover={{
+              rotate: [0, -10, 10, 0],
+              transition: { duration: 0.6 },
+            }}
+          >
             <Sparkles className="w-8 h-8" />
-          </div>
+          </motion.div>
 
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+          {/* Title */}
+          <motion.h2
+            className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4"
+            variants={textVariants}
+          >
             מוכנים להתחיל את
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-cyan-700">
-              {" "}
-              המסע שלכם?{" "}
+              {' '}
+              המסע שלכם?{' '}
             </span>
-          </h2>
+          </motion.h2>
 
-          <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+          {/* Description */}
+          <motion.p
+            className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto"
+            variants={textVariants}
+          >
             הצטרפו היום למערכת Match Point המובילה והתקדמו צעד אחד קדימה במציאת
             הזיווג המושלם עבורכם
-          </p>
+          </motion.p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/auth/register">
-              <Button
-                size="lg"
-                className="bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl group"
-              >
-                <span>להרשמה מיידית</span>
-                <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </Link>
+          {/* Buttons */}
+          <motion.div
+            className="flex flex-col sm:flex-row gap-4 justify-center"
+            variants={buttonsVariants}
+          >
+            <motion.div variants={buttonVariants}>
+              <Link href="/auth/register">
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Button
+                    size="lg"
+                    className="bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl group relative overflow-hidden"
+                  >
+                    <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
+                    <span className="relative z-10 flex items-center">
+                      להרשמה מיידית
+                      <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                    </span>
+                  </Button>
+                </motion.div>
+              </Link>
+            </motion.div>
 
-            <Link href="/about">
-              <Button
-                variant="outline"
-                size="lg"
-                className="border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-300 transition-all duration-300 rounded-xl"
-              >
-                למידע נוסף
-              </Button>
-            </Link>
-          </div>
-        </div>
+            <motion.div variants={buttonVariants}>
+              <Link href="/about">
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-300 transition-all duration-300 rounded-xl"
+                  >
+                    למידע נוסף
+                  </Button>
+                </motion.div>
+              </Link>
+            </motion.div>
+          </motion.div>
+        </motion.div>
       </div>
-    </section>
+
+      <style jsx>{`
+        @keyframes shimmer {
+          0% {
+            transform: translateX(-100%);
+          }
+          100% {
+            transform: translateX(100%);
+          }
+        }
+        .animate-shimmer {
+          animation: shimmer 1.5s ease-in-out;
+        }
+      `}</style>
+    </motion.section>
   );
 };
 

@@ -1,11 +1,77 @@
-import React from 'react';
+import React, { useRef } from 'react';
+import { motion, useInView } from 'framer-motion';
 import ComparisonItem from '../components/ComparisonItem';
 
 const ValuePropositionSection: React.FC = () => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.1 });
+
+  // Variants for different animation types
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2,
+        delayChildren: 0.3,
+      },
+    },
+  };
+
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: 'easeOut' },
+    },
+  };
+
+  const fadeInLeft = {
+    hidden: { opacity: 0, x: -50 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { duration: 0.7, ease: 'easeOut' },
+    },
+  };
+
+  const fadeInRight = {
+    hidden: { opacity: 0, x: 50 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { duration: 0.7, ease: 'easeOut' },
+    },
+  };
+
+  const staggeredListVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const listItemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.4, ease: 'easeOut' },
+    },
+  };
+
   return (
-    <section
+    <motion.section
+      ref={ref}
       id="our-method"
       className="py-16 md:py-20 px-4 bg-cyan-50 relative overflow-hidden"
+      variants={containerVariants}
+      initial="hidden"
+      animate={isInView ? 'visible' : 'hidden'}
     >
       <div className="absolute inset-0 bg-gradient-to-br from-cyan-50 to-white opacity-70"></div>
       <div className="absolute top-0 right-0 w-full h-full overflow-hidden">
@@ -28,7 +94,8 @@ const ValuePropositionSection: React.FC = () => {
       </div>
 
       <div className="max-w-6xl mx-auto relative">
-        <div className="text-center mb-12">
+        {/* Header with staggered animation */}
+        <motion.div className="text-center mb-12" variants={fadeInUp}>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4">
             מה הופך את
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-cyan-700">
@@ -41,66 +108,104 @@ const ValuePropositionSection: React.FC = () => {
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
             השילוב המושלם בין טכנולוגיה מתקדמת לבין הנגיעה האנושית והמסורתית
           </p>
-        </div>
+        </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-          <div className="bg-white rounded-2xl shadow-xl p-8 transform md:translate-x-4 relative overflow-hidden">
+          {/* Left card - Challenge */}
+          <motion.div
+            className="bg-white rounded-2xl shadow-xl p-8 transform md:translate-x-4 relative overflow-hidden"
+            variants={fadeInLeft}
+          >
             <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-cyan-100 to-cyan-50 opacity-50 rounded-full transform translate-x-20 -translate-y-20"></div>
 
             <h3 className="text-xl font-bold mb-4 text-gray-800 relative">
               האתגר במערכות קיימות
             </h3>
 
-            <ul className="space-y-3 relative">
-              <ComparisonItem isNegative>
-                חוסר פרטיות ודיסקרטיות באפליקציות היכרויות רגילות
-              </ComparisonItem>
-              <ComparisonItem isNegative>
-                פתרונות שאינם מותאמים לערכי הקהילה המסורתית והדתית
-              </ComparisonItem>
-              <ComparisonItem isNegative>
-                שיעור גבוה של אכזבות וחוסר התאמה אמיתית
-              </ComparisonItem>
-              <ComparisonItem isNegative>
-                מוגבלות לחוגים חברתיים קיימים בלבד
-              </ComparisonItem>
-              <ComparisonItem isNegative>
-                שדכנים מסורתיים: עלויות גבוהות, רשת קשרים מוגבלת ותהליך ממושך
-              </ComparisonItem>
-            </ul>
-          </div>
+            <motion.ul
+              className="space-y-3 relative"
+              variants={staggeredListVariants}
+              initial="hidden"
+              animate={isInView ? 'visible' : 'hidden'}
+            >
+              <motion.div variants={listItemVariants}>
+                <ComparisonItem isNegative>
+                  חוסר פרטיות ודיסקרטיות באפליקציות היכרויות רגילות
+                </ComparisonItem>
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <ComparisonItem isNegative>
+                  פתרונות שאינם מותאמים לערכי הקהילה המסורתית והדתית
+                </ComparisonItem>
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <ComparisonItem isNegative>
+                  שיעור גבוה של אכזבות וחוסר התאמה אמיתית
+                </ComparisonItem>
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <ComparisonItem isNegative>
+                  מוגבלות לחוגים חברתיים קיימים בלבד
+                </ComparisonItem>
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <ComparisonItem isNegative>
+                  שדכנים מסורתיים: עלויות גבוהות, רשת קשרים מוגבלת ותהליך ממושך
+                </ComparisonItem>
+              </motion.div>
+            </motion.ul>
+          </motion.div>
 
-          <div className="bg-white rounded-2xl shadow-xl p-8 transform md:-translate-x-4 relative overflow-hidden">
+          {/* Right card - Solution */}
+          <motion.div
+            className="bg-white rounded-2xl shadow-xl p-8 transform md:-translate-x-4 relative overflow-hidden"
+            variants={fadeInRight}
+          >
             <div className="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-br from-cyan-100 to-cyan-50 opacity-50 rounded-full transform -translate-x-20 translate-y-20"></div>
 
             <h3 className="text-xl font-bold mb-4 text-gray-800 relative">
               הפתרון של Match Point
             </h3>
 
-            <ul className="space-y-3 relative">
-              <ComparisonItem>
-                <strong>מאגר עצום, סיכוי גבוה יותר:</strong> הטכנולוגיה שלנו
-                מאפשרת לשדכנים לטפל במאגר מועמדים גדול פי 7, ולהגיע להתאמה
-                המדויקת עבורך.
-              </ComparisonItem>
-              <ComparisonItem>
-                ליווי אנושי: הדרכה אישית משדכנים מקצועיים לאורך כל התהליך
-              </ComparisonItem>
-              <ComparisonItem>
-                התאמה מדויקת יותר: אלגוריתם AI עם 50 ממדי התאמה
-              </ComparisonItem>
-              <ComparisonItem>
-                פרטיות מלאה: פרופילים נראים רק לשדכנים מורשים
-              </ComparisonItem>
-              <ComparisonItem>
-                מחוייבות לערכים: מערכת המכבדת את המסורת תוך שימוש בטכנולוגיה
-                מתקדמת
-              </ComparisonItem>
-            </ul>
-          </div>
+            <motion.ul
+              className="space-y-3 relative"
+              variants={staggeredListVariants}
+              initial="hidden"
+              animate={isInView ? 'visible' : 'hidden'}
+            >
+              <motion.div variants={listItemVariants}>
+                <ComparisonItem>
+                  <strong>מאגר עצום, סיכוי גבוה יותר:</strong> הטכנולוגיה שלנו
+                  מאפשרת לשדכנים לטפל במאגר מועמדים גדול פי 7, ולהגיע להתאמה
+                  המדויקת עבורך.
+                </ComparisonItem>
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <ComparisonItem>
+                  ליווי אנושי: הדרכה אישית משדכנים מקצועיים לאורך כל התהליך
+                </ComparisonItem>
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <ComparisonItem>
+                  התאמה מדויקת יותר: אלגוריתם AI עם 50 ממדי התאמה
+                </ComparisonItem>
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <ComparisonItem>
+                  פרטיות מלאה: פרופילים נראים רק לשדכנים מורשים
+                </ComparisonItem>
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <ComparisonItem>
+                  מחוייבות לערכים: מערכת המכבדת את המסורת תוך שימוש בטכנולוגיה
+                  מתקדמת
+                </ComparisonItem>
+              </motion.div>
+            </motion.ul>
+          </motion.div>
         </div>
       </div>
-    </section>
+    </motion.section>
   );
 };
 

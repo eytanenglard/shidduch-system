@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage
-# Generated on: 2025-07-31 14:27:01
+# Generated on: 2025-07-31 16:22:21
 ################################################################################
 
 ================================================================================
@@ -33,13 +33,13 @@ import FooterSection from './sections/FooterSection';
 import ChatWidget from '../ChatWidget/ChatWidget';
 import StickyNav, { NavLink } from './components/StickyNav';
 
-// 2. Define the navigation links in a single, manageable constant.
-//    The 'id' must match the 'id' attribute of the corresponding section component.
+// 2. Define the navigation links in a new, prioritized order.
+//    The 'id' must match the 'id' attribute of the corresponding section.
 const navLinks: NavLink[] = [
-  { id: 'how-it-works', label: 'איך זה עובד?' },
-  { id: 'our-method', label: 'השיטה שלנו' },
+  { id: 'how-it-works', label: 'איך זה עובד' },
+  { id: 'suggestion-demo', label: 'הצעה לדוגמה' },
+  { id: 'our-algorithm', label: 'השיטה החכמה' },
   { id: 'our-team', label: 'הצוות שלנו' },
-  { id: 'success-stories', label: 'סיפורי הצלחה' },
   { id: 'faq', label: 'שאלות נפוצות' },
 ];
 
@@ -865,7 +865,6 @@ interface StickyNavProps {
 }
 
 // ======================== קומפוננטת הלוגו המעודכנת ========================
-// אין צורך לשנות, היא כבר תואמת
 const StickyLogo = () => {
   return (
     <Link
@@ -963,7 +962,13 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
     e.preventDefault();
     const element = document.querySelector(href);
     if (element) {
-      const headerOffset = isMobile ? 80 : 160;
+      // ===== שינוי מרכזי: תיקון המרחק לגלילה חלקה ומדויקת =====
+      // המרחק מחושב כך שהכותרת תמיד תופיע מתחת לתפריט הניווט ולא תוסתר על ידו.
+      const navHeight = isMobile ? 64 : 80; // גובה הניווט בפועל
+      const topOffset = isMobile ? 80 : 0; // המרחק מהחלק העליון במצב מובייל (5rem)
+      const padding = 30; // מרווח נוסף לנוחות צפייה
+      const headerOffset = navHeight + topOffset + padding;
+
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition =
         elementPosition + window.pageYOffset - headerOffset;
@@ -988,14 +993,12 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
             animate={isMobile ? (isNavOpen ? 'visible' : 'hidden') : 'visible'}
             exit="hidden"
             transition={{ duration: 0.3, ease: 'easeOut' }}
-            // סגנון הרקע כבר היה תואם ל-Navbar במצב גלילה
             className="fixed top-20 md:top-0 left-0 right-0 z-40 w-full h-16 md:h-20"
           >
             <div className="absolute inset-0 bg-white/80 backdrop-blur-lg shadow-sm border-b border-gray-200/80"></div>
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
               <StickyLogo />
 
-              {/* ======================= שינוי 1: סגנון קישורי ניווט (דסקטופ) ======================= */}
               <nav className="hidden md:flex items-center gap-2 relative">
                 {navLinks.map((link) => (
                   <a
@@ -1005,14 +1008,14 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
                     className={cn(
                       'relative px-3 py-2 rounded-full text-sm transition-colors duration-200',
                       activeSection === link.id
-                        ? 'font-semibold text-cyan-600' // <--- שינוי מ-teal
-                        : 'font-medium text-gray-700 hover:text-cyan-600 hover:bg-cyan-500/10' // <--- שינוי מ-teal + הוספת רקע במעבר
+                        ? 'font-semibold text-cyan-600'
+                        : 'font-medium text-gray-700 hover:text-cyan-600 hover:bg-cyan-500/10'
                     )}
                   >
                     {activeSection === link.id && (
                       <motion.div
                         layoutId="active-nav-link"
-                        className="absolute inset-0 bg-cyan-500/10 rounded-full z-0" // <--- שינוי מ-teal
+                        className="absolute inset-0 bg-cyan-500/10 rounded-full z-0"
                         transition={{
                           type: 'spring',
                           stiffness: 300,
@@ -1026,7 +1029,6 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
               </nav>
 
               <div className="flex md:hidden items-center justify-between w-full">
-                {/* ======================= שינוי 2: סגנון קישורי ניווט (מובייל) ======================= */}
                 <nav className="flex-grow overflow-x-auto scrollbar-hide">
                   <div className="flex items-center gap-2 px-1">
                     {navLinks.map((link) => (
@@ -1037,8 +1039,8 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
                         className={cn(
                           'relative px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0',
                           activeSection === link.id
-                            ? 'font-semibold text-cyan-600 bg-cyan-500/10' // <--- התאמה לסגנון הפעיל של Navbar
-                            : 'font-medium text-gray-700 hover:text-cyan-600 hover:bg-cyan-500/10' // <--- התאמה לסגנון הרגיל של Navbar
+                            ? 'font-semibold text-cyan-600 bg-cyan-500/10'
+                            : 'font-medium text-gray-700 hover:text-cyan-600 hover:bg-cyan-500/10'
                         )}
                       >
                         {link.label}
@@ -1059,7 +1061,6 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
                 </div>
               </div>
 
-              {/* ======================= שינוי 3: סגנון כפתור הרשמה ======================= */}
               <div className="hidden md:flex items-center gap-2">
                 <Link href="/auth/register">
                   <Button className="group relative overflow-hidden bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 px-5 py-2.5">
@@ -1091,9 +1092,7 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
               onClick={() => setMobileNavState('open')}
               aria-label="פתח ניווט"
             >
-              {/* ======================= שינוי 4: צבע אייקון התפריט במובייל ======================= */}
-              <Menu className="h-6 w-6 text-cyan-600" />{' '}
-              {/* <--- שינוי מ-teal */}
+              <Menu className="h-6 w-6 text-cyan-600" />
             </Button>
           </motion.div>
         )}
@@ -1234,10 +1233,26 @@ const noaQuestionnaireResponse: QuestionnaireResponseType = {
   userId: 'demo-profile-noa',
   valuesAnswers: {
     values_core_elaboration:
-      'הערך הכי חשוב לי הוא משפחה, וזה מתבטא בכך שאני משקיעה זמן רב בקשר עם ההורים והאחים שלי, ורואה את הבית העתידי שלי כמקום חם ומכיל שמהווה מרכז לעולם שלנו.',
+      'הערך הכי חשוב לי הוא משפחה, וזה מתבטא בכך שאני משקיעה זמן רב בקשר עם ההורים והאחים שלי, ורואה את הבית העתידי שלי כמקום חם ומכיל שמהווה מרכז לעולם שלנו. ערך נוסף הוא יצירתיות וביטוי עצמי, שבא לידי ביטוי בקריירה שלי ובדרך שאני מתבוננת על העולם.',
     values_attitude_towards_money: 'איזון בין נוחות חומרית לערכים אחרים',
     values_giving_tzedaka_importance: 8,
     values_career_family_balance_approach: 'relationship_first',
+    values_life_priorities_allocation: {
+      'זוגיות וחיפוש זוגיות': 40,
+      'משפחה (הורים, אחים, ילדים אם יש)': 25,
+      'קריירה ופרנסה': 20,
+      'פנאי, תחביבים ובריאות אישית': 15,
+    },
+    values_future_priorities_partner: {
+      'זוגיות (כולל ילדים עתידיים)': 50,
+      'משפחה (הורים, אחים)': 15,
+      'קריירה ופרנסה (של שניכם)': 20,
+      'פנאי, תחביבים ובריאות אישית (משותף ואישי)': 15,
+    },
+    values_how_you_give: [
+      'עזרה אישית לחברים, משפחה או שכנים',
+      'מעשי חסד קטנים ביומיום',
+    ],
   },
   personalityAnswers: {
     personality_self_portrayal:
@@ -1245,6 +1260,20 @@ const noaQuestionnaireResponse: QuestionnaireResponseType = {
     personality_energy_level: 'בינונית - אנרגטי/ת כשצריך, יודע/ת גם לנוח',
     personality_introversion_extroversion: 6,
     personality_primary_motivation: 'יצירת קשרים משמעותיים ואהבה',
+    personality_core_trait_selection: {
+      'אמפתי/ת ורגיש/ה': 30,
+      'אופטימי/ת ושמח/ה': 20,
+      'יצירתי/ת ומקור/ית': 20,
+      'ישר/ה ואמין/ה': 15,
+      'בעל/ת חוש הומור': 15,
+    },
+    personality_weekend_style: [
+      'תרבות, אמנות והופעות',
+      'מפגשים חברתיים ובילויים',
+      'טיולים והרפתקאות בטבע',
+    ],
+    personality_strengths_and_weaknesses:
+      'החוזקות שלי הן יצירתיות, יכולת הקשבה ואופטימיות. אני תמיד מוצאת פתרונות לא שגרתיים. התחום שהייתי רוצה לשפר הוא אסרטיביות - לפעמים אני נוטה לרצות אחרים על חשבון הצרכים שלי.',
   },
   relationshipAnswers: {
     relationship_core_meaning: [
@@ -1253,13 +1282,25 @@ const noaQuestionnaireResponse: QuestionnaireResponseType = {
     ],
     relationship_intimacy_meaning:
       'אינטימיות עבורי היא היכולת להיות חשופה לחלוטין בפני מישהו, לשתף בחלומות ובפחדים, ולדעת שיש מישהו בעולם שמכיר אותי באמת ומקבל אותי כמו שאני.',
-    relationship_communication_ideal: 'רגישה ואמפתית - דגש על הקשבה והבנת רגשות',
+    relationship_communication_ideal:
+      'רגישה ואמפתית - דגש על הקשבה והבנת רגשות',
     relationship_daily_togetherness_vs_autonomy: 7,
+    relationship_love_languages_give_receive: [
+      'מעשי שירות',
+      'זמן איכות',
+      'מילים מאשרות',
+    ],
+    relationship_conflict_resolution_style: {
+      'התמקדות בהבנה ופשרה': 40,
+      'דיבור מיידי וגלוי': 30,
+      'פסק זמן ואז שיחה': 30,
+    },
   },
   partnerAnswers: {
     partner_must_have_quality_final:
       'התכונה החשובה ביותר היא טוב לב. אדם עם לב טוב הוא אדם שיודע לתת, לקבל, לסלוח ולהיות שותף אמיתי. כל השאר נבנה על היסוד הזה.',
-    partner_lifestyle_pace_preference: 'מאוזן - יודע/ת לשלב בין פעילות למנוחה, בין שגרה לספונטניות',
+    partner_lifestyle_pace_preference:
+      'מאוזן - יודע/ת לשלב בין פעילות למנוחה, בין שגרה לספונטניות',
     partner_appearance_importance_scale: 7,
     partner_core_character_traits_essential: {
       'חום, אמפתיה וטוב לב': 30,
@@ -1268,19 +1309,42 @@ const noaQuestionnaireResponse: QuestionnaireResponseType = {
       'אופטימיות ושמחת חיים': 15,
       'אינטליגנציה וסקרנות': 15,
     },
+    partner_initial_impression_priorities: [
+      'חיוך, נעימות וחמימות אישית',
+      'יכולת שיחה, זרימה וכימיה ראשונית',
+      'ניצוץ של חוכמה, שנינות או סקרנות',
+    ],
+    partner_religious_observance_preference_range: [
+      'דתי/ה לאומי/ת - מרכז / ליברלי',
+      'מסורתי/ת (שומר/ת חלק מהמצוות, חיבור למסורת)',
+      'חילוני/ת עם זיקה חזקה למסורת וערכים יהודיים',
+    ],
   },
   religionAnswers: {
-    religion_self_definition_primary: "דתי/ה לאומי/ת - מרכז / פתוח/ה (למשל: דתי-לייט, ליברלי)",
-    religion_shabbat_observance_level_practical: "שמירה על אווירת השבת (קידוש, סעודות, תפילה) עם גמישות מסוימת בהלכות",
-    religion_partner_ideal_religious_profile: "מחפשת מישהו מהעולם הדתי-לאומי, פתוח ומכיל. חשוב לי שיהיה מחובר למסורת ולרוחניות, אבל לא בצורה נוקשה. מישהו שיש לו יראת שמיים, אבל גם חי את העולם המודרני ומוצא את האיזון הנכון.",
-    religion_children_education_religious_vision: "הייתי רוצה להעניק לילדינו חינוך דתי-לאומי פתוח ומכיל, ששם דגש על מידות טובות, אהבת התורה והארץ, וחיבור לעם ישראל. חשוב לי שהם יגדלו להיות אנשים חושבים, עם יראת שמיים פנימית ועמוקה."
+    religion_self_definition_primary:
+      'דתי/ה לאומי/ת - מרכז / פתוח/ה (למשל: דתי-לייט, ליברלי)',
+    religion_shabbat_observance_level_practical:
+      'שמירה על אווירת השבת (קידוש, סעודות, תפילה) עם גמישות מסוימת בהלכות',
+    religion_partner_ideal_religious_profile:
+      'מחפשת מישהו מהעולם הדתי-לאומי, פתוח ומכיל. חשוב לי שיהיה מחובר למסורת ולרוחניות, אבל לא בצורה נוקשה. מישהו שיש לו יראת שמיים, אבל גם חי את העולם המודרני ומוצא את האיזון הנכון.',
+    religion_children_education_religious_vision:
+      'הייתי רוצה להעניק לילדינו חינוך דתי-לאומי פתוח ומכיל, ששם דגש על מידות טובות, אהבת התורה והארץ, וחיבור לעם ישראל. חשוב לי שהם יגדלו להיות אנשים חושבים, עם יראת שמיים פנימית ועמוקה.',
+    religion_identity_elaboration_personal:
+      'הזהות הדתית שלי מתבטאת בחיבור עמוק למסורת, לחגים ולערכים היהודיים. אני מוצאת רוחניות בטבע, באמנות ובקשרים בין אנשים. אני לא תמיד מקפידה על קלה כבחמורה, אבל הלב שלי תמיד במקום הנכון.',
+    religion_flexibility_religious_differences_partner: 8,
   },
   valuesCompleted: true,
   personalityCompleted: true,
   relationshipCompleted: true,
   partnerCompleted: true,
   religionCompleted: true,
-  worldsCompleted: ['VALUES', 'RELATIONSHIP', 'PARTNER', 'PERSONALITY', 'RELIGION'],
+  worldsCompleted: [
+    'VALUES',
+    'RELATIONSHIP',
+    'PARTNER',
+    'PERSONALITY',
+    'RELIGION',
+  ],
   completed: true,
   startedAt: new Date(),
   completedAt: new Date(),
@@ -1291,17 +1355,21 @@ const noaQuestionnaireResponse: QuestionnaireResponseType = {
     values: [
       {
         questionId: 'values_core_elaboration',
-        question: 'מהו הערך החשוב ביותר עבורך בזוגיות, וכיצד הוא בא לידי ביטוי בחייך?',
+        question:
+          'מהו הערך החשוב ביותר עבורך בזוגיות, וכיצד הוא בא לידי ביטוי בחייך?',
         answer: 'הערך הכי חשוב לי הוא משפחה...',
-        displayText: 'הערך הכי חשוב לי הוא משפחה, וזה מתבטא בכך שאני משקיעה זמן רב בקשר עם ההורים והאחים שלי, ורואה את הבית העתידי שלי כמקום חם ומכיל שמהווה מרכז לעולם שלנו.',
+        displayText:
+          'הערך הכי חשוב לי הוא משפחה, וזה מתבטא בכך שאני משקיעה זמן רב בקשר עם ההורים והאחים שלי, ורואה את הבית העתידי שלי כמקום חם ומכיל שמהווה מרכז לעולם שלנו. ערך נוסף הוא יצירתיות וביטוי עצמי, שבא לידי ביטוי בקריירה שלי ובדרך שאני מתבוננת על העולם.',
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
-       {
+      {
         questionId: 'values_career_family_balance_approach',
-        question: 'בהתייחס לאיזון בין קריירה לזוגיות/משפחה, איזו גישה הכי מתארת אותך כרגע?',
+        question:
+          'בהתייחס לאיזון בין קריירה לזוגיות/משפחה, איזו גישה הכי מתארת אותך כרגע?',
         answer: 'relationship_first',
-        displayText: 'הגעתי לשלב שבו בניית זוגיות ומשפחה היא המטרה המרכזית. הקריירה חשובה, אך היא תומכת במטרה זו.',
+        displayText:
+          'הגעתי לשלב שבו בניית זוגיות ומשפחה היא המטרה המרכזית. הקריירה חשובה, אך היא תומכת במטרה זו.',
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
@@ -1311,7 +1379,17 @@ const noaQuestionnaireResponse: QuestionnaireResponseType = {
         questionId: 'personality_self_portrayal',
         question: 'איך היית מתארת את עצמך בכמה מילים?',
         answer: 'אני אדם ויזואלי ויצירתי...',
-        displayText: 'אני אדם מאוד ויזואלי ויצירתי, מה שמתחבר לעיסוק שלי. מעבר לזה, אני חברה טובה שיודעת להקשיב, וחשוב לי מאוד לנהל שיחות עומק. אני אופטימית מטבעי, ומאמינה שתמיד אפשר למצוא את הטוב בכל מצב.',
+        displayText:
+          'אני אדם מאוד ויזואלי ויצירתי, מה שמתחבר לעיסוק שלי. מעבר לזה, אני חברה טובה שיודעת להקשיב, וחשוב לי מאוד לנהל שיחות עומק. אני אופטימית מטבעי, ומאמינה שתמיד אפשר למצוא את הטוב בכל מצב.',
+        isVisible: true,
+        answeredAt: new Date(),
+      } as FormattedAnswer,
+      {
+        questionId: 'personality_strengths_and_weaknesses',
+        question: 'מהן חוזקותיך וחולשותיך?',
+        answer: 'החוזקות שלי הן יצירתיות, יכולת הקשבה ואופטימיות...',
+        displayText:
+          'החוזקות שלי הן יצירתיות, יכולת הקשבה ואופטימיות. אני תמיד מוצאת פתרונות לא שגרתיים. התחום שהייתי רוצה לשפר הוא אסרטיביות - לפעמים אני נוטה לרצות אחרים על חשבון הצרכים שלי.',
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
@@ -1321,31 +1399,34 @@ const noaQuestionnaireResponse: QuestionnaireResponseType = {
         questionId: 'relationship_intimacy_meaning',
         question: 'מהי אינטימיות עבורך בזוגיות?',
         answer: 'אינטימיות עבורי היא היכולת להיות חשופה לחלוטין...',
-        displayText: 'אינטימיות עבורי היא היכולת להיות חשופה לחלוטין בפני מישהו, לשתף בחלומות ובפחדים, ולדעת שיש מישהו בעולם שמכיר אותי באמת ומקבל אותי כמו שאני.',
+        displayText:
+          'אינטימיות עבורי היא היכולת להיות חשופה לחלוטין בפני מישהו, לשתף בחלומות ובפחדים, ולדעת שיש מישהו בעולם שמכיר אותי באמת ומקבל אותי כמו שאני.',
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
     ],
     partner: [
-        {
+      {
         questionId: 'partner_must_have_quality_final',
         question: 'מהי התכונה האחת החשובה ביותר שחייבת להיות לבן הזוג שלך?',
         answer: 'התכונה החשובה ביותר היא טוב לב...',
-        displayText: 'התכונה החשובה ביותר היא טוב לב. אדם עם לב טוב הוא אדם שיודע לתת, לקבל, לסלוח ולהיות שותף אמיתי. כל השאר נבנה על היסוד הזה.',
+        displayText:
+          'התכונה החשובה ביותר היא טוב לב. אדם עם לב טוב הוא אדם שיודע לתת, לקבל, לסלוח ולהיות שותף אמיתי. כל השאר נבנה על היסוד הזה.',
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
     ],
     religion: [
-        {
+      {
         questionId: 'religion_partner_ideal_religious_profile',
         question: 'תארי את הפרופיל הדתי-רוחני האידיאלי של בן הזוג שאת מחפשת.',
         answer: 'מחפשת מישהו מהעולם הדתי-לאומי, פתוח ומכיל...',
-        displayText: 'מחפשת מישהו מהעולם הדתי-לאומי, פתוח ומכיל. חשוב לי שיהיה מחובר למסורת ולרוחניות, אבל לא בצורה נוקשה. מישהו שיש לו יראת שמיים, אבל גם חי את העולם המודרני ומוצא את האיזון הנכון.',
+        displayText:
+          'מחפשת מישהו מהעולם הדתי-לאומי, פתוח ומכיל. חשוב לי שיהיה מחובר למסורת ולרוחניות, אבל לא בצורה נוקשה. מישהו שיש לו יראת שמיים, אבל גם חי את העולם המודרני ומוצא את האיזון הנכון.',
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
-    ]
+    ],
   },
 };
 
@@ -1532,15 +1613,23 @@ const danielQuestionnaireResponse: QuestionnaireResponseType = {
   valuesAnswers: {
     values_life_priorities_allocation: {
       'זוגיות וחיפוש זוגיות': 30,
-      משפחה: 20,
+      'משפחה (הורים, אחים, ילדים אם יש)': 20,
       'קריירה ופרנסה': 25,
       'רוחניות, דת ולימוד תורה': 15,
       'חברים, קהילה והתנדבות': 5,
-      'פנאי ותחביבים': 5,
+      'פנאי, תחביבים ובריאות אישית': 5,
     },
     values_attitude_towards_money: 'אחריות כלכלית, חיסכון ותכנון לטווח ארוך',
     values_community_role: 'מעורב/ת ומשתתפ/ת קבוע/ה בפעילויות',
     values_education_pursuit: 'למידה מתמדת היא דרך חיים והכרח',
+    values_future_priorities_partner: {
+      'זוגיות (כולל ילדים עתידיים)': 40,
+      'קריירה ופרנסה (של שניכם)': 25,
+      'משפחה (הורים, אחים)': 15,
+      'רוחניות, דת ולימוד תורה (משותף ואישי)': 10,
+      'פנאי, תחביבים ובריאות אישית (משותף ואישי)': 10,
+    },
+    values_social_political_stance_importance_partner: 6,
   },
   personalityAnswers: {
     personality_self_portrayal:
@@ -1549,24 +1638,47 @@ const danielQuestionnaireResponse: QuestionnaireResponseType = {
     personality_stress_management: [
       'פעילות גופנית (ספורט, הליכה)',
       'שיחה עם חבר/ה קרוב/ה או בן/בת משפחה',
-      'מוזיקה או פודקאסטים'
+      'מוזיקה או פודקאסטים',
     ],
-    personality_decision_making_style: 'שילוב של לוגיקה ואינטואיציה, תוך לקיחת סיכונים מחושבים',
+    personality_decision_making_style:
+      'שילוב של לוגיקה ואינטואיציה, תוך לקיחת סיכונים מחושבים',
+    personality_core_trait_selection: {
+      'ישר/ה ואמין/ה': 30,
+      'שאפתנ/ית ובעל/ת מוטיבציה': 25,
+      'אינטליגנט/ית וסקרנ/ית': 20,
+      'אחראי/ת ומאורגנ/ת': 15,
+      'יציב/ה וקרקע/ית': 10,
+    },
+    personality_ideal_vacation:
+      'חופשה שמשלבת טבע מאתגר עם תרבות מקומית. למשל, טרק של כמה ימים בנוף יפהפה, ובסופו הגעה לעיר מעניינת עם אוכל טוב, מוזיאונים והיסטוריה. לא חופשת בטן-גב.',
+    personality_handling_criticism:
+      'אני משתדל לקחת ביקורת בצורה אנליטית. בהתחלה זה יכול להיות לא נעים, אבל אני לוקח צעד אחורה, מנסה להפריד את הרגש ולהבין אם יש נקודה לשיפור שאני יכול ללמוד ממנה. חשוב לי להשתפר כל הזמן.',
   },
   relationshipAnswers: {
     relationship_key_expectations_from_partner: [
-        'תקשורת פתוחה, כנה ומכבדת', 
-        'שותפות פעילה בניהול החיים המשותפים', 
-        'אמינות, יושרה ונאמנות'
+      'תקשורת פתוחה, כנה ומכבדת',
+      'שותפות פעילה בניהול החיים המשותפים',
+      'אמינות, יושרה ונאמנות',
     ],
     relationship_daily_togetherness_vs_autonomy: 7,
-    relationship_financial_management_preference: 'שקיפות מלאה וחשבון משותף לכל',
+    relationship_financial_management_preference:
+      'שקיפות מלאה וחשבון משותף לכל',
     relationship_conflict_resolution_style: {
       'דיבור מיידי וגלוי': 30,
       'פסק זמן ואז שיחה': 20,
       'ניתוח לוגי של הבעיה': 30,
       'התמקדות בהבנה ופשרה': 20,
     },
+    relationship_core_meaning: [
+      'שותפות איתנה, חברות אמת ותמיכה הדדית',
+      'מחויבות, נאמנות וביטחון בקשר לטווח ארוך',
+    ],
+    relationship_love_languages_give_receive: [
+      'מעשי שירות',
+      'זמן איכות',
+      'מילים מאשרות',
+      'מגע פיזי',
+    ],
   },
   partnerAnswers: {
     partner_core_character_traits_essential: {
@@ -1579,23 +1691,43 @@ const danielQuestionnaireResponse: QuestionnaireResponseType = {
     partner_must_have_quality_final:
       'התכונה הכי חשובה לי היא שותפות. הידיעה שיש לי מישהי לצידי, שאנחנו צוות מול כל מה שהחיים מביאים, ושאנחנו תמיד דואגים אחד לשנייה.',
     partner_religious_observance_preference_range: [
-        'דתי/ה לאומי/ת - תורני/ת / ישיבתי/ת',
-        'דתי/ה לאומי/ת - מרכז / ליברלי'
+      'דתי/ה לאומי/ת - תורני/ת / ישיבתי/ת',
+      'דתי/ה לאומי/ת - מרכז / ליברלי',
     ],
-    partner_social_style_preference: 'חברותי/ת אך מעדיפ/ה מפגשים קטנים ואינטימיים',
+    partner_social_style_preference:
+      'חברותי/ת אך מעדיפ/ה מפגשים קטנים ואינטימיים',
+    partner_appearance_importance_scale: 6,
+    partner_children_from_previous_relationship_stance:
+      "פתוח/ה לשקול, תלוי בנסיבות (גיל הילדים, טיב הקשר וכו')",
   },
   religionAnswers: {
-    religion_shabbat_observance_level_practical: 'שמירה על עיקרי ההלכות (ללא חשמל, בישול, נסיעה)',
-    religion_faith_core_principles: ['תורה מן השמיים ומחויבות להלכה', 'גאולת ישראל וקיבוץ גלויות בארץ ישראל'],
-    religion_social_circle_religious_diversity: 'יש לי חברים ממגוון רמות דתיות והשקפות',
+    religion_shabbat_observance_level_practical:
+      'שמירה על עיקרי ההלכות (ללא חשמל, בישול, נסיעה)',
+    religion_faith_core_principles: [
+      'תורה מן השמיים ומחויבות להלכה',
+      'גאולת ישראל וקיבוץ גלויות בארץ ישראל',
+    ],
+    religion_social_circle_religious_diversity:
+      'יש לי חברים ממגוון רמות דתיות והשקפות',
     religion_flexibility_religious_differences_partner: 8,
+    religion_self_definition_primary:
+      'דתי/ה לאומי/ת - מרכז / פתוח/ה (למשל: דתי-לייט, ליברלי)',
+    religion_partner_ideal_religious_profile:
+      'מחפש בחורה דתייה-לאומית, שחשוב לה לבנות בית של תורה וערכים, אבל עם ראש פתוח על הכתפיים. מישהי שיודעת לשלב בין קודש לחול, שיש לה שאיפות אישיות ומקצועיות, ושהיא שותפה אמיתית לדרך.',
+    religion_rabbinic_guidance_role: 7,
   },
   valuesCompleted: true,
   personalityCompleted: true,
   relationshipCompleted: true,
   partnerCompleted: true,
   religionCompleted: true,
-  worldsCompleted: ['VALUES', 'PERSONALITY', 'PARTNER', 'RELATIONSHIP', 'RELIGION'],
+  worldsCompleted: [
+    'VALUES',
+    'PERSONALITY',
+    'PARTNER',
+    'RELATIONSHIP',
+    'RELIGION',
+  ],
   completed: true,
   startedAt: new Date(),
   completedAt: new Date(),
@@ -1604,11 +1736,39 @@ const danielQuestionnaireResponse: QuestionnaireResponseType = {
   updatedAt: new Date(),
   formattedAnswers: {
     values: [
-       {
+      {
         questionId: 'values_attitude_towards_money',
         question: 'מהי גישתך הכללית לכסף ורמת חיים?',
         answer: 'אחריות כלכלית, חיסכון ותכנון לטווח ארוך',
         displayText: 'אחריות כלכלית, חיסכון ותכנון לטווח ארוך',
+        isVisible: true,
+        answeredAt: new Date(),
+      } as FormattedAnswer,
+      {
+        questionId: 'values_future_priorities_partner',
+        question: 'מהו האיזון הרצוי לך בסדרי עדיפויות בזוגיות?',
+        answer:
+          'זוגיות (40%), קריירה (25%), משפחה (15%), רוחניות (10%), פנאי (10%)',
+        displayText:
+          'בעתיד, אני שואף לחלוקה של: זוגיות ומשפחה (40%), קריירה (25%), משפחה מורחבת (15%), רוחניות (10%), ופנאי (10%).',
+        isVisible: true,
+        answeredAt: new Date(),
+      } as FormattedAnswer,
+      {
+        questionId: 'values_social_political_stance_importance_partner',
+        question: 'עד כמה חשובה לך התאמה בהשקפות פוליטיות?',
+        answer: '6',
+        displayText:
+          'חשוב לי שיהיה בסיס משותף בהשקפות עולם (ציון 6/10), אבל לא חייבים להסכים על הכל. כבוד הדדי חשוב יותר.',
+        isVisible: true,
+        answeredAt: new Date(),
+      } as FormattedAnswer,
+      {
+        questionId: 'values_conflict_between_values',
+        question: 'תאר קונפליקט ערכי שחווית.',
+        answer: 'חוויתי קונפליקט בין דדליין חשוב בעבודה לבין אירוע משפחתי...',
+        displayText:
+          'חוויתי קונפליקט בין דדליין חשוב בעבודה (ערך המקצועיות) לבין אירוע משפחתי (ערך המשפחה). למדתי לתקשר מראש את האילוצים, לעבוד ביעילות כדי לסיים מוקדם, ולהגיע לאירוע גם אם מאוחר יותר, כדי לכבד את שני הערכים.',
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
@@ -1623,13 +1783,49 @@ const danielQuestionnaireResponse: QuestionnaireResponseType = {
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
+      {
+        questionId: 'personality_ideal_vacation',
+        question: 'תאר את חופשת החלומות שלך.',
+        answer: 'חופשה שמשלבת טבע מאתגר עם תרבות מקומית...',
+        displayText:
+          'חופשת החלומות שלי תהיה טרק מאתגר של כמה ימים בנוף יפהפה, ובסופו הגעה לעיר עם תרבות והיסטוריה. לא חופשת בטן-גב.',
+        isVisible: true,
+        answeredAt: new Date(),
+      } as FormattedAnswer,
+      {
+        questionId: 'personality_handling_criticism',
+        question: 'איך אתה מגיב לביקורת?',
+        answer: 'אני משתדל לקחת ביקורת בצורה אנליטית...',
+        displayText:
+          'אני משתדל לקחת ביקורת בצורה אנליטית. בהתחלה זה יכול להיות לא נעים, אבל אני לוקח צעד אחורה, מנסה להפריד את הרגש ולהבין אם יש נקודה לשיפור שאני יכול ללמוד ממנה. חשוב לי להשתפר כל הזמן.',
+        isVisible: true,
+        answeredAt: new Date(),
+      } as FormattedAnswer,
     ],
     relationship: [
       {
         questionId: 'relationship_financial_management_preference',
-        question: 'מהי הגישה המועדפת עליך לניהול כספים משותף בזוגיות?',
+        question: 'מהי הגישה המועדפת עליך לניהול כספים משותף?',
         answer: 'שקיפות מלאה וחשבון משותף לכל',
         displayText: 'שקיפות מלאה וחשבון משותף לכל',
+        isVisible: true,
+        answeredAt: new Date(),
+      } as FormattedAnswer,
+      {
+        questionId: 'relationship_core_meaning',
+        question: 'מהי תמצית הזוגיות בעיניך?',
+        answer: 'שותפות, חברות ומחויבות',
+        displayText:
+          'תמצית הזוגיות בעיניי היא שותפות איתנה, חברות אמת, ומחויבות וביטחון לטווח ארוך.',
+        isVisible: true,
+        answeredAt: new Date(),
+      } as FormattedAnswer,
+      {
+        questionId: 'relationship_love_languages_give_receive',
+        question: 'מהן "שפות האהבה" העיקריות שלך?',
+        answer: 'מעשי שירות וזמן איכות',
+        displayText:
+          'שפות האהבה שלי הן בעיקר מעשי שירות וזמן איכות. אני מביע אהבה דרך עשייה, תמיכה ונוכחות מלאה.',
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
@@ -1644,17 +1840,63 @@ const danielQuestionnaireResponse: QuestionnaireResponseType = {
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
-    ],
-     religion: [
-        {
-        questionId: 'religion_faith_core_principles',
-        question: 'מהם עקרונות האמונה המרכזיים שמנחים אותך?',
-        answer: 'תורה מן השמיים ומחויבות להלכה, גאולת ישראל וקיבוץ גלויות',
-        displayText: 'עקרונות האמונה המרכזיים שמנחים אותי הם תורה מן השמיים, מחויבות להלכה, וגאולת ישראל וקיבוץ גלויות בארץ ישראל.',
+      {
+        questionId: 'partner_children_from_previous_relationship_stance',
+        question: 'מהי גישתך לקשר עם בת זוג שיש לה ילדים?',
+        answer: 'פתוח לשקול, תלוי בנסיבות',
+        displayText:
+          'אני פתוח לשקול קשר עם בת זוג שיש לה ילדים, זה תלוי בנסיבות ובחיבור בינינו.',
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
-    ]
+      {
+        questionId: 'partner_deal_breakers_open_text',
+        question: 'מהם ה"קווים האדומים" שלך בזוגיות?',
+        answer: 'חוסר יושרה, נטייה לדרמות וחוסר אחריות כלכלית.',
+        displayText:
+          'קווים אדומים עבורי הם חוסר יושרה, נטייה לדרמות מיותרות וחוסר אחריות כלכלית. חשוב לי בסיס של אמון ויציבות.',
+        isVisible: true,
+        answeredAt: new Date(),
+      } as FormattedAnswer,
+      {
+        questionId: 'partner_career_ambition_preference',
+        question: 'איזו גישה לקריירה היית מעדיף אצל בת זוג?',
+        answer: 'מחפשת איזון בין עבודה לחיים אישיים/משפחתיים',
+        displayText:
+          'מעדיף בת זוג שמחפשת איזון בין עבודה לחיים אישיים ומשפחתיים, ויודעת להשקיע בשניהם.',
+        isVisible: true,
+        answeredAt: new Date(),
+      } as FormattedAnswer,
+    ],
+    religion: [
+      {
+        questionId: 'religion_faith_core_principles',
+        question: 'מהם עקרונות האמונה המרכזיים שמנחים אותך?',
+        answer: 'תורה מן השמיים ומחויבות להלכה, גאולת ישראל וקיבוץ גלויות',
+        displayText:
+          'עקרונות האמונה המרכזיים שמנחים אותי הם תורה מן השמיים, מחויבות להלכה, וגאולת ישראל וקיבוץ גלויות בארץ ישראל.',
+        isVisible: true,
+        answeredAt: new Date(),
+      } as FormattedAnswer,
+      {
+        questionId: 'religion_rabbinic_guidance_role',
+        question: 'מהי חשיבותה של דמות רבנית עבורך?',
+        answer: '7',
+        displayText:
+          'אני רואה חשיבות בהתייעצות עם דמות רבנית (ציון 7/10), בעיקר בשאלות הלכתיות מורכבות, אך ההחלטה הסופית והאחריות הן שלי.',
+        isVisible: true,
+        answeredAt: new Date(),
+      } as FormattedAnswer,
+      {
+        questionId: 'religion_children_education_religious_vision',
+        question: 'מהו החזון החינוכי-דתי שלך לילדיך?',
+        answer: 'חינוך דתי-לאומי שמשלב יראת שמיים עם דרך ארץ...',
+        displayText:
+          'החזון שלי הוא חינוך דתי-לאומי שמשלב יראת שמיים עם דרך ארץ, מצוינות לימודית וחיבור חזק לעם ולארץ. חשוב לי שיגדלו להיות אנשים חושבים וערכיים.',
+        isVisible: true,
+        answeredAt: new Date(),
+      } as FormattedAnswer,
+    ],
   },
 };
 
@@ -2285,10 +2527,11 @@ const AlgorithmSection: React.FC = () => {
   }, [isMobile, isInView]);
 
   return (
-    <section 
-      ref={sectionRef}
-      className="py-20 md:py-28 px-4 bg-gradient-to-b from-gray-50 via-white to-cyan-50/30 relative overflow-hidden"
-    >
+<section 
+  ref={sectionRef}
+  id="our-algorithm"
+  className="py-20 md:py-28 px-4 bg-gradient-to-b from-gray-50 via-white to-cyan-50/30 relative overflow-hidden"
+>
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-64 h-64 bg-gradient-to-br from-cyan-200/20 to-blue-300/20 rounded-full blur-3xl animate-pulse-slow" />
         <div className="absolute bottom-20 right-10 w-80 h-80 bg-gradient-to-br from-pink-200/20 to-purple-300/20 rounded-full blur-3xl animate-float-slow" />
@@ -2453,14 +2696,101 @@ export default AlgorithmSection;
 File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\CTASection.tsx
 --------------------------------------------------------------------------------
 Content:
-import React from "react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import React, { useRef } from 'react';
+import { motion, useInView } from 'framer-motion';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft, Sparkles } from 'lucide-react';
 
 const CTASection: React.FC = () => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.2 });
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2,
+        delayChildren: 0.1,
+      },
+    },
+  };
+
+  const cardVariants = {
+    hidden: { opacity: 0, scale: 0.9, y: 40 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      y: 0,
+      transition: {
+        duration: 0.8,
+        ease: 'easeOut',
+        scale: {
+          type: 'spring',
+          stiffness: 260,
+          damping: 20,
+        },
+      },
+    },
+  };
+
+  const iconVariants = {
+    hidden: { opacity: 0, scale: 0, rotate: -180 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      rotate: 0,
+      transition: {
+        duration: 0.6,
+        delay: 0.3,
+        type: 'spring',
+        stiffness: 260,
+        damping: 15,
+      },
+    },
+  };
+
+  const textVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: 'easeOut' },
+    },
+  };
+
+  const buttonsVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: 'easeOut',
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const buttonVariants = {
+    hidden: { opacity: 0, scale: 0.9 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: { duration: 0.4, ease: 'easeOut' },
+    },
+  };
+
   return (
-    <section className="py-16 md:py-20 px-4 bg-white relative overflow-hidden">
+    <motion.section
+      ref={ref}
+      className="py-16 md:py-20 px-4 bg-white relative overflow-hidden"
+      variants={containerVariants}
+      initial="hidden"
+      animate={isInView ? 'visible' : 'hidden'}
+    >
       <div className="absolute inset-0 bg-gradient-to-br from-cyan-50 to-white opacity-70"></div>
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
         <svg
@@ -2482,48 +2812,106 @@ const CTASection: React.FC = () => {
       </div>
 
       <div className="max-w-4xl mx-auto text-center relative">
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 md:p-12 shadow-xl border border-cyan-100">
-          <div className="inline-block mb-6 p-3 bg-cyan-100 rounded-full text-cyan-600">
+        <motion.div
+          className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 md:p-12 shadow-xl border border-cyan-100"
+          variants={cardVariants}
+          whileHover={{
+            y: -5,
+            transition: { duration: 0.3 },
+          }}
+        >
+          {/* Icon */}
+          <motion.div
+            className="inline-block mb-6 p-3 bg-cyan-100 rounded-full text-cyan-600"
+            variants={iconVariants}
+            whileHover={{
+              rotate: [0, -10, 10, 0],
+              transition: { duration: 0.6 },
+            }}
+          >
             <Sparkles className="w-8 h-8" />
-          </div>
+          </motion.div>
 
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+          {/* Title */}
+          <motion.h2
+            className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4"
+            variants={textVariants}
+          >
             מוכנים להתחיל את
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-cyan-700">
-              {" "}
-              המסע שלכם?{" "}
+              {' '}
+              המסע שלכם?{' '}
             </span>
-          </h2>
+          </motion.h2>
 
-          <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+          {/* Description */}
+          <motion.p
+            className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto"
+            variants={textVariants}
+          >
             הצטרפו היום למערכת Match Point המובילה והתקדמו צעד אחד קדימה במציאת
             הזיווג המושלם עבורכם
-          </p>
+          </motion.p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/auth/register">
-              <Button
-                size="lg"
-                className="bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl group"
-              >
-                <span>להרשמה מיידית</span>
-                <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </Link>
+          {/* Buttons */}
+          <motion.div
+            className="flex flex-col sm:flex-row gap-4 justify-center"
+            variants={buttonsVariants}
+          >
+            <motion.div variants={buttonVariants}>
+              <Link href="/auth/register">
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Button
+                    size="lg"
+                    className="bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl group relative overflow-hidden"
+                  >
+                    <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
+                    <span className="relative z-10 flex items-center">
+                      להרשמה מיידית
+                      <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                    </span>
+                  </Button>
+                </motion.div>
+              </Link>
+            </motion.div>
 
-            <Link href="/about">
-              <Button
-                variant="outline"
-                size="lg"
-                className="border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-300 transition-all duration-300 rounded-xl"
-              >
-                למידע נוסף
-              </Button>
-            </Link>
-          </div>
-        </div>
+            <motion.div variants={buttonVariants}>
+              <Link href="/about">
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-300 transition-all duration-300 rounded-xl"
+                  >
+                    למידע נוסף
+                  </Button>
+                </motion.div>
+              </Link>
+            </motion.div>
+          </motion.div>
+        </motion.div>
       </div>
-    </section>
+
+      <style jsx>{`
+        @keyframes shimmer {
+          0% {
+            transform: translateX(-100%);
+          }
+          100% {
+            transform: translateX(100%);
+          }
+        }
+        .animate-shimmer {
+          animation: shimmer 1.5s ease-in-out;
+        }
+      `}</style>
+    </motion.section>
   );
 };
 
@@ -2534,24 +2922,121 @@ export default CTASection;
 File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\FAQSection.tsx
 --------------------------------------------------------------------------------
 Content:
-// src/components/HomePage/sections/FAQSection.tsx
-
-import React from 'react';
+import React, { useRef } from 'react';
+import { motion, useInView } from 'framer-motion';
 import FAQItem from '../components/FAQItem';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 
 const FAQSection: React.FC = () => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.1 });
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2,
+      },
+    },
+  };
+
+  const headerVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: 'easeOut' },
+    },
+  };
+
+  const faqContainerVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: 'easeOut',
+        staggerChildren: 0.1,
+        delayChildren: 0.3,
+      },
+    },
+  };
+
+  const faqItemVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { duration: 0.5, ease: 'easeOut' },
+    },
+  };
+
+  const contactBlockVariants = {
+    hidden: { opacity: 0, y: 30, scale: 0.95 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        duration: 0.6,
+        ease: 'easeOut',
+        scale: {
+          type: 'spring',
+          stiffness: 260,
+          damping: 20,
+        },
+      },
+    },
+  };
+
+  const faqData = [
+    {
+      question: 'מה המחיר של השירות?',
+      answer:
+        'אנו מציעים מספר תוכניות: רישום בסיסי בחינם הכולל פרופיל ראשוני ו-3 הצעות התאמה. מנוי סטנדרטי ב-95₪ לשנה המעניק גישה להצעות התאמה מתמשכות, ומנוי פרימיום ב-270₪ לשנה הכולל התאמה ותמיכה מועדפת. בנוסף, ישנה עמלת הצלחה של 1,000₪ מכל צד (2,000₪ בסך הכל) במקרה של אירוסין.',
+    },
+    {
+      question: 'האם השירות מתאים לכל הזרמים ביהדות?',
+      answer:
+        'כן! המערכת שלנו מתוכננת להתאים לכל הקהילות היהודיות, עם אפשרויות להתאמה מדויקת לפי רמת הדתיות והמסורות הספציפיות. אנו משרתים כרגע את הקהילה הדתית-לאומית בישראל, יהדות אורתודוכסית מודרנית בחו״ל, וקהילות חרדיות, עם תוכניות להרחבה לקהילות יהודיות נוספות.',
+    },
+    {
+      question: 'כיצד נשמרת הפרטיות שלי במערכת?',
+      answer:
+        'פרטיות המשתמשים היא בראש סדר העדיפויות שלנו. הפרופילים נראים רק לשדכנים מורשים ולא לשאר המשתמשים. אנו משתמשים בהצפנה מקצה לקצה וארכיטקטורת אפס-ידע להגנה על המידע האישי שלך. התמונות והפרטים האישיים שלך לעולם לא יהיו חשופים ללא הסכמתך המפורשת.',
+    },
+    {
+      question: 'כמה זמן בממוצע לוקח למצוא התאמה?',
+      answer:
+        'בעוד שהזמן משתנה בהתאם לגורמים רבים, המשתמשים שלנו מוצאים התאמות משמעותיות בזמן קצר משמעותית מהממוצע בשוק. בעוד הממוצע בשוק עומד על כ-2.5 שנים, מרבית המשתמשים שלנו מוצאים התאמות מוצלחות תוך 6-12 חודשים, הודות לשילוב הייחודי של טכנולוגיה וליווי אישי.',
+    },
+    {
+      question: 'האם יש אירועים או מפגשים קהילתיים?',
+      answer:
+        'בהחלט! אנו מארגנים מגוון אירועים קהילתיים כולל מפגשים חברתיים, סדנאות, והרצאות. אירועים אלה מספקים הזדמנויות טבעיות להיכרות בסביבה נעימה ותומכת. לחברי המנוי שלנו ניתנת גישה מועדפת לאירועים אלה, עם מחירים הנעים בין 15₪-30₪ למפגשים חברתיים, 30₪-60₪ לסדנאות, ו-300₪-600₪ לסופי שבוע מיוחדים.',
+    },
+  ];
+
   return (
-    <section
+    <motion.section
+      ref={ref}
       id="faq"
       className="py-16 md:py-20 px-4 bg-white relative overflow-hidden"
+      variants={containerVariants}
+      initial="hidden"
+      animate={isInView ? 'visible' : 'hidden'}
     >
       <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-white opacity-50"></div>
 
       <div className="max-w-4xl mx-auto relative">
-        <div className="text-center mb-12">
+        {/* Header */}
+        <motion.div className="text-center mb-12" variants={headerVariants}>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4">
             שאלות
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-cyan-700">
@@ -2563,35 +3048,32 @@ const FAQSection: React.FC = () => {
           <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-8">
             אלו התשובות לשאלות הנפוצות ביותר על שירות Match Point שלנו
           </p>
-        </div>
+        </motion.div>
 
-        <div className="bg-white rounded-xl shadow-lg p-6 md:p-8">
-          <div className="space-y-2">
-            <FAQItem
-              question="מה המחיר של השירות?"
-              answer="אנו מציעים מספר תוכניות: רישום בסיסי בחינם הכולל פרופיל ראשוני ו-3 הצעות התאמה. מנוי סטנדרטי ב-95₪ לשנה המעניק גישה להצעות התאמה מתמשכות, ומנוי פרימיום ב-270₪ לשנה הכולל התאמה ותמיכה מועדפת. בנוסף, ישנה עמלת הצלחה של 1,000₪ מכל צד (2,000₪ בסך הכל) במקרה של אירוסין."
-            />
-            <FAQItem
-              question="האם השירות מתאים לכל הזרמים ביהדות?"
-              answer="כן! המערכת שלנו מתוכננת להתאים לכל הקהילות היהודיות, עם אפשרויות להתאמה מדויקת לפי רמת הדתיות והמסורות הספציפיות. אנו משרתים כרגע את הקהילה הדתית-לאומית בישראל, יהדות אורתודוכסית מודרנית בחו״ל, וקהילות חרדיות, עם תוכניות להרחבה לקהילות יהודיות נוספות."
-            />
-            <FAQItem
-              question="כיצד נשמרת הפרטיות שלי במערכת?"
-              answer="פרטיות המשתמשים היא בראש סדר העדיפויות שלנו. הפרופילים נראים רק לשדכנים מורשים ולא לשאר המשתמשים. אנו משתמשים בהצפנה מקצה לקצה וארכיטקטורת אפס-ידע להגנה על המידע האישי שלך. התמונות והפרטים האישיים שלך לעולם לא יהיו חשופים ללא הסכמתך המפורשת."
-            />
-            <FAQItem
-              question="כמה זמן בממוצע לוקח למצוא התאמה?"
-              answer="בעוד שהזמן משתנה בהתאם לגורמים רבים, המשתמשים שלנו מוצאים התאמות משמעותיות בזמן קצר משמעותית מהממוצע בשוק. בעוד הממוצע בשוק עומד על כ-2.5 שנים, מרבית המשתמשים שלנו מוצאים התאמות מוצלחות תוך 6-12 חודשים, הודות לשילוב הייחודי של טכנולוגיה וליווי אישי."
-            />
-            <FAQItem
-              question="האם יש אירועים או מפגשים קהילתיים?"
-              answer="בהחלט! אנו מארגנים מגוון אירועים קהילתיים כולל מפגשים חברתיים, סדנאות, והרצאות. אירועים אלה מספקים הזדמנויות טבעיות להיכרות בסביבה נעימה ותומכת. לחברי המנוי שלנו ניתנת גישה מועדפת לאירועים אלה, עם מחירים הנעים בין 15₪-30₪ למפגשים חברתיים, 30₪-60₪ לסדנאות, ו-300₪-600₪ לסופי שבוע מיוחדים."
-            />
-          </div>
-        </div>
+        {/* FAQ Items */}
+        <motion.div
+          className="bg-white rounded-xl shadow-lg p-6 md:p-8 mb-12"
+          variants={faqContainerVariants}
+        >
+          <motion.div className="space-y-2">
+            {faqData.map((item, index) => (
+              <motion.div
+                key={index}
+                variants={faqItemVariants}
+                whileHover={{ x: 4 }}
+                transition={{ duration: 0.2 }}
+              >
+                <FAQItem question={item.question} answer={item.answer} />
+              </motion.div>
+            ))}
+          </motion.div>
+        </motion.div>
 
-        {/* --- בלוק יצירת קשר חדש --- */}
-        <div className="mt-12 text-center bg-gray-50 p-6 rounded-lg border border-gray-100">
+        {/* Contact Block */}
+        <motion.div
+          className="text-center bg-gray-50 p-6 rounded-lg border border-gray-100"
+          variants={contactBlockVariants}
+        >
           <h3 className="text-xl font-semibold text-gray-800 mb-2">
             לא מצאתם את התשובה?
           </h3>
@@ -2608,9 +3090,9 @@ const FAQSection: React.FC = () => {
               <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Button>
           </Link>
-        </div>
+        </motion.div>
       </div>
-    </section>
+    </motion.section>
   );
 };
 
@@ -2621,60 +3103,138 @@ export default FAQSection;
 File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\FeaturesSection.tsx
 --------------------------------------------------------------------------------
 Content:
-import React from "react";
-import FeatureCard from "../components/FeatureCard";
-import { Shield, Users, Heart, MessageCircle } from "lucide-react";
+import React, { useRef } from 'react';
+import { motion, useInView } from 'framer-motion';
+import FeatureCard from '../components/FeatureCard';
+import { Shield, Users, Heart, MessageCircle } from 'lucide-react';
 
 const FeaturesSection: React.FC = () => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.1 });
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.15,
+        delayChildren: 0.2,
+      },
+    },
+  };
+
+  const headerVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: 'easeOut' },
+    },
+  };
+
+  const cardVariants = {
+    hidden: { opacity: 0, y: 40, scale: 0.95 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        duration: 0.6,
+        ease: 'easeOut',
+        scale: {
+          type: 'spring',
+          stiffness: 260,
+          damping: 20,
+        },
+      },
+    },
+  };
+
+  const features = [
+    {
+      icon: <Shield className="w-8 h-8" />,
+      title: 'פרטיות מלאה',
+      description: 'שמירה קפדנית על פרטיות המשתמשים ואבטחת מידע מתקדמת',
+      color: 'cyan' as const,
+    },
+    {
+      icon: <Users className="w-8 h-8" />,
+      title: 'התאמה מדויקת',
+      description:
+        'מערכת חכמה המתאימה בין מועמדים על בסיס ערכים ושאיפות משותפות',
+      color: 'green' as const,
+    },
+    {
+      icon: <Heart className="w-8 h-8" />,
+      title: 'ליווי אישי',
+      description: 'צוות שדכנים מקצועי ומנוסה לאורך כל התהליך',
+      color: 'orange' as const,
+    },
+    {
+      icon: <MessageCircle className="w-8 h-8" />,
+      title: 'תקשורת בטוחה',
+      description: 'פלטפורמה מאובטחת ליצירת קשר ראשוני בין המועמדים',
+      color: 'pink' as const,
+    },
+  ];
+
   return (
-    <section className="py-16 md:py-20 px-4 bg-white relative">
+    <motion.section
+      ref={ref}
+      className="py-16 md:py-20 px-4 bg-white relative"
+      variants={containerVariants}
+      initial="hidden"
+      animate={isInView ? 'visible' : 'hidden'}
+    >
       {/* Subtle background pattern */}
       <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:20px_20px]"></div>
 
       <div className="max-w-6xl mx-auto relative">
-        <div className="text-center mb-12 md:mb-16">
+        {/* Header */}
+        <motion.div
+          className="text-center mb-12 md:mb-16"
+          variants={headerVariants}
+        >
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4">
             למה
             <span
               className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-cyan-700 animate-gradient"
-              style={{ backgroundSize: "200% 200%" }}
+              style={{ backgroundSize: '200% 200%' }}
             >
-              {" "}
-              לבחור{" "}
+              {' '}
+              לבחור{' '}
             </span>
             במערכת שלנו?
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-cyan-600 to-cyan-700 mx-auto rounded-full" />
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-          <FeatureCard
-            icon={<Shield className="w-8 h-8" />}
-            title="פרטיות מלאה"
-            description="שמירה קפדנית על פרטיות המשתמשים ואבטחת מידע מתקדמת"
-            color="cyan"
-          />
-          <FeatureCard
-            icon={<Users className="w-8 h-8" />}
-            title="התאמה מדויקת"
-            description="מערכת חכמה המתאימה בין מועמדים על בסיס ערכים ושאיפות משותפות"
-            color="green"
-          />
-          <FeatureCard
-            icon={<Heart className="w-8 h-8" />}
-            title="ליווי אישי"
-            description="צוות שדכנים מקצועי ומנוסה לאורך כל התהליך"
-            color="orange"
-          />
-          <FeatureCard
-            icon={<MessageCircle className="w-8 h-8" />}
-            title="תקשורת בטוחה"
-            description="פלטפורמה מאובטחת ליצירת קשר ראשוני בין המועמדים"
-            color="pink"
-          />
-        </div>
+        {/* Features Grid */}
+        <motion.div
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8"
+          variants={containerVariants}
+        >
+          {features.map((feature, index) => (
+            <motion.div
+              key={index}
+              variants={cardVariants}
+              whileHover={{
+                y: -5,
+                transition: { duration: 0.2 },
+              }}
+            >
+              <FeatureCard
+                icon={feature.icon}
+                title={feature.title}
+                description={feature.description}
+                color={feature.color}
+              />
+            </motion.div>
+          ))}
+        </motion.div>
       </div>
-    </section>
+    </motion.section>
   );
 };
 
@@ -2685,43 +3245,164 @@ export default FeaturesSection;
 File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\FooterSection.tsx
 --------------------------------------------------------------------------------
 Content:
-// src/components/HomePage/sections/FooterSection.tsx
-
-import React from "react";
-import Link from "next/link";
-import { Heart } from "lucide-react";
-import { FooterLink, FooterItem } from "../components/FooterComponents";
+import React, { useRef } from 'react';
+import { motion, useInView } from 'framer-motion';
+import Link from 'next/link';
+import { Heart } from 'lucide-react';
+import { FooterLink, FooterItem } from '../components/FooterComponents';
 
 const FooterSection: React.FC = () => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.1 });
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2,
+      },
+    },
+  };
+
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: 'easeOut' },
+    },
+  };
+
+  const logoVariants = {
+    hidden: { opacity: 0, scale: 0.8, y: 20 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: 'easeOut',
+        scale: {
+          type: 'spring',
+          stiffness: 260,
+          damping: 20,
+        },
+      },
+    },
+  };
+
+  const socialIconsVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.3,
+      },
+    },
+  };
+
+  const socialIconVariants = {
+    hidden: { opacity: 0, scale: 0 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.4,
+        type: 'spring',
+        stiffness: 260,
+        damping: 15,
+      },
+    },
+  };
+
+  const columnVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: 'easeOut' },
+    },
+  };
+
+  const staggeredListVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.05,
+      },
+    },
+  };
+
+  const listItemVariants = {
+    hidden: { opacity: 0, x: -10 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { duration: 0.4, ease: 'easeOut' },
+    },
+  };
+
+  const bottomSectionVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: 'easeOut', delay: 0.5 },
+    },
+  };
+
   return (
-    <footer className="bg-gradient-to-br from-gray-900 to-gray-800 text-white py-12 md:py-16 px-4 relative overflow-hidden">
+    <motion.footer
+      ref={ref}
+      className="bg-gradient-to-br from-gray-900 to-gray-800 text-white py-12 md:py-16 px-4 relative overflow-hidden"
+      variants={containerVariants}
+      initial="hidden"
+      animate={isInView ? 'visible' : 'hidden'}
+    >
       {/* Enhanced background effects */}
       <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTAgMGg0MHY0MEgwVjB6bTEwIDEwaDIwdjIwSDEwVjEweiIvPjwvZz48L2c+PC9zdmc+')]"></div>
 
       <div className="max-w-6xl mx-auto relative">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12">
-          <div className="md:col-span-1">
-            <Link href="/" className="flex items-center gap-2 group mb-6">
-              <div className="relative overflow-hidden rounded-full p-1 transition-all duration-300 group-hover:scale-110">
-                <Heart
-                  className="h-7 w-7 text-cyan-400 transition-all duration-300 group-hover:text-cyan-300"
-                  fill="#1e293b"
-                />
-              </div>
-              <span className="text-xl font-bold text-white group-hover:text-cyan-300 transition-all duration-300">
-                Match Point
-              </span>
-            </Link>
+          {/* Logo and Description Column */}
+          <motion.div className="md:col-span-1" variants={logoVariants}>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Link href="/" className="flex items-center gap-2 group mb-6">
+                <div className="relative overflow-hidden rounded-full p-1 transition-all duration-300 group-hover:scale-110">
+                  <Heart
+                    className="h-7 w-7 text-cyan-400 transition-all duration-300 group-hover:text-cyan-300"
+                    fill="#1e293b"
+                  />
+                </div>
+                <span className="text-xl font-bold text-white group-hover:text-cyan-300 transition-all duration-300">
+                  Match Point
+                </span>
+              </Link>
+            </motion.div>
 
-            <p className="text-gray-400 mb-6">
+            <motion.p className="text-gray-400 mb-6" variants={fadeInUp}>
               משלבים טכנולוגיה מתקדמת וליווי אישי ליצירת קשרים משמעותיים ארוכי
               טווח.
-            </p>
+            </motion.p>
 
-            <div className="flex space-x-4 rtl:space-x-reverse">
-              <a
+            <motion.div
+              className="flex space-x-4 rtl:space-x-reverse"
+              variants={socialIconsVariants}
+            >
+              <motion.a
                 href="https://www.facebook.com/profile.php?id=61577134204445"
                 className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-cyan-600/20 transition-colors duration-300"
+                variants={socialIconVariants}
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                whileTap={{ scale: 0.95 }}
               >
                 <svg
                   className="w-5 h-5 text-white"
@@ -2735,10 +3416,14 @@ const FooterSection: React.FC = () => {
                     clipRule="evenodd"
                   ></path>
                 </svg>
-              </a>
-              <a
+              </motion.a>
+
+              <motion.a
                 href="#"
                 className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-cyan-400/20 transition-colors duration-300"
+                variants={socialIconVariants}
+                whileHover={{ scale: 1.1, rotate: -5 }}
+                whileTap={{ scale: 0.95 }}
               >
                 <svg
                   className="w-5 h-5 text-white"
@@ -2748,10 +3433,14 @@ const FooterSection: React.FC = () => {
                 >
                   <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84"></path>
                 </svg>
-              </a>
-              <a
+              </motion.a>
+
+              <motion.a
                 href="#"
                 className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-gradient-to-br from-purple-600/20 to-pink-600/20 transition-colors duration-300"
+                variants={socialIconVariants}
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                whileTap={{ scale: 0.95 }}
               >
                 <svg
                   className="w-5 h-5 text-white"
@@ -2765,74 +3454,123 @@ const FooterSection: React.FC = () => {
                     clipRule="evenodd"
                   ></path>
                 </svg>
-              </a>
-            </div>
-          </div>
+              </motion.a>
+            </motion.div>
+          </motion.div>
 
-          <div>
+          {/* Navigation Column */}
+          <motion.div variants={columnVariants}>
             <h3 className="font-bold text-xl mb-4 md:mb-6 relative">
               <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-cyan-300">
                 ניווט מהיר
               </span>
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-400/30 to-cyan-300/30" />
             </h3>
-            <ul className="space-y-3 md:space-y-4">
-              <FooterLink href="/">דף הבית</FooterLink>
-              <FooterLink href="/about">אודות</FooterLink>
-              <FooterLink href="/faq">שאלות נפוצות</FooterLink>
-              <FooterLink href="/matches">שידוכים זמינים</FooterLink>
-              <FooterLink href="/success-stories">סיפורי הצלחה</FooterLink>
-            </ul>
-          </div>
+            <motion.ul
+              className="space-y-3 md:space-y-4"
+              variants={staggeredListVariants}
+            >
+              <motion.div variants={listItemVariants}>
+                <FooterLink href="/">דף הבית</FooterLink>
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <FooterLink href="/about">אודות</FooterLink>
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <FooterLink href="/faq">שאלות נפוצות</FooterLink>
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <FooterLink href="/matches">שידוכים זמינים</FooterLink>
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <FooterLink href="/success-stories">סיפורי הצלחה</FooterLink>
+              </motion.div>
+            </motion.ul>
+          </motion.div>
 
-          <div>
+          {/* Information Column */}
+          <motion.div variants={columnVariants}>
             <h3 className="font-bold text-xl mb-4 md:mb-6 relative">
               <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-cyan-300">
                 מידע שימושי
               </span>
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-400/30 to-cyan-300/30" />
             </h3>
-            <ul className="space-y-3 md:space-y-4">
-              <FooterLink href="/privacy">פרטיות</FooterLink>
-              <FooterLink href="/terms">תנאי שימוש</FooterLink>
-              <FooterLink href="/help">עזרה ותמיכה</FooterLink>
-              <FooterLink href="/contact">צור קשר</FooterLink> {/* <--- הקישור החדש */}
-              <FooterLink href="/blog">בלוג</FooterLink>
-              <FooterLink href="/pricing">תוכניות ומחירים</FooterLink>
-            </ul>
-          </div>
+            <motion.ul
+              className="space-y-3 md:space-y-4"
+              variants={staggeredListVariants}
+            >
+              <motion.div variants={listItemVariants}>
+                <FooterLink href="/privacy">פרטיות</FooterLink>
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <FooterLink href="/terms">תנאי שימוש</FooterLink>
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <FooterLink href="/help">עזרה ותמיכה</FooterLink>
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <FooterLink href="/contact">צור קשר</FooterLink>
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <FooterLink href="/blog">בלוג</FooterLink>
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <FooterLink href="/pricing">תוכניות ומחירים</FooterLink>
+              </motion.div>
+            </motion.ul>
+          </motion.div>
 
-          <div>
+          {/* Contact Column */}
+          <motion.div variants={columnVariants}>
             <h3 className="font-bold text-xl mb-4 md:mb-6 relative">
               <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-cyan-300">
                 יצירת קשר
               </span>
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-400/30 to-cyan-300/30" />
             </h3>
-            <ul className="space-y-3 md:space-y-4">
-              <FooterItem icon="📱" text="054-321-0040" />
-              <FooterItem icon="✉️" text="jewish.matchpoint@gmail.com
-" />
-              <FooterItem icon="📍" text="רעננה" />
-              <FooterItem icon="🕒" text="א'-ה' 9:00-18:00, ו' 9:00-13:00" />
-            </ul>
-          </div>
+            <motion.ul
+              className="space-y-3 md:space-y-4"
+              variants={staggeredListVariants}
+            >
+              <motion.div variants={listItemVariants}>
+                <FooterItem icon="📱" text="054-321-0040" />
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <FooterItem icon="✉️" text="jewish.matchpoint@gmail.com" />
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <FooterItem icon="📍" text="רעננה" />
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <FooterItem icon="🕒" text="א'-ה' 9:00-18:00, ו' 9:00-13:00" />
+              </motion.div>
+            </motion.ul>
+          </motion.div>
         </div>
 
-        <div className="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-gray-700/50">
+        {/* Bottom Section */}
+        <motion.div
+          className="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-gray-700/50"
+          variants={bottomSectionVariants}
+        >
           <div className="text-center">
-            <div className="mb-4">
+            <motion.div
+              className="mb-4"
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.2 }}
+            >
               <span className="inline-block px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/10 to-cyan-400/10 text-cyan-400 hover:from-cyan-500/20 hover:to-cyan-400/20 transition-colors duration-300">
                 מחברים לבבות בדרך הנכונה
               </span>
-            </div>
+            </motion.div>
             <p className="text-gray-400">
               © כל הזכויות שמורות Match Point 2025
             </p>
           </div>
-        </div>
+        </motion.div>
       </div>
-    </footer>
+    </motion.footer>
   );
 };
 
@@ -3491,7 +4229,8 @@ const HowItWorksSection: React.FC = () => {
           </div>
 
           {/* הדמואים */}
-          <div ref={demoRef}>
+          <div ref={demoRef} id="suggestion-demo">
+            {' '}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={
@@ -3775,15 +4514,12 @@ export default HowItWorksSection;
 File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\MatchmakerTeamSection.tsx
 --------------------------------------------------------------------------------
 Content:
-import React from 'react';
+import React, { useRef } from 'react';
+import { motion, useInView } from 'framer-motion';
 import Image from 'next/image';
-
-// ======================= שלב 1: הוספת הייבוא =======================
-// מייבאים את פונקציית העזר שיודעת "לנקות" את ה-URL עבור ה-Loader שלנו
 import { getRelativeCloudinaryPath } from '@/lib/utils';
-// ודא שהנתיב לקובץ utils.ts שלך נכון
 
-// עדכון רכיב הכרטיס עם תצוגה מרכזית ומקצועית
+// Enhanced MatchmakerCard component with animations
 interface MatchmakerCardProps {
   name: string;
   role: string;
@@ -3791,6 +4527,7 @@ interface MatchmakerCardProps {
   tags: string[];
   color: string;
   imageSrc?: string;
+  delay?: number;
 }
 
 const MatchmakerCard: React.FC<MatchmakerCardProps> = ({
@@ -3800,6 +4537,7 @@ const MatchmakerCard: React.FC<MatchmakerCardProps> = ({
   tags,
   color,
   imageSrc,
+  delay = 0,
 }) => {
   const getGradientByColor = () => {
     switch (color) {
@@ -3837,11 +4575,13 @@ const MatchmakerCard: React.FC<MatchmakerCardProps> = ({
   return (
     <div className="rounded-xl shadow-lg overflow-hidden bg-white border border-gray-100 flex flex-col h-full transition-all duration-300 hover:shadow-xl">
       <div className="p-8 flex flex-col items-center">
-        {/* תמונה מעוגלת */}
-        <div className="w-48 h-48 mb-6 overflow-hidden rounded-full border-4 border-white shadow-md relative">
+        {/* Animated image container */}
+        <motion.div
+          className="w-48 h-48 mb-6 overflow-hidden rounded-full border-4 border-white shadow-md relative"
+          whileHover={{ scale: 1.05 }}
+          transition={{ duration: 0.3 }}
+        >
           {imageSrc ? (
-            // ================== שלב 2: שימוש בפונקציית העזר ==================
-            // עוטפים את ה-imageSrc בפונקציה כדי להעביר נתיב נקי לרכיב Image
             <Image
               src={getRelativeCloudinaryPath(imageSrc)}
               alt={name}
@@ -3859,9 +4599,9 @@ const MatchmakerCard: React.FC<MatchmakerCardProps> = ({
               </span>
             </div>
           )}
-        </div>
+        </motion.div>
 
-        {/* פרטי השדכן */}
+        {/* Name and role */}
         <h3 className="text-2xl font-bold text-gray-800 mb-1 text-center">
           {name}
         </h3>
@@ -3871,39 +4611,127 @@ const MatchmakerCard: React.FC<MatchmakerCardProps> = ({
           {role}
         </p>
 
-        {/* תגיות התמחות */}
-        <div className="flex flex-wrap gap-2 justify-center mb-5">
+        {/* Tags with staggered animation */}
+        <motion.div
+          className="flex flex-wrap gap-2 justify-center mb-5"
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: { opacity: 0 },
+            visible: {
+              opacity: 1,
+              transition: {
+                staggerChildren: 0.1,
+                delayChildren: delay + 0.3,
+              },
+            },
+          }}
+        >
           {tags.map((tag, index) => (
-            <span
+            <motion.span
               key={index}
               className={`text-sm px-3 py-1 rounded-full ${getTagColorByColor()}`}
+              variants={{
+                hidden: { opacity: 0, scale: 0.8 },
+                visible: {
+                  opacity: 1,
+                  scale: 1,
+                  transition: { duration: 0.3 },
+                },
+              }}
             >
               {tag}
-            </span>
+            </motion.span>
           ))}
-        </div>
+        </motion.div>
 
-        {/* תיאור */}
+        {/* Description */}
         <p className="text-gray-600 mb-6 text-center leading-relaxed">
           {description}
         </p>
 
-        {/* כפתור */}
-        <button
+        {/* Button with hover animation */}
+        <motion.button
           className={`px-8 py-3 rounded-lg text-white ${getButtonColorByColor()} transition-colors duration-300 font-medium`}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
           קבע פגישה
-        </button>
+        </motion.button>
       </div>
     </div>
   );
 };
 
 const MatchmakerTeamSection: React.FC = () => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.1 });
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.3,
+        delayChildren: 0.2,
+      },
+    },
+  };
+
+  const headerVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: 'easeOut' },
+    },
+  };
+
+  const cardVariants = {
+    hidden: { opacity: 0, y: 50, scale: 0.9 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        duration: 0.7,
+        ease: 'easeOut',
+        scale: {
+          type: 'spring',
+          stiffness: 260,
+          damping: 20,
+        },
+      },
+    },
+  };
+
+  const fadeInLeft = {
+    hidden: { opacity: 0, x: -60 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { duration: 0.7, ease: 'easeOut' },
+    },
+  };
+
+  const fadeInRight = {
+    hidden: { opacity: 0, x: 60 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { duration: 0.7, ease: 'easeOut' },
+    },
+  };
+
   return (
-    <section
+    <motion.section
+      ref={ref}
       id="our-team"
       className="py-16 md:py-24 px-4 bg-gradient-to-b from-blue-50 to-white relative overflow-hidden"
+      variants={containerVariants}
+      initial="hidden"
+      animate={isInView ? 'visible' : 'hidden'}
     >
       {/* רקע דקורטיבי */}
       <div className="absolute top-0 left-0 w-64 h-64 bg-cyan-100/30 rounded-full blur-3xl"></div>
@@ -3911,7 +4739,7 @@ const MatchmakerTeamSection: React.FC = () => {
 
       <div className="max-w-6xl mx-auto relative">
         {/* כותרת מרכזית */}
-        <div className="text-center mb-16">
+        <motion.div className="text-center mb-16" variants={headerVariants}>
           <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
             הכירו את
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-teal-600">
@@ -3925,33 +4753,36 @@ const MatchmakerTeamSection: React.FC = () => {
             המייסדים שלנו מביאים ניסיון עשיר וגישה ייחודית לעולם השידוכים,
             בשילוב טכנולוגיה מתקדמת וראייה אישית
           </p>
-        </div>
+        </motion.div>
 
         {/* כרטיסי השדכנים */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-12 max-w-5xl mx-auto">
-          <MatchmakerCard
-            name="דינה אנגלרד"
-            role="שדכנית ראשית"
-            description="עם ניסיון של 8 שנים בתחום השידוכים, דינה מביאה כישורים בינאישיים יוצאי דופן והבנה עמוקה של צרכי המועמדים. הגישה האישית והאמפתית שלה יצרה עשרות זוגות מאושרים והיא מלווה כל מועמד בדרך מותאמת אישית."
-            color="cyan"
-            tags={['מומחית התאמה', 'ליווי אישי', '2+ שנות ניסיון']}
-            // =================== שלב 3: שימוש ב-URL נקי ותקין ===================
-            // ודא שהכתובת שהעתקת מ-Cloudinary מודבקת כאן במדויק, ללא רווחים או שורות חדשות
-            imageSrc="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700882/dina4_gr0ako.jpg"
-          />
-          <MatchmakerCard
-            name="איתן אנגלרד"
-            role="מייסד ומנכ״ל"
-            description="יזם טכנולוגי עם התמחות בשידוכים. איתן פיתח את פלטפורמת התוכנה הייחודית שלנו ומשלב ידע טכנולוגי עם הבנה עמוקה של פסיכולוגיה חברתית. הגישה החדשנית שלו יצרה את השיטה הייחודית שמאפיינת את המשרד שלנו."
-            color="green"
-            tags={['חדשנות טכנולוגית', 'אלגוריתם התאמה', 'יזמות']}
-            // =================== שלב 3: שימוש ב-URL נקי ותקין ===================
-            imageSrc="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700884/eitan_h9ylkc.jpg
-"
-          />
+          <motion.div variants={fadeInLeft}>
+            <MatchmakerCard
+              name="דינה אנגלרד"
+              role="שדכנית ראשית"
+              description="עם ניסיון של 8 שנים בתחום השידוכים, דינה מביאה כישורים בינאישיים יוצאי דופן והבנה עמוקה של צרכי המועמדים. הגישה האישית והאמפתית שלה יצרה עשרות זוגות מאושרים והיא מלווה כל מועמד בדרך מותאמת אישית."
+              color="cyan"
+              tags={['מומחית התאמה', 'ליווי אישי', '2+ שנות ניסיון']}
+              imageSrc="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700882/dina4_gr0ako.jpg"
+              delay={0.2}
+            />
+          </motion.div>
+
+          <motion.div variants={fadeInRight}>
+            <MatchmakerCard
+              name="איתן אנגלרד"
+              role="מייסד ומנכ״ל"
+              description="יזם טכנולוגי עם התמחות בשידוכים. איתן פיתח את פלטפורמת התוכנה הייחודית שלנו ומשלב ידע טכנולוגי עם הבנה עמוקה של פסיכולוגיה חברתית. הגישה החדשנית שלו יצרה את השיטה הייחודית שמאפיינת את המשרד שלנו."
+              color="green"
+              tags={['חדשנות טכנולוגית', 'אלגוריתם התאמה', 'יזמות']}
+              imageSrc="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700884/eitan_h9ylkc.jpg"
+              delay={0.4}
+            />
+          </motion.div>
         </div>
       </div>
-    </section>
+    </motion.section>
   );
 };
 
@@ -3962,14 +4793,100 @@ export default MatchmakerTeamSection;
 File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\PrivacyAssuranceSection.tsx
 --------------------------------------------------------------------------------
 Content:
-import React from "react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { CheckCircle, Lock } from "lucide-react";
+import React, { useRef } from 'react';
+import { motion, useInView } from 'framer-motion';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { CheckCircle, Lock } from 'lucide-react';
 
 const PrivacyAssuranceSection: React.FC = () => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.1 });
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.3,
+        delayChildren: 0.2,
+      },
+    },
+  };
+
+  const fadeInLeft = {
+    hidden: { opacity: 0, x: -60 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { duration: 0.7, ease: 'easeOut' },
+    },
+  };
+
+  const fadeInRight = {
+    hidden: { opacity: 0, x: 60 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { duration: 0.7, ease: 'easeOut' },
+    },
+  };
+
+  const staggeredListVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.4,
+      },
+    },
+  };
+
+  const listItemVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { duration: 0.5, ease: 'easeOut' },
+    },
+  };
+
+  const cardVariants = {
+    hidden: { opacity: 0, scale: 0.9, y: 30 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: 'easeOut',
+        scale: {
+          type: 'spring',
+          stiffness: 260,
+          damping: 20,
+        },
+      },
+    },
+  };
+
+  const privacyFeatures = [
+    'פרופילים גלויים רק לשדכנים מורשים, מבטיחים דיסקרטיות מלאה',
+    'הצפנת מידע מקצה לקצה להגנה על כל הנתונים האישיים',
+    'בדיקות אבטחה קבועות וביקורות חיצוניות לוודא עמידה בסטנדרטים המחמירים ביותר',
+    'מדיניות אפס-שיתוף - המידע שלך לעולם לא נמכר או משותף עם צדדים שלישיים',
+    'יכולת שליטה מלאה בנתונים שלך בכל עת',
+  ];
+
   return (
-    <section className="py-16 md:py-20 px-4 bg-gradient-to-br from-cyan-600 to-cyan-700 text-white relative overflow-hidden">
+    <motion.section
+      ref={ref}
+      className="py-16 md:py-20 px-4 bg-gradient-to-br from-cyan-600 to-cyan-700 text-white relative overflow-hidden"
+      variants={containerVariants}
+      initial="hidden"
+      animate={isInView ? 'visible' : 'hidden'}
+    >
       <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgdmlld0JveD0iMCAwIDIwIDIwIj48Y2lyY2xlIGN4PSIxMCIgY3k9IjEwIiByPSIxIiBmaWxsPSIjZmZmZmZmIi8+PC9zdmc+')]"></div>
 
       <div className="absolute top-0 left-0 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
@@ -3977,101 +4894,93 @@ const PrivacyAssuranceSection: React.FC = () => {
 
       <div className="max-w-5xl mx-auto relative">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-          <div>
-            <div className="mb-8 text-center">
+          {/* Left Content */}
+          <motion.div variants={fadeInLeft}>
+            <div className="mb-8 text-center md:text-right">
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
                 הפרטיות שלך חשובה לנו
               </h2>
-              <div className="w-24 h-1 bg-white/30 rounded-full mb-6 mx-auto"></div>
-              <p className="text-lg text-white/90 mb-6 mx-auto max-w-md">
+              <div className="w-24 h-1 bg-white/30 rounded-full mb-6 mx-auto md:mr-0"></div>
+              <p className="text-lg text-white/90 mb-6 mx-auto md:mx-0 max-w-md">
                 בעולם השידוכים, הדיסקרטיות והפרטיות הן קריטיות. ב-Match Point
                 פיתחנו מערכת שמתעדפת את האבטחה והפרטיות שלך בכל שלב.
               </p>
             </div>
 
-            <div className="space-y-4">
-              <div className="flex items-start">
-                <div className="bg-white/20 rounded-full p-2 mr-3 mt-1">
-                  <CheckCircle className="w-4 h-4 text-white" />
-                </div>
-                <p className="text-white/90">
-                  פרופילים גלויים רק לשדכנים מורשים, מבטיחים דיסקרטיות מלאה
-                </p>
-              </div>
+            <motion.div className="space-y-4" variants={staggeredListVariants}>
+              {privacyFeatures.map((feature, index) => (
+                <motion.div
+                  key={index}
+                  className="flex items-start"
+                  variants={listItemVariants}
+                  whileHover={{ x: 4 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <div className="bg-white/20 rounded-full p-2 mr-3 mt-1 flex-shrink-0">
+                    <CheckCircle className="w-4 h-4 text-white" />
+                  </div>
+                  <p className="text-white/90">{feature}</p>
+                </motion.div>
+              ))}
+            </motion.div>
+          </motion.div>
 
-              <div className="flex items-start">
-                <div className="bg-white/20 rounded-full p-2 mr-3 mt-1">
-                  <CheckCircle className="w-4 h-4 text-white" />
-                </div>
-                <p className="text-white/90">
-                  הצפנת מידע מקצה לקצה להגנה על כל הנתונים האישיים
-                </p>
-              </div>
-
-              <div className="flex items-start">
-                <div className="bg-white/20 rounded-full p-2 mr-3 mt-1">
-                  <CheckCircle className="w-4 h-4 text-white" />
-                </div>
-                <p className="text-white/90">
-                  בדיקות אבטחה קבועות וביקורות חיצוניות לוודא עמידה בסטנדרטים
-                  המחמירים ביותר
-                </p>
-              </div>
-
-              <div className="flex items-start">
-                <div className="bg-white/20 rounded-full p-2 mr-3 mt-1">
-                  <CheckCircle className="w-4 h-4 text-white" />
-                </div>
-                <p className="text-white/90">
-                  מדיניות אפס-שיתוף - המידע שלך לעולם לא נמכר או משותף עם צדדים
-                  שלישיים
-                </p>
-              </div>
-
-              <div className="flex items-start">
-                <div className="bg-white/20 rounded-full p-2 mr-3 mt-1">
-                  <CheckCircle className="w-4 h-4 text-white" />
-                </div>
-                <p className="text-white/90">
-                  יכולת שליטה מלאה בנתונים שלך בכל עת
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex justify-center">
-            <div className="relative max-w-sm">
+          {/* Right Card */}
+          <motion.div className="flex justify-center" variants={fadeInRight}>
+            <div className="relative max-w-sm w-full">
+              {/* Background decoration */}
               <div className="absolute inset-0 bg-white/10 rounded-2xl blur-lg transform rotate-6"></div>
-              <div className="relative bg-white/20 backdrop-blur-sm p-8 rounded-2xl border border-white/30">
-                <div className="w-16 h-16 mx-auto mb-6 bg-white/30 rounded-full flex items-center justify-center">
+
+              {/* Main card */}
+              <motion.div
+                className="relative bg-white/20 backdrop-blur-sm p-8 rounded-2xl border border-white/30"
+                variants={cardVariants}
+                whileHover={{
+                  scale: 1.02,
+                  transition: { duration: 0.2 },
+                }}
+              >
+                {/* Lock icon */}
+                <motion.div
+                  className="w-16 h-16 mx-auto mb-6 bg-white/30 rounded-full flex items-center justify-center"
+                  whileHover={{
+                    rotate: [0, -10, 10, 0],
+                    transition: { duration: 0.6 },
+                  }}
+                >
                   <Lock className="w-8 h-8 text-white" />
-                </div>
+                </motion.div>
 
                 <h3 className="text-xl font-bold mb-4 text-center">
                   הבטחת הפרטיות שלנו
                 </h3>
 
                 <p className="text-white/90 text-center mb-6">
-                אנו מתחייבים לשמור על הפרטיות והכבוד של כל משתמש במערכת
-                  שלנו, תוך יצירת סביבה בטוחה ומכבדת למציאת הזיווג המושלם
+                  אנו מתחייבים לשמור על הפרטיות והכבוד של כל משתמש במערכת שלנו,
+                  תוך יצירת סביבה בטוחה ומכבדת למציאת הזיווג המושלם
                 </p>
 
                 <div className="text-center">
                   <Link href="/privacy">
-                    <Button
-                      variant="outline"
-                      className="border-2 border-white/50 bg-white text-cyan-600 hover:bg-white/90 transition-all duration-300 rounded-xl"
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                     >
-                      קראו את מדיניות הפרטיות
-                    </Button>
+                      <Button
+                        variant="outline"
+                        className="border-2 border-white/50 bg-white text-cyan-600 hover:bg-white/90 transition-all duration-300 rounded-xl"
+                      >
+                        קראו את מדיניות הפרטיות
+                      </Button>
+                    </motion.div>
                   </Link>
                 </div>
-              </div>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
-    </section>
+    </motion.section>
   );
 };
 
@@ -4082,17 +4991,86 @@ export default PrivacyAssuranceSection;
 File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\SuccessStoriesSection.tsx
 --------------------------------------------------------------------------------
 Content:
-import React from 'react';
+import React, { useRef } from 'react';
+import { motion, useInView } from 'framer-motion';
 import TestimonialCard from '../components/TestimonialCard';
 
 const SuccessStoriesSection: React.FC = () => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.1 });
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2,
+        delayChildren: 0.3,
+      },
+    },
+  };
+
+  const headerVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: 'easeOut' },
+    },
+  };
+
+  const cardVariants = {
+    hidden: { opacity: 0, scale: 0.8, y: 40 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: 'easeOut',
+        scale: {
+          type: 'spring',
+          stiffness: 260,
+          damping: 20,
+        },
+      },
+    },
+  };
+
+  const testimonials = [
+    {
+      text: 'תמיד חלמתי על שותף לחיים עם שאיפות ערכיות דומות – להקים בית של חסד, ציונות ותורה. Match Point חיברו אותי לאדם שחולם בדיוק את אותו החלום. זה חיבור של נשמה ומטרה.',
+      author: 'שרה, ירושלים',
+      result: 'נשואים + 1',
+      color: 'green' as const,
+    },
+    {
+      text: 'הקסם של Match Point הוא ביכולת לראות מעבר לפרטים היבשים. איתן והמערכת זיהו את החיבור העמוק בערכי המשפחה ובווייב הכללי שלנו. זו התאמה שמרגישה כמו בית מהרגע הראשון.',
+      author: 'מרים, ירוחם',
+      result: 'נשואים',
+      color: 'orange' as const,
+    },
+  ];
+
   return (
-    <section id="success-stories" className="py-16 md:py-20 px-4 relative">
+    <motion.section
+      ref={ref}
+      id="success-stories"
+      className="py-16 md:py-20 px-4 relative"
+      variants={containerVariants}
+      initial="hidden"
+      animate={isInView ? 'visible' : 'hidden'}
+    >
       {/* Subtle background pattern */}
       <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:20px_20px]"></div>
 
       <div className="max-w-6xl mx-auto relative">
-        <div className="text-center mb-12 md:mb-16">
+        {/* Header */}
+        <motion.div
+          className="text-center mb-12 md:mb-16"
+          variants={headerVariants}
+        >
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4">
             סיפורי
             <span
@@ -4104,33 +5082,45 @@ const SuccessStoriesSection: React.FC = () => {
             </span>
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-cyan-600 to-cyan-700 mx-auto rounded-full" />
-        </div>
+        </motion.div>
 
-        {/* --- שינוי כאן: הגריד הותאם ל-2 סיפורים ונראה טוב יותר --- */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          <TestimonialCard
-            text="תמיד חלמתי על שותף לחיים עם שאיפות ערכיות דומות – להקים בית של חסד, ציונות ותורה. Match Point חיברו אותי לאדם שחולם בדיוק את אותו החלום. זה חיבור של נשמה ומטרה."
-            author="שרה, ירושלים"
-            result="נשואים + 1"
-            color="green"
-          />
-          <TestimonialCard
-            text="הקסם של Match Point הוא ביכולת לראות מעבר לפרטים היבשים. איתן והמערכת זיהו את החיבור העמוק בערכי המשפחה ובווייב הכללי שלנו. זו התאמה שמרגישה כמו בית מהרגע הראשון."
-            author="מרים, ירוחם"
-            result="נשואים"
-            color="orange"
-          />
-        </div>
+        {/* Testimonials Grid */}
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto"
+          variants={containerVariants}
+        >
+          {testimonials.map((testimonial, index) => (
+            <motion.div
+              key={index}
+              variants={cardVariants}
+              whileHover={{
+                y: -8,
+                transition: { duration: 0.2 },
+              }}
+            >
+              <TestimonialCard
+                text={testimonial.text}
+                author={testimonial.author}
+                result={testimonial.result}
+                color={testimonial.color}
+              />
+            </motion.div>
+          ))}
+        </motion.div>
 
-        <div className="mt-12 text-center">
-          {/* 
-            --- התייחסות לשאלתך על הכפתור ---
-            המלצה: מכיוון שכרגע יש רק שני סיפורי הצלחה, הייתי ממליץ להסיר זמנית את הכפתור "לעוד סיפורי הצלחה".
-            כפתור שמוביל לעמוד שמכיל רק את אותם שני סיפורים עלול להרגיש מאכזב למשתמש.
-            כאשר יהיו לך 4-5 סיפורים, תוכל ליצור עמוד ייעודי ולהחזיר את הכפתור.
-            כרגע, השארתי אותו כאן כהערה כדי שתוכל להפעיל אותו בקלות בעתיד.
-          */}
-          {/* 
+        {/* Future: Add button when more testimonials are available */}
+        {/* 
+        <motion.div 
+          className="mt-12 text-center"
+          variants={{
+            hidden: { opacity: 0, y: 20 },
+            visible: {
+              opacity: 1,
+              y: 0,
+              transition: { duration: 0.6, ease: "easeOut" }
+            }
+          }}
+        >
           <Link href="/success-stories">
             <Button
               variant="outline"
@@ -4140,10 +5130,10 @@ const SuccessStoriesSection: React.FC = () => {
               <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Button>
           </Link>
-          */}
-        </div>
+        </motion.div>
+        */}
       </div>
-    </section>
+    </motion.section>
   );
 };
 
@@ -4154,14 +5144,80 @@ export default SuccessStoriesSection;
 File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\ValuePropositionSection.tsx
 --------------------------------------------------------------------------------
 Content:
-import React from 'react';
+import React, { useRef } from 'react';
+import { motion, useInView } from 'framer-motion';
 import ComparisonItem from '../components/ComparisonItem';
 
 const ValuePropositionSection: React.FC = () => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.1 });
+
+  // Variants for different animation types
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2,
+        delayChildren: 0.3,
+      },
+    },
+  };
+
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: 'easeOut' },
+    },
+  };
+
+  const fadeInLeft = {
+    hidden: { opacity: 0, x: -50 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { duration: 0.7, ease: 'easeOut' },
+    },
+  };
+
+  const fadeInRight = {
+    hidden: { opacity: 0, x: 50 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { duration: 0.7, ease: 'easeOut' },
+    },
+  };
+
+  const staggeredListVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const listItemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.4, ease: 'easeOut' },
+    },
+  };
+
   return (
-    <section
+    <motion.section
+      ref={ref}
       id="our-method"
       className="py-16 md:py-20 px-4 bg-cyan-50 relative overflow-hidden"
+      variants={containerVariants}
+      initial="hidden"
+      animate={isInView ? 'visible' : 'hidden'}
     >
       <div className="absolute inset-0 bg-gradient-to-br from-cyan-50 to-white opacity-70"></div>
       <div className="absolute top-0 right-0 w-full h-full overflow-hidden">
@@ -4184,7 +5240,8 @@ const ValuePropositionSection: React.FC = () => {
       </div>
 
       <div className="max-w-6xl mx-auto relative">
-        <div className="text-center mb-12">
+        {/* Header with staggered animation */}
+        <motion.div className="text-center mb-12" variants={fadeInUp}>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4">
             מה הופך את
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-cyan-700">
@@ -4197,66 +5254,104 @@ const ValuePropositionSection: React.FC = () => {
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
             השילוב המושלם בין טכנולוגיה מתקדמת לבין הנגיעה האנושית והמסורתית
           </p>
-        </div>
+        </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-          <div className="bg-white rounded-2xl shadow-xl p-8 transform md:translate-x-4 relative overflow-hidden">
+          {/* Left card - Challenge */}
+          <motion.div
+            className="bg-white rounded-2xl shadow-xl p-8 transform md:translate-x-4 relative overflow-hidden"
+            variants={fadeInLeft}
+          >
             <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-cyan-100 to-cyan-50 opacity-50 rounded-full transform translate-x-20 -translate-y-20"></div>
 
             <h3 className="text-xl font-bold mb-4 text-gray-800 relative">
               האתגר במערכות קיימות
             </h3>
 
-            <ul className="space-y-3 relative">
-              <ComparisonItem isNegative>
-                חוסר פרטיות ודיסקרטיות באפליקציות היכרויות רגילות
-              </ComparisonItem>
-              <ComparisonItem isNegative>
-                פתרונות שאינם מותאמים לערכי הקהילה המסורתית והדתית
-              </ComparisonItem>
-              <ComparisonItem isNegative>
-                שיעור גבוה של אכזבות וחוסר התאמה אמיתית
-              </ComparisonItem>
-              <ComparisonItem isNegative>
-                מוגבלות לחוגים חברתיים קיימים בלבד
-              </ComparisonItem>
-              <ComparisonItem isNegative>
-                שדכנים מסורתיים: עלויות גבוהות, רשת קשרים מוגבלת ותהליך ממושך
-              </ComparisonItem>
-            </ul>
-          </div>
+            <motion.ul
+              className="space-y-3 relative"
+              variants={staggeredListVariants}
+              initial="hidden"
+              animate={isInView ? 'visible' : 'hidden'}
+            >
+              <motion.div variants={listItemVariants}>
+                <ComparisonItem isNegative>
+                  חוסר פרטיות ודיסקרטיות באפליקציות היכרויות רגילות
+                </ComparisonItem>
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <ComparisonItem isNegative>
+                  פתרונות שאינם מותאמים לערכי הקהילה המסורתית והדתית
+                </ComparisonItem>
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <ComparisonItem isNegative>
+                  שיעור גבוה של אכזבות וחוסר התאמה אמיתית
+                </ComparisonItem>
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <ComparisonItem isNegative>
+                  מוגבלות לחוגים חברתיים קיימים בלבד
+                </ComparisonItem>
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <ComparisonItem isNegative>
+                  שדכנים מסורתיים: עלויות גבוהות, רשת קשרים מוגבלת ותהליך ממושך
+                </ComparisonItem>
+              </motion.div>
+            </motion.ul>
+          </motion.div>
 
-          <div className="bg-white rounded-2xl shadow-xl p-8 transform md:-translate-x-4 relative overflow-hidden">
+          {/* Right card - Solution */}
+          <motion.div
+            className="bg-white rounded-2xl shadow-xl p-8 transform md:-translate-x-4 relative overflow-hidden"
+            variants={fadeInRight}
+          >
             <div className="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-br from-cyan-100 to-cyan-50 opacity-50 rounded-full transform -translate-x-20 translate-y-20"></div>
 
             <h3 className="text-xl font-bold mb-4 text-gray-800 relative">
               הפתרון של Match Point
             </h3>
 
-            <ul className="space-y-3 relative">
-              <ComparisonItem>
-                <strong>מאגר עצום, סיכוי גבוה יותר:</strong> הטכנולוגיה שלנו
-                מאפשרת לשדכנים לטפל במאגר מועמדים גדול פי 7, ולהגיע להתאמה
-                המדויקת עבורך.
-              </ComparisonItem>
-              <ComparisonItem>
-                ליווי אנושי: הדרכה אישית משדכנים מקצועיים לאורך כל התהליך
-              </ComparisonItem>
-              <ComparisonItem>
-                התאמה מדויקת יותר: אלגוריתם AI עם 50 ממדי התאמה
-              </ComparisonItem>
-              <ComparisonItem>
-                פרטיות מלאה: פרופילים נראים רק לשדכנים מורשים
-              </ComparisonItem>
-              <ComparisonItem>
-                מחוייבות לערכים: מערכת המכבדת את המסורת תוך שימוש בטכנולוגיה
-                מתקדמת
-              </ComparisonItem>
-            </ul>
-          </div>
+            <motion.ul
+              className="space-y-3 relative"
+              variants={staggeredListVariants}
+              initial="hidden"
+              animate={isInView ? 'visible' : 'hidden'}
+            >
+              <motion.div variants={listItemVariants}>
+                <ComparisonItem>
+                  <strong>מאגר עצום, סיכוי גבוה יותר:</strong> הטכנולוגיה שלנו
+                  מאפשרת לשדכנים לטפל במאגר מועמדים גדול פי 7, ולהגיע להתאמה
+                  המדויקת עבורך.
+                </ComparisonItem>
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <ComparisonItem>
+                  ליווי אנושי: הדרכה אישית משדכנים מקצועיים לאורך כל התהליך
+                </ComparisonItem>
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <ComparisonItem>
+                  התאמה מדויקת יותר: אלגוריתם AI עם 50 ממדי התאמה
+                </ComparisonItem>
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <ComparisonItem>
+                  פרטיות מלאה: פרופילים נראים רק לשדכנים מורשים
+                </ComparisonItem>
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <ComparisonItem>
+                  מחוייבות לערכים: מערכת המכבדת את המסורת תוך שימוש בטכנולוגיה
+                  מתקדמת
+                </ComparisonItem>
+              </motion.div>
+            </motion.ul>
+          </motion.div>
         </div>
       </div>
-    </section>
+    </motion.section>
   );
 };
 

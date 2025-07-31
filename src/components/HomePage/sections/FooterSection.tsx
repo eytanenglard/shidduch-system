@@ -1,40 +1,161 @@
-// src/components/HomePage/sections/FooterSection.tsx
-
-import React from "react";
-import Link from "next/link";
-import { Heart } from "lucide-react";
-import { FooterLink, FooterItem } from "../components/FooterComponents";
+import React, { useRef } from 'react';
+import { motion, useInView } from 'framer-motion';
+import Link from 'next/link';
+import { Heart } from 'lucide-react';
+import { FooterLink, FooterItem } from '../components/FooterComponents';
 
 const FooterSection: React.FC = () => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.1 });
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2,
+      },
+    },
+  };
+
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: 'easeOut' },
+    },
+  };
+
+  const logoVariants = {
+    hidden: { opacity: 0, scale: 0.8, y: 20 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: 'easeOut',
+        scale: {
+          type: 'spring',
+          stiffness: 260,
+          damping: 20,
+        },
+      },
+    },
+  };
+
+  const socialIconsVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.3,
+      },
+    },
+  };
+
+  const socialIconVariants = {
+    hidden: { opacity: 0, scale: 0 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.4,
+        type: 'spring',
+        stiffness: 260,
+        damping: 15,
+      },
+    },
+  };
+
+  const columnVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: 'easeOut' },
+    },
+  };
+
+  const staggeredListVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.05,
+      },
+    },
+  };
+
+  const listItemVariants = {
+    hidden: { opacity: 0, x: -10 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { duration: 0.4, ease: 'easeOut' },
+    },
+  };
+
+  const bottomSectionVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: 'easeOut', delay: 0.5 },
+    },
+  };
+
   return (
-    <footer className="bg-gradient-to-br from-gray-900 to-gray-800 text-white py-12 md:py-16 px-4 relative overflow-hidden">
+    <motion.footer
+      ref={ref}
+      className="bg-gradient-to-br from-gray-900 to-gray-800 text-white py-12 md:py-16 px-4 relative overflow-hidden"
+      variants={containerVariants}
+      initial="hidden"
+      animate={isInView ? 'visible' : 'hidden'}
+    >
       {/* Enhanced background effects */}
       <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTAgMGg0MHY0MEgwVjB6bTEwIDEwaDIwdjIwSDEwVjEweiIvPjwvZz48L2c+PC9zdmc+')]"></div>
 
       <div className="max-w-6xl mx-auto relative">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12">
-          <div className="md:col-span-1">
-            <Link href="/" className="flex items-center gap-2 group mb-6">
-              <div className="relative overflow-hidden rounded-full p-1 transition-all duration-300 group-hover:scale-110">
-                <Heart
-                  className="h-7 w-7 text-cyan-400 transition-all duration-300 group-hover:text-cyan-300"
-                  fill="#1e293b"
-                />
-              </div>
-              <span className="text-xl font-bold text-white group-hover:text-cyan-300 transition-all duration-300">
-                Match Point
-              </span>
-            </Link>
+          {/* Logo and Description Column */}
+          <motion.div className="md:col-span-1" variants={logoVariants}>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Link href="/" className="flex items-center gap-2 group mb-6">
+                <div className="relative overflow-hidden rounded-full p-1 transition-all duration-300 group-hover:scale-110">
+                  <Heart
+                    className="h-7 w-7 text-cyan-400 transition-all duration-300 group-hover:text-cyan-300"
+                    fill="#1e293b"
+                  />
+                </div>
+                <span className="text-xl font-bold text-white group-hover:text-cyan-300 transition-all duration-300">
+                  Match Point
+                </span>
+              </Link>
+            </motion.div>
 
-            <p className="text-gray-400 mb-6">
+            <motion.p className="text-gray-400 mb-6" variants={fadeInUp}>
               משלבים טכנולוגיה מתקדמת וליווי אישי ליצירת קשרים משמעותיים ארוכי
               טווח.
-            </p>
+            </motion.p>
 
-            <div className="flex space-x-4 rtl:space-x-reverse">
-              <a
+            <motion.div
+              className="flex space-x-4 rtl:space-x-reverse"
+              variants={socialIconsVariants}
+            >
+              <motion.a
                 href="https://www.facebook.com/profile.php?id=61577134204445"
                 className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-cyan-600/20 transition-colors duration-300"
+                variants={socialIconVariants}
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                whileTap={{ scale: 0.95 }}
               >
                 <svg
                   className="w-5 h-5 text-white"
@@ -48,10 +169,14 @@ const FooterSection: React.FC = () => {
                     clipRule="evenodd"
                   ></path>
                 </svg>
-              </a>
-              <a
+              </motion.a>
+
+              <motion.a
                 href="#"
                 className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-cyan-400/20 transition-colors duration-300"
+                variants={socialIconVariants}
+                whileHover={{ scale: 1.1, rotate: -5 }}
+                whileTap={{ scale: 0.95 }}
               >
                 <svg
                   className="w-5 h-5 text-white"
@@ -61,10 +186,14 @@ const FooterSection: React.FC = () => {
                 >
                   <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84"></path>
                 </svg>
-              </a>
-              <a
+              </motion.a>
+
+              <motion.a
                 href="#"
                 className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-gradient-to-br from-purple-600/20 to-pink-600/20 transition-colors duration-300"
+                variants={socialIconVariants}
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                whileTap={{ scale: 0.95 }}
               >
                 <svg
                   className="w-5 h-5 text-white"
@@ -78,74 +207,123 @@ const FooterSection: React.FC = () => {
                     clipRule="evenodd"
                   ></path>
                 </svg>
-              </a>
-            </div>
-          </div>
+              </motion.a>
+            </motion.div>
+          </motion.div>
 
-          <div>
+          {/* Navigation Column */}
+          <motion.div variants={columnVariants}>
             <h3 className="font-bold text-xl mb-4 md:mb-6 relative">
               <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-cyan-300">
                 ניווט מהיר
               </span>
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-400/30 to-cyan-300/30" />
             </h3>
-            <ul className="space-y-3 md:space-y-4">
-              <FooterLink href="/">דף הבית</FooterLink>
-              <FooterLink href="/about">אודות</FooterLink>
-              <FooterLink href="/faq">שאלות נפוצות</FooterLink>
-              <FooterLink href="/matches">שידוכים זמינים</FooterLink>
-              <FooterLink href="/success-stories">סיפורי הצלחה</FooterLink>
-            </ul>
-          </div>
+            <motion.ul
+              className="space-y-3 md:space-y-4"
+              variants={staggeredListVariants}
+            >
+              <motion.div variants={listItemVariants}>
+                <FooterLink href="/">דף הבית</FooterLink>
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <FooterLink href="/about">אודות</FooterLink>
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <FooterLink href="/faq">שאלות נפוצות</FooterLink>
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <FooterLink href="/matches">שידוכים זמינים</FooterLink>
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <FooterLink href="/success-stories">סיפורי הצלחה</FooterLink>
+              </motion.div>
+            </motion.ul>
+          </motion.div>
 
-          <div>
+          {/* Information Column */}
+          <motion.div variants={columnVariants}>
             <h3 className="font-bold text-xl mb-4 md:mb-6 relative">
               <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-cyan-300">
                 מידע שימושי
               </span>
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-400/30 to-cyan-300/30" />
             </h3>
-            <ul className="space-y-3 md:space-y-4">
-              <FooterLink href="/privacy">פרטיות</FooterLink>
-              <FooterLink href="/terms">תנאי שימוש</FooterLink>
-              <FooterLink href="/help">עזרה ותמיכה</FooterLink>
-              <FooterLink href="/contact">צור קשר</FooterLink> {/* <--- הקישור החדש */}
-              <FooterLink href="/blog">בלוג</FooterLink>
-              <FooterLink href="/pricing">תוכניות ומחירים</FooterLink>
-            </ul>
-          </div>
+            <motion.ul
+              className="space-y-3 md:space-y-4"
+              variants={staggeredListVariants}
+            >
+              <motion.div variants={listItemVariants}>
+                <FooterLink href="/privacy">פרטיות</FooterLink>
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <FooterLink href="/terms">תנאי שימוש</FooterLink>
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <FooterLink href="/help">עזרה ותמיכה</FooterLink>
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <FooterLink href="/contact">צור קשר</FooterLink>
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <FooterLink href="/blog">בלוג</FooterLink>
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <FooterLink href="/pricing">תוכניות ומחירים</FooterLink>
+              </motion.div>
+            </motion.ul>
+          </motion.div>
 
-          <div>
+          {/* Contact Column */}
+          <motion.div variants={columnVariants}>
             <h3 className="font-bold text-xl mb-4 md:mb-6 relative">
               <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-cyan-300">
                 יצירת קשר
               </span>
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-400/30 to-cyan-300/30" />
             </h3>
-            <ul className="space-y-3 md:space-y-4">
-              <FooterItem icon="📱" text="054-321-0040" />
-              <FooterItem icon="✉️" text="jewish.matchpoint@gmail.com
-" />
-              <FooterItem icon="📍" text="רעננה" />
-              <FooterItem icon="🕒" text="א'-ה' 9:00-18:00, ו' 9:00-13:00" />
-            </ul>
-          </div>
+            <motion.ul
+              className="space-y-3 md:space-y-4"
+              variants={staggeredListVariants}
+            >
+              <motion.div variants={listItemVariants}>
+                <FooterItem icon="📱" text="054-321-0040" />
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <FooterItem icon="✉️" text="jewish.matchpoint@gmail.com" />
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <FooterItem icon="📍" text="רעננה" />
+              </motion.div>
+              <motion.div variants={listItemVariants}>
+                <FooterItem icon="🕒" text="א'-ה' 9:00-18:00, ו' 9:00-13:00" />
+              </motion.div>
+            </motion.ul>
+          </motion.div>
         </div>
 
-        <div className="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-gray-700/50">
+        {/* Bottom Section */}
+        <motion.div
+          className="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-gray-700/50"
+          variants={bottomSectionVariants}
+        >
           <div className="text-center">
-            <div className="mb-4">
+            <motion.div
+              className="mb-4"
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.2 }}
+            >
               <span className="inline-block px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/10 to-cyan-400/10 text-cyan-400 hover:from-cyan-500/20 hover:to-cyan-400/20 transition-colors duration-300">
                 מחברים לבבות בדרך הנכונה
               </span>
-            </div>
+            </motion.div>
             <p className="text-gray-400">
               © כל הזכויות שמורות Match Point 2025
             </p>
           </div>
-        </div>
+        </motion.div>
       </div>
-    </footer>
+    </motion.footer>
   );
 };
 

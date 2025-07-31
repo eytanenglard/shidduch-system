@@ -1,12 +1,9 @@
-import React from 'react';
+import React, { useRef } from 'react';
+import { motion, useInView } from 'framer-motion';
 import Image from 'next/image';
-
-// ======================= שלב 1: הוספת הייבוא =======================
-// מייבאים את פונקציית העזר שיודעת "לנקות" את ה-URL עבור ה-Loader שלנו
 import { getRelativeCloudinaryPath } from '@/lib/utils';
-// ודא שהנתיב לקובץ utils.ts שלך נכון
 
-// עדכון רכיב הכרטיס עם תצוגה מרכזית ומקצועית
+// Enhanced MatchmakerCard component with animations
 interface MatchmakerCardProps {
   name: string;
   role: string;
@@ -14,6 +11,7 @@ interface MatchmakerCardProps {
   tags: string[];
   color: string;
   imageSrc?: string;
+  delay?: number;
 }
 
 const MatchmakerCard: React.FC<MatchmakerCardProps> = ({
@@ -23,6 +21,7 @@ const MatchmakerCard: React.FC<MatchmakerCardProps> = ({
   tags,
   color,
   imageSrc,
+  delay = 0,
 }) => {
   const getGradientByColor = () => {
     switch (color) {
@@ -60,11 +59,13 @@ const MatchmakerCard: React.FC<MatchmakerCardProps> = ({
   return (
     <div className="rounded-xl shadow-lg overflow-hidden bg-white border border-gray-100 flex flex-col h-full transition-all duration-300 hover:shadow-xl">
       <div className="p-8 flex flex-col items-center">
-        {/* תמונה מעוגלת */}
-        <div className="w-48 h-48 mb-6 overflow-hidden rounded-full border-4 border-white shadow-md relative">
+        {/* Animated image container */}
+        <motion.div
+          className="w-48 h-48 mb-6 overflow-hidden rounded-full border-4 border-white shadow-md relative"
+          whileHover={{ scale: 1.05 }}
+          transition={{ duration: 0.3 }}
+        >
           {imageSrc ? (
-            // ================== שלב 2: שימוש בפונקציית העזר ==================
-            // עוטפים את ה-imageSrc בפונקציה כדי להעביר נתיב נקי לרכיב Image
             <Image
               src={getRelativeCloudinaryPath(imageSrc)}
               alt={name}
@@ -82,9 +83,9 @@ const MatchmakerCard: React.FC<MatchmakerCardProps> = ({
               </span>
             </div>
           )}
-        </div>
+        </motion.div>
 
-        {/* פרטי השדכן */}
+        {/* Name and role */}
         <h3 className="text-2xl font-bold text-gray-800 mb-1 text-center">
           {name}
         </h3>
@@ -94,39 +95,127 @@ const MatchmakerCard: React.FC<MatchmakerCardProps> = ({
           {role}
         </p>
 
-        {/* תגיות התמחות */}
-        <div className="flex flex-wrap gap-2 justify-center mb-5">
+        {/* Tags with staggered animation */}
+        <motion.div
+          className="flex flex-wrap gap-2 justify-center mb-5"
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: { opacity: 0 },
+            visible: {
+              opacity: 1,
+              transition: {
+                staggerChildren: 0.1,
+                delayChildren: delay + 0.3,
+              },
+            },
+          }}
+        >
           {tags.map((tag, index) => (
-            <span
+            <motion.span
               key={index}
               className={`text-sm px-3 py-1 rounded-full ${getTagColorByColor()}`}
+              variants={{
+                hidden: { opacity: 0, scale: 0.8 },
+                visible: {
+                  opacity: 1,
+                  scale: 1,
+                  transition: { duration: 0.3 },
+                },
+              }}
             >
               {tag}
-            </span>
+            </motion.span>
           ))}
-        </div>
+        </motion.div>
 
-        {/* תיאור */}
+        {/* Description */}
         <p className="text-gray-600 mb-6 text-center leading-relaxed">
           {description}
         </p>
 
-        {/* כפתור */}
-        <button
+        {/* Button with hover animation */}
+        <motion.button
           className={`px-8 py-3 rounded-lg text-white ${getButtonColorByColor()} transition-colors duration-300 font-medium`}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
           קבע פגישה
-        </button>
+        </motion.button>
       </div>
     </div>
   );
 };
 
 const MatchmakerTeamSection: React.FC = () => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.1 });
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.3,
+        delayChildren: 0.2,
+      },
+    },
+  };
+
+  const headerVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: 'easeOut' },
+    },
+  };
+
+  const cardVariants = {
+    hidden: { opacity: 0, y: 50, scale: 0.9 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        duration: 0.7,
+        ease: 'easeOut',
+        scale: {
+          type: 'spring',
+          stiffness: 260,
+          damping: 20,
+        },
+      },
+    },
+  };
+
+  const fadeInLeft = {
+    hidden: { opacity: 0, x: -60 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { duration: 0.7, ease: 'easeOut' },
+    },
+  };
+
+  const fadeInRight = {
+    hidden: { opacity: 0, x: 60 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { duration: 0.7, ease: 'easeOut' },
+    },
+  };
+
   return (
-    <section
+    <motion.section
+      ref={ref}
       id="our-team"
       className="py-16 md:py-24 px-4 bg-gradient-to-b from-blue-50 to-white relative overflow-hidden"
+      variants={containerVariants}
+      initial="hidden"
+      animate={isInView ? 'visible' : 'hidden'}
     >
       {/* רקע דקורטיבי */}
       <div className="absolute top-0 left-0 w-64 h-64 bg-cyan-100/30 rounded-full blur-3xl"></div>
@@ -134,7 +223,7 @@ const MatchmakerTeamSection: React.FC = () => {
 
       <div className="max-w-6xl mx-auto relative">
         {/* כותרת מרכזית */}
-        <div className="text-center mb-16">
+        <motion.div className="text-center mb-16" variants={headerVariants}>
           <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
             הכירו את
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-teal-600">
@@ -148,33 +237,36 @@ const MatchmakerTeamSection: React.FC = () => {
             המייסדים שלנו מביאים ניסיון עשיר וגישה ייחודית לעולם השידוכים,
             בשילוב טכנולוגיה מתקדמת וראייה אישית
           </p>
-        </div>
+        </motion.div>
 
         {/* כרטיסי השדכנים */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-12 max-w-5xl mx-auto">
-          <MatchmakerCard
-            name="דינה אנגלרד"
-            role="שדכנית ראשית"
-            description="עם ניסיון של 8 שנים בתחום השידוכים, דינה מביאה כישורים בינאישיים יוצאי דופן והבנה עמוקה של צרכי המועמדים. הגישה האישית והאמפתית שלה יצרה עשרות זוגות מאושרים והיא מלווה כל מועמד בדרך מותאמת אישית."
-            color="cyan"
-            tags={['מומחית התאמה', 'ליווי אישי', '2+ שנות ניסיון']}
-            // =================== שלב 3: שימוש ב-URL נקי ותקין ===================
-            // ודא שהכתובת שהעתקת מ-Cloudinary מודבקת כאן במדויק, ללא רווחים או שורות חדשות
-            imageSrc="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700882/dina4_gr0ako.jpg"
-          />
-          <MatchmakerCard
-            name="איתן אנגלרד"
-            role="מייסד ומנכ״ל"
-            description="יזם טכנולוגי עם התמחות בשידוכים. איתן פיתח את פלטפורמת התוכנה הייחודית שלנו ומשלב ידע טכנולוגי עם הבנה עמוקה של פסיכולוגיה חברתית. הגישה החדשנית שלו יצרה את השיטה הייחודית שמאפיינת את המשרד שלנו."
-            color="green"
-            tags={['חדשנות טכנולוגית', 'אלגוריתם התאמה', 'יזמות']}
-            // =================== שלב 3: שימוש ב-URL נקי ותקין ===================
-            imageSrc="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700884/eitan_h9ylkc.jpg
-"
-          />
+          <motion.div variants={fadeInLeft}>
+            <MatchmakerCard
+              name="דינה אנגלרד"
+              role="שדכנית ראשית"
+              description="עם ניסיון של 8 שנים בתחום השידוכים, דינה מביאה כישורים בינאישיים יוצאי דופן והבנה עמוקה של צרכי המועמדים. הגישה האישית והאמפתית שלה יצרה עשרות זוגות מאושרים והיא מלווה כל מועמד בדרך מותאמת אישית."
+              color="cyan"
+              tags={['מומחית התאמה', 'ליווי אישי', '2+ שנות ניסיון']}
+              imageSrc="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700882/dina4_gr0ako.jpg"
+              delay={0.2}
+            />
+          </motion.div>
+
+          <motion.div variants={fadeInRight}>
+            <MatchmakerCard
+              name="איתן אנגלרד"
+              role="מייסד ומנכ״ל"
+              description="יזם טכנולוגי עם התמחות בשידוכים. איתן פיתח את פלטפורמת התוכנה הייחודית שלנו ומשלב ידע טכנולוגי עם הבנה עמוקה של פסיכולוגיה חברתית. הגישה החדשנית שלו יצרה את השיטה הייחודית שמאפיינת את המשרד שלנו."
+              color="green"
+              tags={['חדשנות טכנולוגית', 'אלגוריתם התאמה', 'יזמות']}
+              imageSrc="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700884/eitan_h9ylkc.jpg"
+              delay={0.4}
+            />
+          </motion.div>
         </div>
       </div>
-    </section>
+    </motion.section>
   );
 };
 
