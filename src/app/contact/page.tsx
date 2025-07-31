@@ -1,42 +1,132 @@
-// src/app/contact/page.tsx
-"use client";
+'use client';
+import React, { useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { motion, useInView } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import {
+  Loader2,
+  Send,
+  CheckCircle,
+  AlertTriangle,
+  Heart,
+  MessageCircle,
+  Phone,
+  Mail,
+  Clock,
+  Shield,
+  Users,
+  Star,
+  Home,
+  UserPlus,
+  HelpCircle,
+  Lightbulb,
+  Target,
+  HeartHandshake,
+} from 'lucide-react';
+import { z } from 'zod';
+import Image from 'next/image';
+import Link from 'next/link';
+import { getRelativeCloudinaryPath } from '@/lib/utils';
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, ArrowRight, Send, CheckCircle, AlertTriangle } from "lucide-react";
-import { z } from "zod";
-
-// Zod schema for client-side validation
+// ===== SCHEMAS & TYPES =====
 const contactSchema = z.object({
-  name: z.string().min(2, { message: "השם חייב להכיל לפחות 2 תווים" }),
-  email: z.string().email({ message: "כתובת מייל לא תקינה" }),
-  message: z.string().min(10, { message: "ההודעה חייבת להכיל לפחות 10 תווים" }),
+  name: z.string().min(2, { message: 'השם חייב להכיל לפחות 2 תווים' }),
+  email: z.string().email({ message: 'כתובת מייל לא תקינה' }),
+  category: z.string().min(1, { message: 'נא לבחור נושא' }),
+  message: z.string().min(10, { message: 'ההודעה חייבת להכיל לפחות 10 תווים' }),
 });
 
+// ===== DATA =====
+const contactCategories = [
+  { value: 'general', label: 'שאלה כללית', icon: MessageCircle },
+  { value: 'process', label: 'שאלות על התהליך', icon: HelpCircle },
+  { value: 'consultation', label: 'בקשה לייעוץ אישי', icon: Heart },
+  { value: 'technical', label: 'תמיכה טכנית', icon: Users },
+];
+const quickFAQ = [
+  {
+    question: 'כמה זמן לוקח לקבל תשובה?',
+    answer: 'אנו מתחייבים להשיב תוך 24 שעות בימי עבודה',
+  },
+  {
+    question: 'האם הייעוץ הראשוני בחינם?',
+    answer: 'כן! הייעוץ הראשוני והרשמה בסיסית הם בחינם לחלוטין',
+  },
+  {
+    question: 'איך אפשר לדבר עם שדכן?',
+    answer: 'לאחר ההרשמה תקבלו שדכן אישי לליווי צמוד',
+  },
+];
+const teamMembers = [
+  {
+    name: 'דינה אנגלרד',
+    role: 'שדכנית ראשית',
+    image:
+      'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700882/dina4_gr0ako.jpg',
+    description: 'מתמחה בליווי אישי וחם',
+  },
+  {
+    name: 'איתן אנגלרד',
+    role: 'מייסד ומנכ״ל',
+    image:
+      'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700884/eitan_h9ylkc.jpg',
+    description: 'יזם טכנולוגי ומומחה התאמות',
+  },
+];
+const stats = [
+  { icon: Heart, value: '95%', label: 'שיעור הצלחה' },
+  { icon: Clock, value: '6', label: 'חודשים ממוצע' },
+  { icon: Star, value: '24/7', label: 'תמיכה אישית' },
+  { icon: Shield, value: '100%', label: 'דיסקרטיות מובטחת' },
+];
+
+// ===== MAIN COMPONENT =====
 export default function ContactPage() {
   const router = useRouter();
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
+  // Form state
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [category, setCategory] = useState('');
+  const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<Record<string, string[] | undefined> | null>(null);
+  const [validationErrors, setValidationErrors] = useState<Record<
+    string,
+    string[] | undefined
+  > | null>(null);
 
+  // Animation refs
+  const heroRef = useRef(null);
+  const formRef = useRef(null);
+  const statsRef = useRef(null);
+  const isHeroInView = useInView(heroRef, { once: true });
+  const isFormInView = useInView(formRef, { once: true });
+  const isStatsInView = useInView(statsRef, { once: true });
+
+  // Form handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
     setSuccess(false);
     setValidationErrors(null);
-
-    // Client-side validation using Zod
-    const validationResult = contactSchema.safeParse({ name, email, message });
+    const validationResult = contactSchema.safeParse({
+      name,
+      email,
+      category,
+      message,
+    });
     if (!validationResult.success) {
       setValidationErrors(validationResult.error.flatten().fieldErrors);
       setIsLoading(false);
@@ -44,13 +134,13 @@ export default function ContactPage() {
     }
 
     try {
-      // Send the request to the dedicated contact API endpoint
-      const response = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: validationResult.data.name,
           email: validationResult.data.email,
+          category: validationResult.data.category,
           message: validationResult.data.message,
         }),
       });
@@ -58,114 +148,543 @@ export default function ContactPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "אירעה שגיאה בשליחת ההודעה");
+        throw new Error(data.error || 'אירעה שגיאה בשליחת ההודעה');
       }
 
       setSuccess(true);
-      // Clear the form fields on success
-      setName("");
-      setEmail("");
-      setMessage("");
+      setName('');
+      setEmail('');
+      setCategory('');
+      setMessage('');
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "אירעה שגיאה לא צפויה");
+      setError(err instanceof Error ? err.message : 'אירעה שגיאה לא צפויה');
     } finally {
       setIsLoading(false);
     }
   };
-
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-cyan-50 via-white to-pink-50 p-4 sm:p-8">
-      <button
-        onClick={() => router.push("/")}
-        className="absolute top-4 left-4 rtl:right-4 rtl:left-auto text-gray-600 hover:text-gray-800 transition-colors flex items-center gap-1 text-sm z-20"
+    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-white to-pink-50">
+      {/* ===== BACK TO HOME BUTTON ===== */}
+      <div className="fixed top-4 left-4 rtl:right-4 rtl:left-auto z-50">
+        <Button
+          onClick={() => router.push('/')}
+          variant="outline"
+          size="sm"
+          className="bg-white/90 backdrop-blur-sm border-white/60 shadow-lg hover:shadow-xl transition-all duration-300 group"
+        >
+          <Home className="h-4 w-4 ml-2 group-hover:scale-110 transition-transform" />
+          דף הבית
+        </Button>
+      </div>
+
+      {/* ===== HERO SECTION ===== */}
+      <motion.section
+        ref={heroRef}
+        className="relative pt-20 pb-12 px-4 text-center overflow-hidden"
+        initial={{ opacity: 0 }}
+        animate={isHeroInView ? { opacity: 1 } : { opacity: 0 }}
+        transition={{ duration: 0.8 }}
       >
-        <ArrowRight className="h-4 w-4" />
-        חזרה לדף הבית
-      </button>
-
-      <Card className="w-full max-w-lg shadow-xl border-t-4 border-t-cyan-500">
-        <CardHeader className="text-center">
-          <div className="inline-block mx-auto mb-4 p-3 bg-cyan-100 rounded-full">
-            <Send className="w-8 h-8 text-cyan-600" />
-          </div>
-          <CardTitle className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-pink-600">
-            צור קשר
-          </CardTitle>
-          <CardDescription className="text-gray-600 pt-2">
-            יש לך שאלה? הצעה? נשמח לשמוע ממך!
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {success ? (
-            <Alert variant="default" className="bg-green-50 border-green-200 text-green-800">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              <AlertTitle className="font-semibold">ההודעה נשלחה בהצלחה!</AlertTitle>
-              <AlertDescription>
-                תודה על פנייתך. צוות Match Point ייצור איתך קשר בהקדם האפשרי.
-              </AlertDescription>
-            </Alert>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="שם מלא"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  disabled={isLoading}
-                  className={`transition-colors focus:border-cyan-500 ${validationErrors?.name ? "border-red-500 focus:border-red-500" : ""}`}
-                />
-                {validationErrors?.name && <p className="text-xs text-red-600">{validationErrors.name[0]}</p>}
-              </div>
-              <div className="space-y-2">
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="כתובת אימייל לחזרה"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={isLoading}
-                  className={`transition-colors focus:border-cyan-500 ${validationErrors?.email ? "border-red-500 focus:border-red-500" : ""}`}
-                />
-                 {validationErrors?.email && <p className="text-xs text-red-600">{validationErrors.email[0]}</p>}
-              </div>
-              <div className="space-y-2">
-                <Textarea
-                  id="message"
-                  placeholder="הודעה"
-                  rows={6}
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  disabled={isLoading}
-                  className={`transition-colors focus:border-cyan-500 ${validationErrors?.message ? "border-red-500 focus:border-red-500" : ""}`}
-                />
-                {validationErrors?.message && <p className="text-xs text-red-600">{validationErrors.message[0]}</p>}
-              </div>
-
-              {error && (
-                <Alert variant="destructive">
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertTitle>שגיאה</AlertTitle>
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-
-              <Button type="submit" className="w-full bg-cyan-600 hover:bg-cyan-700" disabled={isLoading}>
-                {isLoading ? (
-                  <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Send className="ml-2 h-4 w-4" />
-                )}
-                {isLoading ? "שולח..." : "שלח הודעה"}
-              </Button>
-            </form>
-          )}
-        </CardContent>
-      </Card>
-        <div className="mt-8 text-center text-sm text-gray-500">
-            © {new Date().getFullYear()} Match Point. כל הזכויות שמורות.
+        {/* Background elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-cyan-400/20 to-blue-500/20 rounded-full blur-2xl animate-pulse-slow" />
+          <div className="absolute bottom-20 right-10 w-40 h-40 bg-gradient-to-br from-pink-400/20 to-purple-500/20 rounded-full blur-2xl animate-float-slow" />
         </div>
+
+        <div className="relative max-w-4xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={
+              isHeroInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }
+            }
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg border border-white/60 mb-8"
+          >
+            <HeartHandshake className="w-6 h-6 text-cyan-500" />
+            <span className="text-cyan-700 font-semibold">בואו נכיר</span>
+          </motion.div>
+
+          <motion.h1
+            className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-800 mb-6 leading-tight"
+            initial={{ opacity: 0, y: 50 }}
+            animate={
+              isHeroInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }
+            }
+            transition={{ duration: 0.8, delay: 0.4 }}
+          >
+            השותפים שלכם למציאת
+            <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-pink-600">
+              הזיווג המושלם
+            </span>
+          </motion.h1>
+
+          <motion.p
+            className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed"
+            initial={{ opacity: 0, y: 30 }}
+            animate={
+              isHeroInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }
+            }
+            transition={{ duration: 0.8, delay: 0.6 }}
+          >
+            יש לכם שאלה? רוצים לשמוע עוד על התהליך? או אולי פשוט רוצים לדבר עם
+            מישהו שמבין?
+            <br />
+            <span className="font-semibold text-cyan-700">
+              אנחנו כאן בשבילכם, עם כל הלב והמקצועיות.
+            </span>
+          </motion.p>
+        </div>
+      </motion.section>
+
+      {/* ===== STATS SECTION ===== */}
+      <motion.section
+        ref={statsRef}
+        className="py-8 px-4"
+        initial={{ opacity: 0, y: 30 }}
+        animate={isStatsInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+        transition={{ duration: 0.8 }}
+      >
+        <div className="max-w-4xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 bg-white/80 backdrop-blur-md rounded-2xl p-8 shadow-xl border border-white/60">
+            {stats.map((stat, index) => (
+              <motion.div
+                key={index}
+                className="text-center"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={
+                  isStatsInView
+                    ? { opacity: 1, scale: 1 }
+                    : { opacity: 0, scale: 0.8 }
+                }
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+              >
+                <stat.icon className="w-8 h-8 mx-auto mb-3 text-cyan-600" />
+                <div className="text-2xl md:text-3xl font-bold text-gray-800 mb-1">
+                  {stat.value}
+                </div>
+                <div className="text-sm text-gray-600">{stat.label}</div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.section>
+
+      {/* ===== MAIN CONTENT ===== */}
+      <div className="max-w-7xl mx-auto px-4 pb-20">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* ===== CONTACT FORM ===== */}
+          <motion.div
+            ref={formRef}
+            className="lg:col-span-2"
+            initial={{ opacity: 0, x: -50 }}
+            animate={
+              isFormInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -50 }
+            }
+            transition={{ duration: 0.8 }}
+          >
+            <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
+              <CardHeader className="text-center relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-cyan-100/50 to-pink-100/50 rounded-full transform translate-x-16 -translate-y-16" />
+                <div className="relative">
+                  <div className="inline-block mx-auto mb-4 p-3 bg-gradient-to-r from-cyan-100 to-pink-100 rounded-full">
+                    <MessageCircle className="w-8 h-8 text-cyan-600" />
+                  </div>
+                  <CardTitle className="text-3xl font-bold text-gray-800 mb-2">
+                    בואו נדבר
+                  </CardTitle>
+                  <CardDescription className="text-lg text-gray-600">
+                    נשמח לענות על כל שאלה ולעזור לכם להתחיל את המסע
+                  </CardDescription>
+                </div>
+              </CardHeader>
+
+              <CardContent className="p-8">
+                {success ? (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <Alert className="bg-green-50 border-green-200 text-green-800">
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                      <AlertTitle className="font-semibold">
+                        ההודעה נשלחה בהצלחה!
+                      </AlertTitle>
+                      <AlertDescription className="mt-2">
+                        תודה רבה על פנייתכם. צוות NeshamaTech ייצור איתכם קשר
+                        תוך 24 שעות.
+                        <div className="mt-4 flex gap-3">
+                          <Link href="/auth/register">
+                            <Button
+                              size="sm"
+                              className="bg-cyan-600 hover:bg-cyan-700"
+                            >
+                              <UserPlus className="w-4 h-4 ml-2" />
+                              הרשמה למערכת
+                            </Button>
+                          </Link>
+                          <Link href="/questionnaire">
+                            <Button variant="outline" size="sm">
+                              לשאלון ההתאמה
+                            </Button>
+                          </Link>
+                        </div>
+                      </AlertDescription>
+                    </Alert>
+                  </motion.div>
+                ) : (
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    {/* Name and Email */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label
+                          htmlFor="name"
+                          className="text-sm font-medium text-gray-700"
+                        >
+                          שם מלא *
+                        </label>
+                        <Input
+                          id="name"
+                          type="text"
+                          placeholder="השם הפרטי והמשפחה"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          disabled={isLoading}
+                          className={`transition-all duration-300 focus:border-cyan-500 focus:ring-cyan-500 ${validationErrors?.name ? 'border-red-500 focus:border-red-500' : ''}`}
+                        />
+                        {validationErrors?.name && (
+                          <p className="text-xs text-red-600 mt-1">
+                            {validationErrors.name[0]}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <label
+                          htmlFor="email"
+                          className="text-sm font-medium text-gray-700"
+                        >
+                          כתובת אימייל *
+                        </label>
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder="your.email@example.com"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          disabled={isLoading}
+                          className={`transition-all duration-300 focus:border-cyan-500 focus:ring-cyan-500 ${validationErrors?.email ? 'border-red-500 focus:border-red-500' : ''}`}
+                        />
+                        {validationErrors?.email && (
+                          <p className="text-xs text-red-600 mt-1">
+                            {validationErrors.email[0]}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Category Selection */}
+                    <div className="space-y-3">
+                      <label className="text-sm font-medium text-gray-700">
+                        נושא הפנייה *
+                      </label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {contactCategories.map((cat) => (
+                          <label
+                            key={cat.value}
+                            className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 ${
+                              category === cat.value
+                                ? 'border-cyan-500 bg-cyan-50'
+                                : 'border-gray-200 hover:border-cyan-300 hover:bg-gray-50'
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name="category"
+                              value={cat.value}
+                              checked={category === cat.value}
+                              onChange={(e) => setCategory(e.target.value)}
+                              className="sr-only"
+                            />
+                            <cat.icon
+                              className={`w-5 h-5 ${category === cat.value ? 'text-cyan-600' : 'text-gray-400'}`}
+                            />
+                            <span
+                              className={`font-medium ${category === cat.value ? 'text-cyan-800' : 'text-gray-700'}`}
+                            >
+                              {cat.label}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                      {validationErrors?.category && (
+                        <p className="text-xs text-red-600">
+                          {validationErrors.category[0]}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Message */}
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="message"
+                        className="text-sm font-medium text-gray-700"
+                      >
+                        ההודעה *
+                      </label>
+                      <Textarea
+                        id="message"
+                        placeholder="שתפו אותנו במה שעל הלב... כל פרט יעזור לנו לתת לכם את המענה הטוב ביותר"
+                        rows={6}
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        disabled={isLoading}
+                        className={`transition-all duration-300 focus:border-cyan-500 focus:ring-cyan-500 resize-none ${validationErrors?.message ? 'border-red-500 focus:border-red-500' : ''}`}
+                      />
+                      {validationErrors?.message && (
+                        <p className="text-xs text-red-600 mt-1">
+                          {validationErrors.message[0]}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Error Alert */}
+                    {error && (
+                      <Alert variant="destructive">
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertTitle>שגיאה</AlertTitle>
+                        <AlertDescription>{error}</AlertDescription>
+                      </Alert>
+                    )}
+
+                    {/* Submit Button */}
+                    <Button
+                      type="submit"
+                      className="w-full bg-gradient-to-r from-cyan-600 to-pink-600 hover:from-cyan-700 hover:to-pink-700 rounded-xl py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden"
+                      disabled={isLoading}
+                    >
+                      <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
+                      <span className="relative z-10 flex items-center justify-center">
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="ml-2 h-5 w-5 animate-spin" />
+                            שולח הודעה...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                            שלח הודעה
+                          </>
+                        )}
+                      </span>
+                    </Button>
+
+                    <div className="text-center text-sm text-gray-500 mt-4">
+                      <Shield className="w-4 h-4 inline ml-2" />
+                      המידע שלכם מוגן ומטופל בדיסקרטיות מלאה
+                    </div>
+                  </form>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* ===== SIDEBAR ===== */}
+          <motion.div
+            className="space-y-6"
+            initial={{ opacity: 0, x: 50 }}
+            animate={
+              isFormInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 50 }
+            }
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            {/* Quick FAQ */}
+            <Card className="shadow-xl border-0 bg-white/95 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <Lightbulb className="w-6 h-6 text-orange-500" />
+                  שאלות נפוצות
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {quickFAQ.map((item, index) => (
+                  <motion.div
+                    key={index}
+                    className="p-4 bg-gray-50 rounded-xl"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={
+                      isFormInView
+                        ? { opacity: 1, y: 0 }
+                        : { opacity: 0, y: 20 }
+                    }
+                    transition={{ duration: 0.6, delay: 0.4 + index * 0.1 }}
+                  >
+                    <h4 className="font-semibold text-gray-800 mb-2">
+                      {item.question}
+                    </h4>
+                    <p className="text-sm text-gray-600">{item.answer}</p>
+                  </motion.div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Team Section */}
+            <Card className="shadow-xl border-0 bg-white/95 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <Users className="w-6 h-6 text-cyan-500" />
+                  הצוות שלכם
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {teamMembers.map((member, index) => (
+                    <motion.div
+                      key={index}
+                      className="flex items-center gap-4 p-4 bg-gradient-to-r from-gray-50 to-white rounded-xl"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={
+                        isFormInView
+                          ? { opacity: 1, x: 0 }
+                          : { opacity: 0, x: 20 }
+                      }
+                      transition={{ duration: 0.6, delay: 0.6 + index * 0.1 }}
+                    >
+                      <div className="relative w-16 h-16 rounded-full overflow-hidden shadow-md">
+                        <Image
+                          src={getRelativeCloudinaryPath(member.image)}
+                          alt={member.name}
+                          fill
+                          sizes="64px"
+                          className="object-cover object-center"
+                        />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-gray-800">
+                          {member.name}
+                        </h4>
+                        <p className="text-sm text-cyan-600 font-medium">
+                          {member.role}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {member.description}
+                        </p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Contact Info */}
+            <Card className="shadow-xl border-0 bg-gradient-to-br from-cyan-600 to-pink-600 text-white">
+              <CardContent className="p-6">
+                <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                  <Phone className="w-6 h-6" />
+                  דרכי התקשרות
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <Phone className="w-5 h-5" />
+                    <span>054-321-0040</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Mail className="w-5 h-5" />
+                    <span>jewish.matchpoint@gmail.com</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Clock className="w-5 h-5" />
+                    <span>א-ה 9:00-18:00, ו 9:00-13:00</span>
+                  </div>
+                </div>
+                <div className="mt-6 p-4 bg-white/20 rounded-xl backdrop-blur-sm">
+                  <p className="text-sm">
+                    <strong>הבטחת מענה:</strong> נשיב לכל פנייה תוך 24 שעות בימי
+                    עבודה
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* CTA Section */}
+            <Card className="shadow-xl border-0 bg-white/95 backdrop-blur-sm">
+              <CardContent className="p-6 text-center">
+                <Target className="w-12 h-12 mx-auto mb-4 text-pink-500" />
+                <h3 className="text-xl font-bold text-gray-800 mb-3">
+                  מוכנים לנסות?
+                </h3>
+                <p className="text-gray-600 mb-6 text-sm">
+                  הרשמה חינם + שאלון התאמה מקצועי
+                </p>
+                <div className="space-y-3">
+                  <Link href="/auth/register">
+                    <Button className="w-full bg-gradient-to-r from-cyan-600 to-pink-600 hover:from-cyan-700 hover:to-pink-700 rounded-xl">
+                      <UserPlus className="w-4 h-4 ml-2" />
+                      הרשמה למערכת
+                    </Button>
+                  </Link>
+                  <Link href="/questionnaire">
+                    <Button variant="outline" className="w-full rounded-xl">
+                      לשאלון ההתאמה
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* ===== FOOTER ===== */}
+      <footer className="bg-gray-800 text-white py-8 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <div className="relative w-8 h-8">
+              <Image
+                src={getRelativeCloudinaryPath(
+                  'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png'
+                )}
+                alt="NeshamaTech Logo"
+                fill
+                className="object-contain"
+              />
+            </div>
+            <span className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-pink-400">
+              NeshamaTech
+            </span>
+          </div>
+          <p className="text-gray-400 mb-4">מחברים לבבות בדרך הנכונה</p>
+          <p className="text-sm text-gray-500">
+            © {new Date().getFullYear()} NeshamaTech. כל הזכויות שמורות.
+          </p>
+        </div>
+      </footer>
+
+      {/* ===== CUSTOM STYLES ===== */}
+      <style jsx>{`
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+    @keyframes pulse-slow {
+      0%, 100% { opacity: 0.3; }
+      50% { opacityRetryאאContinueEdit0.6; }
+}
+@keyframes float-slow {
+0%, 100% { transform: translateY(0px); }
+50% { transform: translateY(-20px); }
+}
+.animate-shimmer {
+animation: shimmer 1.5s ease-in-out;
+}
+.animate-pulse-slow {
+animation: pulse-slow 4s ease-in-out infinite;
+}
+.animate-float-slow {
+animation: float-slow 6s ease-in-out infinite;
+}
+`}</style>
     </div>
   );
 }

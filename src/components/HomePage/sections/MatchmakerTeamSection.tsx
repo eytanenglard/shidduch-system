@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import Image from 'next/image';
 import { getRelativeCloudinaryPath } from '@/lib/utils';
+import Link from 'next/link'; // 1. הוספת ייבוא Link
 
 // Enhanced MatchmakerCard component with animations
 interface MatchmakerCardProps {
@@ -134,14 +135,17 @@ const MatchmakerCard: React.FC<MatchmakerCardProps> = ({
           {description}
         </p>
 
-        {/* Button with hover animation */}
-        <motion.button
-          className={`px-8 py-3 rounded-lg text-white ${getButtonColorByColor()} transition-colors duration-300 font-medium`}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          קבע פגישה
-        </motion.button>
+        {/* --- START: Button with hover animation (MODIFIED) --- */}
+        <Link href={`/contact?matchmaker=${encodeURIComponent(name)}`} passHref>
+          <motion.a
+            className={`inline-block text-center px-8 py-3 rounded-lg text-white ${getButtonColorByColor()} transition-colors duration-300 font-medium`}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            {`צרו קשר עם ${name.split(' ')[0]}`}
+          </motion.a>
+        </Link>
+        {/* --- END: Button with hover animation (MODIFIED) --- */}
       </div>
     </div>
   );

@@ -212,7 +212,7 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
               </h3>
               {age && (
                 <p className="text-lg font-medium text-white/90 [text-shadow:0_1px_4px_rgba(0,0,0,0.8)]">
-                  {age} שנים
+                  {age}
                 </p>
               )}
             </div>
