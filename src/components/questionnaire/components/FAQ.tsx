@@ -1,13 +1,13 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+} from '@/components/ui/accordion';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 import {
   Search,
   HelpCircle,
@@ -16,14 +16,14 @@ import {
   Clock,
   Star,
   AlertCircle,
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+} from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface FAQItem {
   id: string;
   question: string;
   answer: React.ReactNode;
-  category: "process" | "technical" | "privacy" | "results" | "general";
+  category: 'process' | 'technical' | 'privacy' | 'results' | 'general';
   isPopular?: boolean;
 }
 
@@ -40,8 +40,8 @@ interface FAQProps {
 // שאלות נפוצות לדוגמה
 const defaultFAQItems: FAQItem[] = [
   {
-    id: "save-progress",
-    question: "האם אפשר לשמור את ההתקדמות ולהמשיך בפעם אחרת?",
+    id: 'save-progress',
+    question: 'האם אפשר לשמור את ההתקדמות ולהמשיך בפעם אחרת?',
     answer: (
       <div className="space-y-2">
         <p>
@@ -60,31 +60,31 @@ const defaultFAQItems: FAQItem[] = [
         </div>
       </div>
     ),
-    category: "technical",
+    category: 'technical',
     isPopular: true,
   },
   {
-    id: "time-to-complete",
-    question: "כמה זמן לוקח להשלים את השאלון?",
+    id: 'time-to-complete',
+    question: 'כמה זמן לוקח להשלים את השאלון?',
     answer: (
       <p>
         השאלון כולו אורך כ-30-40 דקות, אך אין צורך למלא הכל ברצף. אפשר למלא חלק
         בכל פעם. העולמות השונים אורכים כ-5-10 דקות כל אחד.
       </p>
     ),
-    category: "process",
+    category: 'process',
     isPopular: true,
   },
   {
-    id: "required-questions",
-    question: "האם חובה לענות על כל השאלות?",
+    id: 'required-questions',
+    question: 'האם חובה לענות על כל השאלות?',
     answer: (
       <div className="space-y-2">
         <p>
           לא, רק השאלות המסומנות ב-
           <Badge variant="destructive" className="text-xs">
             חובה *
-          </Badge>{" "}
+          </Badge>{' '}
           הן שאלות שחייבים לענות עליהן. שאלות אלו חיוניות ליצירת פרופיל התאמה
           בסיסי.
         </p>
@@ -94,11 +94,11 @@ const defaultFAQItems: FAQItem[] = [
         </p>
       </div>
     ),
-    category: "process",
+    category: 'process',
   },
   {
-    id: "how-matching-works",
-    question: "איך עובד תהליך ההתאמה?",
+    id: 'how-matching-works',
+    question: 'איך עובד תהליך ההתאמה?',
     answer: (
       <div className="space-y-3">
         <p>תהליך ההתאמה מבוסס על מספר שלבים:</p>
@@ -111,17 +111,18 @@ const defaultFAQItems: FAQItem[] = [
         </ol>
       </div>
     ),
-    category: "process",
+    category: 'process',
     isPopular: true,
   },
   {
-    id: "privacy-info",
-    question: "מי יכול לראות את התשובות שלי?",
+    id: 'privacy-info',
+    question: 'מי יכול לראות את התשובות שלי?',
     answer: (
       <div className="space-y-2">
         <p>
-          המידע שלך נשמר בסודיות מוחלטת. רק צוות המאצמייקינג המקצועי שלנו יכול
-          לראות את התשובות המלאות שלך, וזאת אך ורק לצורך יצירת התאמות.
+          המידע שלך נשמר בסודיות מוחלטת. רק צוות ההתאמות המקצועי שלנו יכול לראות
+          את התשובות המלאות שלך... לראות את התשובות המלאות שלך, וזאת אך ורק
+          לצורך יצירת התאמות.
         </p>
         <div className="flex items-start gap-2 mt-2 p-3 bg-blue-50 rounded-md">
           <Info className="h-5 w-5 text-blue-500 mt-0.5" />
@@ -134,11 +135,11 @@ const defaultFAQItems: FAQItem[] = [
         </div>
       </div>
     ),
-    category: "privacy",
+    category: 'privacy',
   },
   {
-    id: "edit-answers",
-    question: "האם ניתן לערוך תשובות אחרי שסיימתי?",
+    id: 'edit-answers',
+    question: 'האם ניתן לערוך תשובות אחרי שסיימתי?',
     answer: (
       <p>
         כן, תמיד אפשר לחזור ולערוך את התשובות. פשוט היכנס/י לשאלון דרך הפרופיל
@@ -146,11 +147,11 @@ const defaultFAQItems: FAQItem[] = [
         ההתאמות העתידיות שלך.
       </p>
     ),
-    category: "technical",
+    category: 'technical',
   },
   {
-    id: "match-percentage",
-    question: "איך מחושב אחוז ההתאמה?",
+    id: 'match-percentage',
+    question: 'איך מחושב אחוז ההתאמה?',
     answer: (
       <div className="space-y-2">
         <p>אחוז ההתאמה מחושב על סמך מגוון פרמטרים:</p>
@@ -172,11 +173,11 @@ const defaultFAQItems: FAQItem[] = [
         </div>
       </div>
     ),
-    category: "results",
+    category: 'results',
   },
   {
-    id: "incomplete-questionnaire",
-    question: "מה קורה אם לא אשלים את כל השאלון?",
+    id: 'incomplete-questionnaire',
+    question: 'מה קורה אם לא אשלים את כל השאלון?',
     answer: (
       <div className="space-y-2">
         <p>
@@ -194,32 +195,32 @@ const defaultFAQItems: FAQItem[] = [
         </div>
       </div>
     ),
-    category: "process",
+    category: 'process',
   },
   {
-    id: "inactive-account",
-    question: "מה קורה אם אני לא פעיל/ה לתקופה ממושכת?",
+    id: 'inactive-account',
+    question: 'מה קורה אם אני לא פעיל/ה לתקופה ממושכת?',
     answer: (
       <p>
-        אם חשבונך לא יהיה פעיל למשך 3 חודשים, נשלח לך התראה בדואל. לאחר 6
-        חודשים של חוסר פעילות, הפרופיל שלך יוגדר כלא פעיל ולא יוצג בהתאמות
-        חדשות. תוכל/י תמיד להפעיל אותו מחדש בכניסה לחשבון.
+        אם חשבונך לא יהיה פעיל למשך 3 חודשים, נשלח לך התראה בדואל. לאחר 6 חודשים
+        של חוסר פעילות, הפרופיל שלך יוגדר כלא פעיל ולא יוצג בהתאמות חדשות.
+        תוכל/י תמיד להפעיל אותו מחדש בכניסה לחשבון.
       </p>
     ),
-    category: "general",
+    category: 'general',
   },
 ];
 
 export default function FAQ({
   className,
-  title = "שאלות נפוצות",
-  subtitle = "כל מה שחשוב לדעת על השאלון ותהליך ההתאמה",
+  title = 'שאלות נפוצות',
+  subtitle = 'כל מה שחשוב לדעת על השאלון ותהליך ההתאמה',
   showSearch = true,
   showCategories = true,
   initialOpenId,
   items = defaultFAQItems,
 }: FAQProps) {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [expandedItems, setExpandedItems] = useState<string[]>(
     initialOpenId ? [initialOpenId] : []
@@ -228,22 +229,22 @@ export default function FAQ({
   // קטגוריות שאלות נפוצות
   const categories = [
     {
-      id: "process",
-      label: "תהליך ההתאמה",
+      id: 'process',
+      label: 'תהליך ההתאמה',
       icon: <ArrowRight className="h-4 w-4" />,
     },
     {
-      id: "technical",
-      label: "טכני",
+      id: 'technical',
+      label: 'טכני',
       icon: <HelpCircle className="h-4 w-4" />,
     },
     {
-      id: "privacy",
-      label: "פרטיות ואבטחה",
+      id: 'privacy',
+      label: 'פרטיות ואבטחה',
       icon: <Info className="h-4 w-4" />,
     },
-    { id: "results", label: "תוצאות", icon: <Star className="h-4 w-4" /> },
-    { id: "general", label: "כללי", icon: <Info className="h-4 w-4" /> },
+    { id: 'results', label: 'תוצאות', icon: <Star className="h-4 w-4" /> },
+    { id: 'general', label: 'כללי', icon: <Info className="h-4 w-4" /> },
   ];
 
   // סינון שאלות לפי חיפוש וקטגוריה
@@ -251,7 +252,7 @@ export default function FAQ({
     const matchesSearch =
       !searchQuery ||
       item.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (typeof item.answer === "string" &&
+      (typeof item.answer === 'string' &&
         item.answer.toLowerCase().includes(searchQuery.toLowerCase()));
 
     const matchesCategory = !activeCategory || item.category === activeCategory;
@@ -260,7 +261,7 @@ export default function FAQ({
   });
 
   return (
-    <Card className={cn("shadow-sm", className)}>
+    <Card className={cn('shadow-sm', className)}>
       <CardHeader className="pb-3">
         <CardTitle className="text-lg md:text-xl">{title}</CardTitle>
         {subtitle && <p className="text-gray-500 text-sm">{subtitle}</p>}
@@ -282,7 +283,7 @@ export default function FAQ({
         {showCategories && (
           <div className="flex flex-wrap gap-2 mt-3">
             <Badge
-              variant={activeCategory === null ? "default" : "outline"}
+              variant={activeCategory === null ? 'default' : 'outline'}
               className="cursor-pointer"
               onClick={() => setActiveCategory(null)}
             >
@@ -292,7 +293,7 @@ export default function FAQ({
             {categories.map((category) => (
               <Badge
                 key={category.id}
-                variant={activeCategory === category.id ? "default" : "outline"}
+                variant={activeCategory === category.id ? 'default' : 'outline'}
                 className="cursor-pointer flex items-center gap-1"
                 onClick={() =>
                   setActiveCategory(
@@ -326,10 +327,10 @@ export default function FAQ({
                 key={item.id}
                 value={item.id}
                 className={cn(
-                  "border rounded-lg px-4 py-1",
+                  'border rounded-lg px-4 py-1',
                   expandedItems.includes(item.id)
-                    ? "bg-blue-50 border-blue-200"
-                    : "bg-white border-gray-200 hover:border-blue-200"
+                    ? 'bg-blue-50 border-blue-200'
+                    : 'bg-white border-gray-200 hover:border-blue-200'
                 )}
               >
                 <AccordionTrigger className="hover:no-underline py-3">

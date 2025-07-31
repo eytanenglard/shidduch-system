@@ -100,7 +100,7 @@ const ValuePropositionSection: React.FC = () => {
             מה הופך את
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-cyan-700">
               {' '}
-              Match Point{' '}
+              NeshamaTech{' '}
             </span>
             לייחודית?
           </h2>
@@ -164,7 +164,7 @@ const ValuePropositionSection: React.FC = () => {
             <div className="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-br from-cyan-100 to-cyan-50 opacity-50 rounded-full transform -translate-x-20 translate-y-20"></div>
 
             <h3 className="text-xl font-bold mb-4 text-gray-800 relative">
-              הפתרון של Match Point
+              הפתרון של NeshamaTech
             </h3>
 
             <motion.ul

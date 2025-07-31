@@ -292,7 +292,7 @@ export default function QuestionnaireLandingPage({
       </section>
 
       <footer className="text-center py-6 text-slate-500 text-sm bg-slate-50">
-        © {new Date().getFullYear()} MatchPoint. כל הזכויות שמורות.
+        © {new Date().getFullYear()} NeshamaTech. כל הזכויות שמורות.
       </footer>
 
       {/* Add animations to your global CSS (e.g., globals.css) */}

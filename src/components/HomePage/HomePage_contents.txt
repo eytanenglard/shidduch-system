@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage
-# Generated on: 2025-07-31 16:22:21
+# Generated on: 2025-07-31 16:46:47
 ################################################################################
 
 ================================================================================
@@ -1440,7 +1440,7 @@ const noaProfile: PartyInfo = {
   images: [
     {
       id: 'img1',
-      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700882/dina4_gr0ako.jpg',
+      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967771/IMG-20250731-WA0077_ekb71p.jpg',
       isMain: true,
       userId: 'demo-profile-noa',
       createdAt: new Date(),
@@ -1449,7 +1449,7 @@ const noaProfile: PartyInfo = {
     },
     {
       id: 'img2',
-      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700882/dina4_gr0ako.jpg',
+      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967772/IMG-20250731-WA0078_l5mhu1.jpg',
       isMain: false,
       userId: 'demo-profile-noa',
       createdAt: new Date(),
@@ -1458,22 +1458,14 @@ const noaProfile: PartyInfo = {
     },
     {
       id: 'img3',
-      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700882/dina4_gr0ako.jpg',
+      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967770/IMG-20250731-WA0076_wy6uhe.jpg',
       isMain: false,
       userId: 'demo-profile-noa',
       createdAt: new Date(),
       updatedAt: new Date(),
       cloudinaryPublicId: 'dina4_gr0ako',
-    },
-    {
-      id: 'img4',
-      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700882/dina4_gr0ako.jpg',
-      isMain: false,
-      userId: 'demo-profile-noa',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      cloudinaryPublicId: 'dina4_gr0ako',
-    },
+    }
+   
   ],
   profile: {
     id: 'profile-noa-demo',
@@ -1910,7 +1902,7 @@ const danielProfile: PartyInfo = {
   images: [
     {
       id: 'img1m',
-      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700884/eitan_h9ylkc.jpg',
+      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967649/IMG-20250731-WA0059_mqskdw.jpg',
       isMain: true,
       userId: 'demo-profile-daniel',
       createdAt: new Date(),
@@ -1919,7 +1911,7 @@ const danielProfile: PartyInfo = {
     },
     {
       id: 'img2m',
-      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700884/eitan_h9ylkc.jpg',
+      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967649/IMG-20250731-WA0060_ia8nka.jpg',
       isMain: false,
       userId: 'demo-profile-daniel',
       createdAt: new Date(),
@@ -1928,7 +1920,7 @@ const danielProfile: PartyInfo = {
     },
     {
       id: 'img3m',
-      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700884/eitan_h9ylkc.jpg',
+      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967649/IMG-20250731-WA0061_aug5ix.jpg',
       isMain: false,
       userId: 'demo-profile-daniel',
       createdAt: new Date(),
@@ -1937,7 +1929,7 @@ const danielProfile: PartyInfo = {
     },
     {
       id: 'img4m',
-      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700884/eitan_h9ylkc.jpg',
+      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967650/IMG-20250731-WA0062_i9ylyk.jpg',
       isMain: false,
       userId: 'demo-profile-daniel',
       createdAt: new Date(),
@@ -2849,7 +2841,7 @@ const CTASection: React.FC = () => {
             className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto"
             variants={textVariants}
           >
-            הצטרפו היום למערכת Match Point המובילה והתקדמו צעד אחד קדימה במציאת
+            הצטרפו היום למערכת NeshamaTech המובילה והתקדמו צעד אחד קדימה במציאת
             הזיווג המושלם עבורכם
           </motion.p>
 
@@ -3046,7 +3038,7 @@ const FAQSection: React.FC = () => {
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-cyan-600 to-cyan-700 mx-auto rounded-full mb-6" />
           <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-8">
-            אלו התשובות לשאלות הנפוצות ביותר על שירות Match Point שלנו
+            אלו התשובות לשאלות הנפוצות ביותר על שירות NeshamaTech שלנו{' '}
           </p>
         </motion.div>
 
@@ -3383,7 +3375,7 @@ const FooterSection: React.FC = () => {
                   />
                 </div>
                 <span className="text-xl font-bold text-white group-hover:text-cyan-300 transition-all duration-300">
-                  Match Point
+                  NeshamaTech
                 </span>
               </Link>
             </motion.div>
@@ -3565,7 +3557,7 @@ const FooterSection: React.FC = () => {
               </span>
             </motion.div>
             <p className="text-gray-400">
-              © כל הזכויות שמורות Match Point 2025
+              © כל הזכויות שמורות NeshamaTech 2025
             </p>
           </div>
         </motion.div>
@@ -4902,7 +4894,7 @@ const PrivacyAssuranceSection: React.FC = () => {
               </h2>
               <div className="w-24 h-1 bg-white/30 rounded-full mb-6 mx-auto md:mr-0"></div>
               <p className="text-lg text-white/90 mb-6 mx-auto md:mx-0 max-w-md">
-                בעולם השידוכים, הדיסקרטיות והפרטיות הן קריטיות. ב-Match Point
+                בעולם השידוכים, הדיסקרטיות והפרטיות הן קריטיות. ב-NeshamaTech
                 פיתחנו מערכת שמתעדפת את האבטחה והפרטיות שלך בכל שלב.
               </p>
             </div>
@@ -5040,13 +5032,13 @@ const SuccessStoriesSection: React.FC = () => {
 
   const testimonials = [
     {
-      text: 'תמיד חלמתי על שותף לחיים עם שאיפות ערכיות דומות – להקים בית של חסד, ציונות ותורה. Match Point חיברו אותי לאדם שחולם בדיוק את אותו החלום. זה חיבור של נשמה ומטרה.',
+      text: 'תמיד חלמתי על שותף לחיים עם שאיפות ערכיות דומות – להקים בית של חסד, ציונות ותורה. NeshamaTech חיברו אותי לאדם שחולם בדיוק את אותו החלום. זה חיבור של נשמה ומטרה.',
       author: 'שרה, ירושלים',
       result: 'נשואים + 1',
       color: 'green' as const,
     },
     {
-      text: 'הקסם של Match Point הוא ביכולת לראות מעבר לפרטים היבשים. איתן והמערכת זיהו את החיבור העמוק בערכי המשפחה ובווייב הכללי שלנו. זו התאמה שמרגישה כמו בית מהרגע הראשון.',
+      text: 'הקסם של NeshamaTech הוא ביכולת לראות מעבר לפרטים היבשים. איתן והמערכת זיהו את החיבור העמוק בערכי המשפחה ובווייב הכללי שלנו. זו התאמה שמרגישה כמו בית מהרגע הראשון.',
       author: 'מרים, ירוחם',
       result: 'נשואים',
       color: 'orange' as const,
@@ -5246,7 +5238,7 @@ const ValuePropositionSection: React.FC = () => {
             מה הופך את
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-cyan-700">
               {' '}
-              Match Point{' '}
+              NeshamaTech{' '}
             </span>
             לייחודית?
           </h2>
@@ -5310,7 +5302,7 @@ const ValuePropositionSection: React.FC = () => {
             <div className="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-br from-cyan-100 to-cyan-50 opacity-50 rounded-full transform -translate-x-20 translate-y-20"></div>
 
             <h3 className="text-xl font-bold mb-4 text-gray-800 relative">
-              הפתרון של Match Point
+              הפתרון של NeshamaTech
             </h3>
 
             <motion.ul

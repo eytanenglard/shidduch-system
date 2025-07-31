@@ -238,7 +238,7 @@ const noaProfile: PartyInfo = {
   images: [
     {
       id: 'img1',
-      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700882/dina4_gr0ako.jpg',
+      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967771/IMG-20250731-WA0077_ekb71p.jpg',
       isMain: true,
       userId: 'demo-profile-noa',
       createdAt: new Date(),
@@ -247,7 +247,7 @@ const noaProfile: PartyInfo = {
     },
     {
       id: 'img2',
-      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700882/dina4_gr0ako.jpg',
+      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967772/IMG-20250731-WA0078_l5mhu1.jpg',
       isMain: false,
       userId: 'demo-profile-noa',
       createdAt: new Date(),
@@ -256,22 +256,14 @@ const noaProfile: PartyInfo = {
     },
     {
       id: 'img3',
-      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700882/dina4_gr0ako.jpg',
+      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967770/IMG-20250731-WA0076_wy6uhe.jpg',
       isMain: false,
       userId: 'demo-profile-noa',
       createdAt: new Date(),
       updatedAt: new Date(),
       cloudinaryPublicId: 'dina4_gr0ako',
-    },
-    {
-      id: 'img4',
-      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700882/dina4_gr0ako.jpg',
-      isMain: false,
-      userId: 'demo-profile-noa',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      cloudinaryPublicId: 'dina4_gr0ako',
-    },
+    }
+   
   ],
   profile: {
     id: 'profile-noa-demo',
@@ -708,7 +700,7 @@ const danielProfile: PartyInfo = {
   images: [
     {
       id: 'img1m',
-      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700884/eitan_h9ylkc.jpg',
+      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967649/IMG-20250731-WA0059_mqskdw.jpg',
       isMain: true,
       userId: 'demo-profile-daniel',
       createdAt: new Date(),
@@ -717,7 +709,7 @@ const danielProfile: PartyInfo = {
     },
     {
       id: 'img2m',
-      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700884/eitan_h9ylkc.jpg',
+      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967649/IMG-20250731-WA0060_ia8nka.jpg',
       isMain: false,
       userId: 'demo-profile-daniel',
       createdAt: new Date(),
@@ -726,7 +718,7 @@ const danielProfile: PartyInfo = {
     },
     {
       id: 'img3m',
-      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700884/eitan_h9ylkc.jpg',
+      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967649/IMG-20250731-WA0061_aug5ix.jpg',
       isMain: false,
       userId: 'demo-profile-daniel',
       createdAt: new Date(),
@@ -735,7 +727,7 @@ const danielProfile: PartyInfo = {
     },
     {
       id: 'img4m',
-      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700884/eitan_h9ylkc.jpg',
+      url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967650/IMG-20250731-WA0062_i9ylyk.jpg',
       isMain: false,
       userId: 'demo-profile-daniel',
       createdAt: new Date(),

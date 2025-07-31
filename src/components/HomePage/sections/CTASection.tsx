@@ -151,7 +151,7 @@ const CTASection: React.FC = () => {
             className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto"
             variants={textVariants}
           >
-            הצטרפו היום למערכת Match Point המובילה והתקדמו צעד אחד קדימה במציאת
+            הצטרפו היום למערכת NeshamaTech המובילה והתקדמו צעד אחד קדימה במציאת
             הזיווג המושלם עבורכם
           </motion.p>
 

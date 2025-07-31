@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\questionnaire
-# Generated on: 2025-07-28 22:50:18
+# Generated on: 2025-07-31 16:45:32
 ################################################################################
 
 ================================================================================
@@ -7891,7 +7891,7 @@ export default function QuestionnaireLandingPage({
       </section>
 
       <footer className="text-center py-6 text-slate-500 text-sm bg-slate-50">
-        © {new Date().getFullYear()} MatchPoint. כל הזכויות שמורות.
+        © {new Date().getFullYear()} NeshamaTech. כל הזכויות שמורות.
       </footer>
 
       {/* Add animations to your global CSS (e.g., globals.css) */}
@@ -8684,6 +8684,7 @@ export const partnerQuestions: Question[] = [
         'הבחירות כאן מספרות סיפור שלם על סדרי העדיפויות שלך. בחר/י את האפשרויות שהכי מדברות אל ליבך.',
     },
   },
+  // החלף את ההגדרה הקיימת של שאלה זו בקוד הבא:
   {
     worldId: 'PARTNER',
     id: 'partner_community_character_preference',
@@ -8698,32 +8699,32 @@ export const partnerQuestions: Question[] = [
       {
         icon: <BookOpen />,
         text: 'קהילה תורנית חזקה עם דמות רבנית משמעותית',
-        value: 'קהילה תורנית חזקה',
+        value: 'קהילה תורנית חזקה עם דמות רבנית משמעותית',
       },
       {
         icon: <Scale />,
         text: 'קהילה מעורבת עם מגוון רמות דתיות',
-        value: 'קהילה מעורבת',
+        value: 'קהילה מעורבת עם מגוון רמות דתיות',
       },
       {
         icon: <Users />,
         text: 'קהילה צעירה ודינמית עם הרבה משפחות צעירות',
-        value: 'קהילה צעירה ודינמית',
+        value: 'קהילה צעירה ודינמית עם הרבה משפחות צעירות',
       },
       {
         icon: <Sparkles />,
         text: 'קהילה פתוחה וליברלית מבחינה דתית וחברתית',
-        value: 'קהילה פתוחה וליברלית',
+        value: 'קהילה פתוחה וליברלית מבחינה דתית וחברתית',
       },
       {
         icon: <Heart />,
         text: 'קהילה חמה, תומכת ומגובשת חברתית',
-        value: 'קהילה חמה ותומכת',
+        value: 'קהילה חמה, תומכת ומגובשת חברתית',
       },
       {
         icon: <ShieldCheck />,
         text: 'קהילה שקטה ומבוססת עם דגש על פרטיות',
-        value: 'קהילה שקטה ומבוססת',
+        value: 'קהילה שקטה ומבוססת עם דגש על פרטיות',
       },
     ],
     minSelections: 1,
@@ -8734,6 +8735,8 @@ export const partnerQuestions: Question[] = [
         'האופי של הקהילה משפיע ישירות על חיי החברה, חינוך הילדים והאווירה בבית.',
     },
   },
+  // החלף את ההגדרה הקיימת של שאלה זו בקוד הבא:
+  // החלף את ההגדרה הקיימת של שאלה זו בקוד הבא:
   {
     worldId: 'PARTNER',
     id: 'partner_geographical_economic_preference',
@@ -8748,27 +8751,27 @@ export const partnerQuestions: Question[] = [
       {
         icon: <MapPin />,
         text: 'מרכז הארץ - קרבה לתעסוקה, תרבות ומשפחה',
-        value: 'מרכז הארץ',
+        value: 'מרכז הארץ - קרבה לתעסוקה, תרבות ומשפחה',
       },
       {
         icon: <TrendingUp />,
         text: 'פריפריה - איכות חיים, קהילתיות ועלויות מחיה נוחות יותר',
-        value: 'פריפריה',
+        value: 'פריפריה - איכות חיים, קהילתיות ועלויות מחיה נוחות יותר',
       },
       {
         icon: <DollarSign />,
         text: 'מגורים ביישוב בעל עלות מחיה סבירה הם עדיפות עליונה',
-        value: 'עלות מחיה סבירה',
+        value: 'מגורים ביישוב בעל עלות מחיה סבירה הם עדיפות עליונה',
       },
       {
         icon: <Briefcase />,
         text: 'קרבה למרכזי תעסוקה רלוונטיים עבורי ועבור בן/בת הזוג',
-        value: 'קרבה למרכזי תעסוקה',
+        value: 'קרבה למרכזי תעסוקה רלוונטיים עבורי ועבור בן/בת הזוג',
       },
       {
         icon: <Home />,
         text: 'קרבה למשפחת המוצא שלי או של בן/בת הזוג',
-        value: 'קרבה למשפחה',
+        value: 'קרבה למשפחת המוצא שלי או של בן/בת הזוג',
       },
     ],
     minSelections: 1,
@@ -9971,135 +9974,142 @@ Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\quest
 File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\questionnaire\questions\religion\faithQuestions.tsx
 --------------------------------------------------------------------------------
 Content:
-import { Question } from "../../types/types";
+// src/components/questionnaire/questions/religion/faithQuestions.tsx - (גרסה מתוקנת)
+import { Question } from '../../types/types';
 
 export const faithQuestions: Question[] = [
   // Spiritual and Religious Values
   {
-    worldId: "RELIGION",  id: "spiritualMoment",
-    category: "values",
-    subcategory: "spiritual",
-    question: "מהו הרגע הכי רוחני שחווית בחייך?",
-    type: "openText",
-    depth: "BASIC",
+    worldId: 'RELIGION',
+    id: 'spiritualMoment',
+    category: 'values',
+    subcategory: 'spiritual',
+    question: 'מהו הרגע הכי רוחני שחווית בחייך?',
+    type: 'openText',
+    depth: 'BASIC',
     isRequired: true,
-    placeholder: "ספר/י על חוויה משמעותית...",
+    placeholder: 'ספר/י על חוויה משמעותית...',
     minLength: 20,
     maxLength: 500,
   },
   {
-    worldId: "RELIGION",
-      id: "favoriteHoliday",
-    category: "values",
-    subcategory: "spiritual",
-    question: "איזה חג יהודי הכי משמעותי עבורך?",
-    type: "singleChoice",
-    depth: "BASIC",
+    worldId: 'RELIGION',
+    id: 'favoriteHoliday',
+    category: 'values',
+    subcategory: 'spiritual',
+    question: 'איזה חג יהודי הכי משמעותי עבורך?',
+    type: 'singleChoice',
+    depth: 'BASIC',
     isRequired: true,
     options: [
-      { value: "roshHashana", text: "ראש השנה" },
-      { value: "yomKippur", text: "יום כיפור" },
-      { value: "pesach", text: "פסח" },
-      { value: "shavuot", text: "שבועות" },
+      { value: 'ראש השנה', text: 'ראש השנה' },
+      { value: 'יום כיפור', text: 'יום כיפור' },
+      { value: 'פסח', text: 'פסח' },
+      { value: 'שבועות', text: 'שבועות' },
     ],
   },
 
   // Personal Values
   {
-    worldId: "RELIGION",
-    id: "coreValues",
-    category: "values",
-    subcategory: "personal",
-    question: "מהם שלושת הערכים החשובים ביותר בחייך?",
-    type: "multiSelect",
-    depth: "BASIC",
+    worldId: 'RELIGION',
+    id: 'coreValues',
+    category: 'values',
+    subcategory: 'personal',
+    question: 'מהם שלושת הערכים החשובים ביותר בחייך?',
+    type: 'multiSelect',
+    depth: 'BASIC',
     isRequired: true,
     options: [
-      { value: "honesty", text: "יושר ואמת" },
-      { value: "family", text: "משפחה" },
-      { value: "learning", text: "לימוד והתפתחות" },
-      { value: "kindness", text: "חסד" },
-      { value: "tradition", text: "מסורת" },
-      { value: "success", text: "הצלחה" },
+      { value: 'יושר ואמת', text: 'יושר ואמת' },
+      { value: 'משפחה', text: 'משפחה' },
+      { value: 'לימוד והתפתחות', text: 'לימוד והתפתחות' },
+      { value: 'חסד', text: 'חסד' },
+      { value: 'מסורת', text: 'מסורת' },
+      { value: 'הצלחה', text: 'הצלחה' },
     ],
     minSelections: 1,
     maxSelections: 3,
   },
-  {worldId: "RELIGION",
-    id: "lifeGoals",
-    category: "values",
-    subcategory: "personal",
-    question: "מהי המטרה העיקרית שלך בחיים?",
-    type: "openText",
-    depth: "ADVANCED",
+  {
+    worldId: 'RELIGION',
+    id: 'lifeGoals',
+    category: 'values',
+    subcategory: 'personal',
+    question: 'מהי המטרה העיקרית שלך בחיים?',
+    type: 'openText',
+    depth: 'ADVANCED',
     isRequired: true,
-    placeholder: "שתף/י במטרות החיים שלך...",
+    placeholder: 'שתף/י במטרות החיים שלך...',
     minLength: 30,
     maxLength: 500,
   },
 
   // Community Values
-  {worldId: "RELIGION",
-    id: "communityRole",
-    category: "values",
-    subcategory: "community",
-    question: "איזה תפקיד אתה רואה לעצמך בקהילה?",
-    type: "multiSelect",
-    depth: "BASIC",
+  {
+    worldId: 'RELIGION',
+    id: 'communityRole',
+    category: 'values',
+    subcategory: 'community',
+    question: 'איזה תפקיד אתה רואה לעצמך בקהילה?',
+    type: 'multiSelect',
+    depth: 'BASIC',
     isRequired: true,
     options: [
-      { value: "leader", text: "מנהיג/מוביל" },
-      { value: "supporter", text: "תומך ומסייע" },
-      { value: "teacher", text: "מחנך/מלמד" },
-      { value: "participant", text: "משתתף פעיל" },
+      { value: 'מנהיג/מוביל', text: 'מנהיג/מוביל' },
+      { value: 'תומך ומסייע', text: 'תומך ומסייע' },
+      { value: 'מחנך/מלמד', text: 'מחנך/מלמד' },
+      { value: 'משתתף פעיל', text: 'משתתף פעיל' },
     ],
     minSelections: 1,
     maxSelections: 2,
   },
-  {worldId: "RELIGION",
-    id: "givingPhilosophy",
-    category: "values",
-    subcategory: "community",
-    question: "מהי תפיסת עולמך בנושא נתינה וצדקה?",
-    type: "openText",
-    depth: "ADVANCED",
+  {
+    worldId: 'RELIGION',
+    id: 'givingPhilosophy',
+    category: 'values',
+    subcategory: 'community',
+    question: 'מהי תפיסת עולמך בנושא נתינה וצדקה?',
+    type: 'openText',
+    depth: 'ADVANCED',
     isRequired: true,
-    placeholder: "תאר/י את גישתך לנתינה...",
+    placeholder: 'תאר/י את גישתך לנתינה...',
     minLength: 30,
     maxLength: 500,
   },
 
   // Future Values
-  {worldId: "RELIGION",
-    id: "nextGeneration",
-    category: "values",
-    subcategory: "future",
-    question: "מה הערכים החשובים ביותר שתרצה להעביר לדור הבא?",
-    type: "multiSelect",
-    depth: "EXPERT",
+  {
+    worldId: 'RELIGION',
+    id: 'nextGeneration',
+    category: 'values',
+    subcategory: 'future',
+    question: 'מה הערכים החשובים ביותר שתרצה להעביר לדור הבא?',
+    type: 'multiSelect',
+    depth: 'EXPERT',
     isRequired: true,
     options: [
-      { value: "torah", text: "תורה ומסורת" },
-      { value: "ethics", text: "מוסר וערכים" },
-      { value: "education", text: "חינוך והשכלה" },
-      { value: "independence", text: "עצמאות" },
-      { value: "community", text: "קהילתיות" },
+      { value: 'תורה ומסורת', text: 'תורה ומסורת' },
+      { value: 'מוסר וערכים', text: 'מוסר וערכים' },
+      { value: 'חינוך והשכלה', text: 'חינוך והשכלה' },
+      { value: 'עצמאות', text: 'עצמאות' },
+      { value: 'קהילתיות', text: 'קהילתיות' },
     ],
     minSelections: 1,
     maxSelections: 3,
   },
-  {worldId: "RELIGION",
-    id: "israelVision",
-    category: "values",
-    subcategory: "future",
-    question: "מהו החזון שלך למדינת ישראל?",
-    type: "openText",
-    depth: "EXPERT",
+  {
+    worldId: 'RELIGION',
+    id: 'israelVision',
+    category: 'values',
+    subcategory: 'future',
+    question: 'מהו החזון שלך למדינת ישראל?',
+    type: 'openText',
+    depth: 'EXPERT',
     isRequired: true,
-    placeholder: "שתף/י את חזונך...",
+    placeholder: 'שתף/י את חזונך...',
     minLength: 50,
     maxLength: 1000,
-  }
+  },
 ];
 --- End of Content for faithQuestions.tsx ---
 
@@ -10107,6 +10117,7 @@ export const faithQuestions: Question[] = [
 File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\questionnaire\questions\religion\practicalReligionQuestions.tsx
 --------------------------------------------------------------------------------
 Content:
+// src/components/questionnaire/questions/religion/practicalReligionQuestions.tsx - (גרסה מתוקנת)
 import { Question } from "../../types/types";
 
 export const practicalQuestions: Question[] = [
@@ -10132,10 +10143,10 @@ export const practicalQuestions: Question[] = [
     depth: "BASIC",
     isRequired: true,
     options: [
-      { value: "charedi", text: "חרדי" },
-      { value: "datiLeumi", text: "דתי לאומי" },
-      { value: "masorti", text: "מסורתי" },
-      { value: "other", text: "אחר" },
+      { value: "חרדי", text: "חרדי" },
+      { value: "דתי לאומי", text: "דתי לאומי" },
+      { value: "מסורתי", text: "מסורתי" },
+      { value: "אחר", text: "אחר" },
     ],
   },
   {worldId: "RELIGION",
@@ -10161,10 +10172,10 @@ export const practicalQuestions: Question[] = [
     depth: "BASIC",
     isRequired: true,
     options: [
-      { value: "veryImportant", text: "חשוב מאוד - משתדל להתפלל כל תפילה במניין" },
-      { value: "important", text: "חשוב - משתדל לפחות פעם ביום" },
-      { value: "sometimes", text: "לעיתים - בעיקר בשבתות וחגים" },
-      { value: "notImportant", text: "פחות חשוב לי" },
+      { value: "חשוב מאוד - משתדל להתפלל כל תפילה במניין", text: "חשוב מאוד - משתדל להתפלל כל תפילה במניין" },
+      { value: "חשוב - משתדל לפחות פעם ביום", text: "חשוב - משתדל לפחות פעם ביום" },
+      { value: "לעיתים - בעיקר בשבתות וחגים", text: "לעיתים - בעיקר בשבתות וחגים" },
+      { value: "פחות חשוב לי", text: "פחות חשוב לי" },
     ],
   },
   {worldId: "RELIGION",
@@ -10176,12 +10187,12 @@ export const practicalQuestions: Question[] = [
     depth: "BASIC",
     isRequired: true,
     options: [
-      { value: "dafYomi", text: "דף יומי" },
-      { value: "halacha", text: "הלכה יומית" },
-      { value: "parasha", text: "פרשת שבוע" },
-      { value: "chassidut", text: "חסידות" },
-      { value: "mussar", text: "מוסר" },
-      { value: "other", text: "אחר" },
+      { value: "דף יומי", text: "דף יומי" },
+      { value: "הלכה יומית", text: "הלכה יומית" },
+      { value: "פרשת שבוע", text: "פרשת שבוע" },
+      { value: "חסידות", text: "חסידות" },
+      { value: "מוסר", text: "מוסר" },
+      { value: "אחר", text: "אחר" },
     ],
     minSelections: 1,
     maxSelections: 4,
@@ -10209,10 +10220,10 @@ export const practicalQuestions: Question[] = [
     depth: "ADVANCED",
     isRequired: false,
     options: [
-      { value: "strict", text: "מחמיר בהלכות שבת" },
-      { value: "basic", text: "שומר על ההלכות הבסיסיות" },
-      { value: "flexible", text: "גמיש יותר בפרשנות" },
-      { value: "situational", text: "תלוי במצב ובנסיבות" },
+      { value: "מחמיר בהלכות שבת", text: "מחמיר בהלכות שבת" },
+      { value: "שומר על ההלכות הבסיסיות", text: "שומר על ההלכות הבסיסיות" },
+      { value: "גמיש יותר בפרשנות", text: "גמיש יותר בפרשנות" },
+      { value: "תלוי במצב ובנסיבות", text: "תלוי במצב ובנסיבות" },
     ],
     minSelections: 1,
     maxSelections: 2,
@@ -10228,10 +10239,10 @@ export const practicalQuestions: Question[] = [
     depth: "BASIC",
     isRequired: true,
     options: [
-      { value: "mehadrin", text: "מהדרין בלבד" },
-      { value: "regular", text: "כשרות רגילה" },
-      { value: "basic", text: "כשרות בסיסית" },
-      { value: "flexible", text: "גמיש יותר" },
+      { value: "מהדרין בלבד", text: "מהדרין בלבד" },
+      { value: "כשרות רגילה", text: "כשרות רגילה" },
+      { value: "כשרות בסיסית", text: "כשרות בסיסית" },
+      { value: "גמיש יותר", text: "גמיש יותר" },
     ],
   },
   {worldId: "RELIGION",
@@ -10243,10 +10254,10 @@ export const practicalQuestions: Question[] = [
     depth: "BASIC",
     isRequired: true,
     options: [
-      { value: "onlyKosher", text: "רק במסעדות כשרות" },
-      { value: "familyHome", text: "אוכל בבתים של משפחה" },
-      { value: "friendsHome", text: "אוכל אצל חברים" },
-      { value: "flexible", text: "גמיש בהתאם לנסיבות" },
+      { value: "רק במסעדות כשרות", text: "רק במסעדות כשרות" },
+      { value: "אוכל בבתים של משפחה", text: "אוכל בבתים של משפחה" },
+      { value: "אוכל אצל חברים", text: "אוכל אצל חברים" },
+      { value: "גמיש בהתאם לנסיבות", text: "גמיש בהתאם לנסיבות" },
     ],
     minSelections: 1,
     maxSelections: 3,
@@ -10274,10 +10285,10 @@ export const practicalQuestions: Question[] = [
     depth: "ADVANCED",
     isRequired: true,
     options: [
-      { value: "fullSeparation", text: "תומך בהפרדה מלאה" },
-      { value: "situational", text: "תלוי בנסיבות ובמקום" },
-      { value: "flexible", text: "גמיש יותר בנושא" },
-      { value: "against", text: "מתנגד להפרדה" },
+      { value: "תומך בהפרדה מלאה", text: "תומך בהפרדה מלאה" },
+      { value: "תלוי בנסיבות ובמקום", text: "תלוי בנסיבות ובמקום" },
+      { value: "גמיש יותר בנושא", text: "גמיש יותר בנושא" },
+      { value: "מתנגד להפרדה", text: "מתנגד להפרדה" },
     ],
   },
 ];
@@ -10937,6 +10948,7 @@ export const valuesQuestions: Question[] = [
     ],
     metadata: { estimatedTime: 1 },
   },
+  // החלף את ההגדרה הקיימת של שאלה זו בקוד הבא:
   {
     worldId: 'VALUES',
     id: 'values_career_family_balance_approach',
@@ -10951,22 +10963,26 @@ export const valuesQuestions: Question[] = [
       {
         icon: <Briefcase />,
         text: 'הקריירה/לימודים בעדיפות עליונה כרגע. אני מחפש/ת זוגיות תומכת שתשתלב בלו"ז האינטנסיבי שלי.',
-        value: 'career_first',
+        value:
+          'הקריירה/לימודים בעדיפות עליונה כרגע. אני מחפש/ת זוגיות תומכת שתשתלב בלו"ז האינטנסיבי שלי.',
       },
       {
         icon: <Scale />,
         text: 'אני שואפ/ת לאיזון. חשוב לי להשקיע בקריירה, אבל אני רוצה ומוכנ/ה לפנות זמן משמעותי לבניית קשר.',
-        value: 'balanced_approach',
+        value:
+          'אני שואפ/ת לאיזון. חשוב לי להשקיע בקריירה, אבל אני רוצה ומוכנ/ה לפנות זמן משמעותי לבניית קשר.',
       },
       {
         icon: <Heart />,
         text: 'הגעתי לשלב שבו בניית זוגיות ומשפחה היא המטרה המרכזית. הקריירה חשובה, אך היא תומכת במטרה זו.',
-        value: 'relationship_first',
+        value:
+          'הגעתי לשלב שבו בניית זוגיות ומשפחה היא המטרה המרכזית. הקריירה חשובה, אך היא תומכת במטרה זו.',
       },
       {
         icon: <Sparkles />,
         text: 'אני גמיש/ה. האיזון הנכון יתעצב יחד עם בן/בת הזוג. מה שחשוב הוא ההחלטה המשותפת.',
-        value: 'flexible_and_joint',
+        value:
+          'אני גמיש/ה. האיזון הנכון יתעצב יחד עם בן/בת הזוג. מה שחשוב הוא ההחלטה המשותפת.',
       },
     ],
     metadata: {

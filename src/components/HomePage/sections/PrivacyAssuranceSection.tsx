@@ -107,7 +107,7 @@ const PrivacyAssuranceSection: React.FC = () => {
               </h2>
               <div className="w-24 h-1 bg-white/30 rounded-full mb-6 mx-auto md:mr-0"></div>
               <p className="text-lg text-white/90 mb-6 mx-auto md:mx-0 max-w-md">
-                בעולם השידוכים, הדיסקרטיות והפרטיות הן קריטיות. ב-Match Point
+                בעולם השידוכים, הדיסקרטיות והפרטיות הן קריטיות. ב-NeshamaTech
                 פיתחנו מערכת שמתעדפת את האבטחה והפרטיות שלך בכל שלב.
               </p>
             </div>

@@ -136,7 +136,7 @@ const FooterSection: React.FC = () => {
                   />
                 </div>
                 <span className="text-xl font-bold text-white group-hover:text-cyan-300 transition-all duration-300">
-                  Match Point
+                  NeshamaTech
                 </span>
               </Link>
             </motion.div>
@@ -318,7 +318,7 @@ const FooterSection: React.FC = () => {
               </span>
             </motion.div>
             <p className="text-gray-400">
-              © כל הזכויות שמורות Match Point 2025
+              © כל הזכויות שמורות NeshamaTech 2025
             </p>
           </div>
         </motion.div>

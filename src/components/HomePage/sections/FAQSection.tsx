@@ -122,7 +122,7 @@ const FAQSection: React.FC = () => {
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-cyan-600 to-cyan-700 mx-auto rounded-full mb-6" />
           <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-8">
-            אלו התשובות לשאלות הנפוצות ביותר על שירות Match Point שלנו
+            אלו התשובות לשאלות הנפוצות ביותר על שירות NeshamaTech שלנו{' '}
           </p>
         </motion.div>
 
