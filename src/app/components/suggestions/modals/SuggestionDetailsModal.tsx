@@ -106,7 +106,6 @@ import SuggestionTimeline from '../timeline/SuggestionTimeline';
 import InquiryThreadView from '../inquiries/InquiryThreadView';
 import { AskMatchmakerDialog } from '../dialogs/AskMatchmakerDialog';
 import { UserAiAnalysisDialog } from '../dialogs/UserAiAnalysisDialog';
-import UserAiAnalysisDisplay from '../compatibility/UserAiAnalysisDisplay';
 import type { ExtendedMatchSuggestion } from '../types';
 
 // ===============================
@@ -118,6 +117,8 @@ interface SuggestionDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   onStatusChange?: (suggestionId: string, newStatus: string) => Promise<void>;
+  questionnaire: QuestionnaireResponse | null;
+
   isDemo?: boolean; // prop חדש למצב הדגמה
   demoAnalysisData?: AiSuggestionAnalysisResult | null; // prop חדש לנתוני הדגמה
 }
@@ -129,14 +130,18 @@ const useIsMobile = () => {
 
   useEffect(() => {
     const checkDevice = () => {
-      const isMobileDevice = window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const isMobileDevice =
+        window.innerWidth < 768 ||
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+          navigator.userAgent
+        );
       setIsMobile(isMobileDevice);
     };
-    
+
     checkDevice();
     window.addEventListener('resize', checkDevice);
     window.addEventListener('orientationchange', checkDevice);
-    
+
     return () => {
       window.removeEventListener('resize', checkDevice);
       window.removeEventListener('orientationchange', checkDevice);
@@ -169,7 +174,8 @@ const useViewportHeight = () => {
 
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', updateHeight);
-      return () => window.visualViewport?.removeEventListener('resize', updateHeight);
+      return () =>
+        window.visualViewport?.removeEventListener('resize', updateHeight);
     } else {
       window.addEventListener('resize', updateHeight);
       return () => window.removeEventListener('resize', updateHeight);
@@ -186,8 +192,8 @@ const useFullscreenModal = (isOpen: boolean) => {
 
   const toggleFullscreen = useCallback(() => {
     setIsTransitioning(true);
-    setIsFullscreen(prev => !prev);
-    
+    setIsFullscreen((prev) => !prev);
+
     // סיום מעבר אחרי זמן האנימציה
     setTimeout(() => {
       setIsTransitioning(false);
@@ -205,7 +211,7 @@ const useFullscreenModal = (isOpen: boolean) => {
   return {
     isFullscreen,
     isTransitioning,
-    toggleFullscreen
+    toggleFullscreen,
   };
 };
 
@@ -755,7 +761,15 @@ const EnhancedTabsSection: React.FC<{
   onToggleFullscreen: () => void;
   isMobile: boolean;
   isTransitioning?: boolean;
-}> = ({ activeTab, onTabChange, onClose, isFullscreen, onToggleFullscreen, isMobile, isTransitioning = false }) => (
+}> = ({
+  activeTab,
+  onTabChange,
+  onClose,
+  isFullscreen,
+  onToggleFullscreen,
+  isMobile,
+  isTransitioning = false,
+}) => (
   <div className="border-b border-purple-100 px-2 sm:px-6 pt-4 bg-gradient-to-r from-purple-50/80 to-pink-50/80 backdrop-blur-sm sticky top-0 z-20">
     <div className="flex items-center justify-between mb-4">
       <TabsList className="grid w-full grid-cols-4 bg-white/90 backdrop-blur-sm rounded-3xl p-2 h-20 shadow-xl border-2 border-purple-100 overflow-hidden">
@@ -857,6 +871,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   isOpen,
   onClose,
   onStatusChange,
+  questionnaire,
   isDemo = false,
   demoAnalysisData = null,
 }) => {
@@ -867,27 +882,28 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   const [actionToConfirm, setActionToConfirm] = useState<
     'approve' | 'decline' | null
   >(null);
-
-  const [questionnaire, setQuestionnaire] =
-    useState<QuestionnaireResponse | null>(null);
   const [isQuestionnaireLoading, setIsQuestionnaireLoading] = useState(false);
   const [isActionsExpanded, setIsActionsExpanded] = useState(false);
-  
+
   const isMobile = useIsMobile();
   const viewportHeight = useViewportHeight();
-  const { isFullscreen, isTransitioning, toggleFullscreen } = useFullscreenModal(isOpen);
+  const { isFullscreen, isTransitioning, toggleFullscreen } =
+    useFullscreenModal(isOpen);
 
   useEffect(() => {
     if (isOpen) {
       setActiveTab('presentation');
       setIsActionsExpanded(false);
-      
+
       if (isMobile || isFullscreen) {
         document.body.style.overflow = 'hidden';
         document.documentElement.style.overflow = 'hidden';
-        
+
         if (isMobile) {
-          document.documentElement.style.setProperty('--vh', `${viewportHeight * 0.01}px`);
+          document.documentElement.style.setProperty(
+            '--vh',
+            `${viewportHeight * 0.01}px`
+          );
         }
       }
     } else {
@@ -909,7 +925,6 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
       ? suggestion.secondParty
       : suggestion.firstParty
     : null;
-  const targetPartyId = targetParty?.id;
 
   if (!suggestion || !targetParty) return null;
 
@@ -986,8 +1001,9 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   };
 
   const getModalClasses = () => {
-    const baseClasses = "p-0 shadow-2xl border-0 bg-white overflow-hidden z-[50] flex flex-col transition-all duration-300 ease-in-out";
-    
+    const baseClasses =
+      'p-0 shadow-2xl border-0 bg-white overflow-hidden z-[50] flex flex-col transition-all duration-300 ease-in-out';
+
     if (isMobile) {
       return `${baseClasses} !w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0`;
     } else if (isFullscreen) {
@@ -1006,23 +1022,31 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
           onOpenAutoFocus={(e) => e.preventDefault()}
           data-fullscreen={isFullscreen}
           data-mobile={isMobile}
-          style={isFullscreen && !isMobile ? {
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            width: '100vw',
-            height: '100vh',
-            maxWidth: 'none',
-            maxHeight: 'none',
-            borderRadius: 0,
-            margin: 0,
-            transform: 'none'
-          } : undefined}
+          style={
+            isFullscreen && !isMobile
+              ? {
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  width: '100vw',
+                  height: '100vh',
+                  maxWidth: 'none',
+                  maxHeight: 'none',
+                  borderRadius: 0,
+                  margin: 0,
+                  transform: 'none',
+                }
+              : undefined
+          }
         >
           <ScrollArea className="flex-grow min-h-0 modal-scroll">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
+            <Tabs
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="h-full"
+            >
               <EnhancedTabsSection
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
@@ -1053,7 +1077,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                 className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen"
               >
                 {isQuestionnaireLoading ? (
-                   <div className="flex justify-center items-center h-64">
+                  <div className="flex justify-center items-center h-64">
                     <div className="text-center">
                       <Loader2 className="w-12 h-12 animate-spin text-purple-600 mx-auto mb-4" />
                       <p className="text-lg font-semibold text-gray-700">
@@ -1099,7 +1123,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                 value="compatibility"
                 className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen"
               >
-                 {/* 2. העברת ה-props החדשים לדיאלוג */}
+                {/* 2. העברת ה-props החדשים לדיאלוג */}
                 <div className="flex flex-col items-center justify-center h-full min-h-[600px] text-center space-y-8 p-6">
                   <div className="relative">
                     <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center mx-auto shadow-2xl">
@@ -1134,7 +1158,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                       </div>
                     </div>
                   </div>
-                  
+
                   <UserAiAnalysisDialog
                     suggestedUserId={targetParty.id}
                     isDemo={isDemo}

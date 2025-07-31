@@ -715,12 +715,16 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
       {/* Modals */}
       {console.log(`[SuggestionsList] Rendering SuggestionDetailsModal. isOpen: ${!!selectedSuggestion && !showAskDialog && !showStatusDialog}`)}
 
+   
       <SuggestionDetailsModal
         suggestion={selectedSuggestion}
         userId={userId}
         isOpen={!!selectedSuggestion && !showAskDialog && !showStatusDialog}
         onClose={() => setSelectedSuggestion(null)}
         onStatusChange={onStatusChange}
+        questionnaire={
+          selectedSuggestion?.secondParty?.questionnaireResponses?.[0] || null
+        }
       />
 
       <AskMatchmakerDialog

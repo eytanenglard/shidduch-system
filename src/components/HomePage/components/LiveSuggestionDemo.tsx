@@ -75,7 +75,6 @@ export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
           );
           handleCloseModal();
         }}
-        // @ts-ignore
         questionnaire={questionnaireData}
         isDemo={true}
         demoAnalysisData={demoAiAnalysis}
