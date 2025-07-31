@@ -542,6 +542,34 @@ const danielQuestionnaireResponse: QuestionnaireResponseType = {
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
+      {
+        questionId: 'values_future_priorities_partner',
+        question: 'מהו האיזון הרצוי לך בסדרי עדיפויות בזוגיות?',
+        answer:
+          'זוגיות (40%), קריירה (25%), משפחה (15%), רוחניות (10%), פנאי (10%)',
+        displayText:
+          'בעתיד, אני שואף לחלוקה של: זוגיות ומשפחה (40%), קריירה (25%), משפחה מורחבת (15%), רוחניות (10%), ופנאי (10%).',
+        isVisible: true,
+        answeredAt: new Date(),
+      } as FormattedAnswer,
+      {
+        questionId: 'values_social_political_stance_importance_partner',
+        question: 'עד כמה חשובה לך התאמה בהשקפות פוליטיות?',
+        answer: '6',
+        displayText:
+          'חשוב לי שיהיה בסיס משותף בהשקפות עולם (ציון 6/10), אבל לא חייבים להסכים על הכל. כבוד הדדי חשוב יותר.',
+        isVisible: true,
+        answeredAt: new Date(),
+      } as FormattedAnswer,
+      {
+        questionId: 'values_conflict_between_values',
+        question: 'תאר קונפליקט ערכי שחווית.',
+        answer: 'חוויתי קונפליקט בין דדליין חשוב בעבודה לבין אירוע משפחתי...',
+        displayText:
+          'חוויתי קונפליקט בין דדליין חשוב בעבודה (ערך המקצועיות) לבין אירוע משפחתי (ערך המשפחה). למדתי לתקשר מראש את האילוצים, לעבוד ביעילות כדי לסיים מוקדם, ולהגיע לאירוע גם אם מאוחר יותר, כדי לכבד את שני הערכים.',
+        isVisible: true,
+        answeredAt: new Date(),
+      } as FormattedAnswer,
     ],
     personality: [
       {
@@ -558,7 +586,16 @@ const danielQuestionnaireResponse: QuestionnaireResponseType = {
         question: 'תאר את חופשת החלומות שלך.',
         answer: 'חופשה שמשלבת טבע מאתגר עם תרבות מקומית...',
         displayText:
-          'חופשה שמשלבת טבע מאתגר עם תרבות מקומית. למשל, טרק של כמה ימים בנוף יפהפה, ובסופו הגעה לעיר מעניינת עם אוכל טוב, מוזיאונים והיסטוריה. לא חופשת בטן-גב.',
+          'חופשת החלומות שלי תהיה טרק מאתגר של כמה ימים בנוף יפהפה, ובסופו הגעה לעיר עם תרבות והיסטוריה. לא חופשת בטן-גב.',
+        isVisible: true,
+        answeredAt: new Date(),
+      } as FormattedAnswer,
+      {
+        questionId: 'personality_handling_criticism',
+        question: 'איך אתה מגיב לביקורת?',
+        answer: 'אני משתדל לקחת ביקורת בצורה אנליטית...',
+        displayText:
+          'אני משתדל לקחת ביקורת בצורה אנליטית. בהתחלה זה יכול להיות לא נעים, אבל אני לוקח צעד אחורה, מנסה להפריד את הרגש ולהבין אם יש נקודה לשיפור שאני יכול ללמוד ממנה. חשוב לי להשתפר כל הזמן.',
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
@@ -566,9 +603,27 @@ const danielQuestionnaireResponse: QuestionnaireResponseType = {
     relationship: [
       {
         questionId: 'relationship_financial_management_preference',
-        question: 'מהי הגישה המועדפת עליך לניהול כספים משותף בזוגיות?',
+        question: 'מהי הגישה המועדפת עליך לניהול כספים משותף?',
         answer: 'שקיפות מלאה וחשבון משותף לכל',
         displayText: 'שקיפות מלאה וחשבון משותף לכל',
+        isVisible: true,
+        answeredAt: new Date(),
+      } as FormattedAnswer,
+      {
+        questionId: 'relationship_core_meaning',
+        question: 'מהי תמצית הזוגיות בעיניך?',
+        answer: 'שותפות, חברות ומחויבות',
+        displayText:
+          'תמצית הזוגיות בעיניי היא שותפות איתנה, חברות אמת, ומחויבות וביטחון לטווח ארוך.',
+        isVisible: true,
+        answeredAt: new Date(),
+      } as FormattedAnswer,
+      {
+        questionId: 'relationship_love_languages_give_receive',
+        question: 'מהן "שפות האהבה" העיקריות שלך?',
+        answer: 'מעשי שירות וזמן איכות',
+        displayText:
+          'שפות האהבה שלי הן בעיקר מעשי שירות וזמן איכות. אני מביע אהבה דרך עשייה, תמיכה ונוכחות מלאה.',
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
@@ -583,6 +638,33 @@ const danielQuestionnaireResponse: QuestionnaireResponseType = {
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
+      {
+        questionId: 'partner_children_from_previous_relationship_stance',
+        question: 'מהי גישתך לקשר עם בת זוג שיש לה ילדים?',
+        answer: 'פתוח לשקול, תלוי בנסיבות',
+        displayText:
+          'אני פתוח לשקול קשר עם בת זוג שיש לה ילדים, זה תלוי בנסיבות ובחיבור בינינו.',
+        isVisible: true,
+        answeredAt: new Date(),
+      } as FormattedAnswer,
+      {
+        questionId: 'partner_deal_breakers_open_text',
+        question: 'מהם ה"קווים האדומים" שלך בזוגיות?',
+        answer: 'חוסר יושרה, נטייה לדרמות וחוסר אחריות כלכלית.',
+        displayText:
+          'קווים אדומים עבורי הם חוסר יושרה, נטייה לדרמות מיותרות וחוסר אחריות כלכלית. חשוב לי בסיס של אמון ויציבות.',
+        isVisible: true,
+        answeredAt: new Date(),
+      } as FormattedAnswer,
+      {
+        questionId: 'partner_career_ambition_preference',
+        question: 'איזו גישה לקריירה היית מעדיף אצל בת זוג?',
+        answer: 'מחפשת איזון בין עבודה לחיים אישיים/משפחתיים',
+        displayText:
+          'מעדיף בת זוג שמחפשת איזון בין עבודה לחיים אישיים ומשפחתיים, ויודעת להשקיע בשניהם.',
+        isVisible: true,
+        answeredAt: new Date(),
+      } as FormattedAnswer,
     ],
     religion: [
       {
@@ -591,6 +673,24 @@ const danielQuestionnaireResponse: QuestionnaireResponseType = {
         answer: 'תורה מן השמיים ומחויבות להלכה, גאולת ישראל וקיבוץ גלויות',
         displayText:
           'עקרונות האמונה המרכזיים שמנחים אותי הם תורה מן השמיים, מחויבות להלכה, וגאולת ישראל וקיבוץ גלויות בארץ ישראל.',
+        isVisible: true,
+        answeredAt: new Date(),
+      } as FormattedAnswer,
+      {
+        questionId: 'religion_rabbinic_guidance_role',
+        question: 'מהי חשיבותה של דמות רבנית עבורך?',
+        answer: '7',
+        displayText:
+          'אני רואה חשיבות בהתייעצות עם דמות רבנית (ציון 7/10), בעיקר בשאלות הלכתיות מורכבות, אך ההחלטה הסופית והאחריות הן שלי.',
+        isVisible: true,
+        answeredAt: new Date(),
+      } as FormattedAnswer,
+      {
+        questionId: 'religion_children_education_religious_vision',
+        question: 'מהו החזון החינוכי-דתי שלך לילדיך?',
+        answer: 'חינוך דתי-לאומי שמשלב יראת שמיים עם דרך ארץ...',
+        displayText:
+          'החזון שלי הוא חינוך דתי-לאומי שמשלב יראת שמיים עם דרך ארץ, מצוינות לימודית וחיבור חזק לעם ולארץ. חשוב לי שיגדלו להיות אנשים חושבים וערכיים.',
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
