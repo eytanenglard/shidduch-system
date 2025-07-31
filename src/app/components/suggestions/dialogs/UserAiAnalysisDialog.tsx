@@ -141,9 +141,9 @@ const mockAnalysisResult: AiSuggestionAnalysisResult = {
 
 // --- Sub-components for better modularity ---
 
-const ScoreCircle: React.FC<{ score: number; size?: 'sm' | 'md' | 'lg' }> = ({ 
-  score, 
-  size = 'md' 
+const ScoreCircle: React.FC<{ score: number; size?: 'sm' | 'md' | 'lg' }> = ({
+  score,
+  size = 'md',
 }) => {
   const getScoreColor = (score: number) => {
     if (score >= 85) return 'from-emerald-500 to-green-600';
@@ -155,24 +155,26 @@ const ScoreCircle: React.FC<{ score: number; size?: 'sm' | 'md' | 'lg' }> = ({
   const sizeClasses = {
     sm: 'w-16 h-16',
     md: 'w-24 h-24',
-    lg: 'w-32 h-32'
+    lg: 'w-32 h-32',
   };
 
   const textSizeClasses = {
     sm: 'text-lg',
     md: 'text-2xl',
-    lg: 'text-3xl'
+    lg: 'text-3xl',
   };
 
   return (
     <div className="relative">
-      <div className={cn(
-        "rounded-full bg-gradient-to-br text-white flex items-center justify-center shadow-2xl border-4 border-white",
-        sizeClasses[size],
-        getScoreColor(score)
-      )}>
+      <div
+        className={cn(
+          'rounded-full bg-gradient-to-br text-white flex items-center justify-center shadow-2xl border-4 border-white',
+          sizeClasses[size],
+          getScoreColor(score)
+        )}
+      >
         <div className="text-center">
-          <div className={cn("font-bold", textSizeClasses[size])}>{score}%</div>
+          <div className={cn('font-bold', textSizeClasses[size])}>{score}%</div>
           {size === 'lg' && (
             <div className="text-xs opacity-90 font-medium">התאמה</div>
           )}
@@ -191,7 +193,15 @@ const InsightCard: React.FC<{
   index: number;
   isExpanded: boolean;
   onToggle: () => void;
-}> = ({ icon: Icon, iconColor, title, description, index, isExpanded, onToggle }) => (
+}> = ({
+  icon: Icon,
+  iconColor,
+  title,
+  description,
+  index,
+  isExpanded,
+  onToggle,
+}) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
@@ -199,22 +209,26 @@ const InsightCard: React.FC<{
     className="group"
   >
     <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden bg-gradient-to-br from-white to-slate-50/50 hover:-translate-y-1">
-      <CardContent 
-        className="p-6 cursor-pointer"
-        onClick={onToggle}
-      >
+      <CardContent className="p-6 cursor-pointer" onClick={onToggle}>
         <div className="flex items-start gap-4">
-          <div className={cn(
-            "flex-shrink-0 w-12 h-12 rounded-xl shadow-lg flex items-center justify-center text-white",
-            iconColor
-          )}>
+          <div
+            className={cn(
+              'flex-shrink-0 w-12 h-12 rounded-xl shadow-lg flex items-center justify-center text-white',
+              iconColor
+            )}
+          >
             <Icon className="w-6 h-6" />
           </div>
           <div className="flex-1">
             <div className="flex items-center justify-between mb-2">
-              <h4 className="font-bold text-gray-800 text-lg leading-tight">{title}</h4>
+              <h4 className="font-bold text-gray-800 text-lg leading-tight">
+                {title}
+              </h4>
               <div className="flex items-center gap-2">
-                <Badge variant="outline" className="bg-white/80 text-gray-600 border-gray-200 text-xs">
+                <Badge
+                  variant="outline"
+                  className="bg-white/80 text-gray-600 border-gray-200 text-xs"
+                >
                   פרט #{index + 1}
                 </Badge>
                 {isExpanded ? (
@@ -232,10 +246,14 @@ const InsightCard: React.FC<{
                   exit={{ height: 0, opacity: 0 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <p className="text-gray-700 leading-relaxed text-base">{description}</p>
+                  <p className="text-gray-700 leading-relaxed text-base">
+                    {description}
+                  </p>
                 </motion.div>
               ) : (
-                <p className="text-gray-600 text-sm line-clamp-2">{description}</p>
+                <p className="text-gray-600 text-sm line-clamp-2">
+                  {description}
+                </p>
               )}
             </AnimatePresence>
           </div>
@@ -262,7 +280,9 @@ const ConversationStarterCard: React.FC<{
             {index + 1}
           </div>
           <div className="flex-1">
-            <p className="text-blue-900 leading-relaxed font-medium text-base mb-3">{starter}</p>
+            <p className="text-blue-900 leading-relaxed font-medium text-base mb-3">
+              {starter}
+            </p>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
@@ -273,7 +293,10 @@ const ConversationStarterCard: React.FC<{
                 <Copy className="w-3 h-3 ml-1" />
                 העתק
               </Button>
-              <Badge variant="outline" className="bg-white/60 text-blue-600 border-blue-200 text-xs">
+              <Badge
+                variant="outline"
+                className="bg-white/60 text-blue-600 border-blue-200 text-xs"
+              >
                 <MessageCircle className="w-3 h-3 ml-1" />
                 מוכן לשיחה
               </Badge>
@@ -290,7 +313,11 @@ const LoadingScreen: React.FC<{ progress: number; step: number }> = ({
   step,
 }) => {
   const loadingSteps = [
-    { icon: Brain, label: 'סורק פרופילים', detail: 'קורא ומנתח את הנתונים האישיים' },
+    {
+      icon: Brain,
+      label: 'סורק פרופילים',
+      detail: 'קורא ומנתח את הנתונים האישיים',
+    },
     { icon: Heart, label: 'בוחן ערכים', detail: 'מזהה ערכים והעדפות משותפות' },
     { icon: Users, label: 'מודד תאימות', detail: 'מחשב רמת התאמה מתקדמת' },
     { icon: Target, label: 'מציע תובנות', detail: 'מכין המלצות מותאמות אישית' },
@@ -307,31 +334,31 @@ const LoadingScreen: React.FC<{ progress: number; step: number }> = ({
             <div className="absolute inset-0 w-16 h-16 rounded-full bg-gradient-to-r from-blue-400/20 to-purple-400/20 animate-ping"></div>
           </div>
         </div>
-        
+
         {/* Floating Icons */}
         <motion.div
           className="absolute -top-4 -right-4 w-12 h-12 rounded-full bg-gradient-to-r from-emerald-400 to-green-500 flex items-center justify-center shadow-lg"
-          animate={{ 
+          animate={{
             rotate: 360,
-            scale: [1, 1.1, 1]
+            scale: [1, 1.1, 1],
           }}
-          transition={{ 
-            rotate: { duration: 8, repeat: Infinity, ease: "linear" },
-            scale: { duration: 2, repeat: Infinity }
+          transition={{
+            rotate: { duration: 8, repeat: Infinity, ease: 'linear' },
+            scale: { duration: 2, repeat: Infinity },
           }}
         >
           <Heart className="w-6 h-6 text-white" />
         </motion.div>
-        
+
         <motion.div
           className="absolute -bottom-4 -left-4 w-10 h-10 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg"
-          animate={{ 
+          animate={{
             rotate: -360,
-            y: [-2, 2, -2]
+            y: [-2, 2, -2],
           }}
-          transition={{ 
-            rotate: { duration: 6, repeat: Infinity, ease: "linear" },
-            y: { duration: 3, repeat: Infinity }
+          transition={{
+            rotate: { duration: 6, repeat: Infinity, ease: 'linear' },
+            y: { duration: 3, repeat: Infinity },
           }}
         >
           <Star className="w-5 h-5 text-white" />
@@ -339,7 +366,7 @@ const LoadingScreen: React.FC<{ progress: number; step: number }> = ({
       </div>
 
       {/* Title and Description */}
-      <motion.div 
+      <motion.div
         className="space-y-4 max-w-lg"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -349,7 +376,9 @@ const LoadingScreen: React.FC<{ progress: number; step: number }> = ({
           🔮 מנתח התאמה עמוקה
         </h3>
         <p className="text-gray-600 text-lg leading-relaxed">
-          האלגוריתם החכם שלנו בוחן <span className="font-bold text-purple-600">עשרות פרמטרים</span> כדי לספק לך 
+          האלגוריתם החכם שלנו בוחן{' '}
+          <span className="font-bold text-purple-600">עשרות פרמטרים</span> כדי
+          לספק לך
           <br />
           <span className="text-transparent bg-gradient-to-r from-emerald-500 to-cyan-500 bg-clip-text font-bold">
             תמונה מקיפה ומדויקת של הפוטנציאל
@@ -378,11 +407,17 @@ const LoadingScreen: React.FC<{ progress: number; step: number }> = ({
           >
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-white shadow-lg">
-                {React.createElement(loadingSteps[step].icon, { className: 'w-6 h-6' })}
+                {React.createElement(loadingSteps[step].icon, {
+                  className: 'w-6 h-6',
+                })}
               </div>
               <div className="text-right flex-1">
-                <h4 className="font-bold text-gray-800 text-lg">{loadingSteps[step].label}</h4>
-                <p className="text-gray-600 text-sm leading-relaxed">{loadingSteps[step].detail}</p>
+                <h4 className="font-bold text-gray-800 text-lg">
+                  {loadingSteps[step].label}
+                </h4>
+                <p className="text-gray-600 text-sm leading-relaxed">
+                  {loadingSteps[step].detail}
+                </p>
               </div>
             </div>
           </motion.div>
@@ -413,24 +448,30 @@ const ErrorScreen: React.FC<{ error: string; onRetry: () => void }> = ({
     <motion.div
       initial={{ scale: 0 }}
       animate={{ scale: 1 }}
-      transition={{ type: "spring", bounce: 0.5 }}
+      transition={{ type: 'spring', bounce: 0.5 }}
     >
       <XCircle className="w-20 h-20 text-red-400" />
     </motion.div>
-    
+
     <div className="space-y-4 max-w-md">
       <h3 className="text-2xl font-bold text-gray-800">משהו השתבש בדרך...</h3>
       <Alert variant="destructive" className="text-right">
         <AlertTriangle className="h-5 w-5" />
-        <AlertTitle className="font-semibold">לא הצלחנו להשלים את הניתוח</AlertTitle>
+        <AlertTitle className="font-semibold">
+          לא הצלחנו להשלים את הניתוח
+        </AlertTitle>
         <AlertDescription className="mt-2 leading-relaxed">
-          {error || 'אנו מתנצלים על התקלה. זה לא אמור לקרות, והצוות הטכני שלנו יקבל הודעה על כך.'}
+          {error ||
+            'אנו מתנצלים על התקלה. זה לא אמור לקרות, והצוות הטכני שלנו יקבל הודעה על כך.'}
         </AlertDescription>
       </Alert>
     </div>
-    
+
     <div className="flex flex-col sm:flex-row gap-3">
-      <Button onClick={onRetry} className="bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg hover:shadow-xl">
+      <Button
+        onClick={onRetry}
+        className="bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg hover:shadow-xl"
+      >
         <RefreshCw className="w-4 h-4 ml-2" />
         נסה שוב
       </Button>
@@ -453,12 +494,16 @@ const DialogBody: React.FC<
   suggestedUserName,
   onOpenChange,
 }) => {
-  const [analysis, setAnalysis] = useState<AiSuggestionAnalysisResult | null>(null);
+  const [analysis, setAnalysis] = useState<AiSuggestionAnalysisResult | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState(0);
-  const [expandedInsights, setExpandedInsights] = useState<Set<number>>(new Set());
+  const [expandedInsights, setExpandedInsights] = useState<Set<number>>(
+    new Set()
+  );
   const [activeTab, setActiveTab] = useState('overview');
 
   const fetchAnalysis = async () => {
@@ -475,7 +520,7 @@ const DialogBody: React.FC<
           return newProgress;
         });
       }, 120);
-      
+
       setTimeout(() => {
         clearInterval(timer);
         setAnalysis(demoAnalysisData || mockAnalysisResult);
@@ -499,18 +544,19 @@ const DialogBody: React.FC<
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ suggestedUserId }),
       });
-      
+
       clearInterval(progressTimer);
       setLoadingProgress(100);
-      
+
       const result = await response.json();
       if (!response.ok || !result.success) {
         throw new Error(result.message || 'שגיאה בקבלת ניתוח ההצעה.');
       }
-      
+
       setAnalysis(result.data);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'אירעה שגיאה לא צפויה.';
+      const errorMessage =
+        err instanceof Error ? err.message : 'אירעה שגיאה לא צפויה.';
       setError(errorMessage);
       toast.error('שגיאה בתהליך הניתוח', { description: errorMessage });
     } finally {
@@ -520,10 +566,10 @@ const DialogBody: React.FC<
 
   useEffect(() => {
     fetchAnalysis();
-  }, [suggestedUserId, isDemo]);
+  }, [fetchAnalysis]); // <-- התלות היחידה היא הפונקציה הממוקבלת (memoized)
 
   const toggleInsight = (index: number) => {
-    setExpandedInsights(prev => {
+    setExpandedInsights((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(index)) {
         newSet.delete(index);
@@ -538,7 +584,7 @@ const DialogBody: React.FC<
     try {
       await navigator.clipboard.writeText(text);
       toast.success('הועתק בהצלחה!', {
-        description: 'הטקסט הועתק ללוח העתקה'
+        description: 'הטקסט הועתק ללוח העתקה',
       });
     } catch (err) {
       toast.error('שגיאה בהעתקה');
@@ -546,29 +592,32 @@ const DialogBody: React.FC<
   };
 
   const getScoreInterpretation = (score: number) => {
-    if (score >= 85) return { 
-      level: 'התאמה יוצאת דופן', 
-      color: 'text-emerald-600',
-      bgColor: 'from-emerald-50 to-green-50',
-      description: 'זוהי התאמה נדירה עם פוטנציאל עצום להצלחה ארוכת טווח'
-    };
-    if (score >= 75) return { 
-      level: 'התאמה מעולה', 
-      color: 'text-cyan-600',
-      bgColor: 'from-cyan-50 to-blue-50',
-      description: 'בסיס חזק מאוד לקשר משמעותי ויציב'
-    };
-    if (score >= 65) return { 
-      level: 'התאמה טובה', 
-      color: 'text-blue-600',
-      bgColor: 'from-blue-50 to-indigo-50',
-      description: 'פוטנציאל טוב עם נקודות חיבור חשובות'
-    };
-    return { 
-      level: 'התאמה מעניינת', 
+    if (score >= 85)
+      return {
+        level: 'התאמה יוצאת דופן',
+        color: 'text-emerald-600',
+        bgColor: 'from-emerald-50 to-green-50',
+        description: 'זוהי התאמה נדירה עם פוטנציאל עצום להצלחה ארוכת טווח',
+      };
+    if (score >= 75)
+      return {
+        level: 'התאמה מעולה',
+        color: 'text-cyan-600',
+        bgColor: 'from-cyan-50 to-blue-50',
+        description: 'בסיס חזק מאוד לקשר משמעותי ויציב',
+      };
+    if (score >= 65)
+      return {
+        level: 'התאמה טובה',
+        color: 'text-blue-600',
+        bgColor: 'from-blue-50 to-indigo-50',
+        description: 'פוטנציאל טוב עם נקודות חיבור חשובות',
+      };
+    return {
+      level: 'התאמה מעניינת',
       color: 'text-amber-600',
       bgColor: 'from-amber-50 to-orange-50',
-      description: 'דורש השקעה אבל יש פוטנציאל לגילוי מפתיע'
+      description: 'דורש השקעה אבל יש פוטנציאל לגילוי מפתיע',
     };
   };
 
@@ -598,7 +647,11 @@ const DialogBody: React.FC<
             </div>
           </div>
           <DialogClose asChild>
-            <Button variant="ghost" size="icon" className="rounded-full h-10 w-10">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full h-10 w-10"
+            >
               <X className="h-5 w-5" />
             </Button>
           </DialogClose>
@@ -608,19 +661,11 @@ const DialogBody: React.FC<
       <main className="flex-1 flex flex-col min-h-0">
         <AnimatePresence mode="wait">
           {isLoading ? (
-            <motion.div 
-              key="loading" 
-              exit={{ opacity: 0 }} 
-              className="flex-1"
-            >
+            <motion.div key="loading" exit={{ opacity: 0 }} className="flex-1">
               <LoadingScreen progress={loadingProgress} step={currentStep} />
             </motion.div>
           ) : error ? (
-            <motion.div 
-              key="error" 
-              exit={{ opacity: 0 }} 
-              className="flex-1"
-            >
+            <motion.div key="error" exit={{ opacity: 0 }} className="flex-1">
               <ErrorScreen error={error} onRetry={fetchAnalysis} />
             </motion.div>
           ) : analysis ? (
@@ -631,35 +676,40 @@ const DialogBody: React.FC<
               className="flex-1 flex flex-col min-h-0"
             >
               <div className="border-b bg-gradient-to-r from-slate-50 to-gray-50">
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <Tabs
+                  value={activeTab}
+                  onValueChange={setActiveTab}
+                  className="w-full flex-1 flex flex-col"
+                >
+                  {' '}
                   <div className="px-6 py-3">
                     <TabsList className="grid w-full grid-cols-4 bg-white shadow-sm rounded-xl p-1 h-12">
-                      <TabsTrigger 
-                        value="overview" 
+                      <TabsTrigger
+                        value="overview"
                         className="flex items-center gap-2 text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg transition-all"
                       >
                         <Crown className="w-4 h-4" />
                         <span className="hidden sm:inline">סקירה כללית</span>
                         <span className="sm:hidden">סקירה</span>
                       </TabsTrigger>
-                      <TabsTrigger 
-                        value="strengths" 
+                      <TabsTrigger
+                        value="strengths"
                         className="flex items-center gap-2 text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white rounded-lg transition-all"
                       >
                         <CheckCircle className="w-4 h-4" />
                         <span className="hidden sm:inline">נקודות חוזק</span>
                         <span className="sm:hidden">חוזק</span>
                       </TabsTrigger>
-                      <TabsTrigger 
-                        value="considerations" 
+                      <TabsTrigger
+                        value="considerations"
                         className="flex items-center gap-2 text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white rounded-lg transition-all"
                       >
                         <Lightbulb className="w-4 h-4" />
                         <span className="hidden sm:inline">נקודות למחשבה</span>
                         <span className="sm:hidden">מחשבה</span>
                       </TabsTrigger>
-                      <TabsTrigger 
-                        value="conversation" 
+                      <TabsTrigger
+                        value="conversation"
                         className="flex items-center gap-2 text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-500 data-[state=active]:text-white rounded-lg transition-all"
                       >
                         <MessageSquare className="w-4 h-4" />
@@ -668,26 +718,50 @@ const DialogBody: React.FC<
                       </TabsTrigger>
                     </TabsList>
                   </div>
-
-                  <ScrollArea className="flex-1 max-h-[calc(90vh-200px)]">
+                  <ScrollArea className="flex-1 min-h-0">
+                    {' '}
                     <div className="p-6">
                       <TabsContent value="overview" className="mt-0 space-y-6">
                         {/* Hero Section with Score */}
-                        <Card className={cn("border-0 shadow-xl overflow-hidden bg-gradient-to-br", getScoreInterpretation(analysis.overallScore).bgColor)}>
+                        <Card
+                          className={cn(
+                            'border-0 shadow-xl overflow-hidden bg-gradient-to-br',
+                            getScoreInterpretation(analysis.overallScore)
+                              .bgColor
+                          )}
+                        >
                           <CardContent className="p-8 relative">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
                             <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
-                            
+
                             <div className="relative z-10 text-center space-y-6">
                               <div className="flex items-center justify-center gap-6">
-                                <ScoreCircle score={analysis.overallScore} size="lg" />
+                                <ScoreCircle
+                                  score={analysis.overallScore}
+                                  size="lg"
+                                />
                                 <div className="text-right space-y-2">
                                   <Badge className="bg-white/90 text-gray-800 border-0 shadow-lg text-lg px-4 py-2 font-bold">
                                     <Star className="w-4 h-4 ml-2 text-yellow-500 fill-current" />
-                                    {getScoreInterpretation(analysis.overallScore).level}
+                                    {
+                                      getScoreInterpretation(
+                                        analysis.overallScore
+                                      ).level
+                                    }
                                   </Badge>
-                                  <p className={cn("text-lg font-semibold", getScoreInterpretation(analysis.overallScore).color)}>
-                                    {getScoreInterpretation(analysis.overallScore).description}
+                                  <p
+                                    className={cn(
+                                      'text-lg font-semibold',
+                                      getScoreInterpretation(
+                                        analysis.overallScore
+                                      ).color
+                                    )}
+                                  >
+                                    {
+                                      getScoreInterpretation(
+                                        analysis.overallScore
+                                      ).description
+                                    }
                                   </p>
                                 </div>
                               </div>
@@ -706,20 +780,39 @@ const DialogBody: React.FC<
                               {/* Quick Stats */}
                               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
                                 <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 text-center shadow-md">
-                                  <div className="text-2xl font-bold text-emerald-600">{analysis.compatibilityPoints.length}</div>
-                                  <div className="text-sm text-gray-600 font-medium">נקודות חיבור</div>
+                                  <div className="text-2xl font-bold text-emerald-600">
+                                    {analysis.compatibilityPoints.length}
+                                  </div>
+                                  <div className="text-sm text-gray-600 font-medium">
+                                    נקודות חיבור
+                                  </div>
                                 </div>
                                 <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 text-center shadow-md">
-                                  <div className="text-2xl font-bold text-amber-600">{analysis.pointsToConsider.length}</div>
-                                  <div className="text-sm text-gray-600 font-medium">נקודות לדיון</div>
+                                  <div className="text-2xl font-bold text-amber-600">
+                                    {analysis.pointsToConsider.length}
+                                  </div>
+                                  <div className="text-sm text-gray-600 font-medium">
+                                    נקודות לדיון
+                                  </div>
                                 </div>
                                 <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 text-center shadow-md">
-                                  <div className="text-2xl font-bold text-blue-600">{analysis.suggestedConversationStarters.length}</div>
-                                  <div className="text-sm text-gray-600 font-medium">נושאי שיחה</div>
+                                  <div className="text-2xl font-bold text-blue-600">
+                                    {
+                                      analysis.suggestedConversationStarters
+                                        .length
+                                    }
+                                  </div>
+                                  <div className="text-sm text-gray-600 font-medium">
+                                    נושאי שיחה
+                                  </div>
                                 </div>
                                 <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 text-center shadow-md">
-                                  <div className="text-2xl font-bold text-purple-600">AI</div>
-                                  <div className="text-sm text-gray-600 font-medium">ניתוח מתקדם</div>
+                                  <div className="text-2xl font-bold text-purple-600">
+                                    AI
+                                  </div>
+                                  <div className="text-sm text-gray-600 font-medium">
+                                    ניתוח מתקדם
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -734,7 +827,8 @@ const DialogBody: React.FC<
                             נקודות החיבור החזקות שלכם
                           </h3>
                           <p className="text-gray-600 max-w-2xl mx-auto text-lg leading-relaxed">
-                            אלו הם התחומים שבהם אתם הכי מתאימים זה לזה ושיכולים להוביל להצלחה משותפת
+                            אלו הם התחומים שבהם אתם הכי מתאימים זה לזה ושיכולים
+                            להוביל להצלחה משותפת
                           </p>
                         </div>
 
@@ -756,7 +850,9 @@ const DialogBody: React.FC<
                         {analysis.compatibilityPoints.length === 0 && (
                           <div className="text-center py-12">
                             <Heart className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                            <h3 className="text-xl font-semibold text-gray-600 mb-2">אין תובנות ספציפיות זמינות</h3>
+                            <h3 className="text-xl font-semibold text-gray-600 mb-2">
+                              אין תובנות ספציפיות זמינות
+                            </h3>
                             <p className="text-gray-500 max-w-md mx-auto">
                               זה לא אומר שאין התאמה - פשוט צריך להכיר יותר לעומק
                             </p>
@@ -764,14 +860,18 @@ const DialogBody: React.FC<
                         )}
                       </TabsContent>
 
-                      <TabsContent value="considerations" className="mt-0 space-y-6">
+                      <TabsContent
+                        value="considerations"
+                        className="mt-0 space-y-6"
+                      >
                         <div className="text-center mb-8">
                           <h3 className="text-2xl font-bold text-gray-800 mb-3 flex items-center justify-center gap-3">
                             <Compass className="w-8 h-8 text-amber-500" />
                             נושאים חשובים לדיון ובירור
                           </h3>
                           <p className="text-gray-600 max-w-2xl mx-auto text-lg leading-relaxed">
-                            תחומים שכדאי לחקור יחד כדי להבין טוב יותר איך אתם משלימים זה את זה
+                            תחומים שכדאי לחקור יחד כדי להבין טוב יותר איך אתם
+                            משלימים זה את זה
                           </p>
                         </div>
 
@@ -793,7 +893,9 @@ const DialogBody: React.FC<
                         {analysis.pointsToConsider.length === 0 && (
                           <div className="text-center py-12">
                             <Shield className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                            <h3 className="text-xl font-semibold text-gray-600 mb-2">כל הנתונים נראים מתואמים</h3>
+                            <h3 className="text-xl font-semibold text-gray-600 mb-2">
+                              כל הנתונים נראים מתואמים
+                            </h3>
                             <p className="text-gray-500 max-w-md mx-auto">
                               לא זוהו תחומים שדורשים תשומת לב מיוחדת
                             </p>
@@ -801,32 +903,41 @@ const DialogBody: React.FC<
                         )}
                       </TabsContent>
 
-                      <TabsContent value="conversation" className="mt-0 space-y-6">
+                      <TabsContent
+                        value="conversation"
+                        className="mt-0 space-y-6"
+                      >
                         <div className="text-center mb-8">
                           <h3 className="text-2xl font-bold text-gray-800 mb-3 flex items-center justify-center gap-3">
                             <Rocket className="w-8 h-8 text-blue-500" />
                             רעיונות לפתיחת שיחות מעניינות
                           </h3>
                           <p className="text-gray-600 max-w-2xl mx-auto text-lg leading-relaxed">
-                            שאלות ונושאים שיעזרו לכם להכיר זה את זה טוב יותר ולבנות חיבור אמיתי
+                            שאלות ונושאים שיעזרו לכם להכיר זה את זה טוב יותר
+                            ולבנות חיבור אמיתי
                           </p>
                         </div>
 
                         <div className="space-y-4">
-                          {analysis.suggestedConversationStarters.map((starter, index) => (
-                            <ConversationStarterCard
-                              key={index}
-                              starter={starter}
-                              index={index}
-                              onCopy={copyToClipboard}
-                            />
-                          ))}
+                          {analysis.suggestedConversationStarters.map(
+                            (starter, index) => (
+                              <ConversationStarterCard
+                                key={index}
+                                starter={starter}
+                                index={index}
+                                onCopy={copyToClipboard}
+                              />
+                            )
+                          )}
                         </div>
 
-                        {analysis.suggestedConversationStarters.length === 0 && (
+                        {analysis.suggestedConversationStarters.length ===
+                          0 && (
                           <div className="text-center py-12">
                             <MessageSquare className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                            <h3 className="text-xl font-semibold text-gray-600 mb-2">אין הצעות ספציפיות לשיחה</h3>
+                            <h3 className="text-xl font-semibold text-gray-600 mb-2">
+                              אין הצעות ספציפיות לשיחה
+                            </h3>
                             <p className="text-gray-500 max-w-md mx-auto">
                               תתחילו בשיחה טבעית - זה תמיד הכי טוב
                             </p>
@@ -841,11 +952,15 @@ const DialogBody: React.FC<
                                 <Gift className="w-6 h-6" />
                               </div>
                               <div>
-                                <h4 className="font-bold text-cyan-800 text-lg mb-3">💡 טיפים לשיחה מוצלחת</h4>
+                                <h4 className="font-bold text-cyan-800 text-lg mb-3">
+                                  💡 טיפים לשיחה מוצלחת
+                                </h4>
                                 <ul className="space-y-2 text-cyan-700">
                                   <li className="flex items-start gap-2">
                                     <ChevronRight className="w-4 h-4 text-cyan-500 mt-0.5 flex-shrink-0" />
-                                    <span>שאלו שאלות פתוחות שמזמינות לחלוק יותר</span>
+                                    <span>
+                                      שאלו שאלות פתוחות שמזמינות לחלוק יותר
+                                    </span>
                                   </li>
                                   <li className="flex items-start gap-2">
                                     <ChevronRight className="w-4 h-4 text-cyan-500 mt-0.5 flex-shrink-0" />
@@ -853,11 +968,16 @@ const DialogBody: React.FC<
                                   </li>
                                   <li className="flex items-start gap-2">
                                     <ChevronRight className="w-4 h-4 text-cyan-500 mt-0.5 flex-shrink-0" />
-                                    <span>חלקו גם משלכם - זה מזמין חיבור הדדי</span>
+                                    <span>
+                                      חלקו גם משלכם - זה מזמין חיבור הדדי
+                                    </span>
                                   </li>
                                   <li className="flex items-start gap-2">
                                     <ChevronRight className="w-4 h-4 text-cyan-500 mt-0.5 flex-shrink-0" />
-                                    <span>זכרו שהמטרה היא ליהנות ולהכיר - לא לעבור ראיון</span>
+                                    <span>
+                                      זכרו שהמטרה היא ליהנות ולהכיר - לא לעבור
+                                      ראיון
+                                    </span>
                                   </li>
                                 </ul>
                               </div>
@@ -898,10 +1018,10 @@ const DialogBody: React.FC<
               שתף
             </Button>
           </div>
-          
+
           <div className="flex items-center gap-3">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               onClick={() => onOpenChange(false)}
               className="text-gray-600 hover:text-gray-800"
             >
@@ -921,9 +1041,11 @@ const DialogBody: React.FC<
               <span className="font-semibold text-purple-800">הערה חשובה</span>
             </div>
             <p className="text-sm text-purple-700 leading-relaxed">
-              הניתוח מבוסס על נתונים זמינים ומהווה נקודת מוצא לחשיבה. 
+              הניתוח מבוסס על נתונים זמינים ומהווה נקודת מוצא לחשיבה.
               <br />
-              <span className="font-semibold">כל קשר אנושי הוא ייחודי ודורש הכרות אישית עמוקה יותר.</span>
+              <span className="font-semibold">
+                כל קשר אנושי הוא ייחודי ודורש הכרות אישית עמוקה יותר.
+              </span>
             </p>
           </CardContent>
         </Card>
@@ -933,7 +1055,9 @@ const DialogBody: React.FC<
 };
 
 // --- Main exported wrapper component ---
-export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = (props) => {
+export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = (
+  props
+) => {
   const [isOpen, setIsOpen] = useState(false);
   const [hasBeenOpened, setHasBeenOpened] = useState(false);
 
@@ -954,54 +1078,58 @@ export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = (props)
         >
           {/* Animated Background */}
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -translate-x-full group-hover:animate-shimmer" />
-          
+
           {/* Content */}
           <div className="relative z-10 flex items-center gap-4">
             <div className="relative">
               <motion.div
-                animate={{ 
+                animate={{
                   rotate: [0, 10, -10, 0],
-                  scale: [1, 1.1, 1]
+                  scale: [1, 1.1, 1],
                 }}
-                transition={{ 
+                transition={{
                   duration: 2,
                   repeat: Infinity,
-                  repeatDelay: 3
+                  repeatDelay: 3,
                 }}
               >
                 <Brain className="w-8 h-8 text-blue-600" />
               </motion.div>
               <motion.div
                 className="absolute -top-1 -right-1"
-                animate={{ 
+                animate={{
                   scale: [0, 1, 0],
-                  opacity: [0, 1, 0]
+                  opacity: [0, 1, 0],
                 }}
-                transition={{ 
+                transition={{
                   duration: 2,
                   repeat: Infinity,
-                  repeatDelay: 2
+                  repeatDelay: 2,
                 }}
               >
                 <Sparkles className="w-4 h-4 text-purple-500" />
               </motion.div>
             </div>
-            
+
             <div className="text-right">
-              <div className="font-bold text-lg text-gray-800">🔮 ניתוח התאמה מתקדם</div>
-              <div className="text-sm text-gray-600 font-medium">גלה את הפוטנציאל האמיתי</div>
+              <div className="font-bold text-lg text-gray-800">
+                🔮 ניתוח התאמה מתקדם
+              </div>
+              <div className="text-sm text-gray-600 font-medium">
+                גלה את הפוטנציאל האמיתי
+              </div>
             </div>
           </div>
         </Button>
       </DialogTrigger>
-      
+
       <DialogContent
         className="max-w-6xl w-[95vw] h-[90vh] flex flex-col p-0 overflow-hidden shadow-2xl rounded-3xl bg-white border-0"
         dir="rtl"
       >
         {isOpen && <DialogBody {...props} onOpenChange={handleOpenChange} />}
       </DialogContent>
-      
+
       <style jsx global>{`
         @keyframes shimmer {
           100% {
@@ -1011,17 +1139,18 @@ export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = (props)
         .animate-shimmer {
           animation: shimmer 1.5s infinite;
         }
-        
+
         .animate-pulse-subtle {
           animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
-        
+
         @keyframes pulse-subtle {
-          0%, 100% {
+          0%,
+          100% {
             opacity: 1;
           }
           50% {
-            opacity: .8;
+            opacity: 0.8;
           }
         }
       `}</style>
