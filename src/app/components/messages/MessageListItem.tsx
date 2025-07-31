@@ -4,7 +4,8 @@ import React from 'react';
 import Image from 'next/image';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { cn, getInitials } from '@/lib/utils';
+// ================== שינוי 1: הוספת הייבוא ==================
+import { cn, getInitials, getRelativeCloudinaryPath } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { he } from 'date-fns/locale';
 import type { UnifiedMessage } from '@/types/messages';
@@ -36,8 +37,15 @@ const MessageListItem: React.FC<MessageListItemProps> = ({ message, isSelected, 
     >
       <div className="relative flex-shrink-0">
         <Avatar className="w-12 h-12 border-2 border-white shadow-md">
-          {mainImage ? (
-              <Image src={mainImage.url} alt={otherParty.firstName} fill className="object-cover" />
+          {mainImage?.url ? (
+              // ================== שינוי 2: שימוש בפונקציית העזר ==================
+              <Image 
+                src={getRelativeCloudinaryPath(mainImage.url)} 
+                alt={otherParty.firstName} 
+                fill 
+                className="object-cover"
+                sizes="48px"
+              />
           ) : (
               <AvatarFallback className={cn(
                 "font-bold text-white",

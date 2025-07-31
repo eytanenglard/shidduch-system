@@ -106,6 +106,7 @@ const MiniProfileHeader: React.FC<{
             alt={`תמונת פרופיל של ${candidate.firstName}`}
             layout="fill"
             className="object-cover"
+            sizes="96px"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-200 to-slate-300">
@@ -274,7 +275,6 @@ const AnalysisSkeleton: React.FC = () => (
   </div>
 );
 
-
 // --- START OF NEW STRUCTURE ---
 
 // 1. Inner component to hold all logic and complex JSX
@@ -284,7 +284,9 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
   targetCandidate,
   comparisonCandidates,
 }) => {
-  const [activeComparisonId, setActiveComparisonId] = useState<string | null>(null);
+  const [activeComparisonId, setActiveComparisonId] = useState<string | null>(
+    null
+  );
   const [analyses, setAnalyses] = useState<
     Record<string, AiAnalysis | 'error' | 'loading'>
   >({});
@@ -371,9 +373,7 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
         <div className="flex items-center gap-3">
           <Sparkles className="w-7 h-7 text-teal-500" />
           <div>
-            <DialogTitle className="text-xl">
-              ניתוח התאמה מבוסס AI
-            </DialogTitle>
+            <DialogTitle className="text-xl">ניתוח התאמה מבוסס AI</DialogTitle>
             <DialogDescription>השוואה מפורטת בין מועמדים</DialogDescription>
           </div>
         </div>
@@ -421,48 +421,65 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
               מועמדים להשוואה ({comparisonCandidates.length})
             </h3>
             <ScrollArea className="flex-1">
-              {comparisonCandidates.map((candidate) => (
-                <button
-                  key={candidate.id}
-                  onClick={() => setActiveComparisonId(candidate.id)}
-                  className={cn(
-                    'w-full text-right p-3 flex items-center gap-3 border-b border-slate-200/60 hover:bg-slate-100 transition-colors',
-                    activeComparisonId === candidate.id &&
-                      'bg-cyan-50 border-r-4 border-cyan-500 font-semibold'
-                  )}
-                >
-                  <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
-                    <Image
-                      src={
-                        candidate.images?.find((img) => img.isMain)?.url ||
-                        '/placeholder.jpg'
-                      }
-                      alt={candidate.firstName}
-                      layout="fill"
-                      className="object-cover"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="truncate text-sm text-slate-800">
-                      {candidate.firstName} {candidate.lastName}
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      {calculateAge(candidate.profile.birthDate)} |{' '}
-                      {candidate.profile.city}
-                    </p>
-                  </div>
-                  {activeAnalysis &&
-                    activeAnalysis !== 'error' &&
-                    activeAnalysis !== 'loading' && (
-                      <Badge
-                        variant="secondary"
-                        className="bg-teal-100 text-teal-800"
-                      >
-                        {(activeAnalysis as AiAnalysis).overallScore}%
-                      </Badge>
+              {comparisonCandidates.map((candidate) => {
+                // ================== שינוי 1: חילוץ התמונה לפני השימוש ==================
+                const mainImageUrl = candidate.images?.find(
+                  (img) => img.isMain
+                )?.url;
+
+                return (
+                  <button
+                    key={candidate.id}
+                    onClick={() => setActiveComparisonId(candidate.id)}
+                    className={cn(
+                      'w-full text-right p-3 flex items-center gap-3 border-b border-slate-200/60 hover:bg-slate-100 transition-colors',
+                      activeComparisonId === candidate.id &&
+                        'bg-cyan-50 border-r-4 border-cyan-500 font-semibold'
                     )}
-                </button>
-              ))}
+                  >
+                    <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-gray-200">
+                      {/* ================== שינוי 2: שימוש בפונקציית העזר ================== */}
+                      {mainImageUrl ? (
+                        <Image
+                          src={getRelativeCloudinaryPath(mainImageUrl)}
+                          alt={candidate.firstName}
+                          layout="fill"
+                          className="object-cover"
+                          sizes="40px"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <span className="text-sm font-bold text-gray-500">
+                            {getInitials(
+                              candidate.firstName,
+                              candidate.lastName
+                            )}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="truncate text-sm text-slate-800">
+                        {candidate.firstName} {candidate.lastName}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {calculateAge(candidate.profile.birthDate)} |{' '}
+                        {candidate.profile.city}
+                      </p>
+                    </div>
+                    {activeAnalysis &&
+                      activeAnalysis !== 'error' &&
+                      activeAnalysis !== 'loading' && (
+                        <Badge
+                          variant="secondary"
+                          className="bg-teal-100 text-teal-800"
+                        >
+                          {(activeAnalysis as AiAnalysis).overallScore}%
+                        </Badge>
+                      )}
+                  </button>
+                );
+              })}
             </ScrollArea>
           </aside>
         )}
@@ -516,8 +533,8 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
                             שגיאה בניתוח ההתאמה
                           </h3>
                           <p className="text-gray-500 mt-2">
-                            לא הצלחנו להפיק ניתוח עבור זוג זה. אנא נסה שוב
-                            מאוחר יותר.
+                            לא הצלחנו להפיק ניתוח עבור זוג זה. אנא נסה שוב מאוחר
+                            יותר.
                           </p>
                         </div>
                       )}
@@ -535,10 +552,7 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
                                   סיכום ההתאמה
                                 </h3>
                                 <p className="text-sm text-gray-600 leading-relaxed">
-                                  {
-                                    (activeAnalysis as AiAnalysis)
-                                      .matchSummary
-                                  }
+                                  {(activeAnalysis as AiAnalysis).matchSummary}
                                 </p>
                               </div>
                               <div>
@@ -627,7 +641,7 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
       </div>
     </>
   );
-}
+};
 
 // 2. Exported wrapper component
 export const AiMatchAnalysisDialog = (props: AiMatchAnalysisDialogProps) => {
