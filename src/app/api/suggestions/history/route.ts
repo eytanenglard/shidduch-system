@@ -1,8 +1,10 @@
+// src/app/api/suggestions/history/route.ts
+
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth"; // Using 'next-auth' is fine
+import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { UserProfile } from "@/types/next-auth"; // Import for potential explicit typing if needed
+import { UserProfile } from "@/types/next-auth";
 
 export async function GET() {
   try {
@@ -23,6 +25,7 @@ export async function GET() {
                 "MATCH_DECLINED",
                 "CLOSED",
                 "CANCELLED",
+                "ENDED_AFTER_FIRST_DATE" // Added more terminal statuses
               ],
             },
           },
@@ -30,10 +33,12 @@ export async function GET() {
             secondPartyId: session.user.id,
             status: {
               in: [
+                "FIRST_PARTY_DECLINED", // A second party might see this status if the process ended
                 "SECOND_PARTY_DECLINED",
                 "MATCH_DECLINED",
                 "CLOSED",
                 "CANCELLED",
+                "ENDED_AFTER_FIRST_DATE" // Added more terminal statuses
               ],
             },
           },
@@ -57,6 +62,7 @@ export async function GET() {
             email: true,
             firstName: true,
             lastName: true,
+            isProfileComplete: true,
             profile: {
               select: {
                 gender: true,
@@ -66,27 +72,22 @@ export async function GET() {
                 height: true,
                 maritalStatus: true,
                 occupation: true,
-                education: true, // תיאור טקסטואלי
-                educationLevel: true, // רמת השכלה מובנית - נוסף
-                // address: true, // הוסר מ-UserProfile
+                education: true,
+                educationLevel: true,
                 city: true,
                 origin: true,
                 religiousLevel: true,
                 about: true,
-                // hobbies: true, // הוסר (הוחלף ב-profileHobbies)
-
-                // --- שדות חדשים מ-UserProfile ---
                 shomerNegiah: true,
                 serviceType: true,
                 serviceDetails: true,
-                headCovering: true, // לנשים
-                kippahType: true, // לגברים
+                headCovering: true,
+                kippahType: true,
                 hasChildrenFromPrevious: true,
                 profileCharacterTraits: true,
                 profileHobbies: true,
                 aliyaCountry: true,
                 aliyaYear: true,
-                
                 parentStatus: true,
                 siblings: true,
                 position: true,
@@ -99,7 +100,6 @@ export async function GET() {
                 preferredEducation: true,
                 preferredOccupations: true,
                 contactPreference: true,
-         
                 isProfileVisible: true,
                 preferredMatchmakerGender: true,
                 matchingNotes: true,
@@ -121,7 +121,14 @@ export async function GET() {
                 createdAt: true,
                 updatedAt: true,
               },
+               orderBy: { isMain: 'desc' },
             },
+            // --- START OF CHANGE ---
+            questionnaireResponses: {
+              orderBy: { createdAt: 'desc' },
+              take: 1,
+            },
+            // --- END OF CHANGE ---
           },
         },
         secondParty: {
@@ -130,6 +137,7 @@ export async function GET() {
             email: true,
             firstName: true,
             lastName: true,
+            isProfileComplete: true,
             profile: {
               select: {
                 gender: true,
@@ -139,27 +147,22 @@ export async function GET() {
                 height: true,
                 maritalStatus: true,
                 occupation: true,
-                education: true, // תיאור טקסטואלי
-                educationLevel: true, // רמת השכלה מובנית - נוסף
-                // address: true, // הוסר מ-UserProfile
+                education: true,
+                educationLevel: true,
                 city: true,
                 origin: true,
                 religiousLevel: true,
                 about: true,
-                // hobbies: true, // הוסר (הוחלף ב-profileHobbies)
-
-                // --- שדות חדשים מ-UserProfile ---
                 shomerNegiah: true,
                 serviceType: true,
                 serviceDetails: true,
-                headCovering: true, // לנשים
-                kippahType: true, // לגברים
+                headCovering: true,
+                kippahType: true,
                 hasChildrenFromPrevious: true,
                 profileCharacterTraits: true,
                 profileHobbies: true,
                 aliyaCountry: true,
                 aliyaYear: true,
-
                 parentStatus: true,
                 siblings: true,
                 position: true,
@@ -172,7 +175,6 @@ export async function GET() {
                 preferredEducation: true,
                 preferredOccupations: true,
                 contactPreference: true,
-
                 isProfileVisible: true,
                 preferredMatchmakerGender: true,
                 matchingNotes: true,
@@ -194,24 +196,25 @@ export async function GET() {
                 createdAt: true,
                 updatedAt: true,
               },
+               orderBy: { isMain: 'desc' },
             },
+            // --- START OF CHANGE ---
+            questionnaireResponses: {
+              orderBy: { createdAt: 'desc' },
+              take: 1,
+            },
+            // --- END OF CHANGE ---
           },
         },
       },
       orderBy: {
-        updatedAt: "desc", // Changed from createdAt in previous example, make sure this is intended for history
+        updatedAt: "desc",
       },
     });
-
-    // Typing the suggestion before mapping for better intellisense and safety
-    // This assumes the structure returned by Prisma matches what's expected by UserProfile
-    // and related types.
+    
+    // The mapping logic below doesn't need to be changed.
+    // The new `questionnaireResponses` field will be passed through automatically.
     const formattedSuggestions = historySuggestions.map(suggestion => {
-      // Ensure profile exists before trying to spread it, or handle potential null case
-      // Prisma's `include` with `select` guarantees `profile` exists if the relation does,
-      // but if `firstParty` or `secondParty` could be null (e.g., if the user was deleted),
-      // you'd need to handle that. Here, they are expected to be non-null.
-      
       const firstPartyProfile = suggestion.firstParty.profile as UserProfile | null;
       const secondPartyProfile = suggestion.secondParty.profile as UserProfile | null;
 
@@ -219,7 +222,7 @@ export async function GET() {
         ...suggestion,
         firstParty: {
             ...suggestion.firstParty,
-            profile: firstPartyProfile ? { // Add user sub-object to firstParty.profile if it's part of UserProfile type
+            profile: firstPartyProfile ? {
                 ...firstPartyProfile,
                 user: {
                     id: suggestion.firstParty.id,
@@ -233,7 +236,7 @@ export async function GET() {
           ...suggestion.secondParty,
           profile: secondPartyProfile ? {
             ...secondPartyProfile,
-            user: { // This structure matches the UserProfile.user field
+            user: {
               id: suggestion.secondParty.id,
               firstName: suggestion.secondParty.firstName,
               lastName: suggestion.secondParty.lastName,
@@ -243,6 +246,7 @@ export async function GET() {
         }
       };
     });
+
 
     return NextResponse.json({
       success: true,

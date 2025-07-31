@@ -1,3 +1,4 @@
+// src/app/api/suggestions/active/route.ts
 
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth"; // Assuming next-auth/next might be more common for app router, but this works.
@@ -56,6 +57,7 @@ export async function GET() {
             email: true,
             firstName: true,
             lastName: true,
+            isProfileComplete: true, // Make sure to select this
             profile: {
               select: {
                 gender: true,
@@ -65,27 +67,22 @@ export async function GET() {
                 height: true,
                 maritalStatus: true,
                 occupation: true,
-                education: true, // תיאור טקסטואלי
-                educationLevel: true, // רמת השכלה מובנית - נוסף
-                // address: true, // הוסר מ-UserProfile
+                education: true,
+                educationLevel: true,
                 city: true,
                 origin: true,
                 religiousLevel: true,
                 about: true,
-                // hobbies: true, // הוסר (הוחלף ב-profileHobbies)
-
-                // --- שדות חדשים מ-UserProfile ---
                 shomerNegiah: true,
                 serviceType: true,
                 serviceDetails: true,
-                headCovering: true, // לנשים
-                kippahType: true, // לגברים
+                headCovering: true,
+                kippahType: true,
                 hasChildrenFromPrevious: true,
                 profileCharacterTraits: true,
                 profileHobbies: true,
                 aliyaCountry: true,
                 aliyaYear: true,
-                
                 parentStatus: true,
                 siblings: true,
                 position: true,
@@ -98,7 +95,6 @@ export async function GET() {
                 preferredEducation: true,
                 preferredOccupations: true,
                 contactPreference: true,
-      
                 isProfileVisible: true,
                 preferredMatchmakerGender: true,
                 matchingNotes: true,
@@ -120,7 +116,14 @@ export async function GET() {
                 createdAt: true,
                 updatedAt: true,
               },
+               orderBy: { isMain: 'desc' },
             },
+            // --- START OF CHANGE ---
+            questionnaireResponses: {
+              orderBy: { createdAt: 'desc' },
+              take: 1,
+            },
+            // --- END OF CHANGE ---
           },
         },
         secondParty: {
@@ -129,6 +132,7 @@ export async function GET() {
             email: true,
             firstName: true,
             lastName: true,
+            isProfileComplete: true, // And here too
             profile: {
               select: {
                 gender: true,
@@ -138,27 +142,22 @@ export async function GET() {
                 height: true,
                 maritalStatus: true,
                 occupation: true,
-                education: true, // תיאור טקסטואלי
-                educationLevel: true, // רמת השכלה מובנית - נוסף
-                // address: true, // הוסר מ-UserProfile
+                education: true,
+                educationLevel: true,
                 city: true,
                 origin: true,
                 religiousLevel: true,
                 about: true,
-                // hobbies: true, // הוסר (הוחלף ב-profileHobbies)
-
-                // --- שדות חדשים מ-UserProfile ---
                 shomerNegiah: true,
                 serviceType: true,
                 serviceDetails: true,
-                headCovering: true, // לנשים
-                kippahType: true, // לגברים
+                headCovering: true,
+                kippahType: true,
                 hasChildrenFromPrevious: true,
                 profileCharacterTraits: true,
                 profileHobbies: true,
                 aliyaCountry: true,
                 aliyaYear: true,
-
                 parentStatus: true,
                 siblings: true,
                 position: true,
@@ -171,7 +170,6 @@ export async function GET() {
                 preferredEducation: true,
                 preferredOccupations: true,
                 contactPreference: true,
-             
                 isProfileVisible: true,
                 preferredMatchmakerGender: true,
                 matchingNotes: true,
@@ -193,7 +191,14 @@ export async function GET() {
                 createdAt: true,
                 updatedAt: true,
               },
+               orderBy: { isMain: 'desc' },
             },
+            // --- START OF CHANGE ---
+            questionnaireResponses: {
+              orderBy: { createdAt: 'desc' },
+              take: 1,
+            },
+            // --- END OF CHANGE ---
           },
         },
       },
@@ -209,10 +214,9 @@ export async function GET() {
     
   } catch (error) {
     console.error("Error fetching active suggestions:", error);
-    // It's good practice to type the error if possible, e.g., if (error instanceof Error)
     const errorMessage = error instanceof Error ? error.message : "Internal server error";
     return NextResponse.json(
-      { error: errorMessage }, // More specific error message if available
+      { error: errorMessage },
       { status: 500 }
     );
   }
