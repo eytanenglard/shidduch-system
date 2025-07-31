@@ -21,6 +21,8 @@ import { DefaultJWT } from 'next-auth/jwt';
 
 // --- Standalone Interface Definitions ---
 
+export type WorldId = 'values' | 'personality' | 'relationship' | 'partner' | 'religion';
+
 export interface UserProfile extends Omit<PrismaProfile, 'gender' | 'birthDate' | 'height' | 'additionalLanguages' | 'profileCharacterTraits' | 'profileHobbies' | 'preferredReligiousLevels' | 'preferredLocations' | 'preferredEducation' | 'preferredOccupations' | 'preferredMaritalStatuses' | 'preferredOrigins' | 'preferredServiceTypes' | 'preferredHeadCoverings' | 'preferredKippahTypes' | 'preferredCharacterTraits' | 'preferredHobbies' | 'availabilityStatus' | 'isProfileVisible' | 'createdAt' | 'updatedAt'| 'birthDateIsApproximate'> {
   // Overriding PrismaProfile fields with more specific or frontend-friendly types
   // Fields that are identical to PrismaProfile are inherited via Omit and don't need re-declaration unless type needs refinement.

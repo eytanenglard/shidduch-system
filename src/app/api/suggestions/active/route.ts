@@ -1,9 +1,26 @@
 // src/app/api/suggestions/active/route.ts
 
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth"; // Assuming next-auth/next might be more common for app router, but this works.
+import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { formatAnswers, KEY_MAPPING, DbWorldKey, FormattedAnswersType } from '@/lib/questionnaireFormatter';
+import type { ExtendedMatchSuggestion, PartyInfo, QuestionnaireResponse, WorldId } from "@/app/components/suggestions/types";
+import type { FormattedAnswer } from "@/types/next-auth"; // ייבוא מהמקור הנכון
+
+// --- טיפוסים חזקים ומדויקים לתהליך העיבוד ---
+type ProcessedQuestionnaireResponse = Omit<QuestionnaireResponse, 'valuesAnswers' | 'personalityAnswers' | 'relationshipAnswers' | 'partnerAnswers' | 'religionAnswers'> & {
+  formattedAnswers: FormattedAnswersType;
+};
+
+type ProcessedPartyInfo = Omit<PartyInfo, 'questionnaireResponses'> & {
+  questionnaireResponses?: ProcessedQuestionnaireResponse[];
+};
+
+type SuggestionWithFormattedData = Omit<ExtendedMatchSuggestion, 'firstParty' | 'secondParty'> & {
+  firstParty: ProcessedPartyInfo;
+  secondParty: ProcessedPartyInfo;
+};
 
 export async function GET() {
   try {
@@ -15,209 +32,65 @@ export async function GET() {
     const activeSuggestions = await prisma.matchSuggestion.findMany({
       where: {
         OR: [
-          {
-            firstPartyId: session.user.id,
-            status: {
-              in: [
-                "PENDING_FIRST_PARTY",
-                "FIRST_PARTY_APPROVED",
-                "PENDING_SECOND_PARTY",
-                "SECOND_PARTY_APPROVED",
-                "CONTACT_DETAILS_SHARED"
-              ],
-            },
-          },
-          {
-            secondPartyId: session.user.id,
-            status: {
-              in: [
-                "PENDING_SECOND_PARTY",
-                "SECOND_PARTY_APPROVED",
-                "CONTACT_DETAILS_SHARED"
-              ],
-            },
-          },
+          { firstPartyId: session.user.id, status: { in: ["PENDING_FIRST_PARTY", "FIRST_PARTY_APPROVED", "PENDING_SECOND_PARTY", "SECOND_PARTY_APPROVED", "CONTACT_DETAILS_SHARED"] } },
+          { secondPartyId: session.user.id, status: { in: ["PENDING_SECOND_PARTY", "SECOND_PARTY_APPROVED", "CONTACT_DETAILS_SHARED"] } },
         ],
       },
       include: {
-        statusHistory: {
-          orderBy: {
-            createdAt: 'desc'
-          }
-        },
-        matchmaker: {
-          select: {
-            firstName: true,
-            lastName: true,
-          },
-        },
+        statusHistory: { orderBy: { createdAt: 'desc' } },
+        matchmaker: { select: { firstName: true, lastName: true } },
         firstParty: {
-          select: {
-            id: true,
-            email: true,
-            firstName: true,
-            lastName: true,
-            isProfileComplete: true, // Make sure to select this
-            profile: {
-              select: {
-                gender: true,
-                birthDate: true,
-                nativeLanguage: true,
-                additionalLanguages: true,
-                height: true,
-                maritalStatus: true,
-                occupation: true,
-                education: true,
-                educationLevel: true,
-                city: true,
-                origin: true,
-                religiousLevel: true,
-                about: true,
-                shomerNegiah: true,
-                serviceType: true,
-                serviceDetails: true,
-                headCovering: true,
-                kippahType: true,
-                hasChildrenFromPrevious: true,
-                profileCharacterTraits: true,
-                profileHobbies: true,
-                aliyaCountry: true,
-                aliyaYear: true,
-                parentStatus: true,
-                siblings: true,
-                position: true,
-                preferredAgeMin: true,
-                preferredAgeMax: true,
-                preferredHeightMin: true,
-                preferredHeightMax: true,
-                preferredReligiousLevels: true,
-                preferredLocations: true,
-                preferredEducation: true,
-                preferredOccupations: true,
-                contactPreference: true,
-                isProfileVisible: true,
-                preferredMatchmakerGender: true,
-                matchingNotes: true,
-                verifiedBy: true,
-                availabilityStatus: true,
-                availabilityNote: true,
-                availabilityUpdatedAt: true,
-                createdAt: true,
-                updatedAt: true,
-                lastActive: true,
-              },
-            },
-            images: {
-              select: {
-                id: true,
-                url: true,
-                isMain: true,
-                cloudinaryPublicId: true,
-                createdAt: true,
-                updatedAt: true,
-              },
-               orderBy: { isMain: 'desc' },
-            },
-            // --- START OF CHANGE ---
-            questionnaireResponses: {
-              orderBy: { createdAt: 'desc' },
-              take: 1,
-            },
-            // --- END OF CHANGE ---
-          },
+          include: { profile: true, images: true, questionnaireResponses: { orderBy: { createdAt: 'desc' }, take: 1 } },
         },
         secondParty: {
-          select: {
-            id: true,
-            email: true,
-            firstName: true,
-            lastName: true,
-            isProfileComplete: true, // And here too
-            profile: {
-              select: {
-                gender: true,
-                birthDate: true,
-                nativeLanguage: true,
-                additionalLanguages: true,
-                height: true,
-                maritalStatus: true,
-                occupation: true,
-                education: true,
-                educationLevel: true,
-                city: true,
-                origin: true,
-                religiousLevel: true,
-                about: true,
-                shomerNegiah: true,
-                serviceType: true,
-                serviceDetails: true,
-                headCovering: true,
-                kippahType: true,
-                hasChildrenFromPrevious: true,
-                profileCharacterTraits: true,
-                profileHobbies: true,
-                aliyaCountry: true,
-                aliyaYear: true,
-                parentStatus: true,
-                siblings: true,
-                position: true,
-                preferredAgeMin: true,
-                preferredAgeMax: true,
-                preferredHeightMin: true,
-                preferredHeightMax: true,
-                preferredReligiousLevels: true,
-                preferredLocations: true,
-                preferredEducation: true,
-                preferredOccupations: true,
-                contactPreference: true,
-                isProfileVisible: true,
-                preferredMatchmakerGender: true,
-                matchingNotes: true,
-                verifiedBy: true,
-                availabilityStatus: true,
-                availabilityNote: true,
-                availabilityUpdatedAt: true,
-                createdAt: true,
-                updatedAt: true,
-                lastActive: true,
-              },
-            },
-            images: {
-              select: {
-                id: true,
-                url: true,
-                isMain: true,
-                cloudinaryPublicId: true,
-                createdAt: true,
-                updatedAt: true,
-              },
-               orderBy: { isMain: 'desc' },
-            },
-            // --- START OF CHANGE ---
-            questionnaireResponses: {
-              orderBy: { createdAt: 'desc' },
-              take: 1,
-            },
-            // --- END OF CHANGE ---
-          },
+          include: { profile: true, images: true, questionnaireResponses: { orderBy: { createdAt: 'desc' }, take: 1 } },
         },
       },
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const suggestionsWithFormattedQuestionnaires: SuggestionWithFormattedData[] = activeSuggestions.map((suggestion) => {
+        
+        const formatPartyQuestionnaire = (party: PartyInfo): ProcessedPartyInfo => {
+            const { questionnaireResponses, ...restOfParty } = party;
+
+            if (questionnaireResponses && questionnaireResponses.length > 0) {
+                const qr = questionnaireResponses[0];
+                const formattedAnswers: Partial<FormattedAnswersType> = {};
+
+                (Object.keys(KEY_MAPPING) as WorldId[]).forEach(worldKey => {
+                    const dbKey = KEY_MAPPING[worldKey];
+                    // The cast to `any` is a safe and isolated way to handle dynamic keys from Prisma's JSON type.
+                    formattedAnswers[worldKey] = formatAnswers((qr as any)[dbKey]);
+                });
+                
+                // Construct the processed questionnaire response without the raw answer fields
+                const { valuesAnswers, personalityAnswers, relationshipAnswers, partnerAnswers, religionAnswers, ...restOfQr } = qr;
+                const processedQr: ProcessedQuestionnaireResponse = {
+                    ...restOfQr,
+                    formattedAnswers: formattedAnswers as FormattedAnswersType,
+                };
+                
+                return { ...restOfParty, questionnaireResponses: [processedQr] };
+            }
+            return restOfParty; // Return the rest of the party info if no questionnaire
+        };
+
+        return {
+            ...suggestion,
+            firstParty: formatPartyQuestionnaire(suggestion.firstParty),
+            secondParty: formatPartyQuestionnaire(suggestion.secondParty),
+        };
     });
 
     return NextResponse.json({
       success: true,
-      suggestions: activeSuggestions,
+      suggestions: suggestionsWithFormattedQuestionnaires,
     });
     
   } catch (error) {
     console.error("Error fetching active suggestions:", error);
     const errorMessage = error instanceof Error ? error.message : "Internal server error";
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

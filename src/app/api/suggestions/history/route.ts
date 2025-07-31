@@ -4,7 +4,23 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { UserProfile } from "@/types/next-auth";
+import { formatAnswers, KEY_MAPPING, DbWorldKey, FormattedAnswersType } from '@/lib/questionnaireFormatter';
+import type { ExtendedMatchSuggestion, PartyInfo, QuestionnaireResponse, WorldId } from "@/app/components/suggestions/types";
+import type { FormattedAnswer } from "@/types/next-auth"; // ייבוא מהמקור הנכון
+
+// --- טיפוסים חזקים ומדויקים לתהליך העיבוד ---
+type ProcessedQuestionnaireResponse = Omit<QuestionnaireResponse, 'valuesAnswers' | 'personalityAnswers' | 'relationshipAnswers' | 'partnerAnswers' | 'religionAnswers'> & {
+  formattedAnswers: FormattedAnswersType;
+};
+
+type ProcessedPartyInfo = Omit<PartyInfo, 'questionnaireResponses'> & {
+  questionnaireResponses?: ProcessedQuestionnaireResponse[];
+};
+
+type SuggestionWithFormattedData = Omit<ExtendedMatchSuggestion, 'firstParty' | 'secondParty'> & {
+  firstParty: ProcessedPartyInfo;
+  secondParty: ProcessedPartyInfo;
+};
 
 export async function GET() {
   try {
@@ -16,249 +32,63 @@ export async function GET() {
     const historySuggestions = await prisma.matchSuggestion.findMany({
       where: {
         OR: [
-          {
-            firstPartyId: session.user.id,
-            status: {
-              in: [
-                "FIRST_PARTY_DECLINED",
-                "SECOND_PARTY_DECLINED",
-                "MATCH_DECLINED",
-                "CLOSED",
-                "CANCELLED",
-                "ENDED_AFTER_FIRST_DATE" // Added more terminal statuses
-              ],
-            },
-          },
-          {
-            secondPartyId: session.user.id,
-            status: {
-              in: [
-                "FIRST_PARTY_DECLINED", // A second party might see this status if the process ended
-                "SECOND_PARTY_DECLINED",
-                "MATCH_DECLINED",
-                "CLOSED",
-                "CANCELLED",
-                "ENDED_AFTER_FIRST_DATE" // Added more terminal statuses
-              ],
-            },
-          },
+          { firstPartyId: session.user.id, status: { in: ["FIRST_PARTY_DECLINED", "SECOND_PARTY_DECLINED", "MATCH_DECLINED", "CLOSED", "CANCELLED", "MARRIED", "ENGAGED"] } },
+          { secondPartyId: session.user.id, status: { in: ["SECOND_PARTY_DECLINED", "MATCH_DECLINED", "CLOSED", "CANCELLED", "MARRIED", "ENGAGED"] } },
         ],
       },
       include: {
-        statusHistory: {
-          orderBy: {
-            createdAt: 'desc'
-          }
-        },
-        matchmaker: {
-          select: {
-            firstName: true,
-            lastName: true,
-          },
-        },
+        statusHistory: { orderBy: { createdAt: 'desc' } },
+        matchmaker: { select: { firstName: true, lastName: true } },
         firstParty: {
-          select: {
-            id: true,
-            email: true,
-            firstName: true,
-            lastName: true,
-            isProfileComplete: true,
-            profile: {
-              select: {
-                gender: true,
-                birthDate: true,
-                nativeLanguage: true,
-                additionalLanguages: true,
-                height: true,
-                maritalStatus: true,
-                occupation: true,
-                education: true,
-                educationLevel: true,
-                city: true,
-                origin: true,
-                religiousLevel: true,
-                about: true,
-                shomerNegiah: true,
-                serviceType: true,
-                serviceDetails: true,
-                headCovering: true,
-                kippahType: true,
-                hasChildrenFromPrevious: true,
-                profileCharacterTraits: true,
-                profileHobbies: true,
-                aliyaCountry: true,
-                aliyaYear: true,
-                parentStatus: true,
-                siblings: true,
-                position: true,
-                preferredAgeMin: true,
-                preferredAgeMax: true,
-                preferredHeightMin: true,
-                preferredHeightMax: true,
-                preferredReligiousLevels: true,
-                preferredLocations: true,
-                preferredEducation: true,
-                preferredOccupations: true,
-                contactPreference: true,
-                isProfileVisible: true,
-                preferredMatchmakerGender: true,
-                matchingNotes: true,
-                verifiedBy: true,
-                availabilityStatus: true,
-                availabilityNote: true,
-                availabilityUpdatedAt: true,
-                createdAt: true,
-                updatedAt: true,
-                lastActive: true,
-              },
-            },
-            images: {
-              select: {
-                id: true,
-                url: true,
-                isMain: true,
-                cloudinaryPublicId: true,
-                createdAt: true,
-                updatedAt: true,
-              },
-               orderBy: { isMain: 'desc' },
-            },
-            // --- START OF CHANGE ---
-            questionnaireResponses: {
-              orderBy: { createdAt: 'desc' },
-              take: 1,
-            },
-            // --- END OF CHANGE ---
-          },
+          include: { profile: true, images: true, questionnaireResponses: { orderBy: { createdAt: 'desc' }, take: 1 } },
         },
         secondParty: {
-          select: {
-            id: true,
-            email: true,
-            firstName: true,
-            lastName: true,
-            isProfileComplete: true,
-            profile: {
-              select: {
-                gender: true,
-                birthDate: true,
-                nativeLanguage: true,
-                additionalLanguages: true,
-                height: true,
-                maritalStatus: true,
-                occupation: true,
-                education: true,
-                educationLevel: true,
-                city: true,
-                origin: true,
-                religiousLevel: true,
-                about: true,
-                shomerNegiah: true,
-                serviceType: true,
-                serviceDetails: true,
-                headCovering: true,
-                kippahType: true,
-                hasChildrenFromPrevious: true,
-                profileCharacterTraits: true,
-                profileHobbies: true,
-                aliyaCountry: true,
-                aliyaYear: true,
-                parentStatus: true,
-                siblings: true,
-                position: true,
-                preferredAgeMin: true,
-                preferredAgeMax: true,
-                preferredHeightMin: true,
-                preferredHeightMax: true,
-                preferredReligiousLevels: true,
-                preferredLocations: true,
-                preferredEducation: true,
-                preferredOccupations: true,
-                contactPreference: true,
-                isProfileVisible: true,
-                preferredMatchmakerGender: true,
-                matchingNotes: true,
-                verifiedBy: true,
-                availabilityStatus: true,
-                availabilityNote: true,
-                availabilityUpdatedAt: true,
-                createdAt: true,
-                updatedAt: true,
-                lastActive: true,
-              },
-            },
-            images: {
-              select: {
-                id: true,
-                url: true,
-                isMain: true,
-                cloudinaryPublicId: true,
-                createdAt: true,
-                updatedAt: true,
-              },
-               orderBy: { isMain: 'desc' },
-            },
-            // --- START OF CHANGE ---
-            questionnaireResponses: {
-              orderBy: { createdAt: 'desc' },
-              take: 1,
-            },
-            // --- END OF CHANGE ---
-          },
+          include: { profile: true, images: true, questionnaireResponses: { orderBy: { createdAt: 'desc' }, take: 1 } },
         },
       },
-      orderBy: {
-        updatedAt: "desc",
-      },
+      orderBy: { updatedAt: "desc" },
     });
-    
-    // The mapping logic below doesn't need to be changed.
-    // The new `questionnaireResponses` field will be passed through automatically.
-    const formattedSuggestions = historySuggestions.map(suggestion => {
-      const firstPartyProfile = suggestion.firstParty.profile as UserProfile | null;
-      const secondPartyProfile = suggestion.secondParty.profile as UserProfile | null;
 
-      return {
-        ...suggestion,
-        firstParty: {
-            ...suggestion.firstParty,
-            profile: firstPartyProfile ? {
-                ...firstPartyProfile,
-                user: {
-                    id: suggestion.firstParty.id,
-                    firstName: suggestion.firstParty.firstName,
-                    lastName: suggestion.firstParty.lastName,
-                    email: suggestion.firstParty.email,
-                }
-            } : null,
-        },
-        secondParty: {
-          ...suggestion.secondParty,
-          profile: secondPartyProfile ? {
-            ...secondPartyProfile,
-            user: {
-              id: suggestion.secondParty.id,
-              firstName: suggestion.secondParty.firstName,
-              lastName: suggestion.secondParty.lastName,
-              email: suggestion.secondParty.email,
+    const suggestionsWithFormattedQuestionnaires: SuggestionWithFormattedData[] = historySuggestions.map(suggestion => {
+        const formatPartyQuestionnaire = (party: PartyInfo): ProcessedPartyInfo => {
+            const { questionnaireResponses, ...restOfParty } = party;
+
+            if (questionnaireResponses && questionnaireResponses.length > 0) {
+                const qr = questionnaireResponses[0];
+                const formattedAnswers: Partial<FormattedAnswersType> = {};
+
+                (Object.keys(KEY_MAPPING) as WorldId[]).forEach(worldKey => {
+                    const dbKey = KEY_MAPPING[worldKey];
+                    // The cast to `any` here is a safe and isolated way to handle dynamic keys from Prisma's JSON type.
+                    formattedAnswers[worldKey] = formatAnswers((qr as any)[dbKey]);
+                });
+                
+                const { valuesAnswers, personalityAnswers, relationshipAnswers, partnerAnswers, religionAnswers, ...restOfQr } = qr;
+                const processedQr: ProcessedQuestionnaireResponse = {
+                    ...restOfQr,
+                    formattedAnswers: formattedAnswers as FormattedAnswersType,
+                };
+                
+                return { ...restOfParty, questionnaireResponses: [processedQr] };
             }
-          } : null,
-        }
-      };
-    });
+            return restOfParty;
+        };
 
+        return {
+            ...suggestion,
+            firstParty: formatPartyQuestionnaire(suggestion.firstParty),
+            secondParty: formatPartyQuestionnaire(suggestion.secondParty),
+        };
+    });
 
     return NextResponse.json({
       success: true,
-      suggestions: formattedSuggestions,
+      suggestions: suggestionsWithFormattedQuestionnaires,
     });
 
   } catch (error) {
     console.error("Error fetching suggestion history:", error);
     const errorMessage = error instanceof Error ? error.message : "Internal server error";
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
