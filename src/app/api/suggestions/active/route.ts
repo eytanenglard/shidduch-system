@@ -5,8 +5,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { formatAnswers, KEY_MAPPING, DbWorldKey, FormattedAnswersType } from '@/lib/questionnaireFormatter';
-import type { ExtendedMatchSuggestion, PartyInfo, QuestionnaireResponse, WorldId } from "@/app/components/suggestions/types";
-import type { FormattedAnswer } from "@/types/next-auth"; // ייבוא מהמקור הנכון
+import type { ExtendedMatchSuggestion, PartyInfo, QuestionnaireResponse } from "@/app/components/suggestions/types";
+import type { FormattedAnswer, WorldId } from "@/types/next-auth";
 
 // --- טיפוסים חזקים ומדויקים לתהליך העיבוד ---
 type ProcessedQuestionnaireResponse = Omit<QuestionnaireResponse, 'valuesAnswers' | 'personalityAnswers' | 'relationshipAnswers' | 'partnerAnswers' | 'religionAnswers'> & {
@@ -20,6 +20,11 @@ type ProcessedPartyInfo = Omit<PartyInfo, 'questionnaireResponses'> & {
 type SuggestionWithFormattedData = Omit<ExtendedMatchSuggestion, 'firstParty' | 'secondParty'> & {
   firstParty: ProcessedPartyInfo;
   secondParty: ProcessedPartyInfo;
+};
+
+// הטיפוס שמגיע מ-Prisma. שימו לב ש-questionnaireResponses הוא מהסוג הגולמי.
+type PartyInfoFromPrisma = Omit<PartyInfo, 'questionnaireResponses'> & {
+  questionnaireResponses?: QuestionnaireResponse[];
 };
 
 export async function GET() {
@@ -49,9 +54,11 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
 
+    // --- עיבוד נתונים עם טיפוסים חזקים (ללא any) ---
     const suggestionsWithFormattedQuestionnaires: SuggestionWithFormattedData[] = activeSuggestions.map((suggestion) => {
         
-        const formatPartyQuestionnaire = (party: PartyInfo): ProcessedPartyInfo => {
+        // הפונקציה הזו מקבלת את הטיפוס הגולמי מפריזמה ומחזירה את הטיפוס המעובד
+        const formatPartyQuestionnaire = (party: PartyInfoFromPrisma): ProcessedPartyInfo => {
             const { questionnaireResponses, ...restOfParty } = party;
 
             if (questionnaireResponses && questionnaireResponses.length > 0) {
@@ -60,11 +67,12 @@ export async function GET() {
 
                 (Object.keys(KEY_MAPPING) as WorldId[]).forEach(worldKey => {
                     const dbKey = KEY_MAPPING[worldKey];
-                    // The cast to `any` is a safe and isolated way to handle dynamic keys from Prisma's JSON type.
-                    formattedAnswers[worldKey] = formatAnswers((qr as any)[dbKey]);
+                    // גישה בטוחה יותר לשדה דינמי
+                    const answersJson = qr[dbKey];
+                    formattedAnswers[worldKey] = formatAnswers(answersJson);
                 });
                 
-                // Construct the processed questionnaire response without the raw answer fields
+                // הסרת השדות הגולמיים ויצירת האובייקט המעובד
                 const { valuesAnswers, personalityAnswers, relationshipAnswers, partnerAnswers, religionAnswers, ...restOfQr } = qr;
                 const processedQr: ProcessedQuestionnaireResponse = {
                     ...restOfQr,
@@ -73,7 +81,8 @@ export async function GET() {
                 
                 return { ...restOfParty, questionnaireResponses: [processedQr] };
             }
-            return restOfParty; // Return the rest of the party info if no questionnaire
+            // אם אין שאלון, מחזירים את שאר המידע על המשתמש
+            return restOfParty;
         };
 
         return {

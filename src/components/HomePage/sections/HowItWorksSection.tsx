@@ -308,7 +308,8 @@ const HowItWorksSection: React.FC = () => {
           </div>
 
           {/* הדמואים */}
-          <div ref={demoRef}>
+          <div ref={demoRef} id="suggestion-demo">
+            {' '}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={

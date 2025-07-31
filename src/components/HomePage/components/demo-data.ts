@@ -31,10 +31,26 @@ const noaQuestionnaireResponse: QuestionnaireResponseType = {
   userId: 'demo-profile-noa',
   valuesAnswers: {
     values_core_elaboration:
-      'הערך הכי חשוב לי הוא משפחה, וזה מתבטא בכך שאני משקיעה זמן רב בקשר עם ההורים והאחים שלי, ורואה את הבית העתידי שלי כמקום חם ומכיל שמהווה מרכז לעולם שלנו.',
+      'הערך הכי חשוב לי הוא משפחה, וזה מתבטא בכך שאני משקיעה זמן רב בקשר עם ההורים והאחים שלי, ורואה את הבית העתידי שלי כמקום חם ומכיל שמהווה מרכז לעולם שלנו. ערך נוסף הוא יצירתיות וביטוי עצמי, שבא לידי ביטוי בקריירה שלי ובדרך שאני מתבוננת על העולם.',
     values_attitude_towards_money: 'איזון בין נוחות חומרית לערכים אחרים',
     values_giving_tzedaka_importance: 8,
     values_career_family_balance_approach: 'relationship_first',
+    values_life_priorities_allocation: {
+      'זוגיות וחיפוש זוגיות': 40,
+      'משפחה (הורים, אחים, ילדים אם יש)': 25,
+      'קריירה ופרנסה': 20,
+      'פנאי, תחביבים ובריאות אישית': 15,
+    },
+    values_future_priorities_partner: {
+      'זוגיות (כולל ילדים עתידיים)': 50,
+      'משפחה (הורים, אחים)': 15,
+      'קריירה ופרנסה (של שניכם)': 20,
+      'פנאי, תחביבים ובריאות אישית (משותף ואישי)': 15,
+    },
+    values_how_you_give: [
+      'עזרה אישית לחברים, משפחה או שכנים',
+      'מעשי חסד קטנים ביומיום',
+    ],
   },
   personalityAnswers: {
     personality_self_portrayal:
@@ -42,6 +58,20 @@ const noaQuestionnaireResponse: QuestionnaireResponseType = {
     personality_energy_level: 'בינונית - אנרגטי/ת כשצריך, יודע/ת גם לנוח',
     personality_introversion_extroversion: 6,
     personality_primary_motivation: 'יצירת קשרים משמעותיים ואהבה',
+    personality_core_trait_selection: {
+      'אמפתי/ת ורגיש/ה': 30,
+      'אופטימי/ת ושמח/ה': 20,
+      'יצירתי/ת ומקור/ית': 20,
+      'ישר/ה ואמין/ה': 15,
+      'בעל/ת חוש הומור': 15,
+    },
+    personality_weekend_style: [
+      'תרבות, אמנות והופעות',
+      'מפגשים חברתיים ובילויים',
+      'טיולים והרפתקאות בטבע',
+    ],
+    personality_strengths_and_weaknesses:
+      'החוזקות שלי הן יצירתיות, יכולת הקשבה ואופטימיות. אני תמיד מוצאת פתרונות לא שגרתיים. התחום שהייתי רוצה לשפר הוא אסרטיביות - לפעמים אני נוטה לרצות אחרים על חשבון הצרכים שלי.',
   },
   relationshipAnswers: {
     relationship_core_meaning: [
@@ -50,13 +80,25 @@ const noaQuestionnaireResponse: QuestionnaireResponseType = {
     ],
     relationship_intimacy_meaning:
       'אינטימיות עבורי היא היכולת להיות חשופה לחלוטין בפני מישהו, לשתף בחלומות ובפחדים, ולדעת שיש מישהו בעולם שמכיר אותי באמת ומקבל אותי כמו שאני.',
-    relationship_communication_ideal: 'רגישה ואמפתית - דגש על הקשבה והבנת רגשות',
+    relationship_communication_ideal:
+      'רגישה ואמפתית - דגש על הקשבה והבנת רגשות',
     relationship_daily_togetherness_vs_autonomy: 7,
+    relationship_love_languages_give_receive: [
+      'מעשי שירות',
+      'זמן איכות',
+      'מילים מאשרות',
+    ],
+    relationship_conflict_resolution_style: {
+      'התמקדות בהבנה ופשרה': 40,
+      'דיבור מיידי וגלוי': 30,
+      'פסק זמן ואז שיחה': 30,
+    },
   },
   partnerAnswers: {
     partner_must_have_quality_final:
       'התכונה החשובה ביותר היא טוב לב. אדם עם לב טוב הוא אדם שיודע לתת, לקבל, לסלוח ולהיות שותף אמיתי. כל השאר נבנה על היסוד הזה.',
-    partner_lifestyle_pace_preference: 'מאוזן - יודע/ת לשלב בין פעילות למנוחה, בין שגרה לספונטניות',
+    partner_lifestyle_pace_preference:
+      'מאוזן - יודע/ת לשלב בין פעילות למנוחה, בין שגרה לספונטניות',
     partner_appearance_importance_scale: 7,
     partner_core_character_traits_essential: {
       'חום, אמפתיה וטוב לב': 30,
@@ -65,19 +107,42 @@ const noaQuestionnaireResponse: QuestionnaireResponseType = {
       'אופטימיות ושמחת חיים': 15,
       'אינטליגנציה וסקרנות': 15,
     },
+    partner_initial_impression_priorities: [
+      'חיוך, נעימות וחמימות אישית',
+      'יכולת שיחה, זרימה וכימיה ראשונית',
+      'ניצוץ של חוכמה, שנינות או סקרנות',
+    ],
+    partner_religious_observance_preference_range: [
+      'דתי/ה לאומי/ת - מרכז / ליברלי',
+      'מסורתי/ת (שומר/ת חלק מהמצוות, חיבור למסורת)',
+      'חילוני/ת עם זיקה חזקה למסורת וערכים יהודיים',
+    ],
   },
   religionAnswers: {
-    religion_self_definition_primary: "דתי/ה לאומי/ת - מרכז / פתוח/ה (למשל: דתי-לייט, ליברלי)",
-    religion_shabbat_observance_level_practical: "שמירה על אווירת השבת (קידוש, סעודות, תפילה) עם גמישות מסוימת בהלכות",
-    religion_partner_ideal_religious_profile: "מחפשת מישהו מהעולם הדתי-לאומי, פתוח ומכיל. חשוב לי שיהיה מחובר למסורת ולרוחניות, אבל לא בצורה נוקשה. מישהו שיש לו יראת שמיים, אבל גם חי את העולם המודרני ומוצא את האיזון הנכון.",
-    religion_children_education_religious_vision: "הייתי רוצה להעניק לילדינו חינוך דתי-לאומי פתוח ומכיל, ששם דגש על מידות טובות, אהבת התורה והארץ, וחיבור לעם ישראל. חשוב לי שהם יגדלו להיות אנשים חושבים, עם יראת שמיים פנימית ועמוקה."
+    religion_self_definition_primary:
+      'דתי/ה לאומי/ת - מרכז / פתוח/ה (למשל: דתי-לייט, ליברלי)',
+    religion_shabbat_observance_level_practical:
+      'שמירה על אווירת השבת (קידוש, סעודות, תפילה) עם גמישות מסוימת בהלכות',
+    religion_partner_ideal_religious_profile:
+      'מחפשת מישהו מהעולם הדתי-לאומי, פתוח ומכיל. חשוב לי שיהיה מחובר למסורת ולרוחניות, אבל לא בצורה נוקשה. מישהו שיש לו יראת שמיים, אבל גם חי את העולם המודרני ומוצא את האיזון הנכון.',
+    religion_children_education_religious_vision:
+      'הייתי רוצה להעניק לילדינו חינוך דתי-לאומי פתוח ומכיל, ששם דגש על מידות טובות, אהבת התורה והארץ, וחיבור לעם ישראל. חשוב לי שהם יגדלו להיות אנשים חושבים, עם יראת שמיים פנימית ועמוקה.',
+    religion_identity_elaboration_personal:
+      'הזהות הדתית שלי מתבטאת בחיבור עמוק למסורת, לחגים ולערכים היהודיים. אני מוצאת רוחניות בטבע, באמנות ובקשרים בין אנשים. אני לא תמיד מקפידה על קלה כבחמורה, אבל הלב שלי תמיד במקום הנכון.',
+    religion_flexibility_religious_differences_partner: 8,
   },
   valuesCompleted: true,
   personalityCompleted: true,
   relationshipCompleted: true,
   partnerCompleted: true,
   religionCompleted: true,
-  worldsCompleted: ['VALUES', 'RELATIONSHIP', 'PARTNER', 'PERSONALITY', 'RELIGION'],
+  worldsCompleted: [
+    'VALUES',
+    'RELATIONSHIP',
+    'PARTNER',
+    'PERSONALITY',
+    'RELIGION',
+  ],
   completed: true,
   startedAt: new Date(),
   completedAt: new Date(),
@@ -88,17 +153,21 @@ const noaQuestionnaireResponse: QuestionnaireResponseType = {
     values: [
       {
         questionId: 'values_core_elaboration',
-        question: 'מהו הערך החשוב ביותר עבורך בזוגיות, וכיצד הוא בא לידי ביטוי בחייך?',
+        question:
+          'מהו הערך החשוב ביותר עבורך בזוגיות, וכיצד הוא בא לידי ביטוי בחייך?',
         answer: 'הערך הכי חשוב לי הוא משפחה...',
-        displayText: 'הערך הכי חשוב לי הוא משפחה, וזה מתבטא בכך שאני משקיעה זמן רב בקשר עם ההורים והאחים שלי, ורואה את הבית העתידי שלי כמקום חם ומכיל שמהווה מרכז לעולם שלנו.',
+        displayText:
+          'הערך הכי חשוב לי הוא משפחה, וזה מתבטא בכך שאני משקיעה זמן רב בקשר עם ההורים והאחים שלי, ורואה את הבית העתידי שלי כמקום חם ומכיל שמהווה מרכז לעולם שלנו. ערך נוסף הוא יצירתיות וביטוי עצמי, שבא לידי ביטוי בקריירה שלי ובדרך שאני מתבוננת על העולם.',
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
-       {
+      {
         questionId: 'values_career_family_balance_approach',
-        question: 'בהתייחס לאיזון בין קריירה לזוגיות/משפחה, איזו גישה הכי מתארת אותך כרגע?',
+        question:
+          'בהתייחס לאיזון בין קריירה לזוגיות/משפחה, איזו גישה הכי מתארת אותך כרגע?',
         answer: 'relationship_first',
-        displayText: 'הגעתי לשלב שבו בניית זוגיות ומשפחה היא המטרה המרכזית. הקריירה חשובה, אך היא תומכת במטרה זו.',
+        displayText:
+          'הגעתי לשלב שבו בניית זוגיות ומשפחה היא המטרה המרכזית. הקריירה חשובה, אך היא תומכת במטרה זו.',
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
@@ -108,7 +177,17 @@ const noaQuestionnaireResponse: QuestionnaireResponseType = {
         questionId: 'personality_self_portrayal',
         question: 'איך היית מתארת את עצמך בכמה מילים?',
         answer: 'אני אדם ויזואלי ויצירתי...',
-        displayText: 'אני אדם מאוד ויזואלי ויצירתי, מה שמתחבר לעיסוק שלי. מעבר לזה, אני חברה טובה שיודעת להקשיב, וחשוב לי מאוד לנהל שיחות עומק. אני אופטימית מטבעי, ומאמינה שתמיד אפשר למצוא את הטוב בכל מצב.',
+        displayText:
+          'אני אדם מאוד ויזואלי ויצירתי, מה שמתחבר לעיסוק שלי. מעבר לזה, אני חברה טובה שיודעת להקשיב, וחשוב לי מאוד לנהל שיחות עומק. אני אופטימית מטבעי, ומאמינה שתמיד אפשר למצוא את הטוב בכל מצב.',
+        isVisible: true,
+        answeredAt: new Date(),
+      } as FormattedAnswer,
+      {
+        questionId: 'personality_strengths_and_weaknesses',
+        question: 'מהן חוזקותיך וחולשותיך?',
+        answer: 'החוזקות שלי הן יצירתיות, יכולת הקשבה ואופטימיות...',
+        displayText:
+          'החוזקות שלי הן יצירתיות, יכולת הקשבה ואופטימיות. אני תמיד מוצאת פתרונות לא שגרתיים. התחום שהייתי רוצה לשפר הוא אסרטיביות - לפעמים אני נוטה לרצות אחרים על חשבון הצרכים שלי.',
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
@@ -118,31 +197,34 @@ const noaQuestionnaireResponse: QuestionnaireResponseType = {
         questionId: 'relationship_intimacy_meaning',
         question: 'מהי אינטימיות עבורך בזוגיות?',
         answer: 'אינטימיות עבורי היא היכולת להיות חשופה לחלוטין...',
-        displayText: 'אינטימיות עבורי היא היכולת להיות חשופה לחלוטין בפני מישהו, לשתף בחלומות ובפחדים, ולדעת שיש מישהו בעולם שמכיר אותי באמת ומקבל אותי כמו שאני.',
+        displayText:
+          'אינטימיות עבורי היא היכולת להיות חשופה לחלוטין בפני מישהו, לשתף בחלומות ובפחדים, ולדעת שיש מישהו בעולם שמכיר אותי באמת ומקבל אותי כמו שאני.',
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
     ],
     partner: [
-        {
+      {
         questionId: 'partner_must_have_quality_final',
         question: 'מהי התכונה האחת החשובה ביותר שחייבת להיות לבן הזוג שלך?',
         answer: 'התכונה החשובה ביותר היא טוב לב...',
-        displayText: 'התכונה החשובה ביותר היא טוב לב. אדם עם לב טוב הוא אדם שיודע לתת, לקבל, לסלוח ולהיות שותף אמיתי. כל השאר נבנה על היסוד הזה.',
+        displayText:
+          'התכונה החשובה ביותר היא טוב לב. אדם עם לב טוב הוא אדם שיודע לתת, לקבל, לסלוח ולהיות שותף אמיתי. כל השאר נבנה על היסוד הזה.',
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
     ],
     religion: [
-        {
+      {
         questionId: 'religion_partner_ideal_religious_profile',
         question: 'תארי את הפרופיל הדתי-רוחני האידיאלי של בן הזוג שאת מחפשת.',
         answer: 'מחפשת מישהו מהעולם הדתי-לאומי, פתוח ומכיל...',
-        displayText: 'מחפשת מישהו מהעולם הדתי-לאומי, פתוח ומכיל. חשוב לי שיהיה מחובר למסורת ולרוחניות, אבל לא בצורה נוקשה. מישהו שיש לו יראת שמיים, אבל גם חי את העולם המודרני ומוצא את האיזון הנכון.',
+        displayText:
+          'מחפשת מישהו מהעולם הדתי-לאומי, פתוח ומכיל. חשוב לי שיהיה מחובר למסורת ולרוחניות, אבל לא בצורה נוקשה. מישהו שיש לו יראת שמיים, אבל גם חי את העולם המודרני ומוצא את האיזון הנכון.',
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
-    ]
+    ],
   },
 };
 
@@ -329,15 +411,23 @@ const danielQuestionnaireResponse: QuestionnaireResponseType = {
   valuesAnswers: {
     values_life_priorities_allocation: {
       'זוגיות וחיפוש זוגיות': 30,
-      משפחה: 20,
+      'משפחה (הורים, אחים, ילדים אם יש)': 20,
       'קריירה ופרנסה': 25,
       'רוחניות, דת ולימוד תורה': 15,
       'חברים, קהילה והתנדבות': 5,
-      'פנאי ותחביבים': 5,
+      'פנאי, תחביבים ובריאות אישית': 5,
     },
     values_attitude_towards_money: 'אחריות כלכלית, חיסכון ותכנון לטווח ארוך',
     values_community_role: 'מעורב/ת ומשתתפ/ת קבוע/ה בפעילויות',
     values_education_pursuit: 'למידה מתמדת היא דרך חיים והכרח',
+    values_future_priorities_partner: {
+      'זוגיות (כולל ילדים עתידיים)': 40,
+      'קריירה ופרנסה (של שניכם)': 25,
+      'משפחה (הורים, אחים)': 15,
+      'רוחניות, דת ולימוד תורה (משותף ואישי)': 10,
+      'פנאי, תחביבים ובריאות אישית (משותף ואישי)': 10,
+    },
+    values_social_political_stance_importance_partner: 6,
   },
   personalityAnswers: {
     personality_self_portrayal:
@@ -346,24 +436,47 @@ const danielQuestionnaireResponse: QuestionnaireResponseType = {
     personality_stress_management: [
       'פעילות גופנית (ספורט, הליכה)',
       'שיחה עם חבר/ה קרוב/ה או בן/בת משפחה',
-      'מוזיקה או פודקאסטים'
+      'מוזיקה או פודקאסטים',
     ],
-    personality_decision_making_style: 'שילוב של לוגיקה ואינטואיציה, תוך לקיחת סיכונים מחושבים',
+    personality_decision_making_style:
+      'שילוב של לוגיקה ואינטואיציה, תוך לקיחת סיכונים מחושבים',
+    personality_core_trait_selection: {
+      'ישר/ה ואמין/ה': 30,
+      'שאפתנ/ית ובעל/ת מוטיבציה': 25,
+      'אינטליגנט/ית וסקרנ/ית': 20,
+      'אחראי/ת ומאורגנ/ת': 15,
+      'יציב/ה וקרקע/ית': 10,
+    },
+    personality_ideal_vacation:
+      'חופשה שמשלבת טבע מאתגר עם תרבות מקומית. למשל, טרק של כמה ימים בנוף יפהפה, ובסופו הגעה לעיר מעניינת עם אוכל טוב, מוזיאונים והיסטוריה. לא חופשת בטן-גב.',
+    personality_handling_criticism:
+      'אני משתדל לקחת ביקורת בצורה אנליטית. בהתחלה זה יכול להיות לא נעים, אבל אני לוקח צעד אחורה, מנסה להפריד את הרגש ולהבין אם יש נקודה לשיפור שאני יכול ללמוד ממנה. חשוב לי להשתפר כל הזמן.',
   },
   relationshipAnswers: {
     relationship_key_expectations_from_partner: [
-        'תקשורת פתוחה, כנה ומכבדת', 
-        'שותפות פעילה בניהול החיים המשותפים', 
-        'אמינות, יושרה ונאמנות'
+      'תקשורת פתוחה, כנה ומכבדת',
+      'שותפות פעילה בניהול החיים המשותפים',
+      'אמינות, יושרה ונאמנות',
     ],
     relationship_daily_togetherness_vs_autonomy: 7,
-    relationship_financial_management_preference: 'שקיפות מלאה וחשבון משותף לכל',
+    relationship_financial_management_preference:
+      'שקיפות מלאה וחשבון משותף לכל',
     relationship_conflict_resolution_style: {
       'דיבור מיידי וגלוי': 30,
       'פסק זמן ואז שיחה': 20,
       'ניתוח לוגי של הבעיה': 30,
       'התמקדות בהבנה ופשרה': 20,
     },
+    relationship_core_meaning: [
+      'שותפות איתנה, חברות אמת ותמיכה הדדית',
+      'מחויבות, נאמנות וביטחון בקשר לטווח ארוך',
+    ],
+    relationship_love_languages_give_receive: [
+      'מעשי שירות',
+      'זמן איכות',
+      'מילים מאשרות',
+      'מגע פיזי',
+    ],
   },
   partnerAnswers: {
     partner_core_character_traits_essential: {
@@ -376,23 +489,43 @@ const danielQuestionnaireResponse: QuestionnaireResponseType = {
     partner_must_have_quality_final:
       'התכונה הכי חשובה לי היא שותפות. הידיעה שיש לי מישהי לצידי, שאנחנו צוות מול כל מה שהחיים מביאים, ושאנחנו תמיד דואגים אחד לשנייה.',
     partner_religious_observance_preference_range: [
-        'דתי/ה לאומי/ת - תורני/ת / ישיבתי/ת',
-        'דתי/ה לאומי/ת - מרכז / ליברלי'
+      'דתי/ה לאומי/ת - תורני/ת / ישיבתי/ת',
+      'דתי/ה לאומי/ת - מרכז / ליברלי',
     ],
-    partner_social_style_preference: 'חברותי/ת אך מעדיפ/ה מפגשים קטנים ואינטימיים',
+    partner_social_style_preference:
+      'חברותי/ת אך מעדיפ/ה מפגשים קטנים ואינטימיים',
+    partner_appearance_importance_scale: 6,
+    partner_children_from_previous_relationship_stance:
+      "פתוח/ה לשקול, תלוי בנסיבות (גיל הילדים, טיב הקשר וכו')",
   },
   religionAnswers: {
-    religion_shabbat_observance_level_practical: 'שמירה על עיקרי ההלכות (ללא חשמל, בישול, נסיעה)',
-    religion_faith_core_principles: ['תורה מן השמיים ומחויבות להלכה', 'גאולת ישראל וקיבוץ גלויות בארץ ישראל'],
-    religion_social_circle_religious_diversity: 'יש לי חברים ממגוון רמות דתיות והשקפות',
+    religion_shabbat_observance_level_practical:
+      'שמירה על עיקרי ההלכות (ללא חשמל, בישול, נסיעה)',
+    religion_faith_core_principles: [
+      'תורה מן השמיים ומחויבות להלכה',
+      'גאולת ישראל וקיבוץ גלויות בארץ ישראל',
+    ],
+    religion_social_circle_religious_diversity:
+      'יש לי חברים ממגוון רמות דתיות והשקפות',
     religion_flexibility_religious_differences_partner: 8,
+    religion_self_definition_primary:
+      'דתי/ה לאומי/ת - מרכז / פתוח/ה (למשל: דתי-לייט, ליברלי)',
+    religion_partner_ideal_religious_profile:
+      'מחפש בחורה דתייה-לאומית, שחשוב לה לבנות בית של תורה וערכים, אבל עם ראש פתוח על הכתפיים. מישהי שיודעת לשלב בין קודש לחול, שיש לה שאיפות אישיות ומקצועיות, ושהיא שותפה אמיתית לדרך.',
+    religion_rabbinic_guidance_role: 7,
   },
   valuesCompleted: true,
   personalityCompleted: true,
   relationshipCompleted: true,
   partnerCompleted: true,
   religionCompleted: true,
-  worldsCompleted: ['VALUES', 'PERSONALITY', 'PARTNER', 'RELATIONSHIP', 'RELIGION'],
+  worldsCompleted: [
+    'VALUES',
+    'PERSONALITY',
+    'PARTNER',
+    'RELATIONSHIP',
+    'RELIGION',
+  ],
   completed: true,
   startedAt: new Date(),
   completedAt: new Date(),
@@ -401,7 +534,7 @@ const danielQuestionnaireResponse: QuestionnaireResponseType = {
   updatedAt: new Date(),
   formattedAnswers: {
     values: [
-       {
+      {
         questionId: 'values_attitude_towards_money',
         question: 'מהי גישתך הכללית לכסף ורמת חיים?',
         answer: 'אחריות כלכלית, חיסכון ותכנון לטווח ארוך',
@@ -417,6 +550,15 @@ const danielQuestionnaireResponse: QuestionnaireResponseType = {
         answer: 'אני אדם של עשייה, אוהב אתגרים ומטרות...',
         displayText:
           'אני אדם של עשייה, אוהב אתגרים ומטרות. חשובה לי מאוד האמינות, ואני תמיד משתדל לעמוד במילה שלי. יש לי צד אנליטי חזק, אבל גם מאוד אוהב לנגן ולבלות בטבע כדי להתאזן.',
+        isVisible: true,
+        answeredAt: new Date(),
+      } as FormattedAnswer,
+      {
+        questionId: 'personality_ideal_vacation',
+        question: 'תאר את חופשת החלומות שלך.',
+        answer: 'חופשה שמשלבת טבע מאתגר עם תרבות מקומית...',
+        displayText:
+          'חופשה שמשלבת טבע מאתגר עם תרבות מקומית. למשל, טרק של כמה ימים בנוף יפהפה, ובסופו הגעה לעיר מעניינת עם אוכל טוב, מוזיאונים והיסטוריה. לא חופשת בטן-גב.',
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
@@ -442,16 +584,17 @@ const danielQuestionnaireResponse: QuestionnaireResponseType = {
         answeredAt: new Date(),
       } as FormattedAnswer,
     ],
-     religion: [
-        {
+    religion: [
+      {
         questionId: 'religion_faith_core_principles',
         question: 'מהם עקרונות האמונה המרכזיים שמנחים אותך?',
         answer: 'תורה מן השמיים ומחויבות להלכה, גאולת ישראל וקיבוץ גלויות',
-        displayText: 'עקרונות האמונה המרכזיים שמנחים אותי הם תורה מן השמיים, מחויבות להלכה, וגאולת ישראל וקיבוץ גלויות בארץ ישראל.',
+        displayText:
+          'עקרונות האמונה המרכזיים שמנחים אותי הם תורה מן השמיים, מחויבות להלכה, וגאולת ישראל וקיבוץ גלויות בארץ ישראל.',
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
-    ]
+    ],
   },
 };
 

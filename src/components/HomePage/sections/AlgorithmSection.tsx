@@ -345,10 +345,11 @@ const AlgorithmSection: React.FC = () => {
   }, [isMobile, isInView]);
 
   return (
-    <section 
-      ref={sectionRef}
-      className="py-20 md:py-28 px-4 bg-gradient-to-b from-gray-50 via-white to-cyan-50/30 relative overflow-hidden"
-    >
+<section 
+  ref={sectionRef}
+  id="our-algorithm"
+  className="py-20 md:py-28 px-4 bg-gradient-to-b from-gray-50 via-white to-cyan-50/30 relative overflow-hidden"
+>
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-64 h-64 bg-gradient-to-br from-cyan-200/20 to-blue-300/20 rounded-full blur-3xl animate-pulse-slow" />
         <div className="absolute bottom-20 right-10 w-80 h-80 bg-gradient-to-br from-pink-200/20 to-purple-300/20 rounded-full blur-3xl animate-float-slow" />

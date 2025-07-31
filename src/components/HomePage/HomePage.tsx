@@ -20,13 +20,13 @@ import FooterSection from './sections/FooterSection';
 import ChatWidget from '../ChatWidget/ChatWidget';
 import StickyNav, { NavLink } from './components/StickyNav';
 
-// 2. Define the navigation links in a single, manageable constant.
-//    The 'id' must match the 'id' attribute of the corresponding section component.
+// 2. Define the navigation links in a new, prioritized order.
+//    The 'id' must match the 'id' attribute of the corresponding section.
 const navLinks: NavLink[] = [
-  { id: 'how-it-works', label: 'איך זה עובד?' },
-  { id: 'our-method', label: 'השיטה שלנו' },
+  { id: 'how-it-works', label: 'איך זה עובד' },
+  { id: 'suggestion-demo', label: 'הצעה לדוגמה' },
+  { id: 'our-algorithm', label: 'השיטה החכמה' },
   { id: 'our-team', label: 'הצוות שלנו' },
-  { id: 'success-stories', label: 'סיפורי הצלחה' },
   { id: 'faq', label: 'שאלות נפוצות' },
 ];
 

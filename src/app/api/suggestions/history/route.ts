@@ -6,7 +6,7 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { formatAnswers, KEY_MAPPING, DbWorldKey, FormattedAnswersType } from '@/lib/questionnaireFormatter';
 import type { ExtendedMatchSuggestion, PartyInfo, QuestionnaireResponse, WorldId } from "@/app/components/suggestions/types";
-import type { FormattedAnswer } from "@/types/next-auth"; // ייבוא מהמקור הנכון
+import type { FormattedAnswer } from "@/types/next-auth";
 
 // --- טיפוסים חזקים ומדויקים לתהליך העיבוד ---
 type ProcessedQuestionnaireResponse = Omit<QuestionnaireResponse, 'valuesAnswers' | 'personalityAnswers' | 'relationshipAnswers' | 'partnerAnswers' | 'religionAnswers'> & {
@@ -20,6 +20,11 @@ type ProcessedPartyInfo = Omit<PartyInfo, 'questionnaireResponses'> & {
 type SuggestionWithFormattedData = Omit<ExtendedMatchSuggestion, 'firstParty' | 'secondParty'> & {
   firstParty: ProcessedPartyInfo;
   secondParty: ProcessedPartyInfo;
+};
+
+// הטיפוס שמגיע מ-Prisma.
+type PartyInfoFromPrisma = Omit<PartyInfo, 'questionnaireResponses'> & {
+  questionnaireResponses?: QuestionnaireResponse[];
 };
 
 export async function GET() {
@@ -50,7 +55,7 @@ export async function GET() {
     });
 
     const suggestionsWithFormattedQuestionnaires: SuggestionWithFormattedData[] = historySuggestions.map(suggestion => {
-        const formatPartyQuestionnaire = (party: PartyInfo): ProcessedPartyInfo => {
+        const formatPartyQuestionnaire = (party: PartyInfoFromPrisma): ProcessedPartyInfo => {
             const { questionnaireResponses, ...restOfParty } = party;
 
             if (questionnaireResponses && questionnaireResponses.length > 0) {
@@ -59,8 +64,8 @@ export async function GET() {
 
                 (Object.keys(KEY_MAPPING) as WorldId[]).forEach(worldKey => {
                     const dbKey = KEY_MAPPING[worldKey];
-                    // The cast to `any` here is a safe and isolated way to handle dynamic keys from Prisma's JSON type.
-                    formattedAnswers[worldKey] = formatAnswers((qr as any)[dbKey]);
+                    const answersJson = qr[dbKey];
+                    formattedAnswers[worldKey] = formatAnswers(answersJson);
                 });
                 
                 const { valuesAnswers, personalityAnswers, relationshipAnswers, partnerAnswers, religionAnswers, ...restOfQr } = qr;
