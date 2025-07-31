@@ -117,23 +117,30 @@ const FeatureCard: React.FC<{
   onHover: (index: number | null) => void;
 }> = ({ feature, index, isActive, onHover }) => {
   const cardRef = useRef(null);
-  const isInView = useInView(cardRef, { once: true, amount: 0.3 });
+  const isInView = useInView(cardRef, { once: true, amount: 0.1 }); // הקטנתי את הסף
+  const [isClient, setIsClient] = useState(false);
+
+  // וידוא שאנחנו בצד הלקוח
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   return (
     <motion.div
       ref={cardRef}
-      initial={{ opacity: 0, y: 50 }}
-      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
-      transition={{ duration: 0.6, delay: index * 0.2 }}
+      initial={isClient ? { opacity: 0, y: 30 } : { opacity: 1, y: 0 }} // הקטנתי את ה-y movement
+      animate={isInView || !isClient ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+      transition={{ duration: 0.5, delay: isClient ? index * 0.15 : 0 }} // הקטנתי את הזמנים
       className={`
-        relative p-8 rounded-3xl border transition-all duration-500 cursor-pointer group
+        relative p-6 md:p-8 rounded-3xl border transition-all duration-500 group
         ${isActive 
-          ? 'bg-white shadow-2xl border-transparent scale-105' 
-          : 'bg-white/60 backdrop-blur-sm border-white/40 shadow-lg hover:shadow-xl'
+          ? 'bg-white shadow-2xl border-transparent md:scale-105' // Scale רק בדסקטופ
+          : 'bg-white/90 backdrop-blur-sm border-white/60 shadow-lg hover:shadow-xl'
         }
       `}
-      onMouseEnter={() => onHover(index)}
-      onMouseLeave={() => onHover(null)}
+      onMouseEnter={() => window.innerWidth >= 768 && onHover(index)} // Hover רק בדסקטופ
+      onMouseLeave={() => window.innerWidth >= 768 && onHover(null)}
+      onTouchStart={() => window.innerWidth < 768 && onHover(index)} // Touch במובייל
     >
       {/* רקע גרדיאנט אנימטי */}
       <div className={`absolute -inset-0.5 bg-gradient-to-r ${feature.color} rounded-3xl opacity-0 group-hover:opacity-20 transition-opacity duration-500`} />
@@ -193,7 +200,7 @@ const FeatureCard: React.FC<{
       {isActive && (
         <motion.div
           layoutId="activeIndicator"
-          className={`absolute -inset-1 bg-gradient-to-r ${feature.color} rounded-3xl opacity-20`}
+          className={`absolute -inset-0.5 md:-inset-1 bg-gradient-to-r ${feature.color} rounded-3xl opacity-10 md:opacity-20`} // פחות אופציטי במובייל
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
         />
       )}
@@ -204,28 +211,33 @@ const FeatureCard: React.FC<{
 // =================== סטטיסטיקה חיה ===================
 const LiveStatsBar: React.FC = () => {
   const statsRef = useRef(null);
-  const isInView = useInView(statsRef, { once: true });
+  const isInView = useInView(statsRef, { once: true, amount: 0.1 }); // הקטנתי הסף
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   return (
     <motion.div
       ref={statsRef}
-      initial={{ opacity: 0, y: 30 }}
-      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-      transition={{ duration: 0.8 }}
-      className="grid grid-cols-2 lg:grid-cols-4 gap-6 bg-white/80 backdrop-blur-md p-8 rounded-3xl shadow-xl border border-white/60"
+      initial={isClient ? { opacity: 0, y: 20 } : { opacity: 1, y: 0 }} // הקטנתי את התזוזה
+      animate={isInView || !isClient ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+      transition={{ duration: 0.6 }} // הקטנתי את הזמן
+      className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 bg-white/90 backdrop-blur-md p-6 md:p-8 rounded-3xl shadow-xl border border-white/60"
     >
       {LIVE_STATS.map((stat, index) => (
         <div key={index} className="text-center">
-          <stat.icon className={`w-8 h-8 ${stat.color} mx-auto mb-3`} />
-          <div className={`text-2xl font-bold ${stat.color} mb-1`}>
+          <stat.icon className={`w-6 h-6 md:w-8 md:h-8 ${stat.color} mx-auto mb-2 md:mb-3`} />
+          <div className={`text-xl md:text-2xl font-bold ${stat.color} mb-1`}>
             <AnimatedCounter 
               target={stat.number} 
               suffix={stat.suffix}
-              inView={isInView}
-              duration={2.5}
+              inView={isInView || !isClient} // תמיד יציג מספרים
+              duration={2}
             />
           </div>
-          <p className="text-sm text-gray-600">{stat.label}</p>
+          <p className="text-xs md:text-sm text-gray-600 leading-tight">{stat.label}</p>
         </div>
       ))}
     </motion.div>
@@ -331,22 +343,41 @@ const InteractiveCodeDemo: React.FC = () => {
 // =================== הקומפוננטה הראשית ===================
 const AlgorithmSection: React.FC = () => {
   const [activeFeature, setActiveFeature] = useState<number | null>(0);
+  const [isMobile, setIsMobile] = useState(false);
   const sectionRef = useRef(null);
-  const isInView = useInView(sectionRef, { once: true, amount: 0.2 });
+  const isInView = useInView(sectionRef, { once: true, amount: 0.1 }); // הקטנתי הסף
 
-  // אוטו-מעבר בין הפיצ'רים
+  // זיהוי מובייל
   useEffect(() => {
-    if (!isInView) return;
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // אוטו-מעבר בין הפיצ'רים - רק בדסקטופ
+  useEffect(() => {
+    if (!isInView || isMobile) return;
     
     const interval = setInterval(() => {
       setActiveFeature(prev => {
         if (prev === null) return 0;
         return (prev + 1) % ALGORITHM_FEATURES.length;
       });
-    }, 4000);
+    }, 5000); // הארכתי את הזמן
 
     return () => clearInterval(interval);
-  }, [isInView]);
+  }, [isInView, isMobile]);
+
+  // במובייל - הפעל את כל הכרטיסים
+  useEffect(() => {
+    if (isMobile && isInView) {
+      setActiveFeature(null); // במובייל כולם פעילים
+    }
+  }, [isMobile, isInView]);
 
   return (
     <section 
@@ -391,19 +422,19 @@ const AlgorithmSection: React.FC = () => {
         </motion.div>
 
         {/* סטטיסטיקות חיות */}
-        <div className="mb-20">
+        <div className="mb-16 md:mb-20">
           <LiveStatsBar />
         </div>
 
         {/* הפיצ'רים המרכזיים */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-20">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 mb-16 md:mb-20">
           {ALGORITHM_FEATURES.map((feature, index) => (
             <FeatureCard
               key={index}
               feature={feature}
               index={index}
-              isActive={activeFeature === index}
-              onHover={setActiveFeature}
+              isActive={isMobile ? true : activeFeature === index} // במובייל כולם פעילים
+              onHover={isMobile ? () => {} : setActiveFeature} // במובייל אין hover
             />
           ))}
         </div>
