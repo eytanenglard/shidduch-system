@@ -1,6 +1,8 @@
+// src/components/HomePage/sections/HeroSection.tsx
+
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image'; // ודא שהייבוא קיים
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import {
   ArrowLeft,
@@ -15,7 +17,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { Session } from 'next-auth';
-import { getRelativeCloudinaryPath } from '@/lib/utils'; // ודא שהייבוא קיים
+import { getRelativeCloudinaryPath } from '@/lib/utils';
 
 interface HeroSectionProps {
   session: Session | null;
@@ -56,7 +58,6 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
     transitionDelay: `${100 + index * 150}ms`,
   });
 
-  // ======================= שימוש בלוגו החדש =======================
   const logoUrl =
     'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png';
 
@@ -75,7 +76,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
       ></div>
 
       <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col items-center">
-        {/* --- Main Content: Headline, Description, Buttons --- */}
+        {/* --- Main Content: Headline, Description, Buttons (UPDATED) --- */}
         <div
           className={`text-center transition-all duration-700 ${
             isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
@@ -89,10 +90,10 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
               בדרך שמתאימה לך
             </span>
           </h1>
-          {/* ======================= עדכון שם החברה בטקסט ======================= */}
           <p className="mt-6 max-w-xl mx-auto text-lg md:text-xl text-gray-600 leading-relaxed">
-            NeshamaTech משלבת טכנולוגיית AI מתקדמת עם ליווי של שדכנים מומחים,
-            כדי להציע לך התאמות מדויקות וליווי אישי בדרך לזוגיות שתמיד רצית.
+            ב-NeshamaTech, הגישה שלנו משלבת הבנה מעמיקה, הנעזרת בכלים
+            טכנולוגיים, עם ליווי אישי וחם של הצוות שלנו. המטרה שלנו היא להיות
+            שותפים למסע שלכם, בדרך ליצירת חיבור אמיתי ומשמעותי.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/auth/register">
@@ -100,24 +101,22 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                 size="lg"
                 className="w-full sm:w-auto text-base md:text-lg px-8 py-6 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden"
               >
-                <span className="relative z-10">מתחילים עכשיו</span>
+                <span className="relative z-10">הצעד הראשון שלי</span>
                 <ArrowLeft className="relative z-10 mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
-            {/* --- START: שדרוג כפתור השאלון --- */}
             <Link
               href="/questionnaire"
               id="onboarding-target-questionnaire-button"
             >
               <Button
+                variant="outline"
                 size="lg"
-                className="w-full sm:w-auto text-base md:text-lg px-8 py-6 bg-cyan-600 text-white hover:bg-cyan-700 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group"
+                className="w-full sm:w-auto text-base md:text-lg px-8 py-6 border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-300 rounded-full transition-all duration-300"
               >
-                <Lightbulb className="ml-2 h-5 w-5 transition-transform group-hover:scale-110" />
-                <span>לשאלון החכם</span>
+                לשאלון ההיכרות
               </Button>
             </Link>
-            {/* --- END: שדרוג כפתור השאלון --- */}
           </div>
         </div>
 
@@ -128,36 +127,22 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
           }`}
           style={getStaggerDelay(1)}
         >
-          {/* ========================================================== */}
-          {/* ||      גרסה חדשה ומשופרת למובייל (אנכית)              || */}
-          {/* ========================================================== */}
           <div className="md:hidden flex flex-col items-center gap-3">
-            {/* AI Technology */}
             <div
-              className={`flex flex-col items-center gap-2 opacity-0 ${
-                isVisible ? 'animate-fade-in-up' : ''
-              }`}
+              className={`flex flex-col items-center gap-2 opacity-0 ${isVisible ? 'animate-fade-in-up' : ''}`}
               style={{ animationDelay: '200ms' }}
             >
               <div className="p-4 bg-white/60 backdrop-blur-md rounded-full shadow-lg border border-white/50">
                 <Brain className="w-8 h-8 text-cyan-500" />
               </div>
-              <span className="font-bold text-gray-700">טכנולוגיית AI</span>
+              <span className="font-bold text-gray-700">כלים חכמים</span>
             </div>
-
-            {/* Dashed line */}
             <div
-              className={`h-8 w-px border-r border-dashed border-gray-400 opacity-0 ${
-                isVisible ? 'animate-fade-in-up' : ''
-              }`}
+              className={`h-8 w-px border-r border-dashed border-gray-400 opacity-0 ${isVisible ? 'animate-fade-in-up' : ''}`}
               style={{ animationDelay: '400ms' }}
             />
-
-            {/* Human Touch */}
             <div
-              className={`flex flex-col items-center gap-2 opacity-0 ${
-                isVisible ? 'animate-fade-in-up' : ''
-              }`}
+              className={`flex flex-col items-center gap-2 opacity-0 ${isVisible ? 'animate-fade-in-up' : ''}`}
               style={{ animationDelay: '600ms' }}
             >
               <div className="p-4 bg-white/60 backdrop-blur-md rounded-full shadow-lg border border-white/50">
@@ -165,20 +150,14 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
               </div>
               <span className="font-bold text-gray-700">ליווי אישי</span>
             </div>
-
-            {/* "Leads to..." Icon */}
             <div
               className={`opacity-0 ${isVisible ? 'animate-fade-in-up' : ''}`}
               style={{ animationDelay: '800ms' }}
             >
               <ChevronDown className="w-7 h-7 text-gray-400 my-2" />
             </div>
-
-            {/* ======================= החלפת לוגו ושם (מובייל) ======================= */}
             <div
-              className={`opacity-0 ${
-                isVisible ? 'animate-mobile-match-point' : ''
-              }`}
+              className={`opacity-0 ${isVisible ? 'animate-mobile-match-point' : ''}`}
               style={{ animationDelay: '1000ms' }}
             >
               <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-white to-gray-50 rounded-full shadow-2xl border-2 border-white">
@@ -196,25 +175,17 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
               </div>
             </div>
           </div>
-
-          {/* ========================================================== */}
-          {/* ||        גרסה מעודכנת לדסקטופ (מוסתרת במובייל)      || */}
-          {/* ========================================================== */}
           <div className={`hidden md:block relative h-64`}>
             <div
-              className={`absolute top-1/2 left-0 -translate-y-1/2 flex items-center gap-3 opacity-0 ${
-                isVisible ? 'animate-synergy-enter-left' : ''
-              }`}
+              className={`absolute top-1/2 left-0 -translate-y-1/2 flex items-center gap-3 opacity-0 ${isVisible ? 'animate-synergy-enter-left' : ''}`}
             >
               <div className="p-4 bg-white/60 backdrop-blur-md rounded-full shadow-lg border border-white/50">
                 <Brain className="w-8 h-8 text-cyan-500" />
               </div>
-              <span className="font-bold text-gray-700">טכנולוגיית AI</span>
+              <span className="font-bold text-gray-700">כלים טכנולוגיים</span>
             </div>
             <div
-              className={`absolute top-1/2 right-0 -translate-y-1/2 flex items-center gap-3 opacity-0 ${
-                isVisible ? 'animate-synergy-enter-right' : ''
-              }`}
+              className={`absolute top-1/2 right-0 -translate-y-1/2 flex items-center gap-3 opacity-0 ${isVisible ? 'animate-synergy-enter-right' : ''}`}
             >
               <span className="font-bold text-gray-700">ליווי אישי</span>
               <div className="p-4 bg-white/60 backdrop-blur-md rounded-full shadow-lg border border-white/50">
@@ -256,11 +227,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                 filter="url(#glow)"
               />
             </svg>
-            {/* ======================= החלפת לוגו ושם (דסקטופ) ======================= */}
             <div
-              className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 ${
-                isVisible ? 'animate-match-point-appear' : ''
-              }`}
+              className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 ${isVisible ? 'animate-match-point-appear' : ''}`}
             >
               <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-white to-gray-50 rounded-full shadow-2xl border-2 border-white">
                 <div className="relative w-9 h-9">
@@ -279,7 +247,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
           </div>
         </div>
 
-        {/* ======================= שדרוג ה-Stats Bar ======================= */}
+        {/* --- Stats Bar (UPDATED to principles instead of stats) --- */}
         <div
           className={`mt-12 md:mt-20 w-full max-w-5xl transition-all duration-700 ${
             isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
@@ -296,7 +264,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
             <StatItem
               icon={<Heart className="h-5 w-5 text-pink-500" />}
               label="מעבר לפרטים היבשים"
-              value="התאמה עמוקה"
+              value="התאמה עם עומק"
               color="pink"
             />
             <StatItem
@@ -319,7 +287,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
             />
             <StatItem
               icon={<Users className="h-5 w-5 text-pink-500" />}
-              label="שמכיר את העולם שלכם"
+              label="שמכיר את עולמכם"
               value="צוות מסור"
               color="pink"
             />
