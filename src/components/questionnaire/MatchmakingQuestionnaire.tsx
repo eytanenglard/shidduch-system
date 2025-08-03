@@ -9,10 +9,11 @@ import React, {
   useRef,
 } from 'react';
 import { useRouter } from 'next/navigation';
+import QuestionnaireLoader from './common/QuestionnaireLoader';
 import QuestionnaireLayout from './layout/QuestionnaireLayout';
 import Welcome from './onboarding/Welcome';
 import TrackSelection from './onboarding/TrackSelection';
-import WorldComponent from './worlds/WorldComponent';
+import WorldComponent from './worlds/WorldComponent'; // <-- שינוי: ייבוא הקומפוננטה המאוחדת
 import QuestionnaireCompletion from './common/QuestionnaireCompletion';
 import { useLanguage } from '@/app/contexts/LanguageContext';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -39,7 +40,6 @@ import type {
   AnswerValue,
   WorldComponentProps,
 } from './types/types';
-import EnhancedLoading from './common/EnhancedLoading'; // ❗️ הוספה: ייבוא קומפוננטת הטעינה החדשה
 
 const worldLabels = {
   PERSONALITY: 'אישיות',
@@ -67,16 +67,14 @@ const WORLD_ORDER: WorldId[] = [
 
 export interface MatchmakingQuestionnaireProps {
   userId?: string;
-  userName?: string | null; // ❗️ הוספה: שם המשתמש לפרסונליזציה
-  hasSavedProgress: boolean; // ❗️ הוספה: מידע האם יש התקדמות קיימת
+  userName?: string; // <-- הוסף שורה זו
   onComplete?: () => void;
   initialWorld?: WorldId;
 }
 
 export default function MatchmakingQuestionnaire({
   userId,
-  userName, // ❗️ הוספה
-  hasSavedProgress, // ❗️ הוספה
+  userName,
   onComplete,
   initialWorld,
 }: MatchmakingQuestionnaireProps) {
@@ -316,8 +314,7 @@ export default function MatchmakingQuestionnaire({
         return;
       }
 
-      // No need to set loading to true here, as the component starts with isLoading=true
-      // setIsLoading(true);
+      setIsLoading(true);
       try {
         const response = await fetch('/api/questionnaire');
         if (!response.ok) {
@@ -514,6 +511,7 @@ export default function MatchmakingQuestionnaire({
     setCurrentStep(OnboardingStep.MAP);
   }, []);
 
+  // --- שינוי מרכזי כאן ---
   function renderCurrentWorld() {
     const worldProps: WorldComponentProps = {
       onAnswer: handleAnswer,
@@ -533,15 +531,14 @@ export default function MatchmakingQuestionnaire({
 
     return <WorldComponent {...worldProps} worldId={currentWorld} />;
   }
+  // --- סוף השינוי ---
 
   function renderCurrentStep() {
-    // ❗️ החלפת בלוק הטעינה הישן בחדש
-    // גרסה מתוקנת
     if (isLoading) {
       return (
-        <EnhancedLoading
-          userName={userName ?? undefined}
-          hasExistingProgress={hasSavedProgress}
+        <QuestionnaireLoader
+          userName={userName}
+          hasSavedProgress={answers.length > 0 || completedWorlds.length > 0}
         />
       );
     }
@@ -588,7 +585,8 @@ export default function MatchmakingQuestionnaire({
             language={language}
             isLoggedIn={!!userId}
           >
-            {renderCurrentWorld()}
+            {' '}
+            {renderCurrentWorld()}{' '}
           </QuestionnaireLayout>
         );
       case OnboardingStep.COMPLETED:

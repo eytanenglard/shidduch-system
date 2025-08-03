@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSession } from 'next-auth/react';
+import { useIsMobile } from '../hooks/useMediaQuery'; // <<< שינוי: ייבוא הוק לבדיקת מובייל
 
 // --- Props Interface ---
 interface QuestionnaireLandingPageProps {
@@ -116,10 +117,16 @@ export default function QuestionnaireLandingPage({
   isLoading = false,
 }: QuestionnaireLandingPageProps) {
   const { status, data: session } = useSession();
+  const isMobile = useIsMobile(); // <<< שינוי: שימוש בהוק
 
   // --- Main Render ---
   return (
-    <div className="relative min-h-screen overflow-hidden text-right dir-rtl bg-slate-50">
+    <div
+      className={cn(
+        'relative min-h-screen overflow-hidden text-right dir-rtl bg-slate-50',
+        isMobile && 'pb-28' // <<< שינוי: הוספת ריווח תחתון במובייל למנוע חפיפה עם הכפתור הסטיקי
+      )}
+    >
       {/* --- Section 1: Hero - The Invitation to the Journey --- */}
       <section className="relative py-20 px-4 sm:py-24 text-center overflow-hidden">
         {/* Decorative background elements */}
@@ -291,6 +298,35 @@ export default function QuestionnaireLandingPage({
         </div>
       </section>
 
+      {/* <<< שינוי: הוספת כפתור סטיקי למובייל >>> */}
+      {isMobile && (
+        <div className="fixed bottom-0 left-0 right-0 p-3 bg-white/90 backdrop-blur-sm border-t border-slate-200/80 shadow-top z-50">
+          <Button
+            size="lg"
+            className="w-full text-base font-semibold py-3 bg-gradient-to-r from-sky-500 to-rose-500 text-white rounded-lg shadow-md hover:shadow-lg transition-shadow group relative overflow-hidden"
+            onClick={onStartQuestionnaire}
+            disabled={isLoading}
+          >
+            <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
+            <div className="relative z-10 flex items-center justify-center">
+              {isLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : hasSavedProgress ? (
+                <>
+                  <CheckCircle className="h-5 w-5 ms-2" />
+                  <span>המשך/י מהיכן שעצרת</span>
+                </>
+              ) : (
+                <>
+                  <Heart className="h-5 w-5 ms-2 fill-white" />
+                  <span>בוא/י נתחיל את המסע</span>
+                </>
+              )}
+            </div>
+          </Button>
+        </div>
+      )}
+
       <footer className="text-center py-6 text-slate-500 text-sm bg-slate-50">
         © {new Date().getFullYear()} NeshamaTech. כל הזכויות שמורות.
       </footer>
@@ -315,6 +351,10 @@ export default function QuestionnaireLandingPage({
         }
         .animate-shimmer {
           animation: shimmer 2s infinite;
+        }
+        .shadow-top {
+          box-shadow: 0 -4px 6px -1px rgb(0 0 0 / 0.1),
+            0 -2px 4px -2px rgb(0 0 0 / 0.1);
         }
       `}</style>
     </div>
