@@ -9,7 +9,6 @@ import React, {
   useRef,
 } from 'react';
 import { useRouter } from 'next/navigation';
-import QuestionnaireLoader from './common/QuestionnaireLoader';
 import QuestionnaireLayout from './layout/QuestionnaireLayout';
 import Welcome from './onboarding/Welcome';
 import TrackSelection from './onboarding/TrackSelection';
@@ -67,14 +66,12 @@ const WORLD_ORDER: WorldId[] = [
 
 export interface MatchmakingQuestionnaireProps {
   userId?: string;
-  userName?: string; // <-- הוסף שורה זו
   onComplete?: () => void;
   initialWorld?: WorldId;
 }
 
 export default function MatchmakingQuestionnaire({
   userId,
-  userName,
   onComplete,
   initialWorld,
 }: MatchmakingQuestionnaireProps) {
@@ -534,12 +531,12 @@ export default function MatchmakingQuestionnaire({
   // --- סוף השינוי ---
 
   function renderCurrentStep() {
+    // Loading state
     if (isLoading) {
       return (
-        <QuestionnaireLoader
-          userName={userName}
-          hasSavedProgress={answers.length > 0 || completedWorlds.length > 0}
-        />
+        <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50">
+          <Loader2 className="h-10 w-10 animate-spin text-blue-500" />
+        </div>
       );
     }
 

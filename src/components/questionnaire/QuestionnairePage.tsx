@@ -1,23 +1,23 @@
 // src/components/questionnaire/QuestionnairePage.tsx
-"use client";
+'use client';
 
-import { useSession } from "next-auth/react";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useSearchParams } from "next/navigation";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, AlertCircle, Loader2 } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import QuestionnaireLandingPage from "./pages/QuestionnaireLandingPage";
-import MatchmakingQuestionnaire from "./MatchmakingQuestionnaire";
-import type { WorldId } from "./types/types";
+import { useSession } from 'next-auth/react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft, AlertCircle, Loader2 } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import QuestionnaireLandingPage from './pages/QuestionnaireLandingPage';
+import MatchmakingQuestionnaire from './MatchmakingQuestionnaire';
+import type { WorldId } from './types/types';
 
 // Enum to track questionnaire flow stages
 enum QuestionnaireStage {
-  LANDING = "LANDING",
-  QUESTIONNAIRE = "QUESTIONNAIRE",
-  COMPLETE = "COMPLETE",
+  LANDING = 'LANDING',
+  QUESTIONNAIRE = 'QUESTIONNAIRE',
+  COMPLETE = 'COMPLETE',
 }
 
 export default function QuestionnairePage() {
@@ -39,14 +39,14 @@ export default function QuestionnairePage() {
   // Check for existing progress when component mounts
   useEffect(() => {
     const checkExistingProgress = async () => {
-      if (status === "loading") return;
+      if (status === 'loading') return;
 
       setIsLoading(true);
 
       try {
         // If user is logged in, check for saved progress
         if (session?.user?.id) {
-          const response = await fetch("/api/questionnaire");
+          const response = await fetch('/api/questionnaire');
           const data = await response.json();
 
           if (data.success && data.data) {
@@ -54,7 +54,7 @@ export default function QuestionnairePage() {
           }
         }
       } catch (err) {
-        console.error("Error checking questionnaire progress:", err);
+        console.error('Error checking questionnaire progress:', err);
       } finally {
         setIsLoading(false);
       }
@@ -65,12 +65,12 @@ export default function QuestionnairePage() {
 
   // Check for world parameter in URL
   useEffect(() => {
-    if (status === "loading") return;
+    if (status === 'loading') return;
 
-    const worldParam = searchParams?.get("world");
+    const worldParam = searchParams?.get('world');
     if (
       worldParam &&
-      ["PERSONALITY", "VALUES", "RELATIONSHIP", "PARTNER", "RELIGION"].includes(
+      ['PERSONALITY', 'VALUES', 'RELATIONSHIP', 'PARTNER', 'RELIGION'].includes(
         worldParam as string
       )
     ) {
@@ -96,23 +96,20 @@ export default function QuestionnairePage() {
   // Handler when questionnaire is completed
   const handleQuestionnaireComplete = async () => {
     try {
-      await router.push("/questionnaire/complete");
+      await router.push('/questionnaire/complete');
       setCurrentStage(QuestionnaireStage.COMPLETE);
     } catch (err) {
-      console.error("Error completing questionnaire:", err);
-      setError("אירעה שגיאה בסיום השאלון. אנא נסה שוב.");
+      console.error('Error completing questionnaire:', err);
+      setError('אירעה שגיאה בסיום השאלון. אנא נסה שוב.');
     }
   };
 
   // Loading state
+  // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="w-full max-w-md p-8 text-center">
-          <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-blue-600" />
-          <p className="text-lg font-medium">טוען...</p>
-          <p className="text-sm text-gray-500 mt-2">מאחזר את נתוני השאלון</p>
-        </Card>
+      <div className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-50">
+        <Loader2 className="h-10 w-10 animate-spin text-blue-500" />
       </div>
     );
   }
