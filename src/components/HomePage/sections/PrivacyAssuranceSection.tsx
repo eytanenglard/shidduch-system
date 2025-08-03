@@ -1,3 +1,5 @@
+// src/components/HomePage/sections/PrivacyAssuranceSection.tsx
+
 import React, { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import Link from 'next/link';
@@ -76,39 +78,40 @@ const PrivacyAssuranceSection: React.FC = () => {
     },
   };
 
+  // UPDATED Privacy Features
   const privacyFeatures = [
-    'פרופילים גלויים רק לשדכנים מורשים, מבטיחים דיסקרטיות מלאה',
-    'הצפנת מידע מקצה לקצה להגנה על כל הנתונים האישיים',
-    'בדיקות אבטחה קבועות וביקורות חיצוניות לוודא עמידה בסטנדרטים המחמירים ביותר',
-    'מדיניות אפס-שיתוף - המידע שלך לעולם לא נמכר או משותף עם צדדים שלישיים',
-    'יכולת שליטה מלאה בנתונים שלך בכל עת',
+    'הפרופיל שלכם גלוי אך ורק לצוות השדכנים האישי שלכם, מה שמבטיח דיסקרטיות מלאה.',
+    'כל שיחה וכל פרט שאתם חולקים איתנו נשמרים בינינו, באמצעות טכנולוגיות אבטחה מתקדמות.',
+    'המידע שלכם הוא קודש. הוא לעולם לא יימכר או ישותף עם אף גורם מחוץ למערכת. זו הבטחה.',
+    'אתם בשליטה מלאה. שום פרט לא ייחשף בפני הצעה פוטנציאלית ללא אישורכם המפורש.',
   ];
 
   return (
     <motion.section
       ref={ref}
-      className="py-16 md:py-20 px-4 bg-gradient-to-br from-cyan-600 to-cyan-700 text-white relative overflow-hidden"
+      className="py-16 md:py-20 px-4 bg-gradient-to-br from-gray-800 to-gray-900 text-white relative overflow-hidden"
       variants={containerVariants}
       initial="hidden"
       animate={isInView ? 'visible' : 'hidden'}
     >
       <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgdmlld0JveD0iMCAwIDIwIDIwIj48Y2lyY2xlIGN4PSIxMCIgY3k9IjEwIiByPSIxIiBmaWxsPSIjZmZmZmZmIi8+PC9zdmc+')]"></div>
 
-      <div className="absolute top-0 left-0 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 right-0 w-60 h-60 bg-white/10 rounded-full blur-3xl"></div>
+      <div className="absolute top-0 left-0 w-40 h-40 bg-cyan-500/10 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 right-0 w-60 h-60 bg-cyan-500/10 rounded-full blur-3xl"></div>
 
       <div className="max-w-5xl mx-auto relative">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           {/* Left Content */}
           <motion.div variants={fadeInLeft}>
             <div className="mb-8 text-center md:text-right">
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
-                הפרטיות שלך חשובה לנו
+                המרחב הבטוח שלכם
               </h2>
-              <div className="w-24 h-1 bg-white/30 rounded-full mb-6 mx-auto md:mr-0"></div>
-              <p className="text-lg text-white/90 mb-6 mx-auto md:mx-0 max-w-md">
-                בעולם השידוכים, הדיסקרטיות והפרטיות הן קריטיות. ב-NeshamaTech
-                פיתחנו מערכת שמתעדפת את האבטחה והפרטיות שלך בכל שלב.
+              <div className="w-24 h-1 bg-cyan-500/50 rounded-full mb-6 mx-auto md:mr-0"></div>
+              <p className="text-lg text-white/80 mb-6 mx-auto md:mx-0 max-w-md">
+                בעולם השידוכים, אמון ודיסקרטיות הם הבסיס להכל. בנינו את המערכת
+                שלנו סביב העיקרון הזה, כדי שתוכלו להרגיש בטוחים ונינוחים לאורך
+                כל הדרך.
               </p>
             </div>
 
@@ -121,8 +124,8 @@ const PrivacyAssuranceSection: React.FC = () => {
                   whileHover={{ x: 4 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <div className="bg-white/20 rounded-full p-2 mr-3 mt-1 flex-shrink-0">
-                    <CheckCircle className="w-4 h-4 text-white" />
+                  <div className="bg-cyan-500/20 rounded-full p-2 mr-3 mt-1 flex-shrink-0">
+                    <CheckCircle className="w-4 h-4 text-cyan-400" />
                   </div>
                   <p className="text-white/90">{feature}</p>
                 </motion.div>
@@ -133,36 +136,33 @@ const PrivacyAssuranceSection: React.FC = () => {
           {/* Right Card */}
           <motion.div className="flex justify-center" variants={fadeInRight}>
             <div className="relative max-w-sm w-full">
-              {/* Background decoration */}
               <div className="absolute inset-0 bg-white/10 rounded-2xl blur-lg transform rotate-6"></div>
 
-              {/* Main card */}
               <motion.div
-                className="relative bg-white/20 backdrop-blur-sm p-8 rounded-2xl border border-white/30"
+                className="relative bg-white/10 backdrop-blur-sm p-8 rounded-2xl border border-white/20"
                 variants={cardVariants}
                 whileHover={{
                   scale: 1.02,
                   transition: { duration: 0.2 },
                 }}
               >
-                {/* Lock icon */}
                 <motion.div
-                  className="w-16 h-16 mx-auto mb-6 bg-white/30 rounded-full flex items-center justify-center"
+                  className="w-16 h-16 mx-auto mb-6 bg-cyan-500/30 rounded-full flex items-center justify-center border border-cyan-400/50"
                   whileHover={{
                     rotate: [0, -10, 10, 0],
                     transition: { duration: 0.6 },
                   }}
                 >
-                  <Lock className="w-8 h-8 text-white" />
+                  <Lock className="w-8 h-8 text-cyan-300" />
                 </motion.div>
 
-                <h3 className="text-xl font-bold mb-4 text-center">
-                  הבטחת הפרטיות שלנו
+                <h3 className="text-xl font-bold mb-4 text-center text-white">
+                  ההבטחה שלנו לפרטיות
                 </h3>
 
-                <p className="text-white/90 text-center mb-6">
-                  אנו מתחייבים לשמור על הפרטיות והכבוד של כל משתמש במערכת שלנו,
-                  תוך יצירת סביבה בטוחה ומכבדת למציאת הזיווג המושלם
+                <p className="text-white/80 text-center mb-6">
+                  אנו מתחייבים לשמור על כבודכם ועל המידע האישי שלכם, וליצור
+                  סביבה בטוחה ומכבדת למציאת הזיווג הנכון.
                 </p>
 
                 <div className="text-center">
@@ -173,7 +173,7 @@ const PrivacyAssuranceSection: React.FC = () => {
                     >
                       <Button
                         variant="outline"
-                        className="border-2 border-white/50 bg-white text-cyan-600 hover:bg-white/90 transition-all duration-300 rounded-xl"
+                        className="border-2 border-cyan-400/50 bg-cyan-500/20 text-white hover:bg-cyan-500/30 transition-all duration-300 rounded-xl"
                       >
                         קראו את מדיניות הפרטיות
                       </Button>

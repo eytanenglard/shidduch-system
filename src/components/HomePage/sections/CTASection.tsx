@@ -1,3 +1,5 @@
+// src/components/HomePage/sections/CTASection.tsx
+
 import React, { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import Link from 'next/link';
@@ -134,25 +136,25 @@ const CTASection: React.FC = () => {
             <Sparkles className="w-8 h-8" />
           </motion.div>
 
-          {/* Title */}
+          {/* Title - UPDATED */}
           <motion.h2
             className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4"
             variants={textVariants}
           >
-            מוכנים להתחיל את
+            אולי הגיע הזמן לנסות
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-cyan-700">
               {' '}
-              המסע שלכם?{' '}
+              דרך חדשה?{' '}
             </span>
           </motion.h2>
 
-          {/* Description */}
+          {/* Description - UPDATED */}
           <motion.p
             className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto"
             variants={textVariants}
           >
-            הצטרפו היום למערכת NeshamaTech המובילה והתקדמו צעד אחד קדימה במציאת
-            הזיווג המושלם עבורכם
+            אם אתם מחפשים גישה מתחשבת, אישית ומכבדת למציאת זוגיות, נשמח להיות
+            שותפים למסע שלכם.
           </motion.p>
 
           {/* Buttons */}
@@ -168,11 +170,10 @@ const CTASection: React.FC = () => {
                 >
                   <Button
                     size="lg"
-                    className="bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl group relative overflow-hidden"
+                    className="bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl group"
                   >
-                    <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
                     <span className="relative z-10 flex items-center">
-                      להרשמה מיידית
+                      הצעד הראשון שלי
                       <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                     </span>
                   </Button>
@@ -191,7 +192,7 @@ const CTASection: React.FC = () => {
                     size="lg"
                     className="border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-300 transition-all duration-300 rounded-xl"
                   >
-                    למידע נוסף
+                    עוד על הגישה שלנו
                   </Button>
                 </motion.div>
               </Link>
@@ -199,20 +200,6 @@ const CTASection: React.FC = () => {
           </motion.div>
         </motion.div>
       </div>
-
-      <style jsx>{`
-        @keyframes shimmer {
-          0% {
-            transform: translateX(-100%);
-          }
-          100% {
-            transform: translateX(100%);
-          }
-        }
-        .animate-shimmer {
-          animation: shimmer 1.5s ease-in-out;
-        }
-      `}</style>
     </motion.section>
   );
 };

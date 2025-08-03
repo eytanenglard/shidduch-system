@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage
-# Generated on: 2025-07-31 18:13:38
+# Generated on: 2025-08-03 17:25:03
 ################################################################################
 
 ================================================================================
@@ -20,7 +20,7 @@ import { useSession } from 'next-auth/react';
 import HeroSection from './sections/HeroSection';
 import ValuePropositionSection from './sections/ValuePropositionSection';
 import FeaturesSection from './sections/FeaturesSection';
-import AlgorithmSection from './sections/AlgorithmSection';
+import AlgorithmSection from './sections/OurMethodSection';
 import HowItWorksSection from './sections/HowItWorksSection';
 import MatchmakerTeamSection from './sections/MatchmakerTeamSection';
 import SuccessStoriesSection from './sections/SuccessStoriesSection';
@@ -36,9 +36,9 @@ import StickyNav, { NavLink } from './components/StickyNav';
 // 2. Define the navigation links in a new, prioritized order.
 //    The 'id' must match the 'id' attribute of the corresponding section.
 const navLinks: NavLink[] = [
-  { id: 'how-it-works', label: 'איך זה עובד' },
-  { id: 'suggestion-demo', label: 'הצעה לדוגמה' },
-  { id: 'our-algorithm', label: 'השיטה החכמה' },
+  { id: 'how-it-works', label: 'המסע שלכם' }, // שינוי התווית למשהו יותר אישי
+  { id: 'suggestion-demo', label: 'כך נראית הצעה' }, // שינוי התווית לתיאור מדויק
+  { id: 'our-method', label: 'הגישה שלנו' }, // שינוי מ"אלגוריתם" ל"גישה"
   { id: 'our-team', label: 'הצוות שלנו' },
   { id: 'faq', label: 'שאלות נפוצות' },
 ];
@@ -164,6 +164,8 @@ export default ComparisonItem;
 File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\components\DemoProfileCard.tsx
 --------------------------------------------------------------------------------
 Content:
+// src/components/HomePage/components/DemoProfileCard.tsx
+
 'use client';
 
 import React, { useState } from 'react';
@@ -187,7 +189,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
-// --- Demo Data (תוכן עשיר יותר שמספר סיפור) ---
+// --- Demo Data (UPDATED with a more human touch) ---
 const DEMO_PROFILE = {
   firstName: 'נועה',
   age: 29,
@@ -195,16 +197,35 @@ const DEMO_PROFILE = {
   occupation: 'מעצבת UX/UI',
   religiousLevel: 'דתיה ליברלית',
   about:
-    'אופטימית וחובבת שיחות עומק על כוס קפה. מוצאת יופי בדברים הקטנים של החיים, בין אם זה טיול בטבע או פלייליסט טוב. מחפשת שותף לדרך, לבנות יחד בית שמלא בצחוק, כבוד הדדי וצמיחה משותפת.',
+    'אופטימית וחובבת שיחות עומק על כוס קפה. מוצאת יופי בדברים הקטנים של החיים, בין אם זה טיול בטבע או פלייליסט טוב. אחרי כמה ניסיונות שלא צלחו, אני יודעת היום טוב יותר מה נכון לי, ומחפשת שותף לדרך, לבנות יחד בית שמלא בצחוק, כבוד הדדי וצמיחה משותפת.',
 };
 
 const DEMO_IMAGES = [
-  { id: '1', url: 'https://images.pexels.com/photos/3771836/pexels-photo-3771836.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1', isMain: true },
-  { id: '2', url: 'https://images.pexels.com/photos/3775164/pexels-photo-3775164.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' },
-  { id: '3', url: 'https://images.pexels.com/photos/3771045/pexels-photo-3771045.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' },
-  { id: '4', url: 'https://images.pexels.com/photos/1758531/pexels-photo-1758531.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' },
-  { id: '5', url: 'https://images.pexels.com/photos/4009409/pexels-photo-4009409.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' },
-  { id: '6', url: 'https://images.pexels.com/photos/718978/pexels-photo-718978.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' },
+  {
+    id: '1',
+    url: 'https://images.pexels.com/photos/3771836/pexels-photo-3771836.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+    isMain: true,
+  },
+  {
+    id: '2',
+    url: 'https://images.pexels.com/photos/3775164/pexels-photo-3775164.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+  },
+  {
+    id: '3',
+    url: 'https://images.pexels.com/photos/3771045/pexels-photo-3771045.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+  },
+  {
+    id: '4',
+    url: 'https://images.pexels.com/photos/1758531/pexels-photo-1758531.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+  },
+  {
+    id: '5',
+    url: 'https://images.pexels.com/photos/4009409/pexels-photo-4009409.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+  },
+  {
+    id: '6',
+    url: 'https://images.pexels.com/photos/718978/pexels-photo-718978.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+  },
 ];
 
 const DEMO_QA = [
@@ -227,7 +248,9 @@ const TABS = [
 ];
 
 // --- Sub-components (מפרק את הקוד ליחידות קטנות וברורות) ---
-const TabContentWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+const TabContentWrapper: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => (
   <motion.div
     initial={{ opacity: 0, y: 10 }}
     animate={{ opacity: 1, y: 0 }}
@@ -321,7 +344,12 @@ export const DemoProfileCard = () => {
                 )}
                 onClick={() => setMainImageIndex(index)}
               >
-                <Image src={image.url} alt={`תמונה קטנה ${index + 1}`} fill className="object-cover" />
+                <Image
+                  src={image.url}
+                  alt={`תמונה קטנה ${index + 1}`}
+                  fill
+                  className="object-cover"
+                />
               </button>
             ))}
           </div>
@@ -400,18 +428,26 @@ export const DemoProfileCard = () => {
               )}
               {activeTab === 'vision' && (
                 <TabContentWrapper key="vision">
-                   <QandAItem q="איך אני רואה את בן/בת הזוג שלי?" a="אדם עם לב פתוח, חוש הומור, ורצון אמיתי לצמוח יחד. מישהו שהוא גם החבר הכי טוב וגם השותף למסע." />
-                   <QandAItem q="מה החזון שלי למשפחה?" a="בית חם ותוסס, פתוח לאורחים, שבו ילדים גדלים עם ערכים של נתינה, אהבת תורה וארץ ישראל." />
+                  <QandAItem
+                    q="איך אני רואה את בן/בת הזוג שלי?"
+                    a="אדם עם לב פתוח, חוש הומור, ורצון אמיתי לצמוח יחד. מישהו שהוא גם החבר הכי טוב וגם השותף למסע."
+                  />
+                  <QandAItem
+                    q="מה החזון שלי למשפחה?"
+                    a="בית חם ותוסס, פתוח לאורחים, שבו ילדים גדלים עם ערכים של נתינה, אהבת תורה וארץ ישראל."
+                  />
                 </TabContentWrapper>
               )}
             </AnimatePresence>
           </div>
-          
+
           {/* CTA */}
           <div className="mt-auto pt-4 text-center">
             <Link href="/auth/register">
-              <Button size="lg" className="w-full bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden">
-                <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
+              <Button
+                size="lg"
+                className="w-full bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group"
+              >
                 <span className="relative z-10 flex items-center justify-center">
                   רוצים לקבל הצעות כאלה?
                   <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
@@ -764,7 +800,7 @@ import React from "react";
 export interface StepProps {
   number: string;
   title: string;
-  description: string;
+  description: React.ReactNode; // שונה מ-string ל-React.ReactNode
   isLast?: boolean;
   color: "cyan" | "green" | "orange" | "pink";
 }
@@ -1065,7 +1101,6 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
               <div className="hidden md:flex items-center gap-2">
                 <Link href="/auth/register">
                   <Button className="group relative overflow-hidden bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 px-5 py-2.5">
-                    <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
                     <span className="relative z-10 flex items-center">
                       <UserPlus className="ml-1.5 h-4 w-4" />
                       הרשמה
@@ -2170,525 +2205,11 @@ Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomeP
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\AlgorithmSection.tsx
---------------------------------------------------------------------------------
-Content:
-// src/components/HomePage/sections/AlgorithmSection.tsx
-
-'use client';
-
-import React, { useState, useEffect, useRef } from "react";
-import { motion, useInView, useMotionValue, useTransform, animate } from "framer-motion";
-import { 
-  Brain, 
-  Heart, 
-  Shield, 
-  Users, 
-  Zap, 
-  Target, 
-  TrendingUp,
-  Lock,
-  Sparkles,
-  CheckCircle,
-  ArrowRight,
-  Cpu,
-  UserCheck,
-  Eye,
-  Clock,
-  BarChart3
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-
-// =================== עמודות המידע הראשיות (מעודכן) ===================
-const ALGORITHM_FEATURES = [
-  {
-    icon: Brain,
-    title: "AI חכם + שדכן מנוסה",
-    subtitle: "השילוב המנצח",
-    description: "האלגוריתם שלנו מנתח 50+ פרמטרים מהפרופיל והשאלון המעמיק, והשדכן מוסיף את הניסיון האנושי. השילוב הזה יוצר התאמות איכותיות עם נימוק ברור.",
-    color: "from-cyan-500 to-blue-600",
-    stats: { number: 85, suffix: "%", label: "שביעות רצון מהצעות מנומקות" },
-    details: [
-      "ניתוח עמוק של אישיות וערכים",
-      "הבנת 'מה שבין השורות'",
-      "התאמה תרבותית והשקפתית",
-      "בדיקת תאימות רגשית"
-    ]
-  },
-  {
-    icon: TrendingUp,
-    title: "מערכת לומדת",
-    subtitle: "משתפרת עם כל אינטראקציה",
-    description: "המערכת לומדת מכל משוב שלכם ושל השדכנים. כל אישור או דחייה של הצעה עוזרים למערכת לדייק את ההצעות הבאות ולהבין אתכם טוב יותר.",
-    color: "from-pink-500 to-purple-600", 
-    stats: { number: 25, suffix: "%", label: "שיפור בדיוק לאחר משוב" },
-    details: [
-      "למידה מהחלטות על הצעות",
-      "התאמת העדפות אוטומטית",
-      "שיפור אלגוריתם מתמיד",
-      "זיהוי דפוסים וטרנדים"
-    ]
-  },
-  {
-    icon: Shield,
-    title: "פרטיות מוחלטת",
-    subtitle: "המידע שלכם מוגן ודיסקרטי",
-    description: "הפרופיל שלכם גלוי רק לשדכנים המורשים במערכת. אנו משתמשים בהצפנה מתקדמת והמידע לעולם לא נמכר או משותף. הפרטיות שלכם היא ערך עליון.",
-    color: "from-green-500 to-teal-600",
-    stats: { number: 100, suffix: "%", label: "הצפנה ודיסקרטיות" },
-    details: [
-      "הצפנה מקצה לקצה",
-      "פרופילים לא ציבוריים",
-      "בקרה מלאה על הפרטיות",
-      "מחיקת נתונים מאובטחת"
-    ]
-  }
-];
-
-// =================== סטטיסטיקות ליווי (מעודכן ותואם למציאות) ===================
-const LIVE_STATS = [
-  { icon: BarChart3, text: "50+", label: "פרמטרי התאמה", color: "text-cyan-600" },
-  { icon: UserCheck, text: "100%", label: "בדיקה של שדכן", color: "text-pink-600" },
-  { icon: TrendingUp, text: "פי 7", label: "יותר דיוק מאפליקציות", color: "text-green-600" },
-  { icon: Shield, text: "100%", label: "פרטיות מובטחת", color: "text-purple-600" }
-];
-
-// =================== קומפוננטת ספירה אנימטית (עם תמיכה בטקסט) ===================
-const AnimatedCounter: React.FC<{
-  target?: number;
-  text?: string;
-  suffix?: string;
-  duration?: number;
-  inView: boolean;
-}> = ({ target, text, suffix = "", duration = 2, inView }) => {
-  const count = useMotionValue(0);
-  const rounded = useTransform(count, (latest) => Math.round(latest));
-  const [displayValue, setDisplayValue] = useState(target ? 0 : '');
-
-  useEffect(() => {
-    if (inView) {
-      if (target !== undefined) {
-        const animation = animate(count, target, { duration });
-        const unsubscribe = rounded.onChange((val) => setDisplayValue(String(val)));
-        return () => {
-          animation.stop();
-          unsubscribe();
-        };
-      } else if (text) {
-        // אם זה טקסט, פשוט נציג אותו
-        setDisplayValue(text);
-      }
-    }
-  }, [count, rounded, target, text, duration, inView]);
-
-  return (
-    <span className="font-bold text-2xl">
-      {displayValue}
-      {target !== undefined ? suffix : ''}
-    </span>
-  );
-};
-
-// =================== כרטיס פיצ'ר עם אנימציה ===================
-const FeatureCard: React.FC<{
-  feature: typeof ALGORITHM_FEATURES[0];
-  index: number;
-  isActive: boolean;
-  onHover: (index: number | null) => void;
-}> = ({ feature, index, isActive, onHover }) => {
-  const cardRef = useRef(null);
-  const isInView = useInView(cardRef, { once: true, amount: 0.1 });
-  
-  return (
-    <motion.div
-      ref={cardRef}
-      initial={{ opacity: 0, y: 30 }}
-      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-      transition={{ duration: 0.5, delay: index * 0.15 }}
-      className={`relative p-6 md:p-8 rounded-3xl border transition-all duration-500 group ${isActive ? 'bg-white shadow-2xl border-transparent md:scale-105' : 'bg-white/90 backdrop-blur-sm border-white/60 shadow-lg hover:shadow-xl'}`}
-      onMouseEnter={() => window.innerWidth >= 768 && onHover(index)}
-      onMouseLeave={() => window.innerWidth >= 768 && onHover(null)}
-      onTouchStart={() => window.innerWidth < 768 && onHover(index)}
-    >
-      <div className={`absolute -inset-0.5 bg-gradient-to-r ${feature.color} rounded-3xl opacity-0 group-hover:opacity-20 transition-opacity duration-500`} />
-      
-      <div className="relative z-10">
-        <motion.div 
-          className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${feature.color} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}
-          whileHover={{ rotate: 5 }}
-        >
-          <feature.icon className="w-8 h-8 text-white" />
-        </motion.div>
-
-        <h3 className="text-xl font-bold text-gray-800 mb-2">{feature.title}</h3>
-        <p className={`text-sm font-medium bg-gradient-to-r ${feature.color} bg-clip-text text-transparent mb-4`}>
-          {feature.subtitle}
-        </p>
-
-        <p className="text-gray-600 leading-relaxed mb-6">
-          {feature.description}
-        </p>
-
-        <div className="flex items-center justify-between mb-6 p-4 bg-gray-50 rounded-2xl">
-          <div>
-            <AnimatedCounter 
-              target={feature.stats.number} 
-              suffix={feature.stats.suffix}
-              inView={isInView && isActive}
-            />
-            <p className="text-sm text-gray-500 mt-1">{feature.stats.label}</p>
-          </div>
-          <BarChart3 className={`w-8 h-8 text-gray-400`} />
-        </div>
-
-        <div className="space-y-3">
-          {feature.details.map((detail, idx) => (
-            <motion.div 
-              key={idx}
-              initial={{ opacity: 0, x: -20 }}
-              animate={isActive ? { opacity: 1, x: 0 } : { opacity: 0.7, x: -10 }}
-              transition={{ delay: idx * 0.1 }}
-              className="flex items-center gap-3"
-            >
-              <CheckCircle className={`w-4 h-4 text-green-500 flex-shrink-0`} />
-              <span className="text-sm text-gray-600">{detail}</span>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-
-      {isActive && (
-        <motion.div
-          layoutId="activeIndicator"
-          className={`absolute -inset-0.5 md:-inset-1 bg-gradient-to-r ${feature.color} rounded-3xl opacity-10 md:opacity-20`}
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        />
-      )}
-    </motion.div>
-  );
-};
-
-// =================== סטטיסטיקה חיה (מעודכן) ===================
-const LiveStatsBar: React.FC = () => {
-  const statsRef = useRef(null);
-  const isInView = useInView(statsRef, { once: true, amount: 0.1 });
-
-  return (
-    <motion.div
-      ref={statsRef}
-      initial={{ opacity: 0, y: 20 }}
-      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-      transition={{ duration: 0.6 }}
-      className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 bg-white/90 backdrop-blur-md p-6 md:p-8 rounded-3xl shadow-xl border border-white/60"
-    >
-      {LIVE_STATS.map((stat, index) => (
-        <div key={index} className="text-center">
-          <stat.icon className={`w-6 h-6 md:w-8 md:h-8 ${stat.color} mx-auto mb-2 md:mb-3`} />
-          <div className={`text-xl md:text-2xl font-bold ${stat.color} mb-1`}>
-            {/* שינוי כאן כדי להשתמש בטקסט במקום מספר אנימטיבי */}
-             <span className="font-bold text-2xl">{stat.text}</span>
-          </div>
-          <p className="text-xs md:text-sm text-gray-600 leading-tight">{stat.label}</p>
-        </div>
-      ))}
-    </motion.div>
-  );
-};
-
-// =================== דמו קוד אינטראקטיבי (נשאר ללא שינוי) ===================
-const InteractiveCodeDemo: React.FC = () => {
-    const [currentStep, setCurrentStep] = useState(0);
-    const demoRef = useRef(null);
-    const isInView = useInView(demoRef, { once: true });
-  
-    const codeSteps = [
-      {
-        title: "שלב 1: איסוף נתונים עשירים",
-        code: `// קליטת פרופיל ושאלון מעמיק\nconst userProfile = {\n  userId: "u123",\n  values: ["משפחתיות", "צמיחה"],\n  personality: "מופנם, אנליטי",\n  expectations: "שותפות, כבוד הדדי"\n};`,
-        highlight: "text-cyan-400"
-      },
-      {
-        title: "שלב 2: ניתוח התאמה חכם (AI)",
-        code: `// הרצת אלגוריתם על מאגר הנתונים\nconst potentialMatches = AI.findMatches({\n  userProfile: userProfile,\n  database: allUsers,\n  matchThreshold: 0.85\n});`,
-        highlight: "text-pink-400"
-      },
-      {
-        title: "שלב 3: אישור ונימוק של שדכן",
-        code: `// בדיקה אנושית והוספת תובנה\nconst finalProposal = matchmaker.review({\n  aiSuggestions: potentialMatches,\n  humanInsight: "חיבור בערכי הנתינה",\n  sendToUser: true\n});`,
-        highlight: "text-green-400"
-      }
-    ];
-  
-    useEffect(() => {
-      if (!isInView) return;
-      
-      const interval = setInterval(() => {
-        setCurrentStep((prev) => (prev + 1) % codeSteps.length);
-      }, 3000);
-  
-      return () => clearInterval(interval);
-    }, [isInView, codeSteps.length]);
-  
-    return (
-      <div ref={demoRef} className="relative">
-        <div className="bg-gray-900 rounded-2xl overflow-hidden shadow-2xl border border-gray-700">
-          <div className="flex items-center justify-between bg-gray-800 px-6 py-4">
-            <div className="flex space-x-2">
-              <div className="w-3 h-3 rounded-full bg-red-500"></div>
-              <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-              <div className="w-3 h-3 rounded-full bg-green-500"></div>
-            </div>
-            <div className="text-gray-300 text-sm font-mono">match-process.js</div>
-          </div>
-  
-          <div className="p-6">
-            <div className="mb-4">
-              <h4 className="text-white font-semibold mb-2">{codeSteps[currentStep].title}</h4>
-              <div className="flex space-x-1 mb-4">
-                {codeSteps.map((_, index) => (
-                  <div
-                    key={index}
-                    className={`h-1 rounded-full transition-all duration-500 ${
-                      index === currentStep ? 'bg-cyan-400 w-8' : 'bg-gray-600 w-2'
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
-  
-            <motion.pre
-              key={currentStep}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5 }}
-              className="text-sm overflow-x-auto"
-            >
-              <code className="text-gray-300 leading-relaxed">
-                {codeSteps[currentStep].code}
-              </code>
-            </motion.pre>
-  
-            <div className="mt-6 flex items-center gap-3">
-              <Cpu className="w-5 h-5 text-cyan-400" />
-              <div className="flex-1 bg-gray-700 rounded-full h-2">
-                <motion.div
-                  className={`h-2 rounded-full ${codeSteps[currentStep].highlight.replace('text-', 'bg-')}`}
-                  initial={{ width: 0 }}
-                  animate={{ width: `${((currentStep + 1) / codeSteps.length) * 100}%` }}
-                  transition={{ duration: 0.5 }}
-                />
-              </div>
-              <span className="text-gray-400 text-sm">
-                {currentStep + 1}/{codeSteps.length}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-// =================== הקומפוננטה הראשית ===================
-const AlgorithmSection: React.FC = () => {
-  const [activeFeature, setActiveFeature] = useState<number | null>(0);
-  const [isMobile, setIsMobile] = useState(false);
-  const sectionRef = useRef(null);
-  const isInView = useInView(sectionRef, { once: true, amount: 0.1 });
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  useEffect(() => {
-    if (!isInView || isMobile) return;
-    const interval = setInterval(() => {
-      setActiveFeature(prev => (prev === null ? 0 : (prev + 1) % ALGORITHM_FEATURES.length));
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [isInView, isMobile]);
-
-  useEffect(() => {
-    if (isMobile && isInView) {
-      setActiveFeature(null);
-    }
-  }, [isMobile, isInView]);
-
-  return (
-<section 
-  ref={sectionRef}
-  id="our-algorithm"
-  className="py-20 md:py-28 px-4 bg-gradient-to-b from-gray-50 via-white to-cyan-50/30 relative overflow-hidden"
->
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-64 h-64 bg-gradient-to-br from-cyan-200/20 to-blue-300/20 rounded-full blur-3xl animate-pulse-slow" />
-        <div className="absolute bottom-20 right-10 w-80 h-80 bg-gradient-to-br from-pink-200/20 to-purple-300/20 rounded-full blur-3xl animate-float-slow" />
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-green-200/10 to-teal-300/10 rounded-full blur-3xl animate-spin-slow" />
-      </div>
-
-      <div className="max-w-7xl mx-auto relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-20"
-        >
-          <div className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg border border-white/60 mb-8">
-            <Sparkles className="w-6 h-6 text-cyan-500" />
-            <span className="text-cyan-700 font-semibold">טכנולוגיה + אנושיות</span>
-          </div>
-
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-800 mb-8 leading-tight">
-            איך אנחנו מוצאים לכם את
-            <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 via-pink-600 to-purple-600 animate-gradient">
-              ההתאמה המושלמת
-            </span>
-          </h2>
-
-          <p className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
-            אנו משלבים בינה מלאכותית מתקדמת עם האינטואיציה של שדכנים מומחים.
-            <br />
-            <span className="font-semibold text-cyan-700">
-              השיטה שלנו מובילה להצעות איכותיות ומדויקות יותר.
-            </span>
-          </p>
-        </motion.div>
-
-        <div className="mb-16 md:mb-20">
-          <LiveStatsBar />
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 mb-16 md:mb-20">
-          {ALGORITHM_FEATURES.map((feature, index) => (
-            <FeatureCard
-              key={index}
-              feature={feature}
-              index={index}
-              isActive={isMobile ? true : activeFeature === index}
-              onHover={isMobile ? () => {} : setActiveFeature}
-            />
-          ))}
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8, delay: 0.6 }}
-          className="mb-20"
-        >
-          <div className="text-center mb-12">
-            <h3 className="text-3xl font-bold text-gray-800 mb-4">
-              הצצה אל מאחורי הקלעים
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-purple-600">
-                {" "}שלנו{" "}
-              </span>
-            </h3>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              כך נראה התהליך המשלב טכנולוגיה וחוכמה אנושית מאחורי כל הצעה מוצלחת.
-            </p>
-          </div>
-
-          <div className="max-w-4xl mx-auto">
-            <InteractiveCodeDemo />
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={isInView ? { opacity: 1, scale: 1 } : {}}
-          transition={{ duration: 0.8, delay: 0.8 }}
-          className="text-center"
-        >
-          <div className="relative max-w-4xl mx-auto">
-            <div className="absolute -inset-6 bg-gradient-to-r from-cyan-500/20 via-pink-500/20 to-purple-500/20 rounded-3xl blur-2xl" />
-            
-            <div className="relative bg-white/90 backdrop-blur-xl rounded-3xl p-12 shadow-2xl border border-white/60">
-              <div className="mb-8">
-                <Eye className="w-16 h-16 mx-auto mb-6 text-cyan-600" />
-                <h3 className="text-3xl font-bold text-gray-800 mb-4">
-                  מוכנים לראות איך זה עובד
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-pink-600">
-                    {" "}עבורכם?{" "}
-                  </span>
-                </h3>
-                <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
-                  הצטרפו למערכת המתקדמת שלנו ותגלו איך טכנולוגיה וליווי אישי יוצרים יחד את ההתאמה המושלמת עבורכם.
-                </p>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-                <Link href="/auth/register">
-                  <Button
-                    size="lg"
-                    className="bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden px-10 py-6 text-lg font-bold"
-                  >
-                    <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
-                    <span className="relative z-10 flex items-center justify-center">
-                      בואו נתחיל!
-                      <ArrowRight className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                    </span>
-                  </Button>
-                </Link>
-
-                <Link href="/#how-it-works">
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-300 transition-all duration-300 rounded-full px-8 py-6"
-                  >
-                    למידע נוסף על התהליך
-                  </Button>
-                </Link>
-              </div>
-
-              <div className="mt-8 flex items-center justify-center gap-6 text-sm text-gray-500">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-500" />
-                  <span>הרשמה חינם</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-green-500" />
-                  <span>פרטיות מוחלטת</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Heart className="w-4 h-4 text-green-500" />
-                  <span>ליווי אישי</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      </div>
-
-      <style jsx>{`
-        @keyframes gradient { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
-        @keyframes pulse-slow { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.6; } }
-        @keyframes float-slow { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-20px); } }
-        @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .animate-gradient { background-size: 200% 200%; animation: gradient 4s ease-in-out infinite; }
-        .animate-pulse-slow { animation: pulse-slow 4s ease-in-out infinite; }
-        .animate-float-slow { animation: float-slow 6s ease-in-out infinite; }
-        .animate-spin-slow { animation: spin-slow 20s linear infinite; }
-        .animate-shimmer { animation: shimmer 1.5s ease-in-out; }
-        @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
-      `}</style>
-    </section>
-  );
-};
-
-export default AlgorithmSection;
---- End of Content for AlgorithmSection.tsx ---
-
---------------------------------------------------------------------------------
 File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\CTASection.tsx
 --------------------------------------------------------------------------------
 Content:
+// src/components/HomePage/sections/CTASection.tsx
+
 import React, { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import Link from 'next/link';
@@ -2825,25 +2346,25 @@ const CTASection: React.FC = () => {
             <Sparkles className="w-8 h-8" />
           </motion.div>
 
-          {/* Title */}
+          {/* Title - UPDATED */}
           <motion.h2
             className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4"
             variants={textVariants}
           >
-            מוכנים להתחיל את
+            אולי הגיע הזמן לנסות
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-cyan-700">
               {' '}
-              המסע שלכם?{' '}
+              דרך חדשה?{' '}
             </span>
           </motion.h2>
 
-          {/* Description */}
+          {/* Description - UPDATED */}
           <motion.p
             className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto"
             variants={textVariants}
           >
-            הצטרפו היום למערכת NeshamaTech המובילה והתקדמו צעד אחד קדימה במציאת
-            הזיווג המושלם עבורכם
+            אם אתם מחפשים גישה מתחשבת, אישית ומכבדת למציאת זוגיות, נשמח להיות
+            שותפים למסע שלכם.
           </motion.p>
 
           {/* Buttons */}
@@ -2859,11 +2380,10 @@ const CTASection: React.FC = () => {
                 >
                   <Button
                     size="lg"
-                    className="bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl group relative overflow-hidden"
+                    className="bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl group"
                   >
-                    <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
                     <span className="relative z-10 flex items-center">
-                      להרשמה מיידית
+                      הצעד הראשון שלי
                       <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                     </span>
                   </Button>
@@ -2882,7 +2402,7 @@ const CTASection: React.FC = () => {
                     size="lg"
                     className="border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-300 transition-all duration-300 rounded-xl"
                   >
-                    למידע נוסף
+                    עוד על הגישה שלנו
                   </Button>
                 </motion.div>
               </Link>
@@ -2890,20 +2410,6 @@ const CTASection: React.FC = () => {
           </motion.div>
         </motion.div>
       </div>
-
-      <style jsx>{`
-        @keyframes shimmer {
-          0% {
-            transform: translateX(-100%);
-          }
-          100% {
-            transform: translateX(100%);
-          }
-        }
-        .animate-shimmer {
-          animation: shimmer 1.5s ease-in-out;
-        }
-      `}</style>
     </motion.section>
   );
 };
@@ -2915,6 +2421,8 @@ export default CTASection;
 File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\FAQSection.tsx
 --------------------------------------------------------------------------------
 Content:
+// src/components/HomePage/sections/FAQSection.tsx
+
 import React, { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import FAQItem from '../components/FAQItem';
@@ -2988,31 +2496,32 @@ const FAQSection: React.FC = () => {
     },
   };
 
+  // UPDATED FAQ Data
   const faqData = [
     {
       question: 'מה המחיר של השירות?',
       answer:
-        'אנו מציעים מספר תוכניות: רישום בסיסי בחינם הכולל פרופיל ראשוני ו-3 הצעות התאמה. מנוי סטנדרטי ב-95₪ לשנה המעניק גישה להצעות התאמה מתמשכות, ומנוי פרימיום ב-270₪ לשנה הכולל התאמה ותמיכה מועדפת. בנוסף, ישנה עמלת הצלחה של 1,000₪ מכל צד (2,000₪ בסך הכל) במקרה של אירוסין.',
+        'אנו מציעים מספר מסלולים: רישום ראשוני למערכת הוא ללא עלות. מסלול מנוי שנתי, בעלות של 95₪, מאפשר קבלת הצעות באופן שוטף. בנוסף, אנו גובים דמי הצלחה סמליים של 1,000₪ מכל צד רק במקרה של אירוסין. אנו מאמינים במודל זה כי הוא הופך את ההצלחה שלכם להצלחה המשותפת שלנו, ומבטיח שאנו מחויבים למסע שלכם עד הסוף הטוב.',
     },
     {
-      question: 'האם השירות מתאים לכל הזרמים ביהדות?',
+      question: 'האם השירות מתאים לכל הזרמים?',
       answer:
-        'כן! המערכת שלנו מתוכננת להתאים לכל הקהילות היהודיות, עם אפשרויות להתאמה מדויקת לפי רמת הדתיות והמסורות הספציפיות. אנו משרתים כרגע את הקהילה הדתית-לאומית בישראל, יהדות אורתודוכסית מודרנית בחו״ל, וקהילות חרדיות, עם תוכניות להרחבה לקהילות יהודיות נוספות.',
+        'בהחלט. המערכת שלנו בנויה להתאים למגוון רחב של קהילות וזרמים בעולם היהודי, תוך מתן דגש על התאמה מדויקת לרמת הדתיות ולאורח החיים. כרגע, עיקר הפעילות שלנו מתמקדת בקהילה הדתית-לאומית בישראל וביהדות האורתודוקסית-מודרנית בחו"ל, ואנו פועלים להתרחב לקהילות נוספות.',
     },
     {
-      question: 'כיצד נשמרת הפרטיות שלי במערכת?',
+      question: 'כיצד נשמרת הפרטיות שלי?',
       answer:
-        'פרטיות המשתמשים היא בראש סדר העדיפויות שלנו. הפרופילים נראים רק לשדכנים מורשים ולא לשאר המשתמשים. אנו משתמשים בהצפנה מקצה לקצה וארכיטקטורת אפס-ידע להגנה על המידע האישי שלך. התמונות והפרטים האישיים שלך לעולם לא יהיו חשופים ללא הסכמתך המפורשת.',
+        'פרטיות היא ערך עליון עבורנו. הפרופיל שלכם נגיש אך ורק לצוות השדכנים המצומצם שמטפל בכם. פרטים ותמונות נחשפים לצד השני רק לאחר קבלת הסכמתכם המפורשת לכל הצעה והצעה. אנו משתמשים בטכנולוגיות אבטחה מתקדמות כדי להבטיח שהמידע שלכם תמיד יהיה מוגן ובטוח.',
     },
     {
-      question: 'כמה זמן בממוצע לוקח למצוא התאמה?',
+      question: 'כמה זמן לוקח למצוא התאמה?',
       answer:
-        'בעוד שהזמן משתנה בהתאם לגורמים רבים, המשתמשים שלנו מוצאים התאמות משמעותיות בזמן קצר משמעותית מהממוצע בשוק. בעוד הממוצע בשוק עומד על כ-2.5 שנים, מרבית המשתמשים שלנו מוצאים התאמות מוצלחות תוך 6-12 חודשים, הודות לשילוב הייחודי של טכנולוגיה וליווי אישי.',
+        'אי אפשר להבטיח זמנים במציאת זוגיות, שכן זהו תהליך אישי ועדין. מה שאנו כן יכולים להבטיח הוא תהליך יעיל וממוקד. המטרה שלנו היא לחסוך לכם זמן יקר ואנרגיה על ידי הצגת הצעות רלוונטיות ואיכותיות בלבד, כך שהמסע שלכם יהיה משמעותי יותר, ולא ארוך יותר מהנדרש.',
     },
     {
-      question: 'האם יש אירועים או מפגשים קהילתיים?',
+      question: 'האם אתם מארגנים גם אירועים?',
       answer:
-        'בהחלט! אנו מארגנים מגוון אירועים קהילתיים כולל מפגשים חברתיים, סדנאות, והרצאות. אירועים אלה מספקים הזדמנויות טבעיות להיכרות בסביבה נעימה ותומכת. לחברי המנוי שלנו ניתנת גישה מועדפת לאירועים אלה, עם מחירים הנעים בין 15₪-30₪ למפגשים חברתיים, 30₪-60₪ לסדנאות, ו-300₪-600₪ לסופי שבוע מיוחדים.',
+        'כן, אנו מאמינים גם בכוחה של הקהילה. אנו מארגנים מעת לעת מפגשים, סדנאות ואירועים חברתיים באווירה נעימה ותומכת. אירועים אלו מהווים הזדמנות נוספת להיכרויות טבעיות. חברי המנוי שלנו מקבלים גישה והנחות לאירועים אלו.',
     },
   ];
 
@@ -3039,7 +2548,7 @@ const FAQSection: React.FC = () => {
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-cyan-600 to-cyan-700 mx-auto rounded-full mb-6" />
           <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-8">
-            אלו התשובות לשאלות הנפוצות ביותר על שירות NeshamaTech שלנו{' '}
+            כמה דברים שחשוב לדעת על הגישה שלנו ב-NeshamaTech.
           </p>
         </motion.div>
 
@@ -3068,7 +2577,7 @@ const FAQSection: React.FC = () => {
           variants={contactBlockVariants}
         >
           <h3 className="text-xl font-semibold text-gray-800 mb-2">
-            לא מצאתם את התשובה?
+            יש לכם שאלה נוספת?
           </h3>
           <p className="text-gray-600 mb-6">
             אנחנו כאן כדי לעזור. צרו איתנו קשר ונשמח לענות על כל שאלה.
@@ -3096,6 +2605,8 @@ export default FAQSection;
 File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\FeaturesSection.tsx
 --------------------------------------------------------------------------------
 Content:
+// src/components/HomePage/sections/FeaturesSection.tsx
+
 import React, { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import FeatureCard from '../components/FeatureCard';
@@ -3147,28 +2658,31 @@ const FeaturesSection: React.FC = () => {
   const features = [
     {
       icon: <Shield className="w-8 h-8" />,
-      title: 'פרטיות מלאה',
-      description: 'שמירה קפדנית על פרטיות המשתמשים ואבטחת מידע מתקדמת',
+      title: 'פרטיות ודיסקרטיות',
+      description:
+        'המסע לזוגיות הוא אישי. אנו מתחייבים לסביבה בטוחה בה פרטיותך נשמרת בקפדנות בכל שלב.',
       color: 'cyan' as const,
     },
     {
-      icon: <Users className="w-8 h-8" />,
-      title: 'התאמה מדויקת',
+      icon: <Heart className="w-8 h-8" />,
+      title: 'התאמה עם עומק',
       description:
-        'מערכת חכמה המתאימה בין מועמדים על בסיס ערכים ושאיפות משותפות',
+        'אנו מאמינים שהתאמה אמיתית נבנית על ערכים ושאיפות. הגישה שלנו מחפשת את החיבור שמעבר לפרטים היבשים.',
+      color: 'pink' as const,
+    },
+    {
+      icon: <Users className="w-8 h-8" />,
+      title: 'ליווי אישי ואנושי',
+      description:
+        'אתם לא לבד במסע. צוות השדכנים שלנו כאן כדי להקשיב, לייעץ וללוות אתכם עם חום וניסיון.',
       color: 'green' as const,
     },
     {
-      icon: <Heart className="w-8 h-8" />,
-      title: 'ליווי אישי',
-      description: 'צוות שדכנים מקצועי ומנוסה לאורך כל התהליך',
-      color: 'orange' as const,
-    },
-    {
       icon: <MessageCircle className="w-8 h-8" />,
-      title: 'תקשורת בטוחה',
-      description: 'פלטפורמה מאובטחת ליצירת קשר ראשוני בין המועמדים',
-      color: 'pink' as const,
+      title: 'תקשורת מכבדת',
+      description:
+        'הקשר הראשוני נעשה תמיד דרך השדכן/ית, בסביבה מכבדת ובטוחה, כדי שתוכלו להתמקד בהיכרות עצמה.',
+      color: 'orange' as const,
     },
   ];
 
@@ -3184,26 +2698,26 @@ const FeaturesSection: React.FC = () => {
       <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:20px_20px]"></div>
 
       <div className="max-w-6xl mx-auto relative">
-        {/* Header */}
+        {/* Header - UPDATED */}
         <motion.div
           className="text-center mb-12 md:mb-16"
           variants={headerVariants}
         >
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4">
-            למה
+            העקרונות
             <span
-              className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-cyan-700 animate-gradient"
+              className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-teal-600 animate-gradient"
               style={{ backgroundSize: '200% 200%' }}
             >
               {' '}
-              לבחור{' '}
+              המנחים{' '}
             </span>
-            במערכת שלנו?
+            שלנו
           </h2>
-          <div className="w-24 h-1 bg-gradient-to-r from-cyan-600 to-cyan-700 mx-auto rounded-full" />
+          <div className="w-24 h-1 bg-gradient-to-r from-cyan-600 to-teal-600 mx-auto rounded-full" />
         </motion.div>
 
-        {/* Features Grid */}
+        {/* Features Grid - UPDATED */}
         <motion.div
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8"
           variants={containerVariants}
@@ -3227,6 +2741,21 @@ const FeaturesSection: React.FC = () => {
           ))}
         </motion.div>
       </div>
+      <style jsx>{`
+        @keyframes gradient {
+          0%,
+          100% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+        }
+        .animate-gradient {
+          background-size: 200% 200%;
+          animation: gradient 4s ease-in-out infinite;
+        }
+      `}</style>
     </motion.section>
   );
 };
@@ -3632,7 +3161,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
     transitionDelay: `${100 + index * 150}ms`,
   });
 
-  // ======================= שינוי 1: שימוש בלוגו החדש =======================
+  // ======================= שימוש בלוגו החדש =======================
   const logoUrl =
     'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png';
 
@@ -3659,13 +3188,13 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
           style={getStaggerDelay(0)}
         >
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-800 tracking-tight">
-            הדרך
+            חיבורים אמיתיים,
+            <br className="sm:hidden" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-pink-500 animate-gradient mx-3">
-              החכמה והאישית
+              בדרך שמתאימה לך
             </span>
-            למצוא אהבה
           </h1>
-          {/* ======================= שינוי 2: עדכון שם החברה בטקסט ======================= */}
+          {/* ======================= עדכון שם החברה בטקסט ======================= */}
           <p className="mt-6 max-w-xl mx-auto text-lg md:text-xl text-gray-600 leading-relaxed">
             NeshamaTech משלבת טכנולוגיית AI מתקדמת עם ליווי של שדכנים מומחים,
             כדי להציע לך התאמות מדויקות וליווי אישי בדרך לזוגיות שתמיד רצית.
@@ -3676,23 +3205,24 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                 size="lg"
                 className="w-full sm:w-auto text-base md:text-lg px-8 py-6 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden"
               >
-                <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
                 <span className="relative z-10">מתחילים עכשיו</span>
                 <ArrowLeft className="relative z-10 mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
+            {/* --- START: שדרוג כפתור השאלון --- */}
             <Link
               href="/questionnaire"
               id="onboarding-target-questionnaire-button"
             >
               <Button
-                variant="outline"
                 size="lg"
-                className="w-full sm:w-auto text-base md:text-lg px-8 py-6 border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-300 rounded-full transition-all duration-300"
+                className="w-full sm:w-auto text-base md:text-lg px-8 py-6 bg-cyan-600 text-white hover:bg-cyan-700 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group"
               >
-                לשאלון ההתאמה
+                <Lightbulb className="ml-2 h-5 w-5 transition-transform group-hover:scale-110" />
+                <span>לשאלון החכם</span>
               </Button>
             </Link>
+            {/* --- END: שדרוג כפתור השאלון --- */}
           </div>
         </div>
 
@@ -3748,8 +3278,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
             >
               <ChevronDown className="w-7 h-7 text-gray-400 my-2" />
             </div>
-            
-            {/* ======================= שינוי 3: החלפת לוגו ושם (מובייל) ======================= */}
+
+            {/* ======================= החלפת לוגו ושם (מובייל) ======================= */}
             <div
               className={`opacity-0 ${
                 isVisible ? 'animate-mobile-match-point' : ''
@@ -3831,7 +3361,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                 filter="url(#glow)"
               />
             </svg>
-            {/* ======================= שינוי 4: החלפת לוגו ושם (דסקטופ) ======================= */}
+            {/* ======================= החלפת לוגו ושם (דסקטופ) ======================= */}
             <div
               className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 ${
                 isVisible ? 'animate-match-point-appear' : ''
@@ -3854,7 +3384,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
           </div>
         </div>
 
-        {/* ======================= שינוי 5: שדרוג ה-Stats Bar ======================= */}
+        {/* ======================= שדרוג ה-Stats Bar ======================= */}
         <div
           className={`mt-12 md:mt-20 w-full max-w-5xl transition-all duration-700 ${
             isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
@@ -3864,38 +3394,38 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 bg-white/60 backdrop-blur-md py-4 px-6 rounded-2xl shadow-lg border border-white/50">
             <StatItem
               icon={<Shield className="h-5 w-5 text-cyan-600" />}
-              label="דיסקרטיות"
-              value="100%"
+              label="העיקרון הראשון שלנו"
+              value="דיסקרטיות מלאה"
               color="cyan"
             />
             <StatItem
               icon={<Heart className="h-5 w-5 text-pink-500" />}
-              label="מדדי תאימות"
-              value="+50"
+              label="מעבר לפרטים היבשים"
+              value="התאמה עמוקה"
               color="pink"
             />
             <StatItem
               icon={<User className="h-5 w-5 text-cyan-600" />}
-              label="ליווי אישי"
-              value="צמוד"
+              label="אתם לא לבד במסע"
+              value="ליווי אישי"
               color="cyan"
             />
             <StatItem
               icon={<Lightbulb className="h-5 w-5 text-pink-500" />}
-              label="שידוך מנומק"
-              value="AI + שדכן"
+              label="עם היגיון ורגש"
+              value="הצעה מנומקת"
               color="pink"
             />
             <StatItem
               icon={<Sparkles className="h-5 w-5 text-cyan-600" />}
-              label="חדשנות"
-              value="מסורת ו"
+              label="בגישה מכבדת"
+              value="חדשנות ומסורת"
               color="cyan"
             />
             <StatItem
               icon={<Users className="h-5 w-5 text-pink-500" />}
-              label="צוות שדכנים"
-              value="מקצועי"
+              label="שמכיר את העולם שלכם"
+              value="צוות מסור"
               color="pink"
             />
           </div>
@@ -4120,8 +3650,20 @@ const HowItWorksSection: React.FC = () => {
           <div className="relative max-w-5xl mx-auto space-y-12 p-8">
             <Step
               number="1"
-              title="ההרשמה: מסע אישי לגילוי עצמי"
-              description="זה יותר ממילוי פרטים. השאלון הייחודי שלנו הוא הזדמנות עבורכם להבין מה באמת חשוב לכם בזוגיות. זהו הבסיס שמאפשר לשדכן שלכם להכיר אתכם לעומק."
+              title="השאלון: מסע אישי לגילוי עצמי"
+              description={
+                <>
+                  זהו הלב של המערכת שלנו. לא עוד שאלון, אלא מסע לגילוי עצמי
+                  שחושף מה באמת חשוב לכם. התשובות שלכם הן המפתח למציאת התאמות
+                  עמוקות ומשמעותיות.{' '}
+                  <Link
+                    href="/questionnaire"
+                    className="font-bold text-cyan-600 hover:underline"
+                  >
+                    התחילו את המסע כאן.
+                  </Link>
+                </>
+              }
               color="cyan"
             />
             <Step
@@ -4329,12 +3871,9 @@ const HowItWorksSection: React.FC = () => {
 
                 {/* הטקסט */}
                 <div className="text-center mb-10">
-                  <p className="text-xl md:text-2xl text-gray-700 leading-relaxed mb-6 font-medium">
-                    “הקמתי את החברה הזו מתוך אמונה שלכל אחד מגיעה הזדמנות אמיתית
-                    לאהבה. אני יודע שהדרך יכולה להיות מתסכלת, ולכן אני מתחייב
-                    אישית ללוות כל אחד ואחת מכם עם שירות שמבוסס על הקשבה, דיוק
-                    ומסירות.”
-                  </p>
+                <p className="text-xl md:text-2xl text-gray-700 leading-relaxed mb-6 font-medium">
+  “המסע האישי שלי, והסיפורים ששמעתי מחברים, הבהירו לי עד כמה הדרך למציאת זוגיות יכולה להיות בודדה ומתסכלת. הקמתי את NeshamaTech מתוך רצון אישי עמוק ליצור מקום אחר - מקום שמבין את הרגישות, שמכבד את התהליך, ושם את האדם במרכז.”
+</p>
                   <p className="text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-pink-600">
                     ההצלחה שלכם היא המשימה האישית שלי.
                   </p>
@@ -4372,41 +3911,7 @@ const HowItWorksSection: React.FC = () => {
             </div>
           </motion.div>
 
-          {/* סטטיסטיקות אמין */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto"
-          >
-            <div className="text-center p-8 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/60">
-              <div className="text-4xl font-bold text-cyan-600 mb-2">95%</div>
-              <div className="text-gray-700 font-semibold">שיעור הצלחה</div>
-              <div className="text-sm text-gray-500 mt-1">
-                מהלקוחות מוצאים זיווג תוך 6 חודשים
-              </div>
-            </div>
-
-            {/* <<< הדבק את ה-div החדש כאן >>> */}
-            <div className="text-center p-8 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/60">
-              <div className="text-4xl font-bold text-pink-600 mb-2">100%</div>
-              <div className="text-gray-700 font-semibold">התאמה אישית</div>
-              <div className="text-sm text-gray-500 mt-1">
-                כל תהליך מותאם אישית לצרכים ולרצונות שלכם
-              </div>
-            </div>
-
-            <div className="text-center p-8 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/60">
-              <div className="text-4xl font-bold text-orange-600 mb-2">
-                24/7
-              </div>
-              <div className="text-gray-700 font-semibold">תמיכה אישית</div>
-              <div className="text-sm text-gray-500 mt-1">
-                זמינות מלאה לליווי ויעוץ
-              </div>
-            </div>
-          </motion.div>
+     
         </div>
 
         {/* ... (חלק ה-CTA נשאר ללא שינוי) ... */}
@@ -4511,6 +4016,7 @@ import React, { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import Image from 'next/image';
 import { getRelativeCloudinaryPath } from '@/lib/utils';
+import Link from 'next/link'; // 1. הוספת ייבוא Link
 
 // Enhanced MatchmakerCard component with animations
 interface MatchmakerCardProps {
@@ -4643,14 +4149,17 @@ const MatchmakerCard: React.FC<MatchmakerCardProps> = ({
           {description}
         </p>
 
-        {/* Button with hover animation */}
-        <motion.button
-          className={`px-8 py-3 rounded-lg text-white ${getButtonColorByColor()} transition-colors duration-300 font-medium`}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          קבע פגישה
-        </motion.button>
+        {/* --- START: Button with hover animation (MODIFIED) --- */}
+        <Link href={`/contact?matchmaker=${encodeURIComponent(name)}`} passHref>
+          <motion.a
+            className={`inline-block text-center px-8 py-3 rounded-lg text-white ${getButtonColorByColor()} transition-colors duration-300 font-medium`}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            {`צרו קשר עם ${name.split(' ')[0]}`}
+          </motion.a>
+        </Link>
+        {/* --- END: Button with hover animation (MODIFIED) --- */}
       </div>
     </div>
   );
@@ -4783,9 +4292,440 @@ export default MatchmakerTeamSection;
 --- End of Content for MatchmakerTeamSection.tsx ---
 
 --------------------------------------------------------------------------------
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\OurMethodSection.tsx
+--------------------------------------------------------------------------------
+Content:
+import React, { useState, useRef, useEffect } from 'react';
+import { motion, useInView, AnimatePresence } from 'framer-motion';
+import {
+  Heart,
+  Smile,
+  Users,
+  BookOpen,
+  Target,
+  Sparkles,
+  Star,
+} from 'lucide-react';
+
+interface WorldData {
+  id: number;
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  color: string;
+  gradientFrom: string;
+  gradientTo: string;
+  angle: number;
+}
+
+interface ConstellationLine {
+  id: string;
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  opacity: number;
+}
+
+const MatchingConstellation: React.FC = () => {
+  const [hoveredWorld, setHoveredWorld] = useState<number | null>(null);
+  const [selectedWorld, setSelectedWorld] = useState<number | null>(null);
+  const sectionRef = useRef(null);
+  const isInView = useInView(sectionRef, { once: true, amount: 0.3 });
+
+  const worlds: WorldData[] = [
+    {
+      id: 1,
+      icon: <Heart className="w-8 h-8" />,
+      title: 'עולם הערכים',
+      description:
+        'מה מניע אותך? אילו עקרונות ינחו את הבית המשותף שלכם? כאן אנו מבינים את ליבת הזהות שלך.',
+      color: 'from-red-400 to-pink-500',
+      gradientFrom: '#f87171',
+      gradientTo: '#ec4899',
+      angle: -72, // 0 degrees
+    },
+    {
+      id: 2,
+      icon: <Smile className="w-8 h-8" />,
+      title: 'עולם האישיות',
+      description:
+        'סגנון התקשורת, רמות האנרגיה, ומה גורם לך לחייך. אנו מחפשים אישיות שתשלים ותעשיר את שלך.',
+      color: 'from-yellow-400 to-orange-500',
+      gradientFrom: '#facc15',
+      gradientTo: '#f97316',
+      angle: -144, // 72 degrees
+    },
+    {
+      id: 3,
+      icon: <Users className="w-8 h-8" />,
+      title: 'עולם הזוגיות',
+      description:
+        "מהי זוגיות עבורך? איך את/ה רואה שותפות, אינטימיות וצמיחה משותפת? כאן מגדירים את ה'ביחד'.",
+      color: 'from-green-400 to-teal-500',
+      gradientFrom: '#4ade80',
+      gradientTo: '#14b8a6',
+      angle: 144, // 144 degrees
+    },
+    {
+      id: 4,
+      icon: <BookOpen className="w-8 h-8" />,
+      title: 'העולם הדתי והרוחני',
+      description:
+        'היבט שנעשה בעדינות וברגישות. אנו מחפשים התאמה ברמת החיבור למסורת והשאיפות הרוחניות.',
+      color: 'from-blue-400 to-cyan-500',
+      gradientFrom: '#60a5fa',
+      gradientTo: '#06b6d4',
+      angle: 72, // 216 degrees
+    },
+    {
+      id: 5,
+      icon: <Target className="w-8 h-8" />,
+      title: 'ציפיות מהפרטנר',
+      description:
+        'ההיבטים המעשיים והרגשיים שחשובים לך בבן או בת הזוג, כדי להבטיח בסיס משותף ויציב.',
+      color: 'from-purple-400 to-indigo-500',
+      gradientFrom: '#a78bfa',
+      gradientTo: '#6366f1',
+      angle: 0, // 288 degrees
+    },
+  ];
+
+  // Generate constellation lines between worlds
+  const generateConstellationLines = (): ConstellationLine[] => {
+    const lines: ConstellationLine[] = [];
+    const centerX = 250;
+    const centerY = 250;
+    const radius = 180;
+
+    worlds.forEach((world, index) => {
+      const nextIndex = (index + 1) % worlds.length;
+      const nextWorld = worlds[nextIndex];
+
+      const x1 = centerX + Math.cos((world.angle * Math.PI) / 180) * radius;
+      const y1 = centerY + Math.sin((world.angle * Math.PI) / 180) * radius;
+      const x2 = centerX + Math.cos((nextWorld.angle * Math.PI) / 180) * radius;
+      const y2 = centerY + Math.sin((nextWorld.angle * Math.PI) / 180) * radius;
+
+      lines.push({
+        id: `line-${index}`,
+        x1,
+        y1,
+        x2,
+        y2,
+        opacity:
+          hoveredWorld === world.id || hoveredWorld === nextWorld.id
+            ? 0.8
+            : 0.3,
+      });
+    });
+
+    return lines;
+  };
+
+  const activeWorld = hoveredWorld || selectedWorld;
+  const displayedWorld = worlds.find((w) => w.id === activeWorld) || worlds[0];
+
+  return (
+    <div ref={sectionRef} className="relative w-full max-w-6xl mx-auto py-12">
+      {/* Title */}
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        animate={isInView ? { opacity: 1, y: 0 } : {}}
+        transition={{ duration: 0.8 }}
+        className="text-center mb-12"
+      >
+        <div className="inline-flex items-center gap-3 bg-gradient-to-r from-purple-500/10 to-cyan-500/10 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg border border-white/20 mb-6">
+          <Sparkles className="w-6 h-6 text-purple-500" />
+          <span className="text-purple-700 font-semibold">
+            קונסטלציית ההתאמה
+          </span>
+        </div>
+
+        <h3 className="text-4xl font-bold text-gray-800 mb-4">
+          חמשת עולמות ההתאמה
+        </h3>
+        <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+          הגישה שלנו מבוססת על הבנה הוליסטית של האדם. העבר עם העכבר מעל הכוכבים
+          לגלות את המימדים השונים.
+        </p>
+      </motion.div>
+
+      <div className="flex flex-col lg:flex-row items-center gap-12">
+        {/* Constellation Visualization */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={isInView ? { opacity: 1, scale: 1 } : {}}
+          transition={{ duration: 1, delay: 0.3 }}
+          className="relative flex-1"
+        >
+          <div className="relative w-[500px] h-[500px] mx-auto">
+            {/* Background glow effect */}
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-cyan-500/10 to-pink-500/10 rounded-full blur-3xl animate-pulse-slow" />
+
+            {/* SVG Container */}
+            <svg
+              viewBox="0 0 500 500"
+              className="absolute inset-0 w-full h-full"
+            >
+              {/* Constellation lines */}
+              {generateConstellationLines().map((line) => (
+                <motion.line
+                  key={line.id}
+                  x1={line.x1}
+                  y1={line.y1}
+                  x2={line.x2}
+                  y2={line.y2}
+                  stroke="url(#lineGradient)"
+                  strokeWidth="2"
+                  opacity={line.opacity}
+                  className="transition-opacity duration-500"
+                />
+              ))}
+
+              {/* Gradient definitions */}
+              <defs>
+                <linearGradient
+                  id="lineGradient"
+                  x1="0%"
+                  y1="0%"
+                  x2="100%"
+                  y2="100%"
+                >
+                  <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.6" />
+                  <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.6" />
+                </linearGradient>
+
+                {worlds.map((world) => (
+                  <radialGradient
+                    key={`gradient-${world.id}`}
+                    id={`worldGradient-${world.id}`}
+                  >
+                    <stop
+                      offset="0%"
+                      stopColor={world.gradientFrom}
+                      stopOpacity="0.9"
+                    />
+                    <stop
+                      offset="100%"
+                      stopColor={world.gradientTo}
+                      stopOpacity="0.7"
+                    />
+                  </radialGradient>
+                ))}
+              </defs>
+
+              {/* Center core */}
+              <motion.circle
+                cx="250"
+                cy="250"
+                r="25"
+                fill="url(#coreGradient)"
+                className="drop-shadow-lg"
+                animate={{
+                  scale: hoveredWorld ? 1.2 : 1,
+                }}
+                transition={{ duration: 0.3 }}
+              />
+
+              <defs>
+                <radialGradient id="coreGradient">
+                  <stop offset="0%" stopColor="#ffffff" stopOpacity="0.9" />
+                  <stop offset="100%" stopColor="#f8fafc" stopOpacity="0.8" />
+                </radialGradient>
+              </defs>
+
+              {/* Core icon */}
+              <foreignObject x="235" y="235" width="30" height="30">
+                <div className="flex items-center justify-center w-full h-full">
+                  <Star className="w-6 h-6 text-purple-600" />
+                </div>
+              </foreignObject>
+            </svg>
+
+            {/* World nodes */}
+            {worlds.map((world, index) => {
+              const centerX = 250;
+              const centerY = 250;
+              const radius = 180;
+              const x =
+                centerX + Math.cos((world.angle * Math.PI) / 180) * radius;
+              const y =
+                centerY + Math.sin((world.angle * Math.PI) / 180) * radius;
+
+              return (
+                <motion.div
+                  key={world.id}
+                  className="absolute cursor-pointer"
+                  style={{
+                    left: x - 30,
+                    top: y - 30,
+                  }}
+                  initial={{ opacity: 0, scale: 0 }}
+                  animate={isInView ? { opacity: 1, scale: 1 } : {}}
+                  transition={{ duration: 0.6, delay: 0.5 + index * 0.1 }}
+                  onMouseEnter={() => setHoveredWorld(world.id)}
+                  onMouseLeave={() => setHoveredWorld(null)}
+                  onClick={() =>
+                    setSelectedWorld(
+                      selectedWorld === world.id ? null : world.id
+                    )
+                  }
+                  whileHover={{ scale: 1.2 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <div
+                    className={`w-16 h-16 rounded-full bg-gradient-to-br ${world.color} flex items-center justify-center text-white shadow-lg relative overflow-hidden`}
+                  >
+                    {/* Glow effect when hovered */}
+                    <motion.div
+                      className={`absolute inset-0 bg-gradient-to-br ${world.color} rounded-full`}
+                      animate={{
+                        scale: hoveredWorld === world.id ? 1.5 : 1,
+                        opacity: hoveredWorld === world.id ? 0.3 : 0,
+                      }}
+                      transition={{ duration: 0.3 }}
+                    />
+
+                    {/* Icon */}
+                    <div className="relative z-10">{world.icon}</div>
+
+                    {/* Pulse rings */}
+                    {(hoveredWorld === world.id ||
+                      selectedWorld === world.id) && (
+                      <>
+                        <motion.div
+                          className={`absolute inset-0 border-2 border-white rounded-full`}
+                          animate={{
+                            scale: [1, 1.8],
+                            opacity: [0.8, 0],
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: 'easeOut',
+                          }}
+                        />
+                        <motion.div
+                          className={`absolute inset-0 border-2 border-white rounded-full`}
+                          animate={{
+                            scale: [1, 1.8],
+                            opacity: [0.8, 0],
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: 'easeOut',
+                            delay: 0.5,
+                          }}
+                        />
+                      </>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </motion.div>
+
+        {/* Information Panel */}
+        <motion.div
+          initial={{ opacity: 0, x: 50 }}
+          animate={isInView ? { opacity: 1, x: 0 } : {}}
+          transition={{ duration: 0.8, delay: 0.6 }}
+          className="flex-1 max-w-md"
+        >
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={displayedWorld.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="bg-white/90 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/60 relative overflow-hidden"
+            >
+              {/* Background gradient */}
+              <div
+                className={`absolute inset-0 bg-gradient-to-br ${displayedWorld.color} opacity-5 rounded-3xl`}
+              />
+
+              {/* Content */}
+              <div className="relative z-10">
+                <div className="flex items-center gap-4 mb-6">
+                  <div
+                    className={`p-4 rounded-2xl bg-gradient-to-br ${displayedWorld.color} text-white shadow-lg`}
+                  >
+                    {displayedWorld.icon}
+                  </div>
+                  <h4 className="text-2xl font-bold text-gray-800">
+                    {displayedWorld.title}
+                  </h4>
+                </div>
+
+                <p className="text-gray-600 leading-relaxed text-lg">
+                  {displayedWorld.description}
+                </p>
+
+                {/* Progress indicator */}
+                <div className="mt-6 flex items-center gap-2">
+                  {worlds.map((world) => (
+                    <div
+                      key={world.id}
+                      className={`h-1 rounded-full transition-all duration-300 ${
+                        world.id === displayedWorld.id
+                          ? `bg-gradient-to-r ${displayedWorld.color} flex-1`
+                          : 'bg-gray-200 w-4'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Instruction text */}
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.2 }}
+            className="text-center text-sm text-gray-500 mt-4"
+          >
+            {hoveredWorld
+              ? 'לחץ על הכוכב לנעילת התצוגה'
+              : 'העבר עם העכבר מעל הכוכבים'}
+          </motion.p>
+        </motion.div>
+      </div>
+
+      <style jsx>{`
+        @keyframes pulse-slow {
+          0%,
+          100% {
+            opacity: 0.3;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 0.6;
+            transform: scale(1.05);
+          }
+        }
+        .animate-pulse-slow {
+          animation: pulse-slow 6s ease-in-out infinite;
+        }
+      `}</style>
+    </div>
+  );
+};
+
+export default MatchingConstellation;
+--- End of Content for OurMethodSection.tsx ---
+
+--------------------------------------------------------------------------------
 File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\PrivacyAssuranceSection.tsx
 --------------------------------------------------------------------------------
 Content:
+// src/components/HomePage/sections/PrivacyAssuranceSection.tsx
+
 import React, { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import Link from 'next/link';
@@ -4864,39 +4804,40 @@ const PrivacyAssuranceSection: React.FC = () => {
     },
   };
 
+  // UPDATED Privacy Features
   const privacyFeatures = [
-    'פרופילים גלויים רק לשדכנים מורשים, מבטיחים דיסקרטיות מלאה',
-    'הצפנת מידע מקצה לקצה להגנה על כל הנתונים האישיים',
-    'בדיקות אבטחה קבועות וביקורות חיצוניות לוודא עמידה בסטנדרטים המחמירים ביותר',
-    'מדיניות אפס-שיתוף - המידע שלך לעולם לא נמכר או משותף עם צדדים שלישיים',
-    'יכולת שליטה מלאה בנתונים שלך בכל עת',
+    'הפרופיל שלכם גלוי אך ורק לצוות השדכנים האישי שלכם, מה שמבטיח דיסקרטיות מלאה.',
+    'כל שיחה וכל פרט שאתם חולקים איתנו נשמרים בינינו, באמצעות טכנולוגיות אבטחה מתקדמות.',
+    'המידע שלכם הוא קודש. הוא לעולם לא יימכר או ישותף עם אף גורם מחוץ למערכת. זו הבטחה.',
+    'אתם בשליטה מלאה. שום פרט לא ייחשף בפני הצעה פוטנציאלית ללא אישורכם המפורש.',
   ];
 
   return (
     <motion.section
       ref={ref}
-      className="py-16 md:py-20 px-4 bg-gradient-to-br from-cyan-600 to-cyan-700 text-white relative overflow-hidden"
+      className="py-16 md:py-20 px-4 bg-gradient-to-br from-gray-800 to-gray-900 text-white relative overflow-hidden"
       variants={containerVariants}
       initial="hidden"
       animate={isInView ? 'visible' : 'hidden'}
     >
       <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgdmlld0JveD0iMCAwIDIwIDIwIj48Y2lyY2xlIGN4PSIxMCIgY3k9IjEwIiByPSIxIiBmaWxsPSIjZmZmZmZmIi8+PC9zdmc+')]"></div>
 
-      <div className="absolute top-0 left-0 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 right-0 w-60 h-60 bg-white/10 rounded-full blur-3xl"></div>
+      <div className="absolute top-0 left-0 w-40 h-40 bg-cyan-500/10 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 right-0 w-60 h-60 bg-cyan-500/10 rounded-full blur-3xl"></div>
 
       <div className="max-w-5xl mx-auto relative">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           {/* Left Content */}
           <motion.div variants={fadeInLeft}>
             <div className="mb-8 text-center md:text-right">
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
-                הפרטיות שלך חשובה לנו
+                המרחב הבטוח שלכם
               </h2>
-              <div className="w-24 h-1 bg-white/30 rounded-full mb-6 mx-auto md:mr-0"></div>
-              <p className="text-lg text-white/90 mb-6 mx-auto md:mx-0 max-w-md">
-                בעולם השידוכים, הדיסקרטיות והפרטיות הן קריטיות. ב-NeshamaTech
-                פיתחנו מערכת שמתעדפת את האבטחה והפרטיות שלך בכל שלב.
+              <div className="w-24 h-1 bg-cyan-500/50 rounded-full mb-6 mx-auto md:mr-0"></div>
+              <p className="text-lg text-white/80 mb-6 mx-auto md:mx-0 max-w-md">
+                בעולם השידוכים, אמון ודיסקרטיות הם הבסיס להכל. בנינו את המערכת
+                שלנו סביב העיקרון הזה, כדי שתוכלו להרגיש בטוחים ונינוחים לאורך
+                כל הדרך.
               </p>
             </div>
 
@@ -4909,8 +4850,8 @@ const PrivacyAssuranceSection: React.FC = () => {
                   whileHover={{ x: 4 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <div className="bg-white/20 rounded-full p-2 mr-3 mt-1 flex-shrink-0">
-                    <CheckCircle className="w-4 h-4 text-white" />
+                  <div className="bg-cyan-500/20 rounded-full p-2 mr-3 mt-1 flex-shrink-0">
+                    <CheckCircle className="w-4 h-4 text-cyan-400" />
                   </div>
                   <p className="text-white/90">{feature}</p>
                 </motion.div>
@@ -4921,36 +4862,33 @@ const PrivacyAssuranceSection: React.FC = () => {
           {/* Right Card */}
           <motion.div className="flex justify-center" variants={fadeInRight}>
             <div className="relative max-w-sm w-full">
-              {/* Background decoration */}
               <div className="absolute inset-0 bg-white/10 rounded-2xl blur-lg transform rotate-6"></div>
 
-              {/* Main card */}
               <motion.div
-                className="relative bg-white/20 backdrop-blur-sm p-8 rounded-2xl border border-white/30"
+                className="relative bg-white/10 backdrop-blur-sm p-8 rounded-2xl border border-white/20"
                 variants={cardVariants}
                 whileHover={{
                   scale: 1.02,
                   transition: { duration: 0.2 },
                 }}
               >
-                {/* Lock icon */}
                 <motion.div
-                  className="w-16 h-16 mx-auto mb-6 bg-white/30 rounded-full flex items-center justify-center"
+                  className="w-16 h-16 mx-auto mb-6 bg-cyan-500/30 rounded-full flex items-center justify-center border border-cyan-400/50"
                   whileHover={{
                     rotate: [0, -10, 10, 0],
                     transition: { duration: 0.6 },
                   }}
                 >
-                  <Lock className="w-8 h-8 text-white" />
+                  <Lock className="w-8 h-8 text-cyan-300" />
                 </motion.div>
 
-                <h3 className="text-xl font-bold mb-4 text-center">
-                  הבטחת הפרטיות שלנו
+                <h3 className="text-xl font-bold mb-4 text-center text-white">
+                  ההבטחה שלנו לפרטיות
                 </h3>
 
-                <p className="text-white/90 text-center mb-6">
-                  אנו מתחייבים לשמור על הפרטיות והכבוד של כל משתמש במערכת שלנו,
-                  תוך יצירת סביבה בטוחה ומכבדת למציאת הזיווג המושלם
+                <p className="text-white/80 text-center mb-6">
+                  אנו מתחייבים לשמור על כבודכם ועל המידע האישי שלכם, וליצור
+                  סביבה בטוחה ומכבדת למציאת הזיווג הנכון.
                 </p>
 
                 <div className="text-center">
@@ -4961,7 +4899,7 @@ const PrivacyAssuranceSection: React.FC = () => {
                     >
                       <Button
                         variant="outline"
-                        className="border-2 border-white/50 bg-white text-cyan-600 hover:bg-white/90 transition-all duration-300 rounded-xl"
+                        className="border-2 border-cyan-400/50 bg-cyan-500/20 text-white hover:bg-cyan-500/30 transition-all duration-300 rounded-xl"
                       >
                         קראו את מדיניות הפרטיות
                       </Button>
@@ -5140,6 +5078,7 @@ Content:
 import React, { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import ComparisonItem from '../components/ComparisonItem';
+import Link from 'next/link'; // 1. הוספת ייבוא Link
 
 const ValuePropositionSection: React.FC = () => {
   const ref = useRef(null);
@@ -5258,7 +5197,7 @@ const ValuePropositionSection: React.FC = () => {
             <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-cyan-100 to-cyan-50 opacity-50 rounded-full transform translate-x-20 -translate-y-20"></div>
 
             <h3 className="text-xl font-bold mb-4 text-gray-800 relative">
-              האתגר במערכות קיימות
+              הדרך המוכרת והאתגרים שבה
             </h3>
 
             <motion.ul
@@ -5303,7 +5242,7 @@ const ValuePropositionSection: React.FC = () => {
             <div className="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-br from-cyan-100 to-cyan-50 opacity-50 rounded-full transform -translate-x-20 translate-y-20"></div>
 
             <h3 className="text-xl font-bold mb-4 text-gray-800 relative">
-              הפתרון של NeshamaTech
+              הגישה שלנו ב-NeshamaTech
             </h3>
 
             <motion.ul
@@ -5314,9 +5253,9 @@ const ValuePropositionSection: React.FC = () => {
             >
               <motion.div variants={listItemVariants}>
                 <ComparisonItem>
-                  <strong>מאגר עצום, סיכוי גבוה יותר:</strong> הטכנולוגיה שלנו
-                  מאפשרת לשדכנים לטפל במאגר מועמדים גדול פי 7, ולהגיע להתאמה
-                  המדויקת עבורך.
+                  <strong>ראייה רחבה וממוקדת:</strong> הכלים שלנו מאפשרים לצוות
+                  להגיע לבריכה רחבה יותר של מועמדים, ולהציג בפניך הזדמנויות
+                  שאולי לא היית פוגש/ת בדרך אחרת.
                 </ComparisonItem>
               </motion.div>
               <motion.div variants={listItemVariants}>
@@ -5324,11 +5263,23 @@ const ValuePropositionSection: React.FC = () => {
                   ליווי אנושי: הדרכה אישית משדכנים מקצועיים לאורך כל התהליך
                 </ComparisonItem>
               </motion.div>
+              {/* --- START: שדרוג נקודת ההתאמה המדויקת --- */}
               <motion.div variants={listItemVariants}>
                 <ComparisonItem>
-                  התאמה מדויקת יותר: אלגוריתם AI עם 50 ממדי התאמה
+                  <>
+                    <strong>התאמה מדויקת יותר:</strong> אלגוריתם AI עם 50 ממדי
+                    התאמה, המופעל על ידי{' '}
+                    <Link
+                      href="/questionnaire"
+                      className="text-cyan-600 hover:underline font-medium"
+                    >
+                      השאלון המעמיק
+                    </Link>{' '}
+                    שלנו.
+                  </>
                 </ComparisonItem>
               </motion.div>
+              {/* --- END: שדרוג נקודת ההתאמה המדויקת --- */}
               <motion.div variants={listItemVariants}>
                 <ComparisonItem>
                   פרטיות מלאה: פרופילים נראים רק לשדכנים מורשים

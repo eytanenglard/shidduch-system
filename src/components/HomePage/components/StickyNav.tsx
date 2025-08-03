@@ -218,7 +218,6 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
               <div className="hidden md:flex items-center gap-2">
                 <Link href="/auth/register">
                   <Button className="group relative overflow-hidden bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 px-5 py-2.5">
-                    <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
                     <span className="relative z-10 flex items-center">
                       <UserPlus className="ml-1.5 h-4 w-4" />
                       הרשמה

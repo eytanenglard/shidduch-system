@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import ComparisonItem from '../components/ComparisonItem';
+import Link from 'next/link'; // 1. הוספת ייבוא Link
 
 const ValuePropositionSection: React.FC = () => {
   const ref = useRef(null);
@@ -119,7 +120,7 @@ const ValuePropositionSection: React.FC = () => {
             <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-cyan-100 to-cyan-50 opacity-50 rounded-full transform translate-x-20 -translate-y-20"></div>
 
             <h3 className="text-xl font-bold mb-4 text-gray-800 relative">
-              האתגר במערכות קיימות
+              הדרך המוכרת והאתגרים שבה
             </h3>
 
             <motion.ul
@@ -164,7 +165,7 @@ const ValuePropositionSection: React.FC = () => {
             <div className="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-br from-cyan-100 to-cyan-50 opacity-50 rounded-full transform -translate-x-20 translate-y-20"></div>
 
             <h3 className="text-xl font-bold mb-4 text-gray-800 relative">
-              הפתרון של NeshamaTech
+              הגישה שלנו ב-NeshamaTech
             </h3>
 
             <motion.ul
@@ -175,9 +176,9 @@ const ValuePropositionSection: React.FC = () => {
             >
               <motion.div variants={listItemVariants}>
                 <ComparisonItem>
-                  <strong>מאגר עצום, סיכוי גבוה יותר:</strong> הטכנולוגיה שלנו
-                  מאפשרת לשדכנים לטפל במאגר מועמדים גדול פי 7, ולהגיע להתאמה
-                  המדויקת עבורך.
+                  <strong>ראייה רחבה וממוקדת:</strong> הכלים שלנו מאפשרים לצוות
+                  להגיע לבריכה רחבה יותר של מועמדים, ולהציג בפניך הזדמנויות
+                  שאולי לא היית פוגש/ת בדרך אחרת.
                 </ComparisonItem>
               </motion.div>
               <motion.div variants={listItemVariants}>
@@ -185,11 +186,23 @@ const ValuePropositionSection: React.FC = () => {
                   ליווי אנושי: הדרכה אישית משדכנים מקצועיים לאורך כל התהליך
                 </ComparisonItem>
               </motion.div>
+              {/* --- START: שדרוג נקודת ההתאמה המדויקת --- */}
               <motion.div variants={listItemVariants}>
                 <ComparisonItem>
-                  התאמה מדויקת יותר: אלגוריתם AI עם 50 ממדי התאמה
+                  <>
+                    <strong>התאמה מדויקת יותר:</strong> אלגוריתם AI עם 50 ממדי
+                    התאמה, המופעל על ידי{' '}
+                    <Link
+                      href="/questionnaire"
+                      className="text-cyan-600 hover:underline font-medium"
+                    >
+                      השאלון המעמיק
+                    </Link>{' '}
+                    שלנו.
+                  </>
                 </ComparisonItem>
               </motion.div>
+              {/* --- END: שדרוג נקודת ההתאמה המדויקת --- */}
               <motion.div variants={listItemVariants}>
                 <ComparisonItem>
                   פרטיות מלאה: פרופילים נראים רק לשדכנים מורשים

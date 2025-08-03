@@ -24,6 +24,7 @@ import {
   Menu,
   X,
   Globe,
+  Lightbulb,
 } from 'lucide-react';
 import type { Session as NextAuthSession } from 'next-auth';
 import type { UserImage } from '@/types/next-auth';
@@ -112,6 +113,16 @@ const UserDropdown = ({
                 <User className="ml-2 h-4 w-4" />
                 פרופיל אישי
               </Link>
+              {/* --- START: הוספת קישור לשאלון בדרופדאון --- */}
+              <Link
+                href="/questionnaire"
+                className="flex items-center w-full text-right px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-cyan-50 hover:text-cyan-700 transition-colors"
+                onClick={() => setIsOpen(false)}
+              >
+                <Lightbulb className="ml-2 h-4 w-4" />
+                שאלון התאמה
+              </Link>
+              {/* --- END: הוספת קישור לשאלון בדרופדאון --- */}
               <Link
                 href="/settings"
                 className="flex items-center w-full text-right px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-cyan-50 hover:text-cyan-700 transition-colors"
@@ -152,7 +163,7 @@ const Logo = () => {
       <div className="relative h-9 w-9">
         <Image
           src={getRelativeCloudinaryPath(
-          'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png'
+            'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png'
           )}
           alt="NeshamaTech Icon"
           fill
@@ -160,9 +171,10 @@ const Logo = () => {
           priority
         />
       </div>
-      
+
       {/* ====================== הטקסט המעוצב והמשודרג ====================== */}
-      <span className="
+      <span
+        className="
         text-xl 
         font-bold 
         
@@ -183,11 +195,11 @@ const Logo = () => {
         transition-all 
         duration-700          // תנועה איטית ואלגנטית
         ease-in-out
-      ">
+      "
+      >
         NeshamaTech
       </span>
       {/* ==================================================================== */}
-
     </Link>
   );
 };
@@ -260,7 +272,7 @@ const Navbar = () => {
             <div className="flex items-center gap-4 md:gap-8">
               <Logo />
               <div className="hidden md:flex items-center gap-2 md:gap-3">
-                {session && (
+                {session ? (
                   <>
                     {isMatchmaker ? (
                       <>
@@ -283,6 +295,13 @@ const Navbar = () => {
                         pathname={pathname}
                       />
                     )}
+                    {/* --- START: הוספת קישור לשאלון למשתמש מחובר --- */}
+                    <NavItem
+                      href="/questionnaire"
+                      text="שאלון התאמה"
+                      pathname={pathname}
+                    />
+                    {/* --- END: הוספת קישור לשאלון למשתמש מחובר --- */}
                     <NavItem
                       href="/messages"
                       id="onboarding-target-messages-link"
@@ -295,6 +314,13 @@ const Navbar = () => {
                       pathname={pathname}
                     />
                   </>
+                ) : (
+                  // 2. הוספת קישור לשאלון גם למשתמש לא מחובר
+                  <NavItem
+                    href="/questionnaire"
+                    text="שאלון התאמה"
+                    pathname={pathname}
+                  />
                 )}
               </div>
             </div>
@@ -332,6 +358,17 @@ const Navbar = () => {
                 />
               ) : (
                 <div className="hidden md:flex items-center gap-2">
+                  {/* --- START: 3. הוספת כפתור "לשאלון החכם" למשתמשים לא רשומים --- */}
+                  <Link href="/questionnaire">
+                    <Button
+                      variant="outline"
+                      className="border-cyan-500 text-cyan-600 hover:bg-cyan-50/70 rounded-full px-4 flex items-center gap-2"
+                    >
+                      <Lightbulb className="h-4 w-4" />
+                      לשאלון החכם
+                    </Button>
+                  </Link>
+                  {/* --- END: 3. הוספת כפתור "לשאלון החכם" --- */}
                   <Link href="/auth/signin">
                     <Button
                       variant="ghost"
@@ -469,7 +506,15 @@ const Navbar = () => {
                     pathname={pathname}
                   />
                 )}
-                {/* --- שינוי --- הוספת ID לכפתור הודעות במובייל */}
+                {/* --- START: הוספת קישור לשאלון למובייל (מחובר) --- */}
+                <MobileNavItem
+                  href="/questionnaire"
+                  text="שאלון התאמה"
+                  icon={<Lightbulb className="ml-2 h-5 w-5" />}
+                  onClick={toggleMobileMenu}
+                  pathname={pathname}
+                />
+                {/* --- END: הוספת קישור לשאלון למובייל (מחובר) --- */}
                 <MobileNavItem
                   id="onboarding-target-messages-link"
                   href="/messages"
@@ -506,6 +551,15 @@ const Navbar = () => {
               </>
             ) : (
               <>
+                {/* --- START: הוספת קישור לשאלון למובייל (לא מחובר) --- */}
+                <MobileNavItem
+                  href="/questionnaire"
+                  text="שאלון התאמה"
+                  icon={<Lightbulb className="ml-2 h-5 w-5" />}
+                  onClick={toggleMobileMenu}
+                  pathname={pathname}
+                />
+                {/* --- END: הוספת קישור לשאלון למובייל (לא מחובר) --- */}
                 <MobileNavItem
                   href="/auth/signin"
                   text="התחברות"
@@ -561,7 +615,9 @@ const NavItem = ({
 }) => {
   const isActive =
     pathname === href ||
-    (href === '/matchmaker/suggestions' && pathname.startsWith('/matchmaker'));
+    (href === '/matchmaker/suggestions' &&
+      pathname.startsWith('/matchmaker')) ||
+    (href === '/questionnaire' && pathname.startsWith('/questionnaire'));
 
   return (
     <Link
@@ -598,7 +654,7 @@ const MobileNavItem = ({
   badge,
   onClick,
   pathname,
-  id, // <-- שינוי 1: הוספת id לפרופס
+  id,
 }: {
   href: string;
   text: string;
@@ -606,14 +662,16 @@ const MobileNavItem = ({
   badge?: number;
   onClick: () => void;
   pathname: string;
-  id?: string; // <-- שינוי 1: הוספת id לפרופס
+  id?: string;
 }) => {
   const isActive =
     pathname === href ||
-    (href === '/matchmaker/suggestions' && pathname.startsWith('/matchmaker'));
+    (href === '/matchmaker/suggestions' &&
+      pathname.startsWith('/matchmaker')) ||
+    (href === '/questionnaire' && pathname.startsWith('/questionnaire'));
   return (
     <Link
-      id={id} // <-- שינוי 2: שימוש ב-id
+      id={id}
       href={href}
       onClick={onClick}
       className={`flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 group

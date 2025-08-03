@@ -1,3 +1,5 @@
+// src/components/HomePage/components/DemoProfileCard.tsx
+
 'use client';
 
 import React, { useState } from 'react';
@@ -21,7 +23,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
-// --- Demo Data (תוכן עשיר יותר שמספר סיפור) ---
+// --- Demo Data (UPDATED with a more human touch) ---
 const DEMO_PROFILE = {
   firstName: 'נועה',
   age: 29,
@@ -29,16 +31,35 @@ const DEMO_PROFILE = {
   occupation: 'מעצבת UX/UI',
   religiousLevel: 'דתיה ליברלית',
   about:
-    'אופטימית וחובבת שיחות עומק על כוס קפה. מוצאת יופי בדברים הקטנים של החיים, בין אם זה טיול בטבע או פלייליסט טוב. מחפשת שותף לדרך, לבנות יחד בית שמלא בצחוק, כבוד הדדי וצמיחה משותפת.',
+    'אופטימית וחובבת שיחות עומק על כוס קפה. מוצאת יופי בדברים הקטנים של החיים, בין אם זה טיול בטבע או פלייליסט טוב. אחרי כמה ניסיונות שלא צלחו, אני יודעת היום טוב יותר מה נכון לי, ומחפשת שותף לדרך, לבנות יחד בית שמלא בצחוק, כבוד הדדי וצמיחה משותפת.',
 };
 
 const DEMO_IMAGES = [
-  { id: '1', url: 'https://images.pexels.com/photos/3771836/pexels-photo-3771836.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1', isMain: true },
-  { id: '2', url: 'https://images.pexels.com/photos/3775164/pexels-photo-3775164.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' },
-  { id: '3', url: 'https://images.pexels.com/photos/3771045/pexels-photo-3771045.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' },
-  { id: '4', url: 'https://images.pexels.com/photos/1758531/pexels-photo-1758531.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' },
-  { id: '5', url: 'https://images.pexels.com/photos/4009409/pexels-photo-4009409.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' },
-  { id: '6', url: 'https://images.pexels.com/photos/718978/pexels-photo-718978.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1' },
+  {
+    id: '1',
+    url: 'https://images.pexels.com/photos/3771836/pexels-photo-3771836.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+    isMain: true,
+  },
+  {
+    id: '2',
+    url: 'https://images.pexels.com/photos/3775164/pexels-photo-3775164.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+  },
+  {
+    id: '3',
+    url: 'https://images.pexels.com/photos/3771045/pexels-photo-3771045.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+  },
+  {
+    id: '4',
+    url: 'https://images.pexels.com/photos/1758531/pexels-photo-1758531.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+  },
+  {
+    id: '5',
+    url: 'https://images.pexels.com/photos/4009409/pexels-photo-4009409.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+  },
+  {
+    id: '6',
+    url: 'https://images.pexels.com/photos/718978/pexels-photo-718978.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+  },
 ];
 
 const DEMO_QA = [
@@ -61,7 +82,9 @@ const TABS = [
 ];
 
 // --- Sub-components (מפרק את הקוד ליחידות קטנות וברורות) ---
-const TabContentWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+const TabContentWrapper: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => (
   <motion.div
     initial={{ opacity: 0, y: 10 }}
     animate={{ opacity: 1, y: 0 }}
@@ -155,7 +178,12 @@ export const DemoProfileCard = () => {
                 )}
                 onClick={() => setMainImageIndex(index)}
               >
-                <Image src={image.url} alt={`תמונה קטנה ${index + 1}`} fill className="object-cover" />
+                <Image
+                  src={image.url}
+                  alt={`תמונה קטנה ${index + 1}`}
+                  fill
+                  className="object-cover"
+                />
               </button>
             ))}
           </div>
@@ -234,18 +262,26 @@ export const DemoProfileCard = () => {
               )}
               {activeTab === 'vision' && (
                 <TabContentWrapper key="vision">
-                   <QandAItem q="איך אני רואה את בן/בת הזוג שלי?" a="אדם עם לב פתוח, חוש הומור, ורצון אמיתי לצמוח יחד. מישהו שהוא גם החבר הכי טוב וגם השותף למסע." />
-                   <QandAItem q="מה החזון שלי למשפחה?" a="בית חם ותוסס, פתוח לאורחים, שבו ילדים גדלים עם ערכים של נתינה, אהבת תורה וארץ ישראל." />
+                  <QandAItem
+                    q="איך אני רואה את בן/בת הזוג שלי?"
+                    a="אדם עם לב פתוח, חוש הומור, ורצון אמיתי לצמוח יחד. מישהו שהוא גם החבר הכי טוב וגם השותף למסע."
+                  />
+                  <QandAItem
+                    q="מה החזון שלי למשפחה?"
+                    a="בית חם ותוסס, פתוח לאורחים, שבו ילדים גדלים עם ערכים של נתינה, אהבת תורה וארץ ישראל."
+                  />
                 </TabContentWrapper>
               )}
             </AnimatePresence>
           </div>
-          
+
           {/* CTA */}
           <div className="mt-auto pt-4 text-center">
             <Link href="/auth/register">
-              <Button size="lg" className="w-full bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden">
-                <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
+              <Button
+                size="lg"
+                className="w-full bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group"
+              >
                 <span className="relative z-10 flex items-center justify-center">
                   רוצים לקבל הצעות כאלה?
                   <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />

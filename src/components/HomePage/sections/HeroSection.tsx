@@ -56,7 +56,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
     transitionDelay: `${100 + index * 150}ms`,
   });
 
-  // ======================= שינוי 1: שימוש בלוגו החדש =======================
+  // ======================= שימוש בלוגו החדש =======================
   const logoUrl =
     'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png';
 
@@ -83,13 +83,13 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
           style={getStaggerDelay(0)}
         >
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-800 tracking-tight">
-            הדרך
+            חיבורים אמיתיים,
+            <br className="sm:hidden" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-pink-500 animate-gradient mx-3">
-              החכמה והאישית
+              בדרך שמתאימה לך
             </span>
-            למצוא אהבה
           </h1>
-          {/* ======================= שינוי 2: עדכון שם החברה בטקסט ======================= */}
+          {/* ======================= עדכון שם החברה בטקסט ======================= */}
           <p className="mt-6 max-w-xl mx-auto text-lg md:text-xl text-gray-600 leading-relaxed">
             NeshamaTech משלבת טכנולוגיית AI מתקדמת עם ליווי של שדכנים מומחים,
             כדי להציע לך התאמות מדויקות וליווי אישי בדרך לזוגיות שתמיד רצית.
@@ -100,23 +100,24 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                 size="lg"
                 className="w-full sm:w-auto text-base md:text-lg px-8 py-6 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden"
               >
-                <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
                 <span className="relative z-10">מתחילים עכשיו</span>
                 <ArrowLeft className="relative z-10 mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
+            {/* --- START: שדרוג כפתור השאלון --- */}
             <Link
               href="/questionnaire"
               id="onboarding-target-questionnaire-button"
             >
               <Button
-                variant="outline"
                 size="lg"
-                className="w-full sm:w-auto text-base md:text-lg px-8 py-6 border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-300 rounded-full transition-all duration-300"
+                className="w-full sm:w-auto text-base md:text-lg px-8 py-6 bg-cyan-600 text-white hover:bg-cyan-700 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group"
               >
-                לשאלון ההתאמה
+                <Lightbulb className="ml-2 h-5 w-5 transition-transform group-hover:scale-110" />
+                <span>לשאלון החכם</span>
               </Button>
             </Link>
+            {/* --- END: שדרוג כפתור השאלון --- */}
           </div>
         </div>
 
@@ -172,8 +173,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
             >
               <ChevronDown className="w-7 h-7 text-gray-400 my-2" />
             </div>
-            
-            {/* ======================= שינוי 3: החלפת לוגו ושם (מובייל) ======================= */}
+
+            {/* ======================= החלפת לוגו ושם (מובייל) ======================= */}
             <div
               className={`opacity-0 ${
                 isVisible ? 'animate-mobile-match-point' : ''
@@ -255,7 +256,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                 filter="url(#glow)"
               />
             </svg>
-            {/* ======================= שינוי 4: החלפת לוגו ושם (דסקטופ) ======================= */}
+            {/* ======================= החלפת לוגו ושם (דסקטופ) ======================= */}
             <div
               className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 ${
                 isVisible ? 'animate-match-point-appear' : ''
@@ -278,7 +279,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
           </div>
         </div>
 
-        {/* ======================= שינוי 5: שדרוג ה-Stats Bar ======================= */}
+        {/* ======================= שדרוג ה-Stats Bar ======================= */}
         <div
           className={`mt-12 md:mt-20 w-full max-w-5xl transition-all duration-700 ${
             isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
@@ -288,38 +289,38 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 bg-white/60 backdrop-blur-md py-4 px-6 rounded-2xl shadow-lg border border-white/50">
             <StatItem
               icon={<Shield className="h-5 w-5 text-cyan-600" />}
-              label="דיסקרטיות"
-              value="100%"
+              label="העיקרון הראשון שלנו"
+              value="דיסקרטיות מלאה"
               color="cyan"
             />
             <StatItem
               icon={<Heart className="h-5 w-5 text-pink-500" />}
-              label="מדדי תאימות"
-              value="+50"
+              label="מעבר לפרטים היבשים"
+              value="התאמה עמוקה"
               color="pink"
             />
             <StatItem
               icon={<User className="h-5 w-5 text-cyan-600" />}
-              label="ליווי אישי"
-              value="צמוד"
+              label="אתם לא לבד במסע"
+              value="ליווי אישי"
               color="cyan"
             />
             <StatItem
               icon={<Lightbulb className="h-5 w-5 text-pink-500" />}
-              label="שידוך מנומק"
-              value="AI + שדכן"
+              label="עם היגיון ורגש"
+              value="הצעה מנומקת"
               color="pink"
             />
             <StatItem
               icon={<Sparkles className="h-5 w-5 text-cyan-600" />}
-              label="חדשנות"
-              value="מסורת ו"
+              label="בגישה מכבדת"
+              value="חדשנות ומסורת"
               color="cyan"
             />
             <StatItem
               icon={<Users className="h-5 w-5 text-pink-500" />}
-              label="צוות שדכנים"
-              value="מקצועי"
+              label="שמכיר את העולם שלכם"
+              value="צוות מסור"
               color="pink"
             />
           </div>

@@ -206,8 +206,20 @@ const HowItWorksSection: React.FC = () => {
           <div className="relative max-w-5xl mx-auto space-y-12 p-8">
             <Step
               number="1"
-              title="ההרשמה: מסע אישי לגילוי עצמי"
-              description="זה יותר ממילוי פרטים. השאלון הייחודי שלנו הוא הזדמנות עבורכם להבין מה באמת חשוב לכם בזוגיות. זהו הבסיס שמאפשר לשדכן שלכם להכיר אתכם לעומק."
+              title="השאלון: מסע אישי לגילוי עצמי"
+              description={
+                <>
+                  זהו הלב של המערכת שלנו. לא עוד שאלון, אלא מסע לגילוי עצמי
+                  שחושף מה באמת חשוב לכם. התשובות שלכם הן המפתח למציאת התאמות
+                  עמוקות ומשמעותיות.{' '}
+                  <Link
+                    href="/questionnaire"
+                    className="font-bold text-cyan-600 hover:underline"
+                  >
+                    התחילו את המסע כאן.
+                  </Link>
+                </>
+              }
               color="cyan"
             />
             <Step
@@ -415,12 +427,9 @@ const HowItWorksSection: React.FC = () => {
 
                 {/* הטקסט */}
                 <div className="text-center mb-10">
-                  <p className="text-xl md:text-2xl text-gray-700 leading-relaxed mb-6 font-medium">
-                    “הקמתי את החברה הזו מתוך אמונה שלכל אחד מגיעה הזדמנות אמיתית
-                    לאהבה. אני יודע שהדרך יכולה להיות מתסכלת, ולכן אני מתחייב
-                    אישית ללוות כל אחד ואחת מכם עם שירות שמבוסס על הקשבה, דיוק
-                    ומסירות.”
-                  </p>
+                <p className="text-xl md:text-2xl text-gray-700 leading-relaxed mb-6 font-medium">
+  “המסע האישי שלי, והסיפורים ששמעתי מחברים, הבהירו לי עד כמה הדרך למציאת זוגיות יכולה להיות בודדה ומתסכלת. הקמתי את NeshamaTech מתוך רצון אישי עמוק ליצור מקום אחר - מקום שמבין את הרגישות, שמכבד את התהליך, ושם את האדם במרכז.”
+</p>
                   <p className="text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-pink-600">
                     ההצלחה שלכם היא המשימה האישית שלי.
                   </p>
@@ -458,41 +467,7 @@ const HowItWorksSection: React.FC = () => {
             </div>
           </motion.div>
 
-          {/* סטטיסטיקות אמין */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto"
-          >
-            <div className="text-center p-8 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/60">
-              <div className="text-4xl font-bold text-cyan-600 mb-2">95%</div>
-              <div className="text-gray-700 font-semibold">שיעור הצלחה</div>
-              <div className="text-sm text-gray-500 mt-1">
-                מהלקוחות מוצאים זיווג תוך 6 חודשים
-              </div>
-            </div>
-
-            {/* <<< הדבק את ה-div החדש כאן >>> */}
-            <div className="text-center p-8 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/60">
-              <div className="text-4xl font-bold text-pink-600 mb-2">100%</div>
-              <div className="text-gray-700 font-semibold">התאמה אישית</div>
-              <div className="text-sm text-gray-500 mt-1">
-                כל תהליך מותאם אישית לצרכים ולרצונות שלכם
-              </div>
-            </div>
-
-            <div className="text-center p-8 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/60">
-              <div className="text-4xl font-bold text-orange-600 mb-2">
-                24/7
-              </div>
-              <div className="text-gray-700 font-semibold">תמיכה אישית</div>
-              <div className="text-sm text-gray-500 mt-1">
-                זמינות מלאה לליווי ויעוץ
-              </div>
-            </div>
-          </motion.div>
+     
         </div>
 
         {/* ... (חלק ה-CTA נשאר ללא שינוי) ... */}

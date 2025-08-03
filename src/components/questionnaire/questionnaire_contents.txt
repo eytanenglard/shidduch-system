@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\questionnaire
-# Generated on: 2025-08-03 14:02:46
+# Generated on: 2025-08-03 17:39:00
 ################################################################################
 
 ================================================================================
@@ -544,12 +544,11 @@ export default function MatchmakingQuestionnaire({
   // --- סוף השינוי ---
 
   function renderCurrentStep() {
+    // Loading state
     if (isLoading) {
       return (
-        <div className="flex flex-col items-center justify-center min-h-screen p-4">
-          <Loader2 className="w-12 h-12 animate-spin text-blue-500 mb-4" />
-          <h2 className="text-xl font-medium">טוען את השאלון...</h2>
-          <p className="text-gray-500 mt-2">אנא המתן, מאחזר את ההתקדמות שלך</p>
+        <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50">
+          <Loader2 className="h-10 w-10 animate-spin text-blue-500" />
         </div>
       );
     }
@@ -803,25 +802,25 @@ File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\questionna
 --------------------------------------------------------------------------------
 Content:
 // src/components/questionnaire/QuestionnairePage.tsx
-"use client";
+'use client';
 
-import { useSession } from "next-auth/react";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useSearchParams } from "next/navigation";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, AlertCircle, Loader2 } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import QuestionnaireLandingPage from "./pages/QuestionnaireLandingPage";
-import MatchmakingQuestionnaire from "./MatchmakingQuestionnaire";
-import type { WorldId } from "./types/types";
+import { useSession } from 'next-auth/react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft, AlertCircle, Loader2 } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import QuestionnaireLandingPage from './pages/QuestionnaireLandingPage';
+import MatchmakingQuestionnaire from './MatchmakingQuestionnaire';
+import type { WorldId } from './types/types';
 
 // Enum to track questionnaire flow stages
 enum QuestionnaireStage {
-  LANDING = "LANDING",
-  QUESTIONNAIRE = "QUESTIONNAIRE",
-  COMPLETE = "COMPLETE",
+  LANDING = 'LANDING',
+  QUESTIONNAIRE = 'QUESTIONNAIRE',
+  COMPLETE = 'COMPLETE',
 }
 
 export default function QuestionnairePage() {
@@ -843,14 +842,14 @@ export default function QuestionnairePage() {
   // Check for existing progress when component mounts
   useEffect(() => {
     const checkExistingProgress = async () => {
-      if (status === "loading") return;
+      if (status === 'loading') return;
 
       setIsLoading(true);
 
       try {
         // If user is logged in, check for saved progress
         if (session?.user?.id) {
-          const response = await fetch("/api/questionnaire");
+          const response = await fetch('/api/questionnaire');
           const data = await response.json();
 
           if (data.success && data.data) {
@@ -858,7 +857,7 @@ export default function QuestionnairePage() {
           }
         }
       } catch (err) {
-        console.error("Error checking questionnaire progress:", err);
+        console.error('Error checking questionnaire progress:', err);
       } finally {
         setIsLoading(false);
       }
@@ -869,12 +868,12 @@ export default function QuestionnairePage() {
 
   // Check for world parameter in URL
   useEffect(() => {
-    if (status === "loading") return;
+    if (status === 'loading') return;
 
-    const worldParam = searchParams?.get("world");
+    const worldParam = searchParams?.get('world');
     if (
       worldParam &&
-      ["PERSONALITY", "VALUES", "RELATIONSHIP", "PARTNER", "RELIGION"].includes(
+      ['PERSONALITY', 'VALUES', 'RELATIONSHIP', 'PARTNER', 'RELIGION'].includes(
         worldParam as string
       )
     ) {
@@ -900,23 +899,19 @@ export default function QuestionnairePage() {
   // Handler when questionnaire is completed
   const handleQuestionnaireComplete = async () => {
     try {
-      await router.push("/questionnaire/complete");
+      await router.push('/questionnaire/complete');
       setCurrentStage(QuestionnaireStage.COMPLETE);
     } catch (err) {
-      console.error("Error completing questionnaire:", err);
-      setError("אירעה שגיאה בסיום השאלון. אנא נסה שוב.");
+      console.error('Error completing questionnaire:', err);
+      setError('אירעה שגיאה בסיום השאלון. אנא נסה שוב.');
     }
   };
 
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="w-full max-w-md p-8 text-center">
-          <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-blue-600" />
-          <p className="text-lg font-medium">טוען...</p>
-          <p className="text-sm text-gray-500 mt-2">מאחזר את נתוני השאלון</p>
-        </Card>
+      <div className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-50">
+        <Loader2 className="h-10 w-10 animate-spin text-blue-500" />
       </div>
     );
   }
@@ -7620,6 +7615,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSession } from 'next-auth/react';
+import { useIsMobile } from '../hooks/useMediaQuery'; // <<< שינוי: ייבוא הוק לבדיקת מובייל
 
 // --- Props Interface ---
 interface QuestionnaireLandingPageProps {
@@ -7716,10 +7712,16 @@ export default function QuestionnaireLandingPage({
   isLoading = false,
 }: QuestionnaireLandingPageProps) {
   const { status, data: session } = useSession();
+  const isMobile = useIsMobile(); // <<< שינוי: שימוש בהוק
 
   // --- Main Render ---
   return (
-    <div className="relative min-h-screen overflow-hidden text-right dir-rtl bg-slate-50">
+    <div
+      className={cn(
+        'relative min-h-screen overflow-hidden text-right dir-rtl bg-slate-50',
+        isMobile && 'pb-28' // <<< שינוי: הוספת ריווח תחתון במובייל למנוע חפיפה עם הכפתור הסטיקי
+      )}
+    >
       {/* --- Section 1: Hero - The Invitation to the Journey --- */}
       <section className="relative py-20 px-4 sm:py-24 text-center overflow-hidden">
         {/* Decorative background elements */}
@@ -7891,6 +7893,35 @@ export default function QuestionnaireLandingPage({
         </div>
       </section>
 
+      {/* <<< שינוי: הוספת כפתור סטיקי למובייל >>> */}
+      {isMobile && (
+        <div className="fixed bottom-0 left-0 right-0 p-3 bg-white/90 backdrop-blur-sm border-t border-slate-200/80 shadow-top z-50">
+          <Button
+            size="lg"
+            className="w-full text-base font-semibold py-3 bg-gradient-to-r from-sky-500 to-rose-500 text-white rounded-lg shadow-md hover:shadow-lg transition-shadow group relative overflow-hidden"
+            onClick={onStartQuestionnaire}
+            disabled={isLoading}
+          >
+            <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
+            <div className="relative z-10 flex items-center justify-center">
+              {isLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : hasSavedProgress ? (
+                <>
+                  <CheckCircle className="h-5 w-5 ms-2" />
+                  <span>המשך/י מהיכן שעצרת</span>
+                </>
+              ) : (
+                <>
+                  <Heart className="h-5 w-5 ms-2 fill-white" />
+                  <span>בוא/י נתחיל את המסע</span>
+                </>
+              )}
+            </div>
+          </Button>
+        </div>
+      )}
+
       <footer className="text-center py-6 text-slate-500 text-sm bg-slate-50">
         © {new Date().getFullYear()} NeshamaTech. כל הזכויות שמורות.
       </footer>
@@ -7915,6 +7946,11 @@ export default function QuestionnaireLandingPage({
         }
         .animate-shimmer {
           animation: shimmer 2s infinite;
+        }
+        .shadow-top {
+          box-shadow:
+            0 -4px 6px -1px rgb(0 0 0 / 0.1),
+            0 -2px 4px -2px rgb(0 0 0 / 0.1);
         }
       `}</style>
     </div>

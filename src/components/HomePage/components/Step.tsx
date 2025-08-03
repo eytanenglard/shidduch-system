@@ -3,7 +3,7 @@ import React from "react";
 export interface StepProps {
   number: string;
   title: string;
-  description: string;
+  description: React.ReactNode; // שונה מ-string ל-React.ReactNode
   isLast?: boolean;
   color: "cyan" | "green" | "orange" | "pink";
 }

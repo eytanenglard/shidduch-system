@@ -1,4 +1,5 @@
 import React from "react";
+import Link from 'next/link'; // *** הוספה חדשה ***
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -7,7 +8,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { Send, CheckCircle2 } from "lucide-react";
+import { Send, CheckCircle2, BookUser } from "lucide-react"; // *** הוספנו אייקון BookUser ***
 
 interface QuestionnaireCompletionProps {
   onSendToMatching: () => void;
@@ -45,15 +46,30 @@ const QuestionnaireCompletion: React.FC<QuestionnaireCompletionProps> = ({
                   הצוות יעבור על התשובות ויתחיל בתהליך ההתאמה
                 </p>
               </div>
-              <Button
-                className="w-full"
-                size="lg"
-                onClick={onSendToMatching}
-                disabled={isLoading}
-              >
-                <Send className="w-5 h-5 ml-2" />
-                {isLoading ? "שולח..." : "שלח לאיפיון"}
-              </Button>
+              <div className="space-y-3"> {/* *** עטפנו את הכפתורים ב-div *** */}
+                <Button
+                  className="w-full"
+                  size="lg"
+                  onClick={onSendToMatching}
+                  disabled={isLoading}
+                >
+                  <Send className="w-5 h-5 ml-2" />
+                  {isLoading ? "שולח..." : "שלח לאיפיון"}
+                </Button>
+                {/* --- START: הוספת קישור לצפייה בכל התשובות --- */}
+                <Link href="/profile?tab=questionnaire" className="block">
+                  <Button
+                    variant="outline"
+                    className="w-full bg-white/70"
+                    size="lg"
+                    disabled={isLoading}
+                  >
+                    <BookUser className="w-5 h-5 ml-2 text-blue-600" />
+                    סקירת כל התשובות שלי
+                  </Button>
+                </Link>
+                {/* --- END: הוספת קישור לצפייה בכל התשובות --- */}
+              </div>
             </>
           ) : (
             <Button className="w-full" size="lg" onClick={onSendToMatching}>

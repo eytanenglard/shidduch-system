@@ -24,6 +24,7 @@ import {
   Scroll,
   ChevronLeft, // אייקון חדש
   Edit, // אייקון חדש
+  BookUser, // *** הוספה חדשה ***
 } from 'lucide-react';
 import type { WorldId, QuestionnaireLayoutProps } from '../types/types';
 import { cn } from '@/lib/utils';
@@ -342,6 +343,18 @@ export default function QuestionnaireLayout({
             </div>
             {!isLoggedIn && <UnauthenticatedPrompt />}
             <div className="pt-4 mt-4 border-t space-y-2">
+              {/* --- START: הוספת קישור לצפייה בכל התשובות במובייל --- */}
+              <Link href="/profile?tab=questionnaire">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start gap-2"
+                >
+                  <BookUser className="h-4 w-4" />
+                  צפייה בכל התשובות
+                </Button>
+              </Link>
+              {/* --- END: הוספת קישור לצפייה בכל התשובות במובייל --- */}
               <Button
                 variant="outline"
                 size="sm"
@@ -470,6 +483,14 @@ export default function QuestionnaireLayout({
               </>
             )}
           </Button>
+          {/* --- START: הוספת קישור לצפייה בכל התשובות בדסקטופ --- */}
+          <Link href="/profile?tab=questionnaire">
+            <Button variant="outline" className="w-full">
+              <BookUser className="w-4 h-4 mr-2" />
+              סקירת תשובות
+            </Button>
+          </Link>
+          {/* --- END: הוספת קישור לצפייה בכל התשובות בדסקטופ --- */}
           <Button variant="outline" className="w-full" onClick={onExit}>
             <Home className="w-4 h-4 mr-2" />
             מפת העולמות

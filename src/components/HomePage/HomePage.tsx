@@ -7,7 +7,7 @@ import { useSession } from 'next-auth/react';
 import HeroSection from './sections/HeroSection';
 import ValuePropositionSection from './sections/ValuePropositionSection';
 import FeaturesSection from './sections/FeaturesSection';
-import AlgorithmSection from './sections/AlgorithmSection';
+import AlgorithmSection from './sections/OurMethodSection';
 import HowItWorksSection from './sections/HowItWorksSection';
 import MatchmakerTeamSection from './sections/MatchmakerTeamSection';
 import SuccessStoriesSection from './sections/SuccessStoriesSection';
@@ -23,9 +23,9 @@ import StickyNav, { NavLink } from './components/StickyNav';
 // 2. Define the navigation links in a new, prioritized order.
 //    The 'id' must match the 'id' attribute of the corresponding section.
 const navLinks: NavLink[] = [
-  { id: 'how-it-works', label: 'איך זה עובד' },
-  { id: 'suggestion-demo', label: 'הצעה לדוגמה' },
-  { id: 'our-algorithm', label: 'השיטה החכמה' },
+  { id: 'how-it-works', label: 'המסע שלכם' }, // שינוי התווית למשהו יותר אישי
+  { id: 'suggestion-demo', label: 'כך נראית הצעה' }, // שינוי התווית לתיאור מדויק
+  { id: 'our-method', label: 'הגישה שלנו' }, // שינוי מ"אלגוריתם" ל"גישה"
   { id: 'our-team', label: 'הצוות שלנו' },
   { id: 'faq', label: 'שאלות נפוצות' },
 ];
