@@ -12,7 +12,7 @@ import { useRouter } from 'next/navigation';
 import QuestionnaireLayout from './layout/QuestionnaireLayout';
 import Welcome from './onboarding/Welcome';
 import TrackSelection from './onboarding/TrackSelection';
-import WorldComponent from './worlds/WorldComponent'; // <-- שינוי: ייבוא הקומפוננטה המאוחדת
+import WorldComponent from './worlds/WorldComponent';
 import QuestionnaireCompletion from './common/QuestionnaireCompletion';
 import { useLanguage } from '@/app/contexts/LanguageContext';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -39,6 +39,7 @@ import type {
   AnswerValue,
   WorldComponentProps,
 } from './types/types';
+import EnhancedLoading from './common/EnhancedLoading'; // ❗️ הוספה: ייבוא קומפוננטת הטעינה החדשה
 
 const worldLabels = {
   PERSONALITY: 'אישיות',
@@ -66,12 +67,16 @@ const WORLD_ORDER: WorldId[] = [
 
 export interface MatchmakingQuestionnaireProps {
   userId?: string;
+  userName?: string | null; // ❗️ הוספה: שם המשתמש לפרסונליזציה
+  hasSavedProgress: boolean; // ❗️ הוספה: מידע האם יש התקדמות קיימת
   onComplete?: () => void;
   initialWorld?: WorldId;
 }
 
 export default function MatchmakingQuestionnaire({
   userId,
+  userName, // ❗️ הוספה
+  hasSavedProgress, // ❗️ הוספה
   onComplete,
   initialWorld,
 }: MatchmakingQuestionnaireProps) {
@@ -311,7 +316,8 @@ export default function MatchmakingQuestionnaire({
         return;
       }
 
-      setIsLoading(true);
+      // No need to set loading to true here, as the component starts with isLoading=true
+      // setIsLoading(true);
       try {
         const response = await fetch('/api/questionnaire');
         if (!response.ok) {
@@ -508,7 +514,6 @@ export default function MatchmakingQuestionnaire({
     setCurrentStep(OnboardingStep.MAP);
   }, []);
 
-  // --- שינוי מרכזי כאן ---
   function renderCurrentWorld() {
     const worldProps: WorldComponentProps = {
       onAnswer: handleAnswer,
@@ -528,16 +533,16 @@ export default function MatchmakingQuestionnaire({
 
     return <WorldComponent {...worldProps} worldId={currentWorld} />;
   }
-  // --- סוף השינוי ---
 
   function renderCurrentStep() {
+    // ❗️ החלפת בלוק הטעינה הישן בחדש
+    // גרסה מתוקנת
     if (isLoading) {
       return (
-        <div className="flex flex-col items-center justify-center min-h-screen p-4">
-          <Loader2 className="w-12 h-12 animate-spin text-blue-500 mb-4" />
-          <h2 className="text-xl font-medium">טוען את השאלון...</h2>
-          <p className="text-gray-500 mt-2">אנא המתן, מאחזר את ההתקדמות שלך</p>
-        </div>
+        <EnhancedLoading
+          userName={userName ?? undefined}
+          hasExistingProgress={hasSavedProgress}
+        />
       );
     }
 
@@ -583,8 +588,7 @@ export default function MatchmakingQuestionnaire({
             language={language}
             isLoggedIn={!!userId}
           >
-            {' '}
-            {renderCurrentWorld()}{' '}
+            {renderCurrentWorld()}
           </QuestionnaireLayout>
         );
       case OnboardingStep.COMPLETED:

@@ -47,10 +47,26 @@ export default function QuestionnairePage() {
         // If user is logged in, check for saved progress
         if (session?.user?.id) {
           const response = await fetch("/api/questionnaire");
-          const data = await response.json();
+          
+          // ❗️ שינוי: נבדוק אם התשובה היא לא 404, מה שמעיד על קיום התקדמות כלשהי
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.data) {
+              const allAnswers = [
+                ...(data.data.answers || []),
+                ...(data.data.valuesAnswers || []),
+                ...(data.data.personalityAnswers || []),
+                ...(data.data.relationshipAnswers || []),
+                ...(data.data.partnerAnswers || []),
+                ...(data.data.religionAnswers || []),
+              ];
+              const completedWorlds = data.data.worldsCompleted || [];
 
-          if (data.success && data.data) {
-            setHasSavedProgress(true);
+              // קובעים שיש התקדמות אם יש תשובות או עולמות שהושלמו
+              if (allAnswers.length > 0 || completedWorlds.length > 0) {
+                setHasSavedProgress(true);
+              }
+            }
           }
         }
       } catch (err) {
@@ -63,6 +79,7 @@ export default function QuestionnairePage() {
     checkExistingProgress();
   }, [session, status]);
 
+
   // Check for world parameter in URL
   useEffect(() => {
     if (status === "loading") return;
@@ -74,14 +91,11 @@ export default function QuestionnairePage() {
         worldParam as string
       )
     ) {
-      // If we have a world parameter and the current stage is appropriate, we'll set it
       if (
         currentStage === QuestionnaireStage.QUESTIONNAIRE ||
         currentStage === QuestionnaireStage.LANDING
       ) {
         setCurrentStage(QuestionnaireStage.QUESTIONNAIRE);
-
-        // Pass the selected world to MatchmakingQuestionnaire
         const selectedWorld = worldParam as WorldId;
         setInitialWorld(selectedWorld);
       }
@@ -105,13 +119,13 @@ export default function QuestionnairePage() {
   };
 
   // Loading state
-  if (isLoading) {
+  if (isLoading && status === 'loading') { // ❗️ שינוי קטן: נציג טעינה רק אם גם ה-session בטעינה
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Card className="w-full max-w-md p-8 text-center">
           <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-blue-600" />
           <p className="text-lg font-medium">טוען...</p>
-          <p className="text-sm text-gray-500 mt-2">מאחזר את נתוני השאלון</p>
+          <p className="text-sm text-gray-500 mt-2">מאחזר את נתוני המשתמש</p>
         </Card>
       </div>
     );
@@ -132,6 +146,8 @@ export default function QuestionnairePage() {
         return (
           <MatchmakingQuestionnaire
             userId={session?.user?.id}
+            userName={session?.user?.firstName} // ❗️ העברת שם המשתמש
+            hasSavedProgress={hasSavedProgress} // ❗️ העברת המידע על התקדמות שמורה
             onComplete={handleQuestionnaireComplete}
             initialWorld={initialWorld}
           />
