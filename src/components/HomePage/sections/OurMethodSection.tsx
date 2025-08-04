@@ -1,3 +1,4 @@
+// src/components/HomePage/sections/OurMethodSection.tsx
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -38,9 +39,6 @@ interface ConstellationLine {
   opacity: number;
 }
 
-// ============================================================================
-// התחלנו עם הגדרת הקומפוננטה הפנימית והמורכבת MatchingConstellation
-// ============================================================================
 const MatchingConstellation: React.FC = () => {
   const [hoveredWorld, setHoveredWorld] = useState<number | null>(null);
   const [selectedWorld, setSelectedWorld] = useState<number | null>(1);
@@ -48,6 +46,7 @@ const MatchingConstellation: React.FC = () => {
   const sectionRef = useRef(null);
   const isInView = useInView(sectionRef, { once: true, amount: 0.2 });
 
+  // --- START: UPDATED TEXT DATA ---
   const worlds: WorldData[] = [
     {
       id: 1,
@@ -55,14 +54,13 @@ const MatchingConstellation: React.FC = () => {
       title: 'עולם הערכים',
       shortDesc: 'הבסיס לבית משותף',
       fullDescription:
-        'כאן אנו שואפים להבין את ה"למה" שלכם – מה באמת חשוב לכם בחיים ובזוגיות. אנו מאמינים שערכים משותפים הם הבסיס האיתן ביותר לבית יציב, והם המצפן שמנחה את החיפוש שלנו עבורכם.',
+        'מה באמת חשוב לכם בחיים, במשפחה ובזוגיות? כאן אנחנו יורדים לשורשים כדי למצוא מישהו שהולך באותו כיוון ערכי כמוכם.',
       color: 'from-rose-400 to-pink-500',
       gradientFrom: '#fb7185',
       gradientTo: '#ec4899',
       angle: -72,
-      personalExample: 'איך אתם מעבירים שבת? מה התפקיד של הקהילה בחייכם?',
-      insight:
-        'הבנת הערכים מאפשרת לנו לחפש התאמה ברמת השורש, לא רק על פני השטח.',
+      personalExample: 'מהו הערך החשוב ביותר שתרצו להנחיל בבית שתקימו?',
+      insight: 'כשיש בסיס ערכי משותף, קל יותר להתמודד עם אתגרי החיים, ביחד.',
     },
     {
       id: 2,
@@ -70,14 +68,14 @@ const MatchingConstellation: React.FC = () => {
       title: 'עולם האישיות',
       shortDesc: 'הדינמיקה הטבעית שלכם',
       fullDescription:
-        'האנרגיה שלכם, סגנון התקשורת, ומה מביא לכם שמחה. איננו מחפשים "שיבוט", אלא אישיות שהדינמיקה איתה תהיה טבעית, זורמת ומעשירה עבור שניכם, ותאפשר לכל אחד להיות הגרסה הטובה ביותר של עצמו.',
+        'איך אתם מגיבים במצבי לחץ? מה נותן לכם אנרגיה? אנו מחפשים אישיות שתשלים אתכם ותיצור דינמיקה זורמת וטבעית, כזו שבה שניכם יכולים פשוט להיות עצמכם.',
       color: 'from-amber-400 to-orange-500',
       gradientFrom: '#fbbf24',
       gradientTo: '#f97316',
       angle: -144,
-      personalExample: 'איך אתם אוהבים לבלות? איך אתם מתמודדים עם לחץ?',
+      personalExample: 'איך הייתם מתארים את עצמכם בשלוש מילים לחבר קרוב?',
       insight:
-        'כשיש התאמה אישיותית, הזוגיות מרגישה פחות כמו עבודה ויותר כמו בית.',
+        'התאמה אישיותית נכונה הופכת את הזוגיות למקום בטוח ומהנה להיות בו.',
     },
     {
       id: 3,
@@ -85,14 +83,15 @@ const MatchingConstellation: React.FC = () => {
       title: 'עולם הזוגיות',
       shortDesc: 'החזון שלכם ל"ביחד"',
       fullDescription:
-        'מהי זוגיות עבורכם? שותפות, חברות, מרחב אישי? כאן אנו מקשיבים לחזון שלכם לחיים משותפים, כדי שנוכל למצוא אדם שחולם חלום דומה ורוצה לבנות אותו יחד אתכם.',
+        'מה החזון שלכם ל"ביחד"? איך נראה ערב אידיאלי? איך פותרים קונפליקטים? אנו מבינים את תפיסת הזוגיות שלכם כדי למצוא מישהו שרוצה לבנות את אותו הבית.',
       color: 'from-emerald-400 to-teal-500',
       gradientFrom: '#34d399',
       gradientTo: '#14b8a6',
       angle: 144,
       personalExample:
-        'איך נראה ערב טיפוסי בבית שלכם? איך אתם פותרים חילוקי דעות?',
-      insight: 'כשיודעים לאן רוצים להגיע יחד, קל יותר להתחיל את הצעד הראשון.',
+        'מהי "שפת האהבה" העיקרית שלכם, ואיך אתם אוהבים לקבל אהבה?',
+      insight:
+        'כשהחזונות לזוגיות מתיישרים, קל יותר להתחיל לצעוד יחד באותו המסלול.',
     },
     {
       id: 4,
@@ -100,13 +99,13 @@ const MatchingConstellation: React.FC = () => {
       title: 'העולם הדתי והרוחני',
       shortDesc: 'החיבור הרוחני שלכם',
       fullDescription:
-        'הקשר שלכם למסורת, הדרך שבה אתם חיים את הדת בעידן המודרני, והמקום של הרוחניות בחייכם. זהו עולם עדין ואישי, ואנו ניגשים אליו בכבוד ובהבנה שלכל אחד יש דרך ייחודית.',
+        'מה המקום של הדת והמסורת בחייכם? מה החזון החינוכי לילדים? אנו ניגשים לנושאים אלו ברגישות ובדיוק כדי למצוא התאמה רוחנית אמיתית.',
       color: 'from-sky-400 to-blue-500',
       gradientFrom: '#38bdf8',
       gradientTo: '#3b82f6',
       angle: 72,
-      personalExample: 'איך המסורת והמודרניות משתלבים בחייכם?',
-      insight: 'התאמה רוחנית יוצרת בית שמלא במשמעות ובעומק.',
+      personalExample: 'איך נראית שמירת השבת שלכם בפועל, ומה הגמישות שלכם?',
+      insight: 'התאמה רוחנית יוצרת בית שמלא במשמעות, עומק ושפה משותפת.',
     },
     {
       id: 5,
@@ -114,16 +113,17 @@ const MatchingConstellation: React.FC = () => {
       title: 'ציפיות מהשותף',
       shortDesc: 'הצרכים שלכם בזוגיות',
       fullDescription:
-        'לכולנו יש דברים שחשובים לנו בשותף לדרך. לא מתוך שטחיות, אלא מתוך הכרה במה שיעזור לנו לפרוח. כאן אנו מבינים את הצרכים האמיתיים שלכם כדי למצוא שותף שיצמח אתכם.',
+        'אילו תכונות בשותף לחיים יעזרו לכם להיות הגרסה הטובה ביותר של עצמכם? כאן אנו מבינים את הצרכים העמוקים שלכם, כדי למצוא אדם שיצמח אתכם וייתן לכם ביטחון.',
       color: 'from-violet-400 to-purple-500',
       gradientFrom: '#a78bfa',
       gradientTo: '#8b5cf6',
       angle: 0,
-      personalExample: 'אילו תכונות בשותף יעזרו לכם להיות הכי טובים שלכם?',
-      insight:
-        'הבנה ברורה של הצרכים ההדדיים היא המפתח לתקשורת פתוחה וזוגיות בריאה.',
+      personalExample:
+        'מהי התכונה האחת, החשובה ביותר, שחייבת להיות בבן/בת הזוג?',
+      insight: 'הבנת הצרכים ההדדיים היא המפתח לתקשורת פתוחה וזוגיות בריאה.',
     },
   ];
+  // --- END: UPDATED TEXT DATA ---
 
   useEffect(() => {
     if (hasInteracted) return;
@@ -167,7 +167,7 @@ const MatchingConstellation: React.FC = () => {
         transition={{ duration: 0.8 }}
         className="text-center mb-16"
       >
-        <div className="inline-flex items-center gap-3 bg-gradient-to-r from-rose-50 to-sky-50 backdrop-blur-sm rounded-full px-8 py-4 shadow-md border border-white/40 mb-8">
+        <div className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-full px-8 py-4 shadow-md border border-gray-200 mb-8">
           <Heart className="w-6 h-6 text-rose-500" />
           <span className="text-gray-700 font-medium text-lg">
             הגישה האנושית שלנו
@@ -181,8 +181,9 @@ const MatchingConstellation: React.FC = () => {
           </span>
         </h3>
         <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
-          כל אדם הוא עולם שלם. הגישה שלנו מבוססת על הבנה שהתאמה אמיתית נבנית
-          מהרמוניה בין חמישה מישורים עמוקים של האישיות והחיים שלכם.
+          כדי למצוא התאמה אמיתית, אנחנו צריכים להכיר אתכם באמת. לכן פיתחנו שיטה
+          ייחודית המתבוננת בחמישה עולמות מרכזיים שמרכיבים אתכם. כך אנחנו מוצאים
+          חיבור שלם, לא חלקי.
         </p>
       </motion.div>
 
@@ -193,6 +194,7 @@ const MatchingConstellation: React.FC = () => {
           transition={{ duration: 1, delay: 0.3 }}
           className="relative flex-1 min-w-0"
         >
+          {/* Constellation SVG and elements - UNCHANGED */}
           <div className="relative w-[500px] h-[500px] mx-auto">
             <div className="absolute inset-0 bg-gradient-to-br from-rose-50/80 via-amber-50/60 to-sky-50/80 rounded-full blur-3xl" />
             <svg
@@ -342,6 +344,8 @@ const MatchingConstellation: React.FC = () => {
             })}
           </div>
         </motion.div>
+
+        {/* Information panel on the right - UNCHANGED */}
         <motion.div
           initial={{ opacity: 0, x: 30 }}
           animate={isInView ? { opacity: 1, x: 0 } : {}}
@@ -398,7 +402,7 @@ const MatchingConstellation: React.FC = () => {
                     <CheckCircle className="w-5 h-5 text-violet-600 mt-1 flex-shrink-0" />
                     <div>
                       <h5 className="font-semibold text-violet-800 mb-2">
-                        למה זה חשוב לנו:
+                        התובנה שלנו:
                       </h5>
                       <p className="text-violet-700">
                         {displayedWorld.insight}
@@ -433,6 +437,8 @@ const MatchingConstellation: React.FC = () => {
           </motion.div>
         </motion.div>
       </div>
+
+      {/* --- START: UPDATED CTA AT THE END OF THE SECTION --- */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={isInView ? { opacity: 1, y: 0 } : {}}
@@ -441,11 +447,12 @@ const MatchingConstellation: React.FC = () => {
       >
         <div className="max-w-4xl mx-auto">
           <h4 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6">
-            הצעד הבא: מסע אישי של גילוי
+            מוכנים להתחיל את המסע?
           </h4>
           <p className="text-lg text-gray-600 mb-10 leading-relaxed">
-            השאלון שלנו הוא יותר מטופס - הוא הזדמנות עבורכם להבין טוב יותר את
-            עצמכם ואת מה שאתם באמת מחפשים בזוגיות.
+            השאלון הייחודי שלנו הוא הצעד הראשון. הוא לא טכני, הוא אישי. <br />
+            זו ההזדמנות שלכם לספר לנו את הסיפור שלכם, כדי שאנחנו נוכל למצוא את
+            הפרק הבא שלו.
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
             <Link href="/questionnaire">
@@ -454,7 +461,7 @@ const MatchingConstellation: React.FC = () => {
                 className="group bg-gradient-to-r from-rose-500 to-violet-600 hover:from-rose-600 hover:to-violet-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl px-8 py-4 text-lg font-semibold"
               >
                 <span className="flex items-center gap-3">
-                  התחילו את המסע האישי שלכם
+                  אני רוצה להתחיל את המסע שלי
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </span>
               </Button>
@@ -462,19 +469,17 @@ const MatchingConstellation: React.FC = () => {
             <div className="flex items-center gap-3 text-gray-600">
               <CheckCircle className="w-5 h-5 text-green-500" />
               <span className="font-medium">
-                5-10 דקות • חוויה אישית • תובנות עבורכם
+                חוויה אישית • תובנות עבורכם • דיסקרטי לחלוטין
               </span>
             </div>
           </div>
         </div>
       </motion.div>
+      {/* --- END: UPDATED CTA --- */}
     </div>
   );
 };
 
-// ============================================================================
-// עכשיו נגדיר את הקומפוננטה הראשית OurMethodSection שתעטוף הכל
-// ============================================================================
 const OurMethodSection: React.FC = () => {
   const sectionRef = useRef(null);
   const isInView = useInView(sectionRef, { once: true, amount: 0.1 });
@@ -536,11 +541,9 @@ const OurMethodSection: React.FC = () => {
       </div>
 
       <div className="relative max-w-8xl mx-auto">
-        {/* הקריאה לקומפוננטה המרכזית נמצאת כאן */}
         <MatchingConstellation />
       </div>
 
-      {/* אני מוסיף את ה-style tag שהיה חסר מהקובץ הקודם */}
       <style jsx>{`
         @keyframes gentle-pulse {
           0%,

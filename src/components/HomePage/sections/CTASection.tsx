@@ -10,7 +10,7 @@ const CTASection: React.FC = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
 
-  // Animation variants
+  // Animation variants (Unchanged)
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -95,67 +95,42 @@ const CTASection: React.FC = () => {
       initial="hidden"
       animate={isInView ? 'visible' : 'hidden'}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-cyan-50 to-white opacity-70"></div>
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
-        <svg
-          className="absolute left-0 top-0 h-full opacity-5"
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-        >
-          <path
-            d="M0,0 C40,100 60,100 100,0 L100,100 L0,100 Z"
-            fill="url(#grad1)"
-          ></path>
-          <defs>
-            <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#06b6d4" />
-              <stop offset="100%" stopColor="#0891b2" />
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
+      <div className="absolute inset-0 bg-gradient-to-br from-cyan-50 to-pink-50/50 opacity-70"></div>
 
       <div className="max-w-4xl mx-auto text-center relative">
         <motion.div
           className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 md:p-12 shadow-xl border border-cyan-100"
           variants={cardVariants}
-          whileHover={{
-            y: -5,
-            transition: { duration: 0.3 },
-          }}
         >
-          {/* Icon */}
+          {/* Icon (Unchanged) */}
           <motion.div
             className="inline-block mb-6 p-3 bg-cyan-100 rounded-full text-cyan-600"
             variants={iconVariants}
-            whileHover={{
-              rotate: [0, -10, 10, 0],
-              transition: { duration: 0.6 },
-            }}
+            whileHover={{ rotate: [0, -10, 10, 0], transition: { duration: 0.6 } }}
           >
             <Sparkles className="w-8 h-8" />
           </motion.div>
 
-          {/* Title - UPDATED */}
+          {/* --- START: UPDATED TEXT --- */}
           <motion.h2
-            className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4"
+            className="text-3xl sm:text-4xl font-bold text-gray-800 mb-4"
             variants={textVariants}
           >
-            אולי הגיע הזמן לנסות
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-cyan-700">
+            המסע שלכם לזוגיות
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-pink-600">
               {' '}
-              דרך חדשה?{' '}
+              מתחיל כאן
             </span>
           </motion.h2>
 
-          {/* Description - UPDATED */}
           <motion.p
             className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto"
             variants={textVariants}
           >
-            אם אתם מחפשים גישה מתחשבת, אישית ומכבדת למציאת זוגיות, נשמח להיות
-            שותפים למסע שלכם.
+            אם הגישה האישית, המכבדת והמעמיקה שלנו מדברת אליכם, אולי מצאתם את הבית שלכם. הצעד הראשון פשוט, דיסקרטי וללא התחייבות.
           </motion.p>
+          {/* --- END: UPDATED TEXT --- */}
+
 
           {/* Buttons */}
           <motion.div
@@ -173,7 +148,8 @@ const CTASection: React.FC = () => {
                     className="bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl group"
                   >
                     <span className="relative z-10 flex items-center">
-                      הצעד הראשון שלי
+                      {/* --- UPDATED BUTTON TEXT --- */}
+                      אני רוצה להתחיל את המסע
                       <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                     </span>
                   </Button>
@@ -192,7 +168,8 @@ const CTASection: React.FC = () => {
                     size="lg"
                     className="border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-300 transition-all duration-300 rounded-xl"
                   >
-                    עוד על הגישה שלנו
+                    {/* --- UPDATED BUTTON TEXT --- */}
+                    ללמוד עוד על הגישה שלנו
                   </Button>
                 </motion.div>
               </Link>

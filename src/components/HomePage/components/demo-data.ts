@@ -278,8 +278,9 @@ const noaProfile: PartyInfo = {
     educationLevel: 'academic_ba',
     religiousLevel: 'דתי לאומי תורני',
     shomerNegiah: false,
+    // --- UPDATED 'about' FIELD ---
     about:
-      'אופטימית וחובבת שיחות עומק על כוס קפה. מוצאת יופי בדברים הקטנים של החיים, בין אם זה טיול בטבע או פלייליסט טוב. מחפשת שותף לדרך, לבנות יחד בית שמלא בצחוק, כבוד הדדי וצמיחה משותפת.',
+      'אופטימית וחובבת שיחות עומק על כוס קפה. מוצאת יופי בדברים הקטנים של החיים, בין אם זה טיול בטבע או פלייליסט טוב. אחרי כמה ניסיונות שלא צלחו, אני יודעת היום טוב יותר מה נכון לי, ומחפשת שותף לדרך, לבנות יחד בית שמלא בצחוק, כבוד הדדי וצמיחה משותפת.',
     maritalStatus: 'רווקה',
     profileCharacterTraits: ['אופטימית', 'יצירתית', 'אמפתית'],
     profileHobbies: ['טיולים', 'קריאה', 'אומנות ויצירה'],
@@ -350,8 +351,9 @@ export const demoSuggestionDataFemale: ExtendedMatchSuggestion = {
   updatedAt: new Date(),
   lastActivity: new Date(),
   category: 'ACTIVE',
+  // --- UPDATED 'matchingReason' FIELD (as seen by a male user getting Noa's profile) ---
   matchingReason:
-    'זיהיתי חיבור מיוחד בין האופטימיות והאהבה שלכם לשיחות עומק. שניכם מחפשים קשר המבוסס על כבוד, צמיחה משותפת ובית מלא בצחוק. אני מאמין שהערכים הדתיים הליברליים שלכם והשאיפות המקצועיות יכולים להשתלב בצורה הרמונית וליצור בסיס איתן לקשר משמעותי.',
+    'מה שהדהד לי במיוחד בחיבור ביניכם הוא השילוב הנדיר של עומק וקלילות. שניכם מחפשים "שותף לדרך" עם "ראש פתוח", ומדברים על בית שמבוסס על "כבוד וצמיחה". אני מאמין שהיציבות והשאיפה למשמעות שלך, יחד עם היצירתיות והאופטימיות של נועה, יוצרים בסיס מדהים לקשר אמיתי.',
   firstPartyNotes:
     'זו הצעה שאני מתרגשת במיוחד להציג לך. נועה היא בחורה איכותית, עם עומק ורגישות שנדיר למצוא. אני חושבת שהיא בדיוק מה שחיפשת.',
   secondPartyNotes: null,
@@ -534,34 +536,6 @@ const danielQuestionnaireResponse: QuestionnaireResponseType = {
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
-      {
-        questionId: 'values_future_priorities_partner',
-        question: 'מהו האיזון הרצוי לך בסדרי עדיפויות בזוגיות?',
-        answer:
-          'זוגיות (40%), קריירה (25%), משפחה (15%), רוחניות (10%), פנאי (10%)',
-        displayText:
-          'בעתיד, אני שואף לחלוקה של: זוגיות ומשפחה (40%), קריירה (25%), משפחה מורחבת (15%), רוחניות (10%), ופנאי (10%).',
-        isVisible: true,
-        answeredAt: new Date(),
-      } as FormattedAnswer,
-      {
-        questionId: 'values_social_political_stance_importance_partner',
-        question: 'עד כמה חשובה לך התאמה בהשקפות פוליטיות?',
-        answer: '6',
-        displayText:
-          'חשוב לי שיהיה בסיס משותף בהשקפות עולם (ציון 6/10), אבל לא חייבים להסכים על הכל. כבוד הדדי חשוב יותר.',
-        isVisible: true,
-        answeredAt: new Date(),
-      } as FormattedAnswer,
-      {
-        questionId: 'values_conflict_between_values',
-        question: 'תאר קונפליקט ערכי שחווית.',
-        answer: 'חוויתי קונפליקט בין דדליין חשוב בעבודה לבין אירוע משפחתי...',
-        displayText:
-          'חוויתי קונפליקט בין דדליין חשוב בעבודה (ערך המקצועיות) לבין אירוע משפחתי (ערך המשפחה). למדתי לתקשר מראש את האילוצים, לעבוד ביעילות כדי לסיים מוקדם, ולהגיע לאירוע גם אם מאוחר יותר, כדי לכבד את שני הערכים.',
-        isVisible: true,
-        answeredAt: new Date(),
-      } as FormattedAnswer,
     ],
     personality: [
       {
@@ -573,49 +547,14 @@ const danielQuestionnaireResponse: QuestionnaireResponseType = {
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
-      {
-        questionId: 'personality_ideal_vacation',
-        question: 'תאר את חופשת החלומות שלך.',
-        answer: 'חופשה שמשלבת טבע מאתגר עם תרבות מקומית...',
-        displayText:
-          'חופשת החלומות שלי תהיה טרק מאתגר של כמה ימים בנוף יפהפה, ובסופו הגעה לעיר עם תרבות והיסטוריה. לא חופשת בטן-גב.',
-        isVisible: true,
-        answeredAt: new Date(),
-      } as FormattedAnswer,
-      {
-        questionId: 'personality_handling_criticism',
-        question: 'איך אתה מגיב לביקורת?',
-        answer: 'אני משתדל לקחת ביקורת בצורה אנליטית...',
-        displayText:
-          'אני משתדל לקחת ביקורת בצורה אנליטית. בהתחלה זה יכול להיות לא נעים, אבל אני לוקח צעד אחורה, מנסה להפריד את הרגש ולהבין אם יש נקודה לשיפור שאני יכול ללמוד ממנה. חשוב לי להשתפר כל הזמן.',
-        isVisible: true,
-        answeredAt: new Date(),
-      } as FormattedAnswer,
     ],
     relationship: [
-      {
-        questionId: 'relationship_financial_management_preference',
-        question: 'מהי הגישה המועדפת עליך לניהול כספים משותף?',
-        answer: 'שקיפות מלאה וחשבון משותף לכל',
-        displayText: 'שקיפות מלאה וחשבון משותף לכל',
-        isVisible: true,
-        answeredAt: new Date(),
-      } as FormattedAnswer,
       {
         questionId: 'relationship_core_meaning',
         question: 'מהי תמצית הזוגיות בעיניך?',
         answer: 'שותפות, חברות ומחויבות',
         displayText:
           'תמצית הזוגיות בעיניי היא שותפות איתנה, חברות אמת, ומחויבות וביטחון לטווח ארוך.',
-        isVisible: true,
-        answeredAt: new Date(),
-      } as FormattedAnswer,
-      {
-        questionId: 'relationship_love_languages_give_receive',
-        question: 'מהן "שפות האהבה" העיקריות שלך?',
-        answer: 'מעשי שירות וזמן איכות',
-        displayText:
-          'שפות האהבה שלי הן בעיקר מעשי שירות וזמן איכות. אני מביע אהבה דרך עשייה, תמיכה ונוכחות מלאה.',
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
@@ -630,33 +569,6 @@ const danielQuestionnaireResponse: QuestionnaireResponseType = {
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
-      {
-        questionId: 'partner_children_from_previous_relationship_stance',
-        question: 'מהי גישתך לקשר עם בת זוג שיש לה ילדים?',
-        answer: 'פתוח לשקול, תלוי בנסיבות',
-        displayText:
-          'אני פתוח לשקול קשר עם בת זוג שיש לה ילדים, זה תלוי בנסיבות ובחיבור בינינו.',
-        isVisible: true,
-        answeredAt: new Date(),
-      } as FormattedAnswer,
-      {
-        questionId: 'partner_deal_breakers_open_text',
-        question: 'מהם ה"קווים האדומים" שלך בזוגיות?',
-        answer: 'חוסר יושרה, נטייה לדרמות וחוסר אחריות כלכלית.',
-        displayText:
-          'קווים אדומים עבורי הם חוסר יושרה, נטייה לדרמות מיותרות וחוסר אחריות כלכלית. חשוב לי בסיס של אמון ויציבות.',
-        isVisible: true,
-        answeredAt: new Date(),
-      } as FormattedAnswer,
-      {
-        questionId: 'partner_career_ambition_preference',
-        question: 'איזו גישה לקריירה היית מעדיף אצל בת זוג?',
-        answer: 'מחפשת איזון בין עבודה לחיים אישיים/משפחתיים',
-        displayText:
-          'מעדיף בת זוג שמחפשת איזון בין עבודה לחיים אישיים ומשפחתיים, ויודעת להשקיע בשניהם.',
-        isVisible: true,
-        answeredAt: new Date(),
-      } as FormattedAnswer,
     ],
     religion: [
       {
@@ -665,24 +577,6 @@ const danielQuestionnaireResponse: QuestionnaireResponseType = {
         answer: 'תורה מן השמיים ומחויבות להלכה, גאולת ישראל וקיבוץ גלויות',
         displayText:
           'עקרונות האמונה המרכזיים שמנחים אותי הם תורה מן השמיים, מחויבות להלכה, וגאולת ישראל וקיבוץ גלויות בארץ ישראל.',
-        isVisible: true,
-        answeredAt: new Date(),
-      } as FormattedAnswer,
-      {
-        questionId: 'religion_rabbinic_guidance_role',
-        question: 'מהי חשיבותה של דמות רבנית עבורך?',
-        answer: '7',
-        displayText:
-          'אני רואה חשיבות בהתייעצות עם דמות רבנית (ציון 7/10), בעיקר בשאלות הלכתיות מורכבות, אך ההחלטה הסופית והאחריות הן שלי.',
-        isVisible: true,
-        answeredAt: new Date(),
-      } as FormattedAnswer,
-      {
-        questionId: 'religion_children_education_religious_vision',
-        question: 'מהו החזון החינוכי-דתי שלך לילדיך?',
-        answer: 'חינוך דתי-לאומי שמשלב יראת שמיים עם דרך ארץ...',
-        displayText:
-          'החזון שלי הוא חינוך דתי-לאומי שמשלב יראת שמיים עם דרך ארץ, מצוינות לימודית וחיבור חזק לעם ולארץ. חשוב לי שיגדלו להיות אנשים חושבים וערכיים.',
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
@@ -748,8 +642,9 @@ const danielProfile: PartyInfo = {
     educationLevel: 'academic_student',
     religiousLevel: 'דתי לאומי-ליברלי',
     shomerNegiah: true,
+    // --- UPDATED 'about' FIELD ---
     about:
-      'בחור של אנשים ושל עשייה. אוהב את השילוב בין עולם ההייטק הדינמי לבין קביעת עיתים לתורה. מאמין שצריך לחיות חיים מלאים עם משמעות, גם בעבודה וגם מחוצה לה. בשעות הפנאי אוהב לטייל בארץ, לנגן בגיטרה ולבלות זמן איכות עם חברים. מחפש שותפה לחיים, לבנות ביחד בית עם יראת שמיים, פתיחות מחשבתית והרבה שמחה.',
+      'בחור של אנשים ושל עשייה. אוהב את השילוב בין עולם ההייטק הדינמי לבין קביעת עיתים לתורה. מאמין שצמיחה אמיתית קורית מחוץ לאזור הנוחות, ובשעות הפנאי אוהב לטייל בארץ, לנגן בגיטרה ולבלות זמן איכות עם חברים. מחפש שותפה לחיים, לבנות ביחד בית עם יראת שמיים, פתיחות מחשבתית והרבה שמחה.',
     maritalStatus: 'רווק',
     profileCharacterTraits: ['שאפתן', 'ישר ואמין', 'משפחתי'],
     profileHobbies: ['טיולים', 'מוזיקה/נגינה', 'למידה/קורסים'],
@@ -823,8 +718,9 @@ export const demoSuggestionDataMale: ExtendedMatchSuggestion = {
   updatedAt: new Date(),
   lastActivity: new Date(),
   category: 'ACTIVE',
+  // --- UPDATED 'matchingReason' FIELD (as seen by a female user getting Daniel's profile) ---
   matchingReason:
-    'החיבור בין הרצון שלך ליציבות ובית חם לבין השאיפות והאמביציה של דניאל נראה לי מבטיח במיוחד. שניכם אנשים של עשייה, עם רגליים על הקרקע אבל ראש בעננים. אני מאמין שהרצון שלו להקים בית תורני מודרני והגישה שלך לחיים יכולים ליצור שלם הגדול מסך חלקיו.',
+    'מה שהדהד לי במיוחד בחיבור ביניכם הוא השילוב הנדיר של עומק וקלילות. שניכם מחפשים "שותף לדרך" עם "ראש פתוח", ומדברים על בית שמבוסס על "כבוד וצמיחה". אני מאמין שהיציבות והשאיפה למשמעות של דניאל, יחד עם היצירתיות והאופטימיות שלך, יוצרים בסיס מדהים לקשר אמיתי.',
   firstPartyNotes:
     'דניאל הוא בחור רציני, ערכי ועם לב זהב. הוא משלב בצורה מרשימה בין עולם התורה לעולם המעשה, ומחפש שותפה אמיתית לחיים. אני חושב שיש לכם הרבה על מה לדבר.',
   secondPartyNotes: null,
@@ -879,13 +775,14 @@ export const demoSuggestionDataMale: ExtendedMatchSuggestion = {
 export const demoAiAnalysisForDaniel: AiSuggestionAnalysisResult = {
   overallScore: 88,
   matchTitle: 'שילוב של שאפתנות ויציבות רגשית',
+  // --- UPDATED 'matchSummary' FIELD ---
   matchSummary:
-    'החיבור בין דניאל לנועה מציג פוטנציאל גבוה ליצירת זוגיות יציבה וצומחת. השילוב בין האופי המעשי והשאפתני של דניאל לבין העומק הרגשי והיצירתיות של נועה יוצר בסיס מעניין לשותפות ארוכת טווח, המבוססת על ערכים משותפים וכבוד הדדי.',
+    'החיבור בין דניאל לנועה מציג פוטנציאל גבוה, המבוסס על איזון בין ערכים משותפים לאישיות משלימה. השילוב בין האופי המעשי והשאפתני של דניאל לבין העומק הרגשי והיצירתיות של נועה יוצר בסיס איתן לשותפות ארוכת טווח, שבה כל אחד יכול להעניק לשני בדיוק את מה שחסר לו.',
   compatibilityPoints: [
     {
       area: 'ערכים משותפים',
       explanation:
-        'שניהם מדגישים את חשיבות המשפחה, הכבוד ההדדי והצמיחה המשותפת כערכי יסוד בזוגיות. זהו בסיס איתן לבניית בית משותף.',
+        'שניהם מדגישים את חשיבות המשפחה, הכבוד ההדדי והצמיחה המשותפת כערכי יסוד بزוגיות. זהו בסיס איתן לבניית בית משותף.',
     },
     {
       area: 'איזון בין קריירה לחיים אישיים',
@@ -923,8 +820,9 @@ export const demoAiAnalysisForDaniel: AiSuggestionAnalysisResult = {
 export const demoAiAnalysisForNoa: AiSuggestionAnalysisResult = {
   overallScore: 88,
   matchTitle: 'חיבור בין יצירתיות ועומק ערכי',
+  // --- UPDATED 'matchSummary' FIELD ---
   matchSummary:
-    'ההתאמה בין נועה לדניאל מבטיחה מאוד, ומתבססת על חיבור עמוק ברמת הערכים והאישיות. היצירתיות והרגישות של נועה משלימות את היציבות והנחישות של דניאל, ויוצרות פוטנציאל לזוגיות מאוזנת, תומכת ומלאת תוכן.',
+    'ההתאמה בין נועה לדניאל מבטיחה מאוד, ומתבססת על חיבור עמוק ברמת הערכים והאישיות. היצירתיות והרגישות של נועה משלימות את היציבות והנחישות של דניאל, ויוצרות פוטנציאל לזוגיות מאוזנת, תומכת ומלאת תוכן, שבה כל אחד יכול להיות הגרסה הטובה ביותר של עצמו.',
   compatibilityPoints: [
     {
       area: 'ראיית עולם ערכית',

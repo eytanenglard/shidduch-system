@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import ComparisonItem from '../components/ComparisonItem';
-import Link from 'next/link'; // 1. הוספת ייבוא Link
+import Link from 'next/link';
 
 const ValuePropositionSection: React.FC = () => {
   const ref = useRef(null);
@@ -68,7 +68,6 @@ const ValuePropositionSection: React.FC = () => {
   return (
     <motion.section
       ref={ref}
-      id="our-method"
       className="py-16 md:py-20 px-4 bg-cyan-50 relative overflow-hidden"
       variants={containerVariants}
       initial="hidden"
@@ -95,7 +94,7 @@ const ValuePropositionSection: React.FC = () => {
       </div>
 
       <div className="max-w-6xl mx-auto relative">
-        {/* Header with staggered animation */}
+        {/* Header with updated content */}
         <motion.div className="text-center mb-12" variants={fadeInUp}>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4">
             מה הופך את
@@ -107,7 +106,8 @@ const ValuePropositionSection: React.FC = () => {
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-cyan-600 to-cyan-700 mx-auto rounded-full mb-6" />
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            השילוב המושלם בין טכנולוגיה מתקדמת לבין הנגיעה האנושית והמסורתית
+            הגישה שלנו משלבת את העוצמה של טכנולוגיה חכמה עם החום, הניסיון
+            והליווי האישי של שדכנות מקצועית.
           </p>
         </motion.div>
 
@@ -120,7 +120,7 @@ const ValuePropositionSection: React.FC = () => {
             <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-cyan-100 to-cyan-50 opacity-50 rounded-full transform translate-x-20 -translate-y-20"></div>
 
             <h3 className="text-xl font-bold mb-4 text-gray-800 relative">
-              הדרך המוכרת והאתגרים שבה
+              האתגרים במסע לזוגיות שכולנו מכירים
             </h3>
 
             <motion.ul
@@ -131,27 +131,28 @@ const ValuePropositionSection: React.FC = () => {
             >
               <motion.div variants={listItemVariants}>
                 <ComparisonItem isNegative>
-                  חוסר פרטיות ודיסקרטיות באפליקציות היכרויות רגילות
+                  תחושת חשיפת יתר ותחושה של ‘סחורה על המדף’ באפליקציות
                 </ComparisonItem>
               </motion.div>
               <motion.div variants={listItemVariants}>
                 <ComparisonItem isNegative>
-                  פתרונות שאינם מותאמים לערכי הקהילה המסורתית והדתית
+                  פלטפורמות גנריות שלא מבינות את הניואנסים החשובים בעולם הדתי
+                  והמסורתי
                 </ComparisonItem>
               </motion.div>
               <motion.div variants={listItemVariants}>
                 <ComparisonItem isNegative>
-                  שיעור גבוה של אכזבות וחוסר התאמה אמיתית
+                  בזבוז זמן ואנרגיה על שיחות שטחיות והצעות לא רלוונטיות
                 </ComparisonItem>
               </motion.div>
               <motion.div variants={listItemVariants}>
                 <ComparisonItem isNegative>
-                  מוגבלות לחוגים חברתיים קיימים בלבד
+                  היכרות מוגבלת למעגל החברים הקרוב בלבד
                 </ComparisonItem>
               </motion.div>
               <motion.div variants={listItemVariants}>
                 <ComparisonItem isNegative>
-                  שדכנים מסורתיים: עלויות גבוהות, רשת קשרים מוגבלת ותהליך ממושך
+                  שדכנות מסורתית שלעיתים מוגבלת במאגר ובתהליכים איטיים
                 </ComparisonItem>
               </motion.div>
             </motion.ul>
@@ -165,7 +166,7 @@ const ValuePropositionSection: React.FC = () => {
             <div className="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-br from-cyan-100 to-cyan-50 opacity-50 rounded-full transform -translate-x-20 translate-y-20"></div>
 
             <h3 className="text-xl font-bold mb-4 text-gray-800 relative">
-              הגישה שלנו ב-NeshamaTech
+              הגישה של NeshamaTech: טכנולוגיה בשירות הלב
             </h3>
 
             <motion.ul
@@ -176,42 +177,44 @@ const ValuePropositionSection: React.FC = () => {
             >
               <motion.div variants={listItemVariants}>
                 <ComparisonItem>
-                  <strong>ראייה רחבה וממוקדת:</strong> הכלים שלנו מאפשרים לצוות
-                  להגיע לבריכה רחבה יותר של מועמדים, ולהציג בפניך הזדמנויות
-                  שאולי לא היית פוגש/ת בדרך אחרת.
+                  <strong>מאגר רחב, חיפוש ממוקד:</strong> המערכת שלנו סורקת מאגר
+                  רחב ואיכותי של מועמדים, ומאפשרת לשדכנים להציג בפניך הזדמנויות
+                  מדויקות שאולי לא היית פוגש/ת אחרת.
                 </ComparisonItem>
               </motion.div>
               <motion.div variants={listItemVariants}>
                 <ComparisonItem>
-                  ליווי אנושי: הדרכה אישית משדכנים מקצועיים לאורך כל התהליך
+                  <strong>ליווי אישי חם:</strong> אתם לא לבד. שדכן אישי מלווה
+                  אתכם, מכיר אתכם לעומק, ומייעץ בכל שלב במסע.
                 </ComparisonItem>
               </motion.div>
-              {/* --- START: שדרוג נקודת ההתאמה המדויקת --- */}
               <motion.div variants={listItemVariants}>
                 <ComparisonItem>
                   <>
-                    <strong>התאמה מדויקת יותר:</strong> אלגוריתם AI עם 50 ממדי
-                    התאמה, המופעל על ידי{' '}
+                    <strong>התאמה עם עומק אמיתי:</strong> אלגוריתם חכם מנתח
+                    עשרות ממדי התאמה, המבוססים על תשובותיך ב
                     <Link
                       href="/questionnaire"
-                      className="text-cyan-600 hover:underline font-medium"
+                      className="text-cyan-600 hover:underline font-semibold mx-1"
                     >
-                      השאלון המעמיק
-                    </Link>{' '}
-                    שלנו.
+                      שאלון הייחודי
+                    </Link>
+                    שלנו, כדי לחשוף חיבורים ברמת הערכים והאישיות.
                   </>
                 </ComparisonItem>
               </motion.div>
-              {/* --- END: שדרוג נקודת ההתאמה המדויקת --- */}
               <motion.div variants={listItemVariants}>
                 <ComparisonItem>
-                  פרטיות מלאה: פרופילים נראים רק לשדכנים מורשים
+                  <strong>דיסקרטיות מוחלטת:</strong> הפרופיל שלכם נשאר חסוי
+                  ומוצג אך ורק לשדכנים בצוות. אף פרט לא נחשף לצד השני ללא אישורכם
+                  המפורש.
                 </ComparisonItem>
               </motion.div>
               <motion.div variants={listItemVariants}>
                 <ComparisonItem>
-                  מחוייבות לערכים: מערכת המכבדת את המסורת תוך שימוש בטכנולוגיה
-                  מתקדמת
+                  <strong>כבוד למסורת, כלים של המחר:</strong> פלטפורמה שמבינה
+                  ומכבדת את עולם הערכים שלכם, ומשתמשת בטכנולוגיה כדי להפוך את
+                  החיפוש ליעיל ומכבד יותר.
                 </ComparisonItem>
               </motion.div>
             </motion.ul>

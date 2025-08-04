@@ -1,3 +1,5 @@
+// src/components/HomePage/sections/SuccessStoriesSection.tsx
+
 import React, { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import TestimonialCard from '../components/TestimonialCard';
@@ -45,6 +47,7 @@ const SuccessStoriesSection: React.FC = () => {
     },
   };
 
+  // --- START: DATA REMAINS UNCHANGED ---
   const testimonials = [
     {
       text: 'תמיד חלמתי על שותף לחיים עם שאיפות ערכיות דומות – להקים בית של חסד, ציונות ותורה. NeshamaTech חיברו אותי לאדם שחולם בדיוק את אותו החלום. זה חיבור של נשמה ומטרה.',
@@ -59,39 +62,45 @@ const SuccessStoriesSection: React.FC = () => {
       color: 'orange' as const,
     },
   ];
+  // --- END: DATA REMAINS UNCHANGED ---
 
   return (
     <motion.section
       ref={ref}
       id="success-stories"
-      className="py-16 md:py-20 px-4 relative"
+      className="py-16 md:py-20 px-4 bg-white relative" // Changed background to white for cleaner look
       variants={containerVariants}
       initial="hidden"
       animate={isInView ? 'visible' : 'hidden'}
     >
-      {/* Subtle background pattern */}
-      <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:20px_20px]"></div>
+      <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#0891b2_1px,transparent_1px)] [background-size:20px_20px]"></div>
 
       <div className="max-w-6xl mx-auto relative">
-        {/* Header */}
+        {/* --- START: UPDATED HEADER SECTION --- */}
         <motion.div
           className="text-center mb-12 md:mb-16"
           variants={headerVariants}
         >
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4">
-            סיפורי
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-800 mb-4">
+            סיפורים שמתחילים
             <span
-              className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-cyan-700 animate-gradient"
-              style={{ backgroundSize: '200% 200%' }}
+              className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-teal-600"
             >
               {' '}
-              הצלחה{' '}
+              בנשמה
             </span>
           </h2>
-          <div className="w-24 h-1 bg-gradient-to-r from-cyan-600 to-cyan-700 mx-auto rounded-full" />
+          <div className="w-24 h-1 bg-gradient-to-r from-cyan-600 to-teal-600 mx-auto rounded-full mb-6" />
+          <motion.p 
+            className="text-lg text-gray-600 max-w-3xl mx-auto"
+            variants={headerVariants} // re-using variant for simplicity
+          >
+            התיאוריה נהדרת, אבל התוצאות מדברות בעד עצמן. אלו לא רק סיסמאות, אלו חיים שהשתנו. כמה מילים מהזוגות שמצאו אהבה דרך הגישה המעמיקה שלנו.
+          </motion.p>
         </motion.div>
+        {/* --- END: UPDATED HEADER SECTION --- */}
 
-        {/* Testimonials Grid */}
+        {/* Testimonials Grid - UNCHANGED LOGIC */}
         <motion.div
           className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto"
           variants={containerVariants}
@@ -115,8 +124,7 @@ const SuccessStoriesSection: React.FC = () => {
           ))}
         </motion.div>
 
-        {/* Future: Add button when more testimonials are available */}
-        {/* 
+        {/* --- START: NEW OPTIONAL CLOSING TEXT --- */}
         <motion.div 
           className="mt-12 text-center"
           variants={{
@@ -124,21 +132,15 @@ const SuccessStoriesSection: React.FC = () => {
             visible: {
               opacity: 1,
               y: 0,
-              transition: { duration: 0.6, ease: "easeOut" }
+              transition: { duration: 0.6, ease: "easeOut", delay: 0.5 } // Delay after cards appear
             }
           }}
         >
-          <Link href="/success-stories">
-            <Button
-              variant="outline"
-              className="border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-300 transition-all duration-300 rounded-xl group"
-            >
-              <span>לעוד סיפורי הצלחה</span>
-              <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-            </Button>
-          </Link>
+          <p className="text-base text-gray-500">
+            אנו מכבדים את פרטיות הזוגות שלנו, ומשתפים סיפורים רק בהסכמתם המלאה.
+          </p>
         </motion.div>
-        */}
+        {/* --- END: NEW OPTIONAL CLOSING TEXT --- */}
       </div>
     </motion.section>
   );
