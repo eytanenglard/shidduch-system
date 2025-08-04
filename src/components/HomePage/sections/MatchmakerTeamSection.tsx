@@ -136,14 +136,14 @@ const MatchmakerCard: React.FC<MatchmakerCardProps> = ({
         </p>
 
         {/* --- START: Button with hover animation (MODIFIED) --- */}
-        <Link href={`/contact?matchmaker=${encodeURIComponent(name)}`} passHref>
-          <motion.a
-            className={`inline-block text-center px-8 py-3 rounded-lg text-white ${getButtonColorByColor()} transition-colors duration-300 font-medium`}
+        <Link href={`/contact?matchmaker=${encodeURIComponent(name)}`}>
+          <motion.div // <--- שונה מ-motion.a
+            className={`inline-block text-center px-8 py-3 rounded-lg text-white ${getButtonColorByColor()} transition-colors duration-300 font-medium cursor-pointer`} // <--- הוספתי cursor-pointer
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
             {`צרו קשר עם ${name.split(' ')[0]}`}
-          </motion.a>
+          </motion.div>
         </Link>
         {/* --- END: Button with hover animation (MODIFIED) --- */}
       </div>
