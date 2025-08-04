@@ -152,7 +152,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
 
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-tight">
             <span
-              className="block text-gray-800 overflow-hidden whitespace-nowrap animate-typing-line1"
+              className="inline-block text-gray-800 overflow-hidden whitespace-nowrap animate-typing-line1"
               style={{
                 width: '0',
                 animationDelay: '0.4s',
@@ -160,9 +160,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
               }}
             >
               זוגיות שמתחילה
-            </span>
+            </span>{' '}
             <span
-              className="block overflow-hidden whitespace-nowrap animate-typing-line2 relative bg-gradient-to-r from-cyan-500 to-pink-500 text-transparent bg-clip-text"
+              className="inline-block overflow-hidden whitespace-nowrap animate-typing-line2 relative bg-gradient-to-r from-purple-500 via-pink-500 to-fuchsia-500 text-transparent bg-clip-text"
               style={{
                 width: '0',
                 animationDelay: '1.3s',
@@ -201,7 +201,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
             </div>
 
             <div className="relative z-10">
-              <div className="text-xl md:text-2xl lg:text-3xl text-gray-700 leading-relaxed max-w-4xl mx-auto">
+              <div className="text-xl md:text-2xl lg:text-3xl text-gray-700 leading-relaxed max-w-5xl mx-auto">
                 <span
                   className="inline-block overflow-hidden whitespace-nowrap animate-typing-description-1 opacity-0"
                   style={{
@@ -329,7 +329,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                 <div className="p-4 bg-white/60 backdrop-blur-md rounded-full shadow-lg border border-white/50">
                   <Brain className="w-8 h-8 text-cyan-700" />
                 </div>
-                <span className="font-bold text-gray-700">כלים חכמים</span>
+                <span className="font-bold text-gray-700">כלים טכנולוגיים</span>
               </div>
               <div
                 className="h-8 w-px border-r border-dashed border-gray-400 opacity-0 animate-fade-in-up"
