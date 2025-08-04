@@ -52,14 +52,58 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
 
   const [showCursor, setShowCursor] = useState(true);
 
-  // הסרת הקורסור אחרי סיום האנימציה
+  // --- START: State for sequenced animations ---
+  const [showSynergy, setShowSynergy] = useState(false);
+  const [showButtons, setShowButtons] = useState(false);
+  const [showPrinciples, setShowPrinciples] = useState(false);
+
+  // Constants for timing the animation sequence
+  const TYPEWRITER_TOTAL_DURATION = 8800; // Total time for the description typewriter effect
+  const SYNERGY_ANIMATION_TOTAL_DURATION = 2000; // Duration of the synergy/match point animation
+  const BUTTONS_ANIMATION_DURATION = 700; // Duration of the buttons' appearance animation
+  // --- END: State for sequenced animations ---
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowCursor(false);
-    }, 5500); // 5.5 שניות אחרי תחילת הטעינה
+    }, 2500);
 
     return () => clearTimeout(timer);
   }, []);
+
+  // --- START: useEffect to manage the animation sequence ---
+  useEffect(() => {
+    // Start the sequence only when the component is visible
+    if (isVisible) {
+      // Timer to show synergy section after typewriter is done
+      const timer1 = setTimeout(() => {
+        setShowSynergy(true);
+      }, TYPEWRITER_TOTAL_DURATION);
+
+      // Timer to show buttons after synergy animation is done
+      const timer2 = setTimeout(() => {
+        setShowButtons(true);
+      }, TYPEWRITER_TOTAL_DURATION + SYNERGY_ANIMATION_TOTAL_DURATION);
+
+      // Timer to show principles after buttons are done
+      const timer3 = setTimeout(
+        () => {
+          setShowPrinciples(true);
+        },
+        TYPEWRITER_TOTAL_DURATION +
+          SYNERGY_ANIMATION_TOTAL_DURATION +
+          BUTTONS_ANIMATION_DURATION
+      );
+
+      // Cleanup timers on component unmount or if visibility changes
+      return () => {
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+        clearTimeout(timer3);
+      };
+    }
+  }, [isVisible]);
+  // --- END: useEffect to manage the animation sequence ---
 
   return (
     <motion.section
@@ -111,7 +155,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
               className="block text-gray-800 overflow-hidden whitespace-nowrap animate-typing-line1"
               style={{
                 width: '0',
-                animationDelay: '0.5s',
+                animationDelay: '0.4s',
                 animationFillMode: 'forwards',
               }}
             >
@@ -121,7 +165,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
               className="block overflow-hidden whitespace-nowrap animate-typing-line2 relative bg-gradient-to-r from-cyan-500 to-pink-500 text-transparent bg-clip-text"
               style={{
                 width: '0',
-                animationDelay: '2.8s',
+                animationDelay: '1.3s',
                 animationFillMode: 'forwards',
               }}
             >
@@ -137,13 +181,10 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          // השינוי הוא בשורת ה-transition, ה-delay עודכן ל-5.2 שניות
-          transition={{ duration: 0.8, delay: 5.2 }}
+          transition={{ duration: 0.8, delay: 2.2 }}
           className="mt-12 max-w-5xl mx-auto relative"
         >
-          {/* --- START: שינוי 1 - התאמת צבעי הרקע --- */}
           <div className="mosaic-description-container bg-gradient-to-br from-cyan-500/10 via-pink-500/10 to-cyan-500/10 rounded-3xl p-10 relative overflow-hidden border border-cyan-500/10 text-center">
-            {/* רקע מסתובב מעודכן */}
             <div
               className="absolute -top-1/2 -right-1/2 w-[200%] h-[200%] opacity-80 animate-rotate-mosaic"
               style={{
@@ -154,21 +195,18 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                 )`,
               }}
             ></div>
-            {/* --- END: שינוי 1 --- */}
 
-            {/* סימן ציטוט */}
             <div className="absolute -top-6 right-8 text-9xl text-cyan-600/20 font-serif leading-none">
               “
             </div>
 
-            {/* הטקסט עם אפקט מכונת כתיבה */}
             <div className="relative z-10">
               <div className="text-xl md:text-2xl lg:text-3xl text-gray-700 leading-relaxed max-w-4xl mx-auto">
                 <span
                   className="inline-block overflow-hidden whitespace-nowrap animate-typing-description-1 opacity-0"
                   style={{
                     width: '0',
-                    animationDelay: '5.5s',
+                    animationDelay: '2.4s',
                     animationFillMode: 'forwards',
                   }}
                 >
@@ -179,7 +217,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                 <span
                   className="opacity-0 animate-fade-in-word"
                   style={{
-                    animationDelay: '8.5s',
+                    animationDelay: '3.6s',
                     animationFillMode: 'forwards',
                   }}
                 >
@@ -190,7 +228,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                   className="inline-block overflow-hidden whitespace-nowrap animate-typing-description-2 opacity-0"
                   style={{
                     width: '0',
-                    animationDelay: '9s',
+                    animationDelay: '3.7s',
                     animationFillMode: 'forwards',
                   }}
                 >
@@ -200,56 +238,50 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                 <span
                   className="opacity-0 animate-fade-in-word"
                   style={{
-                    animationDelay: '12s',
+                    animationDelay: '4.9s',
                     animationFillMode: 'forwards',
                   }}
                 >
                   {' '}
                 </span>
 
-                {/* START: פיצול הטקסט לשתי שורות עם אנימציות נפרדות */}
-                {/* שורה ראשונה של החלק השלישי */}
                 <span
                   className="inline-block overflow-hidden whitespace-nowrap animate-typing-description-3a opacity-0"
                   style={{
                     width: '0',
-                    animationDelay: '12.5s', // מתחיל כרגיל
+                    animationDelay: '5.0s',
                     animationFillMode: 'forwards',
                   }}
                 >
                   הוא מאפשר לנו להכיר אתכם לעומק, וכך להגיש לכם הצעות שידוך שהן
                 </span>
 
-                {/* רווח וירידת שורה */}
                 <span
                   className="opacity-0 animate-fade-in-word"
                   style={{
-                    animationDelay: '15s', // מופיע אחרי סיום השורה הראשונה
+                    animationDelay: '6.2s',
                     animationFillMode: 'forwards',
                   }}
                 >
                   {' '}
-                  <br /> {/* ירידת שורה מפורשת */}
+                  <br />
                 </span>
 
-                {/* שורה שנייה של החלק השלישי */}
                 <span
                   className="inline-block overflow-hidden whitespace-nowrap animate-typing-description-3b opacity-0"
                   style={{
                     width: '0',
-                    animationDelay: '15.5s', // מתחיל אחרי ירידת השורה
+                    animationDelay: '6.3s',
                     animationFillMode: 'forwards',
                   }}
                 >
                   הרבה יותר מפרטים יבשים –{' '}
                 </span>
-                {/* END: פיצול הטקסט */}
 
-                {/* החלק המודגש - עם דיליי מעודכן */}
                 <span
                   className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-pink-500 relative opacity-0 animate-fade-in-highlight"
                   style={{
-                    animationDelay: '17.5s', // דחינו את ההשהיה
+                    animationDelay: '7.2s',
                     animationFillMode: 'forwards',
                   }}
                 >
@@ -257,7 +289,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                   <span
                     className="absolute bottom-0 right-0 w-full h-0.5 bg-gradient-to-r from-cyan-500 to-pink-500 rounded-full animate-underline-grow"
                     style={{
-                      animationDelay: '18s', // דחינו גם את זה
+                      animationDelay: '7.4s',
                       transformOrigin: 'right',
                       transform: 'scaleX(0)',
                       animationFillMode: 'forwards',
@@ -265,216 +297,218 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                   ></span>
                 </span>
 
-                {/* חלק אחרון - עם דיליי מעודכן */}
                 <span
                   className="inline-block overflow-hidden whitespace-nowrap animate-typing-description-4 opacity-0"
                   style={{
                     width: '0',
-                    animationDelay: '18.5s', // דחינו גם את זה
+                    animationDelay: '7.8s',
                     animationFillMode: 'forwards',
                   }}
                 >
-                  , שמאפשר לכם לקבל החלטה ממקום של הבנה אמיתית.
+                  שמאפשר לכם לקבל החלטה ממקום של הבנה אמיתית.
                 </span>
               </div>
             </div>
           </div>
         </motion.div>
 
-        {/* --- START: שינוי 2 - חלק ויזואליזציית הסינרגיה מופיע פעם אחת ובמיקום קבוע --- */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.5 }} // הופעה מעט אחרי התיבה
-          className="w-full max-w-4xl mt-12 md:mt-16"
-        >
-          {/* גרסת מובייל */}
-          <div className="md:hidden flex flex-col items-center gap-3">
-            <div
-              className={`flex flex-col items-center gap-2 opacity-0 ${isVisible ? 'animate-fade-in-up' : ''}`}
-              style={{ animationDelay: '200ms' }}
-            >
-              <div className="p-4 bg-white/60 backdrop-blur-md rounded-full shadow-lg border border-white/50">
-                <Brain className="w-8 h-8 text-cyan-700" />
-              </div>
-              <span className="font-bold text-gray-700">כלים חכמים</span>
-            </div>
-            <div
-              className={`h-8 w-px border-r border-dashed border-gray-400 opacity-0 ${isVisible ? 'animate-fade-in-up' : ''}`}
-              style={{ animationDelay: '400ms' }}
-            />
-            <div
-              className={`flex flex-col items-center gap-2 opacity-0 ${isVisible ? 'animate-fade-in-up' : ''}`}
-              style={{ animationDelay: '600ms' }}
-            >
-              <div className="p-4 bg-white/60 backdrop-blur-md rounded-full shadow-lg border border-white/50">
-                <Handshake className="w-8 h-8 text-pink-500" />
-              </div>
-              <span className="font-bold text-gray-700">ליווי אישי</span>
-            </div>
-            <div
-              className={`opacity-0 ${isVisible ? 'animate-fade-in-up' : ''}`}
-              style={{ animationDelay: '800ms' }}
-            >
-              <ChevronDown className="w-7 h-7 text-gray-400 my-2" />
-            </div>
-            <div
-              className={`opacity-0 ${isVisible ? 'animate-mobile-match-point' : ''}`}
-              style={{ animationDelay: '1000ms' }}
-            >
-              <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-white to-gray-50 rounded-full shadow-2xl border-2 border-white">
-                <div className="relative w-8 h-8">
-                  <Image
-                    src={getRelativeCloudinaryPath(logoUrl)}
-                    alt="NeshamaTech Logo"
-                    fill
-                    className="object-contain"
-                  />
-                </div>
-                <span className="font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-700 to-pink-500">
-                  NeshamaTech
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* גרסת דסקטופ */}
-          <div className={`hidden md:block relative h-64`}>
-            <div
-              className={`absolute top-1/2 left-0 -translate-y-1/2 flex items-center gap-3 opacity-0 ${isVisible ? 'animate-synergy-enter-left' : ''}`}
-            >
-              <div className="p-4 bg-white/60 backdrop-blur-md rounded-full shadow-lg border border-white/50">
-                <Brain className="w-8 h-8 text-cyan-700" />
-              </div>
-              <span className="font-bold text-gray-700">כלים טכנולוגיים</span>
-            </div>
-            <div
-              className={`absolute top-1/2 right-0 -translate-y-1/2 flex items-center gap-3 opacity-0 ${isVisible ? 'animate-synergy-enter-right' : ''}`}
-            >
-              <span className="font-bold text-gray-700">ליווי אישי</span>
-              <div className="p-4 bg-white/60 backdrop-blur-md rounded-full shadow-lg border border-white/50">
-                <Handshake className="w-8 h-8 text-pink-500" />
-              </div>
-            </div>
-            <svg
-              className="absolute inset-0 w-full h-full overflow-visible"
-              viewBox="0 0 700 256"
-            >
-              <defs>
-                <filter id="glow">
-                  <feGaussianBlur
-                    stdDeviation="3.5"
-                    result="coloredBlur"
-                  ></feGaussianBlur>
-                  <feMerge>
-                    <feMergeNode in="coloredBlur"></feMergeNode>
-                    <feMergeNode in="SourceGraphic"></feMergeNode>
-                  </feMerge>
-                </filter>
-              </defs>
-              <path
-                className={`${isVisible ? 'path-draw' : ''}`}
-                d="M 60 128 C 180 50, 280 50, 350 128"
-                stroke="#0891b2"
-                strokeWidth="2.5"
-                fill="none"
-                strokeLinecap="round"
-                filter="url(#glow)"
-              />
-              <path
-                className={`${isVisible ? 'path-draw' : ''}`}
-                d="M 640 128 C 520 200, 420 200, 350 128"
-                stroke="#ec4899"
-                strokeWidth="2.5"
-                fill="none"
-                strokeLinecap="round"
-                filter="url(#glow)"
-              />
-            </svg>
-            <div
-              className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 ${isVisible ? 'animate-match-point-appear' : ''}`}
-            >
-              <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-white to-gray-50 rounded-full shadow-2xl border-2 border-white">
-                <div className="relative w-9 h-9">
-                  <Image
-                    src={getRelativeCloudinaryPath(logoUrl)}
-                    alt="NeshamaTech Logo"
-                    fill
-                    className="object-contain"
-                  />
-                </div>
-                <span className="font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-700 to-pink-500">
-                  NeshamaTech
-                </span>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-        {/* --- END: שינוי 2 --- */}
-
-        {/* --- כפתורי קריאה לפעולה משודרגים --- */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.4 }}
-          className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4"
-        >
-          <Link href="/auth/register">
-            <Button
-              size="lg"
-              className="w-full sm:w-auto text-base md:text-lg px-8 py-6 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden"
-            >
-              <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
-              <span className="relative z-10 flex items-center">
-                הצעד הראשון שלי
-                <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-              </span>
-            </Button>
-          </Link>
-          <Link
-            href="/questionnaire"
-            id="onboarding-target-questionnaire-button"
+        {/* --- START: Synergy section - appears after typewriter --- */}
+        {showSynergy && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: 'easeOut' }}
+            className="w-full max-w-4xl mt-12 md:mt-16"
           >
-            <Button
-              variant="outline"
-              size="lg"
-              className="w-full sm:w-auto text-base md:text-lg px-8 py-6 border-2 border-teal-600/30 text-teal-700 bg-white/50 hover:bg-white hover:border-teal-600/50 rounded-full transition-all duration-300 backdrop-blur-sm"
+            {/* גרסת מובייל */}
+            <div className="md:hidden flex flex-col items-center gap-3">
+              <div
+                className="flex flex-col items-center gap-2 opacity-0 animate-fade-in-up"
+                style={{ animationDelay: '200ms' }}
+              >
+                <div className="p-4 bg-white/60 backdrop-blur-md rounded-full shadow-lg border border-white/50">
+                  <Brain className="w-8 h-8 text-cyan-700" />
+                </div>
+                <span className="font-bold text-gray-700">כלים חכמים</span>
+              </div>
+              <div
+                className="h-8 w-px border-r border-dashed border-gray-400 opacity-0 animate-fade-in-up"
+                style={{ animationDelay: '400ms' }}
+              />
+              <div
+                className="flex flex-col items-center gap-2 opacity-0 animate-fade-in-up"
+                style={{ animationDelay: '600ms' }}
+              >
+                <div className="p-4 bg-white/60 backdrop-blur-md rounded-full shadow-lg border border-white/50">
+                  <Handshake className="w-8 h-8 text-pink-500" />
+                </div>
+                <span className="font-bold text-gray-700">ליווי אישי</span>
+              </div>
+              <div
+                className="opacity-0 animate-fade-in-up"
+                style={{ animationDelay: '800ms' }}
+              >
+                <ChevronDown className="w-7 h-7 text-gray-400 my-2" />
+              </div>
+              <div
+                className="opacity-0 animate-mobile-match-point"
+                style={{ animationDelay: '1000ms' }}
+              >
+                <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-white to-gray-50 rounded-full shadow-2xl border-2 border-white">
+                  <div className="relative w-8 h-8">
+                    <Image
+                      src={getRelativeCloudinaryPath(logoUrl)}
+                      alt="NeshamaTech Logo"
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                  <span className="font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-700 to-pink-500">
+                    NeshamaTech
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* גרסת דסקטופ */}
+            <div className="hidden md:block relative h-64">
+              <div className="absolute top-1/2 left-0 -translate-y-1/2 flex items-center gap-3 opacity-0 animate-synergy-enter-left">
+                <div className="p-4 bg-white/60 backdrop-blur-md rounded-full shadow-lg border border-white/50">
+                  <Brain className="w-8 h-8 text-cyan-700" />
+                </div>
+                <span className="font-bold text-gray-700">כלים טכנולוגיים</span>
+              </div>
+              <div className="absolute top-1/2 right-0 -translate-y-1/2 flex items-center gap-3 opacity-0 animate-synergy-enter-right">
+                <span className="font-bold text-gray-700">ליווי אישי</span>
+                <div className="p-4 bg-white/60 backdrop-blur-md rounded-full shadow-lg border border-white/50">
+                  <Handshake className="w-8 h-8 text-pink-500" />
+                </div>
+              </div>
+              <svg
+                className="absolute inset-0 w-full h-full overflow-visible"
+                viewBox="0 0 700 256"
+              >
+                <defs>
+                  <filter id="glow">
+                    <feGaussianBlur
+                      stdDeviation="3.5"
+                      result="coloredBlur"
+                    ></feGaussianBlur>
+                    <feMerge>
+                      <feMergeNode in="coloredBlur"></feMergeNode>
+                      <feMergeNode in="SourceGraphic"></feMergeNode>
+                    </feMerge>
+                  </filter>
+                </defs>
+                <path
+                  className="path-draw"
+                  d="M 60 128 C 180 50, 280 50, 350 128"
+                  stroke="#0891b2"
+                  strokeWidth="2.5"
+                  fill="none"
+                  strokeLinecap="round"
+                  filter="url(#glow)"
+                />
+                <path
+                  className="path-draw"
+                  d="M 640 128 C 520 200, 420 200, 350 128"
+                  stroke="#ec4899"
+                  strokeWidth="2.5"
+                  fill="none"
+                  strokeLinecap="round"
+                  filter="url(#glow)"
+                />
+              </svg>
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 animate-match-point-appear">
+                <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-white to-gray-50 rounded-full shadow-2xl border-2 border-white">
+                  <div className="relative w-9 h-9">
+                    <Image
+                      src={getRelativeCloudinaryPath(logoUrl)}
+                      alt="NeshamaTech Logo"
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                  <span className="font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-700 to-pink-500">
+                    NeshamaTech
+                  </span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+        {/* --- END: Synergy section --- */}
+
+        {/* --- START: Buttons section - appears after synergy --- */}
+        {showButtons && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: 'easeOut' }}
+            className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4"
+          >
+            <Link href="/auth/register">
+              <Button
+                size="lg"
+                className="w-full sm:w-auto text-base md:text-lg px-8 py-6 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden"
+              >
+                <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
+                <span className="relative z-10 flex items-center">
+                  הצעד הראשון שלי
+                  <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                </span>
+              </Button>
+            </Link>
+            <Link
+              href="/questionnaire"
+              id="onboarding-target-questionnaire-button"
             >
-              לשאלון ההיכרות
-            </Button>
-          </Link>
-        </motion.div>
+              <Button
+                variant="outline"
+                size="lg"
+                className="w-full sm:w-auto text-base md:text-lg px-8 py-6 border-2 border-teal-600/30 text-teal-700 bg-white/50 hover:bg-white hover:border-teal-600/50 rounded-full transition-all duration-300 backdrop-blur-sm"
+              >
+                לשאלון ההיכרות
+              </Button>
+            </Link>
+          </motion.div>
+        )}
+        {/* --- END: Buttons section --- */}
 
-        {/* --- סרגל עקרונות משודרג --- */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.6 }}
-          className="mt-16 w-full max-w-5xl"
-        >
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4 bg-white/70 backdrop-blur-md py-6 px-8 rounded-2xl shadow-lg border border-white/60 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-teal-600/5 via-transparent to-amber-400/5"></div>
+        {/* --- START: Principles section - appears after buttons --- */}
+        {showPrinciples && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: 'easeOut' }}
+            className="mt-16 w-full max-w-5xl"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4 bg-white/70 backdrop-blur-md py-6 px-8 rounded-2xl shadow-lg border border-white/60 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-teal-600/5 via-transparent to-amber-400/5"></div>
 
-            <PrincipleItem
-              icon={<BookOpen className="w-5 h-5" />}
-              text="פרופיל עם סיפור, לא רק תמונה"
-              delay={0.7}
-            />
-            <PrincipleItem
-              icon={<Shield className="w-5 h-5" />}
-              text="דיסקרטיות מוחלטת בכל שלב"
-              delay={0.8}
-            />
-            <PrincipleItem
-              icon={<User className="w-5 h-5" />}
-              text="ליווי של שדכן שמבין אותך"
-              delay={0.9}
-            />
-          </div>
-        </motion.div>
+              <PrincipleItem
+                icon={<BookOpen className="w-5 h-5" />}
+                text="פרופיל עם סיפור, לא רק תמונה"
+                delay={0.7}
+              />
+              <PrincipleItem
+                icon={<Shield className="w-5 h-5" />}
+                text="דיסקרטיות מוחלטת בכל שלב"
+                delay={0.8}
+              />
+              <PrincipleItem
+                icon={<User className="w-5 h-5" />}
+                text="ליווי של שדכן שמבין אותך"
+                delay={0.9}
+              />
+            </div>
+          </motion.div>
+        )}
+        {/* --- END: Principles section --- */}
       </div>
 
       <style jsx>{`
+        /* --- START: משך האנימציות קוצר משמעותית --- */
         @keyframes typing-description-3a {
           from {
             width: 0;
@@ -504,17 +538,14 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
         }
 
         .animate-typing-description-3a {
-          animation: typing-description-3a 2.5s steps(60, end) forwards;
+          animation: typing-description-3a 1.2s steps(60, end) forwards; /* קוצר מ-2.5s */
         }
 
         .animate-typing-description-3b {
-          animation: typing-description-3b 2s steps(30, end) forwards;
+          animation: typing-description-3b 0.8s steps(30, end) forwards; /* קוצר מ-2s */
         }
+        /* --- END --- */
 
-        /* והסר את ההגדרה הישנה הזו כדי למנוע כפילות */
-        /* .animate-typing-description-3 {
-          animation: typing-description-3 3.5s steps(70, end) forwards;
-        } */
         @keyframes gradient-slow {
           0%,
           100% {
@@ -547,13 +578,15 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
           }
         }
 
+        /* --- START: משך האנימציות קוצר --- */
         .animate-typing-line1 {
-          animation: typing-line1 2s steps(20, end) forwards;
+          animation: typing-line1 0.8s steps(20, end) forwards; /* קוצר מ-2s */
         }
 
         .animate-typing-line2 {
-          animation: typing-line2 2s steps(15, end) forwards;
+          animation: typing-line2 0.8s steps(15, end) forwards; /* קוצר מ-2s */
         }
+        /* --- END --- */
 
         /* אנימציות מכונת כתיבה לתיאור */
         @keyframes typing-description-1 {
@@ -612,12 +645,13 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
           }
         }
 
+        /* --- START: משך האנימציות קוצר --- */
         .animate-typing-description-1 {
-          animation: typing-description-1 3s steps(60, end) forwards;
+          animation: typing-description-1 1.2s steps(60, end) forwards; /* קוצר מ-3s */
         }
 
         .animate-typing-description-2 {
-          animation: typing-description-2 2.5s steps(45, end) forwards;
+          animation: typing-description-2 1.2s steps(45, end) forwards; /* קוצר מ-2.5s */
         }
 
         .animate-typing-description-3 {
@@ -625,8 +659,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
         }
 
         .animate-typing-description-4 {
-          animation: typing-description-4 2s steps(40, end) forwards;
+          animation: typing-description-4 1s steps(40, end) forwards; /* קוצר מ-2s */
         }
+        /* --- END --- */
 
         /* אנימציה להופעת מילים בודדות */
         @keyframes fade-in-word {
@@ -653,7 +688,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
           }
         }
         .animate-fade-in-highlight {
-          animation: fade-in-highlight 0.6s ease-out forwards;
+          animation: fade-in-highlight 0.4s ease-out forwards; /* קוצר מ-0.6s */
         }
 
         @keyframes blink {
@@ -706,7 +741,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
           }
         }
         .animate-underline-grow {
-          animation: underline-grow 1s ease-out forwards;
+          animation: underline-grow 0.5s ease-out forwards; /* קוצר מ-1s */
         }
 
         /* אפקט זוהר */
