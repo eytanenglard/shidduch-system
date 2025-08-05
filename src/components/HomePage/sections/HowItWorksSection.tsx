@@ -113,7 +113,8 @@ const KeyBenefit: React.FC<{
 // --- Main Component with UPDATED TEXT ---
 const HowItWorksSection: React.FC = () => {
   const demoRef = useRef(null);
-  const isDemoInView = useInView(demoRef, { once: true, amount: 0.5 });
+  const isDemoInView = useInView(demoRef, { once: true, amount: 0.3 });
+
   return (
     <section
       id="how-it-works"
@@ -251,8 +252,8 @@ const HowItWorksSection: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.4 }}
-          transition={{ duration: 0.6 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.8 }}
           className="relative mb-20"
         >
           <div className="text-center mb-16">
@@ -282,7 +283,7 @@ const HowItWorksSection: React.FC = () => {
             animate={
               isDemoInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }
             }
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
             className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 max-w-7xl mx-auto"
           >
             <div className="flex flex-col items-center">
