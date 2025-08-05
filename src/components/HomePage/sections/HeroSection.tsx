@@ -304,7 +304,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
           <div className={`md:hidden relative h-64`}>
             {/* אלמנט שמאל - כלים חכמים */}
             <div
-              className={`absolute top-1/2 left-4 -translate-y-1/2 flex flex-col items-center gap-2 opacity-0 ${isVisible ? 'animate-synergy-enter-left' : ''}`}
+              className={`absolute top-1/2 left-2 -translate-y-1/2 flex flex-col items-center gap-2 opacity-0 ${isVisible ? 'animate-synergy-enter-left' : ''}`}
             >
               <div className="p-4 bg-white/60 backdrop-blur-md rounded-full shadow-lg border border-white/50">
                 <Brain className="w-8 h-8 text-cyan-500" />
@@ -314,7 +314,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
             
             {/* אלמנט ימין - ליווי אישי */}
             <div
-              className={`absolute top-1/2 right-4 -translate-y-1/2 flex flex-col items-center gap-2 opacity-0 ${isVisible ? 'animate-synergy-enter-right' : ''}`}
+              className={`absolute top-1/2 right-2 -translate-y-1/2 flex flex-col items-center gap-2 opacity-0 ${isVisible ? 'animate-synergy-enter-right' : ''}`}
             >
               <div className="p-4 bg-white/60 backdrop-blur-md rounded-full shadow-lg border border-white/50">
                 <Handshake className="w-8 h-8 text-pink-500" />
@@ -322,7 +322,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
               <span className="font-bold text-gray-700 text-sm text-center">ליווי אישי</span>
             </div>
             
-            {/* SVG עם קווים ארוכים יותר שמתחילים מהאייקונים */}
+            {/* SVG עם קווים משופרים וארוכים יותר */}
             <svg
               className="absolute inset-0 w-full h-full overflow-visible"
               viewBox="0 0 320 256"
@@ -339,20 +339,20 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                   </feMerge>
                 </filter>
               </defs>
-              {/* קו משמאל לאמצע - ארוך הרבה יותר */}
+              {/* קו משמאל לאמצע - ארוך ומושלם יותר */}
               <path
                 className={`${isVisible ? 'path-draw' : ''}`}
-                d="M 30 128 C 90 60, 130 60, 160 110"
+                d="M 25 128 C 70 50, 120 50, 160 128"
                 stroke="#06b6d4"
                 strokeWidth="2.5"
                 fill="none"
                 strokeLinecap="round"
                 filter="url(#glow-mobile)"
               />
-              {/* קו מימין לאמצע - ארוך הרבה יותר */}
+              {/* קו מימין לאמצע - ארוך ומושלם יותר */}
               <path
                 className={`${isVisible ? 'path-draw' : ''}`}
-                d="M 290 128 C 230 196, 190 196, 160 110"
+                d="M 295 128 C 250 206, 200 206, 160 128"
                 stroke="#ec4899"
                 strokeWidth="2.5"
                 fill="none"
@@ -361,7 +361,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
               />
             </svg>
             
-            {/* לוגו במרכז - חזרנו למיקום המקורי */}
+            {/* לוגו במרכז */}
             <div
               className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 ${isVisible ? 'animate-match-point-appear' : ''}`}
             >
@@ -377,13 +377,44 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
               </div>
             </div>
             
-            {/* כיתוב NeshamaTech בנפרד - למטה יותר ומרכוז מתחת ללוגו */}
+            {/* כיתוב NeshamaTech בנפרד - ממורכז בדיוק מתחת ללוגו */}
             <div
-              className={`absolute top-[80%] left-1/2 -translate-x-1/2 opacity-0 ${isVisible ? 'animate-text-appear' : ''}`}
+              className={`absolute left-1/2 -translate-x-1/2 opacity-0 ${isVisible ? 'animate-text-appear' : ''}`}
+              style={{ top: 'calc(50% + 45px)' }}
             >
               <span className="font-bold text-lg text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-pink-500">
                 NeshamaTech
               </span>
+            </div>
+
+            {/* עיגולים דקורטיביים מעוצבים */}
+            <div className="absolute top-[15%] left-[20%] w-3 h-3 bg-gradient-to-br from-cyan-300/40 to-blue-400/40 rounded-full animate-float-slow blur-sm"></div>
+            <div className="absolute top-[25%] right-[15%] w-2 h-2 bg-gradient-to-br from-pink-300/40 to-purple-400/40 rounded-full animate-float-slow blur-sm" style={{ animationDelay: '1s' }}></div>
+            <div className="absolute bottom-[20%] left-[15%] w-4 h-4 bg-gradient-to-br from-cyan-200/30 to-pink-200/30 rounded-full animate-float-slow blur-sm" style={{ animationDelay: '2s' }}></div>
+            <div className="absolute bottom-[30%] right-[25%] w-2.5 h-2.5 bg-gradient-to-br from-purple-300/40 to-cyan-300/40 rounded-full animate-float-slow blur-sm" style={{ animationDelay: '0.5s' }}></div>
+
+            {/* חתימה דקורטיבית מתחת לכיתוב */}
+            <div
+              className={`absolute left-1/2 -translate-x-1/2 opacity-0 ${isVisible ? 'animate-signature-appear' : ''}`}
+              style={{ top: 'calc(50% + 75px)' }}
+            >
+              <svg width="60" height="8" viewBox="0 0 60 8" className="overflow-visible">
+                <path
+                  d="M2 4 C15 1, 25 7, 35 4 C45 2, 55 6, 58 4"
+                  stroke="url(#signature-gradient)"
+                  strokeWidth="1.5"
+                  fill="none"
+                  strokeLinecap="round"
+                  className="signature-path"
+                />
+                <defs>
+                  <linearGradient id="signature-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.6"/>
+                    <stop offset="50%" stopColor="#ec4899" stopOpacity="0.8"/>
+                    <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.6"/>
+                  </linearGradient>
+                </defs>
+              </svg>
             </div>
           </div>
 
@@ -673,6 +704,32 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
         }
         .animate-text-appear {
           animation: text-appear 0.5s 2.2s ease-out forwards;
+        }
+
+        @keyframes signature-appear {
+          from {
+            opacity: 0;
+            transform: translateY(5px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-signature-appear {
+          animation: signature-appear 0.6s 2.8s ease-out forwards;
+        }
+
+        .signature-path {
+          stroke-dasharray: 100;
+          stroke-dashoffset: 100;
+          animation: signature-draw 1s 2.8s ease-out forwards;
+        }
+
+        @keyframes signature-draw {
+          to {
+            stroke-dashoffset: 0;
+          }
         }
       `}</style>
     </motion.section>
