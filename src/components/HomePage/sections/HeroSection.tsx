@@ -441,7 +441,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
         >
           <div className="text-center mb-10">
             <h3 className="text-2xl font-bold text-gray-700 sm:text-3xl">
-              הגישה הייחודית שלנו
+              הגישה שלנו
             </h3>
             <p className="mt-2 text-gray-500">
               שלושה עקרונות יסוד שמבטיחים חוויה אחרת, עמוקה ואמיתית.

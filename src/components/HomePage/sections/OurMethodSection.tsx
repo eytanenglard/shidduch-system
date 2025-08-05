@@ -1,7 +1,13 @@
 // src/components/HomePage/sections/OurMethodSection.tsx
 'use client';
 
-import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useMemo,
+} from 'react';
 import { motion, useInView, AnimatePresence, PanInfo } from 'framer-motion';
 import {
   Heart,
@@ -43,13 +49,13 @@ interface ConstellationLine {
 
 const MatchingConstellation: React.FC = () => {
   const [hoveredWorld, setHoveredWorld] = useState<number | null>(null);
-  const [selectedWorld, setSelectedWorld] = useState<number | null>(1);
+  const [selectedWorld, setSelectedWorld] = useState<number>(1); // Start with a selected world
   const [hasInteracted, setHasInteracted] = useState<boolean>(false);
   const [rotationOffset, setRotationOffset] = useState<number>(0);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [isMobile, setIsMobile] = useState<boolean>(false);
-  const [dragStartAngle, setDragStartAngle] = useState<number>(0);
-  const [dragStartRotation, setDragStartRotation] = useState<number>(0);
+
+  const panStartRotation = useRef(0);
   const sectionRef = useRef(null);
   const constellationRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(sectionRef, { once: true, amount: 0.2 });
@@ -59,88 +65,91 @@ const MatchingConstellation: React.FC = () => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
+
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const worlds: WorldData[] = useMemo(() => [
-    {
-      id: 1,
-      icon: <Heart className="w-6 h-6 md:w-8 md:h-8" />,
-      title: 'עולם הערכים',
-      shortDesc: 'הבסיס לבית משותף',
-      fullDescription:
-        'מה באמת חשוב לכם בחיים, במשפחה ובזוגיות? כאן אנחנו יורדים לשורשים כדי למצוא מישהו שהולך באותו כיוון ערכי כמוכם.',
-      color: 'from-rose-400 to-pink-500',
-      gradientFrom: '#fb7185',
-      gradientTo: '#ec4899',
-      angle: -72,
-      personalExample: 'מהו הערך החשוב ביותר שתרצו להנחיל בבית שתקימו?',
-      insight: 'כשיש בסיס ערכי משותף, קל יותר להתמודד עם אתגרי החיים, ביחד.',
-    },
-    {
-      id: 2,
-      icon: <Smile className="w-6 h-6 md:w-8 md:h-8" />,
-      title: 'עולם האישיות',
-      shortDesc: 'הדינמיקה הטבעית שלכם',
-      fullDescription:
-        'איך אתם מגיבים במצבי לחץ? מה נותן לכם אנרגיה? אנו מחפשים אישיות שתשלים אתכם ותיצור דינמיקה זורמת וטבעית, כזו שבה שניכם יכולים פשוט להיות עצמכם.',
-      color: 'from-amber-400 to-orange-500',
-      gradientFrom: '#fbbf24',
-      gradientTo: '#f97316',
-      angle: -144,
-      personalExample: 'איך הייתם מתארים את עצמכם בשלוש מילים לחבר קרוב?',
-      insight:
-        'התאמה אישיותית נכונה הופכת את הזוגיות למקום בטוח ומהנה להיות בו.',
-    },
-    {
-      id: 3,
-      icon: <Users className="w-6 h-6 md:w-8 md:h-8" />,
-      title: 'עולם הזוגיות',
-      shortDesc: 'החזון שלכם ל"ביחד"',
-      fullDescription:
-        'מה החזון שלכם ל"ביחד"? איך נראה ערב אידיאלי? איך פותרים קונפליקטים? אנו מבינים את תפיסת הזוגיות שלכם כדי למצוא מישהו שרוצה לבנות את אותו הבית.',
-      color: 'from-emerald-400 to-teal-500',
-      gradientFrom: '#34d399',
-      gradientTo: '#14b8a6',
-      angle: 144,
-      personalExample:
-        'מהי "שפת האהבה" העיקרית שלכם, ואיך אתם אוהבים לקבל אהבה?',
-      insight:
-        'כשהחזונות לזוגיות מתיישרים, קל יותר להתחיל לצעוד יחד באותו המסלול.',
-    },
-    {
-      id: 4,
-      icon: <BookOpen className="w-6 h-6 md:w-8 md:h-8" />,
-      title: 'העולם הדתי והרוחני',
-      shortDesc: 'החיבור הרוחני שלכם',
-      fullDescription:
-        'מה המקום של הדת והמסורת בחייכם? מה החזון החינוכי לילדים? אנו ניגשים לנושאים אלו ברגישות ובדיוק כדי למצוא התאמה רוחנית אמיתית.',
-      color: 'from-sky-400 to-blue-500',
-      gradientFrom: '#38bdf8',
-      gradientTo: '#3b82f6',
-      angle: 72,
-      personalExample: 'איך נראית שמירת השבת שלכם בפועל, ומה הגמישות שלכם?',
-      insight: 'התאמה רוחנית יוצרת בית שמלא במשמעות, עומק ושפה משותפת.',
-    },
-    {
-      id: 5,
-      icon: <Target className="w-6 h-6 md:w-8 md:h-8" />,
-      title: 'ציפיות מהשותף',
-      shortDesc: 'הצרכים שלכם בזוגיות',
-      fullDescription:
-        'אילו תכונות בשותף לחיים יעזרו לכם להיות הגרסה הטובה ביותר של עצמכם? כאן אנו מבינים את הצרכים העמוקים שלכם, כדי למצוא אדם שיצמח אתכם וייתן לכם ביטחון.',
-      color: 'from-violet-400 to-purple-500',
-      gradientFrom: '#a78bfa',
-      gradientTo: '#8b5cf6',
-      angle: 0,
-      personalExample:
-        'מהי התכונה האחת, החשובה ביותר, שחייבת להיות בבן/בת הזוג?',
-      insight: 'הבנת הצרכים ההדדיים היא המפתח לתקשורת פתוחה וזוגיות בריאה.',
-    },
-  ], []);
+  const worlds: WorldData[] = useMemo(
+    () => [
+      {
+        id: 1,
+        icon: <Heart className="w-6 h-6 md:w-8 md:h-8" />,
+        title: 'עולם הערכים',
+        shortDesc: 'הבסיס לבית משותף',
+        fullDescription:
+          'מה באמת חשוב לכם בחיים, במשפחה ובזוגיות? כאן אנחנו יורדים לשורשים כדי למצוא מישהו שהולך באותו כיוון ערכי כמוכם.',
+        color: 'from-rose-400 to-pink-500',
+        gradientFrom: '#fb7185',
+        gradientTo: '#ec4899',
+        angle: -72,
+        personalExample: 'מהו הערך החשוב ביותר שתרצו להנחיל בבית שתקימו?',
+        insight: 'כשיש בסיס ערכי משותף, קל יותר להתמודד עם אתגרי החיים, ביחד.',
+      },
+      {
+        id: 2,
+        icon: <Smile className="w-6 h-6 md:w-8 md:h-8" />,
+        title: 'עולם האישיות',
+        shortDesc: 'הדינמיקה הטבעית שלכם',
+        fullDescription:
+          'איך אתם מגיבים במצבי לחץ? מה נותן לכם אנרגיה? אנו מחפשים אישיות שתשלים אתכם ותיצור דינמיקה זורמת וטבעית, כזו שבה שניכם יכולים פשוט להיות עצמכם.',
+        color: 'from-amber-400 to-orange-500',
+        gradientFrom: '#fbbf24',
+        gradientTo: '#f97316',
+        angle: -144,
+        personalExample: 'איך הייתם מתארים את עצמכם בשלוש מילים לחבר קרוב?',
+        insight:
+          'התאמה אישיותית נכונה הופכת את הזוגיות למקום בטוח ומהנה להיות בו.',
+      },
+      {
+        id: 3,
+        icon: <Users className="w-6 h-6 md:w-8 md:h-8" />,
+        title: 'עולם הזוגיות',
+        shortDesc: 'החזון שלכם ל"ביחד"',
+        fullDescription:
+          'מה החזון שלכם ל"ביחד"? איך נראה ערב אידיאלי? איך פותרים קונפליקטים? אנו מבינים את תפיסת הזוגיות שלכם כדי למצוא מישהו שרוצה לבנות את אותו הבית.',
+        color: 'from-emerald-400 to-teal-500',
+        gradientFrom: '#34d399',
+        gradientTo: '#14b8a6',
+        angle: 144,
+        personalExample:
+          'מהי "שפת האהבה" העיקרית שלכם, ואיך אתם אוהבים לקבל אהבה?',
+        insight:
+          'כשהחזונות לזוגיות מתיישרים, קל יותר להתחיל לצעוד יחד באותו המסלול.',
+      },
+      {
+        id: 4,
+        icon: <BookOpen className="w-6 h-6 md:w-8 md:h-8" />,
+        title: 'העולם הדתי והרוחני',
+        shortDesc: 'החיבור הרוחני שלכם',
+        fullDescription:
+          'מה המקום של הדת והמסורת בחייכם? מה החזון החינוכי לילדים? אנו ניגשים לנושאים אלו ברגישות ובדיוק כדי למצוא התאמה רוחנית אמיתית.',
+        color: 'from-sky-400 to-blue-500',
+        gradientFrom: '#38bdf8',
+        gradientTo: '#3b82f6',
+        angle: 72,
+        personalExample: 'איך נראית שמירת השבת שלכם בפועל, ומה הגמישות שלכם?',
+        insight: 'התאמה רוחנית יוצרת בית שמלא במשמעות, עומק ושפה משותפת.',
+      },
+      {
+        id: 5,
+        icon: <Target className="w-6 h-6 md:w-8 md:h-8" />,
+        title: 'ציפיות מהשותף',
+        shortDesc: 'הצרכים שלכם בזוגיות',
+        fullDescription:
+          'אילו תכונות בשותף לחיים יעזרו לכם להיות הגרסה הטובה ביותר של עצמכם? כאן אנו מבינים את הצרכים העמוקים שלכם, כדי למצוא אדם שיצמח אתכם וייתן לכם ביטחון.',
+        color: 'from-violet-400 to-purple-500',
+        gradientFrom: '#a78bfa',
+        gradientTo: '#8b5cf6',
+        angle: 0,
+        personalExample:
+          'מהי התכונה האחת, החשובה ביותר, שחייבת להיות בבן/בת הזוג?',
+        insight: 'הבנת הצרכים ההדדיים היא המפתח לתקשורת פתוחה וזוגיות בריאה.',
+      },
+    ],
+    []
+  );
 
   // Auto-rotation effect
   useEffect(() => {
@@ -151,12 +160,24 @@ const MatchingConstellation: React.FC = () => {
     return () => clearInterval(interval);
   }, [hasInteracted, isDragging, worlds.length]);
 
+  // *** NEW: Centralized rotation logic ***
+  // This useEffect ensures the rotation always matches the selected world.
+  useEffect(() => {
+    const targetWorld = worlds.find((w) => w.id === selectedWorld);
+    if (targetWorld) {
+      // We want to rotate the constellation so the selected world's angle becomes 0.
+      // The world with angle=0 is at the top. To bring a world with angle=-72 to the top, we must rotate by +72.
+      // So, the rotation offset is the negative of the world's angle.
+      setRotationOffset(-targetWorld.angle);
+    }
+  }, [selectedWorld, worlds]);
+
   // Responsive dimensions with better mobile centering
   const getDimensions = () => {
     if (isMobile) {
       return {
         size: 350,
-        center: 175, // מרכז מדויק של הקנבס
+        center: 175,
         radius: 120,
         iconSize: 50,
         coreRadius: 20,
@@ -176,18 +197,18 @@ const MatchingConstellation: React.FC = () => {
   const generateConstellationLines = (): ConstellationLine[] => {
     const lines: ConstellationLine[] = [];
     const { center, radius } = dimensions;
-    
+
     worlds.forEach((world, index) => {
       const nextIndex = (index + 1) % worlds.length;
       const nextWorld = worlds[nextIndex];
       const currentAngle = world.angle + rotationOffset;
       const nextAngle = nextWorld.angle + rotationOffset;
-      
+
       const x1 = center + Math.cos((currentAngle * Math.PI) / 180) * radius;
       const y1 = center + Math.sin((currentAngle * Math.PI) / 180) * radius;
       const x2 = center + Math.cos((nextAngle * Math.PI) / 180) * radius;
       const y2 = center + Math.sin((nextAngle * Math.PI) / 180) * radius;
-      
+
       lines.push({ id: `line-${index}`, x1, y1, x2, y2, opacity: 0.4 });
     });
     return lines;
@@ -195,107 +216,75 @@ const MatchingConstellation: React.FC = () => {
 
   const handleWorldInteraction = (worldId: number) => {
     setHasInteracted(true);
-    setSelectedWorld(selectedWorld === worldId ? null : worldId);
+    setSelectedWorld(worldId);
     setHoveredWorld(null);
-    
-    // גלילה חלקה לחלונית המידע עם העולם הנבחר
+
     setTimeout(() => {
       const infoPanel = document.querySelector('[data-world-info-panel]');
       if (infoPanel) {
-        const rect = infoPanel.getBoundingClientRect();
-        const isVisible = rect.top >= 0 && rect.bottom <= window.innerHeight;
-        
-        if (!isVisible) {
-          infoPanel.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'center',
-            inline: 'nearest'
-          });
-        }
+        infoPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }, 100);
   };
 
-  // Calculate angle from center point - removed unused function
-  // const calculateAngle = useCallback((x: number, y: number): number => {
-  //   const { center } = dimensions;
-  //   const rect = constellationRef.current?.getBoundingClientRect();
-  //   if (!rect) return 0;
-  //   
-  //   const centerX = rect.left + center;
-  //   const centerY = rect.top + center;
-  //   
-  //   return Math.atan2(y - centerY, x - centerX) * (180 / Math.PI);
-  // }, [dimensions]);
+  // *** NEW: Simplified drag/pan handlers for intuitive swiping ***
 
-  // Calculate angle from center point for proper circular drag
-  const calculateAngleFromCenter = useCallback((clientX: number, clientY: number): number => {
-    if (!constellationRef.current) return 0;
-    
-    const rect = constellationRef.current.getBoundingClientRect();
-    const centerX = rect.left + dimensions.center;
-    const centerY = rect.top + dimensions.center;
-    
-    return Math.atan2(clientY - centerY, clientX - centerX) * (180 / Math.PI);
-  }, [dimensions]);
-
-  // Handle drag for rotation - improved for circular motion
-  const handleDragStart = useCallback((event: MouseEvent | TouchEvent | PointerEvent) => {
-    setIsDragging(true);
+  const handlePanStart = useCallback(() => {
     setHasInteracted(true);
-    
-    // Get initial touch/mouse position
-    const clientX = 'touches' in event ? event.touches[0]?.clientX : (event as MouseEvent).clientX;
-    const clientY = 'touches' in event ? event.touches[0]?.clientY : (event as MouseEvent).clientY;
-    
-    if (clientX && clientY) {
-      const startAngle = calculateAngleFromCenter(clientX, clientY);
-      setDragStartAngle(startAngle);
-      setDragStartRotation(rotationOffset);
-    }
-  }, [rotationOffset, calculateAngleFromCenter]);
+    setIsDragging(true);
+    // Store the rotation at the beginning of the pan
+    panStartRotation.current = rotationOffset;
+  }, [rotationOffset]);
 
-  const handleDrag = useCallback((event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-    const clientX = 'touches' in event ? event.touches[0]?.clientX : (event as MouseEvent).clientX;
-    const clientY = 'touches' in event ? event.touches[0]?.clientY : (event as MouseEvent).clientY;
-    
-    if (clientX && clientY) {
-      const currentAngle = calculateAngleFromCenter(clientX, clientY);
-      let angleDiff = currentAngle - dragStartAngle;
-      
-      // Handle angle wraparound
-      if (angleDiff > 180) angleDiff -= 360;
-      if (angleDiff < -180) angleDiff += 360;
-      
-      // Apply rotation with smooth sensitivity
-      const newRotation = dragStartRotation + angleDiff;
-      setRotationOffset(newRotation);
-    }
-  }, [dragStartAngle, dragStartRotation, calculateAngleFromCenter]);
+  const handlePan = useCallback(
+    (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+      // Convert horizontal pan offset to rotation.
+      // The sensitivity factor determines how "fast" the rotation feels.
+      const sensitivity = 0.5;
+      setRotationOffset(panStartRotation.current + info.offset.x * sensitivity);
+    },
+    []
+  );
 
-  const handleDragEnd = useCallback(() => {
-    setIsDragging(false);
-    
-    // Smooth snap to nearest world position (72 degrees apart)
-    const snapAngle = Math.round(rotationOffset / 72) * 72;
-    
-    // Use spring animation for smooth snapping
-    const snapDuration = Math.abs(snapAngle - rotationOffset) / 72 * 0.3 + 0.2;
-    
-    setRotationOffset(snapAngle);
-    
-    // Update selected world based on rotation
-    const worldIndex = Math.round(-snapAngle / 72) % worlds.length;
-    const normalizedIndex = ((worldIndex % worlds.length) + worlds.length) % worlds.length;
-    setSelectedWorld(worlds[normalizedIndex]?.id || 1);
-    
-  }, [rotationOffset, worlds]);
+  const handlePanEnd = useCallback(
+    (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+      setIsDragging(false);
+
+      // Thresholds for detecting a "flick"
+      const swipePower = Math.abs(info.velocity.x);
+      const swipeDistance = Math.abs(info.offset.x);
+      const flickThreshold = 200; // pixels per second
+
+      const currentWorldIndex =
+        worlds.findIndex((w) => w.id === selectedWorld) ?? 0;
+      let nextWorldIndex = currentWorldIndex;
+
+      // Check for a meaningful swipe/flick to change worlds
+      if (swipePower > flickThreshold || swipeDistance > dimensions.size / 4) {
+        if (info.offset.x < 0) {
+          // Swiped Left (Next)
+          nextWorldIndex = (currentWorldIndex + 1) % worlds.length;
+        } else {
+          // Swiped Right (Previous)
+          nextWorldIndex =
+            (currentWorldIndex - 1 + worlds.length) % worlds.length;
+        }
+      }
+
+      // Set the new selected world. The `useEffect` will handle the snapping animation.
+      setSelectedWorld(worlds[nextWorldIndex].id);
+    },
+    [selectedWorld, worlds, dimensions.size]
+  );
 
   const activeWorld = hoveredWorld || selectedWorld;
   const displayedWorld = worlds.find((w) => w.id === activeWorld) || worlds[0];
 
   return (
-    <div ref={sectionRef} className="relative w-full max-w-7xl mx-auto py-8 md:py-16">
+    <div
+      ref={sectionRef}
+      className="relative w-full max-w-7xl mx-auto py-8 md:py-16"
+    >
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={isInView ? { opacity: 1, y: 0 } : {}}
@@ -323,29 +312,39 @@ const MatchingConstellation: React.FC = () => {
       </motion.div>
 
       <div className="flex flex-col xl:flex-row items-center gap-8 md:gap-16">
+        {/* *** MODIFIED: Added pan handlers to the main constellation container *** */}
         <motion.div
+          ref={constellationRef}
           initial={{ opacity: 0, scale: 0.9 }}
           animate={isInView ? { opacity: 1, scale: 1 } : {}}
           transition={{ duration: 1, delay: 0.3 }}
-          className="relative flex-1 min-w-0 w-full"
+          className="relative flex-1 min-w-0 w-full touch-none cursor-grab active:cursor-grabbing"
+          style={{
+            width: dimensions.size,
+            height: dimensions.size,
+            maxWidth: '100vw',
+            margin: '0 auto', // Ensure centering
+          }}
+          drag={isMobile ? 'x' : false} // Enable horizontal drag only on mobile
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.1}
+          onPanStart={handlePanStart}
+          onPan={handlePan}
+          onPanEnd={handlePanEnd}
         >
           {/* Constellation Container - Responsive with perfect centering */}
-          <div 
-            ref={constellationRef}
-            className="relative mx-auto touch-none flex items-center justify-center"
-            style={{ 
-              width: dimensions.size, 
+          <div
+            className="relative mx-auto flex items-center justify-center"
+            style={{
+              width: dimensions.size,
               height: dimensions.size,
-              maxWidth: '100vw',
-              maxHeight: '70vh'
             }}
           >
             <div className="absolute inset-0 bg-gradient-to-br from-rose-50/80 via-amber-50/60 to-sky-50/80 rounded-full blur-3xl" />
-            
+
             <svg
               viewBox={`0 0 ${dimensions.size} ${dimensions.size}`}
-              className="absolute inset-0 w-full h-full"
-              style={{ touchAction: 'none' }}
+              className="absolute inset-0 w-full h-full pointer-events-none"
             >
               {generateConstellationLines().map((line) => (
                 <motion.line
@@ -355,23 +354,24 @@ const MatchingConstellation: React.FC = () => {
                   x2={line.x2}
                   y2={line.y2}
                   stroke="url(#lineGradient)"
-                  strokeWidth={isMobile ? "1.5" : "2"}
+                  strokeWidth={isMobile ? '1.5' : '2'}
                   opacity={isDragging ? 0.6 : line.opacity}
                   className="transition-opacity duration-300"
+                  // Animate using spring for smooth rotation
                   animate={{
                     x1: line.x1,
                     y1: line.y1,
                     x2: line.x2,
                     y2: line.y2,
                   }}
-                  transition={{ 
-                    type: "spring", 
-                    stiffness: isDragging ? 400 : 200, 
-                    damping: isDragging ? 40 : 25 
+                  transition={{
+                    type: 'spring',
+                    stiffness: 100,
+                    damping: 20,
                   }}
                 />
               ))}
-              
+
               <defs>
                 <linearGradient
                   id="lineGradient"
@@ -391,17 +391,17 @@ const MatchingConstellation: React.FC = () => {
                   <stop offset="100%" stopColor="#e2e8f0" stopOpacity="0.9" />
                 </radialGradient>
                 <filter id="glow">
-                  <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-                  <feMerge> 
-                    <feMergeNode in="coloredBlur"/>
-                    <feMergeNode in="SourceGraphic"/>
+                  <feGaussianBlur stdDeviation="2" result="coloredBlur" />
+                  <feMerge>
+                    <feMergeNode in="coloredBlur" />
+                    <feMergeNode in="SourceGraphic" />
                   </feMerge>
                 </filter>
                 <filter id="logoGlow">
-                  <feGaussianBlur stdDeviation="1" result="logoBlur"/>
-                  <feMerge> 
-                    <feMergeNode in="logoBlur"/>
-                    <feMergeNode in="SourceGraphic"/>
+                  <feGaussianBlur stdDeviation="1" result="logoBlur" />
+                  <feMerge>
+                    <feMergeNode in="logoBlur" />
+                    <feMergeNode in="SourceGraphic" />
                   </feMerge>
                 </filter>
                 {worlds.map((world) => (
@@ -422,8 +422,7 @@ const MatchingConstellation: React.FC = () => {
                   </radialGradient>
                 ))}
               </defs>
-              
-              {/* Center core with company logo */}
+
               <motion.circle
                 cx={dimensions.center}
                 cy={dimensions.center}
@@ -431,31 +430,39 @@ const MatchingConstellation: React.FC = () => {
                 fill="url(#coreGradient)"
                 filter="url(#glow)"
                 className="drop-shadow-xl"
-                animate={{ 
-                  scale: activeWorld ? 1.15 : (isDragging ? 1.05 : 1),
-                  filter: isDragging ? "url(#glow) brightness(1.1)" : "url(#glow)"
+                animate={{
+                  scale: activeWorld ? 1.15 : isDragging ? 1.05 : 1,
+                  filter: isDragging
+                    ? 'url(#glow) brightness(1.1)'
+                    : 'url(#glow)',
                 }}
                 transition={{ duration: 0.3, type: 'spring', stiffness: 300 }}
               />
-              <foreignObject 
-                x={dimensions.center - (isMobile ? 18 : 24)} 
-                y={dimensions.center - (isMobile ? 18 : 24)} 
-                width={isMobile ? 36 : 48} 
+              <foreignObject
+                x={dimensions.center - (isMobile ? 18 : 24)}
+                y={dimensions.center - (isMobile ? 18 : 24)}
+                width={isMobile ? 36 : 48}
                 height={isMobile ? 36 : 48}
               >
                 <div className="flex items-center justify-center w-full h-full">
                   <motion.div
                     className="relative w-full h-full flex items-center justify-center"
-                    animate={{ 
+                    animate={{
                       rotate: isDragging ? 360 : 0,
-                      scale: isDragging ? 1.1 : (activeWorld ? 1.05 : 1)
+                      scale: isDragging ? 1.1 : activeWorld ? 1.05 : 1,
                     }}
-                    transition={{ 
-                      rotate: { duration: isDragging ? 3 : 0, repeat: isDragging ? Infinity : 0, ease: "linear" },
-                      scale: { duration: 0.3, type: "spring", stiffness: 300 }
+                    transition={{
+                      rotate: {
+                        duration: isDragging ? 3 : 0,
+                        repeat: isDragging ? Infinity : 0,
+                        ease: 'linear',
+                      },
+                      scale: { duration: 0.3, type: 'spring', stiffness: 300 },
                     }}
                   >
-                    <div className={`relative ${isMobile ? 'w-7 h-7' : 'w-9 h-9'}`}>
+                    <div
+                      className={`relative ${isMobile ? 'w-7 h-7' : 'w-9 h-9'}`}
+                    >
                       <Image
                         src={getRelativeCloudinaryPath(
                           'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png'
@@ -463,11 +470,9 @@ const MatchingConstellation: React.FC = () => {
                         alt="NeshamaTech"
                         fill
                         className="object-contain transition-all duration-300"
-                        sizes={isMobile ? "28px" : "36px"}
+                        sizes={isMobile ? '28px' : '36px'}
                       />
                     </div>
-                    
-                    {/* Subtle glow effect around logo when active */}
                     {(activeWorld || isDragging) && (
                       <motion.div
                         className="absolute inset-0 rounded-full"
@@ -475,13 +480,13 @@ const MatchingConstellation: React.FC = () => {
                           boxShadow: [
                             '0 0 0 0 rgba(139, 92, 246, 0)',
                             '0 0 0 4px rgba(139, 92, 246, 0.1)',
-                            '0 0 0 0 rgba(139, 92, 246, 0)'
-                          ]
+                            '0 0 0 0 rgba(139, 92, 246, 0)',
+                          ],
                         }}
                         transition={{
                           duration: 2,
                           repeat: Infinity,
-                          ease: "easeInOut"
+                          ease: 'easeInOut',
                         }}
                       />
                     )}
@@ -490,73 +495,76 @@ const MatchingConstellation: React.FC = () => {
               </foreignObject>
             </svg>
 
-            {/* World Icons - Perfect centering around logo */}
             {worlds.map((world, index) => {
               const currentAngle = world.angle + rotationOffset;
-              // הבטחת מיקום מדויק יחסית למרכז הקנבס
-              const x = dimensions.center + Math.cos((currentAngle * Math.PI) / 180) * dimensions.radius;
-              const y = dimensions.center + Math.sin((currentAngle * Math.PI) / 180) * dimensions.radius;
+              const x =
+                dimensions.center +
+                Math.cos((currentAngle * Math.PI) / 180) * dimensions.radius;
+              const y =
+                dimensions.center +
+                Math.sin((currentAngle * Math.PI) / 180) * dimensions.radius;
               const isActive = activeWorld === world.id;
               const halfIcon = dimensions.iconSize / 2;
-              
+
               return (
                 <motion.div
                   key={world.id}
-                  className="absolute cursor-pointer group touch-manipulation select-none"
-                  style={{ 
-                    left: x - halfIcon, 
-                    top: y - halfIcon,
-                    transform: 'translate3d(0, 0, 0)', // אופטימיזציה לביצועים
+                  className="absolute cursor-pointer group select-none"
+                  style={{
+                    transform: 'translate3d(0, 0, 0)',
+                    pointerEvents: isDragging ? 'none' : 'auto',
                   }}
                   initial={{ opacity: 0, scale: 0 }}
-                  animate={{ 
-                    opacity: isInView ? 1 : 0, 
+                  animate={{
+                    opacity: isInView ? 1 : 0,
                     scale: isInView ? 1 : 0,
                     left: x - halfIcon,
                     top: y - halfIcon,
                   }}
-                  transition={{ 
-                    duration: 0.6, 
-                    delay: 0.7 + index * 0.15,
-                    type: "spring",
-                    stiffness: isDragging ? 400 : 250,
-                    damping: isDragging ? 35 : 25
+                  transition={{
+                    type: 'spring',
+                    stiffness: 100,
+                    damping: 20,
+                    delay: 0.7 + index * 0.1,
                   }}
-                  onMouseEnter={() => !hasInteracted && !isMobile && setHoveredWorld(world.id)}
-                  onMouseLeave={() => !hasInteracted && !isMobile && setHoveredWorld(null)}
-                  onClick={() => !isDragging && handleWorldInteraction(world.id)}
+                  onMouseEnter={() => !isMobile && setHoveredWorld(world.id)}
+                  onMouseLeave={() => !isMobile && setHoveredWorld(null)}
+                  onClick={() =>
+                    !isDragging && handleWorldInteraction(world.id)
+                  }
                   whileHover={!isMobile ? { scale: 1.15 } : {}}
                   whileTap={{ scale: 0.95 }}
                 >
                   <motion.div
                     className={`rounded-full bg-gradient-to-br ${world.color} flex items-center justify-center text-white shadow-xl relative overflow-hidden transition-all duration-300 ${isActive ? 'ring-2 md:ring-4 ring-white/60' : ''} ${isDragging ? 'shadow-2xl' : ''}`}
-                    style={{ 
-                      width: dimensions.iconSize, 
-                      height: dimensions.iconSize 
+                    style={{
+                      width: dimensions.iconSize,
+                      height: dimensions.iconSize,
                     }}
                     animate={{
                       scale: isDragging ? 1.05 : 1,
-                      boxShadow: isDragging 
+                      boxShadow: isDragging
                         ? '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.3)'
-                        : '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+                        : '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
                     }}
                     transition={{ duration: 0.2 }}
                   >
                     <motion.div
                       className={`absolute inset-0 bg-gradient-to-br ${world.color} rounded-full blur-md`}
                       animate={{
-                        scale: isActive ? 1.8 : (isDragging ? 1.3 : 1),
-                        opacity: isActive ? 0.5 : (isDragging ? 0.3 : 0),
+                        scale: isActive ? 1.8 : isDragging ? 1.3 : 1,
+                        opacity: isActive ? 0.5 : isDragging ? 0.3 : 0,
                       }}
                       transition={{ duration: 0.3 }}
                     />
-                    <motion.div 
+                    <motion.div
                       className="relative z-10 transform transition-transform duration-300 group-hover:scale-110"
-                      animate={{
-                        rotate: isDragging ? [0, 5, -5, 0] : 0
-                      }}
+                      animate={{ rotate: isDragging ? [0, 5, -5, 0] : 0 }}
                       transition={{
-                        rotate: { duration: 0.6, repeat: isDragging ? Infinity : 0 }
+                        rotate: {
+                          duration: 0.6,
+                          repeat: isDragging ? Infinity : 0,
+                        },
                       }}
                     >
                       {world.icon}
@@ -585,32 +593,23 @@ const MatchingConstellation: React.FC = () => {
                       </>
                     )}
                   </motion.div>
-                  
-                  {/* Title below icon with better animations */}
+
                   <motion.div
                     className={`absolute left-1/2 transform -translate-x-1/2 whitespace-nowrap ${isMobile ? '-bottom-8 text-xs' : '-bottom-12 text-sm'}`}
                     initial={{ opacity: 0, y: 10 }}
-                    animate={{ 
-                      opacity: 1, 
-                      y: 0,
-                      scale: isActive ? 1.05 : 1
-                    }}
-                    transition={{ 
+                    animate={{ opacity: 1, y: 0, scale: isActive ? 1.05 : 1 }}
+                    transition={{
                       delay: 1 + index * 0.1,
-                      scale: { duration: 0.2 }
+                      scale: { duration: 0.2 },
                     }}
                   >
                     <motion.span
-                      className={`font-medium px-2 md:px-3 py-1 rounded-full transition-all duration-300 ${
-                        isActive 
-                          ? 'bg-white text-gray-800 shadow-lg border border-gray-200' 
-                          : 'text-gray-600 hover:text-gray-800'
-                      }`}
+                      className={`font-medium px-2 md:px-3 py-1 rounded-full transition-all duration-300 ${isActive ? 'bg-white text-gray-800 shadow-lg border border-gray-200' : 'text-gray-600 hover:text-gray-800'}`}
                       animate={{
                         backgroundColor: isActive ? '#ffffff' : 'transparent',
-                        boxShadow: isActive 
+                        boxShadow: isActive
                           ? '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
-                          : '0 0 0 0 transparent'
+                          : '0 0 0 0 transparent',
                       }}
                     >
                       {world.title}
@@ -619,38 +618,6 @@ const MatchingConstellation: React.FC = () => {
                 </motion.div>
               );
             })}
-            
-            {/* Enhanced invisible drag overlay for smoother dragging */}
-            {isMobile && (
-              <motion.div
-                className="absolute inset-0 touch-manipulation cursor-grab active:cursor-grabbing rounded-full"
-                style={{ 
-                  width: dimensions.size, 
-                  height: dimensions.size,
-                  zIndex: 5,
-                  background: isDragging 
-                    ? 'radial-gradient(circle, rgba(139, 92, 246, 0.05) 0%, transparent 70%)' 
-                    : 'transparent'
-                }}
-                drag
-                onDragStart={handleDragStart}
-                onDrag={handleDrag}
-                onDragEnd={handleDragEnd}
-                dragConstraints={false}
-                dragElastic={0}
-                dragMomentum={false}
-                whileDrag={{ 
-                  cursor: 'grabbing',
-                  scale: 1.02
-                }}
-                animate={{
-                  background: isDragging 
-                    ? 'radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, transparent 70%)' 
-                    : 'transparent'
-                }}
-                transition={{ duration: 0.2 }}
-              />
-            )}
           </div>
         </motion.div>
 
@@ -742,22 +709,21 @@ const MatchingConstellation: React.FC = () => {
             className="text-center text-sm text-gray-500 mt-4 md:mt-6"
           >
             <motion.div
-              animate={{ 
+              animate={{
                 opacity: isDragging ? 0.5 : 1,
-                scale: isDragging ? 0.95 : 1
+                scale: isDragging ? 0.95 : 1,
               }}
               transition={{ duration: 0.2 }}
             >
               {hasInteracted
-                ? (isMobile 
-                    ? 'לחצו על העולמות או גררו במעגל לסיבוב'
-                    : 'לחצו על העולמות או על סרגל ההתקדמות לניווט')
-                : (isMobile 
-                    ? 'גררו במעגל את הקונסטלציה או המתינו לסיור אוטומטי'
-                    : 'רחפו מעל העולמות או המתינו לסיור אוטומטי')}
+                ? isMobile
+                  ? 'החליקו ימינה/שמאלה או לחצו על עולם'
+                  : 'לחצו על העולמות או על סרגל ההתקדמות'
+                : isMobile
+                  ? 'החליקו על הקונסטלציה או המתינו לסיור'
+                  : 'רחפו מעל העולמות או המתינו לסיור אוטומטי'}
             </motion.div>
-            
-            {/* Enhanced progress indicator */}
+
             {isDragging && isMobile && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
@@ -769,14 +735,16 @@ const MatchingConstellation: React.FC = () => {
                 <span className="text-xs text-violet-600 font-medium">
                   מסובבים...
                 </span>
-                <div className="w-2 h-2 bg-violet-400 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }} />
+                <div
+                  className="w-2 h-2 bg-violet-400 rounded-full animate-pulse"
+                  style={{ animationDelay: '0.5s' }}
+                />
               </motion.div>
             )}
           </motion.div>
         </motion.div>
       </div>
 
-      {/* CTA Section */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={isInView ? { opacity: 1, y: 0 } : {}}
@@ -788,7 +756,8 @@ const MatchingConstellation: React.FC = () => {
             מוכנים להתחיל את המסע?
           </h4>
           <p className="text-base md:text-lg text-gray-600 mb-8 md:mb-10 leading-relaxed">
-            השאלון הייחודי שלנו הוא הצעד הראשון. הוא לא טכני, הוא אישי. <br className="hidden md:block" />
+            השאלון הייחודי שלנו הוא הצעד הראשון. הוא לא טכני, הוא אישי.{' '}
+            <br className="hidden md:block" />
             זו ההזדמנות שלכם לספר לנו את הסיפור שלכם, כדי שאנחנו נוכל למצוא את
             הפרק הבא שלו.
           </p>
@@ -825,7 +794,7 @@ const OurMethodSection: React.FC = () => {
     <motion.section
       ref={sectionRef}
       id="our-method"
-      className="relative py-12 md:py-20 lg:py-28 px-4 bg-gradient-to-b from-white via-rose-50/30 to-white overflow-hidden"
+      className="relative py-16 md:py-24 px-4 bg-gradient-to-b from-white via-rose-50/30 to-white overflow-hidden"
       initial={{ opacity: 0 }}
       animate={isInView ? { opacity: 1 } : { opacity: 0 }}
       transition={{ duration: 1 }}

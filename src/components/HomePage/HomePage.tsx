@@ -7,7 +7,6 @@ import { useSession } from 'next-auth/react';
 // Import all sections
 import HeroSection from './sections/HeroSection';
 import ValuePropositionSection from './sections/ValuePropositionSection';
-import FeaturesSection from './sections/FeaturesSection';
 import OurMethodSection from './sections/OurMethodSection'; // Correct name
 import HowItWorksSection from './sections/HowItWorksSection';
 import MatchmakerTeamSection from './sections/MatchmakerTeamSection';
@@ -49,26 +48,25 @@ export default function HomePage() {
       {/* --- Page Sections in the FINAL, correct strategic order --- */}
       <HeroSection session={session} isVisible={isVisible} />
       <ValuePropositionSection />
-      
+
       {/* The "Why" - deep philosophy */}
-      <OurMethodSection /> 
-      
+      <OurMethodSection />
+
       {/* The comprehensive "How" & "What" - process and demo in one section */}
-      <HowItWorksSection /> 
-      
+      <HowItWorksSection />
+
       {/* The "Who" - building personal trust */}
-      <MatchmakerTeamSection /> 
-      
+      <MatchmakerTeamSection />
+
       {/* Social proof and summary of benefits */}
       <SuccessStoriesSection />
-      <FeaturesSection />
-      
+
       {/* Closing arguments and final info */}
       <FAQSection />
       <PrivacyAssuranceSection />
       <CTASection />
       <FooterSection />
-      
+
       {/* Floating components (unchanged) */}
       <ChatWidget />
     </div>
