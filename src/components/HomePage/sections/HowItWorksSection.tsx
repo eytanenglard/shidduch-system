@@ -118,7 +118,7 @@ const HowItWorksSection: React.FC = () => {
   return (
     <section
       id="how-it-works"
-      className="relative py-20 md:py-28 px-4 bg-gradient-to-b from-white via-cyan-50/20 to-white overflow-hidden"
+      className="relative pb-20 md:pb-28 px-4 bg-gradient-to-b from-white via-cyan-50/20 to-white overflow-hidden"
     >
       <DynamicBackground />
 

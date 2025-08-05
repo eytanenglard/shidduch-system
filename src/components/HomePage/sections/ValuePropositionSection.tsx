@@ -68,7 +68,7 @@ const ValuePropositionSection: React.FC = () => {
   return (
     <motion.section
       ref={ref}
-      className="py-16 md:py-20 px-4 bg-cyan-50 relative overflow-hidden"
+      className="py-16 md:py-20 pb-0 px-4 bg-cyan-50 relative overflow-hidden"
       variants={containerVariants}
       initial="hidden"
       animate={isInView ? 'visible' : 'hidden'}
@@ -206,8 +206,8 @@ const ValuePropositionSection: React.FC = () => {
               <motion.div variants={listItemVariants}>
                 <ComparisonItem>
                   <strong>דיסקרטיות מוחלטת:</strong> הפרופיל שלכם נשאר חסוי
-                  ומוצג אך ורק לשדכנים בצוות. אף פרט לא נחשף לצד השני ללא אישורכם
-                  המפורש.
+                  ומוצג אך ורק לשדכנים בצוות. אף פרט לא נחשף לצד השני ללא
+                  אישורכם המפורש.
                 </ComparisonItem>
               </motion.div>
               <motion.div variants={listItemVariants}>

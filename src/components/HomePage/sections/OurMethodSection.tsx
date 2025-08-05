@@ -794,7 +794,7 @@ const OurMethodSection: React.FC = () => {
     <motion.section
       ref={sectionRef}
       id="our-method"
-      className="relative py-12 md:py-20 lg:py-28 px-4 bg-gradient-to-b from-white via-rose-50/30 to-white overflow-hidden"
+      className="relative pt-0 pb-12 md:pb-20 lg:pb-28 px-4 bg-gradient-to-b from-white via-rose-50/30 to-white overflow-hidden"
       initial={{ opacity: 0 }}
       animate={isInView ? { opacity: 1 } : { opacity: 0 }}
       transition={{ duration: 1 }}
