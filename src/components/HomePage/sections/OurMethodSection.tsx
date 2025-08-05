@@ -58,7 +58,7 @@ const MatchingConstellation: React.FC = () => {
   const panStartRotation = useRef(0);
   const sectionRef = useRef(null);
   const constellationRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(sectionRef, { once: true, amount: 0.2 });
+  const isInView = useInView(sectionRef, { once: true, amount: 0.02 });
 
   useEffect(() => {
     const checkMobile = () => {
@@ -762,7 +762,7 @@ const MatchingConstellation: React.FC = () => {
 
 const OurMethodSection: React.FC = () => {
   const sectionRef = useRef(null);
-  const isInView = useInView(sectionRef, { once: true, amount: 0.1 });
+  const isInView = useInView(sectionRef, { once: true, amount: 0.02 });
 
   return (
     <motion.section

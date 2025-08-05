@@ -201,53 +201,7 @@ const HowItWorksSection: React.FC = () => {
           </div>
         </div>
 
-        {/* --- Key Benefits (UPDATED) --- */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 0.8 }}
-          className="mb-20"
-        >
-          <h3 className="text-3xl font-bold text-center text-gray-800 mb-12">
-            הגישה שלנו,
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-pink-600">
-              {' '}
-              היתרון שלכם
-            </span>
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
-            <KeyBenefit
-              icon={<TrendingUp className="w-8 h-8 text-white" />}
-              title="יעילות ומיקוד"
-              description="חסכו זמן ואנרגיה. המערכת מסננת עבורכם רק את ההצעות הרלוונטיות ביותר, כדי שתוכלו להתמקד במה שחשוב באמת."
-              color="cyan"
-              delay={0.1}
-            />
-            <KeyBenefit
-              icon={<Award className="w-8 h-8 text-white" />}
-              title="איכות ללא פשרות"
-              description="כל הצעה עוברת בדיקה כפולה: סינון אלגוריתמי קפדני ואישור סופי של שדכן מנוסה. לא תקבלו הצעות ‘על הדרך’."
-              color="pink"
-              delay={0.2}
-            />
-            <KeyBenefit
-              icon={<Lightbulb className="w-8 h-8 text-white" />}
-              title="מערכת שלומדת אתכם"
-              description="המערכת החכמה שלנו לומדת מהפידבק שלכם ומשתפרת עם כל אינטראקציה, כך שההצעות הבאות יהיו מדויקות עוד יותר."
-              color="orange"
-              delay={0.3}
-            />
-            <KeyBenefit
-              icon={<HeartHandshake className="w-8 h-8 text-white" />}
-              title="אתם לא לבד במסע"
-              description="שדכן אישי מלווה אתכם, זמין לשאלות, מעניק כלים ונותן רוח גבית מהרגע הראשון ועד למציאת הזיווג."
-              color="green"
-              delay={0.4}
-            />
-          </div>
-        </motion.div>
-
+   
         {/* --- Chapter 3: The Proof (UPDATED) --- */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -317,6 +271,52 @@ const HowItWorksSection: React.FC = () => {
               </div>
             </div>
           </motion.div>
+        </motion.div>
+     {/* --- Key Benefits (UPDATED) --- */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.8 }}
+          className="mb-20"
+        >
+          <h3 className="text-3xl font-bold text-center text-gray-800 mb-12">
+            הגישה שלנו,
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-pink-600">
+              {' '}
+              היתרון שלכם
+            </span>
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
+            <KeyBenefit
+              icon={<TrendingUp className="w-8 h-8 text-white" />}
+              title="יעילות ומיקוד"
+              description="חסכו זמן ואנרגיה. המערכת מסננת עבורכם רק את ההצעות הרלוונטיות ביותר, כדי שתוכלו להתמקד במה שחשוב באמת."
+              color="cyan"
+              delay={0.1}
+            />
+            <KeyBenefit
+              icon={<Award className="w-8 h-8 text-white" />}
+              title="איכות ללא פשרות"
+              description="כל הצעה עוברת בדיקה כפולה: סינון אלגוריתמי קפדני ואישור סופי של שדכן מנוסה. לא תקבלו הצעות ‘על הדרך’."
+              color="pink"
+              delay={0.2}
+            />
+            <KeyBenefit
+              icon={<Lightbulb className="w-8 h-8 text-white" />}
+              title="מערכת שלומדת אתכם"
+              description="המערכת החכמה שלנו לומדת מהפידבק שלכם ומשתפרת עם כל אינטראקציה, כך שההצעות הבאות יהיו מדויקות עוד יותר."
+              color="orange"
+              delay={0.3}
+            />
+            <KeyBenefit
+              icon={<HeartHandshake className="w-8 h-8 text-white" />}
+              title="אתם לא לבד במסע"
+              description="שדכן אישי מלווה אתכם, זמין לשאלות, מעניק כלים ונותן רוח גבית מהרגע הראשון ועד למציאת הזיווג."
+              color="green"
+              delay={0.4}
+            />
+          </div>
         </motion.div>
 
         {/* --- Founder's Testimonial (UPDATED) --- */}
