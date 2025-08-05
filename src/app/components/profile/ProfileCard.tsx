@@ -4873,6 +4873,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         'p-3 sm:p-4 min-h-[60px]',
         `bg-gradient-to-r ${THEME.colors.neutral.warm}`
       )}
+      dir="ltr" // הוספת dir="ltr" כדי למנוע התנגשות RTL
     >
       {/* Right side - Close Button */}
       <Button
@@ -5327,8 +5328,14 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           'w-full h-full overflow-hidden flex flex-col max-w-full min-w-0',
           `bg-gradient-to-br ${THEME.colors.neutral.elegant}`,
           THEME.shadows.elegant,
+          '[&_*]:box-border [&_*]:max-w-full',
           className
         )}
+        style={{
+          direction: 'rtl',
+          textAlign: 'right',
+          overflow: 'hidden',
+        }}
       >
         {/* Desktop Close Button */}
         {isDesktop && onClose && (

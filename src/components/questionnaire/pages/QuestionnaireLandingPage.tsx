@@ -32,6 +32,7 @@ interface QuestionnaireLandingPageProps {
 
 // --- Centralized Content Configuration for easy updates ---
 const contentConfig = {
+  // ... (אין שינוי בחלק הזה)
   hero: {
     title: 'הנתיב שלך לזוגיות משמעותית',
     subtitle:
@@ -126,23 +127,24 @@ const contentConfig = {
 };
 
 // --- Animation Variants ---
+// <<< CHANGE 1: Animation timings are now faster >>>
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2,
+      staggerChildren: 0.08, // Was 0.1
+      delayChildren: 0.1, // Was 0.2
     },
   },
 };
 
 const fadeInUp = {
-  hidden: { opacity: 0, y: 30 },
+  hidden: { opacity: 0, y: 20 }, // y was 30
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.6, ease: 'easeOut' },
+    transition: { duration: 0.5, ease: 'easeOut' }, // duration was 0.6
   },
 };
 
@@ -151,20 +153,20 @@ const staggeredCardVariants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.15,
-      delayChildren: 0.3,
+      staggerChildren: 0.1, // Was 0.15
+      delayChildren: 0.1, // Was 0.3
     },
   },
 };
 
 const cardVariants = {
-  hidden: { opacity: 0, y: 40, scale: 0.95 },
+  hidden: { opacity: 0, y: 30, scale: 0.98 }, // y was 40, scale was 0.95
   visible: {
     opacity: 1,
     y: 0,
     scale: 1,
     transition: {
-      duration: 0.6,
+      duration: 0.5, // Was 0.6
       ease: 'easeOut',
       scale: {
         type: 'spring',
@@ -177,6 +179,7 @@ const cardVariants = {
 
 // --- Background Components ---
 const DynamicBackground: React.FC = () => (
+  // ... (אין שינוי בחלק הזה)
   <div className="absolute inset-0 overflow-hidden pointer-events-none">
     <div className="absolute inset-0 opacity-30">
       <div className="absolute top-10 left-10 w-32 h-32 bg-gradient-to-br from-teal-200/40 to-orange-300/30 rounded-full blur-3xl animate-float-slow" />
@@ -257,6 +260,7 @@ export default function QuestionnaireLandingPage({
         animate="visible"
         variants={containerVariants}
       >
+        {/* ... Hero content ... no changes needed here as it animates on page load */}
         <div className="max-w-4xl mx-auto relative">
           <motion.div
             className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg border border-white/60 mb-8"
@@ -341,7 +345,8 @@ export default function QuestionnaireLandingPage({
         className="py-16 px-4 relative"
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
+        // <<< CHANGE 2: Trigger animation sooner >>>
+        viewport={{ once: true, amount: 0.1 }} // Was 0.2
         variants={containerVariants}
       >
         <div className="absolute inset-0 -m-8 bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/60" />
@@ -361,7 +366,7 @@ export default function QuestionnaireLandingPage({
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6"
             variants={staggeredCardVariants}
           >
-            {contentConfig.worlds.map((world, index) => (
+            {contentConfig.worlds.map((world) => (
               <motion.div key={world.id} variants={cardVariants}>
                 <Card className="overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/90 backdrop-blur-sm border border-white/60 flex flex-col h-full group">
                   <CardContent className="p-6 text-center flex flex-col items-center flex-grow relative">
@@ -406,7 +411,8 @@ export default function QuestionnaireLandingPage({
         className="py-16 px-4 relative"
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
+        // <<< CHANGE 2: Trigger animation sooner >>>
+        viewport={{ once: true, amount: 0.1 }} // Was 0.2
         variants={containerVariants}
       >
         <div className="max-w-5xl mx-auto relative">
@@ -459,7 +465,8 @@ export default function QuestionnaireLandingPage({
         className="py-20 px-4 text-center relative"
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true, amount: 0.3 }}
+        // <<< CHANGE 2: Trigger animation sooner >>>
+        viewport={{ once: true, amount: 0.15 }} // Was 0.3, a bit more than others is fine here
         variants={containerVariants}
       >
         <div className="absolute inset-0 -m-8 bg-gradient-to-br from-teal-600/10 via-orange-600/10 to-amber-600/10 rounded-3xl backdrop-blur-sm border border-white/40" />
@@ -550,6 +557,7 @@ export default function QuestionnaireLandingPage({
       </footer>
 
       <style jsx global>{`
+        /* ... no changes in style tag ... */
         @keyframes float-slow {
           0%,
           100% {

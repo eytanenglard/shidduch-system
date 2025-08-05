@@ -10,7 +10,7 @@ import { ArrowLeft } from 'lucide-react';
 
 const SuccessStoriesSection: React.FC = () => {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, amount: 0.1 });
+  const isInView = useInView(ref, { once: true, amount: 0.01 });
 
   // שינוי 2: הוספנו state לניהול ההודעה שתוצג בלחיצה
   const [showComingSoon, setShowComingSoon] = useState(false);
@@ -82,7 +82,7 @@ const SuccessStoriesSection: React.FC = () => {
     <motion.section
       ref={ref}
       id="success-stories"
-      className="py-16 md:py-20 px-4 bg-white relative"
+      className="pt-16 md:pt-20 px-4 bg-white relative"
       variants={containerVariants}
       initial="hidden"
       animate={isInView ? 'visible' : 'hidden'}
@@ -188,11 +188,7 @@ const SuccessStoriesSection: React.FC = () => {
               transition: { duration: 0.6, ease: 'easeOut', delay: 0.5 },
             },
           }}
-        >
-          <p className="text-base text-gray-500">
-            אנו מכבדים את פרטיות הזוגות שלנו, ומשתפים סיפורים רק בהסכמתם המלאה.
-          </p>
-        </motion.div>
+        ></motion.div>
       </div>
     </motion.section>
   );

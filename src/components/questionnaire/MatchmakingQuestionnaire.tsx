@@ -427,20 +427,38 @@ export default function MatchmakingQuestionnaire({
   const handleVisibilityChange = useCallback(
     (questionId: string, isVisible: boolean) => {
       setIsDirty(true);
-      setAnswers((prev) =>
-        prev.map((answer) =>
-          answer.questionId === questionId
-            ? { ...answer, isVisible }
-            : answer
-        )
-      );
+      setAnswers((prev) => {
+        const answerIndex = prev.findIndex((a) => a.questionId === questionId);
+
+        // אם התשובה קיימת, עדכן אותה
+        if (answerIndex > -1) {
+          const newAnswers = [...prev];
+          newAnswers[answerIndex] = {
+            ...newAnswers[answerIndex],
+            isVisible,
+          };
+          return newAnswers;
+        }
+        // אם התשובה לא קיימת, צור תשובת פלייסהולדר חדשה
+        else {
+          const newPlaceholderAnswer: QuestionnaireAnswer = {
+            questionId,
+            worldId: currentWorld,
+            value: undefined, // ערך ריק
+            answeredAt: new Date().toISOString(),
+            isVisible: isVisible,
+          };
+          return [...prev, newPlaceholderAnswer];
+        }
+      });
+
       showToast(
         isVisible ? 'התשובה תוצג בפרופיל' : 'התשובה תוסתר מהפרופיל',
         'info',
         2000
       );
     },
-    [showToast]
+    [showToast, currentWorld] // הוספתי את currentWorld לתלויות
   );
   // --- END: פונקציה חדשה לשינוי נראות ---
 
@@ -637,7 +655,8 @@ export default function MatchmakingQuestionnaire({
     }
   }
 
-  const Toast = ({ message, type, isVisible, action }: ToastProps) => {    if (!isVisible) return null;
+  const Toast = ({ message, type, isVisible, action }: ToastProps) => {
+    if (!isVisible) return null;
     return (
       <div
         className={cn(

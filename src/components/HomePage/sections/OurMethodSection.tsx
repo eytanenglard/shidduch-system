@@ -723,37 +723,197 @@ const MatchingConstellation: React.FC = () => {
         initial={{ opacity: 0, y: 30 }}
         animate={isInView ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 0.8, delay: 1 }}
-        className="text-center mt-12 md:mt-20 px-4"
+        className="text-center mt-12 md:mt-20 px-4 relative"
       >
-        <div className="max-w-4xl mx-auto">
-          <h4 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800 mb-4 md:mb-6">
-            מוכנים להתחיל את המסע?
-          </h4>
-          <p className="text-base md:text-lg text-gray-600 mb-8 md:mb-10 leading-relaxed">
-            השאלון הייחודי שלנו הוא הצעד הראשון. הוא לא טכני, הוא אישי.{' '}
-            <br className="hidden md:block" />
-            זו ההזדמנות שלכם לספר לנו את הסיפור שלכם, כדי שאנחנו נוכל למצוא את
-            הפרק הבא שלו.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 md:gap-6 justify-center items-center">
+        {/* Background Elements */}
+        <div className="absolute inset-0 -mx-4 overflow-hidden pointer-events-none">
+          <div className="absolute top-10 left-1/4 w-20 h-20 bg-gradient-to-br from-rose-300/20 to-pink-400/15 rounded-full blur-xl animate-soft-float" />
+          <div
+            className="absolute top-16 right-1/3 w-16 h-16 bg-gradient-to-br from-violet-300/25 to-purple-400/20 rounded-full blur-lg animate-soft-float"
+            style={{ animationDelay: '1.5s' }}
+          />
+          <div
+            className="absolute bottom-10 left-1/3 w-24 h-24 bg-gradient-to-br from-sky-300/20 to-cyan-400/15 rounded-full blur-xl animate-soft-float"
+            style={{ animationDelay: '3s' }}
+          />
+        </div>
+
+        <div className="relative max-w-4xl mx-auto">
+          {/* Header with Icon */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={isInView ? { opacity: 1, scale: 1 } : {}}
+            transition={{ duration: 0.6, delay: 1.2 }}
+            className="inline-flex items-center gap-3 bg-gradient-to-r from-white/90 via-rose-50/80 to-white/90 backdrop-blur-sm rounded-full px-6 md:px-8 py-3 md:py-4 shadow-lg border border-white/60 mb-6 md:mb-8 relative overflow-hidden"
+          >
+            {/* Animated background glow */}
+            <div className="absolute inset-0 bg-gradient-to-r from-rose-400/10 via-violet-400/10 to-sky-400/10 rounded-full animate-pulse" />
+
+            <motion.div
+              animate={{
+                rotate: [0, 5, -5, 0],
+                scale: [1, 1.05, 1],
+              }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+            >
+              <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-rose-500 relative z-10" />
+            </motion.div>
+            <span className="text-gray-700 font-medium text-base md:text-lg relative z-10">
+              הרגע שלכם הגיע
+            </span>
+          </motion.div>
+
+          {/* Main Title */}
+          <motion.h4
+            initial={{ opacity: 0, y: 20 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.8, delay: 1.4 }}
+            className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800 mb-4 md:mb-6 relative"
+          >
+            מוכנים להתחיל את{' '}
+            <span className="relative">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 via-violet-600 to-sky-500">
+                המסע
+              </span>
+              {/* Animated underline */}
+              <motion.div
+                className="absolute -bottom-1 left-0 right-0 h-1 bg-gradient-to-r from-rose-400 via-violet-500 to-sky-400 rounded-full"
+                initial={{ scaleX: 0 }}
+                animate={isInView ? { scaleX: 1 } : {}}
+                transition={{ duration: 1, delay: 2 }}
+                style={{ transformOrigin: 'left' }}
+              />
+            </span>
+            ?
+          </motion.h4>
+
+          {/* Description */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.8, delay: 1.6 }}
+            className="relative"
+          >
+            {/* Background card effect */}
+            <div className="absolute inset-0 bg-gradient-to-br from-white/60 via-rose-50/40 to-violet-50/30 backdrop-blur-sm rounded-3xl border border-white/50 shadow-lg -m-4" />
+
+            <p className="text-base md:text-lg text-gray-600 mb-8 md:mb-10 leading-relaxed relative z-10 px-4">
+              השאלון הייחודי שלנו הוא הצעד הראשון. הוא לא טכני, הוא אישי.{' '}
+              <br className="hidden md:block" />
+              זו ההזדמנות שלכם לספר לנו את הסיפור שלכם, כדי שאנחנו נוכל למצוא את
+              הפרק הבא שלו.
+            </p>
+          </motion.div>
+
+          {/* CTA Buttons */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.8, delay: 1.8 }}
+            className="flex flex-col sm:flex-row gap-4 md:gap-6 justify-center items-center"
+          >
+            {/* Main CTA Button */}
             <Link href="/questionnaire">
-              <Button
-                size="lg"
-                className="group bg-gradient-to-r from-rose-500 to-violet-600 hover:from-rose-600 hover:to-violet-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl px-6 md:px-8 py-3 md:py-4 text-base md:text-lg font-semibold w-full sm:w-auto"
+              <motion.div
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                className="relative group"
               >
-                <span className="flex items-center gap-3 justify-center">
-                  אני רוצה להתחיל את המסע שלי
-                  <ArrowRight className="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition-transform" />
-                </span>
-              </Button>
+                {/* Button glow effect */}
+                <div className="absolute -inset-1 bg-gradient-to-r from-rose-500 via-violet-600 to-sky-500 rounded-3xl blur opacity-30 group-hover:opacity-50 transition-opacity duration-300" />
+
+                <Button
+                  size="lg"
+                  className="relative group bg-gradient-to-r from-rose-500 to-violet-600 hover:from-rose-600 hover:to-violet-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl px-6 md:px-8 py-3 md:py-4 text-base md:text-lg font-semibold w-full sm:w-auto border-0"
+                >
+                  <span className="flex items-center gap-3 justify-center relative z-10">
+                    <motion.span className="whitespace-nowrap">
+                      אני רוצה להתחיל את המסע שלי
+                    </motion.span>
+                    <motion.div
+                      className="flex-shrink-0"
+                      animate={{ x: [0, 3, 0] }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: 'easeInOut',
+                      }}
+                    >
+                      <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />
+                    </motion.div>
+                  </span>
+
+                  {/* Button shine effect */}
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent rounded-2xl"
+                    animate={{
+                      x: ['-100%', '100%'],
+                      opacity: [0, 1, 0],
+                    }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: 'easeInOut',
+                      delay: 2,
+                    }}
+                  />
+                </Button>
+              </motion.div>
             </Link>
-            <div className="flex items-center gap-3 text-gray-600 text-sm md:text-base">
-              <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-green-500 flex-shrink-0" />
+
+            {/* Features List */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={isInView ? { opacity: 1, x: 0 } : {}}
+              transition={{ duration: 0.8, delay: 2 }}
+              className="flex items-center gap-3 text-gray-600 text-sm md:text-base bg-white/70 backdrop-blur-sm rounded-2xl px-4 py-3 border border-white/60 shadow-md"
+            >
+              <motion.div
+                animate={{
+                  scale: [1, 1.1, 1],
+                  rotate: [0, 5, 0],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }}
+              >
+                <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-green-500 flex-shrink-0" />
+              </motion.div>
               <span className="font-medium text-center sm:text-right">
                 חוויה אישית • תובנות עבורכם • דיסקרטי לחלוטין
               </span>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
+
+          {/* Additional decorative elements */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={isInView ? { opacity: 1 } : {}}
+            transition={{ duration: 1, delay: 2.5 }}
+            className="mt-8 flex justify-center gap-4"
+          >
+            {[...Array(3)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="w-2 h-2 rounded-full bg-gradient-to-r from-rose-400 to-violet-500"
+                animate={{
+                  scale: [1, 1.5, 1],
+                  opacity: [0.5, 1, 0.5],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  delay: i * 0.3,
+                }}
+              />
+            ))}
+          </motion.div>
         </div>
       </motion.div>
     </div>

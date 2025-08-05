@@ -1865,3 +1865,26 @@ button,
   outline: 2px solid rgba(59, 130, 246, 0.7);
   outline-offset: 2px;
 }
+/* תיקון RTL למובייל */
+@media (max-width: 768px) {
+  [dir="rtl"] .mobile-layout {
+    direction: rtl;
+    text-align: right;
+    overflow-x: hidden;
+  }
+  
+  [dir="rtl"] .mobile-header {
+    direction: ltr;
+  }
+  
+  [dir="rtl"] .mobile-content {
+    direction: rtl;
+    text-align: right;
+  }
+}
+
+/* תיקון כללי */
+[dir="rtl"] * {
+  box-sizing: border-box;
+  max-width: 100%;
+}

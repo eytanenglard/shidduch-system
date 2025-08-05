@@ -300,56 +300,90 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
           transition={{ duration: 0.7, delay: 0.2 }}
           className="w-full max-w-4xl mt-12 md:mt-16"
         >
-          {/* גרסת מובייל */}
-          <div className="md:hidden flex flex-col items-center gap-3">
+          {/* גרסת מובייל - עודכנה להיות כמו גרסת דסקטופ */}
+          <div className={`md:hidden relative h-64`}>
+            {/* אלמנט שמאל - כלים חכמים */}
             <div
-              className={`flex flex-col items-center gap-2 opacity-0 ${isVisible ? 'animate-fade-in-up' : ''}`}
-              style={{ animationDelay: '200ms' }}
+              className={`absolute top-1/2 left-4 -translate-y-1/2 flex flex-col items-center gap-2 opacity-0 ${isVisible ? 'animate-synergy-enter-left' : ''}`}
             >
               <div className="p-4 bg-white/60 backdrop-blur-md rounded-full shadow-lg border border-white/50">
-                {' '}
-                <Brain className="w-8 h-8 text-cyan-500" />{' '}
+                <Brain className="w-8 h-8 text-cyan-500" />
               </div>
-              <span className="font-bold text-gray-700">כלים חכמים</span>
+              <span className="font-bold text-gray-700 text-sm text-center">כלים חכמים</span>
             </div>
+            
+            {/* אלמנט ימין - ליווי אישי */}
             <div
-              className={`h-8 w-px border-r border-dashed border-gray-400 opacity-0 ${isVisible ? 'animate-fade-in-up' : ''}`}
-              style={{ animationDelay: '400ms' }}
-            />
-            <div
-              className={`flex flex-col items-center gap-2 opacity-0 ${isVisible ? 'animate-fade-in-up' : ''}`}
-              style={{ animationDelay: '600ms' }}
+              className={`absolute top-1/2 right-4 -translate-y-1/2 flex flex-col items-center gap-2 opacity-0 ${isVisible ? 'animate-synergy-enter-right' : ''}`}
             >
               <div className="p-4 bg-white/60 backdrop-blur-md rounded-full shadow-lg border border-white/50">
-                {' '}
-                <Handshake className="w-8 h-8 text-pink-500" />{' '}
+                <Handshake className="w-8 h-8 text-pink-500" />
               </div>
-              <span className="font-bold text-gray-700">ליווי אישי</span>
+              <span className="font-bold text-gray-700 text-sm text-center">ליווי אישי</span>
             </div>
-            <div
-              className={`opacity-0 ${isVisible ? 'animate-fade-in-up' : ''}`}
-              style={{ animationDelay: '800ms' }}
+            
+            {/* SVG עם קווים ארוכים יותר שמתחילים מהאייקונים */}
+            <svg
+              className="absolute inset-0 w-full h-full overflow-visible"
+              viewBox="0 0 320 256"
             >
-              <ChevronDown className="w-7 h-7 text-gray-400 my-2" />
-            </div>
+              <defs>
+                <filter id="glow-mobile">
+                  <feGaussianBlur
+                    stdDeviation="3.5"
+                    result="coloredBlur"
+                  ></feGaussianBlur>
+                  <feMerge>
+                    <feMergeNode in="coloredBlur"></feMergeNode>
+                    <feMergeNode in="SourceGraphic"></feMergeNode>
+                  </feMerge>
+                </filter>
+              </defs>
+              {/* קו משמאל לאמצע - ארוך הרבה יותר */}
+              <path
+                className={`${isVisible ? 'path-draw' : ''}`}
+                d="M 30 128 C 90 60, 130 60, 160 110"
+                stroke="#06b6d4"
+                strokeWidth="2.5"
+                fill="none"
+                strokeLinecap="round"
+                filter="url(#glow-mobile)"
+              />
+              {/* קו מימין לאמצע - ארוך הרבה יותר */}
+              <path
+                className={`${isVisible ? 'path-draw' : ''}`}
+                d="M 290 128 C 230 196, 190 196, 160 110"
+                stroke="#ec4899"
+                strokeWidth="2.5"
+                fill="none"
+                strokeLinecap="round"
+                filter="url(#glow-mobile)"
+              />
+            </svg>
+            
+            {/* לוגו במרכז - חזרנו למיקום המקורי */}
             <div
-              className={`opacity-0 ${isVisible ? 'animate-mobile-match-point' : ''}`}
-              style={{ animationDelay: '1000ms' }}
+              className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 ${isVisible ? 'animate-match-point-appear' : ''}`}
             >
-              <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-white to-gray-50 rounded-full shadow-2xl border-2 border-white">
-                <div className="relative w-8 h-8">
-                  {' '}
+              <div className="p-3 bg-gradient-to-br from-white to-gray-50 rounded-full shadow-2xl border-2 border-white">
+                <div className="relative w-9 h-9">
                   <Image
                     src={getRelativeCloudinaryPath(logoUrl)}
                     alt="NeshamaTech Logo"
                     fill
                     className="object-contain"
-                  />{' '}
+                  />
                 </div>
-                <span className="font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-pink-500">
-                  NeshamaTech
-                </span>
               </div>
+            </div>
+            
+            {/* כיתוב NeshamaTech בנפרד - למטה יותר ומרכוז מתחת ללוגו */}
+            <div
+              className={`absolute top-[80%] left-1/2 -translate-x-1/2 opacity-0 ${isVisible ? 'animate-text-appear' : ''}`}
+            >
+              <span className="font-bold text-lg text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-pink-500">
+                NeshamaTech
+              </span>
             </div>
           </div>
 
@@ -431,12 +465,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.4 }}
-          className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4"
+          className="mt-8 flex flex-row items-center justify-center gap-4"
         >
           <Link href="/auth/register">
             <Button
               size="lg"
-              className="w-full sm:w-auto text-base md:text-lg px-8 py-6 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group"
+              className="w-auto text-base md:text-lg px-8 py-6 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group"
             >
               הצעד הראשון שלי
               <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
@@ -449,9 +483,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
             <Button
               variant="outline"
               size="lg"
-              className="w-full sm:w-auto text-base md:text-lg px-8 py-6 border-2 border-cyan-200 text-cyan-600 bg-white/50 hover:bg-white hover:border-cyan-300 rounded-full transition-all duration-300"
+              className="w-auto text-base md:text-lg px-8 py-6 border-2 border-cyan-200 text-cyan-600 bg-white/50 hover:bg-white hover:border-cyan-300 rounded-full transition-all duration-300"
             >
-              לשאלון ההיכרות
+              לשאלון שלנו
             </Button>
           </Link>
         </motion.div>
@@ -625,6 +659,20 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
         .animate-match-point-appear {
           animation: match-point-appear 0.6s 1.4s cubic-bezier(0.25, 1, 0.5, 1)
             forwards;
+        }
+
+        @keyframes text-appear {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-text-appear {
+          animation: text-appear 0.5s 2.2s ease-out forwards;
         }
       `}</style>
     </motion.section>
