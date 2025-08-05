@@ -1036,11 +1036,14 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                   <SuggestionTimeline
                     statusHistory={suggestion.statusHistory}
                   />
+                  {/* --- START: הוספת ה-prop החסר --- */}
                   <InquiryThreadView
                     suggestionId={suggestion.id}
                     userId={userId}
                     showComposer={true}
+                    isDemo={isDemo}
                   />
+                  {/* --- END: הוספת ה-prop החסר --- */}
                 </div>
               </TabsContent>
             </Tabs>
