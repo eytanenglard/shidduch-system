@@ -201,7 +201,7 @@ const EnhancedHeroSection: React.FC<{
     if (targetParty.profile?.religiousLevel)
       factors.push({
         icon: ScrollIcon,
-        label: 'השקפת עולם משותפת',
+        label: 'השקפת עולם',
         value: targetParty.profile.religiousLevel,
         color: 'from-purple-500 to-violet-600',
         glow: 'shadow-purple-200',
@@ -209,7 +209,7 @@ const EnhancedHeroSection: React.FC<{
     if (targetParty.profile?.city)
       factors.push({
         icon: MapPin,
-        label: 'מיקום נוח',
+        label: 'אזור מגורים',
         value: targetParty.profile.city,
         color: 'from-emerald-500 to-green-600',
         glow: 'shadow-emerald-200',
@@ -217,7 +217,7 @@ const EnhancedHeroSection: React.FC<{
     if (targetParty.profile?.education)
       factors.push({
         icon: GraduationCap,
-        label: 'רקע השכלתי',
+        label: 'רקע והשכלה',
         value: targetParty.profile.education,
         color: 'from-blue-500 to-cyan-600',
         glow: 'shadow-blue-200',
@@ -225,7 +225,7 @@ const EnhancedHeroSection: React.FC<{
     if (targetParty.profile?.occupation)
       factors.push({
         icon: Briefcase,
-        label: 'תחום מקצועי',
+        label: 'תחום עיסוק',
         value: targetParty.profile.occupation,
         color: 'from-amber-500 to-orange-600',
         glow: 'shadow-amber-200',
@@ -265,22 +265,22 @@ const EnhancedHeroSection: React.FC<{
             </div>
           </div>
           <div className="max-w-4xl mx-auto mb-8">
+            {/* --- START: UPDATED TEXT --- */}
             <h1
               className="text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-6 leading-tight animate-fade-in-up"
               style={{ animationDelay: '0.5s' }}
             >
-              💝 זה יכול להיות התחלה של משהו מדהים
+              זו הצעה שנבחרה במיוחד עבורך
             </h1>
             <p
               className="text-xl md:text-2xl text-gray-700 leading-relaxed font-medium animate-fade-in-up"
               style={{ animationDelay: '1s' }}
             >
-              השדכן שלך זיהה כאן שילוב נדיר של התאמה, כימיה ופוטנציאל.
+              חשבנו עליך כשראינו את הפרופיל הזה.
               <br />
-              <span className="text-transparent bg-gradient-to-r from-emerald-500 to-cyan-500 bg-clip-text font-bold">
-                זה הרגע לגלות למה.
-              </span>
+              אנו מאמינים שיש כאן בסיס אמיתי להיכרות משמעותית.
             </p>
+            {/* --- END: UPDATED TEXT --- */}
           </div>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-12">
@@ -369,16 +369,16 @@ const EnhancedHeroSection: React.FC<{
                       <Diamond className="w-6 h-6 text-purple-500" />
                       <Gem className="w-7 h-7 text-pink-500" />
                     </div>
+                    {/* --- START: UPDATED TEXT --- */}
                     <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-4 leading-tight">
-                      יש כאן משהו מיוחד מאוד
+                      הסיפור שמאחורי ההתאמה
                     </h2>
                     <p className="text-lg text-gray-700 leading-relaxed">
-                      השדכן שלך השקיע זמן ומחשבה כדי להבין בדיוק מה מתאים לך.
+                      אנו מקשיבים למה שחשוב לך, גם בין השורות.
                       <br />
-                      <span className="font-bold text-emerald-600">
-                        וזה מה שהוא מצא.
-                      </span>
+                      הנה כמה מהחיבורים שזיהינו כאן.
                     </p>
+                    {/* --- END: UPDATED TEXT --- */}
                   </div>
                   {excitementFactors.length > 0 && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
@@ -452,10 +452,6 @@ const EnhancedHeroSection: React.FC<{
                           <h3 className="font-bold text-cyan-800 text-xl">
                             💭 התובנה המקצועית
                           </h3>
-                          <Badge className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white border-0 shadow-md">
-                            <Shield className="w-3 h-3 ml-1" />
-                            מומחה
-                          </Badge>
                         </div>
                         {personalNote && (
                           <div className="mb-4 p-4 bg-white/70 rounded-xl shadow-inner border border-cyan-100">
@@ -504,14 +500,16 @@ const EnhancedHeroSection: React.FC<{
                       <Mountain className="w-7 h-7" />
                     </div>
                   </div>
+                  {/* --- START: UPDATED TEXT --- */}
                   <h3 className="text-2xl font-bold mb-3">
-                    🌟 כל סיפור אהבה מתחיל בצעד ראשון
+                    מה עכשיו? ההחלטה בידיים שלך
                   </h3>
                   <p className="text-emerald-100 text-lg leading-relaxed mb-4">
-                    זה הרגע שבו אתה מחליט לתת הזדמנות למשהו יפה.
+                    כל החלטה שתקבל/י היא צעד נכון במסע שלך.
                     <br />
-                    <span className="font-bold">מה תבחר לעשות?</span>
+                    קח/י את הזמן, ובחר/י מה שהכי מרגיש לך נכון.
                   </p>
+                  {/* --- END: UPDATED TEXT --- */}
                   <div className="flex justify-center">
                     <Badge className="bg-white/20 text-white border-white/30 px-4 py-2 text-base">
                       <Timer className="w-4 h-4 ml-2" />
@@ -527,6 +525,10 @@ const EnhancedHeroSection: React.FC<{
     </div>
   );
 };
+
+// ... (Rest of the file remains unchanged)
+// The components EnhancedQuickActions, EnhancedTabsSection, and the main SuggestionDetailsModal
+// will remain as they are, since their logic is not affected by these text changes.
 
 const EnhancedQuickActions: React.FC<{
   isExpanded: boolean;
@@ -823,8 +825,6 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
     if (!targetParty || !targetParty.profile) {
       return null;
     }
-    // מרכיבים אובייקט חדש שמכיל את כל השדות של targetParty.profile
-    // ומוסיפים לו את תת-האובייקט 'user' עם השמות מהרמה העליונה של targetParty
     return {
       ...targetParty.profile,
       user: {
@@ -833,7 +833,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
       },
     };
   }, [targetParty]);
-  if (!suggestion || !targetParty) return null;
+
   if (!suggestion || !targetParty || !profileWithUser) return null;
 
   const canActOnSuggestion =
@@ -956,7 +956,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                   </div>
                 ) : profileWithUser ? (
                   <ProfileCard
-                    profile={profileWithUser} // עכשיו טייפסקריפט יודע שזה לא יכול להיות null
+                    profile={profileWithUser}
                     isProfileComplete={targetParty.isProfileComplete}
                     images={targetParty.images}
                     questionnaire={questionnaire}

@@ -11,10 +11,10 @@ import React, {
 import { motion, useInView, AnimatePresence, PanInfo } from 'framer-motion';
 import {
   Heart,
-  Smile,
+  User,
   Users,
-  BookOpen,
-  Target,
+  Scroll,
+  UserCheck,
   Sparkles,
   ArrowRight,
   CheckCircle,
@@ -49,7 +49,7 @@ interface ConstellationLine {
 
 const MatchingConstellation: React.FC = () => {
   const [hoveredWorld, setHoveredWorld] = useState<number | null>(null);
-  const [selectedWorld, setSelectedWorld] = useState<number>(1); // Start with a selected world
+  const [selectedWorld, setSelectedWorld] = useState<number>(1);
   const [hasInteracted, setHasInteracted] = useState<boolean>(false);
   const [rotationOffset, setRotationOffset] = useState<number>(0);
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -60,7 +60,6 @@ const MatchingConstellation: React.FC = () => {
   const constellationRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(sectionRef, { once: true, amount: 0.2 });
 
-  // Check if mobile
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
@@ -75,32 +74,35 @@ const MatchingConstellation: React.FC = () => {
     () => [
       {
         id: 1,
+        icon: <User className="w-6 h-6 md:w-8 md:h-8" />,
+        title: 'עולם האישיות',
+        shortDesc: 'האדם שמאחורי הפרטים',
+        fullDescription:
+          'כאן נבין מי את/ה באמת: מה מניע אותך, כיצד את/ה מתמודד/ת עם אתגרים, ומה סגנון התקשורת שלך. זהו הבסיס ליצירת תמונה אותנטית ומלאה עבורנו ועבור הצד השני.',
+        color: 'from-sky-400 to-blue-500',
+        gradientFrom: '#38bdf8',
+        gradientTo: '#3b82f6',
+        angle: -72,
+        personalExample:
+          "איך היית מחלק/ת 100 'נקודות אישיות' בין תכונות כמו אמפתיה, שאפתנות וחוש הומור?",
+        insight:
+          'הבנת האישיות לעומק מאפשרת לנו למצוא מישהו שהדינמיקה איתו תרגיש טבעית ונכונה מהרגע הראשון.',
+      },
+      {
+        id: 2,
         icon: <Heart className="w-6 h-6 md:w-8 md:h-8" />,
         title: 'עולם הערכים',
         shortDesc: 'הבסיס לבית משותף',
         fullDescription:
-          'מה באמת חשוב לכם בחיים, במשפחה ובזוגיות? כאן אנחנו יורדים לשורשים כדי למצוא מישהו שהולך באותו כיוון ערכי כמוכם.',
+          'מהם עמודי התווך של חייך? כאן נגדיר את הערכים והאמונות שמנחים אותך ומהווים מצפן לבניית בית משותף ויציב.',
         color: 'from-rose-400 to-pink-500',
         gradientFrom: '#fb7185',
         gradientTo: '#ec4899',
-        angle: -72,
-        personalExample: 'מהו הערך החשוב ביותר שתרצו להנחיל בבית שתקימו?',
-        insight: 'כשיש בסיס ערכי משותף, קל יותר להתמודד עם אתגרי החיים, ביחד.',
-      },
-      {
-        id: 2,
-        icon: <Smile className="w-6 h-6 md:w-8 md:h-8" />,
-        title: 'עולם האישיות',
-        shortDesc: 'הדינמיקה הטבעית שלכם',
-        fullDescription:
-          'איך אתם מגיבים במצבי לחץ? מה נותן לכם אנרגיה? אנו מחפשים אישיות שתשלים אתכם ותיצור דינמיקה זורמת וטבעית, כזו שבה שניכם יכולים פשוט להיות עצמכם.',
-        color: 'from-amber-400 to-orange-500',
-        gradientFrom: '#fbbf24',
-        gradientTo: '#f97316',
         angle: -144,
-        personalExample: 'איך הייתם מתארים את עצמכם בשלוש מילים לחבר קרוב?',
+        personalExample:
+          'איך נראים סדרי העדיפויות שלך היום, ואיך היית רוצה שייראו בתוך זוגיות?',
         insight:
-          'התאמה אישיותית נכונה הופכת את הזוגיות למקום בטוח ומהנה להיות בו.',
+          'התאמה ערכית היא המפתח לקשר יציב וארוך טווח. זהו החלק החשוב ביותר לסינון מדויק ומניעת עוגמת נפש עתידית.',
       },
       {
         id: 3,
@@ -108,50 +110,51 @@ const MatchingConstellation: React.FC = () => {
         title: 'עולם הזוגיות',
         shortDesc: 'החזון שלכם ל"ביחד"',
         fullDescription:
-          'מה החזון שלכם ל"ביחד"? איך נראה ערב אידיאלי? איך פותרים קונפליקטים? אנו מבינים את תפיסת הזוגיות שלכם כדי למצוא מישהו שרוצה לבנות את אותו הבית.',
+          'מהי זוגיות עבורך ומהן ציפיותיך מהקשר? כאן נבין את החזון שלך לשותפות, החל מתקשורת יומיומית ועד לחלומות משותפים.',
         color: 'from-emerald-400 to-teal-500',
         gradientFrom: '#34d399',
         gradientTo: '#14b8a6',
         angle: 144,
-        personalExample:
-          'מהי "שפת האהבה" העיקרית שלכם, ואיך אתם אוהבים לקבל אהבה?',
+        personalExample: 'מהי הגישה המועדפת עליך לניהול כספים משותף בזוגיות?',
         insight:
-          'כשהחזונות לזוגיות מתיישרים, קל יותר להתחיל לצעוד יחד באותו המסלול.',
+          'כשהחזונות לזוגיות מתיישרים, קל יותר להתחיל לצעוד יחד באותו המסלול מההתחלה.',
       },
       {
         id: 4,
-        icon: <BookOpen className="w-6 h-6 md:w-8 md:h-8" />,
-        title: 'העולם הדתי והרוחני',
-        shortDesc: 'החיבור הרוחני שלכם',
+        icon: <UserCheck className="w-6 h-6 md:w-8 md:h-8" />,
+        title: 'עולם הפרטנר',
+        shortDesc: 'הגדרת ההתאמה הרצויה',
         fullDescription:
-          'מה המקום של הדת והמסורת בחייכם? מה החזון החינוכי לילדים? אנו ניגשים לנושאים אלו ברגישות ובדיוק כדי למצוא התאמה רוחנית אמיתית.',
-        color: 'from-sky-400 to-blue-500',
-        gradientFrom: '#38bdf8',
-        gradientTo: '#3b82f6',
-        angle: 72,
-        personalExample: 'איך נראית שמירת השבת שלכם בפועל, ומה הגמישות שלכם?',
-        insight: 'התאמה רוחנית יוצרת בית שמלא במשמעות, עומק ושפה משותפת.',
-      },
-      {
-        id: 5,
-        icon: <Target className="w-6 h-6 md:w-8 md:h-8" />,
-        title: 'ציפיות מהשותף',
-        shortDesc: 'הצרכים שלכם בזוגיות',
-        fullDescription:
-          'אילו תכונות בשותף לחיים יעזרו לכם להיות הגרסה הטובה ביותר של עצמכם? כאן אנו מבינים את הצרכים העמוקים שלכם, כדי למצוא אדם שיצמח אתכם וייתן לכם ביטחון.',
+          'מי האדם שאת/ה מחפש/ת? בעולם זה נמקד את החיפוש ונבין מהן התכונות, הרקע והערכים החיוניים לך בבן/בת הזוג.',
         color: 'from-violet-400 to-purple-500',
         gradientFrom: '#a78bfa',
         gradientTo: '#8b5cf6',
+        angle: 72,
+        personalExample:
+          'מהם ה"קווים האדומים" (Deal Breakers) המוחלטים עבורך אצל בן/בת זוג?',
+        insight:
+          'הגדרה מדויקת של מה שאת/ה מחפש/ת מאפשרת לנו לבצע חיפוש יעיל וחכם, ולחסוך לך הצעות שאינן רלוונטיות.',
+      },
+      {
+        id: 5,
+        icon: <Scroll className="w-6 h-6 md:w-8 md:h-8" />,
+        title: 'דת ומסורת',
+        shortDesc: 'החיבור הרוחני שלכם',
+        fullDescription:
+          'מהו החיבור שלך ליהדות וכיצד הוא בא לידי ביטוי בחייך? כאן נפרט את זהותך, השקפתך והחזון שלך לבית יהודי.',
+        color: 'from-amber-400 to-orange-500',
+        gradientFrom: '#fbbf24',
+        gradientTo: '#f97316',
         angle: 0,
         personalExample:
-          'מהי התכונה האחת, החשובה ביותר, שחייבת להיות בבן/בת הזוג?',
-        insight: 'הבנת הצרכים ההדדיים היא המפתח לתקשורת פתוחה וזוגיות בריאה.',
+          'איזה סוג של בית וחינוך דתי/תורני היית רוצה להעניק לילדיך?',
+        insight:
+          'התאמה רוחנית ודתית היא קריטית במגזר. תשובות מדויקות כאן הן המפתח לבניית בית נאמן בישראל על בסיס משותף ויציב.',
       },
     ],
     []
   );
 
-  // Auto-rotation effect
   useEffect(() => {
     if (hasInteracted || isDragging) return;
     const interval = setInterval(() => {
@@ -160,19 +163,13 @@ const MatchingConstellation: React.FC = () => {
     return () => clearInterval(interval);
   }, [hasInteracted, isDragging, worlds.length]);
 
-  // *** NEW: Centralized rotation logic ***
-  // This useEffect ensures the rotation always matches the selected world.
   useEffect(() => {
     const targetWorld = worlds.find((w) => w.id === selectedWorld);
     if (targetWorld) {
-      // We want to rotate the constellation so the selected world's angle becomes 0.
-      // The world with angle=0 is at the top. To bring a world with angle=-72 to the top, we must rotate by +72.
-      // So, the rotation offset is the negative of the world's angle.
       setRotationOffset(-targetWorld.angle);
     }
   }, [selectedWorld, worlds]);
 
-  // Responsive dimensions with better mobile centering
   const getDimensions = () => {
     if (isMobile) {
       return {
@@ -227,19 +224,14 @@ const MatchingConstellation: React.FC = () => {
     }, 100);
   };
 
-  // *** NEW: Simplified drag/pan handlers for intuitive swiping ***
-
   const handlePanStart = useCallback(() => {
     setHasInteracted(true);
     setIsDragging(true);
-    // Store the rotation at the beginning of the pan
     panStartRotation.current = rotationOffset;
   }, [rotationOffset]);
 
   const handlePan = useCallback(
     (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-      // Convert horizontal pan offset to rotation.
-      // The sensitivity factor determines how "fast" the rotation feels.
       const sensitivity = 0.5;
       setRotationOffset(panStartRotation.current + info.offset.x * sensitivity);
     },
@@ -249,29 +241,22 @@ const MatchingConstellation: React.FC = () => {
   const handlePanEnd = useCallback(
     (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
       setIsDragging(false);
-
-      // Thresholds for detecting a "flick"
       const swipePower = Math.abs(info.velocity.x);
       const swipeDistance = Math.abs(info.offset.x);
-      const flickThreshold = 200; // pixels per second
+      const flickThreshold = 200;
 
       const currentWorldIndex =
         worlds.findIndex((w) => w.id === selectedWorld) ?? 0;
       let nextWorldIndex = currentWorldIndex;
 
-      // Check for a meaningful swipe/flick to change worlds
       if (swipePower > flickThreshold || swipeDistance > dimensions.size / 4) {
         if (info.offset.x < 0) {
-          // Swiped Left (Next)
           nextWorldIndex = (currentWorldIndex + 1) % worlds.length;
         } else {
-          // Swiped Right (Previous)
           nextWorldIndex =
             (currentWorldIndex - 1 + worlds.length) % worlds.length;
         }
       }
-
-      // Set the new selected world. The `useEffect` will handle the snapping animation.
       setSelectedWorld(worlds[nextWorldIndex].id);
     },
     [selectedWorld, worlds, dimensions.size]
@@ -312,7 +297,6 @@ const MatchingConstellation: React.FC = () => {
       </motion.div>
 
       <div className="flex flex-col xl:flex-row items-center gap-8 md:gap-16">
-        {/* *** MODIFIED: Added pan handlers to the main constellation container *** */}
         <motion.div
           ref={constellationRef}
           initial={{ opacity: 0, scale: 0.9 }}
@@ -323,16 +307,15 @@ const MatchingConstellation: React.FC = () => {
             width: dimensions.size,
             height: dimensions.size,
             maxWidth: '100vw',
-            margin: '0 auto', // Ensure centering
+            margin: '0 auto',
           }}
-          drag={isMobile ? 'x' : false} // Enable horizontal drag only on mobile
+          drag={isMobile ? 'x' : false}
           dragConstraints={{ left: 0, right: 0 }}
           dragElastic={0.1}
           onPanStart={handlePanStart}
           onPan={handlePan}
           onPanEnd={handlePanEnd}
         >
-          {/* Constellation Container - Responsive with perfect centering */}
           <div
             className="relative mx-auto flex items-center justify-center"
             style={{
@@ -357,7 +340,6 @@ const MatchingConstellation: React.FC = () => {
                   strokeWidth={isMobile ? '1.5' : '2'}
                   opacity={isDragging ? 0.6 : line.opacity}
                   className="transition-opacity duration-300"
-                  // Animate using spring for smooth rotation
                   animate={{
                     x1: line.x1,
                     y1: line.y1,
@@ -394,13 +376,6 @@ const MatchingConstellation: React.FC = () => {
                   <feGaussianBlur stdDeviation="2" result="coloredBlur" />
                   <feMerge>
                     <feMergeNode in="coloredBlur" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
-                <filter id="logoGlow">
-                  <feGaussianBlur stdDeviation="1" result="logoBlur" />
-                  <feMerge>
-                    <feMergeNode in="logoBlur" />
                     <feMergeNode in="SourceGraphic" />
                   </feMerge>
                 </filter>
@@ -621,7 +596,6 @@ const MatchingConstellation: React.FC = () => {
           </div>
         </motion.div>
 
-        {/* Information panel with scroll target */}
         <motion.div
           initial={{ opacity: 0, x: 30 }}
           animate={isInView ? { opacity: 1, x: 0 } : {}}
