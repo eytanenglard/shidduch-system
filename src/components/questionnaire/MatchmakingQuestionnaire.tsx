@@ -407,14 +407,42 @@ export default function MatchmakingQuestionnaire({
         worldId: currentWorld,
         value,
         answeredAt: new Date().toISOString(),
+        isVisible: true, // <-- הוספה: ברירת מחדל שהתשובה גלויה
       };
       setAnswers((prev) => {
+        const existingAnswer = prev.find((a) => a.questionId === questionId);
+        // שמור על הגדרת ה-isVisible הקיימת אם התשובה כבר קיימת
+        const finalAnswer = {
+          ...newAnswer,
+          isVisible: existingAnswer?.isVisible ?? true,
+        };
         const filtered = prev.filter((a) => a.questionId !== questionId);
-        return [...filtered, newAnswer];
+        return [...filtered, finalAnswer];
       });
     },
     [currentWorld]
   );
+
+  // --- START: פונקציה חדשה לשינוי נראות ---
+  const handleVisibilityChange = useCallback(
+    (questionId: string, isVisible: boolean) => {
+      setIsDirty(true);
+      setAnswers((prev) =>
+        prev.map((answer) =>
+          answer.questionId === questionId
+            ? { ...answer, isVisible }
+            : answer
+        )
+      );
+      showToast(
+        isVisible ? 'התשובה תוצג בפרופיל' : 'התשובה תוסתר מהפרופיל',
+        'info',
+        2000
+      );
+    },
+    [showToast]
+  );
+  // --- END: פונקציה חדשה לשינוי נראות ---
 
   const handleWorldChange = useCallback((newWorld: WorldId) => {
     setCurrentWorld(newWorld);
@@ -510,8 +538,9 @@ export default function MatchmakingQuestionnaire({
 
   // --- שינוי מרכזי כאן ---
   function renderCurrentWorld() {
-    const worldProps: WorldComponentProps = {
+    const worldProps = {
       onAnswer: handleAnswer,
+      onVisibilityChange: handleVisibilityChange, // <-- העברת הפונקציה החדשה
       onComplete: () => handleWorldComplete(currentWorld),
       onBack: handleExit,
       answers: answers.filter((a) => a.worldId === currentWorld),
@@ -529,6 +558,12 @@ export default function MatchmakingQuestionnaire({
     return <WorldComponent {...worldProps} worldId={currentWorld} />;
   }
   // --- סוף השינוי ---
+  interface ToastProps {
+    message: string;
+    type: 'success' | 'error' | 'info';
+    isVisible: boolean;
+    action?: { label: string; onClick: () => void };
+  }
 
   function renderCurrentStep() {
     // Loading state
@@ -602,8 +637,7 @@ export default function MatchmakingQuestionnaire({
     }
   }
 
-  const Toast = ({ message, type, isVisible, action }) => {
-    if (!isVisible) return null;
+  const Toast = ({ message, type, isVisible, action }: ToastProps) => {    if (!isVisible) return null;
     return (
       <div
         className={cn(

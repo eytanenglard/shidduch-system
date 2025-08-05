@@ -31,6 +31,7 @@ import type {
   AnswerValue,
   Question,
   WorldId,
+  QuestionnaireAnswer,
 } from '../types/types';
 import { cn } from '@/lib/utils';
 import { useMediaQuery } from '../hooks/useMediaQuery';
@@ -79,14 +80,16 @@ const worldConfig: Record<
   },
 };
 
-// 3. הרחבת ה-Props של הקומפוננטה כדי שתקבל worldId
+// 3. הרחבת ה-Props של הקומפוננטה כדי שתקבל worldId ו-onVisibilityChange
 interface WorldComponentDynamicProps extends WorldComponentProps {
   worldId: WorldId;
+  onVisibilityChange: (questionId: string, isVisible: boolean) => void;
 }
 
 export default function WorldComponent({
   worldId,
   onAnswer,
+  onVisibilityChange,
   onComplete,
   onBack,
   answers,
@@ -105,8 +108,8 @@ export default function WorldComponent({
   const isRTL = language === 'he';
   const [isListVisible, setIsListVisible] = useState(true);
 
-  const findAnswer = (questionId: string) => {
-    return answers.find((a) => a.questionId === questionId)?.value;
+  const findAnswer = (questionId: string): QuestionnaireAnswer | undefined => {
+    return answers.find((a) => a.questionId === questionId);
   };
 
   const validateAnswer = (
@@ -183,7 +186,8 @@ export default function WorldComponent({
 
   const handleNext = () => {
     const currentQuestion = allQuestions[currentQuestionIndex];
-    const value = findAnswer(currentQuestion.id);
+    const answerObject = findAnswer(currentQuestion.id);
+    const value = answerObject?.value;
     const error = validateAnswer(currentQuestion, value);
 
     if (error && currentQuestion.isRequired) {
@@ -196,7 +200,7 @@ export default function WorldComponent({
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
       const firstUnansweredRequired = allQuestions.find(
-        (q) => q.isRequired && validateAnswer(q, findAnswer(q.id)) !== null
+        (q) => q.isRequired && validateAnswer(q, findAnswer(q.id)?.value) !== null
       );
       if (firstUnansweredRequired) {
         const errorIndex = allQuestions.findIndex(
@@ -209,7 +213,7 @@ export default function WorldComponent({
             [firstUnansweredRequired.id]:
               validateAnswer(
                 firstUnansweredRequired,
-                findAnswer(firstUnansweredRequired.id)
+                findAnswer(firstUnansweredRequired.id)?.value
               ) || 'נדרשת תשובה לשאלה זו',
           });
         }
@@ -281,7 +285,8 @@ export default function WorldComponent({
   }
 
   const progress = ((currentQuestionIndex + 1) / allQuestions.length) * 100;
-  const currentValue = findAnswer(currentQuestion.id);
+  const currentAnswerObject = findAnswer(currentQuestion.id);
+  const currentValue = currentAnswerObject?.value;
 
   const renderHeader = () => (
     <div className="bg-white p-3 rounded-lg shadow-sm border space-y-2 mb-6">
@@ -384,6 +389,8 @@ export default function WorldComponent({
         validationError={validationErrors[currentQuestion.id]}
         language={language}
         themeColor={themeColor}
+        isVisible={currentAnswerObject?.isVisible ?? true}
+        onVisibilityChange={(isVisible) => onVisibilityChange(currentQuestion.id, isVisible)}
       >
         <AnswerInput
           question={currentQuestion}

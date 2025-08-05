@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label"; // <-- FIX: Import the Label component
 import {
   Bookmark,
   AlertCircle,
@@ -19,6 +20,8 @@ import {
   X,
   MessageCircle,
   Lightbulb,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import {
   Tooltip,
@@ -26,6 +29,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Switch } from "@/components/ui/switch";
 import { motion, AnimatePresence } from "framer-motion";
 import type {
   Question,
@@ -48,7 +52,11 @@ interface QuestionCardProps {
   children?: React.ReactNode;
   language?: string;
   isFirstInList?: boolean;
-  themeColor?: 'sky' | 'rose' | 'purple' | 'teal' | 'amber'; // NEW: Added theme color prop
+  themeColor?: 'sky' | 'rose' | 'purple' | 'teal' | 'amber';
+  // --- START: הוספת props חדשים ---
+  isVisible: boolean;
+  onVisibilityChange: (isVisible: boolean) => void;
+  // --- END: הוספת props חדשים ---
 }
 
 const depthLabels: Record<QuestionDepth, string> = {
@@ -76,6 +84,8 @@ export default function QuestionCard({
   children,
   isFirstInList = false,
   themeColor = 'sky', // Default theme color
+  isVisible,
+  onVisibilityChange,
 }: QuestionCardProps) {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
@@ -220,14 +230,38 @@ export default function QuestionCard({
           </div>
         </CardContent>
 
-        {onSkip && (
-          <CardFooter className="relative flex justify-end items-center pt-4 border-t border-slate-100 bg-slate-50/50">
+        <CardFooter className="relative flex justify-between items-center pt-4 border-t border-slate-100 bg-slate-50/50">
+          {/* --- START: הוספת כפתור נראות --- */}
+          <div className="flex items-center gap-2">
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Switch
+                    checked={isVisible}
+                    onCheckedChange={onVisibilityChange}
+                    disabled={isDisabled}
+                    aria-label="הצג תשובה זו בפרופיל"
+                  />
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <p>{isVisible ? 'התשובה תוצג בפרופיל הציבורי' : 'התשובה תוסתר ותהיה גלויה רק לשדכנים'}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <Label className={cn("text-sm transition-colors", isVisible ? 'text-slate-700' : 'text-slate-500')}>
+              {isVisible ? <Eye className="w-4 h-4 inline-block ml-1" /> : <EyeOff className="w-4 h-4 inline-block ml-1" />}
+              {isVisible ? 'גלוי בפרופיל' : 'מוסתר מהפרופיל'}
+            </Label>
+          </div>
+          {/* --- END: הוספת כפתור נראות --- */}
+
+          {onSkip && (
             <Button variant="ghost" size="sm" onClick={onSkip} disabled={isRequired || isDisabled} className={cn("text-slate-500 hover:text-slate-800", (isRequired || isDisabled) && "opacity-50 cursor-not-allowed")}>
               {isRequired ? "שאלת חובה" : "דלג על שאלה זו"}
               {!isRequired && <SkipForward className="w-4 h-4 mr-2" />}
             </Button>
-          </CardFooter>
-        )}
+          )}
+        </CardFooter>
       </Card>
     </motion.div>
   );

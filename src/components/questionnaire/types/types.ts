@@ -109,6 +109,7 @@ export interface QuestionnaireAnswer {
   worldId: WorldId;
   value: AnswerValue;
   answeredAt: string;
+   isVisible?: boolean;
 }
 
 export interface Answer extends QuestionnaireAnswer {

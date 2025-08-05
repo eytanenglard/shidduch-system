@@ -25,6 +25,8 @@ import {
   ChevronLeft, // אייקון חדש
   Edit, // אייקון חדש
   BookUser, // *** הוספה חדשה ***
+  Info, // <-- הוספה
+  EyeOff, // <-- הוספה
 } from 'lucide-react';
 import type { WorldId, QuestionnaireLayoutProps } from '../types/types';
 import { cn } from '@/lib/utils';
@@ -45,7 +47,12 @@ import {
 } from '@/components/ui/sheet';
 import FAQ from '../components/FAQ';
 import AccessibilityFeatures from '../components/AccessibilityFeatures';
-
+interface ToastProps {
+  message: string;
+  type: 'success' | 'error' | 'info';
+  isVisible: boolean;
+  onClose?: () => void;
+}
 // ============================================================================
 // CONFIGURATION OBJECT FOR WORLDS
 // ============================================================================
@@ -58,7 +65,7 @@ const worldConfig = {
 } as const;
 
 // Enhanced Toast component
-const Toast = ({ message, type, isVisible, onClose }) => {
+const Toast = ({ message, type, isVisible, onClose }: ToastProps) => {
   if (!isVisible) return null;
 
   return (
@@ -165,7 +172,13 @@ export default function QuestionnaireLayout({
   // ============================================================================
   // START OF IMPROVED NavButton COMPONENT
   // ============================================================================
-  const NavButton = ({ worldId, isMobile }) => {
+  const NavButton = ({
+    worldId,
+    isMobile,
+  }: {
+    worldId: string;
+    isMobile: boolean;
+  }) => {
     const {
       icon: Icon,
       label,
@@ -519,6 +532,25 @@ export default function QuestionnaireLayout({
       </aside>
 
       <main className="flex-1 p-3 md:p-6 lg:pb-16 overflow-y-auto relative scroll-smooth">
+        {/* --- START: הודעת הסבר למשתמש --- */}
+        <Alert className="mb-6 bg-sky-50 border-sky-200 text-sky-800">
+          <Info className="h-4 w-4 text-sky-600" />
+          <AlertDescription>
+            <span className="font-semibold">שימ/י לב:</span> כל תשובה שתענה/י
+            תוצג אוטומטית בכרטיס הפרופיל שלך כדי לשפר את איכות ההתאמות. ניתן
+            להסתיר כל שאלה מהפרופיל באמצעות המתג{' '}
+            <EyeOff className="inline-block h-3 w-3" /> שבחלק התחתון של כל שאלה.
+            <br />
+            <Link
+              href="/profile?tab=questionnaire"
+              className="font-bold text-sky-700 hover:underline"
+              target="_blank"
+            >
+              לחצ/י כאן כדי לראות איך הפרופיל שלך נראה (ייפתח בחלון חדש) &rarr;
+            </Link>
+          </AlertDescription>
+        </Alert>
+        {/* --- END: הודעת הסבר למשתמש --- */}
         {children}
         <AccessibilityFeatures
           isPanelOpen={isAccessibilityPanelOpen}
