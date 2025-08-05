@@ -168,7 +168,7 @@ const PrincipleCard: React.FC<PrincipleCardProps> = ({
       {
         iconBg: 'from-pink-400 to-rose-500',
         accent: 'border-pink-200 hover:border-pink-300',
-      }
+      },
     ];
     return colors[idx];
   };
@@ -179,7 +179,7 @@ const PrincipleCard: React.FC<PrincipleCardProps> = ({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.7 + (index * 0.1) }}
+      transition={{ duration: 0.5, delay: 0.7 + index * 0.1 }}
       whileHover={{ y: -2 }}
       className={`
         group flex flex-col items-center text-center gap-2 sm:gap-3 p-3 sm:p-5 
@@ -190,12 +190,14 @@ const PrincipleCard: React.FC<PrincipleCardProps> = ({
     >
       {/* אייקון */}
       <div className="flex-shrink-0">
-        <div className={`
+        <div
+          className={`
           w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br ${colors.iconBg}
           flex items-center justify-center shadow-sm
           group-hover:scale-105 transition-transform duration-300
-        `}>
-          {React.cloneElement(icon as React.ReactElement, { 
+        `}
+        >
+          {React.cloneElement(icon as React.ReactElement, {
             className: 'w-5 h-5 sm:w-6 sm:h-6 text-white',
           })}
         </div>
@@ -206,9 +208,7 @@ const PrincipleCard: React.FC<PrincipleCardProps> = ({
         <h4 className="font-bold text-gray-800 text-xs sm:text-base mb-1 sm:mb-2 leading-tight">
           {title}
         </h4>
-        <p className="text-gray-600 text-xs leading-relaxed">
-          {description}
-        </p>
+        <p className="text-gray-600 text-xs leading-relaxed">{description}</p>
       </div>
     </motion.div>
   );
@@ -456,7 +456,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
           </Link>
         </motion.div>
 
-        {/* --- אזור העקרונות החדש והמשופר --- */}
+        {/* --- START: אזור העקרונות עם התוכן המעודכן --- */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -471,33 +471,34 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
             <p className="text-gray-600 text-sm sm:text-base max-w-md mx-auto">
               שלושה עקרונות יסוד שמבטיחים חוויה עמוקה ואמיתית
             </p>
-            
+
             {/* Decorative line */}
             <div className="mt-3 w-12 h-0.5 bg-gradient-to-r from-cyan-400 to-pink-400 rounded-full mx-auto" />
           </div>
 
-          {/* Cards in same row - also on mobile */}
+          {/* Cards with updated content */}
           <div className="grid grid-cols-3 gap-2 sm:gap-4">
             <PrincipleCard
               icon={<BookOpen />}
-              title="פרופיל עם סיפור"
-              description="נרטיב עשיר שמעבר לתמונה"
+              title="יותר מתמונה, סיפור שלם"
+              description="השאלון המעמיק שלנו מתרגם את מי שאתם לנרטיב עשיר, ומאפשר היכרות אמיתית מהרגע הראשון."
               index={0}
             />
             <PrincipleCard
               icon={<Shield />}
-              title="דיסקרטיות מוחלטת"
-              description="הפרטיות שלכם ערך עליון"
+              title="הסיפור שלכם, בשליטתכם"
+              description="הפרופיל שלכם נחשף רק לשדכן האישי. כל צעד ושיתוף מידע נעשים אך ורק באישורכם המפורש."
               index={1}
             />
             <PrincipleCard
               icon={<User />}
-              title="ליווי אישי"
-              description="שדכן מלווה ומכוון להצלחה"
+              title="טכנולוגיה חכמה, לב אנושי"
+              description="הכוח של המערכת שלנו בידיים של שדכן מנוסה. הוא משתמש בכלים כדי לראות את האדם, ומלווה אתכם אישית להצלחה."
               index={2}
             />
           </div>
         </motion.div>
+        {/* --- END: אזור העקרונות עם התוכן המעודכן --- */}
       </div>
 
       <style jsx>{`
