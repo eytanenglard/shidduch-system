@@ -1,15 +1,28 @@
 // src/components/HomePage/sections/SuccessStoriesSection.tsx
 
-import React, { useRef } from 'react';
-import { motion, useInView } from 'framer-motion';
+// שינוי 1: הוספנו את useState ואת AnimatePresence
+import React, { useRef, useState } from 'react';
+import { motion, useInView, AnimatePresence } from 'framer-motion';
 import TestimonialCard from '../components/TestimonialCard';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
+// הסרנו את Link כי הכפתור כבר לא מוביל לדף אחר
 import { ArrowLeft } from 'lucide-react';
 
 const SuccessStoriesSection: React.FC = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.1 });
+
+  // שינוי 2: הוספנו state לניהול ההודעה שתוצג בלחיצה
+  const [showComingSoon, setShowComingSoon] = useState(false);
+
+  // שינוי 3: פונקציה שתופעל בלחיצה על הכפתור
+  const handleMoreStoriesClick = () => {
+    setShowComingSoon(true);
+    // נגרום להודעה להיעלם אוטומטית אחרי 3.5 שניות
+    setTimeout(() => {
+      setShowComingSoon(false);
+    }, 3500);
+  };
 
   // Animation variants (no changes needed here)
   const containerVariants = {
@@ -89,8 +102,6 @@ const SuccessStoriesSection: React.FC = () => {
             </span>
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-cyan-600 to-teal-600 mx-auto rounded-full mb-6" />
-
-          {/* --- START: UPDATED INTRODUCTORY TEXT WITH ESLINT FIX --- */}
           <motion.p
             className="text-lg text-gray-600 max-w-3xl mx-auto"
             variants={headerVariants}
@@ -99,7 +110,6 @@ const SuccessStoriesSection: React.FC = () => {
             כל אחד מהסיפורים האלה התחיל בהקשבה עמוקה לצרכים ולערכים של שני
             אנשים. אנו אסירי תודה על הזכות ללוות אותם בדרכם.
           </motion.p>
-          {/* --- END: UPDATED INTRODUCTORY TEXT WITH ESLINT FIX --- */}
         </motion.div>
 
         <motion.div
@@ -125,20 +135,21 @@ const SuccessStoriesSection: React.FC = () => {
           ))}
         </motion.div>
 
-        {/* --- START: ACTIVE BUTTON TO SEE MORE STORIES --- */}
-        <motion.div
-          className="mt-16 text-center"
-          variants={{
-            hidden: { opacity: 0, y: 20 },
-            visible: {
-              opacity: 1,
-              y: 0,
-              transition: { duration: 0.6, ease: 'easeOut', delay: 0.4 },
-            },
-          }}
-        >
-          <Link href="/success-stories">
+        {/* --- START: שינוי 4 - עדכון אזור הכפתור והוספת ההודעה --- */}
+        <div className="mt-16 text-center">
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              visible: {
+                opacity: 1,
+                y: 0,
+                transition: { duration: 0.6, ease: 'easeOut', delay: 0.4 },
+              },
+            }}
+          >
+            {/* הסרנו את ה-Link והוספנו onClick */}
             <Button
+              onClick={handleMoreStoriesClick}
               variant="outline"
               size="lg"
               className="border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-300 transition-all duration-300 rounded-xl group"
@@ -146,9 +157,26 @@ const SuccessStoriesSection: React.FC = () => {
               <span>לעוד סיפורי הצלחה</span>
               <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Button>
-          </Link>
-        </motion.div>
-        {/* --- END: ACTIVE BUTTON TO SEE MORE STORIES --- */}
+          </motion.div>
+
+          {/* מיכל להודעה, כדי למנוע קפיצות בתוכן שמתחתיו */}
+          <div className="mt-4 h-6">
+            <AnimatePresence>
+              {showComingSoon && (
+                <motion.p
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                  className="text-cyan-700 font-medium"
+                >
+                  בקרוב נעלה סיפורי הצלחה נוספים, הישארו מעודכנים!
+                </motion.p>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+        {/* --- END: סוף האזור המעודכן --- */}
 
         <motion.div
           className="mt-8 text-center"
