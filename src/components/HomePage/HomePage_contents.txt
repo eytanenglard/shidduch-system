@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage
-# Generated on: 2025-08-04 21:24:52
+# Generated on: 2025-08-05 10:06:10
 ################################################################################
 
 ================================================================================
@@ -11,6 +11,7 @@ Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomeP
 File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\HomePage.tsx
 --------------------------------------------------------------------------------
 Content:
+// src/components/HomePage/HomePage.tsx
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -20,7 +21,7 @@ import { useSession } from 'next-auth/react';
 import HeroSection from './sections/HeroSection';
 import ValuePropositionSection from './sections/ValuePropositionSection';
 import FeaturesSection from './sections/FeaturesSection';
-import AlgorithmSection from './sections/OurMethodSection';
+import OurMethodSection from './sections/OurMethodSection'; // Correct name
 import HowItWorksSection from './sections/HowItWorksSection';
 import MatchmakerTeamSection from './sections/MatchmakerTeamSection';
 import SuccessStoriesSection from './sections/SuccessStoriesSection';
@@ -29,16 +30,17 @@ import PrivacyAssuranceSection from './sections/PrivacyAssuranceSection';
 import CTASection from './sections/CTASection';
 import FooterSection from './sections/FooterSection';
 
-// 1. Import our new components
+// 1. Import new components (unchanged)
 import ChatWidget from '../ChatWidget/ChatWidget';
 import StickyNav, { NavLink } from './components/StickyNav';
 
-// 2. Define the navigation links in a new, prioritized order.
-//    The 'id' must match the 'id' attribute of the corresponding section.
+// 2. Define navigation links with updated labels and strategic order.
+//    The 'id' must match the 'id' attribute within the sections.
+//    (e.g., HowItWorksSection should contain <... id="suggestion-demo">)
 const navLinks: NavLink[] = [
-  { id: 'how-it-works', label: 'המסע שלכם' }, // שינוי התווית למשהו יותר אישי
-  { id: 'suggestion-demo', label: 'כך נראית הצעה' }, // שינוי התווית לתיאור מדויק
-  { id: 'our-method', label: 'הגישה שלנו' }, // שינוי מ"אלגוריתם" ל"גישה"
+  { id: 'how-it-works', label: 'המסע שלכם' },
+  { id: 'suggestion-demo', label: 'כך נראית הצעה' }, // This ID is inside HowItWorksSection
+  { id: 'our-method', label: 'הגישה שלנו' },
   { id: 'our-team', label: 'הצוות שלנו' },
   { id: 'faq', label: 'שאלות נפוצות' },
 ];
@@ -54,36 +56,33 @@ export default function HomePage() {
   return (
     // The main div allows the chat widget and sticky nav to be fixed relative to the viewport
     <div className="min-h-screen w-full overflow-x-hidden">
-      {/* 3. Add the StickyNav component at the top of the page */}
+      {/* 3. Add the StickyNav component */}
       <StickyNav navLinks={navLinks} />
 
-      {/* Page Sections */}
+      {/* --- Page Sections in the FINAL, correct strategic order --- */}
       <HeroSection session={session} isVisible={isVisible} />
       <ValuePropositionSection />
-      <HowItWorksSection />
-      <MatchmakerTeamSection />
-      <FeaturesSection />
-      <AlgorithmSection />
+      
+      {/* The "Why" - deep philosophy */}
+      <OurMethodSection /> 
+      
+      {/* The comprehensive "How" & "What" - process and demo in one section */}
+      <HowItWorksSection /> 
+      
+      {/* The "Who" - building personal trust */}
+      <MatchmakerTeamSection /> 
+      
+      {/* Social proof and summary of benefits */}
       <SuccessStoriesSection />
+      <FeaturesSection />
+      
+      {/* Closing arguments and final info */}
       <FAQSection />
       <PrivacyAssuranceSection />
       <CTASection />
       <FooterSection />
-
-      {/* 4. The old floating button is now removed/commented out */}
-      {/*
-      <div className="fixed bottom-8 left-8 z-50 animate-bounce-slow">
-        <Button
-          size="lg"
-          className="rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800 group"
-        >
-          <MessageCircle className="w-5 h-5 ml-2 group-hover:scale-110 transition-transform" />
-          <span className="group-hover:mr-1 transition-all">דברו איתנו</span>
-        </Button>
-      </div>
-      */}
-
-      {/* 5. The ChatWidget remains */}
+      
+      {/* Floating components (unchanged) */}
       <ChatWidget />
     </div>
   );
@@ -1516,8 +1515,9 @@ const noaProfile: PartyInfo = {
     educationLevel: 'academic_ba',
     religiousLevel: 'דתי לאומי תורני',
     shomerNegiah: false,
+    // --- UPDATED 'about' FIELD ---
     about:
-      'אופטימית וחובבת שיחות עומק על כוס קפה. מוצאת יופי בדברים הקטנים של החיים, בין אם זה טיול בטבע או פלייליסט טוב. מחפשת שותף לדרך, לבנות יחד בית שמלא בצחוק, כבוד הדדי וצמיחה משותפת.',
+      'אופטימית וחובבת שיחות עומק על כוס קפה. מוצאת יופי בדברים הקטנים של החיים, בין אם זה טיול בטבע או פלייליסט טוב. אחרי כמה ניסיונות שלא צלחו, אני יודעת היום טוב יותר מה נכון לי, ומחפשת שותף לדרך, לבנות יחד בית שמלא בצחוק, כבוד הדדי וצמיחה משותפת.',
     maritalStatus: 'רווקה',
     profileCharacterTraits: ['אופטימית', 'יצירתית', 'אמפתית'],
     profileHobbies: ['טיולים', 'קריאה', 'אומנות ויצירה'],
@@ -1588,8 +1588,9 @@ export const demoSuggestionDataFemale: ExtendedMatchSuggestion = {
   updatedAt: new Date(),
   lastActivity: new Date(),
   category: 'ACTIVE',
+  // --- UPDATED 'matchingReason' FIELD (as seen by a male user getting Noa's profile) ---
   matchingReason:
-    'זיהיתי חיבור מיוחד בין האופטימיות והאהבה שלכם לשיחות עומק. שניכם מחפשים קשר המבוסס על כבוד, צמיחה משותפת ובית מלא בצחוק. אני מאמין שהערכים הדתיים הליברליים שלכם והשאיפות המקצועיות יכולים להשתלב בצורה הרמונית וליצור בסיס איתן לקשר משמעותי.',
+    'מה שהדהד לי במיוחד בחיבור ביניכם הוא השילוב הנדיר של עומק וקלילות. שניכם מחפשים "שותף לדרך" עם "ראש פתוח", ומדברים על בית שמבוסס על "כבוד וצמיחה". אני מאמין שהיציבות והשאיפה למשמעות שלך, יחד עם היצירתיות והאופטימיות של נועה, יוצרים בסיס מדהים לקשר אמיתי.',
   firstPartyNotes:
     'זו הצעה שאני מתרגשת במיוחד להציג לך. נועה היא בחורה איכותית, עם עומק ורגישות שנדיר למצוא. אני חושבת שהיא בדיוק מה שחיפשת.',
   secondPartyNotes: null,
@@ -1772,34 +1773,6 @@ const danielQuestionnaireResponse: QuestionnaireResponseType = {
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
-      {
-        questionId: 'values_future_priorities_partner',
-        question: 'מהו האיזון הרצוי לך בסדרי עדיפויות בזוגיות?',
-        answer:
-          'זוגיות (40%), קריירה (25%), משפחה (15%), רוחניות (10%), פנאי (10%)',
-        displayText:
-          'בעתיד, אני שואף לחלוקה של: זוגיות ומשפחה (40%), קריירה (25%), משפחה מורחבת (15%), רוחניות (10%), ופנאי (10%).',
-        isVisible: true,
-        answeredAt: new Date(),
-      } as FormattedAnswer,
-      {
-        questionId: 'values_social_political_stance_importance_partner',
-        question: 'עד כמה חשובה לך התאמה בהשקפות פוליטיות?',
-        answer: '6',
-        displayText:
-          'חשוב לי שיהיה בסיס משותף בהשקפות עולם (ציון 6/10), אבל לא חייבים להסכים על הכל. כבוד הדדי חשוב יותר.',
-        isVisible: true,
-        answeredAt: new Date(),
-      } as FormattedAnswer,
-      {
-        questionId: 'values_conflict_between_values',
-        question: 'תאר קונפליקט ערכי שחווית.',
-        answer: 'חוויתי קונפליקט בין דדליין חשוב בעבודה לבין אירוע משפחתי...',
-        displayText:
-          'חוויתי קונפליקט בין דדליין חשוב בעבודה (ערך המקצועיות) לבין אירוע משפחתי (ערך המשפחה). למדתי לתקשר מראש את האילוצים, לעבוד ביעילות כדי לסיים מוקדם, ולהגיע לאירוע גם אם מאוחר יותר, כדי לכבד את שני הערכים.',
-        isVisible: true,
-        answeredAt: new Date(),
-      } as FormattedAnswer,
     ],
     personality: [
       {
@@ -1811,49 +1784,14 @@ const danielQuestionnaireResponse: QuestionnaireResponseType = {
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
-      {
-        questionId: 'personality_ideal_vacation',
-        question: 'תאר את חופשת החלומות שלך.',
-        answer: 'חופשה שמשלבת טבע מאתגר עם תרבות מקומית...',
-        displayText:
-          'חופשת החלומות שלי תהיה טרק מאתגר של כמה ימים בנוף יפהפה, ובסופו הגעה לעיר עם תרבות והיסטוריה. לא חופשת בטן-גב.',
-        isVisible: true,
-        answeredAt: new Date(),
-      } as FormattedAnswer,
-      {
-        questionId: 'personality_handling_criticism',
-        question: 'איך אתה מגיב לביקורת?',
-        answer: 'אני משתדל לקחת ביקורת בצורה אנליטית...',
-        displayText:
-          'אני משתדל לקחת ביקורת בצורה אנליטית. בהתחלה זה יכול להיות לא נעים, אבל אני לוקח צעד אחורה, מנסה להפריד את הרגש ולהבין אם יש נקודה לשיפור שאני יכול ללמוד ממנה. חשוב לי להשתפר כל הזמן.',
-        isVisible: true,
-        answeredAt: new Date(),
-      } as FormattedAnswer,
     ],
     relationship: [
-      {
-        questionId: 'relationship_financial_management_preference',
-        question: 'מהי הגישה המועדפת עליך לניהול כספים משותף?',
-        answer: 'שקיפות מלאה וחשבון משותף לכל',
-        displayText: 'שקיפות מלאה וחשבון משותף לכל',
-        isVisible: true,
-        answeredAt: new Date(),
-      } as FormattedAnswer,
       {
         questionId: 'relationship_core_meaning',
         question: 'מהי תמצית הזוגיות בעיניך?',
         answer: 'שותפות, חברות ומחויבות',
         displayText:
           'תמצית הזוגיות בעיניי היא שותפות איתנה, חברות אמת, ומחויבות וביטחון לטווח ארוך.',
-        isVisible: true,
-        answeredAt: new Date(),
-      } as FormattedAnswer,
-      {
-        questionId: 'relationship_love_languages_give_receive',
-        question: 'מהן "שפות האהבה" העיקריות שלך?',
-        answer: 'מעשי שירות וזמן איכות',
-        displayText:
-          'שפות האהבה שלי הן בעיקר מעשי שירות וזמן איכות. אני מביע אהבה דרך עשייה, תמיכה ונוכחות מלאה.',
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
@@ -1868,33 +1806,6 @@ const danielQuestionnaireResponse: QuestionnaireResponseType = {
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
-      {
-        questionId: 'partner_children_from_previous_relationship_stance',
-        question: 'מהי גישתך לקשר עם בת זוג שיש לה ילדים?',
-        answer: 'פתוח לשקול, תלוי בנסיבות',
-        displayText:
-          'אני פתוח לשקול קשר עם בת זוג שיש לה ילדים, זה תלוי בנסיבות ובחיבור בינינו.',
-        isVisible: true,
-        answeredAt: new Date(),
-      } as FormattedAnswer,
-      {
-        questionId: 'partner_deal_breakers_open_text',
-        question: 'מהם ה"קווים האדומים" שלך בזוגיות?',
-        answer: 'חוסר יושרה, נטייה לדרמות וחוסר אחריות כלכלית.',
-        displayText:
-          'קווים אדומים עבורי הם חוסר יושרה, נטייה לדרמות מיותרות וחוסר אחריות כלכלית. חשוב לי בסיס של אמון ויציבות.',
-        isVisible: true,
-        answeredAt: new Date(),
-      } as FormattedAnswer,
-      {
-        questionId: 'partner_career_ambition_preference',
-        question: 'איזו גישה לקריירה היית מעדיף אצל בת זוג?',
-        answer: 'מחפשת איזון בין עבודה לחיים אישיים/משפחתיים',
-        displayText:
-          'מעדיף בת זוג שמחפשת איזון בין עבודה לחיים אישיים ומשפחתיים, ויודעת להשקיע בשניהם.',
-        isVisible: true,
-        answeredAt: new Date(),
-      } as FormattedAnswer,
     ],
     religion: [
       {
@@ -1903,24 +1814,6 @@ const danielQuestionnaireResponse: QuestionnaireResponseType = {
         answer: 'תורה מן השמיים ומחויבות להלכה, גאולת ישראל וקיבוץ גלויות',
         displayText:
           'עקרונות האמונה המרכזיים שמנחים אותי הם תורה מן השמיים, מחויבות להלכה, וגאולת ישראל וקיבוץ גלויות בארץ ישראל.',
-        isVisible: true,
-        answeredAt: new Date(),
-      } as FormattedAnswer,
-      {
-        questionId: 'religion_rabbinic_guidance_role',
-        question: 'מהי חשיבותה של דמות רבנית עבורך?',
-        answer: '7',
-        displayText:
-          'אני רואה חשיבות בהתייעצות עם דמות רבנית (ציון 7/10), בעיקר בשאלות הלכתיות מורכבות, אך ההחלטה הסופית והאחריות הן שלי.',
-        isVisible: true,
-        answeredAt: new Date(),
-      } as FormattedAnswer,
-      {
-        questionId: 'religion_children_education_religious_vision',
-        question: 'מהו החזון החינוכי-דתי שלך לילדיך?',
-        answer: 'חינוך דתי-לאומי שמשלב יראת שמיים עם דרך ארץ...',
-        displayText:
-          'החזון שלי הוא חינוך דתי-לאומי שמשלב יראת שמיים עם דרך ארץ, מצוינות לימודית וחיבור חזק לעם ולארץ. חשוב לי שיגדלו להיות אנשים חושבים וערכיים.',
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
@@ -1986,8 +1879,9 @@ const danielProfile: PartyInfo = {
     educationLevel: 'academic_student',
     religiousLevel: 'דתי לאומי-ליברלי',
     shomerNegiah: true,
+    // --- UPDATED 'about' FIELD ---
     about:
-      'בחור של אנשים ושל עשייה. אוהב את השילוב בין עולם ההייטק הדינמי לבין קביעת עיתים לתורה. מאמין שצריך לחיות חיים מלאים עם משמעות, גם בעבודה וגם מחוצה לה. בשעות הפנאי אוהב לטייל בארץ, לנגן בגיטרה ולבלות זמן איכות עם חברים. מחפש שותפה לחיים, לבנות ביחד בית עם יראת שמיים, פתיחות מחשבתית והרבה שמחה.',
+      'בחור של אנשים ושל עשייה. אוהב את השילוב בין עולם ההייטק הדינמי לבין קביעת עיתים לתורה. מאמין שצמיחה אמיתית קורית מחוץ לאזור הנוחות, ובשעות הפנאי אוהב לטייל בארץ, לנגן בגיטרה ולבלות זמן איכות עם חברים. מחפש שותפה לחיים, לבנות ביחד בית עם יראת שמיים, פתיחות מחשבתית והרבה שמחה.',
     maritalStatus: 'רווק',
     profileCharacterTraits: ['שאפתן', 'ישר ואמין', 'משפחתי'],
     profileHobbies: ['טיולים', 'מוזיקה/נגינה', 'למידה/קורסים'],
@@ -2061,8 +1955,9 @@ export const demoSuggestionDataMale: ExtendedMatchSuggestion = {
   updatedAt: new Date(),
   lastActivity: new Date(),
   category: 'ACTIVE',
+  // --- UPDATED 'matchingReason' FIELD (as seen by a female user getting Daniel's profile) ---
   matchingReason:
-    'החיבור בין הרצון שלך ליציבות ובית חם לבין השאיפות והאמביציה של דניאל נראה לי מבטיח במיוחד. שניכם אנשים של עשייה, עם רגליים על הקרקע אבל ראש בעננים. אני מאמין שהרצון שלו להקים בית תורני מודרני והגישה שלך לחיים יכולים ליצור שלם הגדול מסך חלקיו.',
+    'מה שהדהד לי במיוחד בחיבור ביניכם הוא השילוב הנדיר של עומק וקלילות. שניכם מחפשים "שותף לדרך" עם "ראש פתוח", ומדברים על בית שמבוסס על "כבוד וצמיחה". אני מאמין שהיציבות והשאיפה למשמעות של דניאל, יחד עם היצירתיות והאופטימיות שלך, יוצרים בסיס מדהים לקשר אמיתי.',
   firstPartyNotes:
     'דניאל הוא בחור רציני, ערכי ועם לב זהב. הוא משלב בצורה מרשימה בין עולם התורה לעולם המעשה, ומחפש שותפה אמיתית לחיים. אני חושב שיש לכם הרבה על מה לדבר.',
   secondPartyNotes: null,
@@ -2117,13 +2012,14 @@ export const demoSuggestionDataMale: ExtendedMatchSuggestion = {
 export const demoAiAnalysisForDaniel: AiSuggestionAnalysisResult = {
   overallScore: 88,
   matchTitle: 'שילוב של שאפתנות ויציבות רגשית',
+  // --- UPDATED 'matchSummary' FIELD ---
   matchSummary:
-    'החיבור בין דניאל לנועה מציג פוטנציאל גבוה ליצירת זוגיות יציבה וצומחת. השילוב בין האופי המעשי והשאפתני של דניאל לבין העומק הרגשי והיצירתיות של נועה יוצר בסיס מעניין לשותפות ארוכת טווח, המבוססת על ערכים משותפים וכבוד הדדי.',
+    'החיבור בין דניאל לנועה מציג פוטנציאל גבוה, המבוסס על איזון בין ערכים משותפים לאישיות משלימה. השילוב בין האופי המעשי והשאפתני של דניאל לבין העומק הרגשי והיצירתיות של נועה יוצר בסיס איתן לשותפות ארוכת טווח, שבה כל אחד יכול להעניק לשני בדיוק את מה שחסר לו.',
   compatibilityPoints: [
     {
       area: 'ערכים משותפים',
       explanation:
-        'שניהם מדגישים את חשיבות המשפחה, הכבוד ההדדי והצמיחה המשותפת כערכי יסוד בזוגיות. זהו בסיס איתן לבניית בית משותף.',
+        'שניהם מדגישים את חשיבות המשפחה, הכבוד ההדדי והצמיחה המשותפת כערכי יסוד بزוגיות. זהו בסיס איתן לבניית בית משותף.',
     },
     {
       area: 'איזון בין קריירה לחיים אישיים',
@@ -2161,8 +2057,9 @@ export const demoAiAnalysisForDaniel: AiSuggestionAnalysisResult = {
 export const demoAiAnalysisForNoa: AiSuggestionAnalysisResult = {
   overallScore: 88,
   matchTitle: 'חיבור בין יצירתיות ועומק ערכי',
+  // --- UPDATED 'matchSummary' FIELD ---
   matchSummary:
-    'ההתאמה בין נועה לדניאל מבטיחה מאוד, ומתבססת על חיבור עמוק ברמת הערכים והאישיות. היצירתיות והרגישות של נועה משלימות את היציבות והנחישות של דניאל, ויוצרות פוטנציאל לזוגיות מאוזנת, תומכת ומלאת תוכן.',
+    'ההתאמה בין נועה לדניאל מבטיחה מאוד, ומתבססת על חיבור עמוק ברמת הערכים והאישיות. היצירתיות והרגישות של נועה משלימות את היציבות והנחישות של דניאל, ויוצרות פוטנציאל לזוגיות מאוזנת, תומכת ומלאת תוכן, שבה כל אחד יכול להיות הגרסה הטובה ביותר של עצמו.',
   compatibilityPoints: [
     {
       area: 'ראיית עולם ערכית',
@@ -2220,7 +2117,7 @@ const CTASection: React.FC = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
 
-  // Animation variants
+  // Animation variants (Unchanged)
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -2305,67 +2202,42 @@ const CTASection: React.FC = () => {
       initial="hidden"
       animate={isInView ? 'visible' : 'hidden'}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-cyan-50 to-white opacity-70"></div>
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
-        <svg
-          className="absolute left-0 top-0 h-full opacity-5"
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-        >
-          <path
-            d="M0,0 C40,100 60,100 100,0 L100,100 L0,100 Z"
-            fill="url(#grad1)"
-          ></path>
-          <defs>
-            <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#06b6d4" />
-              <stop offset="100%" stopColor="#0891b2" />
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
+      <div className="absolute inset-0 bg-gradient-to-br from-cyan-50 to-pink-50/50 opacity-70"></div>
 
       <div className="max-w-4xl mx-auto text-center relative">
         <motion.div
           className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 md:p-12 shadow-xl border border-cyan-100"
           variants={cardVariants}
-          whileHover={{
-            y: -5,
-            transition: { duration: 0.3 },
-          }}
         >
-          {/* Icon */}
+          {/* Icon (Unchanged) */}
           <motion.div
             className="inline-block mb-6 p-3 bg-cyan-100 rounded-full text-cyan-600"
             variants={iconVariants}
-            whileHover={{
-              rotate: [0, -10, 10, 0],
-              transition: { duration: 0.6 },
-            }}
+            whileHover={{ rotate: [0, -10, 10, 0], transition: { duration: 0.6 } }}
           >
             <Sparkles className="w-8 h-8" />
           </motion.div>
 
-          {/* Title - UPDATED */}
+          {/* --- START: UPDATED TEXT --- */}
           <motion.h2
-            className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4"
+            className="text-3xl sm:text-4xl font-bold text-gray-800 mb-4"
             variants={textVariants}
           >
-            אולי הגיע הזמן לנסות
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-cyan-700">
+            המסע שלכם לזוגיות
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-pink-600">
               {' '}
-              דרך חדשה?{' '}
+              מתחיל כאן
             </span>
           </motion.h2>
 
-          {/* Description - UPDATED */}
           <motion.p
             className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto"
             variants={textVariants}
           >
-            אם אתם מחפשים גישה מתחשבת, אישית ומכבדת למציאת זוגיות, נשמח להיות
-            שותפים למסע שלכם.
+            אם הגישה האישית, המכבדת והמעמיקה שלנו מדברת אליכם, אולי מצאתם את הבית שלכם. הצעד הראשון פשוט, דיסקרטי וללא התחייבות.
           </motion.p>
+          {/* --- END: UPDATED TEXT --- */}
+
 
           {/* Buttons */}
           <motion.div
@@ -2383,7 +2255,8 @@ const CTASection: React.FC = () => {
                     className="bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl group"
                   >
                     <span className="relative z-10 flex items-center">
-                      הצעד הראשון שלי
+                      {/* --- UPDATED BUTTON TEXT --- */}
+                      אני רוצה להתחיל את המסע
                       <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                     </span>
                   </Button>
@@ -2402,7 +2275,8 @@ const CTASection: React.FC = () => {
                     size="lg"
                     className="border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-300 transition-all duration-300 rounded-xl"
                   >
-                    עוד על הגישה שלנו
+                    {/* --- UPDATED BUTTON TEXT --- */}
+                    ללמוד עוד על הגישה שלנו
                   </Button>
                 </motion.div>
               </Link>
@@ -2434,7 +2308,7 @@ const FAQSection: React.FC = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.1 });
 
-  // Animation variants
+  // Animation variants (Unchanged)
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -2496,34 +2370,35 @@ const FAQSection: React.FC = () => {
     },
   };
 
-  // UPDATED FAQ Data
+  // --- START: UPDATED FAQ DATA ---
   const faqData = [
     {
       question: 'מה המחיר של השירות?',
       answer:
-        'אנו מציעים מספר מסלולים: רישום ראשוני למערכת הוא ללא עלות. מסלול מנוי שנתי, בעלות של 95₪, מאפשר קבלת הצעות באופן שוטף. בנוסף, אנו גובים דמי הצלחה סמליים של 1,000₪ מכל צד רק במקרה של אירוסין. אנו מאמינים במודל זה כי הוא הופך את ההצלחה שלכם להצלחה המשותפת שלנו, ומבטיח שאנו מחויבים למסע שלכם עד הסוף הטוב.',
+        'אנחנו מאמינים במודל הוגן ושקוף, שבו ההצלחה שלכם היא גם ההצלחה שלנו. ההרשמה למאגר והיכרות ראשונית עם שדכן הן ללא עלות. עבור שירותי ליווי והתאמה אקטיביים, אנו מציעים מסלולי מנוי. בנוסף, רק כאשר המסע מצליח ואתם מתארסים, אנו גובים דמי הצלחה. הגישה הזו מבטיחה שאנחנו מחויבים ב-100% למצוא לכם את החיבור הנכון.',
     },
     {
       question: 'האם השירות מתאים לכל הזרמים?',
       answer:
-        'בהחלט. המערכת שלנו בנויה להתאים למגוון רחב של קהילות וזרמים בעולם היהודי, תוך מתן דגש על התאמה מדויקת לרמת הדתיות ולאורח החיים. כרגע, עיקר הפעילות שלנו מתמקדת בקהילה הדתית-לאומית בישראל וביהדות האורתודוקסית-מודרנית בחו"ל, ואנו פועלים להתרחב לקהילות נוספות.',
+        'בהחלט. הגישה שלנו מבוססת על הבנת הניואנסים הדקים של עולם הערכים והאמונה. המערכת שלנו בנויה להתאים למגוון רחב של קהילות בתוך העולם היהודי. כרגע, המומחיות העיקרית שלנו היא בקהילה הדתית-לאומית והמודרן-אורתודוקס, ואנו פועלים כל הזמן להרחיב את מעגלי ההיכרות.',
     },
     {
       question: 'כיצד נשמרת הפרטיות שלי?',
       answer:
-        'פרטיות היא ערך עליון עבורנו. הפרופיל שלכם נגיש אך ורק לצוות השדכנים המצומצם שמטפל בכם. פרטים ותמונות נחשפים לצד השני רק לאחר קבלת הסכמתכם המפורשת לכל הצעה והצעה. אנו משתמשים בטכנולוגיות אבטחה מתקדמות כדי להבטיח שהמידע שלכם תמיד יהיה מוגן ובטוח.',
+        'הסיפור שלכם שייך לכם. פרטיות היא ערך עליון עבורנו, ולכן: הפרופיל שלכם גלוי אך ורק לצוות השדכנים המצומצם שמטפל בכם. פרטים אישיים ותמונות נחשפים לצד השני רק לאחר שקיבלנו את אישורכם המפורש לכל הצעה והצעה. המידע שלכם מאובטח בטכנולוגיות המתקדמות ביותר.',
     },
     {
       question: 'כמה זמן לוקח למצוא התאמה?',
       answer:
-        'אי אפשר להבטיח זמנים במציאת זוגיות, שכן זהו תהליך אישי ועדין. מה שאנו כן יכולים להבטיח הוא תהליך יעיל וממוקד. המטרה שלנו היא לחסוך לכם זמן יקר ואנרגיה על ידי הצגת הצעות רלוונטיות ואיכותיות בלבד, כך שהמסע שלכם יהיה משמעותי יותר, ולא ארוך יותר מהנדרש.',
+        'זו השאלה החשובה ביותר, והתשובה הכנה היא שאין לוח זמנים לאהבה. אבל מה אנחנו כן יכולים להבטיח? תהליך יעיל וממוקד שיחסוך לכם זמן יקר ואנרגיה. במקום אינסוף דייטים לא רלוונטיים, תקבלו מספר מצומצם של הצעות איכותיות ומנומקות. המטרה שלנו היא שהמסע יהיה משמעותי, ולא ארוך מהנדרש.',
     },
     {
-      question: 'האם אתם מארגנים גם אירועים?',
+      question: 'האם אתם מארגנים גם אירועים קהילתיים?',
       answer:
-        'כן, אנו מאמינים גם בכוחה של הקהילה. אנו מארגנים מעת לעת מפגשים, סדנאות ואירועים חברתיים באווירה נעימה ותומכת. אירועים אלו מהווים הזדמנות נוספת להיכרויות טבעיות. חברי המנוי שלנו מקבלים גישה והנחות לאירועים אלו.',
+        'בהחלט. אנחנו מאמינים שלפעמים הקסם קורה גם מחוץ למסך. אנו מארגנים מפגשי איכות וסדנאות באווירה נעימה, המהווים הזדמנות נוספת להיכרויות טבעיות ובלתי אמצעיות. חברי המערכת שלנו תמיד מקבלים עדכונים והטבות.',
     },
   ];
+  // --- END: UPDATED FAQ DATA ---
 
   return (
     <motion.section
@@ -2537,27 +2412,25 @@ const FAQSection: React.FC = () => {
       <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-white opacity-50"></div>
 
       <div className="max-w-4xl mx-auto relative">
-        {/* Header */}
+        {/* --- START: UPDATED HEADER --- */}
         <motion.div className="text-center mb-12" variants={headerVariants}>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4">
-            שאלות
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-cyan-700">
-              {' '}
-              נפוצות{' '}
-            </span>
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-4">
+            כל מה שחשוב לדעת
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-cyan-600 to-cyan-700 mx-auto rounded-full mb-6" />
           <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-8">
-            כמה דברים שחשוב לדעת על הגישה שלנו ב-NeshamaTech.
+            שקיפות היא הבסיס לאמון. ריכזנו כאן תשובות לשאלות הנפוצות ביותר, כדי
+            שתוכלו להתחיל את המסע בלב שקט ועם כל המידע.
           </p>
         </motion.div>
+        {/* --- END: UPDATED HEADER --- */}
 
         {/* FAQ Items */}
         <motion.div
           className="bg-white rounded-xl shadow-lg p-6 md:p-8 mb-12"
           variants={faqContainerVariants}
         >
-          <motion.div className="space-y-2">
+          <div className="space-y-2">
             {faqData.map((item, index) => (
               <motion.div
                 key={index}
@@ -2568,19 +2441,20 @@ const FAQSection: React.FC = () => {
                 <FAQItem question={item.question} answer={item.answer} />
               </motion.div>
             ))}
-          </motion.div>
+          </div>
         </motion.div>
 
-        {/* Contact Block */}
+        {/* Contact Block (Unchanged) */}
         <motion.div
-          className="text-center bg-gray-50 p-6 rounded-lg border border-gray-100"
+          className="text-center bg-gray-50 p-8 rounded-lg border border-gray-100"
           variants={contactBlockVariants}
         >
           <h3 className="text-xl font-semibold text-gray-800 mb-2">
-            יש לכם שאלה נוספת?
+            עדיין יש לכם שאלה?
           </h3>
           <p className="text-gray-600 mb-6">
-            אנחנו כאן כדי לעזור. צרו איתנו קשר ונשמח לענות על כל שאלה.
+            אנחנו כאן כדי לעזור. צוות השדכנים שלנו ישמח לענות על כל שאלה באופן
+            אישי.
           </p>
           <Link href="/contact">
             <Button
@@ -2655,36 +2529,38 @@ const FeaturesSection: React.FC = () => {
     },
   };
 
+  // --- START: UPDATED FEATURE DATA ---
   const features = [
     {
       icon: <Shield className="w-8 h-8" />,
-      title: 'פרטיות ודיסקרטיות',
+      title: 'פרטיות וביטחון',
       description:
-        'המסע לזוגיות הוא אישי. אנו מתחייבים לסביבה בטוחה בה פרטיותך נשמרת בקפדנות בכל שלב.',
+        'הפרופיל שלכם נשאר חסוי לחלוטין. אנו חושפים פרטים רק בהסכמתכם המפורשת, כדי שתוכלו לחפש בביטחון ובשקט נפשי.',
       color: 'cyan' as const,
     },
     {
       icon: <Heart className="w-8 h-8" />,
       title: 'התאמה עם עומק',
       description:
-        'אנו מאמינים שהתאמה אמיתית נבנית על ערכים ושאיפות. הגישה שלנו מחפשת את החיבור שמעבר לפרטים היבשים.',
+        'אנחנו מסתכלים מעבר לנתונים. השיטה שלנו נועדה לזהות חיבורים אמיתיים ברמת הערכים והאישיות, כי שם מתחילה זוגיות יציבה.',
       color: 'pink' as const,
     },
     {
       icon: <Users className="w-8 h-8" />,
-      title: 'ליווי אישי ואנושי',
+      title: 'ליווי אישי וחם',
       description:
-        'אתם לא לבד במסע. צוות השדכנים שלנו כאן כדי להקשיב, לייעץ וללוות אתכם עם חום וניסיון.',
+        'מהרגע הראשון, שדכן אישי מלווה אתכם. הוא שם כדי להקשיב, לייעץ ולתת לכם רוח גבית לאורך כל הדרך.',
       color: 'green' as const,
     },
     {
       icon: <MessageCircle className="w-8 h-8" />,
       title: 'תקשורת מכבדת',
       description:
-        'הקשר הראשוני נעשה תמיד דרך השדכן/ית, בסביבה מכבדת ובטוחה, כדי שתוכלו להתמקד בהיכרות עצמה.',
+        'הקשר הראשוני נעשה תמיד דרכנו, בסביבה בטוחה ומכבדת. זה מוריד את הלחץ ומאפשר לכם להגיע להיכרות עצמה נינוחים ובטוחים.',
       color: 'orange' as const,
     },
   ];
+  // --- END: UPDATED FEATURE DATA ---
 
   return (
     <motion.section
@@ -2694,30 +2570,29 @@ const FeaturesSection: React.FC = () => {
       initial="hidden"
       animate={isInView ? 'visible' : 'hidden'}
     >
-      {/* Subtle background pattern */}
       <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:20px_20px]"></div>
 
       <div className="max-w-6xl mx-auto relative">
-        {/* Header - UPDATED */}
+        {/* --- START: UPDATED HEADER --- */}
         <motion.div
           className="text-center mb-12 md:mb-16"
           variants={headerVariants}
         >
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4">
-            העקרונות
-            <span
-              className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-teal-600 animate-gradient"
-              style={{ backgroundSize: '200% 200%' }}
-            >
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-4">
+            ההבטחה שלנו
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-teal-600">
               {' '}
-              המנחים{' '}
+              אליכם{' '}
             </span>
-            שלנו
           </h2>
-          <div className="w-24 h-1 bg-gradient-to-r from-cyan-600 to-teal-600 mx-auto rounded-full" />
+          <div className="w-24 h-1 bg-gradient-to-r from-cyan-600 to-teal-600 mx-auto rounded-full mb-6" />
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            המסע לזוגיות הוא אישי ורגיש. לכן, בנינו את הגישה שלנו על ארבעה
+            יסודות שמבטיחים לכם שקט נפשי, כבוד ותהליך משמעותי.
+          </p>
         </motion.div>
+        {/* --- END: UPDATED HEADER --- */}
 
-        {/* Features Grid - UPDATED */}
         <motion.div
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8"
           variants={containerVariants}
@@ -2741,21 +2616,6 @@ const FeaturesSection: React.FC = () => {
           ))}
         </motion.div>
       </div>
-      <style jsx>{`
-        @keyframes gradient {
-          0%,
-          100% {
-            background-position: 0% 50%;
-          }
-          50% {
-            background-position: 100% 50%;
-          }
-        }
-        .animate-gradient {
-          background-size: 200% 200%;
-          animation: gradient 4s ease-in-out infinite;
-        }
-      `}</style>
     </motion.section>
   );
 };
@@ -4022,7 +3882,7 @@ import {
 } from 'lucide-react';
 import { motion, useInView } from 'framer-motion';
 
-// === קומפוננטות עזר (ללא שינוי) ===
+// --- Helper Components (UNCHANGED) ---
 
 const DynamicBackground: React.FC = () => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -4065,47 +3925,6 @@ const DynamicBackground: React.FC = () => (
   </div>
 );
 
-const EnhancedTestimonial: React.FC<{
-  text: string;
-  author: string;
-  role?: string;
-  delay?: number;
-}> = ({ text, author, role, delay = 0 }) => {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true });
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={
-        isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }
-      }
-      transition={{ duration: 0.7, delay }}
-      className="relative bg-gradient-to-br from-white/90 to-gray-50/90 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-white/60 max-w-md"
-    >
-      <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-br from-cyan-400 to-pink-400 rounded-full opacity-20" />
-      <div className="flex items-start gap-4">
-        <Quote className="w-8 h-8 text-cyan-500 flex-shrink-0 mt-1" />
-        <div>
-          <p className="text-gray-700 italic leading-relaxed mb-3">“{text}”</p>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-pink-500 flex items-center justify-center">
-              <span className="text-white text-sm font-bold">{author[0]}</span>
-            </div>
-            <div>
-              <div className="font-semibold text-gray-800 text-sm">
-                {author}
-              </div>
-              {role && <div className="text-xs text-gray-500">{role}</div>}
-            </div>
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-};
-
 const KeyBenefit: React.FC<{
   icon: React.ReactNode;
   title: string;
@@ -4142,26 +3961,24 @@ const KeyBenefit: React.FC<{
   );
 };
 
-// === הקומפוננטה הראשית עם כל השינויים והשיפורים ===
+// --- Main Component with UPDATED TEXT ---
 const HowItWorksSection: React.FC = () => {
   const demoRef = useRef(null);
-  const isDemoInView = useInView(demoRef, { once: true });
+  const isDemoInView = useInView(demoRef, { once: true, amount: 0.3 });
 
   return (
     <section
       id="how-it-works"
-      className="relative py-20 md:py-28 px-4 min-h-screen bg-gradient-to-b from-white via-cyan-50/20 to-white overflow-hidden"
+      className="relative py-20 md:py-28 px-4 bg-gradient-to-b from-white via-cyan-50/20 to-white overflow-hidden"
     >
       <DynamicBackground />
 
       <div className="relative max-w-7xl mx-auto">
-        {/* ... (כל החלקים הקודמים נשארים ללא שינוי) ... */}
-
-        {/* פרק 1: ההבטחה */}
+        {/* --- Chapter 1: The Promise (UPDATED) --- */}
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 1 }}
           className="text-center mb-20"
         >
@@ -4174,10 +3991,10 @@ const HowItWorksSection: React.FC = () => {
             </div>
           </div>
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-800 mb-8 leading-tight">
-            מהחלטה אמיצה
+            מהחלטה אמיצה,
             <br />ל
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-pink-600">
-              הצעה מדויקת
+              הצעה שמרגישה נכון
             </span>
           </h2>
           <p className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed mb-8">
@@ -4185,24 +4002,24 @@ const HowItWorksSection: React.FC = () => {
             ליווי אנושי וחם.
             <br />
             <span className="text-cyan-700 font-semibold">
-              המטרה המשותפת שלנו: להוביל אתכם לרגע המרגש של הצעה שמרגישה נכון
-              בלב.
+              המטרה המשותפת שלנו: להוביל אתכם אל הרגע המרגש בו תקבלו הצעה שתבינו
+              מיד למה היא נכונה עבורכם.
             </span>
           </p>
         </motion.div>
 
-        {/* פרק 2: הדרך */}
+        {/* --- Chapter 2: The Process (UPDATED) --- */}
         <div className="relative mb-20">
           <div className="absolute inset-0 -m-8 bg-gradient-to-br from-cyan-50/50 via-white/80 to-pink-50/50 rounded-3xl backdrop-blur-sm border border-white/40 shadow-2xl" />
           <div className="relative max-w-5xl mx-auto space-y-12 p-8">
             <Step
               number="1"
-              title="השאלון: מסע אישי לגילוי עצמי"
+              title="שלב 1: מסע היכרות אישי"
               description={
                 <>
-                  זהו הלב של המערכת שלנו. לא עוד שאלון, אלא מסע לגילוי עצמי
-                  שחושף מה באמת חשוב לכם. התשובות שלכם הן המפתח למציאת התאמות
-                  עמוקות ומשמעותיות.{' '}
+                  זהו הלב של השיטה שלנו. לא עוד טופס, אלא הזמנה למסע אישי שחושף
+                  את מה שבאמת חשוב לכם. התשובות המעמיקות שלכם הן המצפן שלנו
+                  למציאת התאמות משמעותיות.{' '}
                   <Link
                     href="/questionnaire"
                     className="font-bold text-cyan-600 hover:underline"
@@ -4215,40 +4032,40 @@ const HowItWorksSection: React.FC = () => {
             />
             <Step
               number="2"
-              title="הפרופיל שלכם, בגרסה המיטבית"
-              description="השדכן האישי שלכם עובד יחד אתכם כדי להבליט את הייחודיות שלכם ולקבוע אסטרטגיית חיפוש מנצחת. המערכת החכמה שלנו תציע שיפורים כדי למקסם את סיכויי ההצלחה."
+              title="שלב 2: בניית הפרופיל המנצח"
+              description="השדכן האישי שלכם לומד את הפרופיל, והמערכת החכמה שלנו מציעה תובנות לשיפור. יחד, אנו מוודאים שהסיפור שלכם מסופר בצורה הטובה והמדויקת ביותר."
               color="green"
             />
             <Step
               number="3"
-              title="השילוב המנצח: טכנולוגיה ואינטואיציה"
-              description="כאן קורה הקסם. אלגוריתם מתקדם מנתח אלפי פרופילים, והשדכן מוסיף את הניסיון והמגע האנושי. השילוב הזה יוצר התאמות מדויקות שגורמות לכם לתהות ‘איך הם ידעו?!’"
+              title="שלב 3: טכנולוגיה פוגשת אינטואיציה"
+              description="האלגוריתם שלנו מסנן אלפי אפשרויות כדי למצוא פוטנציאל. אז, השדכן שלכם נכנס לתמונה עם ניסיון ואינטואיציה אנושית כדי לאשר רק את ההצעות המבטיחות ביותר."
               color="orange"
             />
             <Step
               number="4"
-              title="מהצעה מנומקת ועד לליווי צמוד"
-              description="כל הצעה מגיעה עם ‘למה’ ברור ומפורט. אנחנו אתכם בכל צעד, גם אחרי הדייט, כדי לתמוך, לייעץ ולהוביל אתכם בבטחה ובשמחה עד למטרה."
+              title="שלב 4: מהצעה מנומקת לדייט מוצלח"
+              description="תקבלו הצעות עם נימוק ברור – 'למה אנחנו מאמינים שזה יכול לעבוד'. מכאן, אנחנו מלווים אתכם בתקשורת הראשונית, מעניקים תמיכה ומקשיבים לפידבק שלכם."
               isLast={true}
               color="pink"
             />
           </div>
         </div>
 
-        {/* יתרונות מרכזיים */}
+        {/* --- Key Benefits (UPDATED) --- */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.8 }}
           className="mb-20"
         >
           <h3 className="text-3xl font-bold text-center text-gray-800 mb-12">
-            למה התהליך שלנו{' '}
+            הגישה שלנו,
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-pink-600">
-              פשוט עובד
+              {' '}
+              היתרון שלכם
             </span>
-            ?
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
             <KeyBenefit
@@ -4282,222 +4099,169 @@ const HowItWorksSection: React.FC = () => {
           </div>
         </motion.div>
 
-        {/* פרק 3: ההוכחה */}
+        {/* --- Chapter 3: The Proof (UPDATED) --- */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.8 }}
           className="relative mb-20"
         >
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full px-6 py-3 shadow-lg mb-6">
+            <div
+              id="suggestion-demo"
+              className="inline-flex items-center gap-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full px-6 py-3 shadow-lg mb-6"
+            >
               <Star className="w-6 h-6" />
-              <span className="font-semibold">הרגע המיוחד</span>
+              <span className="font-semibold">התוצאה: כך זה נראה</span>
             </div>
             <h3 className="text-3xl md:text-4xl font-bold text-gray-800 mb-6">
-              כך נראית{' '}
+              כך נראית הצעה
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">
-                הצעת השידוך שלכם
+                {' '}
+                שנבנתה עבורכם
               </span>
             </h3>
             <p className="text-lg text-gray-700 max-w-4xl mx-auto leading-relaxed">
-              לאחר השלמת התהליך, תקבלו הצעות איכותיות ומנומקות כמו אלה.
-              <br />
-              <span className="font-semibold text-cyan-700">
-                כל הצעה מותאמת אישית ומלווה בהסבר מדויק למה זה מתאים לכם.
-              </span>
+              לאחר השלמת התהליך, כל הצעה מגיעה עם נימוקים ברורים ורקע עשיר, כדי
+              שתוכלו לקבל החלטה ממקום של הבנה אמיתית, לא רק תחושת בטן.
             </p>
           </div>
 
-          {/* הדמואים */}
-          <div ref={demoRef} id="suggestion-demo">
-            {' '}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={
-                isDemoInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }
-              }
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 max-w-7xl mx-auto"
-            >
-              {/* הצעה לבחורה (מציגה פרופיל גבר) */}
-              <div className="flex flex-col items-center">
-                <div className="mb-4">
-                  <h4 className="text-lg font-semibold text-gray-800 text-center px-4 py-2 bg-cyan-100 rounded-full">
-                    דוגמה: הצעה לבחורה
-                  </h4>
-                </div>
-                <div className="relative w-full max-w-sm lg:max-w-md">
-                  <div className="absolute -inset-4 bg-gradient-to-r from-cyan-500/20 via-pink-500/20 to-cyan-500/20 rounded-3xl blur-xl" />{' '}
-                  <div className="relative bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-2xl border border-white">
-                    <LiveSuggestionDemo
-                      suggestion={demoSuggestionDataMale}
-                      userId="visitor-user-id"
-                      demoAiAnalysis={demoAiAnalysisForDaniel}
-                    />
-                  </div>
+          <motion.div
+            ref={demoRef}
+            initial={{ opacity: 0, y: 30 }}
+            animate={
+              isDemoInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }
+            }
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 max-w-7xl mx-auto"
+          >
+            <div className="flex flex-col items-center">
+              <h4 className="text-lg font-semibold text-gray-800 text-center px-4 py-2 bg-cyan-100 rounded-full mb-4">
+                דוגמה: הצעה לבחורה
+              </h4>
+              <div className="relative w-full max-w-sm lg:max-w-md">
+                <div className="absolute -inset-4 bg-gradient-to-r from-cyan-500/20 via-pink-500/20 to-cyan-500/20 rounded-3xl blur-xl" />
+                <div className="relative bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-2xl border border-white">
+                  <LiveSuggestionDemo
+                    suggestion={demoSuggestionDataMale}
+                    userId="visitor-user-id"
+                    demoAiAnalysis={demoAiAnalysisForDaniel}
+                  />
                 </div>
               </div>
-
-              {/* הצעה לבחור (מציגה פרופיל אישה) */}
-              <div className="flex flex-col items-center">
-                <div className="mb-4">
-                  <h4 className="text-lg font-semibold text-gray-800 text-center px-4 py-2 bg-pink-100 rounded-full">
-                    דוגמה: הצעה לבחור
-                  </h4>
-                </div>
-                <div className="relative w-full max-w-sm lg:max-w-md">
-                  <div className="absolute -inset-4 bg-gradient-to-r from-pink-500/20 via-orange-500/20 to-pink-500/20 rounded-3xl blur-xl" />
-                  <div className="relative bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-2xl border border-white">
-                    <LiveSuggestionDemo
-                      suggestion={demoSuggestionDataFemale}
-                      userId="visitor-user-id"
-                      demoAiAnalysis={demoAiAnalysisForNoa}
-                    />
-                  </div>
+            </div>
+            <div className="flex flex-col items-center">
+              <h4 className="text-lg font-semibold text-gray-800 text-center px-4 py-2 bg-pink-100 rounded-full mb-4">
+                דוגמה: הצעה לבחור
+              </h4>
+              <div className="relative w-full max-w-sm lg:max-w-md">
+                <div className="absolute -inset-4 bg-gradient-to-r from-pink-500/20 via-orange-500/20 to-pink-500/20 rounded-3xl blur-xl" />
+                <div className="relative bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-2xl border border-white">
+                  <LiveSuggestionDemo
+                    suggestion={demoSuggestionDataFemale}
+                    userId="visitor-user-id"
+                    demoAiAnalysis={demoAiAnalysisForNoa}
+                  />
                 </div>
               </div>
-            </motion.div>
-          </div>
+            </div>
+          </motion.div>
         </motion.div>
 
-        {/* ההבטחה שלנו, באופן אישי - גרסה משופרת */}
+        {/* --- Founder's Testimonial (UPDATED) --- */}
         <div className="mb-20">
-          {/* כותרת משופרת */}
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.8 }}
             className="text-center mb-16"
           >
             <div className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-full px-8 py-4 shadow-lg border border-white/60 mb-8">
               <Heart className="w-6 h-6 text-pink-500" />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-pink-600 font-bold text-lg">
-                ההבטחה שלנו, באופן אישי
+                המסע שמאחורי NeshamaTech
               </span>
             </div>
-
-            <h3 className="text-4xl md:text-5xl font-bold text-gray-800 mb-6 leading-tight">
-              התחייבות אישית
-              <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-pink-600">
-                לזוגיות שלכם
-              </span>
-            </h3>
           </motion.div>
 
-          {/* העדות המרכזית - משופרת */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
+            viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="max-w-4xl mx-auto mb-20"
+            className="max-w-4xl mx-auto"
           >
-            <div className="relative">
-              {/* אפקט זוהר מסביב לכרטיס */}
-              <div className="absolute -inset-6 bg-gradient-to-r from-cyan-500/20 via-pink-500/20 to-cyan-500/20 rounded-3xl blur-2xl" />
-
-              {/* הכרטיס הראשי */}
-              <div className="relative bg-white/95 backdrop-blur-xl rounded-3xl p-12 shadow-2xl border border-white/60">
-                {/* אייקון ציטוט פותח (ימין למעלה) */}
-                <div className="absolute -top-4 right-8">
-                  <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
-                    <Quote className="w-6 h-6 text-white" />
-                  </div>
-                </div>
-
-                {/* === שינוי: הוספת אייקון ציטוט סוגר (שמאל למטה) === */}
-                <div className="absolute -bottom-4 left-8">
-                  <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
-                    <Quote className="w-6 h-6 text-white transform rotate-180" />
-                  </div>
-                </div>
-
-                {/* הטקסט */}
-                <div className="text-center mb-10">
+            <div className="relative bg-white/95 backdrop-blur-xl rounded-3xl p-12 shadow-2xl border border-white/60">
+              <div className="absolute -top-4 right-8 w-12 h-12 bg-gradient-to-br from-cyan-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
+                <Quote className="w-6 h-6 text-white" />
+              </div>
+              <div className="text-center mb-10">
                 <p className="text-xl md:text-2xl text-gray-700 leading-relaxed mb-6 font-medium">
-  “המסע האישי שלי, והסיפורים ששמעתי מחברים, הבהירו לי עד כמה הדרך למציאת זוגיות יכולה להיות בודדה ומתסכלת. הקמתי את NeshamaTech מתוך רצון אישי עמוק ליצור מקום אחר - מקום שמבין את הרגישות, שמכבד את התהליך, ושם את האדם במרכז.”
-</p>
-                  <p className="text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-pink-600">
-                    ההצלחה שלכם היא המשימה האישית שלי.
-                  </p>
+                  “המסע האישי שלי, והסיפורים ששמעתי מחברים, הבהירו לי עד כמה
+                  הדרך למציאת זוגיות יכולה להיות בודדה ומתסכלת. הקמתי את
+                  NeshamaTech מתוך רצון אישי עמוק ליצור מקום אחר - מקום שמבין את
+                  הרגישות, שמכבד את התהליך, ושם את האדם במרכז. זו הסיבה שההצלחה
+                  שלכם היא המשימה האישית שלי.”
+                </p>
+              </div>
+              <div className="flex items-center justify-center gap-6 p-6 bg-gradient-to-r from-gray-50/80 to-white/80 rounded-2xl backdrop-blur-sm border border-gray-100">
+                <div className="relative w-20 h-20 rounded-full overflow-hidden shadow-lg border-2 border-white">
+                  <Image
+                    src={getRelativeCloudinaryPath(
+                      'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700884/eitan_h9ylkc.jpg'
+                    )}
+                    alt="איתן אנגלרד, מייסד החברה"
+                    fill
+                    sizes="80px"
+                    className="object-cover object-center"
+                    priority
+                  />
                 </div>
-
-                {/* פרופיל המייסד */}
-                <div className="flex items-center justify-center gap-6 p-6 bg-gradient-to-r from-gray-50/80 to-white/80 rounded-2xl backdrop-blur-sm border border-gray-100">
-                  <div className="relative">
-                    <div className="relative w-20 h-20 rounded-full overflow-hidden shadow-lg border-2 border-white">
-                      <Image
-                        src={getRelativeCloudinaryPath(
-                          'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700884/eitan_h9ylkc.jpg'
-                        )}
-                        alt="איתן אנגלרד, מייסד החברה"
-                        fill
-                        sizes="80px"
-                        className="object-cover object-center"
-                        priority
-                      />
-                    </div>
-                    <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-4 border-white flex items-center justify-center">
-                      <CheckCircle className="w-3 h-3 text-white" />
-                    </div>
+                <div>
+                  <div className="text-2xl font-bold text-gray-800">
+                    איתן אנגלרד
                   </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-gray-800 mb-1">
-                      איתן אנגלרד
-                    </div>
-                    <div className="text-lg text-cyan-600 font-semibold mb-2">
-                      מייסד החברה
-                    </div>
+                  <div className="text-lg text-cyan-600 font-semibold">
+                    מייסד NeshamaTech
                   </div>
                 </div>
               </div>
             </div>
           </motion.div>
-
-     
         </div>
 
-        {/* ... (חלק ה-CTA נשאר ללא שינוי) ... */}
-
-        {/* פרק 4: ההזמנה לפעולה */}
+        {/* --- Final CTA (UPDATED) --- */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, delay: 0.4 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.8 }}
           className="relative text-center"
         >
           <div className="absolute inset-0 -m-8 bg-gradient-to-br from-cyan-600/10 via-pink-600/10 to-orange-600/10 rounded-3xl backdrop-blur-sm border border-white/40" />
           <div className="relative max-w-4xl mx-auto p-12">
-            <div className="inline-flex items-center gap-3 bg-gradient-to-r from-cyan-500 to-pink-500 text-white rounded-full px-6 py-3 shadow-lg mb-8">
-              <Heart className="w-6 h-6" />
-              <span className="font-semibold">הגיע הזמן שלכם?</span>
-            </div>
             <h4 className="text-3xl md:text-4xl font-bold text-gray-800 mb-6 leading-tight">
-              הצעד הראשון לזוגיות שלכם
+              מוכנים לנסות דרך
               <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-pink-600">
-                מתחיל בלחיצת כפתור
+                שמכבדת אתכם?
               </span>
             </h4>
             <p className="text-xl text-gray-600 mb-10 leading-relaxed max-w-3xl mx-auto">
-              ראיתם איך נראית הצעה איכותית. עכשיו תורכם לחוות את זה.
+              ראיתם את ה‘איך’ ואת ה‘למה’. עכשיו תורכם לחוות את התוצאה.
               <br />
-              <span className="font-bold text-cyan-700">
-                ההרשמה בחינם, הליווי מתחיל מיד. ההתחייבות היחידה היא לעצמכם.
-              </span>
+              ההרשמה אינה מחייבת, אבל היא הצעד הראשון למסע שאולי ישנה את חייכם.
             </p>
-            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-8">
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
               <Link href="/auth/register">
                 <Button
                   size="lg"
                   className="bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden px-10 py-6 text-lg font-bold"
                 >
-                  <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
+                  <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full group-hover:animate-shimmer" />
                   <span className="relative z-10 flex items-center justify-center">
                     אני רוצה להתחיל את המסע!
                     <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
@@ -4509,40 +4273,6 @@ const HowItWorksSection: React.FC = () => {
                 <span className="font-medium">
                   הרשמה חינם • ללא התחייבות • תמיכה מיידית
                 </span>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-2xl mx-auto text-center pt-8 border-t border-gray-200">
-              {/* עמודה 1: מחויבות להצלחה */}
-              <div>
-                <div className="font-bold text-2xl text-cyan-600 mb-1 flex justify-center items-center h-8">
-                  <Target className="w-7 h-7" />
-                </div>
-                <div className="font-bold mt-2 text-gray-800">הצלחה כמטרה</div>
-                <div className="text-sm text-gray-600">
-                  ההצלחה שלכם היא המדד היחיד שלנו
-                </div>
-              </div>
-              {/* עמודה 2: ליווי אישי */}
-              <div>
-                <div className="font-bold text-2xl text-pink-600 mb-1 flex justify-center items-center h-8">
-                  <UserCheck className="w-7 h-7" />
-                </div>
-                <div className="font-bold mt-2 text-gray-800">
-                  ליווי אישי ומסור
-                </div>
-                <div className="text-sm text-gray-600">
-                  אנחנו איתכם בכל שלב, מההתחלה ועד למטרה
-                </div>
-              </div>
-              {/* עמודה 3: איכות ללא פשרות */}
-              <div>
-                <div className="font-bold text-2xl text-orange-600 mb-1 flex justify-center items-center h-8">
-                  100%
-                </div>
-                <div className="font-bold mt-2 text-gray-800">בדיקה אנושית</div>
-                <div className="text-sm text-gray-600">
-                  כל הצעה עוברת אישור של שדכן, ללא פשרות
-                </div>
               </div>
             </div>
           </div>
@@ -4842,6 +4572,7 @@ export default MatchmakerTeamSection;
 File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\OurMethodSection.tsx
 --------------------------------------------------------------------------------
 Content:
+// src/components/HomePage/sections/OurMethodSection.tsx
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -4882,9 +4613,6 @@ interface ConstellationLine {
   opacity: number;
 }
 
-// ============================================================================
-// התחלנו עם הגדרת הקומפוננטה הפנימית והמורכבת MatchingConstellation
-// ============================================================================
 const MatchingConstellation: React.FC = () => {
   const [hoveredWorld, setHoveredWorld] = useState<number | null>(null);
   const [selectedWorld, setSelectedWorld] = useState<number | null>(1);
@@ -4892,6 +4620,7 @@ const MatchingConstellation: React.FC = () => {
   const sectionRef = useRef(null);
   const isInView = useInView(sectionRef, { once: true, amount: 0.2 });
 
+  // --- START: UPDATED TEXT DATA ---
   const worlds: WorldData[] = [
     {
       id: 1,
@@ -4899,14 +4628,13 @@ const MatchingConstellation: React.FC = () => {
       title: 'עולם הערכים',
       shortDesc: 'הבסיס לבית משותף',
       fullDescription:
-        'כאן אנו שואפים להבין את ה"למה" שלכם – מה באמת חשוב לכם בחיים ובזוגיות. אנו מאמינים שערכים משותפים הם הבסיס האיתן ביותר לבית יציב, והם המצפן שמנחה את החיפוש שלנו עבורכם.',
+        'מה באמת חשוב לכם בחיים, במשפחה ובזוגיות? כאן אנחנו יורדים לשורשים כדי למצוא מישהו שהולך באותו כיוון ערכי כמוכם.',
       color: 'from-rose-400 to-pink-500',
       gradientFrom: '#fb7185',
       gradientTo: '#ec4899',
       angle: -72,
-      personalExample: 'איך אתם מעבירים שבת? מה התפקיד של הקהילה בחייכם?',
-      insight:
-        'הבנת הערכים מאפשרת לנו לחפש התאמה ברמת השורש, לא רק על פני השטח.',
+      personalExample: 'מהו הערך החשוב ביותר שתרצו להנחיל בבית שתקימו?',
+      insight: 'כשיש בסיס ערכי משותף, קל יותר להתמודד עם אתגרי החיים, ביחד.',
     },
     {
       id: 2,
@@ -4914,14 +4642,14 @@ const MatchingConstellation: React.FC = () => {
       title: 'עולם האישיות',
       shortDesc: 'הדינמיקה הטבעית שלכם',
       fullDescription:
-        'האנרגיה שלכם, סגנון התקשורת, ומה מביא לכם שמחה. איננו מחפשים "שיבוט", אלא אישיות שהדינמיקה איתה תהיה טבעית, זורמת ומעשירה עבור שניכם, ותאפשר לכל אחד להיות הגרסה הטובה ביותר של עצמו.',
+        'איך אתם מגיבים במצבי לחץ? מה נותן לכם אנרגיה? אנו מחפשים אישיות שתשלים אתכם ותיצור דינמיקה זורמת וטבעית, כזו שבה שניכם יכולים פשוט להיות עצמכם.',
       color: 'from-amber-400 to-orange-500',
       gradientFrom: '#fbbf24',
       gradientTo: '#f97316',
       angle: -144,
-      personalExample: 'איך אתם אוהבים לבלות? איך אתם מתמודדים עם לחץ?',
+      personalExample: 'איך הייתם מתארים את עצמכם בשלוש מילים לחבר קרוב?',
       insight:
-        'כשיש התאמה אישיותית, הזוגיות מרגישה פחות כמו עבודה ויותר כמו בית.',
+        'התאמה אישיותית נכונה הופכת את הזוגיות למקום בטוח ומהנה להיות בו.',
     },
     {
       id: 3,
@@ -4929,14 +4657,15 @@ const MatchingConstellation: React.FC = () => {
       title: 'עולם הזוגיות',
       shortDesc: 'החזון שלכם ל"ביחד"',
       fullDescription:
-        'מהי זוגיות עבורכם? שותפות, חברות, מרחב אישי? כאן אנו מקשיבים לחזון שלכם לחיים משותפים, כדי שנוכל למצוא אדם שחולם חלום דומה ורוצה לבנות אותו יחד אתכם.',
+        'מה החזון שלכם ל"ביחד"? איך נראה ערב אידיאלי? איך פותרים קונפליקטים? אנו מבינים את תפיסת הזוגיות שלכם כדי למצוא מישהו שרוצה לבנות את אותו הבית.',
       color: 'from-emerald-400 to-teal-500',
       gradientFrom: '#34d399',
       gradientTo: '#14b8a6',
       angle: 144,
       personalExample:
-        'איך נראה ערב טיפוסי בבית שלכם? איך אתם פותרים חילוקי דעות?',
-      insight: 'כשיודעים לאן רוצים להגיע יחד, קל יותר להתחיל את הצעד הראשון.',
+        'מהי "שפת האהבה" העיקרית שלכם, ואיך אתם אוהבים לקבל אהבה?',
+      insight:
+        'כשהחזונות לזוגיות מתיישרים, קל יותר להתחיל לצעוד יחד באותו המסלול.',
     },
     {
       id: 4,
@@ -4944,13 +4673,13 @@ const MatchingConstellation: React.FC = () => {
       title: 'העולם הדתי והרוחני',
       shortDesc: 'החיבור הרוחני שלכם',
       fullDescription:
-        'הקשר שלכם למסורת, הדרך שבה אתם חיים את הדת בעידן המודרני, והמקום של הרוחניות בחייכם. זהו עולם עדין ואישי, ואנו ניגשים אליו בכבוד ובהבנה שלכל אחד יש דרך ייחודית.',
+        'מה המקום של הדת והמסורת בחייכם? מה החזון החינוכי לילדים? אנו ניגשים לנושאים אלו ברגישות ובדיוק כדי למצוא התאמה רוחנית אמיתית.',
       color: 'from-sky-400 to-blue-500',
       gradientFrom: '#38bdf8',
       gradientTo: '#3b82f6',
       angle: 72,
-      personalExample: 'איך המסורת והמודרניות משתלבים בחייכם?',
-      insight: 'התאמה רוחנית יוצרת בית שמלא במשמעות ובעומק.',
+      personalExample: 'איך נראית שמירת השבת שלכם בפועל, ומה הגמישות שלכם?',
+      insight: 'התאמה רוחנית יוצרת בית שמלא במשמעות, עומק ושפה משותפת.',
     },
     {
       id: 5,
@@ -4958,16 +4687,17 @@ const MatchingConstellation: React.FC = () => {
       title: 'ציפיות מהשותף',
       shortDesc: 'הצרכים שלכם בזוגיות',
       fullDescription:
-        'לכולנו יש דברים שחשובים לנו בשותף לדרך. לא מתוך שטחיות, אלא מתוך הכרה במה שיעזור לנו לפרוח. כאן אנו מבינים את הצרכים האמיתיים שלכם כדי למצוא שותף שיצמח אתכם.',
+        'אילו תכונות בשותף לחיים יעזרו לכם להיות הגרסה הטובה ביותר של עצמכם? כאן אנו מבינים את הצרכים העמוקים שלכם, כדי למצוא אדם שיצמח אתכם וייתן לכם ביטחון.',
       color: 'from-violet-400 to-purple-500',
       gradientFrom: '#a78bfa',
       gradientTo: '#8b5cf6',
       angle: 0,
-      personalExample: 'אילו תכונות בשותף יעזרו לכם להיות הכי טובים שלכם?',
-      insight:
-        'הבנה ברורה של הצרכים ההדדיים היא המפתח לתקשורת פתוחה וזוגיות בריאה.',
+      personalExample:
+        'מהי התכונה האחת, החשובה ביותר, שחייבת להיות בבן/בת הזוג?',
+      insight: 'הבנת הצרכים ההדדיים היא המפתח לתקשורת פתוחה וזוגיות בריאה.',
     },
   ];
+  // --- END: UPDATED TEXT DATA ---
 
   useEffect(() => {
     if (hasInteracted) return;
@@ -5011,7 +4741,7 @@ const MatchingConstellation: React.FC = () => {
         transition={{ duration: 0.8 }}
         className="text-center mb-16"
       >
-        <div className="inline-flex items-center gap-3 bg-gradient-to-r from-rose-50 to-sky-50 backdrop-blur-sm rounded-full px-8 py-4 shadow-md border border-white/40 mb-8">
+        <div className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-full px-8 py-4 shadow-md border border-gray-200 mb-8">
           <Heart className="w-6 h-6 text-rose-500" />
           <span className="text-gray-700 font-medium text-lg">
             הגישה האנושית שלנו
@@ -5025,8 +4755,9 @@ const MatchingConstellation: React.FC = () => {
           </span>
         </h3>
         <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
-          כל אדם הוא עולם שלם. הגישה שלנו מבוססת על הבנה שהתאמה אמיתית נבנית
-          מהרמוניה בין חמישה מישורים עמוקים של האישיות והחיים שלכם.
+          כדי למצוא התאמה אמיתית, אנחנו צריכים להכיר אתכם באמת. לכן פיתחנו שיטה
+          ייחודית המתבוננת בחמישה עולמות מרכזיים שמרכיבים אתכם. כך אנחנו מוצאים
+          חיבור שלם, לא חלקי.
         </p>
       </motion.div>
 
@@ -5037,6 +4768,7 @@ const MatchingConstellation: React.FC = () => {
           transition={{ duration: 1, delay: 0.3 }}
           className="relative flex-1 min-w-0"
         >
+          {/* Constellation SVG and elements - UNCHANGED */}
           <div className="relative w-[500px] h-[500px] mx-auto">
             <div className="absolute inset-0 bg-gradient-to-br from-rose-50/80 via-amber-50/60 to-sky-50/80 rounded-full blur-3xl" />
             <svg
@@ -5186,6 +4918,8 @@ const MatchingConstellation: React.FC = () => {
             })}
           </div>
         </motion.div>
+
+        {/* Information panel on the right - UNCHANGED */}
         <motion.div
           initial={{ opacity: 0, x: 30 }}
           animate={isInView ? { opacity: 1, x: 0 } : {}}
@@ -5242,7 +4976,7 @@ const MatchingConstellation: React.FC = () => {
                     <CheckCircle className="w-5 h-5 text-violet-600 mt-1 flex-shrink-0" />
                     <div>
                       <h5 className="font-semibold text-violet-800 mb-2">
-                        למה זה חשוב לנו:
+                        התובנה שלנו:
                       </h5>
                       <p className="text-violet-700">
                         {displayedWorld.insight}
@@ -5277,6 +5011,8 @@ const MatchingConstellation: React.FC = () => {
           </motion.div>
         </motion.div>
       </div>
+
+      {/* --- START: UPDATED CTA AT THE END OF THE SECTION --- */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={isInView ? { opacity: 1, y: 0 } : {}}
@@ -5285,11 +5021,12 @@ const MatchingConstellation: React.FC = () => {
       >
         <div className="max-w-4xl mx-auto">
           <h4 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6">
-            הצעד הבא: מסע אישי של גילוי
+            מוכנים להתחיל את המסע?
           </h4>
           <p className="text-lg text-gray-600 mb-10 leading-relaxed">
-            השאלון שלנו הוא יותר מטופס - הוא הזדמנות עבורכם להבין טוב יותר את
-            עצמכם ואת מה שאתם באמת מחפשים בזוגיות.
+            השאלון הייחודי שלנו הוא הצעד הראשון. הוא לא טכני, הוא אישי. <br />
+            זו ההזדמנות שלכם לספר לנו את הסיפור שלכם, כדי שאנחנו נוכל למצוא את
+            הפרק הבא שלו.
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
             <Link href="/questionnaire">
@@ -5298,7 +5035,7 @@ const MatchingConstellation: React.FC = () => {
                 className="group bg-gradient-to-r from-rose-500 to-violet-600 hover:from-rose-600 hover:to-violet-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl px-8 py-4 text-lg font-semibold"
               >
                 <span className="flex items-center gap-3">
-                  התחילו את המסע האישי שלכם
+                  אני רוצה להתחיל את המסע שלי
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </span>
               </Button>
@@ -5306,19 +5043,17 @@ const MatchingConstellation: React.FC = () => {
             <div className="flex items-center gap-3 text-gray-600">
               <CheckCircle className="w-5 h-5 text-green-500" />
               <span className="font-medium">
-                5-10 דקות • חוויה אישית • תובנות עבורכם
+                חוויה אישית • תובנות עבורכם • דיסקרטי לחלוטין
               </span>
             </div>
           </div>
         </div>
       </motion.div>
+      {/* --- END: UPDATED CTA --- */}
     </div>
   );
 };
 
-// ============================================================================
-// עכשיו נגדיר את הקומפוננטה הראשית OurMethodSection שתעטוף הכל
-// ============================================================================
 const OurMethodSection: React.FC = () => {
   const sectionRef = useRef(null);
   const isInView = useInView(sectionRef, { once: true, amount: 0.1 });
@@ -5380,11 +5115,9 @@ const OurMethodSection: React.FC = () => {
       </div>
 
       <div className="relative max-w-8xl mx-auto">
-        {/* הקריאה לקומפוננטה המרכזית נמצאת כאן */}
         <MatchingConstellation />
       </div>
 
-      {/* אני מוסיף את ה-style tag שהיה חסר מהקובץ הקודם */}
       <style jsx>{`
         @keyframes gentle-pulse {
           0%,
@@ -5625,6 +5358,8 @@ export default PrivacyAssuranceSection;
 File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\SuccessStoriesSection.tsx
 --------------------------------------------------------------------------------
 Content:
+// src/components/HomePage/sections/SuccessStoriesSection.tsx
+
 import React, { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import TestimonialCard from '../components/TestimonialCard';
@@ -5672,6 +5407,7 @@ const SuccessStoriesSection: React.FC = () => {
     },
   };
 
+  // --- START: DATA REMAINS UNCHANGED ---
   const testimonials = [
     {
       text: 'תמיד חלמתי על שותף לחיים עם שאיפות ערכיות דומות – להקים בית של חסד, ציונות ותורה. NeshamaTech חיברו אותי לאדם שחולם בדיוק את אותו החלום. זה חיבור של נשמה ומטרה.',
@@ -5686,39 +5422,45 @@ const SuccessStoriesSection: React.FC = () => {
       color: 'orange' as const,
     },
   ];
+  // --- END: DATA REMAINS UNCHANGED ---
 
   return (
     <motion.section
       ref={ref}
       id="success-stories"
-      className="py-16 md:py-20 px-4 relative"
+      className="py-16 md:py-20 px-4 bg-white relative" // Changed background to white for cleaner look
       variants={containerVariants}
       initial="hidden"
       animate={isInView ? 'visible' : 'hidden'}
     >
-      {/* Subtle background pattern */}
-      <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:20px_20px]"></div>
+      <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#0891b2_1px,transparent_1px)] [background-size:20px_20px]"></div>
 
       <div className="max-w-6xl mx-auto relative">
-        {/* Header */}
+        {/* --- START: UPDATED HEADER SECTION --- */}
         <motion.div
           className="text-center mb-12 md:mb-16"
           variants={headerVariants}
         >
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4">
-            סיפורי
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-800 mb-4">
+            סיפורים שמתחילים
             <span
-              className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-cyan-700 animate-gradient"
-              style={{ backgroundSize: '200% 200%' }}
+              className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-teal-600"
             >
               {' '}
-              הצלחה{' '}
+              בנשמה
             </span>
           </h2>
-          <div className="w-24 h-1 bg-gradient-to-r from-cyan-600 to-cyan-700 mx-auto rounded-full" />
+          <div className="w-24 h-1 bg-gradient-to-r from-cyan-600 to-teal-600 mx-auto rounded-full mb-6" />
+          <motion.p 
+            className="text-lg text-gray-600 max-w-3xl mx-auto"
+            variants={headerVariants} // re-using variant for simplicity
+          >
+            התיאוריה נהדרת, אבל התוצאות מדברות בעד עצמן. אלו לא רק סיסמאות, אלו חיים שהשתנו. כמה מילים מהזוגות שמצאו אהבה דרך הגישה המעמיקה שלנו.
+          </motion.p>
         </motion.div>
+        {/* --- END: UPDATED HEADER SECTION --- */}
 
-        {/* Testimonials Grid */}
+        {/* Testimonials Grid - UNCHANGED LOGIC */}
         <motion.div
           className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto"
           variants={containerVariants}
@@ -5742,8 +5484,7 @@ const SuccessStoriesSection: React.FC = () => {
           ))}
         </motion.div>
 
-        {/* Future: Add button when more testimonials are available */}
-        {/* 
+        {/* --- START: NEW OPTIONAL CLOSING TEXT --- */}
         <motion.div 
           className="mt-12 text-center"
           variants={{
@@ -5751,21 +5492,15 @@ const SuccessStoriesSection: React.FC = () => {
             visible: {
               opacity: 1,
               y: 0,
-              transition: { duration: 0.6, ease: "easeOut" }
+              transition: { duration: 0.6, ease: "easeOut", delay: 0.5 } // Delay after cards appear
             }
           }}
         >
-          <Link href="/success-stories">
-            <Button
-              variant="outline"
-              className="border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-300 transition-all duration-300 rounded-xl group"
-            >
-              <span>לעוד סיפורי הצלחה</span>
-              <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-            </Button>
-          </Link>
+          <p className="text-base text-gray-500">
+            אנו מכבדים את פרטיות הזוגות שלנו, ומשתפים סיפורים רק בהסכמתם המלאה.
+          </p>
         </motion.div>
-        */}
+        {/* --- END: NEW OPTIONAL CLOSING TEXT --- */}
       </div>
     </motion.section>
   );

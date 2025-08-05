@@ -3361,7 +3361,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     () => [
       {
         value: 'essence',
-        label: 'המהות',
+        label: 'המהות', // <-- הטקסטים כאן כבר טובים
         shortLabel: 'מהות',
         icon: Sparkles,
         gradient: THEME.colors.primary.light,
@@ -3655,8 +3655,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           <TabsContent value="essence" className="mt-0 max-w-full min-w-0">
             <div className="space-y-6 sm:space-y-8 max-w-full min-w-0">
               <SectionCard
-                title="הנשמה והמהות"
-                subtitle="מי זה האדם הזה באמת"
+                title="הנשמה והמהות" // <-- UPDATED
+                subtitle={`מי ${profile.user?.firstName || 'האדם הזה'} באמת`} // <-- UPDATED & Dynamic
                 icon={Heart}
                 variant="romantic"
                 gradient={THEME.colors.primary.main}
@@ -3748,8 +3748,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       {profile.city && (
                         <DetailItem
                           icon={MapPin}
-                          label="הבית שבלב"
-                          value={`${profile.city} - המקום שקורא לי בית`}
+                          label="הבית שבלב" // <-- UPDATED
+                          value={`${profile.city} - המקום שקורא לי בית`} // <-- UPDATED
                           variant="highlight"
                           size="md"
                           className="max-w-full min-w-0"
@@ -3758,8 +3758,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       {profile.occupation && (
                         <DetailItem
                           icon={Briefcase}
-                          label="התחום שמלהיב אותי"
-                          value={`${profile.occupation} - כאן אני נותן/ת את הלב`}
+                          label="התחום שמלהיב אותי" // <-- UPDATED
+                          value={`${profile.occupation} - כאן אני נותן/ת את הלב`} // <-- UPDATED
                           variant="highlight"
                           size="md"
                           className="max-w-full min-w-0"
@@ -3768,7 +3768,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       {profile.religiousLevel && (
                         <DetailItem
                           icon={BookMarked}
-                          label="השקפת העולם שמנחה אותי"
+                          label="השקפת העולם שמנחה אותי" // <-- UPDATED
                           value={
                             formatEnumValue(
                               profile.religiousLevel,
@@ -3786,7 +3786,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               </SectionCard>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-full min-w-0">
                 <SectionCard
-                  title="תכונות הזהב שלי"
+                  title="תכונות הזהב שלי" // <-- UPDATED
                   subtitle="מה שעושה אותי מיוחד/ת"
                   icon={Sparkles}
                   variant="elegant"
@@ -3838,7 +3838,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   </div>
                 </SectionCard>
                 <SectionCard
-                  title="מה שאני אוהב/ת לעשות"
+                  title="מה שאני אוהב/ת לעשות" // <-- UPDATED
                   subtitle="התחביבים והתשוקות שלי"
                   icon={Heart}
                   variant="elegant"
@@ -3898,10 +3898,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 )}
               >
                 <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 break-words hyphens-auto word-break-break-word overflow-wrap-anywhere">
-                  מוכנים להכיר את {profile.user?.firstName || 'המועמד המושלם'}?
+                  מוכנים להכיר את {profile.user?.firstName || 'המועמד'} לעומק?{' '}
+                  {/* <-- UPDATED & Dynamic */}
                 </h3>
                 <p className="text-base sm:text-lg mb-4 sm:mb-6 opacity-90 break-words">
-                  עוד המון דברים מעניינים מחכים לגילוי...
+                  עוד המון פרטים מעניינים מחכים להתגלות...
                 </p>
                 <div className="flex flex-wrap justify-center gap-3 sm:gap-4 max-w-full">
                   <Button
@@ -3913,7 +3914,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     )}
                   >
                     <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 ml-2 flex-shrink-0" />{' '}
-                    <span className="break-words">בואו נכיר את הסיפור</span>
+                    <span className="break-words">בואו נכיר את הסיפור</span>{' '}
+                    {/* <-- UPDATED */}
                   </Button>
                   <Button
                     onClick={() => handleTabChange('vision')}
@@ -3921,7 +3923,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     className="bg-white/20 hover:bg-white border border-white/30 text-white hover:text-rose-600 font-bold rounded-full backdrop-blur-sm transition-all min-h-[44px] px-4 py-2 sm:px-6 sm:py-3 text-sm sm:text-base"
                   >
                     <Heart className="w-4 h-4 sm:w-5 sm:h-5 ml-2 flex-shrink-0" />{' '}
-                    <span className="break-words">מה החלום לזוגיות</span>
+                    <span className="break-words">מה החלום לזוגיות</span>{' '}
+                    {/* <-- UPDATED */}
                   </Button>
                 </div>
               </div>
@@ -3949,15 +3952,16 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   'bg-gradient-to-r from-rose-600 via-pink-600 to-amber-600 bg-clip-text text-transparent'
                 )}
               >
-                הסיפור והמסע של {profile.user?.firstName || 'המועמד'}
+                הסיפור והמסע של {profile.user?.firstName || 'המועמד'}{' '}
+                {/* <-- UPDATED */}
               </h2>
               <p className="text-gray-600 text-base sm:text-lg text-center break-words">
-                השורשים, הדרך והערכים שעיצבו את האדם הזה
+                השורשים, הדרך והערכים שעיצבו את האדם הזה {/* <-- UPDATED */}
               </p>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 max-w-full min-w-0">
               <SectionCard
-                title="הזהות הדתית והרוחנית"
+                title="הזהות הדתית והרוחנית" // <-- UPDATED
                 subtitle="המקום של האמונה והמסורת בחיי"
                 icon={BookMarked}
                 variant="elegant"
@@ -4018,7 +4022,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 </div>
               </SectionCard>
               <SectionCard
-                title="השכלה ועולם המקצוע"
+                title="השכלה ועולם המקצוע" // <-- UPDATED
                 subtitle="הדרך האקדמית והמקצועית שלי"
                 icon={GraduationCap}
                 variant="elegant"
@@ -4079,7 +4083,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               </SectionCard>
             </div>
             <SectionCard
-              title="הרקע המשפחתי והתרבותי"
+              title="הרקע המשפחתי והתרבותי" // <-- UPDATED
               subtitle="המשפחה והמקורות שעיצבו אותי"
               icon={Users2}
               variant="romantic"
@@ -4154,7 +4158,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 profile.additionalLanguages.length > 0 && (
                   <div className="mt-6 pt-6 border-t border-gray-200 max-w-full min-w-0">
                     <h4 className="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
-                      <Languages className="w-5 h-5 text-blue-500 flex-shrink-0" />
+                      <Languages className="w-5 h-5 text-blue-500 flex-shrink-0" />{' '}
                       <span className="break-words">
                         שפות נוספות שאני מדבר/ת
                       </span>
@@ -4188,6 +4192,144 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     </div>
                   </div>
                 )}
+            </SectionCard>
+            {!isDesktop && mobileViewLayout === 'detailed' && (
+              <MobileTabNavigation
+                activeTab={activeTab}
+                tabItems={tabItems}
+                onTabChange={handleTabChange}
+                THEME={THEME}
+              />
+            )}
+          </TabsContent>
+
+          {/* Vision Tab */}
+          <TabsContent
+            value="vision"
+            className="mt-0 space-y-4 sm:space-y-6 max-w-full min-w-0"
+          >
+            <div className="text-center mb-6 sm:mb-8 px-2 sm:px-4 max-w-full min-w-0 overflow-hidden">
+              <h2
+                className={cn(
+                  'font-bold mb-3 sm:mb-4 break-words hyphens-auto word-break-break-word overflow-wrap-anywhere text-center',
+                  'text-xl sm:text-2xl md:text-3xl',
+                  'bg-gradient-to-r from-rose-600 via-pink-600 to-amber-600 bg-clip-text text-transparent'
+                )}
+              >
+                החזון והחלום לזוגיות של {profile.user?.firstName || 'המועמד'}{' '}
+                {/* <-- UPDATED */}
+              </h2>
+              <p className="text-gray-600 text-base sm:text-lg break-words">
+                איך אני רואה את העתיד שלנו יחד {/* <-- UPDATED */}
+              </p>
+            </div>
+            <SectionCard
+              title="הזוגיות שאני חולם/ת עליה" // <-- UPDATED
+              subtitle="המחשבות והרגשות שלי על אהבה ומשפחה"
+              icon={Heart}
+              variant="romantic"
+              gradient={THEME.colors.primary.main}
+              className="max-w-full min-w-0"
+            >
+              {profile.matchingNotes ? (
+                <div
+                  className={cn(
+                    'p-4 sm:p-6 rounded-2xl border border-rose-200 max-w-full min-w-0 overflow-hidden',
+                    `bg-gradient-to-r ${THEME.colors.neutral.warm}`,
+                    THEME.shadows.soft
+                  )}
+                >
+                  <div className="flex items-start gap-3 sm:gap-4 max-w-full min-w-0">
+                    <div
+                      className={cn(
+                        'p-2 sm:p-3 rounded-full flex-shrink-0',
+                        `bg-gradient-to-r ${THEME.colors.primary.rose}`
+                      )}
+                    >
+                      <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                    </div>
+                    <div className="max-w-full min-w-0 flex-1 overflow-hidden">
+                      <h4 className="font-bold text-rose-800 mb-3 text-base sm:text-lg">
+                        המחשבות שלי על הזוגיות המושלמת:
+                      </h4>
+                      <p className="text-rose-700 leading-relaxed whitespace-pre-wrap italic text-base sm:text-lg break-words hyphens-auto word-break-break-word overflow-wrap-anywhere">
+                        <Quote className="w-4 h-4 sm:w-5 sm:h-5 inline ml-1 text-rose-400 flex-shrink-0" />
+                        {profile.matchingNotes}
+                        <Quote className="w-4 h-4 sm:w-5 sm:h-5 inline mr-1 text-rose-400 transform rotate-180 flex-shrink-0" />
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <EmptyState
+                  icon={Heart}
+                  title="החזון לזוגיות טרם פורט"
+                  description="זו הזדמנות מצוינת להתחיל שיחה ולגלות יחד!"
+                  variant="romantic"
+                />
+              )}
+              <div className="mt-6 sm:mt-8 space-y-4 sm:space-y-6 max-w-full min-w-0">
+                <h4 className="text-lg sm:text-xl font-bold text-gray-800 flex items-center gap-3">
+                  <Baby className="w-5 h-5 sm:w-6 sm:h-6 text-pink-500 flex-shrink-0" />{' '}
+                  <span className="break-words">החזון למשפחה</span>{' '}
+                  {/* <-- UPDATED */}
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 max-w-full min-w-0">
+                  {profile.maritalStatus &&
+                    ['divorced', 'widowed', 'annulled'].includes(
+                      profile.maritalStatus
+                    ) && (
+                      <DetailItem
+                        icon={Baby}
+                        label="ילדים מקשר קודם"
+                        value={
+                          formatBooleanPreference(
+                            profile.hasChildrenFromPrevious,
+                            'יש ילדים יקרים',
+                            'אין ילדים',
+                            'נגלה יחד'
+                          ).label
+                        }
+                        variant="elegant"
+                        textAlign="right"
+                        className="max-w-full min-w-0"
+                      />
+                    )}
+                  {(profile.preferredAgeMin || profile.preferredAgeMax) && (
+                    <DetailItem
+                      icon={Calendar}
+                      label="הגיל המועדף עליי"
+                      value={`${profile.preferredAgeMin || '?'} - ${profile.preferredAgeMax || '?'} שנים`}
+                      variant="highlight"
+                      textAlign="right"
+                      className="max-w-full min-w-0"
+                    />
+                  )}
+                  {(profile.preferredHeightMin ||
+                    profile.preferredHeightMax) && (
+                    <DetailItem
+                      icon={User}
+                      label="הגובה המועדף"
+                      value={`${profile.preferredHeightMin || '?'} - ${profile.preferredHeightMax || '?'} ס״מ`}
+                      variant="highlight"
+                      textAlign="right"
+                      className="max-w-full min-w-0"
+                    />
+                  )}
+                  <DetailItem
+                    icon={Heart}
+                    label="שמירת נגיעה בזוגיות"
+                    value={
+                      formatStringBooleanPreference(
+                        profile.preferredShomerNegiah
+                      ).label
+                    }
+                    variant="elegant"
+                    textAlign="right"
+                    className="max-w-full min-w-0"
+                  />
+                </div>
+              </div>
             </SectionCard>
             {!isDesktop && mobileViewLayout === 'detailed' && (
               <MobileTabNavigation
@@ -4348,10 +4490,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   'bg-gradient-to-r from-rose-600 via-pink-600 to-amber-600 bg-clip-text text-transparent'
                 )}
               >
-                מה {profile.user?.firstName || 'המועמד'} מחפש/ת בבן/בת הזוג
+                מה {profile.user?.firstName || 'אני'} מחפש/ת בבן/בת הזוג{' '}
+                {/* <-- UPDATED */}
               </h2>
               <p className="text-gray-600 text-base sm:text-lg break-words">
-                התכונות והערכים שחשובים בהתאמה
+                התכונות והערכים שחשובים להתאמה מושלמת {/* <-- UPDATED */}
               </p>
             </div>
             {hasAnyPreferences ? (
@@ -4389,7 +4532,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 {profile.preferredLocations &&
                   profile.preferredLocations.length > 0 &&
                   renderPreferenceBadges(
-                    'מקומות מגורים מועדפים',
+                    'אזורי מגורים מועדפים', // <-- UPDATED Text
                     MapPin,
                     profile.preferredLocations,
                     {},
@@ -4442,7 +4585,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   {profile.preferredHobbies &&
                     profile.preferredHobbies.length > 0 && (
                       <SectionCard
-                        title="תחביבים מועדפים"
+                        title="תחביבים משותפים שהייתי שמח/ה" // <-- UPDATED Text
                         subtitle="מה נעשה יחד בזמן הפנוי"
                         icon={Heart}
                         variant="elegant"
@@ -4487,8 +4630,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             ) : (
               <EmptyState
                 icon={Compass}
-                title="פתוח/ה לכל האפשרויות"
-                description="הלב פתוח להכיר אדם מיוחד, ללא דרישות מוקדמות. יש כאן מקום לגילויים מרגשים יחד."
+                title="הלב פתוח לכל האפשרויות" // <-- UPDATED
+                description="אין כאן רשימת דרישות, אלא הזמנה פתוחה להכיר אדם מיוחד. יש כאן מקום לגילויים מרגשים יחד." // <-- UPDATED
                 variant="discovery"
               />
             )}
@@ -4516,10 +4659,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     'bg-gradient-to-r from-rose-600 via-pink-600 to-amber-600 bg-clip-text text-transparent'
                   )}
                 >
-                  התשובות העמוקות מהלב של {profile.user?.firstName || 'המועמד'}
+                  התשובות העמוקות מהלב של {profile.user?.firstName || 'המועמד'}{' '}
+                  {/* <-- UPDATED */}
                 </h2>
                 <p className="text-gray-600 text-base sm:text-lg break-words">
-                  מחשבות אישיות ותובנות על החיים והאהבה
+                  מחשבות אישיות ותובנות על החיים, אהבה וכל מה שביניהם{' '}
+                  {/* <-- UPDATED */}
                 </p>
               </div>
               {Object.entries(WORLDS).map(([worldKey, worldConfig]) => {
@@ -4582,14 +4727,14 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     'bg-gradient-to-r from-rose-600 via-pink-600 to-amber-600 bg-clip-text text-transparent'
                   )}
                 >
-                  מידע מקצועי לשדכן
+                  מידע מקצועי - לשדכנים בלבד {/* <-- UPDATED */}
                 </h2>
                 <p className="text-gray-600 text-base sm:text-lg break-words">
-                  פרטים רגישים וחשובים לתהליך השידוך
+                  מידע חסוי ונקודות חשובות לתהליך השידוך {/* <-- UPDATED */}
                 </p>
               </div>
               <SectionCard
-                title="מידע סודי לשדכנים בלבד"
+                title="פרטים חסויים ותובנות לשדכן" // <-- UPDATED
                 subtitle="פרטים מקצועיים לתהליך השידוך"
                 icon={Lock}
                 variant="elegant"
@@ -4659,7 +4804,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   >
                     <h4 className="font-bold text-indigo-800 mb-3 flex items-center gap-2">
                       <Lightbulb className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />{' '}
-                      <span className="break-words">תובנות מקצועיות:</span>
+                      <span className="break-words">תובנות מערכת:</span>{' '}
+                      {/* <-- UPDATED */}
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 text-indigo-700 text-sm sm:text-base max-w-full min-w-0">
                       <div className="flex items-center gap-2 break-words">

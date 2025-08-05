@@ -1,8 +1,8 @@
 // src/components/HomePage/sections/OurMethodSection.tsx
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
-import { motion, useInView, AnimatePresence } from 'framer-motion';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { motion, useInView, AnimatePresence, PanInfo } from 'framer-motion';
 import {
   Heart,
   Smile,
@@ -14,7 +14,9 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
+import { getRelativeCloudinaryPath } from '@/lib/utils';
 
 interface WorldData {
   id: number;
@@ -43,14 +45,30 @@ const MatchingConstellation: React.FC = () => {
   const [hoveredWorld, setHoveredWorld] = useState<number | null>(null);
   const [selectedWorld, setSelectedWorld] = useState<number | null>(1);
   const [hasInteracted, setHasInteracted] = useState<boolean>(false);
+  const [rotationOffset, setRotationOffset] = useState<number>(0);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+  const [dragStartAngle, setDragStartAngle] = useState<number>(0);
+  const [dragStartRotation, setDragStartRotation] = useState<number>(0);
   const sectionRef = useRef(null);
+  const constellationRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(sectionRef, { once: true, amount: 0.2 });
 
-  // --- START: UPDATED TEXT DATA ---
-  const worlds: WorldData[] = [
+  // Check if mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const worlds: WorldData[] = useMemo(() => [
     {
       id: 1,
-      icon: <Heart className="w-8 h-8" />,
+      icon: <Heart className="w-6 h-6 md:w-8 md:h-8" />,
       title: 'עולם הערכים',
       shortDesc: 'הבסיס לבית משותף',
       fullDescription:
@@ -64,7 +82,7 @@ const MatchingConstellation: React.FC = () => {
     },
     {
       id: 2,
-      icon: <Smile className="w-8 h-8" />,
+      icon: <Smile className="w-6 h-6 md:w-8 md:h-8" />,
       title: 'עולם האישיות',
       shortDesc: 'הדינמיקה הטבעית שלכם',
       fullDescription:
@@ -79,7 +97,7 @@ const MatchingConstellation: React.FC = () => {
     },
     {
       id: 3,
-      icon: <Users className="w-8 h-8" />,
+      icon: <Users className="w-6 h-6 md:w-8 md:h-8" />,
       title: 'עולם הזוגיות',
       shortDesc: 'החזון שלכם ל"ביחד"',
       fullDescription:
@@ -95,7 +113,7 @@ const MatchingConstellation: React.FC = () => {
     },
     {
       id: 4,
-      icon: <BookOpen className="w-8 h-8" />,
+      icon: <BookOpen className="w-6 h-6 md:w-8 md:h-8" />,
       title: 'העולם הדתי והרוחני',
       shortDesc: 'החיבור הרוחני שלכם',
       fullDescription:
@@ -109,7 +127,7 @@ const MatchingConstellation: React.FC = () => {
     },
     {
       id: 5,
-      icon: <Target className="w-8 h-8" />,
+      icon: <Target className="w-6 h-6 md:w-8 md:h-8" />,
       title: 'ציפיות מהשותף',
       shortDesc: 'הצרכים שלכם בזוגיות',
       fullDescription:
@@ -122,29 +140,54 @@ const MatchingConstellation: React.FC = () => {
         'מהי התכונה האחת, החשובה ביותר, שחייבת להיות בבן/בת הזוג?',
       insight: 'הבנת הצרכים ההדדיים היא המפתח לתקשורת פתוחה וזוגיות בריאה.',
     },
-  ];
-  // --- END: UPDATED TEXT DATA ---
+  ], []);
 
+  // Auto-rotation effect
   useEffect(() => {
-    if (hasInteracted) return;
+    if (hasInteracted || isDragging) return;
     const interval = setInterval(() => {
       setSelectedWorld((prev) => (prev ? (prev % worlds.length) + 1 : 1));
     }, 4000);
     return () => clearInterval(interval);
-  }, [hasInteracted, worlds.length]);
+  }, [hasInteracted, isDragging, worlds.length]);
+
+  // Responsive dimensions with better mobile centering
+  const getDimensions = () => {
+    if (isMobile) {
+      return {
+        size: 350,
+        center: 175, // מרכז מדויק של הקנבס
+        radius: 120,
+        iconSize: 50,
+        coreRadius: 20,
+      };
+    }
+    return {
+      size: 500,
+      center: 250,
+      radius: 170,
+      iconSize: 70,
+      coreRadius: 28,
+    };
+  };
+
+  const dimensions = getDimensions();
 
   const generateConstellationLines = (): ConstellationLine[] => {
     const lines: ConstellationLine[] = [];
-    const centerX = 250;
-    const centerY = 250;
-    const radius = 170;
+    const { center, radius } = dimensions;
+    
     worlds.forEach((world, index) => {
       const nextIndex = (index + 1) % worlds.length;
       const nextWorld = worlds[nextIndex];
-      const x1 = centerX + Math.cos((world.angle * Math.PI) / 180) * radius;
-      const y1 = centerY + Math.sin((world.angle * Math.PI) / 180) * radius;
-      const x2 = centerX + Math.cos((nextWorld.angle * Math.PI) / 180) * radius;
-      const y2 = centerY + Math.sin((nextWorld.angle * Math.PI) / 180) * radius;
+      const currentAngle = world.angle + rotationOffset;
+      const nextAngle = nextWorld.angle + rotationOffset;
+      
+      const x1 = center + Math.cos((currentAngle * Math.PI) / 180) * radius;
+      const y1 = center + Math.sin((currentAngle * Math.PI) / 180) * radius;
+      const x2 = center + Math.cos((nextAngle * Math.PI) / 180) * radius;
+      const y2 = center + Math.sin((nextAngle * Math.PI) / 180) * radius;
+      
       lines.push({ id: `line-${index}`, x1, y1, x2, y2, opacity: 0.4 });
     });
     return lines;
@@ -154,52 +197,155 @@ const MatchingConstellation: React.FC = () => {
     setHasInteracted(true);
     setSelectedWorld(selectedWorld === worldId ? null : worldId);
     setHoveredWorld(null);
+    
+    // גלילה חלקה לחלונית המידע עם העולם הנבחר
+    setTimeout(() => {
+      const infoPanel = document.querySelector('[data-world-info-panel]');
+      if (infoPanel) {
+        const rect = infoPanel.getBoundingClientRect();
+        const isVisible = rect.top >= 0 && rect.bottom <= window.innerHeight;
+        
+        if (!isVisible) {
+          infoPanel.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center',
+            inline: 'nearest'
+          });
+        }
+      }
+    }, 100);
   };
+
+  // Calculate angle from center point - removed unused function
+  // const calculateAngle = useCallback((x: number, y: number): number => {
+  //   const { center } = dimensions;
+  //   const rect = constellationRef.current?.getBoundingClientRect();
+  //   if (!rect) return 0;
+  //   
+  //   const centerX = rect.left + center;
+  //   const centerY = rect.top + center;
+  //   
+  //   return Math.atan2(y - centerY, x - centerX) * (180 / Math.PI);
+  // }, [dimensions]);
+
+  // Calculate angle from center point for proper circular drag
+  const calculateAngleFromCenter = useCallback((clientX: number, clientY: number): number => {
+    if (!constellationRef.current) return 0;
+    
+    const rect = constellationRef.current.getBoundingClientRect();
+    const centerX = rect.left + dimensions.center;
+    const centerY = rect.top + dimensions.center;
+    
+    return Math.atan2(clientY - centerY, clientX - centerX) * (180 / Math.PI);
+  }, [dimensions]);
+
+  // Handle drag for rotation - improved for circular motion
+  const handleDragStart = useCallback((event: MouseEvent | TouchEvent | PointerEvent) => {
+    setIsDragging(true);
+    setHasInteracted(true);
+    
+    // Get initial touch/mouse position
+    const clientX = 'touches' in event ? event.touches[0]?.clientX : (event as MouseEvent).clientX;
+    const clientY = 'touches' in event ? event.touches[0]?.clientY : (event as MouseEvent).clientY;
+    
+    if (clientX && clientY) {
+      const startAngle = calculateAngleFromCenter(clientX, clientY);
+      setDragStartAngle(startAngle);
+      setDragStartRotation(rotationOffset);
+    }
+  }, [rotationOffset, calculateAngleFromCenter]);
+
+  const handleDrag = useCallback((event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    const clientX = 'touches' in event ? event.touches[0]?.clientX : (event as MouseEvent).clientX;
+    const clientY = 'touches' in event ? event.touches[0]?.clientY : (event as MouseEvent).clientY;
+    
+    if (clientX && clientY) {
+      const currentAngle = calculateAngleFromCenter(clientX, clientY);
+      let angleDiff = currentAngle - dragStartAngle;
+      
+      // Handle angle wraparound
+      if (angleDiff > 180) angleDiff -= 360;
+      if (angleDiff < -180) angleDiff += 360;
+      
+      // Apply rotation with smooth sensitivity
+      const newRotation = dragStartRotation + angleDiff;
+      setRotationOffset(newRotation);
+    }
+  }, [dragStartAngle, dragStartRotation, calculateAngleFromCenter]);
+
+  const handleDragEnd = useCallback(() => {
+    setIsDragging(false);
+    
+    // Smooth snap to nearest world position (72 degrees apart)
+    const snapAngle = Math.round(rotationOffset / 72) * 72;
+    
+    // Use spring animation for smooth snapping
+    const snapDuration = Math.abs(snapAngle - rotationOffset) / 72 * 0.3 + 0.2;
+    
+    setRotationOffset(snapAngle);
+    
+    // Update selected world based on rotation
+    const worldIndex = Math.round(-snapAngle / 72) % worlds.length;
+    const normalizedIndex = ((worldIndex % worlds.length) + worlds.length) % worlds.length;
+    setSelectedWorld(worlds[normalizedIndex]?.id || 1);
+    
+  }, [rotationOffset, worlds]);
 
   const activeWorld = hoveredWorld || selectedWorld;
   const displayedWorld = worlds.find((w) => w.id === activeWorld) || worlds[0];
 
   return (
-    <div ref={sectionRef} className="relative w-full max-w-7xl mx-auto py-16">
+    <div ref={sectionRef} className="relative w-full max-w-7xl mx-auto py-8 md:py-16">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={isInView ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 0.8 }}
-        className="text-center mb-16"
+        className="text-center mb-8 md:mb-16 px-4"
       >
-        <div className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-full px-8 py-4 shadow-md border border-gray-200 mb-8">
-          <Heart className="w-6 h-6 text-rose-500" />
-          <span className="text-gray-700 font-medium text-lg">
+        <div className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-full px-6 md:px-8 py-3 md:py-4 shadow-md border border-gray-200 mb-6 md:mb-8">
+          <Heart className="w-5 h-5 md:w-6 md:h-6 text-rose-500" />
+          <span className="text-gray-700 font-medium text-base md:text-lg">
             הגישה האנושית שלנו
           </span>
         </div>
-        <h3 className="text-4xl md:text-5xl font-bold text-gray-800 mb-6 leading-tight">
+        <h3 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 mb-4 md:mb-6 leading-tight px-4">
           אנחנו רואים את האדם
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-violet-600">
             {' '}
             שמאחורי הפרופיל{' '}
           </span>
         </h3>
-        <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
+        <p className="text-lg md:text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed px-4">
           כדי למצוא התאמה אמיתית, אנחנו צריכים להכיר אתכם באמת. לכן פיתחנו שיטה
           ייחודית המתבוננת בחמישה עולמות מרכזיים שמרכיבים אתכם. כך אנחנו מוצאים
           חיבור שלם, לא חלקי.
         </p>
       </motion.div>
 
-      <div className="flex flex-col xl:flex-row items-center gap-16">
+      <div className="flex flex-col xl:flex-row items-center gap-8 md:gap-16">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={isInView ? { opacity: 1, scale: 1 } : {}}
           transition={{ duration: 1, delay: 0.3 }}
-          className="relative flex-1 min-w-0"
+          className="relative flex-1 min-w-0 w-full"
         >
-          {/* Constellation SVG and elements - UNCHANGED */}
-          <div className="relative w-[500px] h-[500px] mx-auto">
+          {/* Constellation Container - Responsive with perfect centering */}
+          <div 
+            ref={constellationRef}
+            className="relative mx-auto touch-none flex items-center justify-center"
+            style={{ 
+              width: dimensions.size, 
+              height: dimensions.size,
+              maxWidth: '100vw',
+              maxHeight: '70vh'
+            }}
+          >
             <div className="absolute inset-0 bg-gradient-to-br from-rose-50/80 via-amber-50/60 to-sky-50/80 rounded-full blur-3xl" />
+            
             <svg
-              viewBox="0 0 500 500"
+              viewBox={`0 0 ${dimensions.size} ${dimensions.size}`}
               className="absolute inset-0 w-full h-full"
+              style={{ touchAction: 'none' }}
             >
               {generateConstellationLines().map((line) => (
                 <motion.line
@@ -209,11 +355,23 @@ const MatchingConstellation: React.FC = () => {
                   x2={line.x2}
                   y2={line.y2}
                   stroke="url(#lineGradient)"
-                  strokeWidth="1.5"
-                  opacity={line.opacity}
-                  className="transition-opacity duration-700"
+                  strokeWidth={isMobile ? "1.5" : "2"}
+                  opacity={isDragging ? 0.6 : line.opacity}
+                  className="transition-opacity duration-300"
+                  animate={{
+                    x1: line.x1,
+                    y1: line.y1,
+                    x2: line.x2,
+                    y2: line.y2,
+                  }}
+                  transition={{ 
+                    type: "spring", 
+                    stiffness: isDragging ? 400 : 200, 
+                    damping: isDragging ? 40 : 25 
+                  }}
                 />
               ))}
+              
               <defs>
                 <linearGradient
                   id="lineGradient"
@@ -222,15 +380,30 @@ const MatchingConstellation: React.FC = () => {
                   x2="100%"
                   y2="100%"
                 >
-                  <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.3" />
-                  <stop offset="50%" stopColor="#8b5cf6" stopOpacity="0.4" />
-                  <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.3" />
+                  <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.4" />
+                  <stop offset="50%" stopColor="#8b5cf6" stopOpacity="0.5" />
+                  <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.4" />
                 </linearGradient>
                 <radialGradient id="coreGradient">
                   <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
-                  <stop offset="70%" stopColor="#fef3ff" stopOpacity="0.9" />
-                  <stop offset="100%" stopColor="#fdf4ff" stopOpacity="0.8" />
+                  <stop offset="50%" stopColor="#f8fafc" stopOpacity="0.98" />
+                  <stop offset="80%" stopColor="#f1f5f9" stopOpacity="0.95" />
+                  <stop offset="100%" stopColor="#e2e8f0" stopOpacity="0.9" />
                 </radialGradient>
+                <filter id="glow">
+                  <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                  <feMerge> 
+                    <feMergeNode in="coloredBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+                <filter id="logoGlow">
+                  <feGaussianBlur stdDeviation="1" result="logoBlur"/>
+                  <feMerge> 
+                    <feMergeNode in="logoBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
                 {worlds.map((world) => (
                   <radialGradient
                     key={`gradient-${world.id}`}
@@ -239,118 +412,255 @@ const MatchingConstellation: React.FC = () => {
                     <stop
                       offset="0%"
                       stopColor={world.gradientFrom}
-                      stopOpacity="0.9"
+                      stopOpacity="0.95"
                     />
                     <stop
                       offset="100%"
                       stopColor={world.gradientTo}
-                      stopOpacity="0.8"
+                      stopOpacity="0.85"
                     />
                   </radialGradient>
                 ))}
               </defs>
+              
+              {/* Center core with company logo */}
               <motion.circle
-                cx="250"
-                cy="250"
-                r="28"
+                cx={dimensions.center}
+                cy={dimensions.center}
+                r={dimensions.coreRadius}
                 fill="url(#coreGradient)"
-                className="drop-shadow-lg"
-                animate={{ scale: activeWorld ? 1.1 : 1 }}
-                transition={{ duration: 0.4, type: 'spring' }}
+                filter="url(#glow)"
+                className="drop-shadow-xl"
+                animate={{ 
+                  scale: activeWorld ? 1.15 : (isDragging ? 1.05 : 1),
+                  filter: isDragging ? "url(#glow) brightness(1.1)" : "url(#glow)"
+                }}
+                transition={{ duration: 0.3, type: 'spring', stiffness: 300 }}
               />
-              <foreignObject x="232" y="232" width="36" height="36">
+              <foreignObject 
+                x={dimensions.center - (isMobile ? 18 : 24)} 
+                y={dimensions.center - (isMobile ? 18 : 24)} 
+                width={isMobile ? 36 : 48} 
+                height={isMobile ? 36 : 48}
+              >
                 <div className="flex items-center justify-center w-full h-full">
-                  <Sparkles className="w-7 h-7 text-violet-600" />
+                  <motion.div
+                    className="relative w-full h-full flex items-center justify-center"
+                    animate={{ 
+                      rotate: isDragging ? 360 : 0,
+                      scale: isDragging ? 1.1 : (activeWorld ? 1.05 : 1)
+                    }}
+                    transition={{ 
+                      rotate: { duration: isDragging ? 3 : 0, repeat: isDragging ? Infinity : 0, ease: "linear" },
+                      scale: { duration: 0.3, type: "spring", stiffness: 300 }
+                    }}
+                  >
+                    <div className={`relative ${isMobile ? 'w-7 h-7' : 'w-9 h-9'}`}>
+                      <Image
+                        src={getRelativeCloudinaryPath(
+                          'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png'
+                        )}
+                        alt="NeshamaTech"
+                        fill
+                        className="object-contain transition-all duration-300"
+                        sizes={isMobile ? "28px" : "36px"}
+                      />
+                    </div>
+                    
+                    {/* Subtle glow effect around logo when active */}
+                    {(activeWorld || isDragging) && (
+                      <motion.div
+                        className="absolute inset-0 rounded-full"
+                        animate={{
+                          boxShadow: [
+                            '0 0 0 0 rgba(139, 92, 246, 0)',
+                            '0 0 0 4px rgba(139, 92, 246, 0.1)',
+                            '0 0 0 0 rgba(139, 92, 246, 0)'
+                          ]
+                        }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                          ease: "easeInOut"
+                        }}
+                      />
+                    )}
+                  </motion.div>
                 </div>
               </foreignObject>
             </svg>
+
+            {/* World Icons - Perfect centering around logo */}
             {worlds.map((world, index) => {
-              const centerX = 250;
-              const centerY = 250;
-              const radius = 170;
-              const x =
-                centerX + Math.cos((world.angle * Math.PI) / 180) * radius;
-              const y =
-                centerY + Math.sin((world.angle * Math.PI) / 180) * radius;
+              const currentAngle = world.angle + rotationOffset;
+              // הבטחת מיקום מדויק יחסית למרכז הקנבס
+              const x = dimensions.center + Math.cos((currentAngle * Math.PI) / 180) * dimensions.radius;
+              const y = dimensions.center + Math.sin((currentAngle * Math.PI) / 180) * dimensions.radius;
               const isActive = activeWorld === world.id;
+              const halfIcon = dimensions.iconSize / 2;
+              
               return (
                 <motion.div
                   key={world.id}
-                  className="absolute cursor-pointer group"
-                  style={{ left: x - 35, top: y - 35 }}
+                  className="absolute cursor-pointer group touch-manipulation select-none"
+                  style={{ 
+                    left: x - halfIcon, 
+                    top: y - halfIcon,
+                    transform: 'translate3d(0, 0, 0)', // אופטימיזציה לביצועים
+                  }}
                   initial={{ opacity: 0, scale: 0 }}
-                  animate={isInView ? { opacity: 1, scale: 1 } : {}}
-                  transition={{ duration: 0.6, delay: 0.7 + index * 0.15 }}
-                  onMouseEnter={() =>
-                    !hasInteracted && setHoveredWorld(world.id)
-                  }
-                  onMouseLeave={() => !hasInteracted && setHoveredWorld(null)}
-                  onClick={() => handleWorldInteraction(world.id)}
-                  whileHover={{ scale: 1.15 }}
+                  animate={{ 
+                    opacity: isInView ? 1 : 0, 
+                    scale: isInView ? 1 : 0,
+                    left: x - halfIcon,
+                    top: y - halfIcon,
+                  }}
+                  transition={{ 
+                    duration: 0.6, 
+                    delay: 0.7 + index * 0.15,
+                    type: "spring",
+                    stiffness: isDragging ? 400 : 250,
+                    damping: isDragging ? 35 : 25
+                  }}
+                  onMouseEnter={() => !hasInteracted && !isMobile && setHoveredWorld(world.id)}
+                  onMouseLeave={() => !hasInteracted && !isMobile && setHoveredWorld(null)}
+                  onClick={() => !isDragging && handleWorldInteraction(world.id)}
+                  whileHover={!isMobile ? { scale: 1.15 } : {}}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <div
-                    className={`w-[70px] h-[70px] rounded-full bg-gradient-to-br ${world.color} flex items-center justify-center text-white shadow-xl relative overflow-hidden transition-all duration-300 ${isActive ? 'ring-4 ring-white/50' : ''}`}
+                  <motion.div
+                    className={`rounded-full bg-gradient-to-br ${world.color} flex items-center justify-center text-white shadow-xl relative overflow-hidden transition-all duration-300 ${isActive ? 'ring-2 md:ring-4 ring-white/60' : ''} ${isDragging ? 'shadow-2xl' : ''}`}
+                    style={{ 
+                      width: dimensions.iconSize, 
+                      height: dimensions.iconSize 
+                    }}
+                    animate={{
+                      scale: isDragging ? 1.05 : 1,
+                      boxShadow: isDragging 
+                        ? '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.3)'
+                        : '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+                    }}
+                    transition={{ duration: 0.2 }}
                   >
                     <motion.div
                       className={`absolute inset-0 bg-gradient-to-br ${world.color} rounded-full blur-md`}
                       animate={{
-                        scale: isActive ? 1.8 : 1,
-                        opacity: isActive ? 0.4 : 0,
+                        scale: isActive ? 1.8 : (isDragging ? 1.3 : 1),
+                        opacity: isActive ? 0.5 : (isDragging ? 0.3 : 0),
                       }}
-                      transition={{ duration: 0.4 }}
+                      transition={{ duration: 0.3 }}
                     />
-                    <div className="relative z-10 transform transition-transform duration-300 group-hover:scale-110">
+                    <motion.div 
+                      className="relative z-10 transform transition-transform duration-300 group-hover:scale-110"
+                      animate={{
+                        rotate: isDragging ? [0, 5, -5, 0] : 0
+                      }}
+                      transition={{
+                        rotate: { duration: 0.6, repeat: isDragging ? Infinity : 0 }
+                      }}
+                    >
                       {world.icon}
-                    </div>
+                    </motion.div>
                     {isActive && (
                       <>
                         <motion.div
-                          className="absolute inset-0 border-2 border-white/60 rounded-full"
-                          animate={{ scale: [1, 2.2], opacity: [0.8, 0] }}
+                          className="absolute inset-0 border-2 border-white/70 rounded-full"
+                          animate={{ scale: [1, 2.5], opacity: [0.8, 0] }}
                           transition={{
-                            duration: 2.5,
+                            duration: 2.8,
                             repeat: Infinity,
                             ease: 'easeOut',
                           }}
                         />
                         <motion.div
-                          className="absolute inset-0 border-2 border-white/40 rounded-full"
-                          animate={{ scale: [1, 2.2], opacity: [0.6, 0] }}
+                          className="absolute inset-0 border-2 border-white/50 rounded-full"
+                          animate={{ scale: [1, 2.5], opacity: [0.6, 0] }}
                           transition={{
-                            duration: 2.5,
+                            duration: 2.8,
                             repeat: Infinity,
                             ease: 'easeOut',
-                            delay: 0.8,
+                            delay: 1,
                           }}
                         />
                       </>
                     )}
-                  </div>
+                  </motion.div>
+                  
+                  {/* Title below icon with better animations */}
                   <motion.div
-                    className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 whitespace-nowrap"
+                    className={`absolute left-1/2 transform -translate-x-1/2 whitespace-nowrap ${isMobile ? '-bottom-8 text-xs' : '-bottom-12 text-sm'}`}
                     initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 1 + index * 0.1 }}
+                    animate={{ 
+                      opacity: 1, 
+                      y: 0,
+                      scale: isActive ? 1.05 : 1
+                    }}
+                    transition={{ 
+                      delay: 1 + index * 0.1,
+                      scale: { duration: 0.2 }
+                    }}
                   >
-                    <span
-                      className={`text-sm font-medium px-3 py-1 rounded-full ${isActive ? 'bg-white text-gray-800 shadow-md' : 'text-gray-600'} transition-all duration-300`}
+                    <motion.span
+                      className={`font-medium px-2 md:px-3 py-1 rounded-full transition-all duration-300 ${
+                        isActive 
+                          ? 'bg-white text-gray-800 shadow-lg border border-gray-200' 
+                          : 'text-gray-600 hover:text-gray-800'
+                      }`}
+                      animate={{
+                        backgroundColor: isActive ? '#ffffff' : 'transparent',
+                        boxShadow: isActive 
+                          ? '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
+                          : '0 0 0 0 transparent'
+                      }}
                     >
                       {world.title}
-                    </span>
+                    </motion.span>
                   </motion.div>
                 </motion.div>
               );
             })}
+            
+            {/* Enhanced invisible drag overlay for smoother dragging */}
+            {isMobile && (
+              <motion.div
+                className="absolute inset-0 touch-manipulation cursor-grab active:cursor-grabbing rounded-full"
+                style={{ 
+                  width: dimensions.size, 
+                  height: dimensions.size,
+                  zIndex: 5,
+                  background: isDragging 
+                    ? 'radial-gradient(circle, rgba(139, 92, 246, 0.05) 0%, transparent 70%)' 
+                    : 'transparent'
+                }}
+                drag
+                onDragStart={handleDragStart}
+                onDrag={handleDrag}
+                onDragEnd={handleDragEnd}
+                dragConstraints={false}
+                dragElastic={0}
+                dragMomentum={false}
+                whileDrag={{ 
+                  cursor: 'grabbing',
+                  scale: 1.02
+                }}
+                animate={{
+                  background: isDragging 
+                    ? 'radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, transparent 70%)' 
+                    : 'transparent'
+                }}
+                transition={{ duration: 0.2 }}
+              />
+            )}
           </div>
         </motion.div>
 
-        {/* Information panel on the right - UNCHANGED */}
+        {/* Information panel with scroll target */}
         <motion.div
           initial={{ opacity: 0, x: 30 }}
           animate={isInView ? { opacity: 1, x: 0 } : {}}
           transition={{ duration: 0.8, delay: 0.6 }}
-          className="flex-1 max-w-2xl"
+          className="flex-1 max-w-2xl w-full px-4"
+          data-world-info-panel
         >
           <AnimatePresence mode="wait">
             <motion.div
@@ -359,58 +669,58 @@ const MatchingConstellation: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.4 }}
-              className="bg-white/95 backdrop-blur-xl rounded-3xl p-10 shadow-2xl border border-white/60 relative overflow-hidden"
+              className="bg-white/95 backdrop-blur-xl rounded-3xl p-6 md:p-10 shadow-2xl border border-white/60 relative overflow-hidden"
             >
               <div
                 className={`absolute inset-0 bg-gradient-to-br ${displayedWorld.color} opacity-5 rounded-3xl`}
               />
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/30 to-transparent rounded-full transform translate-x-16 -translate-y-16" />
               <div className="relative z-10">
-                <div className="flex items-start gap-6 mb-8">
+                <div className="flex items-start gap-4 md:gap-6 mb-6 md:mb-8">
                   <div
-                    className={`p-4 rounded-2xl bg-gradient-to-br ${displayedWorld.color} text-white shadow-lg flex-shrink-0`}
+                    className={`p-3 md:p-4 rounded-2xl bg-gradient-to-br ${displayedWorld.color} text-white shadow-lg flex-shrink-0`}
                   >
                     {displayedWorld.icon}
                   </div>
                   <div className="flex-1">
-                    <h4 className="text-3xl font-bold text-gray-800 mb-2">
+                    <h4 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">
                       {displayedWorld.title}
                     </h4>
-                    <p className="text-lg text-gray-600 font-medium">
+                    <p className="text-base md:text-lg text-gray-600 font-medium">
                       {displayedWorld.shortDesc}
                     </p>
                   </div>
                 </div>
-                <p className="text-gray-700 leading-relaxed text-lg mb-8">
+                <p className="text-gray-700 leading-relaxed text-base md:text-lg mb-6 md:mb-8">
                   {displayedWorld.fullDescription}
                 </p>
-                <div className="bg-gradient-to-r from-gray-50 to-white rounded-2xl p-6 mb-6 border border-gray-100">
+                <div className="bg-gradient-to-r from-gray-50 to-white rounded-2xl p-4 md:p-6 mb-4 md:mb-6 border border-gray-100">
                   <div className="flex items-start gap-3">
                     <div className="w-2 h-2 rounded-full bg-gradient-to-r from-gray-400 to-gray-500 mt-3 flex-shrink-0"></div>
                     <div>
                       <h5 className="font-semibold text-gray-800 mb-2">
                         למשל, אנו שואלים:
                       </h5>
-                      <p className="text-gray-600 italic">
-                        “{displayedWorld.personalExample}”
+                      <p className="text-gray-600 italic text-sm md:text-base">
+                        &quot{displayedWorld.personalExample}&quot
                       </p>
                     </div>
                   </div>
                 </div>
-                <div className="bg-gradient-to-r from-violet-50 to-rose-50 rounded-2xl p-6 border border-violet-100">
+                <div className="bg-gradient-to-r from-violet-50 to-rose-50 rounded-2xl p-4 md:p-6 border border-violet-100">
                   <div className="flex items-start gap-3">
                     <CheckCircle className="w-5 h-5 text-violet-600 mt-1 flex-shrink-0" />
                     <div>
                       <h5 className="font-semibold text-violet-800 mb-2">
                         התובנה שלנו:
                       </h5>
-                      <p className="text-violet-700">
+                      <p className="text-violet-700 text-sm md:text-base">
                         {displayedWorld.insight}
                       </p>
                     </div>
                   </div>
                 </div>
-                <div className="mt-8 flex items-center gap-2">
+                <div className="mt-6 md:mt-8 flex items-center gap-2">
                   <span className="text-sm text-gray-500 ml-3">
                     מימד {displayedWorld.id} מתוך {worlds.length}
                   </span>
@@ -418,7 +728,7 @@ const MatchingConstellation: React.FC = () => {
                     <button
                       key={world.id}
                       onClick={() => handleWorldInteraction(world.id)}
-                      className={`h-2 rounded-full transition-all duration-300 ${world.id === displayedWorld.id ? `bg-gradient-to-r ${displayedWorld.color} flex-1 min-w-[60px]` : 'bg-gray-200 w-6 hover:bg-gray-300'}`}
+                      className={`h-2 rounded-full transition-all duration-300 ${world.id === displayedWorld.id ? `bg-gradient-to-r ${displayedWorld.color} flex-1 min-w-[40px] md:min-w-[60px]` : 'bg-gray-200 w-4 md:w-6 hover:bg-gray-300'}`}
                     />
                   ))}
                 </div>
@@ -429,53 +739,80 @@ const MatchingConstellation: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1.5 }}
-            className="text-center text-sm text-gray-500 mt-6"
+            className="text-center text-sm text-gray-500 mt-4 md:mt-6"
           >
-            {hasInteracted
-              ? 'לחצו על העולמות או על סרגל ההתקדמות לניווט'
-              : 'רחפו מעל העולמות או המתינו לסיור אוטומטי'}
+            <motion.div
+              animate={{ 
+                opacity: isDragging ? 0.5 : 1,
+                scale: isDragging ? 0.95 : 1
+              }}
+              transition={{ duration: 0.2 }}
+            >
+              {hasInteracted
+                ? (isMobile 
+                    ? 'לחצו על העולמות או גררו במעגל לסיבוב'
+                    : 'לחצו על העולמות או על סרגל ההתקדמות לניווט')
+                : (isMobile 
+                    ? 'גררו במעגל את הקונסטלציה או המתינו לסיור אוטומטי'
+                    : 'רחפו מעל העולמות או המתינו לסיור אוטומטי')}
+            </motion.div>
+            
+            {/* Enhanced progress indicator */}
+            {isDragging && isMobile && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="mt-3 flex items-center justify-center gap-2"
+              >
+                <div className="w-2 h-2 bg-violet-400 rounded-full animate-pulse" />
+                <span className="text-xs text-violet-600 font-medium">
+                  מסובבים...
+                </span>
+                <div className="w-2 h-2 bg-violet-400 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }} />
+              </motion.div>
+            )}
           </motion.div>
         </motion.div>
       </div>
 
-      {/* --- START: UPDATED CTA AT THE END OF THE SECTION --- */}
+      {/* CTA Section */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={isInView ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 0.8, delay: 1 }}
-        className="text-center mt-20"
+        className="text-center mt-12 md:mt-20 px-4"
       >
         <div className="max-w-4xl mx-auto">
-          <h4 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6">
+          <h4 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800 mb-4 md:mb-6">
             מוכנים להתחיל את המסע?
           </h4>
-          <p className="text-lg text-gray-600 mb-10 leading-relaxed">
-            השאלון הייחודי שלנו הוא הצעד הראשון. הוא לא טכני, הוא אישי. <br />
+          <p className="text-base md:text-lg text-gray-600 mb-8 md:mb-10 leading-relaxed">
+            השאלון הייחודי שלנו הוא הצעד הראשון. הוא לא טכני, הוא אישי. <br className="hidden md:block" />
             זו ההזדמנות שלכם לספר לנו את הסיפור שלכם, כדי שאנחנו נוכל למצוא את
             הפרק הבא שלו.
           </p>
-          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+          <div className="flex flex-col sm:flex-row gap-4 md:gap-6 justify-center items-center">
             <Link href="/questionnaire">
               <Button
                 size="lg"
-                className="group bg-gradient-to-r from-rose-500 to-violet-600 hover:from-rose-600 hover:to-violet-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl px-8 py-4 text-lg font-semibold"
+                className="group bg-gradient-to-r from-rose-500 to-violet-600 hover:from-rose-600 hover:to-violet-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl px-6 md:px-8 py-3 md:py-4 text-base md:text-lg font-semibold w-full sm:w-auto"
               >
-                <span className="flex items-center gap-3">
+                <span className="flex items-center gap-3 justify-center">
                   אני רוצה להתחיל את המסע שלי
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition-transform" />
                 </span>
               </Button>
             </Link>
-            <div className="flex items-center gap-3 text-gray-600">
-              <CheckCircle className="w-5 h-5 text-green-500" />
-              <span className="font-medium">
+            <div className="flex items-center gap-3 text-gray-600 text-sm md:text-base">
+              <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-green-500 flex-shrink-0" />
+              <span className="font-medium text-center sm:text-right">
                 חוויה אישית • תובנות עבורכם • דיסקרטי לחלוטין
               </span>
             </div>
           </div>
         </div>
       </motion.div>
-      {/* --- END: UPDATED CTA --- */}
     </div>
   );
 };
@@ -488,23 +825,23 @@ const OurMethodSection: React.FC = () => {
     <motion.section
       ref={sectionRef}
       id="our-method"
-      className="relative py-20 md:py-28 px-4 bg-gradient-to-b from-white via-rose-50/30 to-white overflow-hidden"
+      className="relative py-12 md:py-20 lg:py-28 px-4 bg-gradient-to-b from-white via-rose-50/30 to-white overflow-hidden"
       initial={{ opacity: 0 }}
       animate={isInView ? { opacity: 1 } : { opacity: 0 }}
       transition={{ duration: 1 }}
     >
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-40 h-40 bg-gradient-to-br from-rose-200/30 to-pink-300/20 rounded-full blur-3xl animate-soft-float" />
+        <div className="absolute top-20 left-10 w-32 md:w-40 h-32 md:h-40 bg-gradient-to-br from-rose-200/30 to-pink-300/20 rounded-full blur-3xl animate-soft-float" />
         <div
-          className="absolute top-60 right-20 w-32 h-32 bg-gradient-to-br from-violet-200/30 to-purple-300/20 rounded-full blur-2xl animate-soft-float"
+          className="absolute top-60 right-20 w-24 md:w-32 h-24 md:h-32 bg-gradient-to-br from-violet-200/30 to-purple-300/20 rounded-full blur-2xl animate-soft-float"
           style={{ animationDelay: '2s' }}
         />
         <div
-          className="absolute bottom-40 left-1/3 w-48 h-48 bg-gradient-to-br from-sky-200/20 to-cyan-300/15 rounded-full blur-3xl animate-soft-float"
+          className="absolute bottom-40 left-1/3 w-36 md:w-48 h-36 md:h-48 bg-gradient-to-br from-sky-200/20 to-cyan-300/15 rounded-full blur-3xl animate-soft-float"
           style={{ animationDelay: '4s' }}
         />
         <div
-          className="absolute bottom-20 right-10 w-36 h-36 bg-gradient-to-br from-emerald-200/25 to-teal-300/20 rounded-full blur-2xl animate-soft-float"
+          className="absolute bottom-20 right-10 w-28 md:w-36 h-28 md:h-36 bg-gradient-to-br from-emerald-200/25 to-teal-300/20 rounded-full blur-2xl animate-soft-float"
           style={{ animationDelay: '1s' }}
         />
         <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#8b5cf6_1px,transparent_1px)] [background-size:30px_30px]"></div>
