@@ -113,7 +113,7 @@ const KeyBenefit: React.FC<{
 // --- Main Component with UPDATED TEXT ---
 const HowItWorksSection: React.FC = () => {
   const demoRef = useRef(null);
-  const isDemoInView = useInView(demoRef, { once: true, amount: 0.3 });
+  const isDemoInView = useInView(demoRef, { once: true, amount: 0.1 });
 
   return (
     <section
@@ -386,23 +386,24 @@ const HowItWorksSection: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.3 }}
+          viewport={{ once: true, amount: 0.1 }}
           transition={{ duration: 0.8 }}
           className="relative text-center"
         >
           <div className="absolute inset-0 -m-8 bg-gradient-to-br from-cyan-600/10 via-pink-600/10 to-orange-600/10 rounded-3xl backdrop-blur-sm border border-white/40" />
           <div className="relative max-w-4xl mx-auto p-12">
             <h4 className="text-3xl md:text-4xl font-bold text-gray-800 mb-6 leading-tight">
-              מוכנים לנסות דרך
+              הצעד הבא במסע שלכם
               <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-pink-600">
-                שמכבדת אתכם?
+                מתחיל בהיכרות
               </span>
             </h4>
             <p className="text-xl text-gray-600 mb-10 leading-relaxed max-w-3xl mx-auto">
-              ראיתם את ה‘איך’ ואת ה‘למה’. עכשיו תורכם לחוות את התוצאה.
+              ראיתם את הגישה שלנו. עכשיו נשמח להכיר את הסיפור שלכם.
               <br />
-              ההרשמה אינה מחייבת, אבל היא הצעד הראשון למסע שאולי ישנה את חייכם.
+              ההרשמה הראשונית מאפשרת לנו להתחיל להבין אתכם לעומק, ללא כל
+              התחייבות.
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
               <Link href="/auth/register">
@@ -410,9 +411,8 @@ const HowItWorksSection: React.FC = () => {
                   size="lg"
                   className="bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden px-10 py-6 text-lg font-bold"
                 >
-                  <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -translate-x-full group-hover:animate-shimmer" />
                   <span className="relative z-10 flex items-center justify-center">
-                    אני רוצה להתחיל את המסע!
+                    אני רוצה להתחיל
                     <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                   </span>
                 </Button>
@@ -420,7 +420,7 @@ const HowItWorksSection: React.FC = () => {
               <div className="flex items-center gap-3 text-gray-600">
                 <CheckCircle className="w-5 h-5 text-green-500" />
                 <span className="font-medium">
-                  הרשמה חינם • ללא התחייבות • תמיכה מיידית
+                  הרשמה ראשונית ללא עלות • ללא התחייבות
                 </span>
               </div>
             </div>

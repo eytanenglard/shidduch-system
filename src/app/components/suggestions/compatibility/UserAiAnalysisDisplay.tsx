@@ -314,8 +314,8 @@ const UserAiAnalysisDisplay: React.FC<UserAiAnalysisDisplayProps> = ({
             <span className="font-semibold text-cyan-800">הערה חשובה</span>
           </div>
           <p className="text-sm text-cyan-700 leading-relaxed max-w-2xl mx-auto">
-            הניתוח מבוסס על נתונים זמינים ומהווה נקודת מוצא לחשיבה. כל קשר אנושי
-            הוא ייחודי ודורש הכרות אישית עמוקה יותר.
+            זכרו, ניתוח זה הוא כלי עזר והמלצה בלבד. הוא נועד להאיר נקודות למחשבה
+            ולעורר שיחה. הכימיה האמיתית והחיבור העמוק נוצרים במפגש האנושי.
           </p>
         </CardContent>
       </Card>

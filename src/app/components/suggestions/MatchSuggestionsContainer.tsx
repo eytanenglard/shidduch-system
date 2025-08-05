@@ -208,7 +208,7 @@ const WelcomeStats: React.FC<{
           ההצעות שלך
         </h1>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          הזדמנויות מיוחדות להכיר את האדם המושלם עבורך
+          כל הצעה היא הזדמנות שנבחרה בקפידה עבורך על ידי הצוות שלנו.
         </p>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -690,8 +690,8 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center text-gray-600 leading-relaxed">
               {actionType === 'approve'
-                ? 'האם אתה בטוח שברצונך לאשר את הצעת השידוך? לאחר האישור, השדכן יקבל הודעה ויתקדם עם התהליך.'
-                : 'האם אתה בטוח שברצונך לדחות את הצעת השידוך? המשוב שלך עוזר לנו להציע התאמות טובות יותר בעתיד.'}
+                ? 'אישור הצעה הוא צעד מרגש. האם אתה בטוח שברצונך להתקדם? לאחר האישור, השדכן יקבל הודעה וימשיך בתהליך עבורכם.'
+                : 'כל תשובה מקדמת אותך. האם אתה בטוח שברצונך לדחות הצעה זו? המשוב שלך חשוב מאוד ויעזור לנו לדייק את החיפוש עבורך.'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-3">

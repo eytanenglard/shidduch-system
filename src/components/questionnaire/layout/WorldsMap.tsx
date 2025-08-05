@@ -1,7 +1,7 @@
 // src/components/questionnaire/layout/WorldsMap.tsx
 
 import React from 'react';
-import Link from 'next/link'; // *** הוספה חדשה ***
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,13 +21,13 @@ import {
   Edit3,
   Award,
   Brain,
-  BookUser, // *** הוספה חדשה ***
+  BookUser,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSession } from 'next-auth/react';
 
 // ============================================================================
-// 1. CONFIGURATION OBJECT (ENHANCED WITH MARKETING & MOTIVATIONAL CONTENT)
+// 1. CONFIGURATION OBJECT (REVISED WITH NEW COPYWRITING STRATEGY)
 // ============================================================================
 
 const worldsConfig = {
@@ -35,69 +35,69 @@ const worldsConfig = {
     icon: User,
     label: 'אישיות',
     description:
-      'מי אני באמת? גלה את הכוחות הייחודיים שלך, את סגנון התקשורת שלך ומה מניע אותך בחיים.',
+      'כאן תצייר/י תמונה אותנטית של אישיותך, כדי שנוכל להבין לעומק מי את/ה - מעבר לפרטים היבשים.',
     order: 1,
     themeColor: 'sky',
-    why: 'הבנה עמוקה של מי שאת/ה היא הבסיס לכל קשר בריא. כאן תציג/י את עצמך בצורה אותנטית, כדי שנמצא מישהו שיתאהב בך באמת.',
-    discover: [
-      'הכוחות המניעים אותך בחיים',
-      'סגנון התקשורת שלך',
-      'איך את/ה מתמודד/ת עם אתגרים',
+    why: 'תשובותיך כאן מאפשרות לשדכנים ול-AI שלנו להכיר את האדם שמאחורי הפרופיל, ולהציג אותך בצורה המדויקת והמחמיאה ביותר לצד השני.',
+    focusPoints: [
+      'תכונות האופי המרכזיות שלך',
+      'סגנון התקשורת והחברתיות',
+      'דרכי התמודדות וקבלת החלטות',
     ],
   },
   VALUES: {
     icon: Heart,
     label: 'ערכים ואמונות',
     description:
-      'מה באמת מניע אותך? זקק את עקרונות הליבה שלך ובנה יסודות איתנים לבית המשותף.',
+      'מהם עמודי התווך של חייך? כאן נגדיר את הערכים והאמונות שמנחים אותך, ומהווים בסיס לבית משותף.',
     order: 2,
     themeColor: 'rose',
-    why: 'ערכים משותפים הם עמוד השדרה של קשר יציב ומאושר. כאן נבין מהם סדרי העדיפויות שלך ואיזו סביבה מתאימה לך.',
-    discover: [
+    why: 'זהו החלק החשוב ביותר לסינון מדויק. התאמה ערכית היא המפתח לקשר יציב וארוך טווח, ואנו מתייחסים לכך בכובד הראש הראוי.',
+    focusPoints: [
       'סדרי העדיפויות שלך בחיים',
       'גישתך לכסף, נתינה וצמיחה',
-      'איזו סביבה חברתית מתאימה לך',
+      'השקפת עולמך והחזון למשפחה',
     ],
   },
   RELATIONSHIP: {
     icon: Users,
     label: 'זוגיות',
     description:
-      'איך נראית השותפות האידיאלית שלך? עצב את החזון שלך לקשר המבוסס על הבנה, כבוד וחברות.',
+      'מהי זוגיות עבורך? כאן תפרט/י את ציפיותיך מהקשר ואת החזון שלך לשותפות ארוכת טווח.',
     order: 3,
     themeColor: 'purple',
-    why: "זוגיות טובה היא שותפות. כאן נבין את הציפיות שלך, את 'שפות האהבה' שלך ואיך את/ה רואה את חיי היומיום המשותפים.",
-    discover: [
-      'תמצית הזוגיות הבריאה בעיניך',
-      'סגנון פתרון הקונפליקטים שלך',
-      "האיזון הנכון בין 'ביחד' ל'לחוד'",
+    why: 'כדי למצוא שותפ/ה לחיים, עלינו להבין איך נראית השותפות האידיאלית בעיניך. המידע כאן מונע אי הבנות וממקד את החיפוש באנשים עם ציפיות דומות.',
+    focusPoints: [
+      'הגדרת "שפות האהבה" שלך',
+      'סגנון תקשורת ופתרון קונפליקטים',
+      'האיזון הרצוי בין "ביחד" ל"לחוד"',
     ],
   },
   PARTNER: {
     icon: UserCheck,
     label: 'הפרטנר האידיאלי',
     description:
-      'במי תרצה/י לבחור? הגדר את התכונות והערכים החשובים לך ביותר בבן/בת הזוג.',
+      'מי האדם שאת/ה מחפש/ת? בעולם זה נמקד את החיפוש ונבין מהן התכונות החיוניות לך בבן/בת הזוג.',
     order: 4,
     themeColor: 'teal',
-    why: 'הגדרת בן/בת הזוג היא יותר מרשימת תכונות; זו הבנה של מה באמת נחוץ לך כדי לפרוח. כאן נמקד את החיפוש.',
-    discover: [
-      'אילו תכונות אופי חיוניות לך',
-      'העדפותיך לגבי סגנון חיים ורקע',
-      "מהם ה'קווים האדומים' שלך",
+    why: 'הגדרה מדויקת של מה שאת/ה מחפש/ת מאפשרת לנו לבצע חיפוש יעיל וחכם, ולחסוך לך הצעות שאינן רלוונטיות.',
+    focusPoints: [
+      'תכונות האופי החשובות לך ביותר',
+      'העדפות לגבי רקע וסגנון חיים',
+      'הגדרת ה"קווים האדומים" שלך',
     ],
   },
   RELIGION: {
     icon: Scroll,
     label: 'דת ומסורת',
     description:
-      'מה מקום האמונה וההלכה בחייך? נבין את החיבור האישי שלך ואת החזון לבית יהודי.',
+      'מהו החיבור שלך ליהדות? כאן תפרט/י את זהותך הדתית, השקפתך והאופן בו המסורת באה לידי ביטוי בחייך.',
     order: 5,
     themeColor: 'amber',
-    why: 'העולם הרוחני הוא נדבך יסודי בבניית בית נאמן בישראל. זהו בסיס הכרחי להרמוניה זוגית וחינוך ילדים.',
-    discover: [
-      'ההגדרה האישית שלך על הרצף הדתי',
-      'כיצד ההלכה באה לידי ביטוי בחייך',
+    why: 'התאמה רוחנית ודתית היא קריטית במגזר. תשובות מדויקות כאן הן המפתח לבניית בית נאמן בישראל על בסיס משותף ויציב.',
+    focusPoints: [
+      'ההגדרה המדויקת שלך על הרצף הדתי',
+      'הביטוי המעשי של ההלכה בחייך',
       'החזון שלך לחינוך דתי במשפחה',
     ],
   },
@@ -158,20 +158,20 @@ const ProgressHeader: React.FC<ProgressHeaderProps> = ({
   onGoToRecommended,
 }) => (
   <motion.div
-    className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 space-y-4"
+    className="bg-white/95 backdrop-blur-xl p-6 rounded-2xl shadow-lg border border-white/60 space-y-4"
     initial={{ opacity: 0, y: -20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.5, ease: 'easeOut' }}
   >
     <div>
-      <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-100">
+      <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
         {userName
           ? `שלום, ${userName}! ברוך הבא למסע שלך`
           : 'הנתיב שלך לזוגיות משמעותית'}
       </h1>
-      <p className="text-md text-slate-500 dark:text-slate-400 mt-1">
+      <p className="text-md text-gray-600 mt-1">
         השלמת{' '}
-        <span className="font-semibold text-indigo-600 dark:text-indigo-400">
+        <span className="font-semibold text-teal-600">
           {completedCount}
         </span>{' '}
         מתוך <span className="font-semibold">{totalCount}</span> עולמות.
@@ -181,9 +181,9 @@ const ProgressHeader: React.FC<ProgressHeaderProps> = ({
       <Progress
         value={completionPercent}
         className="h-2.5 rounded-full"
-        indicatorClassName="bg-gradient-to-r from-sky-400 to-indigo-500"
+        indicatorClassName="bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500"
       />
-      <span className="font-bold text-indigo-600 dark:text-indigo-400 text-lg">
+      <span className="font-bold text-teal-600 text-lg">
         {completionPercent}%
       </span>
     </div>
@@ -191,7 +191,7 @@ const ProgressHeader: React.FC<ProgressHeaderProps> = ({
       <Button
         size="lg"
         onClick={onGoToRecommended}
-        className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 ease-in-out transform hover:-translate-y-0.5 animate-pulse-slow"
+        className="w-full sm:w-auto bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 ease-in-out transform hover:-translate-y-0.5 animate-pulse-slow"
       >
         <Sparkles className="h-5 w-5 mr-2 fill-current" />
         המשך לעולם המומלץ: {worldsConfig[nextRecommendedWorld].label}
@@ -214,7 +214,7 @@ const WorldCard: React.FC<WorldCardProps> = ({ worldId, status, onSelect }) => {
     recommended: {
       Icon: Star,
       text: 'הצעד הבא',
-      badge: 'bg-indigo-100 text-indigo-800 border-indigo-300',
+      badge: 'bg-gradient-to-r from-teal-100 to-orange-100 text-teal-800 border-teal-300',
       action: 'התחל עולם זה',
       ActionIcon: Sparkles,
     },
@@ -228,14 +228,14 @@ const WorldCard: React.FC<WorldCardProps> = ({ worldId, status, onSelect }) => {
     available: {
       Icon: ArrowRight,
       text: 'זמין',
-      badge: 'bg-slate-100 text-slate-800 border-slate-300',
+      badge: 'bg-gray-100 text-gray-800 border-gray-300',
       action: 'התחל עולם זה',
       ActionIcon: ArrowRight,
     },
     locked: {
       Icon: Lock,
       text: 'נעול',
-      badge: 'bg-slate-200 text-slate-600 border-slate-300',
+      badge: 'bg-gray-200 text-gray-600 border-gray-300',
       action: 'נעול',
       ActionIcon: Lock,
     },
@@ -243,8 +243,8 @@ const WorldCard: React.FC<WorldCardProps> = ({ worldId, status, onSelect }) => {
 
   const themeClasses = {
     ring: `ring-${config.themeColor}-500`,
-    iconBg: `bg-${config.themeColor}-100 dark:bg-${config.themeColor}-800/50`,
-    iconColor: `text-${config.themeColor}-600 dark:text-${config.themeColor}-400`,
+    iconBg: `bg-${config.themeColor}-100`,
+    iconColor: `text-${config.themeColor}-600`,
     actionButton: `bg-${config.themeColor}-600 hover:bg-${config.themeColor}-700 text-white`,
   };
 
@@ -253,12 +253,12 @@ const WorldCard: React.FC<WorldCardProps> = ({ worldId, status, onSelect }) => {
   return (
     <Card
       className={cn(
-        'flex flex-col h-full transition-all duration-300 ease-in-out overflow-hidden shadow-lg hover:shadow-xl dark:bg-slate-800 border-2',
+        'flex flex-col h-full transition-all duration-300 ease-in-out overflow-hidden shadow-lg hover:shadow-xl bg-white/90 backdrop-blur-sm border-2',
         status === 'recommended' &&
-          `border-${config.themeColor}-300 dark:border-${config.themeColor}-600 scale-105 shadow-2xl`,
+          'border-gradient-to-r from-teal-300 to-orange-300 scale-105 shadow-2xl ring-2 ring-teal-200',
         isLocked
-          ? 'opacity-60 bg-slate-50 dark:bg-slate-800/60 cursor-not-allowed border-slate-200 dark:border-slate-700'
-          : 'border-transparent hover:-translate-y-1'
+          ? 'opacity-60 bg-gray-50 cursor-not-allowed border-gray-200'
+          : 'border-white/60 hover:-translate-y-1'
       )}
     >
       <div className="p-6 flex-grow space-y-4">
@@ -277,25 +277,25 @@ const WorldCard: React.FC<WorldCardProps> = ({ worldId, status, onSelect }) => {
           </Badge>
         </div>
         <div>
-          <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">
+          <h3 className="text-xl font-bold text-gray-800">
             {config.label}
           </h3>
-          <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mt-1">
+          <p className="text-sm text-gray-600 leading-relaxed mt-1">
             {config.description}
           </p>
         </div>
 
         {status === 'recommended' && (
           <div className="pt-2">
-            <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2 flex items-center">
-              <Brain className="w-4 h-4 mr-2 text-indigo-500" />
-              מה תגלה/י על עצמך?
+            <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+              <Brain className="w-4 h-4 mr-2 text-teal-500" />
+              במה נתמקד?
             </h4>
             <ul className="space-y-1.5">
-              {config.discover.map((item, index) => (
+              {config.focusPoints.map((item, index) => (
                 <li
                   key={index}
-                  className="flex items-start text-xs text-slate-600 dark:text-slate-400"
+                  className="flex items-start text-xs text-gray-600"
                 >
                   <CheckCircle2 className="w-3 h-3 mr-2 mt-0.5 text-green-500 flex-shrink-0" />
                   <span>{item}</span>
@@ -305,7 +305,7 @@ const WorldCard: React.FC<WorldCardProps> = ({ worldId, status, onSelect }) => {
           </div>
         )}
       </div>
-      <div className="p-4 bg-slate-50 dark:bg-slate-800/50 mt-auto">
+      <div className="p-4 bg-gray-50/80 mt-auto">
         <Button
           className={cn('w-full font-medium', themeClasses.actionButton)}
           onClick={onSelect}
@@ -386,11 +386,19 @@ export default function WorldsMap({
   return (
     <div
       className={cn(
-        'p-4 sm:p-6 bg-slate-50 dark:bg-slate-900 min-h-screen',
+        'p-4 sm:p-6 bg-gradient-to-b from-white via-teal-50/20 to-white min-h-screen relative overflow-hidden',
         className
       )}
     >
-      <div className="max-w-7xl mx-auto space-y-8">
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-10 left-10 w-32 h-32 bg-gradient-to-br from-teal-200/30 to-orange-200/20 rounded-full blur-3xl animate-float-slow" />
+        <div className="absolute top-40 right-20 w-24 h-24 bg-gradient-to-br from-amber-200/30 to-orange-200/20 rounded-full blur-2xl animate-float-slow" style={{ animationDelay: '2s' }} />
+        <div className="absolute bottom-32 left-1/4 w-40 h-40 bg-gradient-to-br from-teal-200/25 to-amber-200/20 rounded-full blur-3xl animate-float-slow" style={{ animationDelay: '4s' }} />
+        <div className="absolute bottom-10 right-10 w-28 h-28 bg-gradient-to-br from-orange-200/30 to-amber-200/25 rounded-full blur-2xl animate-float-slow" style={{ animationDelay: '1s' }} />
+      </div>
+
+      <div className="max-w-7xl mx-auto space-y-8 relative">
         <ProgressHeader
           userName={session?.user?.firstName}
           completionPercent={completionPercent}
@@ -402,24 +410,23 @@ export default function WorldsMap({
           }
         />
 
-        {/* --- START: הוספת קישור לסקירת כל התשובות --- */}
         {completedWorlds.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: 'easeOut', delay: 0.2 }}
           >
-            <Card className="bg-white/80 backdrop-blur-md shadow-md border border-slate-200">
+            <Card className="bg-white/90 backdrop-blur-md shadow-md border border-white/60">
               <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                  <div className="p-3 bg-blue-100 rounded-lg">
-                    <BookUser className="w-6 h-6 text-blue-600" />
+                  <div className="p-3 bg-teal-100 rounded-lg">
+                    <BookUser className="w-6 h-6 text-teal-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-slate-800">
+                    <h3 className="font-semibold text-gray-800">
                       רוצה לסקור את התשובות שלך?
                     </h3>
-                    <p className="text-sm text-slate-500">
+                    <p className="text-sm text-gray-600">
                       צפה/י בכל התשובות שמילאת עד כה במקום אחד.
                     </p>
                   </div>
@@ -427,7 +434,7 @@ export default function WorldsMap({
                 <Link href="/profile?tab=questionnaire">
                   <Button
                     variant="outline"
-                    className="w-full sm:w-auto bg-white"
+                    className="w-full sm:w-auto bg-white/80 border-teal-200 text-teal-600 hover:bg-teal-50 hover:border-teal-300"
                   >
                     <ArrowRight className="w-4 h-4 ml-2" />
                     לסקירת התשובות
@@ -437,7 +444,6 @@ export default function WorldsMap({
             </Card>
           </motion.div>
         )}
-        {/* --- END: הוספת קישור לסקירת כל התשובות --- */}
 
         <motion.div
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
@@ -455,7 +461,7 @@ export default function WorldsMap({
             initial="hidden"
             animate="visible"
           >
-            <Card className="bg-gradient-to-r from-green-500 to-emerald-600 text-white text-center p-8 rounded-2xl shadow-2xl">
+            <Card className="bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 text-white text-center p-8 rounded-2xl shadow-2xl">
               <Award className="w-16 h-16 mx-auto mb-4" />
               <h2 className="text-3xl font-bold">
                 כל הכבוד, {session?.user?.firstName}!
@@ -480,6 +486,14 @@ export default function WorldsMap({
         }
         .animate-pulse-slow {
           animation: pulse-slow 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes float-slow {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          25% { transform: translateY(-3px) rotate(0.5deg); }
+          75% { transform: translateY(3px) rotate(-0.5deg); }
+        }
+        .animate-float-slow {
+          animation: float-slow 6s ease-in-out infinite;
         }
       `}</style>
     </div>

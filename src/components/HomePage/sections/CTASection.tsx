@@ -163,14 +163,7 @@ const CTASection: React.FC = () => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-300 transition-all duration-300 rounded-xl"
-                  >
-                    {/* --- UPDATED BUTTON TEXT --- */}
-                    ללמוד עוד על הגישה שלנו
-                  </Button>
+         
                 </motion.div>
               </Link>
             </motion.div>

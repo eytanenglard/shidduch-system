@@ -113,7 +113,6 @@ const UserDropdown = ({
                 <User className="ml-2 h-4 w-4" />
                 פרופיל אישי
               </Link>
-              {/* --- START: הוספת קישור לשאלון בדרופדאון --- */}
               <Link
                 href="/questionnaire"
                 className="flex items-center w-full text-right px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-cyan-50 hover:text-cyan-700 transition-colors"
@@ -122,7 +121,6 @@ const UserDropdown = ({
                 <Lightbulb className="ml-2 h-4 w-4" />
                 שאלון התאמה
               </Link>
-              {/* --- END: הוספת קישור לשאלון בדרופדאון --- */}
               <Link
                 href="/settings"
                 className="flex items-center w-full text-right px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-cyan-50 hover:text-cyan-700 transition-colors"
@@ -151,7 +149,6 @@ const UserDropdown = ({
   );
 };
 
-// רכיב הלוגו
 // רכיב הלוגו - גרסה 2.0: "הלהבה הנושמת"
 const Logo = () => {
   return (
@@ -171,35 +168,26 @@ const Logo = () => {
           priority
         />
       </div>
-
-      {/* ====================== הטקסט המעוצב והמשודרג ====================== */}
       <span
         className="
         text-xl 
         font-bold 
-        
-        // יצירת הגראדינט המדויק
         bg-gradient-to-r 
-        from-teal-600         // צבע טיל עמוק יותר
-        via-orange-500        // נגיעת כתום במעבר
-        to-amber-400          // סיומת עם זוהר של ענבר
-        
-        // הקסם שיוצר את האפקט
+        from-teal-600
+        via-orange-500
+        to-amber-400
         text-transparent      
         bg-clip-text
-        
-        // אנימציה עדינה של הגראדינט במעבר עכבר
-        bg-size-200           // מגדילים את הרקע פי 2
-        bg-pos-0              // מתחילים אותו מהקצה
-        group-hover:bg-pos-100// במעבר עכבר, מזיזים את הרקע לקצה השני
+        bg-size-200
+        bg-pos-0
+        group-hover:bg-pos-100
         transition-all 
-        duration-700          // תנועה איטית ואלגנטית
+        duration-700
         ease-in-out
       "
       >
         NeshamaTech
       </span>
-      {/* ==================================================================== */}
     </Link>
   );
 };
@@ -295,13 +283,11 @@ const Navbar = () => {
                         pathname={pathname}
                       />
                     )}
-                    {/* --- START: הוספת קישור לשאלון למשתמש מחובר --- */}
                     <NavItem
                       href="/questionnaire"
                       text="שאלון התאמה"
                       pathname={pathname}
                     />
-                    {/* --- END: הוספת קישור לשאלון למשתמש מחובר --- */}
                     <NavItem
                       href="/messages"
                       id="onboarding-target-messages-link"
@@ -315,12 +301,11 @@ const Navbar = () => {
                     />
                   </>
                 ) : (
-                  // 2. הוספת קישור לשאלון גם למשתמש לא מחובר
-                  <NavItem
-                    href="/questionnaire"
-                    text="שאלון התאמה"
-                    pathname={pathname}
-                  />
+                  // ======================= START: התיקון בוצע כאן =======================
+                  // נמחק: הקישור הטקסטואלי לשאלון למשתמש לא מחובר, כדי למנוע כפילות עם הכפתור "לשאלון החכם".
+                  // ה-NavItem שהיה כאן הוסר.
+                  // ======================== END: התיקון בוצע כאן ========================
+                  <></> // Placeholder to keep the structure valid
                 )}
               </div>
             </div>
@@ -342,8 +327,6 @@ const Navbar = () => {
                   id="onboarding-target-availability-status"
                   className="hidden md:block"
                 >
-                  {' '}
-                  {/* ID הועבר ל-wrapper */}
                   <AvailabilityStatus />
                 </div>
               )}
@@ -358,7 +341,6 @@ const Navbar = () => {
                 />
               ) : (
                 <div className="hidden md:flex items-center gap-2">
-                  {/* --- START: 3. הוספת כפתור "לשאלון החכם" למשתמשים לא רשומים --- */}
                   <Link href="/questionnaire">
                     <Button
                       variant="outline"
@@ -368,7 +350,6 @@ const Navbar = () => {
                       לשאלון החכם
                     </Button>
                   </Link>
-                  {/* --- END: 3. הוספת כפתור "לשאלון החכם" --- */}
                   <Link href="/auth/signin">
                     <Button
                       variant="ghost"
@@ -468,8 +449,6 @@ const Navbar = () => {
                   id="onboarding-target-availability-status"
                   className="mt-4 pt-4 border-t border-gray-200"
                 >
-                  {' '}
-                  {/* ID הועבר גם למובייל */}
                   <AvailabilityStatus />
                 </div>
               </div>
@@ -506,7 +485,6 @@ const Navbar = () => {
                     pathname={pathname}
                   />
                 )}
-                {/* --- START: הוספת קישור לשאלון למובייל (מחובר) --- */}
                 <MobileNavItem
                   href="/questionnaire"
                   text="שאלון התאמה"
@@ -514,7 +492,6 @@ const Navbar = () => {
                   onClick={toggleMobileMenu}
                   pathname={pathname}
                 />
-                {/* --- END: הוספת קישור לשאלון למובייל (מחובר) --- */}
                 <MobileNavItem
                   id="onboarding-target-messages-link"
                   href="/messages"
@@ -551,7 +528,6 @@ const Navbar = () => {
               </>
             ) : (
               <>
-                {/* --- START: הוספת קישור לשאלון למובייל (לא מחובר) --- */}
                 <MobileNavItem
                   href="/questionnaire"
                   text="שאלון התאמה"
@@ -559,7 +535,6 @@ const Navbar = () => {
                   onClick={toggleMobileMenu}
                   pathname={pathname}
                 />
-                {/* --- END: הוספת קישור לשאלון למובייל (לא מחובר) --- */}
                 <MobileNavItem
                   href="/auth/signin"
                   text="התחברות"

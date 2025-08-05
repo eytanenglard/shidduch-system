@@ -146,46 +146,70 @@ interface PrincipleCardProps {
   icon: React.ReactNode;
   title: string;
   description: string;
-  delay: number;
-  gradientFrom: string;
-  gradientTo: string;
+  index: number;
 }
 
 const PrincipleCard: React.FC<PrincipleCardProps> = ({
   icon,
   title,
   description,
-  delay,
-  gradientFrom,
-  gradientTo,
+  index,
 }) => {
+  const getColors = (idx: number) => {
+    const colors = [
+      {
+        iconBg: 'from-cyan-400 to-blue-500',
+        accent: 'border-cyan-200 hover:border-cyan-300',
+      },
+      {
+        iconBg: 'from-purple-400 to-indigo-500',
+        accent: 'border-purple-200 hover:border-purple-300',
+      },
+      {
+        iconBg: 'from-pink-400 to-rose-500',
+        accent: 'border-pink-200 hover:border-pink-300',
+      }
+    ];
+    return colors[idx];
+  };
+
+  const colors = getColors(index);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay }}
-      whileHover={{
-        y: -5,
-        scale: 1.02,
-        boxShadow:
-          '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
-      }}
-      className="group relative flex flex-col items-center text-center p-6 bg-white/60 backdrop-blur-md rounded-2xl shadow-lg transition-all duration-300 border border-white/80 w-full"
+      transition={{ duration: 0.5, delay: 0.7 + (index * 0.1) }}
+      whileHover={{ y: -2 }}
+      className={`
+        group flex flex-col items-center text-center gap-2 sm:gap-3 p-3 sm:p-5 
+        bg-white rounded-xl border-2 ${colors.accent}
+        shadow-sm hover:shadow-md
+        transition-all duration-300 h-full
+      `}
     >
-      <div
-        className={`absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl bg-gradient-to-r ${gradientFrom} ${gradientTo} transition-all duration-300`}
-      />
-      <div
-        className={`mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br ${gradientFrom} ${gradientTo} text-white shadow-md`}
-      >
-        {React.cloneElement(icon as React.ReactElement, {
-          className: 'w-7 h-7',
-        })}
+      {/* אייקון */}
+      <div className="flex-shrink-0">
+        <div className={`
+          w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br ${colors.iconBg}
+          flex items-center justify-center shadow-sm
+          group-hover:scale-105 transition-transform duration-300
+        `}>
+          {React.cloneElement(icon as React.ReactElement, { 
+            className: 'w-5 h-5 sm:w-6 sm:h-6 text-white',
+          })}
+        </div>
       </div>
-      <h4 className="mb-2 text-base font-bold text-gray-800 tracking-tight sm:text-lg">
-        {title}
-      </h4>
-      <p className="text-sm text-gray-600 leading-relaxed">{description}</p>
+
+      {/* תוכן */}
+      <div className="flex-1">
+        <h4 className="font-bold text-gray-800 text-xs sm:text-base mb-1 sm:mb-2 leading-tight">
+          {title}
+        </h4>
+        <p className="text-gray-600 text-xs leading-relaxed">
+          {description}
+        </p>
+      </div>
     </motion.div>
   );
 };
@@ -437,41 +461,40 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.6 }}
-          className="mt-20 sm:mt-24 w-full max-w-5xl"
+          className="mt-12 sm:mt-16 w-full max-w-6xl"
         >
-          <div className="text-center mb-10">
-            <h3 className="text-2xl font-bold text-gray-700 sm:text-3xl">
+          {/* Header */}
+          <div className="text-center mb-6 sm:mb-8">
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">
               הגישה שלנו
             </h3>
-            <p className="mt-2 text-gray-500">
-              שלושה עקרונות יסוד שמבטיחים חוויה אחרת, עמוקה ואמיתית.
+            <p className="text-gray-600 text-sm sm:text-base max-w-md mx-auto">
+              שלושה עקרונות יסוד שמבטיחים חוויה עמוקה ואמיתית
             </p>
-            <div className="mt-4 w-20 h-1 bg-gradient-to-r from-cyan-400 to-pink-400 rounded-full mx-auto"></div>
+            
+            {/* Decorative line */}
+            <div className="mt-3 w-12 h-0.5 bg-gradient-to-r from-cyan-400 to-pink-400 rounded-full mx-auto" />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+
+          {/* Cards in same row - also on mobile */}
+          <div className="grid grid-cols-3 gap-2 sm:gap-4">
             <PrincipleCard
               icon={<BookOpen />}
-              title="פרופיל עם סיפור, לא רק תמונה"
-              description="אנו בונים נרטיב עשיר שמעבר לתמונה, כדי שתוכלו להכיר את האדם האמיתי."
-              delay={0.7}
-              gradientFrom="from-cyan-400"
-              gradientTo="to-blue-500"
+              title="פרופיל עם סיפור"
+              description="נרטיב עשיר שמעבר לתמונה"
+              index={0}
             />
             <PrincipleCard
               icon={<Shield />}
-              title="דיסקרטיות מוחלטת בכל שלב"
-              description="הפרטיות שלכם היא ערך עליון. כל המידע מאובטח ונחשף רק באישורכם המלא."
-              delay={0.8}
-              gradientFrom="from-purple-400"
-              gradientTo="to-indigo-500"
+              title="דיסקרטיות מוחלטת"
+              description="הפרטיות שלכם ערך עליון"
+              index={1}
             />
             <PrincipleCard
               icon={<User />}
-              title="ליווי של שדכן שמבין אותך"
-              description="לא עוד אלגוריתם קר. שדכן אישי מלווה אתכם, מקשיב ומכוון להצלחה."
-              delay={0.9}
-              gradientFrom="from-pink-400"
-              gradientTo="to-rose-500"
+              title="ליווי אישי"
+              description="שדכן מלווה ומכוון להצלחה"
+              index={2}
             />
           </div>
         </motion.div>

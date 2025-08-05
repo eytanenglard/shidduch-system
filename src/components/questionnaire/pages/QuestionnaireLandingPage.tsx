@@ -13,14 +13,15 @@ import {
   Shield,
   CheckCircle,
   Lock,
-  ArrowLeft, // Changed from ArrowRight for RTL context
+  ArrowLeft,
   Loader2,
   Sparkles,
-  UserCheck, // More specific icon for Partner world
+  UserCheck,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSession } from 'next-auth/react';
-import { useIsMobile } from '../hooks/useMediaQuery'; // <<< שינוי: ייבוא הוק לבדיקת מובייל
+import { useIsMobile } from '../hooks/useMediaQuery';
+import { motion } from 'framer-motion';
 
 // --- Props Interface ---
 interface QuestionnaireLandingPageProps {
@@ -29,87 +30,196 @@ interface QuestionnaireLandingPageProps {
   isLoading?: boolean;
 }
 
-// --- Data Configuration (Easy to update content) ---
-interface WorldInfo {
-  id: string;
-  title: string;
-  icon: React.ReactElement;
-  colorGradient: string;
-  questions: number;
-  description: string;
-}
+// --- Centralized Content Configuration for easy updates ---
+const contentConfig = {
+  hero: {
+    title: 'הנתיב שלך לזוגיות משמעותית',
+    subtitle:
+      'השקעה של דקות ספורות בשאלון המעמיק שלנו היא הצעד החשוב ביותר לבניית הפרופיל המדויק שלך. פרופיל שיאפשר לנו, צוות השדכנים, למצוא עבורך התאמה אמיתית, מבוססת ועמוקה.',
+  },
+  worldsSection: {
+    title: 'חמישה עולמות, פרופיל אחד מדויק',
+    subtitle:
+      'השאלון מחולק לחמישה עולמות תוכן. כל עולם מתמקד בהיבט אחר של אישיותך וציפיותיך, ויחד הם יוצרים תמונה מלאה ועשירה שתשרת אותנו בתהליך ההתאמה.',
+  },
+  worlds: [
+    {
+      id: 'PERSONALITY',
+      title: 'עולם האישיות',
+      icon: <User className="h-7 w-7" />,
+      colorGradient: 'from-sky-400 to-blue-500',
+      questions: 20,
+      description:
+        'כאן תצייר/י תמונה אותנטית של אישיותך, כדי שנוכל להבין לעומק מי את/ה.',
+    },
+    {
+      id: 'VALUES',
+      title: 'עולם הערכים',
+      icon: <Heart className="h-7 w-7" />,
+      colorGradient: 'from-rose-400 to-red-500',
+      questions: 25,
+      description:
+        'מהם עמודי התווך של חייך? כאן נגדיר את הערכים והאמונות שמנחים אותך.',
+    },
+    {
+      id: 'RELATIONSHIP',
+      title: 'עולם הזוגיות',
+      icon: <Users className="h-7 w-7" />,
+      colorGradient: 'from-purple-400 to-indigo-500',
+      questions: 18,
+      description:
+        'מהי זוגיות עבורך? כאן תפרט/י את ציפיותיך מהקשר ואת החזון לשותפות.',
+    },
+    {
+      id: 'PARTNER',
+      title: 'עולם הפרטנר',
+      icon: <UserCheck className="h-7 w-7" />,
+      colorGradient: 'from-teal-400 to-emerald-500',
+      questions: 22,
+      description:
+        'מי האדם שאת/ה מחפש/ת? כאן נמקד את החיפוש ונבין מה חיוני לך בבן/בת זוג.',
+    },
+    {
+      id: 'RELIGION',
+      title: 'דת ומסורת',
+      icon: <Scroll className="h-7 w-7" />,
+      colorGradient: 'from-amber-400 to-orange-500',
+      questions: 15,
+      description:
+        'מה החיבור שלך ליהדות? כאן תפרט/י את זהותך הדתית והביטוי שלה בחייך.',
+    },
+  ],
+  featuresSection: {
+    title: 'הבסיס להצלחה שלך',
+    subtitle:
+      'השקענו מחשבה וניסיון רב כדי להפוך את התהליך ליעיל, מכבד ומדויק ככל האפשר.',
+    features: [
+      {
+        icon: <Clock className="h-8 w-8 text-sky-600" />,
+        title: 'תהליך מודרך וגמיש',
+        description:
+          'השאלון מחולק לעולמות נפרדים, כך שניתן למלא אותו בקצב שלך, לעצור ולחזור בכל שלב.',
+        bgColor: 'bg-sky-100/60',
+      },
+      {
+        icon: <Shield className="h-8 w-8 text-rose-600" />,
+        title: 'פרטיות מוחלטת',
+        description:
+          'התשובות שלך דיסקרטיות לחלוטין ומשמשות את צוות השדכנים המקצועי שלנו בלבד, לצורך מציאת ההתאמה המדויקת ביותר.',
+        bgColor: 'bg-rose-100/60',
+      },
+      {
+        icon: <Star className="h-8 w-8 text-amber-600" />,
+        title: 'מתודולוגיה מוכחת',
+        description:
+          'השיטה שלנו משלבת תובנות מעולם הפסיכולוגיה עם ניסיון של שדכנים ותיקים ליצירת התאמות עומק, ולא רק התאמה שטחית.',
+        bgColor: 'bg-amber-100/60',
+      },
+    ],
+  },
+  finalCta: {
+    title: 'מוכנ/ה לבנות את הפרופיל שלך?',
+    subtitle:
+      'הצעד הראשון הוא לספק לנו את התמונה המלאה והאותנטית שלך. מכאן, המומחיות והטכנולוגיה שלנו נכנסות לפעולה כדי להתחיל את החיפוש המדויק עבורך.',
+    buttonText: 'התחל/י עכשיו',
+  },
+};
 
-const worlds: WorldInfo[] = [
-  {
-    id: 'PERSONALITY',
-    title: 'עולם האישיות',
-    icon: <User className="h-7 w-7" />,
-    colorGradient: 'from-sky-400 to-blue-500',
-    questions: 20,
-    description:
-      'מי אני באמת? גלה את הכוחות הייחודיים שלך, את סגנון התקשורת ומה מניע אותך.',
+// --- Animation Variants ---
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.2,
+    },
   },
-  {
-    id: 'VALUES',
-    title: 'עולם הערכים',
-    icon: <Heart className="h-7 w-7" />,
-    colorGradient: 'from-rose-400 to-red-500',
-    questions: 25,
-    description:
-      'מה באמת מניע אותך? זקק את עקרונות הליבה שלך ובנה יסודות איתנים לבית המשותף.',
-  },
-  {
-    id: 'RELATIONSHIP',
-    title: 'עולם הזוגיות',
-    icon: <Users className="h-7 w-7" />,
-    colorGradient: 'from-purple-400 to-indigo-500',
-    questions: 18,
-    description:
-      'איך נראית השותפות האידיאלית שלך? עצב את החזון שלך לקשר המבוסס על הבנה וכבוד.',
-  },
-  {
-    id: 'PARTNER',
-    title: 'עולם הפרטנר',
-    icon: <UserCheck className="h-7 w-7" />,
-    colorGradient: 'from-teal-400 to-emerald-500',
-    questions: 22,
-    description:
-      'במי תרצה/י לבחור? הגדר את התכונות והערכים החשובים לך ביותר בבן/בת הזוג.',
-  },
-  {
-    id: 'RELIGION',
-    title: 'דת ומסורת',
-    icon: <Scroll className="h-7 w-7" />,
-    colorGradient: 'from-amber-400 to-orange-500',
-    questions: 15,
-    description:
-      'מה מקום האמונה וההלכה בחייך? נבין את החיבור האישי שלך ואת החזון לבית יהודי.',
-  },
-];
+};
 
-const features = [
-  {
-    icon: <Clock className="h-8 w-8 text-sky-600" />,
-    title: 'תהליך מותאם אישית',
-    description:
-      'השאלון מחולק לעולמות נפרדים, כך שניתן למלא אותו בקצב שלך, לעצור ולחזור בכל שלב.',
-    bgColor: 'bg-sky-100/60',
+const fadeInUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: 'easeOut' },
   },
-  {
-    icon: <Shield className="h-8 w-8 text-rose-600" />,
-    title: 'פרטיות מוחלטת',
-    description:
-      'התשובות שלך דיסקרטיות לחלוטין ומשמשות את צוות השדכנים המקצועי שלנו בלבד.',
-    bgColor: 'bg-rose-100/60',
+};
+
+const staggeredCardVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.15,
+      delayChildren: 0.3,
+    },
   },
-  {
-    icon: <Star className="h-8 w-8 text-amber-600" />,
-    title: 'התאמה מדעית',
-    description:
-      'מבוסס על מחקרים פסיכולוגיים וניסיון של שדכנים ותיקים ליצירת התאמות עומק.',
-    bgColor: 'bg-amber-100/60',
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 40, scale: 0.95 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.6,
+      ease: 'easeOut',
+      scale: {
+        type: 'spring',
+        stiffness: 260,
+        damping: 20,
+      },
+    },
   },
-];
+};
+
+// --- Background Components ---
+const DynamicBackground: React.FC = () => (
+  <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    <div className="absolute inset-0 opacity-30">
+      <div className="absolute top-10 left-10 w-32 h-32 bg-gradient-to-br from-teal-200/40 to-orange-300/30 rounded-full blur-3xl animate-float-slow" />
+      <div
+        className="absolute top-40 right-20 w-24 h-24 bg-gradient-to-br from-amber-200/40 to-orange-300/30 rounded-full blur-2xl animate-float-slow"
+        style={{ animationDelay: '2s' }}
+      />
+      <div
+        className="absolute bottom-32 left-1/4 w-40 h-40 bg-gradient-to-br from-teal-200/30 to-amber-300/25 rounded-full blur-3xl animate-float-slow"
+        style={{ animationDelay: '4s' }}
+      />
+      <div
+        className="absolute bottom-10 right-10 w-28 h-28 bg-gradient-to-br from-orange-200/35 to-amber-300/30 rounded-full blur-2xl animate-float-slow"
+        style={{ animationDelay: '1s' }}
+      />
+    </div>
+    <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#f97316_1px,transparent_1px)] [background-size:20px_20px]" />
+    <svg
+      className="absolute inset-0 w-full h-full"
+      viewBox="0 0 1000 1000"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <defs>
+        <linearGradient id="bgGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#0d9488" stopOpacity="0.08" />
+          <stop offset="50%" stopColor="#f97316" stopOpacity="0.06" />
+          <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.08" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M0,200 C300,100 700,300 1000,200 L1000,0 L0,0 Z"
+        fill="url(#bgGrad1)"
+        className="animate-pulse-slow"
+      />
+      <path
+        d="M0,800 C300,700 700,900 1000,800 L1000,1000 L0,1000 Z"
+        fill="url(#bgGrad1)"
+        className="animate-pulse-slow"
+        style={{ animationDelay: '3s' }}
+      />
+    </svg>
+  </div>
+);
 
 export default function QuestionnaireLandingPage({
   onStartQuestionnaire,
@@ -117,37 +227,83 @@ export default function QuestionnaireLandingPage({
   isLoading = false,
 }: QuestionnaireLandingPageProps) {
   const { status, data: session } = useSession();
-  const isMobile = useIsMobile(); // <<< שינוי: שימוש בהוק
+  const isMobile = useIsMobile();
 
-  // --- Main Render ---
+  const getCtaText = () => {
+    if (hasSavedProgress) {
+      return `המשך/י מהנקודה האחרונה`;
+    }
+    if (session?.user?.firstName) {
+      return `התחל/י את המסע, ${session.user.firstName}`;
+    }
+    return 'בוא/י נתחיל';
+  };
+
+  const CtaIcon = hasSavedProgress ? CheckCircle : Heart;
+
   return (
     <div
       className={cn(
-        'relative min-h-screen overflow-hidden text-right dir-rtl bg-slate-50',
-        isMobile && 'pb-28' // <<< שינוי: הוספת ריווח תחתון במובייל למנוע חפיפה עם הכפתור הסטיקי
+        'relative min-h-screen overflow-hidden text-right dir-rtl bg-gradient-to-b from-white via-rose-50/30 to-white',
+        isMobile && 'pb-28'
       )}
     >
+      <DynamicBackground />
+
       {/* --- Section 1: Hero - The Invitation to the Journey --- */}
-      <section className="relative py-20 px-4 sm:py-24 text-center overflow-hidden">
-        {/* Decorative background elements */}
-        <div className="absolute inset-0 bg-gradient-to-b from-sky-50 via-white to-rose-50 -z-10" />
-        <div className="absolute top-0 -left-20 w-60 h-60 bg-sky-200/20 rounded-full filter blur-3xl animate-pulse-slow"></div>
-        <div className="absolute bottom-0 -right-20 w-72 h-72 bg-rose-200/20 rounded-full filter blur-3xl animate-pulse-slow animation-delay-2000"></div>
+      <motion.section
+        className="relative py-20 px-4 sm:py-24 text-center overflow-hidden"
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+      >
+        <div className="max-w-4xl mx-auto relative">
+          <motion.div
+            className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg border border-white/60 mb-8"
+            variants={fadeInUp}
+          >
+            <Sparkles className="w-6 h-6 text-rose-500" />
+            <span className="text-rose-700 font-semibold">
+              המסע שלכם מתחיל כאן
+            </span>
+          </motion.div>
 
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-4 tracking-tight bg-gradient-to-r from-sky-600 to-rose-600 text-transparent bg-clip-text">
-            הנתיב שלך לזוגיות משמעותית
-          </h1>
-          <p className="text-lg md:text-xl text-slate-700 max-w-3xl mx-auto mt-4 leading-relaxed">
-            השקעה של כמה דקות בשאלון ההיכרות שלנו היא הצעד הראשון והחשוב ביותר
-            שלך בדרך למציאת קשר אמיתי, עמוק ומדויק. בוא/י נצא למסע גילוי משותף.
-          </p>
+          <motion.h1
+            className="text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-4 tracking-tight"
+            variants={fadeInUp}
+          >
+            <span className="text-gray-800">
+              {contentConfig.hero.title.split(' ').slice(0, 2).join(' ')}
+            </span>
+            <br className="sm:hidden" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-orange-500 to-amber-400">
+              {' '}
+              {contentConfig.hero.title.split(' ').slice(2).join(' ')}
+            </span>
+          </motion.h1>
 
-          <div className="mt-12 space-y-4 flex flex-col items-center">
-            {/* CTA Button: Adapts to user status */}
+          <motion.div
+            className="relative max-w-3xl mx-auto mt-6"
+            variants={fadeInUp}
+          >
+            <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/60 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-rose-100/50 to-transparent rounded-full transform translate-x-16 -translate-y-16" />
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-br from-purple-100/50 to-transparent rounded-full transform -translate-x-12 translate-y-12" />
+              <div className="relative">
+                <p className="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
+                  {contentConfig.hero.subtitle}
+                </p>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            className="mt-12 space-y-4 flex flex-col items-center"
+            variants={fadeInUp}
+          >
             <Button
               size="lg"
-              className="w-full max-w-sm text-lg font-semibold px-8 py-7 bg-gradient-to-r from-sky-500 to-rose-500 hover:from-sky-600 hover:to-rose-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden transform hover:-translate-y-1"
+              className="w-full max-w-sm text-lg font-semibold px-8 py-7 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden transform hover:-translate-y-1"
               onClick={onStartQuestionnaire}
               disabled={isLoading}
             >
@@ -155,19 +311,10 @@ export default function QuestionnaireLandingPage({
               <div className="relative z-10 flex items-center justify-center">
                 {isLoading ? (
                   <Loader2 className="h-6 w-6 animate-spin" />
-                ) : hasSavedProgress ? (
-                  <>
-                    <CheckCircle className="h-6 w-6 ms-2" />
-                    <span>המשך/י מהנקודה האחרונה</span>
-                  </>
                 ) : (
                   <>
-                    <Heart className="h-6 w-6 ms-2 fill-white" />
-                    <span>
-                      {session
-                        ? `התחל/י את המסע, ${session.user.firstName}`
-                        : 'בוא/י נתחיל'}
-                    </span>
+                    <CtaIcon className="h-6 w-6 ms-2 fill-white" />
+                    <span>{getCtaText()}</span>
                   </>
                 )}
               </div>
@@ -178,132 +325,208 @@ export default function QuestionnaireLandingPage({
                 <Button
                   variant="outline"
                   size="lg"
-                  className="w-full text-md font-medium px-8 py-6 border-2 border-slate-300 text-slate-700 hover:bg-slate-100/50 hover:border-slate-400 rounded-full transition-all duration-300 bg-white/70 backdrop-blur-sm"
+                  className="w-full text-md font-medium px-8 py-6 border-2 border-teal-200 text-teal-600 hover:bg-teal-50 hover:border-teal-300 rounded-full transition-all duration-300 bg-white/70 backdrop-blur-sm"
                 >
                   <Lock className="h-5 w-5 ms-2" />
                   כניסה למשתמשים רשומים
                 </Button>
               </Link>
             )}
-          </div>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
 
       {/* --- Section 2: Worlds - The "What to Expect" --- */}
-      <section className="py-16 px-4 bg-white">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-3 text-slate-800">
-              חמישה עולמות, התאמה אחת מושלמת
-            </h2>
-            <p className="text-lg text-slate-600 max-w-3xl mx-auto">
-              השאלון מחולק לחמישה עולמות תוכן. כל עולם מתמקד בהיבט אחר של
-              אישיותך וציפיותיך, ויחד הם יוצרים תמונה מלאה ועשירה.
-            </p>
-          </div>
+      <motion.section
+        className="py-16 px-4 relative"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={containerVariants}
+      >
+        <div className="absolute inset-0 -m-8 bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/60" />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-            {worlds.map((world, index) => (
-              <Card
-                key={world.id}
-                className="overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 bg-white/80 backdrop-blur-sm border border-slate-100 flex flex-col"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <CardContent className="p-6 text-center flex flex-col items-center flex-grow">
-                  <div
-                    className={cn(
-                      'p-4 rounded-full bg-gradient-to-br text-white shadow-lg mb-4',
-                      world.colorGradient
-                    )}
-                  >
-                    {world.icon}
-                  </div>
-                  <h3 className="text-xl font-bold text-slate-800">
-                    {world.title}
-                  </h3>
-                  <p className="text-sm text-slate-500 mt-1 mb-3">
-                    {world.questions} שאלות
-                  </p>
-                  <p className="text-base text-slate-600 leading-relaxed flex-grow">
-                    {world.description}
-                  </p>
-                </CardContent>
-              </Card>
+        <div className="max-w-6xl mx-auto relative">
+          <motion.div className="text-center mb-12" variants={fadeInUp}>
+            <h2 className="text-3xl font-bold mb-3 text-gray-800">
+              {contentConfig.worldsSection.title}
+            </h2>
+            <div className="w-24 h-1 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 mx-auto rounded-full mb-6" />
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              {contentConfig.worldsSection.subtitle}
+            </p>
+          </motion.div>
+
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6"
+            variants={staggeredCardVariants}
+          >
+            {contentConfig.worlds.map((world, index) => (
+              <motion.div key={world.id} variants={cardVariants}>
+                <Card className="overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/90 backdrop-blur-sm border border-white/60 flex flex-col h-full group">
+                  <CardContent className="p-6 text-center flex flex-col items-center flex-grow relative">
+                    <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/50 to-white/80 opacity-0 group-hover:opacity-100 transition-all duration-500 rounded-2xl" />
+
+                    <div className="relative z-10 flex flex-col items-center flex-grow">
+                      <div
+                        className={cn(
+                          'p-4 rounded-full bg-gradient-to-br text-white shadow-lg mb-4 group-hover:scale-110 transition-all duration-300',
+                          world.colorGradient
+                        )}
+                      >
+                        {world.icon}
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-800 mb-2">
+                        {world.title}
+                      </h3>
+                      <p className="text-sm text-gray-500 mb-3">
+                        {world.questions} שאלות
+                      </p>
+                      <p className="text-base text-gray-600 leading-relaxed flex-grow">
+                        {world.description}
+                      </p>
+                    </div>
+
+                    {/* Decorative elements */}
+                    <div className="absolute top-2 right-2 w-2 h-2 bg-gradient-to-br from-teal-300/50 to-orange-300/50 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-500" />
+                    <div
+                      className="absolute bottom-2 left-2 w-1.5 h-1.5 bg-gradient-to-br from-orange-300/50 to-amber-300/50 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-700"
+                      style={{ transitionDelay: '0.2s' }}
+                    />
+                  </CardContent>
+                </Card>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
 
       {/* --- Section 3: Features - The "Why Trust Us" --- */}
-      <section className="py-16 px-4 bg-slate-50">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-3 text-slate-800">
-              הבסיס להצלחה שלך
+      <motion.section
+        className="py-16 px-4 relative"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={containerVariants}
+      >
+        <div className="max-w-5xl mx-auto relative">
+          <motion.div className="text-center mb-12" variants={fadeInUp}>
+            <h2 className="text-3xl font-bold mb-3 text-gray-800">
+              {contentConfig.featuresSection.title}
             </h2>
-            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-              השקענו מחשבה וניסיון רב כדי להפוך את התהליך ליעיל, מכבד ומדויק ככל
-              האפשר.
+            <div className="w-24 h-1 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 mx-auto rounded-full mb-6" />
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              {contentConfig.featuresSection.subtitle}
             </p>
-          </div>
+          </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-            {features.map((feature, index) => (
-              <div key={index} className="flex flex-col items-center p-6">
-                <div className={cn('p-4 rounded-full mb-5', feature.bgColor)}>
-                  {feature.icon}
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center"
+            variants={staggeredCardVariants}
+          >
+            {contentConfig.featuresSection.features.map((feature, index) => (
+              <motion.div
+                key={index}
+                className="flex flex-col items-center p-6 relative group"
+                variants={cardVariants}
+              >
+                <div className="absolute inset-0 bg-white/60 backdrop-blur-md rounded-2xl shadow-lg border border-white/40 opacity-0 group-hover:opacity-100 transition-all duration-500 transform group-hover:scale-105" />
+
+                <div className="relative z-10 flex flex-col items-center">
+                  <div
+                    className={cn(
+                      'p-4 rounded-full mb-5 group-hover:scale-110 transition-all duration-300',
+                      feature.bgColor
+                    )}
+                  >
+                    {feature.icon}
+                  </div>
+                  <h3 className="font-bold text-xl mb-2 text-gray-800 group-hover:text-gray-900 transition-colors duration-300">
+                    {feature.title}
+                  </h3>
+                  <p className="text-base text-gray-600 leading-relaxed group-hover:text-gray-700 transition-colors duration-300">
+                    {feature.description}
+                  </p>
                 </div>
-                <h3 className="font-bold text-xl mb-2 text-slate-800">
-                  {feature.title}
-                </h3>
-                <p className="text-base text-slate-600 leading-relaxed">
-                  {feature.description}
-                </p>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
 
       {/* --- Section 4: Final CTA --- */}
-      <section className="py-20 px-4 text-center bg-white">
-        <div className="max-w-3xl mx-auto">
-          <Sparkles className="h-12 w-12 text-rose-500 mx-auto mb-4" />
-          <h2 className="text-3xl font-bold mb-4 text-slate-800">
-            מוכנ/ה להתחיל את המסע?
-          </h2>
-          <p className="text-lg text-slate-600 mb-8 max-w-xl mx-auto leading-relaxed">
-            הזיווג שלך מחכה. הצעד הראשון בדרך אליו הוא להכיר את עצמך לעומק.
-            אנחנו כאן כדי ללוות אותך.
-          </p>
+      <motion.section
+        className="py-20 px-4 text-center relative"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+        variants={containerVariants}
+      >
+        <div className="absolute inset-0 -m-8 bg-gradient-to-br from-teal-600/10 via-orange-600/10 to-amber-600/10 rounded-3xl backdrop-blur-sm border border-white/40" />
 
-          <Button
-            size="lg"
-            onClick={onStartQuestionnaire}
-            disabled={isLoading}
-            className="w-full max-w-xs text-lg font-semibold px-8 py-7 bg-gradient-to-r from-sky-500 to-rose-500 hover:from-sky-600 hover:to-rose-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden transform hover:-translate-y-1"
-          >
-            <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
-            <div className="relative z-10 flex items-center justify-center">
-              {isLoading ? (
-                <Loader2 className="h-6 w-6 animate-spin" />
-              ) : (
-                <>
-                  <ArrowLeft className="h-6 w-6 ms-2" />
-                  <span>התחל/י עכשיו</span>
-                </>
-              )}
+        <div className="max-w-3xl mx-auto relative">
+          <motion.div variants={fadeInUp}>
+            <div className="inline-flex items-center gap-3 bg-white/90 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg border border-white/60 mb-8">
+              <Sparkles className="w-6 h-6 text-orange-500" />
+              <span className="text-orange-700 font-semibold">
+                הרגע של האמת
+              </span>
             </div>
-          </Button>
-        </div>
-      </section>
+          </motion.div>
 
-      {/* <<< שינוי: הוספת כפתור סטיקי למובייל >>> */}
+          <motion.h2
+            className="text-3xl font-bold mb-4 text-gray-800"
+            variants={fadeInUp}
+          >
+            {contentConfig.finalCta.title}
+          </motion.h2>
+
+          <motion.p
+            className="text-lg text-gray-600 mb-8 max-w-xl mx-auto leading-relaxed"
+            variants={fadeInUp}
+          >
+            {contentConfig.finalCta.subtitle}
+          </motion.p>
+
+          <motion.div variants={fadeInUp}>
+            <Button
+              size="lg"
+              onClick={onStartQuestionnaire}
+              disabled={isLoading}
+              className="w-full max-w-xs text-lg font-semibold px-8 py-7 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden transform hover:-translate-y-1"
+            >
+              <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:animate-shimmer"></span>
+              <div className="relative z-10 flex items-center justify-center">
+                {isLoading ? (
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                ) : (
+                  <>
+                    <ArrowLeft className="h-6 w-6 ms-2" />
+                    <span>{contentConfig.finalCta.buttonText}</span>
+                  </>
+                )}
+              </div>
+            </Button>
+          </motion.div>
+
+          <motion.div
+            className="mt-6 flex items-center justify-center gap-3 text-gray-600"
+            variants={fadeInUp}
+          >
+            <CheckCircle className="w-5 h-5 text-green-500" />
+            <span className="font-medium">
+              חוויה אישית • תובנות עבורכם • דיסקרטי לחלוטין
+            </span>
+          </motion.div>
+        </div>
+      </motion.section>
+
+      {/* Sticky Mobile Button */}
       {isMobile && (
-        <div className="fixed bottom-0 left-0 right-0 p-3 bg-white/90 backdrop-blur-sm border-t border-slate-200/80 shadow-top z-50">
+        <div className="fixed bottom-0 left-0 right-0 p-3 bg-white/90 backdrop-blur-sm border-t border-teal-200/80 shadow-top z-50">
           <Button
             size="lg"
-            className="w-full text-base font-semibold py-3 bg-gradient-to-r from-sky-500 to-rose-500 text-white rounded-lg shadow-md hover:shadow-lg transition-shadow group relative overflow-hidden"
+            className="w-full text-base font-semibold py-3 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 text-white rounded-lg shadow-md hover:shadow-lg transition-shadow group relative overflow-hidden"
             onClick={onStartQuestionnaire}
             disabled={isLoading}
           >
@@ -311,15 +534,10 @@ export default function QuestionnaireLandingPage({
             <div className="relative z-10 flex items-center justify-center">
               {isLoading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
-              ) : hasSavedProgress ? (
-                <>
-                  <CheckCircle className="h-5 w-5 ms-2" />
-                  <span>המשך/י מהיכן שעצרת</span>
-                </>
               ) : (
                 <>
-                  <Heart className="h-5 w-5 ms-2 fill-white" />
-                  <span>בוא/י נתחיל את המסע</span>
+                  <CtaIcon className="h-5 w-5 ms-2 fill-white" />
+                  <span>{getCtaText()}</span>
                 </>
               )}
             </div>
@@ -327,22 +545,39 @@ export default function QuestionnaireLandingPage({
         </div>
       )}
 
-      <footer className="text-center py-6 text-slate-500 text-sm bg-slate-50">
+      <footer className="text-center py-6 text-gray-500 text-sm bg-white/50 backdrop-blur-sm">
         © {new Date().getFullYear()} NeshamaTech. כל הזכויות שמורות.
       </footer>
 
-      {/* Add animations to your global CSS (e.g., globals.css) */}
       <style jsx global>{`
+        @keyframes float-slow {
+          0%,
+          100% {
+            transform: translateY(0px) rotate(0deg);
+          }
+          25% {
+            transform: translateY(-3px) rotate(0.5deg);
+          }
+          75% {
+            transform: translateY(3px) rotate(-0.5deg);
+          }
+        }
+        .animate-float-slow {
+          animation: float-slow 6s ease-in-out infinite;
+        }
         @keyframes pulse-slow {
+          0%,
+          100% {
+            opacity: 0.8;
+            transform: scale(1);
+          }
           50% {
-            opacity: 0.7;
+            opacity: 1;
+            transform: scale(1.02);
           }
         }
         .animate-pulse-slow {
-          animation: pulse-slow 5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        .animation-delay-2000 {
-          animation-delay: 2s;
+          animation: pulse-slow 4s ease-in-out infinite;
         }
         @keyframes shimmer {
           100% {

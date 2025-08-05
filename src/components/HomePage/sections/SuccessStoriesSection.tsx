@@ -3,12 +3,15 @@
 import React, { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import TestimonialCard from '../components/TestimonialCard';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 
 const SuccessStoriesSection: React.FC = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.1 });
 
-  // Animation variants
+  // Animation variants (no changes needed here)
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -47,7 +50,6 @@ const SuccessStoriesSection: React.FC = () => {
     },
   };
 
-  // --- START: DATA REMAINS UNCHANGED ---
   const testimonials = [
     {
       text: 'תמיד חלמתי על שותף לחיים עם שאיפות ערכיות דומות – להקים בית של חסד, ציונות ותורה. NeshamaTech חיברו אותי לאדם שחולם בדיוק את אותו החלום. זה חיבור של נשמה ומטרה.',
@@ -62,13 +64,12 @@ const SuccessStoriesSection: React.FC = () => {
       color: 'orange' as const,
     },
   ];
-  // --- END: DATA REMAINS UNCHANGED ---
 
   return (
     <motion.section
       ref={ref}
       id="success-stories"
-      className="py-16 md:py-20 px-4 bg-white relative" // Changed background to white for cleaner look
+      className="py-16 md:py-20 px-4 bg-white relative"
       variants={containerVariants}
       initial="hidden"
       animate={isInView ? 'visible' : 'hidden'}
@@ -76,31 +77,31 @@ const SuccessStoriesSection: React.FC = () => {
       <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#0891b2_1px,transparent_1px)] [background-size:20px_20px]"></div>
 
       <div className="max-w-6xl mx-auto relative">
-        {/* --- START: UPDATED HEADER SECTION --- */}
         <motion.div
           className="text-center mb-12 md:mb-16"
           variants={headerVariants}
         >
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-800 mb-4">
             סיפורים שמתחילים
-            <span
-              className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-teal-600"
-            >
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-teal-600">
               {' '}
               בנשמה
             </span>
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-cyan-600 to-teal-600 mx-auto rounded-full mb-6" />
-          <motion.p 
-            className="text-lg text-gray-600 max-w-3xl mx-auto"
-            variants={headerVariants} // re-using variant for simplicity
-          >
-            התיאוריה נהדרת, אבל התוצאות מדברות בעד עצמן. אלו לא רק סיסמאות, אלו חיים שהשתנו. כמה מילים מהזוגות שמצאו אהבה דרך הגישה המעמיקה שלנו.
-          </motion.p>
-        </motion.div>
-        {/* --- END: UPDATED HEADER SECTION --- */}
 
-        {/* Testimonials Grid - UNCHANGED LOGIC */}
+          {/* --- START: UPDATED INTRODUCTORY TEXT WITH ESLINT FIX --- */}
+          <motion.p
+            className="text-lg text-gray-600 max-w-3xl mx-auto"
+            variants={headerVariants}
+          >
+            כשאנחנו מדברים על &apos;חיבור אמיתי&apos;, אנחנו מתכוונים בדיוק לזה.
+            כל אחד מהסיפורים האלה התחיל בהקשבה עמוקה לצרכים ולערכים של שני
+            אנשים. אנו אסירי תודה על הזכות ללוות אותם בדרכם.
+          </motion.p>
+          {/* --- END: UPDATED INTRODUCTORY TEXT WITH ESLINT FIX --- */}
+        </motion.div>
+
         <motion.div
           className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto"
           variants={containerVariants}
@@ -124,23 +125,46 @@ const SuccessStoriesSection: React.FC = () => {
           ))}
         </motion.div>
 
-        {/* --- START: NEW OPTIONAL CLOSING TEXT --- */}
-        <motion.div 
-          className="mt-12 text-center"
+        {/* --- START: ACTIVE BUTTON TO SEE MORE STORIES --- */}
+        <motion.div
+          className="mt-16 text-center"
           variants={{
             hidden: { opacity: 0, y: 20 },
             visible: {
               opacity: 1,
               y: 0,
-              transition: { duration: 0.6, ease: "easeOut", delay: 0.5 } // Delay after cards appear
-            }
+              transition: { duration: 0.6, ease: 'easeOut', delay: 0.4 },
+            },
+          }}
+        >
+          <Link href="/success-stories">
+            <Button
+              variant="outline"
+              size="lg"
+              className="border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-300 transition-all duration-300 rounded-xl group"
+            >
+              <span>לעוד סיפורי הצלחה</span>
+              <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </Link>
+        </motion.div>
+        {/* --- END: ACTIVE BUTTON TO SEE MORE STORIES --- */}
+
+        <motion.div
+          className="mt-8 text-center"
+          variants={{
+            hidden: { opacity: 0, y: 20 },
+            visible: {
+              opacity: 1,
+              y: 0,
+              transition: { duration: 0.6, ease: 'easeOut', delay: 0.5 },
+            },
           }}
         >
           <p className="text-base text-gray-500">
             אנו מכבדים את פרטיות הזוגות שלנו, ומשתפים סיפורים רק בהסכמתם המלאה.
           </p>
         </motion.div>
-        {/* --- END: NEW OPTIONAL CLOSING TEXT --- */}
       </div>
     </motion.section>
   );
