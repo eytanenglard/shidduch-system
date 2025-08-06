@@ -1,5 +1,3 @@
-// src/components/questionnaire/layout/QuestionnaireLayout.tsx
-
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
@@ -47,12 +45,14 @@ import {
 } from '@/components/ui/sheet';
 import FAQ from '../components/FAQ';
 import AccessibilityFeatures from '../components/AccessibilityFeatures';
+
 interface ToastProps {
   message: string;
   type: 'success' | 'error' | 'info';
   isVisible: boolean;
   onClose?: () => void;
 }
+
 // ============================================================================
 // CONFIGURATION OBJECT FOR WORLDS
 // ============================================================================
@@ -255,6 +255,54 @@ export default function QuestionnaireLayout({
   };
   // ============================================================================
   // END OF IMPROVED NavButton COMPONENT
+  // ============================================================================
+
+  // ============================================================================
+  // START OF NEW ProfileNotice COMPONENT
+  // ============================================================================
+  const ProfileNotice = () => (
+    <div className="mx-4 my-2 p-3 bg-slate-100/80 border border-slate-200/90 rounded-lg">
+      <div className="flex items-start gap-3">
+        <div className="flex-shrink-0 pt-0.5">
+          <Info className="h-4 w-4 text-slate-500" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-slate-600 leading-relaxed text-sm">
+            <span className="font-medium text-slate-700">שימ/י לב:</span> כל
+            תשובה שתענה/י תוצג אוטומטית בכרטיס הפרופיל שלך כדי לשפר את איכות
+            ההתאמות. ניתן להסתיר כל שאלה מהפרופיל באמצעות המתג{' '}
+            <span className="inline-flex items-center px-1 py-0.5 bg-white border border-slate-200 rounded text-xs font-mono">
+              <EyeOff className="inline-block h-3 w-3 mr-1 text-slate-500" />
+            </span>{' '}
+            שבחלק התחתון של כל שאלה.
+            <br />
+            <Link
+              href="/profile?tab=questionnaire"
+              className="inline-flex items-center gap-1 mt-2 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
+              target="_blank"
+            >
+              צפייה בפרופיל שלך
+              <svg
+                className="w-3 h-3"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                />
+              </svg>
+            </Link>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+  // ============================================================================
+  // END OF NEW ProfileNotice COMPONENT
   // ============================================================================
 
   const renderFAQButton = (isMobile: boolean) => (
@@ -466,6 +514,11 @@ export default function QuestionnaireLayout({
             <NavButton key={worldId} worldId={worldId} isMobile={false} />
           ))}
         </div>
+
+        {/* === START: MOVED AND RESTYLED NOTICE === */}
+        <ProfileNotice />
+        {/* === END: MOVED AND RESTYLED NOTICE === */}
+
         {!isLoggedIn && (
           <div className="px-4">
             <UnauthenticatedPrompt />
@@ -532,25 +585,8 @@ export default function QuestionnaireLayout({
       </aside>
 
       <main className="flex-1 p-3 md:p-6 lg:pb-16 overflow-y-auto relative scroll-smooth">
-        {/* --- START: הודעת הסבר למשתמש --- */}
-        <Alert className="mb-6 bg-sky-50 border-sky-200 text-sky-800">
-          <Info className="h-4 w-4 text-sky-600" />
-          <AlertDescription>
-            <span className="font-semibold">שימ/י לב:</span> כל תשובה שתענה/י
-            תוצג אוטומטית בכרטיס הפרופיל שלך כדי לשפר את איכות ההתאמות. ניתן
-            להסתיר כל שאלה מהפרופיל באמצעות המתג{' '}
-            <EyeOff className="inline-block h-3 w-3" /> שבחלק התחתון של כל שאלה.
-            <br />
-            <Link
-              href="/profile?tab=questionnaire"
-              className="font-bold text-sky-700 hover:underline"
-              target="_blank"
-            >
-              לחצ/י כאן כדי לראות איך הפרופיל שלך נראה (ייפתח בחלון חדש) &rarr;
-            </Link>
-          </AlertDescription>
-        </Alert>
-        {/* --- END: הודעת הסבר למשתמש --- */}
+        {/* The information block was removed from here */}
+
         {children}
         <AccessibilityFeatures
           isPanelOpen={isAccessibilityPanelOpen}

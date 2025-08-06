@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label"; // <-- FIX: Import the Label component
+import { Label } from "@/components/ui/label";
 import {
   Bookmark,
   AlertCircle,
@@ -22,6 +22,8 @@ import {
   Lightbulb,
   Eye,
   EyeOff,
+  Users,
+  Lock,
 } from "lucide-react";
 import {
   Tooltip,
@@ -53,10 +55,8 @@ interface QuestionCardProps {
   language?: string;
   isFirstInList?: boolean;
   themeColor?: 'sky' | 'rose' | 'purple' | 'teal' | 'amber';
-  // --- START: הוספת props חדשים ---
   isVisible: boolean;
   onVisibilityChange: (isVisible: boolean) => void;
-  // --- END: הוספת props חדשים ---
 }
 
 const depthLabels: Record<QuestionDepth, string> = {
@@ -71,6 +71,53 @@ const depthDescriptions: Record<QuestionDepth, string> = {
   EXPERT: "שאלות העשרה לחיבור מעמיק במיוחד",
 };
 
+// פתרון לבעיית הצבעים הדינמיים
+const getThemeClasses = (themeColor: string) => {
+  const themes = {
+    sky: {
+      border: "border-sky-500",
+      text: "text-sky-700",
+      bg: "bg-sky-100",
+      bgSoft: "bg-sky-50",
+      ring: "ring-sky-300",
+      icon: "text-sky-500",
+    },
+    rose: {
+      border: "border-rose-500",
+      text: "text-rose-700", 
+      bg: "bg-rose-100",
+      bgSoft: "bg-rose-50",
+      ring: "ring-rose-300",
+      icon: "text-rose-500",
+    },
+    purple: {
+      border: "border-purple-500",
+      text: "text-purple-700",
+      bg: "bg-purple-100", 
+      bgSoft: "bg-purple-50",
+      ring: "ring-purple-300",
+      icon: "text-purple-500",
+    },
+    teal: {
+      border: "border-teal-500",
+      text: "text-teal-700",
+      bg: "bg-teal-100",
+      bgSoft: "bg-teal-50", 
+      ring: "ring-teal-300",
+      icon: "text-teal-500",
+    },
+    amber: {
+      border: "border-amber-500",
+      text: "text-amber-700",
+      bg: "bg-amber-100",
+      bgSoft: "bg-amber-50",
+      ring: "ring-amber-300", 
+      icon: "text-amber-500",
+    }
+  };
+  return themes[themeColor as keyof typeof themes] || themes.sky;
+};
+
 export default function QuestionCard({
   question,
   depth,
@@ -83,7 +130,7 @@ export default function QuestionCard({
   isDisabled = false,
   children,
   isFirstInList = false,
-  themeColor = 'sky', // Default theme color
+  themeColor = 'sky',
   isVisible,
   onVisibilityChange,
 }: QuestionCardProps) {
@@ -92,7 +139,6 @@ export default function QuestionCard({
   const [showHint, setShowHint] = useState(false);
   const isMobile = useMediaQuery("(max-width: 640px)");
 
-  // REFINED: Motion variants for smoother animations
   const cardVariants = {
     initial: { opacity: 0, y: 30, scale: 0.98 },
     animate: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.4, ease: "easeOut" } },
@@ -104,14 +150,7 @@ export default function QuestionCard({
     animate: { opacity: 1, transition: { delay: 0.1, duration: 0.3 } },
   };
 
-  const themeClasses = {
-    border: `border-${themeColor}-500`,
-    text: `text-${themeColor}-700`,
-    bg: `bg-${themeColor}-100`,
-    bgSoft: `bg-${themeColor}-50`,
-    ring: `ring-${themeColor}-300`,
-    icon: `text-${themeColor}-500`,
-  };
+  const themeClasses = getThemeClasses(themeColor);
 
   return (
     <motion.div
@@ -126,13 +165,12 @@ export default function QuestionCard({
           "transition-all duration-300 shadow-lg rounded-xl overflow-hidden border",
           "bg-white",
           isDisabled ? "opacity-75 cursor-not-allowed" : "hover:shadow-xl",
-          `border-t-4 ${themeClasses.border}`, // NEW: Thematic top border for atmosphere
+          `border-t-4 ${themeClasses.border}`,
           className
         )}
       >
         <CardHeader className="relative flex flex-col space-y-2 pb-3">
           <div className="flex items-center justify-between">
-            {/* Left side: Metadata badges */}
             <div className="flex flex-wrap items-center gap-2">
               <TooltipProvider delayDuration={200}>
                 <Tooltip>
@@ -155,13 +193,21 @@ export default function QuestionCard({
               )}
             </div>
 
-            {/* Right side: Action buttons */}
             <div className="flex items-center gap-1">
               {onBookmark && (
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" onClick={() => setIsBookmarked(!isBookmarked)} className={cn("h-8 w-8 rounded-full", isBookmarked ? "text-amber-500 bg-amber-100" : "text-slate-400 hover:bg-slate-100")} aria-label={isBookmarked ? "הסר סימניה" : "הוסף סימניה"}>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => setIsBookmarked(!isBookmarked)} 
+                        className={cn(
+                          "h-8 w-8 rounded-full", 
+                          isBookmarked ? "text-amber-500 bg-amber-100" : "text-slate-400 hover:bg-slate-100"
+                        )} 
+                        aria-label={isBookmarked ? "הסר סימניה" : "הוסף סימניה"}
+                      >
                         <Bookmark className="w-4 h-4" />
                       </Button>
                     </TooltipTrigger>
@@ -173,7 +219,16 @@ export default function QuestionCard({
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" onClick={() => setShowHelp(!showHelp)} className={cn("h-8 w-8 rounded-full", showHelp ? `${themeClasses.bg} ${themeClasses.text}` : "text-slate-400 hover:bg-slate-100")} aria-label={showHelp ? "הסתר עזרה" : "הצג עזרה"}>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => setShowHelp(!showHelp)} 
+                          className={cn(
+                            "h-8 w-8 rounded-full", 
+                            showHelp ? `${themeClasses.bg} ${themeClasses.text}` : "text-slate-400 hover:bg-slate-100"
+                          )} 
+                          aria-label={showHelp ? "הסתר עזרה" : "הצג עזרה"}
+                        >
                           <HelpCircle className="w-4 h-4" />
                         </Button>
                       </TooltipTrigger>
@@ -184,7 +239,6 @@ export default function QuestionCard({
             </div>
           </div>
 
-          {/* REFINED: Improved typography for the question itself */}
           <motion.div variants={contentVariants}>
             <h2 className="text-xl sm:text-2xl font-semibold mt-3 text-slate-800 leading-snug">
               {question.question}
@@ -201,8 +255,7 @@ export default function QuestionCard({
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
               >
-                {/* REFINED: Nicer alert for help text */}
-                <Alert className={cn(themeClasses.bgSoft, `border-${themeColor}-200`)}>
+                <Alert className={cn(themeClasses.bgSoft, "border-2", themeClasses.border.replace('border-', 'border-').replace('-500', '-200'))}>
                   <Lightbulb className={cn("h-4 w-4", themeClasses.icon)} />
                   <AlertDescription className={cn(themeClasses.text, 'font-medium')}>
                     {question.metadata.helpText}
@@ -231,32 +284,91 @@ export default function QuestionCard({
         </CardContent>
 
         <CardFooter className="relative flex justify-between items-center pt-4 border-t border-slate-100 bg-slate-50/50">
-          {/* --- START: הוספת כפתור נראות --- */}
-          <div className="flex items-center gap-2">
-            <TooltipProvider delayDuration={200}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Switch
-                    checked={isVisible}
-                    onCheckedChange={onVisibilityChange}
-                    disabled={isDisabled}
-                    aria-label="הצג תשובה זו בפרופיל"
-                  />
-                </TooltipTrigger>
-                <TooltipContent side="top">
-                  <p>{isVisible ? 'התשובה תוצג בפרופיל הציבורי' : 'התשובה תוסתר ותהיה גלויה רק לשדכנים'}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <Label className={cn("text-sm transition-colors", isVisible ? 'text-slate-700' : 'text-slate-500')}>
-              {isVisible ? <Eye className="w-4 h-4 inline-block ml-1" /> : <EyeOff className="w-4 h-4 inline-block ml-1" />}
-              {isVisible ? 'גלוי בפרופיל' : 'מוסתר מהפרופיל'}
-            </Label>
+          {/* חלק הנראות משופר */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <TooltipProvider delayDuration={200}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={isVisible}
+                        onCheckedChange={onVisibilityChange}
+                        disabled={isDisabled}
+                        aria-label="הצג תשובה זו בפרופיל"
+                        className="data-[state=checked]:bg-green-500"
+                      />
+                      <div className="flex items-center gap-1.5">
+                        {isVisible ? (
+                          <div className="flex items-center gap-1.5 text-green-700">
+                            <Eye className="w-4 h-4" />
+                            <Users className="w-3 h-3" />
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1.5 text-slate-500">
+                            <EyeOff className="w-4 h-4" />
+                            <Lock className="w-3 h-3" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-xs">
+                    <div className="text-center">
+                      <p className="font-medium mb-1">
+                        {isVisible ? '👁️ גלוי לכולם' : '🔒 מוסתר מהציבור'}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {isVisible 
+                          ? 'התשובה תוצג בפרופיל הציבורי שלך' 
+                          : 'התשובה תהיה גלויה רק לשדכנים מאושרים'
+                        }
+                      </p>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            
+            {/* תווית טקסט ברורה */}
+            <motion.div
+              initial={false}
+              animate={{
+                scale: isVisible ? 1.02 : 1,
+                color: isVisible ? '#15803d' : '#64748b'
+              }}
+              transition={{ duration: 0.2 }}
+              className="flex items-center gap-1"
+            >
+              <Label 
+                className={cn(
+                  "text-sm font-medium cursor-pointer transition-all duration-200",
+                  isVisible ? 'text-green-700' : 'text-slate-500'
+                )}
+                onClick={() => onVisibilityChange(!isVisible)}
+              >
+                {isVisible ? 'גלוי בפרופיל' : 'מוסתר מהפרופיל'}
+              </Label>
+              
+              {/* אינדיקטור ויזואלי נוסף */}
+              <div className={cn(
+                "w-2 h-2 rounded-full transition-colors duration-200",
+                isVisible ? 'bg-green-500' : 'bg-slate-400'
+              )} />
+            </motion.div>
           </div>
-          {/* --- END: הוספת כפתור נראות --- */}
 
           {onSkip && (
-            <Button variant="ghost" size="sm" onClick={onSkip} disabled={isRequired || isDisabled} className={cn("text-slate-500 hover:text-slate-800", (isRequired || isDisabled) && "opacity-50 cursor-not-allowed")}>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={onSkip} 
+              disabled={isRequired || isDisabled} 
+              className={cn(
+                "text-slate-500 hover:text-slate-800", 
+                (isRequired || isDisabled) && "opacity-50 cursor-not-allowed"
+              )}
+            >
               {isRequired ? "שאלת חובה" : "דלג על שאלה זו"}
               {!isRequired && <SkipForward className="w-4 h-4 mr-2" />}
             </Button>
