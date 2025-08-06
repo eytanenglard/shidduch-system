@@ -342,49 +342,24 @@ const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({
                 }`}
                 onClick={() => setActiveTab(index)}
               >
-                {/* אייקון עם חדות מקסימלית */}
-                <div
-                  className={`transition-all duration-300 ${
-                    activeTab === index ? 'scale-110' : 'hover:scale-105'
-                  }`}
-                >
-                  <div className={`transition-all duration-300 ${
+                {/* אייקון עם רקע צבעוני כמו בתוכן */}
+                <div className={`flex items-center justify-center mb-2 transition-all duration-300 ${
+                  activeTab === index ? 'scale-110' : 'hover:scale-105'
+                }`}>
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${
                     activeTab === index 
-                      ? 'text-white' 
-                      : 'text-gray-900 hover:text-black'
-                  }`}
-                  style={{ 
-                    filter: 'none',
-                    WebkitFilter: 'none',
-                    transform: 'translateZ(0)', // Force hardware acceleration
-                    backfaceVisibility: 'hidden',
-                    WebkitBackfaceVisibility: 'hidden'
-                  }}>
-                    <div style={{
-                      display: 'inline-block',
-                      transform: 'translateZ(0)',
-                      WebkitTransform: 'translateZ(0)'
-                    }}>
-                      {React.cloneElement(principle.icon, {
-                        className: 'w-7 h-7',
-                        strokeWidth: 2.2,
-                        fill: 'none',
-                        stroke: 'currentColor',
-                        strokeLinecap: 'round',
-                        strokeLinejoin: 'round',
-                        style: {
-                          filter: 'none',
-                          WebkitFilter: 'none',
-                          imageRendering: 'optimizeQuality',
-                          shapeRendering: 'geometricPrecision'
-                        }
-                      })}
-                    </div>
+                      ? `bg-gradient-to-br ${principle.gradient} shadow-lg` 
+                      : 'bg-white/60 shadow-sm'
+                  }`}>
+                    {React.cloneElement(principle.icon, {
+                      className: `w-5 h-5 ${activeTab === index ? 'text-white' : 'text-gray-700'}`,
+                      strokeWidth: 2.5
+                    })}
                   </div>
                 </div>
 
-                {/* טקסט מעוצב ומודרני */}
-                <div className={`text-xs font-bold text-center leading-tight min-h-[2.5rem] flex items-center justify-center px-1 transition-all duration-300 ${
+                {/* טקסט מתחת לאייקון */}
+                <div className={`text-xs font-bold text-center leading-tight flex items-center justify-center px-1 transition-all duration-300 ${
                   activeTab === index 
                     ? 'text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.3)] transform scale-105' 
                     : 'text-gray-900 hover:text-black'
