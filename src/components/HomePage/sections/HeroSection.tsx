@@ -544,7 +544,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                 {isVisible && (
                   <TypewriterTextWithHighlights
                     delay={1200}
-                    speed={25}
+                    speed={32}
                     className="block text-center leading-relaxed text-transparent bg-clip-text bg-gradient-to-br from-gray-700 via-gray-600 to-gray-700 font-bold tracking-wide drop-shadow-sm"
                   />
                 )}

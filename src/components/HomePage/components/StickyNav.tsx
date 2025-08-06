@@ -8,6 +8,10 @@ import { UserPlus, Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { getRelativeCloudinaryPath } from '@/lib/utils';
+import { useSession, signOut } from 'next-auth/react';
+import type { Session } from 'next-auth';
+import type { UserImage } from '@/types/next-auth';
+import UserDropdown from '@/components/layout/UserDropdown';
 
 export interface NavLink {
   id: string;
@@ -16,6 +20,7 @@ export interface NavLink {
 
 interface StickyNavProps {
   navLinks: NavLink[];
+  session: Session | null; // הוסף שורה זו
 }
 
 // ======================== קומפוננטת הלוגו המעודכנת ========================
@@ -54,7 +59,7 @@ const StickyLogo = () => {
 };
 // ========================================================================
 
-const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
+const StickyNav: React.FC<StickyNavProps> = ({ navLinks, session }) => {
   const [isSticky, setIsSticky] = useState(false);
   const [activeSection, setActiveSection] = useState('');
   const sectionRefs = useRef<(HTMLElement | null)[]>([]);
@@ -136,7 +141,37 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
     hidden: { y: '-120%', opacity: 0 },
     visible: { y: 0, opacity: 1 },
   };
+  const handleSignOut = () => {
+    signOut({ callbackUrl: '/' });
+  };
 
+  const getInitials = () => {
+    const fullName = session?.user?.name;
+    if (!fullName) return 'P';
+    const names = fullName.split(' ');
+    return (
+      (names[0]?.[0] || '') +
+      (names.length > 1 ? names[names.length - 1]?.[0] || '' : '')
+    ).toUpperCase();
+  };
+
+  const getMainProfileImage = (): UserImage | null => {
+    if (session?.user?.image) {
+      return {
+        id: 'session-image',
+        url: session.user.image,
+        isMain: true,
+        userId: session.user.id,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        cloudinaryPublicId: null,
+      };
+    }
+    return null;
+  };
+
+  const mainProfileImage = getMainProfileImage();
+  const profileIconSize = 'w-10 h-10';
   return (
     <>
       <AnimatePresence>
@@ -147,7 +182,7 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
             animate={isMobile ? (isNavOpen ? 'visible' : 'hidden') : 'visible'}
             exit="hidden"
             transition={{ duration: 0.3, ease: 'easeOut' }}
-            className="fixed top-20 md:top-0 left-0 right-0 z-40 w-full h-16 md:h-20"
+            className="fixed top-0 left-0 right-0 z-40 w-full h-16 md:h-20"
           >
             <div className="absolute inset-0 bg-white/80 backdrop-blur-lg shadow-sm border-b border-gray-200/80"></div>
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
@@ -216,14 +251,24 @@ const StickyNav: React.FC<StickyNavProps> = ({ navLinks }) => {
               </div>
 
               <div className="hidden md:flex items-center gap-2">
-                <Link href="/auth/register">
-                  <Button className="group relative overflow-hidden bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 px-5 py-2.5">
-                    <span className="relative z-10 flex items-center">
-                      <UserPlus className="ml-1.5 h-4 w-4" />
-                      הרשמה
-                    </span>
-                  </Button>
-                </Link>
+                {session ? (
+                  <UserDropdown
+                    session={session}
+                    mainProfileImage={mainProfileImage}
+                    getInitials={getInitials}
+                    handleSignOut={handleSignOut}
+                    profileIconSize={profileIconSize}
+                  />
+                ) : (
+                  <Link href="/auth/register">
+                    <Button className="group relative overflow-hidden bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 px-5 py-2.5">
+                      <span className="relative z-10 flex items-center">
+                        <UserPlus className="ml-1.5 h-4 w-4" />
+                        הרשמה
+                      </span>
+                    </Button>
+                  </Link>
+                )}
               </div>
             </div>
           </motion.header>

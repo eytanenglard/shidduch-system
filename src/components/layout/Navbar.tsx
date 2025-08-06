@@ -29,125 +29,7 @@ import {
 import type { Session as NextAuthSession } from 'next-auth';
 import type { UserImage } from '@/types/next-auth';
 import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
-
-// רכיב התפריט הנפתח של המשתמש, מותאם לעיצוב החדש
-const UserDropdown = ({
-  session,
-  mainProfileImage,
-  getInitials,
-  handleSignOut,
-  profileIconSize,
-}: {
-  session: (NextAuthSession & { user?: { images?: UserImage[] } }) | null;
-  mainProfileImage: UserImage | null;
-  getInitials: () => string;
-  handleSignOut: () => void;
-  profileIconSize: string;
-}) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  if (!session) return null;
-
-  return (
-    <div className="relative" ref={dropdownRef}>
-      <button
-        id="onboarding-target-profile-dropdown"
-        onClick={() => setIsOpen(!isOpen)}
-        className={`relative ${profileIconSize} rounded-full flex items-center justify-center text-sm shadow-md transition-all duration-300 cursor-pointer group overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-400 focus:ring-offset-white`}
-        title={session.user?.name || 'פרופיל'}
-      >
-        <div className="absolute inset-0 rounded-full transition-all duration-300 group-hover:ring-2 group-hover:ring-cyan-400"></div>
-        {mainProfileImage ? (
-          <Image
-            src={getRelativeCloudinaryPath(mainProfileImage.url)}
-            alt={session.user?.name || 'תמונת פרופיל'}
-            fill
-            className="object-cover rounded-full"
-            sizes="(max-width: 768px) 40px, 40px"
-          />
-        ) : (
-          <span className="font-semibold text-lg text-cyan-700 bg-cyan-100 w-full h-full flex items-center justify-center rounded-full">
-            {getInitials()}
-          </span>
-        )}
-      </button>
-
-      {isOpen && (
-        <div
-          className={`absolute mt-3 w-56 origin-top-left bg-white rounded-xl shadow-2xl z-20 border border-gray-100 ${
-            typeof window !== 'undefined' &&
-            document.documentElement.dir === 'rtl'
-              ? 'left-0'
-              : 'right-0'
-          }`}
-        >
-          <div className="p-1">
-            <div className="px-4 py-3 border-b border-gray-100">
-              <p className="text-sm font-semibold text-gray-800 truncate">
-                {session.user?.name}
-              </p>
-              <p className="text-xs text-gray-500 truncate">
-                {session.user?.email}
-              </p>
-            </div>
-            <div className="py-1">
-              <Link
-                href="/profile"
-                className="flex items-center w-full text-right px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-cyan-50 hover:text-cyan-700 transition-colors"
-                onClick={() => setIsOpen(false)}
-              >
-                <User className="ml-2 h-4 w-4" />
-                פרופיל אישי
-              </Link>
-              <Link
-                href="/questionnaire"
-                className="flex items-center w-full text-right px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-cyan-50 hover:text-cyan-700 transition-colors"
-                onClick={() => setIsOpen(false)}
-              >
-                <Lightbulb className="ml-2 h-4 w-4" />
-                שאלון התאמה
-              </Link>
-              <Link
-                href="/settings"
-                className="flex items-center w-full text-right px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-cyan-50 hover:text-cyan-700 transition-colors"
-                onClick={() => setIsOpen(false)}
-              >
-                <Settings className="ml-2 h-4 w-4" />
-                הגדרות חשבון
-              </Link>
-            </div>
-            <div className="py-1 border-t border-gray-100">
-              <button
-                onClick={() => {
-                  setIsOpen(false);
-                  handleSignOut();
-                }}
-                className="w-full text-right flex items-center px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors"
-              >
-                <LogOut className="ml-2 h-4 w-4" />
-                התנתקות
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
+import UserDropdown from './UserDropdown';
 
 // רכיב הלוגו - גרסה 2.0: "הלהבה הנושמת"
 const Logo = () => {
@@ -194,9 +76,7 @@ const Logo = () => {
 
 // רכיב ה-Navbar המרכזי
 const Navbar = () => {
-  const { data: session } = useSession() as {
-    data: (NextAuthSession & { user?: { images?: UserImage[] } }) | null;
-  };
+  const { data: session } = useSession();
   const pathname = usePathname();
   const isMatchmaker =
     session?.user?.role === 'MATCHMAKER' || session?.user?.role === 'ADMIN';
@@ -221,6 +101,8 @@ const Navbar = () => {
     }
   }, [language]);
 
+  // ---  הסרנו מכאן את התנאי שהחזיר null  ---
+
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
 
   const handleSignOut = () => {
@@ -239,8 +121,20 @@ const Navbar = () => {
   };
 
   const getMainProfileImage = (): UserImage | null => {
-    return session?.user?.images?.find((img) => img.isMain) || null;
+    if (session?.user?.image) {
+      return {
+        id: 'session-image',
+        url: session.user.image,
+        isMain: true,
+        userId: session.user.id,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        cloudinaryPublicId: null,
+      };
+    }
+    return null;
   };
+
   const mainProfileImage = getMainProfileImage();
 
   const navbarClasses = scrolled
@@ -301,11 +195,7 @@ const Navbar = () => {
                     />
                   </>
                 ) : (
-                  // ======================= START: התיקון בוצע כאן =======================
-                  // נמחק: הקישור הטקסטואלי לשאלון למשתמש לא מחובר, כדי למנוע כפילות עם הכפתור "לשאלון החכם".
-                  // ה-NavItem שהיה כאן הוסר.
-                  // ======================== END: התיקון בוצע כאן ========================
-                  <></> // Placeholder to keep the structure valid
+                  <></>
                 )}
               </div>
             </div>
@@ -415,17 +305,17 @@ const Navbar = () => {
         </div>
 
         <div className="overflow-y-auto h-[calc(100%-4.5rem)] pb-20">
-          {session && (
+          {session?.user && (
             <div className="p-4">
               <div className="p-4 border rounded-xl bg-gray-50/80">
                 <div className="flex items-center gap-4">
                   <div
                     className={`relative ${profileIconSize} rounded-full flex-shrink-0 flex items-center justify-center shadow-sm overflow-hidden`}
                   >
-                    {mainProfileImage ? (
+                    {mainProfileImage && mainProfileImage.url ? (
                       <Image
                         src={getRelativeCloudinaryPath(mainProfileImage.url)}
-                        alt={session.user?.name || 'תמונת פרופיל'}
+                        alt={session.user.name || 'תמונת פרופיל'}
                         fill
                         className="object-cover rounded-full"
                         sizes="40px"
@@ -438,10 +328,10 @@ const Navbar = () => {
                   </div>
                   <div className="flex-grow min-w-0">
                     <div className="font-semibold text-gray-800 truncate">
-                      {session.user?.name}
+                      {session.user.name}
                     </div>
                     <div className="text-sm text-gray-500 truncate">
-                      {session.user?.email}
+                      {session.user.email}
                     </div>
                   </div>
                 </div>

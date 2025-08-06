@@ -1,10 +1,13 @@
+// src/app/layout.tsx
+
+'use client'; // הוספת הוראה זו הכרחית כדי להשתמש ב-usePathname
+
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { metadata as siteMetadata } from "./metadata";
-import { cookies } from "next/headers";
 import Providers from "@/components/Providers";
 import Navbar from "@/components/layout/Navbar";
 import { LanguageProvider } from "@/app/contexts/LanguageContext";
+import { usePathname } from "next/navigation"; // 1. ייבוא של usePathname
 
 const inter = Inter({
   subsets: ["latin"],
@@ -12,15 +15,20 @@ const inter = Inter({
   display: "swap",
 });
 
-export const metadata = siteMetadata;
+// שינינו את שם המטא-דאטה כדי למנוע התנגשות עם משתנה אחר
+// export const metadata = siteMetadata; // שורה זו מוסרת כי מטא-דאטה דינמי נטען אחרת בקליינט-קומפוננט
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const cookieStore = await cookies();
-  const defaultLanguage = cookieStore.get("language")?.value || "he";
+  // 2. הגדרת משתנים לבדיקת הנתיב הנוכחי
+  const pathname = usePathname();
+  const isHomePage = pathname === '/';
+  
+  // הגדרת ברירת מחדל לשפה ולכיווניות
+  const defaultLanguage = "he";
   const isRTL = defaultLanguage === "he";
 
   return (
@@ -30,6 +38,10 @@ export default async function RootLayout({
       className={isRTL ? "dir-rtl" : "dir-ltr"}
       suppressHydrationWarning
     >
+      <head>
+          <title>NeshamaTech - זוגיות שמתחילה מהנשמה</title>
+          <meta name="description" content="NeshamaTech - משלבים טכנולוגיה עם לב ליצירת קשרים משמעותיים. שיטת התאמה ייחודית, ליווי אישי ודיסקרטיות מלאה." />
+      </head>
       <body
         className={`${inter.variable} antialiased`}
         suppressHydrationWarning
@@ -42,7 +54,10 @@ export default async function RootLayout({
               }`}
               dir={isRTL ? "rtl" : "ltr"}
             >
-              <Navbar />
+              {/* 3. הצגה מותנית של ה-Navbar */}
+              {/* הוא יופיע בכל עמוד, חוץ מדף הבית */}
+              {!isHomePage && <Navbar />}
+
               <main className="flex-1 w-full">{children}</main>
             </div>
           </LanguageProvider>

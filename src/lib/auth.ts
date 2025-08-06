@@ -11,10 +11,10 @@ import type {
   UserProfile,
   UserImage,
   QuestionnaireResponse
-} from "@/types/next-auth"; // ודא שהנתיב נכון
+} from "@/types/next-auth";
 import { JWT as ExtendedUserJWT } from "next-auth/jwt";
 import { Session as ExtendedSession } from "next-auth";
-import { UserRole, UserStatus, UserSource } from "@prisma/client"; // Added UserSource
+import { UserRole, UserStatus, UserSource } from "@prisma/client";
 
 console.log("Auth options file loaded");
 
@@ -98,9 +98,7 @@ export const authOptions: NextAuthOptions = {
         const userFromDb = await prisma.user.findUnique({
           where: { email: credentials.email.toLowerCase() },
           include: {
-            profile: true,
             images: { where: { isMain: true }, take: 1 },
-            questionnaireResponses: { orderBy: { createdAt: 'desc' }, take: 1 }
           }
         });
 
@@ -121,17 +119,16 @@ export const authOptions: NextAuthOptions = {
           data: { lastLogin: new Date() }
         }).catch(err => console.error("[CredentialsProvider Authorize] Failed to update lastLogin:", err));
 
-        const { profile, images, questionnaireResponses, ...restOfUser } = userFromDb;
+        const { images, ...restOfUser } = userFromDb;
         return {
           ...restOfUser,
           name: `${userFromDb.firstName} ${userFromDb.lastName}`,
           image: images?.[0]?.url || null, 
-          profile: profile as UserProfile | null,
-          images: images as UserImage[],
-          questionnaireResponses: questionnaireResponses as QuestionnaireResponse[],
-          questionnaireCompleted: questionnaireResponses.length > 0 && questionnaireResponses[0].completed,
+          profile: null, // We do not load heavy data here
+          images: [],
+          questionnaireResponses: [],
+          questionnaireCompleted: false, // Will be determined in JWT callback
           hasCompletedOnboarding: userFromDb.hasCompletedOnboarding,
-
           source: userFromDb.source,
           addedByMatchmakerId: userFromDb.addedByMatchmakerId,
            termsAndPrivacyAcceptedAt: userFromDb.termsAndPrivacyAcceptedAt,
@@ -172,9 +169,7 @@ export const authOptions: NextAuthOptions = {
         const userFromDb = await prisma.user.findUnique({
           where: { id: tokenRecord.userId },
           include: {
-            profile: true,
             images: { where: { isMain: true }, take: 1 },
-            questionnaireResponses: { orderBy: { createdAt: 'desc' }, take: 1 }
           }
         });
 
@@ -184,17 +179,16 @@ export const authOptions: NextAuthOptions = {
         }
         console.log(`[AutoLoginProvider Authorize] Auto-login successful for user ${userFromDb.email}`);
         
-        const { profile, images, questionnaireResponses, ...restOfUser } = userFromDb;
+        const { images, ...restOfUser } = userFromDb;
         return {
           ...restOfUser,
           name: `${userFromDb.firstName} ${userFromDb.lastName}`,
           image: images?.[0]?.url || null,
-          profile: profile as UserProfile | null,
-          images: images as UserImage[],
-          questionnaireResponses: questionnaireResponses as QuestionnaireResponse[],
-          questionnaireCompleted: questionnaireResponses.length > 0 && questionnaireResponses[0].completed,
+          profile: null,
+          images: [],
+          questionnaireResponses: [],
+          questionnaireCompleted: false,
           hasCompletedOnboarding: userFromDb.hasCompletedOnboarding,
-
           source: userFromDb.source,
           addedByMatchmakerId: userFromDb.addedByMatchmakerId,
            termsAndPrivacyAcceptedAt: userFromDb.termsAndPrivacyAcceptedAt,
@@ -228,7 +222,6 @@ export const authOptions: NextAuthOptions = {
       if (!dbUser && account?.provider === 'google') {
         console.log(`[signIn Callback] Google sign-in for potentially new user: ${userEmail}.`);
         
-        // This findUnique is slightly redundant but safe
         dbUser = await prisma.user.findUnique({ 
             where: { email: userEmail } 
         });
@@ -316,7 +309,7 @@ export const authOptions: NextAuthOptions = {
       typedUser.source = dbUser.source;
       typedUser.addedByMatchmakerId = dbUser.addedByMatchmakerId;
       typedUser.termsAndPrivacyAcceptedAt = dbUser.termsAndPrivacyAcceptedAt;
-            typedUser.marketingConsent = dbUser.marketingConsent;
+      typedUser.marketingConsent = dbUser.marketingConsent;
 
       if (account?.provider === "google") {
         if (dbUser.isVerified === false && oauthProfile?.email_verified === true) {
@@ -351,7 +344,7 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
 
-    async jwt({ token, user, trigger, session, account }) {
+    async jwt({ token, user, trigger }) {
       const typedToken = token as ExtendedUserJWT;
       const typedUserFromCallback = user as ExtendedUser | undefined;
 
@@ -381,7 +374,7 @@ export const authOptions: NextAuthOptions = {
         typedToken.termsAndPrivacyAcceptedAt = typedUserFromCallback.termsAndPrivacyAcceptedAt;
         typedToken.requiresCompletion = typedUserFromCallback.requiresCompletion;
         typedToken.redirectUrl = typedUserFromCallback.redirectUrl;
-                typedToken.marketingConsent = typedUserFromCallback.marketingConsent;
+        typedToken.marketingConsent = typedUserFromCallback.marketingConsent;
 
         console.log("[JWT Callback - Initial Population] Token populated from user object.");
       }
@@ -389,16 +382,18 @@ export const authOptions: NextAuthOptions = {
       // On subsequent JWT calls or session updates, refresh data from DB
       if (typedToken.id && (trigger === "update" || trigger === "signIn")) {
           console.log(`[JWT Callback - DB Refresh] Refreshing token for user ID: ${typedToken.id}.`);
+          // =================== START OF CHANGE in jwt callback ===================
+          // 1. We remove the heavy 'include' statements from the query.
+          // We only include the main image for the navbar, as it's very light.
           const dbUserForJwt = await prisma.user.findUnique({
             where: { id: typedToken.id },
             include: {
-              profile: true,
               images: { where: { isMain: true }, take: 1 },
-              questionnaireResponses: { orderBy: { createdAt: 'desc' }, take: 1 }
             }
           });
 
           if (dbUserForJwt) {
+            // 2. Update all the flat and essential flag fields, just as before.
             typedToken.firstName = dbUserForJwt.firstName;
             typedToken.lastName = dbUserForJwt.lastName;
             typedToken.picture = dbUserForJwt.images?.[0]?.url || typedToken.picture; 
@@ -411,19 +406,29 @@ export const authOptions: NextAuthOptions = {
             typedToken.source = dbUserForJwt.source;
             typedToken.addedByMatchmakerId = dbUserForJwt.addedByMatchmakerId;
             typedToken.termsAndPrivacyAcceptedAt = dbUserForJwt.termsAndPrivacyAcceptedAt;
-                       typedToken.marketingConsent = dbUserForJwt.marketingConsent;
+            typedToken.marketingConsent = dbUserForJwt.marketingConsent;
 
-            typedToken.profile = dbUserForJwt.profile as UserProfile | null;
-            typedToken.images = dbUserForJwt.images as UserImage[];
-            typedToken.questionnaireResponses = dbUserForJwt.questionnaireResponses as QuestionnaireResponse[];
-            typedToken.questionnaireCompleted = dbUserForJwt.questionnaireResponses.length > 0 && dbUserForJwt.questionnaireResponses[0].completed === true;
+            // 3. We perform a separate, lightweight query to check if the questionnaire is complete.
+            // This is much more efficient than loading all the answers.
+            const questionnaireStatus = await prisma.questionnaireResponse.findFirst({
+              where: { userId: typedToken.id },
+              select: { completed: true },
+              orderBy: { createdAt: 'desc' },
+            });
+            typedToken.questionnaireCompleted = questionnaireStatus?.completed ?? false;
+
+            // 4. CRITICAL: The lines that loaded heavy data into the token are now removed.
+            //    typedToken.profile = ...
+            //    typedToken.images = ...
+            //    typedToken.questionnaireResponses = ...
 
             const requiresCompletionFromDb = (!dbUserForJwt.isProfileComplete || !dbUserForJwt.isPhoneVerified || !dbUserForJwt.termsAndPrivacyAcceptedAt);
             typedToken.requiresCompletion = requiresCompletionFromDb;
             typedToken.redirectUrl = requiresCompletionFromDb ? '/auth/register' : '/profile';
             
-            console.log("[JWT Callback - DB Refresh] Token updated from DB.");
+            console.log("[JWT Callback - DB Refresh] SLIM token updated from DB.");
           }
+          // =================== END OF CHANGE in jwt callback ===================
       }
       
       console.log("[JWT Callback] Returning final token.");
@@ -435,6 +440,8 @@ export const authOptions: NextAuthOptions = {
       const typedSession = session as ExtendedSession;
 
       if (typedSession.user && typedToken.id) {
+        // =================== START OF CHANGE in session callback ===================
+        // 1. All the lightweight, essential data remains in the session.
         typedSession.user.id = typedToken.id;
         typedSession.user.email = typedToken.email;
         typedSession.user.firstName = typedToken.firstName;
@@ -452,42 +459,41 @@ export const authOptions: NextAuthOptions = {
         typedSession.user.addedByMatchmakerId = typedToken.addedByMatchmakerId;
         typedSession.user.termsAndPrivacyAcceptedAt = typedToken.termsAndPrivacyAcceptedAt;
         typedSession.user.marketingConsent = typedToken.marketingConsent;
-
-        typedSession.user.profile = typedToken.profile; 
-        typedSession.user.images = typedToken.images; 
-        typedSession.user.questionnaireResponses = typedToken.questionnaireResponses;
         typedSession.user.createdAt = typedToken.createdAt;
         typedSession.user.updatedAt = typedToken.updatedAt;
         typedSession.user.lastLogin = typedToken.lastLogin;
 
+        // 2. CRITICAL: We remove the heavy fields from the session object.
+        //    The client-side code will now fetch this data via API calls.
+        // typedSession.user.profile = typedToken.profile; 
+        // typedSession.user.images = typedToken.images; 
+        // typedSession.user.questionnaireResponses = typedToken.questionnaireResponses;
+        
+        // 3. The important flags for routing and logic remain.
         typedSession.requiresCompletion = typedToken.requiresCompletion;
         typedSession.redirectUrl = typedToken.redirectUrl;
+        // =================== END OF CHANGE in session callback ===================
       }
       return typedSession;
     },
 
-    // --- START: התיקון המרכזי כאן ---
     async redirect({ url, baseUrl }) {
         console.log(`[Redirect Callback] Triggered with url: ${url}`);
         
-        // מאפשר URL יחסי (למשל "/profile")
         if (url.startsWith('/')) {
             const finalUrl = `${baseUrl}${url}`;
             console.log(`[Redirect Callback] Relative URL detected. Returning: ${finalUrl}`);
             return finalUrl;
         }
         
-        // מאפשר URLים באותו דומיין
         if (new URL(url).origin === baseUrl) {
             console.log(`[Redirect Callback] Same origin URL detected. Returning: ${url}`);
             return url;
         }
         
-        // אם ה-URL הוא חיצוני, מפנה לדף הבית כברירת מחדל בטוחה
         console.log(`[Redirect Callback] External URL detected. Redirecting to baseUrl: ${baseUrl}`);
         return baseUrl;
     }
-    // --- END: התיקון המרכזי כאן ---
   },
 
   pages: {

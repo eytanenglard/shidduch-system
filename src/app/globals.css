@@ -5,6 +5,7 @@
 
 /* 2. Base Layer: משתני עיצוב (Theming) וסגנונות בסיס */
 @layer base {
+  
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
@@ -1857,4 +1858,8 @@ button,
 .modal-focus-trap:focus-visible {
   outline: 2px solid rgba(59, 130, 246, 0.7);
   outline-offset: 2px;
+}
+
+* {
+  outline: 1px solid red !important;
 }
