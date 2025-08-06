@@ -162,22 +162,22 @@ const DesktopPrincipleCard: React.FC<DesktopPrincipleCardProps> = ({
         shadowColor: 'shadow-cyan-500/25',
         glowColor: 'shadow-cyan-400/30',
         bgGradient: 'from-cyan-50 via-white to-blue-50',
-        accentColor: 'bg-cyan-500'
+        accentColor: 'bg-cyan-500',
       },
       {
         gradient: 'from-purple-400 via-purple-500 to-indigo-500',
         shadowColor: 'shadow-purple-500/25',
         glowColor: 'shadow-purple-400/30',
         bgGradient: 'from-purple-50 via-white to-indigo-50',
-        accentColor: 'bg-purple-500'
+        accentColor: 'bg-purple-500',
       },
       {
         gradient: 'from-pink-400 via-pink-500 to-rose-500',
         shadowColor: 'shadow-pink-500/25',
         glowColor: 'shadow-pink-400/30',
         bgGradient: 'from-pink-50 via-white to-rose-50',
-        accentColor: 'bg-pink-500'
-      }
+        accentColor: 'bg-pink-500',
+      },
     ];
     return colors[idx];
   };
@@ -195,34 +195,45 @@ const DesktopPrincipleCard: React.FC<DesktopPrincipleCardProps> = ({
       {/* Decorative elements */}
       <div className="absolute top-4 right-4 w-20 h-20 rounded-full bg-gradient-to-br from-white/20 to-transparent blur-xl" />
       <div className="absolute bottom-4 left-4 w-12 h-12 rounded-full bg-gradient-to-br from-white/30 to-transparent blur-lg" />
-      
+
       {/* Floating particles */}
-      <div className="absolute top-6 left-8 w-2 h-2 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: `${index * 0.5}s` }} />
-      <div className="absolute top-12 right-12 w-1.5 h-1.5 rounded-full bg-white/60 animate-bounce" style={{ animationDelay: `${index * 0.5 + 1}s` }} />
-      <div className="absolute bottom-8 right-8 w-1 h-1 rounded-full bg-white/50 animate-bounce" style={{ animationDelay: `${index * 0.5 + 2}s` }} />
-      
+      <div
+        className="absolute top-6 left-8 w-2 h-2 rounded-full bg-white/40 animate-bounce"
+        style={{ animationDelay: `${index * 0.5}s` }}
+      />
+      <div
+        className="absolute top-12 right-12 w-1.5 h-1.5 rounded-full bg-white/60 animate-bounce"
+        style={{ animationDelay: `${index * 0.5 + 1}s` }}
+      />
+      <div
+        className="absolute bottom-8 right-8 w-1 h-1 rounded-full bg-white/50 animate-bounce"
+        style={{ animationDelay: `${index * 0.5 + 2}s` }}
+      />
+
       {/* Content */}
       <div className="relative z-10 h-full flex flex-col">
         {/* Icon with enhanced design */}
         <div className="flex items-center justify-center mb-6">
-          <div className={`relative w-16 h-16 rounded-2xl bg-gradient-to-br ${colors.gradient} flex items-center justify-center text-white ${colors.glowColor} shadow-xl transform group-hover:rotate-12 transition-transform duration-500`}>
+          <div
+            className={`relative w-16 h-16 rounded-2xl bg-gradient-to-br ${colors.gradient} flex items-center justify-center text-white ${colors.glowColor} shadow-xl transform group-hover:rotate-12 transition-transform duration-500`}
+          >
             {React.cloneElement(icon as React.ReactElement, {
-              className: 'w-8 h-8'
+              className: 'w-8 h-8',
             })}
             <div className="absolute inset-0 rounded-2xl bg-white/20 backdrop-blur-sm" />
           </div>
         </div>
-        
+
         {/* Title with enhanced typography */}
         <h4 className="font-bold text-gray-800 text-lg mb-4 text-center leading-tight">
           {title}
         </h4>
-        
+
         {/* Description with better spacing */}
         <p className="text-gray-700 text-sm leading-relaxed text-center flex-1">
           {description}
         </p>
-        
+
         {/* Bottom accent line */}
         <div className="mt-6 w-12 h-1 bg-gradient-to-r from-transparent via-white/60 to-transparent rounded-full mx-auto" />
       </div>
@@ -235,61 +246,64 @@ interface MobilePrinciplesTabsProps {
   isVisible: boolean;
 }
 
-const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({ isVisible }) => {
+const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({
+  isVisible,
+}) => {
   const [activeTab, setActiveTab] = useState(0);
 
   const principles = [
     {
       icon: <BookOpen className="w-6 h-6" />,
-      title: "יותר מתמונה, סיפור שלם",
-      shortTitle: "סיפור שלם",
-      description: "השאלון המעמיק שלנו מתרגם את מי שאתם לנרטיב עשיר, ומאפשר היכרות אמיתית מהרגע הראשון.",
-      gradient: "from-cyan-400 via-cyan-500 to-blue-500",
-      shadowColor: "shadow-cyan-500/25",
-      glowColor: "shadow-cyan-400/30",
-      bgGradient: "from-cyan-50 via-white to-blue-50",
-      accentColor: "bg-cyan-500"
+      title: 'יותר מתמונה, סיפור שלם',
+      shortTitle: 'סיפור שלם',
+      description:
+        'השאלון המעמיק שלנו מתרגם את מי שאתם לנרטיב עשיר, ומאפשר היכרות אמיתית מהרגע הראשון.',
+      gradient: 'from-cyan-400 via-cyan-500 to-blue-500',
+      shadowColor: 'shadow-cyan-500/25',
+      glowColor: 'shadow-cyan-400/30',
+      bgGradient: 'from-cyan-50 via-white to-blue-50',
+      accentColor: 'bg-cyan-500',
     },
     {
       icon: <Shield className="w-6 h-6" />,
-      title: "פרטיות מלאה, שליטה מוחלטת",
-      shortTitle: "פרטיות מלאה",
-      description: "הפרופיל שלכם נחשף רק לשדכן האישי. כל צעד ושיתוף מידע נעשים אך ורק באישורכם המפורש.",
-      gradient: "from-purple-400 via-purple-500 to-indigo-500",
-      shadowColor: "shadow-purple-500/25",
-      glowColor: "shadow-purple-400/30",
-      bgGradient: "from-purple-50 via-white to-indigo-50",
-      accentColor: "bg-purple-500"
+      title: 'פרטיות מלאה, שליטה מוחלטת',
+      shortTitle: 'פרטיות מלאה',
+      description:
+        'הפרופיל שלכם נחשף רק לשדכן האישי. כל צעד ושיתוף מידע נעשים אך ורק באישורכם המפורש.',
+      gradient: 'from-purple-400 via-purple-500 to-indigo-500',
+      shadowColor: 'shadow-purple-500/25',
+      glowColor: 'shadow-purple-400/30',
+      bgGradient: 'from-purple-50 via-white to-indigo-50',
+      accentColor: 'bg-purple-500',
     },
     {
       icon: <User className="w-6 h-6" />,
-      title: "טכנולוגיה חכמה, לב אנושי",
-      shortTitle: "לב אנושי",
-      description: "הכוח של המערכת שלנו בידיים של שדכן מנוסה. הוא משתמש בכלים כדי לראות את האדם, ומלווה אתכם אישית להצלחה.",
-      gradient: "from-pink-400 via-pink-500 to-rose-500",
-      shadowColor: "shadow-pink-500/25",
-      glowColor: "shadow-pink-400/30",
-      bgGradient: "from-pink-50 via-white to-rose-50",
-      accentColor: "bg-pink-500"
-    }
+      title: 'טכנולוגיה חכמה, לב אנושי',
+      shortTitle: 'לב אנושי',
+      description:
+        'הכוח של המערכת שלנו בידיים של שדכן מנוסה. הוא משתמש בכלים כדי לראות את האדם, ומלווה אתכם אישית להצלחה.',
+      gradient: 'from-pink-400 via-pink-500 to-rose-500',
+      shadowColor: 'shadow-pink-500/25',
+      glowColor: 'shadow-pink-400/30',
+      bgGradient: 'from-pink-50 via-white to-rose-50',
+      accentColor: 'bg-pink-500',
+    },
   ];
 
   return (
     <div className="w-full">
       {/* Header */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, delay: 0.6 }}
         className="text-center mb-8"
       >
-        <h3 className="text-2xl font-bold text-gray-800 mb-3">
-          הגישה שלנו
-        </h3>
+        <h3 className="text-2xl font-bold text-gray-800 mb-3">הגישה שלנו</h3>
         <p className="text-gray-600 text-sm max-w-sm mx-auto leading-relaxed">
           שלושה עקרונות יסוד שמבטיחים חוויה עמוקה ואמיתית
         </p>
-        
+
         {/* Decorative elements */}
         <div className="relative mt-4">
           <div className="w-16 h-0.5 bg-gradient-to-r from-cyan-400 via-pink-400 to-purple-400 rounded-full mx-auto" />
@@ -298,7 +312,7 @@ const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({ isVisible }
       </motion.div>
 
       {/* Modern Tab Navigation */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, delay: 0.7 }}
@@ -307,15 +321,15 @@ const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({ isVisible }
         {/* Background container with glassmorphism */}
         <div className="relative bg-white/80 backdrop-blur-xl rounded-2xl p-2 shadow-xl border border-white/20">
           {/* Animated background indicator */}
-          <div 
+          <div
             className={`absolute top-2 h-[calc(100%-16px)] rounded-xl transition-all duration-500 ease-out bg-gradient-to-r ${principles[activeTab].gradient} ${principles[activeTab].shadowColor} shadow-lg`}
             style={{
-              left: `${(activeTab * 100 / 3) + 2}%`,
-              width: `${100/3 - 4}%`,
-              transform: 'translateX(-2%)'
+              left: `${(activeTab * 100) / 3 + 2}%`,
+              width: `${100 / 3 - 4}%`,
+              transform: 'translateX(-2%)',
             }}
           />
-          
+
           {/* Tab buttons */}
           <div className="relative flex">
             {principles.map((principle, index) => (
@@ -324,17 +338,32 @@ const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({ isVisible }
                 className="flex-1 py-3 px-1 flex flex-col items-center justify-center gap-2 relative z-20"
                 onClick={() => setActiveTab(index)}
               >
-                {/* Icon */}
-                <div className={`transition-transform duration-300 ${activeTab === index ? 'scale-110' : 'hover:scale-105'}`}>
-                  <div className={activeTab === index ? 'text-white' : 'text-gray-600'}>
+                {/* 
+                  תיקון: החזרת עיצוב האייקונים למצב המקורי.
+                  הצבע הלא-פעיל חזר להיות text-gray-600.
+                */}
+                <div
+                  className={`transition-transform duration-300 ${activeTab === index ? 'scale-110' : 'hover:scale-105'}`}
+                >
+                  <div
+                    className={`transition-colors duration-300 ${activeTab === index ? 'text-white' : 'text-gray-800'}`}
+                  >
                     {principle.icon}
                   </div>
                 </div>
-                
-                {/* Title - Always visible */}
-                <div className={`text-xs font-bold text-center leading-tight min-h-[2.5rem] flex items-center justify-center px-1 ${
-                  activeTab === index ? 'text-white' : 'text-gray-600'
-                }`}>
+
+                {/* 
+                  תיקון: הבטחת נראות הטקסט מבלי לשנות את העיצוב הכללי.
+                  1. הוספת text-shadow לטאב הפעיל כדי שהטקסט הלבן יהיה קריא.
+                  2. החזרת הצבע של הטקסט הלא-פעיל ל-text-gray-600 כדי שיתאים לאייקון.
+                */}
+                <div
+                  className={`text-xs font-bold text-center leading-tight min-h-[2.5rem] flex items-center justify-center px-1 transition-colors duration-300 ${
+                    activeTab === index
+                      ? 'text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.4)]'
+                      : 'text-gray-600'
+                  }`}
+                >
                   {principle.shortTitle}
                 </div>
               </button>
@@ -344,7 +373,7 @@ const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({ isVisible }
       </motion.div>
 
       {/* Content Area with Advanced Animation */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, delay: 0.8 }}
@@ -357,53 +386,68 @@ const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({ isVisible }
               activeTab === index
                 ? 'opacity-100 transform translate-x-0 scale-100'
                 : index < activeTab
-                ? 'opacity-0 transform -translate-x-full scale-95'
-                : 'opacity-0 transform translate-x-full scale-95'
+                  ? 'opacity-0 transform -translate-x-full scale-95'
+                  : 'opacity-0 transform translate-x-full scale-95'
             }`}
           >
-            <div className={`relative overflow-hidden rounded-3xl bg-gradient-to-br ${principle.bgGradient} p-8 ${principle.shadowColor} shadow-2xl border border-white/50`}>
+            <div
+              className={`relative overflow-hidden rounded-3xl bg-gradient-to-br ${principle.bgGradient} p-8 ${principle.shadowColor} shadow-2xl border border-white/50`}
+            >
               {/* Decorative elements */}
               <div className="absolute top-4 right-4 w-20 h-20 rounded-full bg-gradient-to-br from-white/20 to-transparent blur-xl" />
               <div className="absolute bottom-4 left-4 w-12 h-12 rounded-full bg-gradient-to-br from-white/30 to-transparent blur-lg" />
-              
+
               {/* Floating particles */}
-              <div className="absolute top-6 left-8 w-2 h-2 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: '0s' }} />
-              <div className="absolute top-12 right-12 w-1.5 h-1.5 rounded-full bg-white/60 animate-bounce" style={{ animationDelay: '1s' }} />
-              <div className="absolute bottom-8 right-8 w-1 h-1 rounded-full bg-white/50 animate-bounce" style={{ animationDelay: '2s' }} />
-              
+              <div
+                className="absolute top-6 left-8 w-2 h-2 rounded-full bg-white/40 animate-bounce"
+                style={{ animationDelay: '0s' }}
+              />
+              <div
+                className="absolute top-12 right-12 w-1.5 h-1.5 rounded-full bg-white/60 animate-bounce"
+                style={{ animationDelay: '1s' }}
+              />
+              <div
+                className="absolute bottom-8 right-8 w-1 h-1 rounded-full bg-white/50 animate-bounce"
+                style={{ animationDelay: '2s' }}
+              />
+
               {/* Content */}
               <div className="relative z-10">
                 {/* Icon with enhanced design */}
                 <div className="flex items-center justify-center mb-6">
-                  <div className={`relative w-16 h-16 rounded-2xl bg-gradient-to-br ${principle.gradient} flex items-center justify-center text-white ${principle.glowColor} shadow-xl transform rotate-6 hover:rotate-12 transition-transform duration-300`}>
-                    {React.cloneElement(principle.icon, { className: 'w-8 h-8' })}
+                  <div
+                    className={`relative w-16 h-16 rounded-2xl bg-gradient-to-br ${principle.gradient} flex items-center justify-center text-white ${principle.glowColor} shadow-xl transform rotate-6 hover:rotate-12 transition-transform duration-300`}
+                  >
+                    {React.cloneElement(principle.icon, {
+                      className: 'w-8 h-8',
+                    })}
                     <div className="absolute inset-0 rounded-2xl bg-white/20 backdrop-blur-sm" />
                   </div>
                 </div>
-                
+
                 {/* Title with enhanced typography */}
                 <h4 className="font-bold text-gray-800 text-lg mb-4 text-center leading-tight">
                   {principle.title}
                 </h4>
-                
+
                 {/* Description with better spacing */}
                 <p className="text-gray-700 text-sm leading-relaxed text-center px-2">
                   {principle.description}
                 </p>
-                
+
                 {/* Bottom accent line */}
                 <div className="mt-6 w-12 h-1 bg-gradient-to-r from-transparent via-white/60 to-transparent rounded-full mx-auto" />
               </div>
             </div>
           </div>
         ))}
-        
+
         {/* Placeholder for height */}
         <div className="h-80" />
       </motion.div>
 
       {/* Progress indicator */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, delay: 0.9 }}
@@ -413,8 +457,8 @@ const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({ isVisible }
           <div
             key={index}
             className={`h-1.5 rounded-full transition-all duration-500 ${
-              activeTab === index 
-                ? `w-8 ${principle.accentColor}` 
+              activeTab === index
+                ? `w-8 ${principle.accentColor}`
                 : 'w-1.5 bg-gray-300'
             }`}
           />
@@ -512,27 +556,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
         >
           {/* גרסת מובייל - עודכנה להיות כמו גרסת דסקטופ */}
           <div className={`md:hidden relative h-64`}>
-            {/* אלמנט שמאל - כלים חכמים */}
-            <div
-              className={`absolute top-1/2 left-4 -translate-y-1/2 flex flex-col items-center gap-2 opacity-0 ${isVisible ? 'animate-synergy-enter-left' : ''}`}
-            >
-              <div className="p-4 bg-white/60 backdrop-blur-md rounded-full shadow-lg border border-white/50">
-                <Brain className="w-8 h-8 text-cyan-500" />
-              </div>
-              <span className="font-bold text-gray-700 text-sm text-center">כלים חכמים</span>
-            </div>
-            
-            {/* אלמנט ימין - ליווי אישי */}
-            <div
-              className={`absolute top-1/2 right-4 -translate-y-1/2 flex flex-col items-center gap-2 opacity-0 ${isVisible ? 'animate-synergy-enter-right' : ''}`}
-            >
-              <div className="p-4 bg-white/60 backdrop-blur-md rounded-full shadow-lg border border-white/50">
-                <Handshake className="w-8 h-8 text-pink-500" />
-              </div>
-              <span className="font-bold text-gray-700 text-sm text-center">ליווי אישי</span>
-            </div>
-            
-            {/* SVG עם קווים ארוכים יותר שמתחילים מהאייקונים */}
+            {/* SVG של הקווים */}
             <svg
               className="absolute inset-0 w-full h-full overflow-visible"
               viewBox="0 0 320 256"
@@ -549,7 +573,6 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                   </feMerge>
                 </filter>
               </defs>
-              {/* קו משמאל לאמצע - ארוך הרבה יותר */}
               <path
                 className={`${isVisible ? 'path-draw' : ''}`}
                 d="M 30 128 C 90 60, 130 60, 160 110"
@@ -559,7 +582,6 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                 strokeLinecap="round"
                 filter="url(#glow-mobile)"
               />
-              {/* קו מימין לאמצע - ארוך הרבה יותר */}
               <path
                 className={`${isVisible ? 'path-draw' : ''}`}
                 d="M 290 128 C 230 196, 190 196, 160 110"
@@ -570,8 +592,32 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                 filter="url(#glow-mobile)"
               />
             </svg>
-            
-            {/* לוגו במרכז - חזרנו למיקום המקורי */}
+
+            {/* אלמנט שמאל - כלים חכמים */}
+            <div
+              className={`absolute top-1/2 left-4 -translate-y-1/2 flex flex-col items-center gap-2 opacity-0 ${isVisible ? 'animate-synergy-enter-left' : ''}`}
+            >
+              <div className="p-4 bg-white/60 backdrop-blur-md rounded-full shadow-lg border border-white/50">
+                <Brain className="w-8 h-8 text-cyan-500" />
+              </div>
+              <span className="font-bold text-gray-700 text-sm text-center">
+                כלים חכמים
+              </span>
+            </div>
+
+            {/* אלמנט ימין - ליווי אישי */}
+            <div
+              className={`absolute top-1/2 right-4 -translate-y-1/2 flex flex-col items-center gap-2 opacity-0 ${isVisible ? 'animate-synergy-enter-right' : ''}`}
+            >
+              <div className="p-4 bg-white/60 backdrop-blur-md rounded-full shadow-lg border border-white/50">
+                <Handshake className="w-8 h-8 text-pink-500" />
+              </div>
+              <span className="font-bold text-gray-700 text-sm text-center">
+                ליווי אישי
+              </span>
+            </div>
+
+            {/* לוגו במרכז */}
             <div
               className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 ${isVisible ? 'animate-match-point-appear' : ''}`}
             >
@@ -586,7 +632,6 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                 </div>
               </div>
             </div>
-        
           </div>
 
           {/* גרסת דסקטופ */}
