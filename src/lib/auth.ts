@@ -11,10 +11,10 @@ import type {
   UserProfile,
   UserImage,
   QuestionnaireResponse
-} from "@/types/next-auth";
+} from "@/types/next-auth"; // ודא שהנתיב נכון
 import { JWT as ExtendedUserJWT } from "next-auth/jwt";
 import { Session as ExtendedSession } from "next-auth";
-import { UserRole, UserStatus, UserSource } from "@prisma/client";
+import { UserRole, UserStatus, UserSource } from "@prisma/client"; // Added UserSource
 
 console.log("Auth options file loaded");
 
@@ -64,14 +64,15 @@ export const authOptions: NextAuthOptions = {
           lastLogin: null, 
           createdAt: now,
           updatedAt: now,
-          hasCompletedOnboarding: false,
+           hasCompletedOnboarding: false,
           source: UserSource.REGISTRATION, 
           addedByMatchmakerId: null,  
-          termsAndPrivacyAcceptedAt: null,
+           termsAndPrivacyAcceptedAt: null,
           profile: null, 
           images: [], 
           questionnaireResponses: [],
           questionnaireCompleted: false,
+
           redirectUrl: undefined,
           newlyCreated: true, 
           requiresCompletion: true, 
@@ -88,9 +89,12 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
+        console.log("[CredentialsProvider Authorize] Attempting login for:", credentials?.email);
         if (!credentials?.email || !credentials?.password) {
+          console.error("[CredentialsProvider Authorize] Missing email or password");
           return null;
         }
+
         const userFromDb = await prisma.user.findUnique({
           where: { email: credentials.email.toLowerCase() },
           include: {
@@ -99,17 +103,24 @@ export const authOptions: NextAuthOptions = {
             questionnaireResponses: { orderBy: { createdAt: 'desc' }, take: 1 }
           }
         });
+
         if (!userFromDb || !userFromDb.password) {
+          console.log(`[CredentialsProvider Authorize] User ${credentials.email} not found or password not set.`);
           return null;
         }
+
         const isPasswordValid = await compare(credentials.password, userFromDb.password);
         if (!isPasswordValid) {
+          console.log(`[CredentialsProvider Authorize] Invalid password for ${credentials.email}.`);
           return null;
         }
+
+        console.log(`[CredentialsProvider Authorize] Authentication successful for ${credentials.email}`);
         await prisma.user.update({
           where: { id: userFromDb.id },
           data: { lastLogin: new Date() }
-        });
+        }).catch(err => console.error("[CredentialsProvider Authorize] Failed to update lastLogin:", err));
+
         const { profile, images, questionnaireResponses, ...restOfUser } = userFromDb;
         return {
           ...restOfUser,
@@ -120,9 +131,10 @@ export const authOptions: NextAuthOptions = {
           questionnaireResponses: questionnaireResponses as QuestionnaireResponse[],
           questionnaireCompleted: questionnaireResponses.length > 0 && questionnaireResponses[0].completed,
           hasCompletedOnboarding: userFromDb.hasCompletedOnboarding,
+
           source: userFromDb.source,
           addedByMatchmakerId: userFromDb.addedByMatchmakerId,
-          termsAndPrivacyAcceptedAt: userFromDb.termsAndPrivacyAcceptedAt,
+           termsAndPrivacyAcceptedAt: userFromDb.termsAndPrivacyAcceptedAt,
         } as ExtendedUser;
       }
     }),
@@ -133,17 +145,30 @@ export const authOptions: NextAuthOptions = {
         authToken: { label: "Auth Token", type: "text" },
       },
       async authorize(credentials) {
+        console.log("[AutoLoginProvider Authorize] Attempting auto-login with token:", credentials?.authToken ? "Token Present" : "No Token");
         if (!credentials?.authToken) {
+          console.error("[AutoLoginProvider Authorize] No authToken provided.");
           return null;
         }
+
         const tokenRecord = await prisma.oneTimeAuthToken.findUnique({
           where: { token: credentials.authToken },
         });
-        if (!tokenRecord || new Date() > tokenRecord.expiresAt) {
-          if (tokenRecord) await prisma.oneTimeAuthToken.delete({ where: { id: tokenRecord.id } });
+
+        if (!tokenRecord) {
+          console.log("[AutoLoginProvider Authorize] AuthToken not found in DB.");
           return null;
         }
-        await prisma.oneTimeAuthToken.delete({ where: { id: tokenRecord.id } });
+
+        if (new Date() > tokenRecord.expiresAt) {
+          console.log("[AutoLoginProvider Authorize] AuthToken expired. Deleting token.");
+          await prisma.oneTimeAuthToken.delete({ where: { id: tokenRecord.id } }).catch(err => console.error("[AutoLoginProvider Authorize] Error deleting expired token:", err));
+          return null;
+        }
+
+        console.log("[AutoLoginProvider Authorize] AuthToken valid. Deleting token.");
+        await prisma.oneTimeAuthToken.delete({ where: { id: tokenRecord.id } }).catch(err => console.error("[AutoLoginProvider Authorize] Error deleting used token:", err));
+
         const userFromDb = await prisma.user.findUnique({
           where: { id: tokenRecord.userId },
           include: {
@@ -152,9 +177,13 @@ export const authOptions: NextAuthOptions = {
             questionnaireResponses: { orderBy: { createdAt: 'desc' }, take: 1 }
           }
         });
+
         if (!userFromDb) {
+          console.log("[AutoLoginProvider Authorize] User not found for the given authToken.");
           return null;
         }
+        console.log(`[AutoLoginProvider Authorize] Auto-login successful for user ${userFromDb.email}`);
+        
         const { profile, images, questionnaireResponses, ...restOfUser } = userFromDb;
         return {
           ...restOfUser,
@@ -165,9 +194,10 @@ export const authOptions: NextAuthOptions = {
           questionnaireResponses: questionnaireResponses as QuestionnaireResponse[],
           questionnaireCompleted: questionnaireResponses.length > 0 && questionnaireResponses[0].completed,
           hasCompletedOnboarding: userFromDb.hasCompletedOnboarding,
+
           source: userFromDb.source,
           addedByMatchmakerId: userFromDb.addedByMatchmakerId,
-          termsAndPrivacyAcceptedAt: userFromDb.termsAndPrivacyAcceptedAt,
+           termsAndPrivacyAcceptedAt: userFromDb.termsAndPrivacyAcceptedAt,
         } as ExtendedUser;
       },
     }),
@@ -177,144 +207,226 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account, profile }) {
       const typedUser = user as ExtendedUser; 
       const oauthProfile = profile as OAuthProfile & { email_verified?: boolean };
+      console.log("[signIn Callback] Triggered.", {
+        userId: typedUser.id,
+        userEmail: typedUser.email,
+        accountProvider: account?.provider,
+        isUserVerifiedByProvider: oauthProfile?.email_verified,
+        accountId: account?.providerAccountId
+      });
+    
       const userEmail = typedUser.email?.toLowerCase();
       if (!userEmail) {
+        console.error("[signIn Callback] Critical: No user email available.", { user, account });
         return false;
       }
-      let dbUser = await prisma.user.findUnique({ where: { email: userEmail } });
+
+      let dbUser = await prisma.user.findUnique({
+        where: { email: userEmail },
+      });
     
       if (!dbUser && account?.provider === 'google') {
-        try {
-            dbUser = await prisma.user.create({
-                data: {
-                    email: userEmail,
-                    firstName: typedUser.firstName || "", 
-                    lastName: typedUser.lastName || "",  
-                    role: typedUser.role || UserRole.CANDIDATE,
-                    status: typedUser.status || UserStatus.PENDING_PHONE_VERIFICATION,
-                    isVerified: typedUser.isVerified === undefined ? (!!oauthProfile?.email_verified) : typedUser.isVerified,
-                    source: UserSource.REGISTRATION,
-                },
-            });
-            if (account) {
-                await prisma.account.create({
+        console.log(`[signIn Callback] Google sign-in for potentially new user: ${userEmail}.`);
+        
+        // This findUnique is slightly redundant but safe
+        dbUser = await prisma.user.findUnique({ 
+            where: { email: userEmail } 
+        });
+
+        if (!dbUser) {
+            try {
+                console.log(`[signIn Callback] User ${userEmail} not found. Attempting to create.`);
+                const createdDbUser = await prisma.user.create({
                     data: {
-                        userId: dbUser.id,
-                        type: account.type,
-                        provider: account.provider,
-                        providerAccountId: account.providerAccountId,
-                        access_token: account.access_token,
-                        refresh_token: account.refresh_token,
-                        expires_at: account.expires_at,
-                        token_type: account.token_type,
-                        scope: account.scope,
-                        id_token: account.id_token,
-                        session_state: account.session_state,
+                        email: userEmail,
+                        firstName: typedUser.firstName || "", 
+                        lastName: typedUser.lastName || "",  
+                        role: typedUser.role || UserRole.CANDIDATE,
+                        status: typedUser.status || UserStatus.PENDING_PHONE_VERIFICATION,
+                        isVerified: typedUser.isVerified === undefined ? (!!oauthProfile?.email_verified) : typedUser.isVerified,
+                        isProfileComplete: typedUser.isProfileComplete || false,
+                        isPhoneVerified: typedUser.isPhoneVerified || false,
+                        source: UserSource.REGISTRATION,
                     },
                 });
-            }
-          } catch (error: unknown) {
-            if (typeof error === 'object' && error !== null && 'code' in error && (error as {code: string}).code === 'P2002') {
-                dbUser = await prisma.user.findUnique({ where: { email: userEmail }});
-            } else {
-                console.error("[signIn Callback] Critical error creating user:", error);
-                return false;
+                dbUser = createdDbUser; 
+                console.log(`[signIn Callback] Created new user ${dbUser.email} during signIn.`);
+
+                if (account && account.providerAccountId) {
+                    const existingAccount = await prisma.account.findUnique({
+                        where: { provider_providerAccountId: { provider: account.provider, providerAccountId: account.providerAccountId }}
+                    });
+                    if (!existingAccount) {
+                        await prisma.account.create({
+                            data: {
+                                userId: dbUser.id,
+                                type: account.type,
+                                provider: account.provider,
+                                providerAccountId: account.providerAccountId,
+                                access_token: account.access_token,
+                                refresh_token: account.refresh_token,
+                                expires_at: account.expires_at,
+                                token_type: account.token_type,
+                                scope: account.scope,
+                                id_token: account.id_token,
+                                session_state: account.session_state,
+                            },
+                        });
+                        console.log(`[signIn Callback] Linked Google account for ${dbUser.email}`);
+                    }
+                }
+              } catch (error: unknown) { 
+                console.error("[signIn Callback] Failed to create user or link account:", error);
+                
+                if (typeof error === 'object' && error !== null && 'code' in error && 'meta' in error) {
+                    const prismaError = error as { code?: string; meta?: { target?: string[] } }; 
+                    if (prismaError.code === 'P2002' && prismaError.meta?.target?.includes('email')) {
+                        console.log("[signIn Callback] User likely created by adapter in parallel. Re-fetching.");
+                        dbUser = await prisma.user.findUnique({ where: { email: userEmail }});
+                        if (!dbUser) {
+                            console.error("[signIn Callback] Failed to re-fetch user after P2002 error.");
+                            return false;
+                        }
+                    } else {
+                        return false; 
+                    }
+                } else {
+                  console.error("[signIn Callback] An unexpected error type occurred:", error);
+                  return false;
+                }
             }
         }
       }
     
       if (!dbUser) {
+        console.error(`[signIn Callback] User with email ${userEmail} not found and could not be created.`);
         return false;
       }
     
-      // Sync user object with DB state
       typedUser.id = dbUser.id; 
+      typedUser.email = dbUser.email;
+      typedUser.firstName = dbUser.firstName;
+      typedUser.lastName = dbUser.lastName;
+      typedUser.name = `${dbUser.firstName} ${dbUser.lastName}`.trim(); 
       typedUser.role = dbUser.role;
       typedUser.status = dbUser.status;
-      // ... (sync other necessary fields)
+      typedUser.isVerified = dbUser.isVerified;
+      typedUser.isProfileComplete = dbUser.isProfileComplete;
+      typedUser.isPhoneVerified = dbUser.isPhoneVerified;
+      typedUser.source = dbUser.source;
+      typedUser.addedByMatchmakerId = dbUser.addedByMatchmakerId;
+      typedUser.termsAndPrivacyAcceptedAt = dbUser.termsAndPrivacyAcceptedAt;
+            typedUser.marketingConsent = dbUser.marketingConsent;
 
-      if (account?.provider === "google" && !dbUser.isVerified && oauthProfile?.email_verified) {
-        const updatedUser = await prisma.user.update({
-          where: { id: dbUser.id },
-          data: { isVerified: true, status: UserStatus.PENDING_PHONE_VERIFICATION }
-        });
-        typedUser.isVerified = updatedUser.isVerified;
-        typedUser.status = updatedUser.status;
+      if (account?.provider === "google") {
+        if (dbUser.isVerified === false && oauthProfile?.email_verified === true) {
+          console.log(`[signIn Callback] Google User ${dbUser.email} was not email-verified, but Google says it is. Updating DB.`);
+          const updatedUser = await prisma.user.update({
+            where: { id: dbUser.id },
+            data: { isVerified: true, status: UserStatus.PENDING_PHONE_VERIFICATION }
+          });
+          typedUser.isVerified = updatedUser.isVerified;
+          typedUser.status = updatedUser.status;
+        }
       }
     
       await prisma.user.update({
         where: { id: dbUser.id },
         data: { lastLogin: new Date() }
-      });
+      }).catch(err => console.error(`[signIn Callback] Failed to update lastLogin for user ${dbUser.id}:`, err));
     
       const requiresCompletion = !dbUser.isProfileComplete || !dbUser.isPhoneVerified || !dbUser.termsAndPrivacyAcceptedAt;
       typedUser.requiresCompletion = requiresCompletion;
-      typedUser.redirectUrl = requiresCompletion ? '/auth/register' : '/profile';
+
+      if (requiresCompletion) {
+        typedUser.redirectUrl = '/auth/register';
+      } else {
+        typedUser.redirectUrl = '/profile';
+      }
     
+      console.log("[signIn Callback] Processed user. Flags:", {
+        requiresCompletion: typedUser.requiresCompletion,
+        redirectUrl: typedUser.redirectUrl,
+      });
       return true;
     },
 
-    async jwt({ token, user, trigger }) {
+    async jwt({ token, user, trigger, session, account }) {
       const typedToken = token as ExtendedUserJWT;
       const typedUserFromCallback = user as ExtendedUser | undefined;
 
-      // On initial sign-in, populate token from the user object passed from signIn
+      console.log("[JWT Callback] Triggered.", {
+          trigger,
+          tokenEmail: typedToken.email,
+          userEmailFromCallback: typedUserFromCallback?.email
+      });
+
+      // Initial sign-in: populate token from user object
       if (typedUserFromCallback) {
         typedToken.id = typedUserFromCallback.id;
         typedToken.email = typedUserFromCallback.email.toLowerCase();
         typedToken.firstName = typedUserFromCallback.firstName;
         typedToken.lastName = typedUserFromCallback.lastName;
-        typedToken.name = typedUserFromCallback.name;
-        typedToken.picture = typedUserFromCallback.image;
+        typedToken.name = typedUserFromCallback.name || `${typedUserFromCallback.firstName} ${typedUserFromCallback.lastName}`.trim();
+        typedToken.picture = typedUserFromCallback.image || null; 
         typedToken.role = typedUserFromCallback.role;
         typedToken.status = typedUserFromCallback.status;
+        typedToken.isVerified = typedUserFromCallback.isVerified;
+        typedToken.isProfileComplete = typedUserFromCallback.isProfileComplete || false;
+        typedToken.isPhoneVerified = typedUserFromCallback.isPhoneVerified || false;
+        typedToken.hasCompletedOnboarding = typedUserFromCallback.hasCompletedOnboarding;
+        typedToken.questionnaireCompleted = typedUserFromCallback.questionnaireCompleted; 
+        typedToken.source = typedUserFromCallback.source;
+        typedToken.addedByMatchmakerId = typedUserFromCallback.addedByMatchmakerId;
+        typedToken.termsAndPrivacyAcceptedAt = typedUserFromCallback.termsAndPrivacyAcceptedAt;
         typedToken.requiresCompletion = typedUserFromCallback.requiresCompletion;
         typedToken.redirectUrl = typedUserFromCallback.redirectUrl;
-        typedToken.marketingConsent = typedUserFromCallback.marketingConsent;
+                typedToken.marketingConsent = typedUserFromCallback.marketingConsent;
+
+        console.log("[JWT Callback - Initial Population] Token populated from user object.");
       }
       
-      // On subsequent JWT validation (e.g., page navigation) or session updates, 
-      // refresh critical flags from the database to ensure the token is up-to-date.
+      // On subsequent JWT calls or session updates, refresh data from DB
       if (typedToken.id && (trigger === "update" || trigger === "signIn")) {
+          console.log(`[JWT Callback - DB Refresh] Refreshing token for user ID: ${typedToken.id}.`);
           const dbUserForJwt = await prisma.user.findUnique({
             where: { id: typedToken.id },
             include: {
-              // We only include what's necessary to calculate flags
+              profile: true,
               images: { where: { isMain: true }, take: 1 },
-              questionnaireResponses: { where: { completed: true }, take: 1 }
+              questionnaireResponses: { orderBy: { createdAt: 'desc' }, take: 1 }
             }
           });
 
           if (dbUserForJwt) {
-            // Update basic user info
             typedToken.firstName = dbUserForJwt.firstName;
             typedToken.lastName = dbUserForJwt.lastName;
-            typedToken.picture = dbUserForJwt.images?.[0]?.url || typedToken.picture;
+            typedToken.picture = dbUserForJwt.images?.[0]?.url || typedToken.picture; 
             typedToken.role = dbUserForJwt.role;
             typedToken.status = dbUserForJwt.status;
-            typedToken.marketingConsent = dbUserForJwt.marketingConsent;
-
-            // ✅ *** FIX: START ***
-            // Instead of loading entire objects into the token, we now only store boolean flags.
-            // This keeps the token size small and prevents cookie overflow errors.
+            typedToken.isVerified = dbUserForJwt.isVerified;
             typedToken.isProfileComplete = dbUserForJwt.isProfileComplete;
             typedToken.isPhoneVerified = dbUserForJwt.isPhoneVerified;
             typedToken.hasCompletedOnboarding = dbUserForJwt.hasCompletedOnboarding;
-            typedToken.questionnaireCompleted = dbUserForJwt.questionnaireResponses.length > 0;
-            
-            // ⛔️ The following lines were removed as they caused the JWT to become too large
-            // typedToken.profile = dbUserForJwt.profile;
-            // typedToken.images = dbUserForJwt.images;
-            // typedToken.questionnaireResponses = dbUserForJwt.questionnaireResponses;
-            
-            // Recalculate completion status based on fresh data
+            typedToken.source = dbUserForJwt.source;
+            typedToken.addedByMatchmakerId = dbUserForJwt.addedByMatchmakerId;
+            typedToken.termsAndPrivacyAcceptedAt = dbUserForJwt.termsAndPrivacyAcceptedAt;
+                       typedToken.marketingConsent = dbUserForJwt.marketingConsent;
+
+            typedToken.profile = dbUserForJwt.profile as UserProfile | null;
+            typedToken.images = dbUserForJwt.images as UserImage[];
+            typedToken.questionnaireResponses = dbUserForJwt.questionnaireResponses as QuestionnaireResponse[];
+            typedToken.questionnaireCompleted = dbUserForJwt.questionnaireResponses.length > 0 && dbUserForJwt.questionnaireResponses[0].completed === true;
+
             const requiresCompletionFromDb = (!dbUserForJwt.isProfileComplete || !dbUserForJwt.isPhoneVerified || !dbUserForJwt.termsAndPrivacyAcceptedAt);
             typedToken.requiresCompletion = requiresCompletionFromDb;
             typedToken.redirectUrl = requiresCompletionFromDb ? '/auth/register' : '/profile';
-            // ✅ *** FIX: END ***
+            
+            console.log("[JWT Callback - DB Refresh] Token updated from DB.");
           }
       }
       
+      console.log("[JWT Callback] Returning final token.");
       return typedToken;
     },
 
@@ -323,7 +435,6 @@ export const authOptions: NextAuthOptions = {
       const typedSession = session as ExtendedSession;
 
       if (typedSession.user && typedToken.id) {
-        // Populate the session with the minimal, essential data from the token.
         typedSession.user.id = typedToken.id;
         typedSession.user.email = typedToken.email;
         typedSession.user.firstName = typedToken.firstName;
@@ -332,44 +443,51 @@ export const authOptions: NextAuthOptions = {
         typedSession.user.image = typedToken.picture ?? null; 
         typedSession.user.role = typedToken.role;
         typedSession.user.status = typedToken.status;
-        typedSession.user.marketingConsent = typedToken.marketingConsent;
-
-        // ✅ *** FIX: START ***
-        // Add the boolean flags to the session so the client-side can use them.
         typedSession.user.isVerified = typedToken.isVerified;
         typedSession.user.isProfileComplete = typedToken.isProfileComplete;
         typedSession.user.isPhoneVerified = typedToken.isPhoneVerified;
         typedSession.user.questionnaireCompleted = typedToken.questionnaireCompleted;
         typedSession.user.hasCompletedOnboarding = typedToken.hasCompletedOnboarding as boolean;
-        
-        // ⛔️ The following lines were removed. This data should be fetched via a dedicated API route
-        // when a component needs it, not carried in the session.
-        // typedSession.user.profile = typedToken.profile; 
-        // typedSession.user.images = typedToken.images; 
-        // typedSession.user.questionnaireResponses = typedToken.questionnaireResponses;
+        typedSession.user.source = typedToken.source;
+        typedSession.user.addedByMatchmakerId = typedToken.addedByMatchmakerId;
+        typedSession.user.termsAndPrivacyAcceptedAt = typedToken.termsAndPrivacyAcceptedAt;
+        typedSession.user.marketingConsent = typedToken.marketingConsent;
 
-        // Add redirection logic flags to the session
+        typedSession.user.profile = typedToken.profile; 
+        typedSession.user.images = typedToken.images; 
+        typedSession.user.questionnaireResponses = typedToken.questionnaireResponses;
+        typedSession.user.createdAt = typedToken.createdAt;
+        typedSession.user.updatedAt = typedToken.updatedAt;
+        typedSession.user.lastLogin = typedToken.lastLogin;
+
         typedSession.requiresCompletion = typedToken.requiresCompletion;
         typedSession.redirectUrl = typedToken.redirectUrl;
-         // ✅ *** FIX: END ***
       }
       return typedSession;
     },
 
+    // --- START: התיקון המרכזי כאן ---
     async redirect({ url, baseUrl }) {
         console.log(`[Redirect Callback] Triggered with url: ${url}`);
+        
+        // מאפשר URL יחסי (למשל "/profile")
         if (url.startsWith('/')) {
             const finalUrl = `${baseUrl}${url}`;
             console.log(`[Redirect Callback] Relative URL detected. Returning: ${finalUrl}`);
             return finalUrl;
         }
+        
+        // מאפשר URLים באותו דומיין
         if (new URL(url).origin === baseUrl) {
             console.log(`[Redirect Callback] Same origin URL detected. Returning: ${url}`);
             return url;
         }
+        
+        // אם ה-URL הוא חיצוני, מפנה לדף הבית כברירת מחדל בטוחה
         console.log(`[Redirect Callback] External URL detected. Redirecting to baseUrl: ${baseUrl}`);
         return baseUrl;
     }
+    // --- END: התיקון המרכזי כאן ---
   },
 
   pages: {

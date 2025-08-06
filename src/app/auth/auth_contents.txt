@@ -1,23 +1,23 @@
 ################################################################################
-# Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\auth
-# Generated on: 2025-07-22 10:39:53
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth
+# Generated on: 2025-08-06 18:11:38
 ################################################################################
 
 ================================================================================
-Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\auth
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\auth\auth_contents.txt
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\auth_contents.txt
 --------------------------------------------------------------------------------
 [This is the output log file itself. Content not included.]
 
 ================================================================================
-Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\auth\error
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\error
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\auth\error\page.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\error\page.tsx
 --------------------------------------------------------------------------------
 Content:
 "use client";
@@ -83,11 +83,11 @@ export default function ErrorPage() {
 --- End of Content for page.tsx ---
 
 ================================================================================
-Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\auth\forgot-password
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\forgot-password
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\auth\forgot-password\page.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\forgot-password\page.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/auth/forgot-password/page.tsx
@@ -112,11 +112,11 @@ export default function ForgotPasswordPage() {
 --- End of Content for page.tsx ---
 
 ================================================================================
-Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\auth\register
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\register
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\auth\register\page.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\register\page.tsx
 --------------------------------------------------------------------------------
 Content:
 import RegisterSteps from "@/app/components/auth/RegisterSteps";
@@ -127,11 +127,11 @@ export default function RegisterPage() {
 --- End of Content for page.tsx ---
 
 ================================================================================
-Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\auth\reset-password
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\reset-password
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\auth\reset-password\page.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\reset-password\page.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/auth/reset-password/page.tsx
@@ -165,11 +165,11 @@ export default function ResetPasswordPage() {
 --- End of Content for page.tsx ---
 
 ================================================================================
-Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\auth\setup-account
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\setup-account
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\auth\setup-account\page.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\setup-account\page.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/app/auth/setup-account/page.tsx
@@ -328,11 +328,11 @@ export default function SetupAccountPage() {
 --- End of Content for page.tsx ---
 
 ================================================================================
-Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\auth\signin
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\signin
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\auth\signin\page.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\signin\page.tsx
 --------------------------------------------------------------------------------
 Content:
 "use client";
@@ -614,11 +614,11 @@ export default function SignInPage() {
 --- End of Content for page.tsx ---
 
 ================================================================================
-Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\auth\update-phone
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\update-phone
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\auth\update-phone\page.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\update-phone\page.tsx
 --------------------------------------------------------------------------------
 Content:
 // app/auth/update-phone/page.tsx
@@ -666,7 +666,6 @@ const UpdatePhonePage = () => {
             }
 
             // Success! Redirect back to the verification page to enter the new code
-            console.log("Phone updated, redirecting back to verify page.");
             router.push('/auth/verify-phone');
 
         } catch (err: unknown) { // Catch error as unknown
@@ -764,11 +763,11 @@ export default UpdatePhonePage;
 --- End of Content for page.tsx ---
 
 ================================================================================
-Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\auth\verify-email
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\verify-email
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\auth\verify-email\page.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\verify-email\page.tsx
 --------------------------------------------------------------------------------
 Content:
 // /auth/verify-email/page.tsx
@@ -848,9 +847,7 @@ export default function VerifyEmailPage() {
 
     const processVerification = async () => {
       if (verificationApiCallMadeRef.current) {
-        console.log(
-          "VerifyEmailPage: API call already made or in progress, skipping."
-        );
+      
         return;
       }
       verificationApiCallMadeRef.current = true; // Mark that we are making the call
@@ -859,7 +856,6 @@ export default function VerifyEmailPage() {
       const emailFromQuery = searchParams.get("email");
       let actualToken: string | null = null;
 
-      console.log("VerifyEmailPage: Raw token from URL:", rawTokenParam);
       if (rawTokenParam) {
         // ... (token extraction logic)
         if (
@@ -869,10 +865,7 @@ export default function VerifyEmailPage() {
           try {
             const nestedUrl = new URL(rawTokenParam);
             actualToken = nestedUrl.searchParams.get("token");
-            console.log(
-              "VerifyEmailPage: Extracted token from nested URL:",
-              actualToken
-            );
+           
           } catch (error) {
             console.warn(
               "VerifyEmailPage: Could not parse rawTokenParam as a URL:",
@@ -883,27 +876,20 @@ export default function VerifyEmailPage() {
           }
         } else {
           actualToken = rawTokenParam;
-          console.log(
-            "VerifyEmailPage: Using raw token directly:",
-            actualToken
-          );
+        
         }
       }
 
       if (!actualToken) {
         if (emailFromQuery) {
-          console.log(
-            "VerifyEmailPage: No token, but email found. Setting to pending."
-          );
+         
           if (isEffectMounted)
             setVerification({
               status: "pending",
               message: "שלחנו מייל אימות לכתובת:",
             });
         } else {
-          console.log(
-            "VerifyEmailPage: No token and no email. Setting to error."
-          );
+         
           if (isEffectMounted)
             setVerification({
               status: "error",
@@ -915,10 +901,7 @@ export default function VerifyEmailPage() {
 
       if (isEffectMounted)
         setVerification({ status: "verifying", message: "" });
-      console.log(
-        "VerifyEmailPage: ==> Attempting API verification for token:",
-        actualToken
-      );
+    
 
       // Session check
       if (
@@ -961,7 +944,6 @@ export default function VerifyEmailPage() {
         }
 
         if (controller.signal.aborted) {
-          console.log("VerifyEmailPage (API): Fetch aborted by cleanup.");
           return;
         }
 
@@ -971,7 +953,6 @@ export default function VerifyEmailPage() {
           throw new Error(errorMessage);
         }
 
-        console.log("VerifyEmailPage (API): Verification successful.");
         if (isEffectMounted) {
           setVerification({
             status: "success",
@@ -980,21 +961,16 @@ export default function VerifyEmailPage() {
           navigationTimeoutIdRef.current = setTimeout(() => {
             if (isEffectMounted) {
               // Check mount status again before navigating
-              console.log("VerifyEmailPage: Navigating now to /auth/signin.");
               router.push("/auth/signin");
             } else {
-              console.log(
-                "VerifyEmailPage: Effect unmounted before navigation timeout."
-              );
+            
             }
           }, 1500);
         }
       } catch (error: unknown) {
         if (controller.signal.aborted) {
           // Check if the error is due to our own abort
-          console.log(
-            "VerifyEmailPage (API) [catch]: Fetch aborted by controller during operation."
-          );
+        
         } else if (isEffectMounted) {
           console.error(
             "VerifyEmailPage (API) [catch]: Error during API verification:",
@@ -1022,16 +998,12 @@ export default function VerifyEmailPage() {
     processVerification();
 
     return () => {
-      console.log(
-        "VerifyEmailPage (useEffect cleanup): Cleaning up. Aborting API call."
-      );
+     
       isEffectMounted = false; // Mark that this effect instance is being cleaned up
       controller.abort();
       if (navigationTimeoutIdRef.current) {
         clearTimeout(navigationTimeoutIdRef.current);
-        console.log(
-          "VerifyEmailPage (useEffect cleanup): Cleared navigation timeout."
-        );
+   
       }
       // Do NOT reset verificationApiCallMadeRef.current here.
       // It should ensure the logic runs only once per component true lifecycle.
@@ -1153,11 +1125,11 @@ export default function VerifyEmailPage() {
 --- End of Content for page.tsx ---
 
 ================================================================================
-Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\auth\verify-phone
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\verify-phone
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\app\auth\verify-phone\page.tsx
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\auth\verify-phone\page.tsx
 --------------------------------------------------------------------------------
 Content:
 // app/auth/verify-phone/page.tsx
@@ -1265,7 +1237,6 @@ const VerifyPhonePage = () => {
 
       setIsLoading(true);
       try {
-        console.log("[VerifyPhonePage] Verifying code:", otp);
         const response = await fetch("/api/auth/verify-phone-code", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -1278,10 +1249,7 @@ const VerifyPhonePage = () => {
           throw new Error(result.error || "אימות הקוד נכשל. אנא נסה שנית.");
         }
 
-        console.log(
-          "[VerifyPhonePage] Code verified successfully. Result:",
-          result
-        );
+       
         setVerifySuccessMessage("מספר הטלפון אומת בהצלחה! מעדכן את הפרופיל שלך...");
 
         console.log(
@@ -1293,9 +1261,7 @@ const VerifyPhonePage = () => {
           isProfileComplete: true,
           status: "ACTIVE",
         });
-        console.log(
-          "[VerifyPhonePage] Session update initiated. Performing full page redirect to /profile."
-        );
+       
 
         window.location.href = "/profile";
       } catch (err: unknown) {
@@ -1325,7 +1291,6 @@ const VerifyPhonePage = () => {
     setIsResending(true);
 
     try {
-      console.log("[VerifyPhonePage] Resending code...");
       const response = await fetch("/api/auth/resend-phone-code", {
         method: "POST",
       });
