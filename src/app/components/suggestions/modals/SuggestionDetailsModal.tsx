@@ -940,7 +940,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
               </TabsContent>
               <TabsContent
                 value="profile"
-                className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen w-full grid place-items-center"
+                className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen"
               >
                 {isQuestionnaireLoading ? (
                   <div className="flex justify-center items-center h-64">

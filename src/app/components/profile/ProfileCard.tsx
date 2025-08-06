@@ -4968,7 +4968,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         <div
           className={cn(
             'p-3 sm:p-4 min-w-0 max-w-full overflow-hidden',
-            'flex justify-center', // <-- הוספת הקלאסים כאן
             `bg-gradient-to-br ${THEME.colors.neutral.cool}`
           )}
         >

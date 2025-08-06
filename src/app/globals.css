@@ -58,14 +58,7 @@
     @apply bg-background text-foreground;
   }
 
-  html[dir='rtl'] {
-    overflow-x: hidden;
-  }
 
-  html[dir='rtl'] body {
-    width: 100%;
-    overflow-x: hidden;
-  }
 }
 
 /* 3. Components Layer: סגנונות לרכיבים מותאמים אישית */
