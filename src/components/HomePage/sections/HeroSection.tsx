@@ -263,6 +263,7 @@ const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({
       glowColor: 'shadow-cyan-400/30',
       bgGradient: 'from-cyan-50 via-white to-blue-50',
       accentColor: 'bg-cyan-500',
+      index: 0,
     },
     {
       icon: <Shield className="w-6 h-6" />,
@@ -275,6 +276,7 @@ const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({
       glowColor: 'shadow-purple-400/30',
       bgGradient: 'from-purple-50 via-white to-indigo-50',
       accentColor: 'bg-purple-500',
+      index: 1,
     },
     {
       icon: <User className="w-6 h-6" />,
@@ -287,6 +289,7 @@ const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({
       glowColor: 'shadow-pink-400/30',
       bgGradient: 'from-pink-50 via-white to-rose-50',
       accentColor: 'bg-pink-500',
+      index: 2,
     },
   ];
 
@@ -320,50 +323,31 @@ const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({
       >
         {/* Background container with glassmorphism */}
         <div className="relative bg-white/80 backdrop-blur-xl rounded-2xl p-2 shadow-xl border border-white/20">
-          {/* Animated background indicator */}
-          <div
-            className={`absolute top-2 h-[calc(100%-16px)] rounded-xl transition-all duration-500 ease-out bg-gradient-to-r ${principles[activeTab].gradient} ${principles[activeTab].shadowColor} shadow-lg`}
-            style={{
-              left: `${(activeTab * 100) / 3 + 2}%`,
-              width: `${100 / 3 - 4}%`,
-              transform: 'translateX(-2%)',
-            }}
-          />
-
           {/* Tab buttons */}
           <div className="relative flex">
             {principles.map((principle, index) => (
               <button
                 key={index}
-                className="flex-1 py-3 px-1 flex flex-col items-center justify-center gap-2 relative z-20"
+                className={`flex-1 py-3 px-1 flex flex-col items-center justify-center gap-2 relative z-20 rounded-xl transition-all duration-500 ${
+                  activeTab === index 
+                    ? `bg-gradient-to-r ${principle.gradient} ${principle.shadowColor} shadow-lg` 
+                    : 'bg-transparent hover:bg-white/30'
+                }`}
                 onClick={() => setActiveTab(index)}
               >
-                {/* 
-                  תיקון: החזרת עיצוב האייקונים למצב המקורי.
-                  הצבע הלא-פעיל חזר להיות text-gray-600.
-                */}
+                {/* אייקון */}
                 <div
-                  className={`transition-transform duration-300 ${activeTab === index ? 'scale-110' : 'hover:scale-105'}`}
-                >
-                  <div
-                    className={`transition-colors duration-300 ${activeTab === index ? 'text-white' : 'text-gray-800'}`}
-                  >
-                    {principle.icon}
-                  </div>
-                </div>
-
-                {/* 
-                  תיקון: הבטחת נראות הטקסט מבלי לשנות את העיצוב הכללי.
-                  1. הוספת text-shadow לטאב הפעיל כדי שהטקסט הלבן יהיה קריא.
-                  2. החזרת הצבע של הטקסט הלא-פעיל ל-text-gray-600 כדי שיתאים לאייקון.
-                */}
-                <div
-                  className={`text-xs font-bold text-center leading-tight min-h-[2.5rem] flex items-center justify-center px-1 transition-colors duration-300 ${
-                    activeTab === index
-                      ? 'text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.4)]'
-                      : 'text-gray-600'
+                  className={`transition-all duration-300 ${
+                    activeTab === index ? 'scale-110 text-white' : 'hover:scale-105 text-gray-800'
                   }`}
                 >
+                  {principle.icon}
+                </div>
+
+                {/* טקסט */}
+                <div className={`text-xs font-bold text-center leading-tight min-h-[2.5rem] flex items-center justify-center px-1 transition-colors duration-300 ${
+                  activeTab === index ? 'text-white' : 'text-gray-800'
+                }`}>
                   {principle.shortTitle}
                 </div>
               </button>
