@@ -216,11 +216,18 @@ const DesktopPrincipleCard: React.FC<DesktopPrincipleCardProps> = ({
         <div className="flex items-center justify-center mb-6">
           <div
             className={`relative w-16 h-16 rounded-2xl bg-gradient-to-br ${colors.gradient} flex items-center justify-center text-white ${colors.glowColor} shadow-xl transform group-hover:rotate-12 transition-transform duration-500`}
+            style={{ 
+              filter: 'contrast(1.1) brightness(1.05)',
+              WebkitFilter: 'contrast(1.1) brightness(1.05)'
+            }}
           >
             {React.cloneElement(icon as React.ReactElement, {
-              className: 'w-8 h-8',
+              className: 'w-9 h-9',
+              strokeWidth: 2.8,
+              fill: 'none',
+              stroke: 'currentColor'
             })}
-            <div className="absolute inset-0 rounded-2xl bg-white/20 backdrop-blur-sm" />
+            <div className="absolute inset-0 rounded-2xl bg-white/15 backdrop-blur-sm" />
           </div>
         </div>
 
@@ -321,8 +328,8 @@ const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({
         transition={{ duration: 0.7, delay: 0.7 }}
         className="relative mb-6"
       >
-        {/* Background container with glassmorphism */}
-        <div className="relative bg-white/80 backdrop-blur-xl rounded-2xl p-2 shadow-xl border border-white/20">
+        {/* Background container without blur effect */}
+        <div className="relative bg-white/90 rounded-2xl p-2 shadow-xl border border-white/30">
           {/* Tab buttons */}
           <div className="relative flex">
             {principles.map((principle, index) => (
@@ -331,24 +338,63 @@ const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({
                 className={`flex-1 py-3 px-1 flex flex-col items-center justify-center gap-2 relative z-20 rounded-xl transition-all duration-500 ${
                   activeTab === index 
                     ? `bg-gradient-to-r ${principle.gradient} ${principle.shadowColor} shadow-lg` 
-                    : 'bg-transparent hover:bg-white/30'
+                    : 'bg-transparent hover:bg-white/40'
                 }`}
                 onClick={() => setActiveTab(index)}
               >
-                {/* אייקון */}
+                {/* אייקון עם חדות מקסימלית */}
                 <div
                   className={`transition-all duration-300 ${
-                    activeTab === index ? 'scale-110 text-white' : 'hover:scale-105 text-gray-800'
+                    activeTab === index ? 'scale-110' : 'hover:scale-105'
                   }`}
                 >
-                  {principle.icon}
+                  <div className={`transition-all duration-300 ${
+                    activeTab === index 
+                      ? 'text-white' 
+                      : 'text-gray-900 hover:text-black'
+                  }`}
+                  style={{ 
+                    filter: 'none',
+                    WebkitFilter: 'none',
+                    transform: 'translateZ(0)', // Force hardware acceleration
+                    backfaceVisibility: 'hidden',
+                    WebkitBackfaceVisibility: 'hidden'
+                  }}>
+                    <div style={{
+                      display: 'inline-block',
+                      transform: 'translateZ(0)',
+                      WebkitTransform: 'translateZ(0)'
+                    }}>
+                      {React.cloneElement(principle.icon, {
+                        className: 'w-7 h-7',
+                        strokeWidth: 2.2,
+                        fill: 'none',
+                        stroke: 'currentColor',
+                        strokeLinecap: 'round',
+                        strokeLinejoin: 'round',
+                        style: {
+                          filter: 'none',
+                          WebkitFilter: 'none',
+                          imageRendering: 'optimizeQuality',
+                          shapeRendering: 'geometricPrecision'
+                        }
+                      })}
+                    </div>
+                  </div>
                 </div>
 
-                {/* טקסט */}
-                <div className={`text-xs font-bold text-center leading-tight min-h-[2.5rem] flex items-center justify-center px-1 transition-colors duration-300 ${
-                  activeTab === index ? 'text-white' : 'text-gray-800'
+                {/* טקסט מעוצב ומודרני */}
+                <div className={`text-xs font-bold text-center leading-tight min-h-[2.5rem] flex items-center justify-center px-1 transition-all duration-300 ${
+                  activeTab === index 
+                    ? 'text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.3)] transform scale-105' 
+                    : 'text-gray-900 hover:text-black'
                 }`}>
-                  {principle.shortTitle}
+                  <span className="relative">
+                    {principle.shortTitle}
+                    {activeTab === index && (
+                      <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-4 h-0.5 bg-white/60 rounded-full" />
+                    )}
+                  </span>
                 </div>
               </button>
             ))}
@@ -401,21 +447,28 @@ const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({
                 <div className="flex items-center justify-center mb-6">
                   <div
                     className={`relative w-16 h-16 rounded-2xl bg-gradient-to-br ${principle.gradient} flex items-center justify-center text-white ${principle.glowColor} shadow-xl transform rotate-6 hover:rotate-12 transition-transform duration-300`}
+                    style={{ 
+                      filter: 'contrast(1.1) brightness(1.05)',
+                      WebkitFilter: 'contrast(1.1) brightness(1.05)'
+                    }}
                   >
                     {React.cloneElement(principle.icon, {
-                      className: 'w-8 h-8',
+                      className: 'w-9 h-9',
+                      strokeWidth: 2.8,
+                      fill: 'none',
+                      stroke: 'currentColor'
                     })}
-                    <div className="absolute inset-0 rounded-2xl bg-white/20 backdrop-blur-sm" />
+                    <div className="absolute inset-0 rounded-2xl bg-white/15 backdrop-blur-sm" />
                   </div>
                 </div>
 
                 {/* Title with enhanced typography */}
-                <h4 className="font-bold text-gray-800 text-lg mb-4 text-center leading-tight">
+                <h4 className="font-bold text-gray-800 text-xl mb-4 text-center leading-tight tracking-wide">
                   {principle.title}
                 </h4>
 
                 {/* Description with better spacing */}
-                <p className="text-gray-700 text-sm leading-relaxed text-center px-2">
+                <p className="text-gray-700 text-base leading-relaxed text-center px-2 max-w-md mx-auto">
                   {principle.description}
                 </p>
 
