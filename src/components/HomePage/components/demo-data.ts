@@ -637,7 +637,7 @@ const danielProfile: PartyInfo = {
     birthDateIsApproximate: false,
     height: 182,
     city: 'ירושלים',
-    occupation: 'מהנדס תוכנה וסטודנט לתואמהנדס תוכנה וסטודנט לתואר שני',
+    occupation: 'מהנדס תוכנה וסטודנט לתואר שני',
     education: 'תואר ראשון בהנדסת תוכנה, הטכניון',
     educationLevel: 'academic_student',
     religiousLevel: 'דתי לאומי-ליברלי',
