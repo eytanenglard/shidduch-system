@@ -5,7 +5,7 @@ import prisma from "@/lib/prisma";
 import { MatchSuggestionStatus, Prisma, UserRole } from "@prisma/client";
 import { suggestionService } from "@/app/components/matchmaker/suggestions/services/suggestions/SuggestionService";
 import type { CreateSuggestionData } from "@/types/suggestions";
-
+export const dynamic = 'force-dynamic';
 const getSuggestionCategory = (status: MatchSuggestionStatus) => {
   switch (status) {
     case 'DRAFT':

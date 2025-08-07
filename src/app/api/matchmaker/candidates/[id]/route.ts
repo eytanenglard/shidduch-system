@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { Prisma, UserRole } from "@prisma/client"; // הוספתי Prisma עבור סוגי שגיאות
 import { updateUserAiProfile } from '@/lib/services/profileAiService'; // <--- 1. ייבוא
-
+export const dynamic = 'force-dynamic';
 // פונקציית GET הקיימת שלך
 export async function GET(
   req: NextRequest,

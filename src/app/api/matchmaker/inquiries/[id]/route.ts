@@ -5,7 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { AvailabilityService } from "@/lib/services/availabilityService";
 import prisma from "@/lib/prisma"; // Added prisma
 import { UserRole } from "@prisma/client"; // Added UserRole
-
+export const dynamic = 'force-dynamic';
 export async function GET(
   req: Request, // req is not used, consider removing if not planned for future use
   { params }: { params: { id: string } }

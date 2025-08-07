@@ -4,7 +4,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { v2 as cloudinary } from 'cloudinary';
-
+export const dynamic = 'force-dynamic';
 // Configure Cloudinary
 if (
   !process.env.CLOUDINARY_CLOUD_NAME ||

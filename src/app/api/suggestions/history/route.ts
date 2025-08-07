@@ -7,7 +7,7 @@ import prisma from "@/lib/prisma";
 import { formatAnswers, KEY_MAPPING, DbWorldKey, FormattedAnswersType } from '@/lib/questionnaireFormatter';
 import type { ExtendedMatchSuggestion, PartyInfo, QuestionnaireResponse, WorldId } from "@/app/components/suggestions/types";
 import type { FormattedAnswer } from "@/types/next-auth";
-
+export const dynamic = 'force-dynamic';
 // --- טיפוסים חזקים ומדויקים לתהליך העיבוד ---
 type ProcessedQuestionnaireResponse = Omit<QuestionnaireResponse, 'valuesAnswers' | 'personalityAnswers' | 'relationshipAnswers' | 'partnerAnswers' | 'religionAnswers'> & {
   formattedAnswers: FormattedAnswersType;

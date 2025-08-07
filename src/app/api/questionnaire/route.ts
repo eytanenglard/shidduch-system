@@ -5,7 +5,7 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { z } from 'zod';
 import { Prisma } from '@prisma/client';
-
+export const dynamic = 'force-dynamic';
 function isPrismaError(
   error: unknown
 ): error is Prisma.PrismaClientKnownRequestError {

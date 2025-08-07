@@ -6,7 +6,7 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { Gender, HeadCoveringType, KippahType, ServiceType, ReligiousJourney  } from "@prisma/client"; // Import enums if needed for casting
 import type { UserProfile } from "@/types/next-auth";
-
+export const dynamic = 'force-dynamic';
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);

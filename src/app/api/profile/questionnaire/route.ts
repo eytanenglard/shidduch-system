@@ -11,7 +11,7 @@ import { personalityQuestions } from '@/components/questionnaire/questions/perso
 import { relationshipQuestions } from '@/components/questionnaire/questions/relationship/relationshipQuestions';
 import { partnerQuestions } from '@/components/questionnaire/questions/partner/partnerQuestions';
 import { religionQuestions } from '@/components/questionnaire/questions/religion/religionQuestions';
-
+export const dynamic = 'force-dynamic';
 const allQuestions = [
   ...valuesQuestions,
   ...personalityQuestions,

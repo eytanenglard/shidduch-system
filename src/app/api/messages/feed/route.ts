@@ -6,7 +6,7 @@ import prisma from "@/lib/prisma";
 import type { FeedItem, FeedItemType } from "@/types/messages";
 import type { ExtendedMatchSuggestion } from "@/app/components/suggestions/types";
 import { MatchSuggestionStatus } from "@prisma/client";
-
+export const dynamic = 'force-dynamic';
 // Helper function to include all necessary fields for a party
 // בקובץ api/messages/feed/route.ts
 const partySelect = {
