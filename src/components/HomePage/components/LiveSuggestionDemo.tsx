@@ -31,7 +31,7 @@ export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
   return (
     <div className="w-full max-w-sm lg:max-w-md mx-auto flex flex-col items-center gap-4">
       <div
-        className="relative group cursor-pointer rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300"
+        className="relative group cursor-pointer rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
         onClick={handleOpenModal}
         role="button"
         tabIndex={0}

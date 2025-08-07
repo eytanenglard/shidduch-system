@@ -231,46 +231,47 @@ const HowItWorksSection: React.FC = () => {
             </p>
           </div>
 
-          <motion.div
-            ref={demoRef}
-            initial={{ opacity: 0, y: 30 }}
-            animate={
-              isDemoInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }
-            }
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 max-w-7xl mx-auto"
-          >
-            <div className="flex flex-col items-center">
-              <h4 className="text-lg font-semibold text-gray-800 text-center px-4 py-2 bg-cyan-100 rounded-full mb-4">
-                דוגמה: הצעה לבחורה
-              </h4>
-              <div className="relative w-full max-w-sm lg:max-w-md">
-                <div className="absolute -inset-4 bg-gradient-to-r from-cyan-500/20 via-pink-500/20 to-cyan-500/20 rounded-3xl blur-xl" />
-                <div className="relative bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-2xl border border-white">
-                  <LiveSuggestionDemo
-                    suggestion={demoSuggestionDataMale}
-                    userId="visitor-user-id"
-                    demoAiAnalysis={demoAiAnalysisForDaniel}
-                  />
-                </div>
-              </div>
-            </div>
-            <div className="flex flex-col items-center">
-              <h4 className="text-lg font-semibold text-gray-800 text-center px-4 py-2 bg-pink-100 rounded-full mb-4">
-                דוגמה: הצעה לבחור
-              </h4>
-              <div className="relative w-full max-w-sm lg:max-w-md">
-                <div className="absolute -inset-4 bg-gradient-to-r from-pink-500/20 via-orange-500/20 to-pink-500/20 rounded-3xl blur-xl" />
-                <div className="relative bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-2xl border border-white">
-                  <LiveSuggestionDemo
-                    suggestion={demoSuggestionDataFemale}
-                    userId="visitor-user-id"
-                    demoAiAnalysis={demoAiAnalysisForNoa}
-                  />
-                </div>
-              </div>
-            </div>
-          </motion.div>
+
+<motion.div
+  ref={demoRef}
+  initial={{ opacity: 0, y: 30 }}
+  animate={
+    isDemoInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }
+  }
+  transition={{ duration: 0.8, delay: 0.2 }}
+  className="flex flex-col lg:flex-row gap-8 lg:gap-12 justify-center items-center max-w-4xl mx-auto"
+>
+  <div className="flex flex-col items-center w-full lg:w-auto">
+    <h4 className="text-lg font-semibold text-gray-800 text-center px-4 py-2 bg-cyan-100 rounded-full mb-4">
+      דוגמה: הצעה לבחורה
+    </h4>
+    <div className="relative w-full max-w-xs mx-auto">
+      <div className="absolute -inset-2 bg-gradient-to-r from-cyan-500/20 via-pink-500/20 to-cyan-500/20 rounded-3xl blur-xl" />
+      <div className="relative">
+        <LiveSuggestionDemo
+          suggestion={demoSuggestionDataMale}
+          userId="visitor-user-id"
+          demoAiAnalysis={demoAiAnalysisForDaniel}
+        />
+      </div>
+    </div>
+  </div>
+  <div className="flex flex-col items-center w-full lg:w-auto">
+    <h4 className="text-lg font-semibold text-gray-800 text-center px-4 py-2 bg-pink-100 rounded-full mb-4">
+      דוגמה: הצעה לבחור
+    </h4>
+    <div className="relative w-full max-w-xs mx-auto">
+      <div className="absolute -inset-2 bg-gradient-to-r from-pink-500/20 via-orange-500/20 to-pink-500/20 rounded-3xl blur-xl" />
+      <div className="relative">
+        <LiveSuggestionDemo
+          suggestion={demoSuggestionDataFemale}
+          userId="visitor-user-id"
+          demoAiAnalysis={demoAiAnalysisForNoa}
+        />
+      </div>
+    </div>
+  </div>
+</motion.div>
         </motion.div>
      {/* --- Key Benefits (UPDATED) --- */}
         <motion.div

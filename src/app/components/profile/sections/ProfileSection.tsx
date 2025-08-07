@@ -1,7 +1,12 @@
 // src/app/components/profile/sections/ProfileSection.tsx
-"use client";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import React, { useState, useEffect } from "react";
+'use client';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import React, { useState, useEffect } from 'react';
 import {
   Gender,
   AvailabilityStatus,
@@ -9,21 +14,20 @@ import {
   HeadCoveringType,
   KippahType,
   ReligiousJourney,
-  
-} from "@prisma/client";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+} from '@prisma/client';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
+} from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Pencil,
   Save,
@@ -39,142 +43,145 @@ import {
   Smile,
   UserCircle,
   Info,
-} from "lucide-react";
-import { UserProfile } from "@/types/next-auth";
-import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
-import { languageOptions } from "@/lib/languageOptions";
-import { toast } from "sonner";
+} from 'lucide-react';
+import { UserProfile } from '@/types/next-auth';
+import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+import { languageOptions } from '@/lib/languageOptions';
+import { toast } from 'sonner';
 
 const maritalStatusOptions = [
-  { value: "single", label: "רווק/ה" },
-  { value: "divorced", label: "גרוש/ה" },
-  { value: "widowed", label: "אלמן/ה" },
-  { value: "annulled", label: "נישואין שבוטלו" },
+  { value: 'single', label: 'רווק/ה' },
+  { value: 'divorced', label: 'גרוש/ה' },
+  { value: 'widowed', label: 'אלמן/ה' },
+  { value: 'annulled', label: 'נישואין שבוטלו' },
 ];
 
 const religiousLevelOptions = [
-  { value: "charedi", label: "חרדי/ת" },
-  { value: "charedi_modern", label: "חרדי/ת מודרני/ת" },
-  { value: "dati_leumi_torani", label: "דתי/ה לאומי/ת תורני/ת" },
-  { value: "dati_leumi_liberal", label: "דתי/ה לאומי/ת ליברלי/ת" },
-  { value: "dati_leumi_standard", label: "דתי/ה לאומי/ת (סטנדרטי)" },
-  { value: "masorti_strong", label: "מסורתי/ת (קרוב/ה לדת)" },
-  { value: "masorti_light", label: "מסורתי/ת (קשר קל למסורת)" },
-  { value: "secular_traditional_connection", label: "חילוני/ת עם זיקה למסורת" },
-  { value: "secular", label: "חילוני/ת" },
-  { value: "spiritual_not_religious", label: "רוחני/ת (לאו דווקא דתי/ה)" },
-  { value: "other", label: "אחר (נא לפרט ב'אודות')" },
+  { value: 'charedi', label: 'חרדי/ת' },
+  { value: 'charedi_modern', label: 'חרדי/ת מודרני/ת' },
+  { value: 'dati_leumi_torani', label: 'דתי/ה לאומי/ת תורני/ת' },
+  { value: 'dati_leumi_liberal', label: 'דתי/ה לאומי/ת ליברלי/ת' },
+  { value: 'dati_leumi_standard', label: 'דתי/ה לאומי/ת (סטנדרטי)' },
+  { value: 'masorti_strong', label: 'מסורתי/ת (קרוב/ה לדת)' },
+  { value: 'masorti_light', label: 'מסורתי/ת (קשר קל למסורת)' },
+  { value: 'secular_traditional_connection', label: 'חילוני/ת עם זיקה למסורת' },
+  { value: 'secular', label: 'חילוני/ת' },
+  { value: 'spiritual_not_religious', label: 'רוחני/ת (לאו דווקא דתי/ה)' },
+  { value: 'other', label: "אחר (נא לפרט ב'אודות')" },
 ];
 const religiousJourneyOptions = [
-    { value: "BORN_INTO_CURRENT_LIFESTYLE", label: "גדלתי בסביבה דומה להגדרתי כיום" },
-    { value: "BORN_SECULAR", label: "גדלתי בסביבה חילונית" },
-    { value: "BAAL_TESHUVA", label: "חזרתי בתשובה" },
-    { value: "DATLASH", label: "יצאתי בשאלה (דתל\"ש)" },
-    { value: "CONVERT", label: "גר/ה / גיורת" },
-    { value: "IN_PROCESS", label: "בתהליך של שינוי / התלבטות" },
-    { value: "OTHER", label: "אחר (נא לפרט בהערות)" },
+  {
+    value: 'BORN_INTO_CURRENT_LIFESTYLE',
+    label: 'גדלתי בסביבה דומה להגדרתי כיום',
+  },
+  { value: 'BORN_SECULAR', label: 'גדלתי בסביבה חילונית' },
+  { value: 'BAAL_TESHUVA', label: 'חזרתי בתשובה' },
+  { value: 'DATLASH', label: 'יצאתי בשאלה (דתל"ש)' },
+  { value: 'CONVERT', label: 'גר/ה / גיורת' },
+  { value: 'IN_PROCESS', label: 'בתהליך של שינוי / התלבטות' },
+  { value: 'OTHER', label: 'אחר (נא לפרט בהערות)' },
 ];
 
 const educationLevelOptions = [
-  { value: "high_school", label: "תיכונית" },
-  { value: "vocational", label: "מקצועית / תעודה" },
-  { value: "academic_student", label: "סטודנט/ית לתואר" },
-  { value: "academic_ba", label: "תואר ראשון (BA/BSc)" },
-  { value: "academic_ma", label: "תואר שני (MA/MSc)" },
-  { value: "academic_phd", label: "דוקטורט (PhD)" },
-  { value: "yeshiva_seminary", label: "לימודים תורניים (ישיבה/מדרשה/כולל)" },
-  { value: "other", label: "אחר" },
+  { value: 'high_school', label: 'תיכונית' },
+  { value: 'vocational', label: 'מקצועית / תעודה' },
+  { value: 'academic_student', label: 'סטודנט/ית לתואר' },
+  { value: 'academic_ba', label: 'תואר ראשון (BA/BSc)' },
+  { value: 'academic_ma', label: 'תואר שני (MA/MSc)' },
+  { value: 'academic_phd', label: 'דוקטורט (PhD)' },
+  { value: 'yeshiva_seminary', label: 'לימודים תורניים (ישיבה/מדרשה/כולל)' },
+  { value: 'other', label: 'אחר' },
 ];
 
 const serviceTypeOptions = [
-  { value: ServiceType.MILITARY_COMBATANT, label: "צבאי - לוחם/ת" },
-  { value: ServiceType.MILITARY_SUPPORT, label: "צבאי - תומכ/ת לחימה" },
-  { value: ServiceType.MILITARY_OFFICER, label: "צבאי - קצונה" },
+  { value: ServiceType.MILITARY_COMBATANT, label: 'צבאי - לוחם/ת' },
+  { value: ServiceType.MILITARY_SUPPORT, label: 'צבאי - תומכ/ת לחימה' },
+  { value: ServiceType.MILITARY_OFFICER, label: 'צבאי - קצונה' },
   {
     value: ServiceType.MILITARY_INTELLIGENCE_CYBER_TECH,
-    label: "צבאי - מודיעין/סייבר/טכנולוגי",
+    label: 'צבאי - מודיעין/סייבר/טכנולוגי',
   },
-  { value: ServiceType.NATIONAL_SERVICE_ONE_YEAR, label: "שירות לאומי - שנה" },
+  { value: ServiceType.NATIONAL_SERVICE_ONE_YEAR, label: 'שירות לאומי - שנה' },
   {
     value: ServiceType.NATIONAL_SERVICE_TWO_YEARS,
-    label: "שירות לאומי - שנתיים",
+    label: 'שירות לאומי - שנתיים',
   },
-  { value: ServiceType.HESDER_YESHIVA, label: "ישיבת הסדר" },
+  { value: ServiceType.HESDER_YESHIVA, label: 'ישיבת הסדר' },
   {
     value: ServiceType.YESHIVA_ONLY_POST_HS,
-    label: "ישיבה גבוהה / מדרשה (ללא שירות צבאי/לאומי)",
+    label: 'ישיבה גבוהה / מדרשה (ללא שירות צבאי/לאומי)',
   },
   {
     value: ServiceType.PRE_MILITARY_ACADEMY_AND_SERVICE,
-    label: "מכינה קדם-צבאית ושירות",
+    label: 'מכינה קדם-צבאית ושירות',
   },
-  { value: ServiceType.EXEMPTED, label: "פטור משירות" },
-  { value: ServiceType.CIVILIAN_SERVICE, label: "שירות אזרחי" },
-  { value: ServiceType.OTHER, label: "אחר / לא רלוונטי" },
+  { value: ServiceType.EXEMPTED, label: 'פטור משירות' },
+  { value: ServiceType.CIVILIAN_SERVICE, label: 'שירות אזרחי' },
+  { value: ServiceType.OTHER, label: 'אחר / לא רלוונטי' },
 ];
 
 const headCoveringOptions = [
-  { value: HeadCoveringType.FULL_COVERAGE, label: "כיסוי ראש מלא" },
-  { value: HeadCoveringType.PARTIAL_COVERAGE, label: "כיסוי ראש חלקי" },
-  { value: HeadCoveringType.HAT_BERET, label: "כובע / ברט" },
+  { value: HeadCoveringType.FULL_COVERAGE, label: 'כיסוי ראש מלא' },
+  { value: HeadCoveringType.PARTIAL_COVERAGE, label: 'כיסוי ראש חלקי' },
+  { value: HeadCoveringType.HAT_BERET, label: 'כובע / ברט' },
   {
     value: HeadCoveringType.SCARF_ONLY_SOMETIMES,
-    label: "מטפחת (רק באירועים/בית כנסת)",
+    label: 'מטפחת (רק באירועים/בית כנסת)',
   },
-  { value: HeadCoveringType.NONE, label: "ללא כיסוי ראש" },
+  { value: HeadCoveringType.NONE, label: 'ללא כיסוי ראש' },
 ];
 
 const kippahTypeOptions = [
-  { value: KippahType.BLACK_VELVET, label: "קטיפה שחורה" },
-  { value: KippahType.KNITTED_SMALL, label: "סרוגה קטנה" },
-  { value: KippahType.KNITTED_LARGE, label: "סרוגה גדולה" },
-  { value: KippahType.CLOTH, label: "בד" },
-  { value: KippahType.BRESLEV, label: "ברסלב (לבנה גדולה)" },
-  { value: KippahType.NONE_AT_WORK_OR_CASUAL, label: "לא בעבודה / ביומיום" },
-  { value: KippahType.NONE_USUALLY, label: "לרוב לא חובש" },
-  { value: KippahType.OTHER, label: "אחר" },
+  { value: KippahType.BLACK_VELVET, label: 'קטיפה שחורה' },
+  { value: KippahType.KNITTED_SMALL, label: 'סרוגה קטנה' },
+  { value: KippahType.KNITTED_LARGE, label: 'סרוגה גדולה' },
+  { value: KippahType.CLOTH, label: 'בד' },
+  { value: KippahType.BRESLEV, label: 'ברסלב (לבנה גדולה)' },
+  { value: KippahType.NONE_AT_WORK_OR_CASUAL, label: 'לא בעבודה / ביומיום' },
+  { value: KippahType.NONE_USUALLY, label: 'לרוב לא חובש' },
+  { value: KippahType.OTHER, label: 'אחר' },
 ];
 
 const characterTraitsOptions = [
-  { value: "empathetic", label: "אמפתי/ת", icon: Heart },
-  { value: "driven", label: "שאפתן/ית", icon: Briefcase },
-  { value: "optimistic", label: "אופטימי/ת", icon: Smile },
-  { value: "family_oriented", label: "משפחתי/ת", icon: Users },
-  { value: "intellectual", label: "אינטלקטואל/ית", icon: BookOpen },
-  { value: "organized", label: "מאורגנ/ת", icon: Palette },
-  { value: "calm", label: "רגוע/ה", icon: Heart },
-  { value: "humorous", label: "בעל/ת חוש הומור", icon: Smile },
-  { value: "sociable", label: "חברותי/ת", icon: Users },
-  { value: "sensitive", label: "רגיש/ה", icon: Heart },
-  { value: "independent", label: "עצמאי/ת", icon: MapPin },
-  { value: "creative", label: "יצירתי/ת", icon: Palette },
-  { value: "honest", label: "כן/ה וישר/ה", icon: Shield },
-  { value: "responsible", label: "אחראי/ת", icon: Shield },
-  { value: "easy_going", label: "זורם/ת וקליל/ה", icon: Smile },
+  { value: 'empathetic', label: 'אמפתי/ת', icon: Heart },
+  { value: 'driven', label: 'שאפתן/ית', icon: Briefcase },
+  { value: 'optimistic', label: 'אופטימי/ת', icon: Smile },
+  { value: 'family_oriented', label: 'משפחתי/ת', icon: Users },
+  { value: 'intellectual', label: 'אינטלקטואל/ית', icon: BookOpen },
+  { value: 'organized', label: 'מאורגנ/ת', icon: Palette },
+  { value: 'calm', label: 'רגוע/ה', icon: Heart },
+  { value: 'humorous', label: 'בעל/ת חוש הומור', icon: Smile },
+  { value: 'sociable', label: 'חברותי/ת', icon: Users },
+  { value: 'sensitive', label: 'רגיש/ה', icon: Heart },
+  { value: 'independent', label: 'עצמאי/ת', icon: MapPin },
+  { value: 'creative', label: 'יצירתי/ת', icon: Palette },
+  { value: 'honest', label: 'כן/ה וישר/ה', icon: Shield },
+  { value: 'responsible', label: 'אחראי/ת', icon: Shield },
+  { value: 'easy_going', label: 'זורם/ת וקליל/ה', icon: Smile },
 ];
 
 const hobbiesOptions = [
-  { value: "travel", label: "טיולים", icon: MapPin },
-  { value: "sports", label: "ספורט", icon: Briefcase },
-  { value: "reading", label: "קריאה", icon: BookOpen },
-  { value: "cooking_baking", label: "בישול/אפיה", icon: Palette },
-  { value: "music_playing_instrument", label: "מוזיקה/נגינה", icon: Languages },
-  { value: "art_crafts", label: "אומנות/יצירה", icon: Palette },
-  { value: "volunteering", label: "התנדבות", icon: Heart },
-  { value: "learning_courses", label: "למידה/קורסים", icon: BookOpen },
-  { value: "board_games_puzzles", label: "משחקי קופסא/פאזלים", icon: Smile },
-  { value: "movies_theater", label: "סרטים/תיאטרון", icon: Smile },
-  { value: "dancing", label: "ריקוד", icon: Users },
-  { value: "writing", label: "כתיבה", icon: BookOpen },
-  { value: "nature_hiking", label: "טבע/טיולים רגליים", icon: MapPin },
-  { value: "photography", label: "צילום", icon: Palette },
+  { value: 'travel', label: 'טיולים', icon: MapPin },
+  { value: 'sports', label: 'ספורט', icon: Briefcase },
+  { value: 'reading', label: 'קריאה', icon: BookOpen },
+  { value: 'cooking_baking', label: 'בישול/אפיה', icon: Palette },
+  { value: 'music_playing_instrument', label: 'מוזיקה/נגינה', icon: Languages },
+  { value: 'art_crafts', label: 'אומנות/יצירה', icon: Palette },
+  { value: 'volunteering', label: 'התנדבות', icon: Heart },
+  { value: 'learning_courses', label: 'למידה/קורסים', icon: BookOpen },
+  { value: 'board_games_puzzles', label: 'משחקי קופסא/פאזלים', icon: Smile },
+  { value: 'movies_theater', label: 'סרטים/תיאטרון', icon: Smile },
+  { value: 'dancing', label: 'ריקוד', icon: Users },
+  { value: 'writing', label: 'כתיבה', icon: BookOpen },
+  { value: 'nature_hiking', label: 'טבע/טיולים רגליים', icon: MapPin },
+  { value: 'photography', label: 'צילום', icon: Palette },
 ];
 
 const preferredMatchmakerGenderOptions = [
-  { value: "MALE", label: "משדך" },
-  { value: "FEMALE", label: "שדכנית" },
-  { value: "NONE", label: "ללא העדפה" },
+  { value: 'MALE', label: 'משדך' },
+  { value: 'FEMALE', label: 'שדכנית' },
+  { value: 'NONE', label: 'ללא העדפה' },
 ];
 
 interface ProfileSectionProps {
@@ -192,7 +199,7 @@ const ensureDateObject = (
   if (value instanceof Date && !isNaN(value.getTime())) {
     return value;
   }
-  if (typeof value === "string" || typeof value === "number") {
+  if (typeof value === 'string' || typeof value === 'number') {
     const date = new Date(value);
     if (!isNaN(date.getTime())) {
       return date;
@@ -220,15 +227,15 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
       additionalLanguages: profileData?.additionalLanguages || [],
       height: profileData?.height ?? undefined,
       maritalStatus: profileData?.maritalStatus || undefined,
-      occupation: profileData?.occupation || "",
-      education: profileData?.education || "",
+      occupation: profileData?.occupation || '',
+      education: profileData?.education || '',
       educationLevel: profileData?.educationLevel || undefined,
-      city: profileData?.city || "",
-      origin: profileData?.origin || "",
-            religiousJourney: profileData?.religiousJourney || undefined, // START OF CHANGE
+      city: profileData?.city || '',
+      origin: profileData?.origin || '',
+      religiousJourney: profileData?.religiousJourney || undefined, // START OF CHANGE
 
       religiousLevel: profileData?.religiousLevel || undefined,
-      about: profileData?.about || "",
+      about: profileData?.about || '',
       parentStatus: profileData?.parentStatus || undefined,
       siblings: profileData?.siblings ?? undefined,
       position: profileData?.position ?? undefined,
@@ -237,21 +244,21 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
         profileData?.preferredMatchmakerGender || undefined,
       availabilityStatus:
         profileData?.availabilityStatus || AvailabilityStatus.AVAILABLE,
-      availabilityNote: profileData?.availabilityNote || "",
+      availabilityNote: profileData?.availabilityNote || '',
       availabilityUpdatedAt: ensureDateObject(
         profileData?.availabilityUpdatedAt
       ),
-      matchingNotes: profileData?.matchingNotes || "",
+      matchingNotes: profileData?.matchingNotes || '',
       shomerNegiah: profileData?.shomerNegiah ?? undefined,
       serviceType: profileData?.serviceType || undefined,
-      serviceDetails: profileData?.serviceDetails || "",
+      serviceDetails: profileData?.serviceDetails || '',
       headCovering: profileData?.headCovering || undefined,
       kippahType: profileData?.kippahType || undefined,
       hasChildrenFromPrevious:
         profileData?.hasChildrenFromPrevious ?? undefined,
       profileCharacterTraits: profileData?.profileCharacterTraits || [],
       profileHobbies: profileData?.profileHobbies || [],
-      aliyaCountry: profileData?.aliyaCountry || "",
+      aliyaCountry: profileData?.aliyaCountry || '',
       aliyaYear: profileData?.aliyaYear ?? undefined,
       preferredAgeMin: profileData?.preferredAgeMin ?? undefined,
       preferredAgeMax: profileData?.preferredAgeMax ?? undefined,
@@ -280,8 +287,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
     } else {
       const fetchProfileAndInitialize = async () => {
         try {
-          const response = await fetch("/api/profile");
-          if (!response.ok) throw new Error("Failed to fetch profile");
+          const response = await fetch('/api/profile');
+          if (!response.ok) throw new Error('Failed to fetch profile');
           const data = await response.json();
           if (data.success && data.profile) {
             initializeFormData(data.profile);
@@ -289,7 +296,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
             initializeFormData(null);
           }
         } catch (error) {
-          console.error("Failed to fetch profile:", error);
+          console.error('Failed to fetch profile:', error);
           initializeFormData(null);
         } finally {
           setLoading(false);
@@ -314,17 +321,17 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
       let finalValue: UserProfile[keyof UserProfile] | undefined = undefined;
 
       if (
-        field === "height" ||
-        field === "siblings" ||
-        field === "position" ||
-        field === "aliyaYear" ||
-        field === "preferredAgeMin" ||
-        field === "preferredAgeMax" ||
-        field === "preferredHeightMin" ||
-        field === "preferredHeightMax"
+        field === 'height' ||
+        field === 'siblings' ||
+        field === 'position' ||
+        field === 'aliyaYear' ||
+        field === 'preferredAgeMin' ||
+        field === 'preferredAgeMax' ||
+        field === 'preferredHeightMin' ||
+        field === 'preferredHeightMax'
       ) {
         const rawValue = value as string | number;
-        if (rawValue === "" || rawValue === null || rawValue === undefined) {
+        if (rawValue === '' || rawValue === null || rawValue === undefined) {
           finalValue = undefined;
         } else {
           const parsed = parseInt(String(rawValue), 10);
@@ -332,41 +339,41 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
             ? (parsed as UserProfile[typeof field])
             : undefined;
         }
-      } else if (field === "birthDate") {
+      } else if (field === 'birthDate') {
         finalValue = ensureDateObject(
           value as string | Date | null | undefined
         ) as UserProfile[typeof field];
       } else if (
-        typeof prev[field] === "boolean" ||
-        field === "shomerNegiah" ||
-        field === "hasChildrenFromPrevious" ||
-        field === "isProfileVisible"
+        typeof prev[field] === 'boolean' ||
+        field === 'shomerNegiah' ||
+        field === 'hasChildrenFromPrevious' ||
+        field === 'isProfileVisible'
       ) {
         finalValue = value as boolean as UserProfile[typeof field];
       } else if (Array.isArray(prev[field])) {
         finalValue = value as string[] as UserProfile[typeof field];
-      } else if (value === "" || value === null) {
+      } else if (value === '' || value === null) {
         const nullableStringFields: (keyof UserProfile)[] = [
-          "nativeLanguage",
-          "occupation",
-          "education",
-          "city",
-          "origin",
-          "religiousLevel",
-          "religiousJourney",
-          "about",
-          "parentStatus",
-          "serviceDetails",
-          "aliyaCountry",
-          "availabilityNote",
-          "matchingNotes",
-          "educationLevel",
-          "maritalStatus",
-          "serviceType",
-          "headCovering",
-          "kippahType",
-          "preferredMatchmakerGender",
-          "contactPreference",
+          'nativeLanguage',
+          'occupation',
+          'education',
+          'city',
+          'origin',
+          'religiousLevel',
+          'religiousJourney',
+          'about',
+          'parentStatus',
+          'serviceDetails',
+          'aliyaCountry',
+          'availabilityNote',
+          'matchingNotes',
+          'educationLevel',
+          'maritalStatus',
+          'serviceType',
+          'headCovering',
+          'kippahType',
+          'preferredMatchmakerGender',
+          'contactPreference',
         ];
         if (nullableStringFields.includes(field as keyof UserProfile)) {
           finalValue = undefined;
@@ -399,7 +406,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
 
   const handleSave = () => {
     if (formData.about && formData.about.trim().length < 100) {
-      toast.error("שגיאת ולידציה", {
+      toast.error('שגיאת ולידציה', {
         description: 'השדה "קצת עליי" חייב להכיל לפחות 100 תווים.',
         duration: 5000,
       });
@@ -418,13 +425,13 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
 
   const renderDisplayValue = (
     value: string | number | Date | undefined | null,
-    placeholder: string = "לא צוין"
+    placeholder: string = 'לא צוין'
   ) => {
-    if (value === undefined || value === null || value === "") {
+    if (value === undefined || value === null || value === '') {
       return <span className="italic text-gray-500">{placeholder}</span>;
     }
     if (value instanceof Date && !isNaN(value.getTime())) {
-      return new Intl.DateTimeFormat("he-IL").format(value);
+      return new Intl.DateTimeFormat('he-IL').format(value);
     }
     return String(value);
   };
@@ -432,7 +439,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
   const renderSelectDisplayValue = (
     value: string | undefined | null,
     options: { value: string; label: string }[],
-    placeholder: string = "לא צוין"
+    placeholder: string = 'לא צוין'
   ) => {
     if (!value) {
       return <span className="italic text-gray-500">{placeholder}</span>;
@@ -447,9 +454,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
 
   const renderBooleanDisplayValue = (
     value: boolean | undefined | null,
-    trueLabel: string = "כן",
-    falseLabel: string = "לא",
-    placeholder: string = "לא צוין"
+    trueLabel: string = 'כן',
+    falseLabel: string = 'לא',
+    placeholder: string = 'לא צוין'
   ) => {
     if (value === undefined || value === null) {
       return <span className="italic text-gray-500">{placeholder}</span>;
@@ -464,7 +471,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
   const renderMultiSelectBadges = (
     fieldValues: string[] | undefined,
     options: { value: string; label: string; icon?: React.ElementType }[],
-    emptyPlaceholder: string = "לא נבחרו פריטים."
+    emptyPlaceholder: string = 'לא נבחרו פריטים.'
   ) => {
     if (!fieldValues || fieldValues.length === 0) {
       return <p className="text-sm text-gray-500 italic">{emptyPlaceholder}</p>;
@@ -496,8 +503,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
               </h1>
               <p className="text-sm text-slate-500">
                 {isEditing && !viewOnly
-                  ? "ערוך/י את פרטי הפרופיל שלך."
-                  : "פרטי הפרופיל של המועמד/ת."}
+                  ? 'ערוך/י את פרטי הפרופיל שלך.'
+                  : 'פרטי הפרופיל של המועמד/ת.'}
               </p>
             </div>
             {!viewOnly && (
@@ -562,9 +569,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Select
-                        value={formData.gender || ""}
+                        value={formData.gender || ''}
                         onValueChange={(value) =>
-                          handleChange("gender", value as Gender)
+                          handleChange('gender', value as Gender)
                         }
                       >
                         <SelectTrigger className="h-9 text-sm focus:ring-cyan-500">
@@ -578,11 +585,11 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     ) : (
                       <p className="text-sm text-gray-800 font-medium mt-1">
                         {renderDisplayValue(
-                          formData.gender === "MALE"
-                            ? "זכר"
-                            : formData.gender === "FEMALE"
-                            ? "נקבה"
-                            : undefined
+                          formData.gender === 'MALE'
+                            ? 'זכר'
+                            : formData.gender === 'FEMALE'
+                              ? 'נקבה'
+                              : undefined
                         )}
                       </p>
                     )}
@@ -597,14 +604,14 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         value={
                           formData.birthDate instanceof Date &&
                           !isNaN(formData.birthDate.getTime())
-                            ? formData.birthDate.toISOString().split("T")[0]
-                            : ""
+                            ? formData.birthDate.toISOString().split('T')[0]
+                            : ''
                         }
                         onChange={(e) =>
-                          handleChange("birthDate", e.target.value || undefined)
+                          handleChange('birthDate', e.target.value || undefined)
                         }
                         className="h-9 text-sm focus:ring-cyan-500"
-                        max={new Date().toISOString().split("T")[0]}
+                        max={new Date().toISOString().split('T')[0]}
                       />
                     ) : (
                       <p className="text-sm text-gray-800 font-medium mt-1">
@@ -619,8 +626,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     {isEditing && !viewOnly ? (
                       <Input
                         type="number"
-                        value={formData.height ?? ""}
-                        onChange={(e) => handleChange("height", e.target.value)}
+                        value={formData.height ?? ''}
+                        onChange={(e) => handleChange('height', e.target.value)}
                         className="h-9 text-sm focus:ring-cyan-500"
                         placeholder="גובה בסמ"
                         min="100"
@@ -640,8 +647,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Input
-                        value={formData.city || ""}
-                        onChange={(e) => handleChange("city", e.target.value)}
+                        value={formData.city || ''}
+                        onChange={(e) => handleChange('city', e.target.value)}
                         placeholder="לדוגמה: ירושלים"
                         className="h-9 text-sm focus:ring-cyan-500"
                       />
@@ -657,8 +664,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Input
-                        value={formData.origin || ""}
-                        onChange={(e) => handleChange("origin", e.target.value)}
+                        value={formData.origin || ''}
+                        onChange={(e) => handleChange('origin', e.target.value)}
                         placeholder="לדוגמה: אשכנזי, ספרדי"
                         className="h-9 text-sm focus:ring-cyan-500"
                       />
@@ -674,9 +681,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Input
-                        value={formData.aliyaCountry || ""}
+                        value={formData.aliyaCountry || ''}
                         onChange={(e) =>
-                          handleChange("aliyaCountry", e.target.value)
+                          handleChange('aliyaCountry', e.target.value)
                         }
                         placeholder="אם רלוונטי, מאיזו מדינה?"
                         className="h-9 text-sm focus:ring-cyan-500"
@@ -685,7 +692,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       <p className="text-sm text-gray-800 font-medium mt-1">
                         {renderDisplayValue(
                           formData.aliyaCountry,
-                          "לא רלוונטי"
+                          'לא רלוונטי'
                         )}
                       </p>
                     )}
@@ -697,9 +704,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     {isEditing && !viewOnly ? (
                       <Input
                         type="number"
-                        value={formData.aliyaYear ?? ""}
+                        value={formData.aliyaYear ?? ''}
                         onChange={(e) =>
-                          handleChange("aliyaYear", e.target.value)
+                          handleChange('aliyaYear', e.target.value)
                         }
                         disabled={!formData.aliyaCountry}
                         placeholder="אם רלוונטי"
@@ -711,7 +718,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       <p className="text-sm text-gray-800 font-medium mt-1">
                         {renderDisplayValue(
                           formData.aliyaYear,
-                          formData.aliyaCountry ? "לא צוינה שנה" : "לא רלוונטי"
+                          formData.aliyaCountry ? 'לא צוינה שנה' : 'לא רלוונטי'
                         )}
                       </p>
                     )}
@@ -722,9 +729,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Select
-                        value={formData.nativeLanguage || ""}
+                        value={formData.nativeLanguage || ''}
                         onValueChange={(value) =>
-                          handleChange("nativeLanguage", value || undefined)
+                          handleChange('nativeLanguage', value || undefined)
                         }
                       >
                         <SelectTrigger className="h-9 text-sm focus:ring-cyan-500">
@@ -757,7 +764,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           const currentLanguages =
                             formData.additionalLanguages || [];
                           if (!currentLanguages.includes(value)) {
-                            handleChange("additionalLanguages", [
+                            handleChange('additionalLanguages', [
                               ...currentLanguages,
                               value,
                             ]);
@@ -800,7 +807,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                                 type="button"
                                 onClick={() =>
                                   handleChange(
-                                    "additionalLanguages",
+                                    'additionalLanguages',
                                     (formData.additionalLanguages || []).filter(
                                       (l) => l !== langValue
                                     )
@@ -843,9 +850,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Select
-                        value={formData.maritalStatus || ""}
+                        value={formData.maritalStatus || ''}
                         onValueChange={(value) =>
-                          handleChange("maritalStatus", value || undefined)
+                          handleChange('maritalStatus', value || undefined)
                         }
                       >
                         <SelectTrigger className="h-9 text-sm focus:ring-cyan-500">
@@ -868,13 +875,13 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       </p>
                     )}
                   </div>
-                  {(formData.maritalStatus === "divorced" ||
-                    formData.maritalStatus === "widowed" ||
-                    formData.maritalStatus === "annulled") && (
+                  {(formData.maritalStatus === 'divorced' ||
+                    formData.maritalStatus === 'widowed' ||
+                    formData.maritalStatus === 'annulled') && (
                     <div
                       className={cn(
-                        "pt-1 sm:pt-0",
-                        isEditing && !viewOnly ? "sm:pt-5" : "sm:pt-0"
+                        'pt-1 sm:pt-0',
+                        isEditing && !viewOnly ? 'sm:pt-5' : 'sm:pt-0'
                       )}
                     >
                       <Label className="block mb-1.5 text-xs font-medium text-gray-600">
@@ -887,7 +894,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                             checked={formData.hasChildrenFromPrevious || false}
                             onCheckedChange={(checked) =>
                               handleChange(
-                                "hasChildrenFromPrevious",
+                                'hasChildrenFromPrevious',
                                 checked as boolean
                               )
                             }
@@ -914,9 +921,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Input
-                        value={formData.parentStatus || ""}
+                        value={formData.parentStatus || ''}
                         onChange={(e) =>
-                          handleChange("parentStatus", e.target.value)
+                          handleChange('parentStatus', e.target.value)
                         }
                         placeholder="לדוגמה: נשואים, גרושים"
                         className="h-9 text-sm focus:ring-cyan-500"
@@ -934,9 +941,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     {isEditing && !viewOnly ? (
                       <Input
                         type="number"
-                        value={formData.siblings ?? ""}
+                        value={formData.siblings ?? ''}
                         onChange={(e) =>
-                          handleChange("siblings", e.target.value)
+                          handleChange('siblings', e.target.value)
                         }
                         className="h-9 text-sm focus:ring-cyan-500"
                         placeholder="כולל אותך"
@@ -955,9 +962,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     {isEditing && !viewOnly ? (
                       <Input
                         type="number"
-                        value={formData.position ?? ""}
+                        value={formData.position ?? ''}
                         onChange={(e) =>
-                          handleChange("position", e.target.value)
+                          handleChange('position', e.target.value)
                         }
                         className="h-9 text-sm focus:ring-cyan-500"
                         placeholder="לדוגמה: 1 (בכור/ה)"
@@ -988,9 +995,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Select
-                        value={formData.religiousLevel || ""}
+                        value={formData.religiousLevel || ''}
                         onValueChange={(value) =>
-                          handleChange("religiousLevel", value || undefined)
+                          handleChange('religiousLevel', value || undefined)
                         }
                       >
                         <SelectTrigger className="h-9 text-sm focus:ring-cyan-500">
@@ -1013,16 +1020,19 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       </p>
                     )}
                   </div>
-                     {/* START OF CHANGE: New Religious Journey field */}
+                  {/* START OF CHANGE: New Religious Journey field */}
                   <div>
                     <Label className="block mb-1.5 text-xs font-medium text-gray-600">
                       מסע דתי
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Select
-                        value={formData.religiousJourney || ""}
+                        value={formData.religiousJourney || ''}
                         onValueChange={(value) =>
-                          handleChange("religiousJourney", (value as ReligiousJourney) || undefined)
+                          handleChange(
+                            'religiousJourney',
+                            (value as ReligiousJourney) || undefined
+                          )
                         }
                       >
                         <SelectTrigger className="h-9 text-sm focus:ring-cyan-500">
@@ -1041,15 +1051,15 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         {renderSelectDisplayValue(
                           formData.religiousJourney,
                           religiousJourneyOptions,
-                          "לא צוין"
+                          'לא צוין'
                         )}
                       </p>
                     )}
                   </div>
                   <div
                     className={cn(
-                      "pt-1 sm:pt-0",
-                      isEditing && !viewOnly ? "sm:pt-5" : "sm:pt-0"
+                      'pt-1 sm:pt-0',
+                      isEditing && !viewOnly ? 'sm:pt-5' : 'sm:pt-0'
                     )}
                   >
                     <Label className="block mb-1.5 text-xs font-medium text-gray-600">
@@ -1061,7 +1071,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           id="shomerNegiah"
                           checked={formData.shomerNegiah || false}
                           onCheckedChange={(checked) =>
-                            handleChange("shomerNegiah", checked as boolean)
+                            handleChange('shomerNegiah', checked as boolean)
                           }
                         />
                         <Label
@@ -1084,10 +1094,10 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       </Label>
                       {isEditing && !viewOnly ? (
                         <Select
-                          value={formData.headCovering || ""}
+                          value={formData.headCovering || ''}
                           onValueChange={(value) =>
                             handleChange(
-                              "headCovering",
+                              'headCovering',
                               (value as HeadCoveringType) || undefined
                             )
                           }
@@ -1108,7 +1118,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           {renderSelectDisplayValue(
                             formData.headCovering,
                             headCoveringOptions,
-                            "ללא"
+                            'ללא'
                           )}
                         </p>
                       )}
@@ -1121,10 +1131,10 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       </Label>
                       {isEditing && !viewOnly ? (
                         <Select
-                          value={formData.kippahType || ""}
+                          value={formData.kippahType || ''}
                           onValueChange={(value) =>
                             handleChange(
-                              "kippahType",
+                              'kippahType',
                               (value as KippahType) || undefined
                             )
                           }
@@ -1145,7 +1155,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           {renderSelectDisplayValue(
                             formData.kippahType,
                             kippahTypeOptions,
-                            "ללא"
+                            'ללא'
                           )}
                         </p>
                       )}
@@ -1157,10 +1167,10 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Select
-                        value={formData.preferredMatchmakerGender || ""}
+                        value={formData.preferredMatchmakerGender || ''}
                         onValueChange={(value) =>
                           handleChange(
-                            "preferredMatchmakerGender",
+                            'preferredMatchmakerGender',
                             (value as Gender) || undefined
                           )
                         }
@@ -1179,7 +1189,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         {renderSelectDisplayValue(
                           formData.preferredMatchmakerGender,
                           preferredMatchmakerGenderOptions,
-                          "ללא העדפה"
+                          'ללא העדפה'
                         )}
                       </p>
                     )}
@@ -1201,18 +1211,32 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 <div className="space-y-6">
                   <div>
                     <div className="flex items-center gap-1.5 mb-2">
-                      <Label htmlFor="about" className="text-sm font-medium text-gray-700">
+                      <Label
+                        htmlFor="about"
+                        className="text-sm font-medium text-gray-700"
+                      >
                         ספר/י קצת על עצמך (תיאור חופשי)
                       </Label>
                       <TooltipProvider delayDuration={100}>
                         <Tooltip>
-                          <TooltipTrigger type="button" className="text-gray-400 hover:text-gray-600">
+                          <TooltipTrigger
+                            type="button"
+                            className="text-gray-400 hover:text-gray-600"
+                          >
                             <Info className="w-4 h-4" />
                           </TooltipTrigger>
-                          <TooltipContent side="top" className="max-w-xs text-center">
-                            <p>כאן המקום שלך לבלוט! ספר/י על התשוקות שלך, מה מצחיק אותך, ומה את/ה מחפש/ת.
+                          <TooltipContent
+                            side="top"
+                            className="max-w-xs text-center"
+                          >
+                            <p>
+                              כאן המקום שלך לבלוט! ספר/י על התשוקות שלך, מה
+                              מצחיק אותך, ומה את/ה מחפש/ת.
                               <br />
-                              <strong className="text-cyan-600">שים/י לב: נדרשים לפחות 100 תווים.</strong></p>
+                              <strong className="text-cyan-600">
+                                שים/י לב: נדרשים לפחות 100 תווים.
+                              </strong>
+                            </p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -1221,20 +1245,28 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       <div>
                         <Textarea
                           id="about"
-                          value={formData.about || ""}
-                          onChange={(e) => handleChange("about", e.target.value)}
+                          value={formData.about || ''}
+                          onChange={(e) =>
+                            handleChange('about', e.target.value)
+                          }
                           className={cn(
-                            "text-sm focus:ring-cyan-500 min-h-[120px] rounded-lg",
-                            formData.about && formData.about.trim().length < 100 ? "border-red-400 focus:ring-red-300" : ""
+                            'text-sm focus:ring-cyan-500 min-h-[120px] rounded-lg',
+                            formData.about && formData.about.trim().length < 100
+                              ? 'border-red-400 focus:ring-red-300'
+                              : ''
                           )}
                           placeholder="תאר/י את עצמך, מה מאפיין אותך, מה חשוב לך..."
                           rows={5}
                         />
                         {formData.about && (
-                          <div className={cn(
-                            "text-xs mt-1 text-right",
-                            formData.about.trim().length < 100 ? "text-red-600" : "text-gray-500"
-                          )}>
+                          <div
+                            className={cn(
+                              'text-xs mt-1 text-right',
+                              formData.about.trim().length < 100
+                                ? 'text-red-600'
+                                : 'text-gray-500'
+                            )}
+                          >
                             {formData.about.trim().length} / 100+ תווים
                           </div>
                         )}
@@ -1256,20 +1288,30 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       </Label>
                       <TooltipProvider delayDuration={100}>
                         <Tooltip>
-                          <TooltipTrigger type="button" className="text-gray-400 hover:text-gray-600">
+                          <TooltipTrigger
+                            type="button"
+                            className="text-gray-400 hover:text-gray-600"
+                          >
                             <Info className="w-4 h-4" />
                           </TooltipTrigger>
-                          <TooltipContent side="top" className="max-w-xs text-center">
-                            <p>מידע שחשוב לנו לדעת כדי למצוא התאמה טובה, אך לא תרצה/י שיופיע בפרופיל הגלוי. למשל: נושאים רגישים, העדפות ספציפיות מאוד, או רקע נוסף.</p>
+                          <TooltipContent
+                            side="top"
+                            className="max-w-xs text-center"
+                          >
+                            <p>
+                              מידע שחשוב לנו לדעת כדי למצוא התאמה טובה, אך לא
+                              תרצה/י שיופיע בפרופיל הגלוי. למשל: נושאים רגישים,
+                              העדפות ספציפיות מאוד, או רקע נוסף.
+                            </p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
                     </div>
                     {isEditing && !viewOnly ? (
                       <Textarea
-                        value={formData.matchingNotes || ""}
+                        value={formData.matchingNotes || ''}
                         onChange={(e) =>
-                          handleChange("matchingNotes", e.target.value)
+                          handleChange('matchingNotes', e.target.value)
                         }
                         className="text-sm focus:ring-cyan-500 min-h-[90px] rounded-lg"
                         placeholder="דברים נוספים שחשוב שהשדכן/ית יידעו עליך..."
@@ -1304,9 +1346,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Select
-                        value={formData.educationLevel || ""}
+                        value={formData.educationLevel || ''}
                         onValueChange={(value) =>
-                          handleChange("educationLevel", value || undefined)
+                          handleChange('educationLevel', value || undefined)
                         }
                       >
                         <SelectTrigger className="h-9 text-sm focus:ring-cyan-500">
@@ -1335,9 +1377,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Input
-                        value={formData.education || ""}
+                        value={formData.education || ''}
                         onChange={(e) =>
-                          handleChange("education", e.target.value)
+                          handleChange('education', e.target.value)
                         }
                         placeholder="לדוגמה: אוני' בר אילן, משפטים"
                         className="h-9 text-sm focus:ring-cyan-500"
@@ -1354,12 +1396,13 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Input
-                        value={formData.occupation || ""}
+                        value={formData.occupation || ''}
                         onChange={(e) =>
-                          handleChange("occupation", e.target.value)
+                          handleChange('occupation', e.target.value)
                         }
                         placeholder="לדוגמה: מורה, מהנדס תוכנה"
                         className="h-9 text-sm focus:ring-cyan-500"
+                        maxLength={20} //  <-- הוסף את השורה הזו
                       />
                     ) : (
                       <p className="text-sm text-gray-800 font-medium mt-1">
@@ -1373,10 +1416,10 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Select
-                        value={formData.serviceType || ""}
+                        value={formData.serviceType || ''}
                         onValueChange={(value) =>
                           handleChange(
-                            "serviceType",
+                            'serviceType',
                             (value as ServiceType) || undefined
                           )
                         }
@@ -1393,7 +1436,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         </SelectContent>
                       </Select>
                     ) : (
-<p className="text-sm text-gray-800 font-medium mt-1">
+                      <p className="text-sm text-gray-800 font-medium mt-1">
                         {renderSelectDisplayValue(
                           formData.serviceType,
                           serviceTypeOptions
@@ -1407,9 +1450,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Input
-                        value={formData.serviceDetails || ""}
+                        value={formData.serviceDetails || ''}
                         onChange={(e) =>
-                          handleChange("serviceDetails", e.target.value)
+                          handleChange('serviceDetails', e.target.value)
                         }
                         placeholder="חיל, יחידה, תפקיד, שם ישיבה/מכינה"
                         className="h-9 text-sm focus:ring-cyan-500"
@@ -1446,31 +1489,31 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                             (formData.profileCharacterTraits || []).includes(
                               trait.value
                             )
-                              ? "default"
-                              : "outline"
+                              ? 'default'
+                              : 'outline'
                           }
                           size="sm"
                           onClick={() =>
                             handleMultiSelectToggle(
-                              "profileCharacterTraits",
+                              'profileCharacterTraits',
                               trait.value
                             )
                           }
                           disabled={
                             !viewOnly &&
                             (formData.profileCharacterTraits || []).length >=
-                            3 &&
+                              3 &&
                             !(formData.profileCharacterTraits || []).includes(
                               trait.value
                             )
                           }
                           className={cn(
-                            "rounded-full text-xs px-3 py-1.5 transition-all",
+                            'rounded-full text-xs px-3 py-1.5 transition-all',
                             (formData.profileCharacterTraits || []).includes(
                               trait.value
                             )
-                              ? "bg-amber-500 hover:bg-amber-600 text-white border-amber-500"
-                              : "border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400"
+                              ? 'bg-amber-500 hover:bg-amber-600 text-white border-amber-500'
+                              : 'border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400'
                           )}
                         >
                           {trait.icon && (
@@ -1485,7 +1528,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       {renderMultiSelectBadges(
                         formData.profileCharacterTraits,
                         characterTraitsOptions,
-                        "לא נבחרו תכונות אופי."
+                        'לא נבחרו תכונות אופי.'
                       )}
                     </div>
                   )}
@@ -1504,13 +1547,13 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                             (formData.profileHobbies || []).includes(
                               hobby.value
                             )
-                              ? "default"
-                              : "outline"
+                              ? 'default'
+                              : 'outline'
                           }
                           size="sm"
                           onClick={() =>
                             handleMultiSelectToggle(
-                              "profileHobbies",
+                              'profileHobbies',
                               hobby.value
                             )
                           }
@@ -1522,12 +1565,12 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                             )
                           }
                           className={cn(
-                            "rounded-full text-xs px-3 py-1.5 transition-all",
+                            'rounded-full text-xs px-3 py-1.5 transition-all',
                             (formData.profileHobbies || []).includes(
                               hobby.value
                             )
-                              ? "bg-sky-500 hover:bg-sky-600 text-white border-sky-500"
-                              : "border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400"
+                              ? 'bg-sky-500 hover:bg-sky-600 text-white border-sky-500'
+                              : 'border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400'
                           )}
                         >
                           {hobby.icon && (
@@ -1542,7 +1585,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       {renderMultiSelectBadges(
                         formData.profileHobbies,
                         hobbiesOptions,
-                        "לא נבחרו תחביבים."
+                        'לא נבחרו תחביבים.'
                       )}
                     </div>
                   )}

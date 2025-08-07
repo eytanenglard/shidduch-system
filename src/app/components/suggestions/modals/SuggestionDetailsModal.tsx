@@ -940,7 +940,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
               </TabsContent>
               <TabsContent
                 value="profile"
-                className="mt-0 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen" // <-- התיקון
+                className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen"
               >
                 {isQuestionnaireLoading ? (
                   <div className="flex justify-center items-center h-64">
@@ -1036,14 +1036,11 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                   <SuggestionTimeline
                     statusHistory={suggestion.statusHistory}
                   />
-                  {/* --- START: הוספת ה-prop החסר --- */}
                   <InquiryThreadView
                     suggestionId={suggestion.id}
                     userId={userId}
                     showComposer={true}
-                    isDemo={isDemo}
                   />
-                  {/* --- END: הוספת ה-prop החסר --- */}
                 </div>
               </TabsContent>
             </Tabs>

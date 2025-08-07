@@ -1,14 +1,14 @@
 ################################################################################
-# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage
-# Generated on: 2025-08-06 21:23:06
+# Directory Content Map For: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage
+# Generated on: 2025-08-05 20:45:06
 ################################################################################
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\HomePage.tsx
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\HomePage.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/components/HomePage/HomePage.tsx
@@ -88,16 +88,16 @@ export default function HomePage() {
 --- End of Content for HomePage.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\HomePage_contents.txt
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\HomePage_contents.txt
 --------------------------------------------------------------------------------
 [This is the output log file itself. Content not included.]
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\components
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\components
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\components\ComparisonItem.tsx
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\components\ComparisonItem.tsx
 --------------------------------------------------------------------------------
 Content:
 import React from "react";
@@ -158,7 +158,7 @@ export default ComparisonItem;
 --- End of Content for ComparisonItem.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\components\DemoProfileCard.tsx
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\components\DemoProfileCard.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/components/HomePage/components/DemoProfileCard.tsx
@@ -460,7 +460,7 @@ export const DemoProfileCard = () => {
 --- End of Content for DemoProfileCard.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\components\FAQItem.tsx
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\components\FAQItem.tsx
 --------------------------------------------------------------------------------
 Content:
 import React, { useState } from "react";
@@ -505,7 +505,7 @@ export default FAQItem;
 --- End of Content for FAQItem.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\components\FeatureCard.tsx
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\components\FeatureCard.tsx
 --------------------------------------------------------------------------------
 Content:
 import React from "react";
@@ -590,7 +590,7 @@ export default FeatureCard;
 --- End of Content for FeatureCard.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\components\FooterComponents.tsx
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\components\FooterComponents.tsx
 --------------------------------------------------------------------------------
 Content:
 import React from "react";
@@ -627,7 +627,7 @@ export const FooterItem: React.FC<{ icon: string; text: string }> = ({
 --- End of Content for FooterComponents.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\components\LiveSuggestionDemo.tsx
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\components\LiveSuggestionDemo.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/components/HomePage/components/LiveSuggestionDemo.tsx
@@ -663,7 +663,7 @@ export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
   return (
     <div className="w-full max-w-sm lg:max-w-md mx-auto flex flex-col items-center gap-4">
       <div
-        className="relative group cursor-pointer rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300"
+        className="relative group cursor-pointer rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
         onClick={handleOpenModal}
         role="button"
         tabIndex={0}
@@ -718,7 +718,7 @@ export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
 --- End of Content for LiveSuggestionDemo.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\components\MatchmakerCard.tsx
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\components\MatchmakerCard.tsx
 --------------------------------------------------------------------------------
 Content:
 import React from "react";
@@ -789,7 +789,7 @@ export default MatchmakerCard;
 --- End of Content for MatchmakerCard.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\components\Step.tsx
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\components\Step.tsx
 --------------------------------------------------------------------------------
 Content:
 import React from "react";
@@ -875,7 +875,7 @@ export default Step;
 --- End of Content for Step.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\components\StickyNav.tsx
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\components\StickyNav.tsx
 --------------------------------------------------------------------------------
 Content:
 'use client';
@@ -1138,7 +1138,7 @@ export default StickyNav;
 --- End of Content for StickyNav.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\components\TestimonialCard.tsx
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\components\TestimonialCard.tsx
 --------------------------------------------------------------------------------
 Content:
 import React from "react";
@@ -1230,7 +1230,7 @@ export default TestimonialCard;
 --- End of Content for TestimonialCard.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\components\demo-data.ts
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\components\demo-data.ts
 --------------------------------------------------------------------------------
 Content:
 // src/components/HomePage/components/demo-data.ts
@@ -2096,11 +2096,11 @@ export const demoAiAnalysisForNoa: AiSuggestionAnalysisResult = {
 --- End of Content for demo-data.ts ---
 
 ================================================================================
-Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\sections
+Directory: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections
 ================================================================================
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\sections\CTASection.tsx
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\CTASection.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/components/HomePage/sections/CTASection.tsx
@@ -2283,7 +2283,7 @@ export default CTASection;
 --- End of Content for CTASection.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\sections\FAQSection.tsx
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\FAQSection.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/components/HomePage/sections/FAQSection.tsx
@@ -2293,13 +2293,13 @@ import { motion, useInView } from 'framer-motion';
 import FAQItem from '../components/FAQItem';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Sparkles, MessageCircle, Shield, Clock, Users, HelpCircle } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 const FAQSection: React.FC = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.1 });
 
-  // Animation variants
+  // Animation variants (Unchanged)
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -2361,224 +2361,104 @@ const FAQSection: React.FC = () => {
     },
   };
 
+  // --- START: UPDATED FAQ DATA ---
   const faqData = [
     {
       question: 'מה המחיר של השירות?',
       answer:
         'אנחנו מאמינים במודל הוגן ושקוף, שבו ההצלחה שלכם היא גם ההצלחה שלנו. ההרשמה למאגר והיכרות ראשונית עם שדכן הן ללא עלות. עבור שירותי ליווי והתאמה אקטיביים, אנו מציעים מסלולי מנוי. בנוסף, רק כאשר המסע מצליח ואתם מתארסים, אנו גובים דמי הצלחה. הגישה הזו מבטיחה שאנחנו מחויבים ב-100% למצוא לכם את החיבור הנכון.',
-      icon: <Sparkles className="w-5 h-5" />,
-      color: 'from-amber-500 to-orange-500'
     },
     {
       question: 'האם השירות מתאים לכל הזרמים?',
       answer:
         'בהחלט. הגישה שלנו מבוססת על הבנת הניואנסים הדקים של עולם הערכים והאמונה. המערכת שלנו בנויה להתאים למגוון רחב של קהילות בתוך העולם היהודי. כרגע, המומחיות העיקרית שלנו היא בקהילה הדתית-לאומית והמודרן-אורתודוקס, ואנו פועלים כל הזמן להרחיב את מעגלי ההיכרות.',
-      icon: <Users className="w-5 h-5" />,
-      color: 'from-purple-500 to-indigo-500'
     },
     {
       question: 'כיצד נשמרת הפרטיות שלי?',
       answer:
         'הסיפור שלכם שייך לכם. פרטיות היא ערך עליון עבורנו, ולכן: הפרופיל שלכם גלוי אך ורק לצוות השדכנים המצומצם שמטפל בכם. פרטים אישיים ותמונות נחשפים לצד השני רק לאחר שקיבלנו את אישורכם המפורש לכל הצעה והצעה. המידע שלכם מאובטח בטכנולוגיות המתקדמות ביותר.',
-      icon: <Shield className="w-5 h-5" />,
-      color: 'from-cyan-500 to-blue-500'
     },
     {
       question: 'כמה זמן לוקח למצוא התאמה?',
       answer:
         'זו השאלה החשובה ביותר, והתשובה הכנה היא שאין לוח זמנים לאהבה. אבל מה אנחנו כן יכולים להבטיח? תהליך יעיל וממוקד שיחסוך לכם זמן יקר ואנרגיה. במקום אינסוף דייטים לא רלוונטיים, תקבלו מספר מצומצם של הצעות איכותיות ומנומקות. המטרה שלנו היא שהמסע יהיה משמעותי, ולא ארוך מהנדרש.',
-      icon: <Clock className="w-5 h-5" />,
-      color: 'from-emerald-500 to-teal-500'
     },
     {
       question: 'האם אתם מארגנים גם אירועים קהילתיים?',
       answer:
         'בהחלט. אנחנו מאמינים שלפעמים הקסם קורה גם מחוץ למסך. אנו מארגנים מפגשי איכות וסדנאות באווירה נעימה, המהווים הזדמנות נוספת להיכרויות טבעיות ובלתי אמצעיות. חברי המערכת שלנו תמיד מקבלים עדכונים והטבות.',
-      icon: <MessageCircle className="w-5 h-5" />,
-      color: 'from-pink-500 to-rose-500'
     },
   ];
+  // --- END: UPDATED FAQ DATA ---
 
   return (
     <motion.section
       ref={ref}
       id="faq"
-      className="py-16 md:py-20 px-4 bg-gradient-to-br from-slate-50 via-white to-cyan-50/30 relative overflow-hidden"
+      className="py-16 md:py-20 px-4 bg-white relative overflow-hidden"
       variants={containerVariants}
       initial="hidden"
       animate={isInView ? 'visible' : 'hidden'}
     >
-      {/* רקע דקורטיבי מתקדם */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-cyan-200/30 to-blue-300/20 rounded-full blur-3xl animate-float-slow"></div>
-        <div className="absolute top-60 right-20 w-40 h-40 bg-gradient-to-br from-purple-200/25 to-pink-300/15 rounded-full blur-3xl animate-float-slow" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute bottom-40 left-1/3 w-36 h-36 bg-gradient-to-br from-emerald-200/20 to-teal-300/15 rounded-full blur-3xl animate-float-slow" style={{ animationDelay: '4s' }}></div>
-        <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:30px_30px]"></div>
-        
-        {/* גלים דקורטיביים */} 
-        <svg className="absolute inset-0 w-full h-full" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="waveGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.08" />
-              <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.05" />
-            </linearGradient>
-          </defs>
-          <path d="M0,200 C300,100 700,300 1000,200 L1000,0 L0,0 Z" fill="url(#waveGrad1)" className="animate-pulse-slow" />
-          <path d="M0,800 C300,700 700,900 1000,800 L1000,1000 L0,1000 Z" fill="url(#waveGrad1)" className="animate-pulse-slow" style={{ animationDelay: '3s' }} />
-        </svg>
-      </div>
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-white opacity-50"></div>
 
       <div className="max-w-4xl mx-auto relative">
-        {/* כותרת מעוצבת */}
-        <motion.div className="text-center mb-16" variants={headerVariants}>
-          {/* Badge מעוצב */}
-          <div className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-full px-8 py-4 shadow-lg border border-white/60 mb-8">
-            <HelpCircle className="w-6 h-6 text-cyan-600" />
-            <span className="text-cyan-700 font-semibold text-lg">מידע חשוב עבורכם</span>
-          </div>
-          
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-800 mb-6 leading-tight">
-            כל מה ש
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-purple-600">
-              חשוב לדעת
-            </span>
+        {/* --- START: UPDATED HEADER --- */}
+        <motion.div className="text-center mb-12" variants={headerVariants}>
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-4">
+            כל מה שחשוב לדעת
           </h2>
-          
-          <div className="flex items-center justify-center gap-2 mb-8">
-            <div className="w-16 h-1 bg-gradient-to-r from-cyan-400 to-purple-500 rounded-full"></div>
-            <div className="w-3 h-3 bg-gradient-to-r from-cyan-400 to-purple-500 rounded-full"></div>
-            <div className="w-16 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"></div>
-          </div>
-          
-          <p className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
-            שקיפות היא הבסיס לאמון. ריכזנו כאן תשובות לשאלות הנפוצות ביותר, 
-            כדי שתוכלו להתחיל את המסע בלב שקט ועם כל המידע.
+          <div className="w-24 h-1 bg-gradient-to-r from-cyan-600 to-cyan-700 mx-auto rounded-full mb-6" />
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-8">
+            שקיפות היא הבסיס לאמון. ריכזנו כאן תשובות לשאלות הנפוצות ביותר, כדי
+            שתוכלו להתחיל את המסע בלב שקט ועם כל המידע.
           </p>
         </motion.div>
+        {/* --- END: UPDATED HEADER --- */}
 
-        {/* FAQ Items עם עיצוב מתקדם */}
+        {/* FAQ Items */}
         <motion.div
-          className="relative mb-16"
+          className="bg-white rounded-xl shadow-lg p-6 md:p-8 mb-12"
           variants={faqContainerVariants}
         >
-          {/* רקע לכרטיס */}
-          <div className="absolute inset-0 -m-4 bg-white/60 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/40"></div>
-          
-          <div className="relative p-8 md:p-12">
-            <div className="space-y-1">
-              {faqData.map((item, index) => (
-                <motion.div
-                  key={index}
-                  variants={faqItemVariants}
-                  whileHover={{ x: 4 }}
-                  transition={{ duration: 0.2 }}
-                  className="group"
-                >
-                  {/* כרטיס FAQ מעוצב */}
-                  <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-100/80 hover:border-gray-200 transition-all duration-300 hover:shadow-lg overflow-hidden">
-                    <div className="relative">
-                      {/* סרט צבעוני בחלק העליון */}
-                      <div className={`h-1 bg-gradient-to-r ${item.color} opacity-60 group-hover:opacity-100 transition-opacity duration-300`}></div>
-                      
-                      {/* האייקון והשאלה */}
-                      <div className="p-6">
-                        <div className="flex items-center gap-4 mb-4">
-                          <div className={`p-3 rounded-full bg-gradient-to-r ${item.color} text-white shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                            {item.icon}
-                          </div>
-                          <h3 className="text-xl font-bold text-gray-800 flex-1">
-                            {item.question}
-                          </h3>
-                        </div>
-                        
-                        {/* התשובה */}
-                        <div className="relative">
-                          <FAQItem question="" answer={item.answer} />
-                        </div>
-                      </div>
-                      
-                      {/* עיטור תחתון */}
-                      <div className="absolute bottom-0 right-0 w-32 h-32 opacity-5">
-                        <div className={`w-full h-full bg-gradient-to-tl ${item.color} rounded-full transform translate-x-16 translate-y-16`}></div>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+          <div className="space-y-2">
+            {faqData.map((item, index) => (
+              <motion.div
+                key={index}
+                variants={faqItemVariants}
+                whileHover={{ x: 4 }}
+                transition={{ duration: 0.2 }}
+              >
+                <FAQItem question={item.question} answer={item.answer} />
+              </motion.div>
+            ))}
           </div>
         </motion.div>
 
-        {/* Contact Block מעוצב */}
+        {/* Contact Block (Unchanged) */}
         <motion.div
-          className="relative text-center"
+          className="text-center bg-gray-50 p-8 rounded-lg border border-gray-100"
           variants={contactBlockVariants}
         >
-          {/* רקע גרדיאנט */}
-          <div className="absolute inset-0 -m-8 bg-gradient-to-br from-cyan-500/10 via-purple-500/5 to-pink-500/10 rounded-3xl backdrop-blur-sm border border-white/30"></div>
-          
-          <div className="relative max-w-2xl mx-auto p-12">
-            {/* אייקון מרכזי */}
-            <motion.div 
-              className="inline-block mb-6 p-4 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-full shadow-xl"
-              whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }}
-              transition={{ duration: 0.6 }}
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">
+            עדיין יש לכם שאלה?
+          </h3>
+          <p className="text-gray-600 mb-6">
+            אנחנו כאן כדי לעזור. צוות השדכנים שלנו ישמח לענות על כל שאלה באופן
+            אישי.
+          </p>
+          <Link href="/contact">
+            <Button
+              variant="outline"
+              size="lg"
+              className="border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-300 transition-all duration-300 rounded-xl group"
             >
-              <MessageCircle className="w-8 h-8 text-white" />
-            </motion.div>
-            
-            <h3 className="text-3xl font-bold text-gray-800 mb-4">
-              עדיין יש לכם
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-purple-600"> שאלה?</span>
-            </h3>
-            
-            <p className="text-lg text-gray-600 mb-8 leading-relaxed">
-              אנחנו כאן כדי לעזור. צוות השדכנים שלנו ישמח לענות על כל שאלה באופן אישי ולהכיר אתכם טוב יותר.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link href="/contact">
-                <motion.div
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Button
-                    size="lg"
-                    className="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl px-8 py-4 text-lg font-semibold group"
-                  >
-                    <span className="flex items-center gap-3">
-                      בואו נכיר
-                      <ArrowLeft className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                    </span>
-                  </Button>
-                </motion.div>
-              </Link>
-              
-              <div className="flex items-center gap-3 text-gray-600">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="font-medium">זמינים עבורכם • תגובה מהירה</span>
-              </div>
-            </div>
-          </div>
+              <span>ליצירת קשר</span>
+              <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </Link>
         </motion.div>
       </div>
-
-      <style jsx>{`
-        @keyframes float-slow {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-20px) rotate(2deg); }
-        }
-        @keyframes pulse-slow {
-          0%, 100% { opacity: 0.8; }
-          50% { opacity: 1; }
-        }
-        .animate-float-slow {
-          animation: float-slow 8s ease-in-out infinite;
-        }
-        .animate-pulse-slow {
-          animation: pulse-slow 4s ease-in-out infinite;
-        }
-      `}</style>
     </motion.section>
   );
 };
@@ -2587,7 +2467,7 @@ export default FAQSection;
 --- End of Content for FAQSection.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\sections\FooterSection.tsx
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\FooterSection.tsx
 --------------------------------------------------------------------------------
 Content:
 import React, { useRef } from 'react';
@@ -2923,7 +2803,7 @@ export default FooterSection;
 --- End of Content for FooterSection.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\sections\HeroSection.tsx
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\HeroSection.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/components/HomePage/sections/HeroSection.tsx
@@ -3069,15 +2949,15 @@ const TypewriterTextWithHighlights: React.FC<{
   );
 };
 
-// --- קומפוננטת כרטיסיית העקרונות עבור דסקטופ ---
-interface DesktopPrincipleCardProps {
+// --- קומפוננטת כרטיסיית העקרונות החדשה ---
+interface PrincipleCardProps {
   icon: React.ReactNode;
   title: string;
   description: string;
   index: number;
 }
 
-const DesktopPrincipleCard: React.FC<DesktopPrincipleCardProps> = ({
+const PrincipleCard: React.FC<PrincipleCardProps> = ({
   icon,
   title,
   description,
@@ -3086,25 +2966,16 @@ const DesktopPrincipleCard: React.FC<DesktopPrincipleCardProps> = ({
   const getColors = (idx: number) => {
     const colors = [
       {
-        gradient: 'from-cyan-400 via-cyan-500 to-blue-500',
-        shadowColor: 'shadow-cyan-500/25',
-        glowColor: 'shadow-cyan-400/30',
-        bgGradient: 'from-cyan-50 via-white to-blue-50',
-        accentColor: 'bg-cyan-500',
+        iconBg: 'from-cyan-400 to-blue-500',
+        accent: 'border-cyan-200 hover:border-cyan-300',
       },
       {
-        gradient: 'from-purple-400 via-purple-500 to-indigo-500',
-        shadowColor: 'shadow-purple-500/25',
-        glowColor: 'shadow-purple-400/30',
-        bgGradient: 'from-purple-50 via-white to-indigo-50',
-        accentColor: 'bg-purple-500',
+        iconBg: 'from-purple-400 to-indigo-500',
+        accent: 'border-purple-200 hover:border-purple-300',
       },
       {
-        gradient: 'from-pink-400 via-pink-500 to-rose-500',
-        shadowColor: 'shadow-pink-500/25',
-        glowColor: 'shadow-pink-400/30',
-        bgGradient: 'from-pink-50 via-white to-rose-50',
-        accentColor: 'bg-pink-500',
+        iconBg: 'from-pink-400 to-rose-500',
+        accent: 'border-pink-200 hover:border-pink-300',
       },
     ];
     return colors[idx];
@@ -3117,294 +2988,37 @@ const DesktopPrincipleCard: React.FC<DesktopPrincipleCardProps> = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.7 + index * 0.1 }}
-      whileHover={{ y: -8, scale: 1.02 }}
-      className={`group relative overflow-hidden rounded-3xl bg-gradient-to-br ${colors.bgGradient} p-8 ${colors.shadowColor} shadow-2xl border border-white/50 h-full transition-all duration-500`}
+      whileHover={{ y: -2 }}
+      className={`
+        group flex flex-col items-center text-center gap-2 sm:gap-3 p-3 sm:p-5 
+        bg-white rounded-xl border-2 ${colors.accent}
+        shadow-sm hover:shadow-md
+        transition-all duration-300 h-full
+      `}
     >
-      {/* Decorative elements */}
-      <div className="absolute top-4 right-4 w-20 h-20 rounded-full bg-gradient-to-br from-white/20 to-transparent blur-xl" />
-      <div className="absolute bottom-4 left-4 w-12 h-12 rounded-full bg-gradient-to-br from-white/30 to-transparent blur-lg" />
-
-      {/* Floating particles */}
-      <div
-        className="absolute top-6 left-8 w-2 h-2 rounded-full bg-white/40 animate-bounce"
-        style={{ animationDelay: `${index * 0.5}s` }}
-      />
-      <div
-        className="absolute top-12 right-12 w-1.5 h-1.5 rounded-full bg-white/60 animate-bounce"
-        style={{ animationDelay: `${index * 0.5 + 1}s` }}
-      />
-      <div
-        className="absolute bottom-8 right-8 w-1 h-1 rounded-full bg-white/50 animate-bounce"
-        style={{ animationDelay: `${index * 0.5 + 2}s` }}
-      />
-
-      {/* Content */}
-      <div className="relative z-10 h-full flex flex-col">
-        {/* Icon with enhanced design */}
-        <div className="flex items-center justify-center mb-6">
-          <div
-            className={`relative w-16 h-16 rounded-2xl bg-gradient-to-br ${colors.gradient} flex items-center justify-center text-white ${colors.glowColor} shadow-xl transform group-hover:rotate-12 transition-transform duration-500`}
-            style={{ 
-              filter: 'contrast(1.1) brightness(1.05)',
-              WebkitFilter: 'contrast(1.1) brightness(1.05)'
-            }}
-          >
-            {React.cloneElement(icon as React.ReactElement, {
-              className: 'w-9 h-9',
-              strokeWidth: 2.8,
-              fill: 'none',
-              stroke: 'currentColor'
-            })}
-            <div className="absolute inset-0 rounded-2xl bg-white/15 backdrop-blur-sm" />
-          </div>
+      {/* אייקון */}
+      <div className="flex-shrink-0">
+        <div
+          className={`
+          w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br ${colors.iconBg}
+          flex items-center justify-center shadow-sm
+          group-hover:scale-105 transition-transform duration-300
+        `}
+        >
+          {React.cloneElement(icon as React.ReactElement, {
+            className: 'w-5 h-5 sm:w-6 sm:h-6 text-white',
+          })}
         </div>
+      </div>
 
-        {/* Title with enhanced typography */}
-        <h4 className="font-bold text-gray-800 text-lg mb-4 text-center leading-tight">
+      {/* תוכן */}
+      <div className="flex-1">
+        <h4 className="font-bold text-gray-800 text-xs sm:text-base mb-1 sm:mb-2 leading-tight">
           {title}
         </h4>
-
-        {/* Description with better spacing */}
-        <p className="text-gray-700 text-sm leading-relaxed text-center flex-1">
-          {description}
-        </p>
-
-        {/* Bottom accent line */}
-        <div className="mt-6 w-12 h-1 bg-gradient-to-r from-transparent via-white/60 to-transparent rounded-full mx-auto" />
+        <p className="text-gray-600 text-xs leading-relaxed">{description}</p>
       </div>
     </motion.div>
-  );
-};
-
-// --- קומפוננטת הטאבים החדשה למובייל ---
-interface MobilePrinciplesTabsProps {
-  isVisible: boolean;
-}
-
-const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({
-  isVisible,
-}) => {
-  const [activeTab, setActiveTab] = useState(0);
-
-  const principles = [
-    {
-      icon: <BookOpen className="w-6 h-6" />,
-      title: 'יותר מתמונה, סיפור שלם',
-      shortTitle: 'סיפור שלם',
-      description:
-        'השאלון המעמיק שלנו מתרגם את מי שאתם לנרטיב עשיר, ומאפשר היכרות אמיתית מהרגע הראשון.',
-      gradient: 'from-cyan-400 via-cyan-500 to-blue-500',
-      shadowColor: 'shadow-cyan-500/25',
-      glowColor: 'shadow-cyan-400/30',
-      bgGradient: 'from-cyan-50 via-white to-blue-50',
-      accentColor: 'bg-cyan-500',
-      index: 0,
-    },
-    {
-      icon: <Shield className="w-6 h-6" />,
-      title: 'פרטיות מלאה, שליטה מוחלטת',
-      shortTitle: 'פרטיות מלאה',
-      description:
-        'הפרופיל שלכם נחשף רק לשדכן האישי. כל צעד ושיתוף מידע נעשים אך ורק באישורכם המפורש.',
-      gradient: 'from-purple-400 via-purple-500 to-indigo-500',
-      shadowColor: 'shadow-purple-500/25',
-      glowColor: 'shadow-purple-400/30',
-      bgGradient: 'from-purple-50 via-white to-indigo-50',
-      accentColor: 'bg-purple-500',
-      index: 1,
-    },
-    {
-      icon: <User className="w-6 h-6" />,
-      title: 'טכנולוגיה חכמה, לב אנושי',
-      shortTitle: 'לב אנושי',
-      description:
-        'הכוח של המערכת שלנו בידיים של שדכן מנוסה. הוא משתמש בכלים כדי לראות את האדם, ומלווה אתכם אישית להצלחה.',
-      gradient: 'from-pink-400 via-pink-500 to-rose-500',
-      shadowColor: 'shadow-pink-500/25',
-      glowColor: 'shadow-pink-400/30',
-      bgGradient: 'from-pink-50 via-white to-rose-50',
-      accentColor: 'bg-pink-500',
-      index: 2,
-    },
-  ];
-
-  return (
-    <div className="w-full">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, delay: 0.6 }}
-        className="text-center mb-8"
-      >
-        <h3 className="text-2xl font-bold text-gray-800 mb-3">הגישה שלנו</h3>
-        <p className="text-gray-600 text-sm max-w-sm mx-auto leading-relaxed">
-          שלושה עקרונות יסוד שמבטיחים חוויה עמוקה ואמיתית
-        </p>
-
-        {/* Decorative elements */}
-        <div className="relative mt-4">
-          <div className="w-16 h-0.5 bg-gradient-to-r from-cyan-400 via-pink-400 to-purple-400 rounded-full mx-auto" />
-          <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full border-2 border-pink-400" />
-        </div>
-      </motion.div>
-
-      {/* Modern Tab Navigation */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, delay: 0.7 }}
-        className="relative mb-6"
-      >
-        {/* Background container without blur effect */}
-        <div className="relative bg-white/90 rounded-2xl p-2 shadow-xl border border-white/30">
-          {/* Tab buttons */}
-          <div className="relative flex">
-            {principles.map((principle, index) => (
-              <button
-                key={index}
-                className={`flex-1 py-3 px-1 flex flex-col items-center justify-center gap-2 relative z-20 rounded-xl transition-all duration-500 ${
-                  activeTab === index 
-                    ? `bg-gradient-to-r ${principle.gradient} ${principle.shadowColor} shadow-lg` 
-                    : 'bg-transparent hover:bg-white/40'
-                }`}
-                onClick={() => setActiveTab(index)}
-              >
-                {/* אייקון עם רקע צבעוני כמו בתוכן */}
-                <div className={`flex items-center justify-center mb-2 transition-all duration-300 ${
-                  activeTab === index ? 'scale-110' : 'hover:scale-105'
-                }`}>
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${
-                    activeTab === index 
-                      ? `bg-gradient-to-br ${principle.gradient} shadow-lg` 
-                      : 'bg-white/60 shadow-sm'
-                  }`}>
-                    {React.cloneElement(principle.icon, {
-                      className: `w-5 h-5 ${activeTab === index ? 'text-white' : 'text-gray-700'}`,
-                      strokeWidth: 2.5
-                    })}
-                  </div>
-                </div>
-
-                {/* טקסט מתחת לאייקון */}
-                <div className={`text-xs font-bold text-center leading-tight flex items-center justify-center px-1 transition-all duration-300 ${
-                  activeTab === index 
-                    ? 'text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.3)] transform scale-105' 
-                    : 'text-gray-900 hover:text-black'
-                }`}>
-                  <span className="relative">
-                    {principle.shortTitle}
-                    {activeTab === index && (
-                      <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-4 h-0.5 bg-white/60 rounded-full" />
-                    )}
-                  </span>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Content Area with Advanced Animation */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, delay: 0.8 }}
-        className="relative"
-      >
-        {principles.map((principle, index) => (
-          <div
-            key={index}
-            className={`absolute inset-0 transition-all duration-700 ease-out ${
-              activeTab === index
-                ? 'opacity-100 transform translate-x-0 scale-100'
-                : index < activeTab
-                  ? 'opacity-0 transform -translate-x-full scale-95'
-                  : 'opacity-0 transform translate-x-full scale-95'
-            }`}
-          >
-            <div
-              className={`relative overflow-hidden rounded-3xl bg-gradient-to-br ${principle.bgGradient} p-8 ${principle.shadowColor} shadow-2xl border border-white/50`}
-            >
-              {/* Decorative elements */}
-              <div className="absolute top-4 right-4 w-20 h-20 rounded-full bg-gradient-to-br from-white/20 to-transparent blur-xl" />
-              <div className="absolute bottom-4 left-4 w-12 h-12 rounded-full bg-gradient-to-br from-white/30 to-transparent blur-lg" />
-
-              {/* Floating particles */}
-              <div
-                className="absolute top-6 left-8 w-2 h-2 rounded-full bg-white/40 animate-bounce"
-                style={{ animationDelay: '0s' }}
-              />
-              <div
-                className="absolute top-12 right-12 w-1.5 h-1.5 rounded-full bg-white/60 animate-bounce"
-                style={{ animationDelay: '1s' }}
-              />
-              <div
-                className="absolute bottom-8 right-8 w-1 h-1 rounded-full bg-white/50 animate-bounce"
-                style={{ animationDelay: '2s' }}
-              />
-
-              {/* Content */}
-              <div className="relative z-10">
-                {/* Icon with enhanced design */}
-                <div className="flex items-center justify-center mb-6">
-                  <div
-                    className={`relative w-16 h-16 rounded-2xl bg-gradient-to-br ${principle.gradient} flex items-center justify-center text-white ${principle.glowColor} shadow-xl transform rotate-6 hover:rotate-12 transition-transform duration-300`}
-                    style={{ 
-                      filter: 'contrast(1.1) brightness(1.05)',
-                      WebkitFilter: 'contrast(1.1) brightness(1.05)'
-                    }}
-                  >
-                    {React.cloneElement(principle.icon, {
-                      className: 'w-9 h-9',
-                      strokeWidth: 2.8,
-                      fill: 'none',
-                      stroke: 'currentColor'
-                    })}
-                    <div className="absolute inset-0 rounded-2xl bg-white/15 backdrop-blur-sm" />
-                  </div>
-                </div>
-
-                {/* Title with enhanced typography */}
-                <h4 className="font-bold text-gray-800 text-xl mb-4 text-center leading-tight tracking-wide">
-                  {principle.title}
-                </h4>
-
-                {/* Description with better spacing */}
-                <p className="text-gray-700 text-base leading-relaxed text-center px-2 max-w-md mx-auto">
-                  {principle.description}
-                </p>
-
-                {/* Bottom accent line */}
-                <div className="mt-6 w-12 h-1 bg-gradient-to-r from-transparent via-white/60 to-transparent rounded-full mx-auto" />
-              </div>
-            </div>
-          </div>
-        ))}
-
-        {/* Placeholder for height */}
-        <div className="h-80" />
-      </motion.div>
-
-      {/* Progress indicator */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, delay: 0.9 }}
-        className="flex justify-center mt-6 gap-2"
-      >
-        {principles.map((principle, index) => (
-          <div
-            key={index}
-            className={`h-1.5 rounded-full transition-all duration-500 ${
-              activeTab === index
-                ? `w-8 ${principle.accentColor}`
-                : 'w-1.5 bg-gray-300'
-            }`}
-          />
-        ))}
-      </motion.div>
-    </div>
   );
 };
 
@@ -3472,7 +3086,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
                 {isVisible && (
                   <TypewriterTextWithHighlights
                     delay={1200}
-                    speed={32}
+                    speed={25}
                     className="block text-center leading-relaxed text-transparent bg-clip-text bg-gradient-to-br from-gray-700 via-gray-600 to-gray-700 font-bold tracking-wide drop-shadow-sm"
                   />
                 )}
@@ -3494,82 +3108,55 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
           transition={{ duration: 0.7, delay: 0.2 }}
           className="w-full max-w-4xl mt-12 md:mt-16"
         >
-          {/* גרסת מובייל - עודכנה להיות כמו גרסת דסקטופ */}
-          <div className={`md:hidden relative h-64`}>
-            {/* SVG של הקווים */}
-            <svg
-              className="absolute inset-0 w-full h-full overflow-visible"
-              viewBox="0 0 320 256"
-            >
-              <defs>
-                <filter id="glow-mobile">
-                  <feGaussianBlur
-                    stdDeviation="3.5"
-                    result="coloredBlur"
-                  ></feGaussianBlur>
-                  <feMerge>
-                    <feMergeNode in="coloredBlur"></feMergeNode>
-                    <feMergeNode in="SourceGraphic"></feMergeNode>
-                  </feMerge>
-                </filter>
-              </defs>
-              <path
-                className={`${isVisible ? 'path-draw' : ''}`}
-                d="M 30 128 C 90 60, 130 60, 160 110"
-                stroke="#06b6d4"
-                strokeWidth="2.5"
-                fill="none"
-                strokeLinecap="round"
-                filter="url(#glow-mobile)"
-              />
-              <path
-                className={`${isVisible ? 'path-draw' : ''}`}
-                d="M 290 128 C 230 196, 190 196, 160 110"
-                stroke="#ec4899"
-                strokeWidth="2.5"
-                fill="none"
-                strokeLinecap="round"
-                filter="url(#glow-mobile)"
-              />
-            </svg>
-
-            {/* אלמנט שמאל - כלים חכמים */}
+          {/* גרסת מובייל */}
+          <div className="md:hidden flex flex-col items-center gap-3">
             <div
-              className={`absolute top-1/2 left-4 -translate-y-1/2 flex flex-col items-center gap-2 opacity-0 ${isVisible ? 'animate-synergy-enter-left' : ''}`}
+              className={`flex flex-col items-center gap-2 opacity-0 ${isVisible ? 'animate-fade-in-up' : ''}`}
+              style={{ animationDelay: '200ms' }}
             >
               <div className="p-4 bg-white/60 backdrop-blur-md rounded-full shadow-lg border border-white/50">
-                <Brain className="w-8 h-8 text-cyan-500" />
+                {' '}
+                <Brain className="w-8 h-8 text-cyan-500" />{' '}
               </div>
-              <span className="font-bold text-gray-700 text-sm text-center">
-                כלים חכמים
-              </span>
+              <span className="font-bold text-gray-700">כלים חכמים</span>
             </div>
-
-            {/* אלמנט ימין - ליווי אישי */}
             <div
-              className={`absolute top-1/2 right-4 -translate-y-1/2 flex flex-col items-center gap-2 opacity-0 ${isVisible ? 'animate-synergy-enter-right' : ''}`}
+              className={`h-8 w-px border-r border-dashed border-gray-400 opacity-0 ${isVisible ? 'animate-fade-in-up' : ''}`}
+              style={{ animationDelay: '400ms' }}
+            />
+            <div
+              className={`flex flex-col items-center gap-2 opacity-0 ${isVisible ? 'animate-fade-in-up' : ''}`}
+              style={{ animationDelay: '600ms' }}
             >
               <div className="p-4 bg-white/60 backdrop-blur-md rounded-full shadow-lg border border-white/50">
-                <Handshake className="w-8 h-8 text-pink-500" />
+                {' '}
+                <Handshake className="w-8 h-8 text-pink-500" />{' '}
               </div>
-              <span className="font-bold text-gray-700 text-sm text-center">
-                ליווי אישי
-              </span>
+              <span className="font-bold text-gray-700">ליווי אישי</span>
             </div>
-
-            {/* לוגו במרכז */}
             <div
-              className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 ${isVisible ? 'animate-match-point-appear' : ''}`}
+              className={`opacity-0 ${isVisible ? 'animate-fade-in-up' : ''}`}
+              style={{ animationDelay: '800ms' }}
             >
-              <div className="p-3 bg-gradient-to-br from-white to-gray-50 rounded-full shadow-2xl border-2 border-white">
-                <div className="relative w-9 h-9">
+              <ChevronDown className="w-7 h-7 text-gray-400 my-2" />
+            </div>
+            <div
+              className={`opacity-0 ${isVisible ? 'animate-mobile-match-point' : ''}`}
+              style={{ animationDelay: '1000ms' }}
+            >
+              <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-white to-gray-50 rounded-full shadow-2xl border-2 border-white">
+                <div className="relative w-8 h-8">
+                  {' '}
                   <Image
                     src={getRelativeCloudinaryPath(logoUrl)}
                     alt="NeshamaTech Logo"
                     fill
                     className="object-contain"
-                  />
+                  />{' '}
                 </div>
+                <span className="font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-pink-500">
+                  NeshamaTech
+                </span>
               </div>
             </div>
           </div>
@@ -3652,12 +3239,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.4 }}
-          className="mt-8 flex flex-row items-center justify-center gap-4"
+          className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4"
         >
           <Link href="/auth/register">
             <Button
               size="lg"
-              className="text-base md:text-lg px-8 py-6 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group"
+              className="w-full sm:w-auto text-base md:text-lg px-8 py-6 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group"
             >
               הצעד הראשון שלי
               <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
@@ -3670,67 +3257,55 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
             <Button
               variant="outline"
               size="lg"
-              className="text-base md:text-lg px-8 py-6 border-2 border-cyan-200 text-cyan-600 bg-white/50 hover:bg-white hover:border-cyan-300 rounded-full transition-all duration-300"
+              className="w-full sm:w-auto text-base md:text-lg px-8 py-6 border-2 border-cyan-200 text-cyan-600 bg-white/50 hover:bg-white hover:border-cyan-300 rounded-full transition-all duration-300"
             >
-              לשאלון
+              לשאלון ההיכרות
             </Button>
           </Link>
         </motion.div>
 
         {/* --- START: אזור העקרונות עם התוכן המעודכן --- */}
-        <div className="mt-12 sm:mt-16 w-full max-w-6xl">
-          {/* Mobile Version - Beautiful Tabs */}
-          <div className="md:hidden">
-            <MobilePrinciplesTabs isVisible={isVisible} />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.6 }}
+          className="mt-12 sm:mt-16 w-full max-w-6xl"
+        >
+          {/* Header */}
+          <div className="text-center mb-6 sm:mb-8">
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">
+              הגישה שלנו
+            </h3>
+            <p className="text-gray-600 text-sm sm:text-base max-w-md mx-auto">
+              שלושה עקרונות יסוד שמבטיחים חוויה עמוקה ואמיתית
+            </p>
+
+            {/* Decorative line */}
+            <div className="mt-3 w-12 h-0.5 bg-gradient-to-r from-cyan-400 to-pink-400 rounded-full mx-auto" />
           </div>
 
-          {/* Desktop Version - Side by Side Cards */}
-          <div className="hidden md:block">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.6 }}
-            >
-              {/* Header */}
-              <div className="text-center mb-8">
-                <h3 className="text-2xl font-bold text-gray-800 mb-3">
-                  הגישה שלנו
-                </h3>
-                <p className="text-gray-600 max-w-md mx-auto">
-                  שלושה עקרונות יסוד שמבטיחים חוויה עמוקה ואמיתית
-                </p>
-
-                {/* Decorative line */}
-                <div className="relative mt-4">
-                  <div className="w-16 h-0.5 bg-gradient-to-r from-cyan-400 via-pink-400 to-purple-400 rounded-full mx-auto" />
-                  <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full border-2 border-pink-400" />
-                </div>
-              </div>
-
-              {/* Cards with updated content */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <DesktopPrincipleCard
-                  icon={<BookOpen />}
-                  title="יותר מתמונה, סיפור שלם"
-                  description="השאלון המעמיק שלנו מתרגם את מי שאתם לנרטיב עשיר, ומאפשר היכרות אמיתית מהרגע הראשון."
-                  index={0}
-                />
-                <DesktopPrincipleCard
-                  icon={<Shield />}
-                  title="פרטיות מלאה, שליטה מוחלטת"
-                  description="הפרופיל שלכם נחשף רק לשדכן האישי. כל צעד ושיתוף מידע נעשים אך ורק באישורכם המפורש."
-                  index={1}
-                />
-                <DesktopPrincipleCard
-                  icon={<User />}
-                  title="טכנולוגיה חכמה, לב אנושי"
-                  description="הכוח של המערכת שלנו בידיים של שדכן מנוסה. הוא משתמש בכלים כדי לראות את האדם, ומלווה אתכם אישית להצלחה."
-                  index={2}
-                />
-              </div>
-            </motion.div>
+          {/* Cards with updated content */}
+          <div className="grid grid-cols-3 gap-2 sm:gap-4">
+            <PrincipleCard
+              icon={<BookOpen />}
+              title="יותר מתמונה, סיפור שלם"
+              description="השאלון המעמיק שלנו מתרגם את מי שאתם לנרטיב עשיר, ומאפשר היכרות אמיתית מהרגע הראשון."
+              index={0}
+            />
+            <PrincipleCard
+              icon={<Shield />}
+              title="הסיפור שלכם, בשליטתכם"
+              description="הפרופיל שלכם נחשף רק לשדכן האישי. כל צעד ושיתוף מידע נעשים אך ורק באישורכם המפורש."
+              index={1}
+            />
+            <PrincipleCard
+              icon={<User />}
+              title="טכנולוגיה חכמה, לב אנושי"
+              description="הכוח של המערכת שלנו בידיים של שדכן מנוסה. הוא משתמש בכלים כדי לראות את האדם, ומלווה אתכם אישית להצלחה."
+              index={2}
+            />
           </div>
-        </div>
+        </motion.div>
         {/* --- END: אזור העקרונות עם התוכן המעודכן --- */}
       </div>
 
@@ -3859,20 +3434,6 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
           animation: match-point-appear 0.6s 1.4s cubic-bezier(0.25, 1, 0.5, 1)
             forwards;
         }
-
-        @keyframes text-appear {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-text-appear {
-          animation: text-appear 0.5s 2.2s ease-out forwards;
-        }
       `}</style>
     </motion.section>
   );
@@ -3882,7 +3443,7 @@ export default HeroSection;
 --- End of Content for HeroSection.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\sections\HowItWorksSection.tsx
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\HowItWorksSection.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/components/HomePage/sections/HowItWorksSection.tsx
@@ -4322,7 +3883,7 @@ export default HowItWorksSection;
 --- End of Content for HowItWorksSection.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\sections\MatchmakerTeamSection.tsx
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\MatchmakerTeamSection.tsx
 --------------------------------------------------------------------------------
 Content:
 import React, { useRef } from 'react';
@@ -4605,7 +4166,7 @@ export default MatchmakerTeamSection;
 --- End of Content for MatchmakerTeamSection.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\sections\OurMethodSection.tsx
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\OurMethodSection.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/components/HomePage/sections/OurMethodSection.tsx
@@ -5333,197 +4894,37 @@ const MatchingConstellation: React.FC = () => {
         initial={{ opacity: 0, y: 30 }}
         animate={isInView ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 0.8, delay: 1 }}
-        className="text-center mt-12 md:mt-20 px-4 relative"
+        className="text-center mt-12 md:mt-20 px-4"
       >
-        {/* Background Elements */}
-        <div className="absolute inset-0 -mx-4 overflow-hidden pointer-events-none">
-          <div className="absolute top-10 left-1/4 w-20 h-20 bg-gradient-to-br from-rose-300/20 to-pink-400/15 rounded-full blur-xl animate-soft-float" />
-          <div
-            className="absolute top-16 right-1/3 w-16 h-16 bg-gradient-to-br from-violet-300/25 to-purple-400/20 rounded-full blur-lg animate-soft-float"
-            style={{ animationDelay: '1.5s' }}
-          />
-          <div
-            className="absolute bottom-10 left-1/3 w-24 h-24 bg-gradient-to-br from-sky-300/20 to-cyan-400/15 rounded-full blur-xl animate-soft-float"
-            style={{ animationDelay: '3s' }}
-          />
-        </div>
-
-        <div className="relative max-w-4xl mx-auto">
-          {/* Header with Icon */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={isInView ? { opacity: 1, scale: 1 } : {}}
-            transition={{ duration: 0.6, delay: 1.2 }}
-            className="inline-flex items-center gap-3 bg-gradient-to-r from-white/90 via-rose-50/80 to-white/90 backdrop-blur-sm rounded-full px-6 md:px-8 py-3 md:py-4 shadow-lg border border-white/60 mb-6 md:mb-8 relative overflow-hidden"
-          >
-            {/* Animated background glow */}
-            <div className="absolute inset-0 bg-gradient-to-r from-rose-400/10 via-violet-400/10 to-sky-400/10 rounded-full animate-pulse" />
-
-            <motion.div
-              animate={{
-                rotate: [0, 5, -5, 0],
-                scale: [1, 1.05, 1],
-              }}
-              transition={{
-                duration: 3,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
-            >
-              <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-rose-500 relative z-10" />
-            </motion.div>
-            <span className="text-gray-700 font-medium text-base md:text-lg relative z-10">
-              הרגע שלכם הגיע
-            </span>
-          </motion.div>
-
-          {/* Main Title */}
-          <motion.h4
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 1.4 }}
-            className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800 mb-4 md:mb-6 relative"
-          >
-            מוכנים להתחיל את{' '}
-            <span className="relative">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 via-violet-600 to-sky-500">
-                המסע
-              </span>
-              {/* Animated underline */}
-              <motion.div
-                className="absolute -bottom-1 left-0 right-0 h-1 bg-gradient-to-r from-rose-400 via-violet-500 to-sky-400 rounded-full"
-                initial={{ scaleX: 0 }}
-                animate={isInView ? { scaleX: 1 } : {}}
-                transition={{ duration: 1, delay: 2 }}
-                style={{ transformOrigin: 'left' }}
-              />
-            </span>
-            ?
-          </motion.h4>
-
-          {/* Description */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 1.6 }}
-            className="relative"
-          >
-            {/* Background card effect */}
-            <div className="absolute inset-0 bg-gradient-to-br from-white/60 via-rose-50/40 to-violet-50/30 backdrop-blur-sm rounded-3xl border border-white/50 shadow-lg -m-4" />
-
-            <p className="text-base md:text-lg text-gray-600 mb-8 md:mb-10 leading-relaxed relative z-10 px-4">
-              השאלון הייחודי שלנו הוא הצעד הראשון. הוא לא טכני, הוא אישי.{' '}
-              <br className="hidden md:block" />
-              זו ההזדמנות שלכם לספר לנו את הסיפור שלכם, כדי שאנחנו נוכל למצוא את
-              הפרק הבא שלו.
-            </p>
-          </motion.div>
-
-          {/* CTA Buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 1.8 }}
-            className="flex flex-col sm:flex-row gap-4 md:gap-6 justify-center items-center"
-          >
-            {/* Main CTA Button */}
+        <div className="max-w-4xl mx-auto">
+          <h4 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800 mb-4 md:mb-6">
+            מוכנים להתחיל את המסע?
+          </h4>
+          <p className="text-base md:text-lg text-gray-600 mb-8 md:mb-10 leading-relaxed">
+            השאלון הייחודי שלנו הוא הצעד הראשון. הוא לא טכני, הוא אישי.{' '}
+            <br className="hidden md:block" />
+            זו ההזדמנות שלכם לספר לנו את הסיפור שלכם, כדי שאנחנו נוכל למצוא את
+            הפרק הבא שלו.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 md:gap-6 justify-center items-center">
             <Link href="/questionnaire">
-              <motion.div
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.98 }}
-                className="relative group"
+              <Button
+                size="lg"
+                className="group bg-gradient-to-r from-rose-500 to-violet-600 hover:from-rose-600 hover:to-violet-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl px-6 md:px-8 py-3 md:py-4 text-base md:text-lg font-semibold w-full sm:w-auto"
               >
-                {/* Button glow effect */}
-                <div className="absolute -inset-1 bg-gradient-to-r from-rose-500 via-violet-600 to-sky-500 rounded-3xl blur opacity-30 group-hover:opacity-50 transition-opacity duration-300" />
-
-                <Button
-                  size="lg"
-                  className="relative group bg-gradient-to-r from-rose-500 to-violet-600 hover:from-rose-600 hover:to-violet-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl px-6 md:px-8 py-3 md:py-4 text-base md:text-lg font-semibold w-full sm:w-auto border-0"
-                >
-                  <span className="flex items-center gap-3 justify-center relative z-10">
-                    <motion.span className="whitespace-nowrap">
-                      אני רוצה להתחיל את המסע שלי
-                    </motion.span>
-                    <motion.div
-                      className="flex-shrink-0"
-                      animate={{ x: [0, 3, 0] }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        ease: 'easeInOut',
-                      }}
-                    >
-                      <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />
-                    </motion.div>
-                  </span>
-
-                  {/* Button shine effect */}
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent rounded-2xl"
-                    animate={{
-                      x: ['-100%', '100%'],
-                      opacity: [0, 1, 0],
-                    }}
-                    transition={{
-                      duration: 3,
-                      repeat: Infinity,
-                      ease: 'easeInOut',
-                      delay: 2,
-                    }}
-                  />
-                </Button>
-              </motion.div>
+                <span className="flex items-center gap-3 justify-center">
+                  אני רוצה להתחיל את המסע שלי
+                  <ArrowRight className="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition-transform" />
+                </span>
+              </Button>
             </Link>
-
-            {/* Features List */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={isInView ? { opacity: 1, x: 0 } : {}}
-              transition={{ duration: 0.8, delay: 2 }}
-              className="flex items-center gap-3 text-gray-600 text-sm md:text-base bg-white/70 backdrop-blur-sm rounded-2xl px-4 py-3 border border-white/60 shadow-md"
-            >
-              <motion.div
-                animate={{
-                  scale: [1, 1.1, 1],
-                  rotate: [0, 5, 0],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                }}
-              >
-                <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-green-500 flex-shrink-0" />
-              </motion.div>
+            <div className="flex items-center gap-3 text-gray-600 text-sm md:text-base">
+              <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-green-500 flex-shrink-0" />
               <span className="font-medium text-center sm:text-right">
                 חוויה אישית • תובנות עבורכם • דיסקרטי לחלוטין
               </span>
-            </motion.div>
-          </motion.div>
-
-          {/* Additional decorative elements */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={isInView ? { opacity: 1 } : {}}
-            transition={{ duration: 1, delay: 2.5 }}
-            className="mt-8 flex justify-center gap-4"
-          >
-            {[...Array(3)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="w-2 h-2 rounded-full bg-gradient-to-r from-rose-400 to-violet-500"
-                animate={{
-                  scale: [1, 1.5, 1],
-                  opacity: [0.5, 1, 0.5],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  delay: i * 0.3,
-                }}
-              />
-            ))}
-          </motion.div>
+            </div>
+          </div>
         </div>
       </motion.div>
     </div>
@@ -5633,7 +5034,7 @@ export default OurMethodSection;
 --- End of Content for OurMethodSection.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\sections\PrivacyAssuranceSection.tsx
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\PrivacyAssuranceSection.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/components/HomePage/sections/PrivacyAssuranceSection.tsx
@@ -5831,7 +5232,7 @@ export default PrivacyAssuranceSection;
 --- End of Content for PrivacyAssuranceSection.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\sections\SuccessStoriesSection.tsx
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\SuccessStoriesSection.tsx
 --------------------------------------------------------------------------------
 Content:
 // src/components/HomePage/sections/SuccessStoriesSection.tsx
@@ -5846,7 +5247,7 @@ import { ArrowLeft } from 'lucide-react';
 
 const SuccessStoriesSection: React.FC = () => {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, amount: 0.01 });
+  const isInView = useInView(ref, { once: true, amount: 0.1 });
 
   // שינוי 2: הוספנו state לניהול ההודעה שתוצג בלחיצה
   const [showComingSoon, setShowComingSoon] = useState(false);
@@ -5918,7 +5319,7 @@ const SuccessStoriesSection: React.FC = () => {
     <motion.section
       ref={ref}
       id="success-stories"
-      className="pt-16 md:pt-20 px-4 bg-white relative"
+      className="py-16 md:py-20 px-4 bg-white relative"
       variants={containerVariants}
       initial="hidden"
       animate={isInView ? 'visible' : 'hidden'}
@@ -6024,7 +5425,11 @@ const SuccessStoriesSection: React.FC = () => {
               transition: { duration: 0.6, ease: 'easeOut', delay: 0.5 },
             },
           }}
-        ></motion.div>
+        >
+          <p className="text-base text-gray-500">
+            אנו מכבדים את פרטיות הזוגות שלנו, ומשתפים סיפורים רק בהסכמתם המלאה.
+          </p>
+        </motion.div>
       </div>
     </motion.section>
   );
@@ -6034,7 +5439,7 @@ export default SuccessStoriesSection;
 --- End of Content for SuccessStoriesSection.tsx ---
 
 --------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\sections\ValuePropositionSection.tsx
+File: C:\Users\user\Desktop\matchpoint\shidduch-system\src\components\HomePage\sections\ValuePropositionSection.tsx
 --------------------------------------------------------------------------------
 Content:
 import React, { useRef } from 'react';

@@ -2516,15 +2516,7 @@ const ProfileHeader: React.FC<{
                         'justify-center min-w-max'
                       )}
                     >
-                      {profile.city && (
-                        <KeyFactCard
-                          icon={MapPin}
-                          label="מיקום"
-                          value={profile.city}
-                          color="rose"
-                          compact={compact}
-                        />
-                      )}
+
                       {profile.occupation && (
                         <KeyFactCard
                           icon={Briefcase}
@@ -2801,10 +2793,7 @@ const MobileImageGallery: React.FC<{
           className={cn(
             'flex pb-2 sm:pb-3',
             compact ? 'gap-2' : 'gap-2 sm:gap-3 md:gap-4',
-            // יישור למרכז כשיש מעט תמונות
-            orderedImages.length <= 3
-              ? 'justify-center min-w-full'
-              : 'min-w-max'
+            'justify-center min-w-full'
           )}
         >
           {orderedImages.map((image, idx) => (
@@ -4967,7 +4956,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         />
         <div
           className={cn(
-            'p-3 sm:p-4 min-w-0 max-w-full overflow-hidden', // <-- ודא שיש כאן padding
+            'p-3 sm:p-4 min-w-0 max-w-full overflow-hidden',
             `bg-gradient-to-br ${THEME.colors.neutral.cool}`
           )}
         >
@@ -4981,7 +4970,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   const FocusMobileLayout = () => (
     <div className="flex-1 min-h-0 flex flex-col max-w-full overflow-hidden">
       <ScrollArea className="flex-1 min-h-0 max-w-full">
-        <div className="pb-4 min-w-0 max-w-full overflow-hidden">
+        <div className="pb-4 px-2 sm:px-3 min-w-0 max-w-full overflow-hidden">
           <ProfileHeader
             profile={profile}
             age={age}
@@ -5005,7 +4994,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
           <div
             className={cn(
-              'px-2 sm:px-3 py-2 space-y-3 sm:space-y-4 min-w-0 max-w-full overflow-hidden', // <-- הוספנו את ה-padding לכאן
+              'px-2 sm:px-3 py-2 space-y-3 sm:space-y-4 min-w-0 max-w-full overflow-hidden',
               `bg-gradient-to-br ${THEME.colors.neutral.warm}`
             )}
           >
