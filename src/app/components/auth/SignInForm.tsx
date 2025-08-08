@@ -1,61 +1,49 @@
 // src/app/components/auth/SignInForm.tsx
-'use client';
+"use client";
 
-import { useState, useEffect, FormEvent } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-// --- שינוי 1: ייבוא useSession ---
-import { useSession } from 'next-auth/react';
-import { signIn } from 'next-auth/react';
-import { Button } from '@/components/ui/button';
-import { Mail, Lock, AlertCircle, Loader2 } from 'lucide-react';
-import Link from 'next/link';
+import { useState, useEffect, FormEvent } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
+import { Button } from "@/components/ui/button";
+import { Mail, Lock, AlertCircle, Loader2 } from "lucide-react";
+import Link from "next/link";
 
 export default function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-
-  // --- שינוי 2: שימוש ב-useSession כדי לקבל את מצב האימות הנוכחי ---
   const { data: session, status } = useSession();
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  // --- שינוי 3: הוספת useEffect לטיפול בהפנייה אוטומטית של משתמש מחובר ---
-  // Hook זה יפעל בכל פעם שסטטוס הסשן משתנה.
   useEffect(() => {
-    // אם סטטוס הסשן הוא "authenticated", זה אומר שהמשתמש מחובר בהצלחה.
-    // זה יכול לקרות מיד אחרי התחברות, או אם משתמש מחובר נכנס לדף בטעות.
-    if (status === 'authenticated') {
-      // אנו בודקים אם יש מידע מותאם אישית בסשן, כמו redirectUrl.
-      // הוספנו את המאפיינים האלה ב-callbacks של auth.ts.
-      // @ts-ignore - מתעלמים מהשגיאה כי אנחנו יודעים שהוספנו את המאפיינים האלה לסשן.
+    if (status === "authenticated") {
+      // @ts-ignore - אנחנו יודעים שהוספנו את המאפיינים האלה לסשן
       const redirectUrl = session?.redirectUrl || '/profile';
-
-      // בצע הפנייה ליעד שהוגדר (לדוגמה: '/profile' למשתמש ותיק, '/auth/register' למשתמש חדש)
       router.push(redirectUrl);
     }
   }, [status, session, router]);
 
-  // Hook לטיפול בשגיאות מה-URL (למשל, אחרי ניסיון כושל של NextAuth)
   useEffect(() => {
-    const errorMessage = searchParams.get('error');
-    const resetSuccess = searchParams.get('reset');
+    const errorMessage = searchParams.get("error");
+    const resetSuccess = searchParams.get("reset");
 
-    if (resetSuccess === 'success') {
-      setError(''); // נקה שגיאות קודמות אם הגענו מאיפוס סיסמה מוצלח
+    if (resetSuccess === "success") {
+        setError("");
     }
 
     if (errorMessage) {
       switch (errorMessage) {
-        case 'CredentialsSignin':
-          setError('אימייל או סיסמה אינם נכונים. אנא נסה שנית.');
+        case "CredentialsSignin":
+          setError("אימייל או סיסמה אינם נכונים. אנא נסה שנית.");
           break;
-        case 'OAuthAccountNotLinked':
+        case "OAuthAccountNotLinked":
           setError(
-            'חשבון זה כבר מקושר באמצעות ספק אחר. אנא התחבר באמצעות הספק המקורי.'
+            "חשבון זה כבר מקושר באמצעות ספק אחר. אנא התחבר באמצעות הספק המקורי."
           );
           break;
         default:
@@ -64,9 +52,8 @@ export default function SignInForm() {
     }
   }, [searchParams]);
 
-  // Hook למילוי אוטומטי של האימייל מה-URL
   useEffect(() => {
-    const emailParam = searchParams.get('email');
+    const emailParam = searchParams.get("email");
     if (emailParam) {
       setEmail(emailParam);
     }
@@ -74,41 +61,36 @@ export default function SignInForm() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setIsLoading(true);
 
     if (!email || !password) {
-      setError('אנא הזן אימייל וסיסמה.');
+      setError("אנא הזן אימייל וסיסמה.");
       setIsLoading(false);
       return;
     }
 
-    try {
-      localStorage.setItem('last_user_email', email);
+     try {
+      localStorage.setItem("last_user_email", email);
 
-      const result = await signIn('credentials', {
+      const result = await signIn("credentials", {
         email: email.toLowerCase(),
         password,
-        redirect: false, // אנחנו מטפלים בהפנייה ידנית
+        redirect: false,
       });
 
-      if (result?.ok) {
-        // אם ההתחברות הצליחה, ה-useEffect שבודק את ה-status יטפל בהפנייה.
-        // הקוד כאן נשאר כגיבוי למקרה שההתחברות עם credentials לא מפעילה מחדש את הסשן באופן מיידי.
-        // אם ה-result.url קיים, נשתמש בו.
-        if (result.url) {
-          router.push(result.url);
-        }
-      } else {
-        if (result?.error === 'CredentialsSignin') {
-          setError('אימייל או סיסמה אינם נכונים.');
+      if (result?.ok && result.url) {
+        router.push(result.url);
+      } else if (!result?.ok) {
+        if (result?.error === "CredentialsSignin") {
+          setError("אימייל או סיסמה אינם נכונים.");
         } else {
-          setError(result?.error || 'אירעה שגיאה לא צפויה בהתחברות.');
+          setError(result?.error || "אירעה שגיאה לא צפויה בהתחברות.");
         }
       }
     } catch (err) {
-      console.error('Unexpected sign-in error in handleSubmit:', err);
-      setError('אירעה שגיאה לא צפויה בהתחברות, נסה שנית.');
+      console.error("Unexpected sign-in error in handleSubmit:", err);
+      setError("אירעה שגיאה לא צפויה בהתחברות, נסה שנית.");
     } finally {
       setIsLoading(false);
     }
@@ -116,31 +98,37 @@ export default function SignInForm() {
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
-    setError('');
-    localStorage.setItem('google_auth_in_progress', 'true');
-    localStorage.setItem('auth_method', 'google');
+    setError("");
+    localStorage.setItem("google_auth_in_progress", "true");
+    localStorage.setItem("auth_method", "google");
 
     try {
-      // NextAuth יטפל בהפנייה לגוגל. אחרי האימות, ה-useEffect למעלה יטפל בהפנייה לפרופיל.
-      await signIn('google');
+      await signIn("google");
     } catch (error) {
-      console.error('Google sign-in error:', error);
-      setError('אירעה שגיאה בהתחברות עם גוגל. נסה שנית.');
+      console.error("Google sign-in error:", error);
+      setError("אירעה שגיאה בהתחברות עם גוגל. נסה שנית.");
       setIsGoogleLoading(false);
     }
   };
 
-  // --- שינוי 4: הצגת Loader בזמן בדיקת הסשן או בזמן ההפנייה ---
-  // זה מונע "הבהוב" של טופס ההתחברות למשתמש שכבר מחובר.
+  // --- שינוי: מסך טעינה מעוצב ואינפורמטיבי ---
+  // בזמן בדיקת הסשן או לאחר התחברות מוצלחת, הצג את ההודעה הבאה עד להפנייה.
   if (status === 'loading' || status === 'authenticated') {
     return (
-      <div className="flex min-h-[50vh] w-full max-w-md items-center justify-center rounded-xl bg-white shadow-xl">
-        <Loader2 className="h-10 w-10 animate-spin text-cyan-600" />
+      <div className="flex w-full max-w-md flex-col items-center justify-center rounded-xl bg-white p-8 text-center shadow-xl" style={{ minHeight: '520px' }}>
+        <div className="mb-4 h-12 w-12">
+            <Loader2 className="h-full w-full animate-spin text-cyan-500" />
+        </div>
+        <h2 className="mb-2 text-2xl font-bold text-gray-800">
+          {status === 'authenticated' ? 'התחברת בהצלחה!' : 'טוען נתונים...'}
+        </h2>
+        <p className="text-gray-600">
+          {status === 'authenticated' ? 'אנו מעבירים אותך לאזור האישי שלך. רגע קט...' : 'אנא המתן בזמן שאנו בודקים את פרטי ההתחברות שלך.'}
+        </p>
       </div>
     );
   }
 
-  // רק אם המשתמש אינו מחובר (status === 'unauthenticated'), נציג את טופס ההתחברות
   return (
     <div className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden relative">
       <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-cyan-500 to-pink-500"></div>
@@ -289,7 +277,7 @@ export default function SignInForm() {
 
         <div className="mt-6 text-center">
           <p className="text-gray-600 text-sm">
-            אין לך חשבון עדיין?{' '}
+            אין לך חשבון עדיין?{" "}
             <Link
               href="/auth/register"
               className="text-cyan-600 font-medium hover:text-cyan-700 hover:underline"
