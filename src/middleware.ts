@@ -77,81 +77,87 @@ const rateLimitedPaths = [
 ];
 
 export default withAuth(
-  async function middleware(req: NextRequestWithAuth) { // Added 'async'
+  async function middleware(req: NextRequestWithAuth) {
     const path = req.nextUrl.pathname;
-
-    // --- START: Rate Limiting Logic ---
-    // Check if the current path needs to be rate-limited
-  // --- START: MODIFIED Rate Limiting Logic ---
-// Only apply rate limiting in production environment. In development, let it pass.
-if (process.env.NODE_ENV === 'production' && rateLimitedPaths.some(p => path.startsWith(p))) {
-    const token = req.nextauth.token;
-    // Identifier can be user ID (if logged in) or IP address (for guests)
-    const identifier = token?.id || req.ip || '127.0.0.1';
-    
-    
-    try {
-        const { success, limit, remaining, reset } = await ratelimit.limit(identifier);
-
-        if (!success) {
-            console.warn(`[RateLimit PROD] Blocked request for identifier: ${identifier}. Remaining: ${remaining}/${limit}. Resets in: ${new Date(reset).toLocaleTimeString()}`);
-            return NextResponse.json({ error: 'יותר מדי בקשות, אנא המתן מספר שניות ונסה שוב.' }, { status: 429 });
-        }
-        
-
-    } catch (error) {
-        console.error("[RateLimit ERROR] Failed to connect to Upstash Redis. Allowing request to pass to avoid blocking app.", error);
-        // In case of a Redis connection error, we'll let the request pass to avoid blocking the entire app.
-        // You might want to handle this differently in production (e.g., return an error).
-    }
-
-} else if (rateLimitedPaths.some(p => path.startsWith(p))) {
-    // In development or if not a production env, just log and skip the check.
-}
-// --- END: MODIFIED Rate Limiting Logic ---
-    // --- END: Rate Limiting Logic ---
-
-    // --- START: Your existing middleware logic ---
-    const token = req.nextauth.token;
     const isApiRoute = path.startsWith('/api/');
 
-    // Helper to check if path starts with any of the allowed paths
+    // --- START: Rate Limiting Logic (נשאר ללא שינוי) ---
+    if (process.env.NODE_ENV === 'production' && rateLimitedPaths.some(p => path.startsWith(p))) {
+        const token = req.nextauth.token;
+        const identifier = token?.id || req.ip || '127.0.0.1';
+        
+        try {
+            const { success, limit, remaining, reset } = await ratelimit.limit(identifier);
+
+            if (!success) {
+                console.warn(`[RateLimit PROD] Blocked request for identifier: ${identifier}. Remaining: ${remaining}/${limit}. Resets in: ${new Date(reset).toLocaleTimeString()}`);
+                return NextResponse.json({ error: 'יותר מדי בקשות, אנא המתן מספר שניות ונסה שוב.' }, { status: 429 });
+            }
+        } catch (error) {
+            console.error("[RateLimit ERROR] Failed to connect to Upstash Redis. Allowing request to pass to avoid blocking app.", error);
+        }
+    }
+    // --- END: Rate Limiting Logic ---
+
+    const token = req.nextauth.token;
+
+    // Helper function (נשאר ללא שינוי)
     const isPathAllowed = (allowedPaths: string[], currentPath: string): boolean => {
         return allowedPaths.some(allowedPath => {
             if (currentPath === allowedPath) return true;
             if (allowedPath.endsWith('/*') && currentPath.startsWith(allowedPath.slice(0, -2))) return true;
-            // More specific check to avoid broad matches like /auth allowing /auth/anything
             if (currentPath.startsWith(allowedPath) && (currentPath.length === allowedPath.length || currentPath.charAt(allowedPath.length) === '/')) return true;
             return false;
         });
     };
 
-    // --- Scenario 1: No token ---
+    // --- Scenario 1: No token (משתמש לא מחובר) ---
     if (!token) {
         const allPublicPaths = [...publicPaths, ...rateLimitedPaths];
         const isPublic = isPathAllowed(allPublicPaths, path);
 
+        // אם הדף אינו ציבורי והמשתמש לא מחובר, הפנה להתחברות
         if (!isPublic) {
             if (isApiRoute) {
                 return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
             }
             const signInUrl = new URL('/auth/signin', req.url);
-            signInUrl.searchParams.set('callbackUrl', req.url);
+            signInUrl.searchParams.set('callbackUrl', req.url); // שמור את הדף שאליו ניסה להגיע
             return NextResponse.redirect(signInUrl);
         }
+        // אם הדף ציבורי, אפשר לו להמשיך
         return NextResponse.next();
     }
 
-    // --- Scenario 2: Token exists ---
+    // --- Scenario 2: Token exists (משתמש מחובר) ---
+    // קודם כל, נחשב האם המשתמש צריך להשלים פרטים בפרופיל
     const needsEmailVerification = token.status === UserStatus.PENDING_EMAIL_VERIFICATION && !token.isVerified;
     const needsProfileCompletion = !token.isProfileComplete;
     const needsPhoneVerification = !token.isPhoneVerified;
     const needsTermsAcceptance = !token.termsAndPrivacyAcceptedAt;
     const overallNeedsCompletion = needsEmailVerification || needsProfileCompletion || needsPhoneVerification || needsTermsAcceptance;
-    
-    // Add rate-limited paths to the list of paths an incomplete user can access.
-    const allAllowedWhileIncomplete = [...publicPaths, ...allowedWhileIncompleteOrUnverifiedPaths, ...rateLimitedPaths];
 
+    const isAuthPage = path.startsWith('/auth/signin') || path.startsWith('/auth/register');
+
+    // חלק א': מה לעשות אם המשתמש המחובר נמצא בדף התחברות או הרשמה
+    if (isAuthPage) {
+        // אם הפרופיל שלו מלא (לא צריך להשלים כלום), הפנה אותו לדף הפרופיל
+        if (!overallNeedsCompletion) {
+            return NextResponse.redirect(new URL('/profile', req.url));
+        }
+        
+        // אם הוא כן צריך להשלים פרטים והוא מנסה לגשת לדף ההתחברות,
+        // עדיף להפנות אותו לדף ההרשמה שבו מתבצעת השלמת הפרטים.
+        if (path.startsWith('/auth/signin')) {
+             return NextResponse.redirect(new URL('/auth/register', req.url));
+        }
+        
+        // אם הוא כבר בדף ההרשמה, תן לו להישאר שם
+        return NextResponse.next();
+    }
+
+    // חלק ב': מה לעשות אם משתמש עם פרופיל חסר מנסה לגשת לדף מוגן
+    const allAllowedWhileIncomplete = [...publicPaths, ...allowedWhileIncompleteOrUnverifiedPaths, ...rateLimitedPaths];
     const isAllowedForIncompleteUser = isPathAllowed(allAllowedWhileIncomplete, path);
 
     if (overallNeedsCompletion && !isAllowedForIncompleteUser) {
@@ -161,6 +167,7 @@ if (process.env.NODE_ENV === 'production' && rateLimitedPaths.some(p => path.sta
         else if (needsProfileCompletion) reason = 'complete_profile';
         else if (needsPhoneVerification) reason = 'verify_phone';
 
+        // עבור קריאות API, החזר שגיאת JSON
         if (isApiRoute) {
             return NextResponse.json({
                 error: `Action required: ${reason}. Please complete your profile/verification.`,
@@ -168,29 +175,15 @@ if (process.env.NODE_ENV === 'production' && rateLimitedPaths.some(p => path.sta
             }, { status: 403 });
         }
 
+        // עבור דפי האתר, הפנה לדף המרכזי להשלמת פרטים
         const redirectTo = '/auth/register';
         const redirectUrl = new URL(redirectTo, req.url);
         if (reason) redirectUrl.searchParams.set('reason', reason);
         return NextResponse.redirect(redirectUrl);
     }
 
-    // --- Scenario 3: Fully verified user ---
-       // --- Scenario 3: Fully verified user on a page they shouldn't be on ---
-    if (
-          (path.startsWith('/auth/signin') || path.startsWith('/auth/register')) &&
-    token.status === UserStatus.ACTIVE &&
-    token.isVerified &&
-    token.isProfileComplete &&
-    token.isPhoneVerified &&
-    token.termsAndPrivacyAcceptedAt
-    ) {
-        // אם המשתמש מחובר במלואו ומנסה לגשת לדף הבית, לדף ההתחברות או לדף ההרשמה,
-        // הפנה אותו ישירות לדף הפרופיל שלו.
-        return NextResponse.redirect(new URL('/profile', req.url));
-    }
-    
+    // אם כל התנאים עברו, זה אומר שהמשתמש מורשה לגשת לדף המבוקש
     return NextResponse.next();
-    // --- END: Your existing middleware logic ---
   },
   {
     callbacks: {
@@ -209,10 +202,12 @@ if (process.env.NODE_ENV === 'production' && rateLimitedPaths.some(p => path.sta
         const allPublicPaths = [...publicPaths, ...rateLimitedPaths];
         const isPublic = isPathAllowed(allPublicPaths, path);
 
+        // אם הדף הוא ציבורי, תמיד לאשר גישה
         if (isPublic) {
           return true;
         }
         
+        // אם הדף לא ציבורי, אשר גישה רק אם יש token
         return !!token;
       },
     },
@@ -222,6 +217,7 @@ if (process.env.NODE_ENV === 'production' && rateLimitedPaths.some(p => path.sta
     }
   }
 );
+
 
 // We keep the main matcher as it is. It's broad, and we filter inside the middleware.
 export const config = {

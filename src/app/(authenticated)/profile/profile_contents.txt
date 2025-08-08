@@ -1,0 +1,1306 @@
+################################################################################
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\(authenticated)\profile
+# Generated on: 2025-08-08 08:13:28
+################################################################################
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\(authenticated)\profile
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\(authenticated)\profile\page.tsx
+--------------------------------------------------------------------------------
+Content:
+"use client";
+
+import React, { Suspense } from "react";
+import UnifiedProfileDashboard from "./components/dashboard/UnifiedProfileDashboard";
+import { useSearchParams } from "next/navigation";
+import { Loader2 } from "lucide-react";
+
+// A small wrapper to handle Suspense for useSearchParams
+const ProfilePageContent = () => {
+  const searchParams = useSearchParams();
+  const viewOnly = searchParams.get("viewOnly") === "true";
+  const userId = searchParams.get("userId") || undefined;
+  const initialTab = searchParams.get("tab") || "overview"; // Get initial tab
+
+  return (
+    <div className="min-h-screen bg-background" dir="rtl">
+      <UnifiedProfileDashboard 
+        viewOnly={viewOnly} 
+        userId={userId} 
+        initialTab={initialTab} 
+      />
+    </div>
+  );
+};
+
+const ProfilePage = () => {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-cyan-50 via-white to-pink-50">
+        <div className="flex items-center gap-2 text-lg text-cyan-600">
+          <Loader2 className="animate-spin h-6 w-6" />
+          <span>טוען פרופיל...</span>
+        </div>
+      </div>
+    }>
+      <ProfilePageContent />
+    </Suspense>
+  );
+};
+
+export default ProfilePage;
+--- End of Content for page.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\(authenticated)\profile\profile_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\(authenticated)\profile\components
+================================================================================
+
+(This directory contains subdirectories but no files directly. See subdirectories below.)
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\(authenticated)\profile\components\advisor
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\(authenticated)\profile\components\advisor\AIProfileAdvisorDialog.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/app/(authenticated)/profile/components/advisor/AIProfileAdvisorDialog.tsx
+'use client';
+
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogTrigger,
+  DialogClose, // <--- 1. יבוא של קומפוננטת הסגירה
+} from '@/components/ui/dialog';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Loader2, Sparkles, AlertTriangle, X } from 'lucide-react'; // <--- 2. יבוא של אייקון ה-X
+import { toast } from 'sonner';
+
+// נייבא את הקומפוננטה שתציג את התוצאות
+import AnalysisResultDisplay from './AnalysisResultDisplay';
+import type { AiProfileAnalysisResult } from '@/lib/services/aiService';
+
+interface AIProfileAdvisorDialogProps {
+  userId: string;
+}
+
+export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
+  userId,
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [analysis, setAnalysis] = useState<AiProfileAnalysisResult | null>(
+    null
+  );
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // פונקציה שתופעל כשהמשתמש ילחץ על הכפתור ותתחיל את התהליך
+  const handleGetAnalysis = async () => {
+    // אם כבר יש ניתוח, פשוט נפתח את הדיאלוג בלי לקרוא שוב ל-API
+    if (analysis) {
+      setIsOpen(true);
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/ai/analyze-my-profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // אין צורך לשלוח userId, ה-API יקח אותו מהסשן
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'שגיאה בקבלת ניתוח הפרופיל.');
+      }
+
+      setAnalysis(result.data);
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'אירעה שגיאה לא צפויה.';
+      setError(errorMessage);
+      toast.error('שגיאה בתהליך הניתוח', {
+        description: errorMessage,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    // איפוס המצב כאשר הדיאלוג נסגר
+    if (!open) {
+      // לא מאפסים את ה-analysis כדי לשמור אותו בזיכרון לפתיחה הבאה
+      setError(null);
+    }
+  };
+
+  // כאשר הדיאלוג נפתח לראשונה (אין עדיין ניתוח) - נפעיל את הפונקציה
+  const handleTriggerClick = () => {
+    if (!analysis && !isLoading) {
+      handleGetAnalysis();
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>
+        <Button
+          onClick={handleTriggerClick}
+          variant="outline"
+          size="lg"
+          className="rounded-full border-2 border-purple-300 bg-purple-50 text-purple-700 hover:bg-purple-100 hover:border-purple-400 transition-all duration-300 shadow-sm hover:shadow-lg group w-full max-w-sm"
+        >
+          <Sparkles className="w-5 h-5 ml-2 text-purple-500 transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110" />
+          <span>קבל ניתוח וטיפים לשיפור הפרופיל</span>
+        </Button>
+      </DialogTrigger>
+
+      <DialogContent
+        className="max-w-4xl w-[95vw] h-[90vh] flex flex-col p-0"
+        dir="rtl"
+      >
+        {/* --- 3. הוספת כפתור הסגירה --- */}
+        <DialogClose asChild>
+          <button className="absolute top-3 left-4 rtl:right-4 rtl:left-auto text-gray-400 hover:text-gray-600 transition-colors rounded-full p-1 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 z-10">
+            <X className="h-5 w-5" />
+            <span className="sr-only">סגור</span>
+          </button>
+        </DialogClose>
+        {/* ----------------------------- */}
+
+        <DialogHeader className="p-4 border-b">
+          <DialogTitle className="flex items-center gap-2 text-xl">
+            <Sparkles className="w-6 h-6 text-purple-500" />
+            <span>יועץ הפרופיל החכם שלך</span>
+          </DialogTitle>
+          <DialogDescription>
+            ניתוח מבוסס AI שיעזור לך להציג את עצמך בצורה הטובה ביותר ולמצוא
+            התאמות מדויקות יותר.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="flex-grow overflow-y-auto p-4 md:p-6 bg-slate-50/50">
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <Loader2 className="w-12 h-12 text-purple-500 animate-spin mb-4" />
+              <p className="text-lg font-semibold text-gray-700">
+                ה-AI שלנו מנתח את הפרופיל שלך...
+              </p>
+              <p className="text-sm text-gray-500 mt-2">
+                זה עשוי לקחת מספר שניות. תודה על סבלנותך.
+              </p>
+            </div>
+          ) : error ? (
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <Alert variant="destructive" className="max-w-md">
+                <AlertTriangle className="h-5 w-5" />
+                <AlertTitle>אופס, משהו השתבש</AlertTitle>
+                <AlertDescription>
+                  <p>לא הצלחנו להשלים את ניתוח הפרופיל כרגע.</p>
+                  <p className="text-xs mt-2">{error}</p>
+                </AlertDescription>
+              </Alert>
+              <Button
+                onClick={handleGetAnalysis}
+                variant="outline"
+                className="mt-4"
+              >
+                נסה שוב
+              </Button>
+            </div>
+          ) : analysis ? (
+            <AnalysisResultDisplay analysis={analysis} />
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <p>לחץ על הכפתור כדי להתחיל את הניתוח.</p>
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default AIProfileAdvisorDialog;
+--- End of Content for AIProfileAdvisorDialog.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\(authenticated)\profile\components\advisor\AnalysisResultDisplay.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/app/(authenticated)/profile/components/advisor/AnalysisResultDisplay.tsx
+'use client';
+
+import React from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import {
+  Lightbulb,
+  CheckCircle2,
+  AlertCircle,
+  XCircle,
+  User,
+  Target,
+} from 'lucide-react'; // הסרתי את 'Camera'
+import { AiProfileAnalysisResult } from '@/lib/services/aiService';
+import { cn } from '@/lib/utils';
+
+interface AnalysisResultDisplayProps {
+  analysis: AiProfileAnalysisResult;
+}
+
+const TipCard: React.FC<{ area: string; tip: string }> = ({ area, tip }) => (
+  <div className="p-4 rounded-lg bg-yellow-50/70 border border-yellow-200/80 flex items-start gap-4">
+    <div className="flex-shrink-0 mt-1">
+      <Lightbulb className="w-5 h-5 text-yellow-600" />
+    </div>
+    <div>
+      <p className="font-semibold text-sm text-yellow-800">{area}</p>
+      <p className="text-sm text-yellow-900 mt-1">{tip}</p>
+    </div>
+  </div>
+);
+
+const ReportItem: React.FC<{
+  area: string;
+  status: 'COMPLETE' | 'PARTIAL' | 'MISSING';
+  feedback: string;
+}> = ({ area, status, feedback }) => {
+  const statusConfig = {
+    COMPLETE: { icon: CheckCircle2, color: 'text-green-600', text: 'הושלם' },
+    PARTIAL: { icon: AlertCircle, color: 'text-amber-600', text: 'חלקי' },
+    MISSING: { icon: XCircle, color: 'text-red-600', text: 'חסר' },
+  };
+
+  const { icon: Icon, color, text } = statusConfig[status];
+
+  return (
+    <div className="flex items-start gap-3 p-3 border-b last:border-b-0">
+      <div className="flex-shrink-0 mt-1">
+        <Icon className={cn('w-5 h-5', color)} />
+      </div>
+      <div className="flex-1">
+        <div className="flex justify-between items-center">
+          <p className="font-medium text-sm text-slate-800">{area}</p>
+          <Badge
+            variant="outline"
+            className={cn(
+              'text-xs font-mono',
+              color.replace('text-', 'border-').replace('-600', '-300')
+            )}
+          >
+            {text}
+          </Badge>
+        </div>
+        <p className="text-sm text-slate-600 mt-1">{feedback}</p>
+      </div>
+    </div>
+  );
+};
+
+const AnalysisResultDisplay: React.FC<AnalysisResultDisplayProps> = ({
+  analysis,
+}) => {
+  return (
+    <div className="w-full">
+      <Tabs defaultValue="summary" className="w-full">
+        {/* --- START OF CHANGE --- */}
+        <TabsList className="grid w-full grid-cols-3 h-auto p-1.5 bg-slate-200/70 rounded-lg">
+          <TabsTrigger value="summary">סיכום</TabsTrigger>
+          <TabsTrigger value="completeness">השלמת פרופיל</TabsTrigger>
+          <TabsTrigger value="tips">טיפים לשיפור</TabsTrigger>
+          {/* לשונית התמונות הוסרה */}
+        </TabsList>
+        {/* --- END OF CHANGE --- */}
+
+        <div className="mt-4">
+          <TabsContent value="summary" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <User className="text-blue-500" />
+                  מי אני? (סיכום AI)
+                </CardTitle>
+                <CardDescription>
+                  כך ה-AI מבין את האישיות שלך על סמך מה שסיפרת.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-slate-700 whitespace-pre-wrap leading-relaxed">
+                  {analysis.personalitySummary}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Target className="text-green-500" />
+                  את מי אני מחפש/ת? (סיכום AI)
+                </CardTitle>
+                <CardDescription>
+                  סיכום ההעדפות שלך לבן/בת הזוג האידיאלי/ת.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-slate-700 whitespace-pre-wrap leading-relaxed">
+                  {analysis.lookingForSummary}
+                </p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="completeness">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <CheckCircle2 className="text-indigo-500" />
+                  דוח השלמת פרופיל
+                </CardTitle>
+                <CardDescription>
+                  סקירה של החלקים שהושלמו בפרופיל שלך ואלו שעדיין דורשים
+                  התייחסות.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="space-y-0 divide-y">
+                  {analysis.completenessReport.map((item, index) => (
+                    <ReportItem key={index} {...item} />
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="tips">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Lightbulb className="text-yellow-500" />
+                  המלצות וטיפים לשיפור
+                </CardTitle>
+                <CardDescription>
+                  הצעות קונקרטיות שיעזרו לך לשדרג את הפרופיל ולמשוך התאמות טובות
+                  יותר.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {analysis.actionableTips.map((tip, index) => (
+                  <TipCard key={index} area={tip.area} tip={tip.tip} />
+                ))}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* --- START OF CHANGE --- */}
+          {/* כל התוכן של ניתוח התמונות הוסר מכאן */}
+          {/* <TabsContent value="photos"> ... </TabsContent> */}
+          {/* --- END OF CHANGE --- */}
+        </div>
+      </Tabs>
+    </div>
+  );
+};
+
+export default AnalysisResultDisplay;
+--- End of Content for AnalysisResultDisplay.tsx ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\(authenticated)\profile\components\dashboard
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\(authenticated)\profile\components\dashboard\ProfileChecklist.tsx
+--------------------------------------------------------------------------------
+Content:
+import React, { useState, useMemo } from 'react';
+import Link from 'next/link';
+import { Progress } from "@/components/ui/progress";
+import { Button } from '@/components/ui/button';
+import { CheckCircle, User, BookOpen, Camera, Target, ChevronUp, ChevronDown, Sparkles, Edit3 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from "@/lib/utils";
+import type { User as SessionUserType } from '@/types/next-auth';
+import type { QuestionnaireResponse } from '@/types/next-auth';
+import { Gender } from '@prisma/client';
+
+// Helper Types & Constants
+const QUESTION_COUNTS: Record<'VALUES' | 'PERSONALITY' | 'RELATIONSHIP' | 'PARTNER' | 'RELIGION', number> = {
+    VALUES: 19, PERSONALITY: 19, RELATIONSHIP: 19, PARTNER: 17, RELIGION: 19
+};
+
+const WORLD_NAMES_MAP = {
+    values: 'ערכים', personality: 'אישיות', relationship: 'זוגיות', partner: 'פרטנר', religion: 'דת ומסורת'
+} as const;
+
+type WorldKey = keyof typeof WORLD_NAMES_MAP;
+
+interface ChecklistItemProps {
+    id: string;
+    isCompleted: boolean;
+    title: string;
+    description: string;
+    link?: string;
+    onClick?: () => void;
+    icon: React.ElementType;
+    missingItems?: string[];
+    worldProgress?: { world: string; completed: number; total: number; isDone: boolean }[];
+    isActive: boolean;
+    setActiveItemId: React.Dispatch<React.SetStateAction<string | null>>;
+}
+
+const ChecklistItem: React.FC<ChecklistItemProps> = ({
+    id, isCompleted, title, description, link, onClick, icon: Icon,
+    missingItems, worldProgress, isActive, setActiveItemId
+}) => {
+    const canExpand = (missingItems && missingItems.length > 0) || (worldProgress && worldProgress.length > 0);
+    const isExpanded = isActive && canExpand;
+
+    const handleInteraction = () => {
+        if (isCompleted) return;
+        if (onClick) {
+            onClick();
+        } else if (canExpand && !link) {
+            setActiveItemId(prev => (prev === id ? null : id));
+        }
+    };
+    
+    const cardContent = (
+      <>
+        <div className="relative w-full flex justify-center mb-3">
+            <div className={cn(
+                "relative flex items-center justify-center w-14 h-14 rounded-2xl transition-all duration-300 transform group-hover:scale-110",
+                isCompleted ? "bg-emerald-100 shadow-emerald-500/10" : "bg-cyan-100 shadow-cyan-500/10"
+            )}>
+                <Icon className={cn("w-7 h-7 transition-colors duration-300", isCompleted ? "text-emerald-500" : "text-cyan-600")} />
+            </div>
+            {isCompleted && (
+                <motion.div initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", stiffness: 400, damping: 20, delay: 0.2 }} className="absolute -top-1 -right-1">
+                    <CheckCircle className="w-5 h-5 text-emerald-500 bg-white rounded-full p-0.5" fill="white" />
+                </motion.div>
+            )}
+        </div>
+        <h4 className={cn("font-bold text-sm text-center transition-colors", isCompleted ? 'text-gray-400 line-through' : 'text-gray-800')}>{title}</h4>
+        {!isCompleted && <p className="text-xs text-center text-gray-500 mt-1 leading-tight h-8">{description}</p>}
+      </>
+    );
+
+    const interactiveContent = (
+      link && !isCompleted ? (
+        <Link href={link} passHref legacyBehavior>
+          <a className="block h-full w-full">{cardContent}</a>
+        </Link>
+      ) : (
+        <button onClick={handleInteraction} className="h-full w-full text-left" disabled={isCompleted}>{cardContent}</button>
+      )
+    );
+
+    return (
+        <motion.div
+            layout
+            onMouseEnter={() => canExpand && setActiveItemId(id)}
+            className={cn(
+                "relative flex flex-col rounded-2xl transition-all duration-300 group overflow-hidden",
+                isCompleted ? 'bg-white/40' : 'bg-white/70 shadow-md',
+                isExpanded && "shadow-xl bg-white"
+            )}
+        >
+            <div className={cn("p-4", !isCompleted && "cursor-pointer")}>
+                {interactiveContent}
+            </div>
+            <AnimatePresence>
+                {isExpanded && (
+                    <motion.div layout initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.3, ease: 'easeInOut' }} className="overflow-hidden">
+                        <div className="bg-slate-50/70 border-t border-slate-200 px-4 py-3 text-sm">
+                            <h4 className="font-semibold text-xs mb-2 text-gray-800">מה חסר להשלמת השלב?</h4>
+                            {missingItems && (<ul className="list-disc pr-4 space-y-1.5 text-gray-600 text-xs">{missingItems.map(item => <li key={item}>{item}</li>)}</ul>)}
+                            {worldProgress && (<div className="space-y-2">{worldProgress.map(world => (<div key={world.world} className="flex items-center justify-between text-xs"><span className={cn("font-medium", world.isDone ? "text-emerald-600" : "text-gray-700")}>{world.world}</span><div className="flex items-center gap-2"><span className="font-mono text-xs">{world.completed}/{world.total}</span>{world.isDone && <CheckCircle className="h-4 w-4 text-emerald-500" />}</div></div>))}</div>)}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </motion.div>
+    );
+};
+
+interface ProfileChecklistProps {
+  user: SessionUserType;
+  hasSeenPreview: boolean;
+  onPreviewClick: () => void;
+  questionnaireResponse: QuestionnaireResponse | null;
+}
+
+export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({ user, onPreviewClick, hasSeenPreview, questionnaireResponse }) => {
+    const [isMinimized, setIsMinimized] = useState(false);
+    const [activeItemId, setActiveItemId] = useState<string | null>(null);
+
+    const getMissingItems = useMemo(() => {
+        const p = user.profile;
+        if (!p) return { personalDetails: [], partnerPreferences: [] };
+        
+        const personalDetails = [
+            (!p.about || p.about.trim().length < 100) && 'כתיבת "קצת עליי" (100+ תווים)',
+            !p.height && 'גובה',
+            !p.maritalStatus && 'מצב משפחתי',
+            (p.hasChildrenFromPrevious === null || p.hasChildrenFromPrevious === undefined) && 'ילדים מקשר קודם',
+            !p.city && 'עיר מגורים',
+            !p.occupation && 'עיסוק',
+            !p.educationLevel && 'רמת השכלה',
+            !p.origin && 'מוצא/עדה',
+            !p.religiousLevel && 'רמה דתית',
+            !p.religiousJourney && 'מסע דתי',
+            (p.shomerNegiah === null || p.shomerNegiah === undefined) && 'שמירת נגיעה',
+            !p.serviceType && 'שירות צבאי/לאומי',
+            !p.serviceDetails && 'פרטי שירות',
+            (!p.profileHobbies || p.profileHobbies.length === 0) && 'תחביבים',
+            (!p.profileCharacterTraits || p.profileCharacterTraits.length === 0) && 'תכונות אופי',
+            !p.nativeLanguage && 'שפת אם',
+            (!p.additionalLanguages || p.additionalLanguages.length === 0) && 'שפות נוספות',
+            !p.parentStatus && 'סטטוס הורים',
+            (p.siblings === null || p.siblings === undefined) && 'מספר אחים',
+            (p.position === null || p.position === undefined) && 'מיקום במשפחה',
+            (!p.aliyaCountry || !p.aliyaYear) && 'ארץ ושנת עלייה',
+        ];
+
+        const partnerPreferences = [
+            (!p.preferredAgeMin || !p.preferredAgeMax) && 'טווח גילאים מועדף',
+            (!p.preferredHeightMin || !p.preferredHeightMax) && 'טווח גובה מועדף',
+            (!p.preferredReligiousLevels || p.preferredReligiousLevels.length === 0) && 'רמות דתיות מועדפות',
+            (!p.preferredReligiousJourneys || p.preferredReligiousJourneys.length === 0) && 'מסעות דתיים מועדפים',
+            (!p.preferredLocations || p.preferredLocations.length === 0) && 'אזורי מגורים מועדפים',
+            (!p.preferredMaritalStatuses || p.preferredMaritalStatuses.length === 0) && 'מצב משפחתי מועדף',
+            (!p.preferredOrigins || p.preferredOrigins.length === 0) && 'מוצא/עדה מועדפים',
+            (p.preferredShomerNegiah === null || p.preferredShomerNegiah === undefined) && 'העדפת שמירת נגיעה',
+            (p.preferredPartnerHasChildren === null || p.preferredPartnerHasChildren === undefined) && 'העדפה לגבי ילדים מקשר קודם',
+            (!p.preferredServiceTypes || p.preferredServiceTypes.length === 0) && 'סוג שירות מועדף',
+            !p.preferredAliyaStatus && 'העדפה לגבי עלייה',
+            (!p.preferredCharacterTraits || p.preferredCharacterTraits.length === 0) && 'תכונות אופי מועדפות',
+            (!p.preferredHobbies || p.preferredHobbies.length === 0) && 'תחביבים מועדפים',
+        ];
+
+        // --- START OF CHANGE: Conditional gender-specific items ---
+        if (p.gender === Gender.FEMALE) {
+            personalDetails.push(!p.headCovering && 'כיסוי ראש');
+            partnerPreferences.push((!p.preferredKippahTypes || p.preferredKippahTypes.length === 0) && 'סוג כיפה מועדף');
+        } else if (p.gender === Gender.MALE) {
+            personalDetails.push(!p.kippahType && 'סוג כיפה');
+            partnerPreferences.push((!p.preferredHeadCoverings || p.preferredHeadCoverings.length === 0) && 'כיסוי ראש מועדף');
+        }
+        // --- END OF CHANGE ---
+
+        return {
+            personalDetails: personalDetails.filter((item): item is string => !!item),
+            partnerPreferences: partnerPreferences.filter((item): item is string => !!item),
+        };
+    }, [user.profile]);
+
+    const questionnaireProgress = useMemo(() => {
+        const getAnswerCountFromJsonArray = (jsonValue: unknown): number => {
+            if (Array.isArray(jsonValue)) return jsonValue.length;
+            return 0;
+        };
+
+        if (!questionnaireResponse) {
+            return (Object.keys(WORLD_NAMES_MAP) as WorldKey[]).map(key => ({
+                world: WORLD_NAMES_MAP[key],
+                completed: 0,
+                total: QUESTION_COUNTS[key.toUpperCase() as keyof typeof QUESTION_COUNTS],
+                isDone: false,
+            }));
+        }
+
+        const qr = questionnaireResponse;
+        return (Object.keys(WORLD_NAMES_MAP) as WorldKey[]).map(key => {
+            const uppercaseKey = key.toUpperCase() as keyof typeof QUESTION_COUNTS;
+            const answersFieldKey = `${key}Answers` as keyof QuestionnaireResponse;
+            const completedCount = getAnswerCountFromJsonArray(qr[answersFieldKey]);
+            return {
+                world: WORLD_NAMES_MAP[key],
+                completed: completedCount,
+                total: QUESTION_COUNTS[uppercaseKey],
+                isDone: qr.worldsCompleted?.includes(uppercaseKey) ?? false,
+            };
+        });
+    }, [questionnaireResponse]);
+
+    const questionnaireCompleted = questionnaireResponse?.completed ?? false;
+    
+    const tasks = [
+        { id: 'photo', isCompleted: (user.images?.length ?? 0) >= 3, title: 'העלאת תמונות', description: 'הכרטיס ביקור הראשוני שלך.', link: '/profile?tab=photos', icon: Camera, missingItems: (user.images?.length ?? 0) < 3 ? [`נדרשות לפחות 3 תמונות (הועלו: ${user.images?.length ?? 0})`] : [] },
+        { id: 'personal_details', isCompleted: getMissingItems.personalDetails.length === 0, title: 'פרטים אישיים', description: 'הבסיס להכיר אותך לעומק.', link: '/profile?tab=overview', icon: User, missingItems: getMissingItems.personalDetails },
+        { id: 'partner_preferences', isCompleted: getMissingItems.partnerPreferences.length === 0, title: 'העדפות בן/בת זוג', description: 'לדייק את מי שמחפשים.', link: '/profile?tab=preferences', icon: Target, missingItems: getMissingItems.partnerPreferences },
+        { id: 'questionnaire', isCompleted: questionnaireCompleted, title: 'שאלון התאמה', description: 'המפתח להתאמות AI.', link: '/questionnaire', icon: BookOpen, worldProgress: questionnaireProgress ?? undefined },
+        { id: 'review', isCompleted: hasSeenPreview, title: 'תצוגה מקדימה', description: 'לראות איך אחרים רואים אותך.', onClick: onPreviewClick, icon: Edit3, missingItems: !hasSeenPreview ? ['יש לצפות בתצוגה המקדימה של הפרופיל'] : [] },
+    ];
+    
+    const completionPercentage = useMemo(() => {
+        const QUESTIONNAIRE_WEIGHT = 20;
+        const OTHER_TASKS_WEIGHT = 80;
+
+        const totalQuestions = Object.values(QUESTION_COUNTS).reduce((sum, count) => sum + count, 0);
+        const answeredQuestions = questionnaireProgress.reduce((sum, world) => sum + world.completed, 0);
+        const questionnaireContribution = totalQuestions > 0
+            ? (answeredQuestions / totalQuestions) * QUESTIONNAIRE_WEIGHT
+            : 0;
+
+        const p = user.profile;
+        const otherTasksStatus: boolean[] = [];
+
+        otherTasksStatus.push((user.images?.length ?? 0) >= 3);
+
+        if (p) {
+            // Personal Details (21 common items + 1 gender-specific)
+            otherTasksStatus.push(!!(p.about && p.about.trim().length >= 100));
+            otherTasksStatus.push(!!p.height);
+            otherTasksStatus.push(!!p.maritalStatus);
+            otherTasksStatus.push(p.hasChildrenFromPrevious !== null && p.hasChildrenFromPrevious !== undefined);
+            otherTasksStatus.push(!!p.city);
+            otherTasksStatus.push(!!p.occupation);
+            otherTasksStatus.push(!!p.educationLevel);
+            otherTasksStatus.push(!!p.origin);
+            otherTasksStatus.push(!!p.religiousLevel);
+            otherTasksStatus.push(!!p.religiousJourney);
+            otherTasksStatus.push(p.shomerNegiah !== null && p.shomerNegiah !== undefined);
+            otherTasksStatus.push(!!p.serviceType);
+            otherTasksStatus.push(!!p.serviceDetails);
+            otherTasksStatus.push(!!(p.profileHobbies && p.profileHobbies.length > 0));
+            otherTasksStatus.push(!!(p.profileCharacterTraits && p.profileCharacterTraits.length > 0));
+            otherTasksStatus.push(!!p.nativeLanguage);
+            otherTasksStatus.push(!!(p.additionalLanguages && p.additionalLanguages.length > 0));
+            otherTasksStatus.push(!!p.parentStatus);
+            otherTasksStatus.push(p.siblings !== null && p.siblings !== undefined);
+            otherTasksStatus.push(p.position !== null && p.position !== undefined);
+            otherTasksStatus.push(!!p.aliyaCountry && !!p.aliyaYear);
+
+            // Partner Preferences (13 common items + 1 gender-specific)
+            otherTasksStatus.push(!!(p.preferredAgeMin && p.preferredAgeMax));
+            otherTasksStatus.push(!!(p.preferredHeightMin && p.preferredHeightMax));
+            otherTasksStatus.push(!!(p.preferredReligiousLevels && p.preferredReligiousLevels.length > 0));
+            otherTasksStatus.push(!!(p.preferredReligiousJourneys && p.preferredReligiousJourneys.length > 0));
+            otherTasksStatus.push(!!(p.preferredLocations && p.preferredLocations.length > 0));
+            otherTasksStatus.push(!!(p.preferredMaritalStatuses && p.preferredMaritalStatuses.length > 0));
+            otherTasksStatus.push(!!(p.preferredOrigins && p.preferredOrigins.length > 0));
+            otherTasksStatus.push(p.preferredShomerNegiah !== null && p.preferredShomerNegiah !== undefined);
+            otherTasksStatus.push(p.preferredPartnerHasChildren !== null && p.preferredPartnerHasChildren !== undefined);
+            otherTasksStatus.push(!!(p.preferredServiceTypes && p.preferredServiceTypes.length > 0));
+            otherTasksStatus.push(!!p.preferredAliyaStatus);
+            otherTasksStatus.push(!!(p.preferredCharacterTraits && p.preferredCharacterTraits.length > 0));
+            otherTasksStatus.push(!!(p.preferredHobbies && p.preferredHobbies.length > 0));
+            
+            // --- START OF CHANGE: Conditional gender-specific checks ---
+            if (p.gender === Gender.FEMALE) {
+                otherTasksStatus.push(!!p.headCovering); // personal
+                otherTasksStatus.push(!!(p.preferredKippahTypes && p.preferredKippahTypes.length > 0)); // preference
+            } else if (p.gender === Gender.MALE) {
+                otherTasksStatus.push(!!p.kippahType); // personal
+                otherTasksStatus.push(!!(p.preferredHeadCoverings && p.preferredHeadCoverings.length > 0)); // preference
+            }
+            // --- END OF CHANGE ---
+
+        } else {
+             // If no profile, add placeholders for all items (21+1 personal, 13+1 preference) = 36
+             otherTasksStatus.push(...Array(36).fill(false)); 
+        }
+        
+        otherTasksStatus.push(hasSeenPreview);
+        
+        const totalOtherTasks = otherTasksStatus.length;
+        const completedOtherTasks = otherTasksStatus.filter(isCompleted => isCompleted).length;
+        
+        const otherTasksContribution = totalOtherTasks > 0
+            ? (completedOtherTasks / totalOtherTasks) * OTHER_TASKS_WEIGHT
+            : 0;
+
+        return Math.round(questionnaireContribution + otherTasksContribution);
+
+    }, [user, questionnaireProgress, hasSeenPreview]);
+
+    const isAllComplete = completionPercentage >= 100;
+
+    return (
+        <AnimatePresence>
+            <motion.div layout initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, height: 0, transition: { duration: 0.4 } }} transition={{ duration: 0.5, ease: "easeOut" }} className="mb-8 rounded-3xl shadow-xl border border-white/50 bg-white/70 backdrop-blur-md overflow-hidden">
+                <div className="p-4 sm:p-6">
+                    <div className="md:flex md:items-center md:justify-between">
+                        <div className="flex-1 text-center md:text-right">
+                             <h2 className="text-xl font-bold text-slate-800 flex items-center justify-center md:justify-start gap-2">
+                                {isAllComplete && <Sparkles className="w-6 h-6 text-amber-500" />}
+                                {isAllComplete ? `כל הכבוד, ${user.firstName}! הפרופיל שלך מושלם!` : `ברוך הבא, ${user.firstName}! בוא נכין את הפרופיל שלך להצלחה`}
+                            </h2>
+                            <AnimatePresence initial={false}>
+                                {!isMinimized && (<motion.p initial={{ opacity: 0, height: 0, marginTop: 0 }} animate={{ opacity: 1, height: 'auto', marginTop: '0.25rem' }} exit={{ opacity: 0, height: 0, marginTop: 0 }} className="text-slate-600 text-sm md:text-base overflow-hidden">{isAllComplete ? 'השלמת את כל השלבים. פרופיל עשיר הוא המפתח למציאת ההתאמה המדויקת ביותר.' : 'השלמת הצעדים הבאים תקדם אותך משמעותית למציאת התאמה.'}</motion.p>)}
+                            </AnimatePresence>
+                        </div>
+                        <div className="mt-4 md:mt-0 md:w-auto lg:w-1/3 flex items-center gap-4">
+                             <div className="flex-1">
+                                <div className="flex justify-between items-center text-sm mb-1">
+                                    <span className="font-medium text-gray-700">השלמת הפרופיל</span>
+                                    <span className="font-bold text-cyan-600">{completionPercentage}%</span>
+                                </div>
+                                <Progress value={completionPercentage} className="h-2 bg-slate-200/70" />
+                            </div>
+                            <Button variant="ghost" size="icon" className="text-slate-500 hover:bg-slate-200/50 rounded-full flex-shrink-0" onClick={() => setIsMinimized(!isMinimized)} aria-label={isMinimized ? "הרחב" : "מזער"}>
+                                {isMinimized ? <ChevronDown className="h-5 w-5" /> : <ChevronUp className="h-5 w-5" />}
+                            </Button>
+                        </div>
+                    </div>
+                    <AnimatePresence initial={false}>
+                        {!isMinimized && (
+                            <motion.div key="checklist-content" initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1, transition: { opacity: { delay: 0.1 } } }} exit={{ height: 0, opacity: 0, transition: { duration: 0.3 } }} className="overflow-hidden" onMouseLeave={() => setActiveItemId(null)}>
+                                <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
+                                    {tasks.map((task) => (<ChecklistItem key={task.id} {...task} isActive={activeItemId === task.id} setActiveItemId={setActiveItemId} />))}
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+            </motion.div>
+        </AnimatePresence>
+    );
+};
+--- End of Content for ProfileChecklist.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\(authenticated)\profile\components\dashboard\UnifiedProfileDashboard.tsx
+--------------------------------------------------------------------------------
+Content:
+"use client";
+
+import React, { useState, useEffect, useCallback } from "react";
+import { useSession } from "next-auth/react";
+import Link from 'next/link';
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import type { User as SessionUserType } from '@/types/next-auth';
+
+import { ProfileChecklist } from "./ProfileChecklist";
+import { AIProfileAdvisorDialog } from "../advisor/AIProfileAdvisorDialog";
+
+// UI Components
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTrigger, DialogClose } from "@/components/ui/dialog"; // *** הוספתי DialogClose ***
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+
+// Shared Profile Components
+import {
+  ProfileCard,
+  PhotosSection,
+  PreferencesSection,
+  ProfileSection,
+  QuestionnaireResponsesSection,
+} from "@/app/components/profile";
+
+// Icons
+import { Eye, Loader2, Sparkles, X } from "lucide-react"; // *** הוספתי X ***
+
+// Types
+import type {
+  UserProfile,
+  UserImage,
+  QuestionnaireResponse,
+  UpdateValue,
+} from "@/types/next-auth";
+
+interface UnifiedProfileDashboardProps {
+  viewOnly?: boolean;
+  userId?: string;
+  initialTab?: string;
+}
+
+const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
+  viewOnly = false,
+  userId,
+  initialTab = "overview",
+}) => {
+  const { data: session, status: sessionStatus, update: updateSession } = useSession();
+  const router = useRouter();
+  
+  const [profileData, setProfileData] = useState<UserProfile | null>(null);
+  const [images, setImages] = useState<UserImage[]>([]);
+  const [questionnaireResponse, setQuestionnaireResponse] = useState<QuestionnaireResponse | null>(null);
+  const [activeTab, setActiveTab] = useState(initialTab);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [previewOpen, setPreviewOpen] = useState(false);
+
+  const [hasSeenPreview, setHasSeenPreview] = useState(
+    session?.user?.profile?.hasViewedProfilePreview || false
+  );
+
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
+
+  const handleTabChange = (newTab: string) => {
+    setActiveTab(newTab);
+    router.push(`/profile?tab=${newTab}`, { scroll: false });
+  };
+  
+  const isOwnProfile = !userId || (session?.user?.id === userId);
+
+  const loadData = useCallback(async () => {
+    setIsLoading(true);
+    setError("");
+    try {
+      const profileUrl = userId ? `/api/profile?userId=${userId}` : "/api/profile";
+      const profileResponse = await fetch(profileUrl);
+      const profileJson = await profileResponse.json();
+
+      if (!profileResponse.ok || !profileJson.success) {
+        throw new Error(profileJson.message || "Failed to load profile");
+      }
+      setProfileData(profileJson.profile);
+      setImages(profileJson.images || []);
+      if (profileJson.profile?.hasViewedProfilePreview) {
+        setHasSeenPreview(true);
+      }
+
+      const questionnaireUrl = userId ? `/api/profile/questionnaire?userId=${userId}` : "/api/profile/questionnaire";
+      const questionnaireFetchResponse = await fetch(questionnaireUrl);
+      
+      if (questionnaireFetchResponse.status === 404) {
+        setQuestionnaireResponse(null);
+      } else if (questionnaireFetchResponse.ok) {
+        const questionnaireJson = await questionnaireFetchResponse.json();
+        if (questionnaireJson.success) {
+          setQuestionnaireResponse(questionnaireJson.questionnaireResponse);
+        } else {
+          console.warn("Could not load questionnaire. Reason:", questionnaireJson.message);
+          setQuestionnaireResponse(null);
+        }
+      } else {
+        console.error("Failed to fetch questionnaire data. Status:", questionnaireFetchResponse.status);
+        setQuestionnaireResponse(null);
+      }
+
+    } catch (err: unknown) {
+      console.error("Failed to load profile data:", err);
+      let errorMessage = "שגיאה בטעינת הנתונים";
+      if (err instanceof Error) {
+        errorMessage = err.message || errorMessage;
+      }
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    if (sessionStatus === 'authenticated') {
+        loadData();
+    }
+  }, [sessionStatus, loadData]);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && sessionStatus === 'authenticated') {
+        loadData();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [loadData, sessionStatus]);
+
+  const handlePreviewClick = async () => {
+    setPreviewOpen(true);
+    if (!hasSeenPreview) {
+      try {
+        const response = await fetch('/api/profile/viewed-preview', {
+          method: 'POST',
+        });
+        if (!response.ok) {
+          throw new Error('Failed to update preview status');
+        }
+        setHasSeenPreview(true);
+        toast.success("תודה! שלב 'הצפייה בתצוגה' הושלם.");
+        await updateSession();
+      } catch (error) {
+        console.error("Error in handlePreviewClick:", error);
+        toast.error("שגיאה בעדכון סטטוס הצפייה בתצוגה המקדימה.");
+      }
+    }
+  };
+
+  const handleSave = async (formData: Partial<UserProfile>) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/profile/update", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+      if (data.success && data.profile) {
+        await updateSession();
+        setProfileData(data.profile);
+        setIsEditing(false);
+        toast.success("הפרופיל עודכן בהצלחה");
+        setError("");
+      } else {
+        setError(data.message || "שגיאה בעדכון הפרופיל");
+        toast.error(data.message || "שגיאה בעדכון הפרופיל");
+      }
+    } catch (err) {
+      console.error("Save error:", err);
+      setError("שגיאה בעדכון הפרופיל");
+      toast.error("שגיאה בעדכון הפרופיל");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+const handleImageUpload = async (files: File[]) => {
+  if (!files || files.length === 0) return;
+  
+  setIsLoading(true);
+  const uploadedImages: UserImage[] = [];
+  const failedUploads: string[] = [];
+  
+  const uploadWithRetry = async (file: File, retries = 1): Promise<UserImage | null> => {
+    for (let attempt = 1; attempt <= retries + 1; attempt++) {
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+        
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 20000);
+        
+        
+        const response = await fetch("/api/profile/images", {
+          method: "POST",
+          body: formData,
+          signal: controller.signal,
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `HTTP ${response.status}`);
+        }
+        
+        const data = await response.json();
+        if (data.success && data.image) {
+          return data.image;
+        } else {
+          throw new Error(data.error || "Upload failed");
+        }
+      } catch (err) {
+        console.error(`[Upload] Attempt ${attempt} failed for ${file.name}:`, err);
+        
+        if (attempt === retries + 1) {
+          if (err instanceof Error && err.name === 'AbortError') {
+            throw new Error("Upload timed out - server might be slow");
+          }
+          throw err;
+        }
+        
+        if (!(err instanceof Error && err.name === 'AbortError')) {
+          await new Promise(resolve => setTimeout(resolve, 2000 * attempt));
+        }
+      }
+    }
+    return null;
+  };
+  
+  try {
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      
+      try {
+        toast.loading(`מעלה ${file.name}... (${i + 1}/${files.length})`, {
+          id: `upload-${i}`,
+        });
+        
+        const uploadedImage = await uploadWithRetry(file);
+        
+        if (uploadedImage) {
+          uploadedImages.push(uploadedImage);
+          toast.success(`${file.name} הועלה בהצלחה!`, {
+            id: `upload-${i}`,
+          });
+        }
+        
+      } catch (err) {
+        console.error(`[Upload] Final error for ${file.name}:`, err);
+        const errorMessage = err instanceof Error ? err.message : "שגיאה לא ידועה";
+        failedUploads.push(`${file.name}: ${errorMessage}`);
+        toast.error(`נכשל: ${file.name} - ${errorMessage}`, {
+          id: `upload-${i}`,
+        });
+      }
+    }
+    
+    if (uploadedImages.length > 0) {
+      setImages((prev) => [...prev, ...uploadedImages]);
+      await updateSession();
+      
+      const successCount = uploadedImages.length;
+      const totalCount = files.length;
+      
+      if (successCount === totalCount) {
+        toast.success(`כל ${successCount} התמונות הועלו בהצלחה!`);
+      } else {
+        toast.success(`${successCount} מתוך ${totalCount} תמונות הועלו בהצלחה.`);
+      }
+      
+      setError("");
+    }
+    
+    if (failedUploads.length > 0 && uploadedImages.length === 0) {
+      setError("כל ההעלאות נכשלו - בדוק חיבור אינטרנט ונסה שוב");
+      toast.error("כל ההעלאות נכשלו - נסה שוב");
+    }
+    
+  } catch (err) {
+    console.error("[Upload] General error:", err);
+    setError("שגיאה כללית בהעלאת התמונות");
+    toast.error("שגיאה כללית בהעלאת התמונות");
+  } finally {
+    setIsLoading(false);
+  }
+};
+  const handleSetMainImage = async (imageId: string) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/profile/images/${imageId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isMain: true }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setImages(data.images);
+        await updateSession();
+        toast.success("התמונה הראשית עודכנה בהצלחה");
+        setError("");
+      } else {
+        setError(data.message || "שגיאה בעדכון התמונה הראשית");
+        toast.error(data.message || "שגיאה בעדכון התמונה הראשית");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+// החלף את הפונקציה הקיימת בזו:
+const handleDeleteImage = async (imageIds: string[]) => {
+    if (!imageIds || imageIds.length === 0) {
+      toast.info("לא נבחרו תמונות למחיקה.");
+      return;
+    }
+    
+    setIsLoading(true);
+    try {
+      // אנחנו משתמשים בנקודת קצה חדשה שמטפלת במחיקה מרובה
+      const response = await fetch(`/api/profile/images`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ imageIds }), // שלח מערך של מזהים
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        // השרת מחזיר את רשימת התמונות המעודכנת
+        setImages(data.images); 
+        await updateSession();
+        toast.success(`${imageIds.length} תמונ${imageIds.length > 1 ? 'ות' : 'ה'} נמחקו בהצלחה`);
+        setError("");
+      } else {
+        setError(data.message || "שגיאה במחיקת התמונה");
+        toast.error(data.message || "שגיאה במחיקת התמונה");
+      }
+    } catch (err) {
+      console.error("Delete image error:", err);
+      setError("שגיאה במחיקת התמונה");
+      toast.error("שגיאה במחיקת התמונה");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleQuestionnaireUpdate = async (world: string, questionId: string, value: UpdateValue) => {
+    setIsLoading(true);
+    try {
+      const payload = { worldKey: world, questionId: questionId, value };
+      const response = await fetch("/api/profile/questionnaire", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setQuestionnaireResponse(data.data);
+        toast.success("השאלון עודכן בהצלחה");
+        setError("");
+      } else {
+        setError(data.message || "שגיאה בעדכון השאלון");
+        toast.error(data.message || "שגיאה בעדכון השאלון");
+      }
+    } catch (err) {
+      console.error("Failed to update questionnaire:", err);
+      setError("שגיאה בעדכון השאלון");
+      toast.error("שגיאה בעדכון השאלון");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  if (isLoading && !profileData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-cyan-50 via-white to-pink-50" dir="rtl">
+        <div className="flex items-center gap-2 text-lg text-cyan-600">
+          <Loader2 className="animate-spin h-6 w-6" />
+          <span>טוען נתונים...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error && !profileData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 p-4" dir="rtl">
+        <Alert variant="destructive" className="max-w-md mx-auto">
+          <AlertDescription className="text-center">{error}</AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  const user = session?.user as SessionUserType | undefined;
+  
+  return (
+    <div className="relative min-h-screen w-full" dir="rtl">
+      <div className="absolute inset-0 bg-gradient-to-br from-cyan-50 via-white to-pink-50 animate-gradient-slow -z-10" style={{ backgroundSize: "400% 400%" }} />
+      <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:30px_30px] -z-10"></div>
+      <div className="relative max-w-7xl mx-auto py-8 sm:py-12 px-4 sm:px-6 lg:px-8 z-10">
+        <div className="space-y-6 md:space-y-8">
+          {error && <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}
+
+          {isOwnProfile && user && (
+            <>
+              <ProfileChecklist 
+                  user={{ ...user, images: images }}
+                  hasSeenPreview={hasSeenPreview}
+                  onPreviewClick={handlePreviewClick}
+                  questionnaireResponse={questionnaireResponse}
+              />
+              <div className="my-6 md:my-8 text-center">
+                <AIProfileAdvisorDialog userId={user.id} />
+              </div>
+            </>
+          )}
+
+          {!viewOnly && isOwnProfile && (
+            <div className="flex justify-center my-6 md:my-8">
+              <div id="onboarding-target-preview-profile" className="flex justify-center my-6 md:my-8">
+                <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+                  <DialogTrigger asChild>
+                    <Button onClick={handlePreviewClick} variant="outline" size="lg" className="px-8 py-3 text-base sm:text-lg gap-2 rounded-full border-2 border-cyan-200 text-cyan-600 hover:bg-cyan-50 hover:border-cyan-400 transition-all duration-300 shadow-sm hover:shadow-md">
+                      תצוגה מקדימה של הפרופיל <Eye className="w-5 h-5 sm:w-6 sm:h-6" />
+                    </Button>
+                  </DialogTrigger>
+                  {/*
+                    ---
+                    שינוי לפתרון נקודה 1: הוספת כפתור סגירה ייעודי
+                    - DialogContent: הוספתי `overflow-hidden` כדי למנוע מהגלילה של התוכן להסתיר את כפתור הסגירה.
+                    - DialogClose: הוספתי כפתור סגירה (X) שיהיה תמיד נגיש בפינה השמאלית העליונה (ימין ב-RTL), גם במובייל וגם בדסקטופ.
+                    - ProfileCard: מקבל כעת `className="h-full"` כדי לאפשר גלילה פנימית בתוך הכרטיס עצמו.
+                    ---
+                  */}
+<DialogContent className="w-screen h-screen sm:w-[95vw] sm:h-[90vh] sm:max-w-6xl p-0 bg-white/95 backdrop-blur-md sm:rounded-3xl shadow-2xl border-none overflow-hidden">                 
+                    {profileData ? (
+                <ProfileCard 
+  profile={profileData} 
+  images={images} 
+  questionnaire={questionnaireResponse} 
+  viewMode="candidate"
+  isProfileComplete={session?.user?.isProfileComplete ?? false} 
+  className="h-full"
+  onClose={() => setPreviewOpen(false)}
+/>
+                    ) : (
+                       <p className="text-center text-gray-500 py-10">טוען תצוגה מקדימה...</p>
+                    )}
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </div>
+          )}
+          
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+            <div className="flex justify-center mb-6 md:mb-8">
+              <ScrollArea dir="rtl" className="w-auto max-w-full">
+                <TabsList className="h-auto p-1.5 bg-white/70 backdrop-blur-sm rounded-full shadow-md gap-1 inline-flex flex-nowrap">
+                  <TabsTrigger value="overview" className="px-3 sm:px-6 py-1.5 sm:py-2 rounded-full text-xs sm:text-base font-medium text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-100 data-[state=active]:to-pink-100 data-[state=active]:text-cyan-700 data-[state=active]:shadow-inner transition-all duration-300 whitespace-nowrap">פרטים כלליים</TabsTrigger>
+                  <TabsTrigger value="photos" className="px-3 sm:px-6 py-1.5 sm:py-2 rounded-full text-xs sm:text-base font-medium text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-100 data-[state=active]:to-pink-100 data-[state=active]:text-cyan-700 data-[state=active]:shadow-inner transition-all duration-300 whitespace-nowrap">תמונות</TabsTrigger>
+                  <TabsTrigger value="preferences" className="px-3 sm:px-6 py-1.5 sm:py-2 rounded-full text-xs sm:text-base font-medium text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-100 data-[state=active]:to-pink-100 data-[state=active]:text-cyan-700 data-[state=active]:shadow-inner transition-all duration-300 whitespace-nowrap">העדפות</TabsTrigger>
+                  <TabsTrigger value="questionnaire" className="px-3 sm:px-6 py-1.5 sm:py-2 rounded-full text-xs sm:text-base font-medium text-gray-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-100 data-[state=active]:to-pink-100 data-[state=active]:text-cyan-700 data-[state=active]:shadow-inner transition-all duration-300 whitespace-nowrap">שאלון</TabsTrigger>
+                </TabsList>
+                <ScrollBar orientation="horizontal" className="mt-1" />
+              </ScrollArea>
+            </div>
+            <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl p-6 md:p-8 lg:p-10 transition-all duration-300 ease-in-out">
+              <TabsContent value="overview" id="onboarding-target-edit-profile" className="focus-visible:ring-0 focus-visible:ring-offset-0">
+                {profileData ? <ProfileSection profile={profileData} isEditing={isEditing} setIsEditing={setIsEditing} onSave={handleSave} viewOnly={viewOnly || !isOwnProfile} /> : <p className="text-center text-gray-500 py-10">טוען סקירה כללית...</p>}
+              </TabsContent>
+              <TabsContent value="photos" id="onboarding-target-photos" className="focus-visible:ring-0 focus-visible:ring-offset-0">
+                <PhotosSection images={images} isUploading={isLoading} disabled={viewOnly || !isOwnProfile} onUpload={handleImageUpload} onSetMain={handleSetMainImage} onDelete={handleDeleteImage} />
+              </TabsContent>
+              <TabsContent value="preferences" id="onboarding-target-preferences" className="focus-visible:ring-0 focus-visible:ring-offset-0">
+                {profileData ? <PreferencesSection profile={profileData} isEditing={isEditing} setIsEditing={setIsEditing} onChange={handleSave} viewOnly={viewOnly || !isOwnProfile} /> : <p className="text-center text-gray-500 py-10">טוען העדפות...</p>}
+              </TabsContent>
+              <TabsContent value="questionnaire" id="onboarding-target-questionnaire-tab" className="focus-visible:ring-0 focus-visible:ring-offset-0">
+                {questionnaireResponse ? <QuestionnaireResponsesSection questionnaire={questionnaireResponse} onUpdate={handleQuestionnaireUpdate} isEditable={!viewOnly && isOwnProfile} /> : <div className="text-center py-12 text-gray-500">{isLoading ? "טוען שאלון..." : "לא מולאו תשובות לשאלון."}{!isLoading && isOwnProfile && (<Button asChild variant="link" className="mt-2 text-cyan-600"><Link href="/questionnaire"> למילוי השאלון</Link></Button>)}</div>}
+              </TabsContent>
+            </div>
+          </Tabs>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default UnifiedProfileDashboard;
+--- End of Content for UnifiedProfileDashboard.tsx ---
+
