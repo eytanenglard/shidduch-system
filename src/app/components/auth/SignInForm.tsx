@@ -64,7 +64,7 @@ export default function SignInForm() {
       return;
     }
 
-    try {
+     try {
       localStorage.setItem("last_user_email", email); // Store email for potential reuse
 
       const result = await signIn("credentials", {
@@ -73,31 +73,18 @@ export default function SignInForm() {
         redirect: false, // Handle redirect manually based on result
       });
 
-      if (result?.error) {
-        console.error("Sign-in error from NextAuth:", result.error);
-        if (result.error === "CredentialsSignin") {
-          setError("אימייל או סיסמה אינם נכונים.");
-        } else if (result.error === "OAuthAccountNotLinked") {
-          setError("חשבון זה מקושר לספק אחר (למשל Google). אנא התחבר באמצעותו.");
-        }
-        else {
-          setError(result.error || "אירעה שגיאה בהתחברות, נסה שנית.");
-        }
-      } else if (result?.ok && result?.url) {
-        // Successful sign-in, NextAuth would typically redirect if redirect:true
-        // Since redirect:false, we can manually push or let NextAuth's redirect callback handle it.
-        // The redirect callback in authOptions will determine the final destination.
-        // If it reaches here, it means NextAuth didn't auto-redirect.
-        router.push(result.url); // Or a default like '/profile'
-        console.log("Sign-in successful, NextAuth redirecting to:", result.url);
-      } else if (result && !result.ok && !result.error) {
-        console.warn("Sign-in attempt did not result in an error or a redirect URL:", result);
-        setError("תהליך ההתחברות לא הושלם כראוי. נסה שנית.");
+      if (result?.ok) {
+        // --- זהו התיקון המרכזי ---
+        // אם ההתחברות הצליחה, השתמש בכתובת שהשרת שלח.
+        // אם הכתובת ריקה מסיבה כלשהי, הפנה לפרופיל כברירת מחדל.
+        router.push(result.url || '/profile');
       } else {
-        // If signIn was successful but no specific URL (might happen with redirect: false if callback doesn't provide one)
-        // This usually means the redirect callback in authOptions should handle it.
-        // For safety, you might redirect to a default page or check session.
-        router.push('/profile'); // Default redirect
+        // כל מקרה אחר הוא שגיאה
+        if (result?.error === "CredentialsSignin") {
+          setError("אימייל או סיסמה אינם נכונים.");
+        } else {
+          setError(result?.error || "אירעה שגיאה לא צפויה בהתחברות.");
+        }
       }
     } catch (err) {
       console.error("Unexpected sign-in error in handleSubmit:", err);

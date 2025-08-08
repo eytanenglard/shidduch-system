@@ -14,8 +14,12 @@ function Loading() {
 
 export default function SignInPage() {
   return (
+        <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-cyan-50 via-white to-pink-50 p-4">
+
     <Suspense fallback={<Loading />}>
       <SignInForm />
     </Suspense>
+        </div>
+
   );
 }
