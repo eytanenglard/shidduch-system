@@ -1,50 +1,50 @@
 // src/components/questionnaire/questions/personality/personalityQuestions.ts
 import { Question } from '../../types/types';
 import {
-  Sun, // אנרגיה, אופטימיות, בוקר
-  Moon, // מופנמות, רוגע, לילה
-  Users, // חברתיות, קהל
-  Brain, // חשיבה, אינטליגנציה, למידה
-  Heart, // רגשות, אמפתיה, אהבה
-  Target, // מיקוד, מטרות, ארגון
-  Compass, // כיוון, החלטות
-  Cloud, // גמישות, זרימה, שינוי
-  Leaf, // טבע, רוגע, צמיחה
-  Home, // בית, נוחות
-  Watch, // זמן, שגרה
+  Sun,
+  Moon,
+  Users,
+  Brain,
+  Heart,
+  Target,
+  Compass,
+  Cloud,
+  Leaf,
+  Home,
+  Watch,
   Scale,
-  Coffee, // פנאי, חברים, שיחה
-  MessageCircle, // תקשורת, דיבור
-  HandHeart, // נתינה, תמיכה
-  Lightbulb, // רעיונות, יצירתיות
-  Sparkles, // השראה, ייחודיות, קסם
-  Star, // שאיפות, ערכים (גם)
-  Smile, // הומור, קלילות
-  ShieldCheck, // ביטחון, ערכים (גם)
-  BookOpen, // למידה, תחומי עניין
-  Palette, // יצירתיות, אמנות
-  Headphones, // תחביבים (מוזיקה)
-  Mountain, // הרפתקאות, טבע
-  Bed, // מנוחה, סוף יום
-  Utensils, // אוכל, העדפות
-  Activity, // ספורט, תנועה
-  Edit, // כתיבה, ביטוי עצמי
-  HelpCircle, // שאלה, סקרנות
-  Anchor, // יציבות, עוגן
-  Feather, // קלילות, רגישות
+  Coffee,
+  MessageCircle,
+  HandHeart,
+  Lightbulb,
+  Sparkles,
+  Star,
+  Smile,
+  ShieldCheck,
+  BookOpen,
+  Palette,
+  Headphones,
+  Mountain,
+  Bed,
+  Utensils,
+  Activity,
+  Edit,
+  HelpCircle,
+  Anchor,
+  Feather,
 } from 'lucide-react';
 
 export const personalityQuestions: Question[] = [
-  // --- חלק 1: תפיסה עצמית וטמפרמנט בסיסי ---
+  // --- חלק 1: פתיחה והיכרות - מי את/ה במילים שלך ---
   {
     worldId: 'PERSONALITY',
-    id: 'personality_self_portrayal',
+    id: 'personality_self_portrayal_revised',
     category: 'personality',
     subcategory: 'self_perception',
     question:
-      'אם היית צריך/ה לתאר את עצמך לחבר/ה טוב/ה שמעולם לא פגש/ה אותך, מהם 3-5 הדברים הראשונים שהיית מדגיש/ה באישיותך?',
+      'דמיין/י שאנחנו צריכים לתאר אותך לחבר/ה הכי טוב/ה שלך, במילים שלנו. מהם 3-5 הדברים המרכזיים שהכי חשוב לך שנדגיש כדי שיבינו מי את/ה באמת?',
     type: 'openText',
-    depth: 'BASIC', // נתחיל עם זה כפתיחה
+    depth: 'BASIC',
     isRequired: true,
     minLength: 70,
     maxLength: 500,
@@ -52,71 +52,37 @@ export const personalityQuestions: Question[] = [
       "לדוגמה: 'אני אדם אופטימי, אוהב/ת ללמוד דברים חדשים, נאמן/ה לחברים, קצת ביישנ/ית בהתחלה, אבל עם חוש הומור טוב...'",
     metadata: {
       estimatedTime: 3,
-      helpText: 'נסה/י לחשוב על תמצית האישיות שלך כפי שאת/ה רואה אותה.',
-    },
-  },
-  {
-    worldId: 'PERSONALITY',
-    id: 'personality_energy_level',
-    category: 'personality',
-    subcategory: 'self_perception',
-    question: 'בדרך כלל, איך היית מתאר/ת את רמת האנרגיה הכללית שלך?',
-    type: 'iconChoice',
-    depth: 'BASIC',
-    isRequired: true,
-    options: [
-      {
-        icon: <Sun />,
-        text: 'גבוהה - תמיד בתנועה ופעלתנות',
-        value: 'גבוהה - תמיד בתנועה ופעלתנות',
-      },
-      {
-        icon: <Activity />,
-        text: 'בינונית - אנרגטי/ת כשצריך, יודע/ת גם לנוח',
-        value: 'בינונית - אנרגטי/ת כשצריך, יודע/ת גם לנוח',
-      },
-      {
-        icon: <Moon />,
-        text: 'נמוכה - מעדיף/ה קצב רגוע ושליו',
-        value: 'נמוכה - מעדיף/ה קצב רגוע ושליו',
-      },
-      {
-        icon: <Cloud />,
-        text: 'משתנה - תלוי במצב הרוח וביום',
-        value: 'משתנה - תלוי במצב הרוח וביום',
-      },
-    ],
-    metadata: { estimatedTime: 1 },
-  },
-  {
-    worldId: 'PERSONALITY',
-    id: 'personality_introversion_extroversion',
-    category: 'personality',
-    subcategory: 'self_perception',
-    question: "שאלה על 'הסוללה החברתית' שלך: ממה את/ה בדרך כלל שואב/ת אנרגיה?",
-    type: 'scale',
-    depth: 'BASIC',
-    isRequired: true,
-    min: 1,
-    max: 10,
-    labels: {
-      min: 'מזמן שקט עם עצמי',
-      max: 'ממפגשים ואינטראקציה חברתית',
-      middle: 'שילוב מאוזן בין השניים',
-    },
-    metadata: {
-      estimatedTime: 1,
       helpText:
-        "חשוב/י על זה כך: 1 משמעותו שאת/ה 'טוענ/ת מצברים' בעיקר לבד, ו-10 משמעותו שאת/ה 'טוענ/ת מצברים' בעיקר בחברת אנשים.",
+        'זו ההזדמנות שלך לתת לנו את הכותרות החשובות ביותר שמרכיבות את הסיפור שלך.',
     },
   },
   {
     worldId: 'PERSONALITY',
-    id: 'personality_core_trait_selection',
+    id: 'personality_childhood_nickname', // שאלה חדשה
     category: 'personality',
     subcategory: 'self_perception',
     question:
-      "חלק/י 100 'נקודות אישיות' בין התכונות הבאות כדי לתאר את עצמך. תכונות דומיננטיות יותר צריכות לקבל יותר נקודות.",
+      'האם היה לך כינוי חיבה מיוחד בילדותך? אם כן, מה הוא היה ומה הסיפור שמאחוריו?',
+    type: 'openText',
+    depth: 'ADVANCED',
+    isRequired: false,
+    minLength: 0,
+    maxLength: 300,
+    placeholder:
+      'כינוי שהצחיק, שחיזק, או סתם נדבק... (לא חובה לשתף אם לא מרגיש נוח)',
+    metadata: {
+      estimatedTime: 2,
+      helpText:
+        'לפעמים, כינויים קטנים מהעבר מספרים סיפור גדול על חום, הומור והדינמיקה המשפחתית שלנו.',
+    },
+  },
+  {
+    worldId: 'PERSONALITY',
+    id: 'personality_core_trait_selection_revised',
+    category: 'personality',
+    subcategory: 'self_perception',
+    question:
+      'דמיין/י את האישיות שלך כעוגה המחולקת ל-100%. כיצד היית מחלק/ת את האחוזים בין התכונות הבאות כדי לתאר בצורה הכי טובה מי את/ה?',
     type: 'budgetAllocation',
     depth: 'BASIC',
     isRequired: true,
@@ -138,268 +104,167 @@ export const personalityQuestions: Question[] = [
     metadata: {
       estimatedTime: 3,
       helpText:
-        'את/ה יכול/ה להתמקד בכמה תכונות בודדות או לחלק את הנקודות בין רבות. הסך הכל צריך להיות 100.',
+        'אין צורך לחלק לכולם. התמקד/י בתכונות שהן החלקים הגדולים ביותר ב"עוגה" שלך. הסך הכל צריך להיות 100.',
     },
   },
 
-  // --- חלק 2: סגנון חיים והעדפות יומיומיות ---
+  // --- חלק 2: אנרגיות וסגנון חיים - איך את/ה בעולם ---
   {
     worldId: 'PERSONALITY',
-    id: 'personality_daily_structure',
+    id: 'personality_introversion_extroversion_revised',
     category: 'personality',
     subcategory: 'lifestyle',
-    question: 'איך נראית השגרה היומית האידיאלית שלך?',
+    question:
+      "לכל אחד מאיתנו יש 'סוללה חברתית' שנטענת ומתרוקנת אחרת. איפה על הסקאלה הבאה נמצא 'שקע הטעינה' העיקרי שלך?",
+    type: 'scale',
+    depth: 'BASIC',
+    isRequired: true,
+    min: 1,
+    max: 10,
+    labels: {
+      min: 'מזמן שקט עם עצמי',
+      max: 'ממפגשים ואינטראקציה חברתית',
+      middle: 'שילוב מאוזן',
+    },
+    metadata: {
+      estimatedTime: 1,
+      helpText: '1 = אני נטען בעיקר לבד. 10 = אני נטען בעיקר בחברת אנשים.',
+    },
+  },
+  {
+    worldId: 'PERSONALITY',
+    id: 'personality_good_vs_perfect_day', // שאלה חדשה
+    category: 'personality',
+    subcategory: 'lifestyle',
+    question:
+      "כולנו חולמים על 'יום מושלם'. אבל מה, עבורך, הופך יום רגיל ל'יום ממש טוב'?",
+    type: 'openText',
+    depth: 'ADVANCED',
+    isRequired: false,
+    minLength: 40,
+    maxLength: 400,
+    placeholder:
+      'זה יכול להיות דבר קטן: שיחה טובה, תחושת סיפוק בעבודה, אימון מוצלח, עזרה למישהו...',
+    metadata: {
+      estimatedTime: 2,
+      helpText: 'התשובה כאן מלמדת המון על מקורות האושר והסיפוק היומיומיים שלך.',
+    },
+  },
+  {
+    worldId: 'PERSONALITY',
+    id: 'personality_daily_structure_revised',
+    category: 'personality',
+    subcategory: 'lifestyle',
+    question: 'באיזו "מערכת הפעלה" הראש שלך עובד הכי טוב ביום-יום?',
     type: 'iconChoice',
     depth: 'BASIC',
     isRequired: true,
     options: [
       {
         icon: <Watch />,
-        text: 'מתוכננת ומסודרת עם לו"ז קבוע',
-        value: 'מתוכננת ומסודרת עם לו"ז קבוע',
+        text: 'סדר ותכנון - אני אוהב/ת לדעת מה הלו"ז שלי.',
+        value: 'סדר ותכנון',
       },
       {
         icon: <Cloud />,
-        text: 'גמישה וספונטנית, משתנה מיום ליום',
-        value: 'גמישה וספונטנית, משתנה מיום ליום',
+        text: 'גמישות וזרימה - אני הכי טוב/ה כשאני מגיב/ה להתפתחויות.',
+        value: 'גמישות וזרימה',
       },
       {
         icon: <Target />,
-        text: 'ממוקדת משימות ויעדים ברורים',
-        value: 'ממוקדת משימות ויעדים ברורים',
+        text: 'משימתיות - אני מתפקד/ת הכי טוב עם יעדים ברורים להשגה.',
+        value: 'משימתיות',
       },
       {
         icon: <Scale />,
-        text: 'שילוב של תכנון וגמישות',
-        value: 'שילוב של תכנון וגמישות',
+        text: 'איזון - שילוב של מסגרת כללית עם מקום לספונטניות.',
+        value: 'איזון',
       },
     ],
     metadata: { estimatedTime: 1 },
   },
   {
     worldId: 'PERSONALITY',
-    id: 'personality_preferred_environment',
+    id: 'personality_plan_change_reaction', // שאלה חדשה
     category: 'personality',
-    subcategory: 'lifestyle',
-    question: 'באיזה סוג סביבה את/ה מרגיש/ה הכי פרודוקטיבי/ת ונינוח/ה?',
-    type: 'iconChoice',
+    subcategory: 'emotional_coping',
+    question:
+      'תכננתם בילוי חשוב במשך שבועות, וברגע האחרון הוא מתבטל מסיבה מוצדקת אך מאכזבת. על סולם של 1 (ממש בסדר, קורה) עד 10 (מאוד מתאכזב/ת וקשה לי להסתיר), איפה את/ה ממקמ/ת את תגובתך הרגשית?',
+    type: 'scale',
     depth: 'BASIC',
     isRequired: false,
-    options: [
-      {
-        icon: <Home />,
-        text: 'שקטה וביתית, עם מינימום הסחות דעת',
-        value: 'שקטה וביתית, עם מינימום הסחות דעת',
-      },
-      {
-        icon: <Coffee />,
-        text: 'דינמית ותוססת, כמו בית קפה או משרד פתוח',
-        value: 'דינמית ותוססת, כמו בית קפה או משרד פתוח',
-      },
-      {
-        icon: <Leaf />,
-        text: 'בטבע או בסביבה ירוקה',
-        value: 'בטבע או בסביבה ירוקה',
-      },
-      {
-        icon: <Users />,
-        text: 'בסביבה חברתית, עם אנשים סביבי',
-        value: 'בסביבה חברתית, עם אנשים סביבי',
-      },
-    ],
-    metadata: { estimatedTime: 1 },
-  },
-  {
-    worldId: 'PERSONALITY',
-    id: 'personality_weekend_style',
-    category: 'personality',
-    subcategory: 'lifestyle',
-    question: 'איך את/ה הכי אוהב/ת לבלות סוף שבוע טיפוסי?',
-    type: 'multiSelect',
-    depth: 'ADVANCED',
-    isRequired: false,
-    options: [
-      {
-        icon: <Bed />,
-        text: 'מנוחה והטענת מצברים בבית',
-        value: 'מנוחה והטענת מצברים בבית',
-      },
-      {
-        icon: <Mountain />,
-        text: 'טיולים והרפתקאות בטבע',
-        value: 'טיולים והרפתקאות בטבע',
-      },
-      {
-        icon: <Users />,
-        text: 'מפגשים חברתיים ובילויים',
-        value: 'מפגשים חברתיים ובילויים',
-      },
-      {
-        icon: <Palette />,
-        text: 'תרבות, אמנות והופעות',
-        value: 'תרבות, אמנות והופעות',
-      },
-      {
-        icon: <BookOpen />,
-        text: 'למידה, קריאה והתפתחות אישית',
-        value: 'למידה, קריאה והתפתחות אישית',
-      },
-      {
-        icon: <Utensils />,
-        text: 'בישול, אירוח ואוכל טוב',
-        value: 'בישול, אירוח ואוכל טוב',
-      },
-      {
-        icon: <Activity />,
-        text: 'ספורט ופעילות גופנית',
-        value: 'ספורט ופעילות גופנית',
-      },
-      {
-        icon: <Sparkles />,
-        text: 'זמן איכות ספונטני, מה שבא',
-        value: 'זמן איכות ספונטני, מה שבא',
-      },
-    ],
-    minSelections: 1,
-    maxSelections: 3,
-    metadata: { estimatedTime: 2 },
-  },
-  {
-    worldId: 'PERSONALITY',
-    id: 'personality_ideal_vacation',
-    category: 'personality',
-    subcategory: 'lifestyle',
-    question: 'תאר/י את חופשת החלומות שלך. מה הופך אותה למושלמת עבורך?',
-    type: 'openText',
-    depth: 'ADVANCED',
-    isRequired: false,
-    minLength: 50,
-    maxLength: 400,
-    placeholder: 'לדוגמה: יעד, סוג הפעילויות, קצב, חברה, אווירה...',
-    metadata: { estimatedTime: 2 },
+    min: 1,
+    max: 10,
+    labels: { min: 'זורם/ת', max: 'מתאכזב/ת' },
+    metadata: {
+      estimatedTime: 1,
+      helpText:
+        'אין פה תשובה נכונה. השאלה בודקת את היכולת שלנו להתמודד עם שינויים ואכזבות קטנות.',
+    },
   },
 
-  // --- חלק 3: אינטראקציות חברתיות ותקשורת ---
+  // --- חלק 3: התמודדות, צמיחה ודיאלוג פנימי ---
   {
     worldId: 'PERSONALITY',
-    id: 'personality_social_preference',
+    id: 'personality_learning_process', // שאלה חדשה
     category: 'personality',
-    subcategory: 'social_communication',
-    question: 'בסיטואציות חברתיות, את/ה בדרך כלל...',
-    type: 'iconChoice',
-    depth: 'BASIC',
-    isRequired: true,
-    options: [
-      {
-        icon: <Users />,
-        text: 'במרכז העניינים, יוזמ/ת שיחה ופעילות',
-        value: 'במרכז העניינים, יוזמ/ת שיחה ופעילות',
-      },
-      {
-        icon: <MessageCircle />,
-        text: 'מקשיב/ה ומתבוננ/ת יותר, תורמ/ת כשמתאים',
-        value: 'מקשיב/ה ומתבוננ/ת יותר, תורמ/ת כשמתאים',
-      },
-      {
-        icon: <Coffee />,
-        text: 'נהנה/ית משיחות עומק בקבוצות קטנות',
-        value: 'נהנה/ית משיחות עומק בקבוצות קטנות',
-      },
-      {
-        icon: <Sparkles />,
-        text: 'משתלב/ת לפי האווירה והאנשים',
-        value: 'משתלב/ת לפי האווירה והאנשים',
-      },
-    ],
-    metadata: { estimatedTime: 1 },
-  },
-  {
-    worldId: 'PERSONALITY',
-    id: 'personality_communication_style',
-    category: 'personality',
-    subcategory: 'social_communication',
+    subcategory: 'growth_aspirations',
     question:
-      'איך היית מתאר/ת את סגנון התקשורת העיקרי שלך? חלק/י 100 נקודות בין הסגנונות השונים.',
-    type: 'budgetAllocation',
-    depth: 'ADVANCED',
-    isRequired: true,
-    totalPoints: 100,
-    categories: [
-      { label: 'ישיר/ה, ענייני/ת', icon: <Target /> },
-      { label: 'אמפתי/ת ומתחשב/ת', icon: <HandHeart /> },
-      { label: 'לוגי/ת ומבוסס/ת עובדות', icon: <Brain /> },
-      { label: 'יצירתי/ת ואסוציאטיבי/ת', icon: <Lightbulb /> },
-      { label: 'הומוריסטי/ת וקליל/ה', icon: <Smile /> },
-      { label: 'פתוח/ה ומשתפ/ת', icon: <MessageCircle /> },
-    ],
+      'חשוב/י על הפעם האחרונה שלמדת משהו חדש ומורכב (שפה, כלי נגינה, מיומנות טכנית). מה היה החלק הכי מאתגר עבורך בתהליך, ומה עזר לך להתגבר?',
+    type: 'openText',
+    depth: 'EXPERT',
+    isRequired: false,
+    minLength: 50,
+    maxLength: 500,
+    placeholder:
+      'הקושי יכול להיות תסכול, חוסר סבלנות או פחד מכישלון. מה הייתה אסטרטגיית ההתמודדות שלך?',
     metadata: {
       estimatedTime: 3,
       helpText:
-        'סגנון התקשורת שלנו מורכב מכמה אלמנטים. נסה/י להראות מהם החלקים הדומיננטיים יותר אצלך.',
+        'היכולת שלנו ללמוד ולהתמיד היא אינדיקציה מצוינת לאיך נצמח גם בתוך זוגיות.',
     },
   },
   {
     worldId: 'PERSONALITY',
-    id: 'personality_handling_new_people',
-    category: 'personality',
-    subcategory: 'social_communication',
-    question: 'כשאת/ה פוגש/ת אנשים חדשים, איך את/ה בדרך כלל מרגיש/ה ומתנהג/ת?',
-    type: 'openText',
-    depth: 'ADVANCED',
-    isRequired: false,
-    minLength: 50,
-    maxLength: 400,
-    placeholder:
-      'לדוגמה: האם את/ה פתוח/ה ויוזמ/ת, או יותר מסויג/ת? האם קל לך ליצור קשר ראשוני? מה עוזר לך להרגיש בנוח?',
-    metadata: { estimatedTime: 2 },
-  },
-
-  // --- חלק 4: התמודדות רגשית וקבלת החלטות ---
-  {
-    worldId: 'PERSONALITY',
-    id: 'personality_stress_management',
+    id: 'personality_stress_management_revised',
     category: 'personality',
     subcategory: 'emotional_coping',
-    question: 'מהן הדרכים העיקריות שלך להתמודד עם לחץ ומתח? (בחר/י עד 3)',
+    question:
+      "כשאת/ה מרגיש/ה מוצף/פת ולחוץ/ה, לאן את/ה פונה כדי 'לאפס את המערכת'? (בחר/י עד 3 דרכים עיקריות)",
     type: 'multiSelectWithOther',
     depth: 'BASIC',
     isRequired: true,
     options: [
       {
         icon: <Activity />,
-        text: 'פעילות גופנית (ספורט, הליכה)',
-        value: 'פעילות גופנית (ספורט, הליכה)',
-      },
-      {
-        icon: <Headphones />,
-        text: 'מוזיקה או פודקאסטים',
-        value: 'מוזיקה או פודקאסטים',
-      },
-      {
-        icon: <Edit />,
-        text: 'כתיבה, יומן, ביטוי עצמי',
-        value: 'כתיבה, יומן, ביטוי עצמי',
+        text: 'תנועה וספורט (הליכה, ריצה, אימון)',
+        value: 'תנועה וספורט',
       },
       {
         icon: <Users />,
-        text: 'שיחה עם חבר/ה קרוב/ה או בן/בת משפחה',
-        value: 'שיחה עם חבר/ה קרוב/ה או בן/בת משפחה',
+        text: 'שיחה ופריקה עם מישהו קרוב',
+        value: 'שיחה ופריקה',
       },
       {
         icon: <Bed />,
-        text: 'זמן לבד, מנוחה ושקט',
-        value: 'זמן לבד, מנוחה ושקט',
+        text: 'זמן לבד, שקט ומנוחה',
+        value: 'זמן לבד ושקט',
       },
-      { icon: <Leaf />, text: 'בילוי בטבע', value: 'בילוי בטבע' },
+      { icon: <Leaf />, text: 'יציאה לטבע', value: 'יציאה לטבע' },
       {
         icon: <Palette />,
-        text: 'עיסוק בתחביב יצירתי',
-        value: 'עיסוק בתחביב יצירתי',
+        text: 'עיסוק ביצירה או תחביב',
+        value: 'עיסוק ביצירה',
       },
       {
-        icon: <MessageCircle />,
-        text: 'עיבוד וניתוח של המצב',
-        value: 'עיבוד וניתוח של המצב',
+        icon: <Brain />,
+        text: 'סדר וארגון של המחשבות או הסביבה',
+        value: 'סדר וארגון',
+      },
+      {
+        icon: <Headphones />,
+        text: 'התנתקות עם מוזיקה, פודקאסט או ספר',
+        value: 'התנתקות עם מדיה',
       },
     ],
     minSelections: 1,
@@ -408,173 +273,220 @@ export const personalityQuestions: Question[] = [
   },
   {
     worldId: 'PERSONALITY',
-    id: 'personality_decision_making_style',
-    category: 'personality',
-    subcategory: 'emotional_coping',
-    question: 'כשאת/ה צריך/ה לקבל החלטה חשובה, מהי הגישה הטיפוסית שלך?',
-    type: 'iconChoice',
-    depth: 'BASIC',
-    isRequired: true,
-    options: [
-      {
-        icon: <Brain />,
-        text: 'איסוף מידע וניתוח לוגי מעמיק',
-        value: 'איסוף מידע וניתוח לוגי מעמיק',
-      },
-      {
-        icon: <Heart />,
-        text: 'הליכה עם תחושת הבטן והאינטואיציה',
-        value: 'הליכה עם תחושת הבטן והאינטואיציה',
-      },
-      {
-        icon: <Users />,
-        text: 'התייעצות עם אנשים קרובים וקבלת חוות דעת',
-        value: 'התייעצות עם אנשים קרובים וקבלת חוות דעת',
-      },
-      {
-        icon: <Compass />,
-        text: 'שילוב של לוגיקה ואינטואיציה, תוך לקיחת סיכונים מחושבים',
-        value: 'שילוב של לוגיקה ואינטואיציה, תוך לקיחת סיכונים מחושבים',
-      },
-    ],
-    metadata: { estimatedTime: 1 },
-  },
-  {
-    worldId: 'PERSONALITY',
-    id: 'personality_emotional_expression',
+    id: 'personality_unproductive_day_feeling', // שאלה חדשה
     category: 'personality',
     subcategory: 'emotional_coping',
     question:
-      "באיזו מידה את/ה נוטה לבטא את רגשותיך (שמחה, עצב, כעס וכו') כלפי חוץ?",
-    type: 'scale',
+      'איך את/ה מרגיש/ה עם עצמך בסוף יום שבו לא הספקת את מה שתכננת והיית פחות פרודוקטיבי/ת מהרצוי?',
+    type: 'iconChoice',
     depth: 'ADVANCED',
     isRequired: false,
-    min: 1, // מאוד מאופק/ת
-    max: 10, // מאוד אקספרסיבי/ת
-    labels: { min: 'מאוד מאופק/ת', max: 'מאוד פתוח/ה וגלוי/ה' },
-    metadata: { estimatedTime: 1 },
+    options: [
+      {
+        icon: <Heart />,
+        text: 'מקבל/ת באהבה, כנראה שהייתי צריך/ה מנוחה.',
+        value: 'חמלה עצמית',
+      },
+      {
+        icon: <Target />,
+        text: 'מתוסכל/ת, ומיד מתכננ/ת איך להשלים פערים מחר.',
+        value: 'ביקורת ופעולה',
+      },
+      {
+        icon: <Brain />,
+        text: 'מנתח/ת מה השתבש כדי ללמוד מזה לפעם הבאה.',
+        value: 'ניתוח ולמידה',
+      },
+      {
+        icon: <Activity />,
+        text: 'מנסה לעשות משהו קטן ומועיל כדי לסיים בתחושה טובה.',
+        value: 'תיקון מיידי',
+      },
+    ],
+    metadata: {
+      estimatedTime: 1,
+      helpText:
+        'השאלה הזו בודקת את הדיאלוג הפנימי שלך - האם הוא ביקורתי או חומל? זה חשוב ליכולת להכיל גם את בן/בת הזוג.',
+    },
   },
   {
     worldId: 'PERSONALITY',
-    id: 'personality_handling_criticism',
+    id: 'personality_handling_criticism_revised',
     category: 'personality',
     subcategory: 'emotional_coping',
-    question: 'איך את/ה בדרך כלל מגיב/ה לביקורת (בונה או פחות בונה)?',
+    question:
+      'כולנו מקבלים ביקורת לפעמים, בונה יותר ובונה פחות. כשזה קורה לך, מה קורה אצלך בפנים ואיך זה נראה בחוץ?',
     type: 'openText',
     depth: 'ADVANCED',
     isRequired: false,
     minLength: 50,
     maxLength: 400,
     placeholder:
-      'האם את/ה לוקח/ת ללב? מנסה ללמוד? מתגוננ/ת? זקוק/ה לזמן עיבוד?',
+      'לדוגמה: האם את/ה נפגע/ת אבל מנסה ללמוד? האם עולה בך צורך להתגונן? האם את/ה זקוק/ה לזמן לעבד את הדברים?',
     metadata: { estimatedTime: 2 },
   },
 
-  // --- חלק 5: צמיחה, ערכים ושאיפות (נגיעות קלות, העיקר בעולם הערכים) ---
+  // --- חלק 4: אינטראקציה חברתית - איך את/ה עם אחרים ---
   {
     worldId: 'PERSONALITY',
-    id: 'personality_primary_motivation',
+    id: 'personality_social_situation_revised', // שם חדש ושילוב שתי שאלות
+    category: 'personality',
+    subcategory: 'social_communication',
+    question:
+      'את/ה מגיע/ה לאירוע חברתי (למשל, קידוש, חתונה) שבו את/ה מכיר/ה רק מעט אנשים. מהי הגישה הטבעית שלך?',
+    type: 'iconChoice',
+    depth: 'BASIC',
+    isRequired: true,
+    options: [
+      {
+        icon: <Users />,
+        text: 'להתחיל שיחה - אני ניגש/ת לאנשים ויוצר/ת קשרים חדשים בקלות.',
+        value: 'יוזם/ת ומתחבר/ת',
+      },
+      {
+        icon: <Coffee />,
+        text: 'להצטרף לשיחה - אני מאתר/ת קבוצה שנראית נחמדה ומצטרף/ת בעדינות.',
+        value: 'מצטרף/ת בעדינות',
+      },
+      {
+        icon: <MessageCircle />,
+        text: 'שיחת עומק - אני מעדיף/ה למצוא אדם אחד או שניים לשיחה משמעותית בצד.',
+        value: 'מחפש/ת שיחת עומק',
+      },
+      {
+        icon: <Compass />,
+        text: 'המתבונן/ת - אני לוקח/ת את הזמן, סורק/ת את המרחב ומחכה להזדמנות הנכונה.',
+        value: 'מתבונן/ת וממתין/ה',
+      },
+    ],
+    metadata: { estimatedTime: 1 },
+  },
+  {
+    worldId: 'PERSONALITY',
+    id: 'personality_friend_in_crisis', // שאלה חדשה
+    category: 'personality',
+    subcategory: 'social_communication',
+    question:
+      'חבר/ה טוב/ה מתקשר/ת אליך באמצע היום, נסער/ת מאוד בגלל משבר אישי. מהי התגובה הראשונה והאינסטינקטיבית שלך?',
+    type: 'iconChoice',
+    depth: 'ADVANCED',
+    isRequired: false,
+    options: [
+      {
+        icon: <Heart />,
+        text: 'להקשיב ולהכיל - קודם כל לתת לו/ה לפרוק ולהיות שם רגשית.',
+        value: 'תמיכה רגשית',
+      },
+      {
+        icon: <Brain />,
+        text: 'לנתח ולפתור - לנסות להבין את הבעיה ולהציע פתרונות מעשיים.',
+        value: 'פתרון בעיות',
+      },
+      {
+        icon: <MessageCircle />,
+        text: 'לשאול שאלות - לעזור לו/ה לסדר את המחשבות דרך שאלות מנחות.',
+        value: 'בירור וניתוח',
+      },
+      {
+        icon: <Sparkles />,
+        text: 'להסיח את הדעת - להציע להיפגש או לעשות משהו שישפר את מצב הרוח.',
+        value: 'הסחת דעת',
+      },
+    ],
+    metadata: {
+      estimatedTime: 1,
+      helpText:
+        "השאלה בודקת את 'שפת התמיכה' הטבעית שלך, שהיא קריטית לדינמיקה זוגית.",
+    },
+  },
+  {
+    worldId: 'PERSONALITY',
+    id: 'personality_communication_style_revised',
+    category: 'personality',
+    subcategory: 'social_communication',
+    question:
+      "בשיחה חשובה, מהם ה'כלים' העיקריים שבהם את/ה משתמש/ת? חלק/י 100 נקודות בין הסגנונות הבאים:",
+    type: 'budgetAllocation',
+    depth: 'ADVANCED',
+    isRequired: true,
+    totalPoints: 100,
+    categories: [
+      { label: 'דיבור ישיר וברור', icon: <Target /> },
+      { label: 'הקשבה אמפתית', icon: <HandHeart /> },
+      { label: 'היגיון ועובדות', icon: <Brain /> },
+      { label: 'הומור וקלילות', icon: <Smile /> },
+      { label: 'פתיחות ושיתוף רגשי', icon: <Heart /> },
+    ],
+    metadata: {
+      estimatedTime: 3,
+      helpText:
+        'חשוב/י על הדרך שבה את/ה בדרך כלל מנהל/ת שיחות משמעותיות, עם חברים, משפחה או בעבודה.',
+    },
+  },
+
+  // --- חלק 5: סיכום ורפלקציה ---
+  {
+    worldId: 'PERSONALITY',
+    id: 'personality_primary_motivation_revised',
     category: 'personality',
     subcategory: 'growth_aspirations',
-    question: 'מהו הדבר המרכזי שמניע אותך ונותן לך מוטיבציה בחיים?',
+    question:
+      "מהו 'הדלק' הפנימי שלך? מהו הדבר המרכזי שנותן לך מוטיבציה לקום בבוקר?",
     type: 'iconChoice',
     depth: 'ADVANCED',
     isRequired: true,
     options: [
       {
         icon: <Star />,
-        text: 'הגשמה עצמית והשגת מטרות',
-        value: 'הגשמה עצמית והשגת מטרות',
+        text: 'השגת מטרות והגשמה עצמית',
+        value: 'השגת מטרות',
       },
       {
         icon: <Heart />,
-        text: 'יצירת קשרים משמעותיים ואהבה',
-        value: 'יצירת קשרים משמעותיים ואהבה',
+        text: 'יצירת ובניית קשרים משמעותיים',
+        value: 'יצירת קשרים',
       },
       {
         icon: <HandHeart />,
-        text: 'תרומה לאחרים והשפעה חיובית',
-        value: 'תרומה לאחרים והשפעה חיובית',
+        text: 'השפעה חיובית ונתינה לאחרים',
+        value: 'נתינה והשפעה',
       },
       {
         icon: <BookOpen />,
-        text: 'למידה, סקרנות והבנת העולם',
-        value: 'למידה, סקרנות והבנת העולם',
+        text: 'סקרנות, למידה והבנת העולם',
+        value: 'למידה וסקרנות',
       },
       {
         icon: <Sparkles />,
-        text: 'יצירה, ביטוי עצמי והשארת חותם',
-        value: 'יצירה, ביטוי עצמי והשארת חותם',
+        text: 'יצירתיות וביטוי אישי',
+        value: 'יצירתיות וביטוי',
       },
       {
         icon: <ShieldCheck />,
-        text: 'ביטחון, יציבות ושקט נפשי',
-        value: 'ביטחון, יציבות ושקט נפשי',
+        text: 'בניית ביטחון, יציבות ושקט נפשי',
+        value: 'ביטחון ויציבות',
       },
     ],
     metadata: { estimatedTime: 1 },
   },
   {
     worldId: 'PERSONALITY',
-    id: 'personality_strengths_and_weaknesses',
+    id: 'personality_strengths_and_weaknesses_revised',
     category: 'personality',
     subcategory: 'growth_aspirations',
     question:
-      'מהן לדעתך שלוש החוזקות המשמעותיות ביותר שלך, ותחום אחד שהיית רוצה לשפר או להתפתח בו?',
+      'ספר/י לנו על שתי תכונות שאת/ה ממש אוהב/ת בעצמך, ועל תכונה אחת שהיית רוצה לעבוד עליה ולשפר.',
     type: 'openText',
     depth: 'ADVANCED',
-    isRequired: true, // חשוב למודעות עצמית
+    isRequired: true,
     minLength: 70,
     maxLength: 600,
     placeholder:
-      'חוזקות: (לדוגמה: סבלנות, יצירתיות, יכולת הקשבה). תחום לשיפור: (לדוגמה: דחיינות, ביטחון עצמי בדיבור מול קהל).',
-    metadata: { estimatedTime: 3 },
-  },
-  {
-    worldId: 'PERSONALITY',
-    id: 'personality_proud_moment',
-    category: 'personality',
-    subcategory: 'growth_aspirations',
-    question:
-      'ספר/י על הישג או רגע בחיים שאת/ה גאה בו במיוחד, ומה הוא מלמד עליך.',
-    type: 'openText',
-    depth: 'ADVANCED',
-    isRequired: false,
-    minLength: 50,
-    maxLength: 500,
-    placeholder:
-      "זה יכול להיות הישג אישי, מקצועי, התגברות על קושי, עזרה למישהו וכו'.",
-    metadata: { estimatedTime: 3 },
-  },
-  {
-    worldId: 'PERSONALITY',
-    id: 'personality_humor_style',
-    category: 'personality',
-    subcategory: 'self_perception', // חזרה לתפיסה עצמית, אבל כסיום קליל
-    question: 'איזה סוג הומור הכי מאפיין אותך או מצחיק אותך?',
-    type: 'iconChoice',
-    depth: 'BASIC',
-    isRequired: false,
-    options: [
-      {
-        icon: <Smile />,
-        text: 'שנון ומשחקי מילים',
-        value: 'שנון ומשחקי מילים',
-      },
-      {
-        icon: <Feather />,
-        text: 'ציני וסרקסטי (בטוב טעם)',
-        value: 'ציני וסרקסטי (בטוב טעם)',
-      },
-      { icon: <Lightbulb />, text: 'אירוני וחכם', value: 'אירוני וחכם' },
-      { icon: <Cloud />, text: 'סיטואציוני וקליל', value: 'סיטואציוני וקליל' },
-      { icon: <Heart />, text: 'הומור עצמי', value: 'הומור עצמי' },
-      {
-        icon: <HelpCircle />,
-        text: 'לא בטוח/ה / הכל מצחיק אותי',
-        value: 'לא בטוח/ה / הכל מצחיק אותי',
-      },
-    ],
-    metadata: { estimatedTime: 1 },
+      'תכונות שאת/ה אוהב/ת: (לדוגמה: הנאמנות שלי, חוש ההומור שלי). תחום לשיפור: (לדוגמה: הייתי רוצה להיות פחות ביקורתי/ת כלפי עצמי).',
+    metadata: {
+      estimatedTime: 3,
+      helpText:
+        'מודעות עצמית היא אחת התכונות החשובות ביותר לזוגיות מוצלחת. הכנות שלך כאן היא מתנה עבורנו ועבורך.',
+    },
   },
 ];

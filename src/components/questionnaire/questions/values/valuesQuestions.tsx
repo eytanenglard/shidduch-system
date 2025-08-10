@@ -1,37 +1,37 @@
 // src/components/questionnaire/questions/values/valuesQuestions.tsx
 import { Question } from '../../types/types';
 import {
-  Heart, // ערכים, אהבה, רגש, משפחה
-  Scale, // איזון, צדק, כלכלה, סדרי עדיפויות
-  Brain, // חשיבה, השכלה, אמונות
-  BookOpen, // לימוד, תורה, רוחניות, השכלה
-  Users, // קהילה, חברה, התנדבות
-  Home, // בית, משפחה, סביבה
-  Briefcase, // קריירה, עבודה
-  Target, // מטרות, עקרונות
-  PiggyBank, // כסף, חיסכון, כלכלה
-  HandHeart, // נתינה, חסד, התנדבות
-  TrendingUp, // צמיחה, התפתחות, שאיפות
-  Leaf, // טבע, סביבה, פשטות
-  Sparkles, // רוחניות, השראה
-  ShieldCheck, // ביטחון, יושרה
-  Flag, // מדינה, ציונות
-  HelpCircle, // שאלות נוספות, הבהרה
-  Info, // מידע כללי
-  DollarSign, // כסף, נתינה
-  Activity, // פעילות, סגנון חיים
+  Heart,
+  Scale,
+  Brain,
+  BookOpen,
+  Users,
+  Home,
+  Briefcase,
+  Target,
+  PiggyBank,
+  HandHeart,
+  TrendingUp,
+  Leaf,
+  Sparkles,
+  ShieldCheck,
+  Flag,
+  HelpCircle,
+  Info,
+  DollarSign,
+  Activity,
   MessageCircle,
 } from 'lucide-react';
 
 export const valuesQuestions: Question[] = [
-  // --- חלק 1: ערכי ליבה וסדרי עדיפויות ---
+  // --- חלק 1: מצפן ערכי - מה מנחה אותך? ---
   {
     worldId: 'VALUES',
-    id: 'values_core_identification',
+    id: 'values_core_identification_revised',
     category: 'values',
     subcategory: 'core_values',
     question:
-      "חלק/י 100 'נקודות ערך' בין הערכים הבאים כדי להראות מהם הדברים החשובים לך ביותר בחיים.",
+      "דמיין/י שיש לך 100% של 'אנרגיה ערכית' לחלק בין הדברים שבאמת מנחים אותך בחיים. כיצד היית מחלק/ת אותה?",
     type: 'budgetAllocation',
     depth: 'BASIC',
     isRequired: true,
@@ -41,203 +41,231 @@ export const valuesQuestions: Question[] = [
       { label: 'יושרה, אמינות וכנות', icon: <ShieldCheck /> },
       { label: 'רוחניות, אמונה ומסורת', icon: <BookOpen /> },
       { label: 'צמיחה אישית והתפתחות', icon: <TrendingUp /> },
-      { label: 'נתינה, חסד ותרומה לחברה', icon: <HandHeart /> },
-      { label: 'קריירה והצלחה מקצועית', icon: <Briefcase /> },
+      { label: 'נתינה ותרומה לחברה', icon: <HandHeart /> },
+      { label: 'קריירה והגשמה מקצועית', icon: <Briefcase /> },
       { label: 'ביטחון ויציבות כלכלית', icon: <PiggyBank /> },
-      { label: 'צדק חברתי ושוויון', icon: <Scale /> },
       { label: 'יצירתיות וביטוי עצמי', icon: <Sparkles /> },
-      { label: 'חיבור לטבע וסביבה', icon: <Leaf /> },
-      { label: 'בריאות ואורח חיים פעיל', icon: <Activity /> },
-      { label: 'קהילתיות ומעורבות', icon: <Users /> },
     ],
     metadata: {
       estimatedTime: 3,
       helpText:
-        'זו הזדמנות להראות את סדר העדיפויות הפנימי שלך. אין צורך לחלק נקודות לכל הערכים.',
+        'זו הזדמנות להראות מה באמת נמצא בראש סדר העדיפויות שלך. התמקד/י במה שהכי חשוב לך.',
     },
   },
   {
     worldId: 'VALUES',
-    id: 'values_core_elaboration',
+    id: 'values_core_elaboration_revised',
     category: 'values',
     subcategory: 'core_values',
     question:
-      'בחר/י אחד או שניים מהערכים שסימנת כקריטיים ביותר, והסבר/י בקצרה כיצד הם באים לידי ביטוי בחיי היומיום שלך או בבחירות משמעותיות שעשית.',
+      "כעת, בחר/י את הערך ה'צפוני' ביותר במצפן הפנימי שלך - זה שמכוון את ההחלטות החשובות באמת - וספר/י לנו על צומת דרכים אחד בחיים שבו הלכת לפיו.",
     type: 'openText',
     depth: 'ADVANCED',
     isRequired: true,
     minLength: 70,
     maxLength: 600,
     placeholder:
-      "לדוגמה: אם 'משפחה' הוא ערך עליון, איך זה מתבטא בהחלטות שלך, בזמן שאת/ה מקדיש/ה, או בתמיכה במשפחה?",
-    metadata: { estimatedTime: 3 },
-  },
-  {
-    worldId: 'VALUES',
-    id: 'values_life_priorities_allocation',
-    category: 'values',
-    subcategory: 'life_priorities',
-    question:
-      'אם היית צריך/ה לחלק 100 נקודות המייצגות את סך האנרגיה, הזמן והחשיבות שאת/ה מקדיש/ה בחייך *כיום*, כיצד היית מחלק/ת אותן בין התחומים הבאים?',
-    type: 'budgetAllocation',
-    depth: 'ADVANCED',
-    isRequired: true,
-    totalPoints: 100,
-    categories: [
-      {
-        label: 'זוגיות (אם קיימת) וחיפוש זוגיות',
-        icon: <Heart />,
-        min: 0,
-        max: 100,
-        description: 'זמן ומאמץ המושקעים בקשר קיים או בחיפוש פעיל אחר זוגיות.',
-      },
-      {
-        label: 'משפחה (הורים, אחים, ילדים אם יש)',
-        icon: <Home />,
-        min: 0,
-        max: 100,
-        description: 'קשרים, תמיכה וזמן המוקדשים למשפחה המורחבת והגרעינית.',
-      },
-      {
-        label: 'קריירה ופרנסה',
-        icon: <Briefcase />,
-        min: 0,
-        max: 100,
-        description:
-          'עבודה, לימודים מקצועיים, פיתוח קריירה והשגת יציבות כלכלית.',
-      },
-      {
-        label: 'רוחניות, דת ולימוד תורה',
-        icon: <BookOpen />,
-        min: 0,
-        max: 100,
-        description: 'תפילה, לימוד, קיום מצוות ועיסוק בצד הרוחני של החיים.',
-      },
-      {
-        label: 'חברים, קהילה והתנדבות',
-        icon: <Users />,
-        min: 0,
-        max: 100,
-        description:
-          'קשרים חברתיים, מעורבות קהילתית, פעילויות התנדבות ותרומה לחברה.',
-      },
-      {
-        label: 'פנאי, תחביבים ובריאות אישית',
-        icon: <Sparkles />,
-        min: 0,
-        max: 100,
-        description: 'תחביבים, ספורט, תרבות, מנוחה, טיפוח עצמי ורווחה אישית.',
-      },
-    ],
+      "לדוגמה: 'הערך הכי חשוב לי הוא יושרה. פעם, בעבודה, נתקלתי במצב X ובחרתי לעשות Y כי זה היה הדבר הנכון, למרות המחיר...'",
     metadata: {
-      estimatedTime: 4,
+      estimatedTime: 3,
       helpText:
-        'אין תשובה נכונה או לא נכונה. חשוב/י על מה שבאמת תופס מקום מרכזי בחייך כרגע.',
+        "סיפור קונקרטי שווה אלף תיאורים. זה עוזר לנו להבין איך הערכים שלך נראים 'בשטח'.",
     },
   },
   {
     worldId: 'VALUES',
-    id: 'values_future_priorities_partner',
+    id: 'values_quiet_heroes', // שאלה חדשה
+    category: 'values',
+    subcategory: 'core_values',
+    question:
+      'מי הם האנשים (מהמעגלים הקרובים או הרחוקים) שמהווים עבורך השראה או מודל לחיקוי, ובמשפט - מדוע?',
+    type: 'openText',
+    depth: 'ADVANCED',
+    isRequired: false,
+    minLength: 40,
+    maxLength: 400,
+    placeholder:
+      'זה יכול להיות סבא, דמות היסטורית, רב, או כל אדם אחר. מה בתכונותיו או במעשיו מעורר בך הערכה?',
+    metadata: {
+      estimatedTime: 2,
+      helpText:
+        'אומרים לנו מי הגיבורים שלך, ונגיד לך מי אתה. התשובה כאן חושפת את השאיפות העמוקות שלך.',
+    },
+  },
+
+  // --- חלק 2: ערכים בפעולה - דילמות וסדרי עדיפויות ---
+  {
+    worldId: 'VALUES',
+    id: 'values_two_job_offers', // שאלה חדשה
     category: 'values',
     subcategory: 'life_priorities',
     question:
-      'ובמבט לעתיד, בזוגיות משמעותית, כיצד היית *רוצה* לחלק את 100 הנקודות האלו בין אותם תחומים, כך שזה ישקף את האיזון האידיאלי עבורך ועבור הקשר?',
+      'קיבלת שתי הצעות עבודה: (א) משרה יוקרתית עם שכר גבוה מאוד, אך תובענית עם שעות ארוכות. (ב) משרה עם משמעות שאת/ה אוהב/ה, איזון מצוין בין עבודה לחיים, אך עם שכר נמוך ב-30%. איזו הצעה סביר יותר שתקבל/י, ומדוע?',
+    type: 'scenario',
+    depth: 'EXPERT',
+    isRequired: true,
+    options: [
+      {
+        value: 'הצעה א - יוקרה ושכר',
+        text: "הצעה א': שכר גבוה ויוקרה",
+        description:
+          'ביטחון כלכלי והזדמנות להתקדמות מהירה הם בעדיפות עליונה כרגע.',
+      },
+      {
+        value: 'הצעה ב - משמעות ואיזון',
+        text: "הצעה ב': משמעות ואיזון",
+        description:
+          'איכות חיים, סיפוק אישי וזמן פנוי חשובים לי יותר מהיבט כלכלי נטו.',
+      },
+    ],
+    metadata: {
+      estimatedTime: 2,
+      helpText:
+        'אין פה תשובה נכונה. זו שאלה על סדרי עדיפויות, והיא עוזרת לנו להבין מה באמת מניע אותך.',
+    },
+  },
+  {
+    worldId: 'VALUES',
+    id: 'values_life_priorities_allocation_revised',
+    category: 'values',
+    subcategory: 'life_priorities',
+    question:
+      'בשלב זה של חייך, כיצד מתחלקת תשומת הלב שלך (זמן, אנרגיה, מחשבה) בין התחומים השונים? חלק/י 100 נקודות:',
     type: 'budgetAllocation',
     depth: 'ADVANCED',
     isRequired: true,
     totalPoints: 100,
     categories: [
       {
-        label: 'זוגיות (כולל ילדים עתידיים)',
+        label: 'זוגיות (חיפוש או קשר קיים)',
         icon: <Heart />,
-        min: 0,
-        max: 100,
-        description: 'השקעה בקשר הזוגי, בילדים ובבניית התא המשפחתי.',
       },
       {
         label: 'משפחה (הורים, אחים)',
         icon: <Home />,
-        min: 0,
-        max: 100,
-        description: 'שמירה על קשר ותמיכה במשפחות המוצא של שני בני הזוג.',
       },
       {
-        label: 'קריירה ופרנסה (של שניכם)',
+        label: 'קריירה ופרנסה',
         icon: <Briefcase />,
-        min: 0,
-        max: 100,
-        description: 'פיתוח קריירה אישי ומשותף, תוך תמיכה הדדית.',
       },
       {
-        label: 'רוחניות, דת ולימוד תורה (משותף ואישי)',
+        label: 'רוחניות ולימוד',
         icon: <BookOpen />,
-        min: 0,
-        max: 100,
-        description: 'עיסוק משותף ואישי ברוחניות ובחיבור למסורת.',
       },
       {
-        label: 'חברים, קהילה והתנדבות (משותף ואישי)',
+        label: 'חברים וקהילה',
         icon: <Users />,
-        min: 0,
-        max: 100,
-        description: 'מעורבות חברתית וקהילתית כזוג וכפרטים.',
       },
       {
-        label: 'פנאי, תחביבים ובריאות אישית (משותף ואישי)',
+        label: 'פנאי, תחביבים וטיפוח עצמי',
         icon: <Sparkles />,
-        min: 0,
-        max: 100,
-        description: 'שמירה על תחומי עניין אישיים וזמן איכות זוגי.',
       },
     ],
     metadata: {
       estimatedTime: 4,
       helpText:
-        'חשוב/י על האיזון שהיית שואפ/ת אליו בחיים זוגיים מלאים ומספקים.',
+        'זוהי "תמונת מצב" של חייך כיום. הכנות כאן תעזור לנו להבין איפה את/ה נמצא/ת במסע שלך.',
+    },
+  },
+  {
+    worldId: 'VALUES',
+    id: 'values_feeling_of_home', // שאלה חדשה
+    category: 'values',
+    subcategory: 'community_social',
+    question: "מעבר לארבעה קירות, מהם שלושת הדברים שהופכים מקום ל'בית' עבורך?",
+    type: 'openText',
+    depth: 'ADVANCED',
+    isRequired: false,
+    minLength: 30,
+    maxLength: 300,
+    placeholder:
+      'לדוגמה: ריח של בישולים, ספרים אהובים, תחושת ביטחון, אנשים שאוהבים אותי, סדר וניקיון...',
+    metadata: {
+      estimatedTime: 2,
+      helpText:
+        'התשובה כאן מלמדת על הצרכים הרגשיים והפיזיים שלך לסביבה תומכת ומצמיחה.',
     },
   },
 
-  // --- חלק 2: גישה לכסף, נתינה והשכלה ---
+  // --- חלק 3: גישה חומרית ורוחנית ---
   {
     worldId: 'VALUES',
-    id: 'values_attitude_towards_money',
+    id: 'values_definition_of_rich_life', // שאלה חדשה
     category: 'values',
     subcategory: 'material_intellectual',
-    question: 'מהי גישתך הכללית לכסף ורמת חיים?',
+    question: "מהי ההגדרה שלך ל'חיים עשירים', שאינה קשורה בהכרח לכסף?",
+    type: 'openText',
+    depth: 'ADVANCED',
+    isRequired: false,
+    minLength: 40,
+    maxLength: 400,
+    placeholder:
+      'האם זה עושר של חוויות? של קשרים? של ידע? של זמן פנוי? של שקט נפשי?',
+    metadata: {
+      estimatedTime: 2,
+      helpText:
+        'השאלה הזו פותחת צוהר לשאיפות העמוקות ביותר שלך, מעבר להיבט החומרי.',
+    },
+  },
+  {
+    worldId: 'VALUES',
+    id: 'values_attitude_towards_money_revised',
+    category: 'values',
+    subcategory: 'material_intellectual',
+    question: 'מהי "מערכת היחסים" שלך עם כסף?',
     type: 'iconChoice',
     depth: 'BASIC',
     isRequired: true,
     options: [
       {
-        icon: <Leaf />,
-        text: 'פשטות והסתפקות במועט הן ערך עליון',
-        value: 'פשטות והסתפקות במועט הן ערך עליון',
+        icon: <PiggyBank />,
+        text: 'כלי לביטחון - חשוב לי לחסוך ולתכנן לעתיד.',
+        value: 'כלי לביטחון',
+      },
+      {
+        icon: <Sparkles />,
+        text: 'אמצעי לחוויות - אני אוהב/ת להשקיע בטיולים, בילויים וצמיחה.',
+        value: 'אמצעי לחוויות',
       },
       {
         icon: <Scale />,
-        text: 'איזון בין נוחות חומרית לערכים אחרים',
-        value: 'איזון בין נוחות חומרית לערכים אחרים',
+        text: 'איזון - אני מנהל/ת אותו באחריות, אבל יודע/ת גם להנות ממנו.',
+        value: 'איזון ואחריות',
       },
       {
-        icon: <TrendingUp />,
-        text: 'שאיפה לרווחה כלכלית והצלחה חומרית',
-        value: 'שאיפה לרווחה כלכלית והצלחה חומרית',
-      },
-      {
-        icon: <PiggyBank />,
-        text: 'אחריות כלכלית, חיסכון ותכנון לטווח ארוך',
-        value: 'אחריות כלכלית, חיסכון ותכנון לטווח ארוך',
+        icon: <Leaf />,
+        text: 'פשטות - אני לא צריך/ה הרבה כדי להיות מאושר/ת.',
+        value: 'פשטות והסתפקות',
       },
     ],
     metadata: { estimatedTime: 1 },
   },
   {
     worldId: 'VALUES',
-    id: 'values_giving_tzedaka_importance',
+    id: 'values_lost_wallet', // שאלה חדשה
+    category: 'values',
+    subcategory: 'core_values',
+    question:
+      'מצאת ברחוב ארנק ובו סכום כסף גדול ותעודה מזהה. אין איש בסביבה. מהם הצעדים המדויקים שתעשה/י?',
+    type: 'openText',
+    depth: 'BASIC',
+    isRequired: true,
+    minLength: 30,
+    maxLength: 300,
+    placeholder: 'תאר/י את תהליך המחשבה והפעולות שלך, שלב אחר שלב.',
+    metadata: {
+      estimatedTime: 2,
+      helpText:
+        "השאלה בוחנת יושרה, תושייה ואחריות בפעולה. אין תשובה אחת 'נכונה', התהליך הוא שחשוב.",
+    },
+  },
+  {
+    worldId: 'VALUES',
+    id: 'values_giving_tzedaka_importance_revised',
     category: 'values',
     subcategory: 'material_intellectual',
     question:
-      'על סולם של 1 (פחות מרכזי) עד 10 (מרכזי מאוד), עד כמה נתינה, צדקה וחסד פעיל תופסים מקום בחייך?',
+      'עד כמה נתינה וחסד (בכסף, בזמן או במעשים) הם חלק פעיל ומרכזי בחיים שלך?',
     type: 'scale',
     depth: 'BASIC',
     isRequired: true,
@@ -248,348 +276,134 @@ export const valuesQuestions: Question[] = [
   },
   {
     worldId: 'VALUES',
-    id: 'values_how_you_give',
+    id: 'values_education_pursuit_revised',
     category: 'values',
     subcategory: 'material_intellectual',
     question:
-      'כיצד את/ה בדרך כלל מבטא/ת את ערך הנתינה? (בחר/י את הדרכים העיקריות)',
-    type: 'multiSelectWithOther',
-    depth: 'ADVANCED',
-    isRequired: false,
-    options: [
-      {
-        icon: <DollarSign />,
-        text: 'תרומות כספיות קבועות/מזדמנות',
-        value: 'תרומות כספיות קבועות/מזדמנות',
-      },
-      {
-        icon: <HandHeart />,
-        text: 'התנדבות פעילה בארגונים/קהילה',
-        value: 'התנדבות פעילה בארגונים/קהילה',
-      },
-      {
-        icon: <Users />,
-        text: 'עזרה אישית לחברים, משפחה או שכנים',
-        value: 'עזרה אישית לחברים, משפחה או שכנים',
-      },
-      {
-        icon: <Briefcase />,
-        text: 'שימוש בכישורים מקצועיים למען אחרים (פרו-בונו)',
-        value: 'שימוש בכישורים מקצועיים למען אחרים (פרו-בונו)',
-      },
-      {
-        icon: <Heart />,
-        text: 'מעשי חסד קטנים ביומיום',
-        value: 'מעשי חסד קטנים ביומיום',
-      },
-    ],
-    minSelections: 1,
-    maxSelections: 3,
-    metadata: { estimatedTime: 2 },
-  },
-  {
-    worldId: 'VALUES',
-    id: 'values_education_pursuit',
-    category: 'values',
-    subcategory: 'material_intellectual',
-    question:
-      'מהי גישתך לרכישת השכלה (תורנית וכללית) ולהתפתחות אינטלקטואלית מתמדת?',
+      'מהי גישתך להתפתחות אינטלקטואלית וללמידה מתמדת, גם לאחר סיום ההשכלה הפורמלית?',
     type: 'iconChoice',
     depth: 'BASIC',
     isRequired: true,
     options: [
       {
         icon: <BookOpen />,
-        text: 'למידה מתמדת היא דרך חיים והכרח',
-        value: 'למידה מתמדת היא דרך חיים והכרח',
+        text: 'זה חלק מהותי ממני - אני תמיד קורא/ת, לומד/ת ומתפתח/ת.',
+        value: 'למידה היא דרך חיים',
       },
       {
         icon: <Target />,
-        text: 'חשוב לרכוש ידע והשכלה רלוונטיים למטרותיי',
-        value: 'חשוב לרכוש ידע והשכלה רלוונטיים למטרותיי',
-      },
-      {
-        icon: <Scale />,
-        text: 'מעריך/ה השכלה, אך לא בראש סדר העדיפויות',
-        value: 'מעריך/ה השכלה, אך לא בראש סדר העדיפויות',
+        text: 'אני לומד/ת ומתפתח/ת בעיקר בתחומים שקשורים לקריירה ולמטרות שלי.',
+        value: 'למידה ממוקדת מטרה',
       },
       {
         icon: <Sparkles />,
-        text: 'מעדיפ/ה למידה חווייתית והתנסותית על פני פורמלית',
-        value: 'מעדיפ/ה למידה חווייתית והתנסותית על פני פורמלית',
+        text: 'אני אוהב/ת ללמוד, אבל מעדיפ/ה דרכים חוויתיות כמו סדנאות ופודקאסטים.',
+        value: 'למידה חווייתית',
+      },
+      {
+        icon: <Scale />,
+        text: 'אני מעריך/ה ידע, אבל כרגע פחות פנוי/ה ללמידה פעילה.',
+        value: 'מעריך אך פחות פעיל',
       },
     ],
     metadata: { estimatedTime: 1 },
-  },
-  // החלף את ההגדרה הקיימת של שאלה זו בקוד הבא:
-  {
-    worldId: 'VALUES',
-    id: 'values_career_family_balance_approach',
-    category: 'values',
-    subcategory: 'life_priorities',
-    question:
-      'בהתייחס לאיזון בין קריירה לזוגיות/משפחה, איזו גישה הכי מתארת אותך כרגע?',
-    type: 'iconChoice',
-    depth: 'ADVANCED',
-    isRequired: true,
-    options: [
-      {
-        icon: <Briefcase />,
-        text: 'הקריירה/לימודים בעדיפות עליונה כרגע. אני מחפש/ת זוגיות תומכת שתשתלב בלו"ז האינטנסיבי שלי.',
-        value:
-          'הקריירה/לימודים בעדיפות עליונה כרגע. אני מחפש/ת זוגיות תומכת שתשתלב בלו"ז האינטנסיבי שלי.',
-      },
-      {
-        icon: <Scale />,
-        text: 'אני שואפ/ת לאיזון. חשוב לי להשקיע בקריירה, אבל אני רוצה ומוכנ/ה לפנות זמן משמעותי לבניית קשר.',
-        value:
-          'אני שואפ/ת לאיזון. חשוב לי להשקיע בקריירה, אבל אני רוצה ומוכנ/ה לפנות זמן משמעותי לבניית קשר.',
-      },
-      {
-        icon: <Heart />,
-        text: 'הגעתי לשלב שבו בניית זוגיות ומשפחה היא המטרה המרכזית. הקריירה חשובה, אך היא תומכת במטרה זו.',
-        value:
-          'הגעתי לשלב שבו בניית זוגיות ומשפחה היא המטרה המרכזית. הקריירה חשובה, אך היא תומכת במטרה זו.',
-      },
-      {
-        icon: <Sparkles />,
-        text: 'אני גמיש/ה. האיזון הנכון יתעצב יחד עם בן/בת הזוג. מה שחשוב הוא ההחלטה המשותפת.',
-        value:
-          'אני גמיש/ה. האיזון הנכון יתעצב יחד עם בן/בת הזוג. מה שחשוב הוא ההחלטה המשותפת.',
-      },
-    ],
-    metadata: {
-      estimatedTime: 1,
-      helpText: 'התשובה כאן עוזרת להבין את סדר העדיפויות הנוכחי שלך בחיים.',
-    },
   },
 
-  // --- חלק 3: ערכים קהילתיים, חברתיים והשקפת עולם ---
+  // --- חלק 4: ערכים במערכות יחסים וחברה ---
   {
     worldId: 'VALUES',
-    id: 'values_community_role',
+    id: 'values_parents_tradition_conflict', // שאלה חדשה
     category: 'values',
-    subcategory: 'community_social',
-    question: 'איזה תפקיד או רמת מעורבות היית רוצה שתהיה לך בקהילה שבה תחיה/י?',
-    type: 'iconChoice',
-    depth: 'BASIC',
-    isRequired: false,
-    options: [
-      {
-        icon: <Target />,
-        text: 'פעיל/ה ומוביל/ה, בעל/ת תפקיד מרכזי',
-        value: 'פעיל/ה ומוביל/ה, בעל/ת תפקיד מרכזי',
-      },
-      {
-        icon: <Users />,
-        text: 'מעורב/ת ומשתתפ/ת קבוע/ה בפעילויות',
-        value: 'מעורב/ת ומשתתפ/ת קבוע/ה בפעילויות',
-      },
-      {
-        icon: <HandHeart />,
-        text: 'תורמ/ת ועוזר/ת כשנדרש, מאחורי הקלעים',
-        value: 'תורמ/ת ועוזר/ת כשנדרש, מאחורי הקלעים',
-      },
-      {
-        icon: <Home />,
-        text: 'חבר/ה שקט/ה בקהילה, פחות מעורב/ת רשמית',
-        value: 'חבר/ה שקט/ה בקהילה, פחות מעורב/ת רשמית',
-      },
-    ],
-    metadata: { estimatedTime: 1 },
-  },
-  {
-    worldId: 'VALUES',
-    id: 'values_ideal_community_description',
-    category: 'values',
-    subcategory: 'community_social',
+    subcategory: 'challenges_conflicts',
     question:
-      'תאר/י בכמה מילים את הקהילה האידיאלית בעיניך. מהם המאפיינים החשובים ביותר שלה?',
+      'דמיין/י מצב שבו דרך חיים או החלטה שחשובה לך (למשל, מקום מגורים, סגנון חינוך) אינה תואמת את הציפיות של הוריך, שאת/ה מאוד מכבד/ת. כיצד תנווט/י את הסיטואציה?',
     type: 'openText',
-    depth: 'ADVANCED',
+    depth: 'EXPERT',
     isRequired: false,
     minLength: 50,
     maxLength: 500,
     placeholder:
-      'לדוגמה: חמה ותומכת, מגוונת, אינטלקטואלית, שומרת על צביון מסוים, פעילה חברתית...',
-    metadata: { estimatedTime: 3 },
+      'כיצד תאזן/י בין כיבוד הורים לבין בניית דרך עצמאית עם בן/בת הזוג? מה יהיו השיקולים המרכזיים שלך?',
+    metadata: {
+      estimatedTime: 3,
+      helpText:
+        'זו דילמה שרבים מתמודדים איתה. התשובה שלך מלמדת על בגרות, אסרטיביות ויכולת ניהול קונפליקטים.',
+    },
   },
   {
     worldId: 'VALUES',
-    id: 'values_social_political_stance_importance_partner',
+    id: 'values_social_political_stance_importance_partner_revised',
     category: 'values',
     subcategory: 'community_social',
     question:
-      'עד כמה חשוב לך שתהיה התאמה או דמיון בהשקפות הפוליטיות והחברתיות בינך לבין בן/בת הזוג?',
+      'בזוגיות, עד כמה חשוב לך ששיחות סביב שולחן השבת על אקטואליה ונושאים חברתיים יהיו בהסכמה כללית, לעומת שיח פתוח ומאתגר גם אם יש חילוקי דעות?',
     type: 'scale',
     depth: 'ADVANCED',
     isRequired: false,
-    min: 1, // כלל לא חשוב
-    max: 10, // קריטי מאוד
+    min: 1,
+    max: 10,
     labels: {
-      min: 'אפשר להסכים לא להסכים',
-      max: 'חייבת להיות ראיית עולם דומה',
-      middle: 'חשוב שיהיה בסיס משותף',
+      min: 'שיח פתוח זה העיקר',
+      max: 'הסכמה בסיסית היא חובה',
     },
     metadata: { estimatedTime: 1 },
   },
   {
     worldId: 'VALUES',
-    id: 'values_attitude_state_israel',
-    category: 'values',
-    subcategory: 'community_social',
-    question: 'מהי עמדתך ויחסך למדינת ישראל ולציונות?',
-    type: 'iconChoice',
-    depth: 'BASIC', // שאלה בסיסית להבנת הקשר
-    isRequired: true,
-    options: [
-      {
-        icon: <Flag />,
-        text: 'ציונות היא ערך מרכזי, הזדהות עמוקה עם המדינה',
-        value: 'ציונות היא ערך מרכזי, הזדהות עמוקה עם המדינה',
-      },
-      {
-        icon: <Heart />,
-        text: 'קשר רגשי חזק למדינה ולארץ, גם אם יש ביקורת',
-        value: 'קשר רגשי חזק למדינה ולארץ, גם אם יש ביקורת',
-      },
-      {
-        icon: <Scale />,
-        text: 'יחס פרגמטי, חי/ה כאן מסיבות שונות',
-        value: 'יחס פרגמטי, חי/ה כאן מסיבות שונות',
-      },
-      {
-        icon: <BookOpen />,
-        text: 'יחס מורכב יותר, תלוי בהשקפה דתית/פוליטית',
-        value: 'יחס מורכב יותר, תלוי בהשקפה דתית/פוליטית',
-      },
-    ],
-    metadata: { estimatedTime: 1 },
-  },
-  {
-    worldId: 'VALUES',
-    id: 'values_religious_pluralism_view',
-    category: 'values',
-    subcategory: 'community_social',
-    question: 'מהי גישתך לפלורליזם דתי ולקבלת זרמים שונים ביהדות ובעולם?',
-    type: 'openText',
-    depth: 'ADVANCED',
-    isRequired: false,
-    minLength: 50,
-    maxLength: 500,
-    placeholder:
-      "האם את/ה מאמינ/ה ב'אלו ואלו דברי אלוהים חיים'? מהם הגבולות שלך מבחינת קבלה? איך זה משפיע על קשרים חברתיים?",
-    metadata: { estimatedTime: 3 },
-  },
-
-  // --- חלק 4: התמודדות עם אתגרים וקונפליקטים ערכיים ---
-  {
-    worldId: 'VALUES',
-    id: 'values_conflict_between_values',
+    id: 'values_dealing_with_disagreement_partner_revised',
     category: 'values',
     subcategory: 'challenges_conflicts',
     question:
-      'תאר/י מצב שבו חווית קונפליקט בין שני ערכים שהיו חשובים לך. כיצד התמודדת ומה למדת מכך?',
-    type: 'openText',
-    depth: 'EXPERT', // שאלה רפלקטיבית עמוקה
-    isRequired: false,
-    minLength: 100,
-    maxLength: 700,
-    placeholder:
-      'לדוגמה: קונפליקט בין נאמנות לחבר לבין אמירת אמת, או בין קריירה למשפחה. איך הכרעת? מה היו השיקולים?',
-    metadata: { estimatedTime: 4 },
-  },
-  {
-    worldId: 'VALUES',
-    id: 'values_dealing_with_disagreement_partner',
-    category: 'values',
-    subcategory: 'challenges_conflicts',
-    question:
-      'כיצד היית רוצה להתמודד עם בן/בת הזוג במצבים של חוסר הסכמה עמוק בנושא ערכי או אידיאולוגי?',
+      'כשמתעורר חוסר הסכמה עמוק עם אדם קרוב בנושא ערכי, מהי הגישה הנכונה בעיניך?',
     type: 'iconChoice',
     depth: 'ADVANCED',
     isRequired: true,
     options: [
       {
         icon: <MessageCircle />,
-        text: 'שיחה פתוחה ומכבדת, גם אם לא מגיעים להסכמה מלאה',
-        value: 'שיחה פתוחה ומכבדת, גם אם לא מגיעים להסכמה מלאה',
+        text: 'לנהל שיחה מכבדת כדי להבין, גם אם לא נסכים.',
+        value: 'שיחה והבנה',
       },
       {
         icon: <Brain />,
-        text: 'ניסיון להבין את נקודת המבט של השני ולמצוא בסיס משותף',
-        value: 'ניסיון להבין את נקודת המבט של השני ולמצוא בסיס משותף',
+        text: 'לנסות למצוא את שורש חוסר ההסכמה והבסיס המשותף.',
+        value: 'מציאת בסיס משותף',
       },
       {
         icon: <Scale />,
-        text: 'חיפוש פשרה מעשית שמאפשרת חיים משותפים',
-        value: 'חיפוש פשרה מעשית שמאפשרת חיים משותפים',
+        text: 'לחפש פשרה מעשית שמאפשרת להמשיך הלאה.',
+        value: 'חיפוש פשרה',
       },
       {
-        icon: <HelpCircle />,
-        text: 'התייעצות עם גורם שלישי (רב, יועץ) במקרה הצורך',
-        value: 'התייעצות עם גורם שלישי (רב, יועץ) במקרה הצורך',
-      },
-      {
-        icon: <Info />,
-        text: 'עבורי, חייבת להיות הסכמה מלאה בנושאים אלו',
-        value: 'עבורי, חייבת להיות הסכמה מלאה בנושאים אלו',
+        icon: <Heart />,
+        text: 'להסכים לא להסכים, ולתת לקשר להיות מעל חילוקי הדעות.',
+        value: 'להסכים לא להסכים',
       },
     ],
     metadata: {
       estimatedTime: 1,
-      helpText:
-        "חשוב/י על מצבים שבהם אין 'תשובה נכונה' אחת, אלא שתי השקפות לגיטימיות.",
     },
   },
-  {
-    worldId: 'VALUES',
-    id: 'values_flexibility_on_values',
-    category: 'values',
-    subcategory: 'challenges_conflicts',
-    question:
-      'באילו תחומים ערכיים את/ה מרגיש/ה שיש לך יותר גמישות, ובאילו פחות?',
-    type: 'openText',
-    depth: 'ADVANCED',
-    isRequired: false,
-    minLength: 50,
-    maxLength: 500,
-    placeholder:
-      "לדוגמה: 'אני גמיש/ה יותר בנושאי סגנון חיים, אבל פחות גמיש/ה בנושאי חינוך ילדים או יושרה'.",
-    metadata: { estimatedTime: 3 },
-  },
 
-  // --- חלק 5: סיכום ומבט לעתיד (ערכי) ---
+  // --- חלק 5: סיכום ערכי ---
   {
     worldId: 'VALUES',
-    id: 'values_legacy_wish',
+    id: 'values_non_negotiable_for_partner_revised',
     category: 'values',
     subcategory: 'summary_future',
     question:
-      "אם היית יכול/ה להשאיר 'צוואה ערכית' לדורות הבאים, מהם המסרים המרכזיים שהיית רוצה להעביר?",
-    type: 'openText',
-    depth: 'EXPERT',
-    isRequired: false,
-    minLength: 70,
-    maxLength: 600,
-    placeholder:
-      'חשוב/י על העקרונות והתובנות החשובים ביותר שלמדת מהחיים ומהערכים שלך.',
-    metadata: { estimatedTime: 3 },
-  },
-  {
-    worldId: 'VALUES',
-    id: 'values_non_negotiable_for_partner',
-    category: 'values',
-    subcategory: 'summary_future',
-    question:
-      'לסיום עולם זה, מהם 1-2 הערכים שבהם *חייבת* להיות התאמה בינך לבין בן/בת הזוג הפוטנציאלי/ת, ואין בהם מקום לפשרה מבחינתך?',
+      'לסיום, מהם 1-2 הערכים שבהם *חייבת* להיות התאמה בינך לבין בן/בת הזוג, ואין בהם מקום לפשרה מבחינתך?',
     type: 'openText',
     depth: 'ADVANCED',
-    isRequired: true, // חשוב מאוד לשדכן!
+    isRequired: true,
     minLength: 30,
     maxLength: 300,
     placeholder:
-      'נסה/י למקד את הדברים הקריטיים ביותר עבורך שאינם ניתנים למשא ומתן.',
-    metadata: { estimatedTime: 2 },
+      'נסה/י למקד את הדברים הקריטיים ביותר עבורך, אלה שהם הבסיס לכל קשר בריא בעיניך.',
+    metadata: {
+      estimatedTime: 2,
+      helpText:
+        'זהו אחד הנתונים החשובים ביותר עבורנו. זה עוזר לנו למקד את החיפוש במה שבאמת לא ניתן למשא ומתן עבורך.',
+    },
   },
 ];

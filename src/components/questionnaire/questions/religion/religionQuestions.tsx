@@ -1,317 +1,295 @@
 // src/components/questionnaire/questions/religion/religionQuestions.tsx
-import { Question } from "../../types/types";
+import { Question } from '../../types/types';
 import {
-  Scroll,        // תעודה, זהות דתית, מסורת, לימוד (גם)
-  BookOpen,      // לימוד תורה, השקפה, ספרים
-  Users,         // קהילה, חברה, מניין
-  Home,          // בית, אווירה דתית, משפחה
-  Target,        // הלכה, קיום מצוות, מיקוד
-  Scale,         // איזון, גישה להלכה, פלורליזם
-  Heart,         // אמונה, רגש דתי, חיבור רוחני
-  Sparkles,      // רוחניות, חוויה, התעלות
-  ShieldCheck,   // הקפדה, כשרות, צניעות
-  Flag,          // מדינה, ציונות
-  HandHeart,     // חסד, נתינה (בהקשר דתי, מידות)
-  Lightbulb,     // פתיחות מחשבתית, רעיונות חדשים
+  Scroll,
+  BookOpen,
+  Users,
+  Home,
+  Target,
+  Scale,
+  Heart,
+  Sparkles,
+  ShieldCheck,
+  Flag,
+  X,
+  HandHeart,
+  Lightbulb,
   Info,
-  PocketKnife,   // צבא/שירות לאומי (בהקשר דתי)
-} from "lucide-react";
+  PocketKnife,
+  Bed,
+  Smile,
+  Brain,
+} from 'lucide-react';
 
 export const religionQuestions: Question[] = [
-  // --- חלק 1: זהות, אמונה והשקפה דתית ---
+  // --- חלק 1: זהות, אמונה והשקפה ---
   {
-    worldId: "RELIGION",
-    id: "religion_self_definition_primary",
-    category: "religion",
-    subcategory: "identity_belief",
-    question: "איזו הגדרה על הרצף הדתי-רוחני הכי משקפת את מי שאת/ה היום?",
-    type: "iconChoice",
-    depth: "BASIC",
+    worldId: 'RELIGION',
+    id: 'religion_self_definition_primary_revised',
+    category: 'religion',
+    subcategory: 'identity_belief',
+    question:
+      "איזו הגדרה על הרצף הדתי-רוחני הכי משקפת את ה'בית' שבו את/ה מרגיש/ה היום?",
+    type: 'iconChoice',
+    depth: 'BASIC',
     isRequired: true,
     options: [
-      { icon: <Scroll />, text: "חרדי/ת (למשל: ליטאי, חסידי, ספרדי)", value: "חרדי/ת (למשל: ליטאי, חסידי, ספרדי)" },
-      { icon: <BookOpen />, text: "דתי/ה לאומי/ת - תורני/ת (למשל: חרד\"ל, ישיבתי)", value: "דתי/ה לאומי/ת - תורני/ת (למשל: חרד\"ל, ישיבתי)" },
-      { icon: <Sparkles />, text: "דתי/ה לאומי/ת - מרכז / פתוח/ה (למשל: דתי-לייט, ליברלי)", value: "דתי/ה לאומי/ת - מרכז / פתוח/ה (למשל: דתי-לייט, ליברלי)" },
-      { icon: <Heart />, text: "מסורתי/ת (למשל: שומר/ת מסורת, מחובר/ת לבית הכנסת)", value: "מסורתי/ת (למשל: שומר/ת מסורת, מחובר/ת לבית הכנסת)" },
-      { icon: <Users />, text: "חילוני/ת עם זיקה למסורת וליהדות", value: "חילוני/ת עם זיקה למסורת וליהדות" },
-      { icon: <Lightbulb />, text: "רוחני/ת בדרכי (לאו דווקא במסגרת זרם מוגדר)", value: "רוחני/ת בדרכי (לאו דווקא במסגרת זרם מוגדר)" },
-      { icon: <Info />, text: "אחר/ת או בתהליך גיבוש (ניתן לפרט בשאלה הבאה)", value: "אחר/ת או בתהליך גיבוש (ניתן לפרט בשאלה הבאה)" },
+      { icon: <Scroll />, text: 'חרדי/ת', value: 'חרדי' },
+      {
+        icon: <BookOpen />,
+        text: 'דתי/ה לאומי/ת - תורני/ת',
+        value: 'דתי-תורני',
+      },
+      { icon: <Sparkles />, text: 'דתי/ה לאומי/ת - פתוח/ה', value: 'דתי-פתוח' },
+      { icon: <Heart />, text: 'מסורתי/ת', value: 'מסורתי' },
+      {
+        icon: <Users />,
+        text: 'חילוני/ת עם זיקה למסורת',
+        value: 'חילוני-מסורתי',
+      },
+      { icon: <Lightbulb />, text: 'רוחני/ת בדרכי', value: 'רוחני' },
     ],
-    metadata: { estimatedTime: 1, helpText: "בחר/י את התיאור שהכי קרוב לליבך ולדרך חייך." },
+    metadata: {
+      estimatedTime: 1,
+      helpText:
+        'בחר/י את התיאור שהכי קרוב לליבך ולדרך חייך, גם אם הוא לא מדויק ב-100%.',
+    },
   },
   {
-    worldId: "RELIGION",
-    id: "religion_identity_elaboration_personal",
-    category: "religion",
-    subcategory: "identity_belief",
-    question: "בהמשך להגדרתך, ספר/י בקצרה מה המשמעות המעשית של זהותך הדתית/רוחנית עבורך בחיי היומיום.",
-    type: "openText",
-    depth: "ADVANCED",
-    isRequired: true,
-    minLength: 40,
-    maxLength: 400,
-    placeholder: "לדוגמה: אילו מנהגים חשובים לך? איך זה משפיע על קבלת החלטות? מה מקור ההשראה שלך?",
-    metadata: { estimatedTime: 1 },
-  },
-  {
-    worldId: "RELIGION",
-    id: "religion_faith_core_principles",
-    category: "religion",
-    subcategory: "identity_belief",
-    question: "מהם עקרונות האמונה המרכזיים שמנחים אותך? (בחר/י 1-3)",
-    type: "multiSelect",
-    depth: "ADVANCED",
-    isRequired: false,
-    options: [
-      { icon: <Heart />, text: "אמונה בקב\"ה ובבחירת עם ישראל", value: "אמונה בקב\"ה ובבחירת עם ישראל" },
-      { icon: <Scroll />, text: "תורה מן השמיים ומחויבות להלכה", value: "תורה מן השמיים ומחויבות להלכה" },
-      { icon: <Sparkles />, text: "חיפוש מתמיד אחר משמעות וחיבור רוחני", value: "חיפוש מתמיד אחר משמעות וחיבור רוחני" },
-      { icon: <HandHeart />, text: "תיקון עולם, צדק חברתי וחסד", value: "תיקון עולם, צדק חברתי וחסד" },
-      { icon: <Flag />, text: "גאולת ישראל וקיבוץ גלויות בארץ ישראל", value: "גאולת ישראל וקיבוץ גלויות בארץ ישראל" },
-      { icon: <Users />, text: "ערבות הדדית ואחדות עם ישראל", value: "ערבות הדדית ואחדות עם ישראל" },
-    ],
-    minSelections: 1,
-    maxSelections: 3,
-    metadata: { estimatedTime: 1 },
-  },
-  {
-    worldId: "RELIGION",
-    id: "religion_rabbinic_guidance_role",
-    category: "religion",
-    subcategory: "identity_belief",
-    question: "מהי החשיבות של דמות רבנית או הנהגה רוחנית אישית עבורך? (1=לא משמעותי, 10=משמעותי מאוד)",
-    type: "scale",
-    depth: "BASIC",
-    isRequired: false,
-    min: 1,
-    max: 10,
-    labels: { min: "לא משמעותי", max: "משמעותי מאוד" },
-    metadata: { estimatedTime: 1, helpText: "האם את/ה נוהג/ת להתייעץ בשאלות הלכה, הנהגה או החלטות אישיות?" },
-  },
-
-  // --- חלק 2: שמירת מצוות והלכה מעשית ---
-  {
-    worldId: "RELIGION",
-    id: "religion_shabbat_observance_level_practical",
-    category: "religion",
-    subcategory: "practical_observance",
-    question: "איזו רמה של שמירת שבת מאפיינת את ביתך ואת התנהלותך האישית?",
-    type: "iconChoice",
-    depth: "BASIC",
-    isRequired: true,
-    options: [
-      { icon: <ShieldCheck />, text: "הקפדה מלאה על כל ההלכות ודקדוקיהן", value: "הקפדה מלאה על כל ההלכות ודקדוקיהן" },
-      { icon: <Target />, text: "שמירה על עיקרי ההלכות (ללא חשמל, בישול, נסיעה)", value: "שמירה על עיקרי ההלכות (ללא חשמל, בישול, נסיעה)" },
-      { icon: <Scale />, text: "שמירה על אווירת השבת (קידוש, סעודות, תפילה) עם גמישות מסוימת בהלכות", value: "שמירה על אווירת השבת (קידוש, סעודות, תפילה) עם גמישות מסוימת בהלכות" },
-      { icon: <Home />, text: "שמירת שבת בעיקר בבית ובמשפחה, פחות במרחב הציבורי", value: "שמירת שבת בעיקר בבית ובמשפחה, פחות במרחב הציבורי" },
-      { icon: <Info />, text: "אינני שומר/ת שבת באופן הלכתי", value: "אינני שומר/ת שבת באופן הלכתי" },
-    ],
-    metadata: { estimatedTime: 1 },
-  },
-  {
-    worldId: "RELIGION",
-    id: "religion_kashrut_observance_details",
-    category: "religion",
-    subcategory: "practical_observance",
-    question: "פרט/י את רמת הקפדתך על כשרות: סוג הכשר, הקפדה על כלים, אכילה בחוץ, בישולי גויים וכו'.",
-    type: "openText",
-    depth: "ADVANCED",
-    isRequired: true,
-    minLength: 40,
-    maxLength: 400,
-    placeholder: "לדוגמה: 'מקפיד/ה על מהדרין, כלים נפרדים, אוכל/ת רק בחוץ עם תעודה מהודרת, לא אוכל/ת בישולי גויים'.",
-    metadata: { estimatedTime: 1 },
-  },
-  {
-    worldId: "RELIGION",
-    id: "religion_daily_prayer_practice",
-    category: "religion",
-    subcategory: "practical_observance",
-    question: "כיצד נראית שגרת התפילה היומית שלך (שחרית, מנחה, ערבית, במניין/ביחידות)?",
-    type: "openText",
-    depth: "ADVANCED",
-    isRequired: false,
-    minLength: 0,
-    maxLength: 300,
-    placeholder: "לדוגמה: '3 תפילות במניין קבוע', 'שחרית וערבית ביחידות, מנחה במניין בעבודה', 'מתפלל/ת כשמתאפשר'.",
-    metadata: { estimatedTime: 1 },
-  },
-  {
-    worldId: "RELIGION",
-    id: "religion_modesty_personal_approach",
-    category: "religion",
-    subcategory: "practical_observance",
-    question: "מהי גישתך האישית לצניעות (לבוש, דיבור, התנהגות בין המינים) וכיצד היא מתבטאת?",
-    type: "openText",
-    depth: "ADVANCED",
-    isRequired: true,
-    minLength: 40,
-    maxLength: 400,
-    placeholder: "לדוגמה: כיסוי ראש (סוג), לבוש (אורך שרוול/חצאית), שמירת נגיעה, סגנון דיבור.",
-    metadata: { estimatedTime: 1 },
-  },
-  {
-    worldId: "RELIGION",
-    id: "religion_family_purity_observance",
-    category: "religion",
-    subcategory: "practical_observance",
-    question: "מהי גישתך ורמת הקפדתך על הלכות טהרת המשפחה?",
-    type: "iconChoice",
-    depth: "ADVANCED",
-    isRequired: true,
-    options: [
-      { icon: <ShieldCheck />, text: "הקפדה מלאה על כל ההלכות והחומרות המקובלות", value: "הקפדה מלאה על כל ההלכות והחומרות המקובלות" },
-      { icon: <Target />, text: "הקפדה על עיקרי ההלכות כפי שמקובל בקהילתי", value: "הקפדה על עיקרי ההלכות כפי שמקובל בקהילתי" },
-      { icon: <Scale />, text: "שואפ/ת לשמור, עם רצון ללמוד ולהתחזק בנושא", value: "שואפ/ת לשמור, עם רצון ללמוד ולהתחזק בנושא" },
-      { icon: <Info />, text: "הנושא אינו רלוונטי לי / דורש דיון מעמיק יותר", value: "הנושא אינו רלוונטי לי / דורש דיון מעמיק יותר" },
-    ],
-    metadata: { estimatedTime: 1, helpText: "זו שאלה רגישה וחשובה. אנא ענה/י בכנות." },
-  },
-
-  // --- חלק 3: קהילה, חברה והשפעות חיצוניות ---
-  {
-    worldId: "RELIGION",
-    id: "religion_community_involvement_nature",
-    category: "religion",
-    subcategory: "community_influence",
-    question: "באיזו מידה וכיצד את/ה מעורב/ת בקהילה הדתית שלך (שיעורים, אירועים, תפקידים, התנדבות)?",
-    type: "openText",
-    depth: "ADVANCED",
-    isRequired: false,
-    minLength: 0,
-    maxLength: 400,
-    placeholder: "ספר/י על הפעילויות והקשרים שלך במסגרת הקהילה.",
-    metadata: { estimatedTime: 1 },
-  },
-  {
-    worldId: "RELIGION",
-    id: "religion_social_circle_religious_diversity",
-    category: "religion",
-    subcategory: "community_influence",
-    question: "עד כמה המעגל החברתי הקרוב שלך מגוון מבחינה דתית?",
-    type: "iconChoice",
-    depth: "BASIC",
-    isRequired: false,
-    options: [
-      { icon: <Users />, text: "רובו ככולו מורכב מאנשים ברמה דתית דומה לשלי", value: "רובו ככולו מורכב מאנשים ברמה דתית דומה לשלי" },
-      { icon: <Scale />, text: "יש לי חברים ממגוון רמות דתיות והשקפות", value: "יש לי חברים ממגוון רמות דתיות והשקפות" },
-      { icon: <Home />, text: "המעגל החברתי שלי מצומצם יחסית ופחות מוגדר דתית", value: "המעגל החברתי שלי מצומצם יחסית ופחות מוגדר דתית" },
-    ],
-    metadata: { estimatedTime: 1 },
-  },
-  {
-    worldId: "RELIGION",
-    id: "religion_attitude_towards_secular_world_engagement",
-    category: "religion",
-    subcategory: "community_influence",
-    question: "מהי גישתך לשילוב והתמודדות עם העולם החילוני והתרבות הכללית (לימודים, עבודה, מדיה, בילויים)?",
-    type: "openText",
-    depth: "ADVANCED",
-    isRequired: false,
-    minLength: 40,
-    maxLength: 400,
-    placeholder: "לדוגמה: חיים בתוך 'בועה' מוגנת, שילוב תוך סינון, פתיחות מלאה, השפעה הדדית...",
-    metadata: { estimatedTime: 1 },
-  },
-  {
-    worldId: "RELIGION",
-    id: "religion_state_and_army_service_view",
-    category: "religion",
-    subcategory: "community_influence",
-    question: "מהי עמדתך לגבי שירות בצבא/שירות לאומי, והיחס הכללי למדינת ישראל ומוסדותיה?",
-    type: "openText",
-    depth: "ADVANCED",
-    isRequired: false,
-    minLength: 0,
-    maxLength: 400,
-    placeholder: "לדוגמה: חשיבות השירות, סוג השירות המועדף, יחס למדינה כ'אתחלתא דגאולה', וכו'.",
-    metadata: { estimatedTime: 1 },
-  },
-
-  // --- חלק 4: התאמה דתית בזוגיות וחינוך ילדים ---
-  {
-    worldId: "RELIGION",
-    id: "religion_partner_ideal_religious_profile",
-    category: "religion",
-    subcategory: "relationship_family",
-    question: "תאר/י את הפרופיל הדתי-רוחני האידיאלי של בן/בת הזוג שאת/ה מחפש/ת (רמת דתיות, השקפה, הקפדה על מצוות).",
-    type: "openText",
-    depth: "BASIC", // קריטי לשדכן
-    isRequired: true,
-    minLength: 40,
-    maxLength: 400,
-    placeholder: "נסה/י להיות כמה שיותר ספציפי/ת. מהם הדברים החשובים לך ביותר בהקשר זה?",
-    metadata: { estimatedTime: 1 },
-  },
-  {
-    worldId: "RELIGION",
-    id: "religion_flexibility_religious_differences_partner",
-    category: "religion",
-    subcategory: "relationship_family",
-    question: "עד כמה את/ה גמיש/ה ומוכנ/ה לפשרות אם יהיו פערים מסוימים ברמה הדתית או בגישה ההלכתית בינך לבין בן/בת הזוג?",
-    type: "scale",
-    depth: "ADVANCED",
-    isRequired: true,
-    min: 1, // כלל לא גמיש/ה
-    max: 10, // מאוד גמיש/ה ומוכנ/ה לפשרות
-    labels: { min: "כלל לא גמיש/ה", max: "מאוד גמיש/ה" },
-    metadata: { estimatedTime: 1, helpText: "חשוב/י על תחומים שבהם תוכל/י להתגמש יותר או פחות." },
-  },
-  {
-    worldId: "RELIGION",
-    id: "religion_children_education_religious_vision",
-    category: "religion",
-    subcategory: "relationship_family",
-    question: "איזה סוג של בית וחינוך דתי/תורני היית רוצה להעניק לילדיך, ומהן הציפיות שלך מבן/בת הזוג בהקשר זה?",
-    type: "openText",
-    depth: "ADVANCED",
-    isRequired: true, 
-    minLength: 50,
-    maxLength: 500,
-    placeholder: "לדוגמה: סוג מוסדות חינוך, אווירה דתית בבית, דגש על ערכים ספציפיים, מעורבות הורית בלימוד.",
-    metadata: { estimatedTime: 2 },
-  },
-  {
-    worldId: "RELIGION",
-    id: "religion_joint_spiritual_growth_expectations",
-    category: "religion",
-    subcategory: "relationship_family",
-    question: "מהן ציפיותיך מבן/בת הזוג בנוגע לצמיחה רוחנית והתפתחות דתית משותפת (למשל, לימוד משותף, שיח רוחני, קיום מצוות יחד)?",
-    type: "openText",
-    depth: "EXPERT",
-    isRequired: false,
-    minLength: 0,
-    maxLength: 400,
-    placeholder: "האם חשוב לך להתפתח יחד? האם יש פעילויות ספציפיות שהיית רוצה לעשות כזוג?",
-    metadata: { estimatedTime: 1 },
-  },
-  // --- חלק 5: סיכום ומבט אישי ---
-  {
-    worldId: "RELIGION",
-    id: "religion_most_meaningful_mitzvah_or_practice",
-    category: "religion",
-    subcategory: "personal_reflection",
-    question: "מהי המצווה או המנהג הדתי/רוחני שהכי משמעותי עבורך באופן אישי, ומדוע?",
-    type: "openText",
-    depth: "EXPERT",
+    worldId: 'RELIGION',
+    id: 'religion_my_personal_prayer', // שאלה חדשה
+    category: 'religion',
+    subcategory: 'personal_reflection',
+    question:
+      'אם היית צריך/ה לבחור תפילה, פרק תהילים או קטע הגות יהודי שמדבר אליך במיוחד, מה הוא היה, ובמשפט - למה?',
+    type: 'openText',
+    depth: 'EXPERT',
     isRequired: false,
     minLength: 30,
     maxLength: 300,
-    placeholder: "שתפ/י משהו שנוגע לליבך ומבטא את החיבור האישי שלך.",
+    placeholder:
+      "שתפ/י משהו שנוגע לליבך ומבטא את החיבור האישי שלך. למשל: 'מודה אני', 'אשת חיל', 'שמע ישראל'...",
+    metadata: {
+      estimatedTime: 2,
+      helpText: 'התשובה כאן נותנת לנו הצצה יפהפיה לעולמך הרוחני הפנימי.',
+    },
+  },
+  {
+    worldId: 'RELIGION',
+    id: 'religion_rabbinic_guidance_role_revised',
+    category: 'religion',
+    subcategory: 'identity_belief',
+    question:
+      'מה מקומה של הדרכה רוחנית (רב, רבנית, יועץ/ת) בחייך כשאת/ה מתמודד/ת עם החלטות משמעותיות?',
+    type: 'scale',
+    depth: 'BASIC',
+    isRequired: false,
+    min: 1,
+    max: 10,
+    labels: { min: 'מתייעץ/ת עם עצמי', max: 'חלק בלתי נפרד' },
+    metadata: { estimatedTime: 1 },
+  },
+
+  // --- חלק 2: הלכה למעשה - היומיום הדתי ---
+  {
+    worldId: 'RELIGION',
+    id: 'religion_shabbat_experience', // שאלה חדשה
+    category: 'religion',
+    subcategory: 'practical_observance',
+    question: 'מהי המהות או החוויה המרכזית שאת/ה מחפש/ת ומקבל/ת מהשבת?',
+    type: 'iconChoice',
+    depth: 'ADVANCED',
+    isRequired: true,
+    options: [
+      { icon: <Home />, text: 'זמן למשפחה, לביחד ולשיח.', value: 'זמן משפחה' },
+      {
+        icon: <BookOpen />,
+        text: 'זמן להתעלות רוחנית, תפילה ולימוד.',
+        value: 'התעלות רוחנית',
+      },
+      {
+        icon: <Bed />,
+        text: 'זמן למנוחה פיזית ונפשית מהשבוע.',
+        value: 'מנוחה והטענה',
+      },
+      {
+        icon: <Users />,
+        text: 'זמן לקהילה, לחברים ולאירוח.',
+        value: 'חברה וקהילה',
+      },
+    ],
+    metadata: {
+      estimatedTime: 1,
+      helpText:
+        "שני אנשים יכולים לשמור שבת באותה רמה, אך לחוות אותה אחרת לגמרי. מהי 'חווית השבת' שלך?",
+    },
+  },
+  {
+    worldId: 'RELIGION',
+    id: 'religion_kashrut_observance_details_revised',
+    category: 'religion',
+    subcategory: 'practical_observance',
+    question:
+      "כשרות היא עולם ומלואו. כדי שנבין את ה'סטנדרט' שלך, ספר/י לנו על שני דברים: סוג ההכשר שאת/ה סומך/ת עליו, ואיך את/ה נוהג/ת באכילה מחוץ לבית.",
+    type: 'openText',
+    depth: 'ADVANCED',
+    isRequired: true,
+    minLength: 40,
+    maxLength: 400,
+    placeholder:
+      "לדוגמה: 'מקפיד/ה על בד\"צ מסוים, ובחוץ אוכל/ת רק במסעדות עם אותו הכשר', או 'סומך/ת על רבנות, וגמיש/ה יותר אצל חברים'.",
     metadata: { estimatedTime: 1 },
   },
   {
-    worldId: "RELIGION",
-    id: "religion_final_thoughts_or_clarifications",
-    category: "religion",
-    subcategory: "personal_reflection",
-    question: "האם יש משהו נוסף שחשוב לך להבהיר או להוסיף לגבי עולמך הדתי, אמונותיך, או ציפיותיך הדתיות מבן/בת זוג, שלא נשאלת עליו?",
-    type: "openText",
-    depth: "EXPERT",
-    isRequired: false,
-    minLength: 0,
+    worldId: 'RELIGION',
+    id: 'religion_modesty_personal_approach_revised',
+    category: 'religion',
+    subcategory: 'practical_observance',
+    question:
+      'צניעות היא מידה פנימית וחיצונית. כיצד היא באה לידי ביטוי בעולם שלך (לבוש, דיבור, התנהגות)?',
+    type: 'openText',
+    depth: 'ADVANCED',
+    isRequired: true,
+    minLength: 40,
     maxLength: 400,
-    placeholder: "זה המקום להוסיף כל פרט או הבהרה שמרגישים לך חשובים.",
+    placeholder:
+      "זו הזדמנות להסביר את הגישה האישית שלך מעבר להגדרות טכניות. למשל: סוג כיסוי ראש, סגנון לבוש, שמירת נגיעה וכו'.",
     metadata: { estimatedTime: 1 },
+  },
+
+  // --- חלק 3: קהילה, חברה וגבולות ---
+  {
+    worldId: 'RELIGION',
+    id: 'religion_secular_culture_scenario', // שאלה חדשה
+    category: 'religion',
+    subcategory: 'community_influence',
+    question:
+      'חברים טובים מציעים ללכת יחד לסרט או הצגה שזכו לביקורות מעולות, אך תכניהם אינם תואמים לחלוטין את השקפת עולמך. מה סביר שתעשה/י?',
+    type: 'iconChoice',
+    depth: 'ADVANCED',
+    isRequired: false,
+    options: [
+      {
+        icon: <X />,
+        text: 'אוותר בנימוס, זה קו אדום עבורי.',
+        value: 'הימנעות',
+      },
+      {
+        icon: <Info />,
+        text: "אבדוק ביקורות וחוות דעת כדי להחליט אם זה 'עובר'.",
+        value: 'סינון ובדיקה',
+      },
+      {
+        icon: <Users />,
+        text: 'אלך כדי להיות חלק מהחוויה החברתית.',
+        value: 'הכלה חברתית',
+      },
+      {
+        icon: <Smile />,
+        text: 'אציע בכיף חלופה אחרת שמתאימה יותר לכולם.',
+        value: 'הצעת חלופה',
+      },
+    ],
+    metadata: {
+      estimatedTime: 1,
+      helpText: 'השאלה בוחנת את הגבולות והגמישות שלך במפגש עם התרבות הכללית.',
+    },
+  },
+  {
+    worldId: 'RELIGION',
+    id: 'religion_doubts_and_struggles', // שאלה חדשה
+    category: 'religion',
+    subcategory: 'identity_belief',
+    question:
+      'כיצד את/ה מתמודד/ת עם שאלות, ספקות או אתגרים באמונה, אם וכאשר הם עולים?',
+    type: 'openText',
+    depth: 'EXPERT',
+    isRequired: false,
+    minLength: 40,
+    maxLength: 400,
+    placeholder:
+      'למשל: האם את/ה מדחיק/ה, מתייעץ/ת עם רב/חברים, לומד/ת את הנושא לעומק, או מוצא/ת כוח באתגר?',
+    metadata: {
+      estimatedTime: 2,
+      helpText:
+        'אמונה בוגרת כוללת גם התמודדות עם שאלות. הכנות שלך כאן מלמדת על עומק ויושרה.',
+    },
+  },
+
+  // --- חלק 4: חזון לבית יהודי ---
+  {
+    worldId: 'RELIGION',
+    id: 'religion_partner_ideal_religious_profile_revised',
+    category: 'religion',
+    subcategory: 'relationship_family',
+    question:
+      "כדי לבנות בית על בסיס רוחני משותף, מהי 'נקודת המוצא' הדתית-רוחנית שהיית רוצה למצוא אצל בן/בת הזוג, שממנה תוכלו לצמוח יחד?",
+    type: 'openText',
+    depth: 'BASIC',
+    isRequired: true,
+    minLength: 40,
+    maxLength: 400,
+    placeholder:
+      'נסה/י להיות כמה שיותר ספציפי/ת. מהם הדברים החשובים לך ביותר בהקשר זה? (רמה, השקפה, הקפדה)',
+    metadata: {
+      estimatedTime: 2,
+      helpText:
+        "הניסוח 'נקודת מוצא' מדגיש שזוגיות היא מסע. אנחנו מחפשים התאמה לנקודת ההתחלה של המסע המשותף.",
+    },
+  },
+  {
+    worldId: 'RELIGION',
+    id: 'religion_flexibility_religious_differences_partner_revised',
+    category: 'religion',
+    subcategory: 'relationship_family',
+    question:
+      'באיזו מידה את/ה פתוח/ה לגמישות ופשרה אם יתגלו פערים מסוימים בגישה ההלכתית או בהשקפה הדתית בינך לבין בן/בת הזוג?',
+    type: 'scale',
+    depth: 'ADVANCED',
+    isRequired: true,
+    min: 1,
+    max: 10,
+    labels: { min: 'מאוד מקובע/ת', max: 'מאוד גמיש/ה' },
+    metadata: {
+      estimatedTime: 1,
+      helpText: 'חשוב/י על תחומים שבהם יש לך יותר או פחות מקום לגמישות.',
+    },
+  },
+  {
+    worldId: 'RELIGION',
+    id: 'religion_gender_roles_philosophy', // שאלה חדשה
+    category: 'religion',
+    subcategory: 'relationship_family',
+    question:
+      'בבניית בית יהודי, כיצד היית רואה את חלוקת האחריות בין גבר לאישה בתחומים השונים? חלק/י 100 נקודות בין הגישות:',
+    type: 'budgetAllocation',
+    depth: 'EXPERT',
+    isRequired: false,
+    totalPoints: 100,
+    categories: [
+      { label: 'חלוקה מסורתית מוגדרת', icon: <Scroll /> },
+      { label: 'שותפות שוויונית מלאה', icon: <Scale /> },
+      { label: 'חלוקה גמישה לפי כישרון ורצון', icon: <Sparkles /> },
+    ],
+    metadata: {
+      estimatedTime: 2,
+      helpText:
+        'זו דרך מתוחכמת לשאול על נושא מורכב. אין פה תשובה נכונה, רק התאמה של השקפות עולם.',
+    },
+  },
+  {
+    worldId: 'RELIGION',
+    id: 'religion_children_education_religious_vision_revised',
+    category: 'religion',
+    subcategory: 'relationship_family',
+    question: 'מהו החזון שלך לאווירה הרוחנית ולחינוך הילדים בבית שתקים/י?',
+    type: 'openText',
+    depth: 'ADVANCED',
+    isRequired: true,
+    minLength: 50,
+    maxLength: 500,
+    placeholder:
+      'לדוגמה: סוג מוסדות החינוך (ממ"ד, תורני, חרדי), אווירה בבית (פתוחה, שמרנית), דגש על ערכים ספציפיים.',
+    metadata: { estimatedTime: 2 },
   },
 ];

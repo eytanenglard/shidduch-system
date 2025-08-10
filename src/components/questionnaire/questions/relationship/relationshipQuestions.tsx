@@ -3,35 +3,39 @@ import { Question } from '../../types/types';
 import {
   Briefcase,
   BookOpen,
-  Heart, // אהבה, חיבור רגשי, אינטימיות
-  Users, // שותפות, חברות, משפחה מורחבת
-  Home, // בית, משפחה גרעינית, יציבות
-  MessageCircle, // תקשורת, דיאלוג
-  Scale, // איזון, פשרה, חלוקת תפקידים, כספים
-  Brain, // הבנה, פתרון בעיות, אינטלקט
-  Sparkles, // קסם, כיף, רומנטיקה
-  HandHeart, // תמיכה, שפות אהבה, אמפתיה
-  ShieldCheck, // ביטחון, אמון, גבולות
-  Link, // מחויבות, חיבור
-  Map, // מרחב אישי, עצמאות (גם כדרך)
-  Clock, // זמן איכות, קצב התפתחות
-  Award, // הערכה, כבוד
-  Baby, // ילדים, הורות
-  Coffee, // בילויים, פנאי משותף
-  Bed, // אינטימיות (יכול להיות גם רגשית)
-  Gift, // מתנות (שפת אהבה)
+  Target,
+  Heart,
+  Users,
+  Home,
+  MessageCircle,
+  Scale,
+  Brain,
+  Moon,
+  Sparkles,
+  HandHeart,
+  ShieldCheck,
+  Link,
+  Map,
+  Clock,
+  Award,
+  Baby,
+  Coffee,
+  Bed,
+  Smile,
+  Gift,
   Info,
+  HelpCircle,
 } from 'lucide-react';
 
 export const relationshipQuestions: Question[] = [
-  // --- חלק 1: מהות הקשר וציפיות מרכזיות ---
+  // --- חלק 1: יסודות השותפות - מהי זוגיות עבורך? ---
   {
     worldId: 'RELATIONSHIP',
-    id: 'relationship_core_meaning',
+    id: 'relationship_core_meaning_revised',
     category: 'relationship',
     subcategory: 'core_expectations',
     question:
-      'מהי בעיניך התמצית של קשר זוגי בריא ומספק? (בחר/י עד 2 אפשרויות עיקריות)',
+      'מהי בעיניך התמצית, הלב הפועם, של שותפות זוגית בריאה ומספקת? (בחר/י עד 2 אפשרויות עיקריות)',
     type: 'multiSelect',
     depth: 'BASIC',
     isRequired: true,
@@ -39,488 +43,393 @@ export const relationshipQuestions: Question[] = [
       {
         icon: <Heart />,
         text: 'חיבור רגשי עמוק, אינטימיות והבנה הדדית',
-        value: 'חיבור רגשי עמוק, אינטימיות והבנה הדדית',
+        value: 'חיבור רגשי עמוק',
       },
       {
         icon: <Users />,
-        text: 'שותפות איתנה, חברות אמת ותמיכה הדדית',
-        value: 'שותפות איתנה, חברות אמת ותמיכה הדדית',
+        text: 'חברות אמת, שותפות איתנה ותמיכה בלתי מסויגת',
+        value: 'חברות ותמיכה',
       },
       {
         icon: <Link />,
-        text: 'מחויבות, נאמנות וביטחון בקשר לטווח ארוך',
-        value: 'מחויבות, נאמנות וביטחון בקשר לטווח ארוך',
+        text: 'מחויבות, נאמנות וביטחון מוחלט בקשר',
+        value: 'מחויבות וביטחון',
       },
       {
         icon: <Sparkles />,
-        text: 'צמיחה אישית וזוגית, למידה והתפתחות משותפת',
-        value: 'צמיחה אישית וזוגית, למידה והתפתחות משותפת',
+        text: 'צמיחה משותפת, למידה והתפתחות אישית וזוגית',
+        value: 'צמיחה משותפת',
       },
       {
         icon: <Home />,
-        text: 'בניית בית ומשפחה המבוססים על ערכים משותפים',
-        value: 'בניית בית ומשפחה המבוססים על ערכים משותפים',
+        text: 'בניית בית ומשפחה על בסיס ערכים משותפים',
+        value: 'בניית בית ומשפחה',
       },
     ],
     minSelections: 1,
     maxSelections: 2,
     metadata: {
       estimatedTime: 1,
-      helpText: 'נסה/י לחשוב על מה הכי חיוני לך כדי להרגיש סיפוק בזוגיות.',
+      helpText: 'נסה/י לחשוב מה הכי חיוני לך כדי להרגיש "בבית" בתוך הזוגיות.',
     },
   },
   {
     worldId: 'RELATIONSHIP',
-    id: 'relationship_key_expectations_from_partner',
+    id: 'relationship_key_feelings_from_partner_revised', // שם וניסוח חדש
     category: 'relationship',
     subcategory: 'core_expectations',
-    question: 'מהן שלוש הציפיות החשובות ביותר שלך מבן/בת הזוג בתוך הקשר?',
+    question:
+      'כדי ששותפות זוגית תצליח, שני הצדדים צריכים להרגיש דברים מסוימים. מהם שלושת הדברים שהכי חשוב לך להרגיש מבן/בת הזוג שלך בקשר?',
     type: 'multiSelectWithOther',
     depth: 'BASIC',
     isRequired: true,
     options: [
       {
         icon: <HandHeart />,
-        text: 'שיתוף רגשי, הקשבה ותמיכה ברגעים קשים',
-        value: 'שיתוף רגשי, הקשבה ותמיכה ברגעים קשים',
-      },
-      {
-        icon: <MessageCircle />,
-        text: 'תקשורת פתוחה, כנה ומכבדת',
-        value: 'תקשורת פתוחה, כנה ומכבדת',
+        text: 'שאני מובן/ת ושיש לי תמיכה רגשית',
+        value: 'תמיכה והבנה',
       },
       {
         icon: <Award />,
-        text: 'הערכה, כבוד הדדי ופרגון',
-        value: 'הערכה, כבוד הדדי ופרגון',
+        text: 'שאני מוערך/ת ומקבל/ת כבוד',
+        value: 'הערכה וכבוד',
       },
       {
         icon: <ShieldCheck />,
-        text: 'אמינות, יושרה ונאמנות',
-        value: 'אמינות, יושרה ונאמנות',
-      },
-      {
-        icon: <Scale />,
-        text: 'נכונות לפשרה והבנת צרכים הדדיים',
-        value: 'נכונות לפשרה והבנת צרכים הדדיים',
+        text: 'ביטחון מוחלט שאני יכול/ה לסמוך עליו/ה',
+        value: 'ביטחון ואמון',
       },
       {
         icon: <Sparkles />,
-        text: 'יכולת להנות יחד, חוש הומור וקלילות',
-        value: 'יכולת להנות יחד, חוש הומור וקלילות',
+        text: 'שאני נחשק/ת ושיש בינינו משיכה',
+        value: 'משיכה ותשוקה',
       },
       {
-        icon: <Users />,
-        text: 'שותפות פעילה בניהול החיים המשותפים',
-        value: 'שותפות פעילה בניהול החיים המשותפים',
+        icon: <Smile />,
+        text: 'שיש בינינו קלילות, הומור וכיף',
+        value: 'קלילות וכיף',
+      },
+      {
+        icon: <Brain />,
+        text: 'שיש לי פרטנר אינטלקטואלי לשיחה ולצמיחה',
+        value: 'שותפות אינטלקטואלית',
       },
     ],
     minSelections: 1,
     maxSelections: 3,
+    metadata: {
+      estimatedTime: 1,
+      helpText:
+        "השאלה היא לא על 'ציפיות' אלא על הצרכים הרגשיים הבסיסיים שלך בקשר.",
+    },
+  },
+
+  // --- חלק 2: תקשורת, קונפליקטים ותיקון ---
+  {
+    worldId: 'RELATIONSHIP',
+    id: 'relationship_communication_ideal_revised',
+    category: 'relationship',
+    subcategory: 'communication_intimacy',
+    question: 'איך נראית שיחה טובה ובונה בעיניך בזוגיות?',
+    type: 'iconChoice',
+    depth: 'BASIC',
+    isRequired: true,
+    options: [
+      {
+        icon: <MessageCircle />,
+        text: 'פתוחה וישירה - מדברים על הכל בכנות ובכבוד.',
+        value: 'פתיחות וישירות',
+      },
+      {
+        icon: <Heart />,
+        text: 'רגישה ואמפתית - הדגש הוא על הקשבה לרגשות שמאחורי המילים.',
+        value: 'רגישות ואמפתיה',
+      },
+      {
+        icon: <Brain />,
+        text: 'ממוקדת פתרון - מנתחים את הבעיה ומגיעים לפתרון מעשי.',
+        value: 'התמקדות בפתרון',
+      },
+      {
+        icon: <Scale />,
+        text: 'מאוזנת - יודעת לשלב בין הקשבה רגשית למציאת פתרון.',
+        value: 'איזון',
+      },
+    ],
     metadata: { estimatedTime: 1 },
   },
   {
     worldId: 'RELATIONSHIP',
-    id: 'relationship_romantic_gestures_importance',
+    id: 'relationship_handling_partner_disappointment_revised',
     category: 'relationship',
-    subcategory: 'core_expectations',
+    subcategory: 'communication_intimacy',
     question:
-      'עד כמה חשובות לך מחוות רומנטיות והפתעות קטנות בזוגיות? (1=פחות חשוב, 10=חשוב מאוד)',
+      'דמיין/י מצב של אי-הבנה או אכזבה בקשר קרוב ומשמעותי (זוגיות, חברות טובה). מהי הנטייה הראשונית והטבעית ביותר שלך?',
+    type: 'iconChoice',
+    depth: 'ADVANCED',
+    isRequired: true,
+    options: [
+      {
+        icon: <Moon />,
+        text: 'להתרחק ולהתכנס בעצמי כדי לעכל.',
+        value: 'התרחקות ועיבוד',
+      },
+      {
+        icon: <MessageCircle />,
+        text: 'לרצות לדבר על זה מיד כדי לפתור.',
+        value: 'שיחה מיידית',
+      },
+      {
+        icon: <ShieldCheck />,
+        text: 'להעמיד פנים שהכל בסדר ולשמור בפנים.',
+        value: 'הדחקה',
+      },
+      {
+        icon: <Brain />,
+        text: 'לנתח את המצב בצורה הגיונית לפני שאגיב.',
+        value: 'ניתוח הגיוני',
+      },
+      {
+        icon: <HelpCircle />,
+        text: 'לא חוויתי זוגיות משמעותית / לא בטוח/ה.',
+        value: 'לא בטוח/ה',
+      },
+    ],
+    metadata: {
+      estimatedTime: 1,
+      helpText:
+        'הכנות שלך כאן חשובה. היא תעזור לנו להבין את סגנון ההתמודדות שלך.',
+    },
+  },
+  {
+    worldId: 'RELATIONSHIP',
+    id: 'relationship_meaningful_apology', // שאלה חדשה
+    category: 'relationship',
+    subcategory: 'communication_intimacy',
+    question: 'כדי שתרגיש/י שהתנצלות היא אמיתית וכנה, מה הכי חשוב לך שיקרה?',
+    type: 'iconChoice',
+    depth: 'ADVANCED',
+    isRequired: false,
+    options: [
+      {
+        icon: <Heart />,
+        text: 'שיביע/תביע חרטה והבנה של איך הרגשתי.',
+        value: 'הבעת חרטה והבנה',
+      },
+      {
+        icon: <ShieldCheck />,
+        text: 'שיקח/תיקח אחריות מלאה על המעשה.',
+        value: 'לקיחת אחריות',
+      },
+      {
+        icon: <Target />,
+        text: 'שיציע/תציע דרך לתקן או למנוע זאת בעתיד.',
+        value: 'הצעה לתיקון',
+      },
+      {
+        icon: <MessageCircle />,
+        text: "עצם אמירת המילה 'סליחה' בכנות מספיקה לי.",
+        value: 'אמירת סליחה',
+      },
+    ],
+    metadata: {
+      estimatedTime: 1,
+      helpText:
+        "היכולת לתקן קרע היא מפתח לזוגיות ארוכת טווח. מהו 'מפתח התיקון' שלך?",
+    },
+  },
+  {
+    worldId: 'RELATIONSHIP',
+    id: 'relationship_silent_treatment_view', // שאלה חדשה
+    category: 'relationship',
+    subcategory: 'communication_intimacy',
+    question:
+      "על סולם של 1 (לגיטימי ולפעמים נחוץ) עד 10 (הרסני ולא מקובל בשום מצב), מה דעתך על שימוש ב'שתיקה כעונש' (Silent Treatment) במהלך ריב?",
     type: 'scale',
     depth: 'ADVANCED',
     isRequired: false,
     min: 1,
     max: 10,
-    labels: { min: 'פחות חשוב לי', max: 'חשוב לי מאוד' },
-    metadata: { estimatedTime: 1 },
+    labels: { min: 'לגיטימי', max: 'הרסני' },
+    metadata: {
+      estimatedTime: 1,
+      helpText:
+        "חשוב להבדיל בין 'פסק זמן' כדי להירגע לבין 'שתיקה' שנועדה להעניש. השאלה מתייחסת לאפשרות השנייה.",
+    },
   },
 
-  // --- חלק 2: תקשורת, אינטימיות ופתרון קונפליקטים ---
+  // --- חלק 3: שותפות ביומיום ---
   {
     worldId: 'RELATIONSHIP',
-    id: 'relationship_communication_ideal',
+    id: 'relationship_partner_bad_day', // שאלה חדשה
     category: 'relationship',
-    subcategory: 'communication_intimacy',
-    question: 'איך נראית תקשורת זוגית אידיאלית בעיניך?',
+    subcategory: 'daily_life_partnership',
+    question:
+      'בן/בת הזוג שלך חוזר/ת הביתה אחרי יום נוראי, מתוסכל/ת ועצבני/ת. מה תהיה התגובה הטבעית שלך?',
     type: 'iconChoice',
-    depth: 'BASIC',
-    isRequired: true,
+    depth: 'ADVANCED',
+    isRequired: false,
     options: [
       {
-        icon: <MessageCircle />,
-        text: 'פתוחה וישירה - אומרים הכל, גם דברים קשים, בכבוד',
-        value: 'פתוחה וישירה - אומרים הכל, גם דברים קשים, בכבוד',
-      },
-      {
         icon: <Heart />,
-        text: 'רגישה ואמפתית - דגש על הקשבה והבנת רגשות',
-        value: 'רגישה ואמפתית - דגש על הקשבה והבנת רגשות',
+        text: 'להקשיב - פשוט להיות שם, להציע חיבוק ולתת לו/ה לפרוק.',
+        value: 'הקשבה והכלה',
       },
       {
         icon: <Brain />,
-        text: 'עניינית וממוקדת פתרונות - פחות דיבורים, יותר מעשים',
-        value: 'עניינית וממוקדת פתרונות - פחות דיבורים, יותר מעשים',
+        text: 'לפתור - לנסות להבין מה קרה ולחשוב יחד על פתרונות.',
+        value: 'ניתוח ופתרון',
       },
       {
-        icon: <Scale />,
-        text: 'מאוזנת - שילוב של פתיחות, רגישות ומעשיות',
-        value: 'מאוזנת - שילוב של פתיחות, רגישות ומעשיות',
+        icon: <Home />,
+        text: "לתת מרחב - להגיד 'אני פה אם תצטרך/כי' ולתת לו/ה שקט.",
+        value: 'מתן מרחב',
+      },
+      {
+        icon: <Sparkles />,
+        text: 'להסיח את הדעת - להציע משהו כיפי שישנה את האווירה.',
+        value: 'הסחת דעת',
       },
     ],
-    metadata: { estimatedTime: 1 },
-  },
-  {
-    worldId: 'RELATIONSHIP',
-    id: 'relationship_expressing_needs_comfort',
-    category: 'relationship',
-    subcategory: 'communication_intimacy',
-    question:
-      'באיזו מידה את/ה מרגיש/ה בנוח לבטא צרכים, רצונות ורגשות (גם פגיעים) בפני בן/בת זוג?',
-    type: 'scale',
-    depth: 'ADVANCED',
-    isRequired: false,
-    min: 1, // לא בנוח כלל
-    max: 10, // מאוד בנוח
-    labels: { min: 'לא נוח לי', max: 'מאוד נוח לי' },
     metadata: {
       estimatedTime: 1,
-      helpText: 'כנות ופתיחות הן מפתח. עד כמה זה טבעי לך?',
+      helpText:
+        "השאלה בודקת את 'שפת התמיכה' שלך בפועל. אין פה תשובה נכונה, רק סגנונות שונים.",
     },
   },
   {
     worldId: 'RELATIONSHIP',
-    id: 'relationship_conflict_resolution_style',
+    id: 'relationship_household_philosophy', // שאלה חדשה
     category: 'relationship',
-    subcategory: 'communication_intimacy',
+    subcategory: 'daily_life_partnership',
     question:
-      'כשמתעוררת מחלוקת, איך נראה סגנון ההתמודדות שלך? חלק/י 100 נקודות בין הגישות השונות.',
-    type: 'budgetAllocation',
-    depth: 'ADVANCED',
-    isRequired: true,
-    totalPoints: 100,
-    categories: [
-      { label: 'דיבור מיידי וגלוי', icon: <MessageCircle /> },
-      { label: 'פסק זמן ואז שיחה', icon: <Clock /> },
-      { label: 'התמקדות בהבנה ופשרה', icon: <Heart /> },
-      { label: 'ניתוח לוגי של הבעיה', icon: <Brain /> },
-      { label: 'הימנעות מוויכוחים', icon: <Info /> },
-    ],
-    metadata: {
-      estimatedTime: 2,
-      helpText: 'רובנו משלבים כמה גישות. מהו השילוב שמאפיין אותך?',
-    },
-  },
-  {
-    worldId: 'RELATIONSHIP',
-    id: 'relationship_intimacy_meaning',
-    category: 'relationship',
-    subcategory: 'communication_intimacy',
-    question:
-      'מהי אינטימיות עבורך בזוגיות, וכיצד היא באה לידי ביטוי (מעבר לפיזיות)?',
+      "בניית בית משותף היא עבודת צוות. מהי בעיניך ה'נוסחה' הטובה ביותר לחלוקת האחריות על ניהול הבית (מטלות, קניות, בירוקרטיה)?",
     type: 'openText',
-    depth: 'ADVANCED',
+    depth: 'BASIC',
     isRequired: true,
-    minLength: 50,
-    maxLength: 500,
+    minLength: 40,
+    maxLength: 400,
     placeholder:
-      'לדוגמה: שיתוף סודות, חולשות, חלומות, תחושת ביטחון, צחוק משותף, הבנה ללא מילים...',
-    metadata: { estimatedTime: 2 },
-  },
-  {
-    worldId: 'RELATIONSHIP',
-    id: 'relationship_love_languages_give_receive',
-    category: 'relationship',
-    subcategory: 'communication_intimacy',
-    question:
-      "בחר/י עד שתי 'שפות אהבה' עיקריות שדרכן את/ה נוטה *להביע* אהבה, ועד שתיים שדרכן את/ה הכי אוהב/ת *לקבל* אהבה:",
-    type: 'multiSelect',
-    depth: 'ADVANCED',
-    isRequired: true,
-    options: [
-      {
-        icon: <Award />,
-        text: 'מילים מאשרות (מחמאות, עידוד)',
-        value: 'מילים מאשרות (מחמאות, עידוד)',
-      },
-      {
-        icon: <Clock />,
-        text: 'זמן איכות (תשומת לב מלאה, בילוי משותף)',
-        value: 'זמן איכות (תשומת לב מלאה, בילוי משותף)',
-      },
-      {
-        icon: <Gift />,
-        text: 'קבלת מתנות (סמליות או משמעותיות)',
-        value: 'קבלת מתנות (סמליות או משמעותיות)',
-      },
-      {
-        icon: <HandHeart />,
-        text: 'מעשי שירות (עזרה, הקלה במטלות)',
-        value: 'מעשי שירות (עזרה, הקלה במטלות)',
-      },
-      {
-        icon: <Bed />,
-        text: 'מגע פיזי (חיבוק, קרבה, אינטימיות)',
-        value: 'מגע פיזי (חיבוק, קרבה, אינטימיות)',
-      },
-    ],
-    minSelections: 1,
-    maxSelections: 4,
+      'לדוגמה: חלוקה שווה 50/50, לפי מי שטוב יותר בכל דבר, לפי זמן פנוי, מיקור חוץ, או גישה אחרת?',
     metadata: {
       estimatedTime: 2,
       helpText:
-        'זו שאלה כפולה. סמן/י מה מאפיין אותך גם בנתינה וגם בקבלה. אפשר לבחור אותה אופציה פעמיים אם היא דומיננטית בשני הכיוונים, או להתמקד ב-1-2 לכל כיוון.',
+        'התשובה כאן מלמדת על תפיסת השותפות שלך, מעבר לשאלה מי שוטף כלים.',
     },
   },
-
-  // --- חלק 3: חיי יומיום, שותפות ומרחב אישי ---
   {
     worldId: 'RELATIONSHIP',
-    id: 'relationship_daily_togetherness_vs_autonomy',
+    id: 'relationship_daily_togetherness_vs_autonomy_revised',
     category: 'relationship',
     subcategory: 'daily_life_partnership',
-    question: 'באיזון שבין זמן משותף לזמן אישי/עצמאי בזוגיות, מהי ההעדפה שלך?',
+    question:
+      'באיזון שבין "אנחנו" לבין "אני" ו"את/ה" בתוך הזוגיות, לאן את/ה נוטה באופן טבעי?',
     type: 'scale',
     depth: 'BASIC',
     isRequired: true,
-    min: 1, // דגש על עצמאות ומרחב אישי
-    max: 10, // דגש על זמן משותף וביחדנס
+    min: 1,
+    max: 10,
     labels: {
-      min: 'הרבה מרחב אישי',
-      max: 'הרבה זמן ביחד',
+      min: 'חשובה לי עצמאות ומרחב אישי',
+      max: 'חשוב לי לעשות הכל ביחד',
       middle: 'איזון גמיש',
     },
     metadata: { estimatedTime: 1 },
   },
+
+  // --- חלק 4: צמיחה, חזון וחגיגות ---
   {
     worldId: 'RELATIONSHIP',
-    id: 'relationship_shared_activities_preference',
+    id: 'relationship_role_in_growth', // שאלה חדשה
+    category: 'relationship',
+    subcategory: 'growth_challenges',
+    question:
+      'על סולם של 1 עד 10, עד כמה חשוב לך שבן/בת הזוג יאתגרו אותך להיות אדם טוב יותר, לעומת שיקבלו אותך בדיוק כמו שאת/ה?',
+    type: 'scale',
+    depth: 'EXPERT',
+    isRequired: false,
+    min: 1,
+    max: 10,
+    labels: { min: 'קבלה מוחלטת', max: 'אתגור וצמיחה' },
+    metadata: {
+      estimatedTime: 1,
+      helpText:
+        "1 = 'אוהב/ת אותי כמו שאני'. 10 = 'עוזר/ת לי להיות הגרסה הכי טובה של עצמי'. איזו גישה מדברת אליך יותר?",
+    },
+  },
+  {
+    worldId: 'RELATIONSHIP',
+    id: 'relationship_celebrating_success', // שאלה חדשה
     category: 'relationship',
     subcategory: 'daily_life_partnership',
     question:
-      'אילו סוגי פעילויות חשוב לך במיוחד לחלוק עם בן/בת הזוג? (בחר/י עד 3)',
-    type: 'multiSelect',
-    depth: 'BASIC',
-    isRequired: false,
-    options: [
-      {
-        icon: <Coffee />,
-        text: 'בילויים ופנאי (מסעדות, סרטים, טיולים)',
-        value: 'בילויים ופנאי (מסעדות, סרטים, טיולים)',
-      },
-      {
-        icon: <Home />,
-        text: 'מטלות הבית וניהול משק הבית',
-        value: 'מטלות הבית וניהול משק הבית',
-      },
-      {
-        icon: <BookOpen />,
-        text: 'תחומי עניין משותפים, תחביבים ולמידה',
-        value: 'תחומי עניין משותפים, תחביבים ולמידה',
-      },
-      {
-        icon: <Users />,
-        text: 'מפגשים עם חברים ומשפחה',
-        value: 'מפגשים עם חברים ומשפחה',
-      },
-      {
-        icon: <Heart />,
-        text: 'חוויות רוחניות או דתיות משותפות',
-        value: 'חוויות רוחניות או דתיות משותפות',
-      },
-      {
-        icon: <Briefcase />,
-        text: 'תמיכה הדדית בקריירה וביעדים אישיים',
-        value: 'תמיכה הדדית בקריירה וביעדים אישיים',
-      },
-    ],
-    minSelections: 1,
-    maxSelections: 3,
-    metadata: { estimatedTime: 1 },
-  },
-  {
-    worldId: 'RELATIONSHIP',
-    id: 'relationship_financial_management_preference',
-    category: 'relationship',
-    subcategory: 'daily_life_partnership',
-    question: 'מהי הגישה המועדפת עליך לניהול כספים משותף בזוגיות?',
-    type: 'iconChoice',
-    depth: 'BASIC',
-    isRequired: true,
-    options: [
-      {
-        icon: <Link />,
-        text: 'שקיפות מלאה וחשבון משותף לכל',
-        value: 'שקיפות מלאה וחשבון משותף לכל',
-      },
-      {
-        icon: <Scale />,
-        text: 'הפרדה מסוימת עם קופה משותפת להוצאות הבית',
-        value: 'הפרדה מסוימת עם קופה משותפת להוצאות הבית',
-      },
-      {
-        icon: <Users />,
-        text: 'כל אחד מנהל את כספו, ומתחלקים בהוצאות גדולות',
-        value: 'כל אחד מנהל את כספו, ומתחלקים בהוצאות גדולות',
-      },
-      {
-        icon: <Info />,
-        text: 'פחות קריטי לי איך, כל עוד יש הסכמה ותקשורת פתוחה',
-        value: 'פחות קריטי לי איך, כל עוד יש הסכמה ותקשורת פתוחה',
-      },
-    ],
-    metadata: { estimatedTime: 1 },
-  },
-  {
-    worldId: 'RELATIONSHIP',
-    id: 'relationship_division_of_labor_home',
-    category: 'relationship',
-    subcategory: 'daily_life_partnership',
-    question: 'כיצד היית רוצה שתתבצע חלוקת התפקידים ומטלות הבית בזוגיות?',
+      'בן/בת הזוג שלך מקבל/ת קידום משמעותי בעבודה. מהי הדרך האידיאלית עבורך לחגוג את ההצלחה שלו/ה?',
     type: 'openText',
     depth: 'ADVANCED',
     isRequired: false,
-    minLength: 50,
-    maxLength: 400,
+    minLength: 30,
+    maxLength: 300,
     placeholder:
-      'לדוגמה: חלוקה שוויונית, לפי חוזקות, לפי זמן פנוי, מיקור חוץ של חלק מהמטלות, או גישה אחרת?',
-    metadata: { estimatedTime: 2 },
+      'לדוגמה: ארוחה רומנטית, מסיבת הפתעה, שיחת עומק על המשמעות, מתנה סמלית...',
+    metadata: {
+      estimatedTime: 2,
+      helpText:
+        "היכולת לשמוח בהצלחת האחר היא מדד לבריאות הקשר. מהי 'שפת החגיגה' שלך?",
+    },
   },
-
-  // --- חלק 4: חזון משפחתי ועתיד משותף ---
   {
     worldId: 'RELATIONSHIP',
-    id: 'relationship_family_vision_children',
+    id: 'relationship_family_vision_children_revised',
     category: 'relationship',
     subcategory: 'family_future_vision',
-    question: 'מהי שאיפתך לגבי הקמת משפחה והבאת ילדים לעולם (אם רלוונטי)?',
+    question:
+      'במבט קדימה, מה מקומה של ההורות בחזון האישי שלך לחיים מלאים ומספקים?',
     type: 'iconChoice',
     depth: 'BASIC',
     isRequired: true,
     options: [
       {
         icon: <Baby />,
-        text: 'מאוד רוצה ילדים, רצוי בקרוב יחסית',
-        value: 'מאוד רוצה ילדים, רצוי בקרוב יחסית',
+        text: 'זהו חלק מרכזי וחשוב בחלום שלי על משפחה',
+        value: 'הורות היא חלק מרכזי',
       },
       {
         icon: <Home />,
-        text: 'רוצה ילדים בעתיד, אך ללא לחץ של זמן',
-        value: 'רוצה ילדים בעתיד, אך ללא לחץ של זמן',
+        text: 'אני רואה את עצמי הורה בעתיד, כשזה ירגיש נכון',
+        value: 'רואה את עצמי הורה בעתיד',
       },
       {
         icon: <Scale />,
-        text: 'פתוח/ה לאפשרות של ילדים, אך זה לא בראש סדר העדיפויות',
-        value: 'פתוח/ה לאפשרות של ילדים, אך זה לא בראש סדר העדיפויות',
+        text: 'פתוח/ה לזה, אבל זה לא תנאי הכרחי לאושר שלי',
+        value: 'פתוח/ה אך לא הכרחי',
       },
       {
         icon: <Heart />,
-        text: 'מעדיפ/ה זוגיות ללא ילדים, או שזה פחות רלוונטי לי',
-        value: 'מעדיפ/ה זוגיות ללא ילדים, או שזה פחות רלוונטי לי',
-      },
-      {
-        icon: <Info />,
-        text: 'יש לי כבר ילדים ואני פתוח/ה לעוד / לא מעוניינ/ת בעוד',
-        value: 'יש לי כבר ילדים ואני פתוח/ה לעוד / לא מעוניינ/ת בעוד',
+        text: 'מעדיפ/ה להתמקד בזוגיות, והורות פחות רלוונטית לי',
+        value: 'הורות פחות רלוונטית',
       },
     ],
     metadata: { estimatedTime: 1 },
-  },
-  {
-    worldId: 'RELATIONSHIP',
-    id: 'relationship_parenting_style_alignment_importance',
-    category: 'relationship',
-    subcategory: 'family_future_vision',
-    question:
-      'עד כמה חשובה לך התאמה בגישות ובערכים המרכזיים הנוגעים לחינוך ילדים? (1=פחות חשוב, 10=קריטי)',
-    type: 'scale',
-    depth: 'ADVANCED',
-    isRequired: false, // יכול להיות לא רלוונטי לכולם בשלב זה
-    min: 1,
-    max: 10,
-    labels: { min: 'פחות חשוב', max: 'קריטי מאוד' },
-    metadata: { estimatedTime: 1 },
-  },
-  {
-    worldId: 'RELATIONSHIP',
-    id: 'relationship_extended_family_involvement',
-    category: 'relationship',
-    subcategory: 'family_future_vision',
-    question:
-      'איזו רמת מעורבות וקשר היית רוצה שתהיה למשפחות המוצא של שניכם בחיי הזוגיות והמשפחה שתקימו?',
-    type: 'iconChoice',
-    depth: 'BASIC',
-    isRequired: false,
-    options: [
-      {
-        icon: <Users />,
-        text: 'מעורבות גבוהה וקשר הדוק, כחלק אינטגרלי',
-        value: 'מעורבות גבוהה וקשר הדוק, כחלק אינטגרלי',
-      },
-      {
-        icon: <Home />,
-        text: 'קשר חם, תומך ומכבד, תוך שמירה על גבולות ברורים',
-        value: 'קשר חם, תומך ומכבד, תוך שמירה על גבולות ברורים',
-      },
-      {
-        icon: <Map />,
-        text: 'קשר מכבד אך מצומצם יחסית, עם דגש על עצמאות הזוג',
-        value: 'קשר מכבד אך מצומצם יחסית, עם דגש על עצמאות הזוג',
-      },
-      {
-        icon: <Info />,
-        text: 'גמיש/ה, תלוי באופי הקשרים ובדינמיקה שתווצר',
-        value: 'גמיש/ה, תלוי באופי הקשרים ובדינמיקה שתווצר',
-      },
-    ],
-    metadata: { estimatedTime: 1 },
-  },
-  {
-    worldId: 'RELATIONSHIP',
-    id: 'relationship_long_term_dreams_together',
-    category: 'relationship',
-    subcategory: 'family_future_vision',
-    question:
-      'מהם החלומות או השאיפות המשותפות הגדולות ביותר שהיית רוצה להגשים יחד עם בן/בת הזוג שלך בטווח הארוך (למשל, בעוד 10-20 שנה)?',
-    type: 'openText',
-    depth: 'ADVANCED',
-    isRequired: false,
-    minLength: 50,
-    maxLength: 600,
-    placeholder:
-      'לדוגמה: הקמת פרויקט משותף, טיול גדול, השגת יעד רוחני, השפעה חברתית, חיים במקום מסוים...',
-    metadata: { estimatedTime: 2 },
   },
 
-  // --- חלק 5: אתגרים, צמיחה וסיום ---
+  // --- חלק 5: סיכום ומיקוד ---
   {
     worldId: 'RELATIONSHIP',
-    id: 'relationship_handling_life_challenges_together',
-    category: 'relationship',
-    subcategory: 'growth_challenges',
-    question:
-      "כיצד את/ה רואה את ההתמודדות המשותפת שלכם כזוג עם אתגרי החיים הבלתי צפויים (קשיים כלכליים, בריאותיים, משפחתיים וכו')?",
-    type: 'openText',
-    depth: 'EXPERT',
-    isRequired: false,
-    minLength: 70,
-    maxLength: 500,
-    placeholder:
-      'מהם מקורות הכוח שלכם כזוג? איך תתמכו זה בזו? מה חשוב לך שיקרה במצבים כאלה?',
-    metadata: { estimatedTime: 2 },
-  },
-  {
-    worldId: 'RELATIONSHIP',
-    id: 'relationship_deal_breaker_summary_final',
+    id: 'relationship_deal_breaker_summary_final_revised',
     category: 'relationship',
     subcategory: 'growth_challenges',
     question:
       'לסיום עולם זה, מהו הדבר האחד שבלעדיו קשר זוגי פשוט לא יכול לעבוד עבורך, ומהו הדבר האחד שאת/ה הכי שואפ/ת אליו בזוגיות?',
     type: 'openText',
-    depth: 'EXPERT', // שאלה מסכמת חשובה
+    depth: 'EXPERT',
     isRequired: true,
-    minLength: 50, // תשובה קצרה וממוקדת
+    minLength: 50,
     maxLength: 400,
     placeholder: "ה'דיל ברייקר' שלי הוא... והשאיפה הגדולה ביותר שלי היא...",
-    metadata: { estimatedTime: 2 },
+    metadata: {
+      estimatedTime: 2,
+      helpText:
+        'נסה/י לזקק את הכל לשני דברים: הגבול התחתון והשאיפה העליונה. זה ממקד מאוד.',
+    },
   },
 ];
