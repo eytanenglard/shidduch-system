@@ -11,7 +11,6 @@ import React, {
 import { useRouter } from 'next/navigation';
 import QuestionnaireLayout from './layout/QuestionnaireLayout';
 import Welcome from './onboarding/Welcome';
-import TrackSelection from './onboarding/TrackSelection';
 import WorldComponent from './worlds/WorldComponent'; // <-- שינוי: ייבוא הקומפוננטה המאוחדת
 import QuestionnaireCompletion from './common/QuestionnaireCompletion';
 import { useLanguage } from '@/app/contexts/LanguageContext';
@@ -33,7 +32,6 @@ import {
 } from 'lucide-react';
 import type {
   WorldId,
-  UserTrack,
   QuestionnaireSubmission,
   QuestionnaireAnswer,
   AnswerValue,
@@ -50,7 +48,6 @@ const worldLabels = {
 
 enum OnboardingStep {
   WELCOME = 'WELCOME',
-  TRACK_SELECTION = 'TRACK_SELECTION',
   WORLDS = 'WORLDS',
   COMPLETED = 'COMPLETED',
   MAP = 'MAP',
@@ -85,7 +82,6 @@ export default function MatchmakingQuestionnaire({
   const [currentWorld, setCurrentWorld] = useState<WorldId>(
     initialWorld || 'VALUES'
   );
-  const [userTrack, setUserTrack] = useState<UserTrack>('חילוני');
   const [answers, setAnswers] = useState<QuestionnaireAnswer[]>([]);
   const [completedWorlds, setCompletedWorlds] = useState<WorldId[]>([]);
   const [startTime] = useState(() => new Date().toISOString());
@@ -182,9 +178,9 @@ export default function MatchmakingQuestionnaire({
       completed: isCompleted,
       startedAt: startTime,
       completedAt: isCompleted ? new Date().toISOString() : undefined,
-      userTrack,
+      
     };
-  }, [answers, completedWorlds, sessionId, startTime, userId, userTrack]);
+  }, [answers, completedWorlds, sessionId, startTime, userId]);
 
   const handleQuestionnaireSave = useCallback(
     async (isAutoSave = false) => {
@@ -343,7 +339,6 @@ export default function MatchmakingQuestionnaire({
             setAnswers(allAnswers);
             const loadedCompletedWorlds = data.data.worldsCompleted || [];
             setCompletedWorlds(loadedCompletedWorlds);
-            setUserTrack(data.data.userTrack || 'חילוני');
 
             const isQuestionnaireComplete =
               data.data.completed ||
@@ -605,29 +600,16 @@ export default function MatchmakingQuestionnaire({
       case OnboardingStep.WELCOME:
         return (
           <Welcome
-            onStart={() => setCurrentStep(OnboardingStep.TRACK_SELECTION)}
+             onStart={() => setCurrentStep(OnboardingStep.MAP)}
             onLearnMore={() => router.push('/profile')}
             isLoggedIn={!!userId}
             hasSavedProgress={answers.length > 0 || completedWorlds.length > 0}
-          />
-        );
-      case OnboardingStep.TRACK_SELECTION:
-        return (
-          <TrackSelection
-            onSelect={(track: UserTrack) => {
-              setUserTrack(track);
-              setCurrentWorld(WORLD_ORDER[0]);
-              setCurrentStep(OnboardingStep.MAP);
-            }}
-            onBack={() => setCurrentStep(OnboardingStep.WELCOME)}
-            selectedTrack={userTrack}
           />
         );
       case OnboardingStep.WORLDS:
         return (
           <QuestionnaireLayout
             currentWorld={currentWorld}
-            userTrack={userTrack}
             completedWorlds={completedWorlds}
             onWorldChange={handleWorldChange}
             onExit={handleExit}

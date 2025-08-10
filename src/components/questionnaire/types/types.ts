@@ -136,12 +136,12 @@ export interface AnswerInputProps {
   language?: string;
   showValidation?: boolean;
   className?: string;
+  validationError?: string;
 }
 
 export interface QuestionnaireLayoutProps {
   children: React.ReactNode;
   currentWorld: WorldId;
-  userTrack: UserTrack;
   completedWorlds: WorldId[];
   onWorldChange: (worldId: WorldId) => void;
   onExit?: () => void;
@@ -159,11 +159,5 @@ export interface QuestionnaireSubmission {
   completed: boolean;
   startedAt: string;
   completedAt?: string;
-  userTrack?: UserTrack;
 }
 
-export type UserTrack =
-  | 'חילוני'
-  | 'מסורתי'
-  | 'דתי'
-  | 'חרדי';

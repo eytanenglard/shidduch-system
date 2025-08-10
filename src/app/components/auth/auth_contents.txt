@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\auth
-# Generated on: 2025-08-08 16:20:56
+# Generated on: 2025-08-10 11:04:21
 ################################################################################
 
 ================================================================================
@@ -1890,30 +1890,38 @@ Content:
 "use client";
 
 import { useState, useEffect, FormEvent } from "react";
-import { useSearchParams, useRouter } from "next/navigation"; // Added useRouter
+import { useSearchParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { Mail, Lock, AlertCircle, Loader2 } from "lucide-react"; // Added Loader2
+import { Mail, Lock, AlertCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
 
 export default function SignInForm() {
-  const router = useRouter(); // Initialize useRouter
+  const router = useRouter();
   const searchParams = useSearchParams();
+  const { data: session, status } = useSession();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  // Check for error from URL (e.g., after failed NextAuth sign-in attempt)
+  useEffect(() => {
+    if (status === "authenticated") {
+      // @ts-ignore - אנחנו יודעים שהוספנו את המאפיינים האלה לסשן
+      const redirectUrl = session?.redirectUrl || '/profile';
+      router.push(redirectUrl);
+    }
+  }, [status, session, router]);
+
   useEffect(() => {
     const errorMessage = searchParams.get("error");
-    const resetSuccess = searchParams.get("reset"); // Check for password reset success
+    const resetSuccess = searchParams.get("reset");
 
     if (resetSuccess === "success") {
-        // Optionally show a success message, e.g., using a toast or a temporary state
-        // For now, we just clear any previous errors.
-        setError(""); // Clear any auth errors if coming from successful reset
+        setError("");
     }
 
     if (errorMessage) {
@@ -1926,14 +1934,12 @@ export default function SignInForm() {
             "חשבון זה כבר מקושר באמצעות ספק אחר. אנא התחבר באמצעות הספק המקורי."
           );
           break;
-        // Add more specific error messages as needed from NextAuth errors
         default:
           setError(`אירעה שגיאה בהתחברות (${errorMessage}). נסה שנית.`);
       }
     }
   }, [searchParams]);
 
-  // Pre-fill email if provided in URL (e.g., after registration or password reset notice)
   useEffect(() => {
     const emailParam = searchParams.get("email");
     if (emailParam) {
@@ -1943,7 +1949,7 @@ export default function SignInForm() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError(""); // Clear previous errors
+    setError("");
     setIsLoading(true);
 
     if (!email || !password) {
@@ -1953,21 +1959,17 @@ export default function SignInForm() {
     }
 
      try {
-      localStorage.setItem("last_user_email", email); // Store email for potential reuse
+      localStorage.setItem("last_user_email", email);
 
       const result = await signIn("credentials", {
-        email: email.toLowerCase(), // Send normalized email
+        email: email.toLowerCase(),
         password,
-        redirect: false, // Handle redirect manually based on result
+        redirect: false,
       });
 
-      if (result?.ok) {
-        // --- זהו התיקון המרכזי ---
-        // אם ההתחברות הצליחה, השתמש בכתובת שהשרת שלח.
-        // אם הכתובת ריקה מסיבה כלשהי, הפנה לפרופיל כברירת מחדל.
-        router.push(result.url || '/profile');
-      } else {
-        // כל מקרה אחר הוא שגיאה
+      if (result?.ok && result.url) {
+        router.push(result.url);
+      } else if (!result?.ok) {
         if (result?.error === "CredentialsSignin") {
           setError("אימייל או סיסמה אינם נכונים.");
         } else {
@@ -1989,17 +1991,31 @@ export default function SignInForm() {
     localStorage.setItem("auth_method", "google");
 
     try {
-      // NextAuth handles the redirect. The callbackUrl is where Google sends the user back to your app.
-      // Then, NextAuth's main redirect callback in auth.ts determines the final destination.
-      await signIn("google", { callbackUrl: "/auth/google-callback" });
-      // If signIn is successful, browser redirects, code below this await might not run if redirection happens.
+      await signIn("google");
     } catch (error) {
       console.error("Google sign-in error:", error);
       setError("אירעה שגיאה בהתחברות עם גוגל. נסה שנית.");
-      setIsGoogleLoading(false); // Important if error occurs before redirection
+      setIsGoogleLoading(false);
     }
-    // setIsGoogleLoading(false); // Typically not reached if redirect occurs
   };
+
+  // --- שינוי: מסך טעינה מעוצב ואינפורמטיבי ---
+  // בזמן בדיקת הסשן או לאחר התחברות מוצלחת, הצג את ההודעה הבאה עד להפנייה.
+  if (status === 'loading' || status === 'authenticated') {
+    return (
+      <div className="flex w-full max-w-md flex-col items-center justify-center rounded-xl bg-white p-8 text-center shadow-xl" style={{ minHeight: '520px' }}>
+        <div className="mb-4 h-12 w-12">
+            <Loader2 className="h-full w-full animate-spin text-cyan-500" />
+        </div>
+        <h2 className="mb-2 text-2xl font-bold text-gray-800">
+          {status === 'authenticated' ? 'התחברת בהצלחה!' : 'טוען נתונים...'}
+        </h2>
+        <p className="text-gray-600">
+          {status === 'authenticated' ? 'אנו מעבירים אותך לאזור האישי שלך. רגע קט...' : 'אנא המתן בזמן שאנו בודקים את פרטי ההתחברות שלך.'}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden relative">
@@ -2071,7 +2087,7 @@ export default function SignInForm() {
             </div>
             <div className="flex justify-end">
               <Link
-                href="/auth/forgot-password" // Link to the new forgot password page
+                href="/auth/forgot-password"
                 className="text-sm text-cyan-600 hover:text-cyan-700 hover:underline mt-1"
               >
                 שכחת סיסמה?
@@ -2086,7 +2102,7 @@ export default function SignInForm() {
           >
             {isLoading ? (
               <>
-                <Loader2 className="h-5 w-5 animate-spin mr-1" /> {/* Using Loader2 */}
+                <Loader2 className="h-5 w-5 animate-spin mr-1" />
                 <span>מתחבר...</span>
               </>
             ) : (
@@ -2117,7 +2133,7 @@ export default function SignInForm() {
         >
           {isGoogleLoading ? (
             <>
-              <Loader2 className="animate-spin h-5 w-5 mr-1" /> {/* Using Loader2 */}
+              <Loader2 className="animate-spin h-5 w-5 mr-1" />
               <span>מתחבר עם Google...</span>
             </>
           ) : (

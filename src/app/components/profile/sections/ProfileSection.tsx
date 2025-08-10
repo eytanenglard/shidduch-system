@@ -49,6 +49,7 @@ import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { languageOptions } from '@/lib/languageOptions';
 import { toast } from 'sonner';
+import Autocomplete from 'react-google-autocomplete';
 
 const maritalStatusOptions = [
   { value: 'single', label: 'רווק/ה' },
@@ -219,6 +220,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
   const [loading, setLoading] = useState(true);
   const [initialData, setInitialData] = useState<Partial<UserProfile>>({});
 
+  const [cityInputValue, setCityInputValue] = useState('');
+  const [aliyaCountryInputValue, setAliyaCountryInputValue] = useState('');
+
   const initializeFormData = (profileData: UserProfile | null) => {
     const dataToSet: Partial<UserProfile> = {
       gender: profileData?.gender || undefined,
@@ -232,8 +236,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
       educationLevel: profileData?.educationLevel || undefined,
       city: profileData?.city || '',
       origin: profileData?.origin || '',
-      religiousJourney: profileData?.religiousJourney || undefined, // START OF CHANGE
-
+      religiousJourney: profileData?.religiousJourney || undefined,
       religiousLevel: profileData?.religiousLevel || undefined,
       about: profileData?.about || '',
       parentStatus: profileData?.parentStatus || undefined,
@@ -277,6 +280,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
     };
     setFormData(dataToSet);
     setInitialData(dataToSet);
+
+    setCityInputValue(dataToSet.city || '');
+    setAliyaCountryInputValue(dataToSet.aliyaCountry || '');
   };
 
   useEffect(() => {
@@ -412,6 +418,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
       });
       return;
     }
+
     const dataToSave = { ...formData };
     onSave(dataToSave);
     setIsEditing(false);
@@ -420,6 +427,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
 
   const handleCancel = () => {
     setFormData(initialData);
+    setCityInputValue(initialData.city || '');
+    setAliyaCountryInputValue(initialData.aliyaCountry || '');
     setIsEditing(false);
   };
 
@@ -646,11 +655,34 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       עיר מגורים
                     </Label>
                     {isEditing && !viewOnly ? (
-                      <Input
-                        value={formData.city || ''}
-                        onChange={(e) => handleChange('city', e.target.value)}
-                        placeholder="לדוגמה: ירושלים"
-                        className="h-9 text-sm focus:ring-cyan-500"
+                      <Autocomplete
+                        apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+                        value={cityInputValue}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                          setCityInputValue(e.target.value);
+                        }}
+                        onPlaceSelected={(place) => {
+                          const cityComponent = place.address_components?.find(
+                            (component) => component.types.includes('locality')
+                          );
+                          const selectedCity =
+                            cityComponent?.long_name ||
+                            place.formatted_address ||
+                            '';
+                          handleChange('city', selectedCity);
+                          setCityInputValue(selectedCity);
+                        }}
+                        onBlur={() => {
+                          if (cityInputValue !== formData.city) {
+                            setCityInputValue(formData.city || '');
+                          }
+                        }}
+                        options={{
+                          types: ['(cities)'],
+                          componentRestrictions: { country: 'il' },
+                        }}
+                        className="w-full h-9 text-sm p-2 border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500"
+                        placeholder="התחל/י להקליד שם עיר..."
                       />
                     ) : (
                       <p className="text-sm text-gray-800 font-medium mt-1">
@@ -677,16 +709,41 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                   </div>
                   <div>
                     <Label className="block mb-1.5 text-xs font-medium text-gray-600">
-                      עלה/תה לארץ
+                      מדינת עלייה
                     </Label>
                     {isEditing && !viewOnly ? (
-                      <Input
-                        value={formData.aliyaCountry || ''}
-                        onChange={(e) =>
-                          handleChange('aliyaCountry', e.target.value)
-                        }
-                        placeholder="אם רלוונטי, מאיזו מדינה?"
-                        className="h-9 text-sm focus:ring-cyan-500"
+                      <Autocomplete
+                        apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+                        value={aliyaCountryInputValue}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                          setAliyaCountryInputValue(e.target.value);
+                        }}
+                        onPlaceSelected={(place) => {
+                          const countryComponent =
+                            place.address_components?.find((component) =>
+                              component.types.includes('country')
+                            );
+                          const selectedCountry =
+                            countryComponent?.long_name ||
+                            place.formatted_address ||
+                            '';
+                          handleChange('aliyaCountry', selectedCountry);
+                          setAliyaCountryInputValue(selectedCountry);
+                        }}
+                        onBlur={() => {
+                          if (
+                            aliyaCountryInputValue !== formData.aliyaCountry
+                          ) {
+                            setAliyaCountryInputValue(
+                              formData.aliyaCountry || ''
+                            );
+                          }
+                        }}
+                        options={{
+                          types: ['country'],
+                        }}
+                        className="w-full h-9 text-sm p-2 border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500"
+                        placeholder="אם רלוונטי, הקלד/י שם מדינה"
                       />
                     ) : (
                       <p className="text-sm text-gray-800 font-medium mt-1">
@@ -1020,7 +1077,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       </p>
                     )}
                   </div>
-                  {/* START OF CHANGE: New Religious Journey field */}
                   <div>
                     <Label className="block mb-1.5 text-xs font-medium text-gray-600">
                       מסע דתי
@@ -1402,7 +1458,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         }
                         placeholder="לדוגמה: מורה, מהנדס תוכנה"
                         className="h-9 text-sm focus:ring-cyan-500"
-                        maxLength={20} //  <-- הוסף את השורה הזו
+                        maxLength={20}
                       />
                     ) : (
                       <p className="text-sm text-gray-800 font-medium mt-1">

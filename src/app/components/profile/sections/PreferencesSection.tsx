@@ -1,7 +1,7 @@
 // src/app/(authenticated)/profile/components/dashboard/PreferencesSection.tsx
 "use client";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Info } from "lucide-react";
+import { Info, XCircle } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -39,8 +39,9 @@ import {
   ServiceType,
   HeadCoveringType,
   KippahType,
-  ReligiousJourney, // START OF CHANGE
+  ReligiousJourney,
 } from "@prisma/client";
+import Autocomplete from "react-google-autocomplete";
 
 interface PreferencesSectionProps {
   profile: UserProfile | null;
@@ -50,16 +51,7 @@ interface PreferencesSectionProps {
   onChange: (data: Partial<UserProfile>) => void;
 }
 
-// --- Options for existing multi-select fields ---
-const locationOptions = [
-  { value: "צפון", label: "צפון" },
-  { value: "מרכז", label: "מרכז" },
-  { value: "דרום", label: "דרום" },
-  { value: "ירושלים", label: "ירושלים" },
-  { value: "יהודה ושומרון", label: "יהודה ושומרון" },
-  { value: 'חו"ל', label: 'חו"ל' },
-];
-
+// --- Options for multi-select fields ---
 const religiousLevelOptions = [
   { value: "charedi", label: "חרדי/ת" },
   { value: "charedi_modern", label: "חרדי/ת מודרני/ת" },
@@ -75,7 +67,6 @@ const religiousLevelOptions = [
   { value: "לא משנה", label: "ללא העדפה / גמיש" },
 ];
 
-// START OF CHANGE: Add new options for Religious Journey Preference
 const preferredReligiousJourneyOptions = [
     { value: "BORN_INTO_CURRENT_LIFESTYLE", label: "גדל/ה בסביבה דומה" },
     { value: "BORN_SECULAR", label: "גדל/ה בסביבה חילונית" },
@@ -85,7 +76,6 @@ const preferredReligiousJourneyOptions = [
     { value: "IN_PROCESS", label: "בתהליך שינוי" },
     { value: "no_preference", label: "ללא העדפה / גמיש" },
 ];
-// END OF CHANGE
 
 const educationPreferenceOptions = [
   { value: "תיכונית", label: "תיכונית" },
@@ -123,12 +113,6 @@ const preferredOriginOptions = [
   { value: "temani", label: "תימני/ה" },
   { value: "mixed", label: "מעורב/ת" },
   { value: "ethiopian", label: "אתיופי/ה" },
-  { value: "american", label: "אמריקאי/ה" },
-  { value: "european", label: "אירופאי/ה" },
-  { value: "russian_speaking", label: "ממדינות דוברות רוסית" },
-  { value: "french_speaking", label: "ממדינות דוברות צרפתית" },
-  { value: "south_american", label: "דרום אמריקאי/ה" },
-  { value: "other", label: "אחר" },
   { value: "no_preference", label: "ללא העדפה מיוחדת" },
 ];
 
@@ -244,6 +228,8 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
 }) => {
   const [formData, setFormData] = useState<Partial<UserProfile>>({});
   const [initialData, setInitialData] = useState<Partial<UserProfile>>({});
+  const [locationInputValue, setLocationInputValue] = useState('');
+  const [originInputValue, setOriginInputValue] = useState('');
 
   useEffect(() => {
     if (profile) {
@@ -274,7 +260,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
         preferredKippahTypes: profile.preferredKippahTypes ?? [],
         preferredCharacterTraits: profile.preferredCharacterTraits ?? [],
         preferredHobbies: profile.preferredHobbies ?? [],
-        preferredReligiousJourneys: profile.preferredReligiousJourneys ?? [], // START OF CHANGE
+        preferredReligiousJourneys: profile.preferredReligiousJourneys ?? [],
       };
       setFormData(newFormData);
       setInitialData(newFormData);
@@ -345,6 +331,25 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
       return { ...prev, [field]: newValues };
     });
   };
+
+  const handleAddItemToArray = (field: keyof UserProfile, value: string) => {
+      if (!value) return;
+      setFormData(prev => {
+          const currentValues = (Array.isArray(prev[field]) ? prev[field] as string[] : []) ?? [];
+          if (currentValues.includes(value)) {
+              return prev; // Avoid duplicates
+          }
+          return { ...prev, [field]: [...currentValues, value] };
+      });
+  };
+
+  const handleRemoveItemFromArray = (field: keyof UserProfile, value: string) => {
+      setFormData(prev => {
+          const currentValues = (Array.isArray(prev[field]) ? prev[field] as string[] : []) ?? [];
+          return { ...prev, [field]: currentValues.filter(item => item !== value) };
+      });
+  };
+
 
   const handleSave = () => {
     const dataToSave = { ...formData };
@@ -654,46 +659,56 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                     אזורי מגורים מועדפים
                   </Label>
                   {isEditing ? (
-                    <div className="flex flex-wrap gap-2">
-                      {locationOptions.map((loc) => (
-                        <Button
-                          key={loc.value}
-                          type="button"
-                          variant={
-                            (formData.preferredLocations || []).includes(
-                              loc.value
-                            )
-                              ? "default"
-                              : "outline"
-                          }
-                          size="sm"
-                          onClick={() =>
-                            handleMultiSelectChange(
-                              "preferredLocations",
-                              loc.value
-                            )
-                          }
-                          className={cn(
-                            "rounded-full text-xs px-3 py-1.5 transition-all",
-                            (formData.preferredLocations || []).includes(
-                              loc.value
-                            )
-                              ? "bg-sky-500 hover:bg-sky-600 text-white border-sky-500"
-                              : "border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400"
-                          )}
-                        >
-                          {loc.label}
-                        </Button>
-                      ))}
+                     <div className="space-y-2">
+                      <div className="flex flex-wrap gap-1.5">
+                        {(formData.preferredLocations || []).map(loc => (
+                          <Badge
+                            key={loc}
+                            variant="secondary"
+                            className="bg-sky-100 text-sky-800 rounded-full px-2 py-1 text-sm font-normal"
+                          >
+                            <span>{loc}</span>
+                            <button
+                              type="button"
+                              className="mr-1.5 rtl:mr-0 rtl:ml-1.5 text-sky-600 hover:text-sky-900"
+                              onClick={() => handleRemoveItemFromArray('preferredLocations', loc)}
+                            >
+                              <XCircle className="w-3.5 h-3.5" />
+                            </button>
+                          </Badge>
+                        ))}
+                      </div>
+                       <Autocomplete
+                          apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+                          value={locationInputValue}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLocationInputValue(e.target.value)}
+                          onPlaceSelected={(place) => {
+                            const cityComponent = place.address_components?.find(
+                              (component) => component.types.includes('locality')
+                            );
+                            const selectedCity = cityComponent?.long_name || place.formatted_address || '';
+                            handleAddItemToArray('preferredLocations', selectedCity);
+                            setLocationInputValue('');
+                          }}
+                          options={{
+                            types: ['(cities)'],
+                            componentRestrictions: { country: 'il' },
+                          }}
+                          className="w-full h-9 text-sm p-2 border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500"
+                          placeholder="הוסף/י עיר..."
+                        />
                     </div>
                   ) : (
                     <div className="mt-1 flex flex-wrap gap-1.5">
-                      {renderMultiSelectBadges(
-                        formData.preferredLocations,
-                        locationOptions,
-                        "bg-sky-100 text-sky-700",
-                        "לא נבחרו אזורי מגורים."
-                      )}
+                        {(!formData.preferredLocations || formData.preferredLocations.length === 0) ? (
+                            <p className="text-sm text-gray-500 italic">לא נבחרו אזורי מגורים.</p>
+                        ) : (
+                            formData.preferredLocations.map(loc => (
+                                <Badge key={loc} variant="secondary" className="mr-1 mb-1 bg-sky-100 text-sky-700 text-xs px-2 py-0.5 rounded-full">
+                                    {loc}
+                                </Badge>
+                            ))
+                        )}
                     </div>
                   )}
                 </div>
@@ -1202,46 +1217,70 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                     מוצא/עדה מועדפים
                   </Label>
                   {isEditing ? (
-                    <div className="flex flex-wrap gap-2">
-                      {preferredOriginOptions.map((opt) => (
-                        <Button
-                          key={opt.value}
-                          type="button"
-                          variant={
-                            (formData.preferredOrigins || []).includes(
-                              opt.value
-                            )
-                              ? "default"
-                              : "outline"
-                          }
-                          size="sm"
-                          onClick={() =>
-                            handleMultiSelectChange(
-                              "preferredOrigins",
-                              opt.value
-                            )
-                          }
-                          className={cn(
-                            "rounded-full text-xs px-3 py-1.5 transition-all",
-                            (formData.preferredOrigins || []).includes(
-                              opt.value
-                            )
-                              ? "bg-fuchsia-500 hover:bg-fuchsia-600 text-white border-fuchsia-500"
-                              : "border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400"
-                          )}
-                        >
-                          {opt.label}
-                        </Button>
-                      ))}
+                    <div className="space-y-3">
+                        <div className="flex flex-wrap gap-2">
+                          {preferredOriginOptions.map((opt) => (
+                            <Button
+                              key={opt.value}
+                              type="button"
+                              variant={(formData.preferredOrigins || []).includes(opt.value) ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => handleMultiSelectChange("preferredOrigins", opt.value)}
+                              className={cn(
+                                "rounded-full text-xs px-3 py-1.5 transition-all",
+                                (formData.preferredOrigins || []).includes(opt.value)
+                                  ? "bg-fuchsia-500 hover:bg-fuchsia-600 text-white border-fuchsia-500"
+                                  : "border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400"
+                              )}
+                            >
+                              {opt.label}
+                            </Button>
+                          ))}
+                        </div>
+                         <div className="space-y-2">
+                            <div className="flex flex-wrap gap-1.5">
+                                {(formData.preferredOrigins || [])
+                                .filter(origin => !preferredOriginOptions.some(opt => opt.value === origin))
+                                .map(origin => (
+                                    <Badge key={origin} variant="secondary" className="bg-fuchsia-100 text-fuchsia-800 rounded-full px-2 py-1 text-sm font-normal">
+                                        <span>{origin}</span>
+                                        <button type="button" className="mr-1.5 rtl:mr-0 rtl:ml-1.5 text-fuchsia-600 hover:text-fuchsia-900" onClick={() => handleRemoveItemFromArray('preferredOrigins', origin)}>
+                                            <XCircle className="w-3.5 h-3.5" />
+                                        </button>
+                                    </Badge>
+                                ))}
+                            </div>
+                            <Autocomplete
+                                apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+                                value={originInputValue}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setOriginInputValue(e.target.value)}
+                                onPlaceSelected={(place) => {
+                                  const countryComponent = place.address_components?.find((component) => component.types.includes('country'));
+                                  const selectedCountry = countryComponent?.long_name || place.formatted_address || '';
+                                  handleAddItemToArray('preferredOrigins', selectedCountry);
+                                  setOriginInputValue('');
+                                }}
+                                options={{ types: ['country'] }}
+                                className="w-full h-9 text-sm p-2 border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500"
+                                placeholder="הוסף/י מדינת מוצא..."
+                            />
+                        </div>
                     </div>
                   ) : (
-                    <div className="mt-1 flex flex-wrap gap-1.5">
-                      {renderMultiSelectBadges(
-                        formData.preferredOrigins,
-                        preferredOriginOptions,
-                        "bg-fuchsia-100 text-fuchsia-700",
-                        "לא נבחרו העדפות מוצא/עדה."
-                      )}
+                     <div className="mt-1 flex flex-wrap gap-1.5">
+                        {(!formData.preferredOrigins || formData.preferredOrigins.length === 0) ? (
+                            <p className="text-sm text-gray-500 italic">לא נבחרו העדפות מוצא/עדה.</p>
+                        ) : (
+                            formData.preferredOrigins.map(originValue => {
+                                const option = preferredOriginOptions.find(opt => opt.value === originValue);
+                                const label = option ? option.label : originValue;
+                                return (
+                                    <Badge key={originValue} variant="secondary" className="mr-1 mb-1 bg-fuchsia-100 text-fuchsia-700 text-xs px-2 py-0.5 rounded-full">
+                                        {label}
+                                    </Badge>
+                                );
+                            })
+                        )}
                     </div>
                   )}
                 </div>

@@ -1,15 +1,15 @@
 // src/components/questionnaire/common/QuestionCard.tsx
-import React, { useState } from "react";
+import React, { useState, forwardRef } from 'react';
 import {
   Card,
   CardHeader,
   CardContent,
   CardFooter,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
 import {
   Bookmark,
   AlertCircle,
@@ -24,22 +24,18 @@ import {
   EyeOff,
   Users,
   Lock,
-} from "lucide-react";
+} from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Switch } from "@/components/ui/switch";
-import { motion, AnimatePresence } from "framer-motion";
-import type {
-  Question,
-  AnswerValue,
-  QuestionDepth,
-} from "../types/types";
-import { cn } from "@/lib/utils";
-import { useMediaQuery } from "../hooks/useMediaQuery";
+} from '@/components/ui/tooltip';
+import { Switch } from '@/components/ui/switch';
+import { motion, AnimatePresence } from 'framer-motion';
+import type { Question, AnswerValue, QuestionDepth } from '../types/types';
+import { cn } from '@/lib/utils';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 interface QuestionCardProps {
   question: Question;
@@ -60,60 +56,60 @@ interface QuestionCardProps {
 }
 
 const depthLabels: Record<QuestionDepth, string> = {
-  BASIC: "בסיסי",
-  ADVANCED: "מתקדם",
-  EXPERT: "מעמיק",
+  BASIC: 'בסיסי',
+  ADVANCED: 'מתקדם',
+  EXPERT: 'מעמיק',
 };
 
 const depthDescriptions: Record<QuestionDepth, string> = {
-  BASIC: "שאלות חובה המהוות את הבסיס להיכרות",
-  ADVANCED: "שאלות מומלצות להיכרות מעמיקה יותר",
-  EXPERT: "שאלות העשרה לחיבור מעמיק במיוחד",
+  BASIC: 'שאלות חובה המהוות את הבסיס להיכרות',
+  ADVANCED: 'שאלות מומלצות להיכרות מעמיקה יותר',
+  EXPERT: 'שאלות העשרה לחיבור מעמיק במיוחד',
 };
 
 // פתרון לבעיית הצבעים הדינמיים
 const getThemeClasses = (themeColor: string) => {
   const themes = {
     sky: {
-      border: "border-sky-500",
-      text: "text-sky-700",
-      bg: "bg-sky-100",
-      bgSoft: "bg-sky-50",
-      ring: "ring-sky-300",
-      icon: "text-sky-500",
+      border: 'border-sky-500',
+      text: 'text-sky-700',
+      bg: 'bg-sky-100',
+      bgSoft: 'bg-sky-50',
+      ring: 'ring-sky-300',
+      icon: 'text-sky-500',
     },
     rose: {
-      border: "border-rose-500",
-      text: "text-rose-700", 
-      bg: "bg-rose-100",
-      bgSoft: "bg-rose-50",
-      ring: "ring-rose-300",
-      icon: "text-rose-500",
+      border: 'border-rose-500',
+      text: 'text-rose-700',
+      bg: 'bg-rose-100',
+      bgSoft: 'bg-rose-50',
+      ring: 'ring-rose-300',
+      icon: 'text-rose-500',
     },
     purple: {
-      border: "border-purple-500",
-      text: "text-purple-700",
-      bg: "bg-purple-100", 
-      bgSoft: "bg-purple-50",
-      ring: "ring-purple-300",
-      icon: "text-purple-500",
+      border: 'border-purple-500',
+      text: 'text-purple-700',
+      bg: 'bg-purple-100',
+      bgSoft: 'bg-purple-50',
+      ring: 'ring-purple-300',
+      icon: 'text-purple-500',
     },
     teal: {
-      border: "border-teal-500",
-      text: "text-teal-700",
-      bg: "bg-teal-100",
-      bgSoft: "bg-teal-50", 
-      ring: "ring-teal-300",
-      icon: "text-teal-500",
+      border: 'border-teal-500',
+      text: 'text-teal-700',
+      bg: 'bg-teal-100',
+      bgSoft: 'bg-teal-50',
+      ring: 'ring-teal-300',
+      icon: 'text-teal-500',
     },
     amber: {
-      border: "border-amber-500",
-      text: "text-amber-700",
-      bg: "bg-amber-100",
-      bgSoft: "bg-amber-50",
-      ring: "ring-amber-300", 
-      icon: "text-amber-500",
-    }
+      border: 'border-amber-500',
+      text: 'text-amber-700',
+      bg: 'bg-amber-100',
+      bgSoft: 'bg-amber-50',
+      ring: 'ring-amber-300',
+      icon: 'text-amber-500',
+    },
   };
   return themes[themeColor as keyof typeof themes] || themes.sky;
 };
@@ -125,7 +121,7 @@ export default function QuestionCard({
   onSkip,
   onBookmark,
   onHelp,
-  className = "",
+  className = '',
   validationError,
   isDisabled = false,
   children,
@@ -137,11 +133,16 @@ export default function QuestionCard({
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showHint, setShowHint] = useState(false);
-  const isMobile = useMediaQuery("(max-width: 640px)");
+  const isMobile = useMediaQuery('(max-width: 640px)');
 
   const cardVariants = {
     initial: { opacity: 0, y: 30, scale: 0.98 },
-    animate: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.4, ease: "easeOut" } },
+    animate: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: { duration: 0.4, ease: 'easeOut' },
+    },
     exit: { opacity: 0, y: -20, transition: { duration: 0.2 } },
   };
 
@@ -162,9 +163,9 @@ export default function QuestionCard({
     >
       <Card
         className={cn(
-          "transition-all duration-300 shadow-lg rounded-xl overflow-hidden border",
-          "bg-white",
-          isDisabled ? "opacity-75 cursor-not-allowed" : "hover:shadow-xl",
+          'transition-all duration-300 shadow-lg rounded-xl overflow-hidden border',
+          'bg-white',
+          isDisabled ? 'opacity-75 cursor-not-allowed' : 'hover:shadow-xl',
           `border-t-4 ${themeClasses.border}`,
           className
         )}
@@ -175,7 +176,15 @@ export default function QuestionCard({
               <TooltipProvider delayDuration={200}>
                 <Tooltip>
                   <TooltipTrigger>
-                    <Badge variant="outline" className={cn("text-xs font-medium border-2", themeClasses.border, themeClasses.bgSoft, themeClasses.text)}>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        'text-xs font-medium border-2',
+                        themeClasses.border,
+                        themeClasses.bgSoft,
+                        themeClasses.text
+                      )}
+                    >
                       <Star className="h-3.5 w-3.5 mr-1.5" />
                       {depthLabels[depth]}
                     </Badge>
@@ -198,44 +207,54 @@ export default function QuestionCard({
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => setIsBookmarked(!isBookmarked)} 
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setIsBookmarked(!isBookmarked)}
                         className={cn(
-                          "h-8 w-8 rounded-full", 
-                          isBookmarked ? "text-amber-500 bg-amber-100" : "text-slate-400 hover:bg-slate-100"
-                        )} 
-                        aria-label={isBookmarked ? "הסר סימניה" : "הוסף סימניה"}
+                          'h-8 w-8 rounded-full',
+                          isBookmarked
+                            ? 'text-amber-500 bg-amber-100'
+                            : 'text-slate-400 hover:bg-slate-100'
+                        )}
+                        aria-label={isBookmarked ? 'הסר סימניה' : 'הוסף סימניה'}
                       >
                         <Bookmark className="w-4 h-4" />
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent><p>{isBookmarked ? "הסר סימניה" : "שמור לעיון חוזר"}</p></TooltipContent>
+                    <TooltipContent>
+                      <p>{isBookmarked ? 'הסר סימניה' : 'שמור לעיון חוזר'}</p>
+                    </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               )}
-               {question.metadata?.helpText && (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => setShowHelp(!showHelp)} 
-                          className={cn(
-                            "h-8 w-8 rounded-full", 
-                            showHelp ? `${themeClasses.bg} ${themeClasses.text}` : "text-slate-400 hover:bg-slate-100"
-                          )} 
-                          aria-label={showHelp ? "הסתר עזרה" : "הצג עזרה"}
-                        >
-                          <HelpCircle className="w-4 h-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent><p>{showHelp ? "הסתר עזרה" : "למה אנחנו שואלים את זה?"}</p></TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-               )}
+              {question.metadata?.helpText && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setShowHelp(!showHelp)}
+                        className={cn(
+                          'h-8 w-8 rounded-full',
+                          showHelp
+                            ? `${themeClasses.bg} ${themeClasses.text}`
+                            : 'text-slate-400 hover:bg-slate-100'
+                        )}
+                        aria-label={showHelp ? 'הסתר עזרה' : 'הצג עזרה'}
+                      >
+                        <HelpCircle className="w-4 h-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>
+                        {showHelp ? 'הסתר עזרה' : 'למה אנחנו שואלים את זה?'}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
             </div>
           </div>
 
@@ -255,22 +274,38 @@ export default function QuestionCard({
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
               >
-                <Alert className={cn(themeClasses.bgSoft, "border-2", themeClasses.border.replace('border-', 'border-').replace('-500', '-200'))}>
-                  <Lightbulb className={cn("h-4 w-4", themeClasses.icon)} />
-                  <AlertDescription className={cn(themeClasses.text, 'font-medium')}>
+                <Alert
+                  className={cn(
+                    themeClasses.bgSoft,
+                    'border-2',
+                    themeClasses.border
+                      .replace('border-', 'border-')
+                      .replace('-500', '-200')
+                  )}
+                >
+                  <Lightbulb className={cn('h-4 w-4', themeClasses.icon)} />
+                  <AlertDescription
+                    className={cn(themeClasses.text, 'font-medium')}
+                  >
                     {question.metadata.helpText}
                   </AlertDescription>
                 </Alert>
               </motion.div>
             )}
           </AnimatePresence>
-          
+
           <AnimatePresence>
             {validationError && (
-              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+              >
                 <Alert variant="destructive" className="py-2">
                   <AlertCircle className="h-4 w-4 mr-2" />
-                  <AlertDescription className="text-sm">{validationError}</AlertDescription>
+                  <AlertDescription className="text-sm">
+                    {validationError}
+                  </AlertDescription>
                 </Alert>
               </motion.div>
             )}
@@ -319,57 +354,58 @@ export default function QuestionCard({
                         {isVisible ? '👁️ גלוי לכולם' : '🔒 מוסתר מהציבור'}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {isVisible 
-                          ? 'התשובה תוצג בפרופיל הציבורי שלך' 
-                          : 'התשובה תהיה גלויה רק לשדכנים מאושרים'
-                        }
+                        {isVisible
+                          ? 'התשובה תוצג בפרופיל הציבורי שלך'
+                          : 'התשובה תהיה גלויה רק לשדכנים מאושרים'}
                       </p>
                     </div>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </div>
-            
+
             {/* תווית טקסט ברורה */}
             <motion.div
               initial={false}
               animate={{
                 scale: isVisible ? 1.02 : 1,
-                color: isVisible ? '#15803d' : '#64748b'
+                color: isVisible ? '#15803d' : '#64748b',
               }}
               transition={{ duration: 0.2 }}
               className="flex items-center gap-1"
             >
-              <Label 
+              <Label
                 className={cn(
-                  "text-sm font-medium cursor-pointer transition-all duration-200",
+                  'text-sm font-medium cursor-pointer transition-all duration-200',
                   isVisible ? 'text-green-700' : 'text-slate-500'
                 )}
                 onClick={() => onVisibilityChange(!isVisible)}
               >
                 {isVisible ? 'גלוי בפרופיל' : 'מוסתר מהפרופיל'}
               </Label>
-              
+
               {/* אינדיקטור ויזואלי נוסף */}
-              <div className={cn(
-                "w-2 h-2 rounded-full transition-colors duration-200",
-                isVisible ? 'bg-green-500' : 'bg-slate-400'
-              )} />
+              <div
+                className={cn(
+                  'w-2 h-2 rounded-full transition-colors duration-200',
+                  isVisible ? 'bg-green-500' : 'bg-slate-400'
+                )}
+              />
             </motion.div>
           </div>
 
           {onSkip && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={onSkip} 
-              disabled={isRequired || isDisabled} 
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onSkip}
+              disabled={isRequired || isDisabled}
               className={cn(
-                "text-slate-500 hover:text-slate-800", 
-                (isRequired || isDisabled) && "opacity-50 cursor-not-allowed"
+                'text-slate-500 hover:text-slate-800',
+                (isRequired || isDisabled) && 'opacity-50 cursor-not-allowed'
               )}
             >
-              {isRequired ? "שאלת חובה" : "דלג על שאלה זו"}
+              {isRequired ? 'שאלת חובה' : 'דלג על שאלה זו'}
               {!isRequired && <SkipForward className="w-4 h-4 mr-2" />}
             </Button>
           )}

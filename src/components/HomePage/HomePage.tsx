@@ -24,7 +24,7 @@ import StickyNav, { NavLink } from './components/StickyNav';
 const navLinks: NavLink[] = [
   { id: 'how-it-works', label: 'המסע שלכם' },
   { id: 'suggestion-demo', label: 'כך נראית הצעה' },
-  { id: 'our-method', label: 'הגישה שלנו' },
+  { id: 'success-stories', label: 'סיפורי הצלחה' },
   { id: 'our-team', label: 'הצוות שלנו' },
   { id: 'faq', label: 'שאלות נפוצות' },
 ];

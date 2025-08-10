@@ -200,7 +200,8 @@ export default function WorldComponent({
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
       const firstUnansweredRequired = allQuestions.find(
-        (q) => q.isRequired && validateAnswer(q, findAnswer(q.id)?.value) !== null
+        (q) =>
+          q.isRequired && validateAnswer(q, findAnswer(q.id)?.value) !== null
       );
       if (firstUnansweredRequired) {
         const errorIndex = allQuestions.findIndex(
@@ -320,10 +321,19 @@ export default function WorldComponent({
           {!isDesktop && (
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-1">
+                {/* START: שינוי עיצובי וכיתוב של הכפתור */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={cn(
+                    'gap-2 font-medium transition-all',
+                    `border-${themeColor}-200 text-${themeColor}-700 bg-white hover:bg-${themeColor}-50`
+                  )}
+                >
                   <List className="h-4 w-4" />
-                  <span className="hidden sm:inline">רשימת שאלות</span>
+                  <span>רשימת שאלות</span>
                 </Button>
+                {/* END: שינוי עיצובי וכיתוב של הכפתור */}
               </SheetTrigger>
               <SheetContent
                 side={isRTL ? 'left' : 'right'}
@@ -340,7 +350,12 @@ export default function WorldComponent({
                     לחץ על שאלה כדי לעבור אליה ישירות.
                     <div className="mt-3 pt-3 border-t space-y-1">
                       <div className="flex items-center text-xs text-slate-600">
-                        <CheckCircle className={cn("h-3 w-3 me-1.5", `text-${themeColor}-600`)} />
+                        <CheckCircle
+                          className={cn(
+                            'h-3 w-3 me-1.5',
+                            `text-${themeColor}-600`
+                          )}
+                        />
                         <span>הושלם</span>
                       </div>
                       <div className="flex items-center text-xs text-slate-600">
@@ -370,7 +385,11 @@ export default function WorldComponent({
           )}
         </div>
       </div>
-      <Progress value={progress} className="h-2" indicatorClassName={`bg-${themeColor}-500`} />
+      <Progress
+        value={progress}
+        className="h-2"
+        indicatorClassName={`bg-${themeColor}-500`}
+      />
     </div>
   );
 
@@ -390,7 +409,9 @@ export default function WorldComponent({
         language={language}
         themeColor={themeColor}
         isVisible={currentAnswerObject?.isVisible ?? true}
-        onVisibilityChange={(isVisible) => onVisibilityChange(currentQuestion.id, isVisible)}
+        onVisibilityChange={(isVisible) =>
+          onVisibilityChange(currentQuestion.id, isVisible)
+        }
       >
         <AnswerInput
           question={currentQuestion}
@@ -405,6 +426,7 @@ export default function WorldComponent({
           onClear={handleClearAnswer}
           language={language}
           showValidation={!!validationErrors[currentQuestion.id]}
+          validationError={validationErrors[currentQuestion.id]}
         />
       </QuestionCard>
     </motion.div>
@@ -417,17 +439,28 @@ export default function WorldComponent({
         onClick={handlePrevious}
         className="flex items-center gap-2"
       >
-        {isRTL ? <ArrowRight className="h-4 w-4" /> : <ArrowLeft className="h-4 w-4" />}
+        {isRTL ? (
+          <ArrowRight className="h-4 w-4" />
+        ) : (
+          <ArrowLeft className="h-4 w-4" />
+        )}
         <span>{currentQuestionIndex === 0 ? 'חזרה למפה' : 'שאלה קודמת'}</span>
       </Button>
       {currentQuestionIndex < allQuestions.length - 1 ? (
         <Button
           variant="default"
           onClick={handleNext}
-          className={cn("flex items-center gap-2", `bg-${themeColor}-600 hover:bg-${themeColor}-700 text-white`)}
+          className={cn(
+            'flex items-center gap-2',
+            `bg-${themeColor}-600 hover:bg-${themeColor}-700 text-white`
+          )}
         >
           <span>שאלה הבאה</span>
-          {isRTL ? <ArrowLeft className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
+          {isRTL ? (
+            <ArrowLeft className="h-4 w-4" />
+          ) : (
+            <ArrowRight className="h-4 w-4" />
+          )}
         </Button>
       ) : (
         <Button
@@ -466,9 +499,21 @@ export default function WorldComponent({
             {isListVisible && (
               <motion.div
                 className="col-span-12 lg:col-span-5 xl:col-span-4"
-                initial={{ opacity: 0, width: 0, [isRTL ? 'marginRight' : 'marginLeft']: '-2rem' }}
-                animate={{ opacity: 1, width: 'auto', [isRTL ? 'marginRight' : 'marginLeft']: '0' }}
-                exit={{ opacity: 0, width: 0, [isRTL ? 'marginRight' : 'marginLeft']: '-2rem' }}
+                initial={{
+                  opacity: 0,
+                  width: 0,
+                  [isRTL ? 'marginRight' : 'marginLeft']: '-2rem',
+                }}
+                animate={{
+                  opacity: 1,
+                  width: 'auto',
+                  [isRTL ? 'marginRight' : 'marginLeft']: '0',
+                }}
+                exit={{
+                  opacity: 0,
+                  width: 0,
+                  [isRTL ? 'marginRight' : 'marginLeft']: '-2rem',
+                }}
                 transition={{ duration: 0.3, ease: 'easeInOut' }}
                 layout
               >
@@ -480,7 +525,12 @@ export default function WorldComponent({
                     </CardTitle>
                     <div className="pt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
                       <div className="flex items-center">
-                        <CheckCircle className={cn("h-3 w-3 me-1.5", `text-${themeColor}-600`)} />
+                        <CheckCircle
+                          className={cn(
+                            'h-3 w-3 me-1.5',
+                            `text-${themeColor}-600`
+                          )}
+                        />
                         <span>הושלם</span>
                       </div>
                       <div className="flex items-center">
@@ -514,14 +564,14 @@ export default function WorldComponent({
   } else {
     // Mobile View
     return (
-        <div
-          className="max-w-2xl mx-auto p-2 sm:p-4 space-y-6 pb-24"
-          dir={isRTL ? 'rtl' : 'ltr'}
-        >
-          {renderHeader()}
-          {renderQuestionCard()}
-          {renderNavigationButtons()}
-        </div>
+      <div
+        className="max-w-2xl mx-auto p-2 sm:p-4 space-y-6 pb-24"
+        dir={isRTL ? 'rtl' : 'ltr'}
+      >
+        {renderHeader()}
+        {renderQuestionCard()}
+        {renderNavigationButtons()}
+      </div>
     );
   }
 }
