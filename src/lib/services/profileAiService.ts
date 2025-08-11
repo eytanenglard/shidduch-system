@@ -310,6 +310,17 @@ export async function generateNarrativeProfile(userId: string): Promise<string |
   if (profile.about) {
     narrativeParts.push(`## קצת עליי (מהפרופיל)\n"${profile.about}"`);
   }
+
+  // --- START: הוספת קטע מידע רפואי ---
+  if (profile.hasMedicalInfo) {
+    narrativeParts.push(
+      `## מידע רפואי`,
+      `- **פירוט המידע:** ${formatDisplayValue(profile.medicalInfoDetails)}`,
+      `- **תזמון חשיפה:** ${formatDisplayValue(profile.medicalInfoDisclosureTiming)}`,
+      `- **המידע גלוי בפרופיל הציבורי:** ${profile.isMedicalInfoVisible ? 'כן' : 'לא'}`
+    );
+  }
+  // --- END: הוספת קטע מידע רפואי ---
   
   narrativeParts.push(
     `## תכונות אופי ותחביבים`,

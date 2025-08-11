@@ -3,18 +3,16 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { Gender, UserSource, UserStatus, UserRole } from '@prisma/client';
+import { Gender, UserSource, UserStatus, UserRole, Prisma } from '@prisma/client';
 import { v2 as cloudinary } from "cloudinary";
 import { updateUserAiProfile } from '@/lib/services/profileAiService';
 import { createId } from '@paralleldrive/cuid2';
 
-// Define the type for Cloudinary upload result for clarity
 type CloudinaryUploadResult = {
   secure_url: string;
   public_id: string;
 };
 
-// Configure Cloudinary
 if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
   console.error("CRITICAL: Missing required Cloudinary environment variables.");
   throw new Error("Missing required Cloudinary environment variables.");
@@ -26,7 +24,6 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Helper function to upload image to Cloudinary
 async function uploadImageToCloudinary(file: File, userId: string): Promise<{ url: string; publicId: string }> {
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
@@ -62,6 +59,16 @@ export async function POST(request: Request) {
     const manualEntryText = formData.get('manualEntryText') as string;
     const images = formData.getAll('images') as File[];
     const birthDateIsApproximate = formData.get('birthDateIsApproximate') === 'true';
+    
+    // --- START: הוספת שדות מקצוע הורים ---
+    const fatherOccupation = formData.get('fatherOccupation') as string | null;
+    const motherOccupation = formData.get('motherOccupation') as string | null;
+    // --- END: הוספת שדות מקצוע הורים ---
+
+    const hasMedicalInfo = formData.get('hasMedicalInfo');
+    const medicalInfoDetails = formData.get('medicalInfoDetails') as string | null;
+    const medicalInfoDisclosureTiming = formData.get('medicalInfoDisclosureTiming') as string | null;
+    const isMedicalInfoVisible = formData.get('isMedicalInfoVisible');
 
     if (!firstName || !lastName || !gender || !birthDateStr || !manualEntryText) {
       return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
@@ -83,6 +90,35 @@ export async function POST(request: Request) {
         email = `manual_${createId()}@shidduch.placeholder.com`;
     }
 
+    const profileCreateData: Prisma.ProfileCreateWithoutUserInput = {
+      gender,
+      birthDate,
+      birthDateIsApproximate,
+      manualEntryText,
+      availabilityStatus: 'AVAILABLE',
+    };
+
+    // --- START: הוספת השדות החדשים לאובייקט היצירה ---
+    if (fatherOccupation) {
+        profileCreateData.fatherOccupation = fatherOccupation;
+    }
+    if (motherOccupation) {
+        profileCreateData.motherOccupation = motherOccupation;
+    }
+    if (hasMedicalInfo !== null) {
+      profileCreateData.hasMedicalInfo = hasMedicalInfo === 'true';
+    }
+    if (medicalInfoDetails) {
+      profileCreateData.medicalInfoDetails = medicalInfoDetails;
+    }
+    if (medicalInfoDisclosureTiming) {
+      profileCreateData.medicalInfoDisclosureTiming = medicalInfoDisclosureTiming;
+    }
+    if (isMedicalInfoVisible !== null) {
+      profileCreateData.isMedicalInfoVisible = isMedicalInfoVisible === 'true';
+    }
+    // --- END: הוספת השדות החדשים לאובייקט היצירה ---
+
     const newManualCandidate = await prisma.user.create({
       data: {
         firstName,
@@ -90,19 +126,13 @@ export async function POST(request: Request) {
         email,
         password: null,
         role: UserRole.CANDIDATE,
-   status: UserStatus.PENDING_EMAIL_VERIFICATION, // הסטטוס הנכון. המשתמש צריך לפעול על המייל כדי להמשיך
-    isVerified: false,                             // המייל עדיין לא אומת
-    isProfileComplete: false,                      // הפרופיל בהחלט לא שלם
+        status: UserStatus.PENDING_EMAIL_VERIFICATION,
+        isVerified: false,
+        isProfileComplete: false,
         source: UserSource.MANUAL_ENTRY,
         addedByMatchmakerId: matchmakerId,
         profile: {
-          create: {
-            gender,
-            birthDate,
-            birthDateIsApproximate,
-            manualEntryText,
-            availabilityStatus: 'AVAILABLE',
-          },
+          create: profileCreateData,
         },
       },
       include: {
@@ -110,8 +140,6 @@ export async function POST(request: Request) {
       },
     });
 
-    // --- START OF FIX ---
-    // 1. Define the type for the image data objects that will be created.
     type UserImageCreateInput = {
       userId: string;
       url: string;
@@ -119,17 +147,14 @@ export async function POST(request: Request) {
       isMain: boolean;
     };
 
-    // 2. Explicitly type the array upon initialization to avoid the 'never[]' type inference.
     const uploadedImageData: UserImageCreateInput[] = [];
-    // --- END OF FIX ---
 
     if (images && images.length > 0) {
-      // (Optional but good practice) File validation loop
       for (const file of images) {
         if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
             return NextResponse.json({ success: false, error: `Invalid file type: ${file.name}. Only JPG, PNG, WEBP allowed.` }, { status: 400 });
         }
-        if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        if (file.size > 5 * 1024 * 1024) {
             return NextResponse.json({ success: false, error: `File too large: ${file.name}. Max 5MB.` }, { status: 400 });
         }
       }
@@ -137,7 +162,6 @@ export async function POST(request: Request) {
       for (let i = 0; i < images.length; i++) {
         try {
           const { url, publicId } = await uploadImageToCloudinary(images[i], newManualCandidate.id);
-          // 3. Push an object that matches the defined type.
           uploadedImageData.push({
             userId: newManualCandidate.id,
             url: url,
@@ -154,7 +178,6 @@ export async function POST(request: Request) {
       }
 
       if (uploadedImageData.length > 0) {
-        // 4. The `createMany` call is now simpler and type-safe.
         await prisma.userImage.createMany({
           data: uploadedImageData,
         });

@@ -4,9 +4,10 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { Gender, HeadCoveringType, KippahType, ServiceType, ReligiousJourney  } from "@prisma/client"; // Import enums if needed for casting
+import { Gender, HeadCoveringType, KippahType, ServiceType, ReligiousJourney  } from "@prisma/client";
 import type { UserProfile } from "@/types/next-auth";
 export const dynamic = 'force-dynamic';
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
@@ -40,7 +41,7 @@ export async function GET(req: Request) {
         firstName: true,
         lastName: true,
         email: true,
-        isProfileComplete: true, // <--- FIX 1: Select the isProfileComplete field from the User model.
+        isProfileComplete: true,
         profile: {
           select: {
             id: true,
@@ -83,8 +84,7 @@ export async function GET(req: Request) {
             preferredLocations: true,
             preferredEducation: true,
             preferredOccupations: true,
-                        preferredReligiousJourneys: true,
-
+            preferredReligiousJourneys: true,
             contactPreference: true,
             isProfileVisible: true,
             preferredMatchmakerGender: true,
@@ -106,6 +106,12 @@ export async function GET(req: Request) {
             lastActive: true,
             verifiedBy: true,
             hasViewedProfilePreview: true,
+            // --- START: הוספת שדות רפואיים ---
+            hasMedicalInfo: true,
+            medicalInfoDetails: true,
+            medicalInfoDisclosureTiming: true,
+            isMedicalInfoVisible: true,
+            // --- END: הוספת שדות רפואיים ---
           }
         },
         images: {
@@ -160,7 +166,7 @@ export async function GET(req: Request) {
       aliyaYear: dbProfile.aliyaYear ?? null,
       maritalStatus: dbProfile.maritalStatus || undefined,
       hasChildrenFromPrevious: dbProfile.hasChildrenFromPrevious ?? undefined,
-       fatherOccupation: dbProfile.fatherOccupation || "",
+      fatherOccupation: dbProfile.fatherOccupation || "",
       motherOccupation: dbProfile.motherOccupation || "",
       parentStatus: dbProfile.parentStatus || undefined,
       siblings: dbProfile.siblings ?? null,
@@ -171,7 +177,6 @@ export async function GET(req: Request) {
       serviceType: dbProfile.serviceType as ServiceType | null || undefined,
       serviceDetails: dbProfile.serviceDetails || "",
       religiousLevel: dbProfile.religiousLevel || undefined,
-      
       religiousJourney: dbProfile.religiousJourney || undefined,
       shomerNegiah: dbProfile.shomerNegiah ?? undefined,
       headCovering: dbProfile.headCovering as HeadCoveringType | null || undefined,
@@ -190,7 +195,7 @@ export async function GET(req: Request) {
       preferredOccupations: dbProfile.preferredOccupations || [],
       contactPreference: dbProfile.contactPreference || undefined,
       isProfileVisible: dbProfile.isProfileVisible,
-      isProfileComplete: userWithProfile.isProfileComplete, // <--- FIX 2: Add the property to the response object.
+      isProfileComplete: userWithProfile.isProfileComplete,
       preferredMatchmakerGender: dbProfile.preferredMatchmakerGender as Gender | null || undefined,
       availabilityStatus: dbProfile.availabilityStatus,
       availabilityNote: dbProfile.availabilityNote || "",
@@ -205,13 +210,18 @@ export async function GET(req: Request) {
       preferredCharacterTraits: dbProfile.preferredCharacterTraits || [],
       preferredHobbies: dbProfile.preferredHobbies || [],
       preferredAliyaStatus: dbProfile.preferredAliyaStatus || undefined,
-            preferredReligiousJourneys: dbProfile.preferredReligiousJourneys ?? [],
-
+      preferredReligiousJourneys: dbProfile.preferredReligiousJourneys ?? [],
       verifiedBy: dbProfile.verifiedBy || undefined,
       createdAt: new Date(dbProfile.createdAt),
       updatedAt: new Date(dbProfile.updatedAt),
       lastActive: dbProfile.lastActive ? new Date(dbProfile.lastActive) : null,
       hasViewedProfilePreview: dbProfile.hasViewedProfilePreview,
+      // --- START: הוספת שדות רפואיים לתגובה ---
+      hasMedicalInfo: dbProfile.hasMedicalInfo ?? undefined,
+      medicalInfoDetails: dbProfile.medicalInfoDetails ?? undefined,
+      medicalInfoDisclosureTiming: dbProfile.medicalInfoDisclosureTiming ?? undefined,
+      isMedicalInfoVisible: dbProfile.isMedicalInfoVisible,
+      // --- END: הוספת שדות רפואיים לתגובה ---
       user: {
         id: userWithProfile.id,
         firstName: userWithProfile.firstName,

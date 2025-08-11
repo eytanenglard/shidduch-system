@@ -160,7 +160,11 @@ model Profile {
   motherOccupation        String? // מקצוע האם
   siblings                Int?
   position                Int?
-
+ hasMedicalInfo              Boolean?
+  medicalInfoDetails          String?
+  medicalInfoDisclosureTiming String? // לדוגמה: 'FROM_THE_START', 'WHEN_SERIOUS'
+  // שדה זה קובע האם המידע הרפואי יוצג בכרטיס הפרופיל הנשלח לצד השני
+  isMedicalInfoVisible        Boolean  @default(false)
   // --- Existing Preference Fields ---
   preferredAgeMin                  Int?
   preferredAgeMax                  Int?

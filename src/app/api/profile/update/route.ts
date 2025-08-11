@@ -144,8 +144,13 @@ export async function PUT(req: NextRequest) {
       preferredCharacterTraits, // Preference for partner's traits
       preferredHobbies,         // Preference for partner's hobbies (ensure distinct from profileHobbies if needed)
       preferredAliyaStatus, // If you have this field for preferences
-          hasViewedProfilePreview, // <--- תיקון 1: קליטת הערך החדש
-
+      hasViewedProfilePreview,
+      // --- START: הוספת שדות רפואיים ---
+      hasMedicalInfo,
+      medicalInfoDetails,
+      medicalInfoDisclosureTiming,
+      isMedicalInfoVisible,
+      // --- END: הוספת שדות רפואיים ---
     } = body as Partial<UserProfile>;
 
     const dataToUpdate: Prisma.ProfileUpdateInput = {};
@@ -236,9 +241,8 @@ export async function PUT(req: NextRequest) {
     if (preferredKippahTypes !== undefined) dataToUpdate.preferredKippahTypes = preferredKippahTypes || [];
     if (preferredShomerNegiah !== undefined) dataToUpdate.preferredShomerNegiah = emptyStringToNull(preferredShomerNegiah); // Assuming it's a string like "yes", "no" that needs to be nullable
     
-    // This is the CRITICAL FIX: Use the correct field name that exists in Prisma schema
     if (preferredHasChildrenFromPrevious !== undefined) {
-      dataToUpdate.preferredHasChildrenFromPrevious = preferredHasChildrenFromPrevious; // This should now work if field added to schema
+      dataToUpdate.preferredHasChildrenFromPrevious = preferredHasChildrenFromPrevious;
     }
 
     if (preferredCharacterTraits !== undefined) dataToUpdate.preferredCharacterTraits = preferredCharacterTraits || []; // Preference for partner
@@ -248,7 +252,15 @@ export async function PUT(req: NextRequest) {
 
     // --- Profile Management ---
     if (isProfileVisible !== undefined) dataToUpdate.isProfileVisible = isProfileVisible;
-   if (hasViewedProfilePreview !== undefined) dataToUpdate.hasViewedProfilePreview = hasViewedProfilePreview;
+    if (hasViewedProfilePreview !== undefined) dataToUpdate.hasViewedProfilePreview = hasViewedProfilePreview;
+   
+    // --- START: הוספת לוגיקת עדכון לשדות רפואיים ---
+    if (hasMedicalInfo !== undefined) dataToUpdate.hasMedicalInfo = hasMedicalInfo;
+    if (medicalInfoDetails !== undefined) dataToUpdate.medicalInfoDetails = emptyStringToNull(medicalInfoDetails);
+    if (medicalInfoDisclosureTiming !== undefined) dataToUpdate.medicalInfoDisclosureTiming = emptyStringToNull(medicalInfoDisclosureTiming);
+    if (isMedicalInfoVisible !== undefined) dataToUpdate.isMedicalInfoVisible = isMedicalInfoVisible;
+    // --- END: הוספת לוגיקת עדכון לשדות רפואיים ---
+
     if (availabilityStatus !== undefined) {
       const statusValue = emptyStringToNull(availabilityStatus);
       dataToUpdate.availabilityStatus = (statusValue === null ? "AVAILABLE" : statusValue) as AvailabilityStatus;
@@ -271,12 +283,9 @@ export async function PUT(req: NextRequest) {
           data: dataToUpdate,
         });
         
-        // --- START OF NEW CODE ---
-        // 2. הפעלת עדכון פרופיל ה-AI ברקע לאחר עדכון מוצלח
         updateUserAiProfile(userId).catch(err => {
             console.error(`[AI Profile Trigger - Profile Update] Failed to update AI profile in the background for user ${userId}:`, err);
         });
-        // --- END OF NEW CODE ---
       } catch (dbError) {
         console.error('Prisma profile update error:', dbError);
         if (dbError instanceof Prisma.PrismaClientKnownRequestError && dbError.code === 'P2025') {
@@ -308,7 +317,7 @@ export async function PUT(req: NextRequest) {
     const responseUserProfile: UserProfile = {
       id: dbProfile.id,
       userId: dbProfile.userId,
-      gender: dbProfile.gender, // Assuming Prisma.Profile.gender is Gender, not Gender | null
+      gender: dbProfile.gender, 
       birthDate: new Date(dbProfile.birthDate),
       nativeLanguage: dbProfile.nativeLanguage || undefined,
       additionalLanguages: dbProfile.additionalLanguages || [],
@@ -320,15 +329,22 @@ export async function PUT(req: NextRequest) {
       city: dbProfile.city || "",
       origin: dbProfile.origin || "",
       religiousLevel: dbProfile.religiousLevel || undefined,
-       religiousJourney: dbProfile.religiousJourney || undefined,
+      religiousJourney: dbProfile.religiousJourney || undefined,
       preferredReligiousJourneys: dbProfile.preferredReligiousJourneys ?? [],
       about: dbProfile.about || "",
       parentStatus: dbProfile.parentStatus || undefined,
+      fatherOccupation: dbProfile.fatherOccupation || "",
+      motherOccupation: dbProfile.motherOccupation || "",
       siblings: dbProfile.siblings ?? null,
       position: dbProfile.position ?? null,
       isProfileVisible: dbProfile.isProfileVisible,
-            isProfileComplete: refreshedUserWithProfile.isProfileComplete,
-
+      isProfileComplete: refreshedUserWithProfile.isProfileComplete,
+      // --- START: הוספת שדות רפואיים לתגובה ---
+      hasMedicalInfo: dbProfile.hasMedicalInfo ?? undefined,
+      medicalInfoDetails: dbProfile.medicalInfoDetails ?? undefined,
+      medicalInfoDisclosureTiming: dbProfile.medicalInfoDisclosureTiming ?? undefined,
+      isMedicalInfoVisible: dbProfile.isMedicalInfoVisible,
+      // --- END: הוספת שדות רפואיים לתגובה ---
       preferredMatchmakerGender: dbProfile.preferredMatchmakerGender || undefined,
       availabilityStatus: dbProfile.availabilityStatus,
       availabilityNote: dbProfile.availabilityNote || "",
@@ -339,9 +355,9 @@ export async function PUT(req: NextRequest) {
       serviceDetails: dbProfile.serviceDetails || "",
       headCovering: dbProfile.headCovering || undefined,
       kippahType: dbProfile.kippahType || undefined,
-      hasChildrenFromPrevious: dbProfile.hasChildrenFromPrevious ?? undefined, // User's own
-      profileCharacterTraits: dbProfile.profileCharacterTraits || [], // User's own
-      profileHobbies: dbProfile.profileHobbies || [],                 // User's own
+      hasChildrenFromPrevious: dbProfile.hasChildrenFromPrevious ?? undefined, 
+      profileCharacterTraits: dbProfile.profileCharacterTraits || [], 
+      profileHobbies: dbProfile.profileHobbies || [],                 
       aliyaCountry: dbProfile.aliyaCountry || "",
       aliyaYear: dbProfile.aliyaYear ?? null,
       preferredAgeMin: dbProfile.preferredAgeMin ?? null,
@@ -355,15 +371,15 @@ export async function PUT(req: NextRequest) {
       contactPreference: dbProfile.contactPreference || undefined,
       preferredMaritalStatuses: dbProfile.preferredMaritalStatuses || [],
       preferredOrigins: dbProfile.preferredOrigins || [],
-      preferredServiceTypes: (dbProfile.preferredServiceTypes as ServiceType[]) || [], // Cast if Prisma returns string[] but UserProfile expects ServiceType[]
+      preferredServiceTypes: (dbProfile.preferredServiceTypes as ServiceType[]) || [], 
       preferredHeadCoverings: (dbProfile.preferredHeadCoverings as HeadCoveringType[]) || [],
       preferredKippahTypes: (dbProfile.preferredKippahTypes as KippahType[]) || [],
-      preferredShomerNegiah: dbProfile.preferredShomerNegiah || undefined, // Assuming it's string in Prisma (like "yes", "no")
-      preferredHasChildrenFromPrevious: dbProfile.preferredHasChildrenFromPrevious ?? undefined, // Preference, should exist now
-      preferredCharacterTraits: dbProfile.preferredCharacterTraits || [], // Partner preference
-      preferredHobbies: dbProfile.preferredHobbies || [],                 // Partner preference
+      preferredShomerNegiah: dbProfile.preferredShomerNegiah || undefined, 
+      preferredHasChildrenFromPrevious: dbProfile.preferredHasChildrenFromPrevious ?? undefined, 
+      preferredCharacterTraits: dbProfile.preferredCharacterTraits || [], 
+      preferredHobbies: dbProfile.preferredHobbies || [],                 
       preferredAliyaStatus: dbProfile.preferredAliyaStatus || undefined,
-            hasViewedProfilePreview: dbProfile.hasViewedProfilePreview, // <--- תיקון 3: הוספת השדה לאובייקט התגובה
+      hasViewedProfilePreview: dbProfile.hasViewedProfilePreview, 
 
       createdAt: new Date(dbProfile.createdAt),
       updatedAt: new Date(dbProfile.updatedAt),

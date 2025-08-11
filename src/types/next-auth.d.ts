@@ -64,7 +64,12 @@ export interface UserProfile extends Omit<PrismaProfile, 'gender' | 'birthDate' 
   additionalLanguages: string[];
   profileCharacterTraits: string[];
   profileHobbies: string[];
+ hasMedicalInfo?: boolean | null;
+  medicalInfoDetails?: string | null;
+  medicalInfoDisclosureTiming?: string | null; // הערך כאן צריך להיות תואם ל-enum אם תגדיר
 
+  // --- הוספה חדשה ---
+  isMedicalInfoVisible: boolean; // זה לא אופציונלי כי יש לו ברירת מחדל בדאטהבייס
   // --- Existing Preference Fields ---
   preferredAgeMin?: number | null;
   preferredAgeMax?: number | null;
