@@ -1,8 +1,9 @@
 // src/components/HomePage/components/demo-data.ts
 
 // ============================================================================
-// קובץ זה עודכן כדי להוסיף תשובות שאלון עשירות יותר עבור נועה ודניאל.
-// הוספתי תשובות מכל חמשת העולמות כדי ליצור פרופילים מלאים וקוהרנטיים יותר.
+// קובץ זה נבנה מחדש כדי לשקף את השאלות המעודכנות והמעמיקות מהשאלון.
+// התשובות של נועה ודניאל הורחבו בכל חמשת העולמות כדי ליצור פרופילים
+// עשירים, אותנטיים וקוהרנטיים, המדגימים את יכולות האיפיון של המערכת.
 // ============================================================================
 
 import type {
@@ -13,7 +14,7 @@ import type {
   QuestionnaireResponse as QuestionnaireResponseType,
   UserProfile,
   UserImage,
-  FormattedAnswer, // ייבוא הטיפוס הנכון
+  FormattedAnswer,
 } from '@/types/next-auth';
 import type { AiSuggestionAnalysisResult } from '@/lib/services/aiService';
 import {
@@ -25,111 +26,107 @@ import {
   HeadCoveringType,
 } from '@prisma/client';
 
-// --- תשובות שאלון לדמו #1: נועה (הבחורה) ---
+// ============================================================================
+// --- תשובות שאלון מעודכנות: נועה (הבחורה) ---
+// ============================================================================
 const noaQuestionnaireResponse: QuestionnaireResponseType = {
-  id: 'qr-demo-noa',
+  id: 'qr-demo-noa-updated',
   userId: 'demo-profile-noa',
-  valuesAnswers: {
-    values_core_elaboration:
-      'הערך הכי חשוב לי הוא משפחה, וזה מתבטא בכך שאני משקיעה זמן רב בקשר עם ההורים והאחים שלי, ורואה את הבית העתידי שלי כמקום חם ומכיל שמהווה מרכז לעולם שלנו. ערך נוסף הוא יצירתיות וביטוי עצמי, שבא לידי ביטוי בקריירה שלי ובדרך שאני מתבוננת על העולם.',
-    values_attitude_towards_money: 'איזון בין נוחות חומרית לערכים אחרים',
-    values_giving_tzedaka_importance: 8,
-    values_career_family_balance_approach: 'relationship_first',
-    values_life_priorities_allocation: {
-      'זוגיות וחיפוש זוגיות': 40,
-      'משפחה (הורים, אחים, ילדים אם יש)': 25,
-      'קריירה ופרנסה': 20,
-      'פנאי, תחביבים ובריאות אישית': 15,
-    },
-    values_future_priorities_partner: {
-      'זוגיות (כולל ילדים עתידיים)': 50,
-      'משפחה (הורים, אחים)': 15,
-      'קריירה ופרנסה (של שניכם)': 20,
-      'פנאי, תחביבים ובריאות אישית (משותף ואישי)': 15,
-    },
-    values_how_you_give: [
-      'עזרה אישית לחברים, משפחה או שכנים',
-      'מעשי חסד קטנים ביומיום',
-    ],
-  },
   personalityAnswers: {
-    personality_self_portrayal:
-      'אני אדם מאוד ויזואלי ויצירתי, מה שמתחבר לעיסוק שלי. מעבר לזה, אני חברה טובה שיודעת להקשיב, וחשוב לי מאוד לנהל שיחות עומק. אני אופטימית מטבעי, ומאמינה שתמיד אפשר למצוא את הטוב בכל מצב.',
-    personality_energy_level: 'בינונית - אנרגטי/ת כשצריך, יודע/ת גם לנוח',
-    personality_introversion_extroversion: 6,
-    personality_primary_motivation: 'יצירת קשרים משמעותיים ואהבה',
-    personality_core_trait_selection: {
+    personality_self_portrayal_revised:
+      "אני אדם אופטימי וחיובי, שמאמין שאפשר למצוא את הטוב בכל מצב. אני מאוד יצירתית, מה שבא לידי ביטוי בעבודה ובתחביבים שלי, ויש לי יכולת הקשבה טובה - חברים אומרים שאני 'מכילה'. חשוב לי מאוד לנהל שיחות עומק, אבל אני גם אוהבת לצחוק וליהנות מהדברים הפשוטים.",
+    personality_core_trait_selection_revised: {
       'אמפתי/ת ורגיש/ה': 30,
-      'אופטימי/ת ושמח/ה': 20,
+      'אופטימי/ת ושמח/ה': 25,
       'יצירתי/ת ומקור/ית': 20,
       'ישר/ה ואמין/ה': 15,
-      'בעל/ת חוש הומור': 15,
+      'נדיב/ה ומתחשב/ת': 10,
     },
-    personality_weekend_style: [
-      'תרבות, אמנות והופעות',
-      'מפגשים חברתיים ובילויים',
-      'טיולים והרפתקאות בטבע',
+    personality_social_battery_recharge: 'intimate_gathering',
+    personality_biological_clock: 7,
+    personality_good_vs_perfect_day:
+      "יום 'מושלם' זה משהו גדול, אבל יום 'ממש טוב' נבנה מהרבה דברים קטנים: שיחת טלפון טובה עם אמא, פידבק חיובי בעבודה על עיצוב שעבדתי עליו קשה, פלייליסט חדש ומדויק שמלווה אותי, ולסיים את היום עם שיחה טובה וכוס תה. זו תחושה של סיפוק ושלווה.",
+    personality_daily_structure_revised: 'איזון',
+    personality_stress_management_revised: [
+      'שיחה ופריקה',
+      'עיסוק ביצירה',
+      'יציאה לטבע',
     ],
-    personality_strengths_and_weaknesses:
-      'החוזקות שלי הן יצירתיות, יכולת הקשבה ואופטימיות. אני תמיד מוצאת פתרונות לא שגרתיים. התחום שהייתי רוצה לשפר הוא אסרטיביות - לפעמים אני נוטה לרצות אחרים על חשבון הצרכים שלי.',
+    personality_social_situation_revised: 'מצטרף/ת בעדינות',
+    personality_primary_motivation_revised: 'יצירת קשרים',
+    personality_strengths_and_weaknesses_revised:
+      'שתי תכונות שאני אוהבת בעצמי הן האופטימיות שלי והיכולת להקשיב באמת. אני מאמינה שאלו כלים שעוזרים לי ולקשרים שלי. התכונה שהייתי רוצה לשפר היא אסרטיביות - לפעמים אני נוטה לרצות אחרים על חשבון הצרכים שלי, ואני לומדת לשים לעצמי גבולות בריאים יותר.',
+  },
+  valuesAnswers: {
+    values_core_identification_revised: {
+      'משפחה וקשרים קרובים': 35,
+      'צמיחה אישית והתפתחות': 20,
+      'יצירתיות וביטוי עצמי': 15,
+      'רוחניות, אמונה ומסורת': 15,
+      'נתינה ותרומה לחברה': 10,
+      'קריירה והגשמה מקצועית': 5,
+    },
+    values_core_elaboration_revised:
+      "הערך הכי חשוב לי הוא כבוד הדדי. בצומת דרכים מקצועי שהיה לי, יכולתי לקחת פרויקט גדול על חשבון קולגה, אבל בחרתי לשתף פעולה. למרות שהרווחתי פחות 'קרדיט' אישי, בנינו יחד משהו טוב יותר ושמרנו על מערכת יחסים בריאה. זו הייתה הוכחה לעצמי שהדרך חשובה לי לא פחות מהתוצאה.",
+    values_health_lifestyle_importance: 7,
+    values_attitude_towards_money_revised: 'איזון ואחריות',
+    values_lost_wallet:
+      'הדבר הראשון שאעשה זה לפתוח את הארנק כדי לחפש תעודה מזהה. מיד לאחר מכן אחפש את האדם בפייסבוק או בכל דרך אפשרית כדי ליצור קשר ולהחזיר לו את האבדה. אם לא אמצא, אקח את הארנק לתחנת המשטרה הקרובה.',
+    values_education_pursuit_revised: 'למידה היא דרך חיים',
+    values_giving_tzedaka_importance_revised: 8,
+    values_dealing_with_disagreement_partner_revised: 'שיחה והבנה',
+    values_non_negotiable_for_partner_revised:
+      'הדיל ברייקר שלי הוא חוסר כנות וחוסר יכולת לקחת אחריות. השאיפה הגדולה ביותר שלי היא למצוא שותף אמיתי לחיים, שנוכל לצמוח יחד מתוך כבוד, חברות ואהבה.',
   },
   relationshipAnswers: {
-    relationship_core_meaning: [
-      'חיבור רגשי עמוק, אינטימיות והבנה הדדית',
-      'שותפות איתנה, חברות אמת ותמיכה הדדית',
+    relationship_core_meaning_revised: ['חיבור רגשי עמוק', 'חברות ותמיכה'],
+    relationship_key_feelings_from_partner_revised: [
+      'תמיכה והבנה',
+      'הערכה וכבוד',
+      'קלילות וכיף',
     ],
-    relationship_intimacy_meaning:
-      'אינטימיות עבורי היא היכולת להיות חשופה לחלוטין בפני מישהו, לשתף בחלומות ובפחדים, ולדעת שיש מישהו בעולם שמכיר אותי באמת ומקבל אותי כמו שאני.',
-    relationship_communication_ideal:
-      'רגישה ואמפתית - דגש על הקשבה והבנת רגשות',
-    relationship_daily_togetherness_vs_autonomy: 7,
-    relationship_love_languages_give_receive: [
-      'מעשי שירות',
-      'זמן איכות',
-      'מילים מאשרות',
-    ],
-    relationship_conflict_resolution_style: {
-      'התמקדות בהבנה ופשרה': 40,
-      'דיבור מיידי וגלוי': 30,
-      'פסק זמן ואז שיחה': 30,
-    },
+    relationship_love_languages: ['מילים מחזקות', 'זמן איכות'],
+    relationship_communication_ideal_revised: 'רגישות ואמפתיה',
+    relationship_handling_partner_disappointment_revised: 'לרצות לדבר על זה מיד כדי לפתור.',
+    relationship_household_philosophy:
+      "אני מאמינה בשותפות מלאה וגמישה. לא 'תפקידים' קבועים, אלא צוות שפועל יחד לפי נקודות החוזק והזמן הפנוי של כל אחד. יום אחד אני אהיה החזקה כשהוא צריך תמיכה, ויום אחר הוא יהיה שם בשבילי. הכל בתקשורת פתוחה.",
+    relationship_daily_togetherness_vs_autonomy_revised: 7,
+    relationship_family_vision_children_revised: 'הורות היא חלק מרכזי',
+    relationship_deal_breaker_summary_final_revised:
+      'הדבר שבלעדיו קשר לא יכול לעבוד עבורי הוא תקשורת פתוחה וכנה. השאיפה הכי גדולה שלי היא לבנות בית שמלא בצחוק, כבוד הדדי, וצמיחה משותפת.',
   },
   partnerAnswers: {
-    partner_must_have_quality_final:
-      'התכונה החשובה ביותר היא טוב לב. אדם עם לב טוב הוא אדם שיודע לתת, לקבל, לסלוח ולהיות שותף אמיתי. כל השאר נבנה על היסוד הזה.',
-    partner_lifestyle_pace_preference:
-      'מאוזן - יודע/ת לשלב בין פעילות למנוחה, בין שגרה לספונטניות',
-    partner_appearance_importance_scale: 7,
-    partner_core_character_traits_essential: {
+    partner_initial_impression_priorities_revised: [
+      'חיוך ואנרגיה',
+      'כימיה בשיחה',
+      'שנינות ועומק',
+    ],
+    partner_appearance_importance_scale_revised: 6,
+    partner_core_character_traits_essential_revised: {
       'חום, אמפתיה וטוב לב': 30,
-      'יושרה, אמינות וכנות': 20,
-      'תקשורת טובה והקשבה': 20,
-      'אופטימיות ושמחת חיים': 15,
-      'אינטליגנציה וסקרנות': 15,
+      'תקשורת טובה והקשבה': 25,
+      'אופטימיות ושמחת חיים': 20,
+      'יושרה, אמינות וכנות': 15,
+      'שאפתנות ומוטיבציה לצמיחה': 10,
     },
-    partner_initial_impression_priorities: [
-      'חיוך, נעימות וחמימות אישית',
-      'יכולת שיחה, זרימה וכימיה ראשונית',
-      'ניצוץ של חוכמה, שנינות או סקרנות',
-    ],
-    partner_religious_observance_preference_range: [
-      'דתי/ה לאומי/ת - מרכז / ליברלי',
-      'מסורתי/ת (שומר/ת חלק מהמצוות, חיבור למסורת)',
-      'חילוני/ת עם זיקה חזקה למסורת וערכים יהודיים',
-    ],
+    partner_lifestyle_pace_preference_revised: 'מאוזן',
+    partner_deal_breakers_open_text_revised:
+      'הקו האדום המוחלט שלי הוא ציניות מתנשאת וחוסר כבוד בסיסי לאנשים (למשל, איך שהוא מדבר למלצר). אני לא יכולה להיות עם מישהו שלא יודע לכבד כל אדם באשר הוא.',
+    partner_must_have_quality_final_revised:
+      'התכונה האחת שעליה הכל עומד היא טוב לב. אדם עם לב טוב הוא אדם שיודע לתת, לקבל, לסלוח ולהיות שותף אמיתי. כל השאר נבנה על היסוד הזה.',
   },
   religionAnswers: {
-    religion_self_definition_primary:
-      'דתי/ה לאומי/ת - מרכז / פתוח/ה (למשל: דתי-לייט, ליברלי)',
-    religion_shabbat_observance_level_practical:
-      'שמירה על אווירת השבת (קידוש, סעודות, תפילה) עם גמישות מסוימת בהלכות',
-    religion_partner_ideal_religious_profile:
+    religion_self_definition_primary_revised: 'דתי-פתוח',
+    religion_shabbat_experience: 'זמן משפחה',
+    religion_kashrut_observance_details_revised:
+      'אני סומכת על כשרות רבנות, ובחוץ אוכלת במסעדות עם תעודת כשרות. אצל חברים, אם אני יודעת שהמטבח כשר, ארגיש בנוח לאכול.',
+    religion_modesty_personal_approach_revised:
+      'הצניעות שלי באה לידי ביטוי בעיקר בבחירת לבוש מכבד ובדיבור נקי. אני לא שומרת נגיעה, אבל מאמינה ביצירת קשר ראשוני שמבוסס על היכרות עם האישיות לפני הפיזיות. הגישה שלי היא "פנימיות שמשתקפת בחיצוניות".',
+    religion_partner_ideal_religious_profile_revised:
       'מחפשת מישהו מהעולם הדתי-לאומי, פתוח ומכיל. חשוב לי שיהיה מחובר למסורת ולרוחניות, אבל לא בצורה נוקשה. מישהו שיש לו יראת שמיים, אבל גם חי את העולם המודרני ומוצא את האיזון הנכון.',
-    religion_children_education_religious_vision:
+    religion_flexibility_religious_differences_partner_revised: 8,
+    religion_children_education_religious_vision_revised:
       'הייתי רוצה להעניק לילדינו חינוך דתי-לאומי פתוח ומכיל, ששם דגש על מידות טובות, אהבת התורה והארץ, וחיבור לעם ישראל. חשוב לי שהם יגדלו להיות אנשים חושבים, עם יראת שמיים פנימית ועמוקה.',
-    religion_identity_elaboration_personal:
-      'הזהות הדתית שלי מתבטאת בחיבור עמוק למסורת, לחגים ולערכים היהודיים. אני מוצאת רוחניות בטבע, באמנות ובקשרים בין אנשים. אני לא תמיד מקפידה על קלה כבחמורה, אבל הלב שלי תמיד במקום הנכון.',
-    religion_flexibility_religious_differences_partner: 8,
   },
   valuesCompleted: true,
   personalityCompleted: true,
@@ -152,75 +149,57 @@ const noaQuestionnaireResponse: QuestionnaireResponseType = {
   formattedAnswers: {
     values: [
       {
-        questionId: 'values_core_elaboration',
+        questionId: 'values_core_elaboration_revised',
         question:
-          'מהו הערך החשוב ביותר עבורך בזוגיות, וכיצד הוא בא לידי ביטוי בחייך?',
-        answer: 'הערך הכי חשוב לי הוא משפחה...',
+          'בחר/י את הערך ה"צפוני" ביותר במצפן הפנימי שלך וספר/י על צומת דרכים שבו הלכת לפיו.',
+        answer: "הערך הכי חשוב לי הוא כבוד הדדי. בצומת דרכים מקצועי...",
         displayText:
-          'הערך הכי חשוב לי הוא משפחה, וזה מתבטא בכך שאני משקיעה זמן רב בקשר עם ההורים והאחים שלי, ורואה את הבית העתידי שלי כמקום חם ומכיל שמהווה מרכז לעולם שלנו. ערך נוסף הוא יצירתיות וביטוי עצמי, שבא לידי ביטוי בקריירה שלי ובדרך שאני מתבוננת על העולם.',
-        isVisible: true,
-        answeredAt: new Date(),
-      } as FormattedAnswer,
-      {
-        questionId: 'values_career_family_balance_approach',
-        question:
-          'בהתייחס לאיזון בין קריירה לזוגיות/משפחה, איזו גישה הכי מתארת אותך כרגע?',
-        answer: 'relationship_first',
-        displayText:
-          'הגעתי לשלב שבו בניית זוגיות ומשפחה היא המטרה המרכזית. הקריירה חשובה, אך היא תומכת במטרה זו.',
+          "הערך הכי חשוב לי הוא כבוד הדדי. בצומת דרכים מקצועי שהיה לי, יכולתי לקחת פרויקט גדול על חשבון קולגה, אבל בחרתי לשתף פעולה. למרות שהרווחתי פחות 'קרדיט' אישי, בנינו יחד משהו טוב יותר ושמרנו על מערכת יחסים בריאה. זו הייתה הוכחה לעצמי שהדרך חשובה לי לא פחות מהתוצאה.",
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
     ],
     personality: [
       {
-        questionId: 'personality_self_portrayal',
-        question: 'איך היית מתארת את עצמך בכמה מילים?',
-        answer: 'אני אדם ויזואלי ויצירתי...',
+        questionId: 'personality_self_portrayal_revised',
+        question: 'איך היית מתארת את עצמך ב3-5 דברים מרכזיים?',
+        answer: 'אני אדם אופטימי וחיובי...',
         displayText:
-          'אני אדם מאוד ויזואלי ויצירתי, מה שמתחבר לעיסוק שלי. מעבר לזה, אני חברה טובה שיודעת להקשיב, וחשוב לי מאוד לנהל שיחות עומק. אני אופטימית מטבעי, ומאמינה שתמיד אפשר למצוא את הטוב בכל מצב.',
-        isVisible: true,
-        answeredAt: new Date(),
-      } as FormattedAnswer,
-      {
-        questionId: 'personality_strengths_and_weaknesses',
-        question: 'מהן חוזקותיך וחולשותיך?',
-        answer: 'החוזקות שלי הן יצירתיות, יכולת הקשבה ואופטימיות...',
-        displayText:
-          'החוזקות שלי הן יצירתיות, יכולת הקשבה ואופטימיות. אני תמיד מוצאת פתרונות לא שגרתיים. התחום שהייתי רוצה לשפר הוא אסרטיביות - לפעמים אני נוטה לרצות אחרים על חשבון הצרכים שלי.',
+          "אני אדם אופטימי וחיובי, שמאמין שאפשר למצוא את הטוב בכל מצב. אני מאוד יצירתית, מה שבא לידי ביטוי בעבודה ובתחביבים שלי, ויש לי יכולת הקשבה טובה - חברים אומרים שאני 'מכילה'. חשוב לי מאוד לנהל שיחות עומק, אבל אני גם אוהבת לצחוק וליהנות מהדברים הפשוטים.",
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
     ],
     relationship: [
       {
-        questionId: 'relationship_intimacy_meaning',
-        question: 'מהי אינטימיות עבורך בזוגיות?',
-        answer: 'אינטימיות עבורי היא היכולת להיות חשופה לחלוטין...',
+        questionId: 'relationship_household_philosophy',
+        question: 'מהי הנוסחה לחלוקת אחריות בניהול הבית?',
+        answer: "אני מאמינה בשותפות מלאה וגמישה...",
         displayText:
-          'אינטימיות עבורי היא היכולת להיות חשופה לחלוטין בפני מישהו, לשתף בחלומות ובפחדים, ולדעת שיש מישהו בעולם שמכיר אותי באמת ומקבל אותי כמו שאני.',
+          "אני מאמינה בשותפות מלאה וגמישה. לא 'תפקידים' קבועים, אלא צוות שפועל יחד לפי נקודות החוזק והזמן הפנוי של כל אחד. יום אחד אני אהיה החזקה כשהוא צריך תמיכה, ויום אחר הוא יהיה שם בשבילי. הכל בתקשורת פתוחה.",
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
     ],
     partner: [
       {
-        questionId: 'partner_must_have_quality_final',
-        question: 'מהי התכונה האחת החשובה ביותר שחייבת להיות לבן הזוג שלך?',
-        answer: 'התכונה החשובה ביותר היא טוב לב...',
+        questionId: 'partner_must_have_quality_final_revised',
+        question:
+          "מהי 'אבן הראשה' – התכונה האחת שעליה כל בניין הזוגיות שלכם יעמוד?",
+        answer: 'התכונה האחת שעליה הכל עומד היא טוב לב...',
         displayText:
-          'התכונה החשובה ביותר היא טוב לב. אדם עם לב טוב הוא אדם שיודע לתת, לקבל, לסלוח ולהיות שותף אמיתי. כל השאר נבנה על היסוד הזה.',
+          'התכונה האחת שעליה הכל עומד היא טוב לב. אדם עם לב טוב הוא אדם שיודע לתת, לקבל, לסלוח ולהיות שותף אמיתי. כל השאר נבנה על היסוד הזה.',
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
     ],
     religion: [
       {
-        questionId: 'religion_partner_ideal_religious_profile',
-        question: 'תארי את הפרופיל הדתי-רוחני האידיאלי של בן הזוג שאת מחפשת.',
-        answer: 'מחפשת מישהו מהעולם הדתי-לאומי, פתוח ומכיל...',
+        questionId: 'religion_shabbat_experience',
+        question: 'מהי המהות או החוויה המרכזית שאת/ה מחפש/ת בשבת?',
+        answer: 'זמן משפחה',
         displayText:
-          'מחפשת מישהו מהעולם הדתי-לאומי, פתוח ומכיל. חשוב לי שיהיה מחובר למסורת ולרוחניות, אבל לא בצורה נוקשה. מישהו שיש לו יראת שמיים, אבל גם חי את העולם המודרני ומוצא את האיזון הנכון.',
+          'המהות המרכזית שאני מחפשת בשבת היא זמן איכות למשפחה, לביחד ולשיח.',
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
@@ -228,7 +207,9 @@ const noaQuestionnaireResponse: QuestionnaireResponseType = {
   },
 };
 
-// --- פרופיל מלא לדמו #1: נועה (הבחורה) ---
+// ============================================================================
+// --- פרופיל מלא מעודכן: נועה ---
+// ============================================================================
 const noaProfile: PartyInfo = {
   id: 'demo-profile-noa',
   email: 'noa.demo@example.com',
@@ -276,9 +257,8 @@ const noaProfile: PartyInfo = {
     occupation: 'מעצבת UX/UI בכירה',
     education: 'תואר ראשון בתקשורת חזותית, בצלאל',
     educationLevel: 'academic_ba',
-    religiousLevel: 'דתי לאומי תורני',
+    religiousLevel: 'דתי לאומי פתוח', // עודכן כדי להתאים להגדרה בשאלון
     shomerNegiah: false,
-    // --- UPDATED 'about' FIELD ---
     about:
       'אופטימית וחובבת שיחות עומק על כוס קפה. מוצאת יופי בדברים הקטנים של החיים, בין אם זה טיול בטבע או פלייליסט טוב. אחרי כמה ניסיונות שלא צלחו, אני יודעת היום טוב יותר מה נכון לי, ומחפשת שותף לדרך, לבנות יחד בית שמלא בצחוק, כבוד הדדי וצמיחה משותפת.',
     maritalStatus: 'רווקה',
@@ -339,7 +319,9 @@ const noaProfile: PartyInfo = {
   questionnaireResponses: [noaQuestionnaireResponse],
 };
 
-// --- הצעה מלאה לדמו #1: נועה ---
+// ============================================================================
+// --- הצעה מלאה מעודכנת: הצעה של נועה לבחור ---
+// ============================================================================
 export const demoSuggestionDataFemale: ExtendedMatchSuggestion = {
   id: 'demo-suggestion-homepage-female',
   matchmakerId: 'matchmaker-demo',
@@ -351,7 +333,6 @@ export const demoSuggestionDataFemale: ExtendedMatchSuggestion = {
   updatedAt: new Date(),
   lastActivity: new Date(),
   category: 'ACTIVE',
-  // --- UPDATED 'matchingReason' FIELD (as seen by a male user getting Noa's profile) ---
   matchingReason:
     'מה שהדהד לי במיוחד בחיבור ביניכם הוא השילוב הנדיר של עומק וקלילות. שניכם מחפשים "שותף לדרך" עם "ראש פתוח", ומדברים על בית שמבוסס על "כבוד וצמיחה". אני מאמין שהיציבות והשאיפה למשמעות שלך, יחד עם היצירתיות והאופטימיות של נועה, יוצרים בסיס מדהים לקשר אמיתי.',
   firstPartyNotes:
@@ -398,115 +379,110 @@ export const demoSuggestionDataFemale: ExtendedMatchSuggestion = {
   ],
 };
 
-// --- תשובות שאלון לדמו #2: דניאל (הבחור) ---
+// ============================================================================
+// --- תשובות שאלון מעודכנות: דניאל (הבחור) ---
+// ============================================================================
 const danielQuestionnaireResponse: QuestionnaireResponseType = {
-  id: 'qr-demo-daniel',
+  id: 'qr-demo-daniel-updated',
   userId: 'demo-profile-daniel',
-  valuesAnswers: {
-    values_life_priorities_allocation: {
-      'זוגיות וחיפוש זוגיות': 30,
-      'משפחה (הורים, אחים, ילדים אם יש)': 20,
-      'קריירה ופרנסה': 25,
-      'רוחניות, דת ולימוד תורה': 15,
-      'חברים, קהילה והתנדבות': 5,
-      'פנאי, תחביבים ובריאות אישית': 5,
-    },
-    values_attitude_towards_money: 'אחריות כלכלית, חיסכון ותכנון לטווח ארוך',
-    values_community_role: 'מעורב/ת ומשתתפ/ת קבוע/ה בפעילויות',
-    values_education_pursuit: 'למידה מתמדת היא דרך חיים והכרח',
-    values_future_priorities_partner: {
-      'זוגיות (כולל ילדים עתידיים)': 40,
-      'קריירה ופרנסה (של שניכם)': 25,
-      'משפחה (הורים, אחים)': 15,
-      'רוחניות, דת ולימוד תורה (משותף ואישי)': 10,
-      'פנאי, תחביבים ובריאות אישית (משותף ואישי)': 10,
-    },
-    values_social_political_stance_importance_partner: 6,
-  },
   personalityAnswers: {
-    personality_self_portrayal:
-      'אני אדם של עשייה, אוהב אתגרים ומטרות. חשובה לי מאוד האמינות, ואני תמיד משתדל לעמוד במילה שלי. יש לי צד אנליטי חזק, אבל גם מאוד אוהב לנגן ולבלות בטבע כדי להתאזן.',
-    personality_introversion_extroversion: 7,
-    personality_stress_management: [
-      'פעילות גופנית (ספורט, הליכה)',
-      'שיחה עם חבר/ה קרוב/ה או בן/בת משפחה',
-      'מוזיקה או פודקאסטים',
-    ],
-    personality_decision_making_style:
-      'שילוב של לוגיקה ואינטואיציה, תוך לקיחת סיכונים מחושבים',
-    personality_core_trait_selection: {
+    personality_self_portrayal_revised:
+      "אני אדם של עשייה, אוהב אתגרים ומטרות. חשובה לי מאוד האמינות, ואני תמיד משתדל לעמוד במילה שלי. יש לי צד אנליטי חזק, מה שמתחבר לעיסוק שלי בהנדסה, אבל אני מאזן את זה עם צד יצירתי - אני אוהב לנגן בגיטרה ולבלות בטבע. אני מחפש צמיחה מתמדת, גם בקריירה וגם בחיים האישיים.",
+    personality_core_trait_selection_revised: {
       'ישר/ה ואמין/ה': 30,
       'שאפתנ/ית ובעל/ת מוטיבציה': 25,
       'אינטליגנט/ית וסקרנ/ית': 20,
       'אחראי/ת ומאורגנ/ת': 15,
       'יציב/ה וקרקע/ית': 10,
     },
-    personality_ideal_vacation:
-      'חופשה שמשלבת טבע מאתגר עם תרבות מקומית. למשל, טרק של כמה ימים בנוף יפהפה, ובסופו הגעה לעיר מעניינת עם אוכל טוב, מוזיאונים והיסטוריה. לא חופשת בטן-גב.',
-    personality_handling_criticism:
-      'אני משתדל לקחת ביקורת בצורה אנליטית. בהתחלה זה יכול להיות לא נעים, אבל אני לוקח צעד אחורה, מנסה להפריד את הרגש ולהבין אם יש נקודה לשיפור שאני יכול ללמוד ממנה. חשוב לי להשתפר כל הזמן.',
+    personality_social_battery_recharge: 'intimate_gathering',
+    personality_biological_clock: 3,
+    personality_vacation_compass: {
+      'טיולים, טבע והרפתקאות': 40,
+      'עיר תוססת, תרבות ובילויים': 30,
+      'זמן איכות זוגי ורומנטי': 20,
+      'העשרה, למידה ורוחניות': 10,
+    },
+    personality_daily_structure_revised: 'משימתיות',
+    personality_stress_management_revised: [
+      'תנועה וספורט',
+      'שיחה ופריקה',
+      'התנתקות עם מדיה',
+    ],
+    personality_social_situation_revised: 'יוזם/ת ומתחבר/ת',
+    personality_primary_motivation_revised: 'השגת מטרות',
+    personality_strengths_and_weaknesses_revised:
+      'שתי תכונות חזקות שלי הן שאפתנות ואמינות. אני מציב לעצמי מטרות גבוהות ועובד קשה כדי להשיג אותן, ואני מאמין שאפשר לסמוך על המילה שלי. התחום שאני עובד עליו הוא פתיחות רגשית. בגלל הצד האנליטי שלי, לפעמים לוקח לי זמן לעבד ולשתף ברגשות, ואני משתדל להיות יותר פתוח ונגיש רגשית.',
+  },
+  valuesAnswers: {
+    values_core_identification_revised: {
+      'יושרה, אמינות וכנות': 30,
+      'משפחה וקשרים קרובים': 25,
+      'צמיחה אישית והתפתחות': 20,
+      'קריירה והגשמה מקצועית': 15,
+      'רוחניות, אמונה ומסורת': 10,
+    },
+    values_core_elaboration_revised:
+      "הערך המרכזי שלי הוא אחריות אישית. בצבא, הייתי צריך לקבל החלטה מבצעית מורכבת תחת לחץ. בחרתי בדרך הפעולה הבטוחה יותר, למרות שהיא הייתה פחות 'זוהרת'. זו הייתה החלטה שהתבססה על אחריות לחיי אדם, והיא חיזקה אצלי את ההבנה שיושרה ואחריות הן מעל הכל.",
+    values_health_lifestyle_importance: 8,
+    values_attitude_towards_money_revised: 'כלי לביטחון',
+    values_lost_wallet:
+      'אני מיד מנסה לאתר את הבעלים. אם יש תעודה מזהה, אחפש ברשתות החברתיות או אנסה להתקשר אם יש מספר טלפון. אם אין, אשאל אנשים בסביבה אם ראו משהו. אם כל זה לא עובד, אקח את הארנק למשטרה. כסף לא שלי זה לא שלי.',
+    values_education_pursuit_revised: 'למידה היא דרך חיים',
+    values_giving_tzedaka_importance_revised: 7,
+    values_dealing_with_disagreement_partner_revised: 'מציאת בסיס משותף',
+    values_non_negotiable_for_partner_revised:
+      'הערך שאין עליו פשרה הוא יושרה. אני חייב לדעת שאני יכול לסמוך על בת הזוג שלי במאה אחוז. הערך שאני הכי שואף אליו הוא שותפות אמת - הידיעה שאנחנו צוות מול כל מה שהחיים מביאים.',
   },
   relationshipAnswers: {
-    relationship_key_expectations_from_partner: [
-      'תקשורת פתוחה, כנה ומכבדת',
-      'שותפות פעילה בניהול החיים המשותפים',
-      'אמינות, יושרה ונאמנות',
+    relationship_core_meaning_revised: ['חברות ותמיכה', 'צמיחה משותפת'],
+    relationship_key_feelings_from_partner_revised: [
+      'הערכה וכבוד',
+      'ביטחון ואמון',
+      'שותפות אינטלקטואלית',
     ],
-    relationship_daily_togetherness_vs_autonomy: 7,
-    relationship_financial_management_preference:
-      'שקיפות מלאה וחשבון משותף לכל',
-    relationship_conflict_resolution_style: {
-      'דיבור מיידי וגלוי': 30,
-      'פסק זמן ואז שיחה': 20,
-      'ניתוח לוגי של הבעיה': 30,
-      'התמקדות בהבנה ופשרה': 20,
-    },
-    relationship_core_meaning: [
-      'שותפות איתנה, חברות אמת ותמיכה הדדית',
-      'מחויבות, נאמנות וביטחון בקשר לטווח ארוך',
-    ],
-    relationship_love_languages_give_receive: [
-      'מעשי שירות',
-      'זמן איכות',
-      'מילים מאשרות',
-      'מגע פיזי',
-    ],
+    relationship_love_languages: ['זמן איכות', 'עזרה מעשית'],
+    relationship_communication_ideal_revised: 'התמקדות בפתרון',
+    relationship_handling_partner_disappointment_revised: 'לנתח את המצב בצורה הגיונית לפני שאגיב.',
+    relationship_household_philosophy:
+      'אני מאמין בחלוקה לפי חוזקות ויעילות, תוך שקיפות ותיאום. אם צד אחד טוב יותר בבישול והשני בניהול כספים, הגיוני שכל אחד יוביל בתחומו, אבל שניהם צריכים להיות מעורבים ולתמוך. המטרה היא שהבית יתפקד בצורה הכי טובה כצוות.',
+    relationship_daily_togetherness_vs_autonomy_revised: 6,
+    relationship_family_vision_children_revised: 'הורות היא חלק מרכזי',
+    relationship_deal_breaker_summary_final_revised:
+      'הדיל ברייקר המוחלט הוא חוסר יושרה. השאיפה הגדולה ביותר היא שותפות אמיתית. הידיעה שיש לי מישהי לצידי, שאנחנו צוות מול כל אתגר, ושדואגים תמיד אחד לשנייה.',
   },
   partnerAnswers: {
-    partner_core_character_traits_essential: {
-      'יושרה, אמינות וכנות': 30,
-      'חום, אמפתיה וטוב לב': 20,
-      'אינטליגנציה וסקרנות': 20,
-      'אופטימיות ושמחת חיים': 15,
-      'תקשורת טובה והקשבה': 15,
-    },
-    partner_must_have_quality_final:
-      'התכונה הכי חשובה לי היא שותפות. הידיעה שיש לי מישהי לצידי, שאנחנו צוות מול כל מה שהחיים מביאים, ושאנחנו תמיד דואגים אחד לשנייה.',
-    partner_religious_observance_preference_range: [
-      'דתי/ה לאומי/ת - תורני/ת / ישיבתי/ת',
-      'דתי/ה לאומי/ת - מרכז / ליברלי',
+    partner_initial_impression_priorities_revised: [
+      'כימיה בשיחה',
+      'שנינות ועומק',
+      'תחושת ביטחון',
     ],
-    partner_social_style_preference:
-      'חברותי/ת אך מעדיפ/ה מפגשים קטנים ואינטימיים',
-    partner_appearance_importance_scale: 6,
-    partner_children_from_previous_relationship_stance:
-      "פתוח/ה לשקול, תלוי בנסיבות (גיל הילדים, טיב הקשר וכו')",
+    partner_appearance_importance_scale_revised: 7,
+    partner_core_character_traits_essential_revised: {
+      'יושרה, אמינות וכנות': 30,
+      'אינטליגנט/ית וסקרנ/ית': 25,
+      'בגרות, יציבות ואחריות': 20,
+      'אופטימיות ושמחת חיים': 15,
+      'תקשורת טובה והקשבה': 10,
+    },
+    partner_lifestyle_pace_preference_revised: 'מאוזן',
+    partner_deal_breakers_open_text_revised:
+      'קו אדום עבורי הוא חוסר שאיפה להתפתח ולהשתפר. אני לא מחפש מישהי מושלמת, אבל חשוב לי שתהיה לה מוטיבציה פנימית לצמוח, ללמוד ולהיות גרסה טובה יותר של עצמה. פסיביות וחוסר רצון להתמודד עם אתגרים זה משהו שקשה לי מאוד להתחבר אליו.',
+    partner_must_have_quality_final_revised:
+      "התכונה האחת היא שותפות. אני מחפש מישהי שתהיה 'הצוות' שלי. הידיעה שאנחנו משחקים באותה קבוצה, עם מטרה משותפת, תומכים ומגבים אחד את השנייה, זה הבסיס להכל מבחינתי.",
   },
   religionAnswers: {
-    religion_shabbat_observance_level_practical:
-      'שמירה על עיקרי ההלכות (ללא חשמל, בישול, נסיעה)',
-    religion_faith_core_principles: [
-      'תורה מן השמיים ומחויבות להלכה',
-      'גאולת ישראל וקיבוץ גלויות בארץ ישראל',
-    ],
-    religion_social_circle_religious_diversity:
-      'יש לי חברים ממגוון רמות דתיות והשקפות',
-    religion_flexibility_religious_differences_partner: 8,
-    religion_self_definition_primary:
-      'דתי/ה לאומי/ת - מרכז / פתוח/ה (למשל: דתי-לייט, ליברלי)',
-    religion_partner_ideal_religious_profile:
+    religion_self_definition_primary_revised: 'דתי-פתוח',
+    religion_shabbat_experience: 'התעלות רוחנית',
+    religion_kashrut_observance_details_revised:
+      'אני מקפיד על כשרות מהדרין. מחוץ לבית אני אוכל רק במקומות עם תעודת כשרות למהדרין. אני לא אוכל בבתים של אחרים אלא אם אני בטוח ברמת הכשרות שלהם.',
+    religion_modesty_personal_approach_revised:
+      'אני שומר נגיעה וזה עיקרון חשוב עבורי. מבחינת צניעות כללית, אני מאמין שהיא צריכה לבוא לידי ביטוי בדיבור מכבד, בהתנהגות ובלבוש, אבל הגישה שלי היא לא של הקפדה על פרטים קטנים אלא על המהות הכללית של כבוד הדדי.',
+    religion_partner_ideal_religious_profile_revised:
       'מחפש בחורה דתייה-לאומית, שחשוב לה לבנות בית של תורה וערכים, אבל עם ראש פתוח על הכתפיים. מישהי שיודעת לשלב בין קודש לחול, שיש לה שאיפות אישיות ומקצועיות, ושהיא שותפה אמיתית לדרך.',
-    religion_rabbinic_guidance_role: 7,
+    religion_flexibility_religious_differences_partner_revised: 7,
+    religion_children_education_religious_vision_revised:
+      'החזון שלי הוא להקים בית שבו ילדים גדלים עם יראת שמיים טבעית, אהבת תורה וחיבור עמוק לארץ ישראל. חשוב לי שהחינוך יהיה פתוח ומאפשר שאלת שאלות, כזה שמצמיח אנשים חושבים ומאמינים.',
   },
   valuesCompleted: true,
   personalityCompleted: true,
@@ -529,54 +505,55 @@ const danielQuestionnaireResponse: QuestionnaireResponseType = {
   formattedAnswers: {
     values: [
       {
-        questionId: 'values_attitude_towards_money',
-        question: 'מהי גישתך הכללית לכסף ורמת חיים?',
-        answer: 'אחריות כלכלית, חיסכון ותכנון לטווח ארוך',
-        displayText: 'אחריות כלכלית, חיסכון ותכנון לטווח ארוך',
+        questionId: 'values_lost_wallet',
+        question: 'מצאת ארנק ברחוב. מהם הצעדים המדויקים שתעשה?',
+        answer: 'אני מיד מנסה לאתר את הבעלים...',
+        displayText:
+          'אני מיד מנסה לאתר את הבעלים. אם יש תעודה מזהה, אחפש ברשתות החברתיות או אנסה להתקשר אם יש מספר טלפון. אם אין, אשאל אנשים בסביבה אם ראו משהו. אם כל זה לא עובד, אקח את הארנק למשטרה. כסף לא שלי זה לא שלי.',
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
     ],
     personality: [
       {
-        questionId: 'personality_self_portrayal',
-        question: 'איך היית מתאר את עצמך בכמה מילים?',
-        answer: 'אני אדם של עשייה, אוהב אתגרים ומטרות...',
+        questionId: 'personality_strengths_and_weaknesses_revised',
+        question: 'ספר/י על שתי תכונות חזקות ואחת לשיפור.',
+        answer: 'שתי תכונות חזקות שלי הן שאפתנות ואמינות...',
         displayText:
-          'אני אדם של עשייה, אוהב אתגרים ומטרות. חשובה לי מאוד האמינות, ואני תמיד משתדל לעמוד במילה שלי. יש לי צד אנליטי חזק, אבל גם מאוד אוהב לנגן ולבלות בטבע כדי להתאזן.',
-        isVisible: true,
+          'שתי תכונות חזקות שלי הן שאפתנות ואמינות. אני מציב לעצמי מטרות גבוהות ועובד קשה כדי להשיג אותן, ואני מאמין שאפשר לסמוך על המילה שלי. התחום שאני עובד עליו הוא פתיחות רגשית. בגלל הצד האנליטי שלי, לפעמים לוקח לי זמן לעבד ולשתף ברגשות, ואני משתדל להיות יותר פתוח ונגיש רגשית.',
+        isVisible: false,
         answeredAt: new Date(),
       } as FormattedAnswer,
     ],
     relationship: [
       {
-        questionId: 'relationship_core_meaning',
-        question: 'מהי תמצית הזוגיות בעיניך?',
-        answer: 'שותפות, חברות ומחויבות',
+        questionId: 'relationship_key_feelings_from_partner_revised',
+        question: 'מהם שלושת הדברים שהכי חשוב לך להרגיש מבן/בת הזוג?',
+        answer: 'הערכה וכבוד, ביטחון ואמון, שותפות אינטלקטואלית',
         displayText:
-          'תמצית הזוגיות בעיניי היא שותפות איתנה, חברות אמת, ומחויבות וביטחון לטווח ארוך.',
+          'הדברים שהכי חשוב לי להרגיש הם: הערכה וכבוד, ביטחון ואמון, ושיש לי שותפה אינטלקטואלית לשיחה ולצמיחה.',
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
     ],
     partner: [
       {
-        questionId: 'partner_must_have_quality_final',
-        question: 'מהי התכונה הכי חשובה שאתה מחפש בשותפה לחיים?',
-        answer: 'התכונה הכי חשובה לי היא שותפות...',
+        questionId: 'partner_deal_breakers_open_text_revised',
+        question: "מהו ה'קו האדום' האחד או שניים, שלא תוכל/י לחיות איתו/איתה?",
+        answer: 'קו אדום עבורי הוא חוסר שאיפה להתפתח ולהשתפר...',
         displayText:
-          'התכונה הכי חשובה לי היא שותפות. הידיעה שיש לי מישהי לצידי, שאנחנו צוות מול כל מה שהחיים מביאים, ושאנחנו תמיד דואגים אחד לשנייה.',
+          'קו אדום עבורי הוא חוסר שאיפה להתפתח ולהשתפר. אני לא מחפש מישהי מושלמת, אבל חשוב לי שתהיה לה מוטיבציה פנימית לצמוח, ללמוד ולהיות גרסה טובה יותר של עצמה. פסיביות וחוסר רצון להתמודד עם אתגרים זה משהו שקשה לי מאוד להתחבר אליו.',
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
     ],
     religion: [
       {
-        questionId: 'religion_faith_core_principles',
-        question: 'מהם עקרונות האמונה המרכזיים שמנחים אותך?',
-        answer: 'תורה מן השמיים ומחויבות להלכה, גאולת ישראל וקיבוץ גלויות',
+        questionId: 'religion_children_education_religious_vision_revised',
+        question: 'מהו החזון שלך לאווירה הרוחנית ולחינוך הילדים בבית?',
+        answer: 'החזון שלי הוא להקים בית שבו ילדים גדלים עם יראת שמיים טבעית...',
         displayText:
-          'עקרונות האמונה המרכזיים שמנחים אותי הם תורה מן השמיים, מחויבות להלכה, וגאולת ישראל וקיבוץ גלויות בארץ ישראל.',
+          'החזון שלי הוא להקים בית שבו ילדים גדלים עם יראת שמיים טבעית, אהבת תורה וחיבור עמוק לארץ ישראל. חשוב לי שהחינוך יהיה פתוח ומאפשר שאלת שאלות, כזה שמצמיח אנשים חושבים ומאמינים.',
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
@@ -584,7 +561,9 @@ const danielQuestionnaireResponse: QuestionnaireResponseType = {
   },
 };
 
-// --- פרופיל מלא לדמו #2: דניאל (הבחור) ---
+// ============================================================================
+// --- פרופיל מלא מעודכן: דניאל ---
+// ============================================================================
 const danielProfile: PartyInfo = {
   id: 'demo-profile-daniel',
   email: 'daniel.demo@example.com',
@@ -640,9 +619,8 @@ const danielProfile: PartyInfo = {
     occupation: 'מהנדס תוכנה וסטודנט לתואר שני',
     education: 'תואר ראשון בהנדסת תוכנה, הטכניון',
     educationLevel: 'academic_student',
-    religiousLevel: 'דתי לאומי-ליברלי',
+    religiousLevel: 'דתי לאומי פתוח', // עודכן
     shomerNegiah: true,
-    // --- UPDATED 'about' FIELD ---
     about:
       'בחור של אנשים ושל עשייה. אוהב את השילוב בין עולם ההייטק הדינמי לבין קביעת עיתים לתורה. מאמין שצמיחה אמיתית קורית מחוץ לאזור הנוחות, ובשעות הפנאי אוהב לטייל בארץ, לנגן בגיטרה ולבלות זמן איכות עם חברים. מחפש שותפה לחיים, לבנות ביחד בית עם יראת שמיים, פתיחות מחשבתית והרבה שמחה.',
     maritalStatus: 'רווק',
@@ -701,12 +679,15 @@ const danielProfile: PartyInfo = {
     verifiedBy: null,
     availabilityNote: null,
     availabilityUpdatedAt: null,
+
     lastActive: null,
   },
   questionnaireResponses: [danielQuestionnaireResponse],
 };
 
-// --- הצעה מלאה לדמו #2: דניאל ---
+// ============================================================================
+// --- הצעה מלאה מעודכנת: הצעה של דניאל לבחורה ---
+// ============================================================================
 export const demoSuggestionDataMale: ExtendedMatchSuggestion = {
   id: 'demo-suggestion-homepage-male',
   matchmakerId: 'matchmaker-demo-2',
@@ -718,7 +699,6 @@ export const demoSuggestionDataMale: ExtendedMatchSuggestion = {
   updatedAt: new Date(),
   lastActivity: new Date(),
   category: 'ACTIVE',
-  // --- UPDATED 'matchingReason' FIELD (as seen by a female user getting Daniel's profile) ---
   matchingReason:
     'מה שהדהד לי במיוחד בחיבור ביניכם הוא השילוב הנדיר של עומק וקלילות. שניכם מחפשים "שותף לדרך" עם "ראש פתוח", ומדברים על בית שמבוסס על "כבוד וצמיחה". אני מאמין שהיציבות והשאיפה למשמעות של דניאל, יחד עם היצירתיות והאופטימיות שלך, יוצרים בסיס מדהים לקשר אמיתי.',
   firstPartyNotes:
@@ -765,69 +745,67 @@ export const demoSuggestionDataMale: ExtendedMatchSuggestion = {
   ],
 };
 
-// ==========================================================
-// הוספת נתוני הדגמה עבור ניתוח AI
-// ==========================================================
+// ============================================================================
+// --- ניתוחי AI מעודכנים ---
+// ============================================================================
 
 /**
- * ניתוח AI עבור ההצעה של דניאל (מה שבחורה רואה)
+ * ניתוח AI מעודכן עבור ההצעה של דניאל (מה שבחורה רואה)
  */
 export const demoAiAnalysisForDaniel: AiSuggestionAnalysisResult = {
-  overallScore: 88,
-  matchTitle: 'שילוב של שאפתנות ויציבות רגשית',
-  // --- UPDATED 'matchSummary' FIELD ---
+  overallScore: 91,
+  matchTitle: 'שותפות של יציבות ויצירתיות',
   matchSummary:
-    'החיבור בין דניאל לנועה מציג פוטנציאל גבוה, המבוסס על איזון בין ערכים משותפים לאישיות משלימה. השילוב בין האופי המעשי והשאפתני של דניאל לבין העומק הרגשי והיצירתיות של נועה יוצר בסיס איתן לשותפות ארוכת טווח, שבה כל אחד יכול להעניק לשני בדיוק את מה שחסר לו.',
+    'החיבור בין דניאל לנועה מציג פוטנציאל גבוה במיוחד, המבוסס על איזון מרתק בין ערכי ליבה משותפים לבין אישיות משלימה. השילוב בין האופי המעשי, האחראי והשאפתני של דניאל לבין העומק הרגשי, האופטימיות והיצירתיות של נועה יוצר בסיס איתן לשותפות ארוכת טווח, שבה כל אחד יכול להעניק לשני בדיוק את מה שחסר לו.',
   compatibilityPoints: [
     {
-      area: 'ערכים משותפים',
+      area: 'ערכי יסוד דומים',
       explanation:
-        'שניהם מדגישים את חשיבות המשפחה, הכבוד ההדדי והצמיחה המשותפת כערכי יסוד بزוגיות. זהו בסיס איתן לבניית בית משותף.',
+        'שניהם רואים ביושרה, כבוד ומשפחה ערכים עליונים. ההגדרה של שניהם ל"שותפות" כערך החשוב ביותר בזוגיות היא נקודת חיבור נדירה וחזקה.',
     },
     {
-      area: 'איזון בין קריירה לחיים אישיים',
+      area: 'איזון בין קריירה לחיים',
       explanation:
-        'דניאל, כמהנדס, ונועה, כמעצבת, מגיעים מתחומים תובעניים אך יצירתיים. נראה שיש הבנה הדדית לצורך באיזון בין שאיפות מקצועיות לבין בניית חיים אישיים עשירים.',
+        "דניאל מונע מהשגת מטרות, ונועה מיצירת קשרים - שילוב מצוין שיכול לתמוך זה בזו. שניהם גם מבינים את החשיבות של איזון, כפי שעולה מתשובותיהם על 'קצב החיים' ו'ניהול הבית'.",
     },
     {
-      area: 'סגנון תקשורת',
+      area: 'סגנון תקשורת משלים',
       explanation:
-        'שניהם ציינו את החשיבות של "שיחות עומק". נראה שיש פוטנציאל לתקשורת פתוחה וכנה, המאפשרת פתרון קונפליקטים וצמיחה זוגית.',
+        "הנטייה של דניאל לפתרון בעיות יכולה להשלים את הנטייה של נועה לתקשורת רגשית. שניהם מחפשים 'שיחות עומק', מה שמעיד על פוטנציאל לתקשורת פתוחה וכנה.",
     },
   ],
   pointsToConsider: [
     {
-      area: 'קצב חיים שונה',
+      area: 'שמירת נגיעה',
+      explanation:
+        'דניאל שומר נגיעה ונועה לא. זוהי נקודה מהותית הדורשת שיחה פתוחה ומכבדת כדי להבין את הציפיות והגישות של כל אחד, ולראות אם ניתן לגשר על הפער.',
+    },
+    {
+      area: 'קצב חיים ומיקום',
       explanation:
         'החיים בירושלים (דניאל) שונים מהקצב התל אביבי (נועה). זה יכול להוות נקודה למחשבה לגבי התאמת סגנון החיים והעדפות בילוי, אך גם הזדמנות להעשיר זה את עולמה של זו.',
     },
-    {
-      area: 'רמות דתיות',
-      explanation:
-        'אף על פי ששניהם במרחב הדתי-ליברלי, ישנם ניואנסים קטנים בהגדרות שידרשו שיחה ופתיחות כדי למצוא את הדרך המשותפת הנכונה עבורם.',
-    },
   ],
   suggestedConversationStarters: [
-    'מה הדבר הכי חשוב שלמדת על זוגיות מהמשפחה שגדלת בה?',
-    'אם הייתם יכולים לתכנן את השבת המושלמת, איך היא הייתה נראית?',
-    'איך אתם מאזנים בין השאיפות המקצועיות שלכם לבין הרצון לחיים אישיים ורוחניים מלאים?',
+    "שניכם דיברתם על 'שותפות' כתכונה הכי חשובה. איך הייתם מתארים את היום המושלם שלכם כ'צוות'?",
+    "איך הייתם מתארים את האיזון האידיאלי בין 'אני', 'את/ה' ו'אנחנו' בזוגיות?",
+    'ספרו על חוויה מעצבת שתרמה למי שאתם היום.',
   ],
 };
 
 /**
- * ניתוח AI עבור ההצעה של נועה (מה שבחור רואה)
+ * ניתוח AI מעודכן עבור ההצעה של נועה (מה שבחור רואה)
  */
 export const demoAiAnalysisForNoa: AiSuggestionAnalysisResult = {
-  overallScore: 88,
-  matchTitle: 'חיבור בין יצירתיות ועומק ערכי',
-  // --- UPDATED 'matchSummary' FIELD ---
+  overallScore: 91,
+  matchTitle: 'חיבור בין אופטימיות לאחריות',
   matchSummary:
-    'ההתאמה בין נועה לדניאל מבטיחה מאוד, ומתבססת על חיבור עמוק ברמת הערכים והאישיות. היצירתיות והרגישות של נועה משלימות את היציבות והנחישות של דניאל, ויוצרות פוטנציאל לזוגיות מאוזנת, תומכת ומלאת תוכן, שבה כל אחד יכול להיות הגרסה הטובה ביותר של עצמו.',
+    'ההתאמה בין נועה לדניאל מבטיחה מאוד ומתבססת על חיבור עמוק ברמת הערכים והאישיות. היצירתיות, הרגישות והאופטימיות של נועה משלימות באופן הרמוני את היציבות, האחריות והנחישות של דניאל, ויוצרות פוטנציאל לזוגיות מאוזנת, תומכת ומלאת תוכן, שבה כל אחד יכול להיות הגרסה הטובה ביותר של עצמו.',
   compatibilityPoints: [
     {
-      area: 'ראיית עולם ערכית',
+      area: 'ראיית עולם ערכית דומה',
       explanation:
-        'שניהם רואים בזוגיות שותפות מלאה ובבית מרכז של צמיחה, כבוד ואהבה. ישנה תפיסה דומה לגבי מהות הקשר והמטרות המשותפות.',
+        'שניהם רואים בזוגיות שותפות מלאה ובבית מרכז של צמיחה, כבוד ואהבה. ישנה תפיסה דומה לגבי מהות הקשר, חשיבות המשפחה וניהול בית משותף.',
     },
     {
       area: 'פתיחות ורצון לצמוח',
@@ -835,7 +813,7 @@ export const demoAiAnalysisForNoa: AiSuggestionAnalysisResult = {
         'נועה מחפשת "שותף לדרך", ודניאל מדבר על "לצעוד יחד". ישנה נכונות הדדית למסע משותף של גדילה, מה שמבטיח יכולת להתמודד עם אתגרים.',
     },
     {
-      area: 'אינטליגנציה רגשית',
+      area: 'אינטליגנציה רגשית משלימה',
       explanation:
         'הדגש של נועה על "שיחות עומק" והיכולת של דניאל לשלב בין עולם אנליטי לרגשי (נגינה, טבע) מעידים על פוטנציאל גבוה להבנה רגשית הדדית.',
     },
@@ -847,14 +825,14 @@ export const demoAiAnalysisForNoa: AiSuggestionAnalysisResult = {
         'דניאל שומר נגיעה ונועה לא. זוהי נקודה מהותית הדורשת שיחה פתוחה ומכבדת כדי להבין את הציפיות והגישות של כל אחד.',
     },
     {
-      area: 'מיקוד בקריירה',
+      area: 'גישה לכסף',
       explanation:
-        'שניהם נמצאים בשלבים חשובים בקריירה שלהם. חשוב לוודא שהשאיפות המקצועיות תומכות זו בזו ולא מתנגשות, ושיש תיאום ציפיות לגבי עתיד משותף.',
+        "דניאל רואה בכסף 'כלי לביטחון', בעוד נועה רואה בו 'איזון ואחריות'. הגישות קרובות אך לא זהות, וידרשו תיאום ציפיות ותקשורת פתוחה.",
     },
   ],
   suggestedConversationStarters: [
     'מהו הערך שהכי חשוב לך להנחיל בבית שתקים/י, ומדוע?',
-    'ספרו על חוויה מעצבת שתרמה למי שאתם היום.',
-    'איך הייתם מתארים את האיזון האידיאלי בין "אני", "את/ה" ו"אנחנו" בזוגיות?',
+    "מהי בעיניכם 'חלוקת תפקידים' אידיאלית בזוגיות מודרנית?",
+    'איך הייתם מתארים את השבת המושלמת שלכם?',
   ],
 };

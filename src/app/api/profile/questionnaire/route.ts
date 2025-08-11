@@ -212,22 +212,44 @@ export async function GET(req: Request) {
       formattedAnswers: completeFormattedAnswers,
     };
 
-    if (userId !== session.user.id) {
-      Object.keys(formattedResponse.formattedAnswers).forEach((worldKey) => {
-        const key = worldKey as WorldKey;
-        if (formattedResponse.formattedAnswers[key]) {
-          formattedResponse.formattedAnswers[key] =
-            formattedResponse.formattedAnswers[key].filter(
-              (answer) => answer.isVisible !== false
-            );
-        }
-      });
-    }
+ 
+const performingUser = await prisma.user.findUnique({
+  where: { id: session.user.id },
+  select: { role: true },
+});
 
-    return NextResponse.json({
-      success: true,
-      questionnaireResponse: formattedResponse,
-    });
+// ודא שהמשתמש קיים (בדיקת בטיחות)
+if (!performingUser) {
+  return NextResponse.json(
+    { success: false, error: 'Performing user not found' },
+    { status: 404 }
+  );
+}
+
+// בדוק אם הצופה הוא שדכן או אדמין
+const viewerIsAdminOrMatchmaker =
+  performingUser.role === 'ADMIN' || performingUser.role === 'MATCHMAKER';
+
+// שלב 2: החל את הסינון רק אם הצופה אינו שדכן או אדמין
+if (!viewerIsAdminOrMatchmaker) {
+  Object.keys(formattedResponse.formattedAnswers).forEach((worldKey) => {
+    const key = worldKey as WorldKey;
+    if (formattedResponse.formattedAnswers[key]) {
+      // סנן החוצה תשובות שאינן גלויות
+      formattedResponse.formattedAnswers[key] =
+        formattedResponse.formattedAnswers[key].filter(
+          (answer) => answer.isVisible !== false
+        );
+    }
+  });
+}
+// אם הצופה הוא כן שדכן או אדמין, הבלוק הזה לא ירוץ, והם יקבלו את כל התשובות ללא סינון.
+
+return NextResponse.json({
+  success: true,
+  questionnaireResponse: formattedResponse,
+});
+
   } catch (error) {
     console.error('Error in GET /api/profile/questionnaire:', error);
     return NextResponse.json(

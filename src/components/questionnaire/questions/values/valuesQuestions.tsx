@@ -74,6 +74,25 @@ export const valuesQuestions: Question[] = [
   },
   {
     worldId: 'VALUES',
+    id: 'values_childhood_home_atmosphere',
+    category: 'values',
+    subcategory: 'core_values',
+    question:
+      "אם היית צריך/ה לתאר את 'האווירה' בבית שבו גדלת בשלוש מילים, מה הן היו?",
+    type: 'openText',
+    depth: 'ADVANCED',
+    isRequired: false,
+    minLength: 10,
+    maxLength: 150,
+    placeholder: 'לדוגמה: חם, רועש ואינטלקטואלי / שקט, תומך וצנוע...',
+    metadata: {
+      estimatedTime: 1,
+      helpText:
+        'התשובה כאן חושפת את הרקע הרגשי והערכי שלך, ומסייעת לנו להבין איזה סוג של בית תרצה/י ליצור.',
+    },
+  },
+  {
+    worldId: 'VALUES',
     id: 'values_quiet_heroes', // שאלה חדשה
     category: 'values',
     subcategory: 'core_values',
@@ -169,6 +188,25 @@ export const valuesQuestions: Question[] = [
   },
   {
     worldId: 'VALUES',
+    id: 'values_health_lifestyle_importance',
+    category: 'values',
+    subcategory: 'life_priorities',
+    question:
+      'באיזו מידה בריאות פיזית, תזונה נכונה וכושר גופני הם ערך מרכזי בסדר היום שלך?',
+    type: 'scale',
+    depth: 'BASIC',
+    isRequired: true,
+    min: 1,
+    max: 10,
+    labels: { min: 'לא בראש מעייני', max: 'חלק משמעותי מחיי' },
+    metadata: {
+      estimatedTime: 1,
+      helpText:
+        'הרגלי חיים הם חלק חשוב מהיומיום הזוגי. התאמה כאן יכולה להקל על בניית שגרה משותפת.',
+    },
+  },
+  {
+    worldId: 'VALUES',
     id: 'values_feeling_of_home', // שאלה חדשה
     category: 'values',
     subcategory: 'community_social',
@@ -242,6 +280,25 @@ export const valuesQuestions: Question[] = [
   },
   {
     worldId: 'VALUES',
+    id: 'values_definition_of_success',
+    category: 'values',
+    subcategory: 'material_intellectual',
+    question: 'מהי ההגדרה שלך להצלחה בחיים?',
+    type: 'openText',
+    depth: 'ADVANCED',
+    isRequired: false,
+    minLength: 40,
+    maxLength: 400,
+    placeholder:
+      'האם הצלחה היא יציבות כלכלית? השפעה חברתית? גידול משפחה לתפארת? שלווה פנימית?',
+    metadata: {
+      estimatedTime: 2,
+      helpText:
+        'התשובה כאן היא חלון ישיר לשאיפות הכי עמוקות שלך, ומסייעת לנו למצוא מישהו/י עם שאיפות דומות.',
+    },
+  },
+  {
+    worldId: 'VALUES',
     id: 'values_lost_wallet', // שאלה חדשה
     category: 'values',
     subcategory: 'core_values',
@@ -264,15 +321,24 @@ export const valuesQuestions: Question[] = [
     id: 'values_giving_tzedaka_importance_revised',
     category: 'values',
     subcategory: 'material_intellectual',
+    // --- שינוי כאן: ניסוח השאלה מחדש להיות יותר קונקרטית ---
     question:
-      'עד כמה נתינה וחסד (בכסף, בזמן או במעשים) הם חלק פעיל ומרכזי בחיים שלך?',
+      'על סולם של 1 עד 10, מהי מידת המעורבות הפעילה שלך בנתינה וחסד (בכסף, בזמן או במעשים)?',
     type: 'scale',
     depth: 'BASIC',
     isRequired: true,
     min: 1,
     max: 10,
-    labels: { min: 'פחות מרכזי', max: 'מרכזי מאוד' },
-    metadata: { estimatedTime: 1 },
+    // --- שינוי כאן: הוספת תוויות ברורות יותר שמתארות התנהגות ---
+    labels: {
+      min: 'באופן ספונטני בלבד',
+      max: 'חלק קבוע ומרכזי בחיי',
+    },
+    metadata: {
+      estimatedTime: 1,
+      helpText:
+        "1 = 'אם יוצא לי, אני תורם/ת מדי פעם'. 10 = 'יש לי סדר קבוע של נתינה, התנדבות או מעורבות קהילתית'.",
+    },
   },
   {
     worldId: 'VALUES',

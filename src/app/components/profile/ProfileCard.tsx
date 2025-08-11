@@ -2516,7 +2516,6 @@ const ProfileHeader: React.FC<{
                         'justify-center min-w-max'
                       )}
                     >
-
                       {profile.occupation && (
                         <KeyFactCard
                           icon={Briefcase}
@@ -3540,11 +3539,32 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           <div className="flex-1 min-w-0 overflow-hidden">
             <h4
               className={cn(
-                'font-bold mb-2 sm:mb-3 text-gray-800 leading-relaxed break-words hyphens-auto word-break-break-word overflow-wrap-anywhere',
+                'font-bold mb-2 sm:mb-3 text-gray-800 leading-relaxed',
+                'flex items-center justify-between gap-2', // הוספנו flex כדי למקם את האייקון
                 compact ? 'text-sm' : 'text-sm sm:text-base'
               )}
             >
-              {answer.question}
+              {/* NEW: span for the question text to allow flex layout */}
+              <span className="flex-1 break-words hyphens-auto word-break-break-word overflow-wrap-anywhere">
+                {answer.question}
+              </span>
+
+              {/* NEW: Conditionally render a lock icon for confidential answers */}
+              {answer.isVisible === false && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex-shrink-0 flex items-center gap-1 bg-amber-100 text-amber-800 px-2 py-1 rounded-full text-xs cursor-default">
+                        <Lock className="w-3 h-3" />
+                        <span>חסוי</span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      <p>תשובה זו חסויה ומוצגת לשדכנים בלבד.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
             </h4>
             <div
               className={cn(
@@ -4662,11 +4682,20 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   questionnaire?.formattedAnswers?.[
                     worldKey as keyof typeof questionnaire.formattedAnswers
                   ] ?? []
-                ).filter(
-                  (answer) =>
-                    answer.isVisible !== false &&
-                    (answer.answer || answer.displayText)
-                );
+                ).filter((answer) => {
+                  // שלב ראשון: לוודא שיש בכלל תוכן להציג
+                  const hasContent = answer.answer || answer.displayText;
+                  if (!hasContent) {
+                    return false;
+                  }
+
+                  // שלב שני: להחיל את לוגיקת ההסתרה בהתאם למשתמש
+                  if (viewMode === 'matchmaker') {
+                    return true; // שדכן רואה את כל התשובות שיש להן תוכן
+                  } else {
+                    return answer.isVisible !== false; // משתמש רגיל רואה רק תשובות שאינן חסויות
+                  }
+                });
                 if (answersForWorld.length === 0) return null;
                 return (
                   <SectionCard

@@ -123,7 +123,31 @@ export const relationshipQuestions: Question[] = [
         "השאלה היא לא על 'ציפיות' אלא על הצרכים הרגשיים הבסיסיים שלך בקשר.",
     },
   },
-
+  {
+    worldId: 'RELATIONSHIP',
+    id: 'relationship_love_languages',
+    category: 'relationship',
+    subcategory: 'core_expectations',
+    question:
+      'כולנו מביעים ומקבלים אהבה בדרכים שונות. מה גורם לך להרגיש הכי אהוב/ה? (בחר/י את ה-2 העיקריים)',
+    type: 'multiSelect',
+    depth: 'BASIC',
+    isRequired: true,
+    minSelections: 1,
+    maxSelections: 2,
+    options: [
+      { value: 'מילים מחזקות', text: 'מילים מחזקות ומעודדות' },
+      { value: 'זמן איכות', text: 'זמן איכות אמיתי ושיחה' },
+      { value: 'מגע פיזי', text: 'מגע פיזי וחם' },
+      { value: 'עזרה מעשית', text: 'עזרה מעשית ודאגה (שירותים)' },
+      { value: 'מתנות', text: 'קבלת מתנות ופינוקים' },
+    ],
+    metadata: {
+      estimatedTime: 1,
+      helpText:
+        'הבנת "שפות האהבה" היא מפתח לתקשורת רגשית טובה ולמניעת תסכולים בזוגיות.',
+    },
+  },
   // --- חלק 2: תקשורת, קונפליקטים ותיקון ---
   {
     worldId: 'RELATIONSHIP',
@@ -199,6 +223,44 @@ export const relationshipQuestions: Question[] = [
       estimatedTime: 1,
       helpText:
         'הכנות שלך כאן חשובה. היא תעזור לנו להבין את סגנון ההתמודדות שלך.',
+    },
+  },
+  {
+    worldId: 'RELATIONSHIP',
+    id: 'relationship_repair_mechanism',
+    category: 'relationship',
+    subcategory: 'communication_intimacy',
+    question:
+      'לאחר ויכוח, מהי הדרך היעילה ביותר עבורך "לתקן" את הקשר ולחזור לקרבה?',
+    type: 'iconChoice',
+    depth: 'ADVANCED',
+    isRequired: false,
+    options: [
+      {
+        icon: <MessageCircle />,
+        text: 'שיחת עיבוד וניתוח של מה שקרה',
+        value: 'שיחת עיבוד',
+      },
+      {
+        icon: <HandHeart />,
+        text: 'פשוט חיבוק ו"להמשיך הלאה"',
+        value: 'חיבוק והמשך',
+      },
+      {
+        icon: <Clock />,
+        text: 'זמן קצר בנפרד ואז לחזור לדבר',
+        value: 'פסק זמן',
+      },
+      {
+        icon: <Sparkles />,
+        text: 'לעשות משהו כיפי ביחד כדי לשנות אווירה',
+        value: 'שינוי אווירה',
+      },
+    ],
+    metadata: {
+      estimatedTime: 1,
+      helpText:
+        'היכולת "לתקן" קרע חשובה יותר מהיכולת לא לריב. מהו "מפתח התיקון" שלך?',
     },
   },
   {

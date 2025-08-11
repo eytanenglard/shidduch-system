@@ -18,6 +18,8 @@ import {
   Sparkles,
   ArrowRight,
   CheckCircle,
+  Pause,
+  Play,
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -50,7 +52,7 @@ interface ConstellationLine {
 const MatchingConstellation: React.FC = () => {
   const [hoveredWorld, setHoveredWorld] = useState<number | null>(null);
   const [selectedWorld, setSelectedWorld] = useState<number>(1);
-  const [hasInteracted, setHasInteracted] = useState<boolean>(false);
+  const [isAutoPlaying, setIsAutoPlaying] = useState<boolean>(true);
   const [rotationOffset, setRotationOffset] = useState<number>(0);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [isMobile, setIsMobile] = useState<boolean>(false);
@@ -156,12 +158,12 @@ const MatchingConstellation: React.FC = () => {
   );
 
   useEffect(() => {
-    if (hasInteracted || isDragging) return;
+    if (!isAutoPlaying || isDragging) return;
     const interval = setInterval(() => {
       setSelectedWorld((prev) => (prev ? (prev % worlds.length) + 1 : 1));
     }, 4000);
     return () => clearInterval(interval);
-  }, [hasInteracted, isDragging, worlds.length]);
+  }, [isAutoPlaying, isDragging, worlds.length]);
 
   useEffect(() => {
     const targetWorld = worlds.find((w) => w.id === selectedWorld);
@@ -212,7 +214,7 @@ const MatchingConstellation: React.FC = () => {
   };
 
   const handleWorldInteraction = (worldId: number) => {
-    setHasInteracted(true);
+    setIsAutoPlaying(false);
     setSelectedWorld(worldId);
     setHoveredWorld(null);
 
@@ -225,7 +227,7 @@ const MatchingConstellation: React.FC = () => {
   };
 
   const handlePanStart = useCallback(() => {
-    setHasInteracted(true);
+    setIsAutoPlaying(false);
     setIsDragging(true);
     panStartRotation.current = rotationOffset;
   }, [rotationOffset]);
@@ -623,14 +625,49 @@ const MatchingConstellation: React.FC = () => {
                   >
                     {displayedWorld.icon}
                   </div>
+                  {/* --- START: מיקום חדש לכפתור --- */}
                   <div className="flex-1">
-                    <h4 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">
-                      {displayedWorld.title}
-                    </h4>
+                    <div className="flex justify-between items-start">
+                      <h4 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">
+                        {displayedWorld.title}
+                      </h4>
+                      <Button
+                        onClick={() => setIsAutoPlaying((prev) => !prev)}
+                        variant="ghost"
+                        size="icon"
+                        className="text-gray-400 hover:bg-gray-100 hover:text-gray-600 rounded-full w-10 h-10 -mr-2 -mt-1 flex-shrink-0"
+                        aria-label={
+                          isAutoPlaying ? 'Pause animation' : 'Play animation'
+                        }
+                      >
+                        <AnimatePresence mode="wait">
+                          {isAutoPlaying ? (
+                            <motion.div
+                              key="pause"
+                              initial={{ scale: 0.5, opacity: 0 }}
+                              animate={{ scale: 1, opacity: 1 }}
+                              exit={{ scale: 0.5, opacity: 0 }}
+                            >
+                              <Pause className="w-5 h-5" />
+                            </motion.div>
+                          ) : (
+                            <motion.div
+                              key="play"
+                              initial={{ scale: 0.5, opacity: 0 }}
+                              animate={{ scale: 1, opacity: 1 }}
+                              exit={{ scale: 0.5, opacity: 0 }}
+                            >
+                              <Play className="w-5 h-5" />
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </Button>
+                    </div>
                     <p className="text-base md:text-lg text-gray-600 font-medium">
                       {displayedWorld.shortDesc}
                     </p>
                   </div>
+                  {/* --- END: מיקום חדש לכפתור --- */}
                 </div>
                 <p className="text-gray-700 leading-relaxed text-base md:text-lg mb-6 md:mb-8">
                   {displayedWorld.fullDescription}
@@ -676,6 +713,7 @@ const MatchingConstellation: React.FC = () => {
               </div>
             </motion.div>
           </AnimatePresence>
+          {/* עדכון הטקסט התחתון */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -689,13 +727,9 @@ const MatchingConstellation: React.FC = () => {
               }}
               transition={{ duration: 0.2 }}
             >
-              {hasInteracted
-                ? isMobile
-                  ? 'החליקו ימינה/שמאלה או לחצו על עולם'
-                  : 'לחצו על העולמות או על סרגל ההתקדמות'
-                : isMobile
-                  ? 'החליקו על הקונסטלציה או המתינו לסיור'
-                  : 'רחפו מעל העולמות או המתינו לסיור אוטומטי'}
+              {isMobile
+                ? 'החליקו על הקונסטלציה כדי לסובב'
+                : 'השתמשו בסרגל ההתקדמות או לחצו על עולם'}
             </motion.div>
 
             {isDragging && isMobile && (

@@ -111,24 +111,68 @@ export const personalityQuestions: Question[] = [
   // --- חלק 2: אנרגיות וסגנון חיים - איך את/ה בעולם ---
   {
     worldId: 'PERSONALITY',
-    id: 'personality_introversion_extroversion_revised',
+    id: 'personality_social_battery_recharge',
     category: 'personality',
     subcategory: 'lifestyle',
     question:
-      "לכל אחד מאיתנו יש 'סוללה חברתית' שנטענת ומתרוקנת אחרת. איפה על הסקאלה הבאה נמצא 'שקע הטעינה' העיקרי שלך?",
+      "עבר עליך שבוע עמוס ואינטנסיבי. את/ה מרגיש/ה שה'סוללה החברתית' שלך קרובה להתרוקן. הגיע יום חמישי בערב, ויש לך ערב פנוי לחלוטין. איזו מהאפשרויות הבאות הכי קורצת לך ומרגישה כמו 'שקע הטעינה' המושלם עבורך?",
+    type: 'scenario', // שימוש ב'תרחיש' נותן תחושה עשירה יותר מאשר 'בחירת אייקונים'
+    depth: 'BASIC',
+    isRequired: true,
+    options: [
+      {
+        value: 'quiet_evening_alone',
+        icon: <Moon />, // אייקון שמסמל רוגע, לילה, התכנסות
+        text: 'ערב שקט בבית',
+        description:
+          'להזמין אוכל טעים, לראות סדרה טובה, לקרוא ספר, או פשוט להיות בשקט. אפס אינטראקציות חברתיות.',
+      },
+      {
+        value: 'intimate_gathering',
+        icon: <Coffee />, // אייקון שמסמל שיחה, מפגש אינטימי
+        text: 'מפגש אינטימי',
+        description:
+          'להתקשר לחבר/ה טוב/ה אחד/ת או שניים ולקבוע מפגש רגוע בבית קפה או בבית. שיחה עמוקה ואיכותית בקבוצה קטנה.',
+      },
+      {
+        value: 'energetic_social_outing',
+        icon: <Users />, // אייקון שמסמל קהל, חברה
+        text: 'יציאה חברתית אנרגטית',
+        description:
+          'לבדוק מה קורה הערב! להתארגן ולצאת לאירוע, בר, או מפגש עם קבוצה גדולה של חברים. להיות מוקף/ת באנשים ואנרגיה.',
+      },
+      {
+        value: 'flexible_combination',
+        icon: <Scale />, // אייקון שמסמל איזון, גמישות
+        text: 'שילוב גמיש',
+        description:
+          'להתחיל את הערב בבית במנוחה, ואולי מאוחר יותר להצטרף לחברים למשקה קצר אם ארגיש שיש לי כוח. זורם/ת לפי ההרגשה.',
+      },
+    ],
+    metadata: {
+      estimatedTime: 1,
+      helpText:
+        'אין פה תשובה "נכונה". התשובה שלך עוזרת לנו להבין מהם התנאים שבהם את/ה פורח/ת ונטען/ת מחדש, וזה קריטי להתאמה זוגית.',
+    },
+  },
+  // קוד להוספה:
+  {
+    worldId: 'PERSONALITY',
+    id: 'personality_biological_clock',
+    category: 'personality',
+    subcategory: 'lifestyle',
+    question:
+      "על סולם של 1 (איש של בוקר) עד 10 (ציפור לילה), מהו ה'שעון הביולוגי' הטבעי שלך?",
     type: 'scale',
     depth: 'BASIC',
     isRequired: true,
     min: 1,
     max: 10,
-    labels: {
-      min: 'מזמן שקט עם עצמי',
-      max: 'ממפגשים ואינטראקציה חברתית',
-      middle: 'שילוב מאוזן',
-    },
+    labels: { min: 'משכים קום', max: 'ער עד מאוחר' },
     metadata: {
       estimatedTime: 1,
-      helpText: '1 = אני נטען בעיקר לבד. 10 = אני נטען בעיקר בחברת אנשים.',
+      helpText:
+        'התאמה בקצב היומי יכולה להשפיע רבות על ההרמוניה בזוגיות. זהו נתון פרקטי שעוזר לנו להבין את סגנון החיים שלך.',
     },
   },
   {
@@ -148,6 +192,56 @@ export const personalityQuestions: Question[] = [
     metadata: {
       estimatedTime: 2,
       helpText: 'התשובה כאן מלמדת המון על מקורות האושר והסיפוק היומיומיים שלך.',
+    },
+  },
+  {
+    worldId: 'PERSONALITY',
+    id: 'personality_vacation_compass',
+    category: 'personality',
+    subcategory: 'lifestyle',
+    question:
+      "הדרך שבה אנחנו אוהבים לנפוש אומרת המון על האישיות שלנו. מהם המרכיבים שהופכים חופשה למושלמת עבורך? חלק/י 100 'נקודות חופשה' כדי לבנות את 'מצפן החופשה' שלך.",
+    type: 'budgetAllocation',
+    depth: 'ADVANCED',
+    isRequired: true,
+    totalPoints: 100,
+    categories: [
+      {
+        label: 'בטן-גב, רוגע ושלווה',
+        icon: <Bed />,
+        description: 'מנוחה מוחלטת, ספר טוב, נוף יפה, בלי לחץ ובלי תוכניות.',
+      },
+      {
+        label: 'טיולים, טבע והרפתקאות',
+        icon: <Mountain />,
+        description: 'מסלולי הליכה, נופים פראיים, פעילות פיזית ואתגר.',
+      },
+      {
+        label: 'עיר תוססת, תרבות ובילויים',
+        icon: <Sparkles />, // שימוש באייקון כללי יותר מעיר
+        description: 'מוזיאונים, מסעדות טובות, הופעות, קניות וחיי לילה.',
+      },
+      {
+        label: 'מפגש חברתי ומשפחתי',
+        icon: <Users />,
+        description: 'חופשה עם חברים או משפחה מורחבת, זמן איכות קבוצתי.',
+      },
+      {
+        label: 'זמן איכות זוגי ורומנטי',
+        icon: <Heart />,
+        description: 'התמקדות נטו בזוגיות, שיחות עומק, חוויות רומנטיות.',
+      },
+      {
+        label: 'העשרה, למידה ורוחניות',
+        icon: <BookOpen />,
+        description:
+          'סדנאות, סיורים לימודיים, אתרים היסטוריים, מקומות עם משמעות.',
+      },
+    ],
+    metadata: {
+      estimatedTime: 3,
+      helpText:
+        'אין תשובה לא נכונה. חשוב/י מה באמת מטעין אותך ונותן לך כוח. הסך הכל צריך להיות 100.',
     },
   },
   {
@@ -185,17 +279,26 @@ export const personalityQuestions: Question[] = [
   },
   {
     worldId: 'PERSONALITY',
-    id: 'personality_plan_change_reaction', // שאלה חדשה
+    id: 'personality_plan_change_reaction',
     category: 'personality',
     subcategory: 'emotional_coping',
     question:
-      'תכננתם בילוי חשוב במשך שבועות, וברגע האחרון הוא מתבטל מסיבה מוצדקת אך מאכזבת. על סולם של 1 (ממש בסדר, קורה) עד 10 (מאוד מתאכזב/ת וקשה לי להסתיר), איפה את/ה ממקמ/ת את תגובתך הרגשית?',
+      'תכננתם בילוי חשוב במשך שבועות, וברגע האחרון הוא מתבטל מסיבה מוצדקת אך מאכזבת. על הסקאלה הבאה, עד כמה הגמישות הפנימית שלך מאפשרת לך "לזרום" עם השינוי?',
     type: 'scale',
     depth: 'BASIC',
     isRequired: false,
     min: 1,
     max: 10,
-    labels: { min: 'זורם/ת', max: 'מתאכזב/ת' },
+    labels: {
+      min: 'זורם/ת לגמרי',
+      max: 'מאוד מתאכזב/ת',
+      middle: 'מאוכזב/ת אבל מתגבר/ת',
+    },
+    // שימוש בשדה חדש שנוסיף ל-types.ts
+    scaleDescriptions: {
+      min: "1 = 'מבאס, אבל לא נורא. קורה. בוא/י נחשוב על משהו אחר'.",
+      max: "10 = 'מאוד קשה לי להסתיר את האכזבה והתסכול, זה משפיע לי על כל הערב'.",
+    },
     metadata: {
       estimatedTime: 1,
       helpText:
@@ -309,6 +412,27 @@ export const personalityQuestions: Question[] = [
         'השאלה הזו בודקת את הדיאלוג הפנימי שלך - האם הוא ביקורתי או חומל? זה חשוב ליכולת להכיל גם את בן/בת הזוג.',
     },
   },
+  // קוד להוספה:
+  {
+    worldId: 'PERSONALITY',
+    id: 'personality_failure_lesson',
+    category: 'personality',
+    subcategory: 'emotional_coping',
+    question:
+      'חשוב/י על כישלון או אתגר משמעותי שחווית. מה למדת על עצמך מתוך ההתמודדות הזו?',
+    type: 'openText',
+    depth: 'EXPERT',
+    isRequired: false,
+    minLength: 50,
+    maxLength: 500,
+    placeholder:
+      'התמקד/י בתובנה על עצמך, על החוזקות שגילית או על התחומים שבהם את/ה עוד צריך/ה לצמוח...',
+    metadata: {
+      estimatedTime: 3,
+      helpText:
+        'השאלה הזו בוחנת חוסן נפשי, מודעות עצמית ויכולת צמיחה. הכנות שלך כאן היא מתנה עבורנו ועבורך.',
+    },
+  },
   {
     worldId: 'PERSONALITY',
     id: 'personality_handling_criticism_revised',
@@ -397,6 +521,31 @@ export const personalityQuestions: Question[] = [
       estimatedTime: 1,
       helpText:
         "השאלה בודקת את 'שפת התמיכה' הטבעית שלך, שהיא קריטית לדינמיקה זוגית.",
+    },
+  },
+  // קוד להוספה:
+  {
+    worldId: 'PERSONALITY',
+    id: 'personality_humor_type',
+    category: 'personality',
+    subcategory: 'social_communication',
+    question: 'איזה סוג של חוש הומור הכי מדבר אליך? (בחר/י עד 2)',
+    type: 'multiSelect',
+    depth: 'ADVANCED',
+    isRequired: false,
+    minSelections: 1,
+    maxSelections: 2,
+    options: [
+      { value: 'ציני ושנון', text: 'ציני ושנון' },
+      { value: 'משחקי מילים', text: 'משחקי מילים' },
+      { value: 'הומור מצבים (סיטקום)', text: 'הומור מצבים (סיטקום)' },
+      { value: 'הומור עצמי', text: 'הומור עצמי' },
+      { value: 'שטותניקי וקליל', text: 'שטותניקי וקליל ("שטויות")' },
+    ],
+    metadata: {
+      estimatedTime: 1,
+      helpText:
+        'התאמה בחוש הומור היא מפתח לכימיה וליכולת לצלוח את אתגרי החיים יחד.',
     },
   },
   {

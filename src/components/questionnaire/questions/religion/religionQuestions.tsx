@@ -23,38 +23,46 @@ import {
 
 export const religionQuestions: Question[] = [
   // --- חלק 1: זהות, אמונה והשקפה ---
-  {
+{
     worldId: 'RELIGION',
-    id: 'religion_self_definition_primary_revised',
+    id: 'religion_core_feeling_of_faith', // ID חדש וייחודי
     category: 'religion',
     subcategory: 'identity_belief',
-    question:
-      "איזו הגדרה על הרצף הדתי-רוחני הכי משקפת את ה'בית' שבו את/ה מרגיש/ה היום?",
+    question: 'מהי התחושה המרכזית שהאמונה והמסורת מעניקות לך בחייך?',
     type: 'iconChoice',
     depth: 'BASIC',
     isRequired: true,
     options: [
-      { icon: <Scroll />, text: 'חרדי/ת', value: 'חרדי' },
       {
-        icon: <BookOpen />,
-        text: 'דתי/ה לאומי/ת - תורני/ת',
-        value: 'דתי-תורני',
+        icon: <ShieldCheck />,
+        text: 'ביטחון, יציבות וסדר בעולם',
+        value: 'ביטחון ויציבות',
+        description: 'המסורת נותנת לי עוגן, מסגרת ברורה ושקט נפשי.'
       },
-      { icon: <Sparkles />, text: 'דתי/ה לאומי/ת - פתוח/ה', value: 'דתי-פתוח' },
-      { icon: <Heart />, text: 'מסורתי/ת', value: 'מסורתי' },
       {
-        icon: <Users />,
-        text: 'חילוני/ת עם זיקה למסורת',
-        value: 'חילוני-מסורתי',
+        icon: <Target />,
+        text: 'משמעות, שייכות ומטרה',
+        value: 'משמעות ושייכות',
+        description: 'האמונה מחברת אותי לסיפור גדול יותר ונותנת כיוון לחיי.'
       },
-      { icon: <Lightbulb />, text: 'רוחני/ת בדרכי', value: 'רוחני' },
+      {
+        icon: <Sparkles />,
+        text: 'שמחה, הודיה והתרוממות רוח',
+        value: 'שמחה והודיה',
+        description: 'היהדות ממלאת את חיי באור, בחגיגיות ובהתלהבות.'
+      },
+      {
+        icon: <Brain />,
+        text: 'אתגר, צמיחה ולמידה מתמדת',
+        value: 'אתגר וצמיחה',
+        description: 'העיסוק ביהדות מאתגר אותי אינטלקטואלית ומוסרית ודוחף אותי להשתפר.'
+      }
     ],
     metadata: {
       estimatedTime: 1,
-      helpText:
-        'בחר/י את התיאור שהכי קרוב לליבך ולדרך חייך, גם אם הוא לא מדויק ב-100%.',
-    },
-  },
+      helpText: 'נסה/י לבחור את התחושה הדומיננטית ביותר. זוהי פתיחה מצוינת להבין את החיבור האישי שלך.'
+    }
+},
   {
     worldId: 'RELIGION',
     id: 'religion_my_personal_prayer', // שאלה חדשה
@@ -86,8 +94,18 @@ export const religionQuestions: Question[] = [
     isRequired: false,
     min: 1,
     max: 10,
-    labels: { min: 'מתייעץ/ת עם עצמי', max: 'חלק בלתי נפרד' },
-    metadata: { estimatedTime: 1 },
+    // --- שינוי כאן: הוספת תוויות ברורות יותר ---
+    labels: {
+      min: 'מחליט/ה בעצמי',
+      max: 'תמיד מתייעץ/ת',
+      middle: 'לפעמים, בנושאים כבדים',
+    },
+    metadata: {
+      estimatedTime: 1,
+      // --- שינוי כאן: הוספת טקסט עזרה כדי להבהיר את הסקאלה ---
+      helpText:
+        "1 = 'אני סומך/ת בעיקר על שיקול הדעת שלי'. 10 = 'התייעצות עם דמות רוחנית היא חלק בלתי נפרד מתהליך קבלת ההחלטות שלי'.",
+    },
   },
 
   // --- חלק 2: הלכה למעשה - היומיום הדתי ---
@@ -122,6 +140,30 @@ export const religionQuestions: Question[] = [
       estimatedTime: 1,
       helpText:
         "שני אנשים יכולים לשמור שבת באותה רמה, אך לחוות אותה אחרת לגמרי. מהי 'חווית השבת' שלך?",
+    },
+  },
+  {
+    worldId: 'RELIGION',
+    id: 'religion_daily_spiritual_connection',
+    category: 'religion',
+    subcategory: 'practical_observance',
+    question: 'כיצד את/ה מתחבר/ת לקב"ה ביומיום, מעבר לתפילות הפורמליות?',
+    type: 'multiSelect',
+    depth: 'ADVANCED',
+    isRequired: false,
+    minSelections: 1,
+    maxSelections: 3,
+    options: [
+      { value: 'לימוד תורה', text: 'דרך לימוד תורה (גמרא, הלכה, מחשבה)' },
+      { value: 'התבודדות ותפילה אישית', text: 'התבודדות ותפילה אישית' },
+      { value: 'התבוננות בטבע', text: 'התבוננות בטבע ובהודיה על הבריאה' },
+      { value: 'עשיית חסד', text: 'דרך עשיית חסד ונתינה' },
+      { value: 'שירה וניגון', text: 'דרך שירה וניגון' },
+    ],
+    metadata: {
+      estimatedTime: 1,
+      helpText:
+        'שאלה זו מבדילה בין קיום מצוות טכני לבין חיים רוחניים פנימיים ופעילים.',
     },
   },
   {
@@ -193,6 +235,25 @@ export const religionQuestions: Question[] = [
     metadata: {
       estimatedTime: 1,
       helpText: 'השאלה בוחנת את הגבולות והגמישות שלך במפגש עם התרבות הכללית.',
+    },
+  },
+  {
+    worldId: 'RELIGION',
+    id: 'religion_general_culture_consumption',
+    category: 'religion',
+    subcategory: 'community_influence',
+    question:
+      'מהי גישתך לצריכת תרבות כללית (סרטים, סדרות, מוזיקה) שאינה מגיעה מהעולם הדתי?',
+    type: 'scale',
+    depth: 'ADVANCED',
+    isRequired: false,
+    min: 1,
+    max: 10,
+    labels: { min: 'נמנע/ת כמעט לחלוטין', max: 'צורך/ת בחופשיות' },
+    metadata: {
+      estimatedTime: 1,
+      helpText:
+        'זוהי שאלה פרקטית המגדירה את מידת הפתיחות או השמרנות בחיי היומיום, ויכולה למנוע חיכוכים רבים.',
     },
   },
   {
