@@ -240,6 +240,10 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
       religiousLevel: profileData?.religiousLevel || undefined,
       about: profileData?.about || '',
       parentStatus: profileData?.parentStatus || undefined,
+      // --- הוספה ---
+      fatherOccupation: profileData?.fatherOccupation || '',
+      motherOccupation: profileData?.motherOccupation || '',
+      // --- סוף הוספה ---
       siblings: profileData?.siblings ?? undefined,
       position: profileData?.position ?? undefined,
       isProfileVisible: profileData?.isProfileVisible ?? true,
@@ -369,6 +373,10 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
           'religiousJourney',
           'about',
           'parentStatus',
+          // --- הוספה ---
+          'fatherOccupation',
+          'motherOccupation',
+          // --- סוף הוספה ---
           'serviceDetails',
           'aliyaCountry',
           'availabilityNote',
@@ -900,6 +908,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4 md:p-6">
+                {/* --- שינוי --- שינוי הגריד כדי להכיל את השדות החדשים בנוחות */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5 items-start">
                   <div>
                     <Label className="block mb-1.5 text-xs font-medium text-gray-600">
@@ -935,43 +944,43 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                   {(formData.maritalStatus === 'divorced' ||
                     formData.maritalStatus === 'widowed' ||
                     formData.maritalStatus === 'annulled') && (
-                    <div
-                      className={cn(
-                        'pt-1 sm:pt-0',
-                        isEditing && !viewOnly ? 'sm:pt-5' : 'sm:pt-0'
-                      )}
-                    >
-                      <Label className="block mb-1.5 text-xs font-medium text-gray-600">
-                        ילדים מקשר קודם?
-                      </Label>
-                      {isEditing && !viewOnly ? (
-                        <div className="flex items-center space-x-2 rtl:space-x-reverse mt-2">
-                          <Checkbox
-                            id="hasChildrenFromPrevious"
-                            checked={formData.hasChildrenFromPrevious || false}
-                            onCheckedChange={(checked) =>
-                              handleChange(
-                                'hasChildrenFromPrevious',
-                                checked as boolean
-                              )
-                            }
-                          />
-                          <Label
-                            htmlFor="hasChildrenFromPrevious"
-                            className="text-sm font-normal text-gray-700"
-                          >
-                            יש ילדים
-                          </Label>
-                        </div>
-                      ) : (
-                        <p className="text-sm text-gray-800 font-medium mt-1">
-                          {renderBooleanDisplayValue(
-                            formData.hasChildrenFromPrevious
-                          )}
-                        </p>
-                      )}
-                    </div>
-                  )}
+                      <div
+                        className={cn(
+                          'pt-1 sm:pt-0',
+                          isEditing && !viewOnly ? 'sm:pt-5' : 'sm:pt-0'
+                        )}
+                      >
+                        <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                          ילדים מקשר קודם?
+                        </Label>
+                        {isEditing && !viewOnly ? (
+                          <div className="flex items-center space-x-2 rtl:space-x-reverse mt-2">
+                            <Checkbox
+                              id="hasChildrenFromPrevious"
+                              checked={formData.hasChildrenFromPrevious || false}
+                              onCheckedChange={(checked) =>
+                                handleChange(
+                                  'hasChildrenFromPrevious',
+                                  checked as boolean
+                                )
+                              }
+                            />
+                            <Label
+                              htmlFor="hasChildrenFromPrevious"
+                              className="text-sm font-normal text-gray-700"
+                            >
+                              יש ילדים
+                            </Label>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-gray-800 font-medium mt-1">
+                            {renderBooleanDisplayValue(
+                              formData.hasChildrenFromPrevious
+                            )}
+                          </p>
+                        )}
+                      </div>
+                    )}
                   <div>
                     <Label className="block mb-1.5 text-xs font-medium text-gray-600">
                       מצב הורים
@@ -991,6 +1000,50 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       </p>
                     )}
                   </div>
+
+                  {/* --- הוספה: מקצוע האב --- */}
+                  <div>
+                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                      מקצוע האב
+                    </Label>
+                    {isEditing && !viewOnly ? (
+                      <Input
+                        value={formData.fatherOccupation || ''}
+                        onChange={(e) =>
+                          handleChange('fatherOccupation', e.target.value)
+                        }
+                        placeholder="לדוגמה: מהנדס, עורך דין"
+                        className="h-9 text-sm focus:ring-cyan-500"
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-800 font-medium mt-1">
+                        {renderDisplayValue(formData.fatherOccupation)}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* --- הוספה: מקצוע האם --- */}
+                  <div>
+                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                      מקצוע האם
+                    </Label>
+                    {isEditing && !viewOnly ? (
+                      <Input
+                        value={formData.motherOccupation || ''}
+                        onChange={(e) =>
+                          handleChange('motherOccupation', e.target.value)
+                        }
+                        placeholder="לדוגמה: מורה, רופאה"
+                        className="h-9 text-sm focus:ring-cyan-500"
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-800 font-medium mt-1">
+                        {renderDisplayValue(formData.motherOccupation)}
+                      </p>
+                    )}
+                  </div>
+                  {/* --- סוף הוספה --- */}
+                  
                   <div>
                     <Label className="block mb-1.5 text-xs font-medium text-gray-600">
                       מספר אחים/אחיות
@@ -1558,7 +1611,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           disabled={
                             !viewOnly &&
                             (formData.profileCharacterTraits || []).length >=
-                              3 &&
+                            3 &&
                             !(formData.profileCharacterTraits || []).includes(
                               trait.value
                             )

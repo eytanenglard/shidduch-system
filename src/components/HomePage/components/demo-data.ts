@@ -1,9 +1,11 @@
+
 // src/components/HomePage/components/demo-data.ts
 
 // ============================================================================
 // קובץ זה נבנה מחדש כדי לשקף את השאלות המעודכנות והמעמיקות מהשאלון.
 // התשובות של נועה ודניאל הורחבו בכל חמשת העולמות כדי ליצור פרופילים
 // עשירים, אותנטיים וקוהרנטיים, המדגימים את יכולות האיפיון של המערכת.
+// נוספו פרטי רקע, מסלולי לימוד ושירות, וניואנסים אישיים בהשראת דוגמאות.
 // ============================================================================
 
 import type {
@@ -45,7 +47,7 @@ const noaQuestionnaireResponse: QuestionnaireResponseType = {
     personality_social_battery_recharge: 'intimate_gathering',
     personality_biological_clock: 7,
     personality_good_vs_perfect_day:
-      "יום 'מושלם' זה משהו גדול, אבל יום 'ממש טוב' נבנה מהרבה דברים קטנים: שיחת טלפון טובה עם אמא, פידבק חיובי בעבודה על עיצוב שעבדתי עליו קשה, פלייליסט חדש ומדויק שמלווה אותי, ולסיים את היום עם שיחה טובה וכוס תה. זו תחושה של סיפוק ושלווה.",
+      "יום 'מושלם' זה משהו גדול, אבל יום 'ממש טוב' נבנה מהרבה דברים קטנים: שיחת טלפון טובה עם אמא, פריצת דרך יצירתית בעבודה על עיצוב שעבדתי עליו קשה, טיול ספונטני לים בשקיעה, ולסיים את היום עם שיחה טובה וכוס תה. זו תחושה של סיפוק ושלווה.",
     personality_daily_structure_revised: 'איזון',
     personality_stress_management_revised: [
       'שיחה ופריקה',
@@ -89,7 +91,7 @@ const noaQuestionnaireResponse: QuestionnaireResponseType = {
     relationship_communication_ideal_revised: 'רגישות ואמפתיה',
     relationship_handling_partner_disappointment_revised: 'לרצות לדבר על זה מיד כדי לפתור.',
     relationship_household_philosophy:
-      "אני מאמינה בשותפות מלאה וגמישה. לא 'תפקידים' קבועים, אלא צוות שפועל יחד לפי נקודות החוזק והזמן הפנוי של כל אחד. יום אחד אני אהיה החזקה כשהוא צריך תמיכה, ויום אחר הוא יהיה שם בשבילי. הכל בתקשורת פתוחה.",
+      "אני מאמינה בשותפות מלאה וגמישה, כמו שראיתי בבית הורי, שם אבא איש כספים ואמא אמנית, וכל אחד מביא את החוזקות שלו. לא 'תפקידים' קבועים, אלא צוות שפועל יחד לפי נקודות החוזק והזמן הפנוי. הכל בתקשורת פתוחה.",
     relationship_daily_togetherness_vs_autonomy_revised: 7,
     relationship_family_vision_children_revised: 'הורות היא חלק מרכזי',
     relationship_deal_breaker_summary_final_revised:
@@ -102,6 +104,12 @@ const noaQuestionnaireResponse: QuestionnaireResponseType = {
       'שנינות ועומק',
     ],
     partner_appearance_importance_scale_revised: 6,
+    partner_intelligence_types: {
+      'רגשית (אמפתיה, מודעות)': 40,
+      'יצירתית (הומור, מקוריות)': 30,
+      'חוכמת חיים ("שכל ישר")': 20,
+      'אנליטית (היגיון, ניתוח)': 10,
+    },
     partner_core_character_traits_essential_revised: {
       'חום, אמפתיה וטוב לב': 30,
       'תקשורת טובה והקשבה': 25,
@@ -117,16 +125,19 @@ const noaQuestionnaireResponse: QuestionnaireResponseType = {
   },
   religionAnswers: {
     religion_self_definition_primary_revised: 'דתי-פתוח',
+    religion_my_personal_prayer:
+      "התפילה 'מודה אני'. היא מזכירה לי להתחיל כל יום מחדש בהודיה, בפשטות, בלי ציניות. זה רגע קטן של אמונה טהורה שמכוון לי את כל היום.",
+    religion_rabbinic_guidance_role_revised: 5,
     religion_shabbat_experience: 'זמן משפחה',
     religion_kashrut_observance_details_revised:
       'אני סומכת על כשרות רבנות, ובחוץ אוכלת במסעדות עם תעודת כשרות. אצל חברים, אם אני יודעת שהמטבח כשר, ארגיש בנוח לאכול.',
     religion_modesty_personal_approach_revised:
-      'הצניעות שלי באה לידי ביטוי בעיקר בבחירת לבוש מכבד ובדיבור נקי. אני לא שומרת נגיעה, אבל מאמינה ביצירת קשר ראשוני שמבוסס על היכרות עם האישיות לפני הפיזיות. הגישה שלי היא "פנימיות שמשתקפת בחיצוניות".',
+      'הצניעות שלי באה לידי ביטוי בעיקר בבחירת לבוש מכבד (לובשת גם מכנסיים וגם חצאיות) ובדיבור נקי. אני לא שומרת נגיעה, אבל מאמינה ביצירת קשר ראשוני שמבוסס על היכרות עם האישיות לפני הפיזיות. הגישה שלי היא "פנימיות שמשתקפת בחיצוניות".',
     religion_partner_ideal_religious_profile_revised:
       'מחפשת מישהו מהעולם הדתי-לאומי, פתוח ומכיל. חשוב לי שיהיה מחובר למסורת ולרוחניות, אבל לא בצורה נוקשה. מישהו שיש לו יראת שמיים, אבל גם חי את העולם המודרני ומוצא את האיזון הנכון.',
     religion_flexibility_religious_differences_partner_revised: 8,
     religion_children_education_religious_vision_revised:
-      'הייתי רוצה להעניק לילדינו חינוך דתי-לאומי פתוח ומכיל, ששם דגש על מידות טובות, אהבת התורה והארץ, וחיבור לעם ישראל. חשוב לי שהם יגדלו להיות אנשים חושבים, עם יראת שמיים פנימית ועמוקה.',
+      'החזון שלי הוא להקים בית שבו ילדים גדלים עם ערכים של נתינה, אהבת התורה וארץ ישראל. חשוב לי שהחינוך יהיה דתי-לאומי פתוח ומאפשר שאלת שאלות, כזה שמצמיח אנשים חושבים, עם יראת שמיים פנימית ועמוקה.',
   },
   valuesCompleted: true,
   personalityCompleted: true,
@@ -147,6 +158,17 @@ const noaQuestionnaireResponse: QuestionnaireResponseType = {
   createdAt: new Date(),
   updatedAt: new Date(),
   formattedAnswers: {
+    personality: [
+      {
+        questionId: 'personality_strengths_and_weaknesses_revised',
+        question: 'ספר/י על שתי תכונות חזקות ואחת לשיפור.',
+        answer: 'שתי תכונות שאני אוהבת בעצמי הן האופטימיות והיכולת להקשיב...',
+        displayText:
+          'שתי תכונות שאני אוהבת בעצמי הן האופטימיות שלי והיכולת להקשיב באמת. אני מאמינה שאלו כלים שעוזרים לי ולקשרים שלי. התכונה שהייתי רוצה לשפר היא אסרטיביות - לפעמים אני נוטה לרצות אחרים על חשבון הצרכים שלי, ואני לומדת לשים לעצמי גבולות בריאים יותר.',
+        isVisible: false,
+        answeredAt: new Date(),
+      } as FormattedAnswer,
+    ],
     values: [
       {
         questionId: 'values_core_elaboration_revised',
@@ -159,47 +181,35 @@ const noaQuestionnaireResponse: QuestionnaireResponseType = {
         answeredAt: new Date(),
       } as FormattedAnswer,
     ],
-    personality: [
-      {
-        questionId: 'personality_self_portrayal_revised',
-        question: 'איך היית מתארת את עצמך ב3-5 דברים מרכזיים?',
-        answer: 'אני אדם אופטימי וחיובי...',
-        displayText:
-          "אני אדם אופטימי וחיובי, שמאמין שאפשר למצוא את הטוב בכל מצב. אני מאוד יצירתית, מה שבא לידי ביטוי בעבודה ובתחביבים שלי, ויש לי יכולת הקשבה טובה - חברים אומרים שאני 'מכילה'. חשוב לי מאוד לנהל שיחות עומק, אבל אני גם אוהבת לצחוק וליהנות מהדברים הפשוטים.",
-        isVisible: true,
-        answeredAt: new Date(),
-      } as FormattedAnswer,
-    ],
     relationship: [
       {
         questionId: 'relationship_household_philosophy',
         question: 'מהי הנוסחה לחלוקת אחריות בניהול הבית?',
         answer: "אני מאמינה בשותפות מלאה וגמישה...",
         displayText:
-          "אני מאמינה בשותפות מלאה וגמישה. לא 'תפקידים' קבועים, אלא צוות שפועל יחד לפי נקודות החוזק והזמן הפנוי של כל אחד. יום אחד אני אהיה החזקה כשהוא צריך תמיכה, ויום אחר הוא יהיה שם בשבילי. הכל בתקשורת פתוחה.",
+          "אני מאמינה בשותפות מלאה וגמישה, כמו שראיתי בבית הורי, שם אבא איש כספים ואמא אמנית, וכל אחד מביא את החוזקות שלו. לא 'תפקידים' קבועים, אלא צוות שפועל יחד לפי נקודות החוזק והזמן הפנוי. הכל בתקשורת פתוחה.",
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
     ],
     partner: [
       {
-        questionId: 'partner_must_have_quality_final_revised',
-        question:
-          "מהי 'אבן הראשה' – התכונה האחת שעליה כל בניין הזוגיות שלכם יעמוד?",
-        answer: 'התכונה האחת שעליה הכל עומד היא טוב לב...',
+        questionId: 'partner_deal_breakers_open_text_revised',
+        question: "מהו ה'קו האדום' האחד או שניים, שלא תוכל/י לחיות איתו/איתה?",
+        answer: 'הקו האדום המוחלט שלי הוא ציניות מתנשאת...',
         displayText:
-          'התכונה האחת שעליה הכל עומד היא טוב לב. אדם עם לב טוב הוא אדם שיודע לתת, לקבל, לסלוח ולהיות שותף אמיתי. כל השאר נבנה על היסוד הזה.',
+          'הקו האדום המוחלט שלי הוא ציניות מתנשאת וחוסר כבוד בסיסי לאנשים (למשל, איך שהוא מדבר למלצר). אני לא יכולה להיות עם מישהו שלא יודע לכבד כל אדם באשר הוא.',
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
     ],
     religion: [
       {
-        questionId: 'religion_shabbat_experience',
-        question: 'מהי המהות או החוויה המרכזית שאת/ה מחפש/ת בשבת?',
-        answer: 'זמן משפחה',
+        questionId: 'religion_my_personal_prayer',
+        question: 'מהו קטע התפילה או ההגות שהכי מדבר אליך?',
+        answer: "התפילה 'מודה אני'...",
         displayText:
-          'המהות המרכזית שאני מחפשת בשבת היא זמן איכות למשפחה, לביחד ולשיח.',
+          "התפילה 'מודה אני'. היא מזכירה לי להתחיל כל יום מחדש בהודיה, בפשטות, בלי ציניות. זה רגע קטן של אמונה טהורה שמכוון לי את כל היום.",
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
@@ -255,9 +265,11 @@ const noaProfile: PartyInfo = {
     height: 168,
     city: 'תל אביב',
     occupation: 'מעצבת UX/UI בכירה',
-    education: 'תואר ראשון בתקשורת חזותית, בצלאל',
+      fatherOccupation: 'יועץ פיננסי',
+    motherOccupation: 'אמנית ובעלת סטודיו לקרמיקה',
+    education: 'תואר ראשון בתקשורת חזותית, בצלאל; בוגרת מדרשת לינדנבאום',
     educationLevel: 'academic_ba',
-    religiousLevel: 'דתי לאומי פתוח', // עודכן כדי להתאים להגדרה בשאלון
+    religiousLevel: 'דתי לאומי פתוח',
     shomerNegiah: false,
     about:
       'אופטימית וחובבת שיחות עומק על כוס קפה. מוצאת יופי בדברים הקטנים של החיים, בין אם זה טיול בטבע או פלייליסט טוב. אחרי כמה ניסיונות שלא צלחו, אני יודעת היום טוב יותר מה נכון לי, ומחפשת שותף לדרך, לבנות יחד בית שמלא בצחוק, כבוד הדדי וצמיחה משותפת.',
@@ -297,12 +309,12 @@ const noaProfile: PartyInfo = {
     religiousJourney: ReligiousJourney.BORN_INTO_CURRENT_LIFESTYLE,
     manualEntryText: null,
     preferredReligiousJourneys: [ReligiousJourney.BORN_INTO_CURRENT_LIFESTYLE],
-    serviceDetails: null,
+    serviceDetails: 'שנתיים שירות לאומי משמעותי עם ילדים בחינוך מיוחד.',
     headCovering: null,
     kippahType: null,
     aliyaCountry: null,
     aliyaYear: null,
-    siblings: 4,
+    siblings: 2,
     position: 2,
     preferredHeightMin: 175,
     preferredHeightMax: 190,
@@ -334,7 +346,7 @@ export const demoSuggestionDataFemale: ExtendedMatchSuggestion = {
   lastActivity: new Date(),
   category: 'ACTIVE',
   matchingReason:
-    'מה שהדהד לי במיוחד בחיבור ביניכם הוא השילוב הנדיר של עומק וקלילות. שניכם מחפשים "שותף לדרך" עם "ראש פתוח", ומדברים על בית שמבוסס על "כבוד וצמיחה". אני מאמין שהיציבות והשאיפה למשמעות שלך, יחד עם היצירתיות והאופטימיות של נועה, יוצרים בסיס מדהים לקשר אמיתי.',
+    'מה שהדהד לי במיוחד בחיבור ביניכם הוא השילוב הנדיר של עומק וקלילות. שניכם מחפשים "שותף לדרך" עם "ראש פתוח", ומדברים על בית שמבוסס על "כבוד וצמיחה". אני מאמין שהיציבות והשאיפה למשמעות שלך, יחד עם היצירתיות, האופטימיות והאמפתיה של נועה (שעשתה שירות עם ילדים מיוחדים), יוצרים בסיס מדהים לקשר אמיתי.',
   firstPartyNotes:
     'זו הצעה שאני מתרגשת במיוחד להציג לך. נועה היא בחורה איכותית, עם עומק ורגישות שנדיר למצוא. אני חושבת שהיא בדיוק מה שחיפשת.',
   secondPartyNotes: null,
@@ -387,7 +399,7 @@ const danielQuestionnaireResponse: QuestionnaireResponseType = {
   userId: 'demo-profile-daniel',
   personalityAnswers: {
     personality_self_portrayal_revised:
-      "אני אדם של עשייה, אוהב אתגרים ומטרות. חשובה לי מאוד האמינות, ואני תמיד משתדל לעמוד במילה שלי. יש לי צד אנליטי חזק, מה שמתחבר לעיסוק שלי בהנדסה, אבל אני מאזן את זה עם צד יצירתי - אני אוהב לנגן בגיטרה ולבלות בטבע. אני מחפש צמיחה מתמדת, גם בקריירה וגם בחיים האישיים.",
+      "אני אדם של עשייה, אוהב אתגרים ומטרות. חשובה לי מאוד האמינות, ואני תמיד משתדל לעמוד במילה שלי. יש לי צד אנליטי חזק, שקיבלתי מהלימודים בישיבת הגוש ובהנדסה, אבל אני מאזן את זה עם צד יצירתי - אני אוהב לנגן בגיטרה ומתחבר מאוד לעולם החסידות. אני מחפש צמיחה מתמדת, גם בקריירה וגם בחיים האישיים.",
     personality_core_trait_selection_revised: {
       'ישר/ה ואמין/ה': 30,
       'שאפתנ/ית ובעל/ת מוטיבציה': 25,
@@ -423,7 +435,7 @@ const danielQuestionnaireResponse: QuestionnaireResponseType = {
       'רוחניות, אמונה ומסורת': 10,
     },
     values_core_elaboration_revised:
-      "הערך המרכזי שלי הוא אחריות אישית. בצבא, הייתי צריך לקבל החלטה מבצעית מורכבת תחת לחץ. בחרתי בדרך הפעולה הבטוחה יותר, למרות שהיא הייתה פחות 'זוהרת'. זו הייתה החלטה שהתבססה על אחריות לחיי אדם, והיא חיזקה אצלי את ההבנה שיושרה ואחריות הן מעל הכל.",
+      "הערך המרכזי שלי הוא אחריות. כששירתי כקצין בהנדסה קרבית, הייתי צריך לקבל החלטה מבצעית מורכבת תחת לחץ. בחרתי בדרך הפעולה הבטוחה יותר, למרות שהיא הייתה פחות 'זוהרת'. זו הייתה החלטה שהתבססה על אחריות לחיי החיילים שלי, והיא חיזקה אצלי את ההבנה שיושרה ואחריות הן מעל הכל.",
     values_health_lifestyle_importance: 8,
     values_attitude_towards_money_revised: 'כלי לביטחון',
     values_lost_wallet:
@@ -458,6 +470,8 @@ const danielQuestionnaireResponse: QuestionnaireResponseType = {
       'תחושת ביטחון',
     ],
     partner_appearance_importance_scale_revised: 7,
+    partner_completion_trait:
+      'כאדם שרגיל לתכנן ולפעול בצורה מאוד מובנית, הייתי שמח למצוא מישהי עם יותר ספונטניות וזרימה, כזו שתעזור לי לפעמים לצאת מהקופסה ולהכניס קצת הרפתקנות לחיים.',
     partner_core_character_traits_essential_revised: {
       'יושרה, אמינות וכנות': 30,
       'אינטליגנט/ית וסקרנ/ית': 25,
@@ -473,6 +487,9 @@ const danielQuestionnaireResponse: QuestionnaireResponseType = {
   },
   religionAnswers: {
     religion_self_definition_primary_revised: 'דתי-פתוח',
+    religion_my_personal_prayer:
+      "קטע של הרב זקס שמדבר על 'אמונה כשיחה מתמשכת'. זה מתחבר לי לתפיסה שהאמונה היא לא משהו סטטי, אלא מסע דינמי של שאלה, חיפוש ותשובה, וזה מרתק אותי.",
+    religion_rabbinic_guidance_role_revised: 8,
     religion_shabbat_experience: 'התעלות רוחנית',
     religion_kashrut_observance_details_revised:
       'אני מקפיד על כשרות מהדרין. מחוץ לבית אני אוכל רק במקומות עם תעודת כשרות למהדרין. אני לא אוכל בבתים של אחרים אלא אם אני בטוח ברמת הכשרות שלהם.',
@@ -505,11 +522,12 @@ const danielQuestionnaireResponse: QuestionnaireResponseType = {
   formattedAnswers: {
     values: [
       {
-        questionId: 'values_lost_wallet',
-        question: 'מצאת ארנק ברחוב. מהם הצעדים המדויקים שתעשה?',
-        answer: 'אני מיד מנסה לאתר את הבעלים...',
+        questionId: 'values_core_elaboration_revised',
+        question:
+          'ספר/י על צומת דרכים אחד בחיים שבו הלכת לפי הערך הכי חשוב לך.',
+        answer: "הערך המרכזי שלי הוא אחריות. כששירתי כקצין...",
         displayText:
-          'אני מיד מנסה לאתר את הבעלים. אם יש תעודה מזהה, אחפש ברשתות החברתיות או אנסה להתקשר אם יש מספר טלפון. אם אין, אשאל אנשים בסביבה אם ראו משהו. אם כל זה לא עובד, אקח את הארנק למשטרה. כסף לא שלי זה לא שלי.',
+          "הערך המרכזי שלי הוא אחריות. כששירתי כקצין בהנדסה קרבית, הייתי צריך לקבל החלטה מבצעית מורכבת תחת לחץ. בחרתי בדרך הפעולה הבטוחה יותר, למרות שהיא הייתה פחות 'זוהרת'. זו הייתה החלטה שהתבססה על אחריות לחיי החיילים שלי, והיא חיזקה אצלי את ההבנה שיושרה ואחריות הן מעל הכל.",
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
@@ -538,11 +556,11 @@ const danielQuestionnaireResponse: QuestionnaireResponseType = {
     ],
     partner: [
       {
-        questionId: 'partner_deal_breakers_open_text_revised',
-        question: "מהו ה'קו האדום' האחד או שניים, שלא תוכל/י לחיות איתו/איתה?",
-        answer: 'קו אדום עבורי הוא חוסר שאיפה להתפתח ולהשתפר...',
+        questionId: 'partner_completion_trait',
+        question: 'איזו תכונה שפחות חזקה אצלך, היית שמח/ה למצוא אצל בת הזוג?',
+        answer: 'כאדם שרגיל לתכנן ולפעול בצורה מאוד מובנית...',
         displayText:
-          'קו אדום עבורי הוא חוסר שאיפה להתפתח ולהשתפר. אני לא מחפש מישהי מושלמת, אבל חשוב לי שתהיה לה מוטיבציה פנימית לצמוח, ללמוד ולהיות גרסה טובה יותר של עצמה. פסיביות וחוסר רצון להתמודד עם אתגרים זה משהו שקשה לי מאוד להתחבר אליו.',
+          'כאדם שרגיל לתכנן ולפעול בצורה מאוד מובנית, הייתי שמח למצוא מישהי עם יותר ספונטניות וזרימה, כזו שתעזור לי לפעמים לצאת מהקופסה ולהכניס קצת הרפתקנות לחיים.',
         isVisible: true,
         answeredAt: new Date(),
       } as FormattedAnswer,
@@ -617,9 +635,11 @@ const danielProfile: PartyInfo = {
     height: 182,
     city: 'ירושלים',
     occupation: 'מהנדס תוכנה וסטודנט לתואר שני',
-    education: 'תואר ראשון בהנדסת תוכנה, הטכניון',
+     fatherOccupation: 'מתכנת',
+    motherOccupation: 'רופאת משפחה',
+    education: 'בוגר ישיבת הר עציון; תואר ראשון בהנדסת תוכנה, הטכניון',
     educationLevel: 'academic_student',
-    religiousLevel: 'דתי לאומי פתוח', // עודכן
+    religiousLevel: 'דתי לאומי פתוח',
     shomerNegiah: true,
     about:
       'בחור של אנשים ושל עשייה. אוהב את השילוב בין עולם ההייטק הדינמי לבין קביעת עיתים לתורה. מאמין שצמיחה אמיתית קורית מחוץ לאזור הנוחות, ובשעות הפנאי אוהב לטייל בארץ, לנגן בגיטרה ולבלות זמן איכות עם חברים. מחפש שותפה לחיים, לבנות ביחד בית עם יראת שמיים, פתיחות מחשבתית והרבה שמחה.',
@@ -639,8 +659,8 @@ const danielProfile: PartyInfo = {
     hasViewedProfilePreview: false,
     nativeLanguage: 'עברית',
     additionalLanguages: ['אנגלית'],
-    origin: 'ספרדי',
-    serviceType: ServiceType.MILITARY_INTELLIGENCE_CYBER_TECH,
+    origin: 'אנגלו-סקסי',
+    serviceType: ServiceType.MILITARY_COMBATANT,
     parentStatus: 'נשואים',
     preferredLocations: ['ירושלים', 'מרכז'],
     preferredEducation: ['אקדמית'],
@@ -662,13 +682,13 @@ const danielProfile: PartyInfo = {
     religiousJourney: ReligiousJourney.BORN_INTO_CURRENT_LIFESTYLE,
     manualEntryText: null,
     preferredReligiousJourneys: [ReligiousJourney.BORN_INTO_CURRENT_LIFESTYLE],
-    serviceDetails: 'שירות משמעותי ביחידה 8200',
+    serviceDetails: 'שירות משמעותי כקצין בהנדסה קרבית.',
     headCovering: null,
     kippahType: KippahType.KNITTED_SMALL,
-    aliyaCountry: null,
-    aliyaYear: null,
+    aliyaCountry: 'ארה"ב',
+    aliyaYear: 2004,
     siblings: 3,
-    position: 1,
+    position: 2,
     preferredHeightMin: 160,
     preferredHeightMax: 175,
     preferredShomerNegiah: 'כן, חשוב לי',
@@ -679,7 +699,6 @@ const danielProfile: PartyInfo = {
     verifiedBy: null,
     availabilityNote: null,
     availabilityUpdatedAt: null,
-
     lastActive: null,
   },
   questionnaireResponses: [danielQuestionnaireResponse],
@@ -700,9 +719,9 @@ export const demoSuggestionDataMale: ExtendedMatchSuggestion = {
   lastActivity: new Date(),
   category: 'ACTIVE',
   matchingReason:
-    'מה שהדהד לי במיוחד בחיבור ביניכם הוא השילוב הנדיר של עומק וקלילות. שניכם מחפשים "שותף לדרך" עם "ראש פתוח", ומדברים על בית שמבוסס על "כבוד וצמיחה". אני מאמין שהיציבות והשאיפה למשמעות של דניאל, יחד עם היצירתיות והאופטימיות שלך, יוצרים בסיס מדהים לקשר אמיתי.',
+    'מה שהדהד לי במיוחד בחיבור ביניכם הוא השילוב הנדיר של עומק וקלילות. שניכם מחפשים "שותף לדרך" עם "ראש פתוח", ומדברים על בית שמבוסס על "כבוד וצמיחה". אני מאמין שהיציבות והאחריות של דניאל, שניכרות מהשירות שלו כקצין, יחד עם היצירתיות והאופטימיות שלך, יוצרים בסיס מדהים לקשר אמיתי.',
   firstPartyNotes:
-    'דניאל הוא בחור רציני, ערכי ועם לב זהב. הוא משלב בצורה מרשימה בין עולם התורה לעולם המעשה, ומחפש שותפה אמיתית לחיים. אני חושב שיש לכם הרבה על מה לדבר.',
+    'דניאל הוא בחור רציני, ערכי ועם לב זהב. הוא משלב בצורה מרשימה בין עולם התורה (בוגר הגוש) לעולם המעשה (מהנדס בוגר טכניון), ומחפש שותפה אמיתית לחיים. אני חושב שיש לכם הרבה על מה לדבר.',
   secondPartyNotes: null,
   internalNotes: null,
   followUpNotes: null,

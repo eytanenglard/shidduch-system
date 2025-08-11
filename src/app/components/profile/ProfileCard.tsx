@@ -4108,6 +4108,26 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   textAlign="right"
                   className="max-w-full min-w-0"
                 />
+                {profile.fatherOccupation && (
+                  <DetailItem
+                    icon={Briefcase} // או אייקון אחר שתבחר
+                    label="מקצוע האב"
+                    value={profile.fatherOccupation}
+                    variant="elegant"
+                    textAlign="right"
+                    className="max-w-full min-w-0"
+                  />
+                )}
+                {profile.motherOccupation && (
+                  <DetailItem
+                    icon={Briefcase} // או אייקון אחר שתבחר
+                    label="מקצוע האם"
+                    value={profile.motherOccupation}
+                    variant="elegant"
+                    textAlign="right"
+                    className="max-w-full min-w-0"
+                  />
+                )}
                 <DetailItem
                   icon={Users}
                   label="אחים ואחיות"

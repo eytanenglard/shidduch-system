@@ -104,6 +104,8 @@ export async function PUT(req: NextRequest) {
       preferredReligiousJourneys, 
       about,
       parentStatus,
+      fatherOccupation,
+      motherOccupation,
       siblings,
       position,
       isProfileVisible,
@@ -170,6 +172,8 @@ export async function PUT(req: NextRequest) {
     if (maritalStatus !== undefined) dataToUpdate.maritalStatus = emptyStringToNull(maritalStatus);
     if (hasChildrenFromPrevious !== undefined) dataToUpdate.hasChildrenFromPrevious = hasChildrenFromPrevious; // User's own
     if (parentStatus !== undefined) dataToUpdate.parentStatus = emptyStringToNull(parentStatus);
+     if (fatherOccupation !== undefined) dataToUpdate.fatherOccupation = emptyStringToNull(fatherOccupation);
+    if (motherOccupation !== undefined) dataToUpdate.motherOccupation = emptyStringToNull(motherOccupation);
     if (siblings !== undefined) dataToUpdate.siblings = toNumberOrNull(siblings);
     if (position !== undefined) dataToUpdate.position = toNumberOrNull(position);
 

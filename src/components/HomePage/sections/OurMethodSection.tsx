@@ -713,43 +713,7 @@ const MatchingConstellation: React.FC = () => {
               </div>
             </motion.div>
           </AnimatePresence>
-          {/* עדכון הטקסט התחתון */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.5 }}
-            className="text-center text-sm text-gray-500 mt-4 md:mt-6"
-          >
-            <motion.div
-              animate={{
-                opacity: isDragging ? 0.5 : 1,
-                scale: isDragging ? 0.95 : 1,
-              }}
-              transition={{ duration: 0.2 }}
-            >
-              {isMobile
-                ? 'החליקו על הקונסטלציה כדי לסובב'
-                : 'השתמשו בסרגל ההתקדמות או לחצו על עולם'}
-            </motion.div>
-
-            {isDragging && isMobile && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="mt-3 flex items-center justify-center gap-2"
-              >
-                <div className="w-2 h-2 bg-violet-400 rounded-full animate-pulse" />
-                <span className="text-xs text-violet-600 font-medium">
-                  מסובבים...
-                </span>
-                <div
-                  className="w-2 h-2 bg-violet-400 rounded-full animate-pulse"
-                  style={{ animationDelay: '0.5s' }}
-                />
-              </motion.div>
-            )}
-          </motion.div>
+       
         </motion.div>
       </div>
 

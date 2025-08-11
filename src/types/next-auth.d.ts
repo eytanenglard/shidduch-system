@@ -55,6 +55,8 @@ export interface UserProfile extends Omit<PrismaProfile, 'gender' | 'birthDate' 
   aliyaCountry?: string | null;
   aliyaYear?: number | null;
   parentStatus?: string | null;
+  fatherOccupation?: string | null;
+  motherOccupation?: string | null;
   siblings?: number | null;
   position?: number | null;
  manualEntryText?: string | null; 

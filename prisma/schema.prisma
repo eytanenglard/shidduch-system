@@ -156,6 +156,8 @@ model Profile {
   aliyaYear               Int?
   about                   String?
   parentStatus            String?
+  fatherOccupation        String? // מקצוע האב
+  motherOccupation        String? // מקצוע האם
   siblings                Int?
   position                Int?
 

@@ -299,7 +299,8 @@ export async function generateNarrativeProfile(userId: string): Promise<string |
     // END OF CHANGE
     `- **עיסוק:** ${formatDisplayValue(profile.occupation)}`,
     `- **השכלה:** ${formatDisplayValue(profile.educationLevel)}, ${formatDisplayValue(profile.education)}`,
-    `- **שומר/ת נגיעה:** ${formatDisplayValue(profile.shomerNegiah)}`
+    `- **שומר/ת נגיעה:** ${formatDisplayValue(profile.shomerNegiah)}`,
+      `- **רקע משפחתי:** מצב הורים: ${formatDisplayValue(profile.parentStatus)}. מקצוע האב: ${formatDisplayValue(profile.fatherOccupation)}. מקצוע האם: ${formatDisplayValue(profile.motherOccupation)}.`,
   ].filter(Boolean); // This removes any empty strings from conditional entries
 
   if (user.source === 'MANUAL_ENTRY' && profile.manualEntryText) {
