@@ -327,6 +327,10 @@ const noaProfile: PartyInfo = {
     availabilityNote: null,
     availabilityUpdatedAt: null,
     lastActive: null,
+    hasMedicalInfo: false,
+  medicalInfoDetails: null,
+  medicalInfoDisclosureTiming: null,
+  isMedicalInfoVisible: false,
   },
   questionnaireResponses: [noaQuestionnaireResponse],
 };
@@ -700,6 +704,10 @@ const danielProfile: PartyInfo = {
     availabilityNote: null,
     availabilityUpdatedAt: null,
     lastActive: null,
+    hasMedicalInfo: false,
+  medicalInfoDetails: null,
+  medicalInfoDisclosureTiming: null,
+  isMedicalInfoVisible: false,
   },
   questionnaireResponses: [danielQuestionnaireResponse],
 };

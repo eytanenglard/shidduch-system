@@ -11,7 +11,7 @@ const PrivacyPolicyPage = () => {
   const pageDescription = `מדיניות הפרטיות של ${brandName}. כיצד אנו אוספים, משתמשים ושומרים על המידע האישי שלך.`;
   const lastUpdatedDate = '11 באוגוסט 2025';
   const companyEmail = 'jewish.matchpoint@gmail.com';
-  const siteUrl = 'https://www.jewishmatchpoint.com'; // יש לוודא שזה ה-URL הסופי
+  const siteUrl = 'https://www.jewishmatchpoint.com';
   const companyRegisteredAddress = 'גולומב 7, רעננה, ישראל';
 
   return (
