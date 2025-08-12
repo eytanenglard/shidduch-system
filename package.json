@@ -73,6 +73,7 @@
     "next": "^14.1.0",
     "next-auth": "^4.24.11",
     "next-cloudinary": "^6.16.0",
+    "next-intl": "^4.3.4",
     "node-fetch": "^3.3.2",
     "nodemailer": "^6.9.16",
     "papaparse": "^5.5.1",
