@@ -96,7 +96,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@eslint/js": "^9.29.0",
+    "@eslint/js": "^9.33.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/handlebars": "^4.0.40",
     "@types/js-cookie": "^3.0.6",
@@ -117,7 +117,7 @@
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
-    "globals": "^16.2.0",
+    "globals": "^16.3.0",
     "handlebars-loader": "^1.7.3",
     "postcss": "^8.4.35",
     "prettier": "^3.5.3",
@@ -125,7 +125,7 @@
     "tailwindcss": "^3.4.1",
     "ts-node": "^10.9.2",
     "typescript": "^5",
-    "typescript-eslint": "^8.34.0"
+    "typescript-eslint": "^8.39.1"
   },
   "prisma": {
     "schema": "prisma/schema.prisma",
