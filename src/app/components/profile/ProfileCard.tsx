@@ -3658,7 +3658,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     gradient={THEME.colors.primary.main}
                   >
                     <p className="text-center text-lg italic font-semibold text-gray-700">
-                      "{profile.profileHeadline}"
+                      &quot;{profile.profileHeadline}&quot;
                     </p>
                   </SectionCard>
                 )}
@@ -4088,7 +4088,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     )}
                   >
                     <p className="text-amber-800 leading-relaxed italic">
-                      "{profile.inspiringCoupleStory}"
+                      &quot;{profile.inspiringCoupleStory}&quot;
                     </p>
                   </div>
                 </SectionCard>
@@ -4245,7 +4245,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     )}
                   >
                     <p className="text-amber-800 leading-relaxed italic">
-                      "{profile.influentialRabbi}"
+                      &quot;{profile.influentialRabbi}&quot;
                     </p>
                   </div>
                 </SectionCard>

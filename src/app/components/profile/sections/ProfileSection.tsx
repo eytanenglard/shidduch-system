@@ -1420,12 +1420,12 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       />
                     ) : (
                       <p className="mt-1 text-lg font-semibold text-cyan-700 italic">
-                        "
+                        &quot;
                         {renderDisplayValue(
                           formData.profileHeadline,
                           'לא הוזנה כותרת.'
                         )}
-                        "
+                        &quot;
                       </p>
                     )}
                   </div>
