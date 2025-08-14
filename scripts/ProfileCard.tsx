@@ -161,7 +161,7 @@ interface ExcitementFactor {
   icon: React.ElementType;
   text: string;
   gradient: string;
-  shortText?: string;
+  shortText?: string; // הוספה למובייל
 }
 
 // Enhanced Color Palette & Theme with Responsive Support
@@ -358,6 +358,7 @@ const COLOR_PALETTES = {
 
 type ColorPaletteName = keyof typeof COLOR_PALETTES;
 
+// Enhanced Type for Theme
 type ThemeType = {
   colors: {
     primary: {
@@ -409,10 +410,10 @@ type ThemeType = {
 const maritalStatusMap: {
   [key: string]: {
     label: string;
-    shortLabel?: string;
+    shortLabel?: string; // הוספה למובייל
     icon: React.ElementType;
     color: string;
-    mobileClasses?: string;
+    mobileClasses?: string; // כיתות CSS מותאמות למובייל
   };
 } = {
   single: {
@@ -543,73 +544,6 @@ const religiousLevelMap: {
     shortLabel: 'פתוח',
     icon: Globe,
     color: 'text-gray-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-};
-
-const religiousJourneyMap: {
-  [key: string]: {
-    label: string;
-    shortLabel?: string;
-    icon: React.ElementType;
-    color: string;
-    mobileClasses?: string;
-  };
-} = {
-  BORN_INTO_CURRENT_LIFESTYLE: {
-    label: 'גדלתי באורח חיים דתי',
-    shortLabel: 'גדלתי דתי',
-    icon: Home,
-    color: 'text-blue-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  BORN_SECULAR: {
-    label: 'גדלתי באורח חיים חילוני',
-    shortLabel: 'גדלתי חילוני',
-    icon: Sun,
-    color: 'text-orange-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  BAAL_TESHUVA: {
-    label: 'חזרתי בתשובה',
-    shortLabel: 'חוזר בתשובה',
-    icon: Sparkles,
-    color: 'text-purple-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  DATLASH: {
-    label: 'יצאתי בשאלה (דתל"ש)',
-    shortLabel: 'דתל"ש',
-    icon: ArrowLeft,
-    color: 'text-gray-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  CONVERT: {
-    label: 'גר/ה / גיורת',
-    shortLabel: 'גיורת',
-    icon: Star,
-    color: 'text-amber-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  IN_PROCESS: {
-    label: 'בתהליך של שינוי/התקרבות',
-    shortLabel: 'בתהליך',
-    icon: Compass,
-    color: 'text-teal-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  OTHER: {
-    label: 'אחר',
-    shortLabel: 'אחר',
-    icon: InfoIcon,
-    color: 'text-pink-600',
-    mobileClasses: 'text-xs sm:text-sm',
-  },
-  no_preference: {
-    label: 'ללא העדפה למסע הדתי',
-    shortLabel: 'ללא העדפה',
-    icon: Globe,
-    color: 'text-gray-500',
     mobileClasses: 'text-xs sm:text-sm',
   },
 };
@@ -1206,6 +1140,9 @@ const hobbiesMap: {
 
 // --- Enhanced Helper Functions with Responsive Support ---
 
+/**
+ * פונקציית עזר לעיצוב ערכי enum עם תמיכה רספונסיבית
+ */
 const formatEnumValue = (
   value: string | null | undefined,
   map: {
@@ -1218,7 +1155,7 @@ const formatEnumValue = (
     };
   },
   placeholder: string = 'עוד נגלה יחד...',
-  useMobile: boolean = false
+  useMobile: boolean = false // פרמטר חדש למובייל
 ): {
   label: string;
   shortLabel?: string;
@@ -1250,6 +1187,9 @@ const formatEnumValue = (
   };
 };
 
+/**
+ * פונקציית יצירת ראשי תיבות מותאמת לרספונסיביות
+ */
 const getInitials = (
   firstName?: string,
   lastName?: string,
@@ -1269,6 +1209,9 @@ const getInitials = (
   return initials.toUpperCase() || '♥';
 };
 
+/**
+ * חישוב גיל - ללא שינוי
+ */
 const calculateAge = (birthDate: Date | string | null | undefined): number => {
   if (!birthDate) return 0;
   try {
@@ -1289,6 +1232,9 @@ const calculateAge = (birthDate: Date | string | null | undefined): number => {
   }
 };
 
+/**
+ * עיצוב סטטוס זמינות עם responsive badge styles
+ */
 const formatAvailabilityStatus = (
   status: UserProfile['availabilityStatus'] | undefined,
   THEME: ThemeType
@@ -1296,9 +1242,9 @@ const formatAvailabilityStatus = (
   const statusMap = {
     AVAILABLE: {
       text: 'זמין/ה להכרות מרגשות',
-      shortText: 'זמין',
+      shortText: 'זמין', // הוספה למובייל
       gradient: THEME.colors.primary.main,
-      gradientSm: THEME.colors.primary.mainSm,
+      gradientSm: THEME.colors.primary.mainSm, // גרדיאנט קל יותר למובייל
       icon: Heart,
       pulse: false,
       bgColor: 'bg-gradient-to-r from-emerald-500 to-green-500',
@@ -1377,6 +1323,9 @@ const formatAvailabilityStatus = (
   );
 };
 
+/**
+ * עיצוב העדפות בוליאניות עם תמיכה רספונסיבית
+ */
 const formatBooleanPreference = (
   value: boolean | null | undefined,
   yesLabel: string = 'כן',
@@ -1432,6 +1381,9 @@ const formatBooleanPreference = (
   };
 };
 
+/**
+ * עיצוב העדפות מחרוזת בוליאנית עם תמיכה רספונסיבית
+ */
 const formatStringBooleanPreference = (
   value: string | null | undefined,
   options: {
@@ -1505,7 +1457,7 @@ const formatStringBooleanPreference = (
 
 // --- Enhanced Helper Components with Full Responsive Support ---
 
-// 1. DetailItem
+// 1. DetailItem - רכיב בסיסי עם תיקוני רספונסיביות מלאים
 const DetailItem: React.FC<{
   icon: React.ElementType;
   label: string;
@@ -1517,8 +1469,8 @@ const DetailItem: React.FC<{
   variant?: 'default' | 'highlight' | 'elegant' | 'romantic';
   size?: 'sm' | 'md' | 'lg';
   textAlign?: 'center' | 'right' | 'left';
-  responsive?: boolean;
-  useMobileLayout?: boolean;
+  responsive?: boolean; // פרמטר חדש לקביעת רמת רספונסיביות
+  useMobileLayout?: boolean; // האם להשתמש בפריסה מותאמת למובייל
 }> = ({
   icon: Icon,
   label,
@@ -1533,6 +1485,7 @@ const DetailItem: React.FC<{
   responsive = true,
   useMobileLayout = false,
 }) => {
+  // גדלי פריטים רספונסיביים
   const sizes = {
     sm: {
       container: 'p-2 gap-2 sm:p-3 sm:gap-3',
@@ -1590,22 +1543,29 @@ const DetailItem: React.FC<{
     <div
       className={cn(
         'flex rounded-xl transition-all duration-300',
+        // Mobile-first approach עם מניעת חריגות
         'min-w-0 w-full max-w-full overflow-hidden',
+        // פריסה רספונסיבית
         useMobileLayout
           ? 'flex-col items-center text-center gap-2 sm:gap-3'
           : 'items-start',
+        // גדלים וספייסינג
         currentSize.container,
+        // עיצוב הקארד
         currentVariant.card,
+        // responsive enhancements
         responsive && 'hover:scale-[1.02] active:scale-[0.98]',
         className
       )}
     >
+      {/* Content Container */}
       <div
         className={cn(
           'flex-1 overflow-hidden',
           useMobileLayout ? 'text-center w-full' : 'min-w-0'
         )}
       >
+        {/* Header with Icon - יחס כמו בחלק המפורט */}
         <div className="flex items-center justify-center gap-2 sm:gap-3 mb-2">
           <div
             className={cn(
@@ -1624,28 +1584,37 @@ const DetailItem: React.FC<{
             />
           </div>
         </div>
+        {/* Label */}
         <p
           className={cn(
             'font-semibold mb-1 tracking-wide leading-tight text-center',
             currentSize.label,
+            // מניעת חריגת טקסט - חיוני!
             'break-words hyphens-auto word-break-break-word overflow-wrap-anywhere',
+            // צבעים לפי וריאנט
             variant === 'highlight' || variant === 'elegant'
               ? 'text-rose-700 sm:text-gray-700'
               : 'text-gray-600 sm:text-gray-700',
+            // פדינג קל במובייל
             useMobileLayout && 'px-1'
           )}
         >
           {label}
         </p>
+
+        {/* Value */}
         <div
           className={cn(
             'font-medium leading-relaxed text-center',
             currentSize.value,
+            // מניעת חריגת טקסט - הכי חיוני!
             'break-words hyphens-auto word-break-break-word overflow-wrap-anywhere',
             'max-w-full overflow-hidden',
+            // צבעים
             variant === 'highlight' || variant === 'elegant'
               ? 'text-gray-800 sm:text-gray-900'
               : 'text-gray-700 sm:text-gray-800',
+            // פדינג קל במובייל
             useMobileLayout && 'px-1',
             valueClassName
           )}
@@ -1660,6 +1629,7 @@ const DetailItem: React.FC<{
     </div>
   );
 
+  // Tooltip wrapper אם נדרש
   if (tooltip && responsive) {
     return (
       <Tooltip>
@@ -1680,7 +1650,7 @@ const DetailItem: React.FC<{
   return content;
 };
 
-// 2. EmptyState
+// 2. EmptyState - רכיב משופר עם רספונסיביות מלאה
 const EmptyState: React.FC<{
   icon: React.ElementType;
   title: string;
@@ -1689,7 +1659,7 @@ const EmptyState: React.FC<{
   action?: React.ReactNode;
   variant?: 'mystery' | 'adventure' | 'discovery' | 'romantic';
   size?: 'sm' | 'md' | 'lg';
-  compact?: boolean;
+  compact?: boolean; // מצב קומפקטי למובייל
 }> = ({
   icon: Icon,
   title,
@@ -1700,6 +1670,7 @@ const EmptyState: React.FC<{
   size = 'md',
   compact = false,
 }) => {
+  // הגדרת גדלים רספונסיביים
   const sizes = {
     sm: {
       container: compact ? 'py-4 px-3' : 'py-6 px-4',
@@ -1730,7 +1701,7 @@ const EmptyState: React.FC<{
   const variants = {
     mystery: {
       bg: `bg-gradient-to-br from-purple-50 via-violet-50 to-purple-100`,
-      bgSm: `bg-gradient-to-br from-purple-25 via-violet-25 to-purple-50`,
+      bgSm: `bg-gradient-to-br from-purple-25 via-violet-25 to-purple-50`, // גרסה קלה למובייל
       border: 'border-purple-200 hover:border-purple-300',
       iconBg: `bg-gradient-to-r from-purple-500 via-violet-500 to-purple-600`,
       iconBgSm: `bg-gradient-to-r from-purple-400 via-violet-400 to-purple-500`,
@@ -1773,21 +1744,27 @@ const EmptyState: React.FC<{
     <div
       className={cn(
         'flex flex-col items-center justify-center text-center rounded-xl border border-dashed transition-all duration-300',
+        // גדלים רספונסיביים
         currentSize.container,
+        // רקעים רספונסיביים
         currentVariant.bg,
         'sm:' + currentVariant.bgSm,
+        // גבולות ואפקטים
         currentVariant.border,
         'shadow-sm hover:shadow-md',
+        // מניעת חריגות
         'max-w-full overflow-hidden',
         className
       )}
     >
+      {/* Icon Container */}
       <div
         className={cn(
           'rounded-full transition-all duration-300 hover:scale-110 active:scale-95',
           currentSize.iconContainer,
           currentSize.spacing,
           currentVariant.iconBg,
+          // Shadow רספונסיבי
           'shadow-md hover:shadow-lg sm:shadow-lg sm:hover:shadow-xl'
         )}
       >
@@ -1799,18 +1776,21 @@ const EmptyState: React.FC<{
         />
       </div>
 
+      {/* Title */}
       <h3
         className={cn(
           'font-bold leading-tight',
           currentSize.title,
           currentVariant.titleColor,
           currentSize.spacing,
+          // מניעת חריגת טקסט
           'break-words hyphens-auto word-break-break-word max-w-full px-2'
         )}
       >
         {title}
       </h3>
 
+      {/* Description */}
       {description && (
         <p
           className={cn(
@@ -1818,6 +1798,7 @@ const EmptyState: React.FC<{
             currentSize.description,
             currentVariant.textColor,
             action ? 'mb-4 sm:mb-6' : '',
+            // מניעת חריגת טקסט
             'break-words hyphens-auto word-break-break-word px-2'
           )}
         >
@@ -1825,6 +1806,7 @@ const EmptyState: React.FC<{
         </p>
       )}
 
+      {/* Action */}
       {action && (
         <div className="flex flex-wrap justify-center gap-2 sm:gap-3 max-w-full">
           {action}
@@ -1834,7 +1816,7 @@ const EmptyState: React.FC<{
   );
 };
 
-// 3. SectionCard
+// 3. SectionCard - רכיב משופר עם רספונסיביות מושלמת
 const SectionCard: React.FC<{
   title: string;
   subtitle?: string;
@@ -1847,8 +1829,8 @@ const SectionCard: React.FC<{
   variant?: 'default' | 'elegant' | 'romantic' | 'highlight';
   gradient?: string;
   size?: 'sm' | 'md' | 'lg';
-  collapsible?: boolean;
-  compact?: boolean;
+  collapsible?: boolean; // אפשרות קיפול במובייל
+  compact?: boolean; // מצב קומפקטי
 }> = ({
   title,
   subtitle,
@@ -1866,6 +1848,7 @@ const SectionCard: React.FC<{
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
+  // גדלים רספונסיביים
   const sizes = {
     sm: {
       card: 'rounded-lg sm:rounded-xl',
@@ -1939,24 +1922,31 @@ const SectionCard: React.FC<{
         'border overflow-hidden flex flex-col transition-all duration-300',
         currentSize.card,
         currentVariant.card,
+        // מניעת חריגות
         'max-w-full min-w-0',
         className
       )}
     >
+      {/* Header */}
       <div
         className={cn(
           'flex items-center justify-between border-b transition-all duration-300',
           currentSize.header,
-          'gap-2',
+          'gap-2', // רווח קטן וקבוע
           currentVariant.header,
           'sm:' + currentVariant.headerSm,
+          // מניעת חריגות בכותרת
           'min-w-0 overflow-hidden',
           headerClassName
         )}
       >
         <div
-          className={cn('flex items-center min-w-0 flex-1', 'gap-1 sm:gap-2')}
+          className={cn(
+            'flex items-center min-w-0 flex-1',
+            'gap-1 sm:gap-2' // רווח קטן ורספונסיבי
+          )}
         >
+          {/* Icon */}
           {Icon && (
             <div
               className={cn(
@@ -1971,6 +1961,8 @@ const SectionCard: React.FC<{
               />
             </div>
           )}
+
+          {/* Title & Subtitle */}
           <div className="min-w-0 flex-1 overflow-hidden text-center">
             <h3
               className={cn(
@@ -1979,6 +1971,7 @@ const SectionCard: React.FC<{
                 variant === 'default'
                   ? 'text-gray-800 hover:text-gray-900'
                   : 'text-gray-800',
+                // מניעת חריגת טקסט בכותרת - קריטי!
                 'break-words hyphens-auto word-break-break-word overflow-wrap-anywhere max-w-full'
               )}
             >
@@ -1989,7 +1982,8 @@ const SectionCard: React.FC<{
                 className={cn(
                   'mt-0.5 opacity-80 transition-all duration-300 text-center',
                   currentSize.subtitle,
-                  'text-gray-600 text-center mx-auto',
+                  'text-gray-600 text-center mx-auto', // הוסף text-center ו-mx-auto
+                  // מניעת חריגת טקסט בכותרת המשנה
                   'break-words hyphens-auto word-break-break-word overflow-wrap-anywhere max-w-full'
                 )}
               >
@@ -1998,7 +1992,10 @@ const SectionCard: React.FC<{
             )}
           </div>
         </div>
+
+        {/* Action Area */}
         <div className="flex items-center gap-2 flex-shrink-0">
+          {/* Collapsible button במובייל */}
           {collapsible && (
             <Button
               variant="ghost"
@@ -2014,17 +2011,22 @@ const SectionCard: React.FC<{
               />
             </Button>
           )}
+
+          {/* Custom action */}
           {action && <div className="flex-shrink-0">{action}</div>}
         </div>
       </div>
+
+      {/* Content */}
       <div
         className={cn(
           'transition-all duration-300 overflow-hidden',
           currentSize.content,
+          // תמיכה בקיפול במובייל
           collapsible &&
             isCollapsed &&
             'max-h-0 p-0 md:max-h-none md:p-4 md:sm:p-5 md:md:p-6',
-          'min-w-0 max-w-full',
+          'min-w-0 max-w-full', // מניעת חריגות
           contentClassName
         )}
       >
@@ -2034,7 +2036,7 @@ const SectionCard: React.FC<{
   );
 };
 
-// 4. ColorPaletteSelector
+// 4. ColorPaletteSelector - משופר למובייל
 const ColorPaletteSelector: React.FC<{
   selectedPalette: ColorPaletteName;
   onPaletteChange: (palette: ColorPaletteName) => void;
@@ -2045,6 +2047,7 @@ const ColorPaletteSelector: React.FC<{
 
   return (
     <div className="relative">
+      {/* Button */}
       <Button
         variant="ghost"
         size="icon"
@@ -2066,12 +2069,17 @@ const ColorPaletteSelector: React.FC<{
           )}
         />
       </Button>
+
+      {/* Dropdown */}
       {isOpen && (
         <>
+          {/* Backdrop */}
           <div
             className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
           />
+
+          {/* Menu */}
           <div
             className={cn(
               'absolute top-full mt-2 right-0 z-50',
@@ -2094,6 +2102,7 @@ const ColorPaletteSelector: React.FC<{
                   selectedPalette === key && 'bg-gray-100/60 font-semibold'
                 )}
               >
+                {/* Color indicator */}
                 <div
                   className={cn(
                     'w-4 h-4 rounded-full flex-shrink-0',
@@ -2107,6 +2116,7 @@ const ColorPaletteSelector: React.FC<{
                       'bg-gradient-to-r from-gray-500 to-slate-600'
                   )}
                 />
+
                 <span
                   className={cn(
                     'text-gray-700 font-medium text-sm',
@@ -2115,6 +2125,7 @@ const ColorPaletteSelector: React.FC<{
                 >
                   {palette.name}
                 </span>
+
                 {selectedPalette === key && (
                   <CheckCircle className="w-4 h-4 text-green-600 mr-auto" />
                 )}
@@ -2129,6 +2140,7 @@ const ColorPaletteSelector: React.FC<{
 
 // --- ProfileHeader & Image Components with Full Responsive Support ---
 
+// Main Profile Card Component Interface
 interface ProfileCardProps {
   profile: Omit<UserProfile, 'isProfileComplete'>;
   isProfileComplete: boolean;
@@ -2142,6 +2154,7 @@ interface ProfileCardProps {
   onClose?: () => void;
 }
 
+// --- Enhanced ProfileHeader Component ---
 const ProfileHeader: React.FC<{
   profile: UserProfile;
   age: number;
@@ -2167,6 +2180,7 @@ const ProfileHeader: React.FC<{
   THEME,
   compact = false,
 }) => {
+  // Personality highlights מעודכן לרספונסיביות - תיקון dependency
   const personalityHighlights = useMemo(() => {
     const highlights: ExcitementFactor[] = [];
 
@@ -2221,12 +2235,14 @@ const ProfileHeader: React.FC<{
 
   return (
     <div className="relative overflow-hidden">
+      {/* Enhanced Background with responsive decorations */}
       <div
         className={cn(
           'absolute inset-0 bg-gradient-to-br',
           THEME.colors.neutral.warm
         )}
       >
+        {/* Responsive animated background elements */}
         <div
           className={cn(
             'absolute bg-gradient-to-br from-rose-200/40 to-pink-200/40 rounded-full blur-xl sm:blur-2xl animate-pulse',
@@ -2255,6 +2271,7 @@ const ProfileHeader: React.FC<{
         ></div>
       </div>
 
+      {/* Main Content */}
       <div
         className={cn(
           'relative z-10',
@@ -2269,10 +2286,12 @@ const ProfileHeader: React.FC<{
               : 'flex-row gap-4 sm:gap-6'
           )}
         >
+          {/* Enhanced Profile Image with responsive sizing */}
           <div className="relative flex-shrink-0">
             <div
               className={cn(
                 'relative rounded-full overflow-hidden border-2 sm:border-4 border-white shadow-lg sm:shadow-2xl ring-2 sm:ring-4 ring-rose-200/50 transition-all duration-300 hover:scale-105',
+                // Responsive image sizes - חיוני למובייל!
                 compact
                   ? 'h-32 w-32 sm:h-36 sm:w-36 md:h-40 md:w-40'
                   : isMobile
@@ -2315,6 +2334,7 @@ const ProfileHeader: React.FC<{
               )}
             </div>
 
+            {/* Enhanced Status Badge - responsive */}
             <div
               className={cn(
                 'absolute transition-all duration-300',
@@ -2351,7 +2371,9 @@ const ProfileHeader: React.FC<{
             </div>
           </div>
 
+          {/* Content Area */}
           <div className="flex-1 min-w-0 flex flex-col justify-start items-start w-full">
+            {/* Desktop Color Palette Selector */}
             {!isMobile && onPaletteChange && (
               <div className="flex justify-end mb-2 sm:mb-3 w-full">
                 <ColorPaletteSelector
@@ -2362,6 +2384,8 @@ const ProfileHeader: React.FC<{
                 />
               </div>
             )}
+
+            {/* Name and Age Section - משופר לחלוטין */}
             <div
               className={cn(
                 'w-full overflow-hidden',
@@ -2372,15 +2396,20 @@ const ProfileHeader: React.FC<{
               <h1
                 className={cn(
                   'font-extrabold leading-tight transition-all duration-300',
+                  // Responsive font sizes - מדורג בקפידה
                   compact
                     ? 'text-sm sm:text-base md:text-lg'
                     : isMobile
                       ? 'text-lg sm:text-xl md:text-2xl'
                       : 'text-xl sm:text-2xl md:text-3xl lg:text-4xl',
+                  // Critical text overflow prevention
                   'break-words hyphens-auto word-break-break-word overflow-wrap-anywhere',
                   'text-center max-w-full overflow-hidden',
+                  // Responsive padding for breathing room
                   'px-1 sm:px-2',
+                  // Gradient text
                   'bg-gradient-to-r from-gray-800 via-gray-900 to-black bg-clip-text text-transparent',
+                  // Hover effects
                   'hover:from-rose-600 hover:via-pink-600 hover:to-purple-600'
                 )}
               >
@@ -2394,6 +2423,7 @@ const ProfileHeader: React.FC<{
                 )}
               </h1>
 
+              {/* Age Display */}
               {age > 0 && (
                 <div
                   className={cn(
@@ -2421,6 +2451,8 @@ const ProfileHeader: React.FC<{
                 </div>
               )}
             </div>
+
+            {/* Personality Highlights - עם גלילה אופקית מושלמת */}
             {personalityHighlights.length > 0 && (
               <div
                 className={cn(
@@ -2467,6 +2499,8 @@ const ProfileHeader: React.FC<{
                 </ScrollArea>
               </div>
             )}
+
+            {/* Key Facts Grid - מותאם לחלוטין למובייל */}
             <div
               className={cn(
                 'w-full overflow-hidden',
@@ -2474,11 +2508,13 @@ const ProfileHeader: React.FC<{
               )}
             >
               {isMobile ? (
+                // Mobile: Horizontal scroll
                 <div className="w-full max-w-full overflow-hidden px-1">
                   <ScrollArea className="w-full" dir="rtl">
                     <div
                       className={cn(
                         'flex gap-2 sm:gap-3 pb-2 px-1',
+                        // יישור למרכז
                         'justify-center min-w-max'
                       )}
                     >
@@ -2516,6 +2552,7 @@ const ProfileHeader: React.FC<{
                   </ScrollArea>
                 </div>
               ) : (
+                // Desktop: Grid layout
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                   {profile.city && (
                     <KeyFactCard
@@ -2552,6 +2589,7 @@ const ProfileHeader: React.FC<{
                 </div>
               )}
             </div>
+            {/* Action Button for Matchmakers */}
             {viewMode === 'matchmaker' && (
               <div
                 className={cn(
@@ -2568,6 +2606,7 @@ const ProfileHeader: React.FC<{
                     compact
                       ? 'px-4 py-2 text-sm'
                       : 'px-6 sm:px-8 py-2 sm:py-3 text-sm sm:text-base',
+                    // Touch target
                     'min-h-[44px]'
                   )}
                   onClick={onSuggestClick}
@@ -2596,6 +2635,8 @@ const ProfileHeader: React.FC<{
             )}
           </div>
         </div>
+
+        {/* Inspirational Quote - רספונסיבי מלא */}
         {!compact && (
           <div
             className={cn(
@@ -2635,6 +2676,7 @@ const ProfileHeader: React.FC<{
   );
 };
 
+// Helper Component for Key Facts
 const KeyFactCard: React.FC<{
   icon: React.ElementType;
   label: string;
@@ -2662,6 +2704,7 @@ const KeyFactCard: React.FC<{
           ? 'gap-2 p-2 min-w-[100px] max-w-[120px]'
           : 'gap-2 sm:gap-3 p-2 sm:p-3 min-w-[120px] max-w-[140px] sm:min-w-[140px] sm:max-w-[160px]',
         colorClasses[color],
+        // מניעת חריגה
         'max-w-[calc((100vw-4rem)/3)]'
       )}
     >
@@ -2694,6 +2737,7 @@ const KeyFactCard: React.FC<{
   );
 };
 
+// Mobile Image Gallery with Perfect Horizontal Scroll
 const MobileImageGallery: React.FC<{
   orderedImages: UserImageType[];
   profile: UserProfile;
@@ -2711,6 +2755,7 @@ const MobileImageGallery: React.FC<{
         `bg-gradient-to-r ${THEME.colors.neutral.warm}`
       )}
     >
+      {/* Header */}
       <div
         className={cn(
           'text-center overflow-hidden',
@@ -2742,6 +2787,8 @@ const MobileImageGallery: React.FC<{
           לחץ על תמונה להגדלה
         </p>
       </div>
+
+      {/* Image Gallery */}
       <ScrollArea dir="rtl" className="w-full overflow-hidden">
         <div
           className={cn(
@@ -2755,6 +2802,7 @@ const MobileImageGallery: React.FC<{
               key={image.id}
               className={cn(
                 'relative flex-shrink-0 rounded-xl sm:rounded-2xl overflow-hidden cursor-pointer group transition-all duration-300 hover:scale-105 active:scale-95',
+                // גודל מותאם לכמות התמונות
                 orderedImages.length <= 3
                   ? compact
                     ? 'w-20 h-24 border-2'
@@ -2763,6 +2811,7 @@ const MobileImageGallery: React.FC<{
                     ? 'w-16 h-20 border-2'
                     : 'w-20 h-26 sm:w-22 sm:h-30 border-2 sm:border-3',
                 'border-white shadow-md hover:shadow-lg sm:shadow-lg sm:hover:shadow-xl',
+                // הגבלת רוחב מקסימלי
                 'max-w-[calc((100vw-3rem)/5)]'
               )}
               onClick={() => onImageClick(image)}
@@ -2782,7 +2831,11 @@ const MobileImageGallery: React.FC<{
                       : '88px'
                 }
               />
+
+              {/* Overlay gradient */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+              {/* Main badge */}
               {image.isMain && (
                 <Badge
                   className={cn(
@@ -2812,6 +2865,7 @@ const MobileImageGallery: React.FC<{
   );
 };
 
+// Image Dialog Navigation Functions
 const handleOpenImageDialog = (
   image: UserImageType,
   setSelectedImageForDialog: (img: UserImageType | null) => void
@@ -2844,20 +2898,19 @@ const handleDialogNav = (
   setSelectedImageForDialog(orderedImages[newIndex]);
 };
 
+// Enhanced Image Dialog Component
 const ImageDialogComponent: React.FC<{
   selectedImageForDialog: UserImageType | null;
   currentDialogImageIndex: number;
   orderedImages: UserImageType[];
   onClose: () => void;
   onNavigate: (direction: 'next' | 'prev') => void;
-  onImageSelect: (image: UserImageType) => void;
 }> = ({
   selectedImageForDialog,
   currentDialogImageIndex,
   orderedImages,
   onClose,
   onNavigate,
-  onImageSelect,
 }) => {
   if (!selectedImageForDialog) return null;
 
@@ -2873,6 +2926,7 @@ const ImageDialogComponent: React.FC<{
         )}
         dir="rtl"
       >
+        {/* Header */}
         <DialogHeader
           className={cn(
             'p-3 sm:p-4 text-white flex-row justify-between items-center border-b border-gray-700/50',
@@ -2904,6 +2958,7 @@ const ImageDialogComponent: React.FC<{
           </DialogClose>
         </DialogHeader>
 
+        {/* Image Container */}
         <div className="relative flex-1 w-full min-h-0 overflow-hidden">
           <Image
             key={selectedImageForDialog.id}
@@ -2915,6 +2970,7 @@ const ImageDialogComponent: React.FC<{
             priority
           />
 
+          {/* Navigation Arrows */}
           {orderedImages.length > 1 && (
             <>
               <Button
@@ -2945,6 +3001,7 @@ const ImageDialogComponent: React.FC<{
           )}
         </div>
 
+        {/* Thumbnail Footer */}
         {orderedImages.length > 1 && (
           <DialogFooter className="border-t border-gray-700/50 bg-black/80 backdrop-blur-sm p-0">
             <ScrollArea dir="rtl" className="w-full">
@@ -2959,7 +3016,11 @@ const ImageDialogComponent: React.FC<{
                         ? 'border-rose-400 ring-2 ring-rose-400/50'
                         : 'border-white/20 opacity-60 hover:opacity-100 hover:border-white/40'
                     )}
-                    onClick={() => onImageSelect(img)}
+                    onClick={() =>
+                      onNavigate(
+                        img.id === selectedImageForDialog.id ? 'next' : 'next'
+                      )
+                    } // Simplified for demo
                   >
                     <Image
                       src={getRelativeCloudinaryPath(img.url)}
@@ -2980,6 +3041,7 @@ const ImageDialogComponent: React.FC<{
   );
 };
 
+// START: רכיב ניווט מובייל מתוקן, אלגנטי ונקי
 const MobileTabNavigation: React.FC<{
   activeTab: string;
   tabItems: {
@@ -2987,10 +3049,10 @@ const MobileTabNavigation: React.FC<{
     label: string;
     shortLabel?: string;
     icon: React.ElementType;
-    gradient: string;
+    gradient: string; // The gradient is kept for potential future use or consistency
   }[];
   onTabChange: (newTab: string) => void;
-  THEME: ThemeType;
+  THEME: ThemeType; // THEME is kept for consistency
 }> = ({ activeTab, tabItems, onTabChange }) => {
   const currentIndex = useMemo(
     () => tabItems.findIndex((tab) => tab.value === activeTab),
@@ -3011,16 +3073,19 @@ const MobileTabNavigation: React.FC<{
     return null;
   }
 
+  // Base classes for both buttons for consistency
   const baseButtonClasses =
     'flex-1 flex flex-col p-4 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2';
 
   return (
+    // The main container FIX: "flex" ensures it's a row, "items-stretch" makes buttons same height.
     <div className="mt-8 pt-6 border-t border-gray-200/80 flex items-stretch justify-between gap-3 sm:gap-4 w-full">
+      {/* PREVIOUS BUTTON (Right in RTL) */}
       {prevTab ? (
         <button
           className={cn(
             baseButtonClasses,
-            'items-start text-right',
+            'items-start text-right', // Aligns content to the right
             'bg-white border border-gray-200/80 hover:border-gray-300',
             'focus-visible:ring-gray-400'
           )}
@@ -3038,13 +3103,15 @@ const MobileTabNavigation: React.FC<{
           </div>
         </button>
       ) : (
-        <div className="flex-1" />
+        <div className="flex-1" /> // Spacer to keep the 'Next' button aligned to the left
       )}
+
+      {/* NEXT BUTTON (Left in RTL) - The "Hero" button */}
       {nextTab ? (
         <button
           className={cn(
             baseButtonClasses,
-            'items-end text-left',
+            'items-end text-left', // Aligns content to the left
             'bg-rose-50 border border-rose-200/80 hover:border-rose-300',
             'focus-visible:ring-rose-500'
           )}
@@ -3062,7 +3129,7 @@ const MobileTabNavigation: React.FC<{
           </div>
         </button>
       ) : (
-        <div className="flex-1" />
+        <div className="flex-1" /> // Spacer
       )}
     </div>
   );
@@ -3081,6 +3148,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   onCreateSuggestion,
   onClose,
 }) => {
+  // Enhanced profile with isProfileComplete
   const profile = useMemo(
     () => ({
       ...profileData,
@@ -3089,6 +3157,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     [profileData, isProfileComplete]
   );
 
+  // State management
   const [isClient, setIsClient] = useState(false);
   const [isDesktop, setIsDesktop] = useState(true);
   const [selectedImageForDialog, setSelectedImageForDialog] =
@@ -3110,16 +3179,19 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     activeTabRef.current = activeTab;
   }, [activeTab]);
 
+  // Enhanced tab change handler with scroll management
   const handleTabChange = (newTab: string) => {
     if (activeTabRef.current === newTab) return;
     setActiveTab(newTab);
   };
 
+  // Get current theme based on selected palette
   const THEME = useMemo(
     () => COLOR_PALETTES[selectedPalette],
     [selectedPalette]
   );
 
+  // Enhanced WORLDS configuration with responsive support
   const WORLDS: {
     [key: string]: {
       label: string;
@@ -3190,14 +3262,13 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     ]
   );
 
+  // Enhanced helper functions with responsive support
   const hasAnyPreferences = useMemo(() => {
     return (
       (profile.preferredMaritalStatuses &&
         profile.preferredMaritalStatuses.length > 0) ||
       (profile.preferredReligiousLevels &&
         profile.preferredReligiousLevels.length > 0) ||
-      (profile.preferredReligiousJourneys &&
-        profile.preferredReligiousJourneys.length > 0) ||
       (profile.preferredEducation && profile.preferredEducation.length > 0) ||
       (profile.preferredOccupations &&
         profile.preferredOccupations.length > 0) ||
@@ -3228,56 +3299,14 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     [profile.availabilityStatus, THEME]
   );
 
-  const getVisibleAnswers = useCallback(
-    (world: keyof NonNullable<QuestionnaireResponse['formattedAnswers']>) => {
-      if (!questionnaire?.formattedAnswers?.[world]) return [];
-      return questionnaire.formattedAnswers[world].filter((a) => {
-        const hasContent = a.answer || a.displayText;
-        if (!hasContent) return false;
-        if (viewMode === 'matchmaker') return true;
-        return a.isVisible !== false;
-      });
-    },
-    [questionnaire, viewMode]
-  );
-
-  const personalityAnswers = useMemo(
-    () => getVisibleAnswers('personality'),
-    [getVisibleAnswers]
-  );
-  const valuesAnswers = useMemo(
-    () => getVisibleAnswers('values'),
-    [getVisibleAnswers]
-  );
-  const relationshipAnswers = useMemo(
-    () => getVisibleAnswers('relationship'),
-    [getVisibleAnswers]
-  );
-  const partnerAnswers = useMemo(
-    () => getVisibleAnswers('partner'),
-    [getVisibleAnswers]
-  );
-  const religionAnswers = useMemo(
-    () => getVisibleAnswers('religion'),
-    [getVisibleAnswers]
-  );
-
   const hasDisplayableQuestionnaireAnswers = useMemo(
     () =>
-      [
-        ...personalityAnswers,
-        ...valuesAnswers,
-        ...relationshipAnswers,
-        ...partnerAnswers,
-        ...religionAnswers,
-      ].length > 0,
-    [
-      personalityAnswers,
-      valuesAnswers,
-      relationshipAnswers,
-      partnerAnswers,
-      religionAnswers,
-    ]
+      questionnaire &&
+      questionnaire.formattedAnswers &&
+      Object.values(questionnaire.formattedAnswers)
+        .flat()
+        .some((a) => a.isVisible !== false && (a.answer || a.displayText)),
+    [questionnaire]
   );
 
   const currentDialogImageIndex = useMemo(
@@ -3288,6 +3317,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     [selectedImageForDialog, orderedImages]
   );
 
+  // Event handlers
   const handleOpenImageDialog = (image: UserImageType) =>
     image.url && setSelectedImageForDialog(image);
   const handleCloseImageDialog = () => setSelectedImageForDialog(null);
@@ -3315,94 +3345,80 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     }
   };
 
+  // Enhanced tab configuration with responsive support AND CORRECT ORDER
+  // Enhanced tab configuration with responsive support AND CORRECT ORDER
   const tabItems = useMemo(
-    () =>
-      [
-        {
-          value: 'essence',
-          label: 'המהות',
-          shortLabel: 'מהות',
-          icon: Sparkles,
-          gradient: THEME.colors.primary.light,
-          description: 'מי זה האדם הזה באמת',
-          hasContent:
-            !!profile.profileHeadline ||
-            !!profile.about ||
-            personalityAnswers.length > 0 ||
-            (profile.profileCharacterTraits &&
-              profile.profileCharacterTraits.length > 0) ||
-            (profile.profileHobbies && profile.profileHobbies.length > 0),
-        },
-        {
-          value: 'story',
-          label: 'הסיפור',
-          shortLabel: 'סיפור',
-          icon: BookOpen,
-          gradient: THEME.colors.primary.accent,
-          description: 'הרקע והדרך שהובילה לכאן',
-          hasContent: valuesAnswers.length > 0 || !!profile.religiousLevel,
-        },
-        {
-          value: 'vision',
-          label: 'החזון',
-          shortLabel: 'חזון',
-          icon: Heart,
-          gradient: THEME.colors.primary.main,
-          description: 'החלום לזוגיות ומשפחה',
-          hasContent:
-            !!profile.matchingNotes ||
-            !!profile.inspiringCoupleStory ||
-            relationshipAnswers.length > 0,
-        },
-        {
-          value: 'search',
-          label: 'החיפוש',
-          shortLabel: 'חיפוש',
-          icon: Target,
-          gradient: THEME.colors.secondary.sky,
-          description: 'מה מחפש בבן/בת הזוג',
-          hasContent: hasAnyPreferences || partnerAnswers.length > 0,
-        },
-        (religionAnswers.length > 0 || !!profile.influentialRabbi) && {
-          value: 'deeper',
-          label: 'עומק',
-          shortLabel: 'עומק',
-          icon: Telescope,
-          gradient: THEME.colors.secondary.peach,
-          description: 'תשובות מעמיקות מהלב',
-          hasContent: true,
-        },
-        viewMode === 'matchmaker' && {
-          value: 'professional',
-          label: 'מקצועי',
-          shortLabel: 'מקצועי',
-          icon: Lock,
-          gradient: THEME.colors.secondary.lavender,
-          description: 'מידע לשדכן בלבד',
-          hasContent: true,
-        },
-      ].filter(Boolean) as {
-        value: string;
-        label: string;
-        shortLabel?: string;
-        icon: React.ElementType;
-        gradient: string;
-        description: string;
-        hasContent: boolean;
-      }[],
+    () => [
+      {
+        value: 'essence',
+        label: 'המהות',
+        shortLabel: 'מהות',
+        icon: Sparkles,
+        gradient: THEME.colors.primary.light,
+        description: 'מי זה האדם הזה באמת',
+      },
+      {
+        value: 'story',
+        label: 'הסיפור',
+        shortLabel: 'סיפור',
+        icon: BookOpen,
+        gradient: THEME.colors.primary.accent,
+        description: 'הרקע והדרך שהובילה לכאן',
+      },
+      {
+        value: 'vision',
+        label: 'החזון',
+        shortLabel: 'חזון',
+        icon: Heart,
+        gradient: THEME.colors.primary.main,
+        description: 'החלום לזוגיות ומשפחה',
+      },
+      {
+        value: 'search',
+        label: 'החיפוש',
+        shortLabel: 'חיפוש',
+        icon: Target,
+        gradient: THEME.colors.secondary.sky,
+        description: 'מה מחפש בבן/בת הזוג',
+      },
+      ...(hasDisplayableQuestionnaireAnswers
+        ? [
+            {
+              value: 'deeper',
+              label: 'עומק',
+              shortLabel: 'עומק',
+              icon: Telescope,
+              gradient: THEME.colors.secondary.peach,
+              description: 'תשובות מעמיקות מהלב',
+            },
+          ]
+        : []),
+      ...(viewMode === 'matchmaker'
+        ? [
+            {
+              value: 'professional',
+              label: 'מקצועי',
+              shortLabel: 'מקצועי',
+              icon: Lock,
+              gradient: THEME.colors.secondary.lavender,
+              description: 'מידע לשדכן בלבד',
+            },
+          ]
+        : []),
+    ],
     [
-      THEME,
-      profile,
-      hasAnyPreferences,
+      hasDisplayableQuestionnaireAnswers,
       viewMode,
-      personalityAnswers,
-      valuesAnswers,
-      relationshipAnswers,
-      partnerAnswers,
-      religionAnswers,
+      THEME.colors.primary.light,
+      THEME.colors.primary.accent,
+      THEME.colors.primary.main,
+      THEME.colors.secondary.sky,
+      THEME.colors.secondary.peach,
+      THEME.colors.secondary.lavender,
     ]
   );
 
+  // Enhanced preference badges renderer with full responsive support
   const renderPreferenceBadges = (
     title: string,
     icon: React.ElementType,
@@ -3468,6 +3484,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     : 'gap-1 sm:gap-2 px-2 py-1 sm:px-3 sm:py-2 text-xs sm:text-sm',
                   'bg-white hover:bg-gray-50 border-gray-200 hover:border-rose-300',
                   THEME.shadows.soft,
+                  // Critical text overflow prevention
                   'break-words hyphens-auto word-break-break-word overflow-wrap-anywhere'
                 )}
               >
@@ -3491,6 +3508,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     );
   };
 
+  // Enhanced QuestionnaireItem with responsive support
   const QuestionnaireItem: React.FC<{
     answer: FormattedAnswer;
     worldColor?: string;
@@ -3524,13 +3542,16 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             <h4
               className={cn(
                 'font-bold mb-2 sm:mb-3 text-gray-800 leading-relaxed',
-                'flex items-center justify-between gap-2',
+                'flex items-center justify-between gap-2', // הוספנו flex כדי למקם את האייקון
                 compact ? 'text-sm' : 'text-sm sm:text-base'
               )}
             >
+              {/* NEW: span for the question text to allow flex layout */}
               <span className="flex-1 break-words hyphens-auto word-break-break-word overflow-wrap-anywhere">
                 {answer.question}
               </span>
+
+              {/* NEW: Conditionally render a lock icon for confidential answers */}
               {answer.isVisible === false && (
                 <TooltipProvider>
                   <Tooltip>
@@ -3571,6 +3592,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     );
   };
 
+  // Initialize client-side state
   useEffect(() => {
     setIsClient(true);
     const checkScreenSize = () => setIsDesktop(window.innerWidth >= 1024);
@@ -3582,143 +3604,839 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     };
   }, []);
 
-  const MainContentTabs = () => {
-    const activeTabConfig = tabItems.find((tab) => tab.value === activeTab);
-
-    return (
-      <Tabs
-        value={activeTab}
-        onValueChange={handleTabChange}
-        className="w-full flex flex-col flex-1 min-h-0 max-w-full overflow-hidden"
+  // Enhanced MainContentTabs with full responsive support
+  const MainContentTabs = () => (
+    <Tabs
+      value={activeTab}
+      onValueChange={handleTabChange}
+      className="w-full flex flex-col flex-1 min-h-0 max-w-full overflow-hidden"
+    >
+      {/* Enhanced Tab Navigation Bar */}
+      <div
+        className={cn(
+          'bg-white/95 backdrop-blur-md rounded-2xl border border-gray-200/50 overflow-hidden sticky top-0 z-20',
+          'mb-3 sm:mb-4 md:mb-6 p-1 sm:p-2',
+          THEME.shadows.elegant
+        )}
       >
-        <div
-          className={cn(
-            'bg-white/95 backdrop-blur-md rounded-2xl border border-gray-200/50 overflow-hidden sticky top-0 z-20',
-            'mb-3 sm:mb-4 md:mb-6 p-1 sm:p-2',
-            THEME.shadows.elegant
-          )}
-        >
-          <ScrollArea className="w-full max-w-full overflow-hidden" dir="rtl">
-            <div className="flex gap-0.5 sm:gap-1 justify-center min-w-max px-2 sm:px-4">
-              {tabItems.map((tab) => (
-                <button
-                  key={tab.value}
-                  onClick={() => handleTabChange(tab.value)}
-                  className={cn(
-                    'flex flex-col items-center gap-1 rounded-xl flex-shrink-0 transition-all duration-300 border border-transparent',
-                    'text-gray-600 hover:text-gray-800 hover:bg-rose-50',
-                    'min-w-[50px] min-h-[44px] touch-manipulation',
-                    'sm:min-w-[60px] md:min-w-[80px]',
-                    'px-1.5 py-1.5 sm:px-2 sm:py-2 md:px-3 md:py-2',
-                    'text-xs sm:text-sm font-semibold',
-                    !tab.hasContent && 'opacity-50 cursor-not-allowed',
-                    activeTab === tab.value &&
-                      cn(
-                        'font-bold text-white shadow-lg border-white/20',
-                        `bg-gradient-to-r ${tab.gradient}`
-                      )
-                  )}
-                  disabled={!tab.hasContent}
-                >
-                  <tab.icon className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                  <span className="leading-tight text-center break-words hyphens-auto word-break-break-word max-w-full">
-                    {typeof window !== 'undefined' &&
-                    window.innerWidth < 640 &&
-                    tab.shortLabel
-                      ? tab.shortLabel
-                      : tab.label}
-                  </span>
-                </button>
-              ))}
-            </div>
-            <ScrollBar orientation="horizontal" className="mt-1" />
-          </ScrollArea>
-        </div>
-        <ScrollArea
-          id="profile-card-tabs-content"
-          className="flex-1 overflow-auto h-full max-w-full"
-        >
-          <div className="space-y-3 sm:space-y-4 md:space-y-6 p-1 sm:p-2 min-w-0 max-w-full">
-            {!(activeTabConfig && activeTabConfig.hasContent) && (
-              <EmptyState
-                icon={Telescope}
-                title="אין כאן מה להציג כרגע"
-                description="נראה שהמועמד/ת עדיין לא מילא/ה את החלק הזה בפרופיל. זו הזדמנות נהדרת לגלות יחד!"
-                variant="discovery"
-              />
-            )}
-            {/* Essence Tab */}
-            <TabsContent value="essence" className="mt-0 max-w-full min-w-0">
-              <div className="space-y-6 sm:space-y-8 max-w-full min-w-0">
-                {profile.profileHeadline && (
-                  <SectionCard
-                    title="משפט פתיחה"
-                    icon={Quote}
-                    variant="highlight"
-                    gradient={THEME.colors.primary.main}
-                  >
-                    <p className="text-center text-lg italic font-semibold text-gray-700">
-                      "{profile.profileHeadline}"
-                    </p>
-                  </SectionCard>
+        <ScrollArea className="w-full max-w-full overflow-hidden" dir="rtl">
+          <div className="flex gap-0.5 sm:gap-1 justify-center min-w-max px-2 sm:px-4">
+            {tabItems.map((tab) => (
+              <button
+                key={tab.value}
+                onClick={() => handleTabChange(tab.value)}
+                className={cn(
+                  'flex flex-col items-center gap-1 rounded-xl flex-shrink-0 transition-all duration-300 border border-transparent',
+                  'text-gray-600 hover:text-gray-800 hover:bg-rose-50',
+                  'min-w-[50px] min-h-[44px] touch-manipulation',
+                  'sm:min-w-[60px] md:min-w-[80px]',
+                  'px-1.5 py-1.5 sm:px-2 sm:py-2 md:px-3 md:py-2',
+                  'text-xs sm:text-sm font-semibold',
+                  activeTab === tab.value &&
+                    cn(
+                      'font-bold text-white shadow-lg border-white/20',
+                      `bg-gradient-to-r ${tab.gradient}`
+                    )
                 )}
-                {profile.about && (
-                  <SectionCard
-                    title="מי אני, בקצרה"
-                    subtitle={`הסיפור האישי של ${profile.user?.firstName || 'המועמד/ת'}`}
-                    icon={Heart}
-                    variant="romantic"
-                    gradient={THEME.colors.primary.main}
-                    className="max-w-full min-w-0"
-                  >
+              >
+                <tab.icon className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                <span className="leading-tight text-center break-words hyphens-auto word-break-break-word max-w-full">
+                  {typeof window !== 'undefined' &&
+                  window.innerWidth < 640 &&
+                  tab.shortLabel
+                    ? tab.shortLabel
+                    : tab.label}
+                </span>
+              </button>
+            ))}
+          </div>
+          <ScrollBar orientation="horizontal" className="mt-1" />
+        </ScrollArea>
+      </div>
+
+      {/* Tab Content with enhanced responsive handling */}
+      <ScrollArea
+        id="profile-card-tabs-content"
+        className="flex-1 overflow-auto h-full max-w-full"
+      >
+        <div className="space-y-3 sm:space-y-4 md:space-y-6 p-1 sm:p-2 min-w-0 max-w-full">
+          {/* Essence Tab */}
+          <TabsContent value="essence" className="mt-0 max-w-full min-w-0">
+            <div className="space-y-6 sm:space-y-8 max-w-full min-w-0">
+              <SectionCard
+                title="מי אני, בקצרה"
+                subtitle={`מי ${profile.user?.firstName || 'האדם הזה'} באמת`}
+                icon={Heart}
+                variant="romantic"
+                gradient={THEME.colors.primary.main}
+                className="max-w-full min-w-0"
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-start max-w-full min-w-0">
+                  <div className="relative max-w-full min-w-0">
                     <div
                       className={cn(
-                        'relative p-4 sm:p-6 rounded-2xl border border-rose-200/50 max-w-full min-w-0 overflow-hidden',
-                        `bg-gradient-to-r ${THEME.colors.neutral.warm}`,
-                        THEME.shadows.soft
+                        'relative aspect-[3/4] rounded-2xl overflow-hidden border-2 sm:border-4 border-white shadow-xl sm:shadow-2xl ring-2 sm:ring-4 ring-rose-200/50',
+                        'max-w-full hover:scale-105 transition-transform duration-700 cursor-pointer'
+                      )}
+                      onClick={() =>
+                        mainImageToDisplay &&
+                        handleOpenImageDialog(mainImageToDisplay)
+                      }
+                    >
+                      {mainImageToDisplay?.url ? (
+                        <Image
+                          src={getRelativeCloudinaryPath(
+                            mainImageToDisplay.url
+                          )}
+                          alt={`${profile.user?.firstName || 'מועמד'} נראה/ת מדהים/ה`}
+                          fill
+                          className="object-cover transition-transform duration-700 hover:scale-105"
+                          sizes="(max-width: 1024px) 100vw, 50vw"
+                          priority
+                        />
+                      ) : (
+                        <div
+                          className={cn(
+                            'w-full h-full flex items-center justify-center',
+                            `bg-gradient-to-br ${THEME.colors.primary.romantic}`
+                          )}
+                        >
+                          <div className="text-center text-white p-4">
+                            <User className="w-16 h-16 sm:w-24 sm:h-24 mx-auto mb-4 opacity-80" />
+                            <p className="text-lg sm:text-xl font-bold">
+                              התמונה המושלמת
+                            </p>
+                            <p className="text-sm opacity-80">מחכה להיחשף</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="space-y-4 sm:space-y-6 max-w-full min-w-0">
+                    <div className="text-center lg:text-right max-w-full min-w-0">
+                      <h2
+                        className={cn(
+                          'font-extrabold leading-tight mb-3 sm:mb-4 break-words hyphens-auto word-break-break-word overflow-wrap-anywhere',
+                          'text-2xl sm:text-3xl md:text-4xl',
+                          'bg-gradient-to-r from-rose-600 via-pink-600 to-amber-600 bg-clip-text text-transparent',
+                          'max-w-full'
+                        )}
+                      >
+                        {profile.user?.firstName || 'מישהו מדהים'}
+                      </h2>
+                      {age > 0 && (
+                        <p className="text-lg sm:text-xl text-gray-700 font-bold mb-4 sm:mb-6 flex items-center justify-center lg:justify-start gap-2 flex-wrap">
+                          <Cake className="w-5 h-5 text-rose-500 flex-shrink-0" />
+                          <span>גיל: {age}</span>
+                        </p>
+                      )}
+                      {profile.about ? (
+                        <div
+                          className={cn(
+                            'relative p-4 sm:p-6 rounded-2xl border border-rose-200/50 max-w-full min-w-0 overflow-hidden',
+                            `bg-gradient-to-r ${THEME.colors.neutral.warm}`,
+                            THEME.shadows.soft
+                          )}
+                        >
+                          <Quote className="absolute top-3 right-3 w-6 h-6 sm:w-8 sm:h-8 text-rose-300" />
+                          <p className="text-base sm:text-lg text-gray-800 leading-relaxed italic font-medium text-center lg:text-right break-words hyphens-auto word-break-break-word overflow-wrap-anywhere">
+                            {profile.about}
+                          </p>
+                          <Quote className="absolute bottom-3 left-3 w-6 h-6 sm:w-8 sm:h-8 text-rose-300 transform rotate-180" />
+                        </div>
+                      ) : (
+                        <EmptyState
+                          icon={Telescope}
+                          title="הסיפור האישי מחכה להיכתב"
+                          description="יש כאן אדם מעניין שמחכה לגילוי יחד איתך"
+                          variant="romantic"
+                        />
+                      )}
+                    </div>
+                    <div className="grid grid-cols-1 gap-3 sm:gap-4 max-w-full min-w-0">
+                      {profile.city && (
+                        <DetailItem
+                          icon={MapPin}
+                          label="הבית שבלב"
+                          value={`${profile.city} - המקום שקורא לי בית`}
+                          variant="highlight"
+                          size="md"
+                          className="max-w-full min-w-0"
+                        />
+                      )}
+                      {profile.occupation && (
+                        <DetailItem
+                          icon={Briefcase}
+                          label="התחום שמלהיב אותי"
+                          value={`${profile.occupation} - כאן אני נותן/ת את הלב`}
+                          variant="highlight"
+                          size="md"
+                          className="max-w-full min-w-0"
+                        />
+                      )}
+                      {profile.religiousLevel && (
+                        <DetailItem
+                          icon={BookMarked}
+                          label="השקפת העולם שמנחה אותי"
+                          value={
+                            formatEnumValue(
+                              profile.religiousLevel,
+                              religiousLevelMap
+                            ).label
+                          }
+                          variant="highlight"
+                          size="md"
+                          className="max-w-full min-w-0"
+                        />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </SectionCard>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-full min-w-0">
+                <SectionCard
+                  title="מה שמייחד אותי"
+                  subtitle="מה שעושה אותי מיוחד/ת"
+                  icon={Sparkles}
+                  variant="elegant"
+                  gradient={THEME.colors.primary.light}
+                  className="max-w-full min-w-0"
+                >
+                  <div className="space-y-4 max-w-full min-w-0">
+                    {profile.profileCharacterTraits?.length > 0 ? (
+                      <div className="flex flex-wrap gap-2 sm:gap-3 max-w-full min-w-0">
+                        {profile.profileCharacterTraits.map((trait) => {
+                          const traitData = formatEnumValue(
+                            trait,
+                            characterTraitMap,
+                            trait
+                          );
+                          return (
+                            <Badge
+                              key={trait}
+                              className={cn(
+                                'flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 font-semibold text-xs sm:text-sm',
+                                'bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800',
+                                'border border-purple-200 rounded-full hover:scale-105 transition-transform',
+                                'break-words hyphens-auto word-break-break-word max-w-full min-w-0',
+                                THEME.shadows.soft
+                              )}
+                            >
+                              <traitData.icon
+                                className={cn(
+                                  'w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0',
+                                  traitData.color
+                                )}
+                              />{' '}
+                              <span className="break-words min-w-0">
+                                {traitData.label}
+                              </span>
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <EmptyState
+                        icon={Sparkles}
+                        title="תכונות מיוחדות מחכות לגילוי"
+                        description="האישיות הייחודית תתגלה בהכרות"
+                        variant="mystery"
+                        compact
+                      />
+                    )}
+                  </div>
+                </SectionCard>
+                <SectionCard
+                  title="איך אני ממלא/ה את הנשמה"
+                  subtitle="התחביבים והתשוקות שלי"
+                  icon={Heart}
+                  variant="elegant"
+                  gradient={THEME.colors.secondary.sage}
+                  className="max-w-full min-w-0"
+                >
+                  <div className="space-y-4 max-w-full min-w-0">
+                    {profile.profileHobbies?.length > 0 ? (
+                      <div className="flex flex-wrap gap-2 sm:gap-3 max-w-full min-w-0">
+                        {profile.profileHobbies.map((hobby) => {
+                          const hobbyData = formatEnumValue(
+                            hobby,
+                            hobbiesMap,
+                            hobby
+                          );
+                          return (
+                            <Badge
+                              key={hobby}
+                              className={cn(
+                                'flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 font-semibold text-xs sm:text-sm',
+                                'bg-gradient-to-r from-emerald-100 to-cyan-100 text-emerald-800',
+                                'border border-emerald-200 rounded-full hover:scale-105 transition-transform',
+                                'break-words hyphens-auto word-break-break-word max-w-full min-w-0',
+                                THEME.shadows.soft
+                              )}
+                            >
+                              <hobbyData.icon
+                                className={cn(
+                                  'w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0',
+                                  hobbyData.color
+                                )}
+                              />{' '}
+                              <span className="break-words min-w-0">
+                                {hobbyData.label}
+                              </span>
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <EmptyState
+                        icon={Mountain}
+                        title="הרפתקאות מחכות לנו יחד"
+                        description="נגלה ביחד מה אנחנו אוהבים לעשות"
+                        variant="adventure"
+                        compact
+                      />
+                    )}
+                  </div>
+                </SectionCard>
+              </div>
+              <div
+                className={cn(
+                  'text-center p-6 sm:p-8 rounded-2xl text-white max-w-full min-w-0 overflow-hidden',
+                  `bg-gradient-to-r ${THEME.colors.primary.main}`,
+                  THEME.shadows.elegant
+                )}
+              >
+                <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 break-words hyphens-auto word-break-break-word overflow-wrap-anywhere">
+                  מוכנים להכיר את {profile.user?.firstName || 'המועמד'} לעומק?
+                </h3>
+                <p className="text-base sm:text-lg mb-4 sm:mb-6 opacity-90 break-words">
+                  עוד המון פרטים מעניינים מחכים להתגלות...
+                </p>
+                <div className="flex flex-wrap justify-center gap-3 sm:gap-4 max-w-full">
+                  <Button
+                    onClick={() => handleTabChange('story')}
+                    className={cn(
+                      'bg-white text-gray-600 hover:bg-gray-50 font-bold rounded-full min-h-[44px]',
+                      'px-4 py-2 sm:px-6 sm:py-3 text-sm sm:text-base',
+                      THEME.shadows.warm
+                    )}
+                  >
+                    <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 ml-2 flex-shrink-0" />{' '}
+                    <span className="break-words">בואו נכיר את הסיפור</span>
+                  </Button>
+                  <Button
+                    onClick={() => handleTabChange('vision')}
+                    variant="outline"
+                    className="bg-white/20 hover:bg-white border border-white/30 text-white hover:text-rose-600 font-bold rounded-full backdrop-blur-sm transition-all min-h-[44px] px-4 py-2 sm:px-6 sm:py-3 text-sm sm:text-base"
+                  >
+                    <Heart className="w-4 h-4 sm:w-5 sm:h-5 ml-2 flex-shrink-0" />{' '}
+                    <span className="break-words">מה החלום לזוגיות</span>
+                  </Button>
+                </div>
+              </div>
+              {!isDesktop && mobileViewLayout === 'detailed' && (
+                <MobileTabNavigation
+                  activeTab={activeTab}
+                  tabItems={tabItems}
+                  onTabChange={handleTabChange}
+                  THEME={THEME}
+                />
+              )}
+            </div>
+          </TabsContent>
+
+          {/* Story Tab */}
+          <TabsContent
+            value="story"
+            className="mt-0 space-y-4 sm:space-y-6 max-w-full min-w-0"
+          >
+            <div className="text-center mb-6 sm:mb-8 px-2 sm:px-4 max-w-full min-w-0 overflow-hidden">
+              <h2
+                className={cn(
+                  'font-bold mb-3 sm:mb-4 break-words hyphens-auto word-break-break-word overflow-wrap-anywhere text-center',
+                  'text-xl sm:text-2xl md:text-3xl',
+                  'bg-gradient-to-r from-rose-600 via-pink-600 to-amber-600 bg-clip-text text-transparent'
+                )}
+              >
+                הדרך שהובילה את {profile.user?.firstName || 'המועמד/ת'} לכאן
+              </h2>
+              <p className="text-gray-600 text-base sm:text-lg text-center break-words">
+                הרקע, השורשים והתחנות בדרך שעיצבו את מי שאני היום.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 max-w-full min-w-0">
+              <SectionCard
+                title="החיבור שלי ליהדות"
+                subtitle="המקום של האמונה והמסורת בחיי"
+                icon={BookMarked}
+                variant="elegant"
+                gradient={THEME.colors.primary.gold}
+                className="max-w-full min-w-0"
+              >
+                <div className="space-y-4 sm:space-y-5 max-w-full min-w-0">
+                  <DetailItem
+                    icon={BookMarked}
+                    label="השקפת העולם שמנחה אותי"
+                    value={
+                      formatEnumValue(profile.religiousLevel, religiousLevelMap)
+                        .label
+                    }
+                    variant="highlight"
+                    textAlign="right"
+                    className="max-w-full min-w-0"
+                  />
+                  <DetailItem
+                    icon={Heart}
+                    label="שמירת נגיעה"
+                    value={
+                      formatBooleanPreference(
+                        profile.shomerNegiah,
+                        'כן, זה חשוב לי',
+                        'לא'
+                      ).label
+                    }
+                    variant="elegant"
+                    textAlign="right"
+                    className="max-w-full min-w-0"
+                  />
+                  {profile.gender === 'FEMALE' && profile.headCovering && (
+                    <DetailItem
+                      icon={Crown}
+                      label="כיסוי ראש"
+                      value={
+                        formatEnumValue(profile.headCovering, headCoveringMap)
+                          .label
+                      }
+                      variant="elegant"
+                      textAlign="right"
+                      className="max-w-full min-w-0"
+                    />
+                  )}
+                  {profile.gender === 'MALE' && profile.kippahType && (
+                    <DetailItem
+                      icon={Crown}
+                      label="סוג כיפה"
+                      value={
+                        formatEnumValue(profile.kippahType, kippahTypeMap).label
+                      }
+                      variant="elegant"
+                      textAlign="right"
+                      className="max-w-full min-w-0"
+                    />
+                  )}
+                </div>
+              </SectionCard>
+              <SectionCard
+                title="השכלה ועולם המקצוע"
+                subtitle="הדרך האקדמית והמקצועית שלי"
+                icon={GraduationCap}
+                variant="elegant"
+                gradient={THEME.colors.secondary.sky}
+                className="max-w-full min-w-0"
+              >
+                <div className="space-y-4 sm:space-y-5 max-w-full min-w-0">
+                  <DetailItem
+                    icon={GraduationCap}
+                    label="רמת ההשכלה"
+                    value={
+                      formatEnumValue(profile.educationLevel, educationLevelMap)
+                        .label
+                    }
+                    variant="highlight"
+                    textAlign="right"
+                    className="max-w-full min-w-0"
+                  />
+                  {profile.education && (
+                    <DetailItem
+                      icon={BookOpen}
+                      label="פירוט הלימודים"
+                      value={profile.education}
+                      variant="elegant"
+                      valueClassName="whitespace-pre-wrap"
+                      className="max-w-full min-w-0"
+                    />
+                  )}
+                  <DetailItem
+                    icon={Briefcase}
+                    label="התחום המקצועי"
+                    value={profile.occupation || 'מקצוע מעניין מחכה לגילוי'}
+                    variant="elegant"
+                    textAlign="right"
+                    className="max-w-full min-w-0"
+                  />
+                  <DetailItem
+                    icon={Award}
+                    label="השירות הצבאי/לאומי"
+                    value={
+                      formatEnumValue(profile.serviceType, serviceTypeMap).label
+                    }
+                    variant="elegant"
+                    textAlign="right"
+                    className="max-w-full min-w-0"
+                  />
+                  {profile.serviceDetails && (
+                    <DetailItem
+                      icon={InfoIcon}
+                      label="פרטי השירות"
+                      value={profile.serviceDetails}
+                      variant="elegant"
+                      valueClassName="whitespace-pre-wrap"
+                      className="max-w-full min-w-0"
+                    />
+                  )}
+                </div>
+              </SectionCard>
+            </div>
+            <SectionCard
+              title="הרקע המשפחתי והתרבותי"
+              subtitle="המשפחה והמקורות שעיצבו אותי"
+              icon={Users2}
+              variant="romantic"
+              gradient={THEME.colors.primary.accent}
+              className="max-w-full min-w-0"
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 max-w-full min-w-0">
+                <DetailItem
+                  icon={Users2}
+                  label="סטטוס ההורים"
+                  value={profile.parentStatus || 'נגלה יחד'}
+                  variant="elegant"
+                  textAlign="right"
+                  className="max-w-full min-w-0"
+                />
+                {profile.fatherOccupation && (
+                  <DetailItem
+                    icon={Briefcase} // או אייקון אחר שתבחר
+                    label="מקצוע האב"
+                    value={profile.fatherOccupation}
+                    variant="elegant"
+                    textAlign="right"
+                    className="max-w-full min-w-0"
+                  />
+                )}
+                {profile.motherOccupation && (
+                  <DetailItem
+                    icon={Briefcase} // או אייקון אחר שתבחר
+                    label="מקצוע האם"
+                    value={profile.motherOccupation}
+                    variant="elegant"
+                    textAlign="right"
+                    className="max-w-full min-w-0"
+                  />
+                )}
+                <DetailItem
+                  icon={Users}
+                  label="אחים ואחיות"
+                  value={
+                    profile.siblings
+                      ? `${profile.siblings} אחים/אחיות`
+                      : 'נגלה יחד'
+                  }
+                  variant="elegant"
+                  textAlign="right"
+                  className="max-w-full min-w-0"
+                />
+                <DetailItem
+                  icon={Crown}
+                  label="המקום במשפחה"
+                  value={
+                    profile.position ? `מקום ${profile.position}` : 'נגלה יחד'
+                  }
+                  variant="elegant"
+                  textAlign="right"
+                  className="max-w-full min-w-0"
+                />
+                {profile.aliyaCountry && (
+                  <DetailItem
+                    icon={Globe}
+                    label="ארץ המוצא"
+                    value={`${profile.aliyaCountry} - השורשים שלי`}
+                    variant="elegant"
+                    textAlign="right"
+                    className="max-w-full min-w-0"
+                  />
+                )}
+                {profile.aliyaYear && (
+                  <DetailItem
+                    icon={Calendar}
+                    label="שנת העלייה"
+                    value={`${profile.aliyaYear} - הגעתי הביתה`}
+                    variant="elegant"
+                    textAlign="right"
+                    className="max-w-full min-w-0"
+                  />
+                )}
+                {profile.nativeLanguage && (
+                  <DetailItem
+                    icon={Languages}
+                    label="השפה הראשונה"
+                    value={
+                      formatEnumValue(profile.nativeLanguage, languageMap).label
+                    }
+                    variant="elegant"
+                    textAlign="right"
+                    className="max-w-full min-w-0"
+                  />
+                )}
+              </div>
+              {profile.additionalLanguages &&
+                profile.additionalLanguages.length > 0 && (
+                  <div className="mt-6 pt-6 border-t border-gray-200 max-w-full min-w-0">
+                    <h4 className="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
+                      <Languages className="w-5 h-5 text-blue-500 flex-shrink-0" />{' '}
+                      <span className="break-words">
+                        שפות נוספות שאני מדבר/ת
+                      </span>
+                    </h4>
+                    <div className="flex flex-wrap gap-2 sm:gap-3 max-w-full min-w-0">
+                      {profile.additionalLanguages.map((lang) => {
+                        const langData = formatEnumValue(lang, languageMap);
+                        return (
+                          <Badge
+                            key={lang}
+                            className={cn(
+                              'flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 font-semibold text-xs sm:text-sm',
+                              'bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-800',
+                              'border border-blue-200 rounded-full',
+                              'break-words hyphens-auto word-break-break-word max-w-full min-w-0',
+                              THEME.shadows.soft
+                            )}
+                          >
+                            <langData.icon
+                              className={cn(
+                                'w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0',
+                                langData.color
+                              )}
+                            />{' '}
+                            <span className="break-words min-w-0">
+                              {langData.label}
+                            </span>
+                          </Badge>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+            </SectionCard>
+            {!isDesktop && mobileViewLayout === 'detailed' && (
+              <MobileTabNavigation
+                activeTab={activeTab}
+                tabItems={tabItems}
+                onTabChange={handleTabChange}
+                THEME={THEME}
+              />
+            )}
+          </TabsContent>
+
+          {/* Vision Tab */}
+          <TabsContent
+            value="vision"
+            className="mt-0 space-y-4 sm:space-y-6 max-w-full min-w-0"
+          >
+            <div className="text-center mb-6 sm:mb-8 px-2 sm:px-4 max-w-full min-w-0 overflow-hidden">
+              <h2
+                className={cn(
+                  'font-bold mb-3 sm:mb-4 break-words hyphens-auto word-break-break-word overflow-wrap-anywhere text-center',
+                  'text-xl sm:text-2xl md:text-3xl',
+                  'bg-gradient-to-r from-rose-600 via-pink-600 to-amber-600 bg-clip-text text-transparent'
+                )}
+              >
+                החזון והחלום לזוגיות של {profile.user?.firstName || 'המועמד'}
+              </h2>
+              <p className="text-gray-600 text-base sm:text-lg break-words">
+                איך אני רואה את העתיד שלנו יחד
+              </p>
+            </div>
+            <SectionCard
+              title="הזוגיות שאני חולם/ת עליה"
+              subtitle="המחשבות והרגשות שלי על אהבה ומשפחה"
+              icon={Heart}
+              variant="romantic"
+              gradient={THEME.colors.primary.main}
+              className="max-w-full min-w-0"
+            >
+              {profile.matchingNotes ? (
+                <div
+                  className={cn(
+                    'p-4 sm:p-6 rounded-2xl border border-rose-200 max-w-full min-w-0 overflow-hidden',
+                    `bg-gradient-to-r ${THEME.colors.neutral.warm}`,
+                    THEME.shadows.soft
+                  )}
+                >
+                  <div className="flex items-start gap-3 sm:gap-4 max-w-full min-w-0">
+                    <div
+                      className={cn(
+                        'p-2 sm:p-3 rounded-full flex-shrink-0',
+                        `bg-gradient-to-r ${THEME.colors.primary.rose}`
                       )}
                     >
-                      <Quote className="absolute top-3 right-3 w-6 h-6 sm:w-8 sm:h-8 text-rose-300" />
-                      <p className="text-base sm:text-lg text-gray-800 leading-relaxed italic font-medium text-center lg:text-right break-words hyphens-auto word-break-break-word overflow-wrap-anywhere">
-                        {profile.about}
+                      <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                    </div>
+                    <div className="max-w-full min-w-0 flex-1 overflow-hidden">
+                      <h4 className="font-bold text-rose-800 mb-3 text-base sm:text-lg">
+                        המחשבות שלי על הזוגיות המושלמת:
+                      </h4>
+                      <p className="text-rose-700 leading-relaxed whitespace-pre-wrap italic text-base sm:text-lg break-words hyphens-auto word-break-break-word overflow-wrap-anywhere">
+                        <Quote className="w-4 h-4 sm:w-5 sm:h-5 inline ml-1 text-rose-400 flex-shrink-0" />
+                        {profile.matchingNotes}
+                        <Quote className="w-4 h-4 sm:w-5 sm:h-5 inline mr-1 text-rose-400 transform rotate-180 flex-shrink-0" />
                       </p>
-                      <Quote className="absolute bottom-3 left-3 w-6 h-6 sm:w-8 sm:h-8 text-rose-300 transform rotate-180" />
                     </div>
-                  </SectionCard>
-                )}
-                {personalityAnswers.length > 0 && (
-                  <SectionCard
-                    title="האישיות שלי במילים שלי"
-                    subtitle="תשובות לשאלות שעוזרות להכיר אותי"
-                    icon={Sparkles}
+                  </div>
+                </div>
+              ) : (
+                <EmptyState
+                  icon={Heart}
+                  title="החזון לזוגיות טרם פורט"
+                  description="זו הזדמנות מצוינת להתחיל שיחה ולגלות יחד!"
+                  variant="romantic"
+                />
+              )}
+              <div className="mt-6 sm:mt-8 space-y-4 sm:space-y-6 max-w-full min-w-0">
+                <h4 className="text-lg sm:text-xl font-bold text-gray-800 flex items-center gap-3">
+                  <Baby className="w-5 h-5 sm:w-6 sm:h-6 text-pink-500 flex-shrink-0" />{' '}
+                  <span className="break-words">החזון למשפחה</span>
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 max-w-full min-w-0">
+                  {profile.maritalStatus &&
+                    ['divorced', 'widowed', 'annulled'].includes(
+                      profile.maritalStatus
+                    ) && (
+                      <DetailItem
+                        icon={Baby}
+                        label="ילדים מקשר קודם"
+                        value={
+                          formatBooleanPreference(
+                            profile.hasChildrenFromPrevious,
+                            'יש ילדים יקרים',
+                            'אין ילדים',
+                            'נגלה יחד'
+                          ).label
+                        }
+                        variant="elegant"
+                        textAlign="right"
+                        className="max-w-full min-w-0"
+                      />
+                    )}
+                  {(profile.preferredAgeMin || profile.preferredAgeMax) && (
+                    <DetailItem
+                      icon={Calendar}
+                      label="הגיל המועדף עליי"
+                      value={`${profile.preferredAgeMin || '?'} - ${profile.preferredAgeMax || '?'} שנים`}
+                      variant="highlight"
+                      textAlign="right"
+                      className="max-w-full min-w-0"
+                    />
+                  )}
+                  {(profile.preferredHeightMin ||
+                    profile.preferredHeightMax) && (
+                    <DetailItem
+                      icon={User}
+                      label="הגובה המועדף"
+                      value={`${profile.preferredHeightMin || '?'} - ${profile.preferredHeightMax || '?'} ס״מ`}
+                      variant="highlight"
+                      textAlign="right"
+                      className="max-w-full min-w-0"
+                    />
+                  )}
+                  <DetailItem
+                    icon={Heart}
+                    label="שמירת נגיעה בזוגיות"
+                    value={
+                      formatStringBooleanPreference(
+                        profile.preferredShomerNegiah
+                      ).label
+                    }
                     variant="elegant"
-                    gradient={WORLDS.personality.gradient}
-                  >
-                    <div className="grid grid-cols-1 gap-4 sm:gap-6 max-w-full min-w-0">
-                      {personalityAnswers.map((answer) => (
-                        <QuestionnaireItem
-                          key={answer.questionId}
-                          answer={answer}
-                          worldColor={WORLDS.personality.accentColor}
-                          worldGradient={WORLDS.personality.gradient}
-                        />
-                      ))}
-                    </div>
-                  </SectionCard>
+                    textAlign="right"
+                    className="max-w-full min-w-0"
+                  />
+                </div>
+              </div>
+            </SectionCard>
+            {!isDesktop && mobileViewLayout === 'detailed' && (
+              <MobileTabNavigation
+                activeTab={activeTab}
+                tabItems={tabItems}
+                onTabChange={handleTabChange}
+                THEME={THEME}
+              />
+            )}
+          </TabsContent>
+
+          {/* Search Tab */}
+          <TabsContent
+            value="search"
+            className="mt-0 space-y-4 sm:space-y-6 max-w-full min-w-0"
+          >
+            <div className="text-center mb-6 sm:mb-8 px-2 sm:px-4 max-w-full min-w-0 overflow-hidden">
+              <h2
+                className={cn(
+                  'font-bold mb-3 sm:mb-4 break-words hyphens-auto word-break-break-word overflow-wrap-anywhere text-center',
+                  'text-xl sm:text-2xl md:text-3xl',
+                  'bg-gradient-to-r from-rose-600 via-pink-600 to-amber-600 bg-clip-text text-transparent'
                 )}
+              >
+                החיבור שאני מחפש/ת בשותף/ה לחיים
+              </h2>
+              <p className="text-gray-600 text-base sm:text-lg break-words">
+                אלו הדברים שאני מאמין/ה שייצרו בינינו חיבור עמוק ואמיתי.
+              </p>
+            </div>
+            {hasAnyPreferences ? (
+              <div className="space-y-6 sm:space-y-8 max-w-full min-w-0">
+                {renderPreferenceBadges(
+                  'סטטוסים משפחתיים מועדפים',
+                  Heart,
+                  profile.preferredMaritalStatuses,
+                  maritalStatusMap,
+                  THEME.colors.primary.main
+                )}
+                {renderPreferenceBadges(
+                  'רמות דתיות מועדפות',
+                  BookMarked,
+                  profile.preferredReligiousLevels,
+                  religiousLevelMap,
+                  THEME.colors.secondary.peach
+                )}
+                {renderPreferenceBadges(
+                  'רמות השכלה מועדפות',
+                  GraduationCap,
+                  profile.preferredEducation,
+                  educationLevelMap,
+                  THEME.colors.secondary.sky
+                )}
+                {profile.preferredOccupations &&
+                  profile.preferredOccupations.length > 0 &&
+                  renderPreferenceBadges(
+                    'תחומי עיסוק מועדפים',
+                    Briefcase,
+                    profile.preferredOccupations,
+                    {},
+                    THEME.colors.secondary.sage
+                  )}
+                {profile.preferredLocations &&
+                  profile.preferredLocations.length > 0 &&
+                  renderPreferenceBadges(
+                    'אזורי מגורים מועדפים',
+                    MapPin,
+                    profile.preferredLocations,
+                    {},
+                    THEME.colors.secondary.peach
+                  )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-full min-w-0">
-                  {profile.profileCharacterTraits &&
-                    profile.profileCharacterTraits.length > 0 && (
+                  {profile.preferredCharacterTraits &&
+                    profile.preferredCharacterTraits.length > 0 && (
                       <SectionCard
-                        title="מה שמייחד אותי"
-                        subtitle="תכונות האופי שלי"
+                        title="תכונות אופי מועדפות"
+                        subtitle="איך אני רואה את בן/בת הזוג שלי"
                         icon={Sparkles}
                         variant="elegant"
                         gradient={THEME.colors.primary.light}
                         className="max-w-full min-w-0"
                       >
                         <div className="flex flex-wrap gap-2 sm:gap-3 max-w-full min-w-0">
-                          {profile.profileCharacterTraits.map((trait) => {
+                          {profile.preferredCharacterTraits.map((trait) => {
                             const traitData = formatEnumValue(
                               trait,
                               characterTraitMap,
@@ -3728,9 +4446,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                               <Badge
                                 key={trait}
                                 className={cn(
-                                  'flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 font-semibold text-xs sm:text-sm',
-                                  'bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800',
-                                  'border border-purple-200 rounded-full hover:scale-105 transition-transform',
+                                  'flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-2 font-semibold text-xs sm:text-sm',
+                                  'bg-gradient-to-r from-purple-100 to-violet-100 text-purple-800',
+                                  'border border-purple-200 rounded-full',
                                   'break-words hyphens-auto word-break-break-word max-w-full min-w-0',
                                   THEME.shadows.soft
                                 )}
@@ -3750,18 +4468,18 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         </div>
                       </SectionCard>
                     )}
-                  {profile.profileHobbies &&
-                    profile.profileHobbies.length > 0 && (
+                  {profile.preferredHobbies &&
+                    profile.preferredHobbies.length > 0 && (
                       <SectionCard
-                        title="איך אני ממלא/ה את הנשמה"
-                        subtitle="התחביבים והתשוקות שלי"
+                        title="תחביבים משותפים שהייתי שמח/ה"
+                        subtitle="מה נעשה יחד בזמן הפנוי"
                         icon={Heart}
                         variant="elegant"
                         gradient={THEME.colors.secondary.sage}
                         className="max-w-full min-w-0"
                       >
                         <div className="flex flex-wrap gap-2 sm:gap-3 max-w-full min-w-0">
-                          {profile.profileHobbies.map((hobby) => {
+                          {profile.preferredHobbies.map((hobby) => {
                             const hobbyData = formatEnumValue(
                               hobby,
                               hobbiesMap,
@@ -3771,9 +4489,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                               <Badge
                                 key={hobby}
                                 className={cn(
-                                  'flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 font-semibold text-xs sm:text-sm',
-                                  'bg-gradient-to-r from-emerald-100 to-cyan-100 text-emerald-800',
-                                  'border border-emerald-200 rounded-full hover:scale-105 transition-transform',
+                                  'flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-2 font-semibold text-xs sm:text-sm',
+                                  'bg-gradient-to-r from-emerald-100 to-green-100 text-emerald-800',
+                                  'border border-emerald-200 rounded-full',
                                   'break-words hyphens-auto word-break-break-word max-w-full min-w-0',
                                   THEME.shadows.soft
                                 )}
@@ -3794,462 +4512,89 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       </SectionCard>
                     )}
                 </div>
-                {!isDesktop && mobileViewLayout === 'detailed' && (
-                  <MobileTabNavigation
-                    activeTab={activeTab}
-                    tabItems={tabItems}
-                    onTabChange={handleTabChange}
-                    THEME={THEME}
-                  />
-                )}
               </div>
-            </TabsContent>
+            ) : (
+              <EmptyState
+                icon={Compass}
+                title="פתוח/ה להכיר את האדם הנכון"
+                description="אין כאן רשימת דרישות, אלא הזמנה פתוחה להכיר אדם מיוחד. יש כאן מקום לגילויים מרגשים יחד."
+                variant="discovery"
+              />
+            )}
+            {!isDesktop && mobileViewLayout === 'detailed' && (
+              <MobileTabNavigation
+                activeTab={activeTab}
+                tabItems={tabItems}
+                onTabChange={handleTabChange}
+                THEME={THEME}
+              />
+            )}
+          </TabsContent>
 
-            {/* Story Tab */}
-            <TabsContent
-              value="story"
-              className="mt-0 space-y-4 sm:space-y-6 max-w-full min-w-0"
-            >
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 max-w-full min-w-0">
-                <SectionCard
-                  title="החיבור שלי ליהדות"
-                  subtitle="המקום של האמונה והמסורת בחיי"
-                  icon={BookMarked}
-                  variant="elegant"
-                  gradient={THEME.colors.primary.gold}
-                  className="max-w-full min-w-0"
-                >
-                  <div className="space-y-4 sm:space-y-5 max-w-full min-w-0">
-                    <DetailItem
-                      icon={BookMarked}
-                      label="השקפת העולם שמנחה אותי"
-                      value={
-                        formatEnumValue(
-                          profile.religiousLevel,
-                          religiousLevelMap
-                        ).label
-                      }
-                      variant="highlight"
-                      textAlign="right"
-                    />
-                    {profile.religiousJourney && (
-                      <DetailItem
-                        icon={Compass}
-                        label="המסע הדתי שלי"
-                        value={
-                          formatEnumValue(
-                            profile.religiousJourney,
-                            religiousJourneyMap
-                          ).label
-                        }
-                        variant="elegant"
-                        textAlign="right"
-                      />
-                    )}
-                    <DetailItem
-                      icon={Heart}
-                      label="שמירת נגיעה"
-                      value={
-                        formatBooleanPreference(
-                          profile.shomerNegiah,
-                          'כן, זה חשוב לי',
-                          'לא'
-                        ).label
-                      }
-                      variant="elegant"
-                      textAlign="right"
-                    />
-                    {profile.gender === 'FEMALE' && profile.headCovering && (
-                      <DetailItem
-                        icon={Crown}
-                        label="כיסוי ראש"
-                        value={
-                          formatEnumValue(profile.headCovering, headCoveringMap)
-                            .label
-                        }
-                        variant="elegant"
-                        textAlign="right"
-                      />
-                    )}
-                    {profile.gender === 'MALE' && profile.kippahType && (
-                      <DetailItem
-                        icon={Crown}
-                        label="סוג כיפה"
-                        value={
-                          formatEnumValue(profile.kippahType, kippahTypeMap)
-                            .label
-                        }
-                        variant="elegant"
-                        textAlign="right"
-                      />
-                    )}
-                  </div>
-                </SectionCard>
-                <SectionCard
-                  title="השכלה ועולם המקצוע"
-                  subtitle="הדרך האקדמית והמקצועית שלי"
-                  icon={GraduationCap}
-                  variant="elegant"
-                  gradient={THEME.colors.secondary.sky}
-                >
-                  <div className="space-y-4 sm:space-y-5">
-                    <DetailItem
-                      icon={GraduationCap}
-                      label="רמת ההשכלה"
-                      value={
-                        formatEnumValue(
-                          profile.educationLevel,
-                          educationLevelMap
-                        ).label
-                      }
-                      variant="highlight"
-                      textAlign="right"
-                    />
-                    {profile.education && (
-                      <DetailItem
-                        icon={BookOpen}
-                        label="פירוט הלימודים"
-                        value={profile.education}
-                        variant="elegant"
-                        valueClassName="whitespace-pre-wrap"
-                      />
-                    )}
-                    <DetailItem
-                      icon={Briefcase}
-                      label="התחום המקצועי"
-                      value={profile.occupation || 'מקצוע מעניין מחכה לגילוי'}
-                      variant="elegant"
-                      textAlign="right"
-                    />
-                    <DetailItem
-                      icon={Award}
-                      label="השירות הצבאי/לאומי"
-                      value={
-                        formatEnumValue(profile.serviceType, serviceTypeMap)
-                          .label
-                      }
-                      variant="elegant"
-                      textAlign="right"
-                    />
-                    {profile.serviceDetails && (
-                      <DetailItem
-                        icon={InfoIcon}
-                        label="פרטי השירות"
-                        value={profile.serviceDetails}
-                        variant="elegant"
-                        valueClassName="whitespace-pre-wrap"
-                      />
-                    )}
-                  </div>
-                </SectionCard>
-              </div>
-              <SectionCard
-                title="הרקע המשפחתי והתרבותי"
-                subtitle="המשפחה והמקורות שעיצבו אותי"
-                icon={Users2}
-                variant="romantic"
-                gradient={THEME.colors.primary.accent}
-              >
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-                  <DetailItem
-                    icon={Users2}
-                    label="סטטוס ההורים"
-                    value={profile.parentStatus || 'נגלה יחד'}
-                    variant="elegant"
-                    textAlign="right"
-                  />
-                  {profile.fatherOccupation && (
-                    <DetailItem
-                      icon={Briefcase}
-                      label="מקצוע האב"
-                      value={profile.fatherOccupation}
-                      variant="elegant"
-                      textAlign="right"
-                    />
-                  )}
-                  {profile.motherOccupation && (
-                    <DetailItem
-                      icon={Briefcase}
-                      label="מקצוע האם"
-                      value={profile.motherOccupation}
-                      variant="elegant"
-                      textAlign="right"
-                    />
-                  )}
-                  <DetailItem
-                    icon={Users}
-                    label="אחים ואחיות"
-                    value={
-                      profile.siblings
-                        ? `${profile.siblings} אחים/אחיות`
-                        : 'נגלה יחד'
-                    }
-                    variant="elegant"
-                    textAlign="right"
-                  />
-                  <DetailItem
-                    icon={Crown}
-                    label="המקום במשפחה"
-                    value={
-                      profile.position ? `מקום ${profile.position}` : 'נגלה יחד'
-                    }
-                    variant="elegant"
-                    textAlign="right"
-                  />
-                  {profile.aliyaCountry && (
-                    <DetailItem
-                      icon={Globe}
-                      label="ארץ המוצא"
-                      value={`${profile.aliyaCountry} - השורשים שלי`}
-                      variant="elegant"
-                      textAlign="right"
-                    />
-                  )}
-                  {profile.aliyaYear && (
-                    <DetailItem
-                      icon={Calendar}
-                      label="שנת העלייה"
-                      value={`${profile.aliyaYear} - הגעתי הביתה`}
-                      variant="elegant"
-                      textAlign="right"
-                    />
-                  )}
-                </div>
-              </SectionCard>
-              {valuesAnswers.length > 0 && (
-                <SectionCard
-                  title="הערכים והעקרונות שמנחים אותי"
-                  subtitle="תשובות לשאלות על מה שחשוב לי באמת"
-                  icon={BookMarked}
-                  variant="elegant"
-                  gradient={WORLDS.values.gradient}
-                >
-                  <div className="grid grid-cols-1 gap-4 sm:gap-6">
-                    {valuesAnswers.map((answer) => (
-                      <QuestionnaireItem
-                        key={answer.questionId}
-                        answer={answer}
-                        worldColor={WORLDS.values.accentColor}
-                        worldGradient={WORLDS.values.gradient}
-                      />
-                    ))}
-                  </div>
-                </SectionCard>
-              )}
-              {!isDesktop && mobileViewLayout === 'detailed' && (
-                <MobileTabNavigation
-                  activeTab={activeTab}
-                  tabItems={tabItems}
-                  onTabChange={handleTabChange}
-                  THEME={THEME}
-                />
-              )}
-            </TabsContent>
-
-            {/* Vision Tab */}
-            <TabsContent
-              value="vision"
-              className="mt-0 space-y-4 sm:space-y-6 max-w-full min-w-0"
-            >
-              {profile.matchingNotes && (
-                <SectionCard
-                  title="הזוגיות שאני חולם/ת עליה"
-                  icon={Heart}
-                  variant="romantic"
-                  gradient={THEME.colors.primary.main}
-                >
-                  <div
-                    className={cn(
-                      'p-4 sm:p-6 rounded-2xl border border-rose-200 max-w-full min-w-0 overflow-hidden',
-                      `bg-gradient-to-r ${THEME.colors.neutral.warm}`,
-                      THEME.shadows.soft
-                    )}
-                  >
-                    <p className="text-rose-700 leading-relaxed whitespace-pre-wrap italic text-base sm:text-lg break-words hyphens-auto word-break-break-word overflow-wrap-anywhere">
-                      <Quote className="w-4 h-4 sm:w-5 sm:h-5 inline ml-1 text-rose-400 flex-shrink-0" />
-                      {profile.matchingNotes}
-                      <Quote className="w-4 h-4 sm:w-5 sm:h-5 inline mr-1 text-rose-400 transform rotate-180 flex-shrink-0" />
-                    </p>
-                  </div>
-                </SectionCard>
-              )}
-              {profile.inspiringCoupleStory && (
-                <SectionCard
-                  title="המודל שלי לזוגיות"
-                  subtitle="הזוג שנותן לי השראה"
-                  icon={Stars}
-                  variant="elegant"
-                  gradient={THEME.colors.primary.gold}
-                >
-                  <div
-                    className={cn(
-                      'p-4 sm:p-6 rounded-2xl border border-amber-200',
-                      `bg-gradient-to-r ${THEME.colors.neutral.warm}`
-                    )}
-                  >
-                    <p className="text-amber-800 leading-relaxed italic">
-                      "{profile.inspiringCoupleStory}"
-                    </p>
-                  </div>
-                </SectionCard>
-              )}
-              {relationshipAnswers.length > 0 && (
-                <SectionCard
-                  title="עוד על החזון שלי לזוגיות"
-                  subtitle="תשובות לשאלות על אהבה, משפחה וכל מה שביניהם"
-                  icon={Heart}
-                  variant="romantic"
-                  gradient={WORLDS.relationship.gradient}
-                >
-                  <div className="grid grid-cols-1 gap-4 sm:gap-6">
-                    {relationshipAnswers.map((answer) => (
-                      <QuestionnaireItem
-                        key={answer.questionId}
-                        answer={answer}
-                        worldColor={WORLDS.relationship.accentColor}
-                        worldGradient={WORLDS.relationship.gradient}
-                      />
-                    ))}
-                  </div>
-                </SectionCard>
-              )}
-              {!isDesktop && mobileViewLayout === 'detailed' && (
-                <MobileTabNavigation
-                  activeTab={activeTab}
-                  tabItems={tabItems}
-                  onTabChange={handleTabChange}
-                  THEME={THEME}
-                />
-              )}
-            </TabsContent>
-
-            {/* Search Tab */}
-            <TabsContent
-              value="search"
-              className="mt-0 space-y-4 sm:space-y-6 max-w-full min-w-0"
-            >
-              {partnerAnswers.length > 0 && (
-                <SectionCard
-                  title="איך אני מדמיין/ת את בן/בת הזוג"
-                  subtitle="תשובות מהשאלון על מה שאני מחפש/ת"
-                  icon={Target}
-                  variant="elegant"
-                  gradient={WORLDS.partner.gradient}
-                >
-                  <div className="grid grid-cols-1 gap-4 sm:gap-6">
-                    {partnerAnswers.map((answer) => (
-                      <QuestionnaireItem
-                        key={answer.questionId}
-                        answer={answer}
-                        worldColor={WORLDS.partner.accentColor}
-                        worldGradient={WORLDS.partner.gradient}
-                      />
-                    ))}
-                  </div>
-                </SectionCard>
-              )}
-              {hasAnyPreferences ? (
-                <SectionCard
-                  title="העדפות נוספות"
-                  subtitle="דברים שיכולים לעזור לנו למצוא התאמה טובה יותר"
-                  icon={Filter}
-                  variant="default"
-                >
-                  <div className="space-y-6 sm:space-y-8">
-                    {renderPreferenceBadges(
-                      'סטטוסים משפחתיים מועדפים',
-                      Heart,
-                      profile.preferredMaritalStatuses,
-                      maritalStatusMap,
-                      THEME.colors.primary.main
-                    )}
-                    {renderPreferenceBadges(
-                      'רמות דתיות מועדפות',
-                      BookMarked,
-                      profile.preferredReligiousLevels,
-                      religiousLevelMap,
-                      THEME.colors.secondary.peach
-                    )}
-                    {renderPreferenceBadges(
-                      'מסע דתי מועדף של בן/בת הזוג',
-                      Compass,
-                      profile.preferredReligiousJourneys as string[],
-                      religiousJourneyMap,
-                      THEME.colors.secondary.sage
-                    )}
-                    {renderPreferenceBadges(
-                      'רמות השכלה מועדפות',
-                      GraduationCap,
-                      profile.preferredEducation,
-                      educationLevelMap,
-                      THEME.colors.secondary.sky
-                    )}
-                  </div>
-                </SectionCard>
-              ) : (
-                !partnerAnswers.length && (
-                  <EmptyState
-                    icon={Compass}
-                    title="פתוח/ה להכיר את האדם הנכון"
-                    description="אין כאן רשימת דרישות, אלא הזמנה פתוחה להכיר אדם מיוחד. יש כאן מקום לגילויים מרגשים יחד."
-                    variant="discovery"
-                  />
-                )
-              )}
-              {!isDesktop && mobileViewLayout === 'detailed' && (
-                <MobileTabNavigation
-                  activeTab={activeTab}
-                  tabItems={tabItems}
-                  onTabChange={handleTabChange}
-                  THEME={THEME}
-                />
-              )}
-            </TabsContent>
-
-            {/* Deeper Tab */}
+          {/* Deeper Tab */}
+          {hasDisplayableQuestionnaireAnswers && (
             <TabsContent
               value="deeper"
               className="mt-0 space-y-4 sm:space-y-6 max-w-full min-w-0"
             >
-              {religionAnswers.length > 0 && (
-                <SectionCard
-                  title="העולם הדתי והרוחני שלי"
-                  subtitle="תשובות לשאלות על אמונה, מסורת ורוחניות"
-                  icon={Star}
-                  variant="elegant"
-                  gradient={WORLDS.religion.gradient}
+              <div className="text-center mb-6 sm:mb-8 px-2 sm:px-4 max-w-full min-w-0 overflow-hidden">
+                <h2
+                  className={cn(
+                    'font-bold mb-3 sm:mb-4 break-words hyphens-auto word-break-break-word overflow-wrap-anywhere text-center',
+                    'text-xl sm:text-2xl md:text-3xl',
+                    'bg-gradient-to-r from-rose-600 via-pink-600 to-amber-600 bg-clip-text text-transparent'
+                  )}
                 >
-                  <div className="grid grid-cols-1 gap-4 sm:gap-6">
-                    {religionAnswers.map((answer) => (
-                      <QuestionnaireItem
-                        key={answer.questionId}
-                        answer={answer}
-                        worldColor={WORLDS.religion.accentColor}
-                        worldGradient={WORLDS.religion.gradient}
-                      />
-                    ))}
-                  </div>
-                </SectionCard>
-              )}
-              {profile.influentialRabbi && (
-                <SectionCard
-                  title="דמות רוחנית משפיעה"
-                  icon={Lightbulb}
-                  variant="elegant"
-                  gradient={THEME.colors.primary.gold}
-                >
-                  <div
-                    className={cn(
-                      'p-4 sm:p-6 rounded-2xl border border-amber-200',
-                      `bg-gradient-to-r ${THEME.colors.neutral.warm}`
-                    )}
+                  התשובות העמוקות מהלב של {profile.user?.firstName || 'המועמד'}
+                </h2>
+                <p className="text-gray-600 text-base sm:text-lg break-words">
+                  מחשבות אישיות ותובנות על החיים, אהבה וכל מה שביניהם
+                </p>
+              </div>
+              {Object.entries(WORLDS).map(([worldKey, worldConfig]) => {
+                const answersForWorld = (
+                  questionnaire?.formattedAnswers?.[
+                    worldKey as keyof typeof questionnaire.formattedAnswers
+                  ] ?? []
+                ).filter((answer) => {
+                  // שלב ראשון: לוודא שיש בכלל תוכן להציג
+                  const hasContent = answer.answer || answer.displayText;
+                  if (!hasContent) {
+                    return false;
+                  }
+
+                  // שלב שני: להחיל את לוגיקת ההסתרה בהתאם למשתמש
+                  if (viewMode === 'matchmaker') {
+                    return true; // שדכן רואה את כל התשובות שיש להן תוכן
+                  } else {
+                    return answer.isVisible !== false; // משתמש רגיל רואה רק תשובות שאינן חסויות
+                  }
+                });
+                if (answersForWorld.length === 0) return null;
+                return (
+                  <SectionCard
+                    key={worldKey}
+                    title={worldConfig.label}
+                    subtitle={worldConfig.description}
+                    icon={worldConfig.icon}
+                    variant="elegant"
+                    gradient={worldConfig.gradient}
+                    className="max-w-full min-w-0"
                   >
-                    <p className="text-amber-800 leading-relaxed italic">
-                      "{profile.influentialRabbi}"
-                    </p>
-                  </div>
-                </SectionCard>
-              )}
+                    <div className="grid grid-cols-1 gap-4 sm:gap-6 max-w-full min-w-0">
+                      {answersForWorld.map((answer) => (
+                        <QuestionnaireItem
+                          key={answer.questionId}
+                          answer={answer}
+                          worldColor={worldConfig.accentColor}
+                          worldGradient={worldConfig.gradient}
+                          compact={false}
+                        />
+                      ))}
+                    </div>
+                  </SectionCard>
+                );
+              })}
               {!isDesktop && mobileViewLayout === 'detailed' && (
                 <MobileTabNavigation
                   activeTab={activeTab}
@@ -4259,67 +4604,105 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 />
               )}
             </TabsContent>
+          )}
 
-            {/* Professional Tab */}
-            {viewMode === 'matchmaker' && (
-              <TabsContent
-                value="professional"
-                className="mt-0 max-w-full min-w-0"
-              >
-                <SectionCard
-                  title="פרטים חסויים ותובנות לשדכן"
-                  subtitle="פרטים מקצועיים לתהליך השידוך"
-                  icon={Lock}
-                  variant="elegant"
-                  gradient={THEME.colors.primary.gold}
+          {/* Professional Tab */}
+          {viewMode === 'matchmaker' && (
+            <TabsContent
+              value="professional"
+              className="mt-0 max-w-full min-w-0"
+            >
+              <div className="text-center mb-6 sm:mb-8 px-2 sm:px-4 max-w-full min-w-0 overflow-hidden">
+                <h2
+                  className={cn(
+                    'font-bold mb-3 sm:mb-4 break-words hyphens-auto word-break-break-word overflow-wrap-anywhere text-center',
+                    'text-xl sm:text-2xl md:text-3xl',
+                    'bg-gradient-to-r from-rose-600 via-pink-600 to-amber-600 bg-clip-text text-transparent'
+                  )}
                 >
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <DetailItem
-                        icon={Phone}
-                        label="העדפת יצירת קשר"
-                        value={
-                          formatEnumValue(
-                            profile.contactPreference,
-                            contactPreferenceMap,
-                            'נגלה יחד'
-                          ).label
-                        }
-                        variant="elegant"
-                        textAlign="right"
-                      />
-                      <DetailItem
-                        icon={Users}
-                        label="העדפת מגדר שדכן/ית"
-                        value={
-                          profile.preferredMatchmakerGender
-                            ? profile.preferredMatchmakerGender === 'MALE'
-                              ? 'שדכן גבר'
-                              : 'שדכנית אישה'
-                            : 'אין העדפה מיוחדת'
-                        }
-                        variant="elegant"
-                        textAlign="right"
-                      />
+                  מידע מקצועי - לשדכנים בלבד
+                </h2>
+                <p className="text-gray-600 text-base sm:text-lg break-words">
+                  מידע חסוי ונקודות חשובות לתהליך השידוך
+                </p>
+              </div>
+              <SectionCard
+                title="פרטים חסויים ותובנות לשדכן"
+                subtitle="פרטים מקצועיים לתהליך השידוך"
+                icon={Lock}
+                variant="elegant"
+                gradient={THEME.colors.primary.gold}
+                className="max-w-full min-w-0"
+              >
+                <div
+                  className={cn(
+                    'p-4 sm:p-6 rounded-2xl border-2 border-amber-300/70 max-w-full min-w-0 overflow-hidden',
+                    `bg-gradient-to-br ${THEME.colors.secondary.peach}`,
+                    THEME.shadows.elegant
+                  )}
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6 max-w-full min-w-0">
+                    <DetailItem
+                      icon={Phone}
+                      label="העדפת יצירת קשר"
+                      value={
+                        formatEnumValue(
+                          profile.contactPreference,
+                          contactPreferenceMap,
+                          'נגלה יחד'
+                        ).label
+                      }
+                      variant="elegant"
+                      textAlign="right"
+                      className="max-w-full min-w-0"
+                    />
+                    <DetailItem
+                      icon={Users}
+                      label="העדפת מגדר שדכן/ית"
+                      value={
+                        profile.preferredMatchmakerGender
+                          ? profile.preferredMatchmakerGender === 'MALE'
+                            ? 'שדכן גבר'
+                            : 'שדכנית אישה'
+                          : 'אין העדפה מיוחדת'
+                      }
+                      variant="elegant"
+                      textAlign="right"
+                      className="max-w-full min-w-0"
+                    />
+                  </div>
+                  {profile.matchingNotes && (
+                    <div className="mt-4 sm:mt-6 max-w-full min-w-0 overflow-hidden">
+                      <h4 className="text-base sm:text-lg font-bold text-amber-700 mb-3 flex items-center gap-2">
+                        <Edit3 className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />{' '}
+                        <span className="break-words">
+                          הערות מיוחדות לשדכנים:
+                        </span>
+                      </h4>
+                      <div
+                        className={cn(
+                          'p-3 sm:p-4 rounded-xl border border-amber-200/80 bg-amber-100/70 shadow-inner max-w-full min-w-0 overflow-hidden'
+                        )}
+                      >
+                        <p className="text-amber-800 whitespace-pre-wrap leading-relaxed font-medium break-words hyphens-auto word-break-break-word overflow-wrap-anywhere">
+                          {profile.matchingNotes}
+                        </p>
+                      </div>
                     </div>
-                    {profile.hasMedicalInfo && (
-                      <DetailItem
-                        icon={Heart}
-                        label="מידע רפואי"
-                        value={
-                          profile.isMedicalInfoVisible
-                            ? 'גלוי בפרופיל'
-                            : 'קיים מידע דיסקרטי'
-                        }
-                        variant="elegant"
-                        textAlign="right"
-                        tooltip={profile.medicalInfoDetails || undefined} // <--- כאן התיקון
-                      />
+                  )}
+                  <div
+                    className={cn(
+                      'mt-4 sm:mt-6 p-3 sm:p-4 rounded-xl border border-indigo-200 bg-gradient-to-r from-indigo-100 to-purple-100 max-w-full min-w-0 overflow-hidden'
                     )}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-gray-500" />
-                        <span>
+                  >
+                    <h4 className="font-bold text-indigo-800 mb-3 flex items-center gap-2">
+                      <Lightbulb className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />{' '}
+                      <span className="break-words">תובנות מערכת:</span>
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 text-indigo-700 text-sm sm:text-base max-w-full min-w-0">
+                      <div className="flex items-center gap-2 break-words">
+                        <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />{' '}
+                        <span className="break-words min-w-0">
                           פרופיל נוצר:{' '}
                           {profile.createdAt
                             ? new Date(profile.createdAt).toLocaleDateString(
@@ -4329,9 +4712,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         </span>
                       </div>
                       {profile.lastActive && (
-                        <div className="flex items-center gap-2">
-                          <Clock className="w-4 h-4 text-gray-500" />
-                          <span>
+                        <div className="flex items-center gap-2 break-words">
+                          <Clock className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />{' '}
+                          <span className="break-words min-w-0">
                             פעילות אחרונה:{' '}
                             {new Date(profile.lastActive).toLocaleDateString(
                               'he-IL'
@@ -4339,25 +4722,41 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           </span>
                         </div>
                       )}
+                      <div className="flex items-center gap-2 break-words">
+                        <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />{' '}
+                        <span className="break-words min-w-0">
+                          השלמת פרופיל:{' '}
+                          {profile.isProfileComplete
+                            ? 'מושלם ✅'
+                            : 'דורש השלמה ⚠️'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 break-words">
+                        <Heart className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />{' '}
+                        <span className="break-words min-w-0">
+                          סטטוס זמינות: {availability.text}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </SectionCard>
-                {!isDesktop && mobileViewLayout === 'detailed' && (
-                  <MobileTabNavigation
-                    activeTab={activeTab}
-                    tabItems={tabItems}
-                    onTabChange={handleTabChange}
-                    THEME={THEME}
-                  />
-                )}
-              </TabsContent>
-            )}
-          </div>
-        </ScrollArea>
-      </Tabs>
-    );
-  };
+                </div>
+              </SectionCard>
+              {!isDesktop && mobileViewLayout === 'detailed' && (
+                <MobileTabNavigation
+                  activeTab={activeTab}
+                  tabItems={tabItems}
+                  onTabChange={handleTabChange}
+                  THEME={THEME}
+                />
+              )}
+            </TabsContent>
+          )}
+        </div>
+      </ScrollArea>
+    </Tabs>
+  );
 
+  // Enhanced Mobile Header
   const MobileHeader = () => (
     <div
       className={cn(
@@ -4365,8 +4764,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         'p-3 sm:p-4 min-h-[60px]',
         `bg-gradient-to-r ${THEME.colors.neutral.warm}`
       )}
-      dir="ltr"
+      dir="ltr" // הוספת dir="ltr" כדי למנוע התנגשות RTL
     >
+      {/* Right side - Close Button */}
       <Button
         variant="ghost"
         size="icon"
@@ -4379,6 +4779,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       >
         <X className="w-4 h-4 sm:w-5 sm:h-5" />
       </Button>
+
+      {/* Center - View Toggle and Color Selector */}
       <div className="flex items-center gap-3 flex-1 justify-center">
         <ToggleGroup
           type="single"
@@ -4419,6 +4821,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             </span>
           </ToggleGroupItem>
         </ToggleGroup>
+
+        {/* Color Palette Selector */}
         <ColorPaletteSelector
           selectedPalette={selectedPalette}
           onPaletteChange={setSelectedPalette}
@@ -4429,6 +4833,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     </div>
   );
 
+  // Enhanced Detailed Mobile Layout
   const DetailedMobileLayout = () => (
     <ScrollArea className="flex-1 min-h-0 max-w-full overflow-hidden">
       <div className="flex flex-col min-w-0 max-w-full">
@@ -4463,6 +4868,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     </ScrollArea>
   );
 
+  // Enhanced Focus Mobile Layout
   const FocusMobileLayout = () => (
     <div className="flex-1 min-h-0 flex flex-col max-w-full overflow-hidden">
       <ScrollArea className="flex-1 min-h-0 max-w-full">
@@ -4487,12 +4893,14 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             THEME={THEME}
             compact={true}
           />
+
           <div
             className={cn(
               'px-2 sm:px-3 py-2 space-y-3 sm:space-y-4 min-w-0 max-w-full overflow-hidden',
               `bg-gradient-to-br ${THEME.colors.neutral.warm}`
             )}
           >
+            {/* About Section */}
             {profile.about ? (
               <SectionCard
                 title="קצת עליי"
@@ -4536,6 +4944,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 />
               </SectionCard>
             )}
+
+            {/* Quick Summary */}
             <SectionCard
               title="תמצית מהירה"
               subtitle="הפרטים החשובים שכדאי לדעת עליי במבט ראשון"
@@ -4557,6 +4967,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   size="sm"
                   useMobileLayout={true}
                   textAlign="center"
+                  className="min-w-0 max-w-full"
                 />
                 <DetailItem
                   icon={Heart}
@@ -4565,6 +4976,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   variant="elegant"
                   size="sm"
                   useMobileLayout={true}
+                  className="min-w-0 max-w-full"
                 />
                 <DetailItem
                   icon={Briefcase}
@@ -4573,6 +4985,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   variant="elegant"
                   size="sm"
                   useMobileLayout={true}
+                  className="min-w-0 max-w-full"
                 />
                 <DetailItem
                   icon={GraduationCap}
@@ -4584,27 +4997,32 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   variant="elegant"
                   size="sm"
                   useMobileLayout={true}
+                  className="min-w-0 max-w-full"
                 />
               </div>
             </SectionCard>
-            <SectionCard
-              title="מה מיוחד בי"
-              subtitle="התכונות והתחביבים שעושים אותי ייחודי/ת"
-              icon={Sparkles}
-              variant="romantic"
-              gradient={THEME.colors.primary.romantic}
-              compact={true}
-              className="min-w-0 max-w-full"
-            >
-              <div className="space-y-4 sm:space-y-5 min-w-0 max-w-full">
-                {profile.profileCharacterTraits &&
-                  profile.profileCharacterTraits.length > 0 && (
+
+            {/* Special Traits and Hobbies */}
+            {(profile.profileCharacterTraits?.length > 0 ||
+              profile.profileHobbies?.length > 0) && (
+              <SectionCard
+                title="מה מיוחד בי"
+                subtitle="התכונות והתחביבים שעושים אותי ייחודי/ת ומעניין/ת"
+                icon={Sparkles}
+                variant="romantic"
+                gradient={THEME.colors.primary.romantic}
+                compact={true}
+                className="min-w-0 max-w-full"
+              >
+                <div className="space-y-4 sm:space-y-5 min-w-0 max-w-full">
+                  {profile.profileCharacterTraits?.length > 0 && (
                     <div className="min-w-0 max-w-full">
                       <h4 className="text-sm font-bold text-purple-700 mb-2 sm:mb-3 flex items-center justify-center gap-2">
                         <span className="break-words">התכונות שלי:</span>
                         <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                       </h4>
                       <div className="flex flex-wrap gap-2 min-w-0 max-w-full justify-center">
+                        {' '}
                         {profile.profileCharacterTraits
                           .slice(0, 4)
                           .map((trait) => {
@@ -4621,7 +5039,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                                   'flex items-center gap-1 px-2 py-1 text-xs font-semibold min-w-0 max-w-full',
                                   'bg-gradient-to-r from-purple-100 to-violet-100 text-purple-800',
                                   'border border-purple-200 rounded-full',
-                                  'break-words'
+                                  'break-words hyphens-auto word-break-break-word overflow-wrap-anywhere'
                                 )}
                               >
                                 <traitData.icon className="w-2.5 h-2.5 sm:w-3 sm:h-3 flex-shrink-0" />
@@ -4634,8 +5052,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       </div>
                     </div>
                   )}
-                {profile.profileHobbies &&
-                  profile.profileHobbies.length > 0 && (
+                  {profile.profileHobbies?.length > 0 && (
                     <div className="min-w-0 max-w-full">
                       <h4 className="text-sm font-bold text-emerald-700 mb-2 sm:mb-3 flex items-center justify-center gap-2">
                         <span className="break-words">מה אני אוהב/ת:</span>
@@ -4656,7 +5073,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                                 'flex items-center gap-1 px-2 py-1 text-xs font-semibold min-w-0 max-w-full',
                                 'bg-gradient-to-r from-emerald-100 to-green-100 text-emerald-800',
                                 'border border-emerald-200 rounded-full',
-                                'break-words'
+                                'break-words hyphens-auto word-break-break-word overflow-wrap-anywhere'
                               )}
                             >
                               <hobbyData.icon className="w-2.5 h-2.5 sm:w-3 sm:h-3 flex-shrink-0" />
@@ -4669,8 +5086,58 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       </div>
                     </div>
                   )}
-              </div>
+                </div>
+              </SectionCard>
+            )}
+
+            {/* Search Criteria */}
+            <SectionCard
+              title="מה אני מחפש/ת"
+              subtitle="החלום שלי לזוגיות - איך אני רואה את בן/בת הזוג המושלם/ת"
+              icon={Target}
+              variant="highlight"
+              gradient={THEME.colors.secondary.sky}
+              compact={true}
+              className="min-w-0 max-w-full"
+            >
+              {profile.matchingNotes ? (
+                <div
+                  className={cn(
+                    'p-3 sm:p-4 rounded-xl border border-blue-200/50 min-w-0 max-w-full overflow-hidden',
+                    'bg-gradient-to-r from-blue-50 to-cyan-50'
+                  )}
+                >
+                  <p className="text-blue-700 leading-relaxed italic font-medium break-words hyphens-auto word-break-break-word overflow-wrap-anywhere">
+                    <Quote className="w-3 h-3 sm:w-4 sm:h-4 inline ml-1 text-blue-400 flex-shrink-0" />
+                    {profile.matchingNotes}
+                    <Quote className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 text-blue-400 transform rotate-180 flex-shrink-0" />
+                  </p>
+                </div>
+              ) : (
+                <EmptyState
+                  icon={Heart}
+                  title="החלום שלי לזוגיות עדיין נכתב..."
+                  description="אבל בטוח שנגלה יחד מה מתאים לנו!"
+                  variant="adventure"
+                  compact={true}
+                />
+              )}
+              {(profile.preferredAgeMin || profile.preferredAgeMax) && (
+                <div className="mt-4 sm:mt-5">
+                  <DetailItem
+                    icon={Calendar}
+                    label="טווח גילאים מועדף"
+                    value={`${profile.preferredAgeMin || '?'} - ${profile.preferredAgeMax || '?'} שנים`}
+                    variant="elegant"
+                    size="sm"
+                    useMobileLayout={true}
+                    className="min-w-0 max-w-full"
+                  />
+                </div>
+              )}
             </SectionCard>
+
+            {/* Call to Action */}
             <div
               className={cn(
                 'text-center p-4 sm:p-6 rounded-2xl text-white min-w-0 max-w-full overflow-hidden',
@@ -4702,6 +5169,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     </div>
   );
 
+  // Loading State
   if (!isClient) {
     return (
       <Card
@@ -4741,6 +5209,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     );
   }
 
+  // Main Render
   return (
     <TooltipProvider>
       <Card
@@ -4759,6 +5228,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           overflow: 'hidden',
         }}
       >
+        {/* Desktop Close Button */}
         {isDesktop && onClose && (
           <div className="absolute top-4 left-4 z-40">
             <Tooltip>
@@ -4782,7 +5252,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           </div>
         )}
 
+        {/* Main Content */}
         {isDesktop ? (
+          // Desktop Layout
           <ResizablePanelGroup
             direction="horizontal"
             dir="rtl"
@@ -4810,6 +5282,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 </div>
               </ScrollArea>
             </ResizablePanel>
+
             <ResizableHandle
               withHandle
               className={cn(
@@ -4817,6 +5290,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 'transition-all duration-300'
               )}
             />
+
             <ResizablePanel
               defaultSize={40}
               minSize={25}
@@ -4824,6 +5298,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             >
               <ScrollArea className="flex-grow min-h-0 max-w-full">
                 <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 min-w-0 max-w-full">
+                  {/* Desktop Image Gallery */}
                   <SectionCard
                     title="הגלריה האישית"
                     subtitle="התמונות שמספרות את הסיפור"
@@ -4892,11 +5367,206 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       />
                     )}
                   </SectionCard>
+ט                  {/* Desktop Quick Facts */}
+                  <SectionCard
+                    title="הנקודות החמות"
+                    subtitle="מה שחשוב לדעת ברגע הראשון"
+                    icon={Flame}
+                    variant="highlight"
+                    gradient={THEME.colors.primary.gold}
+                    className="min-w-0 max-w-full"
+                  >
+                    <div className="space-y-3 sm:space-y-4 min-w-0 max-w-full">
+                      <DetailItem
+                        icon={BookMarked}
+                        label="השקפת עולם"
+                        value={
+                          formatEnumValue(
+                            profile.religiousLevel,
+                            religiousLevelMap
+                          ).label
+                        }
+                        variant="highlight"
+                        textAlign="right"
+                        className="min-w-0 max-w-full"
+                      />
+                      <DetailItem
+                        icon={Heart}
+                        label="שמירת נגיעה"
+                        value={
+                          formatBooleanPreference(profile.shomerNegiah).label
+                        }
+                        variant="elegant"
+                        textAlign="right"
+                        className="min-w-0 max-w-full"
+                      />
+                      <DetailItem
+                        icon={Briefcase}
+                        label="התחום המקצועי"
+                        value={profile.occupation || 'מקצוע מעניין מחכה לגילוי'}
+                        variant="elegant"
+                        textAlign="right"
+                        className="min-w-0 max-w-full"
+                      />
+                      <DetailItem
+                        icon={GraduationCap}
+                        label="רמת השכלה"
+                        value={
+                          formatEnumValue(
+                            profile.educationLevel,
+                            educationLevelMap
+                          ).label
+                        }
+                        variant="elegant"
+                        textAlign="right"
+                        className="min-w-0 max-w-full"
+                      />
+                      <DetailItem
+                        icon={MapPin}
+                        label="מיקום"
+                        value={profile.city || 'איפה שהלב נמצא'}
+                        variant="elegant"
+                        textAlign="right"
+                        className="min-w-0 max-w-full"
+                      />
+                      {profile.maritalStatus &&
+                        ['divorced', 'widowed', 'annulled'].includes(
+                          profile.maritalStatus
+                        ) && (
+                          <DetailItem
+                            icon={Baby}
+                            label="ילדים מקשר קודם"
+                            value={
+                              formatBooleanPreference(
+                                profile.hasChildrenFromPrevious,
+                                'יש ילדים יקרים',
+                                'אין ילדים',
+                                'נגלה יחד'
+                              ).label
+                            }
+                            variant="elegant"
+                            textAlign="right"
+                            className="min-w-0 max-w-full"
+                          />
+                        )}
+                    </div>
+                  </SectionCard>
+                  {/* Desktop About Story */}
+                  <SectionCard
+                    title="הסיפור שמאחורי הפרופיל"
+                    subtitle="מילים מהלב"
+                    icon={Quote}
+                    variant="romantic"
+                    gradient={THEME.colors.primary.romantic}
+                    className="min-w-0 max-w-full"
+                  >
+                    {profile.about ? (
+                      <div
+                        className={cn(
+                          'p-3 sm:p-4 rounded-xl border border-rose-200/50 shadow-inner min-w-0 max-w-full overflow-hidden',
+                          `bg-gradient-to-r ${THEME.colors.neutral.warm}`
+                        )}
+                      >
+                        <Quote className="w-5 h-5 sm:w-6 sm:h-6 text-rose-400 mb-2" />
+                        <p className="text-gray-800 leading-relaxed italic font-medium break-words hyphens-auto word-break-break-word overflow-wrap-anywhere">
+                          {profile.about}
+                        </p>
+                      </div>
+                    ) : (
+                      <EmptyState
+                        icon={Telescope}
+                        title="הסיפור מחכה להיכתב..."
+                        description="יש כאן אדם מעניין שמחכה לגילוי!"
+                        variant="discovery"
+                      />
+                    )}
+                  </SectionCard>
+                  {/* Desktop Vision */}
+                  <SectionCard
+                    title="החלום לזוגיות"
+                    subtitle="מה מחכה למי שיבוא"
+                    icon={Target}
+                    variant="highlight"
+                    gradient={THEME.colors.secondary.sky}
+                    className="min-w-0 max-w-full"
+                  >
+                    {profile.matchingNotes ? (
+                      <div
+                        className={cn(
+                          'p-3 sm:p-4 rounded-xl border border-blue-200/50 shadow-inner min-w-0 max-w-full overflow-hidden',
+                          'bg-gradient-to-r from-blue-50 to-cyan-50'
+                        )}
+                      >
+                        <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400 mb-2" />
+                        <p className="text-blue-700 leading-relaxed italic font-medium break-words hyphens-auto word-break-break-word overflow-wrap-anywhere">
+                          {profile.matchingNotes}
+                        </p>
+                      </div>
+                    ) : (
+                      <EmptyState
+                        icon={Heart}
+                        title="החלום עדיין לא נכתב..."
+                        description="אבל בטוח שזה יהיה משהו יפה!"
+                        variant="adventure"
+                      />
+                    )}
+                    <div className="mt-4 space-y-3 min-w-0 max-w-full">
+                      {(profile.preferredAgeMin || profile.preferredAgeMax) && (
+                        <DetailItem
+                          icon={Calendar}
+                          label="טווח גילאים מועדף"
+                          value={`${profile.preferredAgeMin || '?'} - ${profile.preferredAgeMax || '?'} שנים`}
+                          variant="elegant"
+                          textAlign="right"
+                          className="min-w-0 max-w-full"
+                        />
+                      )}
+                      {profile.preferredReligiousLevels &&
+                        profile.preferredReligiousLevels.length > 0 && (
+                          <div className="min-w-0 max-w-full">
+                            <p className="text-sm font-bold text-indigo-700 mb-2 flex items-center gap-2">
+                              <BookMarked className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                              <span className="break-words">
+                                רמות דתיות מועדפות:
+                              </span>
+                            </p>
+                            <div className="flex flex-wrap gap-2 min-w-0 max-w-full">
+                              {profile.preferredReligiousLevels
+                                .slice(0, 3)
+                                .map((level) => {
+                                  const levelData = formatEnumValue(
+                                    level,
+                                    religiousLevelMap,
+                                    level
+                                  );
+                                  return (
+                                    <Badge
+                                      key={level}
+                                      className={cn(
+                                        'flex items-center gap-1 text-xs px-2 py-1 font-semibold rounded-full min-w-0 max-w-full',
+                                        'bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-800',
+                                        'border border-indigo-200',
+                                        'break-words hyphens-auto word-break-break-word overflow-wrap-anywhere'
+                                      )}
+                                    >
+                                      <levelData.icon className="w-2.5 h-2.5 sm:w-3 sm:h-3 flex-shrink-0" />
+                                      <span className="break-words min-w-0 overflow-hidden">
+                                        {levelData.label}
+                                      </span>
+                                    </Badge>
+                                  );
+                                })}
+                            </div>
+                          </div>
+                        )}
+                    </div>
+                  </SectionCard>
                 </div>
               </ScrollArea>
             </ResizablePanel>
           </ResizablePanelGroup>
         ) : (
+          // Mobile Layout
           <div className="flex flex-col h-full w-full max-w-full min-w-0 overflow-hidden">
             <MobileHeader />
             {mobileViewLayout === 'detailed' ? (
@@ -4907,15 +5577,16 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           </div>
         )}
 
+        {/* Image Dialog */}
         <ImageDialogComponent
           selectedImageForDialog={selectedImageForDialog}
           currentDialogImageIndex={currentDialogImageIndex}
           orderedImages={orderedImages}
           onClose={handleCloseImageDialog}
           onNavigate={handleDialogNav}
-          onImageSelect={setSelectedImageForDialog}
         />
 
+        {/* Suggestion Dialog */}
         {viewMode === 'matchmaker' && candidate && (
           <NewSuggestionForm
             isOpen={isSuggestDialogOpen}

@@ -287,8 +287,15 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
       lastActive: ensureDateObject(profileData?.lastActive),
       hasMedicalInfo: profileData?.hasMedicalInfo ?? false,
       medicalInfoDetails: profileData?.medicalInfoDetails || '',
-      medicalInfoDisclosureTiming: profileData?.medicalInfoDisclosureTiming || undefined,
+      medicalInfoDisclosureTiming:
+        profileData?.medicalInfoDisclosureTiming || undefined,
       isMedicalInfoVisible: profileData?.isMedicalInfoVisible ?? false,
+      // --- START OF NEW FIELDS INITIALIZATION ---
+      profileHeadline: profileData?.profileHeadline || '',
+      humorStory: profileData?.humorStory || '',
+      inspiringCoupleStory: profileData?.inspiringCoupleStory || '',
+      influentialRabbi: profileData?.influentialRabbi || '',
+      // --- END OF NEW FIELDS INITIALIZATION ---
     };
     setFormData(dataToSet);
     setInitialData(dataToSet);
@@ -398,6 +405,10 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
           'contactPreference',
           'medicalInfoDetails',
           'medicalInfoDisclosureTiming',
+          'profileHeadline',
+          'humorStory',
+          'inspiringCoupleStory',
+          'influentialRabbi',
         ];
         if (nullableStringFields.includes(field as keyof UserProfile)) {
           finalValue = undefined;
@@ -414,7 +425,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
       };
     });
   };
-  
+
   const handleMultiSelectToggle = (
     field: keyof UserProfile,
     optionValue: string
@@ -952,43 +963,43 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                   {(formData.maritalStatus === 'divorced' ||
                     formData.maritalStatus === 'widowed' ||
                     formData.maritalStatus === 'annulled') && (
-                      <div
-                        className={cn(
-                          'pt-1 sm:pt-0',
-                          isEditing && !viewOnly ? 'sm:pt-5' : 'sm:pt-0'
-                        )}
-                      >
-                        <Label className="block mb-1.5 text-xs font-medium text-gray-600">
-                          ילדים מקשר קודם?
-                        </Label>
-                        {isEditing && !viewOnly ? (
-                          <div className="flex items-center space-x-2 rtl:space-x-reverse mt-2">
-                            <Checkbox
-                              id="hasChildrenFromPrevious"
-                              checked={formData.hasChildrenFromPrevious || false}
-                              onCheckedChange={(checked) =>
-                                handleChange(
-                                  'hasChildrenFromPrevious',
-                                  checked as boolean
-                                )
-                              }
-                            />
-                            <Label
-                              htmlFor="hasChildrenFromPrevious"
-                              className="text-sm font-normal text-gray-700"
-                            >
-                              יש ילדים
-                            </Label>
-                          </div>
-                        ) : (
-                          <p className="text-sm text-gray-800 font-medium mt-1">
-                            {renderBooleanDisplayValue(
-                              formData.hasChildrenFromPrevious
-                            )}
-                          </p>
-                        )}
-                      </div>
-                    )}
+                    <div
+                      className={cn(
+                        'pt-1 sm:pt-0',
+                        isEditing && !viewOnly ? 'sm:pt-5' : 'sm:pt-0'
+                      )}
+                    >
+                      <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                        ילדים מקשר קודם?
+                      </Label>
+                      {isEditing && !viewOnly ? (
+                        <div className="flex items-center space-x-2 rtl:space-x-reverse mt-2">
+                          <Checkbox
+                            id="hasChildrenFromPrevious"
+                            checked={formData.hasChildrenFromPrevious || false}
+                            onCheckedChange={(checked) =>
+                              handleChange(
+                                'hasChildrenFromPrevious',
+                                checked as boolean
+                              )
+                            }
+                          />
+                          <Label
+                            htmlFor="hasChildrenFromPrevious"
+                            className="text-sm font-normal text-gray-700"
+                          >
+                            יש ילדים
+                          </Label>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-800 font-medium mt-1">
+                          {renderBooleanDisplayValue(
+                            formData.hasChildrenFromPrevious
+                          )}
+                        </p>
+                      )}
+                    </div>
+                  )}
                   <div>
                     <Label className="block mb-1.5 text-xs font-medium text-gray-600">
                       מצב הורים
@@ -1048,7 +1059,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       </p>
                     )}
                   </div>
-                  
+
                   <div>
                     <Label className="block mb-1.5 text-xs font-medium text-gray-600">
                       מספר אחים/אחיות
@@ -1309,6 +1320,53 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     )}
                   </div>
                 </div>
+                {/* --- START OF NEW FIELD --- */}
+                <div className="mt-6 pt-6 border-t border-gray-200/70">
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <Label
+                      htmlFor="influentialRabbi"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      דמות רבנית/רוחנית משפיעה
+                    </Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger type="button">
+                          <Info className="w-4 h-4 text-gray-400" />
+                        </TooltipTrigger>
+                        <TooltipContent
+                          side="top"
+                          className="max-w-xs text-center"
+                        >
+                          <p>
+                            ספר/י על דמות (רב, רבנית, הוגה דעות) שהשפיעה על
+                            תפיסת עולמך. זה עוזר לנו להבין את הגוון הרוחני שלך.
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  {isEditing && !viewOnly ? (
+                    <Textarea
+                      id="influentialRabbi"
+                      value={formData.influentialRabbi || ''}
+                      onChange={(e) =>
+                        handleChange('influentialRabbi', e.target.value)
+                      }
+                      className="text-sm focus:ring-cyan-500 min-h-[90px] rounded-lg"
+                      placeholder="שם הדמות, וכיצד היא השפיעה עליך..."
+                      rows={3}
+                    />
+                  ) : (
+                    <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap min-h-[50px] bg-slate-50/70 p-3 rounded-lg border border-slate-200/50">
+                      {renderDisplayValue(
+                        formData.influentialRabbi,
+                        'לא צוינה דמות משפיעה.'
+                      )}
+                    </p>
+                  )}
+                </div>
+                {/* --- END OF NEW FIELD --- */}
               </CardContent>
             </Card>
           </div>
@@ -1323,6 +1381,56 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
               </CardHeader>
               <CardContent className="p-4 md:p-6">
                 <div className="space-y-6">
+                  {/* --- START OF NEW FIELD: profileHeadline --- */}
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <Label
+                        htmlFor="profileHeadline"
+                        className="text-sm font-medium text-gray-700"
+                      >
+                        כותרת פרופיל
+                      </Label>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger type="button">
+                            <Info className="w-4 h-4 text-gray-400" />
+                          </TooltipTrigger>
+                          <TooltipContent
+                            side="top"
+                            className="max-w-xs text-center"
+                          >
+                            <p>
+                              כתוב/י משפט אחד קליט שמסכם אותך או את מה שאת/ה
+                              מחפש/ת. "מהנדס ביום, חולם בלילה".
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    {isEditing && !viewOnly ? (
+                      <Input
+                        id="profileHeadline"
+                        value={formData.profileHeadline || ''}
+                        onChange={(e) =>
+                          handleChange('profileHeadline', e.target.value)
+                        }
+                        className="text-sm focus:ring-cyan-500 rounded-lg"
+                        placeholder="משפט אחד שמסכם אותך..."
+                        maxLength={80}
+                      />
+                    ) : (
+                      <p className="mt-1 text-lg font-semibold text-cyan-700 italic">
+                        "
+                        {renderDisplayValue(
+                          formData.profileHeadline,
+                          'לא הוזנה כותרת.'
+                        )}
+                        "
+                      </p>
+                    )}
+                  </div>
+                  {/* --- END OF NEW FIELD --- */}
+
                   <div>
                     <div className="flex items-center gap-1.5 mb-2">
                       <Label
@@ -1395,6 +1503,102 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       </p>
                     )}
                   </div>
+
+                  {/* --- START OF NEW FIELD: humorStory --- */}
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <Label
+                        htmlFor="humorStory"
+                        className="text-sm font-medium text-gray-700"
+                      >
+                        סיפור על חוש ההומור שלי
+                      </Label>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger type="button">
+                            <Info className="w-4 h-4 text-gray-400" />
+                          </TooltipTrigger>
+                          <TooltipContent
+                            side="top"
+                            className="max-w-xs text-center"
+                          >
+                            <p>
+                              ספר/י אנקדוטה קצרה או בדיחה שמייצגת את חוש ההומור
+                              שלך. זה אומר המון על האישיות!
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    {isEditing && !viewOnly ? (
+                      <Textarea
+                        id="humorStory"
+                        value={formData.humorStory || ''}
+                        onChange={(e) =>
+                          handleChange('humorStory', e.target.value)
+                        }
+                        className="text-sm focus:ring-cyan-500 min-h-[90px] rounded-lg"
+                        placeholder="סיפור קצר או בדיחה שמייצגים אותך..."
+                        rows={3}
+                      />
+                    ) : (
+                      <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap min-h-[50px] bg-slate-50/70 p-3 rounded-lg border border-slate-200/50">
+                        {renderDisplayValue(
+                          formData.humorStory,
+                          'לא סופר סיפור.'
+                        )}
+                      </p>
+                    )}
+                  </div>
+                  {/* --- END OF NEW FIELD --- */}
+
+                  {/* --- START OF NEW FIELD: inspiringCoupleStory --- */}
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <Label
+                        htmlFor="inspiringCoupleStory"
+                        className="text-sm font-medium text-gray-700"
+                      >
+                        הזוג שנותן לי השראה
+                      </Label>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger type="button">
+                            <Info className="w-4 h-4 text-gray-400" />
+                          </TooltipTrigger>
+                          <TooltipContent
+                            side="top"
+                            className="max-w-xs text-center"
+                          >
+                            <p>
+                              חשוב/י על זוג (מהמשפחה, חברים, דמויות היסטוריות)
+                              שהזוגיות שלהם מעוררת בך השראה. מה את/ה לומד/ת מהם?
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    {isEditing && !viewOnly ? (
+                      <Textarea
+                        id="inspiringCoupleStory"
+                        value={formData.inspiringCoupleStory || ''}
+                        onChange={(e) =>
+                          handleChange('inspiringCoupleStory', e.target.value)
+                        }
+                        className="text-sm focus:ring-cyan-500 min-h-[90px] rounded-lg"
+                        placeholder="מי הזוג ומה מיוחד בזוגיות שלהם בעיניך..."
+                        rows={3}
+                      />
+                    ) : (
+                      <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap min-h-[50px] bg-slate-50/70 p-3 rounded-lg border border-slate-200/50">
+                        {renderDisplayValue(
+                          formData.inspiringCoupleStory,
+                          'לא צוין זוג מעורר השראה.'
+                        )}
+                      </p>
+                    )}
+                  </div>
+                  {/* --- END OF NEW FIELD --- */}
                   <div>
                     <div className="flex items-center gap-1.5 mb-2">
                       <Label className="text-sm font-medium text-gray-700">
@@ -1448,22 +1652,29 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
             <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-red-50/40 to-pink-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
                 <HeartPulse className="w-5 h-5 text-red-700" />
-                <CardTitle className="text-base font-semibold text-gray-700">מידע רפואי ורגיש</CardTitle>
+                <CardTitle className="text-base font-semibold text-gray-700">
+                  מידע רפואי ורגיש
+                </CardTitle>
                 <TooltipProvider delayDuration={100}>
                   <Tooltip>
                     <TooltipTrigger type="button">
                       <Lock className="w-4 h-4 text-gray-400" />
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>מידע בחלק זה מיועד לשדכנים בלבד ולא יוצג בפרופיל כברירת מחדל.</p>
+                      <p>
+                        מידע בחלק זה מיועד לשדכנים בלבד ולא יוצג בפרופיל כברירת
+                        מחדל.
+                      </p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </CardHeader>
               <CardContent className="p-4 md:p-6 space-y-4">
                 <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-200/80">
-                  אנו מאמינים שקשר בריא נבנה על יושרה. סעיף זה נועד לתת לך מקום בטוח לשתף מידע רפואי (פיזי או נפשי) רלוונטי. 
-                  הכנות שלך כאן היא צעד של אחריות המאפשר לנו למצוא עבורך התאמה מדויקת ולמנוע עוגמת נפש.
+                  אנו מאמינים שקשר בריא נבנה על יושרה. סעיף זה נועד לתת לך מקום
+                  בטוח לשתף מידע רפואי (פיזי או נפשי) רלוונטי. הכנות שלך כאן היא
+                  צעד של אחריות המאפשר לנו למצוא עבורך התאמה מדויקת ולמנוע עוגמת
+                  נפש.
                 </div>
 
                 {isEditing && !viewOnly ? (
@@ -1472,9 +1683,14 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       <Checkbox
                         id="hasMedicalInfo"
                         checked={formData.hasMedicalInfo || false}
-                        onCheckedChange={(checked) => handleChange('hasMedicalInfo', checked as boolean)}
+                        onCheckedChange={(checked) =>
+                          handleChange('hasMedicalInfo', checked as boolean)
+                        }
                       />
-                      <Label htmlFor="hasMedicalInfo" className="text-sm font-medium text-gray-700 cursor-pointer">
+                      <Label
+                        htmlFor="hasMedicalInfo"
+                        className="text-sm font-medium text-gray-700 cursor-pointer"
+                      >
                         ישנו מידע רפואי שחשוב שהצוות יידע?
                       </Label>
                     </div>
@@ -1482,58 +1698,86 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     {formData.hasMedicalInfo && (
                       <div className="space-y-4 border-t pt-4 animate-in fade-in-50">
                         <div>
-                          <Label htmlFor="medicalInfoDetails" className="block mb-1.5 text-xs font-medium text-gray-600">
+                          <Label
+                            htmlFor="medicalInfoDetails"
+                            className="block mb-1.5 text-xs font-medium text-gray-600"
+                          >
                             פירוט המידע (יישמר בסודיות מוחלטת)
                           </Label>
                           <Textarea
                             id="medicalInfoDetails"
                             value={formData.medicalInfoDetails || ''}
-                            onChange={(e) => handleChange('medicalInfoDetails', e.target.value)}
+                            onChange={(e) =>
+                              handleChange('medicalInfoDetails', e.target.value)
+                            }
                             className="text-sm focus:ring-cyan-500 min-h-[100px] rounded-lg"
                             placeholder="כאן המקום לפרט. למשל: מחלה כרונית, התמודדות נפשית, ענייני פוריות, או כל דבר שמרגיש לך נכון וחשוב לציין."
                           />
                         </div>
                         <div>
-                          <Label htmlFor="medicalInfoDisclosureTiming" className="block mb-1.5 text-xs font-medium text-gray-600">
+                          <Label
+                            htmlFor="medicalInfoDisclosureTiming"
+                            className="block mb-1.5 text-xs font-medium text-gray-600"
+                          >
                             מתי תרצה/י שהמידע ייחשף לצד השני (בתיווך השדכן/ית)?
                           </Label>
                           <Select
                             value={formData.medicalInfoDisclosureTiming || ''}
-                            onValueChange={(value) => handleChange('medicalInfoDisclosureTiming', value || undefined)}
+                            onValueChange={(value) =>
+                              handleChange(
+                                'medicalInfoDisclosureTiming',
+                                value || undefined
+                              )
+                            }
                           >
                             <SelectTrigger className="h-9 text-sm focus:ring-cyan-500">
                               <SelectValue placeholder="בחר/י תזמון חשיפה" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="FROM_THE_START">מההתחלה (מומלץ לנושאים מהותיים)</SelectItem>
-                              <SelectItem value="AFTER_FIRST_DATES">לאחר דייט ראשון או שני</SelectItem>
-                              <SelectItem value="WHEN_SERIOUS">כשהקשר הופך לרציני</SelectItem>
-                              <SelectItem value="IN_COORDINATION_ONLY">אך ורק בתיאום טלפוני אישי איתי</SelectItem>
+                              <SelectItem value="FROM_THE_START">
+                                מההתחלה (מומלץ לנושאים מהותיים)
+                              </SelectItem>
+                              <SelectItem value="AFTER_FIRST_DATES">
+                                לאחר דייט ראשון או שני
+                              </SelectItem>
+                              <SelectItem value="WHEN_SERIOUS">
+                                כשהקשר הופך לרציני
+                              </SelectItem>
+                              <SelectItem value="IN_COORDINATION_ONLY">
+                                אך ורק בתיאום טלפוני אישי איתי
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
 
                         <div className="border-t pt-4">
-                           <Label className="block mb-2 text-xs font-medium text-gray-600">
+                          <Label className="block mb-2 text-xs font-medium text-gray-600">
                             הצגה בפרופיל
                           </Label>
                           <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-lg">
-                             <Switch
-                                id="isMedicalInfoVisible"
-                                checked={!!formData.isMedicalInfoVisible}
-                                onCheckedChange={(checked) => handleChange('isMedicalInfoVisible', checked)}
-                                className="data-[state=checked]:bg-green-500"
-                              />
-                              <div className="flex flex-col">
-                                <Label htmlFor="isMedicalInfoVisible" className="text-sm font-medium text-gray-800 cursor-pointer">
-                                  {formData.isMedicalInfoVisible ? 'יוצג בפרופיל' : 'דיסקרטי (לצוות בלבד)'}
-                                </Label>
-                                <p className="text-xs text-gray-500">
-                                 {formData.isMedicalInfoVisible 
-                                   ? 'ציון על קיום מידע רפואי יוצג בכרטיס שלך.'
-                                   : 'המידע יישאר חסוי וישמש את השדכנים בלבד.'}
-                                </p>
-                              </div>
+                            <Switch
+                              id="isMedicalInfoVisible"
+                              checked={!!formData.isMedicalInfoVisible}
+                              onCheckedChange={(checked) =>
+                                handleChange('isMedicalInfoVisible', checked)
+                              }
+                              className="data-[state=checked]:bg-green-500"
+                            />
+                            <div className="flex flex-col">
+                              <Label
+                                htmlFor="isMedicalInfoVisible"
+                                className="text-sm font-medium text-gray-800 cursor-pointer"
+                              >
+                                {formData.isMedicalInfoVisible
+                                  ? 'יוצג בפרופיל'
+                                  : 'דיסקרטי (לצוות בלבד)'}
+                              </Label>
+                              <p className="text-xs text-gray-500">
+                                {formData.isMedicalInfoVisible
+                                  ? 'ציון על קיום מידע רפואי יוצג בכרטיס שלך.'
+                                  : 'המידע יישאר חסוי וישמש את השדכנים בלבד.'}
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1546,7 +1790,11 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         מידע רפואי ששותף
                       </Label>
                       <p className="text-sm text-gray-800 font-medium mt-1">
-                        {renderBooleanDisplayValue(formData.hasMedicalInfo, 'כן', 'לא')}
+                        {renderBooleanDisplayValue(
+                          formData.hasMedicalInfo,
+                          'כן',
+                          'לא'
+                        )}
                       </p>
                     </div>
                     {formData.hasMedicalInfo && (
@@ -1556,7 +1804,11 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                             פרטי המידע
                           </Label>
                           <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap min-h-[40px] bg-slate-50/70 p-3 rounded-lg border border-slate-200/50">
-                            {formData.medicalInfoDetails || <span className="text-gray-500 italic">לא הוזן פירוט.</span>}
+                            {formData.medicalInfoDetails || (
+                              <span className="text-gray-500 italic">
+                                לא הוזן פירוט.
+                              </span>
+                            )}
                           </p>
                         </div>
                         <div>
@@ -1567,10 +1819,22 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                             {renderSelectDisplayValue(
                               formData.medicalInfoDisclosureTiming,
                               [
-                                { value: 'FROM_THE_START', label: 'מההתחלה' },
-                                { value: 'AFTER_FIRST_DATES', label: 'לאחר דייטים ראשונים' },
-                                { value: 'WHEN_SERIOUS', label: 'כשהקשר רציני' },
-                                { value: 'IN_COORDINATION_ONLY', label: 'בתיאום אישי בלבד' },
+                                {
+                                  value: 'FROM_THE_START',
+                                  label: 'מההתחלה',
+                                },
+                                {
+                                  value: 'AFTER_FIRST_DATES',
+                                  label: 'לאחר דייטים ראשונים',
+                                },
+                                {
+                                  value: 'WHEN_SERIOUS',
+                                  label: 'כשהקשר רציני',
+                                },
+                                {
+                                  value: 'IN_COORDINATION_ONLY',
+                                  label: 'בתיאום אישי בלבד',
+                                },
                               ]
                             )}
                           </p>
@@ -1581,15 +1845,21 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           </Label>
                           <div className="flex items-center gap-2 mt-1">
                             {formData.isMedicalInfoVisible ? (
-                               <Badge variant="secondary" className="bg-green-100 text-green-800">
-                                 <Eye className="w-3.5 h-3.5 ml-1.5" />
-                                 גלוי בפרופיל
-                               </Badge>
+                              <Badge
+                                variant="secondary"
+                                className="bg-green-100 text-green-800"
+                              >
+                                <Eye className="w-3.5 h-3.5 ml-1.5" />
+                                גלוי בפרופיל
+                              </Badge>
                             ) : (
-                               <Badge variant="secondary" className="bg-gray-100 text-gray-700">
-                                 <Lock className="w-3.5 h-3.5 ml-1.5" />
-                                 דיסקרטי (לצוות בלבד)
-                               </Badge>
+                              <Badge
+                                variant="secondary"
+                                className="bg-gray-100 text-gray-700"
+                              >
+                                <Lock className="w-3.5 h-3.5 ml-1.5" />
+                                דיסקרטי (לצוות בלבד)
+                              </Badge>
                             )}
                           </div>
                         </div>

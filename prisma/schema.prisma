@@ -155,6 +155,10 @@ model Profile {
   aliyaCountry            String?
   aliyaYear               Int?
   about                   String?
+    profileHeadline       String? // כותרת אישית לפרופיל
+  humorStory            String? // סיפור קצר על חוש הומור
+  inspiringCoupleStory  String? // סיפור על זוג מעורר השראה
+  influentialRabbi      String? // דמות רבנית/רוחנית משפיעה
   parentStatus            String?
   fatherOccupation        String? // מקצוע האב
   motherOccupation        String? // מקצוע האם

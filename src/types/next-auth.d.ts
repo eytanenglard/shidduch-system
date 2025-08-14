@@ -46,6 +46,10 @@ export interface UserProfile extends Omit<PrismaProfile, 'gender' | 'birthDate' 
   religiousLevel?: string | null;
   about?: string | null;
   shomerNegiah?: boolean | null;
+  profileHeadline?: string | null;
+  humorStory?: string | null;
+  inspiringCoupleStory?: string | null;
+  influentialRabbi?: string | null;
   religiousJourney?: ReligiousJourney | null; 
   serviceType?: ServiceType | null;
   serviceDetails?: string | null;
