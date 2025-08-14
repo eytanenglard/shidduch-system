@@ -1419,6 +1419,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         maxLength={80}
                       />
                     ) : (
+                      // סביב שורה 1403
                       <p className="mt-1 text-lg font-semibold text-cyan-700 italic">
                         &quot;
                         {renderDisplayValue(
