@@ -1401,7 +1401,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           >
                             <p>
                               כתוב/י משפט אחד קליט שמסכם אותך או את מה שאת/ה
-                              מחפש/ת. "מהנדס ביום, חולם בלילה".
+                              מחפש/ת. &quot;מהנדס ביום, חולם בלילה&quot;.
                             </p>
                           </TooltipContent>
                         </Tooltip>
@@ -1419,14 +1419,11 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         maxLength={80}
                       />
                     ) : (
-                      // סביב שורה 1403
                       <p className="mt-1 text-lg font-semibold text-cyan-700 italic">
-                        &quot;
-                        {renderDisplayValue(
+                        {`"${renderDisplayValue(
                           formData.profileHeadline,
                           'לא הוזנה כותרת.'
-                        )}
-                        &quot;
+                        )}"`}
                       </p>
                     )}
                   </div>
