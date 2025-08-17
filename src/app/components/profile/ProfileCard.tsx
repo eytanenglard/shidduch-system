@@ -3248,7 +3248,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     (world: keyof NonNullable<QuestionnaireResponse['formattedAnswers']>) => {
       if (!questionnaire?.formattedAnswers?.[world]) return [];
       return questionnaire.formattedAnswers[world].filter((a) => {
-        // --- התיקון נמצא כאן ---
         const hasContent = isRawValueAnswered(a.rawValue);
         if (!hasContent) return false;
         if (viewMode === 'matchmaker') return true;
@@ -3337,11 +3336,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       [
         {
           value: 'essence',
-          label: 'המהות',
+          label: 'המהות שלי',
           shortLabel: 'מהות',
           icon: Sparkles,
           gradient: THEME.colors.primary.light,
-          description: 'מי זה האדם הזה באמת',
           hasContent:
             !!profile.profileHeadline ||
             !!profile.about ||
@@ -3351,51 +3349,55 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             (profile.profileHobbies && profile.profileHobbies.length > 0),
         },
         {
-          value: 'story',
-          label: 'הסיפור',
-          shortLabel: 'סיפור',
-          icon: BookOpen,
+          value: 'journey',
+          label: 'הדרך שלי',
+          shortLabel: 'הדרך',
+          icon: Compass,
           gradient: THEME.colors.primary.accent,
-          description: 'הרקע והדרך שהובילה לכאן',
-          hasContent: valuesAnswers.length > 0 || !!profile.religiousLevel,
+          hasContent:
+            valuesAnswers.length > 0 ||
+            !!profile.educationLevel ||
+            !!profile.occupation ||
+            !!profile.serviceType ||
+            !!profile.parentStatus,
+        },
+        {
+          value: 'spirit',
+          label: 'עולם הרוח',
+          shortLabel: 'רוחניות',
+          icon: Star,
+          gradient: THEME.colors.secondary.peach,
+          hasContent:
+            religionAnswers.length > 0 ||
+            !!profile.religiousLevel ||
+            !!profile.religiousJourney ||
+            !!profile.influentialRabbi,
         },
         {
           value: 'vision',
-          label: 'החזון',
+          label: 'חזון לזוגיות',
           shortLabel: 'חזון',
           icon: Heart,
           gradient: THEME.colors.primary.main,
-          description: 'החלום לזוגיות ומשפחה',
           hasContent:
+            relationshipAnswers.length > 0 ||
             !!profile.matchingNotes ||
-            !!profile.inspiringCoupleStory ||
-            relationshipAnswers.length > 0,
+            !!profile.inspiringCoupleStory,
         },
         {
-          value: 'search',
-          label: 'החיפוש',
-          shortLabel: 'חיפוש',
+          value: 'connection',
+          label: 'החיבור שאחפש',
+          shortLabel: 'חיבור',
           icon: Target,
           gradient: THEME.colors.secondary.sky,
-          description: 'מה מחפש בבן/בת הזוג',
           hasContent: hasAnyPreferences || partnerAnswers.length > 0,
-        },
-        (religionAnswers.length > 0 || !!profile.influentialRabbi) && {
-          value: 'deeper',
-          label: 'עומק',
-          shortLabel: 'עומק',
-          icon: Telescope,
-          gradient: THEME.colors.secondary.peach,
-          description: 'תשובות מעמיקות מהלב',
-          hasContent: true,
         },
         viewMode === 'matchmaker' && {
           value: 'professional',
-          label: 'מקצועי',
-          shortLabel: 'מקצועי',
+          label: 'מידע לשדכן',
+          shortLabel: 'לשדכן',
           icon: Lock,
           gradient: THEME.colors.secondary.lavender,
-          description: 'מידע לשדכן בלבד',
           hasContent: true,
         },
       ].filter(Boolean) as {
@@ -3404,7 +3406,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         shortLabel?: string;
         icon: React.ElementType;
         gradient: string;
-        description: string;
         hasContent: boolean;
       }[],
     [
@@ -3571,7 +3572,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 `border-${worldColor}-400`
               )}
             >
-              {/* --- START: התיקון והשדרוג המרכזי נמצא כאן --- */}
               {answer.questionType === 'budgetAllocation' &&
               typeof answer.rawValue === 'object' &&
               answer.rawValue &&
@@ -3591,7 +3591,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   <Quote className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 text-gray-400 transform rotate-180 flex-shrink-0" />
                 </p>
               )}
-              {/* --- END: סוף התיקון והשדרוג --- */}
             </div>
           </div>
         </div>
@@ -3612,6 +3611,29 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
   const MainContentTabs = () => {
     const activeTabConfig = tabItems.find((tab) => tab.value === activeTab);
+
+    // --- START: Refactored Logic for Content Slicing ---
+    const getTabContent = (
+      answers: FormattedAnswer[]
+    ): {
+      hookAnswer: FormattedAnswer | undefined;
+      deeperAnswers: FormattedAnswer[];
+    } => {
+      if (!answers || answers.length === 0) {
+        return { hookAnswer: undefined, deeperAnswers: [] };
+      }
+      return {
+        hookAnswer: answers[0],
+        deeperAnswers: answers.slice(1),
+      };
+    };
+
+    const personalityContent = getTabContent(personalityAnswers);
+    const valuesContent = getTabContent(valuesAnswers);
+    const religionContent = getTabContent(religionAnswers);
+    const relationshipContent = getTabContent(relationshipAnswers);
+    const partnerContent = getTabContent(partnerAnswers);
+    // --- END: Refactored Logic for Content Slicing ---
 
     return (
       <Tabs
@@ -3675,9 +3697,17 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 variant="discovery"
               />
             )}
-            {/* Essence Tab */}
+
+            {/* Essence Tab - REFACTORED */}
             <TabsContent value="essence" className="mt-0 max-w-full min-w-0">
               <div className="space-y-6 sm:space-y-8 max-w-full min-w-0">
+                {personalityContent.hookAnswer && (
+                  <QuestionnaireItem
+                    answer={personalityContent.hookAnswer}
+                    worldColor={WORLDS.personality.accentColor}
+                    worldGradient={WORLDS.personality.gradient}
+                  />
+                )}
                 {profile.profileHeadline && (
                   <SectionCard
                     title="משפט פתיחה"
@@ -3697,7 +3727,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     icon={Heart}
                     variant="romantic"
                     gradient={THEME.colors.primary.main}
-                    className="max-w-full min-w-0"
                   >
                     <div
                       className={cn(
@@ -3714,26 +3743,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     </div>
                   </SectionCard>
                 )}
-                {personalityAnswers.length > 0 && (
-                  <SectionCard
-                    title="האישיות שלי במילים שלי"
-                    subtitle="תשובות לשאלות שעוזרות להכיר אותי"
-                    icon={Sparkles}
-                    variant="elegant"
-                    gradient={WORLDS.personality.gradient}
-                  >
-                    <div className="grid grid-cols-1 gap-4 sm:gap-6 max-w-full min-w-0">
-                      {personalityAnswers.map((answer) => (
-                        <QuestionnaireItem
-                          key={answer.questionId}
-                          answer={answer}
-                          worldColor={WORLDS.personality.accentColor}
-                          worldGradient={WORLDS.personality.gradient}
-                        />
-                      ))}
-                    </div>
-                  </SectionCard>
-                )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-full min-w-0">
                   {profile.profileCharacterTraits &&
                     profile.profileCharacterTraits.length > 0 && (
@@ -3743,9 +3752,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         icon={Sparkles}
                         variant="elegant"
                         gradient={THEME.colors.primary.light}
-                        className="max-w-full min-w-0"
                       >
-                        <div className="flex flex-wrap gap-2 sm:gap-3 max-w-full min-w-0">
+                        <div className="flex flex-wrap gap-2 sm:gap-3">
                           {profile.profileCharacterTraits.map((trait) => {
                             const traitData = formatEnumValue(
                               trait,
@@ -3759,7 +3767,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                                   'flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 font-semibold text-xs sm:text-sm',
                                   'bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800',
                                   'border border-purple-200 rounded-full hover:scale-105 transition-transform',
-                                  'break-words hyphens-auto word-break-break-word max-w-full min-w-0',
                                   THEME.shadows.soft
                                 )}
                               >
@@ -3768,10 +3775,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                                     'w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0',
                                     traitData.color
                                   )}
-                                />{' '}
-                                <span className="break-words min-w-0">
-                                  {traitData.label}
-                                </span>
+                                />
+                                <span>{traitData.label}</span>
                               </Badge>
                             );
                           })}
@@ -3786,9 +3791,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         icon={Heart}
                         variant="elegant"
                         gradient={THEME.colors.secondary.sage}
-                        className="max-w-full min-w-0"
                       >
-                        <div className="flex flex-wrap gap-2 sm:gap-3 max-w-full min-w-0">
+                        <div className="flex flex-wrap gap-2 sm:gap-3">
                           {profile.profileHobbies.map((hobby) => {
                             const hobbyData = formatEnumValue(
                               hobby,
@@ -3802,7 +3806,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                                   'flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 font-semibold text-xs sm:text-sm',
                                   'bg-gradient-to-r from-emerald-100 to-cyan-100 text-emerald-800',
                                   'border border-emerald-200 rounded-full hover:scale-105 transition-transform',
-                                  'break-words hyphens-auto word-break-break-word max-w-full min-w-0',
                                   THEME.shadows.soft
                                 )}
                               >
@@ -3811,10 +3814,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                                     'w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0',
                                     hobbyData.color
                                   )}
-                                />{' '}
-                                <span className="break-words min-w-0">
-                                  {hobbyData.label}
-                                </span>
+                                />
+                                <span>{hobbyData.label}</span>
                               </Badge>
                             );
                           })}
@@ -3822,6 +3823,26 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       </SectionCard>
                     )}
                 </div>
+                {personalityContent.deeperAnswers.length > 0 && (
+                  <SectionCard
+                    title="צלילה לתוך האישיות"
+                    subtitle="תשובות נוספות שעוזרות להכיר אותי"
+                    icon={Telescope}
+                    variant="elegant"
+                    gradient={WORLDS.personality.gradient}
+                  >
+                    <div className="grid grid-cols-1 gap-4 sm:gap-6">
+                      {personalityContent.deeperAnswers.map((answer) => (
+                        <QuestionnaireItem
+                          key={answer.questionId}
+                          answer={answer}
+                          worldColor={WORLDS.personality.accentColor}
+                          worldGradient={WORLDS.personality.gradient}
+                        />
+                      ))}
+                    </div>
+                  </SectionCard>
+                )}
                 {!isDesktop && mobileViewLayout === 'detailed' && (
                   <MobileTabNavigation
                     activeTab={activeTab}
@@ -3833,21 +3854,207 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               </div>
             </TabsContent>
 
-            {/* Story Tab */}
+            {/* Journey Tab - REFACTORED */}
             <TabsContent
-              value="story"
+              value="journey"
               className="mt-0 space-y-4 sm:space-y-6 max-w-full min-w-0"
             >
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 max-w-full min-w-0">
+              <div className="space-y-6 sm:space-y-8 max-w-full min-w-0">
+                {valuesContent.hookAnswer && (
+                  <QuestionnaireItem
+                    answer={valuesContent.hookAnswer}
+                    worldColor={WORLDS.values.accentColor}
+                    worldGradient={WORLDS.values.gradient}
+                  />
+                )}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+                  <SectionCard
+                    title="השכלה ועולם המקצוע"
+                    subtitle="הדרך האקדמית והמקצועית שלי"
+                    icon={GraduationCap}
+                    variant="elegant"
+                    gradient={THEME.colors.secondary.sky}
+                  >
+                    <div className="space-y-4 sm:space-y-5">
+                      <DetailItem
+                        icon={GraduationCap}
+                        label="רמת ההשכלה"
+                        value={
+                          formatEnumValue(
+                            profile.educationLevel,
+                            educationLevelMap
+                          ).label
+                        }
+                        variant="highlight"
+                        textAlign="right"
+                      />
+                      {profile.education && (
+                        <DetailItem
+                          icon={BookOpen}
+                          label="פירוט הלימודים"
+                          value={profile.education}
+                          variant="elegant"
+                          valueClassName="whitespace-pre-wrap"
+                        />
+                      )}
+                      <DetailItem
+                        icon={Briefcase}
+                        label="התחום המקצועי"
+                        value={
+                          profile.occupation || 'מקצוע מעניין מחכה לגילוי'
+                        }
+                        variant="elegant"
+                        textAlign="right"
+                      />
+                      <DetailItem
+                        icon={Award}
+                        label="השירות הצבאי/לאומי"
+                        value={
+                          formatEnumValue(profile.serviceType, serviceTypeMap)
+                            .label
+                        }
+                        variant="elegant"
+                        textAlign="right"
+                      />
+                      {profile.serviceDetails && (
+                        <DetailItem
+                          icon={InfoIcon}
+                          label="פרטי השירות"
+                          value={profile.serviceDetails}
+                          variant="elegant"
+                          valueClassName="whitespace-pre-wrap"
+                        />
+                      )}
+                    </div>
+                  </SectionCard>
+                  <SectionCard
+                    title="הרקע המשפחתי והתרבותי"
+                    subtitle="המשפחה והמקורות שעיצבו אותי"
+                    icon={Users2}
+                    variant="romantic"
+                    gradient={THEME.colors.primary.accent}
+                  >
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                      <DetailItem
+                        icon={Users2}
+                        label="סטטוס ההורים"
+                        value={profile.parentStatus || 'נגלה יחד'}
+                        variant="elegant"
+                        textAlign="right"
+                      />
+                      {profile.fatherOccupation && (
+                        <DetailItem
+                          icon={Briefcase}
+                          label="מקצוע האב"
+                          value={profile.fatherOccupation}
+                          variant="elegant"
+                          textAlign="right"
+                        />
+                      )}
+                      {profile.motherOccupation && (
+                        <DetailItem
+                          icon={Briefcase}
+                          label="מקצוע האם"
+                          value={profile.motherOccupation}
+                          variant="elegant"
+                          textAlign="right"
+                        />
+                      )}
+                      <DetailItem
+                        icon={Users}
+                        label="אחים ואחיות"
+                        value={
+                          profile.siblings
+                            ? `${profile.siblings} אחים/אחיות`
+                            : 'נגלה יחד'
+                        }
+                        variant="elegant"
+                        textAlign="right"
+                      />
+                      <DetailItem
+                        icon={Crown}
+                        label="המקום במשפחה"
+                        value={
+                          profile.position
+                            ? `מקום ${profile.position}`
+                            : 'נגלה יחד'
+                        }
+                        variant="elegant"
+                        textAlign="right"
+                      />
+                      {profile.aliyaCountry && (
+                        <DetailItem
+                          icon={Globe}
+                          label="ארץ המוצא"
+                          value={`${profile.aliyaCountry} - השורשים שלי`}
+                          variant="elegant"
+                          textAlign="right"
+                        />
+                      )}
+                      {profile.aliyaYear && (
+                        <DetailItem
+                          icon={Calendar}
+                          label="שנת העלייה"
+                          value={`${profile.aliyaYear} - הגעתי הביתה`}
+                          variant="elegant"
+                          textAlign="right"
+                        />
+                      )}
+                    </div>
+                  </SectionCard>
+                </div>
+                {valuesContent.deeperAnswers.length > 0 && (
+                  <SectionCard
+                    title="הערכים והעקרונות שמנחים אותי"
+                    subtitle="תשובות לשאלות על מה שחשוב לי באמת"
+                    icon={BookMarked}
+                    variant="elegant"
+                    gradient={WORLDS.values.gradient}
+                  >
+                    <div className="grid grid-cols-1 gap-4 sm:gap-6">
+                      {valuesContent.deeperAnswers.map((answer) => (
+                        <QuestionnaireItem
+                          key={answer.questionId}
+                          answer={answer}
+                          worldColor={WORLDS.values.accentColor}
+                          worldGradient={WORLDS.values.gradient}
+                        />
+                      ))}
+                    </div>
+                  </SectionCard>
+                )}
+                {!isDesktop && mobileViewLayout === 'detailed' && (
+                  <MobileTabNavigation
+                    activeTab={activeTab}
+                    tabItems={tabItems}
+                    onTabChange={handleTabChange}
+                    THEME={THEME}
+                  />
+                )}
+              </div>
+            </TabsContent>
+
+            {/* Spirit Tab - NEW & REFACTORED */}
+            <TabsContent
+              value="spirit"
+              className="mt-0 space-y-4 sm:space-y-6 max-w-full min-w-0"
+            >
+              <div className="space-y-6 sm:space-y-8 max-w-full min-w-0">
+                {religionContent.hookAnswer && (
+                  <QuestionnaireItem
+                    answer={religionContent.hookAnswer}
+                    worldColor={WORLDS.religion.accentColor}
+                    worldGradient={WORLDS.religion.gradient}
+                  />
+                )}
                 <SectionCard
                   title="החיבור שלי ליהדות"
                   subtitle="המקום של האמונה והמסורת בחיי"
                   icon={BookMarked}
                   variant="elegant"
                   gradient={THEME.colors.primary.gold}
-                  className="max-w-full min-w-0"
                 >
-                  <div className="space-y-4 sm:space-y-5 max-w-full min-w-0">
+                  <div className="space-y-4 sm:space-y-5">
                     <DetailItem
                       icon={BookMarked}
                       label="השקפת העולם שמנחה אותי"
@@ -3913,379 +4120,233 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     )}
                   </div>
                 </SectionCard>
-                <SectionCard
-                  title="השכלה ועולם המקצוע"
-                  subtitle="הדרך האקדמית והמקצועית שלי"
-                  icon={GraduationCap}
-                  variant="elegant"
-                  gradient={THEME.colors.secondary.sky}
-                >
-                  <div className="space-y-4 sm:space-y-5">
-                    <DetailItem
-                      icon={GraduationCap}
-                      label="רמת ההשכלה"
-                      value={
-                        formatEnumValue(
-                          profile.educationLevel,
-                          educationLevelMap
-                        ).label
-                      }
-                      variant="highlight"
-                      textAlign="right"
-                    />
-                    {profile.education && (
-                      <DetailItem
-                        icon={BookOpen}
-                        label="פירוט הלימודים"
-                        value={profile.education}
-                        variant="elegant"
-                        valueClassName="whitespace-pre-wrap"
-                      />
-                    )}
-                    <DetailItem
-                      icon={Briefcase}
-                      label="התחום המקצועי"
-                      value={profile.occupation || 'מקצוע מעניין מחכה לגילוי'}
-                      variant="elegant"
-                      textAlign="right"
-                    />
-                    <DetailItem
-                      icon={Award}
-                      label="השירות הצבאי/לאומי"
-                      value={
-                        formatEnumValue(profile.serviceType, serviceTypeMap)
-                          .label
-                      }
-                      variant="elegant"
-                      textAlign="right"
-                    />
-                    {profile.serviceDetails && (
-                      <DetailItem
-                        icon={InfoIcon}
-                        label="פרטי השירות"
-                        value={profile.serviceDetails}
-                        variant="elegant"
-                        valueClassName="whitespace-pre-wrap"
-                      />
-                    )}
-                  </div>
-                </SectionCard>
+                {profile.influentialRabbi && (
+                  <SectionCard
+                    title="דמות רוחנית משפיעה"
+                    icon={Lightbulb}
+                    variant="elegant"
+                    gradient={THEME.colors.primary.gold}
+                  >
+                    <div
+                      className={cn(
+                        'p-4 sm:p-6 rounded-2xl border border-amber-200',
+                        `bg-gradient-to-r ${THEME.colors.neutral.warm}`
+                      )}
+                    >
+                      <p className="text-amber-800 leading-relaxed italic">
+                        &quot;{profile.influentialRabbi}&quot;
+                      </p>
+                    </div>
+                  </SectionCard>
+                )}
+                {religionContent.deeperAnswers.length > 0 && (
+                  <SectionCard
+                    title="העולם הדתי והרוחני שלי"
+                    subtitle="תשובות לשאלות על אמונה, מסורת ורוחניות"
+                    icon={Star}
+                    variant="elegant"
+                    gradient={WORLDS.religion.gradient}
+                  >
+                    <div className="grid grid-cols-1 gap-4 sm:gap-6">
+                      {religionContent.deeperAnswers.map((answer) => (
+                        <QuestionnaireItem
+                          key={answer.questionId}
+                          answer={answer}
+                          worldColor={WORLDS.religion.accentColor}
+                          worldGradient={WORLDS.religion.gradient}
+                        />
+                      ))}
+                    </div>
+                  </SectionCard>
+                )}
+                {!isDesktop && mobileViewLayout === 'detailed' && (
+                  <MobileTabNavigation
+                    activeTab={activeTab}
+                    tabItems={tabItems}
+                    onTabChange={handleTabChange}
+                    THEME={THEME}
+                  />
+                )}
               </div>
-              <SectionCard
-                title="הרקע המשפחתי והתרבותי"
-                subtitle="המשפחה והמקורות שעיצבו אותי"
-                icon={Users2}
-                variant="romantic"
-                gradient={THEME.colors.primary.accent}
-              >
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-                  <DetailItem
-                    icon={Users2}
-                    label="סטטוס ההורים"
-                    value={profile.parentStatus || 'נגלה יחד'}
-                    variant="elegant"
-                    textAlign="right"
-                  />
-                  {profile.fatherOccupation && (
-                    <DetailItem
-                      icon={Briefcase}
-                      label="מקצוע האב"
-                      value={profile.fatherOccupation}
-                      variant="elegant"
-                      textAlign="right"
-                    />
-                  )}
-                  {profile.motherOccupation && (
-                    <DetailItem
-                      icon={Briefcase}
-                      label="מקצוע האם"
-                      value={profile.motherOccupation}
-                      variant="elegant"
-                      textAlign="right"
-                    />
-                  )}
-                  <DetailItem
-                    icon={Users}
-                    label="אחים ואחיות"
-                    value={
-                      profile.siblings
-                        ? `${profile.siblings} אחים/אחיות`
-                        : 'נגלה יחד'
-                    }
-                    variant="elegant"
-                    textAlign="right"
-                  />
-                  <DetailItem
-                    icon={Crown}
-                    label="המקום במשפחה"
-                    value={
-                      profile.position ? `מקום ${profile.position}` : 'נגלה יחד'
-                    }
-                    variant="elegant"
-                    textAlign="right"
-                  />
-                  {profile.aliyaCountry && (
-                    <DetailItem
-                      icon={Globe}
-                      label="ארץ המוצא"
-                      value={`${profile.aliyaCountry} - השורשים שלי`}
-                      variant="elegant"
-                      textAlign="right"
-                    />
-                  )}
-                  {profile.aliyaYear && (
-                    <DetailItem
-                      icon={Calendar}
-                      label="שנת העלייה"
-                      value={`${profile.aliyaYear} - הגעתי הביתה`}
-                      variant="elegant"
-                      textAlign="right"
-                    />
-                  )}
-                </div>
-              </SectionCard>
-              {valuesAnswers.length > 0 && (
-                <SectionCard
-                  title="הערכים והעקרונות שמנחים אותי"
-                  subtitle="תשובות לשאלות על מה שחשוב לי באמת"
-                  icon={BookMarked}
-                  variant="elegant"
-                  gradient={WORLDS.values.gradient}
-                >
-                  <div className="grid grid-cols-1 gap-4 sm:gap-6">
-                    {valuesAnswers.map((answer) => (
-                      <QuestionnaireItem
-                        key={answer.questionId}
-                        answer={answer}
-                        worldColor={WORLDS.values.accentColor}
-                        worldGradient={WORLDS.values.gradient}
-                      />
-                    ))}
-                  </div>
-                </SectionCard>
-              )}
-              {!isDesktop && mobileViewLayout === 'detailed' && (
-                <MobileTabNavigation
-                  activeTab={activeTab}
-                  tabItems={tabItems}
-                  onTabChange={handleTabChange}
-                  THEME={THEME}
-                />
-              )}
             </TabsContent>
 
-            {/* Vision Tab */}
+            {/* Vision Tab - REFACTORED */}
             <TabsContent
               value="vision"
               className="mt-0 space-y-4 sm:space-y-6 max-w-full min-w-0"
             >
-              {profile.matchingNotes && (
-                <SectionCard
-                  title="הזוגיות שאני חולם/ת עליה"
-                  icon={Heart}
-                  variant="romantic"
-                  gradient={THEME.colors.primary.main}
-                >
-                  <div
-                    className={cn(
-                      'p-4 sm:p-6 rounded-2xl border border-rose-200 max-w-full min-w-0 overflow-hidden',
-                      `bg-gradient-to-r ${THEME.colors.neutral.warm}`,
-                      THEME.shadows.soft
-                    )}
-                  >
-                    <p className="text-rose-700 leading-relaxed whitespace-pre-wrap italic text-base sm:text-lg break-words hyphens-auto word-break-break-word overflow-wrap-anywhere">
-                      <Quote className="w-4 h-4 sm:w-5 sm:h-5 inline ml-1 text-rose-400 flex-shrink-0" />
-                      {profile.matchingNotes}
-                      <Quote className="w-4 h-4 sm:w-5 sm:h-5 inline mr-1 text-rose-400 transform rotate-180 flex-shrink-0" />
-                    </p>
-                  </div>
-                </SectionCard>
-              )}
-              {profile.inspiringCoupleStory && (
-                <SectionCard
-                  title="המודל שלי לזוגיות"
-                  subtitle="הזוג שנותן לי השראה"
-                  icon={Stars}
-                  variant="elegant"
-                  gradient={THEME.colors.primary.gold}
-                >
-                  <div
-                    className={cn(
-                      'p-4 sm:p-6 rounded-2xl border border-amber-200',
-                      `bg-gradient-to-r ${THEME.colors.neutral.warm}`
-                    )}
-                  >
-                    <p className="text-amber-800 leading-relaxed italic">
-                      &quot;{profile.inspiringCoupleStory}&quot;
-                    </p>
-                  </div>
-                </SectionCard>
-              )}
-              {relationshipAnswers.length > 0 && (
-                <SectionCard
-                  title="עוד על החזון שלי לזוגיות"
-                  subtitle="תשובות לשאלות על אהבה, משפחה וכל מה שביניהם"
-                  icon={Heart}
-                  variant="romantic"
-                  gradient={WORLDS.relationship.gradient}
-                >
-                  <div className="grid grid-cols-1 gap-4 sm:gap-6">
-                    {relationshipAnswers.map((answer) => (
-                      <QuestionnaireItem
-                        key={answer.questionId}
-                        answer={answer}
-                        worldColor={WORLDS.relationship.accentColor}
-                        worldGradient={WORLDS.relationship.gradient}
-                      />
-                    ))}
-                  </div>
-                </SectionCard>
-              )}
-              {!isDesktop && mobileViewLayout === 'detailed' && (
-                <MobileTabNavigation
-                  activeTab={activeTab}
-                  tabItems={tabItems}
-                  onTabChange={handleTabChange}
-                  THEME={THEME}
-                />
-              )}
-            </TabsContent>
-
-            {/* Search Tab */}
-            <TabsContent
-              value="search"
-              className="mt-0 space-y-4 sm:space-y-6 max-w-full min-w-0"
-            >
-              {partnerAnswers.length > 0 && (
-                <SectionCard
-                  title="איך אני מדמיין/ת את בן/בת הזוג"
-                  subtitle="תשובות מהשאלון על מה שאני מחפש/ת"
-                  icon={Target}
-                  variant="elegant"
-                  gradient={WORLDS.partner.gradient}
-                >
-                  <div className="grid grid-cols-1 gap-4 sm:gap-6">
-                    {partnerAnswers.map((answer) => (
-                      <QuestionnaireItem
-                        key={answer.questionId}
-                        answer={answer}
-                        worldColor={WORLDS.partner.accentColor}
-                        worldGradient={WORLDS.partner.gradient}
-                      />
-                    ))}
-                  </div>
-                </SectionCard>
-              )}
-              {hasAnyPreferences ? (
-                <SectionCard
-                  title="העדפות נוספות"
-                  subtitle="דברים שיכולים לעזור לנו למצוא התאמה טובה יותר"
-                  icon={Filter}
-                  variant="default"
-                >
-                  <div className="space-y-6 sm:space-y-8">
-                    {renderPreferenceBadges(
-                      'סטטוסים משפחתיים מועדפים',
-                      Heart,
-                      profile.preferredMaritalStatuses,
-                      maritalStatusMap,
-                      THEME.colors.primary.main
-                    )}
-                    {renderPreferenceBadges(
-                      'רמות דתיות מועדפות',
-                      BookMarked,
-                      profile.preferredReligiousLevels,
-                      religiousLevelMap,
-                      THEME.colors.secondary.peach
-                    )}
-                    {renderPreferenceBadges(
-                      'מסע דתי מועדף של בן/בת הזוג',
-                      Compass,
-                      profile.preferredReligiousJourneys as string[],
-                      religiousJourneyMap,
-                      THEME.colors.secondary.sage
-                    )}
-                    {renderPreferenceBadges(
-                      'רמות השכלה מועדפות',
-                      GraduationCap,
-                      profile.preferredEducation,
-                      educationLevelMap,
-                      THEME.colors.secondary.sky
-                    )}
-                  </div>
-                </SectionCard>
-              ) : (
-                !partnerAnswers.length && (
-                  <EmptyState
-                    icon={Compass}
-                    title="פתוח/ה להכיר את האדם הנכון"
-                    description="אין כאן רשימת דרישות, אלא הזמנה פתוחה להכיר אדם מיוחד. יש כאן מקום לגילויים מרגשים יחד."
-                    variant="discovery"
+              <div className="space-y-6 sm:space-y-8 max-w-full min-w-0">
+                {relationshipContent.hookAnswer && (
+                  <QuestionnaireItem
+                    answer={relationshipContent.hookAnswer}
+                    worldColor={WORLDS.relationship.accentColor}
+                    worldGradient={WORLDS.relationship.gradient}
                   />
-                )
-              )}
-              {!isDesktop && mobileViewLayout === 'detailed' && (
-                <MobileTabNavigation
-                  activeTab={activeTab}
-                  tabItems={tabItems}
-                  onTabChange={handleTabChange}
-                  THEME={THEME}
-                />
-              )}
+                )}
+                {profile.matchingNotes && (
+                  <SectionCard
+                    title="הזוגיות שאני חולם/ת עליה"
+                    icon={Heart}
+                    variant="romantic"
+                    gradient={THEME.colors.primary.main}
+                  >
+                    <div
+                      className={cn(
+                        'p-4 sm:p-6 rounded-2xl border border-rose-200 max-w-full min-w-0 overflow-hidden',
+                        `bg-gradient-to-r ${THEME.colors.neutral.warm}`,
+                        THEME.shadows.soft
+                      )}
+                    >
+                      <p className="text-rose-700 leading-relaxed whitespace-pre-wrap italic text-base sm:text-lg break-words hyphens-auto word-break-break-word overflow-wrap-anywhere">
+                        <Quote className="w-4 h-4 sm:w-5 sm:h-5 inline ml-1 text-rose-400 flex-shrink-0" />
+                        {profile.matchingNotes}
+                        <Quote className="w-4 h-4 sm:w-5 sm:h-5 inline mr-1 text-rose-400 transform rotate-180 flex-shrink-0" />
+                      </p>
+                    </div>
+                  </SectionCard>
+                )}
+                {profile.inspiringCoupleStory && (
+                  <SectionCard
+                    title="המודל שלי לזוגיות"
+                    subtitle="הזוג שנותן לי השראה"
+                    icon={Stars}
+                    variant="elegant"
+                    gradient={THEME.colors.primary.gold}
+                  >
+                    <div
+                      className={cn(
+                        'p-4 sm:p-6 rounded-2xl border border-amber-200',
+                        `bg-gradient-to-r ${THEME.colors.neutral.warm}`
+                      )}
+                    >
+                      <p className="text-amber-800 leading-relaxed italic">
+                        &quot;{profile.inspiringCoupleStory}&quot;
+                      </p>
+                    </div>
+                  </SectionCard>
+                )}
+                {relationshipContent.deeperAnswers.length > 0 && (
+                  <SectionCard
+                    title="עוד על החזון שלי לזוגיות"
+                    subtitle="תשובות לשאלות על אהבה, משפחה וכל מה שביניהם"
+                    icon={Heart}
+                    variant="romantic"
+                    gradient={WORLDS.relationship.gradient}
+                  >
+                    <div className="grid grid-cols-1 gap-4 sm:gap-6">
+                      {relationshipContent.deeperAnswers.map((answer) => (
+                        <QuestionnaireItem
+                          key={answer.questionId}
+                          answer={answer}
+                          worldColor={WORLDS.relationship.accentColor}
+                          worldGradient={WORLDS.relationship.gradient}
+                        />
+                      ))}
+                    </div>
+                  </SectionCard>
+                )}
+                {!isDesktop && mobileViewLayout === 'detailed' && (
+                  <MobileTabNavigation
+                    activeTab={activeTab}
+                    tabItems={tabItems}
+                    onTabChange={handleTabChange}
+                    THEME={THEME}
+                  />
+                )}
+              </div>
             </TabsContent>
 
-            {/* Deeper Tab */}
+            {/* Connection Tab - REFACTORED */}
             <TabsContent
-              value="deeper"
+              value="connection"
               className="mt-0 space-y-4 sm:space-y-6 max-w-full min-w-0"
             >
-              {religionAnswers.length > 0 && (
-                <SectionCard
-                  title="העולם הדתי והרוחני שלי"
-                  subtitle="תשובות לשאלות על אמונה, מסורת ורוחניות"
-                  icon={Star}
-                  variant="elegant"
-                  gradient={WORLDS.religion.gradient}
-                >
-                  <div className="grid grid-cols-1 gap-4 sm:gap-6">
-                    {religionAnswers.map((answer) => (
-                      <QuestionnaireItem
-                        key={answer.questionId}
-                        answer={answer}
-                        worldColor={WORLDS.religion.accentColor}
-                        worldGradient={WORLDS.religion.gradient}
-                      />
-                    ))}
-                  </div>
-                </SectionCard>
-              )}
-              {profile.influentialRabbi && (
-                <SectionCard
-                  title="דמות רוחנית משפיעה"
-                  icon={Lightbulb}
-                  variant="elegant"
-                  gradient={THEME.colors.primary.gold}
-                >
-                  <div
-                    className={cn(
-                      'p-4 sm:p-6 rounded-2xl border border-amber-200',
-                      `bg-gradient-to-r ${THEME.colors.neutral.warm}`
-                    )}
+              <div className="space-y-6 sm:space-y-8 max-w-full min-w-0">
+                {partnerContent.hookAnswer && (
+                  <QuestionnaireItem
+                    answer={partnerContent.hookAnswer}
+                    worldColor={WORLDS.partner.accentColor}
+                    worldGradient={WORLDS.partner.gradient}
+                  />
+                )}
+                {hasAnyPreferences ? (
+                  <SectionCard
+                    title="העדפות להתאמה"
+                    subtitle="דברים שיכולים לעזור לנו למצוא את החיבור הנכון"
+                    icon={Filter}
+                    variant="default"
                   >
-                    <p className="text-amber-800 leading-relaxed italic">
-                      &quot;{profile.influentialRabbi}&quot;
-                    </p>
-                  </div>
-                </SectionCard>
-              )}
-              {!isDesktop && mobileViewLayout === 'detailed' && (
-                <MobileTabNavigation
-                  activeTab={activeTab}
-                  tabItems={tabItems}
-                  onTabChange={handleTabChange}
-                  THEME={THEME}
-                />
-              )}
+                    <div className="space-y-6 sm:space-y-8">
+                      {renderPreferenceBadges(
+                        'סטטוסים משפחתיים',
+                        Heart,
+                        profile.preferredMaritalStatuses,
+                        maritalStatusMap,
+                        THEME.colors.primary.main
+                      )}
+                      {renderPreferenceBadges(
+                        'רמות דתיות',
+                        BookMarked,
+                        profile.preferredReligiousLevels,
+                        religiousLevelMap,
+                        THEME.colors.secondary.peach
+                      )}
+                      {renderPreferenceBadges(
+                        'מסע דתי של בן/בת הזוג',
+                        Compass,
+                        profile.preferredReligiousJourneys as string[],
+                        religiousJourneyMap,
+                        THEME.colors.secondary.sage
+                      )}
+                      {renderPreferenceBadges(
+                        'רמות השכלה',
+                        GraduationCap,
+                        profile.preferredEducation,
+                        educationLevelMap,
+                        THEME.colors.secondary.sky
+                      )}
+                    </div>
+                  </SectionCard>
+                ) : (
+                  !partnerContent.hookAnswer &&
+                  partnerContent.deeperAnswers.length === 0 && (
+                    <EmptyState
+                      icon={Compass}
+                      title="פתוח/ה להכיר את האדם הנכון"
+                      description="אין כאן רשימת דרישות, אלא הזמנה פתוחה להכיר אדם מיוחד. יש כאן מקום לגילויים מרגשים יחד."
+                      variant="discovery"
+                    />
+                  )
+                )}
+                {partnerContent.deeperAnswers.length > 0 && (
+                  <SectionCard
+                    title="איך אני מדמיין/ת את בן/בת הזוג"
+                    subtitle="תשובות נוספות על מה שאני מחפש/ת"
+                    icon={Target}
+                    variant="elegant"
+                    gradient={WORLDS.partner.gradient}
+                  >
+                    <div className="grid grid-cols-1 gap-4 sm:gap-6">
+                      {partnerContent.deeperAnswers.map((answer) => (
+                        <QuestionnaireItem
+                          key={answer.questionId}
+                          answer={answer}
+                          worldColor={WORLDS.partner.accentColor}
+                          worldGradient={WORLDS.partner.gradient}
+                        />
+                      ))}
+                    </div>
+                  </SectionCard>
+                )}
+                {!isDesktop && mobileViewLayout === 'detailed' && (
+                  <MobileTabNavigation
+                    activeTab={activeTab}
+                    tabItems={tabItems}
+                    onTabChange={handleTabChange}
+                    THEME={THEME}
+                  />
+                )}
+              </div>
             </TabsContent>
 
             {/* Professional Tab */}
@@ -4341,7 +4402,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         }
                         variant="elegant"
                         textAlign="right"
-                        tooltip={profile.medicalInfoDetails || undefined} // <--- כאן התיקון
+                        tooltip={profile.medicalInfoDetails || undefined}
                       />
                     )}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">

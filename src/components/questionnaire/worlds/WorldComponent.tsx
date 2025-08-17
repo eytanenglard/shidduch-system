@@ -113,8 +113,17 @@ export default function WorldComponent({
   // --- התיקון הקריטי ---
   // useEffect זה יפעל כשהקומפוננטה נטענת או כשהדגל משתנה,
   // וידאג לדלג על מסך הפתיחה במקרה של ניווט ישיר.
+  console.log(
+    '[WorldComponent] Received isDirectNavigation:',
+    isDirectNavigation
+  );
+
   useEffect(() => {
     if (isDirectNavigation) {
+      console.log(
+        '[WorldComponent] isDirectNavigation is true. Skipping intro!'
+      );
+
       setIsIntroComplete(true);
     }
   }, [isDirectNavigation]);

@@ -500,7 +500,6 @@ const EnhancedHeroSection: React.FC<{
                       <Mountain className="w-7 h-7" />
                     </div>
                   </div>
-                  {/* --- START: UPDATED TEXT --- */}
                   <h3 className="text-2xl font-bold mb-3">
                     מה עכשיו? ההחלטה בידיים שלך
                   </h3>
@@ -509,13 +508,22 @@ const EnhancedHeroSection: React.FC<{
                     <br />
                     קח/י את הזמן, ובחר/י מה שהכי מרגיש לך נכון.
                   </p>
-                  {/* --- END: UPDATED TEXT --- */}
-                  <div className="flex justify-center">
+                  {/* --- START: UPDATED SECTION --- */}
+                  <div className="flex flex-col items-center gap-4">
                     <Badge className="bg-white/20 text-white border-white/30 px-4 py-2 text-base">
                       <Timer className="w-4 h-4 ml-2" />
                       הזמן הכי טוב הוא עכשיו
                     </Badge>
+                    <Button
+                      onClick={onViewProfile}
+                      variant="link"
+                      className="text-white hover:text-emerald-100 font-bold mt-2"
+                    >
+                      חזור לפרופיל המלא
+                      <ArrowRight className="w-4 h-4 mr-2" />
+                    </Button>
                   </div>
+                  {/* --- END: UPDATED SECTION --- */}
                 </div>
               </CardContent>
             </Card>

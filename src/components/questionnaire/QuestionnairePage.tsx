@@ -70,37 +70,43 @@ export default function QuestionnairePage() {
 
   // Check for world parameter in URL
   useEffect(() => {
-    if (status === 'loading') return;
+    if (status === 'loading') {
+      return;
+    }
 
     const worldParam = searchParams?.get('world');
-    // --- START: הוספת קריאת פרמטר שאלה ---
     const questionParam = searchParams?.get('question');
-    // --- END: הוספת קריאת פרמטר שאלה ---
+
+    // הדפסה לאימות קבלת הפרמטרים
+    console.log('[QuestionnairePage] URL Params:', {
+      worldParam,
+      questionParam,
+    });
+
+    // --- START OF THE FIX ---
     if (
       worldParam &&
       ['PERSONALITY', 'VALUES', 'RELATIONSHIP', 'PARTNER', 'RELIGION'].includes(
-        worldParam as string
+        (worldParam as string).toUpperCase() // המרה לאותיות גדולות לפני הבדיקה
       )
     ) {
-      // If we have a world parameter and the current stage is appropriate, we'll set it
-      if (
-        currentStage === QuestionnaireStage.QUESTIONNAIRE ||
-        currentStage === QuestionnaireStage.LANDING
-      ) {
-        setCurrentStage(QuestionnaireStage.QUESTIONNAIRE);
+      // הדפסה כדי לוודא שנכנסנו לבלוק הנכון
+      console.log(
+        '[QuestionnairePage] Valid world param found. Setting stage to QUESTIONNAIRE.'
+      );
 
-        // Pass the selected world to MatchmakingQuestionnaire
-        const selectedWorld = worldParam as WorldId;
-        setInitialWorld(selectedWorld);
-        // --- START: שמירת מזהה השאלה ---
-        if (questionParam) {
-          setInitialQuestionId(questionParam);
-        }
-        // --- END: שמירת מזהה השאלה ---
+      setCurrentStage(QuestionnaireStage.QUESTIONNAIRE);
+
+      // חשוב להעביר את הערך באותיות גדולות גם הלאה
+      const selectedWorld = worldParam.toUpperCase() as WorldId;
+      setInitialWorld(selectedWorld);
+
+      if (questionParam) {
+        setInitialQuestionId(questionParam);
       }
     }
-  }, [searchParams, status, currentStage]);
-
+    // --- END OF THE FIX ---
+  }, [searchParams, status]);
   // Handler when the landing page "start" button is clicked
   const handleStartQuestionnaire = () => {
     setCurrentStage(QuestionnaireStage.QUESTIONNAIRE);

@@ -12,7 +12,6 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
 import {
   Book,
   CheckCircle,
@@ -180,23 +179,39 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
             <h4 className="font-medium text-sm sm:text-base flex-1 text-right">
               {question}
             </h4>
-            <div
-              className="flex items-center gap-2 self-end sm:self-center"
-              dir="ltr"
-            >
+            <div className="flex items-center gap-2 self-end sm:self-center">
               {isSavingVisibility && (
                 <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
               )}
               <TooltipProvider delayDuration={200}>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <div
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={currentIsVisible}
+                      disabled={!isEditingGlobally || isSaving}
+                      onClick={() => handleVisibilityChange(!currentIsVisible)}
                       className={cn(
-                        'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs shrink-0 flex-row-reverse',
-                        'transition-colors duration-200',
+                        'inline-flex items-center justify-center h-8 px-3 rounded-full gap-2 transition-all duration-200 ease-in-out',
+                        // Styles for disabled state (when not editing globally)
+                        'disabled:opacity-100 disabled:cursor-default',
+                        // Conditional styles based on visibility state
                         currentIsVisible
-                          ? 'bg-emerald-100/70 text-emerald-800'
-                          : 'bg-gray-100 text-gray-600'
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : 'bg-gray-200 text-gray-600',
+                        // Hover and active effects, only when editable
+                        isEditingGlobally &&
+                          !isSaving &&
+                          'hover:shadow-md active:scale-95',
+                        isEditingGlobally &&
+                          !isSaving &&
+                          currentIsVisible &&
+                          'hover:bg-emerald-200',
+                        isEditingGlobally &&
+                          !isSaving &&
+                          !currentIsVisible &&
+                          'hover:bg-gray-300'
                       )}
                     >
                       {currentIsVisible ? (
@@ -204,38 +219,27 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                       ) : (
                         <EyeOff className="h-3.5 w-3.5" />
                       )}
-                      <span className="font-medium whitespace-nowrap" dir="rtl">
+                      <span
+                        className="text-xs font-medium whitespace-nowrap"
+                        dir="rtl"
+                      >
                         {currentIsVisible ? 'גלוי למועמדים' : 'מוסתר'}
                       </span>
-                    </div>
+                    </button>
                   </TooltipTrigger>
                   <TooltipContent side="top" dir="rtl">
                     <p>
-                      {currentIsVisible
-                        ? 'תשובה זו גלויה למועמדים פוטנציאליים'
-                        : 'תשובה זו מוסתרת וגלויה רק לך ולשדכנים'}
+                      {isEditingGlobally
+                        ? currentIsVisible
+                          ? 'הפוך למוסתר (יוצג רק לך ולשדכנים)'
+                          : 'הפוך לגלוי (יוצג למועמדים)'
+                        : currentIsVisible
+                          ? 'תשובה זו גלויה למועמדים'
+                          : 'תשובה זו מוסתרת מהמועמדים'}
                     </p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-
-              {isEditingGlobally && (
-                <div
-                  id={
-                    isFirstInList
-                      ? 'onboarding-target-visibility-control'
-                      : undefined
-                  }
-                >
-                  <Switch
-                    checked={currentIsVisible}
-                    onCheckedChange={handleVisibilityChange}
-                    disabled={isSaving}
-                    className="data-[state=checked]:bg-emerald-500 data-[state=unchecked]:bg-gray-300 transform scale-90"
-                    aria-label={visibilityLabel}
-                  />
-                </div>
-              )}
             </div>
           </div>
 

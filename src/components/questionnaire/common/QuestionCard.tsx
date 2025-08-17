@@ -1,5 +1,7 @@
 // src/components/questionnaire/common/QuestionCard.tsx
 import React, { useState, forwardRef } from 'react';
+import { VisibilityToggleButton } from '@/components/ui/VisibilityToggleButton'; // ייבוא הקומפוננטה החדשה
+
 import {
   Card,
   CardHeader,
@@ -324,41 +326,19 @@ export default function QuestionCard({
           </div>
         </CardContent>
 
+        {/* צד ימין (ב-RTL): מתג נראות */}
         <CardFooter className="relative flex justify-between items-center pt-4 border-t border-slate-100 bg-slate-50/50">
-          {/* צד ימין (ב-RTL): מתג נראות */}
+          {/* צד ימין (ב-RTL): כפתור הנראות החדש */}
           <div className="flex items-center gap-3">
             <TooltipProvider delayDuration={200}>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div
-                    className="flex items-center gap-2"
-                    onClick={() => onVisibilityChange(!isVisible)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <Switch
-                      id={`visibility-switch-${question.id}`}
-                      checked={isVisible}
-                      onCheckedChange={onVisibilityChange}
-                      disabled={isDisabled}
-                      aria-label="הצג תשובה זו בפרופיל"
-                    />
-                    <div className="flex items-center gap-1.5">
-                      {/* --- START: התיקון המרכזי כאן --- */}
-                      {/* שימוש ברינדור מותנה כדי להציג את האייקונים והטקסט הנכונים */}
-                      {isVisible ? (
-                        <div className="flex items-center gap-1.5 text-green-700">
-                          <Eye className="w-4 h-4" />
-                          <Users className="w-3 h-3" />
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-1.5 text-slate-500">
-                          <EyeOff className="w-4 h-4" />
-                          <Lock className="w-3 h-3" />
-                        </div>
-                      )}
-                      {/* --- END: התיקון המרכזי --- */}
-                    </div>
-                  </div>
+                  {/* שימוש בקומפוננטה החדשה */}
+                  <VisibilityToggleButton
+                    isVisible={isVisible}
+                    onToggle={() => onVisibilityChange(!isVisible)}
+                    disabled={isDisabled}
+                  />
                 </TooltipTrigger>
                 <TooltipContent side="top" className="max-w-xs">
                   <div className="text-center">
@@ -374,19 +354,6 @@ export default function QuestionCard({
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-
-            <Label
-              htmlFor={`visibility-switch-${question.id}`}
-              className={cn(
-                'text-sm font-medium cursor-pointer transition-colors duration-200',
-                isVisible ? 'text-green-700' : 'text-slate-500'
-              )}
-              onClick={() => onVisibilityChange(!isVisible)}
-            >
-              {/* --- START: שינוי הטקסט בהתאם למצב --- */}
-              {isVisible ? 'גלוי בפרופיל' : 'מוסתר מהפרופיל'}
-              {/* --- END: שינוי הטקסט בהתאם למצב --- */}
-            </Label>
           </div>
 
           {/* צד שמאל (ב-RTL): כפתורי פעולה */}

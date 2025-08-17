@@ -88,6 +88,11 @@ export default function MatchmakingQuestionnaire({
   initialWorld,
   initialQuestionId,
 }: MatchmakingQuestionnaireProps) {
+  console.log('[MatchmakingQuestionnaire] Received Props:', {
+    initialWorld,
+    initialQuestionId,
+  });
+
   const router = useRouter();
   const { language } = useLanguage();
   const sessionId = useMemo(() => `session_${Date.now()}`, []);
@@ -367,12 +372,18 @@ export default function MatchmakingQuestionnaire({
             }
 
             if (initialWorld && initialQuestionId) {
+              console.log(
+                '[MatchmakingQuestionnaire] Direct Navigation Detected. Setting up...'
+              );
               const worldQuestions = worldConfig[initialWorld].questions;
               const questionIndex = worldQuestions.findIndex(
                 (q) => q.id === initialQuestionId
               );
 
               if (questionIndex !== -1) {
+                console.log(
+                  `[MatchmakingQuestionnaire] Found question at index ${questionIndex}. Navigating to WORLDS.`
+                );
                 setCurrentQuestionIndices((prev) => ({
                   ...prev,
                   [initialWorld]: questionIndex,
@@ -381,36 +392,37 @@ export default function MatchmakingQuestionnaire({
                 setCurrentStep(OnboardingStep.WORLDS);
                 setIsDirectNavigation(true); // הפעלת הדגל
               } else {
+                // אם מזהה השאלה לא תקין, נעביר למפת העולם המתאים
+                console.warn(
+                  `[MatchmakingQuestionnaire] Question ID ${initialQuestionId} not found in world ${initialWorld}. Navigating to MAP.`
+                );
                 setCurrentWorld(initialWorld);
                 setCurrentStep(OnboardingStep.MAP);
               }
-            } else if (isQuestionnaireComplete) {
-              if (initialWorld && WORLD_ORDER.includes(initialWorld)) {
-                setCurrentWorld(initialWorld);
-                setCurrentStep(OnboardingStep.WORLDS);
-              } else {
-                setCurrentWorld(WORLD_ORDER[0]);
-                setCurrentStep(OnboardingStep.MAP);
-              }
+            }
+            // רק אם אין ניווט ישיר, נמשיך לבדוק את שאר המצבים
+            else if (isQuestionnaireComplete) {
+              console.log(
+                '[MatchmakingQuestionnaire] Questionnaire is complete. Navigating to MAP.'
+              );
+              setCurrentWorld(initialWorld || WORLD_ORDER[0]);
+              setCurrentStep(OnboardingStep.MAP);
             } else if (
               loadedCompletedWorlds.length > 0 ||
-              allAnswers.length > 0 ||
-              initialWorld
+              allAnswers.length > 0
             ) {
+              console.log(
+                '[MatchmakingQuestionnaire] Progress found. Navigating to MAP.'
+              );
               const nextWorld = WORLD_ORDER.find(
                 (world) => !loadedCompletedWorlds.includes(world)
               );
-              const worldToSet =
-                initialWorld && WORLD_ORDER.includes(initialWorld)
-                  ? initialWorld
-                  : nextWorld || WORLD_ORDER[0];
-              setCurrentWorld(worldToSet);
-              if (initialWorld && WORLD_ORDER.includes(initialWorld)) {
-                setCurrentStep(OnboardingStep.WORLDS);
-              } else {
-                setCurrentStep(OnboardingStep.MAP);
-              }
+              setCurrentWorld(nextWorld || WORLD_ORDER[0]);
+              setCurrentStep(OnboardingStep.MAP);
             } else {
+              console.log(
+                '[MatchmakingQuestionnaire] No progress. Navigating to WELCOME.'
+              );
               setCurrentStep(OnboardingStep.WELCOME);
             }
           } else {

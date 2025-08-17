@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire
-# Generated on: 2025-08-17 12:45:57
+# Generated on: 2025-08-17 14:23:38
 ################################################################################
 
 ================================================================================
@@ -24,7 +24,7 @@ import React, {
 import { useRouter } from 'next/navigation';
 import QuestionnaireLayout from './layout/QuestionnaireLayout';
 import Welcome from './onboarding/Welcome';
-import WorldComponent from './worlds/WorldComponent'; // <-- שינוי: ייבוא הקומפוננטה המאוחדת
+import WorldComponent from './worlds/WorldComponent';
 import QuestionnaireCompletion from './common/QuestionnaireCompletion';
 import { useLanguage } from '@/app/contexts/LanguageContext';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -48,8 +48,22 @@ import type {
   QuestionnaireSubmission,
   QuestionnaireAnswer,
   AnswerValue,
-  WorldComponentProps,
+  Question,
 } from './types/types';
+
+import { personalityQuestions } from './questions/personality/personalityQuestions';
+import { valuesQuestions } from './questions/values/valuesQuestions';
+import { relationshipQuestions } from './questions/relationship/relationshipQuestions';
+import { partnerQuestions } from './questions/partner/partnerQuestions';
+import { religionQuestions } from './questions/religion/religionQuestions';
+
+const worldConfig: Record<WorldId, { questions: Question[] }> = {
+  PERSONALITY: { questions: personalityQuestions },
+  VALUES: { questions: valuesQuestions },
+  RELATIONSHIP: { questions: relationshipQuestions },
+  PARTNER: { questions: partnerQuestions },
+  RELIGION: { questions: religionQuestions },
+};
 
 const worldLabels = {
   PERSONALITY: 'אישיות',
@@ -78,13 +92,20 @@ export interface MatchmakingQuestionnaireProps {
   userId?: string;
   onComplete?: () => void;
   initialWorld?: WorldId;
+  initialQuestionId?: string;
 }
 
 export default function MatchmakingQuestionnaire({
   userId,
   onComplete,
   initialWorld,
+  initialQuestionId,
 }: MatchmakingQuestionnaireProps) {
+  console.log('[MatchmakingQuestionnaire] Received Props:', {
+    initialWorld,
+    initialQuestionId,
+  });
+
   const router = useRouter();
   const { language } = useLanguage();
   const sessionId = useMemo(() => `session_${Date.now()}`, []);
@@ -99,6 +120,9 @@ export default function MatchmakingQuestionnaire({
   const [completedWorlds, setCompletedWorlds] = useState<WorldId[]>([]);
   const [startTime] = useState(() => new Date().toISOString());
   const [lastSavedTime, setLastSavedTime] = useState<Date | null>(null);
+
+  // דגל שיורה לקומפוננטת הבת לדלג על מסך הפתיחה
+  const [isDirectNavigation, setIsDirectNavigation] = useState(false);
 
   const [currentQuestionIndices, setCurrentQuestionIndices] = useState<
     Record<WorldId, number>
@@ -356,38 +380,63 @@ export default function MatchmakingQuestionnaire({
               data.data.completed ||
               loadedCompletedWorlds.length === WORLD_ORDER.length;
 
-            if (isQuestionnaireComplete) {
-              if (initialWorld && WORLD_ORDER.includes(initialWorld)) {
+            if (data.data.currentQuestionIndices) {
+              setCurrentQuestionIndices(data.data.currentQuestionIndices);
+            }
+
+            if (initialWorld && initialQuestionId) {
+              console.log(
+                '[MatchmakingQuestionnaire] Direct Navigation Detected. Setting up...'
+              );
+              const worldQuestions = worldConfig[initialWorld].questions;
+              const questionIndex = worldQuestions.findIndex(
+                (q) => q.id === initialQuestionId
+              );
+
+              if (questionIndex !== -1) {
+                console.log(
+                  `[MatchmakingQuestionnaire] Found question at index ${questionIndex}. Navigating to WORLDS.`
+                );
+                setCurrentQuestionIndices((prev) => ({
+                  ...prev,
+                  [initialWorld]: questionIndex,
+                }));
                 setCurrentWorld(initialWorld);
                 setCurrentStep(OnboardingStep.WORLDS);
+                setIsDirectNavigation(true); // הפעלת הדגל
               } else {
-                setCurrentWorld(WORLD_ORDER[0]);
+                // אם מזהה השאלה לא תקין, נעביר למפת העולם המתאים
+                console.warn(
+                  `[MatchmakingQuestionnaire] Question ID ${initialQuestionId} not found in world ${initialWorld}. Navigating to MAP.`
+                );
+                setCurrentWorld(initialWorld);
                 setCurrentStep(OnboardingStep.MAP);
               }
+            }
+            // רק אם אין ניווט ישיר, נמשיך לבדוק את שאר המצבים
+            else if (isQuestionnaireComplete) {
+              console.log(
+                '[MatchmakingQuestionnaire] Questionnaire is complete. Navigating to MAP.'
+              );
+              setCurrentWorld(initialWorld || WORLD_ORDER[0]);
+              setCurrentStep(OnboardingStep.MAP);
             } else if (
               loadedCompletedWorlds.length > 0 ||
-              allAnswers.length > 0 ||
-              initialWorld
+              allAnswers.length > 0
             ) {
+              console.log(
+                '[MatchmakingQuestionnaire] Progress found. Navigating to MAP.'
+              );
               const nextWorld = WORLD_ORDER.find(
                 (world) => !loadedCompletedWorlds.includes(world)
               );
-              const worldToSet =
-                initialWorld && WORLD_ORDER.includes(initialWorld)
-                  ? initialWorld
-                  : nextWorld || WORLD_ORDER[0];
-              setCurrentWorld(worldToSet);
-              if (initialWorld && WORLD_ORDER.includes(initialWorld)) {
-                setCurrentStep(OnboardingStep.WORLDS);
-              } else {
-                setCurrentStep(OnboardingStep.MAP);
-              }
+              setCurrentWorld(nextWorld || WORLD_ORDER[0]);
+              setCurrentStep(OnboardingStep.MAP);
             } else {
+              console.log(
+                '[MatchmakingQuestionnaire] No progress. Navigating to WELCOME.'
+              );
               setCurrentStep(OnboardingStep.WELCOME);
-            }
-
-            if (data.data.currentQuestionIndices) {
-              setCurrentQuestionIndices(data.data.currentQuestionIndices);
             }
           } else {
             console.log('Questionnaire data structure invalid or missing.');
@@ -403,7 +452,7 @@ export default function MatchmakingQuestionnaire({
       }
     };
     loadExistingAnswers();
-  }, [userId, initialWorld]);
+  }, [userId, initialWorld, initialQuestionId]);
 
   const handleAnswer = useCallback(
     (questionId: string, value: AnswerValue) => {
@@ -414,13 +463,9 @@ export default function MatchmakingQuestionnaire({
           (a) => a.questionId === questionId
         );
 
-        // אם התשובה כבר קיימת במערך
         if (answerIndex > -1) {
-          // צור מערך חדש באמצעות map
           return prevAnswers.map((answer) => {
             if (answer.questionId === questionId) {
-              // החזר אובייקט חדש עם הערכים המעודכנים,
-              // תוך שמירה על כל שאר המאפיינים (כמו isVisible)
               return {
                 ...answer,
                 value,
@@ -429,18 +474,14 @@ export default function MatchmakingQuestionnaire({
             }
             return answer;
           });
-        }
-
-        // אם זו תשובה חדשה לחלוטין
-        else {
+        } else {
           const newAnswer: QuestionnaireAnswer = {
             questionId,
             worldId: currentWorld,
             value,
             answeredAt: new Date().toISOString(),
-            isVisible: true, // ברירת המחדל לתשובה חדשה היא תמיד גלויה
+            isVisible: true,
           };
-          // החזר מערך חדש עם התשובה החדשה
           return [...prevAnswers, newAnswer];
         }
       });
@@ -455,20 +496,14 @@ export default function MatchmakingQuestionnaire({
         const answerIndex = prevAnswers.findIndex(
           (a) => a.questionId === questionId
         );
-
-        // אם התשובה כבר קיימת במערך
         if (answerIndex > -1) {
-          // צור מערך חדש עם הנראות המעודכנת
           return prevAnswers.map((answer) => {
             if (answer.questionId === questionId) {
               return { ...answer, isVisible };
             }
             return answer;
           });
-        }
-
-        // אם התשובה לא קיימת (למשל, שינוי נראות לפני מענה)
-        else {
+        } else {
           const newPlaceholderAnswer: QuestionnaireAnswer = {
             questionId,
             worldId: currentWorld,
@@ -476,7 +511,6 @@ export default function MatchmakingQuestionnaire({
             answeredAt: new Date().toISOString(),
             isVisible: isVisible,
           };
-          // החזר מערך חדש עם תשובת ה-placeholder
           return [...prevAnswers, newPlaceholderAnswer];
         }
       });
@@ -490,12 +524,11 @@ export default function MatchmakingQuestionnaire({
     [showToast, currentWorld]
   );
 
-  // --- END: פונקציה חדשה לשינוי נראות ---
-
   const handleWorldChange = useCallback((newWorld: WorldId) => {
     setCurrentWorld(newWorld);
     setCurrentStep(OnboardingStep.WORLDS);
     setError(null);
+    setIsDirectNavigation(false); // איפוס הדגל במעבר ידני
   }, []);
 
   const handleWorldComplete = useCallback(
@@ -584,11 +617,10 @@ export default function MatchmakingQuestionnaire({
     setCurrentStep(OnboardingStep.MAP);
   }, []);
 
-  // --- שינוי מרכזי כאן ---
   function renderCurrentWorld() {
     const worldProps = {
       onAnswer: handleAnswer,
-      onVisibilityChange: handleVisibilityChange, // <-- העברת הפונקציה החדשה
+      onVisibilityChange: handleVisibilityChange,
       onComplete: () => handleWorldComplete(currentWorld),
       onBack: handleExit,
       answers: answers.filter((a) => a.worldId === currentWorld),
@@ -603,11 +635,12 @@ export default function MatchmakingQuestionnaire({
       },
       onSave: () => handleQuestionnaireSave(false),
       isSaving: isSaving,
+      isDirectNavigation: isDirectNavigation, // העברת הדגל
     };
 
     return <WorldComponent {...worldProps} worldId={currentWorld} />;
   }
-  // --- סוף השינוי ---
+
   interface ToastProps {
     message: string;
     type: 'success' | 'error' | 'info';
@@ -616,7 +649,6 @@ export default function MatchmakingQuestionnaire({
   }
 
   function renderCurrentStep() {
-    // Loading state
     if (isLoading) {
       return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50">
@@ -654,8 +686,7 @@ export default function MatchmakingQuestionnaire({
             language={language}
             isLoggedIn={!!userId}
           >
-            {' '}
-            {renderCurrentWorld()}{' '}
+            {renderCurrentWorld()}
           </QuestionnaireLayout>
         );
       case OnboardingStep.COMPLETED:
@@ -897,6 +928,11 @@ export default function QuestionnairePage() {
   const [initialWorld, setInitialWorld] = useState<WorldId | undefined>(
     undefined
   );
+  // --- START: הוספת state חדש ---
+  const [initialQuestionId, setInitialQuestionId] = useState<
+    string | undefined
+  >(undefined);
+  // --- END: הוספת state חדש ---
 
   // Check for existing progress when component mounts
   useEffect(() => {
@@ -927,29 +963,43 @@ export default function QuestionnairePage() {
 
   // Check for world parameter in URL
   useEffect(() => {
-    if (status === 'loading') return;
+    if (status === 'loading') {
+      return;
+    }
 
     const worldParam = searchParams?.get('world');
+    const questionParam = searchParams?.get('question');
+
+    // הדפסה לאימות קבלת הפרמטרים
+    console.log('[QuestionnairePage] URL Params:', {
+      worldParam,
+      questionParam,
+    });
+
+    // --- START OF THE FIX ---
     if (
       worldParam &&
       ['PERSONALITY', 'VALUES', 'RELATIONSHIP', 'PARTNER', 'RELIGION'].includes(
-        worldParam as string
+        (worldParam as string).toUpperCase() // המרה לאותיות גדולות לפני הבדיקה
       )
     ) {
-      // If we have a world parameter and the current stage is appropriate, we'll set it
-      if (
-        currentStage === QuestionnaireStage.QUESTIONNAIRE ||
-        currentStage === QuestionnaireStage.LANDING
-      ) {
-        setCurrentStage(QuestionnaireStage.QUESTIONNAIRE);
+      // הדפסה כדי לוודא שנכנסנו לבלוק הנכון
+      console.log(
+        '[QuestionnairePage] Valid world param found. Setting stage to QUESTIONNAIRE.'
+      );
 
-        // Pass the selected world to MatchmakingQuestionnaire
-        const selectedWorld = worldParam as WorldId;
-        setInitialWorld(selectedWorld);
+      setCurrentStage(QuestionnaireStage.QUESTIONNAIRE);
+
+      // חשוב להעביר את הערך באותיות גדולות גם הלאה
+      const selectedWorld = worldParam.toUpperCase() as WorldId;
+      setInitialWorld(selectedWorld);
+
+      if (questionParam) {
+        setInitialQuestionId(questionParam);
       }
     }
-  }, [searchParams, status, currentStage]);
-
+    // --- END OF THE FIX ---
+  }, [searchParams, status]);
   // Handler when the landing page "start" button is clicked
   const handleStartQuestionnaire = () => {
     setCurrentStage(QuestionnaireStage.QUESTIONNAIRE);
@@ -992,6 +1042,9 @@ export default function QuestionnairePage() {
             userId={session?.user?.id}
             onComplete={handleQuestionnaireComplete}
             initialWorld={initialWorld}
+            // --- START: העברת prop חדש ---
+            initialQuestionId={initialQuestionId}
+            // --- END: העברת prop חדש ---
           />
         );
 
@@ -2676,13 +2729,15 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\question
 Content:
 // src/components/questionnaire/common/QuestionCard.tsx
 import React, { useState, forwardRef } from 'react';
+import { VisibilityToggleButton } from '@/components/ui/VisibilityToggleButton'; // ייבוא הקומפוננטה החדשה
+
 import {
   Card,
   CardHeader,
   CardContent,
   CardFooter,
 } from '@/components/ui/card';
-import Link from 'next/link'; 
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -2701,9 +2756,9 @@ import {
   EyeOff,
   Users,
   Lock,
-   Save,       // *** הוספה חדשה ***
-  Loader2,    // *** הוספה חדשה ***
-  BookUser,   // *** הוספה חדשה ***
+  Save,
+  Loader2,
+  BookUser,
 } from 'lucide-react';
 import {
   Tooltip,
@@ -2733,8 +2788,8 @@ interface QuestionCardProps {
   themeColor?: 'sky' | 'rose' | 'purple' | 'teal' | 'amber';
   isVisible: boolean;
   onVisibilityChange: (isVisible: boolean) => void;
-   onSave?: () => void;   // *** הוספה חדשה ***
-  isSaving?: boolean;  // *** הוספה חדשה ***
+  onSave?: () => void;
+  isSaving?: boolean;
 }
 
 const depthLabels: Record<QuestionDepth, string> = {
@@ -2749,7 +2804,6 @@ const depthDescriptions: Record<QuestionDepth, string> = {
   EXPERT: 'שאלות העשרה לחיבור מעמיק במיוחד',
 };
 
-// פתרון לבעיית הצבעים הדינמיים
 const getThemeClasses = (themeColor: string) => {
   const themes = {
     sky: {
@@ -2811,12 +2865,11 @@ export default function QuestionCard({
   themeColor = 'sky',
   isVisible,
   onVisibilityChange,
-   onSave,      // *** קבלת Prop ***
-  isSaving,    // *** קבלת Prop ***
+  onSave,
+  isSaving,
 }: QuestionCardProps) {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
-  const [showHint, setShowHint] = useState(false);
   const isMobile = useMediaQuery('(max-width: 640px)');
 
   const cardVariants = {
@@ -3002,151 +3055,103 @@ export default function QuestionCard({
           </div>
         </CardContent>
 
-     <CardFooter className="relative flex justify-between items-center pt-4 border-t border-slate-100 bg-slate-50/50">
-  {/* צד ימין (ב-RTL): מתג נראות */}
-  <div className="flex items-center gap-3">
-    <div className="flex items-center gap-2">
-      <TooltipProvider delayDuration={200}>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div className="flex items-center gap-2">
-              <Switch
-                checked={isVisible}
-                onCheckedChange={onVisibilityChange}
-                disabled={isDisabled}
-                aria-label="הצג תשובה זו בפרופיל"
-                className="data-[state=checked]:bg-green-500"
-              />
-              <div className="flex items-center gap-1.5">
-                {isVisible ? (
-                  <div className="flex items-center gap-1.5 text-green-700">
-                    <Eye className="w-4 h-4" />
-                    <Users className="w-3 h-3" />
+        {/* צד ימין (ב-RTL): מתג נראות */}
+        <CardFooter className="relative flex justify-between items-center pt-4 border-t border-slate-100 bg-slate-50/50">
+          {/* צד ימין (ב-RTL): כפתור הנראות החדש */}
+          <div className="flex items-center gap-3">
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  {/* שימוש בקומפוננטה החדשה */}
+                  <VisibilityToggleButton
+                    isVisible={isVisible}
+                    onToggle={() => onVisibilityChange(!isVisible)}
+                    disabled={isDisabled}
+                  />
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-xs">
+                  <div className="text-center">
+                    <p className="font-medium mb-1">
+                      {isVisible ? '👁️ גלוי לכולם' : '🔒 מוסתר מהציבור'}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {isVisible
+                        ? 'התשובה תוצג בפרופיל הציבורי שלך'
+                        : 'התשובה תהיה גלויה רק לשדכנים מאושרים'}
+                    </p>
                   </div>
-                ) : (
-                  <div className="flex items-center gap-1.5 text-slate-500">
-                    <EyeOff className="w-4 h-4" />
-                    <Lock className="w-3 h-3" />
-                  </div>
-                )}
-              </div>
-            </div>
-          </TooltipTrigger>
-          <TooltipContent side="top" className="max-w-xs">
-            <div className="text-center">
-              <p className="font-medium mb-1">
-                {isVisible ? '👁️ גלוי לכולם' : '🔒 מוסתר מהציבור'}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {isVisible
-                  ? 'התשובה תוצג בפרופיל הציבורי שלך'
-                  : 'התשובה תהיה גלויה רק לשדכנים מאושרים'}
-              </p>
-            </div>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    </div>
-    <motion.div
-      initial={false}
-      animate={{
-        scale: isVisible ? 1.02 : 1,
-        color: isVisible ? '#15803d' : '#64748b',
-      }}
-      transition={{ duration: 0.2 }}
-      className="flex items-center gap-1"
-    >
-      <Label
-        className={cn(
-          'text-sm font-medium cursor-pointer transition-all duration-200',
-          isVisible ? 'text-green-700' : 'text-slate-500'
-        )}
-        onClick={() => onVisibilityChange(!isVisible)}
-      >
-        {isVisible ? 'גלוי בפרופיל' : 'מוסתר מהפרופיל'}
-      </Label>
-      <div
-        className={cn(
-          'w-2 h-2 rounded-full transition-colors duration-200',
-          isVisible ? 'bg-green-500' : 'bg-slate-400'
-        )}
-      />
-    </motion.div>
-  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
 
-  {/* צד שמאל (ב-RTL): כפתורי פעולה */}
-  <div className="flex items-center gap-1">
-    {/* --- START: כפתור שמירה (אייקון בלבד) --- */}
-    {onSave && (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 rounded-full text-slate-500 hover:bg-slate-100"
-              onClick={onSave}
-              disabled={isSaving || isDisabled}
-              aria-label="שמור התקדמות"
-            >
-              {isSaving ? (
-                <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
-              ) : (
-                <Save className="w-4 h-4" />
-              )}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>{isSaving ? 'שומר...' : 'שמור התקדמות'}</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    )}
-    {/* --- END: כפתור שמירה --- */}
+          {/* צד שמאל (ב-RTL): כפתורי פעולה */}
+          <div className="flex items-center gap-1">
+            {onSave && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 rounded-full text-slate-500 hover:bg-slate-100"
+                      onClick={onSave}
+                      disabled={isSaving || isDisabled}
+                      aria-label="שמור התקדמות"
+                    >
+                      {isSaving ? (
+                        <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
+                      ) : (
+                        <Save className="w-4 h-4" />
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{isSaving ? 'שומר...' : 'שמור התקדמות'}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
 
-    {/* --- START: כפתור צפייה בפרופיל (אייקון בלבד) --- */}
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Link href="/profile?tab=questionnaire" legacyBehavior>
-            <a target="_blank" rel="noopener noreferrer">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link href="/profile?tab=questionnaire" legacyBehavior>
+                    <a target="_blank" rel="noopener noreferrer">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-full text-slate-500 hover:bg-slate-100"
+                        aria-label="צפה בפרופיל ובתשובות"
+                      >
+                        <BookUser className="w-4 h-4" />
+                      </Button>
+                    </a>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>צפה בפרופיל ובתשובות</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            {onSkip && (
               <Button
                 variant="ghost"
-                size="icon"
-                className="h-8 w-8 rounded-full text-slate-500 hover:bg-slate-100"
-                aria-label="צפה בפרופיל ובתשובות"
+                size="sm"
+                onClick={onSkip}
+                disabled={isRequired || isDisabled}
+                className={cn(
+                  'text-slate-500 hover:text-slate-800',
+                  (isRequired || isDisabled) && 'opacity-50 cursor-not-allowed'
+                )}
               >
-                <BookUser className="w-4 h-4" />
+                {isRequired ? 'שאלת חובה' : 'דלג'}
+                {!isRequired && <SkipForward className="w-4 h-4 mr-2" />}
               </Button>
-            </a>
-          </Link>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>צפה בפרופיל ובתשובות</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-    {/* --- END: כפתור צפייה בפרופיל --- */}
-
-    {/* כפתור דילוג (נשאר כפי שהיה) */}
-    {onSkip && (
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={onSkip}
-        disabled={isRequired || isDisabled}
-        className={cn(
-          'text-slate-500 hover:text-slate-800',
-          (isRequired || isDisabled) && 'opacity-50 cursor-not-allowed'
-        )}
-      >
-        {isRequired ? 'שאלת חובה' : 'דלג'}
-        {!isRequired && <SkipForward className="w-4 h-4 mr-2" />}
-      </Button>
-    )}
-  </div>
-</CardFooter>
-
+            )}
+          </div>
+        </CardFooter>
       </Card>
     </motion.div>
   );
@@ -9460,7 +9465,7 @@ export const personalityQuestions: Question[] = [
     category: 'personality',
     subcategory: 'lifestyle',
     question:
-      "עבר עליך שבוע עמוס ואינטנסיבי. את/ה מרגיש/ה שה'סוללה החברתית' שלך קרובה להתרוקן. הגיע יום חמישי בערב, ויש לך ערב פנוי לחלוטין. איזו מהאפשרויות הבאות הכי קורצת לך ומרגישה כמו 'שקע הטעינה' המושלם עבורך?",
+      "עבר עליך שבוע עמוס ואינטנסיבי. את/ה מרגיש/ה שה'סוללה' שלך קרובה להתרוקן. הגיע יום חמישי בערב, ויש לך ערב פנוי לחלוטין. איזו מהאפשרויות הבאות הכי קורצת לך ומרגישה כמו 'שקע הטעינה' המושלם עבורך?",
     type: 'scenario',
     depth: 'BASIC',
     isRequired: true,
@@ -9545,11 +9550,11 @@ export const personalityQuestions: Question[] = [
     category: 'personality',
     subcategory: 'lifestyle',
     question:
-      "הדרך שבה אנחנו אוהבים לנפוש אומרת המון על האישיות שלנו. מהם המרכיבים שהופכים חופשה למושלמת עבורך? חלק/י 100 'נקודות חופשה' כדי לבנות את 'מצפן החופשה' שלך.",
+      "הדרך שבה אנחנו אוהבים לנפוש אומרת המון על האישיות שלנו. מהם המרכיבים שהופכים חופשה למושלמת עבורך? חלק/י 1000 'נקודות חופשה' כדי לבנות את 'מצפן החופשה' שלך.",
     type: 'budgetAllocation',
     depth: 'ADVANCED',
     isRequired: true,
-    totalPoints: 100,
+    totalPoints: 1000,
     categories: [
       {
         label: 'בטן-גב, רוגע ושלווה',
@@ -11853,7 +11858,7 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\question
 --------------------------------------------------------------------------------
 Content:
 // src/components/questionnaire/worlds/WorldComponent.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import WorldIntro from '../common/WorldIntro';
 import QuestionCard from '../common/QuestionCard';
 import AnswerInput from '../common/AnswerInput';
@@ -11891,14 +11896,12 @@ import { cn } from '@/lib/utils';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// 1. ייבוא כל קבצי השאלות
 import { personalityQuestions } from '../questions/personality/personalityQuestions';
 import { valuesQuestions } from '../questions/values/valuesQuestions';
 import { relationshipQuestions } from '../questions/relationship/relationshipQuestions';
 import { partnerQuestions } from '../questions/partner/partnerQuestions';
 import { religionQuestions } from '../questions/religion/religionQuestions';
 
-// 2. יצירת אובייקט קונפיגורציה מרכזי לניהול הנתונים של כל עולם, כולל צבע נושא
 const worldConfig: Record<
   WorldId,
   {
@@ -11910,36 +11913,36 @@ const worldConfig: Record<
   PERSONALITY: {
     questions: personalityQuestions,
     title: 'עולם האישיות',
-    themeColor: 'sky', // גוונים של כחול-שמיים לאישיות ורפלקציה
+    themeColor: 'sky',
   },
   VALUES: {
     questions: valuesQuestions,
     title: 'עולם הערכים והאמונות',
-    themeColor: 'rose', // גוונים של ורוד-אדמדם לערכים ורגשות
+    themeColor: 'rose',
   },
   RELATIONSHIP: {
     questions: relationshipQuestions,
     title: 'עולם הזוגיות',
-    themeColor: 'purple', // גוונים של סגול לשותפות ואינטימיות
+    themeColor: 'purple',
   },
   PARTNER: {
     questions: partnerQuestions,
     title: 'עולם הפרטנר',
-    themeColor: 'teal', // גוונים של טורקיז למיקוד ובהירות
+    themeColor: 'teal',
   },
   RELIGION: {
     questions: religionQuestions,
     title: 'עולם הדת והמסורת',
-    themeColor: 'amber', // גוונים של ענבר/זהב למסורת ורוחניות
+    themeColor: 'amber',
   },
 };
 
-// 3. הרחבת ה-Props של הקומפוננטה כדי שתקבל worldId ו-onVisibilityChange
 interface WorldComponentDynamicProps extends WorldComponentProps {
   worldId: WorldId;
   onVisibilityChange: (questionId: string, isVisible: boolean) => void;
-  onSave?: () => void; // <-- הוספה
-  isSaving?: boolean; // <-- הוספה
+  onSave?: () => void;
+  isSaving?: boolean;
+  isDirectNavigation?: boolean;
 }
 
 export default function WorldComponent({
@@ -11952,10 +11955,10 @@ export default function WorldComponent({
   language = 'he',
   currentQuestionIndex,
   setCurrentQuestionIndex,
-   onSave, // <-- קבלה
-  isSaving, // <-- קבלה
+  onSave,
+  isSaving,
+  isDirectNavigation = false,
 }: WorldComponentDynamicProps) {
-  // 4. שימוש ב-worldId כדי לשלוף את הנתונים הנכונים מהקונפיגורציה
   const { questions: allQuestions, title, themeColor } = worldConfig[worldId];
 
   const [isIntroComplete, setIsIntroComplete] = useState(false);
@@ -11965,6 +11968,25 @@ export default function WorldComponent({
   const isDesktop = useMediaQuery('(min-width: 1024px)');
   const isRTL = language === 'he';
   const [isListVisible, setIsListVisible] = useState(true);
+
+  // --- התיקון הקריטי ---
+  // useEffect זה יפעל כשהקומפוננטה נטענת או כשהדגל משתנה,
+  // וידאג לדלג על מסך הפתיחה במקרה של ניווט ישיר.
+  console.log(
+    '[WorldComponent] Received isDirectNavigation:',
+    isDirectNavigation
+  );
+
+  useEffect(() => {
+    if (isDirectNavigation) {
+      console.log(
+        '[WorldComponent] isDirectNavigation is true. Skipping intro!'
+      );
+
+      setIsIntroComplete(true);
+    }
+  }, [isDirectNavigation]);
+  // --- סוף התיקון ---
 
   const findAnswer = (questionId: string): QuestionnaireAnswer | undefined => {
     return answers.find((a) => a.questionId === questionId);
@@ -12179,7 +12201,6 @@ export default function WorldComponent({
           {!isDesktop && (
             <Sheet>
               <SheetTrigger asChild>
-                {/* START: שינוי עיצובי וכיתוב של הכפתור */}
                 <Button
                   variant="outline"
                   size="sm"
@@ -12191,7 +12212,6 @@ export default function WorldComponent({
                   <List className="h-4 w-4" />
                   <span>רשימת שאלות</span>
                 </Button>
-                {/* END: שינוי עיצובי וכיתוב של הכפתור */}
               </SheetTrigger>
               <SheetContent
                 side={isRTL ? 'left' : 'right'}
@@ -12270,7 +12290,7 @@ export default function WorldComponent({
         onVisibilityChange={(isVisible) =>
           onVisibilityChange(currentQuestion.id, isVisible)
         }
-          onSave={onSave}
+        onSave={onSave}
         isSaving={isSaving}
       >
         <AnswerInput
