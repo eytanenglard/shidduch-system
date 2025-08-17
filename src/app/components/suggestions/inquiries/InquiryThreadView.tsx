@@ -19,7 +19,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Label } from '@/components/ui/label'; // <<<--- FIX 2: Added missing import for Label
+import { Label } from '@/components/ui/label';
 import {
   Send,
   MessageCircle,
@@ -59,7 +59,6 @@ interface InquiryThreadViewProps {
 
 // --- Helper Functions ---
 const getStatusInfo = (status: Inquiry['status']) => {
-  // ... (no changes to this function)
   switch (status) {
     case 'PENDING':
       return {
@@ -408,10 +407,12 @@ const InquiryThreadView: React.FC<InquiryThreadViewProps> = ({
         </div>
       </CardHeader>
 
+      {/* <<<--- CHANGE START: Removed max-h and overflow-y-auto from this div ---<<< */}
       <div
         ref={scrollAreaRef}
-        className="flex-1 max-h-[500px] overflow-y-auto p-6 space-y-6 scrollbar-elegant"
+        className="flex-1 p-6 space-y-6 scrollbar-elegant"
       >
+      {/* >>>--- CHANGE END ---<<< */}
         {isLoading ? (
           Array.from({ length: 2 }).map((_, i) => (
             <div key={i} className="flex gap-4">
