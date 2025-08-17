@@ -1,0 +1,4164 @@
+################################################################################
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker
+# Generated on: 2025-08-17 16:24:34
+################################################################################
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\matchmaker_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\candidates_contents.txt
+--------------------------------------------------------------------------------
+Content:
+################################################################################
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates
+# Generated on: 2025-08-11 08:21:25
+################################################################################
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\candidates_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/matchmaker/candidates/route.ts
+
+import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+import { UserRole, MatchSuggestionStatus } from '@prisma/client';
+export const dynamic = 'force-dynamic';
+const BLOCKING_SUGGESTION_STATUSES: MatchSuggestionStatus[] = [
+  'FIRST_PARTY_APPROVED',
+  'SECOND_PARTY_APPROVED',
+  'AWAITING_MATCHMAKER_APPROVAL',
+  'CONTACT_DETAILS_SHARED',
+  'AWAITING_FIRST_DATE_FEEDBACK',
+  'THINKING_AFTER_DATE',
+  'PROCEEDING_TO_SECOND_DATE',
+  'MEETING_PENDING',
+  'MEETING_SCHEDULED',
+  'MATCH_APPROVED',
+  'DATING',
+];
+
+const PENDING_SUGGESTION_STATUSES: MatchSuggestionStatus[] = [
+  'PENDING_FIRST_PARTY',
+  'PENDING_SECOND_PARTY',
+  'DRAFT',
+];
+
+type SuggestionStatusInfo = {
+  status: 'BLOCKED' | 'PENDING';
+  suggestionId: string;
+  withCandidateName: string;
+};
+
+export async function GET() {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return new NextResponse(
+        JSON.stringify({ error: 'Unauthorized - Not logged in' }),
+        { status: 401 }
+      );
+    }
+
+    const performingUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true },
+    });
+
+    const allowedRoles: UserRole[] = [UserRole.MATCHMAKER, UserRole.ADMIN];
+    if (!performingUser || !allowedRoles.includes(performingUser.role)) {
+      return new NextResponse(
+        JSON.stringify({
+          error: 'Unauthorized - Matchmaker or Admin access required',
+        }),
+        { status: 403 }
+      );
+    }
+
+    // Step 1: Fetch all candidates
+    const users = await prisma.user.findMany({
+      where: {
+        status: { notIn: ['BLOCKED', 'INACTIVE'] },
+        role: 'CANDIDATE',
+        profile: { isNot: null },
+      },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        status: true,
+        source: true,
+        createdAt: true,
+        isVerified: true,
+        isProfileComplete: true,
+        images: {
+          select: { id: true, url: true, isMain: true },
+          orderBy: [{ isMain: 'desc' }, { createdAt: 'asc' }],
+        },
+        profile: true,
+      },
+    });
+
+    if (users.length === 0) {
+      return new NextResponse(
+        JSON.stringify({ success: true, clients: [], count: 0 }),
+        { status: 200 }
+      );
+    }
+
+    // Step 2: Collect all user IDs
+    const userIds = users.map((user) => user.id);
+
+    // Step 3: Fetch all relevant suggestions in a single query
+    const allSuggestions = await prisma.matchSuggestion.findMany({
+      where: {
+        OR: [
+          { firstPartyId: { in: userIds } },
+          { secondPartyId: { in: userIds } },
+        ],
+        status: {
+          in: [...BLOCKING_SUGGESTION_STATUSES, ...PENDING_SUGGESTION_STATUSES],
+        },
+      },
+      include: {
+        firstParty: { select: { id: true, firstName: true, lastName: true } },
+        secondParty: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
+
+    // Step 4: Process suggestions into an efficient lookup map
+    const suggestionStatusMap = new Map<string, SuggestionStatusInfo>();
+
+    for (const suggestion of allSuggestions) {
+      const isBlocking = BLOCKING_SUGGESTION_STATUSES.includes(
+        suggestion.status
+      );
+      const statusType = isBlocking ? 'BLOCKED' : 'PENDING';
+
+      // Attach info to first party
+      if (
+        !suggestionStatusMap.has(suggestion.firstPartyId) ||
+        (isBlocking &&
+          suggestionStatusMap.get(suggestion.firstPartyId)?.status !==
+            'BLOCKED')
+      ) {
+        suggestionStatusMap.set(suggestion.firstPartyId, {
+          status: statusType,
+          suggestionId: suggestion.id,
+          withCandidateName: `${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName}`,
+        });
+      }
+
+      // Attach info to second party
+      if (
+        !suggestionStatusMap.has(suggestion.secondPartyId) ||
+        (isBlocking &&
+          suggestionStatusMap.get(suggestion.secondPartyId)?.status !==
+            'BLOCKED')
+      ) {
+        suggestionStatusMap.set(suggestion.secondPartyId, {
+          status: statusType,
+          suggestionId: suggestion.id,
+          withCandidateName: `${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName}`,
+        });
+      }
+    }
+
+    // Step 5: Map suggestion info back to users in memory (no more DB queries)
+    const usersWithSuggestionInfo = users.map((user) => {
+      const suggestionInfo = suggestionStatusMap.get(user.id) || null;
+      const profile = user.profile;
+
+      return {
+        ...user,
+        suggestionStatus: suggestionInfo,
+        profile: profile
+          ? {
+              ...profile,
+              birthDate: profile.birthDate.toISOString(),
+              availabilityUpdatedAt:
+                profile.availabilityUpdatedAt?.toISOString() || null,
+              createdAt: profile.createdAt.toISOString(),
+              updatedAt: profile.updatedAt.toISOString(),
+              lastActive: profile.lastActive?.toISOString() || null,
+            }
+          : null,
+      };
+    });
+
+    return new NextResponse(
+      JSON.stringify({
+        success: true,
+        clients: usersWithSuggestionInfo,
+        count: usersWithSuggestionInfo.length,
+      }),
+      { status: 200 }
+    );
+  } catch (error: unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error';
+    console.error('Candidate list fetch error:', errorMessage, error);
+
+    return new NextResponse(
+      JSON.stringify({
+        success: false,
+        error: 'An error occurred while fetching candidates.',
+        details: errorMessage,
+      }),
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]\route.ts
+--------------------------------------------------------------------------------
+Content:
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { Prisma, UserRole } from "@prisma/client"; // הוספתי Prisma עבור סוגי שגיאות
+import { updateUserAiProfile } from '@/lib/services/profileAiService'; // <--- 1. ייבוא
+export const dynamic = 'force-dynamic';
+// פונקציית GET הקיימת שלך
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    // Verify that the user is a matchmaker or admin
+    const performingUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true }
+    });
+
+    if (!performingUser || (performingUser.role !== UserRole.MATCHMAKER && performingUser.role !== UserRole.ADMIN)) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized - Matchmaker or Admin access required" },
+        { status: 403 }
+      );
+    }
+
+    const { id } = params;
+
+    const candidateData = await prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        phone: true,
+        isVerified: true,
+        role: true, // Added to fetch candidate's role
+        profile: true,
+        images: {
+          orderBy: [{ isMain: 'desc' }, { createdAt: 'desc' }] // Main image first
+        }
+      }
+    });
+
+    if (!candidateData) {
+      return NextResponse.json(
+        { success: false, error: "Candidate not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      profile: candidateData.profile,
+      user: { // Include user basic details
+        id: candidateData.id,
+        firstName: candidateData.firstName,
+        lastName: candidateData.lastName,
+        email: candidateData.email,
+        phone: candidateData.phone,
+        isVerified: candidateData.isVerified,
+        role: candidateData.role, // Include role in user object
+      },
+      images: candidateData.images
+    });
+  } catch (error) {
+    console.error("Error fetching candidate profile:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to fetch candidate profile" },
+      { status: 500 }
+    );
+  }
+}
+
+// פונקציית PATCH הקיימת שלך
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const performingUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true }
+    });
+
+    // Only Matchmakers or Admins can edit
+    if (!performingUser || (performingUser.role !== UserRole.MATCHMAKER && performingUser.role !== UserRole.ADMIN)) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized - Matchmaker or Admin access required" },
+        { status: 403 }
+      );
+    }
+    
+    const { id: candidateIdToUpdate } = params; // ID of the candidate to update
+
+    const candidateExists = await prisma.user.findUnique({
+      where: { id: candidateIdToUpdate },
+      select: { id: true, role: true } // Fetch role to prevent non-admins from editing admins
+    });
+
+    if (!candidateExists) {
+      return NextResponse.json(
+        { success: false, error: "Candidate not found" },
+        { status: 404 }
+      );
+    }
+
+    // Prevent non-admin matchmakers from editing admin profiles (if desired)
+    if (candidateExists.role === UserRole.ADMIN && performingUser.role !== UserRole.ADMIN) {
+        return NextResponse.json(
+            { success: false, error: "Unauthorized - Admins can only be edited by other Admins." },
+            { status: 403 }
+        );
+    }
+
+
+    const profileData = await req.json();
+
+    // Ensure numeric fields are numbers or null
+    const numericFields = ['height', 'siblings', 'position', 'preferredAgeMin', 'preferredAgeMax', 'preferredHeightMin', 'preferredHeightMax', 'aliyaYear'];
+    numericFields.forEach(field => {
+        if (profileData[field] === "" || profileData[field] === undefined) {
+            profileData[field] = null;
+        } else if (profileData[field] !== null) {
+            profileData[field] = parseInt(profileData[field], 10);
+            if (isNaN(profileData[field])) {
+                // Or throw an error if invalid number is critical
+                console.warn(`Invalid number for ${field}: ${profileData[field]}, setting to null`);
+                profileData[field] = null;
+            }
+        }
+    });
+    
+    // Ensure enum fields are valid enum values or null
+    const enumFields = ['gender', 'preferredMatchmakerGender', 'maritalStatus', 'serviceType', 'headCovering', 'kippahType', 'contactPreference', 'preferredShomerNegiah', 'preferredPartnerHasChildren', 'preferredAliyaStatus', 'availabilityStatus' , 'religiousJourney'];
+    enumFields.forEach(field => {
+        if (profileData[field] === "" || profileData[field] === undefined) {
+            profileData[field] = null;
+        }
+        // Add specific enum validation here if needed, though Prisma handles this on write
+    });
+
+    // Ensure boolean fields are booleans or null
+    const booleanFields = ['shomerNegiah', 'hasChildrenFromPrevious', 'preferredHasChildrenFromPrevious', 'isProfileVisible'];
+    booleanFields.forEach(field => {
+        if (profileData[field] === undefined) {
+            profileData[field] = null; // Or a default boolean if appropriate
+        } else if (typeof profileData[field] !== 'boolean' && profileData[field] !== null) {
+             // Attempt to convert common string representations
+            if (profileData[field] === 'true') profileData[field] = true;
+            else if (profileData[field] === 'false') profileData[field] = false;
+            else profileData[field] = null; // Default to null if not clearly boolean
+        }
+    });
+
+    // Ensure array fields are arrays
+    const arrayFields = ['additionalLanguages', 'profileCharacterTraits', 'profileHobbies', 'preferredReligiousLevels', 'preferredLocations', 'preferredEducation', 'preferredOccupations', 'preferredMaritalStatuses', 'preferredOrigins', 'preferredServiceTypes', 'preferredHeadCoverings', 'preferredKippahTypes', 'preferredCharacterTraits', 'preferredHobbies', 'preferredReligiousJourneys'];
+    arrayFields.forEach(field => {
+        if (profileData[field] === undefined || profileData[field] === null) {
+            profileData[field] = []; // Default to empty array
+        } else if (!Array.isArray(profileData[field])) {
+            console.warn(`Field ${field} is not an array, attempting to convert or defaulting to empty.`);
+            // Basic attempt to convert comma-separated string or single value to array
+            if (typeof profileData[field] === 'string' && profileData[field].includes(',')) {
+                profileData[field] = profileData[field].split(',').map((s: string) => s.trim());
+            } else if (typeof profileData[field] === 'string' && profileData[field].trim() !== '') {
+                 profileData[field] = [profileData[field].trim()];
+            } else {
+                profileData[field] = [];
+            }
+        }
+    });
+    
+    // Separate data for User model and Profile model if needed,
+    // but current PATCH seems to only update Profile.
+
+    const updatedProfile = await prisma.profile.update({
+      where: { userId: candidateIdToUpdate },
+      data: {
+        ...profileData,
+        updatedAt: new Date(), // Explicitly set updatedAt
+        lastActive: new Date() // Also update lastActive
+      }
+    });
+  // --- START OF NEW CODE ---
+    // 2. הפעלת עדכון פרופיל ה-AI ברקע עבור המועמד שעודכן
+    updateUserAiProfile(candidateIdToUpdate).catch(err => {
+        console.error(`[AI Profile Trigger - Matchmaker Update] Failed to update AI profile in the background for candidate ${candidateIdToUpdate}:`, err);
+    });
+    // --- END OF NEW CODE ---
+    return NextResponse.json({
+      success: true,
+      profile: updatedProfile
+    });
+  } catch (error) {
+    console.error("Error updating candidate profile:", error);
+    let errorMessage = "Failed to update candidate profile";
+    let statusCode = 500;
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        // Handle specific Prisma errors
+        if (error.code === 'P2002') { // Unique constraint failed
+            errorMessage = `שגיאה: נראה שאחד השדות שהזנת (כמו מייל או טלפון אם רלוונטי לפרופיל) כבר קיים במערכת עבור משתמש אחר. (${error.meta?.target})`;
+            statusCode = 409; // Conflict
+        } else if (error.code === 'P2025') { // Record to update not found
+            errorMessage = "הפרופיל או המועמד המבוקש לעדכון לא נמצא.";
+            statusCode = 404;
+        } else {
+            errorMessage = `שגיאת מסד נתונים (קוד ${error.code}).`;
+        }
+        console.error("Prisma Known Error on PATCH:", error.code, error.message, error.meta);
+    } else if (error instanceof Prisma.PrismaClientValidationError) {
+        errorMessage = `שגיאת ולידציה בעדכון הפרופיל: ${error.message}`;
+        statusCode = 400; // Bad Request
+        console.error("Prisma Validation Error on PATCH:", error.message);
+    } else if (error instanceof Error) {
+        errorMessage = error.message;
+    }
+    
+    return NextResponse.json(
+      { success: false, error: errorMessage, details: process.env.NODE_ENV === 'development' && error instanceof Error ? error.stack : undefined },
+      { status: statusCode }
+    );
+  }
+}
+
+// פונקציית DELETE החדשה
+export async function DELETE(
+  req: NextRequest, // NextRequest is fine here, not used for body
+  { params }: { params: { id: string } }
+) {
+  const candidateIdToDelete = params.id; // Changed from params.candidateId to params.id to match your GET/PATCH
+  const timestamp = new Date().toISOString();
+  
+  console.log(`[${timestamp}] DELETE request for candidate ID: ${candidateIdToDelete}`);
+
+  const session = await getServerSession(authOptions);
+
+  if (!session || !session.user || !session.user.id || !session.user.role) {
+    console.warn(`[${timestamp}] Unauthorized DELETE attempt: No active session or role. PerformingUserID: ${session?.user?.id}`);
+    return NextResponse.json(
+      { success: false, error: 'אינך מורשה לבצע פעולה זו. לא זוהתה סשן פעיל או הרשאה.' },
+      { status: 401 }
+    );
+  }
+
+  const performingUserId = session.user.id;
+  const performingUserRole = session.user.role as UserRole; 
+
+  // Only ADMINs can delete candidates
+  if (performingUserRole !== UserRole.ADMIN) {
+    console.warn(`[${timestamp}] Forbidden DELETE attempt: User ${performingUserId} (Role: ${performingUserRole}) is not ADMIN.`);
+    return NextResponse.json(
+      { success: false, error: 'אינך מורשה לבצע פעולה זו. נדרשת הרשאת אדמין.' },
+      { status: 403 }
+    );
+  }
+
+  if (!candidateIdToDelete) {
+    console.warn(`[${timestamp}] Bad Request DELETE: candidateId is missing. PerformingUserID: ${performingUserId}`);
+    return NextResponse.json(
+        { success: false, error: 'מזהה מועמד (candidateId) חסר.' },
+        { status: 400 }
+    );
+  }
+
+  // Prevent admin from deleting themselves via this endpoint
+  if (candidateIdToDelete === performingUserId) {
+    console.warn(`[${timestamp}] Forbidden DELETE: Admin ${performingUserId} attempting to delete their own account via candidate deletion endpoint.`);
+    return NextResponse.json(
+        { success: false, error: 'מנהל אינו יכול למחוק את חשבונו האישי דרך ממשק זה. השתמש בהגדרות חשבון אישיות.' },
+        { status: 403 }
+    );
+  }
+
+  try {
+    const candidateToDelete = await prisma.user.findUnique({
+      where: { id: candidateIdToDelete },
+      select: { id: true, role: true, email: true } // Select role to log and potentially prevent deleting other admins
+    });
+
+    if (!candidateToDelete) {
+      console.warn(`[${timestamp}] Candidate with ID ${candidateIdToDelete} not found for deletion. Requested by Admin: ${performingUserId}`);
+      return NextResponse.json(
+        { success: false, error: 'המועמד המבוקש למחיקה לא נמצא.' },
+        { status: 404 }
+      );
+    }
+
+    // Optional: Prevent an admin from deleting another admin (unless explicitly allowed)
+    // if (candidateToDelete.role === UserRole.ADMIN) {
+    //   console.warn(`[${timestamp}] Admin ${performingUserId} attempting to delete another Admin ${candidateToDelete.id} (${candidateToDelete.email}). This might be restricted.`);
+    //   return NextResponse.json(
+    //     { success: false, error: 'לא ניתן למחוק חשבון אדמין אחר דרך ממשק זה כרגע.' },
+    //     { status: 403 }
+    //   );
+    // }
+
+    // onDelete: Cascade in your schema should handle related data (Profile, Images, Accounts, etc.)
+    // Verify this carefully for all related models.
+    await prisma.user.delete({
+      where: { id: candidateIdToDelete },
+    });
+
+    console.log(`[${timestamp}] Candidate ${candidateIdToDelete} (Email: ${candidateToDelete.email}, Role: ${candidateToDelete.role}) deleted successfully by admin ${performingUserId}`);
+    return NextResponse.json(
+      { success: true, message: 'המועמד נמחק בהצלחה.' },
+      { status: 200 } // OK
+    );
+
+  } catch (error: unknown) {
+    console.error(`[${timestamp}] Candidate deletion failed for ID ${candidateIdToDelete}. Requested by Admin: ${performingUserId}. Error:`, error);
+    
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') { // Record to delete not found.
+            console.warn(`[${timestamp}] Prisma P2025 Error on DELETE: Attempted to delete non-existent candidate ${candidateIdToDelete}. Requested by Admin: ${performingUserId}`);
+            return NextResponse.json(
+                { success: false, error: 'המועמד המבוקש למחיקה לא נמצא (שגיאת Prisma).'},
+                { status: 404 }
+            );
+        }
+        // Log other Prisma known errors
+        console.error(`[${timestamp}] Prisma Known Error during DELETE for candidate ${candidateIdToDelete}: Code ${error.code}, Meta: ${JSON.stringify(error.meta)}. Requested by Admin: ${performingUserId}`);
+        return NextResponse.json(
+            { success: false, error: `שגיאת מסד נתונים במחיקת המועמד (קוד: ${error.code}).`},
+            { status: 500 }
+        );
+    } else if (error instanceof Prisma.PrismaClientValidationError) {
+        console.error(`[${timestamp}] Prisma Validation Error during DELETE for candidate ${candidateIdToDelete}: ${error.message}. Requested by Admin: ${performingUserId}`);
+        return NextResponse.json(
+            { success: false, error: `שגיאת ולידציה במחיקת המועמד: ${error.message}`},
+            { status: 400 }
+        );
+    }
+
+    const errorMessage = error instanceof Error ? error.message : 'שגיאה לא ידועה בעת מחיקת המועמד.';
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'אירעה שגיאה במחיקת המועמד. נסה שוב מאוחר יותר.',
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+      },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]\images
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]\images\route.ts
+--------------------------------------------------------------------------------
+Content:
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { UserRole } from "@prisma/client";
+import { v2 as cloudinary } from "cloudinary";
+
+// טייפ פשוט לתוצאה
+type UploadResult = {
+  secure_url: string;
+  public_id: string;
+};
+
+// Check for required environment variables
+const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+const apiKey = process.env.CLOUDINARY_API_KEY;
+const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+// Validate environment variables
+if (!cloudName || !apiKey || !apiSecret) {
+  console.error("Missing Cloudinary environment variables");
+} else {
+  cloudinary.config({
+    cloud_name: cloudName,
+    api_key: apiKey,
+    api_secret: apiSecret,
+  });
+}
+
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true }
+    });
+
+    const allowedRoles: UserRole[] = [UserRole.MATCHMAKER, UserRole.ADMIN];
+    if (!user || !allowedRoles.includes(user.role)) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized - Matchmaker or Admin access required" },
+        { status: 403 }
+      );
+    }
+
+    const { id } = params;
+
+    const candidate = await prisma.user.findUnique({
+      where: { id },
+      select: { id: true }
+    });
+
+    if (!candidate) {
+      return NextResponse.json(
+        { success: false, error: "Candidate not found" },
+        { status: 404 }
+      );
+    }
+
+    const formData = await req.formData();
+    const image = formData.get('image') as File;
+
+    if (!image) {
+      return NextResponse.json(
+        { success: false, error: "No image provided" },
+        { status: 400 }
+      );
+    }
+
+    if (!cloudName || !apiKey || !apiSecret) {
+      return NextResponse.json(
+        { success: false, error: "Server configuration error" },
+        { status: 500 }
+      );
+    }
+
+    // Convert to buffer
+    const arrayBuffer = await image.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // Upload using cloudinary.uploader.upload with string transformation
+    // זה עוקף את בעיות הטייפים לגמרי
+  // אם עדיין יש בעיות, השתמש בזה:
+    const uploadResult = await cloudinary.uploader.upload(
+      `data:${image.type};base64,${buffer.toString('base64')}`,
+      {
+        folder: `shidduch-system/users/${id}`,
+        resource_type: 'image',
+        // עוקף את בעיות הטייפים עם type assertion
+        transformation: [
+          { width: 1000, height: 1000, crop: 'limit' },
+          { quality: 'auto:good' }
+        ] as unknown as Record<string, unknown>
+      }
+    );
+
+    const existingImages = await prisma.userImage.count({
+      where: { userId: id }
+    });
+
+    const newImage = await prisma.userImage.create({
+      data: {
+        userId: id,
+        url: uploadResult.secure_url,
+        cloudinaryPublicId: uploadResult.public_id,
+        isMain: existingImages === 0
+      }
+    });
+
+    await prisma.profile.update({
+      where: { userId: id },
+      data: { lastActive: new Date() }
+    });
+
+    return NextResponse.json({
+      success: true,
+      image: newImage
+    });
+  } catch (error) {
+    console.error("Error uploading image:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to upload image" },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]\images\[imageId]
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]\images\[imageId]\route.ts
+--------------------------------------------------------------------------------
+Content:
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { UserRole } from "@prisma/client"; // ודא ש-ADMIN מוגדר כאן ב-enum שלך
+import { v2 as cloudinary } from 'cloudinary';
+
+// Configure Cloudinary
+const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+const apiKey = process.env.CLOUDINARY_API_KEY;
+const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+// Check if required environment variables are set
+if (!cloudName || !apiKey || !apiSecret) {
+  console.error("Missing required Cloudinary environment variables");
+}
+
+cloudinary.config({
+  cloud_name: cloudName as string,
+  api_key: apiKey as string,
+  api_secret: apiSecret as string,
+});
+
+// DELETE request handler for deleting an image
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string; imageId: string } }
+) {
+  try {
+    // Check authentication
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    // Verify that the user is a matchmaker OR an admin
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true }
+    });
+
+    // ---- START OF CORRECTED CODE ----
+    const allowedRoles: UserRole[] = [UserRole.MATCHMAKER, UserRole.ADMIN]; // Explicitly type the array
+
+    if (!user || !allowedRoles.includes(user.role)) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized - Matchmaker or Admin access required" },
+        { status: 403 }
+      );
+    }
+    // ---- END OF CORRECTED CODE ----
+
+    // Get params
+    const { id, imageId } = params;
+
+    console.log(`Handling DELETE request for candidate ${id}, image ${imageId}`);
+
+    // Verify candidate exists
+    const candidate = await prisma.user.findUnique({
+      where: { id },
+      select: { id: true }
+    });
+
+    if (!candidate) {
+      return NextResponse.json(
+        { success: false, error: "Candidate not found" },
+        { status: 404 }
+      );
+    }
+
+    // Find the image
+    const image = await prisma.userImage.findFirst({
+      where: {
+        id: imageId,
+        userId: id
+      }
+    });
+
+    if (!image) {
+      return NextResponse.json(
+        { success: false, error: "Image not found" },
+        { status: 404 }
+      );
+    }
+
+    console.log(`Found image to delete: ${image.id}, isMain: ${image.isMain}`);
+
+    // Check if this is the main image and there are other images
+    if (image.isMain) {
+      const otherImage = await prisma.userImage.findFirst({
+        where: {
+          userId: id,
+          id: { not: imageId }
+        },
+        orderBy: { createdAt: 'desc' }
+      });
+
+      // If there are other images, set the most recent one as main
+      if (otherImage) {
+        console.log(`Setting image ${otherImage.id} as new main image`);
+        await prisma.userImage.update({
+          where: { id: otherImage.id },
+          data: { isMain: true }
+        });
+      }
+    }
+
+    // Delete from Cloudinary
+    if (image.cloudinaryPublicId) {
+      try {
+        console.log(`Deleting from Cloudinary: ${image.cloudinaryPublicId}`);
+        await cloudinary.uploader.destroy(image.cloudinaryPublicId);
+      } catch (cloudinaryError) {
+        console.error("Cloudinary deletion error:", cloudinaryError);
+        // Continue with DB deletion even if Cloudinary fails
+      }
+    }
+
+    // Delete from database
+    await prisma.userImage.delete({
+      where: { id: imageId }
+    });
+
+    // Update lastActive timestamp
+    await prisma.profile.update({
+      where: { userId: id },
+      data: { lastActive: new Date() }
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: "Image deleted successfully"
+    });
+  } catch (error) {
+    console.error("Error deleting image:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to delete image" },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]\images\[imageId]\main
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]\images\[imageId]\main\route.ts
+--------------------------------------------------------------------------------
+Content:
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { UserRole } from "@prisma/client";
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: { id: string; imageId: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    // Verify that the user is a matchmaker OR an admin
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true }
+    });
+
+    // ---- START OF CHANGE ----
+    const allowedRoles: UserRole[] = [UserRole.MATCHMAKER, UserRole.ADMIN];
+    if (!user || !allowedRoles.includes(user.role)) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized - Matchmaker or Admin access required" },
+        { status: 403 }
+      );
+    }
+    // ---- END OF CHANGE ----
+
+    // Get params
+    const { id, imageId } = params;
+
+    // Verify candidate exists
+    const candidate = await prisma.user.findUnique({
+      where: { id },
+      select: { id: true }
+    });
+
+    if (!candidate) {
+      return NextResponse.json(
+        { success: false, error: "Candidate not found" },
+        { status: 404 }
+      );
+    }
+
+    // Verify image exists and belongs to candidate
+    const imageToSetMain = await prisma.userImage.findFirst({ // Renamed variable for clarity
+      where: {
+        id: imageId,
+        userId: id
+      }
+    });
+
+    if (!imageToSetMain) { // Used the new variable name
+      return NextResponse.json(
+        { success: false, error: "Image not found" },
+        { status: 404 }
+      );
+    }
+
+    // Start a transaction to update main image
+    await prisma.$transaction([
+      // First, unset all other images as main for this user
+      prisma.userImage.updateMany({
+        where: { 
+            userId: id,
+            id: { not: imageId } // Don't unset the one we are about to set
+        },
+        data: { isMain: false }
+      }),
+      
+      // Then, set the specified image as main
+      prisma.userImage.update({
+        where: { id: imageId },
+        data: { isMain: true }
+      })
+    ]);
+
+    // Update lastActive timestamp
+    await prisma.profile.update({
+      where: { userId: id },
+      data: { lastActive: new Date() }
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: "Main image updated successfully"
+    });
+  } catch (error) {
+    console.error("Error setting main image:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to set main image" },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]\invite-setup
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]\invite-setup\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/matchmaker/candidates/[id]/invite-setup/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { UserRole, VerificationType, Prisma, VerificationStatus } from "@prisma/client";
+import { VerificationService } from "@/lib/services/verificationService";
+import { emailService } from "@/lib/email/emailService";
+
+export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
+    const candidateId = params.id;
+    const body = await req.json();
+    const { email } = body;
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return NextResponse.json({ success: false, error: "כתובת אימייל תקינה היא שדה חובה." }, { status: 400 });
+    }
+
+    const normalizedEmail = email.toLowerCase();
+
+    // Find the candidate to invite. We fetch their current email to compare.
+    const candidate = await prisma.user.findUnique({
+      where: { id: candidateId },
+    });
+
+    if (!candidate) {
+      return NextResponse.json({ success: false, error: "Candidate not found." }, { status: 404 });
+    }
+    
+    // If the candidate's email is already the one we're trying to set,
+    // we can just resend the invite without a DB update.
+    if (candidate.email === normalizedEmail) {
+        // Here, we can just resend the invite. For simplicity, we'll proceed,
+        // but a dedicated "resend" logic would be cleaner.
+        console.log(`Email ${normalizedEmail} is already set for candidate ${candidateId}. Proceeding to send invite.`);
+    }
+
+    const { otp: setupToken, verification } = await VerificationService.createVerification(
+      candidateId,
+      VerificationType.ACCOUNT_SETUP,
+      normalizedEmail,
+      72 // Token valid for 72 hours
+    );
+
+    // This transaction will now attempt to update the email.
+    // The catch block below will handle the unique constraint violation if it occurs.
+    await prisma.$transaction(async (tx) => {
+      // Only update the email if it's different from the current one.
+      if (candidate.email !== normalizedEmail) {
+          await tx.user.update({
+            where: { id: candidateId },
+            data: { email: normalizedEmail },
+          });
+      }
+
+      // Invalidate previous setup tokens for this user
+      await tx.verification.updateMany({
+        where: {
+          userId: candidateId,
+          type: VerificationType.ACCOUNT_SETUP,
+          status: VerificationStatus.PENDING,
+          id: { not: verification.id },
+        },
+        data: {
+          status: VerificationStatus.EXPIRED,
+        },
+      });
+    });
+
+    // Send the email with the correct token
+    await emailService.sendAccountSetupEmail({
+      email: normalizedEmail,
+      firstName: candidate.firstName,
+      matchmakerName: session.user.firstName || "השדכן/ית שלך",
+      setupToken: setupToken,
+      expiresIn: "3 ימים",
+    });
+
+    return NextResponse.json({ success: true, message: "הזמנה להגדרת חשבון נשלחה בהצלחה." });
+
+  } catch (error) {
+    console.error("Error sending account setup invite:", error);
+    
+    // --- START: Enhanced Error Handling ---
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      // Check for unique constraint violation (P2002)
+      if (error.code === 'P2002') {
+        // The 'target' field in the error metadata tells us which field caused the violation.
+        const target = error.meta?.target as string[] | undefined;
+        if (target?.includes('email')) {
+          return NextResponse.json(
+            { success: false, error: "כתובת אימייל זו כבר משויכת לחשבון אחר." },
+            { status: 409 } // 409 Conflict is the appropriate status code
+          );
+        }
+      }
+      // Handle other potential database errors
+      return NextResponse.json({ success: false, error: "שגיאת מסד נתונים." }, { status: 500 });
+    }
+    // --- END: Enhanced Error Handling ---
+
+    let errorMessage = "An unexpected error occurred.";
+    if (error instanceof Error) {
+        errorMessage = error.message;
+    }
+    return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\manual
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\manual\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/matchmaker/candidates/manual/route.ts
+import { NextResponse } from 'next/server';
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { Gender, UserSource, UserStatus, UserRole } from '@prisma/client';
+import { v2 as cloudinary } from "cloudinary";
+import { updateUserAiProfile } from '@/lib/services/profileAiService';
+import { createId } from '@paralleldrive/cuid2';
+
+// Define the type for Cloudinary upload result for clarity
+type CloudinaryUploadResult = {
+  secure_url: string;
+  public_id: string;
+};
+
+// Configure Cloudinary
+if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+  console.error("CRITICAL: Missing required Cloudinary environment variables.");
+  throw new Error("Missing required Cloudinary environment variables.");
+}
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// Helper function to upload image to Cloudinary
+async function uploadImageToCloudinary(file: File, userId: string): Promise<{ url: string; publicId: string }> {
+  const bytes = await file.arrayBuffer();
+  const buffer = Buffer.from(bytes);
+
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { folder: `manual-candidates/${userId}/images`, resource_type: "image" },
+      (error, result) => {
+        if (error) return reject(new Error("Failed to upload image to Cloudinary."));
+        if (!result) return reject(new Error("Cloudinary upload failed: no result object."));
+        const cloudinaryResult = result as CloudinaryUploadResult;
+        resolve({ url: cloudinaryResult.secure_url, publicId: cloudinaryResult.public_id });
+      }
+    );
+    uploadStream.end(buffer);
+  });
+}
+
+export async function POST(request: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+    const matchmakerId = session.user.id;
+
+    const formData = await request.formData();
+    const firstName = formData.get('firstName') as string;
+    const lastName = formData.get('lastName') as string;
+    const emailValue = formData.get('email') as string | null;
+    const gender = formData.get('gender') as Gender;
+    const birthDateStr = formData.get('birthDate') as string;
+    const manualEntryText = formData.get('manualEntryText') as string;
+    const images = formData.getAll('images') as File[];
+    const birthDateIsApproximate = formData.get('birthDateIsApproximate') === 'true';
+
+    if (!firstName || !lastName || !gender || !birthDateStr || !manualEntryText) {
+      return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
+    }
+
+    const birthDate = new Date(birthDateStr);
+    if (isNaN(birthDate.getTime())) {
+      return NextResponse.json({ success: false, error: "Invalid birth date" }, { status: 400 });
+    }
+
+    let email: string;
+    if (emailValue && emailValue.trim() !== '') {
+        email = emailValue.trim().toLowerCase();
+        const existingUser = await prisma.user.findUnique({ where: { email } });
+        if (existingUser) {
+            return NextResponse.json({ success: false, error: "משתמש עם כתובת אימייל זו כבר קיים במערכת." }, { status: 409 });
+        }
+    } else {
+        email = `manual_${createId()}@shidduch.placeholder.com`;
+    }
+
+    const newManualCandidate = await prisma.user.create({
+      data: {
+        firstName,
+        lastName,
+        email,
+        password: null,
+        role: UserRole.CANDIDATE,
+   status: UserStatus.PENDING_EMAIL_VERIFICATION, // הסטטוס הנכון. המשתמש צריך לפעול על המייל כדי להמשיך
+    isVerified: false,                             // המייל עדיין לא אומת
+    isProfileComplete: false,                      // הפרופיל בהחלט לא שלם
+        source: UserSource.MANUAL_ENTRY,
+        addedByMatchmakerId: matchmakerId,
+        profile: {
+          create: {
+            gender,
+            birthDate,
+            birthDateIsApproximate,
+            manualEntryText,
+            availabilityStatus: 'AVAILABLE',
+          },
+        },
+      },
+      include: {
+        profile: true,
+      },
+    });
+
+    // --- START OF FIX ---
+    // 1. Define the type for the image data objects that will be created.
+    type UserImageCreateInput = {
+      userId: string;
+      url: string;
+      cloudinaryPublicId: string;
+      isMain: boolean;
+    };
+
+    // 2. Explicitly type the array upon initialization to avoid the 'never[]' type inference.
+    const uploadedImageData: UserImageCreateInput[] = [];
+    // --- END OF FIX ---
+
+    if (images && images.length > 0) {
+      // (Optional but good practice) File validation loop
+      for (const file of images) {
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+            return NextResponse.json({ success: false, error: `Invalid file type: ${file.name}. Only JPG, PNG, WEBP allowed.` }, { status: 400 });
+        }
+        if (file.size > 5 * 1024 * 1024) { // 5MB limit
+            return NextResponse.json({ success: false, error: `File too large: ${file.name}. Max 5MB.` }, { status: 400 });
+        }
+      }
+      
+      for (let i = 0; i < images.length; i++) {
+        try {
+          const { url, publicId } = await uploadImageToCloudinary(images[i], newManualCandidate.id);
+          // 3. Push an object that matches the defined type.
+          uploadedImageData.push({
+            userId: newManualCandidate.id,
+            url: url,
+            cloudinaryPublicId: publicId,
+            isMain: i === 0,
+          });
+        } catch (uploadError) {
+            console.error("Failed to upload an image during manual candidate creation:", uploadError);
+            return NextResponse.json({
+                success: false,
+                error: `Failed to upload image ${images[i].name}. ${(uploadError as Error).message}`
+            }, { status: 500 });
+        }
+      }
+
+      if (uploadedImageData.length > 0) {
+        // 4. The `createMany` call is now simpler and type-safe.
+        await prisma.userImage.createMany({
+          data: uploadedImageData,
+        });
+      }
+    }
+   
+    updateUserAiProfile(newManualCandidate.id).catch(err => {
+        console.error(`[AI Profile Trigger] Failed to create AI profile for manual candidate ${newManualCandidate.id}:`, err);
+    });
+
+    const candidateToReturn = await prisma.user.findUnique({
+        where: { id: newManualCandidate.id },
+        include: { profile: true, images: true }
+    });
+
+    return NextResponse.json({ success: true, candidate: candidateToReturn });
+
+  } catch (error) {
+    console.error("Error in POST /api/matchmaker/candidates/manual:", error);
+    let errorMessage = "Internal server error.";
+    if (error instanceof Error) {
+        errorMessage = error.message;
+    }
+    if (error instanceof SyntaxError && error.message.includes("Unexpected token") && error.message.includes("in JSON at position")) {
+        errorMessage = "Invalid request body or FormData. Ensure all fields are correctly formatted.";
+    } else if (error instanceof TypeError && error.message.includes("Could not parse content as FormData")) {
+        errorMessage = "Invalid request format. Expected FormData.";
+    }
+
+    return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+--- End of Content for candidates_contents.txt ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/matchmaker/candidates/route.ts
+
+import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+import { UserRole, MatchSuggestionStatus } from '@prisma/client';
+export const dynamic = 'force-dynamic';
+const BLOCKING_SUGGESTION_STATUSES: MatchSuggestionStatus[] = [
+  'FIRST_PARTY_APPROVED',
+  'SECOND_PARTY_APPROVED',
+  'AWAITING_MATCHMAKER_APPROVAL',
+  'CONTACT_DETAILS_SHARED',
+  'AWAITING_FIRST_DATE_FEEDBACK',
+  'THINKING_AFTER_DATE',
+  'PROCEEDING_TO_SECOND_DATE',
+  'MEETING_PENDING',
+  'MEETING_SCHEDULED',
+  'MATCH_APPROVED',
+  'DATING',
+];
+
+const PENDING_SUGGESTION_STATUSES: MatchSuggestionStatus[] = [
+  'PENDING_FIRST_PARTY',
+  'PENDING_SECOND_PARTY',
+  'DRAFT',
+];
+
+type SuggestionStatusInfo = {
+  status: 'BLOCKED' | 'PENDING';
+  suggestionId: string;
+  withCandidateName: string;
+};
+
+export async function GET() {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return new NextResponse(
+        JSON.stringify({ error: 'Unauthorized - Not logged in' }),
+        { status: 401 }
+      );
+    }
+
+    const performingUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true },
+    });
+
+    const allowedRoles: UserRole[] = [UserRole.MATCHMAKER, UserRole.ADMIN];
+    if (!performingUser || !allowedRoles.includes(performingUser.role)) {
+      return new NextResponse(
+        JSON.stringify({
+          error: 'Unauthorized - Matchmaker or Admin access required',
+        }),
+        { status: 403 }
+      );
+    }
+
+    // Step 1: Fetch all candidates
+    const users = await prisma.user.findMany({
+      where: {
+        status: { notIn: ['BLOCKED', 'INACTIVE'] },
+        role: 'CANDIDATE',
+        profile: { isNot: null },
+      },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        status: true,
+        source: true,
+        createdAt: true,
+        isVerified: true,
+        isProfileComplete: true,
+        images: {
+          select: { id: true, url: true, isMain: true },
+          orderBy: [{ isMain: 'desc' }, { createdAt: 'asc' }],
+        },
+        profile: true,
+      },
+    });
+
+    if (users.length === 0) {
+      return new NextResponse(
+        JSON.stringify({ success: true, clients: [], count: 0 }),
+        { status: 200 }
+      );
+    }
+
+    // Step 2: Collect all user IDs
+    const userIds = users.map((user) => user.id);
+
+    // Step 3: Fetch all relevant suggestions in a single query
+    const allSuggestions = await prisma.matchSuggestion.findMany({
+      where: {
+        OR: [
+          { firstPartyId: { in: userIds } },
+          { secondPartyId: { in: userIds } },
+        ],
+        status: {
+          in: [...BLOCKING_SUGGESTION_STATUSES, ...PENDING_SUGGESTION_STATUSES],
+        },
+      },
+      include: {
+        firstParty: { select: { id: true, firstName: true, lastName: true } },
+        secondParty: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
+
+    // Step 4: Process suggestions into an efficient lookup map
+    const suggestionStatusMap = new Map<string, SuggestionStatusInfo>();
+
+    for (const suggestion of allSuggestions) {
+      const isBlocking = BLOCKING_SUGGESTION_STATUSES.includes(
+        suggestion.status
+      );
+      const statusType = isBlocking ? 'BLOCKED' : 'PENDING';
+
+      // Attach info to first party
+      if (
+        !suggestionStatusMap.has(suggestion.firstPartyId) ||
+        (isBlocking &&
+          suggestionStatusMap.get(suggestion.firstPartyId)?.status !==
+            'BLOCKED')
+      ) {
+        suggestionStatusMap.set(suggestion.firstPartyId, {
+          status: statusType,
+          suggestionId: suggestion.id,
+          withCandidateName: `${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName}`,
+        });
+      }
+
+      // Attach info to second party
+      if (
+        !suggestionStatusMap.has(suggestion.secondPartyId) ||
+        (isBlocking &&
+          suggestionStatusMap.get(suggestion.secondPartyId)?.status !==
+            'BLOCKED')
+      ) {
+        suggestionStatusMap.set(suggestion.secondPartyId, {
+          status: statusType,
+          suggestionId: suggestion.id,
+          withCandidateName: `${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName}`,
+        });
+      }
+    }
+
+    // Step 5: Map suggestion info back to users in memory (no more DB queries)
+    const usersWithSuggestionInfo = users.map((user) => {
+      const suggestionInfo = suggestionStatusMap.get(user.id) || null;
+      const profile = user.profile;
+
+      return {
+        ...user,
+        suggestionStatus: suggestionInfo,
+        profile: profile
+          ? {
+              ...profile,
+              birthDate: profile.birthDate.toISOString(),
+              availabilityUpdatedAt:
+                profile.availabilityUpdatedAt?.toISOString() || null,
+              createdAt: profile.createdAt.toISOString(),
+              updatedAt: profile.updatedAt.toISOString(),
+              lastActive: profile.lastActive?.toISOString() || null,
+            }
+          : null,
+      };
+    });
+
+    return new NextResponse(
+      JSON.stringify({
+        success: true,
+        clients: usersWithSuggestionInfo,
+        count: usersWithSuggestionInfo.length,
+      }),
+      { status: 200 }
+    );
+  } catch (error: unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error';
+    console.error('Candidate list fetch error:', errorMessage, error);
+
+    return new NextResponse(
+      JSON.stringify({
+        success: false,
+        error: 'An error occurred while fetching candidates.',
+        details: errorMessage,
+      }),
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]\route.ts
+--------------------------------------------------------------------------------
+Content:
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { Prisma, UserRole } from "@prisma/client";
+import { updateUserAiProfile } from '@/lib/services/profileAiService';
+export const dynamic = 'force-dynamic';
+
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const performingUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true }
+    });
+
+    if (!performingUser || (performingUser.role !== UserRole.MATCHMAKER && performingUser.role !== UserRole.ADMIN)) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized - Matchmaker or Admin access required" },
+        { status: 403 }
+      );
+    }
+
+    const { id } = params;
+
+    const candidateData = await prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        phone: true,
+        isVerified: true,
+        role: true,
+        profile: true,
+        images: {
+          orderBy: [{ isMain: 'desc' }, { createdAt: 'desc' }]
+        }
+      }
+    });
+
+    if (!candidateData) {
+      return NextResponse.json(
+        { success: false, error: "Candidate not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      profile: candidateData.profile,
+      user: {
+        id: candidateData.id,
+        firstName: candidateData.firstName,
+        lastName: candidateData.lastName,
+        email: candidateData.email,
+        phone: candidateData.phone,
+        isVerified: candidateData.isVerified,
+        role: candidateData.role,
+      },
+      images: candidateData.images
+    });
+  } catch (error) {
+    console.error("Error fetching candidate profile:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to fetch candidate profile" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const performingUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true }
+    });
+
+    if (!performingUser || (performingUser.role !== UserRole.MATCHMAKER && performingUser.role !== UserRole.ADMIN)) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized - Matchmaker or Admin access required" },
+        { status: 403 }
+      );
+    }
+    
+    const { id: candidateIdToUpdate } = params;
+
+    const candidateExists = await prisma.user.findUnique({
+      where: { id: candidateIdToUpdate },
+      select: { id: true, role: true }
+    });
+
+    if (!candidateExists) {
+      return NextResponse.json(
+        { success: false, error: "Candidate not found" },
+        { status: 404 }
+      );
+    }
+
+    if (candidateExists.role === UserRole.ADMIN && performingUser.role !== UserRole.ADMIN) {
+        return NextResponse.json(
+            { success: false, error: "Unauthorized - Admins can only be edited by other Admins." },
+            { status: 403 }
+        );
+    }
+
+    const profileData = await req.json();
+
+    const numericFields = ['height', 'siblings', 'position', 'preferredAgeMin', 'preferredAgeMax', 'preferredHeightMin', 'preferredHeightMax', 'aliyaYear'];
+    numericFields.forEach(field => {
+        if (profileData[field] === "" || profileData[field] === undefined) {
+            profileData[field] = null;
+        } else if (profileData[field] !== null) {
+            profileData[field] = parseInt(profileData[field], 10);
+            if (isNaN(profileData[field])) {
+                console.warn(`Invalid number for ${field}: ${profileData[field]}, setting to null`);
+                profileData[field] = null;
+            }
+        }
+    });
+    
+    // --- START: הוספת שדות מקצוע הורים לרשימת העיבוד ---
+    const stringAndEnumFields = ['gender', 'preferredMatchmakerGender', 'maritalStatus', 'serviceType', 'headCovering', 'kippahType', 'contactPreference', 'preferredShomerNegiah', 'preferredPartnerHasChildren', 'preferredAliyaStatus', 'availabilityStatus' , 'religiousJourney', 'medicalInfoDetails', 'medicalInfoDisclosureTiming', 'fatherOccupation', 'motherOccupation'];
+    // --- END: הוספת שדות מקצוע הורים לרשימת העיבוד ---
+    stringAndEnumFields.forEach(field => {
+        if (profileData[field] === "" || profileData[field] === undefined) {
+            profileData[field] = null;
+        }
+    });
+
+    const booleanFields = ['shomerNegiah', 'hasChildrenFromPrevious', 'preferredHasChildrenFromPrevious', 'isProfileVisible', 'hasMedicalInfo', 'isMedicalInfoVisible'];
+    booleanFields.forEach(field => {
+        if (profileData[field] === undefined) {
+            profileData[field] = null;
+        } else if (typeof profileData[field] !== 'boolean' && profileData[field] !== null) {
+            if (profileData[field] === 'true') profileData[field] = true;
+            else if (profileData[field] === 'false') profileData[field] = false;
+            else profileData[field] = null;
+        }
+    });
+
+    const arrayFields = ['additionalLanguages', 'profileCharacterTraits', 'profileHobbies', 'preferredReligiousLevels', 'preferredLocations', 'preferredEducation', 'preferredOccupations', 'preferredMaritalStatuses', 'preferredOrigins', 'preferredServiceTypes', 'preferredHeadCoverings', 'preferredKippahTypes', 'preferredCharacterTraits', 'preferredHobbies', 'preferredReligiousJourneys'];
+    arrayFields.forEach(field => {
+        if (profileData[field] === undefined || profileData[field] === null) {
+            profileData[field] = [];
+        } else if (!Array.isArray(profileData[field])) {
+            console.warn(`Field ${field} is not an array, attempting to convert or defaulting to empty.`);
+            if (typeof profileData[field] === 'string' && profileData[field].includes(',')) {
+                profileData[field] = profileData[field].split(',').map((s: string) => s.trim());
+            } else if (typeof profileData[field] === 'string' && profileData[field].trim() !== '') {
+                 profileData[field] = [profileData[field].trim()];
+            } else {
+                profileData[field] = [];
+            }
+        }
+    });
+    
+    const updatedProfile = await prisma.profile.update({
+      where: { userId: candidateIdToUpdate },
+      data: {
+        ...profileData,
+        updatedAt: new Date(),
+        lastActive: new Date()
+      }
+    });
+
+    updateUserAiProfile(candidateIdToUpdate).catch(err => {
+        console.error(`[AI Profile Trigger - Matchmaker Update] Failed to update AI profile in the background for candidate ${candidateIdToUpdate}:`, err);
+    });
+
+    return NextResponse.json({
+      success: true,
+      profile: updatedProfile
+    });
+  } catch (error) {
+    console.error("Error updating candidate profile:", error);
+    let errorMessage = "Failed to update candidate profile";
+    let statusCode = 500;
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2002') {
+            errorMessage = `שגיאה: נראה שאחד השדות שהזנת (כמו מייל או טלפון אם רלוונטי לפרופיל) כבר קיים במערכת עבור משתמש אחר. (${error.meta?.target})`;
+            statusCode = 409;
+        } else if (error.code === 'P2025') {
+            errorMessage = "הפרופיל או המועמד המבוקש לעדכון לא נמצא.";
+            statusCode = 404;
+        } else {
+            errorMessage = `שגיאת מסד נתונים (קוד ${error.code}).`;
+        }
+        console.error("Prisma Known Error on PATCH:", error.code, error.message, error.meta);
+    } else if (error instanceof Prisma.PrismaClientValidationError) {
+        errorMessage = `שגיאת ולידציה בעדכון הפרופיל: ${error.message}`;
+        statusCode = 400;
+        console.error("Prisma Validation Error on PATCH:", error.message);
+    } else if (error instanceof Error) {
+        errorMessage = error.message;
+    }
+    
+    return NextResponse.json(
+      { success: false, error: errorMessage, details: process.env.NODE_ENV === 'development' && error instanceof Error ? error.stack : undefined },
+      { status: statusCode }
+    );
+  }
+}
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const candidateIdToDelete = params.id;
+  const timestamp = new Date().toISOString();
+  
+  console.log(`[${timestamp}] DELETE request for candidate ID: ${candidateIdToDelete}`);
+
+  const session = await getServerSession(authOptions);
+
+  if (!session || !session.user || !session.user.id || !session.user.role) {
+    console.warn(`[${timestamp}] Unauthorized DELETE attempt: No active session or role. PerformingUserID: ${session?.user?.id}`);
+    return NextResponse.json(
+      { success: false, error: 'אינך מורשה לבצע פעולה זו. לא זוהתה סשן פעיל או הרשאה.' },
+      { status: 401 }
+    );
+  }
+
+  const performingUserId = session.user.id;
+  const performingUserRole = session.user.role as UserRole; 
+
+  if (performingUserRole !== UserRole.ADMIN) {
+    console.warn(`[${timestamp}] Forbidden DELETE attempt: User ${performingUserId} (Role: ${performingUserRole}) is not ADMIN.`);
+    return NextResponse.json(
+      { success: false, error: 'אינך מורשה לבצע פעולה זו. נדרשת הרשאת אדמין.' },
+      { status: 403 }
+    );
+  }
+
+  if (!candidateIdToDelete) {
+    console.warn(`[${timestamp}] Bad Request DELETE: candidateId is missing. PerformingUserID: ${performingUserId}`);
+    return NextResponse.json(
+        { success: false, error: 'מזהה מועמד (candidateId) חסר.' },
+        { status: 400 }
+    );
+  }
+
+  if (candidateIdToDelete === performingUserId) {
+    console.warn(`[${timestamp}] Forbidden DELETE: Admin ${performingUserId} attempting to delete their own account via candidate deletion endpoint.`);
+    return NextResponse.json(
+        { success: false, error: 'מנהל אינו יכול למחוק את חשבונו האישי דרך ממשק זה. השתמש בהגדרות חשבון אישיות.' },
+        { status: 403 }
+    );
+  }
+
+  try {
+    const candidateToDelete = await prisma.user.findUnique({
+      where: { id: candidateIdToDelete },
+      select: { id: true, role: true, email: true }
+    });
+
+    if (!candidateToDelete) {
+      console.warn(`[${timestamp}] Candidate with ID ${candidateIdToDelete} not found for deletion. Requested by Admin: ${performingUserId}`);
+      return NextResponse.json(
+        { success: false, error: 'המועמד המבוקש למחיקה לא נמצא.' },
+        { status: 404 }
+      );
+    }
+
+    await prisma.user.delete({
+      where: { id: candidateIdToDelete },
+    });
+
+    console.log(`[${timestamp}] Candidate ${candidateIdToDelete} (Email: ${candidateToDelete.email}, Role: ${candidateToDelete.role}) deleted successfully by admin ${performingUserId}`);
+    return NextResponse.json(
+      { success: true, message: 'המועמד נמחק בהצלחה.' },
+      { status: 200 }
+    );
+
+  } catch (error: unknown) {
+    console.error(`[${timestamp}] Candidate deletion failed for ID ${candidateIdToDelete}. Requested by Admin: ${performingUserId}. Error:`, error);
+    
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+            console.warn(`[${timestamp}] Prisma P2025 Error on DELETE: Attempted to delete non-existent candidate ${candidateIdToDelete}. Requested by Admin: ${performingUserId}`);
+            return NextResponse.json(
+                { success: false, error: 'המועמד המבוקש למחיקה לא נמצא (שגיאת Prisma).'},
+                { status: 404 }
+            );
+        }
+        console.error(`[${timestamp}] Prisma Known Error during DELETE for candidate ${candidateIdToDelete}: Code ${error.code}, Meta: ${JSON.stringify(error.meta)}. Requested by Admin: ${performingUserId}`);
+        return NextResponse.json(
+            { success: false, error: `שגיאת מסד נתונים במחיקת המועמד (קוד: ${error.code}).`},
+            { status: 500 }
+        );
+    } else if (error instanceof Prisma.PrismaClientValidationError) {
+        console.error(`[${timestamp}] Prisma Validation Error during DELETE for candidate ${candidateIdToDelete}: ${error.message}. Requested by Admin: ${performingUserId}`);
+        return NextResponse.json(
+            { success: false, error: `שגיאת ולידציה במחיקת המועמד: ${error.message}`},
+            { status: 400 }
+        );
+    }
+
+    const errorMessage = error instanceof Error ? error.message : 'שגיאה לא ידועה בעת מחיקת המועמד.';
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'אירעה שגיאה במחיקת המועמד. נסה שוב מאוחר יותר.',
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+      },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]\images
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]\images\route.ts
+--------------------------------------------------------------------------------
+Content:
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { UserRole } from "@prisma/client";
+import { v2 as cloudinary } from "cloudinary";
+
+// טייפ פשוט לתוצאה
+type UploadResult = {
+  secure_url: string;
+  public_id: string;
+};
+
+// Check for required environment variables
+const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+const apiKey = process.env.CLOUDINARY_API_KEY;
+const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+// Validate environment variables
+if (!cloudName || !apiKey || !apiSecret) {
+  console.error("Missing Cloudinary environment variables");
+} else {
+  cloudinary.config({
+    cloud_name: cloudName,
+    api_key: apiKey,
+    api_secret: apiSecret,
+  });
+}
+
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true }
+    });
+
+    const allowedRoles: UserRole[] = [UserRole.MATCHMAKER, UserRole.ADMIN];
+    if (!user || !allowedRoles.includes(user.role)) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized - Matchmaker or Admin access required" },
+        { status: 403 }
+      );
+    }
+
+    const { id } = params;
+
+    const candidate = await prisma.user.findUnique({
+      where: { id },
+      select: { id: true }
+    });
+
+    if (!candidate) {
+      return NextResponse.json(
+        { success: false, error: "Candidate not found" },
+        { status: 404 }
+      );
+    }
+
+    const formData = await req.formData();
+    const image = formData.get('image') as File;
+
+    if (!image) {
+      return NextResponse.json(
+        { success: false, error: "No image provided" },
+        { status: 400 }
+      );
+    }
+
+    if (!cloudName || !apiKey || !apiSecret) {
+      return NextResponse.json(
+        { success: false, error: "Server configuration error" },
+        { status: 500 }
+      );
+    }
+
+    // Convert to buffer
+    const arrayBuffer = await image.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // Upload using cloudinary.uploader.upload with string transformation
+    // זה עוקף את בעיות הטייפים לגמרי
+  // אם עדיין יש בעיות, השתמש בזה:
+    const uploadResult = await cloudinary.uploader.upload(
+      `data:${image.type};base64,${buffer.toString('base64')}`,
+      {
+        folder: `shidduch-system/users/${id}`,
+        resource_type: 'image',
+        // עוקף את בעיות הטייפים עם type assertion
+        transformation: [
+          { width: 1000, height: 1000, crop: 'limit' },
+          { quality: 'auto:good' }
+        ] as unknown as Record<string, unknown>
+      }
+    );
+
+    const existingImages = await prisma.userImage.count({
+      where: { userId: id }
+    });
+
+    const newImage = await prisma.userImage.create({
+      data: {
+        userId: id,
+        url: uploadResult.secure_url,
+        cloudinaryPublicId: uploadResult.public_id,
+        isMain: existingImages === 0
+      }
+    });
+
+    await prisma.profile.update({
+      where: { userId: id },
+      data: { lastActive: new Date() }
+    });
+
+    return NextResponse.json({
+      success: true,
+      image: newImage
+    });
+  } catch (error) {
+    console.error("Error uploading image:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to upload image" },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]\images\[imageId]
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]\images\[imageId]\route.ts
+--------------------------------------------------------------------------------
+Content:
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { UserRole } from "@prisma/client"; // ודא ש-ADMIN מוגדר כאן ב-enum שלך
+import { v2 as cloudinary } from 'cloudinary';
+
+// Configure Cloudinary
+const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+const apiKey = process.env.CLOUDINARY_API_KEY;
+const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+// Check if required environment variables are set
+if (!cloudName || !apiKey || !apiSecret) {
+  console.error("Missing required Cloudinary environment variables");
+}
+
+cloudinary.config({
+  cloud_name: cloudName as string,
+  api_key: apiKey as string,
+  api_secret: apiSecret as string,
+});
+
+// DELETE request handler for deleting an image
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string; imageId: string } }
+) {
+  try {
+    // Check authentication
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    // Verify that the user is a matchmaker OR an admin
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true }
+    });
+
+    // ---- START OF CORRECTED CODE ----
+    const allowedRoles: UserRole[] = [UserRole.MATCHMAKER, UserRole.ADMIN]; // Explicitly type the array
+
+    if (!user || !allowedRoles.includes(user.role)) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized - Matchmaker or Admin access required" },
+        { status: 403 }
+      );
+    }
+    // ---- END OF CORRECTED CODE ----
+
+    // Get params
+    const { id, imageId } = params;
+
+    console.log(`Handling DELETE request for candidate ${id}, image ${imageId}`);
+
+    // Verify candidate exists
+    const candidate = await prisma.user.findUnique({
+      where: { id },
+      select: { id: true }
+    });
+
+    if (!candidate) {
+      return NextResponse.json(
+        { success: false, error: "Candidate not found" },
+        { status: 404 }
+      );
+    }
+
+    // Find the image
+    const image = await prisma.userImage.findFirst({
+      where: {
+        id: imageId,
+        userId: id
+      }
+    });
+
+    if (!image) {
+      return NextResponse.json(
+        { success: false, error: "Image not found" },
+        { status: 404 }
+      );
+    }
+
+    console.log(`Found image to delete: ${image.id}, isMain: ${image.isMain}`);
+
+    // Check if this is the main image and there are other images
+    if (image.isMain) {
+      const otherImage = await prisma.userImage.findFirst({
+        where: {
+          userId: id,
+          id: { not: imageId }
+        },
+        orderBy: { createdAt: 'desc' }
+      });
+
+      // If there are other images, set the most recent one as main
+      if (otherImage) {
+        console.log(`Setting image ${otherImage.id} as new main image`);
+        await prisma.userImage.update({
+          where: { id: otherImage.id },
+          data: { isMain: true }
+        });
+      }
+    }
+
+    // Delete from Cloudinary
+    if (image.cloudinaryPublicId) {
+      try {
+        console.log(`Deleting from Cloudinary: ${image.cloudinaryPublicId}`);
+        await cloudinary.uploader.destroy(image.cloudinaryPublicId);
+      } catch (cloudinaryError) {
+        console.error("Cloudinary deletion error:", cloudinaryError);
+        // Continue with DB deletion even if Cloudinary fails
+      }
+    }
+
+    // Delete from database
+    await prisma.userImage.delete({
+      where: { id: imageId }
+    });
+
+    // Update lastActive timestamp
+    await prisma.profile.update({
+      where: { userId: id },
+      data: { lastActive: new Date() }
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: "Image deleted successfully"
+    });
+  } catch (error) {
+    console.error("Error deleting image:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to delete image" },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]\images\[imageId]\main
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]\images\[imageId]\main\route.ts
+--------------------------------------------------------------------------------
+Content:
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { UserRole } from "@prisma/client";
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: { id: string; imageId: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    // Verify that the user is a matchmaker OR an admin
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true }
+    });
+
+    // ---- START OF CHANGE ----
+    const allowedRoles: UserRole[] = [UserRole.MATCHMAKER, UserRole.ADMIN];
+    if (!user || !allowedRoles.includes(user.role)) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized - Matchmaker or Admin access required" },
+        { status: 403 }
+      );
+    }
+    // ---- END OF CHANGE ----
+
+    // Get params
+    const { id, imageId } = params;
+
+    // Verify candidate exists
+    const candidate = await prisma.user.findUnique({
+      where: { id },
+      select: { id: true }
+    });
+
+    if (!candidate) {
+      return NextResponse.json(
+        { success: false, error: "Candidate not found" },
+        { status: 404 }
+      );
+    }
+
+    // Verify image exists and belongs to candidate
+    const imageToSetMain = await prisma.userImage.findFirst({ // Renamed variable for clarity
+      where: {
+        id: imageId,
+        userId: id
+      }
+    });
+
+    if (!imageToSetMain) { // Used the new variable name
+      return NextResponse.json(
+        { success: false, error: "Image not found" },
+        { status: 404 }
+      );
+    }
+
+    // Start a transaction to update main image
+    await prisma.$transaction([
+      // First, unset all other images as main for this user
+      prisma.userImage.updateMany({
+        where: { 
+            userId: id,
+            id: { not: imageId } // Don't unset the one we are about to set
+        },
+        data: { isMain: false }
+      }),
+      
+      // Then, set the specified image as main
+      prisma.userImage.update({
+        where: { id: imageId },
+        data: { isMain: true }
+      })
+    ]);
+
+    // Update lastActive timestamp
+    await prisma.profile.update({
+      where: { userId: id },
+      data: { lastActive: new Date() }
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: "Main image updated successfully"
+    });
+  } catch (error) {
+    console.error("Error setting main image:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to set main image" },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]\invite-setup
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]\invite-setup\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/matchmaker/candidates/[id]/invite-setup/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { UserRole, VerificationType, Prisma, VerificationStatus } from "@prisma/client";
+import { VerificationService } from "@/lib/services/verificationService";
+import { emailService } from "@/lib/email/emailService";
+
+export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
+    const candidateId = params.id;
+    const body = await req.json();
+    const { email } = body;
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return NextResponse.json({ success: false, error: "כתובת אימייל תקינה היא שדה חובה." }, { status: 400 });
+    }
+
+    const normalizedEmail = email.toLowerCase();
+
+    // Find the candidate to invite. We fetch their current email to compare.
+    const candidate = await prisma.user.findUnique({
+      where: { id: candidateId },
+    });
+
+    if (!candidate) {
+      return NextResponse.json({ success: false, error: "Candidate not found." }, { status: 404 });
+    }
+    
+    // If the candidate's email is already the one we're trying to set,
+    // we can just resend the invite without a DB update.
+    if (candidate.email === normalizedEmail) {
+        // Here, we can just resend the invite. For simplicity, we'll proceed,
+        // but a dedicated "resend" logic would be cleaner.
+        console.log(`Email ${normalizedEmail} is already set for candidate ${candidateId}. Proceeding to send invite.`);
+    }
+
+    const { otp: setupToken, verification } = await VerificationService.createVerification(
+      candidateId,
+      VerificationType.ACCOUNT_SETUP,
+      normalizedEmail,
+      72 // Token valid for 72 hours
+    );
+
+    // This transaction will now attempt to update the email.
+    // The catch block below will handle the unique constraint violation if it occurs.
+    await prisma.$transaction(async (tx) => {
+      // Only update the email if it's different from the current one.
+      if (candidate.email !== normalizedEmail) {
+          await tx.user.update({
+            where: { id: candidateId },
+            data: { email: normalizedEmail },
+          });
+      }
+
+      // Invalidate previous setup tokens for this user
+      await tx.verification.updateMany({
+        where: {
+          userId: candidateId,
+          type: VerificationType.ACCOUNT_SETUP,
+          status: VerificationStatus.PENDING,
+          id: { not: verification.id },
+        },
+        data: {
+          status: VerificationStatus.EXPIRED,
+        },
+      });
+    });
+
+    // Send the email with the correct token
+    await emailService.sendAccountSetupEmail({
+      email: normalizedEmail,
+      firstName: candidate.firstName,
+      matchmakerName: session.user.firstName || "השדכן/ית שלך",
+      setupToken: setupToken,
+      expiresIn: "3 ימים",
+    });
+
+    return NextResponse.json({ success: true, message: "הזמנה להגדרת חשבון נשלחה בהצלחה." });
+
+  } catch (error) {
+    console.error("Error sending account setup invite:", error);
+    
+    // --- START: Enhanced Error Handling ---
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      // Check for unique constraint violation (P2002)
+      if (error.code === 'P2002') {
+        // The 'target' field in the error metadata tells us which field caused the violation.
+        const target = error.meta?.target as string[] | undefined;
+        if (target?.includes('email')) {
+          return NextResponse.json(
+            { success: false, error: "כתובת אימייל זו כבר משויכת לחשבון אחר." },
+            { status: 409 } // 409 Conflict is the appropriate status code
+          );
+        }
+      }
+      // Handle other potential database errors
+      return NextResponse.json({ success: false, error: "שגיאת מסד נתונים." }, { status: 500 });
+    }
+    // --- END: Enhanced Error Handling ---
+
+    let errorMessage = "An unexpected error occurred.";
+    if (error instanceof Error) {
+        errorMessage = error.message;
+    }
+    return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\manual
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\manual\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/matchmaker/candidates/manual/route.ts
+import { NextResponse } from 'next/server';
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { Gender, UserSource, UserStatus, UserRole, Prisma } from '@prisma/client';
+import { v2 as cloudinary } from "cloudinary";
+import { updateUserAiProfile } from '@/lib/services/profileAiService';
+import { createId } from '@paralleldrive/cuid2';
+
+type CloudinaryUploadResult = {
+  secure_url: string;
+  public_id: string;
+};
+
+if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+  console.error("CRITICAL: Missing required Cloudinary environment variables.");
+  throw new Error("Missing required Cloudinary environment variables.");
+}
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+async function uploadImageToCloudinary(file: File, userId: string): Promise<{ url: string; publicId: string }> {
+  const bytes = await file.arrayBuffer();
+  const buffer = Buffer.from(bytes);
+
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { folder: `manual-candidates/${userId}/images`, resource_type: "image" },
+      (error, result) => {
+        if (error) return reject(new Error("Failed to upload image to Cloudinary."));
+        if (!result) return reject(new Error("Cloudinary upload failed: no result object."));
+        const cloudinaryResult = result as CloudinaryUploadResult;
+        resolve({ url: cloudinaryResult.secure_url, publicId: cloudinaryResult.public_id });
+      }
+    );
+    uploadStream.end(buffer);
+  });
+}
+
+export async function POST(request: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+    const matchmakerId = session.user.id;
+
+    const formData = await request.formData();
+    const firstName = formData.get('firstName') as string;
+    const lastName = formData.get('lastName') as string;
+    const emailValue = formData.get('email') as string | null;
+    const gender = formData.get('gender') as Gender;
+    const birthDateStr = formData.get('birthDate') as string;
+    const manualEntryText = formData.get('manualEntryText') as string;
+    const images = formData.getAll('images') as File[];
+    const birthDateIsApproximate = formData.get('birthDateIsApproximate') === 'true';
+    
+    // --- START: הוספת שדות מקצוע הורים ---
+    const fatherOccupation = formData.get('fatherOccupation') as string | null;
+    const motherOccupation = formData.get('motherOccupation') as string | null;
+    // --- END: הוספת שדות מקצוע הורים ---
+
+    const hasMedicalInfo = formData.get('hasMedicalInfo');
+    const medicalInfoDetails = formData.get('medicalInfoDetails') as string | null;
+    const medicalInfoDisclosureTiming = formData.get('medicalInfoDisclosureTiming') as string | null;
+    const isMedicalInfoVisible = formData.get('isMedicalInfoVisible');
+
+    if (!firstName || !lastName || !gender || !birthDateStr || !manualEntryText) {
+      return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
+    }
+
+    const birthDate = new Date(birthDateStr);
+    if (isNaN(birthDate.getTime())) {
+      return NextResponse.json({ success: false, error: "Invalid birth date" }, { status: 400 });
+    }
+
+    let email: string;
+    if (emailValue && emailValue.trim() !== '') {
+        email = emailValue.trim().toLowerCase();
+        const existingUser = await prisma.user.findUnique({ where: { email } });
+        if (existingUser) {
+            return NextResponse.json({ success: false, error: "משתמש עם כתובת אימייל זו כבר קיים במערכת." }, { status: 409 });
+        }
+    } else {
+        email = `manual_${createId()}@shidduch.placeholder.com`;
+    }
+
+    const profileCreateData: Prisma.ProfileCreateWithoutUserInput = {
+      gender,
+      birthDate,
+      birthDateIsApproximate,
+      manualEntryText,
+      availabilityStatus: 'AVAILABLE',
+    };
+
+    // --- START: הוספת השדות החדשים לאובייקט היצירה ---
+    if (fatherOccupation) {
+        profileCreateData.fatherOccupation = fatherOccupation;
+    }
+    if (motherOccupation) {
+        profileCreateData.motherOccupation = motherOccupation;
+    }
+    if (hasMedicalInfo !== null) {
+      profileCreateData.hasMedicalInfo = hasMedicalInfo === 'true';
+    }
+    if (medicalInfoDetails) {
+      profileCreateData.medicalInfoDetails = medicalInfoDetails;
+    }
+    if (medicalInfoDisclosureTiming) {
+      profileCreateData.medicalInfoDisclosureTiming = medicalInfoDisclosureTiming;
+    }
+    if (isMedicalInfoVisible !== null) {
+      profileCreateData.isMedicalInfoVisible = isMedicalInfoVisible === 'true';
+    }
+    // --- END: הוספת השדות החדשים לאובייקט היצירה ---
+
+    const newManualCandidate = await prisma.user.create({
+      data: {
+        firstName,
+        lastName,
+        email,
+        password: null,
+        role: UserRole.CANDIDATE,
+        status: UserStatus.PENDING_EMAIL_VERIFICATION,
+        isVerified: false,
+        isProfileComplete: false,
+        source: UserSource.MANUAL_ENTRY,
+        addedByMatchmakerId: matchmakerId,
+        profile: {
+          create: profileCreateData,
+        },
+      },
+      include: {
+        profile: true,
+      },
+    });
+
+    type UserImageCreateInput = {
+      userId: string;
+      url: string;
+      cloudinaryPublicId: string;
+      isMain: boolean;
+    };
+
+    const uploadedImageData: UserImageCreateInput[] = [];
+
+    if (images && images.length > 0) {
+      for (const file of images) {
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+            return NextResponse.json({ success: false, error: `Invalid file type: ${file.name}. Only JPG, PNG, WEBP allowed.` }, { status: 400 });
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            return NextResponse.json({ success: false, error: `File too large: ${file.name}. Max 5MB.` }, { status: 400 });
+        }
+      }
+      
+      for (let i = 0; i < images.length; i++) {
+        try {
+          const { url, publicId } = await uploadImageToCloudinary(images[i], newManualCandidate.id);
+          uploadedImageData.push({
+            userId: newManualCandidate.id,
+            url: url,
+            cloudinaryPublicId: publicId,
+            isMain: i === 0,
+          });
+        } catch (uploadError) {
+            console.error("Failed to upload an image during manual candidate creation:", uploadError);
+            return NextResponse.json({
+                success: false,
+                error: `Failed to upload image ${images[i].name}. ${(uploadError as Error).message}`
+            }, { status: 500 });
+        }
+      }
+
+      if (uploadedImageData.length > 0) {
+        await prisma.userImage.createMany({
+          data: uploadedImageData,
+        });
+      }
+    }
+   
+    updateUserAiProfile(newManualCandidate.id).catch(err => {
+        console.error(`[AI Profile Trigger] Failed to create AI profile for manual candidate ${newManualCandidate.id}:`, err);
+    });
+
+    const candidateToReturn = await prisma.user.findUnique({
+        where: { id: newManualCandidate.id },
+        include: { profile: true, images: true }
+    });
+
+    return NextResponse.json({ success: true, candidate: candidateToReturn });
+
+  } catch (error) {
+    console.error("Error in POST /api/matchmaker/candidates/manual:", error);
+    let errorMessage = "Internal server error.";
+    if (error instanceof Error) {
+        errorMessage = error.message;
+    }
+    if (error instanceof SyntaxError && error.message.includes("Unexpected token") && error.message.includes("in JSON at position")) {
+        errorMessage = "Invalid request body or FormData. Ensure all fields are correctly formatted.";
+    } else if (error instanceof TypeError && error.message.includes("Could not parse content as FormData")) {
+        errorMessage = "Invalid request format. Expected FormData.";
+    }
+
+    return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\inquiries
+================================================================================
+
+(This directory contains subdirectories but no files directly. See subdirectories below.)
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\inquiries\[id]
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\inquiries\[id]\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/matchmaker/inquiries/[id]/route.ts
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { AvailabilityService } from "@/lib/services/availabilityService";
+import prisma from "@/lib/prisma"; // Added prisma
+import { UserRole } from "@prisma/client"; // Added UserRole
+export const dynamic = 'force-dynamic';
+export async function GET(
+  req: Request, // req is not used, consider removing if not planned for future use
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    // ---- START OF CHANGE ----
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized - Not logged in" }, { status: 401 });
+    }
+
+    // Fetch user role for permission check
+    const performingUser = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { role: true }
+    });
+
+    const allowedRoles: UserRole[] = [UserRole.MATCHMAKER, UserRole.ADMIN];
+    // Additionally, a user involved in the inquiry should be able to see it.
+    // This needs more context on how AvailabilityService.getInquiryById checks permissions.
+    // For now, limiting to Matchmaker/Admin.
+    // You might need to adjust this if users (CANDIDATE) should see their own inquiries via this route.
+    if (!performingUser || !allowedRoles.includes(performingUser.role)) {
+        // Before returning 403, check if the user is part of the inquiry if that's a requirement
+        // For simplicity, the original request was about ADMIN access to MATCHMAKER functions.
+        return NextResponse.json(
+            { error: 'Unauthorized - Matchmaker or Admin access required to view this inquiry' },
+            { status: 403 }
+        );
+    }
+    // ---- END OF CHANGE ----
+
+    const inquiry = await AvailabilityService.getInquiryById(params.id);
+    
+    // Potentially, AvailabilityService.getInquiryById already handles ownership/role checks.
+    // If so, the above check might be redundant or could be simplified.
+    // If 'inquiry' is null and no error was thrown, it means not found or no permission from service.
+    if (!inquiry) {
+        return NextResponse.json({ error: "Inquiry not found or access denied" }, { status: 404 });
+    }
+    
+    return NextResponse.json(inquiry);
+  } catch (error) {
+    console.error("Error fetching inquiry:", error);
+    let message = "Failed to fetch inquiry";
+    if (error instanceof Error) {
+        message = error.message;
+    }
+    return NextResponse.json(
+      { error: message },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\inquiries\[id]\respond
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\inquiries\[id]\respond\route.ts
+--------------------------------------------------------------------------------
+Content:
+import { type NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { AvailabilityService } from "@/lib/services/availabilityService";
+
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
+// הגדרת טיפוס גנרי עבור הפרמטרים
+type RouteSegment<T> = (
+  request: NextRequest,
+  params: { params: T }
+) => Promise<NextResponse> | NextResponse;
+
+// יצירת פונקציית הטיפול בבקשה
+const handler: RouteSegment<{ id: string }> = async (request, { params }) => {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { isAvailable, note } = await request.json();
+
+    const updatedInquiry = await AvailabilityService.updateInquiryResponse({
+      inquiryId: params.id,
+      userId: session.user.id,
+      isAvailable,
+      note
+    });
+
+    return NextResponse.json(updatedInquiry);
+  } catch (error) {
+    console.error("Error updating inquiry response:", error);
+    return NextResponse.json(
+      { 
+        error: error instanceof Error ? error.message : "Failed to update response"
+      },
+      { status: 500 }
+    );
+  }
+};
+
+// יצוא הפונקציה כ-POST handler
+export const POST = handler;
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions\route.ts
+--------------------------------------------------------------------------------
+Content:
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { MatchSuggestionStatus, Prisma, UserRole } from "@prisma/client";
+import { suggestionService } from "@/app/components/matchmaker/suggestions/services/suggestions/SuggestionService";
+import type { CreateSuggestionData } from "@/types/suggestions";
+export const dynamic = 'force-dynamic';
+const getSuggestionCategory = (status: MatchSuggestionStatus) => {
+  switch (status) {
+    case 'DRAFT':
+    case 'AWAITING_MATCHMAKER_APPROVAL':
+    case 'PENDING_FIRST_PARTY':
+    case 'PENDING_SECOND_PARTY':
+      return 'PENDING';
+    
+    case 'FIRST_PARTY_DECLINED':
+    case 'SECOND_PARTY_DECLINED':
+    case 'MATCH_DECLINED':
+    case 'ENDED_AFTER_FIRST_DATE':
+    case 'ENGAGED':
+    case 'MARRIED':
+    case 'EXPIRED':
+    case 'CLOSED':
+    case 'CANCELLED':
+      return 'HISTORY';
+    
+    default:
+      return 'ACTIVE';
+  }
+};
+
+export async function POST(req: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user?.id || !session.user.role) {
+        return NextResponse.json({ error: "Unauthorized - Invalid session" }, { status: 401 });
+    }
+
+    const allowedRolesToCreate: UserRole[] = [UserRole.MATCHMAKER, UserRole.ADMIN];
+    if (!allowedRolesToCreate.includes(session.user.role as UserRole)) {
+      return NextResponse.json({ error: "Unauthorized - Matchmaker or Admin access required to create suggestions" }, { status: 403 });
+    }
+    
+    const data = await req.json();
+    
+    const suggestionData: CreateSuggestionData = {
+      ...data,
+      matchmakerId: session.user.id,
+    };
+
+    const newSuggestion = await suggestionService.createSuggestion(suggestionData);
+    
+    return NextResponse.json(newSuggestion);
+    
+  } catch (error) {
+    console.error('Error creating suggestion:', error);
+    let message = 'Failed to create suggestion';
+    if (error instanceof Error) {
+        message = error.message;
+    }
+    return NextResponse.json(
+      { error: message },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET(req: Request) {
+  try {
+    const session = await getServerSession(authOptions); 
+    
+    if (!session?.user?.id || !session.user.role) {
+      return NextResponse.json({ error: "Unauthorized - Invalid session" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const status = searchParams.get("status");
+    const priority = searchParams.get("priority");
+    const timeframe = searchParams.get("timeframe");
+
+    const where: Prisma.MatchSuggestionWhereInput = {};
+    
+    // ---- START OF FIX ----
+    // שינינו את הלוגיקה כדי לטפל נכון בהרשאות
+    if (session.user.role === UserRole.MATCHMAKER) {
+        // שדכן רואה רק את ההצעות שהוא יצר
+        where.matchmakerId = session.user.id;
+    } else if (session.user.role === UserRole.CANDIDATE) {
+        // מועמד רואה רק הצעות שהוא צד בהן
+        where.OR = [
+            { firstPartyId: session.user.id },
+            { secondPartyId: session.user.id }
+        ];
+    }
+    // אם המשתמש הוא ADMIN, לא נוסיף סינון לפי מזהה משתמש, וכך הוא יראה את כל ההצעות.
+    // ---- END OF FIX ----
+
+    if (status) where.status = status as MatchSuggestionStatus;
+    if (priority) where.priority = priority as Prisma.EnumPriorityFieldUpdateOperationsInput["set"];
+    
+    if (timeframe) {
+      const date = new Date();
+      switch (timeframe) {
+        case 'today':
+          date.setHours(0, 0, 0, 0);
+          where.createdAt = { gte: date };
+          break;
+        case 'week':
+          date.setDate(date.getDate() - 7);
+          where.createdAt = { gte: date };
+          break;
+        case 'month':
+          date.setMonth(date.getMonth() - 1);
+          where.createdAt = { gte: date };
+          break;
+      }
+    }
+
+    const suggestions = await prisma.matchSuggestion.findMany({
+      where,
+      include: {
+        firstParty: {
+          select: { id: true, email: true, firstName: true, lastName: true, status: true, isVerified: true, images: { select: { id: true, url: true, isMain: true }, orderBy: [{ isMain: 'desc' }, { createdAt: 'asc'}] }, profile: true }
+        },
+        secondParty: {
+          select: { id: true, email: true, firstName: true, lastName: true, status: true, isVerified: true, images: { select: { id: true, url: true, isMain: true }, orderBy: [{ isMain: 'desc' }, { createdAt: 'asc'}] }, profile: true }
+        },
+        matchmaker: {
+          select: { id: true, firstName: true, lastName: true, role: true }
+        },
+        statusHistory: { orderBy: { createdAt: 'desc' } },
+        meetings: { orderBy: { createdAt: 'desc' } }
+      },
+      orderBy: { lastActivity: 'desc' }
+    });
+
+    const formattedSuggestions = suggestions.map(suggestion => ({
+      ...suggestion,
+      category: getSuggestionCategory(suggestion.status),
+      firstParty: {
+        ...suggestion.firstParty,
+        profile: suggestion.firstParty.profile ? {
+          ...suggestion.firstParty.profile,
+          birthDate: suggestion.firstParty.profile.birthDate?.toISOString(),
+          lastActive: suggestion.firstParty.profile.lastActive?.toISOString(),
+          availabilityUpdatedAt: suggestion.firstParty.profile.availabilityUpdatedAt?.toISOString(),
+          createdAt: suggestion.firstParty.profile.createdAt?.toISOString(),
+          updatedAt: suggestion.firstParty.profile.updatedAt?.toISOString()
+        } : null
+      },
+      secondParty: {
+        ...suggestion.secondParty,
+        profile: suggestion.secondParty.profile ? {
+          ...suggestion.secondParty.profile,
+          birthDate: suggestion.secondParty.profile.birthDate?.toISOString(),
+          lastActive: suggestion.secondParty.profile.lastActive?.toISOString(),
+          availabilityUpdatedAt: suggestion.secondParty.profile.availabilityUpdatedAt?.toISOString(),
+          createdAt: suggestion.secondParty.profile.createdAt?.toISOString(),
+          updatedAt: suggestion.secondParty.profile.updatedAt?.toISOString()
+        } : null
+      },
+      statusHistory: suggestion.statusHistory.map(history => ({
+        ...history,
+        createdAt: history.createdAt.toISOString()
+      })),
+      meetings: suggestion.meetings.map(meeting => ({
+        ...meeting,
+        scheduledDate: meeting.scheduledDate.toISOString(),
+        createdAt: meeting.createdAt.toISOString(),
+        updatedAt: meeting.updatedAt.toISOString()
+      })),
+      responseDeadline: suggestion.responseDeadline?.toISOString(),
+      decisionDeadline: suggestion.decisionDeadline?.toISOString(),
+      lastStatusChange: suggestion.lastStatusChange?.toISOString(),
+      firstPartySent: suggestion.firstPartySent?.toISOString(),
+      firstPartyResponded: suggestion.firstPartyResponded?.toISOString(),
+      secondPartySent: suggestion.secondPartySent?.toISOString(),
+      secondPartyResponded: suggestion.secondPartyResponded?.toISOString(),
+      firstMeetingScheduled: suggestion.firstMeetingScheduled?.toISOString(),
+      closedAt: suggestion.closedAt?.toISOString(),
+      createdAt: suggestion.createdAt.toISOString(),
+      updatedAt: suggestion.updatedAt.toISOString(),
+      lastActivity: suggestion.lastActivity.toISOString()
+    }));
+    
+    // =================  LOGGING START (Improved) =================
+    console.log(`[API GET /suggestions] User: ${session.user.id} (Role: ${session.user.role}). Found ${suggestions.length} suggestions matching query.`);
+    if (suggestions.length > 0) {
+        console.log(`[API GET /suggestions] Example suggestion being sent (ID: ${suggestions[0].id}, Status: ${suggestions[0].status})`);
+    }
+    // =================   LOGGING END   =================
+
+    return NextResponse.json(formattedSuggestions);
+    
+  } catch (error) {
+    console.error('Error fetching suggestions:', error);
+    let message = 'Failed to fetch suggestions';
+    if (error instanceof Error) {
+        message = error.message;
+    }
+    return NextResponse.json(
+      { error: message },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions\[id]
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions\[id]\route.ts
+--------------------------------------------------------------------------------
+Content:
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { UserRole } from "@prisma/client";
+import { SuggestionService } from "@/app/components/matchmaker/suggestions/services/suggestions/SuggestionService";
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    // וידוא משתמש מחובר
+    if (!session?.user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+    
+    // וידוא הרשאות שדכן
+    if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
+      return NextResponse.json(
+        { success: false, error: "Insufficient permissions" },
+        { status: 403 }
+      );
+    }
+    
+    const suggestionId = params.id;
+    const data = await req.json();
+    
+    const suggestionService = SuggestionService.getInstance();
+    
+    try {
+      // שימוש בשירות עדכון הצעה
+      const updatedSuggestion = await suggestionService.updateSuggestion(
+        suggestionId,
+        session.user.id,
+        {
+          id: suggestionId,
+          priority: data.priority,
+          notes: {
+            internal: data.internalNotes,
+            forFirstParty: data.firstPartyNotes,
+            forSecondParty: data.secondPartyNotes,
+            matchingReason: data.matchingReason,
+            followUpNotes: data.followUpNotes
+          },
+          decisionDeadline: data.decisionDeadline ? new Date(data.decisionDeadline) : undefined,
+          responseDeadline: data.responseDeadline ? new Date(data.responseDeadline) : undefined
+        }
+      );
+      
+      return NextResponse.json({
+        success: true,
+        data: updatedSuggestion
+      });
+      
+    } catch (serviceError: unknown) {
+        console.error("Error from suggestion service:", serviceError);
+        
+        if (serviceError instanceof Error) {
+          return NextResponse.json(
+            { success: false, error: serviceError.message || "Failed to update suggestion" },
+            { status: serviceError.message.includes("Unauthorized") ? 403 : 400 }
+          );
+        }
+        
+        // במקרה של שגיאה שאינה מסוג Error
+        return NextResponse.json(
+          { success: false, error: "Failed to update suggestion" },
+          { status: 400 }
+        );
+      }
+  } catch (error) {
+    console.error("Error updating suggestion:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to update suggestion" },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions\[id]\delete
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions\[id]\delete\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/matchmaker/suggestions/[id]/delete/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { UserRole } from "@prisma/client";
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    // וידוא שמשתמש מחובר
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    // וידוא הרשאות שדכן או אדמין
+    if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
+      return NextResponse.json(
+        { success: false, error: "Insufficient permissions" },
+        { status: 403 }
+      );
+    }
+
+    const suggestionId = params.id;
+
+    // וידוא קיום ההצעה
+    const suggestion = await prisma.matchSuggestion.findUnique({
+      where: { id: suggestionId },
+      include: {
+        matchmaker: {
+          select: { id: true }
+        }
+      }
+    });
+
+    if (!suggestion) {
+      return NextResponse.json(
+        { success: false, error: "Suggestion not found" },
+        { status: 404 }
+      );
+    }
+
+    // בדיקת הרשאות ספציפיות - רק השדכן שיצר את ההצעה או אדמין יכולים למחוק
+    if (suggestion.matchmaker.id !== session.user.id && session.user.role !== UserRole.ADMIN) {
+      return NextResponse.json(
+        { success: false, error: "You don't have permission to delete this suggestion" },
+        { status: 403 }
+      );
+    }
+
+    // מחיקת רכיבים קשורים בנפרד במקום בטרנזקציה
+    // 1. מחיקת רשומות היסטוריה
+    await prisma.suggestionStatusHistory.deleteMany({
+      where: { suggestionId }
+    });
+
+    // 2. מחיקת משוב פגישות אם קיים
+    await prisma.dateFeedback.deleteMany({
+      where: { suggestionId }
+    });
+
+    // 3. מחיקת פגישות קשורות (אם יש)
+    await prisma.meeting.deleteMany({
+      where: { suggestionId }
+    });
+
+    // 4. מחיקת שאלות/פניות אם קיימות
+    await prisma.suggestionInquiry.deleteMany({
+      where: { suggestionId }
+    });
+
+    // 5. הסרת קשרים בטבלאות קשר רבים-לרבים (אם יש)
+    await prisma.matchSuggestion.update({
+      where: { id: suggestionId },
+      data: {
+        approvedBy: {
+          set: []
+        },
+        reviewedBy: {
+          set: []
+        }
+      }
+    });
+
+    // 6. מחיקת ההצעה עצמה
+    await prisma.matchSuggestion.delete({
+      where: { id: suggestionId }
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: "Suggestion deleted successfully"
+    });
+
+  } catch (error) {
+    console.error("Error deleting suggestion:", error);
+    
+    // החזרת פרטי שגיאה אם קיימים
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: "Failed to delete suggestion", 
+        details: errorMessage 
+      },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions\[id]\message
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions\[id]\message\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/matchmaker/suggestions/[id]/message/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { MatchSuggestionStatus, UserRole } from "@prisma/client";
+import { initNotificationService } from "@/app/components/matchmaker/suggestions/services/notification/initNotifications";
+
+// Initialize the notification service
+const notificationService = initNotificationService();
+
+
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    // Verify user is logged in
+    if (!session?.user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    // Verify matchmaker permissions
+    if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
+      return NextResponse.json(
+        { success: false, error: "Insufficient permissions" },
+        { status: 403 }
+      );
+    }
+
+    const suggestionId = params.id;
+    const { partyType, messageType, content } = await req.json();
+
+    // Verify suggestion exists
+    const suggestion = await prisma.matchSuggestion.findUnique({
+      where: { id: suggestionId },
+      include: {
+        firstParty: {
+          include: { profile: true }
+        },
+        secondParty: {
+          include: { profile: true }
+        },
+        matchmaker: true
+      },
+    });
+
+    if (!suggestion) {
+      return NextResponse.json(
+        { success: false, error: "Suggestion not found" },
+        { status: 404 }
+      );
+    }
+
+    // Verify matchmaker permissions for this suggestion
+    if (
+      suggestion.matchmakerId !== session.user.id &&
+      session.user.role !== UserRole.ADMIN
+    ) {
+      return NextResponse.json(
+        { success: false, error: "You are not authorized to send messages for this suggestion" },
+        { status: 403 }
+      );
+    }
+
+    // Define which parties will receive the message
+    const notifyParties: ('first' | 'second')[] = [];
+    
+    if (partyType === "first" || partyType === "both") {
+      notifyParties.push('first');
+    }
+    
+    if (partyType === "second" || partyType === "both") {
+      notifyParties.push('second');
+    }
+
+     console.log(`Message request received for suggestion ${suggestionId}, will be handled through transactions`);
+
+    // Log the message in the system
+    await prisma.$transaction(async (tx) => {
+      try {
+        // Update the lastActivity field in the suggestion
+        await tx.matchSuggestion.update({
+          where: { id: suggestionId },
+          data: {
+            lastActivity: new Date(),
+          },
+        });
+        
+        // Add a record to the status history
+        await tx.suggestionStatusHistory.create({
+          data: {
+            suggestionId,
+            status: suggestion.status as MatchSuggestionStatus,
+            notes: `הודעה נשלחה מאת השדכן: ${messageType} - ${content.substring(0, 50)}${content.length > 50 ? '...' : ''}`,
+          },
+        });
+    
+        // שליחת ההודעה רק אחרי העדכון בדאטהבייס
+        await notificationService.handleSuggestionStatusChange(
+          suggestion, 
+          {
+            channels: ['email', 'whatsapp'],
+            notifyParties,
+            customMessage: content
+          }
+        );
+      } catch (txError) {
+        console.error("Transaction error:", txError);
+        throw txError;
+      }
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: "Messages sent successfully",
+      recipients: notifyParties
+    });
+  } catch (error) {
+    console.error("Error sending message:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to send message" },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions\[id]\remind
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions\[id]\remind\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/matchmaker/suggestions/[id]/remind/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { UserRole, MatchSuggestionStatus } from "@prisma/client";
+import { initNotificationService } from "@/app/components/matchmaker/suggestions/services/notification/initNotifications";
+
+// Initialize the notification service
+const notificationService = initNotificationService();
+
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    // Verify user is logged in
+    if (!session?.user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    // Verify matchmaker permissions
+    if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
+      return NextResponse.json(
+        { success: false, error: "Insufficient permissions" },
+        { status: 403 }
+      );
+    }
+
+    const suggestionId = params.id;
+    const { partyType } = await req.json();
+
+    // Verify suggestion exists
+    const suggestion = await prisma.matchSuggestion.findUnique({
+      where: { id: suggestionId },
+      include: {
+        firstParty: {
+          include: { profile: true }
+        },
+        secondParty: {
+          include: { profile: true }
+        },
+        matchmaker: true
+      },
+    });
+
+    if (!suggestion) {
+      return NextResponse.json(
+        { success: false, error: "Suggestion not found" },
+        { status: 404 }
+      );
+    }
+
+    // Verify matchmaker permissions for this suggestion
+    if (
+      suggestion.matchmakerId !== session.user.id &&
+      session.user.role !== UserRole.ADMIN
+    ) {
+      return NextResponse.json(
+        { success: false, error: "You are not authorized to send reminders for this suggestion" },
+        { status: 403 }
+      );
+    }
+    
+    // Define parties that will receive the reminder
+    const notifyParties: ('first' | 'second')[] = [];
+    let sentCount = 0;
+    
+    if (partyType === "first" || partyType === "both") {
+      if (suggestion.status === MatchSuggestionStatus.PENDING_FIRST_PARTY) {
+        notifyParties.push('first');
+        sentCount++;
+      }
+    }
+    
+    if (partyType === "second" || partyType === "both") {
+      if (suggestion.status === MatchSuggestionStatus.PENDING_SECOND_PARTY) {
+        notifyParties.push('second');
+        sentCount++;
+      }
+    }
+    
+    // Construct reminder content
+    const reminderContent = `זוהי תזכורת ידידותית שהצעת שידוך מאת ${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName} ממתינה לתשובתך. לצפייה בפרטי ההצעה ומענה, אנא לחץ/י על הקישור.`;
+    
+    // Check if we have applicable recipients
+    if (sentCount === 0) {
+      return NextResponse.json({
+        success: false,
+        error: "No applicable recipients for reminder in current status"
+      }, { status: 400 });
+    }
+
+    // Update the last activity timestamp in the suggestion
+    await prisma.matchSuggestion.update({
+      where: { id: suggestionId },
+      data: {
+        lastActivity: new Date(),
+      },
+    });
+
+    // Log the reminder to history
+    await prisma.suggestionStatusHistory.create({
+      data: {
+        suggestionId,
+        status: suggestion.status,
+        notes: `תזכורת נשלחה ל${partyType === "first" ? "צד ראשון" : partyType === "second" ? "צד שני" : "שני הצדדים"} על ידי ${session.user.firstName} ${session.user.lastName}`,
+      },
+    });
+    
+    // רק לאחר העדכון בדאטהבייס - שלח את ההודעה
+    await notificationService.handleSuggestionStatusChange(
+      suggestion,
+      {
+        channels: ['email', 'whatsapp'],
+        notifyParties,
+        customMessage: reminderContent
+      }
+    );
+    
+    return NextResponse.json({
+      success: true,
+      message: "Reminder sent successfully",
+      recipientCount: sentCount
+    });
+  } catch (error) {
+    console.error("Error sending reminder:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to send reminder" },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions\[id]\resend
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions\[id]\resend\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/matchmaker/suggestions/[id]/resend/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { UserRole, MatchSuggestionStatus } from "@prisma/client";
+import { StatusTransitionService } from "@/app/components/matchmaker/suggestions/services/suggestions/StatusTransitionService";
+
+// Initialize the notification service
+
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    // Verify user is logged in
+    if (!session?.user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    // Verify matchmaker permissions
+    if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
+      return NextResponse.json(
+        { success: false, error: "Insufficient permissions" },
+        { status: 403 }
+      );
+    }
+
+    const suggestionId = params.id;
+    const { partyType } = await req.json();
+
+    // Verify suggestion exists
+    const suggestion = await prisma.matchSuggestion.findUnique({
+      where: { id: suggestionId },
+      include: {
+        firstParty: {
+          include: { profile: true }
+        },
+        secondParty: {
+          include: { profile: true }
+        },
+        matchmaker: true
+      },
+    });
+
+    if (!suggestion) {
+      return NextResponse.json(
+        { success: false, error: "Suggestion not found" },
+        { status: 404 }
+      );
+    }
+
+    // Verify matchmaker permissions for resending
+    if (
+      suggestion.matchmakerId !== session.user.id &&
+      session.user.role !== UserRole.ADMIN
+    ) {
+      return NextResponse.json(
+        { success: false, error: "You are not authorized to resend this suggestion" },
+        { status: 403 }
+      );
+    }
+
+    const statusTransitionService = StatusTransitionService.getInstance();
+    let updatedSuggestion = suggestion;
+    const transitionNotes = `הצעה נשלחה מחדש ע"י ${session.user.firstName} ${session.user.lastName}`;
+    
+    // Update suggestion status to the appropriate status for resending
+    if (partyType === "both" || partyType === "first") {
+      // Resend to first party
+      updatedSuggestion = await statusTransitionService.transitionStatus(
+        updatedSuggestion, 
+        MatchSuggestionStatus.PENDING_FIRST_PARTY,
+        `${transitionNotes} - לצד ראשון`,
+        {
+          sendNotifications: true,
+          notifyParties: ['first']
+        }
+      );
+      
+      // If this is just for the first party, update the sent time
+      if (partyType === "first") {
+        await prisma.matchSuggestion.update({
+          where: { id: suggestionId },
+          data: {
+            firstPartySent: new Date(),
+            lastActivity: new Date()
+          }
+        });
+      }
+    }
+    
+    if (partyType === "both" || partyType === "second") {
+      // Resend to second party (directly or after the first)
+      updatedSuggestion = await statusTransitionService.transitionStatus(
+        updatedSuggestion, 
+        MatchSuggestionStatus.PENDING_SECOND_PARTY,
+        `${transitionNotes} - לצד שני`,
+        {
+          sendNotifications: true,
+          notifyParties: ['second']
+        }
+      );
+      
+      // Update the sent time
+      await prisma.matchSuggestion.update({
+        where: { id: suggestionId },
+        data: {
+          secondPartySent: new Date(),
+          lastActivity: new Date()
+        }
+      });
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: `Suggestion successfully resent to ${partyType === "first" ? "first party" : partyType === "second" ? "second party" : "both parties"}`,
+      suggestion: updatedSuggestion
+    });
+  } catch (error) {
+    console.error("Error resending suggestion:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to resend suggestion" },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions\[id]\share-contact
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions\[id]\share-contact\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/matchmaker/suggestions/[id]/share-contact/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { UserRole, MatchSuggestionStatus } from "@prisma/client";
+import { StatusTransitionService } from "@/app/components/matchmaker/suggestions/services/suggestions/StatusTransitionService";
+
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    // Verify user is logged in
+    if (!session?.user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    // Verify matchmaker permissions
+    if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
+      return NextResponse.json(
+        { success: false, error: "Insufficient permissions" },
+        { status: 403 }
+      );
+    }
+
+    const suggestionId = params.id;
+
+    // Verify suggestion exists
+    const suggestion = await prisma.matchSuggestion.findUnique({
+      where: { id: suggestionId },
+      include: {
+        firstParty: {
+          include: { profile: true }
+        },
+        secondParty: {
+          include: { profile: true }
+        },
+        matchmaker: true
+      },
+    });
+
+    if (!suggestion) {
+      return NextResponse.json(
+        { success: false, error: "Suggestion not found" },
+        { status: 404 }
+      );
+    }
+
+    // Verify matchmaker permissions for sharing contact details
+    if (
+      suggestion.matchmakerId !== session.user.id &&
+      session.user.role !== UserRole.ADMIN
+    ) {
+      return NextResponse.json(
+        { success: false, error: "You are not authorized to share contact details for this suggestion" },
+        { status: 403 }
+      );
+    }
+
+    // Verify suggestion is in appropriate status for sharing contact details
+    if (
+      suggestion.status !== MatchSuggestionStatus.FIRST_PARTY_APPROVED &&
+      suggestion.status !== MatchSuggestionStatus.SECOND_PARTY_APPROVED &&
+      suggestion.status !== MatchSuggestionStatus.AWAITING_MATCHMAKER_APPROVAL
+    ) {
+      return NextResponse.json({
+        success: false,
+        error: "Suggestion is not in a valid status for sharing contact details"
+      }, { status: 400 });
+    }
+
+    // Update suggestion status to CONTACT_DETAILS_SHARED using the StatusTransitionService
+    // This will automatically trigger notifications to both parties with contact details
+    const statusTransitionService = StatusTransitionService.getInstance();
+    const updatedSuggestion = await statusTransitionService.transitionStatus(
+      suggestion,
+      MatchSuggestionStatus.CONTACT_DETAILS_SHARED,
+      `פרטי קשר שותפו בין ${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} ל${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} ע"י ${session.user.firstName} ${session.user.lastName}`,
+      {
+        sendNotifications: true,
+        notifyParties: ['first', 'second', 'matchmaker']
+      }
+    );
+
+    return NextResponse.json({
+      success: true,
+      message: "Contact details shared successfully",
+      suggestion: updatedSuggestion
+    });
+  } catch (error) {
+    console.error("Error sharing contact details:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to share contact details" },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions\[id]\status
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions\[id]\status\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/matchmaker/suggestions/[id]/status/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { MatchSuggestionStatus, UserRole } from "@prisma/client";
+import { z } from "zod";
+
+// Schema for validating status update data
+const updateStatusSchema = z.object({
+  status: z.nativeEnum(MatchSuggestionStatus),
+  notes: z.string().optional(),
+});
+
+/**
+ * PATCH endpoint for updating suggestion status
+ */
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    // 1. User authentication
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    // 2. Verify permissions
+    if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
+      return NextResponse.json(
+        { success: false, error: "Insufficient permissions" },
+        { status: 403 }
+      );
+    }
+
+    // 3. Validate request data
+    const body = await req.json();
+    console.log("Received status update request:", body);
+    
+    const validationResult = updateStatusSchema.safeParse(body);
+    if (!validationResult.success) {
+      console.error("Validation error:", validationResult.error);
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: "Invalid request data", 
+          details: validationResult.error.errors 
+        },
+        { status: 400 }
+      );
+    }
+    
+    const { status, notes } = validationResult.data;
+
+    // 4. Verify suggestion exists
+    const suggestionId = params.id;
+    const suggestion = await prisma.matchSuggestion.findUnique({
+      where: { id: suggestionId },
+      include: {
+        matchmaker: {
+          select: { id: true }
+        }
+      }
+    });
+
+    if (!suggestion) {
+      return NextResponse.json(
+        { success: false, error: "Suggestion not found" },
+        { status: 404 }
+      );
+    }
+
+    // 5. Verify permission on specific suggestion
+    if (suggestion.matchmaker.id !== session.user.id && session.user.role !== UserRole.ADMIN) {
+      return NextResponse.json(
+        { success: false, error: "You don't have permission to update this suggestion" },
+        { status: 403 }
+      );
+    }
+
+    // 6. Calculate category based on new status
+    const getCategory = (status: MatchSuggestionStatus) => {
+      switch (status) {
+        case "DRAFT":
+        case "AWAITING_MATCHMAKER_APPROVAL":
+        case "PENDING_FIRST_PARTY":
+        case "PENDING_SECOND_PARTY":
+          return "PENDING";
+        
+        case "FIRST_PARTY_DECLINED":
+        case "SECOND_PARTY_DECLINED":
+        case "MATCH_DECLINED":
+        case "ENDED_AFTER_FIRST_DATE":
+        case "ENGAGED":
+        case "MARRIED":
+        case "EXPIRED":
+        case "CLOSED":
+        case "CANCELLED":
+          return "HISTORY";
+        
+        default:
+          return "ACTIVE";
+      }
+    };
+
+    // 7. Update status in a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      // Save previous status
+      const previousStatus = suggestion.status;
+
+      // Update the suggestion
+      const updatedSuggestion = await tx.matchSuggestion.update({
+        where: { id: suggestionId },
+        data: {
+          status: status,
+          previousStatus: previousStatus,
+          lastStatusChange: new Date(),
+          lastActivity: new Date(),
+          category: getCategory(status),
+          
+          // Update additional fields based on new status
+          ...(status === MatchSuggestionStatus.CLOSED ? { closedAt: new Date() } : {}),
+          ...(status === MatchSuggestionStatus.PENDING_FIRST_PARTY ? { firstPartySent: new Date() } : {}),
+          ...(status === MatchSuggestionStatus.PENDING_SECOND_PARTY ? { secondPartySent: new Date() } : {}),
+        },
+      });
+
+      // Add status history record
+      await tx.suggestionStatusHistory.create({
+        data: {
+          suggestionId,
+          status,
+          notes: notes || `סטטוס שונה ל-${status} על ידי ${session.user.firstName} ${session.user.lastName}`,
+        },
+      });
+
+      return updatedSuggestion;
+    });
+
+    // 8. Return success response
+    return NextResponse.json({
+      success: true,
+      message: "Status updated successfully",
+      suggestion: {
+        id: result.id,
+        status: result.status,
+        previousStatus: result.previousStatus,
+        lastStatusChange: result.lastStatusChange,
+        category: result.category,
+      },
+    });
+
+  } catch (error) {
+    console.error("Error updating suggestion status:", error);
+    
+    // Return detailed error message if available
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: "Failed to update status", 
+        details: errorMessage 
+      },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * GET endpoint for fetching suggestion history
+ */
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    // 1. User authentication
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // 2. Parse URL parameters
+    const searchParams = new URL(req.url).searchParams;
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
+    const limit = searchParams.get("limit") ? parseInt(searchParams.get("limit")!) : 50;
+
+    // 3. Check viewing permissions
+    const suggestion = await prisma.matchSuggestion.findUnique({
+      where: { id: params.id },
+      select: {
+        id: true,
+        status: true,
+        lastStatusChange: true,
+        matchmakerId: true,
+        firstPartyId: true,
+        secondPartyId: true,
+      }
+    });
+    
+    if (!suggestion) {
+      return NextResponse.json({ error: "Suggestion not found" }, { status: 404 });
+    }
+    
+    // Check if user has permission to view this suggestion
+    const canView = 
+      session.user.role === UserRole.ADMIN ||
+      suggestion.matchmakerId === session.user.id ||
+      suggestion.firstPartyId === session.user.id ||
+      suggestion.secondPartyId === session.user.id;
+      
+    if (!canView) {
+      return NextResponse.json({ error: "Not authorized to view this suggestion" }, { status: 403 });
+    }
+    
+    // 4. Build history query
+    const historyQuery = {
+      where: {
+        suggestionId: params.id,
+        ...(startDate && {
+          createdAt: {
+            gte: new Date(startDate),
+            ...(endDate && {
+              lte: new Date(endDate),
+            }),
+          },
+        }),
+      },
+      include: {
+        suggestion: {
+          select: {
+            firstParty: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
+            secondParty: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
+            matchmaker: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc" as const,
+      },
+      take: limit,
+    };
+
+    // 5. Fetch status change history
+    const history = await prisma.suggestionStatusHistory.findMany(historyQuery);
+
+    // 6. Format results
+    const formattedHistory = history.map(entry => ({
+      id: entry.id,
+      status: entry.status,
+      notes: entry.notes,
+      createdAt: entry.createdAt,
+      actors: {
+        firstParty: {
+          id: entry.suggestion.firstParty.id,
+          name: `${entry.suggestion.firstParty.firstName} ${entry.suggestion.firstParty.lastName}`,
+        },
+        secondParty: {
+          id: entry.suggestion.secondParty.id,
+          name: `${entry.suggestion.secondParty.firstName} ${entry.suggestion.secondParty.lastName}`,
+        },
+        matchmaker: {
+          id: entry.suggestion.matchmaker.id,
+          name: `${entry.suggestion.matchmaker.firstName} ${entry.suggestion.matchmaker.lastName}`,
+        },
+      },
+    }));
+
+    return NextResponse.json({
+      history: formattedHistory,
+      suggestion: {
+        id: suggestion.id,
+        currentStatus: suggestion.status,
+        lastStatusChange: suggestion.lastStatusChange?.toISOString() ?? null,
+      },
+    });
+
+  } catch (error) {
+    console.error("Error fetching suggestion history:", error);
+    
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    
+    return NextResponse.json(
+      { error: "Failed to fetch history", details: errorMessage },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * HEAD endpoint for getting status summary
+ */
+export async function HEAD(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    // 1. User authentication
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return new Response(null, { status: 401 });
+    }
+
+    // 2. Fetch suggestion details
+    const suggestion = await prisma.matchSuggestion.findUnique({
+      where: { id: params.id },
+      select: {
+        id: true,
+        status: true,
+        lastStatusChange: true,
+        firstPartyId: true,
+        secondPartyId: true,
+        matchmakerId: true,
+      }
+    });
+
+    if (!suggestion) {
+      return new Response(null, { status: 404 });
+    }
+
+    // 3. Check viewing permissions
+    const canView = 
+      session.user.role === UserRole.ADMIN ||
+      suggestion.matchmakerId === session.user.id ||
+      suggestion.firstPartyId === session.user.id ||
+      suggestion.secondPartyId === session.user.id;
+      
+    if (!canView) {
+      return new Response(null, { status: 403 });
+    }
+
+    // 4. Prepare headers
+    const headers: Record<string, string> = {
+      'X-Suggestion-Status': suggestion.status,
+      'X-First-Party': suggestion.firstPartyId,
+      'X-Second-Party': suggestion.secondPartyId,
+    };
+
+    // Add lastStatusChange header only if it exists
+    if (suggestion.lastStatusChange) {
+      headers['X-Last-Status-Change'] = suggestion.lastStatusChange.toISOString();
+    }
+
+    return new Response(null, { headers });
+
+  } catch (error) {
+    console.error("Error fetching suggestion status:", error);
+    return new Response(null, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+

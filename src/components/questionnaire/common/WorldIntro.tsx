@@ -289,6 +289,13 @@ export default function WorldIntro({
                 )}
               </motion.div>
             </div>
+            {/* --- START: ADDED BUTTON FOR MOBILE AT THE BOTTOM --- */}
+            {isMobile && (
+              <div className="p-6 border-t">
+                <ActionButton />
+              </div>
+            )}
+            {/* --- END: ADDED BUTTON FOR MOBILE AT THE BOTTOM --- */}
           </CardContent>
         </Card>
       </motion.div>

@@ -292,7 +292,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
       isMedicalInfoVisible: profileData?.isMedicalInfoVisible ?? false,
       // --- START OF NEW FIELDS INITIALIZATION ---
       profileHeadline: profileData?.profileHeadline || '',
-      humorStory: profileData?.humorStory || '',
       inspiringCoupleStory: profileData?.inspiringCoupleStory || '',
       influentialRabbi: profileData?.influentialRabbi || '',
       // --- END OF NEW FIELDS INITIALIZATION ---
@@ -406,7 +405,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
           'medicalInfoDetails',
           'medicalInfoDisclosureTiming',
           'profileHeadline',
-          'humorStory',
           'inspiringCoupleStory',
           'influentialRabbi',
         ];
@@ -1401,7 +1399,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           >
                             <p>
                               כתוב/י משפט אחד קליט שמסכם אותך או את מה שאת/ה
-                              מחפש/ת. &quot;מהנדס ביום, חולם בלילה&quot;.
+                              מחפש/ת. למשל: &quot;מהנדס ביום, חולם בלילה&quot;.
                             </p>
                           </TooltipContent>
                         </Tooltip>
@@ -1450,8 +1448,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                             className="max-w-xs text-center"
                           >
                             <p>
-                              כאן המקום שלך לבלוט! ספר/י על התשוקות שלך, מה
-                              מצחיק אותך, ומה את/ה מחפש/ת.
+                              כאן המקום שלך לבלוט! ספר/י על עצמך באופן חופשי
+                              וזורם: מה את/ה עושה היום בחיים, תחנות משמעותיות
+                              שעברת, וכמובן - על האופי שלך.
                               <br />
                               <strong className="text-cyan-600">
                                 שים/י לב: נדרשים לפחות 100 תווים.
@@ -1501,54 +1500,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       </p>
                     )}
                   </div>
-
-                  {/* --- START OF NEW FIELD: humorStory --- */}
-                  <div>
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <Label
-                        htmlFor="humorStory"
-                        className="text-sm font-medium text-gray-700"
-                      >
-                        סיפור על חוש ההומור שלי
-                      </Label>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger type="button">
-                            <Info className="w-4 h-4 text-gray-400" />
-                          </TooltipTrigger>
-                          <TooltipContent
-                            side="top"
-                            className="max-w-xs text-center"
-                          >
-                            <p>
-                              ספר/י אנקדוטה קצרה או בדיחה שמייצגת את חוש ההומור
-                              שלך. זה אומר המון על האישיות!
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                    {isEditing && !viewOnly ? (
-                      <Textarea
-                        id="humorStory"
-                        value={formData.humorStory || ''}
-                        onChange={(e) =>
-                          handleChange('humorStory', e.target.value)
-                        }
-                        className="text-sm focus:ring-cyan-500 min-h-[90px] rounded-lg"
-                        placeholder="סיפור קצר או בדיחה שמייצגים אותך..."
-                        rows={3}
-                      />
-                    ) : (
-                      <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap min-h-[50px] bg-slate-50/70 p-3 rounded-lg border border-slate-200/50">
-                        {renderDisplayValue(
-                          formData.humorStory,
-                          'לא סופר סיפור.'
-                        )}
-                      </p>
-                    )}
-                  </div>
-                  {/* --- END OF NEW FIELD --- */}
 
                   {/* --- START OF NEW FIELD: inspiringCoupleStory --- */}
                   <div>
@@ -1669,10 +1620,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
               </CardHeader>
               <CardContent className="p-4 md:p-6 space-y-4">
                 <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-200/80">
-                  אנו מאמינים שקשר בריא נבנה על יושרה. סעיף זה נועד לתת לך מקום
-                  בטוח לשתף מידע רפואי (פיזי או נפשי) רלוונטי. הכנות שלך כאן היא
-                  צעד של אחריות המאפשר לנו למצוא עבורך התאמה מדויקת ולמנוע עוגמת
-                  נפש.
+                  אנו מאמינים שקשר בריא נבנה על יושרה ואחריות. חלק זה מאפשר לך
+                  לשתף באופן דיסקרטי מידע רפואי (פיזי או נפשי) רלוונטי, כדי
+                  שנוכל לסייע במציאת התאמה מדויקת ולמנוע עוגמת נפש.
                 </div>
 
                 {isEditing && !viewOnly ? (

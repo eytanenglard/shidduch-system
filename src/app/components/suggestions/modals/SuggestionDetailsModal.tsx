@@ -3,6 +3,8 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation'; // ייבוא חדש
+
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -821,6 +823,22 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
       document.documentElement.style.removeProperty('--vh');
     };
   }, [isOpen, suggestion?.id, isMobile, isFullscreen, viewportHeight]);
+
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (isOpen) {
+      // בדוק אם ה-URL מכיל פרמטר שדורש לפתוח את הצ'אט
+      const view = searchParams.get('view');
+      if (view === 'chat') {
+        setActiveTab('details'); // 'details' הוא הטאב שמכיל את הצ'אט
+      } else {
+        setActiveTab('presentation'); // ברירת מחדל
+      }
+      // ... (שאר הלוגיקה שלך ב-useEffect)
+    }
+  }, [isOpen, searchParams, suggestion?.id]); // הוספנו את searchParams לרשימת התלויות
+  // --- END OF CHANGE ---
 
   const isFirstParty = suggestion?.firstPartyId === userId;
   const targetParty = suggestion
