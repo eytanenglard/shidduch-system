@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Image from 'next/image';
-import { useSearchParams } from 'next/navigation'; // ייבוא חדש
+import { useSearchParams } from 'next/navigation';
 
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -19,6 +19,7 @@ import {
   X,
   Loader2,
   Sparkles,
+  Brain,
   User,
   Info,
   Heart,
@@ -87,7 +88,7 @@ import { ProfileCard } from '@/app/components/profile';
 import SuggestionTimeline from '../timeline/SuggestionTimeline';
 import InquiryThreadView from '../inquiries/InquiryThreadView';
 import { AskMatchmakerDialog } from '../dialogs/AskMatchmakerDialog';
-import { UserAiAnalysisDialog } from '../dialogs/UserAiAnalysisDialog';
+import { DialogBody as AiAnalysisBody } from '../dialogs/UserAiAnalysisDialog';
 import type { ExtendedMatchSuggestion } from '../types';
 
 interface SuggestionDetailsModalProps {
@@ -267,7 +268,6 @@ const EnhancedHeroSection: React.FC<{
             </div>
           </div>
           <div className="max-w-4xl mx-auto mb-8">
-            {/* --- START: UPDATED TEXT --- */}
             <h1
               className="text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-6 leading-tight animate-fade-in-up"
               style={{ animationDelay: '0.5s' }}
@@ -282,7 +282,6 @@ const EnhancedHeroSection: React.FC<{
               <br />
               אנו מאמינים שיש כאן בסיס אמיתי להיכרות משמעותית.
             </p>
-            {/* --- END: UPDATED TEXT --- */}
           </div>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-12">
@@ -371,7 +370,6 @@ const EnhancedHeroSection: React.FC<{
                       <Diamond className="w-6 h-6 text-purple-500" />
                       <Gem className="w-7 h-7 text-pink-500" />
                     </div>
-                    {/* --- START: UPDATED TEXT --- */}
                     <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-4 leading-tight">
                       הסיפור שמאחורי ההתאמה
                     </h2>
@@ -380,7 +378,6 @@ const EnhancedHeroSection: React.FC<{
                       <br />
                       הנה כמה מהחיבורים שזיהינו כאן.
                     </p>
-                    {/* --- END: UPDATED TEXT --- */}
                   </div>
                   {excitementFactors.length > 0 && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
@@ -510,7 +507,6 @@ const EnhancedHeroSection: React.FC<{
                     <br />
                     קח/י את הזמן, ובחר/י מה שהכי מרגיש לך נכון.
                   </p>
-                  {/* --- START: UPDATED SECTION --- */}
                   <div className="flex flex-col items-center gap-4">
                     <Badge className="bg-white/20 text-white border-white/30 px-4 py-2 text-base">
                       <Timer className="w-4 h-4 ml-2" />
@@ -524,7 +520,6 @@ const EnhancedHeroSection: React.FC<{
                       לפרופיל המלא <ArrowRight className="w-4 h-4 mr-2" />
                     </Button>
                   </div>
-                  {/* --- END: UPDATED SECTION --- */}
                 </div>
               </CardContent>
             </Card>
@@ -534,10 +529,6 @@ const EnhancedHeroSection: React.FC<{
     </div>
   );
 };
-
-// ... (Rest of the file remains unchanged)
-// The components EnhancedQuickActions, EnhancedTabsSection, and the main SuggestionDetailsModal
-// will remain as they are, since their logic is not affected by these text changes.
 
 const EnhancedQuickActions: React.FC<{
   isExpanded: boolean;
@@ -792,6 +783,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isQuestionnaireLoading, setIsQuestionnaireLoading] = useState(false);
   const [isActionsExpanded, setIsActionsExpanded] = useState(false);
+  const [isShowingAiAnalysis, setIsShowingAiAnalysis] = useState(false);
 
   const isMobile = useIsMobile();
   const viewportHeight = useViewportHeight();
@@ -802,6 +794,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
     if (isOpen) {
       setActiveTab('presentation');
       setIsActionsExpanded(false);
+      setIsShowingAiAnalysis(false);
       if (isMobile || isFullscreen) {
         document.body.style.overflow = 'hidden';
         document.documentElement.style.overflow = 'hidden';
@@ -828,17 +821,14 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      // בדוק אם ה-URL מכיל פרמטר שדורש לפתוח את הצ'אט
       const view = searchParams.get('view');
       if (view === 'chat') {
-        setActiveTab('details'); // 'details' הוא הטאב שמכיל את הצ'אט
+        setActiveTab('details');
       } else {
-        setActiveTab('presentation'); // ברירת מחדל
+        setActiveTab('presentation');
       }
-      // ... (שאר הלוגיקה שלך ב-useEffect)
     }
-  }, [isOpen, searchParams, suggestion?.id]); // הוספנו את searchParams לרשימת התלויות
-  // --- END OF CHANGE ---
+  }, [isOpen, searchParams, suggestion?.id]);
 
   const isFirstParty = suggestion?.firstPartyId === userId;
   const targetParty = suggestion
@@ -913,13 +903,6 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
           className={cn(getModalClasses())}
           dir="rtl"
           onOpenAutoFocus={(e) => e.preventDefault()}
-          // vvv--- FIX: Add this event handler ---vvv
-          onInteractOutside={(e) => {
-            if ((e.target as HTMLElement).closest('[data-ai-dialog-trigger]')) {
-              e.preventDefault();
-            }
-          }}
-          // ^^^------------------------------------^^^
           data-fullscreen={isFullscreen}
           data-mobile={isMobile}
           style={
@@ -941,152 +924,185 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
               : undefined
           }
         >
-          <ScrollArea className="flex-grow min-h-0 modal-scroll">
-            <Tabs
-              value={activeTab}
-              onValueChange={setActiveTab}
-              className="h-full"
-            >
-              <EnhancedTabsSection
-                activeTab={activeTab}
-                onTabChange={setActiveTab}
-                onClose={onClose}
-                isFullscreen={isFullscreen}
-                onToggleFullscreen={!isMobile ? toggleFullscreen : () => {}}
-                isMobile={isMobile}
-                isTransitioning={isTransitioning}
+          {isShowingAiAnalysis ? (
+            <div className="flex-grow min-h-0 flex flex-col">
+              <AiAnalysisBody
+                suggestedUserId={targetParty.id}
+                currentUserName={
+                  isFirstParty
+                    ? suggestion.firstParty.firstName
+                    : suggestion.secondParty.firstName
+                }
+                suggestedUserName={targetParty.firstName}
+                isDemo={isDemo}
+                demoAnalysisData={demoAnalysisData}
+                onOpenChange={(open) => {
+                  if (!open) setIsShowingAiAnalysis(false);
+                }}
               />
-              <TabsContent value="presentation" className="mt-0">
-                <EnhancedHeroSection
-                  matchmaker={suggestion.matchmaker}
-                  targetParty={targetParty}
-                  personalNote={
-                    isFirstParty
-                      ? suggestion.firstPartyNotes
-                      : suggestion.secondPartyNotes
-                  }
-                  matchingReason={suggestion.matchingReason}
-                  onViewProfile={() => setActiveTab('profile')}
-                  onStartConversation={() => setShowAskDialog(true)}
-                />
-              </TabsContent>
-              <TabsContent
-                value="profile"
-                className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen"
-              >
-                {isQuestionnaireLoading ? (
-                  <div className="flex justify-center items-center h-64">
-                    <div className="text-center">
-                      <Loader2 className="w-12 h-12 animate-spin text-purple-600 mx-auto mb-4" />
-                      <p className="text-lg font-semibold text-gray-700">
-                        טוען פרופיל מפורט...
-                      </p>
-                      <p className="text-sm text-gray-500 mt-2">
-                        זה יכול לקחת מספר שניות
-                      </p>
-                    </div>
-                  </div>
-                ) : profileWithUser ? (
-                  <ProfileCard
-                    profile={profileWithUser}
-                    isProfileComplete={targetParty.isProfileComplete}
-                    images={targetParty.images}
-                    questionnaire={questionnaire}
-                    viewMode="candidate"
+            </div>
+          ) : (
+            <>
+              <ScrollArea className="flex-grow min-h-0 modal-scroll">
+                <Tabs
+                  value={activeTab}
+                  onValueChange={setActiveTab}
+                  className="h-full"
+                >
+                  <EnhancedTabsSection
+                    activeTab={activeTab}
+                    onTabChange={setActiveTab}
+                    onClose={onClose}
+                    isFullscreen={isFullscreen}
+                    onToggleFullscreen={!isMobile ? toggleFullscreen : () => {}}
+                    isMobile={isMobile}
+                    isTransitioning={isTransitioning}
                   />
-                ) : (
-                  <div className="text-center p-12">
-                    <div className="w-24 h-24 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-6">
-                      <AlertTriangle className="w-12 h-12 text-red-500" />
-                    </div>
-                    <h3 className="text-2xl font-bold text-gray-800 mb-4">
-                      שגיאה בטעינת פרופיל
-                    </h3>
-                    <p className="text-gray-600 max-w-md mx-auto leading-relaxed">
-                      לא הצלחנו לטעון את הפרופיל. אנא פנה לשדכן לקבלת עזרה
-                      נוספת.
-                    </p>
-                    <Button
-                      onClick={() => setShowAskDialog(true)}
-                      className="mt-6 bg-gradient-to-r from-purple-500 to-pink-500 text-white"
-                    >
-                      <MessageCircle className="w-4 h-4 ml-2" />
-                      פנה לשדכן
-                    </Button>
-                  </div>
-                )}
-              </TabsContent>
-              <TabsContent
-                value="compatibility"
-                className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen"
-              >
-                <div className="flex flex-col items-center justify-center h-full min-h-[600px] text-center space-y-8 p-6">
-                  <div className="relative">
-                    <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center mx-auto shadow-2xl">
-                      <Bot className="w-16 h-16 text-blue-500" />
-                    </div>
-                    <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg animate-bounce">
-                      <Wand2 className="w-6 h-6 text-white" />
-                    </div>
-                  </div>
-                  <div className="space-y-4 max-w-2xl">
-                    <h3 className="text-3xl font-bold text-gray-800">
-                      🔮 רוצה מבט מעמיק יותר?
-                    </h3>
-                    <p className="text-xl text-gray-600 leading-relaxed">
-                      ה-AI החכם שלנו יכול לנתח את כל הנתונים ולספק לך תובנות
-                      מקצועיות על פוטנציאל החיבור, נקודות חוזק, וגם רעיונות
-                      לפתיחת שיחה.
-                    </p>
-                    <div className="flex items-center justify-center gap-4 text-sm text-gray-500 font-medium">
-                      <div className="flex items-center gap-2">
-                        <TrendingUp className="w-4 h-4" />
-                        <span>ניתוח עמוק</span>
+                  <TabsContent value="presentation" className="mt-0">
+                    <EnhancedHeroSection
+                      matchmaker={suggestion.matchmaker}
+                      targetParty={targetParty}
+                      personalNote={
+                        isFirstParty
+                          ? suggestion.firstPartyNotes
+                          : suggestion.secondPartyNotes
+                      }
+                      matchingReason={suggestion.matchingReason}
+                      onViewProfile={() => setActiveTab('profile')}
+                      onStartConversation={() => setShowAskDialog(true)}
+                    />
+                  </TabsContent>
+                  <TabsContent
+                    value="profile"
+                    className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen"
+                  >
+                    {isQuestionnaireLoading ? (
+                      <div className="flex justify-center items-center h-64">
+                        <div className="text-center">
+                          <Loader2 className="w-12 h-12 animate-spin text-purple-600 mx-auto mb-4" />
+                          <p className="text-lg font-semibold text-gray-700">
+                            טוען פרופיל מפורט...
+                          </p>
+                          <p className="text-sm text-gray-500 mt-2">
+                            זה יכול לקחת מספר שניות
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Network className="w-4 h-4" />
-                        <span>נקודות חיבור</span>
+                    ) : profileWithUser ? (
+                      <ProfileCard
+                        profile={profileWithUser}
+                        isProfileComplete={targetParty.isProfileComplete}
+                        images={targetParty.images}
+                        questionnaire={questionnaire}
+                        viewMode="candidate"
+                      />
+                    ) : (
+                      <div className="text-center p-12">
+                        <div className="w-24 h-24 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-6">
+                          <AlertTriangle className="w-12 h-12 text-red-500" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-800 mb-4">
+                          שגיאה בטעינת פרופיל
+                        </h3>
+                        <p className="text-gray-600 max-w-md mx-auto leading-relaxed">
+                          לא הצלחנו לטעון את הפרופיל. אנא פנה לשדכן לקבלת עזרה
+                          נוספת.
+                        </p>
+                        <Button
+                          onClick={() => setShowAskDialog(true)}
+                          className="mt-6 bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+                        >
+                          <MessageCircle className="w-4 h-4 ml-2" />
+                          פנה לשדכן
+                        </Button>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Compass className="w-4 h-4" />
-                        <span>הדרכה אישית</span>
+                    )}
+                  </TabsContent>
+                  <TabsContent
+                    value="compatibility"
+                    className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen"
+                  >
+                    <div className="flex flex-col items-center justify-center h-full min-h-[600px] text-center space-y-8 p-6">
+                      <div className="relative">
+                        <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center mx-auto shadow-2xl">
+                          <Bot className="w-16 h-16 text-blue-500" />
+                        </div>
+                        <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg animate-bounce">
+                          <Wand2 className="w-6 h-6 text-white" />
+                        </div>
                       </div>
+                      <div className="space-y-4 max-w-2xl">
+                        <h3 className="text-3xl font-bold text-gray-800">
+                          🔮 רוצה מבט מעמיק יותר?
+                        </h3>
+                        <p className="text-xl text-gray-600 leading-relaxed">
+                          ה-AI החכם שלנו יכול לנתח את כל הנתונים ולספק לך תובנות
+                          מקצועיות על פוטנציאל החיבור, נקודות חוזק, וגם רעיונות
+                          לפתיחת שיחה.
+                        </p>
+                        <div className="flex items-center justify-center gap-4 text-sm text-gray-500 font-medium">
+                          <div className="flex items-center gap-2">
+                            <TrendingUp className="w-4 h-4" />
+                            <span>ניתוח עמוק</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Network className="w-4 h-4" />
+                            <span>נקודות חיבור</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Compass className="w-4 h-4" />
+                            <span>הדרכה אישית</span>
+                          </div>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        onClick={() => setIsShowingAiAnalysis(true)}
+                        className="relative overflow-hidden group bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 border-2 border-blue-200 text-blue-700 hover:from-blue-100 hover:to-pink-100 hover:border-blue-300 transition-all duration-300 shadow-lg hover:shadow-xl rounded-xl"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent transform -translate-x-full group-hover:animate-shimmer" />
+                        <div className="relative z-10 flex items-center gap-3">
+                          <div className="relative">
+                            <Brain className="w-6 h-6 transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110 text-blue-600" />
+                            <Sparkles className="w-3 h-3 absolute -top-1 -right-1 text-purple-500 opacity-0 group-hover:opacity-100" />
+                          </div>
+                          <span className="text-lg font-bold">
+                            ניתוח התאמה מבוסס AI
+                          </span>
+                        </div>
+                      </Button>
                     </div>
-                  </div>
-                  <UserAiAnalysisDialog
-                    suggestedUserId={targetParty.id}
-                    isDemo={isDemo}
-                    demoAnalysisData={demoAnalysisData}
-                  />
-                </div>
-              </TabsContent>
-              <TabsContent
-                value="details"
-                className="mt-0 p-6 md:p-8 space-y-8 bg-gradient-to-br from-slate-50 to-gray-50 min-h-screen"
-              >
-                <div className="max-w-6xl mx-auto space-y-8">
-                  <SuggestionTimeline
-                    statusHistory={suggestion.statusHistory}
-                  />
-                  <InquiryThreadView
-                    suggestionId={suggestion.id}
-                    userId={userId}
-                    showComposer={true}
-                    isDemo={isDemo} // <-- הוספת הפרופ כאן
-                  />
-                </div>
-              </TabsContent>
-            </Tabs>
-          </ScrollArea>
-          <EnhancedQuickActions
-            isExpanded={isActionsExpanded}
-            onToggleExpand={() => setIsActionsExpanded((prev) => !prev)}
-            canAct={canActOnSuggestion}
-            isSubmitting={isSubmitting}
-            onApprove={() => triggerConfirmDialog('approve')}
-            onDecline={() => triggerConfirmDialog('decline')}
-            onAskQuestion={() => setShowAskDialog(true)}
-          />
+                  </TabsContent>
+                  <TabsContent
+                    value="details"
+                    className="mt-0 p-6 md:p-8 space-y-8 bg-gradient-to-br from-slate-50 to-gray-50 min-h-screen"
+                  >
+                    <div className="max-w-6xl mx-auto space-y-8">
+                      <SuggestionTimeline
+                        statusHistory={suggestion.statusHistory}
+                      />
+                      <InquiryThreadView
+                        suggestionId={suggestion.id}
+                        userId={userId}
+                        showComposer={true}
+                        isDemo={isDemo}
+                      />
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </ScrollArea>
+              <EnhancedQuickActions
+                isExpanded={isActionsExpanded}
+                onToggleExpand={() => setIsActionsExpanded((prev) => !prev)}
+                canAct={canActOnSuggestion}
+                isSubmitting={isSubmitting}
+                onApprove={() => triggerConfirmDialog('approve')}
+                onDecline={() => triggerConfirmDialog('decline')}
+                onAskQuestion={() => setShowAskDialog(true)}
+              />
+            </>
+          )}
         </DialogContent>
       </Dialog>
       <AskMatchmakerDialog

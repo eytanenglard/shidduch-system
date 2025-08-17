@@ -10,7 +10,6 @@ import {
   DialogTitle,
   DialogDescription,
   DialogTrigger,
-  DialogClose,
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
@@ -203,7 +202,7 @@ const ErrorScreen: React.FC<{ error: string; onRetry: () => void }> = ({
 );
 
 // --- DialogBody component: contains all logic and complex JSX (גרסה מתוקנת) ---
-const DialogBody: React.FC<
+export const DialogBody: React.FC<
   UserAiAnalysisDialogProps & { onOpenChange: (open: boolean) => void }
 > = ({
   suggestedUserId,
@@ -285,11 +284,9 @@ const DialogBody: React.FC<
             </DialogDescription>
           </div>
         </div>
-        <DialogClose asChild>
-          <Button variant="ghost" size="icon">
-            <X className="h-5 w-5" />
-          </Button>
-        </DialogClose>
+        <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)}>
+          <X className="h-5 w-5" />
+        </Button>
       </DialogHeader>
 
       <main className="flex-1 flex flex-col min-h-0 bg-white">
@@ -397,7 +394,7 @@ const DialogBody: React.FC<
       <div className="p-4 bg-gray-50/80 border-t flex justify-end flex-shrink-0">
         <Button variant="ghost" onClick={() => onOpenChange(false)}>
           <ArrowLeft className="w-4 h-4 ml-2" />
-          סגור
+          חזור
         </Button>
       </div>
     </>
@@ -418,7 +415,6 @@ export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = (
     <Button
       variant="outline"
       size="lg"
-      data-ai-dialog-trigger // <<<--- FIX: Add this data attribute
       className="relative overflow-hidden group bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 border-2 border-blue-200 text-blue-700 hover:from-blue-100 hover:to-pink-100 hover:border-blue-300 transition-all duration-300 shadow-lg hover:shadow-xl rounded-xl"
     >
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent transform -translate-x-full group-hover:animate-shimmer" />
