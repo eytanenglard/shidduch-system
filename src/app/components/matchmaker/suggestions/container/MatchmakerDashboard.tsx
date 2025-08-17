@@ -1,10 +1,20 @@
-"use client";
+'use client';
 
-import React, { useState, useCallback, useEffect, useMemo } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Plus, RefreshCw, BarChart, Loader2, List, LayoutGrid, Filter, Search } from "lucide-react";
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useSession } from "next-auth/react"; // 1. ייבוא של useSession
+import {
+  Plus,
+  RefreshCw,
+  BarChart,
+  Loader2,
+  List,
+  LayoutGrid,
+  Filter,
+  Search,
+} from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,43 +24,49 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "@/components/ui/dialog";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { toast } from "sonner";
-import { MatchSuggestionStatus, Priority } from "@prisma/client";
-import { cn } from "@/lib/utils";
+} from '@/components/ui/dialog';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { toast } from 'sonner';
+import { MatchSuggestionStatus, Priority } from '@prisma/client';
+import { cn } from '@/lib/utils';
 
 // --- START: Type Imports and Definitions ---
 import type {
   Suggestion,
   SuggestionFilters,
   ActionAdditionalData,
-} from "@/types/suggestions";
-import type { NewSuggestionFormData } from "../../suggestions/NewSuggestionForm/schema";
-import type { Candidate } from "../../new/types/candidates";
+} from '@/types/suggestions';
+import type { NewSuggestionFormData } from '../../suggestions/NewSuggestionForm/schema';
+import type { Candidate } from '../../new/types/candidates';
 
 // Hooks
-import { useCandidates } from "../../new/hooks/useCandidates";
+import { useCandidates } from '../../new/hooks/useCandidates';
 
 // Components
-import NewSuggestionForm from "../../suggestions/NewSuggestionForm";
-import SuggestionsStats from "./SuggestionsStats";
-import SuggestionActionBar from "./SuggestionActionBar";
-import SuggestionDetailsDialog from "../details/SuggestionDetailsDialog";
-import SuggestionCard from "../cards/SuggestionCard";
-import EditSuggestionForm from "../EditSuggestionForm";
-import MessageForm from "../MessageForm";
-import MonthlyTrendModal from "./MonthlyTrendModal";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Input } from "@/components/ui/input";
+import NewSuggestionForm from '../../suggestions/NewSuggestionForm';
+import SuggestionsStats from './SuggestionsStats';
+import SuggestionActionBar from './SuggestionActionBar';
+import SuggestionDetailsDialog from '../details/SuggestionDetailsDialog';
+import SuggestionCard from '../cards/SuggestionCard';
+import EditSuggestionForm from '../EditSuggestionForm';
+import MessageForm from '../MessageForm';
+import MonthlyTrendModal from './MonthlyTrendModal';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Input } from '@/components/ui/input';
 
 // --- A simple media query hook ---
 const useMediaQuery = (query: string) => {
@@ -58,14 +74,14 @@ const useMediaQuery = (query: string) => {
   useEffect(() => {
     // Ensure this runs only on the client
     if (typeof window === 'undefined') return;
-    
+
     const media = window.matchMedia(query);
     if (media.matches !== matches) {
       setMatches(media.matches);
     }
     const listener = () => setMatches(media.matches);
-    window.addEventListener("resize", listener);
-    return () => window.removeEventListener("resize", listener);
+    window.addEventListener('resize', listener);
+    return () => window.removeEventListener('resize', listener);
   }, [matches, query]);
   return matches;
 };
@@ -84,8 +100,8 @@ interface SuggestionUpdatePayload {
 
 interface SendMessagePayload {
   suggestionId: string;
-  partyType: "first" | "second" | "both";
-  messageType: "message" | "reminder" | "update";
+  partyType: 'first' | 'second' | 'both';
+  messageType: 'message' | 'reminder' | 'update';
   messageContent: string;
 }
 
@@ -94,50 +110,59 @@ type DialogActionData = {
   newStatus?: MatchSuggestionStatus;
   notes?: string;
   suggestion?: Suggestion;
-  partyType?: "first" | "second" | "both";
+  partyType?: 'first' | 'second' | 'both';
   type?: string;
 };
 
 type ConfirmActionData = {
   suggestionId: string;
-  partyType?: "first" | "second" | "both";
+  partyType?: 'first' | 'second' | 'both';
   type?: string;
 };
 // --- END: Type Imports and Definitions ---
 type SuggestionCardActionType =
-  | "view"
-  | "contact"
-  | "message"
-  | "edit"
-  | "delete"
-  | "resend"
-  | "changeStatus"
-  | "reminder";
+  | 'view'
+  | 'contact'
+  | 'message'
+  | 'edit'
+  | 'delete'
+  | 'resend'
+  | 'changeStatus'
+  | 'reminder';
 
 type SuggestionDetailsActionType =
   | SuggestionCardActionType // Includes all actions from the card
-  | "sendReminder" | "shareContacts" | "scheduleMeeting" | "viewMeetings"
-  | "exportHistory" | "export" | "resendToAll";
+  | 'sendReminder'
+  | 'shareContacts'
+  | 'scheduleMeeting'
+  | 'viewMeetings'
+  | 'exportHistory'
+  | 'export'
+  | 'resendToAll';
 
 export default function MatchmakerDashboard() {
-  const isMobile = useMediaQuery("(max-width: 768px)");
+  const isMobile = useMediaQuery('(max-width: 768px)');
   const [mobileView, setMobileView] = useState<'list' | 'kanban'>('list');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
-
+  const { data: session } = useSession();
   // State management
-  const [activeTab, setActiveTab] = useState("pending");
+  const [activeTab, setActiveTab] = useState('pending');
   const [showNewSuggestion, setShowNewSuggestion] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<SuggestionFilters>({});
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Dialogs and selected items state
-  const [selectedSuggestion, setSelectedSuggestion] = useState<Suggestion | null>(null);
+  const [selectedSuggestion, setSelectedSuggestion] =
+    useState<Suggestion | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [confirmAction, setConfirmAction] = useState<{ type: string; data: ConfirmActionData; } | null>(null);
+  const [confirmAction, setConfirmAction] = useState<{
+    type: string;
+    data: ConfirmActionData;
+  } | null>(null);
   const [showEditForm, setShowEditForm] = useState(false);
   const [showMessageForm, setShowMessageForm] = useState(false);
   const [showMonthlyTrendDialog, setShowMonthlyTrendDialog] = useState(false);
@@ -148,13 +173,13 @@ export default function MatchmakerDashboard() {
   const fetchSuggestions = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch("/api/matchmaker/suggestions");
-      if (!response.ok) throw new Error("Failed to fetch suggestions");
+      const response = await fetch('/api/matchmaker/suggestions');
+      if (!response.ok) throw new Error('Failed to fetch suggestions');
       const data = await response.json();
       setSuggestions(data);
     } catch (error: unknown) {
-      console.error("Error fetching suggestions:", error);
-      toast.error("שגיאה בטעינת ההצעות");
+      console.error('Error fetching suggestions:', error);
+      toast.error('שגיאה בטעינת ההצעות');
     } finally {
       setIsLoading(false);
     }
@@ -163,31 +188,52 @@ export default function MatchmakerDashboard() {
   useEffect(() => {
     fetchSuggestions();
   }, [fetchSuggestions]);
-  
+
   const filteredSuggestions = useMemo(() => {
     return suggestions.filter((s) => {
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         const match =
-          (s.firstParty.firstName + " " + s.firstParty.lastName).toLowerCase().includes(query) ||
-          (s.secondParty.firstName + " " + s.secondParty.lastName).toLowerCase().includes(query) ||
-          (s.firstParty.profile?.city && s.firstParty.profile.city.toLowerCase().includes(query)) ||
-          (s.secondParty.profile?.city && s.secondParty.profile.city.toLowerCase().includes(query));
+          (s.firstParty.firstName + ' ' + s.firstParty.lastName)
+            .toLowerCase()
+            .includes(query) ||
+          (s.secondParty.firstName + ' ' + s.secondParty.lastName)
+            .toLowerCase()
+            .includes(query) ||
+          (s.firstParty.profile?.city &&
+            s.firstParty.profile.city.toLowerCase().includes(query)) ||
+          (s.secondParty.profile?.city &&
+            s.secondParty.profile.city.toLowerCase().includes(query));
         if (!match) return false;
       }
-      if (filters.priority?.length && !filters.priority.includes(s.priority)) return false;
-      if (filters.status?.length && !filters.status.includes(s.status)) return false;
+      if (filters.priority?.length && !filters.priority.includes(s.priority))
+        return false;
+      if (filters.status?.length && !filters.status.includes(s.status))
+        return false;
       if (filters.dateRange) {
         const createdAt = new Date(s.createdAt);
-        if (createdAt < filters.dateRange.start || (filters.dateRange.end && createdAt > filters.dateRange.end)) return false;
+        if (
+          createdAt < filters.dateRange.start ||
+          (filters.dateRange.end && createdAt > filters.dateRange.end)
+        )
+          return false;
       }
       return true;
     });
   }, [suggestions, searchQuery, filters]);
-  
-  const pendingSuggestions = useMemo(() => filteredSuggestions.filter(s => s.category === 'PENDING'), [filteredSuggestions]);
-  const activeSuggestions = useMemo(() => filteredSuggestions.filter(s => s.category === 'ACTIVE'), [filteredSuggestions]);
-  const historySuggestions = useMemo(() => filteredSuggestions.filter(s => s.category === 'HISTORY'), [filteredSuggestions]);
+
+  const pendingSuggestions = useMemo(
+    () => filteredSuggestions.filter((s) => s.category === 'PENDING'),
+    [filteredSuggestions]
+  );
+  const activeSuggestions = useMemo(
+    () => filteredSuggestions.filter((s) => s.category === 'ACTIVE'),
+    [filteredSuggestions]
+  );
+  const historySuggestions = useMemo(
+    () => filteredSuggestions.filter((s) => s.category === 'HISTORY'),
+    [filteredSuggestions]
+  );
 
   const pendingCount = pendingSuggestions.length;
   const activeCount = activeSuggestions.length;
@@ -197,198 +243,275 @@ export default function MatchmakerDashboard() {
     setIsRefreshing(true);
     await fetchSuggestions();
     setIsRefreshing(false);
-    toast.success("נתוני ההצעות עודכנו");
+    toast.success('נתוני ההצעות עודכנו');
   };
 
   const handleNewSuggestion = async (data: NewSuggestionFormData) => {
     try {
-      const response = await fetch("/api/matchmaker/suggestions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/matchmaker/suggestions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      if (!response.ok) throw new Error((await response.json()).error || "Failed to create suggestion");
+      if (!response.ok)
+        throw new Error(
+          (await response.json()).error || 'Failed to create suggestion'
+        );
       setShowNewSuggestion(false);
-      toast.success("ההצעה נוצרה בהצלחה");
+      toast.success('ההצעה נוצרה בהצלחה');
       await fetchSuggestions();
     } catch (error: unknown) {
-      console.error("Error creating suggestion:", error);
-      toast.error("שגיאה ביצירת ההצעה: " + (error instanceof Error ? error.message : ""));
+      console.error('Error creating suggestion:', error);
+      toast.error(
+        'שגיאה ביצירת ההצעה: ' + (error instanceof Error ? error.message : '')
+      );
     }
   };
 
-  const handleSuggestionDeleted = useCallback((deletedId: string) => {
-    setSuggestions((prev) => prev.filter((s) => s.id !== deletedId));
-    if (selectedSuggestion?.id === deletedId) setSelectedSuggestion(null);
-  }, [selectedSuggestion]);
+  const handleSuggestionDeleted = useCallback(
+    (deletedId: string) => {
+      setSuggestions((prev) => prev.filter((s) => s.id !== deletedId));
+      if (selectedSuggestion?.id === deletedId) setSelectedSuggestion(null);
+    },
+    [selectedSuggestion]
+  );
 
   const handleConfirmAction = async () => {
     if (!confirmAction) return;
     try {
-      if (confirmAction.type === "delete") {
-        const response = await fetch(`/api/matchmaker/suggestions/${confirmAction.data.suggestionId}/delete`, { method: "DELETE" });
-        if (!response.ok) throw new Error("Failed to delete suggestion");
+      if (confirmAction.type === 'delete') {
+        const response = await fetch(
+          `/api/matchmaker/suggestions/${confirmAction.data.suggestionId}/delete`,
+          { method: 'DELETE' }
+        );
+        if (!response.ok) throw new Error('Failed to delete suggestion');
         handleSuggestionDeleted(confirmAction.data.suggestionId);
-        toast.success("ההצעה נמחקה בהצלחה");
+        toast.success('ההצעה נמחקה בהצלחה');
       }
     } catch (error: unknown) {
-      toast.error("אירעה שגיאה בביצוע הפעולה");
+      toast.error('אירעה שגיאה בביצוע הפעולה');
     } finally {
       setShowConfirmDialog(false);
       setConfirmAction(null);
     }
   };
-  
-  const handleStatusChange = async (suggestionId: string, newStatus: MatchSuggestionStatus, notes?: string) => {
+
+  const handleStatusChange = async (
+    suggestionId: string,
+    newStatus: MatchSuggestionStatus,
+    notes?: string
+  ) => {
     try {
-      const response = await fetch(`/api/matchmaker/suggestions/${suggestionId}/status`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus, notes: notes || `סטטוס שונה מממשק ניהול` }),
-      });
-      if (!response.ok) throw new Error((await response.json()).error || "Failed to update status");
-      toast.success("סטטוס ההצעה עודכן בהצלחה");
+      const response = await fetch(
+        `/api/matchmaker/suggestions/${suggestionId}/status`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            status: newStatus,
+            notes: notes || `סטטוס שונה מממשק ניהול`,
+          }),
+        }
+      );
+      if (!response.ok)
+        throw new Error(
+          (await response.json()).error || 'Failed to update status'
+        );
+      toast.success('סטטוס ההצעה עודכן בהצלחה');
       fetchSuggestions();
     } catch (error: unknown) {
-      console.error("Error updating suggestion status:", error);
-      toast.error("שגיאה בעדכון סטטוס ההצעה: " + (error instanceof Error ? error.message : ""));
+      console.error('Error updating suggestion status:', error);
+      toast.error(
+        'שגיאה בעדכון סטטוס ההצעה: ' +
+          (error instanceof Error ? error.message : '')
+      );
     }
   };
 
-// תיקון הפונקציה handleUpdateSuggestion ב-MatchmakerDashboard.tsx
+  // תיקון הפונקציה handleUpdateSuggestion ב-MatchmakerDashboard.tsx
 
-const handleUpdateSuggestion = async (data: { 
-  suggestionId: string; 
-  updates: {
-    priority?: Priority;
-    status?: MatchSuggestionStatus;
-    statusNotes?: string;
-    matchingReason?: string;
-    firstPartyNotes?: string;
-    secondPartyNotes?: string;
-    internalNotes?: string;
-    decisionDeadline?: Date;
-  };
-}) => {
-  try {
-    setIsSubmitting(true);
-    console.log("Updating suggestion with data:", data);
+  const handleUpdateSuggestion = async (data: {
+    suggestionId: string;
+    updates: {
+      priority?: Priority;
+      status?: MatchSuggestionStatus;
+      statusNotes?: string;
+      matchingReason?: string;
+      firstPartyNotes?: string;
+      secondPartyNotes?: string;
+      internalNotes?: string;
+      decisionDeadline?: Date;
+    };
+  }) => {
+    try {
+      setIsSubmitting(true);
+      console.log('Updating suggestion with data:', data);
 
-    // אם יש שינוי סטטוס, נטפל בזה בנפרד
-    if (data.updates.status && data.updates.status !== selectedSuggestion?.status) {
-      console.log("Status change detected:", data.updates.status);
-      
-      // שליחת עדכון סטטוס
-      const statusResponse = await fetch(`/api/matchmaker/suggestions/${data.suggestionId}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          status: data.updates.status,
-          notes: data.updates.statusNotes || `סטטוס שונה ל-${data.updates.status}`
-        }),
-      });
+      // אם יש שינוי סטטוס, נטפל בזה בנפרד
+      if (
+        data.updates.status &&
+        data.updates.status !== selectedSuggestion?.status
+      ) {
+        console.log('Status change detected:', data.updates.status);
 
-      if (!statusResponse.ok) {
-        const errorData = await statusResponse.json();
-        throw new Error(errorData.error || 'Failed to update status');
+        // שליחת עדכון סטטוס
+        const statusResponse = await fetch(
+          `/api/matchmaker/suggestions/${data.suggestionId}/status`,
+          {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              status: data.updates.status,
+              notes:
+                data.updates.statusNotes ||
+                `סטטוס שונה ל-${data.updates.status}`,
+            }),
+          }
+        );
+
+        if (!statusResponse.ok) {
+          const errorData = await statusResponse.json();
+          throw new Error(errorData.error || 'Failed to update status');
+        }
+
+        console.log('Status updated successfully');
       }
 
-      console.log("Status updated successfully");
+      // עדכון שאר הפרטים
+      const updatePayload = {
+        priority: data.updates.priority,
+        matchingReason: data.updates.matchingReason,
+        firstPartyNotes: data.updates.firstPartyNotes,
+        secondPartyNotes: data.updates.secondPartyNotes,
+        internalNotes: data.updates.internalNotes,
+        decisionDeadline: data.updates.decisionDeadline?.toISOString(),
+      };
+
+      console.log('Updating suggestion details with payload:', updatePayload);
+
+      const response = await fetch(
+        `/api/matchmaker/suggestions/${data.suggestionId}`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updatePayload),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update suggestion');
+      }
+
+      const result = await response.json();
+      console.log('Update result:', result);
+
+      toast.success('פרטי ההצעה עודכנו בהצלחה');
+      setShowEditForm(false);
+
+      // רענון רשימת ההצעות
+      await fetchSuggestions();
+    } catch (error) {
+      console.error('Error updating suggestion:', error);
+      toast.error(
+        'שגיאה בעדכון פרטי ההצעה: ' +
+          (error instanceof Error ? error.message : 'שגיאה לא ידועה')
+      );
+    } finally {
+      setIsSubmitting(false);
     }
-
-    // עדכון שאר הפרטים
-    const updatePayload = {
-      priority: data.updates.priority,
-      matchingReason: data.updates.matchingReason,
-      firstPartyNotes: data.updates.firstPartyNotes,
-      secondPartyNotes: data.updates.secondPartyNotes,
-      internalNotes: data.updates.internalNotes,
-      decisionDeadline: data.updates.decisionDeadline?.toISOString()
-    };
-
-    console.log("Updating suggestion details with payload:", updatePayload);
-
-    const response = await fetch(`/api/matchmaker/suggestions/${data.suggestionId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updatePayload),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to update suggestion');
-    }
-
-    const result = await response.json();
-    console.log("Update result:", result);
-
-    toast.success("פרטי ההצעה עודכנו בהצלחה");
-    setShowEditForm(false);
-    
-    // רענון רשימת ההצעות
-    await fetchSuggestions();
-    
-  } catch (error) {
-    console.error("Error updating suggestion:", error);
-    toast.error("שגיאה בעדכון פרטי ההצעה: " + (error instanceof Error ? error.message : "שגיאה לא ידועה"));
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  };
 
   const handleSendMessage = async (data: SendMessagePayload) => {
     try {
-      const response = await fetch(`/api/matchmaker/suggestions/${data.suggestionId}/message`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const response = await fetch(
+        `/api/matchmaker/suggestions/${data.suggestionId}/message`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
             partyType: data.partyType,
             messageType: data.messageType,
-            content: data.messageContent
-        }),
-      });
-      if (!response.ok) throw new Error((await response.json()).error || 'Failed to send message');
-      toast.success("ההודעה נשלחה בהצלחה");
+            content: data.messageContent,
+          }),
+        }
+      );
+      if (!response.ok)
+        throw new Error(
+          (await response.json()).error || 'Failed to send message'
+        );
+      toast.success('ההודעה נשלחה בהצלחה');
       setShowMessageForm(false);
     } catch (error: unknown) {
-      toast.error("שגיאה בשליחת ההודעה: " + (error instanceof Error ? error.message : ""));
+      toast.error(
+        'שגיאה בשליחת ההודעה: ' + (error instanceof Error ? error.message : '')
+      );
     }
   };
-  
-  const handleDialogAction = (action: SuggestionDetailsActionType, data?: DialogActionData) => {
+
+  const handleDialogAction = (
+    action: SuggestionDetailsActionType,
+    data?: DialogActionData
+  ) => {
     setSelectedSuggestion(data?.suggestion || null);
     if (action === 'view' && data?.suggestion) {
-        setSelectedSuggestion(data.suggestion);
+      setSelectedSuggestion(data.suggestion);
     } else if (action === 'delete' && data?.suggestionId) {
-      setConfirmAction({ type: 'delete', data: { suggestionId: data.suggestionId } });
+      setConfirmAction({
+        type: 'delete',
+        data: { suggestionId: data.suggestionId },
+      });
       setShowConfirmDialog(true);
     } else if (action === 'edit' && data?.suggestion) {
       setShowEditForm(true);
     } else if (action === 'message' && data?.suggestion) {
       setShowMessageForm(true);
-    } else if (action === 'changeStatus' && data?.suggestionId && data.newStatus) {
-        handleStatusChange(data.suggestionId, data.newStatus, data.notes);
+    } else if (
+      action === 'changeStatus' &&
+      data?.suggestionId &&
+      data.newStatus
+    ) {
+      handleStatusChange(data.suggestionId, data.newStatus, data.notes);
     }
   };
-  
-    const handleSuggestionAction = (type: SuggestionCardActionType, suggestion: Suggestion, additionalData?: ActionAdditionalData) => {
-    handleDialogAction(type, { ...additionalData, suggestionId: suggestion.id, suggestion });
+
+  const handleSuggestionAction = (
+    type: SuggestionCardActionType,
+    suggestion: Suggestion,
+    additionalData?: ActionAdditionalData
+  ) => {
+    handleDialogAction(type, {
+      ...additionalData,
+      suggestionId: suggestion.id,
+      suggestion,
+    });
   };
-  
+
   const kanbanColumns = useMemo(() => {
     const columns: { title: string; suggestions: Suggestion[] }[] = [
-      { title: "דורש טיפול", suggestions: [] },
-      { title: "ממתין לתגובה", suggestions: [] },
-      { title: "פעילות", suggestions: [] },
-      { title: "היסטוריה", suggestions: [] },
+      { title: 'דורש טיפול', suggestions: [] },
+      { title: 'ממתין לתגובה', suggestions: [] },
+      { title: 'פעילות', suggestions: [] },
+      { title: 'היסטוריה', suggestions: [] },
     ];
 
-    filteredSuggestions.forEach(s => {
-      if (['AWAITING_MATCHMAKER_APPROVAL', 'AWAITING_FIRST_DATE_FEEDBACK'].includes(s.status)) {
+    filteredSuggestions.forEach((s) => {
+      if (
+        [
+          'AWAITING_MATCHMAKER_APPROVAL',
+          'AWAITING_FIRST_DATE_FEEDBACK',
+        ].includes(s.status)
+      ) {
         columns[0].suggestions.push(s);
-      } else if (['PENDING_FIRST_PARTY', 'PENDING_SECOND_PARTY'].includes(s.status)) {
+      } else if (
+        ['PENDING_FIRST_PARTY', 'PENDING_SECOND_PARTY'].includes(s.status)
+      ) {
         columns[1].suggestions.push(s);
-      } else if (['CLOSED', 'CANCELLED', 'EXPIRED', 'MARRIED', 'ENGAGED'].includes(s.status)) {
+      } else if (
+        ['CLOSED', 'CANCELLED', 'EXPIRED', 'MARRIED', 'ENGAGED'].includes(
+          s.status
+        )
+      ) {
         columns[3].suggestions.push(s);
       } else {
         columns[2].suggestions.push(s);
@@ -446,27 +569,53 @@ const handleUpdateSuggestion = async (data: {
         <ToggleGroup
           type="single"
           value={mobileView}
-          onValueChange={(value: 'list' | 'kanban') => value && setMobileView(value)}
+          onValueChange={(value: 'list' | 'kanban') =>
+            value && setMobileView(value)
+          }
           className="mr-2"
         >
-          <ToggleGroupItem value="list" aria-label="List view"><List className="h-4 w-4" /></ToggleGroupItem>
-          <ToggleGroupItem value="kanban" aria-label="Kanban view"><LayoutGrid className="h-4 w-4" /></ToggleGroupItem>
+          <ToggleGroupItem value="list" aria-label="List view">
+            <List className="h-4 w-4" />
+          </ToggleGroupItem>
+          <ToggleGroupItem value="kanban" aria-label="Kanban view">
+            <LayoutGrid className="h-4 w-4" />
+          </ToggleGroupItem>
         </ToggleGroup>
       </div>
       {isLoading ? (
-        <div className="flex-1 flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
+        <div className="flex-1 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
       ) : mobileView === 'kanban' ? (
         <ScrollArea className="w-full whitespace-nowrap flex-1">
           <div className="flex gap-4 p-4 h-full">
             {kanbanColumns.map((col, idx) => (
-              <div key={idx} className="w-64 flex-shrink-0 bg-gray-100 rounded-lg flex flex-col">
+              <div
+                key={idx}
+                className="w-64 flex-shrink-0 bg-gray-100 rounded-lg flex flex-col"
+              >
                 <div className="p-3 font-semibold text-sm border-b sticky top-0 bg-gray-100/80 backdrop-blur-sm z-10">
-                  {col.title} <Badge variant="secondary" className="mr-1">{col.suggestions.length}</Badge>
+                  {col.title}{' '}
+                  <Badge variant="secondary" className="mr-1">
+                    {col.suggestions.length}
+                  </Badge>
                 </div>
                 <ScrollArea className="flex-1">
                   <div className="p-2 space-y-2">
-                    {col.suggestions.length > 0 ? col.suggestions.map(s => <SuggestionCard key={s.id} suggestion={s} onAction={handleSuggestionAction} variant="compact" />)
-                    : <div className="p-4 text-center text-xs text-gray-500">אין הצעות</div>}
+                    {col.suggestions.length > 0 ? (
+                      col.suggestions.map((s) => (
+                        <SuggestionCard
+                          key={s.id}
+                          suggestion={s}
+                          onAction={handleSuggestionAction}
+                          variant="compact"
+                        />
+                      ))
+                    ) : (
+                      <div className="p-4 text-center text-xs text-gray-500">
+                        אין הצעות
+                      </div>
+                    )}
                   </div>
                 </ScrollArea>
               </div>
@@ -475,18 +624,29 @@ const handleUpdateSuggestion = async (data: {
         </ScrollArea>
       ) : (
         <ScrollArea className="flex-1">
-            <div className="p-2 sm:p-4 space-y-4"> 
-            {filteredSuggestions.map(s => <SuggestionCard key={s.id} suggestion={s} onAction={handleSuggestionAction} variant="full" />)}
-            {filteredSuggestions.length === 0 && <div className="text-center p-10 text-gray-500">לא נמצאו הצעות תואמות.</div>}
+          <div className="p-2 sm:p-4 space-y-4">
+            {filteredSuggestions.map((s) => (
+              <SuggestionCard
+                key={s.id}
+                suggestion={s}
+                onAction={handleSuggestionAction}
+                variant="full"
+              />
+            ))}
+            {filteredSuggestions.length === 0 && (
+              <div className="text-center p-10 text-gray-500">
+                לא נמצאו הצעות תואמות.
+              </div>
+            )}
           </div>
         </ScrollArea>
       )}
-       <div className="p-4 bg-white border-t sticky bottom-0">
-         <Button onClick={() => setShowNewSuggestion(true)} className="w-full">
-            <Plus className="w-4 h-4 mr-2" />
-            הצעה חדשה
-         </Button>
-       </div>
+      <div className="p-4 bg-white border-t sticky bottom-0">
+        <Button onClick={() => setShowNewSuggestion(true)} className="w-full">
+          <Plus className="w-4 h-4 mr-2" />
+          הצעה חדשה
+        </Button>
+      </div>
     </div>
   );
 
@@ -495,48 +655,114 @@ const handleUpdateSuggestion = async (data: {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">ניהול הצעות שידוכים</h1>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}><RefreshCw className={cn("w-4 h-4 mr-2", isRefreshing && "animate-spin")} />{isRefreshing ? "מעדכן..." : "רענן"}</Button>
-          <Button variant="outline" size="sm" onClick={() => setShowMonthlyTrendDialog(true)}><BarChart className="w-4 h-4 mr-2" />מגמה חודשית</Button>
-          <Button onClick={() => setShowNewSuggestion(true)}><Plus className="w-4 h-4 mr-2" />הצעה חדשה</Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+          >
+            <RefreshCw
+              className={cn('w-4 h-4 mr-2', isRefreshing && 'animate-spin')}
+            />
+            {isRefreshing ? 'מעדכן...' : 'רענן'}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowMonthlyTrendDialog(true)}
+          >
+            <BarChart className="w-4 h-4 mr-2" />
+            מגמה חודשית
+          </Button>
+          <Button onClick={() => setShowNewSuggestion(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            הצעה חדשה
+          </Button>
         </div>
       </div>
-      <SuggestionsStats suggestions={suggestions} onFilterChange={(filter) => setFilters(prev => ({...prev, ...filter}))} />
+      <SuggestionsStats
+        suggestions={suggestions}
+        onFilterChange={(filter) =>
+          setFilters((prev) => ({ ...prev, ...filter }))
+        }
+      />
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <div className="flex items-center justify-between mb-6">
           <TabsList dir="rtl">
-            <TabsTrigger value="pending">ממתין לאישור <Badge className="mr-2">{pendingCount}</Badge></TabsTrigger>
-            <TabsTrigger value="active">פעילות <Badge className="mr-2">{activeCount}</Badge></TabsTrigger>
-            <TabsTrigger value="history">היסטוריה <Badge className="mr-2">{historyCount}</Badge></TabsTrigger>
+            <TabsTrigger value="pending">
+              ממתין לאישור <Badge className="mr-2">{pendingCount}</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="active">
+              פעילות <Badge className="mr-2">{activeCount}</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="history">
+              היסטוריה <Badge className="mr-2">{historyCount}</Badge>
+            </TabsTrigger>
           </TabsList>
         </div>
         <SuggestionActionBar
-          searchQuery={searchQuery} onSearchChange={setSearchQuery} filters={filters} onFiltersChange={setFilters}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          filters={filters}
+          onFiltersChange={setFilters}
           totalCount={suggestions.length}
           activeCount={activeCount}
           pendingCount={pendingCount}
           historyCount={historyCount}
         />
         {isLoading ? (
-          <div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
+          <div className="flex items-center justify-center h-64">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
         ) : (
           <>
             <TabsContent value="pending">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {pendingSuggestions.map((suggestion) => ( <SuggestionCard key={suggestion.id} suggestion={suggestion} onAction={handleSuggestionAction} /> ))}
+                {pendingSuggestions.map((suggestion) => (
+                  <SuggestionCard
+                    key={suggestion.id}
+                    suggestion={suggestion}
+                    onAction={handleSuggestionAction}
+                  />
+                ))}
               </div>
-              {pendingSuggestions.length === 0 && <div className="text-center p-10 text-gray-500">אין הצעות ממתינות לאישור.</div>}
+              {pendingSuggestions.length === 0 && (
+                <div className="text-center p-10 text-gray-500">
+                  אין הצעות ממתינות לאישור.
+                </div>
+              )}
             </TabsContent>
             <TabsContent value="active">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {activeSuggestions.map((suggestion) => ( <SuggestionCard key={suggestion.id} suggestion={suggestion} onAction={handleSuggestionAction} /> ))}
+                {activeSuggestions.map((suggestion) => (
+                  <SuggestionCard
+                    key={suggestion.id}
+                    suggestion={suggestion}
+                    onAction={handleSuggestionAction}
+                  />
+                ))}
               </div>
-              {activeSuggestions.length === 0 && <div className="text-center p-10 text-gray-500">אין הצעות פעילות.</div>}
+              {activeSuggestions.length === 0 && (
+                <div className="text-center p-10 text-gray-500">
+                  אין הצעות פעילות.
+                </div>
+              )}
             </TabsContent>
             <TabsContent value="history">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {historySuggestions.map((suggestion) => ( <SuggestionCard key={suggestion.id} suggestion={suggestion} onAction={handleSuggestionAction} /> ))}
+                {historySuggestions.map((suggestion) => (
+                  <SuggestionCard
+                    key={suggestion.id}
+                    suggestion={suggestion}
+                    onAction={handleSuggestionAction}
+                  />
+                ))}
               </div>
-              {historySuggestions.length === 0 && <div className="text-center p-10 text-gray-500">אין הצעות בהיסטוריה.</div>}
+              {historySuggestions.length === 0 && (
+                <div className="text-center p-10 text-gray-500">
+                  אין הצעות בהיסטוריה.
+                </div>
+              )}
             </TabsContent>
           </>
         )}
@@ -545,20 +771,75 @@ const handleUpdateSuggestion = async (data: {
   );
 
   return (
-    <div className={cn("min-h-screen bg-gray-50 rtl", !isMobile && "p-6", isMobile && "p-0")}>
+    <div
+      className={cn(
+        'min-h-screen bg-gray-50 rtl',
+        !isMobile && 'p-6',
+        isMobile && 'p-0'
+      )}
+    >
       {isMobile ? renderMobileView() : renderDesktopView()}
 
       {/* Dialogs and Forms (common for both views) */}
-      <NewSuggestionForm isOpen={showNewSuggestion} onClose={() => setShowNewSuggestion(false)} candidates={allCandidates} onSubmit={handleNewSuggestion} />
-  <SuggestionDetailsDialog 
-        suggestion={selectedSuggestion} 
-        isOpen={!!selectedSuggestion} 
-        onClose={() => setSelectedSuggestion(null)} 
-        onAction={handleDialogAction} 
-      />      <Dialog open={showMonthlyTrendDialog} onOpenChange={setShowMonthlyTrendDialog}><DialogContent className="max-w-4xl"><DialogHeader><DialogTitle>מגמה חודשית</DialogTitle></DialogHeader><MonthlyTrendModal suggestions={suggestions} /></DialogContent></Dialog>
-      <EditSuggestionForm isOpen={showEditForm} onClose={() => setShowEditForm(false)} suggestion={selectedSuggestion} onSave={handleUpdateSuggestion} />
-      <MessageForm isOpen={showMessageForm} onClose={() => setShowMessageForm(false)} suggestion={selectedSuggestion} onSend={handleSendMessage} />
-      {confirmAction && <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>האם את/ה בטוח/ה?</AlertDialogTitle><AlertDialogDescription>{confirmAction.type === "delete" && "פעולה זו תמחק את ההצעה לצמיתות."}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>ביטול</AlertDialogCancel><AlertDialogAction onClick={handleConfirmAction}>אישור</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>}
+      <NewSuggestionForm
+        isOpen={showNewSuggestion}
+        onClose={() => setShowNewSuggestion(false)}
+        candidates={allCandidates}
+        onSubmit={handleNewSuggestion}
+      />
+      <SuggestionDetailsDialog
+        suggestion={selectedSuggestion}
+        isOpen={!!selectedSuggestion}
+        onClose={() => setSelectedSuggestion(null)}
+        onAction={handleDialogAction}
+        userId={session?.user?.id || ''} // מעבירים את ה-ID מהסשן
+      />
+
+      <Dialog
+        open={showMonthlyTrendDialog}
+        onOpenChange={setShowMonthlyTrendDialog}
+      >
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>מגמה חודשית</DialogTitle>
+          </DialogHeader>
+          <MonthlyTrendModal suggestions={suggestions} />
+        </DialogContent>
+      </Dialog>
+      <EditSuggestionForm
+        isOpen={showEditForm}
+        onClose={() => setShowEditForm(false)}
+        suggestion={selectedSuggestion}
+        onSave={handleUpdateSuggestion}
+      />
+      <MessageForm
+        isOpen={showMessageForm}
+        onClose={() => setShowMessageForm(false)}
+        suggestion={selectedSuggestion}
+        onSend={handleSendMessage}
+      />
+      {confirmAction && (
+        <AlertDialog
+          open={showConfirmDialog}
+          onOpenChange={setShowConfirmDialog}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>האם את/ה בטוח/ה?</AlertDialogTitle>
+              <AlertDialogDescription>
+                {confirmAction.type === 'delete' &&
+                  'פעולה זו תמחק את ההצעה לצמיתות.'}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>ביטול</AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirmAction}>
+                אישור
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </div>
   );
 }

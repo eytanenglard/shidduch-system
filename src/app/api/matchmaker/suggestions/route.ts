@@ -131,7 +131,14 @@ export async function GET(req: Request) {
           select: { id: true, firstName: true, lastName: true, role: true }
         },
         statusHistory: { orderBy: { createdAt: 'desc' } },
-        meetings: { orderBy: { createdAt: 'desc' } }
+        meetings: { orderBy: { createdAt: 'desc' } },
+         inquiries: {
+          include: {
+            fromUser: { select: { id: true, firstName: true, lastName: true } },
+            toUser: { select: { id: true, firstName: true, lastName: true } },
+          },
+          orderBy: { createdAt: 'asc' }
+        }
       },
       orderBy: { lastActivity: 'desc' }
     });

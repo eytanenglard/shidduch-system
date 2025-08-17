@@ -2,6 +2,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import InquiryThreadView from '@/app/components/suggestions/inquiries/InquiryThreadView';
+
 import {
   Dialog,
   DialogContent,
@@ -80,15 +82,46 @@ interface DialogActionData extends ActionAdditionalData {
   partyType?: 'first' | 'second' | 'both';
 }
 
+// --- START OF FIX: Define and use specific action types ---
+type SuggestionDetailsActionType =
+  | 'view'
+  | 'contact'
+  | 'message'
+  | 'edit'
+  | 'delete'
+  | 'resend'
+  | 'changeStatus'
+  | 'reminder'
+  | 'sendReminder'
+  | 'shareContacts'
+  | 'scheduleMeeting'
+  | 'viewMeetings'
+  | 'exportHistory'
+  | 'export'
+  | 'resendToAll';
+
+interface DialogActionData extends ActionAdditionalData {
+  suggestionId?: string;
+  newStatus?: MatchSuggestionStatus;
+  notes?: string;
+  suggestion?: Suggestion;
+  partyId?: string;
+  type?: string;
+  partyType?: 'first' | 'second' | 'both';
+}
+
 interface SuggestionDetailsDialogProps {
   suggestion: Suggestion | null;
   isOpen: boolean;
   onClose: () => void;
-  // --- START OF FIX ---
-  // Update the onAction prop to use the specific type instead of a generic string
-  onAction: (action: SuggestionActionType, data?: DialogActionData) => void;
-  // --- END OF FIX ---
+  // Use the specific action type here
+  onAction: (
+    action: SuggestionDetailsActionType,
+    data?: DialogActionData
+  ) => void;
+  userId: string; // This prop is now required
 }
+// --- END OF FIX ---
 
 // Map status to its display info
 const getStatusInfo = (status: MatchSuggestionStatus) => {
@@ -320,6 +353,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
   isOpen,
   onClose,
   onAction,
+  userId,
 }) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [firstPartyQuestionnaire, setFirstPartyQuestionnaire] =
@@ -1678,6 +1712,14 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                     </Button>
                   </div>
                 </div>
+                <h3 className="text-xl font-semibold mb-4 mt-8">
+                  התכתבות על ההצעה
+                </h3>
+                <InquiryThreadView
+                  suggestionId={suggestion.id}
+                  userId={userId} // << העברת ה-ID של השדכן
+                  showComposer={false} // השדכן עונה, לא פותח שיחה חדשה מכאן
+                />
               </div>
             </TabsContent>
           </div>
