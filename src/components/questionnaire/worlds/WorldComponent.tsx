@@ -130,7 +130,12 @@ export default function WorldComponent({
   // --- סוף התיקון ---
 
   const findAnswer = (questionId: string): QuestionnaireAnswer | undefined => {
-    return answers.find((a) => a.questionId === questionId);
+    // השוואת מזהי שאלות באופן לא תלוי רישיות (case-insensitive)
+    // כדי להתאים ללוגיקה בקומפוננטת האב (MatchmakingQuestionnaire)
+    // שמשתמשת ב-toLowerCase() בעת עדכון תשובות.
+    return answers.find(
+      (a) => a.questionId.toLowerCase() === questionId.toLowerCase()
+    );
   };
 
   const validateAnswer = (

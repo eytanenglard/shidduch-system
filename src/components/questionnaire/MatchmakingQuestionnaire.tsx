@@ -446,13 +446,15 @@ export default function MatchmakingQuestionnaire({
       setError(null);
       setIsDirty(true);
       setAnswers((prevAnswers) => {
+        // השינוי כאן: הוספת toLowerCase() להשוואה
         const answerIndex = prevAnswers.findIndex(
-          (a) => a.questionId === questionId
+          (a) => a.questionId.toLowerCase() === questionId.toLowerCase()
         );
 
         if (answerIndex > -1) {
           return prevAnswers.map((answer) => {
-            if (answer.questionId === questionId) {
+            // וגם כאן
+            if (answer.questionId.toLowerCase() === questionId.toLowerCase()) {
               return {
                 ...answer,
                 value,
@@ -480,12 +482,14 @@ export default function MatchmakingQuestionnaire({
     (questionId: string, isVisible: boolean) => {
       setIsDirty(true);
       setAnswers((prevAnswers) => {
+        // השינוי כאן: הוספת toLowerCase() להשוואה
         const answerIndex = prevAnswers.findIndex(
-          (a) => a.questionId === questionId
+          (a) => a.questionId.toLowerCase() === questionId.toLowerCase()
         );
         if (answerIndex > -1) {
           return prevAnswers.map((answer) => {
-            if (answer.questionId === questionId) {
+            // וגם כאן
+            if (answer.questionId.toLowerCase() === questionId.toLowerCase()) {
               return { ...answer, isVisible };
             }
             return answer;

@@ -519,8 +519,7 @@ const EnhancedHeroSection: React.FC<{
                       variant="link"
                       className="text-white hover:text-emerald-100 font-bold mt-2"
                     >
-                      חזור לפרופיל המלא
-                      <ArrowRight className="w-4 h-4 mr-2" />
+                      לפרופיל המלא <ArrowRight className="w-4 h-4 mr-2" />
                     </Button>
                   </div>
                   {/* --- END: UPDATED SECTION --- */}

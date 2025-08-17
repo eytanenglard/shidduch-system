@@ -35,11 +35,9 @@ export default function QuestionnairePage() {
   const [initialWorld, setInitialWorld] = useState<WorldId | undefined>(
     undefined
   );
-  // --- START: הוספת state חדש ---
   const [initialQuestionId, setInitialQuestionId] = useState<
     string | undefined
   >(undefined);
-  // --- END: הוספת state חדש ---
 
   // Check for existing progress when component mounts
   useEffect(() => {
@@ -68,7 +66,8 @@ export default function QuestionnairePage() {
     checkExistingProgress();
   }, [session, status]);
 
-  // Check for world parameter in URL
+  // --- START OF THE CORRECTED CODE ---
+  // Check for world parameter in URL and normalize it
   useEffect(() => {
     if (status === 'loading') {
       return;
@@ -77,36 +76,45 @@ export default function QuestionnairePage() {
     const worldParam = searchParams?.get('world');
     const questionParam = searchParams?.get('question');
 
-    // הדפסה לאימות קבלת הפרמטרים
-    console.log('[QuestionnairePage] URL Params:', {
+    console.log('[QuestionnairePage] URL Params Received:', {
       worldParam,
       questionParam,
     });
 
-    // --- START OF THE FIX ---
-    if (
-      worldParam &&
-      ['PERSONALITY', 'VALUES', 'RELATIONSHIP', 'PARTNER', 'RELIGION'].includes(
-        (worldParam as string).toUpperCase() // המרה לאותיות גדולות לפני הבדיקה
-      )
-    ) {
-      // הדפסה כדי לוודא שנכנסנו לבלוק הנכון
-      console.log(
-        '[QuestionnairePage] Valid world param found. Setting stage to QUESTIONNAIRE.'
-      );
+    if (worldParam) {
+      // 1. Normalize the input immediately to uppercase
+      const worldParamUpper = worldParam.toUpperCase() as WorldId;
+      const validWorlds: WorldId[] = [
+        'PERSONALITY',
+        'VALUES',
+        'RELATIONSHIP',
+        'PARTNER',
+        'RELIGION',
+      ];
 
-      setCurrentStage(QuestionnaireStage.QUESTIONNAIRE);
+      // 2. Check if the normalized value is valid
+      if (validWorlds.includes(worldParamUpper)) {
+        console.log(
+          `[QuestionnairePage] Valid world param found: '${worldParam}'. Normalizing to '${worldParamUpper}' and setting stage to QUESTIONNAIRE.`
+        );
 
-      // חשוב להעביר את הערך באותיות גדולות גם הלאה
-      const selectedWorld = worldParam.toUpperCase() as WorldId;
-      setInitialWorld(selectedWorld);
+        // 3. Set state using the normalized value
+        setInitialWorld(worldParamUpper);
+        if (questionParam) {
+          setInitialQuestionId(questionParam);
+        }
 
-      if (questionParam) {
-        setInitialQuestionId(questionParam);
+        // 4. Set the stage to show the questionnaire
+        setCurrentStage(QuestionnaireStage.QUESTIONNAIRE);
+      } else {
+        console.warn(
+          `[QuestionnairePage] Invalid world param received in URL: ${worldParam}`
+        );
       }
     }
-    // --- END OF THE FIX ---
   }, [searchParams, status]);
+  // --- END OF THE CORRECTED CODE ---
+
   // Handler when the landing page "start" button is clicked
   const handleStartQuestionnaire = () => {
     setCurrentStage(QuestionnaireStage.QUESTIONNAIRE);
@@ -149,9 +157,7 @@ export default function QuestionnairePage() {
             userId={session?.user?.id}
             onComplete={handleQuestionnaireComplete}
             initialWorld={initialWorld}
-            // --- START: העברת prop חדש ---
             initialQuestionId={initialQuestionId}
-            // --- END: העברת prop חדש ---
           />
         );
 
