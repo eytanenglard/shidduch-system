@@ -6,20 +6,18 @@ import { personalityQuestions } from "@/components/questionnaire/questions/perso
 import { relationshipQuestions } from "@/components/questionnaire/questions/relationship/relationshipQuestions";
 import { partnerQuestions } from "@/components/questionnaire/questions/partner/partnerQuestions";
 import { religionQuestions } from "@/components/questionnaire/questions/religion/religionQuestions";
-
-// --- תיקון: ייבוא הטיפוסים מהמקור המרכזי והיחיד ---
+import type { Question } from '@/components/questionnaire/types/types';
 import type { FormattedAnswer, WorldId } from "@/types/next-auth"; 
 
-// Combine all questions into a single, memoized map for faster lookups
-const allQuestionsMap = new Map(
-  [
-    ...valuesQuestions,
-    ...personalityQuestions,
-    ...relationshipQuestions,
-    ...partnerQuestions,
-    ...religionQuestions
-  ].map(q => [q.id, q])
-);
+// איחוד כל השאלות למקור מידע אחד
+const allQuestions: Question[] = [
+  ...valuesQuestions,
+  ...personalityQuestions,
+  ...relationshipQuestions,
+  ...partnerQuestions,
+  ...religionQuestions
+];
+const allQuestionsMap = new Map(allQuestions.map(q => [q.id, q]));
 
 export type DbWorldKey =
   | 'valuesAnswers'
@@ -40,24 +38,25 @@ type JsonAnswerData = {
   questionId: string;
   value: Prisma.JsonValue;
   answeredAt: string;
-  isVisible: boolean; // Changed from optional to required
+  isVisible: boolean;
 };
 
 export type FormattedAnswersType = Record<WorldId, FormattedAnswer[]>;
 
 const valueTranslations: Record<string, string> = { yes: 'כן', no: 'לא' };
 
-function getQuestionLabel(questionId: string): string {
-  return allQuestionsMap.get(questionId)?.question || questionId;
-}
-
 function formatValue(value: Prisma.JsonValue): string {
+  if (value === null || value === undefined) return 'לא נענה';
   if (typeof value === 'boolean') return value ? 'כן' : 'לא';
   if (Array.isArray(value))
     return value
       .map((v) => valueTranslations[String(v)] || String(v))
       .join(', ');
-  if (typeof value === 'object' && value !== null) return JSON.stringify(value);
+  if (typeof value === 'object' && !Array.isArray(value)) {
+    return Object.entries(value)
+      .map(([key, val]) => `${key}: ${val}`)
+      .join('; ');
+  }
   const stringValue = String(value);
   return valueTranslations[stringValue] || stringValue;
 }
@@ -91,19 +90,29 @@ function safeParseJson(jsonValue: Prisma.JsonValue | null): JsonAnswerData[] {
   return [];
 }
 
+/**
+ * הפונקציה המרכזית והמתוקנת: מקבלת תשובות גולמיות ומחזירה מערך מעוצב עם כל המידע.
+ */
 export function formatAnswers(
   answersJson: Prisma.JsonValue | null
 ): FormattedAnswer[] {
   const parsedAnswers = safeParseJson(answersJson);
 
-  const formattedResult: FormattedAnswer[] = parsedAnswers.map((answer) => ({
-    questionId: answer.questionId,
-    question: getQuestionLabel(answer.questionId),
-    answer: JSON.stringify(answer.value), // answer הוא הערך הגולמי, displayText הוא לתצוגה
-    displayText: formatValue(answer.value),
-    isVisible: answer.isVisible,
-    answeredAt: new Date(answer.answeredAt), // כבר מומר ל-Date כאן
-  }));
+  const formattedResult: FormattedAnswer[] = parsedAnswers.map((answer) => {
+    const fullQuestion = allQuestionsMap.get(answer.questionId);
+
+    // --- START: התיקון המרכזי ---
+    return {
+      questionId: answer.questionId,
+      question: fullQuestion?.question || answer.questionId,
+      questionType: fullQuestion?.type || 'unknown', // <-- הוספנו את סוג השאלה
+      rawValue: answer.value, // <-- הוספנו את הערך הגולמי
+      displayText: formatValue(answer.value),
+      isVisible: answer.isVisible,
+      answeredAt: new Date(answer.answeredAt),
+    };
+    // --- END: התיקון המרכזי ---
+  });
 
   return formattedResult.sort((a, b) =>
     a.questionId.localeCompare(b.questionId)

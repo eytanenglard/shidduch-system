@@ -7,48 +7,14 @@ import prisma from '@/lib/prisma';
 import { Prisma, UserRole } from '@prisma/client';
 import { updateUserAiProfile } from '@/lib/services/profileAiService';
 
-// --- ייבואים מרכזיים ---
-import type { FormattedAnswer } from '@/types/next-auth';
-import type { Question } from '@/components/questionnaire/types/types';
-import { personalityQuestions } from '@/components/questionnaire/questions/personality/personalityQuestions';
-import { valuesQuestions } from '@/components/questionnaire/questions/values/valuesQuestions';
-import { relationshipQuestions } from '@/components/questionnaire/questions/relationship/relationshipQuestions';
-import { partnerQuestions } from '@/components/questionnaire/questions/partner/partnerQuestions';
-import { religionQuestions } from '@/components/questionnaire/questions/religion/religionQuestions';
+// --- START: שינוי מרכזי - ייבוא הפונקציות המרכזיות במקום להגדיר אותן כאן ---
+import { formatAnswers, KEY_MAPPING } from '@/lib/questionnaireFormatter';
+import type { DbWorldKey, FormattedAnswersType } from '@/lib/questionnaireFormatter';
+// --- END: שינוי מרכזי ---
 
-// --- איחוד כל השאלות למקור מידע אחד ---
-const allQuestions: Question[] = [
-  ...personalityQuestions,
-  ...valuesQuestions,
-  ...relationshipQuestions,
-  ...partnerQuestions,
-  ...religionQuestions,
-];
-const questionsMap = new Map(allQuestions.map(q => [q.id, q]));
+import type { WorldId, FormattedAnswer } from '@/types/next-auth';
 
-// --- הגדרות וטיפוסים פנימיים ---
-type WorldKey =
-  | 'values'
-  | 'personality'
-  | 'relationship'
-  | 'partner'
-  | 'religion';
-
-type DbWorldKey =
-  | 'valuesAnswers'
-  | 'personalityAnswers'
-  | 'relationshipAnswers'
-  | 'partnerAnswers'
-  | 'religionAnswers';
-
-const KEY_MAPPING: Record<WorldKey, DbWorldKey> = {
-  values: 'valuesAnswers',
-  personality: 'personalityAnswers',
-  relationship: 'relationshipAnswers',
-  partner: 'partnerAnswers',
-  religion: 'religionAnswers',
-};
-
+// --- הגדרות הטיפוסים נשארות כאן כי הן ספציפיות ל-API הזה ---
 type JsonAnswerData = {
   questionId: string;
   value: Prisma.JsonValue;
@@ -62,97 +28,7 @@ interface UpdateData {
   isVisible?: boolean;
 }
 
-
-// --- פונקציות עזר לעיבוד נתונים ---
-
-/**
- * יוצרת טקסט תצוגה פשוט מכל סוג של ערך תשובה.
- */
-function createDisplayText(rawValue: Prisma.JsonValue | null): string {
-    if (rawValue === null || rawValue === undefined) return 'לא נענה';
-    if (typeof rawValue === 'string' || typeof rawValue === 'number') return String(rawValue);
-    if (Array.isArray(rawValue)) return rawValue.join(', ');
-    if (typeof rawValue === 'object' && !Array.isArray(rawValue)) {
-        return Object.entries(rawValue)
-          .map(([key, value]) => `${key}: ${value}`)
-          .join('; ');
-    }
-    return 'תשובה מורכבת';
-}
-
-/**
- * Type guard שמוודא שאובייקט JSON הוא אובייקט תשובה תקין.
- */
-function isValidAnswerObject(
-  item: Prisma.JsonValue
-): item is Prisma.JsonObject & {
-  questionId: string | number;
-  value: Prisma.JsonValue;
-  answeredAt: string | number;
-  isVisible?: boolean;
-} {
-  return (
-    typeof item === 'object' &&
-    item !== null &&
-    'questionId' in item &&
-    'value' in item &&
-    item.value !== undefined &&
-    'answeredAt' in item
-  );
-}
-
-/**
- * ממירה בבטחה את שדה ה-JSON ממסד הנתונים למערך של אובייקטי תשובות.
- */
-function safeParseJson(value: Prisma.JsonValue | null): JsonAnswerData[] {
-  if (Array.isArray(value)) {
-    return value.filter(isValidAnswerObject).map((item) => ({
-      questionId: String(item.questionId),
-      value: item.value,
-      answeredAt: String(item.answeredAt),
-      isVisible: typeof item.isVisible === 'boolean' ? item.isVisible : true,
-    }));
-  }
-  return [];
-}
-
-/**
- * הפונקציה המרכזית: מקבלת את התשובות הגולמיות ומחזירה מערך מעוצב עם כל המידע הנדרש לקליינט.
- */
-function formatAnswers(answersJson: Prisma.JsonValue | null): FormattedAnswer[] {
-  const parsedAnswers = safeParseJson(answersJson);
-
-  return parsedAnswers.map((answer) => {
-    const fullQuestion = questionsMap.get(answer.questionId);
-
-    // מקרה קצה: אם לא מצאנו את השאלה במפה, נייצר תשובה בסיסית כדי למנוע קריסה
-    if (!fullQuestion) {
-      console.warn(`Question with ID "${answer.questionId}" not found in questionsMap.`);
-      return {
-        questionId: answer.questionId,
-        question: `שאלה לא ידועה (${answer.questionId})`,
-        questionType: 'unknown',
-        rawValue: answer.value,
-        displayText: createDisplayText(answer.value),
-        isVisible: answer.isVisible,
-        answeredAt: new Date(answer.answeredAt).toISOString(),
-      };
-    }
-
-    // יצירת האובייקט המלא עם כל השדות החדשים
-    return {
-      questionId: answer.questionId,
-      question: fullQuestion.question,
-      questionType: fullQuestion.type,
-      rawValue: answer.value,
-      displayText: createDisplayText(answer.value),
-      isVisible: answer.isVisible,
-      answeredAt: new Date(answer.answeredAt).toISOString(),
-    };
-  }).sort((a, b) => a.questionId.localeCompare(b.questionId));
-}
-
-// --- API Endpoints ---
+// --- פונקציות העזר שהיו כאן נמחקו, כי הן נמצאות עכשיו ב-questionnaireFormatter.ts ---
 
 export async function GET(req: Request) {
   try {
@@ -170,15 +46,12 @@ export async function GET(req: Request) {
     });
 
     if (!questionnaireResponse) {
-       return NextResponse.json({
-          success: true,
-          questionnaireResponse: null
-       });
+       return NextResponse.json({ success: true, questionnaireResponse: null });
     }
 
-    // שימוש בפונקציה המעודכנת לעיצוב הנתונים
-    const formattedAnswers: Partial<Record<WorldKey, FormattedAnswer[]>> = {};
-    (Object.keys(KEY_MAPPING) as WorldKey[]).forEach(worldKey => {
+    // שימוש בפונקציה המיובאת
+    const formattedAnswers: Partial<FormattedAnswersType> = {};
+    (Object.keys(KEY_MAPPING) as WorldId[]).forEach(worldKey => {
        const dbKey = KEY_MAPPING[worldKey];
        formattedAnswers[worldKey] = formatAnswers(questionnaireResponse[dbKey]);
     });
@@ -193,17 +66,14 @@ export async function GET(req: Request) {
       where: { id: session.user.id },
       select: { role: true },
     });
-
     if (!performingUser) {
       return NextResponse.json({ success: false, error: 'Performing user not found' }, { status: 404 });
     }
-
     const viewerIsAdminOrMatchmaker = performingUser.role === 'ADMIN' || performingUser.role === 'MATCHMAKER';
 
-    // סינון תשובות נסתרות אם הצופה אינו שדכן/אדמין או בעל הפרופיל
     if (!viewerIsAdminOrMatchmaker && userId !== session.user.id) {
         Object.keys(formattedResponse.formattedAnswers).forEach((worldKey) => {
-            const key = worldKey as WorldKey;
+            const key = worldKey as WorldId;
             if (formattedResponse.formattedAnswers[key]) {
                 formattedResponse.formattedAnswers[key] =
                   formattedResponse.formattedAnswers[key]!.filter(answer => answer.isVisible !== false);
@@ -234,17 +104,13 @@ export async function PATCH(req: Request) {
      const body = await req.json();
      
      const { worldKey, questionId, value } = body as {
-       worldKey: WorldKey;
+       worldKey: WorldId;
        questionId: string;
        value: UpdateData;
      };
 
-     if (!worldKey || !questionId || !value || !value.type) {
+     if (!worldKey || !questionId || !value || !value.type || !KEY_MAPPING[worldKey]) {
         return NextResponse.json({ success: false, error: "Invalid request body" }, { status: 400 });
-     }
-
-     if (!KEY_MAPPING[worldKey]) {
-         return NextResponse.json({ success: false, error: "Invalid world key" }, { status: 400 });
      }
 
      const dbKey = KEY_MAPPING[worldKey];
@@ -258,28 +124,20 @@ export async function PATCH(req: Request) {
        return NextResponse.json({ success: false, error: "שאלון לא נמצא" }, { status: 404 });
      }
 
-     const currentAnswers = safeParseJson(questionnaire[dbKey]);
+     const currentAnswersJson = questionnaire[dbKey];
+     const currentAnswers = Array.isArray(currentAnswersJson) ? currentAnswersJson as unknown as JsonAnswerData[] : [];
+
      const existingAnswerIndex = currentAnswers.findIndex((a) => a.questionId === questionId);
      const existingAnswer = existingAnswerIndex !== -1 ? currentAnswers[existingAnswerIndex] : null;
 
      let updatedAnswer: JsonAnswerData;
 
      if (value.type === 'visibility') {
-        if (!existingAnswer) {
-          return NextResponse.json({ success: false, error: "לא נמצאה תשובה לעדכון נראות" }, { status: 404 });
-        }
-        if (typeof value.isVisible !== 'boolean') {
-             return NextResponse.json({ success: false, error: "ערך נראות לא תקין" }, { status: 400 });
-        }
-        updatedAnswer = {
-          ...existingAnswer,
-          isVisible: value.isVisible,
-          answeredAt: new Date().toISOString()
-        };
+        if (!existingAnswer) return NextResponse.json({ success: false, error: "לא נמצאה תשובה לעדכון נראות" }, { status: 404 });
+        if (typeof value.isVisible !== 'boolean') return NextResponse.json({ success: false, error: "ערך נראות לא תקין" }, { status: 400 });
+        updatedAnswer = { ...existingAnswer, isVisible: value.isVisible, answeredAt: new Date().toISOString() };
      } else if (value.type === 'answer') {
-       if (value.value === undefined) {
-            return NextResponse.json({ success: false, error: "ערך תשובה חסר" }, { status: 400 });
-       }
+       if (value.value === undefined) return NextResponse.json({ success: false, error: "ערך תשובה חסר" }, { status: 400 });
        updatedAnswer = {
          questionId,
          value: value.value,
@@ -309,9 +167,9 @@ export async function PATCH(req: Request) {
         console.error(`[AI Profile Trigger - Questionnaire Update] Failed to update AI profile in the background for user ${userId}:`, err);
      });
 
-    // לאחר העדכון, נשתמש שוב בפונקציה המעודכנת כדי לשלוח חזרה את הנתונים המלאים
-    const formattedAnswers: Partial<Record<WorldKey, FormattedAnswer[]>> = {};
-    (Object.keys(KEY_MAPPING) as WorldKey[]).forEach(key => {
+    // שימוש חוזר בפונקציה המיובאת
+    const formattedAnswers: Partial<FormattedAnswersType> = {};
+    (Object.keys(KEY_MAPPING) as WorldId[]).forEach(key => {
        const currentDbKey = KEY_MAPPING[key];
         formattedAnswers[key] = formatAnswers(updated[currentDbKey]);
     });
