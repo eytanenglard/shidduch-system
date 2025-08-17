@@ -451,15 +451,7 @@ const RegisterStepsContent: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-cyan-50 via-white to-pink-50 p-4 sm:p-8">
-      <button
-        onClick={() => router.push('/')}
-        className="absolute top-4 left-4 rtl:right-4 rtl:left-auto text-gray-600 hover:text-gray-800 transition-colors flex items-center gap-1 text-sm z-20"
-      >
-        <ArrowRight className="h-4 w-4" />
-        חזרה לדף הבית
-      </button>
-
-      <div className="mb-6 text-center">
+       <div className="mb-6 text-center">
         <h1 className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-pink-500 text-3xl font-bold mb-2">
           {pageTitle}
         </h1>

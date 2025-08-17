@@ -86,7 +86,6 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    // Ensure all fields from UserProfile that can be updated are destructured
     const {
       gender,
       birthDate,
@@ -103,6 +102,12 @@ export async function PUT(req: NextRequest) {
       religiousJourney,
       preferredReligiousJourneys, 
       about,
+      // --- START: הוספת שדות חדשים ---
+      profileHeadline,
+      humorStory,
+      inspiringCoupleStory,
+      influentialRabbi,
+      // --- END: הוספת שדות חדשים ---
       parentStatus,
       fatherOccupation,
       motherOccupation,
@@ -119,9 +124,9 @@ export async function PUT(req: NextRequest) {
       serviceDetails,
       headCovering,
       kippahType,
-      hasChildrenFromPrevious, // This is for the user themselves
+      hasChildrenFromPrevious,
       profileCharacterTraits,
-      profileHobbies, // User's own hobbies
+      profileHobbies,
       aliyaCountry,
       aliyaYear,
       preferredAgeMin,
@@ -139,18 +144,15 @@ export async function PUT(req: NextRequest) {
       preferredHeadCoverings,
       preferredKippahTypes,
       preferredShomerNegiah,
-      // This is the preference about the partner's children status
-      preferredHasChildrenFromPrevious, // This field should now exist in Prisma schema
-      preferredCharacterTraits, // Preference for partner's traits
-      preferredHobbies,         // Preference for partner's hobbies (ensure distinct from profileHobbies if needed)
-      preferredAliyaStatus, // If you have this field for preferences
+      preferredHasChildrenFromPrevious,
+      preferredCharacterTraits,
+      preferredHobbies,
+      preferredAliyaStatus,
       hasViewedProfilePreview,
-      // --- START: הוספת שדות רפואיים ---
       hasMedicalInfo,
       medicalInfoDetails,
       medicalInfoDisclosureTiming,
       isMedicalInfoVisible,
-      // --- END: הוספת שדות רפואיים ---
     } = body as Partial<UserProfile>;
 
     const dataToUpdate: Prisma.ProfileUpdateInput = {};
@@ -222,6 +224,10 @@ export async function PUT(req: NextRequest) {
 
     // --- About & Additional Info ---
     if (about !== undefined) dataToUpdate.about = emptyStringToNull(about);
+      if (profileHeadline !== undefined) dataToUpdate.profileHeadline = emptyStringToNull(profileHeadline);
+    if (humorStory !== undefined) dataToUpdate.humorStory = emptyStringToNull(humorStory);
+    if (inspiringCoupleStory !== undefined) dataToUpdate.inspiringCoupleStory = emptyStringToNull(inspiringCoupleStory);
+    if (influentialRabbi !== undefined) dataToUpdate.influentialRabbi = emptyStringToNull(influentialRabbi);
     if (matchingNotes !== undefined) dataToUpdate.matchingNotes = emptyStringToNull(matchingNotes);
     
     // --- Preferences (related to matching partner) ---
@@ -332,6 +338,10 @@ export async function PUT(req: NextRequest) {
       religiousJourney: dbProfile.religiousJourney || undefined,
       preferredReligiousJourneys: dbProfile.preferredReligiousJourneys ?? [],
       about: dbProfile.about || "",
+        profileHeadline: dbProfile.profileHeadline || undefined,
+      humorStory: dbProfile.humorStory || undefined,
+      inspiringCoupleStory: dbProfile.inspiringCoupleStory || undefined,
+      influentialRabbi: dbProfile.influentialRabbi || undefined,
       parentStatus: dbProfile.parentStatus || undefined,
       fatherOccupation: dbProfile.fatherOccupation || "",
       motherOccupation: dbProfile.motherOccupation || "",

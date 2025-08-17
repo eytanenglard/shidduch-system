@@ -75,6 +75,12 @@ export async function GET(req: Request) {
             profileCharacterTraits: true,
             profileHobbies: true,
             about: true,
+            // --- START: הוספת שדות חדשים ---
+            profileHeadline: true,
+            humorStory: true,
+            inspiringCoupleStory: true,
+            influentialRabbi: true,
+            // --- END: הוספת שדות חדשים ---
             matchingNotes: true,
             preferredAgeMin: true,
             preferredAgeMax: true,
@@ -106,12 +112,10 @@ export async function GET(req: Request) {
             lastActive: true,
             verifiedBy: true,
             hasViewedProfilePreview: true,
-            // --- START: הוספת שדות רפואיים ---
             hasMedicalInfo: true,
             medicalInfoDetails: true,
             medicalInfoDisclosureTiming: true,
             isMedicalInfoVisible: true,
-            // --- END: הוספת שדות רפואיים ---
           }
         },
         images: {
@@ -184,6 +188,12 @@ export async function GET(req: Request) {
       profileCharacterTraits: dbProfile.profileCharacterTraits || [],
       profileHobbies: dbProfile.profileHobbies || [],
       about: dbProfile.about || "",
+      // --- START: הוספת שדות חדשים ---
+      profileHeadline: dbProfile.profileHeadline || undefined,
+      humorStory: dbProfile.humorStory || undefined,
+      inspiringCoupleStory: dbProfile.inspiringCoupleStory || undefined,
+      influentialRabbi: dbProfile.influentialRabbi || undefined,
+      // --- END: הוספת שדות חדשים ---
       matchingNotes: dbProfile.matchingNotes || "",
       preferredAgeMin: dbProfile.preferredAgeMin ?? null,
       preferredAgeMax: dbProfile.preferredAgeMax ?? null,
@@ -216,12 +226,10 @@ export async function GET(req: Request) {
       updatedAt: new Date(dbProfile.updatedAt),
       lastActive: dbProfile.lastActive ? new Date(dbProfile.lastActive) : null,
       hasViewedProfilePreview: dbProfile.hasViewedProfilePreview,
-      // --- START: הוספת שדות רפואיים לתגובה ---
       hasMedicalInfo: dbProfile.hasMedicalInfo ?? undefined,
       medicalInfoDetails: dbProfile.medicalInfoDetails ?? undefined,
       medicalInfoDisclosureTiming: dbProfile.medicalInfoDisclosureTiming ?? undefined,
       isMedicalInfoVisible: dbProfile.isMedicalInfoVisible,
-      // --- END: הוספת שדות רפואיים לתגובה ---
       user: {
         id: userWithProfile.id,
         firstName: userWithProfile.firstName,

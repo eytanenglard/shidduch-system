@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -8,11 +8,11 @@ import {
   CardTitle,
   CardDescription,
   CardFooter,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
   DialogContent,
@@ -20,10 +20,10 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@/components/ui/dialog";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Progress } from "@/components/ui/progress";
-import { Switch } from "@/components/ui/switch"; // Import the Switch component
+} from '@/components/ui/dialog';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Progress } from '@/components/ui/progress';
+import { Switch } from '@/components/ui/switch'; // Import the Switch component
 import {
   User,
   Mail,
@@ -40,10 +40,10 @@ import {
   Settings,
   AlertCircle,
   Trash2,
-} from "lucide-react";
-import { toast } from "sonner";
-import { useSession, signOut } from "next-auth/react";
-import { UserRole, UserStatus } from "@prisma/client";
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { useSession, signOut } from 'next-auth/react';
+import { UserRole, UserStatus } from '@prisma/client';
 
 interface AccountSettingsProps {
   user: {
@@ -61,25 +61,29 @@ interface AccountSettingsProps {
 }
 
 const PASSWORD_MIN_LENGTH = 8;
-const DELETE_CONFIRMATION_PHRASE = "אני מאשר מחיקה";
+const DELETE_CONFIRMATION_PHRASE = 'אני מאשר מחיקה';
 
 const AccountSettings: React.FC<AccountSettingsProps> = ({
   user: propUser,
 }) => {
-  const { data: session, status: sessionStatus, update: updateSession } = useSession();
+  const {
+    data: session,
+    status: sessionStatus,
+    update: updateSession,
+  } = useSession();
 
   // States for UI control
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isSendingVerification, setIsSendingVerification] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
-  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
   // Form states for password change
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [verificationCode, setVerificationCode] = useState("");
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
 
   // Password visibility toggles
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -102,14 +106,24 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
 
   // --- START OF NEW CODE ---
   // State for marketing consent
-  const [marketingConsent, setMarketingConsent] = useState(propUser.marketingConsent || false);
+  const [marketingConsent, setMarketingConsent] = useState(
+    propUser.marketingConsent || false
+  );
   const [isMarketingLoading, setIsMarketingLoading] = useState(false);
   // --- END OF NEW CODE ---
-
+  useEffect(() => {
+    // בדוק אם הסשן קיים והערך marketingConsent מוגדר בו
+    if (session?.user && typeof session.user.marketingConsent === 'boolean') {
+      // אם הערך בסשן שונה מהערך במצב המקומי, עדכן את המצב המקומי
+      if (session.user.marketingConsent !== marketingConsent) {
+        setMarketingConsent(session.user.marketingConsent);
+      }
+    }
+  }, [session?.user?.marketingConsent]); // הפעל את האפקט בכל פעם שהערך בסשן משתנה
   const canChangePassword = useMemo(() => {
-    if (sessionStatus === "authenticated" && session?.user?.accounts) {
+    if (sessionStatus === 'authenticated' && session?.user?.accounts) {
       return session.user.accounts.some(
-        (acc) => acc.provider === "credentials"
+        (acc) => acc.provider === 'credentials'
       );
     }
     return false;
@@ -144,21 +158,21 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
       throw new Error(`הסיסמה חייבת להכיל לפחות ${PASSWORD_MIN_LENGTH} תווים`);
     }
     if (!/[A-Z]/.test(password)) {
-      throw new Error("הסיסמה חייבת להכיל לפחות אות גדולה באנגלית");
+      throw new Error('הסיסמה חייבת להכיל לפחות אות גדולה באנגלית');
     }
     if (!/[a-z]/.test(password)) {
-      throw new Error("הסיסמה חייבת להכיל לפחות אות קטנה באנגלית");
+      throw new Error('הסיסמה חייבת להכיל לפחות אות קטנה באנגלית');
     }
     if (!/[0-9]/.test(password)) {
-      throw new Error("הסיסמה חייבת להכיל לפחות ספרה אחת");
+      throw new Error('הסיסמה חייבת להכיל לפחות ספרה אחת');
     }
   };
 
   const resetPasswordForm = () => {
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
-    setVerificationCode("");
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmPassword('');
+    setVerificationCode('');
     setShowVerificationInput(false);
     setIsChangingPassword(false);
     setPasswordChangeStep(1);
@@ -171,25 +185,25 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
     setIsSendingVerification(true);
     try {
       const response = await fetch(`/api/auth/send-verification`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: propUser.email }),
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || "Failed to send verification email");
+        throw new Error(error.message || 'Failed to send verification email');
       }
 
-      toast.success("קוד אימות נשלח למייל שלך", {
-        description: "אנא בדוק את תיבת הדואר הנכנס שלך",
+      toast.success('קוד אימות נשלח למייל שלך', {
+        description: 'אנא בדוק את תיבת הדואר הנכנס שלך',
         icon: <Mail className="h-5 w-5 text-blue-500" />,
       });
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "שגיאה בשליחת קוד אימות",
+        error instanceof Error ? error.message : 'שגיאה בשליחת קוד אימות',
         {
-          description: "נסה שוב מאוחר יותר או פנה לתמיכה",
+          description: 'נסה שוב מאוחר יותר או פנה לתמיכה',
           icon: <AlertCircle className="h-5 w-5 text-red-500" />,
         }
       );
@@ -200,16 +214,16 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
 
   const initiatePasswordChange = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
-      toast.error("נא למלא את כל השדות", {
-        description: "כל השדות הם שדות חובה לשינוי סיסמה",
+      toast.error('נא למלא את כל השדות', {
+        description: 'כל השדות הם שדות חובה לשינוי סיסמה',
         icon: <AlertCircle className="h-5 w-5 text-red-500" />,
       });
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      toast.error("הסיסמאות אינן תואמות", {
-        description: "אנא ודא שהסיסמה החדשה זהה בשני השדות",
+      toast.error('הסיסמאות אינן תואמות', {
+        description: 'אנא ודא שהסיסמה החדשה זהה בשני השדות',
         icon: <AlertCircle className="h-5 w-5 text-red-500" />,
       });
       return;
@@ -219,9 +233,9 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
       validatePassword(newPassword);
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "שגיאה באימות הסיסמה",
+        error instanceof Error ? error.message : 'שגיאה באימות הסיסמה',
         {
-          description: "אנא עקוב אחר כל דרישות הסיסמה",
+          description: 'אנא עקוב אחר כל דרישות הסיסמה',
           icon: <AlertCircle className="h-5 w-5 text-red-500" />,
         }
       );
@@ -231,8 +245,8 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
     setIsLoading(true);
     try {
       const response = await fetch(`/api/auth/initiate-password-change`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: propUser.id,
           currentPassword,
@@ -242,20 +256,20 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || "Failed to initiate password change");
+        throw new Error(error.message || 'Failed to initiate password change');
       }
 
       setPasswordChangeStep(2);
       setShowVerificationInput(true);
-      toast.success("קוד אימות נשלח למייל שלך", {
-        description: "קוד בן 6 ספרות נשלח לכתובת המייל המקושרת לחשבונך",
+      toast.success('קוד אימות נשלח למייל שלך', {
+        description: 'קוד בן 6 ספרות נשלח לכתובת המייל המקושרת לחשבונך',
         icon: <Mail className="h-5 w-5 text-blue-500" />,
       });
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "שגיאה באימות הסיסמה",
+        error instanceof Error ? error.message : 'שגיאה באימות הסיסמה',
         {
-          description: "ייתכן שהסיסמה הנוכחית שגויה",
+          description: 'ייתכן שהסיסמה הנוכחית שגויה',
           icon: <AlertCircle className="h-5 w-5 text-red-500" />,
         }
       );
@@ -267,16 +281,16 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
 
   const completePasswordChange = async () => {
     if (!verificationCode) {
-      toast.error("נא להזין את קוד האימות", {
-        description: "קוד האימות הוא שדה חובה",
+      toast.error('נא להזין את קוד האימות', {
+        description: 'קוד האימות הוא שדה חובה',
         icon: <AlertCircle className="h-5 w-5 text-red-500" />,
       });
       return;
     }
 
     if (!/^\d{6}$/.test(verificationCode)) {
-      toast.error("קוד אימות לא תקין", {
-        description: "קוד האימות חייב להכיל 6 ספרות",
+      toast.error('קוד אימות לא תקין', {
+        description: 'קוד האימות חייב להכיל 6 ספרות',
         icon: <AlertCircle className="h-5 w-5 text-red-500" />,
       });
       return;
@@ -285,8 +299,8 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
     setIsLoading(true);
     try {
       const response = await fetch(`/api/auth/complete-password-change`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: propUser.id,
           token: verificationCode,
@@ -296,19 +310,19 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || "Failed to complete password change");
+        throw new Error(error.message || 'Failed to complete password change');
       }
 
-      toast.success("הסיסמה עודכנה בהצלחה", {
-        description: "הסיסמה החדשה שלך פעילה כעת",
+      toast.success('הסיסמה עודכנה בהצלחה', {
+        description: 'הסיסמה החדשה שלך פעילה כעת',
         icon: <CheckCircle className="h-5 w-5 text-green-500" />,
       });
       resetPasswordForm();
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "שגיאה בעדכון הסיסמה",
+        error instanceof Error ? error.message : 'שגיאה בעדכון הסיסמה',
         {
-          description: "קוד האימות שגוי או שפג תוקפו",
+          description: 'קוד האימות שגוי או שפג תוקפו',
           icon: <AlertCircle className="h-5 w-5 text-red-500" />,
         }
       );
@@ -319,7 +333,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
 
   const handleDeleteAccount = async () => {
     if (deleteConfirmText !== DELETE_CONFIRMATION_PHRASE) {
-      toast.error("אישור לא תקין", {
+      toast.error('אישור לא תקין', {
         description: `נא להקליד "${DELETE_CONFIRMATION_PHRASE}" בדיוק כדי לאשר מחיקה.`,
         icon: <AlertCircle className="h-5 w-5 text-red-500" />,
       });
@@ -329,25 +343,25 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
     setIsLoading(true);
     try {
       const response = await fetch(`/api/auth/delete`, {
-        method: "DELETE",
+        method: 'DELETE',
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to delete account");
+        throw new Error(errorData.message || 'Failed to delete account');
       }
 
-      toast.success("החשבון נמחק בהצלחה", {
-        description: "אנחנו מקווים לראותך שוב בעתיד. אתה מועבר לדף הבית.",
+      toast.success('החשבון נמחק בהצלחה', {
+        description: 'אנחנו מקווים לראותך שוב בעתיד. אתה מועבר לדף הבית.',
         icon: <CheckCircle className="h-5 w-5 text-green-500" />,
       });
 
-      await signOut({ callbackUrl: "/" });
+      await signOut({ callbackUrl: '/' });
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "שגיאה במחיקת החשבון",
+        error instanceof Error ? error.message : 'שגיאה במחיקת החשבון',
         {
-          description: "נסה שוב מאוחר יותר או פנה לתמיכה",
+          description: 'נסה שוב מאוחר יותר או פנה לתמיכה',
           icon: <AlertCircle className="h-5 w-5 text-red-500" />,
         }
       );
@@ -355,61 +369,63 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
       setIsLoading(false);
     }
   };
-  
   // --- START OF NEW CODE ---
   const handleMarketingConsentChange = async (checked: boolean) => {
     setIsMarketingLoading(true);
     setMarketingConsent(checked); // Optimistic UI update
 
     try {
-        const response = await fetch('/api/user/marketing-consent', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ marketingConsent: checked }),
-        });
+      const response = await fetch('/api/user/marketing-consent', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ marketingConsent: checked }),
+      });
 
-        const result = await response.json();
+      const result = await response.json();
 
-        if (!response.ok || !result.success) {
-            setMarketingConsent(!checked); // Revert optimistic update on failure
-            throw new Error(result.error || "Failed to update marketing preferences.");
-        }
-
-        toast.success("העדפות דיוור עודכנו בהצלחה", {
-            icon: <CheckCircle className="h-5 w-5 text-green-500" />
-        });
-
-        // Update the session to reflect the change immediately
-        await updateSession({ marketingConsent: checked });
-
-    } catch (error) {
+      if (!response.ok || !result.success) {
         setMarketingConsent(!checked); // Revert optimistic update on failure
-        toast.error(
-            error instanceof Error ? error.message : "שגיאה בעדכון העדפות הדיוור",
-            {
-                icon: <AlertCircle className="h-5 w-5 text-red-500" />,
-            }
+        throw new Error(
+          result.error || 'Failed to update marketing preferences.'
         );
+      }
+
+      toast.success('העדפות דיוור עודכנו בהצלחה', {
+        icon: <CheckCircle className="h-5 w-5 text-green-500" />,
+      });
+
+      // === השינוי הקריטי נמצא כאן ===
+      // במקום: await updateSession({ marketingConsent: checked });
+      // קרא לפונקציה ללא ארגומנט כדי לרענן את הסשן מהשרת
+      await updateSession();
+      // ==============================
+    } catch (error) {
+      setMarketingConsent(!checked); // Revert optimistic update on failure
+      toast.error(
+        error instanceof Error ? error.message : 'שגיאה בעדכון העדפות הדיוור',
+        {
+          icon: <AlertCircle className="h-5 w-5 text-red-500" />,
+        }
+      );
     } finally {
-        setIsMarketingLoading(false);
+      setIsMarketingLoading(false);
     }
   };
   // --- END OF NEW CODE ---
-
   const getPasswordStrengthColor = () => {
-    if (passwordStrength === 0) return "bg-gray-200";
-    if (passwordStrength <= 25) return "bg-red-500";
-    if (passwordStrength <= 50) return "bg-orange-500";
-    if (passwordStrength <= 75) return "bg-yellow-500";
-    return "bg-green-500";
+    if (passwordStrength === 0) return 'bg-gray-200';
+    if (passwordStrength <= 25) return 'bg-red-500';
+    if (passwordStrength <= 50) return 'bg-orange-500';
+    if (passwordStrength <= 75) return 'bg-yellow-500';
+    return 'bg-green-500';
   };
 
   const getPasswordStrengthText = () => {
-    if (passwordStrength === 0) return "";
-    if (passwordStrength <= 25) return "חלשה מאוד";
-    if (passwordStrength <= 50) return "חלשה";
-    if (passwordStrength <= 75) return "בינונית";
-    return "חזקה";
+    if (passwordStrength === 0) return '';
+    if (passwordStrength <= 25) return 'חלשה מאוד';
+    if (passwordStrength <= 50) return 'חלשה';
+    if (passwordStrength <= 75) return 'בינונית';
+    return 'חזקה';
   };
 
   if (!propUser) {
@@ -420,12 +436,12 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
     <div className="max-w-2xl mx-auto space-y-6">
       <Card
         className={`shadow-md hover:shadow-lg transition-all duration-300 border-t-4 border-blue-600 overflow-hidden relative`}
-        onMouseEnter={() => setActiveSection("main")}
+        onMouseEnter={() => setActiveSection('main')}
         onMouseLeave={() => setActiveSection(null)}
       >
         <div
           className={`absolute inset-0 bg-gradient-to-r from-blue-50 to-blue-100 opacity-0 transition-opacity duration-500 ${
-            activeSection === "main" ? "opacity-60" : ""
+            activeSection === 'main' ? 'opacity-60' : ''
           }`}
         ></div>
 
@@ -458,8 +474,8 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                 <div>
                   <p className="text-sm font-medium text-gray-700">שם מלא</p>
                   <p className="text-base text-gray-800">
-                    {propUser.firstName || "לא צוין"}{" "}
-                    {propUser.lastName || "לא צוין"}
+                    {propUser.firstName || 'לא צוין'}{' '}
+                    {propUser.lastName || 'לא צוין'}
                   </p>
                 </div>
               </div>
@@ -506,37 +522,37 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                       variant="outline"
                       className="bg-blue-50 text-blue-700 border-blue-200"
                     >
-                      {propUser.role === "ADMIN"
-                        ? "מנהל"
-                        : propUser.role === "MATCHMAKER"
-                        ? "שדכן"
-                        : "מועמד"}
+                      {propUser.role === 'ADMIN'
+                        ? 'מנהל'
+                        : propUser.role === 'MATCHMAKER'
+                          ? 'שדכן'
+                          : 'מועמד'}
                     </Badge>
                     <Badge
                       className={
-                        propUser.status === "ACTIVE"
-                          ? "bg-green-100 text-green-800 hover:bg-green-200"
-                          : "bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
+                        propUser.status === 'ACTIVE'
+                          ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                          : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
                       }
                     >
-                      {propUser.status === "ACTIVE"
-                        ? "פעיל"
-                        : propUser.status == "PENDING_EMAIL_VERIFICATION"
-                        ? "ממתין לאישור אימייל"
-                        : propUser.status == "PENDING_PHONE_VERIFICATION"
-                        ? "ממתין לאישור פלאפון"
-                        : propUser.status === "INACTIVE"
-                        ? "לא פעיל"
-                        : "חסום"}
+                      {propUser.status === 'ACTIVE'
+                        ? 'פעיל'
+                        : propUser.status == 'PENDING_EMAIL_VERIFICATION'
+                          ? 'ממתין לאישור אימייל'
+                          : propUser.status == 'PENDING_PHONE_VERIFICATION'
+                            ? 'ממתין לאישור פלאפון'
+                            : propUser.status === 'INACTIVE'
+                              ? 'לא פעיל'
+                              : 'חסום'}
                     </Badge>
                     <Badge
                       className={
                         propUser.isVerified
-                          ? "bg-green-100 text-green-800 hover:bg-green-200"
-                          : "bg-red-100 text-red-800 hover:bg-red-200"
+                          ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                          : 'bg-red-100 text-red-800 hover:bg-red-200'
                       }
                     >
-                      {propUser.isVerified ? "מאומת" : "לא מאומת"}
+                      {propUser.isVerified ? 'מאומת' : 'לא מאומת'}
                     </Badge>
                   </div>
                 </div>
@@ -550,9 +566,9 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-gray-500" />
                       <p className="text-gray-800">
-                        נוצר ב:{" "}
+                        נוצר ב:{' '}
                         {new Date(propUser.createdAt).toLocaleDateString(
-                          "he-IL"
+                          'he-IL'
                         )}
                       </p>
                     </div>
@@ -560,9 +576,9 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                       <div className="flex items-center gap-2">
                         <Clock className="w-4 h-4 text-gray-500" />
                         <p className="text-gray-800">
-                          התחברות אחרונה:{" "}
+                          התחברות אחרונה:{' '}
                           {new Date(propUser.lastLogin).toLocaleDateString(
-                            "he-IL"
+                            'he-IL'
                           )}
                         </p>
                       </div>
@@ -572,29 +588,34 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
               </div>
             </div>
           </div>
-          
+
           {/* --- START OF NEW CODE --- */}
           {/* Marketing Preferences Section */}
           <div className="py-4">
-              <h3 className="text-base font-semibold mb-4 flex items-center">
-                  <Bell className="w-4 h-4 text-blue-600 mr-2" />
-                  העדפות דיוור
-              </h3>
-              <div className="bg-gray-50 p-3 rounded-lg flex items-center justify-between transition-all hover:bg-gray-100 duration-300">
-                  <div>
-                      <Label htmlFor="marketing-switch" className="text-sm font-medium text-gray-700 cursor-pointer">
-                        מידע שיווקי ועדכונים
-                      </Label>
-                      <p className="text-xs text-gray-600">קבלת עדכונים על אירועים, מבצעים וחדשות מהחברה.</p>
-                  </div>
-                  <Switch
-                      id="marketing-switch"
-                      checked={marketingConsent}
-                      onCheckedChange={handleMarketingConsentChange}
-                      disabled={isMarketingLoading}
-                      aria-label="Toggle marketing consent"
-                  />
+            <h3 className="text-base font-semibold mb-4 flex items-center">
+              <Bell className="w-4 h-4 text-blue-600 mr-2" />
+              העדפות דיוור
+            </h3>
+            <div className="bg-gray-50 p-3 rounded-lg flex items-center justify-between transition-all hover:bg-gray-100 duration-300">
+              <div>
+                <Label
+                  htmlFor="marketing-switch"
+                  className="text-sm font-medium text-gray-700 cursor-pointer"
+                >
+                  מידע שיווקי ועדכונים
+                </Label>
+                <p className="text-xs text-gray-600">
+                  קבלת עדכונים על אירועים, מבצעים וחדשות מהחברה.
+                </p>
               </div>
+              <Switch
+                id="marketing-switch"
+                checked={marketingConsent}
+                onCheckedChange={handleMarketingConsentChange}
+                disabled={isMarketingLoading}
+                aria-label="Toggle marketing consent"
+              />
+            </div>
           </div>
           {/* --- END OF NEW CODE --- */}
 
@@ -610,7 +631,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                   הגדרות אבטחה וסיסמה
                 </p>
               </div>
-              {sessionStatus !== "loading" && canChangePassword && (
+              {sessionStatus !== 'loading' && canChangePassword && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -649,7 +670,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                   </p>
                 </div>
               </div>
-              {sessionStatus !== "loading" && !canChangePassword && (
+              {sessionStatus !== 'loading' && !canChangePassword && (
                 <div className="bg-gray-50 p-3 rounded-lg flex items-start gap-3 transition-all hover:bg-gray-100 duration-300">
                   <Key className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                   <div>
@@ -660,7 +681,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                       {session?.user?.accounts &&
                       session.user.accounts.length > 0
                         ? `הסיסמה שלך מנוהלת באמצעות ${session.user.accounts[0].provider}.`
-                        : "הסיסמה שלך מנוהלת באמצעות ספק אימות חיצוני."}
+                        : 'הסיסמה שלך מנוהלת באמצעות ספק אימות חיצוני.'}
                     </p>
                   </div>
                 </div>
@@ -725,8 +746,8 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                   <div
                     className={`rounded-full h-6 w-6 flex items-center justify-center ${
                       passwordChangeStep >= 1
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-200 text-gray-500"
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-200 text-gray-500'
                     }`}
                   >
                     1
@@ -734,8 +755,8 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                   <span
                     className={
                       passwordChangeStep >= 1
-                        ? "text-blue-600"
-                        : "text-gray-500"
+                        ? 'text-blue-600'
+                        : 'text-gray-500'
                     }
                   >
                     הזנת סיסמאות
@@ -746,8 +767,8 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                   <div
                     className={`rounded-full h-6 w-6 flex items-center justify-center ${
                       passwordChangeStep >= 2
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-200 text-gray-500"
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-200 text-gray-500'
                     }`}
                   >
                     2
@@ -755,8 +776,8 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                   <span
                     className={
                       passwordChangeStep >= 2
-                        ? "text-blue-600"
-                        : "text-gray-500"
+                        ? 'text-blue-600'
+                        : 'text-gray-500'
                     }
                   >
                     אימות
@@ -778,7 +799,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                   <div className="relative">
                     <Input
                       id="currentPassword"
-                      type={showCurrentPassword ? "text" : "password"}
+                      type={showCurrentPassword ? 'text' : 'password'}
                       value={currentPassword}
                       onChange={(e) => setCurrentPassword(e.target.value)}
                       disabled={isLoading}
@@ -808,7 +829,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                   <div className="relative">
                     <Input
                       id="newPassword"
-                      type={showNewPassword ? "text" : "password"}
+                      type={showNewPassword ? 'text' : 'password'}
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       disabled={isLoading}
@@ -837,12 +858,12 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                         <span
                           className={`text-xs font-medium ${
                             passwordStrength <= 25
-                              ? "text-red-600"
+                              ? 'text-red-600'
                               : passwordStrength <= 50
-                              ? "text-orange-600"
-                              : passwordStrength <= 75
-                              ? "text-yellow-600"
-                              : "text-green-600"
+                                ? 'text-orange-600'
+                                : passwordStrength <= 75
+                                  ? 'text-yellow-600'
+                                  : 'text-green-600'
                           }`}
                         >
                           {getPasswordStrengthText()}
@@ -865,8 +886,8 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                           <span
                             className={
                               passwordRequirements.length
-                                ? "text-green-600"
-                                : "text-gray-500"
+                                ? 'text-green-600'
+                                : 'text-gray-500'
                             }
                           >
                             לפחות {PASSWORD_MIN_LENGTH} תווים
@@ -882,8 +903,8 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                           <span
                             className={
                               passwordRequirements.uppercase
-                                ? "text-green-600"
-                                : "text-gray-500"
+                                ? 'text-green-600'
+                                : 'text-gray-500'
                             }
                           >
                             אות גדולה באנגלית
@@ -899,8 +920,8 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                           <span
                             className={
                               passwordRequirements.lowercase
-                                ? "text-green-600"
-                                : "text-gray-500"
+                                ? 'text-green-600'
+                                : 'text-gray-500'
                             }
                           >
                             אות קטנה באנגלית
@@ -916,8 +937,8 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                           <span
                             className={
                               passwordRequirements.number
-                                ? "text-green-600"
-                                : "text-gray-500"
+                                ? 'text-green-600'
+                                : 'text-gray-500'
                             }
                           >
                             מספר אחד לפחות
@@ -935,14 +956,14 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                   <div className="relative">
                     <Input
                       id="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
+                      type={showConfirmPassword ? 'text' : 'password'}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       disabled={isLoading}
                       className={`border-gray-300 focus:border-blue-500 pr-10 ${
                         confirmPassword && newPassword !== confirmPassword
-                          ? "border-red-300 focus:border-red-500"
-                          : ""
+                          ? 'border-red-300 focus:border-red-500'
+                          : ''
                       }`}
                       placeholder="הזן שוב את הסיסמה החדשה"
                     />
@@ -989,7 +1010,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                     value={verificationCode}
                     onChange={(e) => {
                       const value = e.target.value
-                        .replace(/\D/g, "")
+                        .replace(/\D/g, '')
                         .slice(0, 6);
                       setVerificationCode(value);
                     }}
@@ -1042,11 +1063,11 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                 {isLoading ? (
                   <span className="flex items-center gap-2">
                     <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                    {showVerificationInput ? "מאמת..." : "שולח..."}
+                    {showVerificationInput ? 'מאמת...' : 'שולח...'}
                   </span>
                 ) : (
                   <span className="flex items-center gap-1">
-                    {showVerificationInput ? "אישור" : "המשך"}
+                    {showVerificationInput ? 'אישור' : 'המשך'}
                     {!showVerificationInput && (
                       <ArrowRight className="h-4 w-4" />
                     )}
@@ -1064,7 +1085,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
         onOpenChange={(open) => {
           if (!open) {
             setIsDeletingAccount(false);
-            setDeleteConfirmText("");
+            setDeleteConfirmText('');
           } else {
             setIsDeletingAccount(true);
           }
@@ -1084,7 +1105,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
 
           <div className="grid gap-4 py-4">
             <Label htmlFor="deleteConfirm" className="text-gray-700">
-              לאישור המחיקה, אנא הקלד:{" "}
+              לאישור המחיקה, אנא הקלד:{' '}
               <strong className="text-red-700">
                 {DELETE_CONFIRMATION_PHRASE}
               </strong>
@@ -1108,7 +1129,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
               variant="outline"
               onClick={() => {
                 setIsDeletingAccount(false);
-                setDeleteConfirmText("");
+                setDeleteConfirmText('');
               }}
               disabled={isLoading}
               className="border-gray-300"
@@ -1128,7 +1149,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
                   מוחק...
                 </span>
               ) : (
-                "מחק חשבון לצמיתות"
+                'מחק חשבון לצמיתות'
               )}
             </Button>
           </DialogFooter>

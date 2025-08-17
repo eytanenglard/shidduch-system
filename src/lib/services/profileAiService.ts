@@ -2,9 +2,7 @@
 
 import prisma from "@/lib/prisma";
 import aiService from "./aiService";
-// START OF CHANGE: Import the ReligiousJourney enum
 import type { User, Profile, QuestionnaireResponse, Prisma as PrismaTypes, ReligiousJourney } from '@prisma/client';
-// END OF CHANGE
 
 // 1. --- Import types and questions from the questionnaire module ---
 import type { Question } from '@/components/questionnaire/types/types';
@@ -15,7 +13,6 @@ import { partnerQuestions } from '@/components/questionnaire/questions/partner/p
 import { religionQuestions } from '@/components/questionnaire/questions/religion/religionQuestions';
 
 // 2. --- Centralized Question Data ---
-// Combine all questions into a single map for efficient lookups by ID.
 const allQuestions: Map<string, Question> = new Map();
 [
   ...valuesQuestions,
@@ -39,7 +36,7 @@ const KEY_MAPPING: Record<WorldKey, DbWorldKey> = {
 
 interface JsonAnswerData {
   questionId: string;
-  value: PrismaTypes.JsonValue; // value is guaranteed to exist
+  value: PrismaTypes.JsonValue;
   answeredAt: string;
   isVisible?: boolean;
 }
@@ -51,9 +48,6 @@ type UserWithRelations = User & {
 
 // 4. --- Helper Functions for Formatting ---
 
-/**
- * Safely formats a value for the narrative, handling undefined/null/empty cases.
- */
 function formatDisplayValue(value: PrismaTypes.JsonValue | null | undefined, fallback: string = "לא צוין"): string {
   if (value === null || value === undefined) {
     return fallback;
@@ -84,9 +78,6 @@ function formatDisplayValue(value: PrismaTypes.JsonValue | null | undefined, fal
   return String(value);
 }
 
-/**
- * Formats an array of strings into a human-readable list.
- */
 function formatArray(arr: string[] | null | undefined, fallback: string = "לא צוין"): string {
   if (!arr || arr.length === 0) {
     return fallback;
@@ -94,9 +85,6 @@ function formatArray(arr: string[] | null | undefined, fallback: string = "לא 
   return arr.join(', ');
 }
 
-/**
- * Type guard to check if an item from JSON is a valid answer object.
- */
 function isValidAnswerObject(item: unknown): item is PrismaTypes.JsonObject & { value: PrismaTypes.JsonValue; questionId: unknown; answeredAt: unknown } {
   return (
     typeof item === 'object' &&
@@ -108,9 +96,6 @@ function isValidAnswerObject(item: unknown): item is PrismaTypes.JsonObject & { 
   );
 }
 
-/**
- * Safely parses the JSON from the database into our defined structure.
- */
 function safeParseAnswers(jsonValue: PrismaTypes.JsonValue | null): JsonAnswerData[] {
   if (Array.isArray(jsonValue)) {
     return jsonValue
@@ -126,9 +111,6 @@ function safeParseAnswers(jsonValue: PrismaTypes.JsonValue | null): JsonAnswerDa
   return [];
 }
 
-/**
- * Intelligently formats a single questionnaire answer into a narrative sentence.
- */
 function formatSingleAnswer(answer: JsonAnswerData): string | null {
   const questionDef = allQuestions.get(answer.questionId);
   if (!questionDef) {
@@ -191,10 +173,6 @@ function formatSingleAnswer(answer: JsonAnswerData): string | null {
   return narrativePart + '\n';
 }
 
-/**
- *  --- NEW FUNCTION ---
- * Processes questionnaire data to get completion stats and a narrative summary of answers.
- */
 function processQuestionnaireData(questionnaire: QuestionnaireResponse | null | undefined) {
     const totalCount = allQuestions.size;
     if (!questionnaire) {
@@ -244,9 +222,6 @@ function processQuestionnaireData(questionnaire: QuestionnaireResponse | null | 
 
 // 5. --- Main Service Functions ---
 
-/**
- * Generates a comprehensive narrative profile text for a given user.
- */
 export async function generateNarrativeProfile(userId: string): Promise<string | null> {
   const user: UserWithRelations | null = await prisma.user.findUnique({
     where: { id: userId },
@@ -274,17 +249,15 @@ export async function generateNarrativeProfile(userId: string): Promise<string |
   
   const questionnaireData = processQuestionnaireData(questionnaire);
 
-  // START OF CHANGE: Add helper map for religious journey translations
-    const religiousJourneyMap: Record<ReligiousJourney, string> = {
+  const religiousJourneyMap: Record<ReligiousJourney, string> = {
       BORN_INTO_CURRENT_LIFESTYLE: "גדל/ה בסביבה דתית הדומה לרמתו/ה כיום",
-      BORN_SECULAR: "גדל/ה בסביבה חילונית", // The new translation
+      BORN_SECULAR: "גדל/ה בסביבה חילונית",
       BAAL_TESHUVA: "חוזר/ת בתשובה",
       DATLASH: "יצא/ה בשאלה (דתל\"ש)",
       CONVERT: "גר/גיורת",
       IN_PROCESS: "בתהליך של שינוי/התחזקות/התלבטות דתית",
       OTHER: "בעל/ת רקע דתי אחר או מורכב"
   };
-  // END OF CHANGE
 
   const narrativeParts: string[] = [
     `# פרופיל AI עבור ${user.firstName} ${user.lastName}, ${profile.gender === 'MALE' ? 'גבר' : 'אישה'} בן/בת ${age}`,
@@ -294,14 +267,12 @@ export async function generateNarrativeProfile(userId: string): Promise<string |
     `- **מצב משפחתי:** ${formatDisplayValue(profile.maritalStatus)}`,
     `- **מגורים:** ${formatDisplayValue(profile.city)}`,
     `- **רמה דתית:** ${formatDisplayValue(profile.religiousLevel)}`,
-    // START OF CHANGE: Add personal religious journey to summary
     profile.religiousJourney ? `- **רקע/מסע דתי:** ${formatDisplayValue(religiousJourneyMap[profile.religiousJourney])}` : '',
-    // END OF CHANGE
     `- **עיסוק:** ${formatDisplayValue(profile.occupation)}`,
     `- **השכלה:** ${formatDisplayValue(profile.educationLevel)}, ${formatDisplayValue(profile.education)}`,
     `- **שומר/ת נגיעה:** ${formatDisplayValue(profile.shomerNegiah)}`,
-      `- **רקע משפחתי:** מצב הורים: ${formatDisplayValue(profile.parentStatus)}. מקצוע האב: ${formatDisplayValue(profile.fatherOccupation)}. מקצוע האם: ${formatDisplayValue(profile.motherOccupation)}.`,
-  ].filter(Boolean); // This removes any empty strings from conditional entries
+    `- **רקע משפחתי:** מצב הורים: ${formatDisplayValue(profile.parentStatus)}. מקצוע האב: ${formatDisplayValue(profile.fatherOccupation)}. מקצוע האם: ${formatDisplayValue(profile.motherOccupation)}.`,
+  ].filter(Boolean);
 
   if (user.source === 'MANUAL_ENTRY' && profile.manualEntryText) {
     narrativeParts.push(`\n**הערת שדכן (למועמד ידני):** ${profile.manualEntryText}`);
@@ -311,7 +282,19 @@ export async function generateNarrativeProfile(userId: string): Promise<string |
     narrativeParts.push(`## קצת עליי (מהפרופיל)\n"${profile.about}"`);
   }
 
-  // --- START: הוספת קטע מידע רפואי ---
+  // --- START: הוספת השדות הנרטיביים החדשים ---
+  const personalInsightsParts = [
+    profile.profileHeadline ? `**הכותרת האישית שלי:**\n"${profile.profileHeadline}"` : '',
+    profile.humorStory ? `**סיפור שמדגים את חוש ההומור שלי:**\n${profile.humorStory}` : '',
+    profile.inspiringCoupleStory ? `**זוג שמעורר בי השראה:**\n${profile.inspiringCoupleStory}` : '',
+    profile.influentialRabbi ? `**דמות רוחנית שהשפיעה עליי:**\n${profile.influentialRabbi}` : ''
+  ].filter(Boolean);
+
+  if (personalInsightsParts.length > 0) {
+    narrativeParts.push(`## תובנות אישיות נוספות\n${personalInsightsParts.join('\n\n')}`);
+  }
+  // --- END: הוספת השדות הנרטיביים החדשים ---
+
   if (profile.hasMedicalInfo) {
     narrativeParts.push(
       `## מידע רפואי`,
@@ -320,7 +303,6 @@ export async function generateNarrativeProfile(userId: string): Promise<string |
       `- **המידע גלוי בפרופיל הציבורי:** ${profile.isMedicalInfoVisible ? 'כן' : 'לא'}`
     );
   }
-  // --- END: הוספת קטע מידע רפואי ---
   
   narrativeParts.push(
     `## תכונות אופי ותחביבים`,
@@ -328,7 +310,6 @@ export async function generateNarrativeProfile(userId: string): Promise<string |
     `- **תחביבים עיקריים:** ${formatArray(profile.profileHobbies)}`
   );
   
-  // START OF CHANGE: Add preferred religious journey to preferences section
   const preferredJourneysText = (profile.preferredReligiousJourneys && profile.preferredReligiousJourneys.length > 0)
     ? formatArray(profile.preferredReligiousJourneys.map(j => religiousJourneyMap[j] || j))
     : "לא צוין";
@@ -342,7 +323,6 @@ export async function generateNarrativeProfile(userId: string): Promise<string |
     `- **רמות השכלה מועדפות:** ${formatArray(profile.preferredEducation)}`,
     `- **מוצאים מועדפים:** ${formatArray(profile.preferredOrigins)}`
   );
-  // END OF CHANGE
 
   narrativeParts.push(
     `\n## ניתוח השלמת השאלון`,
@@ -355,9 +335,6 @@ export async function generateNarrativeProfile(userId: string): Promise<string |
   return narrativeParts.join('\n\n').trim();
 }
 
-/**
- * Updates a user's AI profile by generating a new narrative and its vector embedding.
- */
 export async function updateUserAiProfile(userId: string): Promise<void> {
   console.log(`Starting AI profile update for userId: ${userId}`);
   const profileText = await generateNarrativeProfile(userId);

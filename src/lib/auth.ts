@@ -197,6 +197,8 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
 
+ // הדבק את הקוד הזה במקום כל בלוק ה-callbacks הקיים
+
   callbacks: {
     async signIn({ user, account, profile }) {
       const typedUser = user as ExtendedUser; 
@@ -296,6 +298,7 @@ export const authOptions: NextAuthOptions = {
         return false;
       }
     
+      // כאן אנו מעבירים את המידע מה-DB לאובייקט ה-user שישמש בהמשך
       typedUser.id = dbUser.id; 
       typedUser.email = dbUser.email;
       typedUser.firstName = dbUser.firstName;
@@ -310,6 +313,9 @@ export const authOptions: NextAuthOptions = {
       typedUser.addedByMatchmakerId = dbUser.addedByMatchmakerId;
       typedUser.termsAndPrivacyAcceptedAt = dbUser.termsAndPrivacyAcceptedAt;
       typedUser.marketingConsent = dbUser.marketingConsent;
+      typedUser.createdAt = dbUser.createdAt; // מעבירים את התאריך
+      typedUser.updatedAt = dbUser.updatedAt; // מעבירים את התאריך
+      typedUser.lastLogin = dbUser.lastLogin; // מעבירים את התאריך
 
       if (account?.provider === "google") {
         if (dbUser.isVerified === false && oauthProfile?.email_verified === true) {
@@ -348,13 +354,10 @@ export const authOptions: NextAuthOptions = {
       const typedToken = token as ExtendedUserJWT;
       const typedUserFromCallback = user as ExtendedUser | undefined;
 
-      console.log("[JWT Callback] Triggered.", {
-          trigger,
-          tokenEmail: typedToken.email,
-          userEmailFromCallback: typedUserFromCallback?.email
-      });
+      // שלב 1: אנו שומרים את התאריכים כאובייקט Date תקין בתוך הטוקן.
+      // next-auth יהפוך אותם למחרוזת טקסט באופן אוטומטי "מאחורי הקלעים".
 
-      // Initial sign-in: populate token from user object
+      // בכניסה ראשונית למערכת
       if (typedUserFromCallback) {
         typedToken.id = typedUserFromCallback.id;
         typedToken.email = typedUserFromCallback.email.toLowerCase();
@@ -375,16 +378,14 @@ export const authOptions: NextAuthOptions = {
         typedToken.requiresCompletion = typedUserFromCallback.requiresCompletion;
         typedToken.redirectUrl = typedUserFromCallback.redirectUrl;
         typedToken.marketingConsent = typedUserFromCallback.marketingConsent;
-
-        console.log("[JWT Callback - Initial Population] Token populated from user object.");
+        // לקיחת התאריכים כאובייקט Date
+        typedToken.createdAt = typedUserFromCallback.createdAt;
+        typedToken.updatedAt = typedUserFromCallback.updatedAt;
+        typedToken.lastLogin = typedUserFromCallback.lastLogin;
       }
       
-      // On subsequent JWT calls or session updates, refresh data from DB
+      // ברענון של הסשן או עדכון
       if (typedToken.id && (trigger === "update" || trigger === "signIn")) {
-          console.log(`[JWT Callback - DB Refresh] Refreshing token for user ID: ${typedToken.id}.`);
-          // =================== START OF CHANGE in jwt callback ===================
-          // 1. We remove the heavy 'include' statements from the query.
-          // We only include the main image for the navbar, as it's very light.
           const dbUserForJwt = await prisma.user.findUnique({
             where: { id: typedToken.id },
             include: {
@@ -393,7 +394,6 @@ export const authOptions: NextAuthOptions = {
           });
 
           if (dbUserForJwt) {
-            // 2. Update all the flat and essential flag fields, just as before.
             typedToken.firstName = dbUserForJwt.firstName;
             typedToken.lastName = dbUserForJwt.lastName;
             typedToken.picture = dbUserForJwt.images?.[0]?.url || typedToken.picture; 
@@ -407,9 +407,11 @@ export const authOptions: NextAuthOptions = {
             typedToken.addedByMatchmakerId = dbUserForJwt.addedByMatchmakerId;
             typedToken.termsAndPrivacyAcceptedAt = dbUserForJwt.termsAndPrivacyAcceptedAt;
             typedToken.marketingConsent = dbUserForJwt.marketingConsent;
+            // רענון התאריכים מה-DB כאובייקט Date
+            typedToken.createdAt = dbUserForJwt.createdAt;
+            typedToken.updatedAt = dbUserForJwt.updatedAt;
+            typedToken.lastLogin = dbUserForJwt.lastLogin;
 
-            // 3. We perform a separate, lightweight query to check if the questionnaire is complete.
-            // This is much more efficient than loading all the answers.
             const questionnaireStatus = await prisma.questionnaireResponse.findFirst({
               where: { userId: typedToken.id },
               select: { completed: true },
@@ -417,31 +419,20 @@ export const authOptions: NextAuthOptions = {
             });
             typedToken.questionnaireCompleted = questionnaireStatus?.completed ?? false;
 
-            // 4. CRITICAL: The lines that loaded heavy data into the token are now removed.
-            //    typedToken.profile = ...
-            //    typedToken.images = ...
-            //    typedToken.questionnaireResponses = ...
-
             const requiresCompletionFromDb = (!dbUserForJwt.isProfileComplete || !dbUserForJwt.isPhoneVerified || !dbUserForJwt.termsAndPrivacyAcceptedAt);
             typedToken.requiresCompletion = requiresCompletionFromDb;
             typedToken.redirectUrl = requiresCompletionFromDb ? '/auth/register' : '/profile';
-            
-            console.log("[JWT Callback - DB Refresh] SLIM token updated from DB.");
           }
-          // =================== END OF CHANGE in jwt callback ===================
       }
       
-      console.log("[JWT Callback] Returning final token.");
       return typedToken;
     },
 
-    async session({ session, token }) {
+     async session({ session, token }) {
       const typedToken = token as ExtendedUserJWT;
       const typedSession = session as ExtendedSession;
 
       if (typedSession.user && typedToken.id) {
-        // =================== START OF CHANGE in session callback ===================
-        // 1. All the lightweight, essential data remains in the session.
         typedSession.user.id = typedToken.id;
         typedSession.user.email = typedToken.email;
         typedSession.user.firstName = typedToken.firstName;
@@ -457,22 +448,28 @@ export const authOptions: NextAuthOptions = {
         typedSession.user.hasCompletedOnboarding = typedToken.hasCompletedOnboarding as boolean;
         typedSession.user.source = typedToken.source;
         typedSession.user.addedByMatchmakerId = typedToken.addedByMatchmakerId;
-        typedSession.user.termsAndPrivacyAcceptedAt = typedToken.termsAndPrivacyAcceptedAt;
         typedSession.user.marketingConsent = typedToken.marketingConsent;
-        typedSession.user.createdAt = typedToken.createdAt;
-        typedSession.user.updatedAt = typedToken.updatedAt;
-        typedSession.user.lastLogin = typedToken.lastLogin;
-
-        // 2. CRITICAL: We remove the heavy fields from the session object.
-        //    The client-side code will now fetch this data via API calls.
-        // typedSession.user.profile = typedToken.profile; 
-        // typedSession.user.images = typedToken.images; 
-        // typedSession.user.questionnaireResponses = typedToken.questionnaireResponses;
         
-        // 3. The important flags for routing and logic remain.
+        // =================== התיקון הסופי והנכון ===================
+        // אנו משתמשים ב- 'as unknown as string' כדי לבצע המרה בטוחה
+        // שהיא גם מפורשת ומסבירה ל-TypeScript את כוונתנו.
+        
+        if (typedToken.createdAt) {
+          typedSession.user.createdAt = new Date(typedToken.createdAt as unknown as string);
+        }
+        if (typedToken.updatedAt) {
+          typedSession.user.updatedAt = new Date(typedToken.updatedAt as unknown as string);
+        }
+        if (typedToken.lastLogin) {
+          typedSession.user.lastLogin = new Date(typedToken.lastLogin as unknown as string);
+        }
+        if (typedToken.termsAndPrivacyAcceptedAt) {
+          typedSession.user.termsAndPrivacyAcceptedAt = new Date(typedToken.termsAndPrivacyAcceptedAt as unknown as string);
+        }
+        // ================================================================
+        
         typedSession.requiresCompletion = typedToken.requiresCompletion;
         typedSession.redirectUrl = typedToken.redirectUrl;
-        // =================== END OF CHANGE in session callback ===================
       }
       return typedSession;
     },
@@ -495,7 +492,6 @@ export const authOptions: NextAuthOptions = {
         return baseUrl;
     }
   },
-
   pages: {
     signIn: '/auth/signin',
     error: '/auth/error',

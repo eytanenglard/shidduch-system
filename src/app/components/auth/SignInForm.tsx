@@ -123,7 +123,7 @@ export default function SignInForm() {
           {status === 'authenticated' ? 'התחברת בהצלחה!' : 'טוען נתונים...'}
         </h2>
         <p className="text-gray-600">
-          {status === 'authenticated' ? 'אנו מעבירים אותך לאזור האישי שלך. רגע קט...' : 'אנא המתן בזמן שאנו בודקים את פרטי ההתחברות שלך.'}
+          {status === 'authenticated' ? 'אנו מעבירים אותך לאזור האישי שלך. ' : 'אנא המתן בזמן שאנו בודקים את פרטי ההתחברות שלך.'}
         </p>
       </div>
     );

@@ -67,7 +67,7 @@ const allowedWhileIncompleteOrUnverifiedPaths = [
   '/api/auth/resend-phone-code',
   '/api/auth/update-and-resend-code',
   '/auth/update-phone',
-   // To complete password changes
+    '/api/auth/session',
 ];
 
 // --- NEW: Add the chat API path to a separate constant for rate limiting ---
