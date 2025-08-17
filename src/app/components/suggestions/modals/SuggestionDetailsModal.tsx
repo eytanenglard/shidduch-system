@@ -1040,6 +1040,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                     suggestionId={suggestion.id}
                     userId={userId}
                     showComposer={true}
+                    isDemo={isDemo} // <-- הוספת הפרופ כאן
                   />
                 </div>
               </TabsContent>

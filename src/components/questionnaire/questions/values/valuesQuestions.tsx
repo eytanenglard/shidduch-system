@@ -115,7 +115,7 @@ export const valuesQuestions: Question[] = [
   // --- חלק 2: ערכים בפעולה - דילמות וסדרי עדיפויות ---
   {
     worldId: 'VALUES',
-    id: 'values_two_job_offers', // שאלה חדשה
+    id: 'values_two_job_offers',
     category: 'values',
     subcategory: 'life_priorities',
     question:
@@ -125,13 +125,13 @@ export const valuesQuestions: Question[] = [
     isRequired: true,
     options: [
       {
-        value: 'הצעה א - יוקרה ושכר',
+        value: "הצעה א': שכר גבוה ויוקרה",
         text: "הצעה א': שכר גבוה ויוקרה",
         description:
           'ביטחון כלכלי והזדמנות להתקדמות מהירה הם בעדיפות עליונה כרגע.',
       },
       {
-        value: 'הצעה ב - משמעות ואיזון',
+        value: "הצעה ב': משמעות ואיזון",
         text: "הצעה ב': משמעות ואיזון",
         description:
           'איכות חיים, סיפוק אישי וזמן פנוי חשובים לי יותר מהיבט כלכלי נטו.',

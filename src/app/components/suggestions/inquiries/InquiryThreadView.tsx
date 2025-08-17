@@ -54,15 +54,13 @@ interface Inquiry {
   };
 }
 
-// --- START: עדכון Props ---
 interface InquiryThreadViewProps {
   suggestionId: string;
   userId: string;
   showComposer?: boolean;
   className?: string;
-  isDemo?: boolean; // Prop חדש
+  isDemo?: boolean; // Prop חדש למצב הדגמה
 }
-// --- END: עדכון Props ---
 
 const getStatusInfo = (status: Inquiry['status']) => {
   switch (status) {
@@ -263,22 +261,20 @@ const InquiryThreadView: React.FC<InquiryThreadViewProps> = ({
   userId,
   showComposer = true,
   className,
-  isDemo = false, // קבלת ה-prop
+  isDemo = false,
 }) => {
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
-  const [isLoading, setIsLoading] = useState(!isDemo); // אם דמו, לא נטען
+  const [isLoading, setIsLoading] = useState(!isDemo);
   const [newQuestion, setNewQuestion] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchInquiries = useCallback(async () => {
-    // --- START: בדיקת מצב דמו ---
     if (isDemo) {
       setInquiries([]);
       setIsLoading(false);
       return;
     }
-    // --- END: בדיקת מצב דמו ---
 
     if (!suggestionId) {
       setInquiries([]);
@@ -308,14 +304,13 @@ const InquiryThreadView: React.FC<InquiryThreadViewProps> = ({
     } finally {
       setIsLoading(false);
     }
-  }, [suggestionId, isDemo]); // הוספת isDemo לתלויות
+  }, [suggestionId, isDemo]);
 
   useEffect(() => {
     fetchInquiries();
   }, [fetchInquiries]);
 
   const handleSendQuestion = async () => {
-    // --- START: טיפול במצב דמו ---
     if (isDemo) {
       toast.info('זוהי הדגמה בלבד', {
         description: 'במערכת האמיתית, שאלתך הייתה נשלחת לשדכן/ית.',
@@ -323,7 +318,6 @@ const InquiryThreadView: React.FC<InquiryThreadViewProps> = ({
       });
       return;
     }
-    // --- END: טיפול במצב דמו ---
 
     if (!newQuestion.trim()) return;
 
@@ -363,7 +357,6 @@ const InquiryThreadView: React.FC<InquiryThreadViewProps> = ({
   const pendingCount = inquiries.filter((i) => i.status === 'PENDING').length;
   const answeredCount = inquiries.filter((i) => i.status === 'ANSWERED').length;
 
-  // --- START: רכיב UI ייעודי למצב דמו ---
   const DemoState = () => (
     <>
       <CardContent className="flex-1 max-h-[500px] overflow-y-auto p-6 space-y-6 scrollbar-elegant">
@@ -411,7 +404,6 @@ const InquiryThreadView: React.FC<InquiryThreadViewProps> = ({
       </CardFooter>
     </>
   );
-  // --- END: רכיב UI ייעודי למצב דמו ---
 
   return (
     <Card
@@ -455,7 +447,6 @@ const InquiryThreadView: React.FC<InquiryThreadViewProps> = ({
         </div>
       </CardHeader>
 
-      {/* --- START: לוגיקה חדשה לרנדור --- */}
       {isDemo ? (
         <DemoState />
       ) : (
@@ -571,7 +562,6 @@ const InquiryThreadView: React.FC<InquiryThreadViewProps> = ({
           )}
         </>
       )}
-      {/* --- END: לוגיקה חדשה לרנדור --- */}
     </Card>
   );
 };
