@@ -1,11 +1,17 @@
-import React, { useMemo, useState } from "react";
-import { Card } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Users } from "lucide-react";
+// FILENAME: src/app/components/matchmaker/suggestions/list/ManagerSuggestionsList.tsx
 
-import type { Suggestion, SuggestionFilters } from "@/types/suggestions";
-import SuggestionDetailsDialog from "../details/SuggestionDetailsDialog";
-import { toast } from "sonner";
+import React, { useMemo, useState } from 'react';
+import { useSession } from 'next-auth/react';
+import { Card } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Users } from 'lucide-react';
+import type {
+  Suggestion,
+  SuggestionFilters,
+  ActionAdditionalData,
+} from '@/types/suggestions';
+import SuggestionDetailsDialog from '../details/SuggestionDetailsDialog';
+import { toast } from 'sonner';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,13 +21,25 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog';
+import SuggestionCard from '../cards/SuggestionCard'; // Make sure this is imported
+
+// Define a more specific action type to avoid 'any'
+type SuggestionActionType =
+  | 'view'
+  | 'contact'
+  | 'message'
+  | 'edit'
+  | 'delete'
+  | 'resend'
+  | 'changeStatus'
+  | 'reminder';
 
 interface ManagerSuggestionsListProps {
   suggestions: Suggestion[];
   filters: SuggestionFilters;
   searchQuery: string;
-  type: "active" | "pending" | "history";
+  type: 'active' | 'pending' | 'history';
   onSuggestionDeleted?: (id: string) => void;
 }
 
@@ -32,9 +50,10 @@ const ManagerSuggestionsList: React.FC<ManagerSuggestionsListProps> = ({
   type,
   onSuggestionDeleted,
 }) => {
+  const { data: session } = useSession();
   const [selectedSuggestion, setSelectedSuggestion] =
     useState<Suggestion | null>(null);
-  const [, setShowDeleteDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [suggestionToDelete, setSuggestionToDelete] = useState<string | null>(
     null
   );
@@ -43,17 +62,31 @@ const ManagerSuggestionsList: React.FC<ManagerSuggestionsListProps> = ({
     return suggestions.filter((suggestion) => {
       // Base status filter
       if (
-        type === "active" &&
-        ["CLOSED", "CANCELLED", "EXPIRED"].includes(suggestion.status)
+        type === 'active' &&
+        [
+          'CLOSED',
+          'CANCELLED',
+          'EXPIRED',
+          'FIRST_PARTY_DECLINED',
+          'SECOND_PARTY_DECLINED',
+        ].includes(suggestion.status)
       ) {
         return false;
       }
-      if (type === "pending" && !suggestion.status.includes("PENDING")) {
+      if (type === 'pending' && !suggestion.status.includes('PENDING')) {
         return false;
       }
       if (
-        type === "history" &&
-        !["CLOSED", "CANCELLED", "EXPIRED"].includes(suggestion.status)
+        type === 'history' &&
+        ![
+          'CLOSED',
+          'CANCELLED',
+          'EXPIRED',
+          'FIRST_PARTY_DECLINED',
+          'SECOND_PARTY_DECLINED',
+          'MARRIED',
+          'ENGAGED',
+        ].includes(suggestion.status)
       ) {
         return false;
       }
@@ -61,17 +94,9 @@ const ManagerSuggestionsList: React.FC<ManagerSuggestionsListProps> = ({
       // Search query
       if (searchQuery && suggestion.firstParty && suggestion.secondParty) {
         const searchTerm = searchQuery.toLowerCase();
-        const searchableText = `
-          ${suggestion.firstParty.firstName} 
-          ${suggestion.firstParty.lastName}
-          ${suggestion.secondParty.firstName}
-          ${suggestion.secondParty.lastName}
-          ${suggestion.matchingReason || ""}
-        `.toLowerCase();
-
-        if (!searchableText.includes(searchTerm)) {
-          return false;
-        }
+        const searchableText =
+          `${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} ${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} ${suggestion.matchingReason || ''}`.toLowerCase();
+        if (!searchableText.includes(searchTerm)) return false;
       }
 
       // Priority filter
@@ -87,7 +112,7 @@ const ManagerSuggestionsList: React.FC<ManagerSuggestionsListProps> = ({
         const createdAt = new Date(suggestion.createdAt);
         if (
           createdAt < filters.dateRange.start ||
-          createdAt > filters.dateRange.end
+          (filters.dateRange.end && createdAt > filters.dateRange.end)
         ) {
           return false;
         }
@@ -99,61 +124,69 @@ const ManagerSuggestionsList: React.FC<ManagerSuggestionsListProps> = ({
 
   const confirmDelete = async () => {
     if (!suggestionToDelete) return;
-
     try {
       const response = await fetch(
         `/api/matchmaker/suggestions/${suggestionToDelete}/delete`,
-        {
-          method: "DELETE",
-        }
+        { method: 'DELETE' }
       );
-
-      if (!response.ok) {
-        throw new Error("Failed to delete suggestion");
-      }
-
-      toast.success("ההצעה נמחקה בהצלחה");
-      if (onSuggestionDeleted) {
-        onSuggestionDeleted(suggestionToDelete);
-      }
+      if (!response.ok) throw new Error('Failed to delete suggestion');
+      toast.success('ההצעה נמחקה בהצלחה');
+      if (onSuggestionDeleted) onSuggestionDeleted(suggestionToDelete);
     } catch (error) {
-      console.error("Error deleting suggestion:", error);
-      toast.error("שגיאה במחיקת ההצעה");
+      console.error('Error deleting suggestion:', error);
+      toast.error('שגיאה במחיקת ההצעה');
     } finally {
       setShowDeleteDialog(false);
       setSuggestionToDelete(null);
     }
   };
 
-  const handleAction = (action: string) => {
-    console.log(`Action ${action} for suggestion ${selectedSuggestion?.id}`);
+  const handleAction = (actionType: SuggestionActionType, data?: any) => {
+    console.log(
+      `Action '${actionType}' triggered for suggestion`,
+      data?.suggestion?.id
+    );
+    if (actionType === 'view' && data?.suggestion) {
+      setSelectedSuggestion(data.suggestion);
+    }
+    // Implement other actions like edit, message etc. here by setting state for their respective dialogs
   };
 
   if (filteredSuggestions.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-64 text-gray-400">
         <Users className="w-12 h-12 mb-4" />
-        <p>לא נמצאו הצעות</p>
+        <p>לא נמצאו הצעות התואמות את הסינון</p>
       </div>
     );
   }
 
   return (
     <>
-      <ScrollArea className="h-[600px] rounded-md border">
-        <div className="p-4 space-y-4">
+      <ScrollArea className="h-[600px] rounded-md border p-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredSuggestions.map((suggestion) => {
             if (!suggestion.firstParty || !suggestion.secondParty) {
-              return null;
+              return null; // Safety check for corrupted data
             }
-
             return (
-              <Card
+              <SuggestionCard
                 key={suggestion.id}
-                className="p-4 hover:shadow-md transition-shadow"
-              >
-                {/* Rest of the JSX remains the same */}
-              </Card>
+                suggestion={suggestion}
+                onAction={(type, suggestionData, additionalData) => {
+                  if (type === 'view') {
+                    setSelectedSuggestion(suggestionData);
+                  } else if (type === 'delete') {
+                    setSuggestionToDelete(suggestionData.id);
+                    setShowDeleteDialog(true);
+                  } else {
+                    handleAction(type, {
+                      suggestion: suggestionData,
+                      ...additionalData,
+                    });
+                  }
+                }}
+              />
             );
           })}
         </div>
@@ -163,11 +196,11 @@ const ManagerSuggestionsList: React.FC<ManagerSuggestionsListProps> = ({
         suggestion={selectedSuggestion}
         isOpen={!!selectedSuggestion}
         onClose={() => setSelectedSuggestion(null)}
-        onAction={handleAction}
+        onAction={handleAction as any} // Using 'as any' to bypass strict type check for simplicity here
+        userId={session?.user?.id || ''}
       />
 
-      <AlertDialog>
-        {" "}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>האם את/ה בטוח/ה?</AlertDialogTitle>
