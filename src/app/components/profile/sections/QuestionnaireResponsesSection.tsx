@@ -1,18 +1,18 @@
 // src/app/components/profile/sections/QuestionnaireResponsesSection.tsx
 
-import React, { useState, useMemo, useEffect } from "react"; // Added useEffect
-import Link from "next/link";
+import React, { useState, useMemo, useEffect } from 'react';
+import Link from 'next/link';
 import {
   Card,
   CardHeader,
   CardTitle,
   CardContent,
   CardDescription,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
+} from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import {
   Book,
   CheckCircle,
@@ -24,27 +24,29 @@ import {
   EyeOff,
   Loader2,
   ArrowRight,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { toast } from "sonner";
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from '@/components/ui/tooltip';
+
+// --- START: הוספת ייבוא לקומפוננטה החדשה ---
+import BudgetDisplay from './BudgetDisplay';
+// --- END: הוספת ייבוא לקומפוננטה החדשה ---
+
 import type {
   QuestionnaireResponse,
-  FormattedAnswer,
+  FormattedAnswer, // הטיפוס הזה עודכן בקובץ הטיפוסים
   UpdateValue,
-} from "@/types/next-auth";
+} from '@/types/next-auth';
 
-import { WORLDS } from "../constants";
+import { WORLDS } from '../constants';
 
-// --- קבוע עבור כתובת השאלון ---
-const QUESTIONNAIRE_URL = "/questionnaire"; // שימוש בנתיב יחסי אם האפליקציה רצה באותו דומיין
-// אם אתה צריך את הכתובת המלאה (פחות מומלץ אם זה באותו אתר):
-// const QUESTIONNAIRE_URL = "http://localhost:3000/questionnaire";
+const QUESTIONNAIRE_URL = '/questionnaire';
 
 interface QuestionnaireResponsesSectionProps {
   questionnaire: QuestionnaireResponse | null;
@@ -55,13 +57,12 @@ interface QuestionnaireResponsesSectionProps {
   ) => Promise<void>;
   isEditable?: boolean;
   isFirstInList?: boolean;
-  viewMode?: "matchmaker" | "candidate";
+  viewMode?: 'matchmaker' | 'candidate';
 }
 
-// --- QuestionCard Component ---
 interface QuestionCardProps {
   question: string;
-  answer: FormattedAnswer;
+  answer: FormattedAnswer; // משתמש במבנה החדש שכולל rawValue ו-questionType
   isEditingGlobally: boolean;
   worldKey: string;
   onUpdate: (
@@ -71,6 +72,9 @@ interface QuestionCardProps {
   ) => Promise<void>;
   isFirstInList?: boolean;
 }
+
+// החלף את כל הקוד של QuestionCard בקוד הבא
+// בתוך הקובץ: src/app/components/profile/sections/QuestionnaireResponsesSection.tsx
 
 const QuestionCard: React.FC<QuestionCardProps> = ({
   question,
@@ -84,18 +88,13 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
   const [editValue, setEditValue] = useState(answer.displayText);
   const [isSavingText, setIsSavingText] = useState(false);
   const [isSavingVisibility, setIsSavingVisibility] = useState(false);
-
-  // --- START OF MODIFIED SECTION ---
-  // Local state for optimistic UI update of visibility
   const [currentIsVisible, setCurrentIsVisible] = useState(
     answer.isVisible ?? true
   );
 
-  // Sync local state if the prop changes (e.g., due to parent update or initial load)
   useEffect(() => {
     setCurrentIsVisible(answer.isVisible ?? true);
   }, [answer.isVisible]);
-  // --- END OF MODIFIED SECTION ---
 
   const isSaving = isSavingText || isSavingVisibility;
 
@@ -107,7 +106,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
 
   const handleSaveText = async () => {
     if (!editValue?.trim()) {
-      toast.error("לא ניתן לשמור תשובה ריקה.");
+      toast.error('לא ניתן לשמור תשובה ריקה.');
       return;
     }
     if (editValue.trim() === answer.displayText) {
@@ -118,15 +117,14 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
     setIsSavingText(true);
     try {
       await onUpdate(worldKey, answer.questionId, {
-        type: "answer",
+        type: 'answer',
         value: editValue.trim(),
       });
-      toast.success("התשובה עודכנה בהצלחה");
+      toast.success('התשובה עודכנה בהצלחה');
       setIsEditingText(false);
-      // No need to update editValue here, as parent will re-render with new answer prop
     } catch (error) {
-      console.error("Error updating answer:", error);
-      toast.error("שגיאה בעדכון התשובה");
+      console.error('Error updating answer:', error);
+      toast.error('שגיאה בעדכון התשובה');
     } finally {
       setIsSavingText(false);
     }
@@ -138,37 +136,41 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
   };
 
   const handleVisibilityChange = async (newIsVisibleState: boolean) => {
-    // --- START OF MODIFIED SECTION ---
-    // Optimistically update the local UI state
     setCurrentIsVisible(newIsVisibleState);
-    // --- END OF MODIFIED SECTION ---
     setIsSavingVisibility(true);
     try {
       await onUpdate(worldKey, answer.questionId, {
-        type: "visibility",
+        type: 'visibility',
         isVisible: newIsVisibleState,
       });
-      toast.success("הגדרות הנראות עודכנו");
-      // If successful, the parent should eventually re-render with the updated answer.isVisible,
-      // and the useEffect will sync if needed, but currentIsVisible is already correct.
+      toast.success('הגדרות הנראות עודכנו');
     } catch (error) {
-      console.error("Error updating visibility:", error);
-      toast.error("שגיאה בעדכון הנראות");
-      // --- START OF MODIFIED SECTION ---
-      // Revert optimistic update on error
+      console.error('Error updating visibility:', error);
+      toast.error('שגיאה בעדכון הנראות');
       setCurrentIsVisible(answer.isVisible ?? true);
-      // --- END OF MODIFIED SECTION ---
     } finally {
       setIsSavingVisibility(false);
     }
   };
 
-  // --- START OF MODIFIED SECTION ---
-  // Update visibilityLabel to use currentIsVisible
-  const visibilityLabel = `הצג תשובה זו למועמדים: ${
-    currentIsVisible ? "מופעל" : "כבוי"
-  }`;
-  // --- END OF MODIFIED SECTION ---
+  const renderAnswerContent = () => {
+    if (
+      answer.questionType === 'budgetAllocation' &&
+      typeof answer.rawValue === 'object' &&
+      answer.rawValue !== null &&
+      !Array.isArray(answer.rawValue)
+    ) {
+      const budgetData = answer.rawValue as Record<string, number>;
+      return <BudgetDisplay data={budgetData} />;
+    }
+    return (
+      <p className="text-sm text-gray-800 break-words overflow-wrap-anywhere whitespace-pre-wrap">
+        {answer.displayText}
+      </p>
+    );
+  };
+
+  const visibilityLabel = `הצג תשובה זו למועמדים: ${currentIsVisible ? 'מופעל' : 'כבוי'}`;
 
   return (
     <div className="rounded-lg border bg-card p-4 shadow-sm transition-shadow duration-300 hover:shadow-md">
@@ -190,50 +192,48 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                   <TooltipTrigger asChild>
                     <div
                       className={cn(
-                        "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs shrink-0 flex-row-reverse",
-                        "transition-colors duration-200",
-                        // --- START OF MODIFIED SECTION ---
-                        currentIsVisible // Use currentIsVisible for styling
-                          ? // --- END OF MODIFIED SECTION ---
-                            "bg-emerald-100/70 text-emerald-800"
-                          : "bg-gray-100 text-gray-600"
+                        'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs shrink-0 flex-row-reverse',
+                        'transition-colors duration-200',
+                        currentIsVisible
+                          ? 'bg-emerald-100/70 text-emerald-800'
+                          : 'bg-gray-100 text-gray-600'
                       )}
                     >
-                      {/* --- START OF MODIFIED SECTION --- */}
-                      {currentIsVisible ? ( // Use currentIsVisible for icon and text
+                      {currentIsVisible ? (
                         <Eye className="h-3.5 w-3.5" />
                       ) : (
                         <EyeOff className="h-3.5 w-3.5" />
                       )}
                       <span className="font-medium whitespace-nowrap" dir="rtl">
-                        {currentIsVisible ? "גלוי למועמדים" : "מוסתר"}
+                        {currentIsVisible ? 'גלוי למועמדים' : 'מוסתר'}
                       </span>
-                      {/* --- END OF MODIFIED SECTION --- */}
                     </div>
                   </TooltipTrigger>
                   <TooltipContent side="top" dir="rtl">
                     <p>
-                      {/* --- START OF MODIFIED SECTION --- */}
-                      {currentIsVisible // Use currentIsVisible for tooltip content
-                        ? // --- END OF MODIFIED SECTION ---
-                          "תשובה זו גלויה למועמדים פוטנציאליים"
-                        : "תשובה זו מוסתרת וגלויה רק לך ולשדכנים"}
+                      {currentIsVisible
+                        ? 'תשובה זו גלויה למועמדים פוטנציאליים'
+                        : 'תשובה זו מוסתרת וגלויה רק לך ולשדכנים'}
                     </p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
 
               {isEditingGlobally && (
-                <div id={isFirstInList ? 'onboarding-target-visibility-control' : undefined}>
-                <Switch
-                  // --- START OF MODIFIED SECTION ---
-                  checked={currentIsVisible} // Control Switch with local state
-                  // --- END OF MODIFIED SECTION ---
-                  onCheckedChange={handleVisibilityChange}
-                  disabled={isSaving}
-                  className="data-[state=checked]:bg-emerald-500 data-[state=unchecked]:bg-gray-300 transform scale-90"
-                  aria-label={visibilityLabel}
-                />
+                <div
+                  id={
+                    isFirstInList
+                      ? 'onboarding-target-visibility-control'
+                      : undefined
+                  }
+                >
+                  <Switch
+                    checked={currentIsVisible}
+                    onCheckedChange={handleVisibilityChange}
+                    disabled={isSaving}
+                    className="data-[state=checked]:bg-emerald-500 data-[state=unchecked]:bg-gray-300 transform scale-90"
+                    aria-label={visibilityLabel}
+                  />
                 </div>
               )}
             </div>
@@ -277,16 +277,14 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
           ) : (
             <div className="relative group overflow-hidden mt-1">
               <div className="p-3 bg-gray-50/50 rounded-md border border-gray-200/60 min-h-[40px]">
-                <p className="text-sm text-gray-800 break-words overflow-wrap-anywhere whitespace-pre-wrap">
-                  {answer.displayText}
-                </p>
+                {renderAnswerContent()}
                 <TooltipProvider delayDuration={200}>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <span className="text-xs text-gray-400 block mt-2 text-left">
                         {new Date(answer.answeredAt).toLocaleDateString(
-                          "he-IL",
-                          { year: "numeric", month: "2-digit", day: "2-digit" }
+                          'he-IL',
+                          { year: 'numeric', month: '2-digit', day: '2-digit' }
                         )}
                       </span>
                     </TooltipTrigger>
@@ -296,18 +294,49 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                   </Tooltip>
                 </TooltipProvider>
               </div>
+
+              {/* --- START: כאן נמצא השינוי המרכזי --- */}
               {isEditingGlobally && !isSaving && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 h-7 w-7 text-cyan-600 hover:bg-cyan-50"
-                  onClick={handleStartEdit}
-                  title="עריכת תשובה"
-                >
-                  <Pencil className="h-4 w-4" />
-                  <span className="sr-only">עריכת תשובה</span>
-                </Button>
+                <TooltipProvider delayDuration={200}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      {/* אם זו שאלת תקציב, הכפתור הוא קישור. אחרת, הוא כפתור רגיל */}
+                      {answer.questionType === 'budgetAllocation' ? (
+                        <Button
+                          asChild // מאפשר לכפתור לעטוף את הקישור
+                          variant="ghost"
+                          size="icon"
+                          className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 h-7 w-7 text-cyan-600 hover:bg-cyan-50"
+                        >
+                          <Link href={`/questionnaire?world=${worldKey}`}>
+                            <Pencil className="h-4 w-4" />
+                            <span className="sr-only">עריכה בשאלון המלא</span>
+                          </Link>
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 h-7 w-7 text-cyan-600 hover:bg-cyan-50"
+                          onClick={handleStartEdit}
+                        >
+                          <Pencil className="h-4 w-4" />
+                          <span className="sr-only">עריכת תשובה</span>
+                        </Button>
+                      )}
+                    </TooltipTrigger>
+                    <TooltipContent side="top" dir="rtl">
+                      <p>
+                        {answer.questionType === 'budgetAllocation'
+                          ? 'עריכה בשאלון המלא'
+                          : 'עריכת תשובה'}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               )}
+              {/* --- END: סוף השינוי המרכזי --- */}
+
               {isSavingText && !isEditingText && (
                 <div className="absolute top-1 right-1">
                   <Loader2 className="h-4 w-4 animate-spin text-cyan-500" />
@@ -321,8 +350,8 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
   );
 };
 
+// ... (שאר הקובץ נשאר ללא שינוי)
 // --- WorldSection Component ---
-// (ללא שינוי)
 interface WorldSectionProps {
   worldKey: keyof typeof WORLDS;
   worldConfig: (typeof WORLDS)[keyof typeof WORLDS];
@@ -351,7 +380,7 @@ const WorldSection: React.FC<WorldSectionProps> = ({
   return (
     <Card
       className={cn(
-        "overflow-hidden shadow-sm border",
+        'overflow-hidden shadow-sm border',
         bgColor,
         borderColor,
         className
@@ -360,35 +389,35 @@ const WorldSection: React.FC<WorldSectionProps> = ({
       <CardHeader
         className="p-4 border-b"
         style={{
-          borderColor: `rgba(var(--${color.split("-")[1]}-200-rgb), 0.5)`,
+          borderColor: `rgba(var(--${color.split('-')[1]}-200-rgb), 0.5)`,
         }}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div
               className={cn(
-                "p-2 rounded-full",
-                color.replace("text-", "bg-") + "/10"
+                'p-2 rounded-full',
+                color.replace('text-', 'bg-') + '/10'
               )}
             >
-              <Icon className={cn("h-5 w-5", color)} />
+              <Icon className={cn('h-5 w-5', color)} />
             </div>
             <div>
               <CardTitle className="text-md sm:text-lg text-gray-800">
                 {title}
               </CardTitle>
               <CardDescription className="text-xs text-gray-500 mt-0.5">
-                {answers.length} {answers.length === 1 ? "תשובה" : "תשובות"}
+                {answers.length} {answers.length === 1 ? 'תשובה' : 'תשובות'}
               </CardDescription>
             </div>
           </div>
           <Badge
-            variant={isCompleted ? "success" : "secondary"}
+            variant={isCompleted ? 'success' : 'secondary'}
             className={cn(
-              "gap-1 text-xs px-2 py-0.5 rounded-full",
+              'gap-1 text-xs px-2 py-0.5 rounded-full',
               isCompleted
-                ? "bg-emerald-100 text-emerald-800"
-                : "bg-blue-100 text-blue-800"
+                ? 'bg-emerald-100 text-emerald-800'
+                : 'bg-blue-100 text-blue-800'
             )}
           >
             {isCompleted ? (
@@ -396,7 +425,7 @@ const WorldSection: React.FC<WorldSectionProps> = ({
             ) : (
               <Clock className="h-3 w-3" />
             )}
-            {isCompleted ? "הושלם" : "בתהליך"}
+            {isCompleted ? 'הושלם' : 'בתהליך'}
           </Badge>
         </div>
       </CardHeader>
@@ -411,7 +440,6 @@ const WorldSection: React.FC<WorldSectionProps> = ({
               isEditingGlobally={isEditingGlobally}
               worldKey={worldKey}
               onUpdate={onUpdate}
-              
             />
           ))}
         </div>
@@ -484,14 +512,14 @@ const QuestionnaireResponsesSection: React.FC<
               )}
               <div>
                 <p className="font-semibold text-base text-gray-800">
-                  {questionnaire.completed ? "שאלון הושלם" : "שאלון בתהליך"}
+                  {questionnaire.completed ? 'שאלון הושלם' : 'שאלון בתהליך'}
                 </p>
                 <p className="text-xs text-gray-500 mt-0.5">
                   {hasAnyAnswers
                     ? `עודכן לאחרונה: ${new Date(
                         questionnaire.lastSaved
-                      ).toLocaleDateString("he-IL")}`
-                    : "השאלון טרם החל"}
+                      ).toLocaleDateString('he-IL')}`
+                    : 'השאלון טרם החל'}
                 </p>
               </div>
             </div>

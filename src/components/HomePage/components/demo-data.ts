@@ -220,61 +220,80 @@ const noaQuestionnaireResponse: QuestionnaireResponseType = {
   formattedAnswers: {
     personality: [
       {
-        questionId: 'personality_strengths_and_weaknesses_revised',
-        question: 'ספר/י על שתי תכונות חזקות ואחת לשיפור.',
-        answer: 'שתי תכונות שאני אוהבת בעצמי הן האופטימיות והיכולת להקשיב...',
-        displayText:
-          'שתי תכונות שאני אוהבת בעצמי הן האופטימיות שלי והיכולת להקשיב באמת. אני מאמינה שאלו כלים שעוזרים לי ולקשרים שלי. התכונה שהייתי רוצה לשפר היא אסרטיביות - לפעמים אני נוטה לרצות אחרים על חשבון הצרכים שלי, ואני לומדת לשים לעצמי גבולות בריאים יותר.',
+        questionId: 'personality_core_trait_selection_revised',
+        question: 'כיצד היית מחלק/ת 100% בין תכונות האישיות שלך?',
+        questionType: 'budgetAllocation',
+        rawValue: {
+          'אמפתי/ת ורגיש/ה': 30,
+          'אופטימי/ת ושמח/ה': 25,
+          'יצירתי/ת ומקור/ית': 20,
+          'ישר/ה ואמין/ה': 15,
+          'נדיב/ה ומתחשב/ת': 10,
+        },
+        displayText: "אמפתי/ת ורגיש/ה: 30; אופטימי/ת ושמח/ה: 25; וכו'",
         isVisible: false,
         answeredAt: new Date(),
-      } as FormattedAnswer,
+      },
     ],
     values: [
       {
-        questionId: 'values_core_elaboration_revised',
-        question:
-          'בחר/י את הערך ה"צפוני" ביותר במצפן הפנימי שלך וספר/י על צומת דרכים שבו הלכת לפיו.',
-        answer: "הערך הכי חשוב לי הוא כבוד הדדי. בצומת דרכים מקצועי...",
-        displayText:
-          "הערך הכי חשוב לי הוא כבוד הדדי. בצומת דרכים מקצועי שהיה לי, יכולתי לקחת פרויקט גדול על חשבון קולגה, אבל בחרתי לשתף פעולה. למרות שהרווחתי פחות 'קרדיט' אישי, בנינו יחד משהו טוב יותר ושמרנו על מערכת יחסים בריאה. זו הייתה הוכחה לעצמי שהדרך חשובה לי לא פחות מהתוצאה.",
+        questionId: 'values_core_identification_revised',
+        question: "כיצד היית מחלק/ת 100% 'אנרגיה ערכית'?",
+        questionType: 'budgetAllocation',
+        rawValue: {
+          'משפחה וקשרים קרובים': 35,
+          'צמיחה אישית והתפתחות': 20,
+          'יצירתיות וביטוי עצמי': 15,
+          'רוחניות, אמונה ומסורת': 15,
+          'נתינה ותרומה לחברה': 10,
+          'קריירה והגשמה מקצועית': 5,
+        },
+        displayText: "משפחה וקשרים קרובים: 35; צמיחה אישית: 20; וכו'",
         isVisible: true,
         answeredAt: new Date(),
-      } as FormattedAnswer,
+      },
     ],
     relationship: [
       {
         questionId: 'relationship_household_philosophy',
         question: 'מהי הנוסחה לחלוקת אחריות בניהול הבית?',
-        answer: "אני מאמינה בשותפות מלאה וגמישה...",
-        displayText:
-          "אני מאמינה בשותפות מלאה וגמישה, כמו שראיתי בבית הורי, שם אבא איש כספים ואמא אמנית, וכל אחד מביא את החוזקות שלו. לא 'תפקידים' קבועים, אלא צוות שפועל יחד לפי נקודות החוזק והזמן הפנוי. הכל בתקשורת פתוחה.",
+        questionType: 'openText',
+        rawValue: "אני מאמינה בשותפות מלאה וגמישה, כמו שראיתי בבית הורי...",
+        displayText: "אני מאמינה בשותפות מלאה וגמישה, כמו שראיתי בבית הורי...",
         isVisible: true,
         answeredAt: new Date(),
-      } as FormattedAnswer,
+      },
     ],
     partner: [
       {
-        questionId: 'partner_deal_breakers_open_text_revised',
-        question: "מהו ה'קו האדום' האחד או שניים, שלא תוכל/י לחיות איתו/איתה?",
-        answer: 'הקו האדום המוחלט שלי הוא ציניות מתנשאת...',
-        displayText:
-          'הקו האדום המוחלט שלי הוא ציניות מתנשאת וחוסר כבוד בסיסי לאנשים (למשל, איך שהוא מדבר למלצר). אני לא יכולה להיות עם מישהו שלא יודע לכבד כל אדם באשר הוא.',
+        questionId: 'partner_core_character_traits_essential_revised',
+        question: "מהן 'אבני היסוד' של האישיות שאת/ה מחפש/ת?",
+        questionType: 'budgetAllocation',
+        rawValue: {
+          'חום, אמפתיה וטוב לב': 30,
+          'תקשורת טובה והקשבה': 25,
+          'אופטימיות ושמחת חיים': 20,
+          'יושרה, אמינות וכנות': 15,
+          'בגרות, יציבות ואחריות': 10,
+        },
+        displayText: 'חום, אמפתיה וטוב לב: 30; תקשורת טובה: 25; וכו\'',
         isVisible: true,
         answeredAt: new Date(),
-      } as FormattedAnswer,
+      },
     ],
     religion: [
       {
         questionId: 'religion_my_personal_prayer',
         question: 'מהו קטע התפילה או ההגות שהכי מדבר אליך?',
-        answer: "התפילה 'מודה אני'...",
-        displayText:
-          "התפילה 'מודה אני'. היא מזכירה לי להתחיל כל יום מחדש בהודיה, בפשטות, בלי ציניות. זה רגע קטן של אמונה טהורה שמכוון לי את כל היום.",
+        questionType: 'openText',
+        rawValue: "התפילה 'מודה אני'. היא מזכירה לי להתחיל כל יום מחדש בהודיה...",
+        displayText: "התפילה 'מודה אני'. היא מזכירה לי להתחיל כל יום מחדש בהודיה...",
         isVisible: true,
         answeredAt: new Date(),
-      } as FormattedAnswer,
+      },
     ],
   },
+
 };
 
 // ============================================================================
@@ -646,64 +665,77 @@ const danielQuestionnaireResponse: QuestionnaireResponseType = {
   lastSaved: new Date(),
   createdAt: new Date(),
   updatedAt: new Date(),
+  // --- START: עדכון המבנה של formattedAnswers ---
   formattedAnswers: {
+    personality: [
+      {
+        questionId: 'personality_core_trait_selection_revised',
+        question: 'כיצד היית מחלק/ת 100% בין תכונות האישיות שלך?',
+        questionType: 'budgetAllocation',
+        rawValue: {
+          'ישר/ה ואמין/ה': 30,
+          'שאפתנ/ית ובעל/ת מוטיבציה': 25,
+          'אינטליגנט/ית וסקרנ/ית': 20,
+          'אחראי/ת ומאורגנ/ת': 15,
+          'יציב/ה וקרקע/ית': 10,
+        },
+        displayText: "ישר/ה ואמין/ה: 30; שאפתנ/ית: 25; וכו'",
+        isVisible: false,
+        answeredAt: new Date(),
+      },
+    ],
     values: [
       {
         questionId: 'values_core_elaboration_revised',
-        question:
-          'ספר/י על צומת דרכים אחד בחיים שבו הלכת לפי הערך הכי חשוב לך.',
-        answer: "הערך המרכזי שלי הוא אחריות. כששירתי כקצין...",
-        displayText:
-          "הערך המרכזי שלי הוא אחריות. כששירתי כקצין בהנדסה קרבית, הייתי צריך לקבל החלטה מבצעית מורכבת תחת לחץ. בחרתי בדרך הפעולה הבטוחה יותר, למרות שהיא הייתה פחות 'זוהרת'. זו הייתה החלטה שהתבססה על אחריות לחיי החיילים שלי, והיא חיזקה אצלי את ההבנה שיושרה ואחריות הן מעל הכל.",
+        question: 'ספר/י על צומת דרכים אחד בחיים שבו הלכת לפי הערך הכי חשוב לך.',
+        questionType: 'openText',
+        rawValue: "הערך המרכזי שלי הוא אחריות. כששירתי כקצין...",
+        displayText: "הערך המרכזי שלי הוא אחריות. כששירתי כקצין...",
         isVisible: true,
         answeredAt: new Date(),
-      } as FormattedAnswer,
-    ],
-    personality: [
-      {
-        questionId: 'personality_strengths_and_weaknesses_revised',
-        question: 'ספר/י על שתי תכונות חזקות ואחת לשיפור.',
-        answer: 'שתי תכונות חזקות שלי הן שאפתנות ואמינות...',
-        displayText:
-          'שתי תכונות חזקות שלי הן שאפתנות ואמינות. אני מציב לעצמי מטרות גבוהות ועובד קשה כדי להשיג אותן, ואני מאמין שאפשר לסמוך על המילה שלי. התחום שאני עובד עליו הוא פתיחות רגשית. בגלל הצד האנליטי שלי, לפעמים לוקח לי זמן לעבד ולשתף ברגשות, ואני משתדל להיות יותר פתוח ונגיש רגשית.',
-        isVisible: false,
-        answeredAt: new Date(),
-      } as FormattedAnswer,
+      },
     ],
     relationship: [
       {
         questionId: 'relationship_key_feelings_from_partner_revised',
         question: 'מהם שלושת הדברים שהכי חשוב לך להרגיש מבן/בת הזוג?',
-        answer: 'הערכה וכבוד, ביטחון ואמון, שותפות אינטלקטואלית',
-        displayText:
-          'הדברים שהכי חשוב לי להרגיש הם: הערכה וכבוד, ביטחון ואמון, ושיש לי שותפה אינטלקטואלית לשיחה ולצמיחה.',
+        questionType: 'multiSelect',
+        rawValue: ['הערכה וכבוד', 'ביטחון ואמון', 'שותפות אינטלקטואלית'],
+        displayText: 'הערכה וכבוד, ביטחון ואמון, שותפות אינטלקטואלית',
         isVisible: true,
         answeredAt: new Date(),
-      } as FormattedAnswer,
+      },
     ],
     partner: [
       {
-        questionId: 'partner_completion_trait',
-        question: 'איזו תכונה שפחות חזקה אצלך, היית שמח/ה למצוא אצל בת הזוג?',
-        answer: 'כאדם שרגיל לתכנן ולפעול בצורה מאוד מובנית...',
-        displayText:
-          'כאדם שרגיל לתכנן ולפעול בצורה מאוד מובנית, הייתי שמח למצוא מישהי עם יותר ספונטניות וזרימה, כזו שתעזור לי לפעמים לצאת מהקופסה ולהכניס קצת הרפתקנות לחיים.',
+        questionId: 'partner_intelligence_types',
+        question: "כשאת/ה חושב/ת על 'אינטליגנציה', מה הכי חשוב לך?",
+        questionType: 'budgetAllocation',
+        rawValue: {
+          'אנליטית (היגיון, ניתוח)': 35,
+          'חוכמת חיים ("שכל ישר")': 30,
+          'רגשית (אמפתיה, מודעות)': 20,
+          'רוחנית/תורנית (עומק בלימוד)': 10,
+          'יצירתית (הומור, מקוריות)': 5,
+        },
+        displayText: 'אנליטית: 35; חוכמת חיים: 30; וכו\'',
         isVisible: true,
         answeredAt: new Date(),
-      } as FormattedAnswer,
+      },
     ],
     religion: [
       {
         questionId: 'religion_children_education_religious_vision_revised',
         question: 'מהו החזון שלך לאווירה הרוחנית ולחינוך הילדים בבית?',
-        answer: 'החזון שלי הוא להקים בית שבו ילדים גדלים עם יראת שמיים טבעית...',
-        displayText:
-          'החזון שלי הוא להקים בית שבו ילדים גדלים עם יראת שמיים טבעית, אהבת תורה וחיבור עמוק לארץ ישראל. חשוב לי שהחינוך יהיה פתוח ומאפשר שאלת שאלות, כזה שמצמיח אנשים חושבים ומאמינים.',
+        questionType: 'openText',
+        rawValue: 'החזון שלי הוא להקים בית שבו ילדים גדלים עם יראת שמיים טבעית...',
+        displayText: 'החזון שלי הוא להקים בית שבו ילדים גדלים עם יראת שמיים טבעית...',
         isVisible: true,
         answeredAt: new Date(),
-      } as FormattedAnswer,
+      },
     ],
   },
+
 };
 
 // ============================================================================

@@ -178,7 +178,6 @@ export default function MatchmakingQuestionnaire({
       completed: isCompleted,
       startedAt: startTime,
       completedAt: isCompleted ? new Date().toISOString() : undefined,
-      
     };
   }, [answers, completedWorlds, sessionId, startTime, userId]);
 
@@ -397,53 +396,75 @@ export default function MatchmakingQuestionnaire({
     (questionId: string, value: AnswerValue) => {
       setError(null);
       setIsDirty(true);
-      const newAnswer: QuestionnaireAnswer = {
-        questionId,
-        worldId: currentWorld,
-        value,
-        answeredAt: new Date().toISOString(),
-        isVisible: true, // <-- הוספה: ברירת מחדל שהתשובה גלויה
-      };
-      setAnswers((prev) => {
-        const existingAnswer = prev.find((a) => a.questionId === questionId);
-        // שמור על הגדרת ה-isVisible הקיימת אם התשובה כבר קיימת
-        const finalAnswer = {
-          ...newAnswer,
-          isVisible: existingAnswer?.isVisible ?? true,
-        };
-        const filtered = prev.filter((a) => a.questionId !== questionId);
-        return [...filtered, finalAnswer];
+      setAnswers((prevAnswers) => {
+        const answerIndex = prevAnswers.findIndex(
+          (a) => a.questionId === questionId
+        );
+
+        // אם התשובה כבר קיימת במערך
+        if (answerIndex > -1) {
+          // צור מערך חדש באמצעות map
+          return prevAnswers.map((answer) => {
+            if (answer.questionId === questionId) {
+              // החזר אובייקט חדש עם הערכים המעודכנים,
+              // תוך שמירה על כל שאר המאפיינים (כמו isVisible)
+              return {
+                ...answer,
+                value,
+                answeredAt: new Date().toISOString(),
+              };
+            }
+            return answer;
+          });
+        }
+
+        // אם זו תשובה חדשה לחלוטין
+        else {
+          const newAnswer: QuestionnaireAnswer = {
+            questionId,
+            worldId: currentWorld,
+            value,
+            answeredAt: new Date().toISOString(),
+            isVisible: true, // ברירת המחדל לתשובה חדשה היא תמיד גלויה
+          };
+          // החזר מערך חדש עם התשובה החדשה
+          return [...prevAnswers, newAnswer];
+        }
       });
     },
     [currentWorld]
   );
 
-  // --- START: פונקציה חדשה לשינוי נראות ---
   const handleVisibilityChange = useCallback(
     (questionId: string, isVisible: boolean) => {
       setIsDirty(true);
-      setAnswers((prev) => {
-        const answerIndex = prev.findIndex((a) => a.questionId === questionId);
+      setAnswers((prevAnswers) => {
+        const answerIndex = prevAnswers.findIndex(
+          (a) => a.questionId === questionId
+        );
 
-        // אם התשובה קיימת, עדכן אותה
+        // אם התשובה כבר קיימת במערך
         if (answerIndex > -1) {
-          const newAnswers = [...prev];
-          newAnswers[answerIndex] = {
-            ...newAnswers[answerIndex],
-            isVisible,
-          };
-          return newAnswers;
+          // צור מערך חדש עם הנראות המעודכנת
+          return prevAnswers.map((answer) => {
+            if (answer.questionId === questionId) {
+              return { ...answer, isVisible };
+            }
+            return answer;
+          });
         }
-        // אם התשובה לא קיימת, צור תשובת פלייסהולדר חדשה
+
+        // אם התשובה לא קיימת (למשל, שינוי נראות לפני מענה)
         else {
           const newPlaceholderAnswer: QuestionnaireAnswer = {
             questionId,
             worldId: currentWorld,
-            value: undefined, // ערך ריק
+            value: undefined,
             answeredAt: new Date().toISOString(),
             isVisible: isVisible,
           };
-          return [...prev, newPlaceholderAnswer];
+          // החזר מערך חדש עם תשובת ה-placeholder
+          return [...prevAnswers, newPlaceholderAnswer];
         }
       });
 
@@ -453,8 +474,9 @@ export default function MatchmakingQuestionnaire({
         2000
       );
     },
-    [showToast, currentWorld] // הוספתי את currentWorld לתלויות
+    [showToast, currentWorld]
   );
+
   // --- END: פונקציה חדשה לשינוי נראות ---
 
   const handleWorldChange = useCallback((newWorld: WorldId) => {
@@ -566,6 +588,8 @@ export default function MatchmakingQuestionnaire({
           [currentWorld]: index,
         }));
       },
+      onSave: () => handleQuestionnaireSave(false),
+      isSaving: isSaving,
     };
 
     return <WorldComponent {...worldProps} worldId={currentWorld} />;
@@ -600,7 +624,7 @@ export default function MatchmakingQuestionnaire({
       case OnboardingStep.WELCOME:
         return (
           <Welcome
-             onStart={() => setCurrentStep(OnboardingStep.MAP)}
+            onStart={() => setCurrentStep(OnboardingStep.MAP)}
             onLearnMore={() => router.push('/profile')}
             isLoggedIn={!!userId}
             hasSavedProgress={answers.length > 0 || completedWorlds.length > 0}

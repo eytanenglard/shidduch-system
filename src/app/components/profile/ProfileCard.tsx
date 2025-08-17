@@ -10,6 +10,8 @@ import React, {
   useRef,
 } from 'react';
 import Image from 'next/image';
+import BudgetDisplay from './sections/BudgetDisplay';
+
 import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
 import {
   ResizableHandle,
@@ -3228,11 +3230,26 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     [profile.availabilityStatus, THEME]
   );
 
+  // Helper function to check if an answer has actual content
+  const isRawValueAnswered = (value: FormattedAnswer['rawValue']): boolean => {
+    if (value === null || value === undefined) return false;
+    if (typeof value === 'string' && value.trim() === '') return false;
+    if (Array.isArray(value) && value.length === 0) return false;
+    if (
+      typeof value === 'object' &&
+      !Array.isArray(value) &&
+      Object.keys(value).length === 0
+    )
+      return false;
+    return true;
+  };
+
   const getVisibleAnswers = useCallback(
     (world: keyof NonNullable<QuestionnaireResponse['formattedAnswers']>) => {
       if (!questionnaire?.formattedAnswers?.[world]) return [];
       return questionnaire.formattedAnswers[world].filter((a) => {
-        const hasContent = a.answer || a.displayText;
+        // --- התיקון נמצא כאן ---
+        const hasContent = isRawValueAnswered(a.rawValue);
         if (!hasContent) return false;
         if (viewMode === 'matchmaker') return true;
         return a.isVisible !== false;
@@ -3554,16 +3571,27 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 `border-${worldColor}-400`
               )}
             >
-              <p
-                className={cn(
-                  'text-gray-700 leading-relaxed italic break-words hyphens-auto word-break-break-word overflow-wrap-anywhere',
-                  compact ? 'text-sm' : 'text-sm sm:text-base'
-                )}
-              >
-                <Quote className="w-3 h-3 sm:w-4 sm:h-4 inline ml-1 text-gray-400 flex-shrink-0" />
-                {answer.displayText || answer.answer}
-                <Quote className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 text-gray-400 transform rotate-180 flex-shrink-0" />
-              </p>
+              {/* --- START: התיקון והשדרוג המרכזי נמצא כאן --- */}
+              {answer.questionType === 'budgetAllocation' &&
+              typeof answer.rawValue === 'object' &&
+              answer.rawValue &&
+              !Array.isArray(answer.rawValue) ? (
+                <BudgetDisplay
+                  data={answer.rawValue as Record<string, number>}
+                />
+              ) : (
+                <p
+                  className={cn(
+                    'text-gray-700 leading-relaxed italic break-words hyphens-auto word-break-break-word overflow-wrap-anywhere',
+                    compact ? 'text-sm' : 'text-sm sm:text-base'
+                  )}
+                >
+                  <Quote className="w-3 h-3 sm:w-4 sm:h-4 inline ml-1 text-gray-400 flex-shrink-0" />
+                  {answer.displayText}
+                  <Quote className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 text-gray-400 transform rotate-180 flex-shrink-0" />
+                </p>
+              )}
+              {/* --- END: סוף התיקון והשדרוג --- */}
             </div>
           </div>
         </div>

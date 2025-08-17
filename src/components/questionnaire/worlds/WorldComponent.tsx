@@ -84,6 +84,8 @@ const worldConfig: Record<
 interface WorldComponentDynamicProps extends WorldComponentProps {
   worldId: WorldId;
   onVisibilityChange: (questionId: string, isVisible: boolean) => void;
+  onSave?: () => void; // <-- הוספה
+  isSaving?: boolean; // <-- הוספה
 }
 
 export default function WorldComponent({
@@ -96,6 +98,8 @@ export default function WorldComponent({
   language = 'he',
   currentQuestionIndex,
   setCurrentQuestionIndex,
+   onSave, // <-- קבלה
+  isSaving, // <-- קבלה
 }: WorldComponentDynamicProps) {
   // 4. שימוש ב-worldId כדי לשלוף את הנתונים הנכונים מהקונפיגורציה
   const { questions: allQuestions, title, themeColor } = worldConfig[worldId];
@@ -412,6 +416,8 @@ export default function WorldComponent({
         onVisibilityChange={(isVisible) =>
           onVisibilityChange(currentQuestion.id, isVisible)
         }
+          onSave={onSave}
+        isSaving={isSaving}
       >
         <AnswerInput
           question={currentQuestion}

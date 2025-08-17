@@ -15,6 +15,7 @@ import type {
   Prisma,
   UserSource,
   ReligiousJourney,
+    Prisma,
 } from '@prisma/client';
 import { DefaultSession, DefaultUser } from 'next-auth';
 import { DefaultJWT } from 'next-auth/jwt';
@@ -128,11 +129,29 @@ preferredReligiousJourneys: ReligiousJourney[];
 export interface FormattedAnswer {
   questionId: string;
   question: string;
-  answer: string;
+  
+  /**
+   * סוג השאלה המקורי (למשל, 'budgetAllocation', 'openText').
+   * זה המפתח שיאפשר לנו להציג כל תשובה בצורה המתאימה לה.
+   */
+  questionType: string;
+
+  /**
+   * הערך הגולמי מהתשובה כפי שהוא שמור במסד הנתונים.
+   * זה יכול להיות אובייקט, מערך, מספר או טקסט.
+   * זה המידע שנשתמש בו כדי לבנות את הגרף הוויזואלי.
+   */
+  rawValue: Prisma.JsonValue | null;
+
+  /**
+   * טקסט התצוגה הפשוט, ישמש לשאלות רגילות ולתצוגת גיבוי.
+   */
   displayText: string;
+  
   isVisible?: boolean;
   answeredAt: string | Date;
 }
+
 
 export type UserImage = PrismaUserImage;
 
@@ -150,14 +169,7 @@ export interface QuestionnaireResponse extends Omit<PrismaQuestionnaireResponse,
 
   // This formattedAnswers seems like a client-side computed property
   formattedAnswers?: {
-    [key: string]: Array<{
-      questionId: string;
-      question: string;
-      answer: string;
-      displayText: string;
-      isVisible?: boolean;
-      answeredAt: string | Date;
-    }>;
+    [key: string]: FormattedAnswer[]; // <--- התיקון! עכשיו הוא משתמש בטיפוס הנכון
   } | null;
   // Other fields from PrismaQuestionnaireResponse are inherited
   // id: string;
