@@ -418,6 +418,7 @@ export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = (
     <Button
       variant="outline"
       size="lg"
+      data-ai-dialog-trigger // <<<--- FIX: Add this data attribute
       className="relative overflow-hidden group bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 border-2 border-blue-200 text-blue-700 hover:from-blue-100 hover:to-pink-100 hover:border-blue-300 transition-all duration-300 shadow-lg hover:shadow-xl rounded-xl"
     >
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent transform -translate-x-full group-hover:animate-shimmer" />

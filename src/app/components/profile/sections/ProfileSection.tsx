@@ -230,6 +230,17 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
   const [aliyaCountryInputValue, setAliyaCountryInputValue] = useState('');
 
   const initializeFormData = (profileData: UserProfile | null) => {
+    // *** FIX for [object Object] bug ***
+    // Sanitize the profile headline to ensure it's a string.
+    let headline = profileData?.profileHeadline || '';
+    if (typeof headline === 'object' && headline !== null) {
+      console.warn(
+        'Profile headline from API is an object, resetting to empty string:',
+        headline
+      );
+      headline = '';
+    }
+
     const dataToSet: Partial<UserProfile> = {
       gender: profileData?.gender || undefined,
       birthDate: ensureDateObject(profileData?.birthDate),
@@ -290,11 +301,13 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
       medicalInfoDisclosureTiming:
         profileData?.medicalInfoDisclosureTiming || undefined,
       isMedicalInfoVisible: profileData?.isMedicalInfoVisible ?? false,
-      // --- START OF NEW FIELDS INITIALIZATION ---
-      profileHeadline: profileData?.profileHeadline || '',
+      
+      // --- START OF UPDATED FIELDS INITIALIZATION ---
+      profileHeadline: headline, // Use the sanitized variable
       inspiringCoupleStory: profileData?.inspiringCoupleStory || '',
       influentialRabbi: profileData?.influentialRabbi || '',
-      // --- END OF NEW FIELDS INITIALIZATION ---
+      // Note: `humorStory` was intentionally removed and replaced by `influentialRabbi`
+      // --- END OF UPDATED FIELDS INITIALIZATION ---
     };
     setFormData(dataToSet);
     setInitialData(dataToSet);
@@ -1318,7 +1331,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     )}
                   </div>
                 </div>
-                {/* --- START OF NEW FIELD --- */}
+                
                 <div className="mt-6 pt-6 border-t border-gray-200/70">
                   <div className="flex items-center gap-1.5 mb-2">
                     <Label
@@ -1364,7 +1377,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </p>
                   )}
                 </div>
-                {/* --- END OF NEW FIELD --- */}
+                
               </CardContent>
             </Card>
           </div>
@@ -1379,7 +1392,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
               </CardHeader>
               <CardContent className="p-4 md:p-6">
                 <div className="space-y-6">
-                  {/* --- START OF NEW FIELD: profileHeadline --- */}
+                  
                   <div>
                     <div className="flex items-center gap-1.5 mb-2">
                       <Label
@@ -1425,8 +1438,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       </p>
                     )}
                   </div>
-                  {/* --- END OF NEW FIELD --- */}
-
+                  
                   <div>
                     <div className="flex items-center gap-1.5 mb-2">
                       <Label
@@ -1501,7 +1513,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     )}
                   </div>
 
-                  {/* --- START OF NEW FIELD: inspiringCoupleStory --- */}
                   <div>
                     <div className="flex items-center gap-1.5 mb-2">
                       <Label
@@ -1547,7 +1558,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       </p>
                     )}
                   </div>
-                  {/* --- END OF NEW FIELD --- */}
+                  
                   <div>
                     <div className="flex items-center gap-1.5 mb-2">
                       <Label className="text-sm font-medium text-gray-700">

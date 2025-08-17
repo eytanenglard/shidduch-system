@@ -913,6 +913,13 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
           className={cn(getModalClasses())}
           dir="rtl"
           onOpenAutoFocus={(e) => e.preventDefault()}
+          // vvv--- FIX: Add this event handler ---vvv
+          onInteractOutside={(e) => {
+            if ((e.target as HTMLElement).closest('[data-ai-dialog-trigger]')) {
+              e.preventDefault();
+            }
+          }}
+          // ^^^------------------------------------^^^
           data-fullscreen={isFullscreen}
           data-mobile={isMobile}
           style={

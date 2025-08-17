@@ -272,15 +272,18 @@ async function generateQuestionnaireAnswers(profileData) {
         - religion_modesty_personal_approach_revised
         - religion_children_education_religious_vision_revised
     `;
-
     const generatedTextsResponse = await generateTextWithGemini(openTextQuestionsPrompt, `questionnaire texts for ${profileData.firstName}`, true);
     let openAnswers = {};
     try {
-        openAnswers = JSON.parse(generatedTextsResponse);
+        // --- START OF FIX ---
+        // Clean the response from Gemini to remove markdown code blocks
+        const cleanedResponse = generatedTextsResponse.replace(/^```json\s*/, '').replace(/```$/, '');
+        // --- END OF FIX ---
+        
+        openAnswers = JSON.parse(cleanedResponse); // Use the cleaned response
     } catch (e) {
-        console.error(`[Q] Failed to parse JSON from Gemini for ${profileData.firstName}. Using fallbacks.`);
+        console.error(`[Q] Failed to parse JSON from Gemini for ${profileData.firstName}. Using fallbacks. Original response: ${generatedTextsResponse}`);
     }
-
     // Generate answers for other types
     const answers = {
         personalityAnswers: {
@@ -567,7 +570,7 @@ async function runUserCreationProcess(newUserCount = 10, imagesPerUser = 1) {
 }
 
 // --- Script Execution ---
-const NUMBER_OF_NEW_USERS_TO_CREATE = 16; 
+const NUMBER_OF_NEW_USERS_TO_CREATE = 2; 
 const IMAGES_PER_USER = 1;
 
 runUserCreationProcess(NUMBER_OF_NEW_USERS_TO_CREATE, IMAGES_PER_USER);

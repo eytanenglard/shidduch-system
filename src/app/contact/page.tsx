@@ -46,25 +46,32 @@ const contactSchema = z.object({
   message: z.string().min(10, { message: 'ההודעה חייבת להכיל לפחות 10 תווים' }),
 });
 
-// ===== DATA =====
+// ===== DATA (UPDATED WITH EMPATHETIC & PROFESSIONAL TONE) =====
 const contactCategories = [
-  { value: 'general', label: 'שאלה כללית', icon: MessageCircle },
-  { value: 'process', label: 'שאלות על התהליך', icon: HelpCircle },
-  { value: 'consultation', label: 'בקשה לייעוץ אישי', icon: Heart },
-  { value: 'technical', label: 'תמיכה טכנית', icon: Users },
+  { value: 'process', label: 'אשמח להבין יותר על התהליך', icon: HelpCircle },
+  {
+    value: 'consultation',
+    label: 'אני רוצה להתייעץ באופן אישי',
+    icon: HeartHandshake,
+  },
+  { value: 'general', label: 'יש לי שאלה כללית', icon: MessageCircle },
+  { value: 'technical', label: 'אני צריך/ה עזרה טכנית', icon: Users },
 ];
 const quickFAQ = [
   {
-    question: 'כמה זמן לוקח לקבל תשובה?',
-    answer: 'אנו מתחייבים להשיב תוך 24 שעות בימי עבודה',
+    question: 'כמה מהר אקבל מענה?',
+    answer:
+      'אנו מכבדים את זמנכם ומחויבים לחזור לכל פנייה באופן אישי ומקצועי תוך 24 שעות בימי עבודה.',
   },
   {
-    question: 'האם הייעוץ הראשוני בחינם?',
-    answer: 'כן! הייעוץ הראשוני והרשמה בסיסית הם בחינם לחלוטין',
+    question: 'האם שיחת היכרות ראשונית כרוכה בתשלום?',
+    answer:
+      'בהחלט לא. שיחת ההיכרות נועדה לבניית אמון והבנה הדדית, והיא ניתנת ללא עלות וללא כל התחייבות.',
   },
   {
-    question: 'איך אפשר לדבר עם שדכן?',
-    answer: 'לאחר ההרשמה תקבלו שדכן אישי לליווי צמוד',
+    question: 'איך הכי נכון להתחיל את המסע?',
+    answer:
+      'הדרך הטובה ביותר היא דרך מילוי שאלון ההיכרות המעמיק שלנו. לאחר מכן, שדכן אישי ייצור עמכם קשר לשיחה אישית.',
   },
 ];
 const teamMembers = [
@@ -73,14 +80,16 @@ const teamMembers = [
     role: 'שדכנית ראשית',
     image:
       'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700882/dina4_gr0ako.jpg',
-    description: 'מתמחה בליווי אישי וחם',
+    description:
+      'מומחית בליווי אישי וחם, מאמינה שהקשבה היא המפתח לחיבור אמיתי.',
   },
   {
     name: 'איתן אנגלרד',
     role: 'מייסד ומנכ״ל',
     image:
       'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753700884/eitan_h9ylkc.jpg',
-    description: 'יזם טכנולוגי ומומחה התאמות',
+    description:
+      'יזם ומייסד, משלב טכנולוגיה חכמה עם לב אנושי כדי לבנות את הדרך הבטוחה לזוגיות.',
   },
 ];
 
@@ -169,7 +178,7 @@ export default function ContactPage() {
         </Button>
       </div>
 
-      {/* ===== HERO SECTION ===== */}
+      {/* ===== HERO SECTION (UPDATED) ===== */}
       <motion.section
         ref={heroRef}
         className="relative pt-20 pb-12 px-4 text-center overflow-hidden"
@@ -193,7 +202,9 @@ export default function ContactPage() {
             className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg border border-white/60 mb-8"
           >
             <HeartHandshake className="w-6 h-6 text-cyan-500" />
-            <span className="text-cyan-700 font-semibold">בואו נכיר</span>
+            <span className="text-cyan-700 font-semibold">
+              שיחה שמתחילה מהלב
+            </span>
           </motion.div>
 
           <motion.h1
@@ -204,10 +215,10 @@ export default function ContactPage() {
             }
             transition={{ duration: 0.8, delay: 0.4 }}
           >
-            השותפים שלכם למציאת
+            מאחורי כל שאלה, יש סיפור.
             <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-pink-600">
-              הזיווג המושלם
+              אנחנו כאן כדי להקשיב.
             </span>
           </motion.h1>
 
@@ -219,11 +230,11 @@ export default function ContactPage() {
             }
             transition={{ duration: 0.8, delay: 0.6 }}
           >
-            יש לכם שאלה? רוצים לשמוע עוד על התהליך? או אולי פשוט רוצים לדבר עם
-            מישהו שמבין?
+            המסע לזוגיות מעלה התלבטויות רבות. בדיוק בשביל זה אנחנו כאן – להעניק
+            ליווי מקצועי, מענה אישי ומרחב בטוח להתייעצות.
             <br />
             <span className="font-semibold text-cyan-700">
-              אנחנו כאן בשבילכם, עם כל הלב והמקצועיות.
+              הדלת שלנו פתוחה והדיסקרטיות שלכם מובטחת.
             </span>
           </motion.p>
         </div>
@@ -232,7 +243,7 @@ export default function ContactPage() {
       {/* ===== MAIN CONTENT ===== */}
       <div className="max-w-7xl mx-auto px-4 pb-20 pt-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* ===== CONTACT FORM ===== */}
+          {/* ===== CONTACT FORM (UPDATED) ===== */}
           <motion.div
             ref={formRef}
             className="lg:col-span-2"
@@ -247,13 +258,13 @@ export default function ContactPage() {
                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-cyan-100/50 to-pink-100/50 rounded-full transform translate-x-16 -translate-y-16" />
                 <div className="relative">
                   <div className="inline-block mx-auto mb-4 p-3 bg-gradient-to-r from-cyan-100 to-pink-100 rounded-full">
-                    <MessageCircle className="w-8 h-8 text-cyan-600" />
+                    <Mail className="w-8 h-8 text-cyan-600" />
                   </div>
                   <CardTitle className="text-3xl font-bold text-gray-800 mb-2">
-                    בואו נדבר
+                    נשמח להכיר, לייעץ ולעזור
                   </CardTitle>
                   <CardDescription className="text-lg text-gray-600">
-                    נשמח לענות על כל שאלה ולעזור לכם להתחיל את המסע
+                    כל פנייה נענית באופן אישי, מקצועי ומתוך מחשבה עמוקה.
                   </CardDescription>
                 </div>
               </CardHeader>
@@ -268,11 +279,12 @@ export default function ContactPage() {
                     <Alert className="bg-green-50 border-green-200 text-green-800">
                       <CheckCircle className="h-5 w-5 text-green-600" />
                       <AlertTitle className="font-semibold">
-                        ההודעה נשלחה בהצלחה!
+                        פנייתכם התקבלה, תודה רבה!
                       </AlertTitle>
                       <AlertDescription className="mt-2">
-                        תודה רבה על פנייתכם. צוות NeshamaTech ייצור איתכם קשר
-                        תוך 24 שעות.
+                        עשיתם צעד משמעותי במסע שלכם. אנו רואים את האמון שנתתם
+                        בנו ומתייחסים לכך בכובד הראש. שדכן אישי מצוות
+                        NeshamaTech יקרא את פנייתכם ויחזור אליכם תוך 24 שעות.
                         <div className="mt-4 flex gap-3">
                           <Link href="/auth/register">
                             <Button
@@ -280,12 +292,12 @@ export default function ContactPage() {
                               className="bg-cyan-600 hover:bg-cyan-700"
                             >
                               <UserPlus className="w-4 h-4 ml-2" />
-                              הרשמה למערכת
+                              להרשמה והתחלת המסע
                             </Button>
                           </Link>
                           <Link href="/questionnaire">
                             <Button variant="outline" size="sm">
-                              לשאלון ההתאמה
+                              לשאלון ההיכרות המעמיק
                             </Button>
                           </Link>
                         </div>
@@ -390,7 +402,7 @@ export default function ContactPage() {
                         htmlFor="message"
                         className="text-sm font-medium text-gray-700"
                       >
-                        ההודעה *
+                        ההודעה שלכם *
                       </label>
                       <Textarea
                         id="message"
@@ -428,12 +440,12 @@ export default function ContactPage() {
                         {isLoading ? (
                           <>
                             <Loader2 className="ml-2 h-5 w-5 animate-spin" />
-                            שולח הודעה...
+                            שולחים...
                           </>
                         ) : (
                           <>
                             <Send className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                            שלח הודעה
+                            שליחת פנייה
                           </>
                         )}
                       </span>
@@ -441,7 +453,8 @@ export default function ContactPage() {
 
                     <div className="text-center text-sm text-gray-500 mt-4">
                       <Shield className="w-4 h-4 inline ml-2" />
-                      המידע שלכם מוגן ומטופל בדיסקרטיות מלאה
+                      המידע שלכם מטופל בדיסקרטיות מוחלטת ובמקצועיות. זו
+                      ההתחייבות שלנו.
                     </div>
                   </form>
                 )}
@@ -449,7 +462,7 @@ export default function ContactPage() {
             </Card>
           </motion.div>
 
-          {/* ===== SIDEBAR ===== */}
+          {/* ===== SIDEBAR (REORDERED & UPDATED) ===== */}
           <motion.div
             className="space-y-6"
             initial={{ opacity: 0, x: 50 }}
@@ -458,42 +471,12 @@ export default function ContactPage() {
             }
             transition={{ duration: 0.8, delay: 0.2 }}
           >
-            {/* Quick FAQ */}
-            <Card className="shadow-xl border-0 bg-white/95 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-xl">
-                  <Lightbulb className="w-6 h-6 text-orange-500" />
-                  שאלות נפוצות
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {quickFAQ.map((item, index) => (
-                  <motion.div
-                    key={index}
-                    className="p-4 bg-gray-50 rounded-xl"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={
-                      isFormInView
-                        ? { opacity: 1, y: 0 }
-                        : { opacity: 0, y: 20 }
-                    }
-                    transition={{ duration: 0.6, delay: 0.4 + index * 0.1 }}
-                  >
-                    <h4 className="font-semibold text-gray-800 mb-2">
-                      {item.question}
-                    </h4>
-                    <p className="text-sm text-gray-600">{item.answer}</p>
-                  </motion.div>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Team Section */}
+            {/* Team Section (Moved Up) */}
             <Card className="shadow-xl border-0 bg-white/95 backdrop-blur-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-xl">
                   <Users className="w-6 h-6 text-cyan-500" />
-                  הצוות שלכם
+                  הצוות שלכם, כאן בשבילכם
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -508,7 +491,7 @@ export default function ContactPage() {
                           ? { opacity: 1, x: 0 }
                           : { opacity: 0, x: 20 }
                       }
-                      transition={{ duration: 0.6, delay: 0.6 + index * 0.1 }}
+                      transition={{ duration: 0.6, delay: 0.4 + index * 0.1 }}
                     >
                       <div className="relative w-16 h-16 rounded-full overflow-hidden shadow-md">
                         <Image
@@ -536,12 +519,42 @@ export default function ContactPage() {
               </CardContent>
             </Card>
 
+            {/* Quick FAQ */}
+            <Card className="shadow-xl border-0 bg-white/95 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <Lightbulb className="w-6 h-6 text-orange-500" />
+                  תשובות מהירות לשאלות חשובות
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {quickFAQ.map((item, index) => (
+                  <motion.div
+                    key={index}
+                    className="p-4 bg-gray-50 rounded-xl"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={
+                      isFormInView
+                        ? { opacity: 1, y: 0 }
+                        : { opacity: 0, y: 20 }
+                    }
+                    transition={{ duration: 0.6, delay: 0.6 + index * 0.1 }}
+                  >
+                    <h4 className="font-semibold text-gray-800 mb-2">
+                      {item.question}
+                    </h4>
+                    <p className="text-sm text-gray-600">{item.answer}</p>
+                  </motion.div>
+                ))}
+              </CardContent>
+            </Card>
+
             {/* Contact Info */}
             <Card className="shadow-xl border-0 bg-gradient-to-br from-cyan-600 to-pink-600 text-white">
               <CardContent className="p-6">
                 <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
                   <Phone className="w-6 h-6" />
-                  דרכי התקשרות
+                  דרכים נוספות ליצירת קשר
                 </h3>
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
@@ -559,8 +572,8 @@ export default function ContactPage() {
                 </div>
                 <div className="mt-6 p-4 bg-white/20 rounded-xl backdrop-blur-sm">
                   <p className="text-sm">
-                    <strong>הבטחת מענה:</strong> נשיב לכל פנייה תוך 24 שעות בימי
-                    עבודה
+                    <strong>התחייבות למענה:</strong> אנו מבינים את חשיבות
+                    פנייתכם ומבטיחים מענה אישי ומקצועי.
                   </p>
                 </div>
               </CardContent>
@@ -571,21 +584,22 @@ export default function ContactPage() {
               <CardContent className="p-6 text-center">
                 <Target className="w-12 h-12 mx-auto mb-4 text-pink-500" />
                 <h3 className="text-xl font-bold text-gray-800 mb-3">
-                  מוכנים לנסות?
+                  מוכנים לצעד הבא במסע?
                 </h3>
                 <p className="text-gray-600 mb-6 text-sm">
-                  הרשמה חינם + שאלון התאמה מקצועי
+                  שאלון ההיכרות המעמיק שלנו הוא הדרך הטובה ביותר עבורנו להבין
+                  אתכם, ועבורכם להתחיל את התהליך בביטחון.
                 </p>
                 <div className="space-y-3">
                   <Link href="/auth/register">
                     <Button className="w-full bg-gradient-to-r from-cyan-600 to-pink-600 hover:from-cyan-700 hover:to-pink-700 rounded-xl">
                       <UserPlus className="w-4 h-4 ml-2" />
-                      הרשמה למערכת
+                      הרשמה ראשונית (ללא עלות)
                     </Button>
                   </Link>
                   <Link href="/questionnaire">
                     <Button variant="outline" className="w-full rounded-xl">
-                      לשאלון ההתאמה
+                      לשאלון ההיכרות שלנו
                     </Button>
                   </Link>
                 </div>
@@ -613,7 +627,7 @@ export default function ContactPage() {
               NeshamaTech
             </span>
           </div>
-          <p className="text-gray-400 mb-4">מחברים לבבות בדרך הנכונה</p>
+          <p className="text-gray-400 mb-4">זוגיות שמתחילה מהנשמה</p>
           <p className="text-sm text-gray-500">
             © {new Date().getFullYear()} NeshamaTech. כל הזכויות שמורות.
           </p>
