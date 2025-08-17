@@ -1,5 +1,5 @@
 // src/components/questionnaire/worlds/WorldComponent.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import WorldIntro from '../common/WorldIntro';
 import QuestionCard from '../common/QuestionCard';
 import AnswerInput from '../common/AnswerInput';
@@ -37,14 +37,12 @@ import { cn } from '@/lib/utils';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// 1. ייבוא כל קבצי השאלות
 import { personalityQuestions } from '../questions/personality/personalityQuestions';
 import { valuesQuestions } from '../questions/values/valuesQuestions';
 import { relationshipQuestions } from '../questions/relationship/relationshipQuestions';
 import { partnerQuestions } from '../questions/partner/partnerQuestions';
 import { religionQuestions } from '../questions/religion/religionQuestions';
 
-// 2. יצירת אובייקט קונפיגורציה מרכזי לניהול הנתונים של כל עולם, כולל צבע נושא
 const worldConfig: Record<
   WorldId,
   {
@@ -56,36 +54,36 @@ const worldConfig: Record<
   PERSONALITY: {
     questions: personalityQuestions,
     title: 'עולם האישיות',
-    themeColor: 'sky', // גוונים של כחול-שמיים לאישיות ורפלקציה
+    themeColor: 'sky',
   },
   VALUES: {
     questions: valuesQuestions,
     title: 'עולם הערכים והאמונות',
-    themeColor: 'rose', // גוונים של ורוד-אדמדם לערכים ורגשות
+    themeColor: 'rose',
   },
   RELATIONSHIP: {
     questions: relationshipQuestions,
     title: 'עולם הזוגיות',
-    themeColor: 'purple', // גוונים של סגול לשותפות ואינטימיות
+    themeColor: 'purple',
   },
   PARTNER: {
     questions: partnerQuestions,
     title: 'עולם הפרטנר',
-    themeColor: 'teal', // גוונים של טורקיז למיקוד ובהירות
+    themeColor: 'teal',
   },
   RELIGION: {
     questions: religionQuestions,
     title: 'עולם הדת והמסורת',
-    themeColor: 'amber', // גוונים של ענבר/זהב למסורת ורוחניות
+    themeColor: 'amber',
   },
 };
 
-// 3. הרחבת ה-Props של הקומפוננטה כדי שתקבל worldId ו-onVisibilityChange
 interface WorldComponentDynamicProps extends WorldComponentProps {
   worldId: WorldId;
   onVisibilityChange: (questionId: string, isVisible: boolean) => void;
-  onSave?: () => void; // <-- הוספה
-  isSaving?: boolean; // <-- הוספה
+  onSave?: () => void;
+  isSaving?: boolean;
+  isDirectNavigation?: boolean;
 }
 
 export default function WorldComponent({
@@ -98,10 +96,10 @@ export default function WorldComponent({
   language = 'he',
   currentQuestionIndex,
   setCurrentQuestionIndex,
-   onSave, // <-- קבלה
-  isSaving, // <-- קבלה
+  onSave,
+  isSaving,
+  isDirectNavigation = false,
 }: WorldComponentDynamicProps) {
-  // 4. שימוש ב-worldId כדי לשלוף את הנתונים הנכונים מהקונפיגורציה
   const { questions: allQuestions, title, themeColor } = worldConfig[worldId];
 
   const [isIntroComplete, setIsIntroComplete] = useState(false);
@@ -111,6 +109,16 @@ export default function WorldComponent({
   const isDesktop = useMediaQuery('(min-width: 1024px)');
   const isRTL = language === 'he';
   const [isListVisible, setIsListVisible] = useState(true);
+
+  // --- התיקון הקריטי ---
+  // useEffect זה יפעל כשהקומפוננטה נטענת או כשהדגל משתנה,
+  // וידאג לדלג על מסך הפתיחה במקרה של ניווט ישיר.
+  useEffect(() => {
+    if (isDirectNavigation) {
+      setIsIntroComplete(true);
+    }
+  }, [isDirectNavigation]);
+  // --- סוף התיקון ---
 
   const findAnswer = (questionId: string): QuestionnaireAnswer | undefined => {
     return answers.find((a) => a.questionId === questionId);
@@ -325,7 +333,6 @@ export default function WorldComponent({
           {!isDesktop && (
             <Sheet>
               <SheetTrigger asChild>
-                {/* START: שינוי עיצובי וכיתוב של הכפתור */}
                 <Button
                   variant="outline"
                   size="sm"
@@ -337,7 +344,6 @@ export default function WorldComponent({
                   <List className="h-4 w-4" />
                   <span>רשימת שאלות</span>
                 </Button>
-                {/* END: שינוי עיצובי וכיתוב של הכפתור */}
               </SheetTrigger>
               <SheetContent
                 side={isRTL ? 'left' : 'right'}
@@ -416,7 +422,7 @@ export default function WorldComponent({
         onVisibilityChange={(isVisible) =>
           onVisibilityChange(currentQuestion.id, isVisible)
         }
-          onSave={onSave}
+        onSave={onSave}
         isSaving={isSaving}
       >
         <AnswerInput

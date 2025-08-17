@@ -25,9 +25,9 @@ import {
   EyeOff,
   Users,
   Lock,
-  Save, // *** הוספה חדשה ***
-  Loader2, // *** הוספה חדשה ***
-  BookUser, // *** הוספה חדשה ***
+  Save,
+  Loader2,
+  BookUser,
 } from 'lucide-react';
 import {
   Tooltip,
@@ -57,8 +57,8 @@ interface QuestionCardProps {
   themeColor?: 'sky' | 'rose' | 'purple' | 'teal' | 'amber';
   isVisible: boolean;
   onVisibilityChange: (isVisible: boolean) => void;
-  onSave?: () => void; // *** הוספה חדשה ***
-  isSaving?: boolean; // *** הוספה חדשה ***
+  onSave?: () => void;
+  isSaving?: boolean;
 }
 
 const depthLabels: Record<QuestionDepth, string> = {
@@ -73,7 +73,6 @@ const depthDescriptions: Record<QuestionDepth, string> = {
   EXPERT: 'שאלות העשרה לחיבור מעמיק במיוחד',
 };
 
-// פתרון לבעיית הצבעים הדינמיים
 const getThemeClasses = (themeColor: string) => {
   const themes = {
     sky: {
@@ -135,12 +134,11 @@ export default function QuestionCard({
   themeColor = 'sky',
   isVisible,
   onVisibilityChange,
-  onSave, // *** קבלת Prop ***
-  isSaving, // *** קבלת Prop ***
+  onSave,
+  isSaving,
 }: QuestionCardProps) {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
-  const [showHint, setShowHint] = useState(false);
   const isMobile = useMediaQuery('(max-width: 640px)');
 
   const cardVariants = {
@@ -329,53 +327,70 @@ export default function QuestionCard({
         <CardFooter className="relative flex justify-between items-center pt-4 border-t border-slate-100 bg-slate-50/50">
           {/* צד ימין (ב-RTL): מתג נראות */}
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <TooltipProvider delayDuration={200}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        id={`visibility-switch-${question.id}`} // *** 1. הוספת ID ייחודי ***
-                        checked={isVisible}
-                        onCheckedChange={onVisibilityChange}
-                        disabled={isDisabled}
-                        aria-label="הצג תשובה זו בפרופיל"
-                        className="data-[state=checked]:bg-green-500"
-                      />
-                      <div className="flex items-center gap-1.5">
-                        {/* ... (האייקונים נשארים כפי שהם) ... */}
-                      </div>
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div
+                    className="flex items-center gap-2"
+                    onClick={() => onVisibilityChange(!isVisible)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <Switch
+                      id={`visibility-switch-${question.id}`}
+                      checked={isVisible}
+                      onCheckedChange={onVisibilityChange}
+                      disabled={isDisabled}
+                      aria-label="הצג תשובה זו בפרופיל"
+                    />
+                    <div className="flex items-center gap-1.5">
+                      {/* --- START: התיקון המרכזי כאן --- */}
+                      {/* שימוש ברינדור מותנה כדי להציג את האייקונים והטקסט הנכונים */}
+                      {isVisible ? (
+                        <div className="flex items-center gap-1.5 text-green-700">
+                          <Eye className="w-4 h-4" />
+                          <Users className="w-3 h-3" />
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1.5 text-slate-500">
+                          <EyeOff className="w-4 h-4" />
+                          <Lock className="w-3 h-3" />
+                        </div>
+                      )}
+                      {/* --- END: התיקון המרכזי --- */}
                     </div>
-                  </TooltipTrigger>
-                  {/* ... (ה-TooltipContent נשאר כפי שהוא) ... */}
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-            <motion.div
-            // ... (קוד אנימציה קיים) ...
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-xs">
+                  <div className="text-center">
+                    <p className="font-medium mb-1">
+                      {isVisible ? '👁️ גלוי לכולם' : '🔒 מוסתר מהציבור'}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {isVisible
+                        ? 'התשובה תוצג בפרופיל הציבורי שלך'
+                        : 'התשובה תהיה גלויה רק לשדכנים מאושרים'}
+                    </p>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <Label
+              htmlFor={`visibility-switch-${question.id}`}
+              className={cn(
+                'text-sm font-medium cursor-pointer transition-colors duration-200',
+                isVisible ? 'text-green-700' : 'text-slate-500'
+              )}
+              onClick={() => onVisibilityChange(!isVisible)}
             >
-              <Label
-                htmlFor={`visibility-switch-${question.id}`} // *** 2. הוספת htmlFor ***
-                className={cn(
-                  'text-sm font-medium cursor-pointer transition-all duration-200',
-                  isVisible ? 'text-green-700' : 'text-slate-500'
-                )}
-                // *** 3. הסרת onClick מיותר ***
-              >
-                {isVisible ? 'גלוי בפרופיל' : 'מוסתר מהפרופיל'}
-              </Label>
-              <div
-                className={cn(
-                  'w-2 h-2 rounded-full transition-colors duration-200',
-                  isVisible ? 'bg-green-500' : 'bg-slate-400'
-                )}
-              />
-            </motion.div>
+              {/* --- START: שינוי הטקסט בהתאם למצב --- */}
+              {isVisible ? 'גלוי בפרופיל' : 'מוסתר מהפרופיל'}
+              {/* --- END: שינוי הטקסט בהתאם למצב --- */}
+            </Label>
           </div>
 
           {/* צד שמאל (ב-RTL): כפתורי פעולה */}
           <div className="flex items-center gap-1">
-            {/* --- START: כפתור שמירה (אייקון בלבד) --- */}
             {onSave && (
               <TooltipProvider>
                 <Tooltip>
@@ -401,9 +416,7 @@ export default function QuestionCard({
                 </Tooltip>
               </TooltipProvider>
             )}
-            {/* --- END: כפתור שמירה --- */}
 
-            {/* --- START: כפתור צפייה בפרופיל (אייקון בלבד) --- */}
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -425,9 +438,7 @@ export default function QuestionCard({
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            {/* --- END: כפתור צפייה בפרופיל --- */}
 
-            {/* כפתור דילוג (נשאר כפי שהיה) */}
             {onSkip && (
               <Button
                 variant="ghost"

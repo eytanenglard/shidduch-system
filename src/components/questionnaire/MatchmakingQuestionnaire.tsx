@@ -11,7 +11,7 @@ import React, {
 import { useRouter } from 'next/navigation';
 import QuestionnaireLayout from './layout/QuestionnaireLayout';
 import Welcome from './onboarding/Welcome';
-import WorldComponent from './worlds/WorldComponent'; // <-- שינוי: ייבוא הקומפוננטה המאוחדת
+import WorldComponent from './worlds/WorldComponent';
 import QuestionnaireCompletion from './common/QuestionnaireCompletion';
 import { useLanguage } from '@/app/contexts/LanguageContext';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -35,8 +35,22 @@ import type {
   QuestionnaireSubmission,
   QuestionnaireAnswer,
   AnswerValue,
-  WorldComponentProps,
+  Question,
 } from './types/types';
+
+import { personalityQuestions } from './questions/personality/personalityQuestions';
+import { valuesQuestions } from './questions/values/valuesQuestions';
+import { relationshipQuestions } from './questions/relationship/relationshipQuestions';
+import { partnerQuestions } from './questions/partner/partnerQuestions';
+import { religionQuestions } from './questions/religion/religionQuestions';
+
+const worldConfig: Record<WorldId, { questions: Question[] }> = {
+  PERSONALITY: { questions: personalityQuestions },
+  VALUES: { questions: valuesQuestions },
+  RELATIONSHIP: { questions: relationshipQuestions },
+  PARTNER: { questions: partnerQuestions },
+  RELIGION: { questions: religionQuestions },
+};
 
 const worldLabels = {
   PERSONALITY: 'אישיות',
@@ -65,12 +79,14 @@ export interface MatchmakingQuestionnaireProps {
   userId?: string;
   onComplete?: () => void;
   initialWorld?: WorldId;
+  initialQuestionId?: string;
 }
 
 export default function MatchmakingQuestionnaire({
   userId,
   onComplete,
   initialWorld,
+  initialQuestionId,
 }: MatchmakingQuestionnaireProps) {
   const router = useRouter();
   const { language } = useLanguage();
@@ -86,6 +102,9 @@ export default function MatchmakingQuestionnaire({
   const [completedWorlds, setCompletedWorlds] = useState<WorldId[]>([]);
   const [startTime] = useState(() => new Date().toISOString());
   const [lastSavedTime, setLastSavedTime] = useState<Date | null>(null);
+
+  // דגל שיורה לקומפוננטת הבת לדלג על מסך הפתיחה
+  const [isDirectNavigation, setIsDirectNavigation] = useState(false);
 
   const [currentQuestionIndices, setCurrentQuestionIndices] = useState<
     Record<WorldId, number>
@@ -343,7 +362,29 @@ export default function MatchmakingQuestionnaire({
               data.data.completed ||
               loadedCompletedWorlds.length === WORLD_ORDER.length;
 
-            if (isQuestionnaireComplete) {
+            if (data.data.currentQuestionIndices) {
+              setCurrentQuestionIndices(data.data.currentQuestionIndices);
+            }
+
+            if (initialWorld && initialQuestionId) {
+              const worldQuestions = worldConfig[initialWorld].questions;
+              const questionIndex = worldQuestions.findIndex(
+                (q) => q.id === initialQuestionId
+              );
+
+              if (questionIndex !== -1) {
+                setCurrentQuestionIndices((prev) => ({
+                  ...prev,
+                  [initialWorld]: questionIndex,
+                }));
+                setCurrentWorld(initialWorld);
+                setCurrentStep(OnboardingStep.WORLDS);
+                setIsDirectNavigation(true); // הפעלת הדגל
+              } else {
+                setCurrentWorld(initialWorld);
+                setCurrentStep(OnboardingStep.MAP);
+              }
+            } else if (isQuestionnaireComplete) {
               if (initialWorld && WORLD_ORDER.includes(initialWorld)) {
                 setCurrentWorld(initialWorld);
                 setCurrentStep(OnboardingStep.WORLDS);
@@ -372,10 +413,6 @@ export default function MatchmakingQuestionnaire({
             } else {
               setCurrentStep(OnboardingStep.WELCOME);
             }
-
-            if (data.data.currentQuestionIndices) {
-              setCurrentQuestionIndices(data.data.currentQuestionIndices);
-            }
           } else {
             console.log('Questionnaire data structure invalid or missing.');
             setCurrentStep(OnboardingStep.WELCOME);
@@ -390,7 +427,7 @@ export default function MatchmakingQuestionnaire({
       }
     };
     loadExistingAnswers();
-  }, [userId, initialWorld]);
+  }, [userId, initialWorld, initialQuestionId]);
 
   const handleAnswer = useCallback(
     (questionId: string, value: AnswerValue) => {
@@ -401,13 +438,9 @@ export default function MatchmakingQuestionnaire({
           (a) => a.questionId === questionId
         );
 
-        // אם התשובה כבר קיימת במערך
         if (answerIndex > -1) {
-          // צור מערך חדש באמצעות map
           return prevAnswers.map((answer) => {
             if (answer.questionId === questionId) {
-              // החזר אובייקט חדש עם הערכים המעודכנים,
-              // תוך שמירה על כל שאר המאפיינים (כמו isVisible)
               return {
                 ...answer,
                 value,
@@ -416,18 +449,14 @@ export default function MatchmakingQuestionnaire({
             }
             return answer;
           });
-        }
-
-        // אם זו תשובה חדשה לחלוטין
-        else {
+        } else {
           const newAnswer: QuestionnaireAnswer = {
             questionId,
             worldId: currentWorld,
             value,
             answeredAt: new Date().toISOString(),
-            isVisible: true, // ברירת המחדל לתשובה חדשה היא תמיד גלויה
+            isVisible: true,
           };
-          // החזר מערך חדש עם התשובה החדשה
           return [...prevAnswers, newAnswer];
         }
       });
@@ -442,20 +471,14 @@ export default function MatchmakingQuestionnaire({
         const answerIndex = prevAnswers.findIndex(
           (a) => a.questionId === questionId
         );
-
-        // אם התשובה כבר קיימת במערך
         if (answerIndex > -1) {
-          // צור מערך חדש עם הנראות המעודכנת
           return prevAnswers.map((answer) => {
             if (answer.questionId === questionId) {
               return { ...answer, isVisible };
             }
             return answer;
           });
-        }
-
-        // אם התשובה לא קיימת (למשל, שינוי נראות לפני מענה)
-        else {
+        } else {
           const newPlaceholderAnswer: QuestionnaireAnswer = {
             questionId,
             worldId: currentWorld,
@@ -463,7 +486,6 @@ export default function MatchmakingQuestionnaire({
             answeredAt: new Date().toISOString(),
             isVisible: isVisible,
           };
-          // החזר מערך חדש עם תשובת ה-placeholder
           return [...prevAnswers, newPlaceholderAnswer];
         }
       });
@@ -477,12 +499,11 @@ export default function MatchmakingQuestionnaire({
     [showToast, currentWorld]
   );
 
-  // --- END: פונקציה חדשה לשינוי נראות ---
-
   const handleWorldChange = useCallback((newWorld: WorldId) => {
     setCurrentWorld(newWorld);
     setCurrentStep(OnboardingStep.WORLDS);
     setError(null);
+    setIsDirectNavigation(false); // איפוס הדגל במעבר ידני
   }, []);
 
   const handleWorldComplete = useCallback(
@@ -571,11 +592,10 @@ export default function MatchmakingQuestionnaire({
     setCurrentStep(OnboardingStep.MAP);
   }, []);
 
-  // --- שינוי מרכזי כאן ---
   function renderCurrentWorld() {
     const worldProps = {
       onAnswer: handleAnswer,
-      onVisibilityChange: handleVisibilityChange, // <-- העברת הפונקציה החדשה
+      onVisibilityChange: handleVisibilityChange,
       onComplete: () => handleWorldComplete(currentWorld),
       onBack: handleExit,
       answers: answers.filter((a) => a.worldId === currentWorld),
@@ -590,11 +610,12 @@ export default function MatchmakingQuestionnaire({
       },
       onSave: () => handleQuestionnaireSave(false),
       isSaving: isSaving,
+      isDirectNavigation: isDirectNavigation, // העברת הדגל
     };
 
     return <WorldComponent {...worldProps} worldId={currentWorld} />;
   }
-  // --- סוף השינוי ---
+
   interface ToastProps {
     message: string;
     type: 'success' | 'error' | 'info';
@@ -603,7 +624,6 @@ export default function MatchmakingQuestionnaire({
   }
 
   function renderCurrentStep() {
-    // Loading state
     if (isLoading) {
       return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50">
@@ -641,8 +661,7 @@ export default function MatchmakingQuestionnaire({
             language={language}
             isLoggedIn={!!userId}
           >
-            {' '}
-            {renderCurrentWorld()}{' '}
+            {renderCurrentWorld()}
           </QuestionnaireLayout>
         );
       case OnboardingStep.COMPLETED:

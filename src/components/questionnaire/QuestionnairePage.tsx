@@ -35,6 +35,11 @@ export default function QuestionnairePage() {
   const [initialWorld, setInitialWorld] = useState<WorldId | undefined>(
     undefined
   );
+  // --- START: הוספת state חדש ---
+  const [initialQuestionId, setInitialQuestionId] = useState<
+    string | undefined
+  >(undefined);
+  // --- END: הוספת state חדש ---
 
   // Check for existing progress when component mounts
   useEffect(() => {
@@ -68,6 +73,9 @@ export default function QuestionnairePage() {
     if (status === 'loading') return;
 
     const worldParam = searchParams?.get('world');
+    // --- START: הוספת קריאת פרמטר שאלה ---
+    const questionParam = searchParams?.get('question');
+    // --- END: הוספת קריאת פרמטר שאלה ---
     if (
       worldParam &&
       ['PERSONALITY', 'VALUES', 'RELATIONSHIP', 'PARTNER', 'RELIGION'].includes(
@@ -84,6 +92,11 @@ export default function QuestionnairePage() {
         // Pass the selected world to MatchmakingQuestionnaire
         const selectedWorld = worldParam as WorldId;
         setInitialWorld(selectedWorld);
+        // --- START: שמירת מזהה השאלה ---
+        if (questionParam) {
+          setInitialQuestionId(questionParam);
+        }
+        // --- END: שמירת מזהה השאלה ---
       }
     }
   }, [searchParams, status, currentStage]);
@@ -130,6 +143,9 @@ export default function QuestionnairePage() {
             userId={session?.user?.id}
             onComplete={handleQuestionnaireComplete}
             initialWorld={initialWorld}
+            // --- START: העברת prop חדש ---
+            initialQuestionId={initialQuestionId}
+            // --- END: העברת prop חדש ---
           />
         );
 

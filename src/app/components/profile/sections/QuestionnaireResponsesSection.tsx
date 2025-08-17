@@ -308,7 +308,9 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                           size="icon"
                           className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 h-7 w-7 text-cyan-600 hover:bg-cyan-50"
                         >
-                          <Link href={`/questionnaire?world=${worldKey}`}>
+                          <Link
+                            href={`/questionnaire?world=${worldKey}&question=${answer.questionId}`}
+                          >
                             <Pencil className="h-4 w-4" />
                             <span className="sr-only">עריכה בשאלון המלא</span>
                           </Link>
