@@ -1,4 +1,4 @@
-// src/components/questionnaire/questions/personality/personalityQuestions.ts
+// src/components/questionnaire/questions/personality/personalityQuestions.tsx
 import { Question } from '../../types/types';
 import {
   Sun,
@@ -36,6 +36,7 @@ import {
 
 export const personalityQuestions: Question[] = [
   // --- חלק 1: פתיחה והיכרות - מי את/ה במילים שלך ---
+  // מתחילים בשאלות רחבות ובסיסיות כדי ליצור פתיחה נוחה.
   {
     worldId: 'PERSONALITY',
     id: 'personality_self_portrayal_revised',
@@ -54,26 +55,6 @@ export const personalityQuestions: Question[] = [
       estimatedTime: 3,
       helpText:
         'זו ההזדמנות שלך לתת לנו את הכותרות החשובות ביותר שמרכיבות את הסיפור שלך.',
-    },
-  },
-  {
-    worldId: 'PERSONALITY',
-    id: 'personality_childhood_nickname', // שאלה חדשה
-    category: 'personality',
-    subcategory: 'self_perception',
-    question:
-      'האם היה לך כינוי חיבה מיוחד בילדותך? אם כן, מה הוא היה ומה הסיפור שמאחוריו?',
-    type: 'openText',
-    depth: 'ADVANCED',
-    isRequired: false,
-    minLength: 0,
-    maxLength: 300,
-    placeholder:
-      'כינוי שהצחיק, שחיזק, או סתם נדבק... (לא חובה לשתף אם לא מרגיש נוח)',
-    metadata: {
-      estimatedTime: 2,
-      helpText:
-        'לפעמים, כינויים קטנים מהעבר מספרים סיפור גדול על חום, הומור והדינמיקה המשפחתית שלנו.',
     },
   },
   {
@@ -109,6 +90,7 @@ export const personalityQuestions: Question[] = [
   },
 
   // --- חלק 2: אנרגיות וסגנון חיים - איך את/ה בעולם ---
+  // עוברים לשאלות קונקרטיות וקלות יותר על הרגלים יומיומיים.
   {
     worldId: 'PERSONALITY',
     id: 'personality_social_battery_recharge',
@@ -155,7 +137,6 @@ export const personalityQuestions: Question[] = [
         'אין פה תשובה "נכונה". התשובה שלך עוזרת לנו להבין מהם התנאים שבהם את/ה פורח/ת ונטען/ת מחדש, וזה קריטי להתאמה זוגית.',
     },
   },
-  // קוד להוספה:
   {
     worldId: 'PERSONALITY',
     id: 'personality_biological_clock',
@@ -173,75 +154,6 @@ export const personalityQuestions: Question[] = [
       estimatedTime: 1,
       helpText:
         'התאמה בקצב היומי יכולה להשפיע רבות על ההרמוניה בזוגיות. זהו נתון פרקטי שעוזר לנו להבין את סגנון החיים שלך.',
-    },
-  },
-  {
-    worldId: 'PERSONALITY',
-    id: 'personality_good_vs_perfect_day', // שאלה חדשה
-    category: 'personality',
-    subcategory: 'lifestyle',
-    question:
-      "כולנו חולמים על 'יום מושלם'. אבל מה, עבורך, הופך יום רגיל ל'יום ממש טוב'?",
-    type: 'openText',
-    depth: 'ADVANCED',
-    isRequired: false,
-    minLength: 40,
-    maxLength: 400,
-    placeholder:
-      'זה יכול להיות דבר קטן: שיחה טובה, תחושת סיפוק בעבודה, אימון מוצלח, עזרה למישהו...',
-    metadata: {
-      estimatedTime: 2,
-      helpText: 'התשובה כאן מלמדת המון על מקורות האושר והסיפוק היומיומיים שלך.',
-    },
-  },
-  {
-    worldId: 'PERSONALITY',
-    id: 'personality_vacation_compass',
-    category: 'personality',
-    subcategory: 'lifestyle',
-    question:
-      "הדרך שבה אנחנו אוהבים לנפוש אומרת המון על האישיות שלנו. מהם המרכיבים שהופכים חופשה למושלמת עבורך? חלק/י 1000 'נקודות חופשה' כדי לבנות את 'מצפן החופשה' שלך.",
-    type: 'budgetAllocation',
-    depth: 'ADVANCED',
-    isRequired: true,
-    totalPoints: 1000,
-    categories: [
-      {
-        label: 'בטן-גב, רוגע ושלווה',
-        icon: <Bed />,
-        description: 'מנוחה מוחלטת, ספר טוב, נוף יפה, בלי לחץ ובלי תוכניות.',
-      },
-      {
-        label: 'טיולים, טבע והרפתקאות',
-        icon: <Mountain />,
-        description: 'מסלולי הליכה, נופים פראיים, פעילות פיזית ואתגר.',
-      },
-      {
-        label: 'עיר תוססת, תרבות ובילויים',
-        icon: <Sparkles />, // שימוש באייקון כללי יותר מעיר
-        description: 'מוזיאונים, מסעדות טובות, הופעות, קניות וחיי לילה.',
-      },
-      {
-        label: 'מפגש חברתי ומשפחתי',
-        icon: <Users />,
-        description: 'חופשה עם חברים או משפחה מורחבת, זמן איכות קבוצתי.',
-      },
-      {
-        label: 'זמן איכות זוגי ורומנטי',
-        icon: <Heart />,
-        description: 'התמקדות נטו בזוגיות, שיחות עומק, חוויות רומנטיות.',
-      },
-      {
-        label: 'העשרה, למידה ורוחניות',
-        icon: <BookOpen />,
-        description:
-          'סדנאות, סיורים לימודיים, אתרים היסטוריים, מקומות עם משמעות.',
-      },
-    ],
-    metadata: {
-      estimatedTime: 3,
-      helpText:
-        'אין תשובה לא נכונה. חשוב/י מה באמת מטעין אותך ונותן לך כוח. הסך הכל צריך להיות 100.',
     },
   },
   {
@@ -277,6 +189,81 @@ export const personalityQuestions: Question[] = [
     ],
     metadata: { estimatedTime: 1 },
   },
+    {
+    worldId: 'PERSONALITY',
+    id: 'personality_social_situation_revised',
+    category: 'personality',
+    subcategory: 'social_communication',
+    question:
+      'את/ה מגיע/ה לאירוע חברתי (למשל, קידוש, חתונה) שבו את/ה מכיר/ה רק מעט אנשים. מהי הגישה הטבעית שלך?',
+    type: 'iconChoice',
+    depth: 'BASIC',
+    isRequired: true,
+    options: [
+      {
+        icon: <Users />,
+        text: 'להתחיל שיחה - אני ניגש/ת לאנשים ויוצר/ת קשרים חדשים בקלות.',
+        value: 'יוזם/ת ומתחבר/ת',
+      },
+      {
+        icon: <Coffee />,
+        text: 'להצטרף לשיחה - אני מאתר/ת קבוצה שנראית נחמדה ומצטרף/ת בעדינות.',
+        value: 'מצטרף/ת בעדינות',
+      },
+      {
+        icon: <MessageCircle />,
+        text: 'שיחת עומק - אני מעדיף/ה למצוא אדם אחד או שניים לשיחה משמעותית בצד.',
+        value: 'מחפש/ת שיחת עומק',
+      },
+      {
+        icon: <Compass />,
+        text: 'המתבונן/ת - אני לוקח/ת את הזמן, סורק/ת את המרחב ומחכה להזדמנות הנכונה.',
+        value: 'מתבונן/ת וממתין/ה',
+      },
+    ],
+    metadata: { estimatedTime: 1 },
+  },
+  
+  // --- חלק 3: התמודדות, צמיחה ודיאלוג פנימי ---
+  // כעת, אחרי שהמשתמש הרגיש בנוח, אפשר לעבור לשאלות מתקדמות יותר על התמודדות ותקשורת.
+  {
+    worldId: 'PERSONALITY',
+    id: 'personality_unproductive_day_feeling',
+    category: 'personality',
+    subcategory: 'emotional_coping',
+    question:
+      'איך את/ה מרגיש/ה עם עצמך בסוף יום שבו לא הספקת את מה שתכננת והיית פחות פרודוקטיבי/ת מהרצוי?',
+    type: 'iconChoice',
+    depth: 'ADVANCED',
+    isRequired: false,
+    options: [
+      {
+        icon: <Heart />,
+        text: 'מקבל/ת באהבה, כנראה שהייתי צריך/ה מנוחה.',
+        value: 'חמלה עצמית',
+      },
+      {
+        icon: <Target />,
+        text: 'מתוסכל/ת, ומיד מתכננ/ת איך להשלים פערים מחר.',
+        value: 'ביקורת ופעולה',
+      },
+      {
+        icon: <Brain />,
+        text: 'מנתח/ת מה השתבש כדי ללמוד מזה לפעם הבאה.',
+        value: 'ניתוח ולמידה',
+      },
+      {
+        icon: <Activity />,
+        text: 'מנסה לעשות משהו קטן ומועיל כדי לסיים בתחושה טובה.',
+        value: 'תיקון מיידי',
+      },
+    ],
+    metadata: {
+      estimatedTime: 1,
+      helpText:
+        'השאלה הזו בודקת את הדיאלוג הפנימי שלך - האם הוא ביקורתי או חומל? זה חשוב ליכולת להכיל גם את בן/בת הזוג.',
+    },
+  },
   {
     worldId: 'PERSONALITY',
     id: 'personality_plan_change_reaction',
@@ -285,7 +272,7 @@ export const personalityQuestions: Question[] = [
     question:
       'תכננתם בילוי חשוב במשך שבועות, וברגע האחרון הוא מתבטל מסיבה מוצדקת אך מאכזבת. על הסקאלה הבאה, עד כמה הגמישות הפנימית שלך מאפשרת לך "לזרום" עם השינוי?',
     type: 'scale',
-    depth: 'BASIC',
+    depth: 'BASIC', // למרות שהיא עוסקת בהתמודדות, היא פשוטה למענה
     isRequired: false,
     min: 1,
     max: 10,
@@ -294,7 +281,6 @@ export const personalityQuestions: Question[] = [
       max: 'מאוד מתאכזב/ת',
       middle: 'מאוכזב/ת אבל מתגבר/ת',
     },
-    // שימוש בשדה חדש שנוסיף ל-types.ts
     scaleDescriptions: {
       min: "1 = 'מבאס, אבל לא נורא. קורה. בוא/י נחשוב על משהו אחר'.",
       max: "10 = 'מאוד קשה לי להסתיר את האכזבה והתסכול, זה משפיע לי על כל הערב'.",
@@ -303,28 +289,6 @@ export const personalityQuestions: Question[] = [
       estimatedTime: 1,
       helpText:
         'אין פה תשובה נכונה. השאלה בודקת את היכולת שלנו להתמודד עם שינויים ואכזבות קטנות.',
-    },
-  },
-
-  // --- חלק 3: התמודדות, צמיחה ודיאלוג פנימי ---
-  {
-    worldId: 'PERSONALITY',
-    id: 'personality_learning_process', // שאלה חדשה
-    category: 'personality',
-    subcategory: 'growth_aspirations',
-    question:
-      'חשוב/י על הפעם האחרונה שלמדת משהו חדש ומורכב (שפה, כלי נגינה, מיומנות טכנית). מה היה החלק הכי מאתגר עבורך בתהליך, ומה עזר לך להתגבר?',
-    type: 'openText',
-    depth: 'EXPERT',
-    isRequired: false,
-    minLength: 50,
-    maxLength: 500,
-    placeholder:
-      'הקושי יכול להיות תסכול, חוסר סבלנות או פחד מכישלון. מה הייתה אסטרטגיית ההתמודדות שלך?',
-    metadata: {
-      estimatedTime: 3,
-      helpText:
-        'היכולת שלנו ללמוד ולהתמיד היא אינדיקציה מצוינת לאיך נצמח גם בתוך זוגיות.',
     },
   },
   {
@@ -374,120 +338,32 @@ export const personalityQuestions: Question[] = [
     maxSelections: 3,
     metadata: { estimatedTime: 2 },
   },
+
+  // --- חלק 4: אינטראקציה חברתית מעמיקה - איך את/ה עם אחרים ---
+  // כאן, לאחר בניית האמון, המיקום האסטרטגי לשאלה החדשה.
   {
     worldId: 'PERSONALITY',
-    id: 'personality_unproductive_day_feeling', // שאלה חדשה
+    id: 'personality_friendship_in_action', // השאלה החדשה, מחליפה את personality_childhood_nickname
     category: 'personality',
-    subcategory: 'emotional_coping',
+    subcategory: 'social_communication',
     question:
-      'איך את/ה מרגיש/ה עם עצמך בסוף יום שבו לא הספקת את מה שתכננת והיית פחות פרודוקטיבי/ת מהרצוי?',
-    type: 'iconChoice',
-    depth: 'ADVANCED',
-    isRequired: false,
-    options: [
-      {
-        icon: <Heart />,
-        text: 'מקבל/ת באהבה, כנראה שהייתי צריך/ה מנוחה.',
-        value: 'חמלה עצמית',
-      },
-      {
-        icon: <Target />,
-        text: 'מתוסכל/ת, ומיד מתכננ/ת איך להשלים פערים מחר.',
-        value: 'ביקורת ופעולה',
-      },
-      {
-        icon: <Brain />,
-        text: 'מנתח/ת מה השתבש כדי ללמוד מזה לפעם הבאה.',
-        value: 'ניתוח ולמידה',
-      },
-      {
-        icon: <Activity />,
-        text: 'מנסה לעשות משהו קטן ומועיל כדי לסיים בתחושה טובה.',
-        value: 'תיקון מיידי',
-      },
-    ],
-    metadata: {
-      estimatedTime: 1,
-      helpText:
-        'השאלה הזו בודקת את הדיאלוג הפנימי שלך - האם הוא ביקורתי או חומל? זה חשוב ליכולת להכיל גם את בן/בת הזוג.',
-    },
-  },
-  // קוד להוספה:
-  {
-    worldId: 'PERSONALITY',
-    id: 'personality_failure_lesson',
-    category: 'personality',
-    subcategory: 'emotional_coping',
-    question:
-      'חשוב/י על כישלון או אתגר משמעותי שחווית. מה למדת על עצמך מתוך ההתמודדות הזו?',
-    type: 'openText',
-    depth: 'EXPERT',
-    isRequired: false,
-    minLength: 50,
-    maxLength: 500,
-    placeholder:
-      'התמקד/י בתובנה על עצמך, על החוזקות שגילית או על התחומים שבהם את/ה עוד צריך/ה לצמוח...',
-    metadata: {
-      estimatedTime: 3,
-      helpText:
-        'השאלה הזו בוחנת חוסן נפשי, מודעות עצמית ויכולת צמיחה. הכנות שלך כאן היא מתנה עבורנו ועבורך.',
-    },
-  },
-  {
-    worldId: 'PERSONALITY',
-    id: 'personality_handling_criticism_revised',
-    category: 'personality',
-    subcategory: 'emotional_coping',
-    question:
-      'כולנו מקבלים ביקורת לפעמים, בונה יותר ובונה פחות. כשזה קורה לך, מה קורה אצלך בפנים ואיך זה נראה בחוץ?',
+      'חשוב/י על פעם שבה היית חבר/ה ממש טוב/ה עבור מישהו, ברגע שהיה זקוק לך. בלי לחשוף פרטים אישיים של החבר/ה, מה היה התפקיד שמילאת עבורו/ה באותו רגע?',
     type: 'openText',
     depth: 'ADVANCED',
     isRequired: false,
     minLength: 50,
     maxLength: 400,
     placeholder:
-      'לדוגמה: האם את/ה נפגע/ת אבל מנסה ללמוד? האם עולה בך צורך להתגונן? האם את/ה זקוק/ה לזמן לעבד את הדברים?',
-    metadata: { estimatedTime: 2 },
-  },
-
-  // --- חלק 4: אינטראקציה חברתית - איך את/ה עם אחרים ---
-  {
-    worldId: 'PERSONALITY',
-    id: 'personality_social_situation_revised', // שם חדש ושילוב שתי שאלות
-    category: 'personality',
-    subcategory: 'social_communication',
-    question:
-      'את/ה מגיע/ה לאירוע חברתי (למשל, קידוש, חתונה) שבו את/ה מכיר/ה רק מעט אנשים. מהי הגישה הטבעית שלך?',
-    type: 'iconChoice',
-    depth: 'BASIC',
-    isRequired: true,
-    options: [
-      {
-        icon: <Users />,
-        text: 'להתחיל שיחה - אני ניגש/ת לאנשים ויוצר/ת קשרים חדשים בקלות.',
-        value: 'יוזם/ת ומתחבר/ת',
-      },
-      {
-        icon: <Coffee />,
-        text: 'להצטרף לשיחה - אני מאתר/ת קבוצה שנראית נחמדה ומצטרף/ת בעדינות.',
-        value: 'מצטרף/ת בעדינות',
-      },
-      {
-        icon: <MessageCircle />,
-        text: 'שיחת עומק - אני מעדיף/ה למצוא אדם אחד או שניים לשיחה משמעותית בצד.',
-        value: 'מחפש/ת שיחת עומק',
-      },
-      {
-        icon: <Compass />,
-        text: 'המתבונן/ת - אני לוקח/ת את הזמן, סורק/ת את המרחב ומחכה להזדמנות הנכונה.',
-        value: 'מתבונן/ת וממתין/ה',
-      },
-    ],
-    metadata: { estimatedTime: 1 },
+      "לדוגמה: 'הייתי הכתף התומכת והקשובה', 'עזרתי לו/ה לנתח את המצב בצורה רציונלית', 'ארגנתי עזרה מעשית וקונקרטית', 'פשוט הייתי שם בשקט'...",
+    metadata: {
+      estimatedTime: 2,
+      helpText:
+        "הדרך שבה אנו מתפקדים כחברים אומרת המון על יכולתנו להיות שותפים תומכים בזוגיות. התשובה שלך כאן חושפת את 'שפת התמיכה' הטבעית שלך.",
+    },
   },
   {
     worldId: 'PERSONALITY',
-    id: 'personality_friend_in_crisis', // שאלה חדשה
+    id: 'personality_friend_in_crisis',
     category: 'personality',
     subcategory: 'social_communication',
     question:
@@ -523,30 +399,21 @@ export const personalityQuestions: Question[] = [
         "השאלה בודקת את 'שפת התמיכה' הטבעית שלך, שהיא קריטית לדינמיקה זוגית.",
     },
   },
-  // קוד להוספה:
   {
     worldId: 'PERSONALITY',
-    id: 'personality_humor_type',
+    id: 'personality_handling_criticism_revised',
     category: 'personality',
-    subcategory: 'social_communication',
-    question: 'איזה סוג של חוש הומור הכי מדבר אליך? (בחר/י עד 2)',
-    type: 'multiSelect',
+    subcategory: 'emotional_coping',
+    question:
+      'כולנו מקבלים ביקורת לפעמים, בונה יותר ובונה פחות. כשזה קורה לך, מה קורה אצלך בפנים ואיך זה נראה בחוץ?',
+    type: 'openText',
     depth: 'ADVANCED',
     isRequired: false,
-    minSelections: 1,
-    maxSelections: 2,
-    options: [
-      { value: 'ציני ושנון', text: 'ציני ושנון' },
-      { value: 'משחקי מילים', text: 'משחקי מילים' },
-      { value: 'הומור מצבים (סיטקום)', text: 'הומור מצבים (סיטקום)' },
-      { value: 'הומור עצמי', text: 'הומור עצמי' },
-      { value: 'שטותניקי וקליל ("שטויות")', text: 'שטותניקי וקליל ("שטויות")' },
-    ],
-    metadata: {
-      estimatedTime: 1,
-      helpText:
-        'התאמה בחוש הומור היא מפתח לכימיה וליכולת לצלוח את אתגרי החיים יחד.',
-    },
+    minLength: 50,
+    maxLength: 400,
+    placeholder:
+      'לדוגמה: האם את/ה נפגע/ת אבל מנסה ללמוד? האם עולה בך צורך להתגונן? האם את/ה זקוק/ה לזמן לעבד את הדברים?',
+    metadata: { estimatedTime: 2 },
   },
   {
     worldId: 'PERSONALITY',
@@ -572,8 +439,142 @@ export const personalityQuestions: Question[] = [
         'חשוב/י על הדרך שבה את/ה בדרך כלל מנהל/ת שיחות משמעותיות, עם חברים, משפחה או בעבודה.',
     },
   },
-
-  // --- חלק 5: סיכום ורפלקציה ---
+    {
+    worldId: 'PERSONALITY',
+    id: 'personality_humor_type',
+    category: 'personality',
+    subcategory: 'social_communication',
+    question: 'איזה סוג של חוש הומור הכי מדבר אליך? (בחר/י עד 2)',
+    type: 'multiSelect',
+    depth: 'ADVANCED',
+    isRequired: false,
+    minSelections: 1,
+    maxSelections: 2,
+    options: [
+      { value: 'ציני ושנון', text: 'ציני ושנון' },
+      { value: 'משחקי מילים', text: 'משחקי מילים' },
+      { value: 'הומור מצבים (סיטקום)', text: 'הומור מצבים (סיטקום)' },
+      { value: 'הומור עצמי', text: 'הומור עצמי' },
+      { value: 'שטותניקי וקליל ("שטויות")', text: 'שטותניקי וקליל ("שטויות")' },
+    ],
+    metadata: {
+      estimatedTime: 1,
+      helpText:
+        'התאמה בחוש הומור היא מפתח לכימיה וליכולת לצלוח את אתגרי החיים יחד.',
+    },
+  },
+  
+  // --- חלק 5: רפלקציה, חזון וסיכום ---
+  // לקראת הסוף, שאלות ברמת "מומחה" הדורשות את הרמה הגבוהה ביותר של מודעות עצמית.
+  {
+    worldId: 'PERSONALITY',
+    id: 'personality_learning_process',
+    category: 'personality',
+    subcategory: 'growth_aspirations',
+    question:
+      'חשוב/י על הפעם האחרונה שלמדת משהו חדש ומורכב (שפה, כלי נגינה, מיומנות טכנית). מה היה החלק הכי מאתגר עבורך בתהליך, ומה עזר לך להתגבר?',
+    type: 'openText',
+    depth: 'EXPERT',
+    isRequired: false,
+    minLength: 50,
+    maxLength: 500,
+    placeholder:
+      'הקושי יכול להיות תסכול, חוסר סבלנות או פחד מכישלון. מה הייתה אסטרטגיית ההתמודדות שלך?',
+    metadata: {
+      estimatedTime: 3,
+      helpText:
+        'היכולת שלנו ללמוד ולהתמיד היא אינדיקציה מצוינת לאיך נצמח גם בתוך זוגיות.',
+    },
+  },
+    {
+    worldId: 'PERSONALITY',
+    id: 'personality_failure_lesson',
+    category: 'personality',
+    subcategory: 'emotional_coping',
+    question:
+      'חשוב/י על כישלון או אתגר משמעותי שחווית. מה למדת על עצמך מתוך ההתמודדות הזו?',
+    type: 'openText',
+    depth: 'EXPERT',
+    isRequired: false,
+    minLength: 50,
+    maxLength: 500,
+    placeholder:
+      'התמקד/י בתובנה על עצמך, על החוזקות שגילית או על התחומים שבהם את/ה עוד צריך/ה לצמוח...',
+    metadata: {
+      estimatedTime: 3,
+      helpText:
+        'השאלה הזו בוחנת חוסן נפשי, מודעות עצמית ויכולת צמיחה. הכנות שלך כאן היא מתנה עבורנו ועבורך.',
+    },
+  },
+  {
+    worldId: 'PERSONALITY',
+    id: 'personality_good_vs_perfect_day',
+    category: 'personality',
+    subcategory: 'lifestyle',
+    question:
+      "כולנו חולמים על 'יום מושלם'. אבל מה, עבורך, הופך יום רגיל ל'יום ממש טוב'?",
+    type: 'openText',
+    depth: 'ADVANCED',
+    isRequired: false,
+    minLength: 40,
+    maxLength: 400,
+    placeholder:
+      'זה יכול להיות דבר קטן: שיחה טובה, תחושת סיפוק בעבודה, אימון מוצלח, עזרה למישהו...',
+    metadata: {
+      estimatedTime: 2,
+      helpText: 'התשובה כאן מלמדת המון על מקורות האושר והסיפוק היומיומיים שלך.',
+    },
+  },
+    {
+    worldId: 'PERSONALITY',
+    id: 'personality_vacation_compass',
+    category: 'personality',
+    subcategory: 'lifestyle',
+    question:
+      "הדרך שבה אנחנו אוהבים לנפוש אומרת המון על האישיות שלנו. מהם המרכיבים שהופכים חופשה למושלמת עבורך? חלק/י 100 'נקודות חופשה' כדי לבנות את 'מצפן החופשה' שלך.",
+    type: 'budgetAllocation',
+    depth: 'ADVANCED',
+    isRequired: true,
+    totalPoints: 100, // שיניתי ל-100 כדי להיות עקבי עם שאר השאלון
+    categories: [
+      {
+        label: 'בטן-גב, רוגע ושלווה',
+        icon: <Bed />,
+        description: 'מנוחה מוחלטת, ספר טוב, נוף יפה, בלי לחץ ובלי תוכניות.',
+      },
+      {
+        label: 'טיולים, טבע והרפתקאות',
+        icon: <Mountain />,
+        description: 'מסלולי הליכה, נופים פראיים, פעילות פיזית ואתגר.',
+      },
+      {
+        label: 'עיר תוססת, תרבות ובילויים',
+        icon: <Sparkles />,
+        description: 'מוזיאונים, מסעדות טובות, הופעות, קניות וחיי לילה.',
+      },
+      {
+        label: 'מפגש חברתי ומשפחתי',
+        icon: <Users />,
+        description: 'חופשה עם חברים או משפחה מורחבת, זמן איכות קבוצתי.',
+      },
+      {
+        label: 'זמן איכות זוגי ורומנטי',
+        icon: <Heart />,
+        description: 'התמקדות נטו בזוגיות, שיחות עומק, חוויות רומנטיות.',
+      },
+      {
+        label: 'העשרה, למידה ורוחניות',
+        icon: <BookOpen />,
+        description:
+          'סדנאות, סיורים לימודיים, אתרים היסטוריים, מקומות עם משמעות.',
+      },
+    ],
+    metadata: {
+      estimatedTime: 3,
+      helpText:
+        'אין תשובה לא נכונה. חשוב/י מה באמת מטעין אותך ונותן לך כוח. הסך הכל צריך להיות 100.',
+    },
+  },
   {
     worldId: 'PERSONALITY',
     id: 'personality_primary_motivation_revised',
