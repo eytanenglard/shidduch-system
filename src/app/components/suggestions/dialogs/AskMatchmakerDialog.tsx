@@ -163,10 +163,8 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
   const selectedTopicData = questionTopics.find((t) => t.id === selectedTopic);
 
   return (
-    // <<<--- CHANGE START: Added modal={false} to the Dialog component ---<<<
-    <Dialog open={isOpen} onOpenChange={onClose} modal={false}>
-      {/* >>>--- CHANGE END ---<<< */}
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 border-0 shadow-2xl rounded-3xl bg-white overflow-hidden">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 border-0 shadow-2xl rounded-3xl bg-white overflow-hidden z-[9999]">
         {/* Header */}
         <DialogHeader className="px-8 py-6 bg-gradient-to-r from-cyan-50/80 via-white to-emerald-50/50 border-b border-gray-100">
           <div className="flex items-center gap-4 mb-4">

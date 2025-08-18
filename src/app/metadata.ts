@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'NeshamaTech | המקום בו נשמה פוגשת טכנולוגיה',
     description: 'זוגיות שמתחילה מהנשמה. פלטפורמה המשלבת טכנולוגיה וליווי אישי ליצירת חיבורים אמיתיים.',
-    url: 'https://www.jewishmatchpoint.com', // <-- הכתובת עודכנה כאן
+    url: 'https://www.neshamatech.com', // <-- עדכון לדומיין החדש
     siteName: 'NeshamaTech',
     images: [
       {
@@ -40,6 +40,6 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'NeshamaTech | נשמה פוגשת טכנולוגיה',
     description: 'זוגיות שמתחילה מהנשמה. חיבורים אמיתיים המבוססים על טכנולוגיה וליווי אישי.',
-    images: ['https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png'],
+    images: ['https://res.cloudcloud.com/dmfxoi6g0/image/upload/v1753713907/ChatGPT_Image_Jul_28_2025_05_45_00_PM_zueqou.png'],
   },
 };

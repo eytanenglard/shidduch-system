@@ -387,7 +387,7 @@ const InquiryThreadView: React.FC<InquiryThreadViewProps> = ({
   return (
     <Card
       className={cn(
-        'shadow-xl border-0 bg-white overflow-hidden flex flex-col',
+        'shadow-xl border-0 bg-white overflow-hidden flex flex-col max-h-[80vh] min-h-[500px]',
         className
       )}
     >
@@ -407,12 +407,10 @@ const InquiryThreadView: React.FC<InquiryThreadViewProps> = ({
         </div>
       </CardHeader>
 
-      {/* <<<--- CHANGE START: Removed max-h and overflow-y-auto from this div ---<<< */}
       <div
         ref={scrollAreaRef}
-        className="flex-1 p-6 space-y-6 scrollbar-elegant"
+        className="flex-1 p-6 space-y-6 scrollbar-elegant overflow-y-auto"
       >
-      {/* >>>--- CHANGE END ---<<< */}
         {isLoading ? (
           Array.from({ length: 2 }).map((_, i) => (
             <div key={i} className="flex gap-4">

@@ -47,7 +47,6 @@ import AskMatchmakerDialog from '../dialogs/AskMatchmakerDialog';
 import { cn } from '@/lib/utils';
 import type { ExtendedMatchSuggestion } from '../types';
 
-// --- START: עדכון ה-props ---
 interface SuggestionsListProps {
   suggestions: ExtendedMatchSuggestion[];
   userId: string;
@@ -65,9 +64,8 @@ interface SuggestionsListProps {
   onActionRequest: (
     suggestion: ExtendedMatchSuggestion,
     action: 'approve' | 'decline'
-  ) => void; // Prop חדש ומרכזי
+  ) => void;
 }
-// --- END: עדכון ה-props ---
 
 type SortOption = 'newest' | 'oldest' | 'deadline' | 'priority';
 type FilterOption =
@@ -183,16 +181,11 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
   onStatusChange,
   onRefresh,
   isUserInActiveProcess = false,
-  onActionRequest, // קבלת הפונקציה מהאב
+  onActionRequest,
 }) => {
-  // State
   const [selectedSuggestion, setSelectedSuggestion] =
     useState<ExtendedMatchSuggestion | null>(null);
   const [showAskDialog, setShowAskDialog] = useState(false);
-  // --- START: הסרת state מיותר ---
-  // const [showStatusDialog, setShowStatusDialog] = useState(false);
-  // const [actionType, setActionType] = useState<"approve" | "decline" | null>(null);
-  // --- END: הסרת state מיותר ---
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOption, setSortOption] = useState<SortOption>('newest');
   const [filterOption, setFilterOption] = useState<FilterOption>('all');
@@ -200,17 +193,14 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
   const [filteredSuggestions, setFilteredSuggestions] =
     useState<ExtendedMatchSuggestion[]>(initialSuggestions);
 
-  // Calculate stats
   const pendingCount = initialSuggestions.filter(
     (s) =>
       s.status === 'PENDING_FIRST_PARTY' || s.status === 'PENDING_SECOND_PARTY'
   ).length;
 
-  // Filter and sort suggestions
   useEffect(() => {
     let result = [...initialSuggestions];
 
-    // Apply search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter((suggestion) => {
@@ -228,7 +218,6 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
       });
     }
 
-    // Apply status filter
     if (filterOption !== 'all') {
       switch (filterOption) {
         case 'pending':
@@ -258,7 +247,6 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
       }
     }
 
-    // Apply sorting
     switch (sortOption) {
       case 'newest':
         result.sort(
@@ -294,7 +282,6 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
     setFilteredSuggestions(result);
   }, [initialSuggestions, searchQuery, sortOption, filterOption, userId]);
 
-  // Handlers
   const handleOpenDetails = (suggestion: ExtendedMatchSuggestion) => {
     setSelectedSuggestion(suggestion);
   };
@@ -304,18 +291,12 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
     setShowAskDialog(true);
   };
 
-  // --- START: פישוט ה-handler ---
   const handleStatusAction = (
     suggestion: ExtendedMatchSuggestion,
     action: 'approve' | 'decline'
   ) => {
     onActionRequest(suggestion, action);
   };
-  // --- END: פישוט ה-handler ---
-
-  // --- START: הסרת handler מיותר ---
-  // const handleActionConfirm = async () => { ... } // הפונקציה הזו נמחקת
-  // --- END: הסרת handler מיותר ---
 
   const handleSendQuestion = async (questionText: string) => {
     if (!selectedSuggestion) return;
@@ -344,7 +325,6 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
     setFilterOption('all');
   };
 
-  // Render loading state
   if (isLoading) {
     return (
       <div className={cn('space-y-6', className)}>
@@ -664,10 +644,9 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
       <SuggestionDetailsModal
         suggestion={selectedSuggestion}
         userId={userId}
-        isOpen={!!selectedSuggestion && !showAskDialog} // תנאי פשוט יותר
+        isOpen={!!selectedSuggestion && !showAskDialog}
         onClose={() => setSelectedSuggestion(null)}
-        onStatusChange={onStatusChange}
-        onActionRequest={onActionRequest} // העברת הפונקציה הלאה
+        onActionRequest={onActionRequest}
         questionnaire={
           selectedSuggestion?.secondParty?.questionnaireResponses?.[0] || null
         }
@@ -680,10 +659,6 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
         matchmakerName={selectedSuggestion?.matchmaker.firstName}
         suggestionId={selectedSuggestion?.id}
       />
-
-      {/* --- START: הסרת ה-AlertDialog מכאן --- */}
-      {/* <AlertDialog open={showStatusDialog} onOpenChange={setShowStatusDialog}> ... </AlertDialog> */}
-      {/* --- END: הסרת ה-AlertDialog --- */}
     </>
   );
 };
