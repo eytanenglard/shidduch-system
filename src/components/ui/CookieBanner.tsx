@@ -118,10 +118,10 @@ const CookieBanner = () => {
                         transition={{ delay: 0.5 }}
                         className="text-gray-700 leading-relaxed text-sm md:text-base"
                       >
-                        אנו משתמשים ב"עוגיות" (Cookies), כולל אלו של Google
-                        Analytics, כדי לשפר את חווית הגלישה שלך ולנתח את תנועת
-                        הגולשים באתר. המידע נאסף באופן אנונימי. למידע נוסף, אנא
-                        עיין/י ב
+                        אנו משתמשים ב&quot;עוגיות&quot; (Cookies), כולל אלו של
+                        Google Analytics, כדי לשפר את חווית הגלישה שלך ולנתח את
+                        תנועת הגולשים באתר. המידע נאסף באופן אנונימי. למידע
+                        נוסף, אנא עיין/י ב
                         <Link
                           href="/legal/privacy-policy"
                           className="text-cyan-600 hover:text-cyan-700 font-medium mx-1 underline decoration-2 underline-offset-2 hover:decoration-cyan-700 transition-colors"
