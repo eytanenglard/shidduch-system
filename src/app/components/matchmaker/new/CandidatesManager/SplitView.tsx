@@ -411,7 +411,7 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
       />
     );
   };
-
+  
   // --- START OF FIX: This helper function is now ONLY for the mobile view ---
   const renderCandidatesListForMobile = (
     candidates: (Candidate & { aiScore?: number })[],
