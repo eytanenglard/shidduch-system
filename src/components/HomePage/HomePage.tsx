@@ -1,4 +1,4 @@
-// src/components/HomePage/HomePage.tsx
+// src/components/HomePage/HomePage.tsx (מעודכן עם CookieBanner)
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -16,10 +16,11 @@ import PrivacyAssuranceSection from './sections/PrivacyAssuranceSection';
 import CTASection from './sections/CTASection';
 import FooterSection from './sections/FooterSection';
 
-// 1. ייבוא רכיבים נחוצים
-import Navbar from '../layout/Navbar'; // ייבוא של ה-Navbar הראשי
+// ייבוא רכיבי חיצוניים
+import Navbar from '../layout/Navbar';
 import ChatWidget from '../ChatWidget/ChatWidget';
 import StickyNav, { NavLink } from './components/StickyNav';
+import CookieBanner from '../ui/CookieBanner'; // הוספת CookieBanner
 
 const navLinks: NavLink[] = [
   { id: 'how-it-works', label: 'המסע שלכם' },
@@ -32,25 +33,20 @@ const navLinks: NavLink[] = [
 export default function HomePage() {
   const { data: session } = useSession();
   const [isVisible, setIsVisible] = useState(false);
-
-  // 2. הוספת state למעקב אחר מצב הגלילה
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
-    // פונקציה שמעדכנת את ה-state בהתאם למיקום הגלילה
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };
 
-    // הוספת מאזין לאירוע הגלילה
     window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll(); // קריאה ראשונית למקרה שהדף נטען באמצע גלילה
+    handleScroll();
 
-    // ניקוי המאזין בסיום
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, []); // ריצה פעם אחת בלבד כשהרכיב נטען
+  }, []);
 
   useEffect(() => {
     setIsVisible(true);
@@ -58,9 +54,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen w-full overflow-x-hidden">
-      {/* 3. הוספת רכיבי הניווט עם לוגיקת הנראות */}
-
-      {/* ה-Navbar הראשי: נראה בראש הדף, נעלם בגלילה */}
+      {/* הNavbar הראשי */}
       <div
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out ${
           isScrolled
@@ -71,11 +65,10 @@ export default function HomePage() {
         <Navbar />
       </div>
 
-      {/* ה-StickyNav: הלוגיקה שלו גורמת לו להופיע רק בגלילה */}
-      {/* אנו מעבירים לו את פרטי ה-session כדי שיוכל להציג אייקון פרופיל */}
+      {/* הStickyNav */}
       <StickyNav navLinks={navLinks} session={session} />
 
-      {/* --- Page Sections in the FINAL, correct strategic order --- */}
+      {/* Page Sections */}
       <HeroSection session={session} isVisible={isVisible} />
       <ValuePropositionSection />
       <OurMethodSection />
@@ -87,8 +80,11 @@ export default function HomePage() {
       <CTASection />
       <FooterSection />
 
-      {/* Floating components (unchanged) */}
+      {/* Floating components */}
       <ChatWidget />
+
+      {/* CookieBanner - רק בדף הבית */}
+      <CookieBanner />
     </div>
   );
 }

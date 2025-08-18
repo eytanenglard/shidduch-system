@@ -1,4 +1,5 @@
 // next.config.js
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
@@ -8,7 +9,6 @@ const nextConfig = {
     }
   },
   webpack: (config, { dev, isServer }) => {
-    // ... (חלק זה נשאר ללא שינוי)
     config.module.rules.push({
       test: /\.hbs$/,
       use: [
@@ -67,42 +67,85 @@ const nextConfig = {
     return config;
   },
   poweredByHeader: false,
+  
+  // ==================== START: Security Headers Block ====================
   async headers() {
+    const siteUrl = process.env.NODE_ENV === 'production' 
+      ? 'https://www.neshamatech.com' // הדומיין שלך, כפי שמופיע במטא-דאטה
+      : 'http://localhost:3000';
+
     return [
+      {
+        // החל את כותרות האבטחה הגלובליות על כל הנתיבים באתר
+        source: '/:path*',
+        headers: [
+          // (HSTS) מאלץ את הדפדפן לתקשר רק ב-HTTPS, מונע התקפות הורדת דרגה
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload',
+          },
+          // מונע טעינת האתר בתוך iframe באתרים אחרים, הגנה קריטית מפני Clickjacking
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN', // אפשר גם 'DENY' אם אין צורך ב-iframes כלל
+          },
+          // הגנה מובנית בדפדפנים מפני התקפות XSS
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+          // מונע מהדפדפן "לנחש" את סוג התוכן של קבצים, מונע התקפות מסוימות
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosiff',
+          },
+          // (CSP) - מדיניות אבטחת תוכן. זוהי ההגנה החזקה ביותר נגד XSS.
+          // זוהי הגדרה התחלתית, ייתכן שתצטרך להוסיף מקורות נוספים בעתיד.
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' *.google-analytics.com",
+              "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
+              "img-src 'self' data: https://res.cloudinary.com",
+              "font-src 'self' fonts.gstatic.com",
+              `connect-src 'self' ${siteUrl} *.google-analytics.com https://api.upstash.com vitals.vercel-insights.com`,
+              "form-action 'self'",
+              "frame-ancestors 'self'",
+            ].join('; '),
+          },
+        ],
+      },
+      // הגדרות CORS עבור נתיבי ה-API שלך
       {
         source: '/api/:path*',
         headers: [
           { key: 'Access-Control-Allow-Credentials', value: 'true' },
-          { key: 'Access-Control-Allow-Origin', value: '*' },
+          // חשוב: בסביבת פרודקשן, אנו מגבילים את הגישה רק לדומיין שלך
+          { key: 'Access-Control-Allow-Origin', value: siteUrl },
           { key: 'Access-Control-Allow-Methods', value: 'GET,DELETE,PATCH,POST,PUT' },
           { key: 'Access-Control-Allow-Headers', value: 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version' },
         ],
       },
     ];
   },
-  compiler: {
-removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error'] } : false,  },
-  
-  // ==================== הקטע שעודכן ====================
- // בקובץ next.config.js
+  // ==================== END: Security Headers Block ====================
 
-images: {
-  // נשתמש ב-loader מותאם אישית במקום ב-loader המובנה של cloudinary
-  loader: 'custom',
-  // נגדיר את הקובץ שיטפל בלוגיקה של יצירת ה-URL
-  loaderFile: './cloudinary-loader.js',
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error'] } : false,
+  },
   
-  // אין צורך יותר בהגדרת path, כי ה-loaderFile יטפל בזה
-  
-  remotePatterns: [
-    {
-      protocol: 'https',
-      hostname: 'res.cloudinary.com',
-    },
-  ],
-  deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
-}
-  // =======================================================
+  images: {
+    loader: 'custom',
+    loaderFile: './cloudinary-loader.js',
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+      },
+    ],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+  }
 };
 
 module.exports = nextConfig;

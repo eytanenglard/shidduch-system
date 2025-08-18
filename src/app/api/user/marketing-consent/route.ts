@@ -6,7 +6,7 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { z } from 'zod';
 
-// Zod schema for validation
+// Zod schema for strict validation of the incoming request body
 const updateConsentSchema = z.object({
   marketingConsent: z.boolean({
     required_error: "Marketing consent status is required.",
@@ -16,14 +16,14 @@ const updateConsentSchema = z.object({
 
 export async function PUT(req: Request) {
   try {
-    // 1. Authenticate user
+    // 1. Authenticate the user session on the server
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
     const userId = session.user.id;
 
-    // 2. Parse and validate request body
+    // 2. Parse and validate the request body against the schema
     const body = await req.json();
     const validationResult = updateConsentSchema.safeParse(body);
 
@@ -44,8 +44,8 @@ export async function PUT(req: Request) {
       },
     });
 
-    // 4. Return success response
-    // The client will use useSession().update() to refresh the session token
+    // 4. Return a success response. 
+    // The client is responsible for refreshing its session state.
     return NextResponse.json({ success: true, message: 'Marketing consent updated successfully.' });
 
   } catch (error) {

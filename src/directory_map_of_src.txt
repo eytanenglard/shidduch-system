@@ -242,6 +242,7 @@ src/
                 └── Filters/
                         ├── ActiveFilters.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\matchmaker\new\Filters\ActiveFilters.tsx)
                         ├── FilterPanel.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\matchmaker\new\Filters\FilterPanel.tsx)
+                        ├── Filters_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\matchmaker\new\Filters\Filters_contents.txt)
                         ├── SavedFilters.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\matchmaker\new\Filters\SavedFilters.tsx)
                         └── SearchBar.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\matchmaker\new\Filters\SearchBar.tsx)
                 └── hooks/
@@ -258,8 +259,7 @@ src/
                         └── filters.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\matchmaker\new\types\filters.ts)
             └── suggestions/
                     ├── EditSuggestionForm.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\matchmaker\suggestions\EditSuggestionForm.tsx)
-                    ├── MessageForm.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\matchmaker\suggestions\MessageForm.tsx)
-                    └── suggestions_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\matchmaker\suggestions\suggestions_contents.txt)
+                    └── MessageForm.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\matchmaker\suggestions\MessageForm.tsx)
                 └── cards/
                         └── SuggestionCard.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\matchmaker\suggestions\cards\SuggestionCard.tsx)
                 └── container/
@@ -277,6 +277,7 @@ src/
                 └── NewSuggestionForm/
                         ├── CandidateSelector.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\matchmaker\suggestions\NewSuggestionForm\CandidateSelector.tsx)
                         ├── MatchPreview.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\matchmaker\suggestions\NewSuggestionForm\MatchPreview.tsx)
+                        ├── NewSuggestionForm_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\matchmaker\suggestions\NewSuggestionForm\NewSuggestionForm_contents.txt)
                         ├── SuggestionDetails.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\matchmaker\suggestions\NewSuggestionForm\SuggestionDetails.tsx)
                         ├── index.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\matchmaker\suggestions\NewSuggestionForm\index.tsx)
                         └── schema.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\matchmaker\suggestions\NewSuggestionForm\schema.ts)
@@ -364,6 +365,8 @@ src/
         ├── AvailabilityStatus.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\AvailabilityStatus.tsx)
         ├── Providers.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\Providers.tsx)
         └── account-settings.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\account-settings.tsx)
+    └── analytics/
+            └── GoogleAnalytics.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\analytics\GoogleAnalytics.tsx)
     └── ChatWidget/
             └── ChatWidget.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\ChatWidget\ChatWidget.tsx)
     └── HomePage/
@@ -399,8 +402,7 @@ src/
             ├── MatchmakingQuestionnaire.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\MatchmakingQuestionnaire.tsx)
             ├── QuestionnaireComplete.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\QuestionnaireComplete.tsx)
             ├── QuestionnairePage.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\QuestionnairePage.tsx)
-            ├── QuestionnaireRestore.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\QuestionnaireRestore.tsx)
-            └── questionnaire_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\questionnaire_contents.txt)
+            └── QuestionnaireRestore.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\QuestionnaireRestore.tsx)
         └── common/
                 ├── AnswerInput.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\common\AnswerInput.tsx)
                 ├── InteractiveScale.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\common\InteractiveScale.tsx)
@@ -428,7 +430,6 @@ src/
             └── questionnaire/
                     └── map.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\pages\questionnaire\map.tsx)
         └── questions/
-                └── questions_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\questions\questions_contents.txt)
             └── partner/
                     └── partnerQuestions.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\questions\partner\partnerQuestions.tsx)
             └── personality/
@@ -446,6 +447,7 @@ src/
         └── worlds/
                 └── WorldComponent.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\worlds\WorldComponent.tsx)
     └── ui/
+            ├── CookieBanner.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\ui\CookieBanner.tsx)
             ├── ProfileModal.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\ui\ProfileModal.tsx)
             ├── SimpleToast.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\ui\SimpleToast.tsx)
             ├── VisibilityToggleButton.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\ui\VisibilityToggleButton.tsx)

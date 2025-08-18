@@ -1,12 +1,11 @@
-// src/app/layout.tsx (הקובץ המתוקן)
+// src/app/layout.tsx (הקובץ המתוקן ללא CookieBanner)
 
 import { Inter } from 'next/font/google';
 import './globals.css';
 import Providers from '@/components/Providers';
 import { LanguageProvider } from '@/app/contexts/LanguageContext';
-import AppContent from './AppContent'; // נייבא קומפוננטה חדשה
+import AppContent from './AppContent';
 import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
-import CookieBanner from '@/components/ui/CookieBanner'; // 1. ייבוא הקומפוננטה
 
 const inter = Inter({
   subsets: ['latin'],
@@ -46,7 +45,6 @@ export default function RootLayout({
             <AppContent>{children}</AppContent>
           </LanguageProvider>
         </Providers>
-        <CookieBanner /> {/* 2. הוספת הקומפוננטה כאן, בסוף ה-body */}
       </body>
     </html>
   );
