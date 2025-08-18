@@ -5,6 +5,8 @@ import './globals.css';
 import Providers from '@/components/Providers';
 import { LanguageProvider } from '@/app/contexts/LanguageContext';
 import AppContent from './AppContent'; // נייבא קומפוננטה חדשה
+import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
+import CookieBanner from '@/components/ui/CookieBanner'; // 1. ייבוא הקומפוננטה
 
 const inter = Inter({
   subsets: ['latin'],
@@ -38,12 +40,13 @@ export default function RootLayout({
         className={`${inter.variable} antialiased`}
         suppressHydrationWarning
       >
+        <GoogleAnalytics />
         <Providers>
           <LanguageProvider>
-            {/* כל הלוגיקה של התוכן תעבור לקומפוננטה נפרדת */}
             <AppContent>{children}</AppContent>
           </LanguageProvider>
         </Providers>
+        <CookieBanner /> {/* 2. הוספת הקומפוננטה כאן, בסוף ה-body */}
       </body>
     </html>
   );
