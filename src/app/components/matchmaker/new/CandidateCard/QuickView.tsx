@@ -52,11 +52,11 @@ const calculateAge = (birthDate: Date): number => {
   return age;
 };
 
+type ActionId = 'view' | 'invite' | 'suggest' | 'contact' | 'favorite' | 'edit';
+
 interface QuickViewProps {
   candidate: Candidate;
-  onAction: (
-    action: 'view' | 'invite' | 'suggest' | 'contact' | 'favorite' | 'edit'
-  ) => void;
+  onAction: (action: ActionId) => void;
   onSetAiTarget?: (candidate: Candidate, e: React.MouseEvent) => void;
   isAiTarget?: boolean;
 }
@@ -130,7 +130,14 @@ const QuickView: React.FC<QuickViewProps> = ({
   const availabilityInfo = getAvailabilityInfo();
   const qualityScore = getQualityScore();
 
-  const actionButtons = [
+  const actionButtons: {
+    id: 'view' | 'invite' | 'suggest' | 'contact' | 'edit';
+    label: string;
+    icon: React.ElementType;
+    gradient: string;
+    description: string;
+    primary: boolean;
+  }[] = [
     {
       id: 'view',
       label: 'צפייה מלאה',
@@ -272,8 +279,6 @@ const QuickView: React.FC<QuickViewProps> = ({
                 מועמד ידני
               </Badge>
             )}
-
-           
           </div>
         </div>
       </div>
@@ -456,7 +461,7 @@ const QuickView: React.FC<QuickViewProps> = ({
                     'text-white',
                     hoveredAction === action.id && 'scale-105'
                   )}
-                  onClick={() => onAction(action.id as any)}
+                  onClick={() => onAction(action.id)}
                   onMouseEnter={() => setHoveredAction(action.id)}
                   onMouseLeave={() => setHoveredAction(null)}
                 >
@@ -487,7 +492,7 @@ const QuickView: React.FC<QuickViewProps> = ({
                     'hover:text-white font-medium',
                     hoveredAction === action.id && 'scale-105'
                   )}
-                  onClick={() => onAction(action.id as any)}
+                  onClick={() => onAction(action.id)}
                   onMouseEnter={() => setHoveredAction(action.id)}
                   onMouseLeave={() => setHoveredAction(null)}
                 >

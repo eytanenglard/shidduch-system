@@ -384,7 +384,7 @@ const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({
                 <div className="font-bold text-blue-800">
                   {firstParty.firstName} {firstParty.lastName}
                 </div>
-                <div className="text-sm text-blue-600">צד א' בהצעה</div>
+                <div className="text-sm text-blue-600">צד א&apos; בהצעה</div>
               </div>
             </div>
 
@@ -423,7 +423,7 @@ const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({
                 <div className="font-bold text-purple-800">
                   {secondParty.firstName} {secondParty.lastName}
                 </div>
-                <div className="text-sm text-purple-600">צד ב' בהצעה</div>
+                <div className="text-sm text-purple-600">צד ב&apos; בהצעה</div>
               </div>
             </div>
 
@@ -566,7 +566,7 @@ const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({
                 <div className="font-bold text-indigo-800 mb-1">מידע חשוב</div>
                 <p className="text-sm text-indigo-700 leading-relaxed">
                   לאחר תקופת הזמן שנבחרה, אם לא התקבלה תגובה מאחד הצדדים, ההצעה
-                  תועבר אוטומטית לסטטוס "פג תוקף".
+                  תועבר אוטומטית לסטטוס &quot;פג תוקף&quot;.
                 </p>
               </div>
             </div>

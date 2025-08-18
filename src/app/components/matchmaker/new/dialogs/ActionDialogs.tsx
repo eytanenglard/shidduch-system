@@ -248,7 +248,7 @@ export const ActionDialogs: React.FC<ActionDialogsProps> = ({
                 <h3 className="text-xl font-bold text-green-800 mb-2">
                   ההזמנה נשלחה בהצלחה!
                 </h3>
-                <p className="text-green-600">המועמד יקבל הודעה בדוא"ל</p>
+                <p className="text-green-600">המועמד יקבל הודעה בדוא&apos;ל</p>
               </div>
             ) : (
               <>
@@ -301,7 +301,7 @@ export const ActionDialogs: React.FC<ActionDialogsProps> = ({
                     מה יקרה לאחר השליחה?
                   </h4>
                   <ul className="text-sm text-purple-700 space-y-1">
-                    <li>• המועמד יקבל הזמנה אישית בדוא"ל</li>
+                    <li>• המועמד יקבל הזמנה אישית בדוא&quot;ל</li>
                     <li>• יוכל להירשם ולהשלים את פרטיו</li>
                     <li>• תקבל הודעה כשהמועמד יצטרף</li>
                   </ul>
@@ -398,9 +398,9 @@ export const ActionDialogs: React.FC<ActionDialogsProps> = ({
                     </span>
                   </div>
                   <p className="text-sm text-gray-600 bg-white p-3 rounded-lg border italic">
-                    "שלום {availabilityDialog.selectedCandidate?.firstName},
-                    השדכן מעוניין לבדוק את הזמינות שלך לפגישה. אנא עדכן את לוח
-                    הזמנים שלך במערכת."
+                    &quot;שלום {availabilityDialog.selectedCandidate?.firstName}
+                    , השדכן מעוניין לבדוק את הזמינות שלך לפגישה. אנא עדכן את לוח
+                    הזמנים שלך במערכת.&quot;
                   </p>
                 </div>
               </>
@@ -452,8 +452,8 @@ export const ActionDialogs: React.FC<ActionDialogsProps> = ({
                 השלב הבא
               </h4>
               <p className="text-sm text-pink-700">
-                הקליקו על "המשך" כדי לפתוח את טופס יצירת ההצעה המלא עם כל
-                האפשרויות והפרטים הנדרשים.
+                הקליקו על &quot;המשך&quot; כדי לפתוח את טופס יצירת ההצעה המלא עם
+                כל האפשרויות והפרטים הנדרשים.
               </p>
             </div>
           </div>

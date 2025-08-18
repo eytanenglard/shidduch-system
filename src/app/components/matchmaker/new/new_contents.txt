@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\matchmaker\new
-# Generated on: 2025-08-18 14:39:53
+# Generated on: 2025-08-18 15:27:34
 ################################################################################
 
 ================================================================================
@@ -1157,7 +1157,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
         return {
           label: 'פנוי/ה',
           className:
-            'bg-gradient-to-r from-emerald-500 to-green-500 text-white border-0 shadow-lg animate-pulse',
+            'bg-gradient-to-r from-emerald-500 to-green-500 text-white border-0 shadow-lg',
           icon: <Sparkles className="w-3 h-3" />,
         };
       case 'DATING':
@@ -1228,7 +1228,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
         {/* Top-left AI Score Badge */}
         {typeof aiScore === 'number' && (
           <div className="absolute top-3 left-3 z-30">
-            <Badge className="bg-gradient-to-r from-teal-400 via-cyan-500 to-blue-500 text-white border-0 shadow-xl px-3 py-1.5 text-sm font-bold flex items-center gap-2 animate-pulse">
+            <Badge className="bg-gradient-to-r from-teal-400 via-cyan-500 to-blue-500 text-white border-0 shadow-xl px-3 py-1.5 text-sm font-bold flex items-center gap-2">
               <Sparkles className="w-4 h-4" />
               {aiScore}% התאמה
               <Zap className="w-3 h-3" />
@@ -1255,12 +1255,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
             </Badge>
           )}
 
-          {qualityScore === 100 && (
-            <Badge className="px-3 py-1.5 text-xs font-bold shadow-lg bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0 flex items-center gap-1.5">
-              <Crown className="w-3 h-3" />
-              פרופיל מושלם
-            </Badge>
-          )}
+        
         </div>
 
         {/* Main Image */}
@@ -1729,12 +1724,7 @@ const QuickView: React.FC<QuickViewProps> = ({
               </Badge>
             )}
 
-            {qualityScore === 100 && (
-              <Badge className="bg-yellow-500/30 text-white border-yellow-300/50 backdrop-blur-sm">
-                <Crown className="w-3 h-3 mr-1" />
-                פרופיל מושלם
-              </Badge>
-            )}
+           
           </div>
         </div>
       </div>
@@ -2002,44 +1992,54 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\matc
 Content:
 // File: src/app/components/matchmaker/new/CandidatesManager/CandidatesList.tsx
 
-import React, { useState, useCallback, useEffect, useRef, useMemo } from "react";
-import { UserX, Edit } from "lucide-react";
-import MinimalCard from "../CandidateCard/MinimalCard";
-import QuickView from "../CandidateCard/QuickView";
-import { ProfileCard } from "@/app/components/profile";
-import type { Candidate, CandidateAction, MobileView } from "../types/candidates";
-import type { QuestionnaireResponse } from "@/types/next-auth";
-import { Skeleton } from "@/components/ui/skeleton";
+import React, {
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+  useMemo,
+} from 'react';
+import { UserX, Edit } from 'lucide-react';
+import MinimalCard from '../CandidateCard/MinimalCard';
+import QuickView from '../CandidateCard/QuickView';
+import { ProfileCard } from '@/app/components/profile';
+import type {
+  Candidate,
+  CandidateAction,
+  MobileView,
+} from '../types/candidates';
+import type { QuestionnaireResponse } from '@/types/next-auth';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { toast } from "sonner";
-import { ActionDialogs } from "../dialogs/ActionDialogs";
-import NewSuggestionForm from "../../suggestions/NewSuggestionForm";
-import MatchmakerEditProfile from "../MatchmakerEditProfile";
-import { cn } from "@/lib/utils";
+} from '@/components/ui/select';
+import { toast } from 'sonner';
+import { ActionDialogs } from '../dialogs/ActionDialogs';
+import NewSuggestionForm from '../../suggestions/NewSuggestionForm';
+import MatchmakerEditProfile from '../MatchmakerEditProfile';
+import { cn } from '@/lib/utils';
 
 interface CreateSuggestionData {
-  priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
   firstPartyId: string;
   secondPartyId: string;
   status:
-    | "DRAFT"
-    | "PENDING_FIRST_PARTY"
-    | "FIRST_PARTY_APPROVED"
-    | "FIRST_PARTY_DECLINED"
+    | 'DRAFT'
+    | 'PENDING_FIRST_PARTY'
+    | 'FIRST_PARTY_APPROVED'
+    | 'FIRST_PARTY_DECLINED'
     | string;
   firstPartyNotes?: string;
   secondPartyNotes?: string;
@@ -2050,12 +2050,12 @@ interface CandidatesListProps {
   allCandidates: Candidate[];
   onCandidateClick?: (candidate: Candidate) => void;
   onCandidateAction?: (type: CandidateAction, candidate: Candidate) => void;
-  viewMode: "grid" | "list";
+  viewMode: 'grid' | 'list';
   mobileView: MobileView;
   isLoading?: boolean;
   className?: string;
   highlightTerm?: string;
-  
+
   // --- AI-RELATED PROPS ---
   aiTargetCandidate: Candidate | null;
   onSetAiTarget: (candidate: Candidate, e: React.MouseEvent) => void;
@@ -2109,10 +2109,10 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     };
 
     checkScreenSize();
-    window.addEventListener("resize", checkScreenSize);
+    window.addEventListener('resize', checkScreenSize);
 
     return () => {
-      window.removeEventListener("resize", checkScreenSize);
+      window.removeEventListener('resize', checkScreenSize);
     };
   }, []);
 
@@ -2128,9 +2128,9 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [hoveredCandidate]);
 
@@ -2175,8 +2175,8 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
           setQuestionnaireResponse(formattedQuestionnaire);
         }
       } catch (error) {
-        console.error("Failed to load questionnaire:", error);
-        toast.error("שגיאה בטעינת השאלון");
+        console.error('Failed to load questionnaire:', error);
+        toast.error('שגיאה בטעינת השאלון');
       }
     };
 
@@ -2186,57 +2186,60 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   // Action handlers
   const handleInvite = async (candidate: Candidate, email: string) => {
     try {
-      const response = await fetch(`/api/matchmaker/candidates/${candidate.id}/invite-setup`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          candidateId: candidate.id,
-          email,
-        }),
-      });
+      const response = await fetch(
+        `/api/matchmaker/candidates/${candidate.id}/invite-setup`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            candidateId: candidate.id,
+            email,
+          }),
+        }
+      );
 
-      if (!response.ok) throw new Error("Failed to send invitation");
+      if (!response.ok) throw new Error('Failed to send invitation');
 
-      toast.success("ההזמנה נשלחה בהצלחה");
-      onCandidateAction?.("invite", candidate);
+      toast.success('ההזמנה נשלחה בהצלחה');
+      onCandidateAction?.('invite', candidate);
     } catch (error) {
-      console.error("Error sending invite:", error);
+      console.error('Error sending invite:', error);
       throw error;
     }
   };
 
   const handleAvailabilityCheck = async (candidate: Candidate) => {
     try {
-      const response = await fetch("/api/availability/check", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/availability/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ clientId: candidate.id }),
       });
 
-      if (!response.ok) throw new Error("Failed to check availability");
+      if (!response.ok) throw new Error('Failed to check availability');
 
-      toast.success("בדיקת הזמינות נשלחה");
-      onCandidateAction?.("contact", candidate);
+      toast.success('בדיקת הזמינות נשלחה');
+      onCandidateAction?.('contact', candidate);
     } catch (error) {
-      console.error("Error checking availability:", error);
+      console.error('Error checking availability:', error);
       throw error;
     }
   };
 
   const handleCreateSuggestion = async (data: CreateSuggestionData) => {
     try {
-      const response = await fetch("/api/matchmaker/suggestions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/matchmaker/suggestions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
 
-      if (!response.ok) throw new Error("Failed to create suggestion");
+      if (!response.ok) throw new Error('Failed to create suggestion');
 
-      toast.success("ההצעה נוצרה בהצלחה");
-      onCandidateAction?.("suggest", dialogCandidate!);
+      toast.success('ההצעה נוצרה בהצלחה');
+      onCandidateAction?.('suggest', dialogCandidate!);
     } catch (error) {
-      console.error("Error creating suggestion:", error);
+      console.error('Error creating suggestion:', error);
       throw error;
     }
   };
@@ -2253,25 +2256,12 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
       clearTimeout(hoverTimeoutRef.current);
     }
 
-    let top = window.scrollY + window.innerHeight / 3;
-    let left = window.innerWidth / 2;
+    // פשוט מאוד - תמיד למעלה ובמרכז!
+    let top = 20; // 20px מהחלק העליון של המסך
+    let left = window.innerWidth / 2 - 210; // מרכז המסך מינוס חצי רוחב QuickView
 
-    if (e) {
-      const element = e.currentTarget as HTMLElement;
-      if (element) {
-        const rect = element.getBoundingClientRect();
-        const screenMiddle = window.innerWidth / 2;
-        const isRightPanel = rect.left < screenMiddle;
-
-        top = rect.top + window.scrollY;
-
-        if (isRightPanel) {
-          left = Math.min(rect.right + 10, window.innerWidth - 430);
-        } else {
-          left = Math.max(rect.left - 430, 10);
-        }
-      }
-    }
+    // ודא שלא יוצא מהמסך משמאל או מימין
+    left = Math.max(20, Math.min(left, window.innerWidth - 420 - 20));
 
     hoverTimeoutRef.current = setTimeout(() => {
       setHoverPosition({ top, left });
@@ -2288,7 +2278,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     }
 
     setTimeout(() => {
-      if (!quickViewRef.current?.matches(":hover")) {
+      if (!quickViewRef.current?.matches(':hover')) {
         setHoveredCandidate(null);
       }
     }, 100);
@@ -2300,20 +2290,20 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
       setHoveredCandidate(null);
 
       switch (action) {
-        case "invite":
+        case 'invite':
           setShowInviteDialog(true);
           break;
-        case "contact":
+        case 'contact':
           setShowAvailabilityDialog(true);
           break;
-        case "suggest":
+        case 'suggest':
           setShowSuggestDialog(true);
           break;
-        case "view":
+        case 'view':
           setSelectedCandidate(candidate);
           onCandidateClick?.(candidate);
           break;
-        case "edit":
+        case 'edit':
           handleEditProfile(candidate);
           break;
         default:
@@ -2322,7 +2312,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     },
     [onCandidateAction, onCandidateClick]
   );
-  
+
   const gridLayoutClass = useMemo(() => {
     if (isMobile) {
       // Mobile view logic
@@ -2341,16 +2331,16 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     return (
       <div
         className={`${
-          viewMode === "grid"
-            ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-            : "space-y-4"
-        } ${className || ""}`}
+          viewMode === 'grid'
+            ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'
+            : 'space-y-4'
+        } ${className || ''}`}
       >
         {Array.from({ length: 6 }).map((_, i) => (
           <div key={i} className="relative">
             <Skeleton
               className={
-                viewMode === "list" ? "h-32 w-full" : "h-[350px] w-full"
+                viewMode === 'list' ? 'h-32 w-full' : 'h-[350px] w-full'
               }
             />
             <div className="absolute top-3 right-3">
@@ -2379,24 +2369,26 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
 
   return (
     <>
-      <div className={cn(gridLayoutClass, className || "")}>
+      <div className={cn(gridLayoutClass, className || '')}>
         {candidates.map((candidate) => (
           <div
             key={candidate.id}
             className="group relative"
             onMouseEnter={(e) => handleMouseEnter(candidate, e)}
             onMouseLeave={handleMouseLeave}
-            onClick={() => handleAction("view", candidate)}
+            onClick={() => handleAction('view', candidate)}
           >
             <MinimalCard
               candidate={candidate}
-              onClick={() => handleAction("view", candidate)}
+              onClick={() => handleAction('view', candidate)}
               onEdit={(c, e) => {
                 e.stopPropagation();
-                handleAction("edit", c);
+                handleAction('edit', c);
               }}
               className={cn(
-                viewMode === "list" && !isMobile ? "flex flex-row-reverse gap-4 h-32" : "",
+                viewMode === 'list' && !isMobile
+                  ? 'flex flex-row-reverse gap-4 h-32'
+                  : '',
                 isMobile && mobileView === 'double' ? 'transform scale-90' : '',
                 isMobile && mobileView === 'single' ? 'transform scale-95' : ''
               )}
@@ -2416,7 +2408,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
               className="absolute top-2 left-2 bg-primary text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
               onClick={(e) => {
                 e.stopPropagation();
-                handleAction("edit", candidate);
+                handleAction('edit', candidate);
               }}
               aria-label="ערוך פרופיל"
               title="ערוך פרופיל"
@@ -2430,18 +2422,11 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
       {hoveredCandidate && !isMobile && (
         <div
           ref={quickViewRef}
-          className="fixed z-50 md:absolute transform -translate-x-1/2 sm:translate-x-0"
+          className="fixed z-[70]" // z-index גבוה מאוד
           style={{
             top: `${hoverPosition.top}px`,
             left: `${hoverPosition.left}px`,
-            maxWidth: window.innerWidth < 768 ? "calc(100vw - 32px)" : "420px",
-            ...(window.innerWidth < 768
-              ? {
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  maxHeight: "85vh",
-                }
-              : {}),
+            width: '420px',
           }}
         >
           <div className="drop-shadow-2xl">
@@ -2470,7 +2455,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
               <DialogTitle>פרופיל מועמד</DialogTitle>
               <Button
                 variant="outline"
-                onClick={() => handleAction("edit", selectedCandidate!)}
+                onClick={() => handleAction('edit', selectedCandidate!)}
                 className="flex items-center gap-2"
               >
                 <Edit className="w-4 h-4" />
@@ -2479,8 +2464,8 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
             </div>
             <DialogDescription>צפייה בפרטי המועמד</DialogDescription>
             <Select
-              value={isMatchmaker ? "matchmaker" : "candidate"}
-              onValueChange={(value) => setIsMatchmaker(value === "matchmaker")}
+              value={isMatchmaker ? 'matchmaker' : 'candidate'}
+              onValueChange={(value) => setIsMatchmaker(value === 'matchmaker')}
             >
               <SelectTrigger className="w-full sm:w-48">
                 <SelectValue placeholder="בחר תצוגה" />
@@ -2494,18 +2479,18 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
 
           {selectedCandidate && (
             <div className="space-y-6">
-                {selectedCandidate && (
-            <div className="space-y-6">
-              <ProfileCard
-                profile={selectedCandidate.profile}
-                images={selectedCandidate.images}
-                questionnaire={questionnaireResponse}
-                viewMode={isMatchmaker ? "matchmaker" : "candidate"}
-                // --- 👇 הוספתי את השורה הזו ---
-                isProfileComplete={selectedCandidate.isProfileComplete}
-              />
-            </div>
-          )}
+              {selectedCandidate && (
+                <div className="space-y-6">
+                  <ProfileCard
+                    profile={selectedCandidate.profile}
+                    images={selectedCandidate.images}
+                    questionnaire={questionnaireResponse}
+                    viewMode={isMatchmaker ? 'matchmaker' : 'candidate'}
+                    // --- 👇 הוספתי את השורה הזו ---
+                    isProfileComplete={selectedCandidate.isProfileComplete}
+                  />
+                </div>
+              )}
             </div>
           )}
         </DialogContent>
@@ -3199,21 +3184,40 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\matc
 Content:
 // File: src/app/components/matchmaker/new/CandidatesManager/SplitView.tsx
 
-"use client";
+'use client';
 
-import React, { useMemo, useEffect, useState } from "react";
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
-import CandidatesList from "./CandidatesList";
-import { Badge } from "@/components/ui/badge";
-import { Sparkles, XCircle, Users, User } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { Candidate, CandidateAction, MobileView } from "../types/candidates";
-import type { FilterState } from "../types/filters";
-import SearchBar from "../Filters/SearchBar";
-import { toast } from "sonner";
-import { cn } from "@/lib/utils";
-import { Gender } from "@prisma/client";
+import React, { useMemo, useEffect, useState } from 'react';
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from '@/components/ui/resizable';
+import CandidatesList from './CandidatesList';
+import { Badge } from '@/components/ui/badge';
+import {
+  Sparkles,
+  XCircle,
+  Users,
+  User,
+  Target,
+  Crown,
+  Zap,
+  Activity,
+  Search,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent } from '@/components/ui/card';
+import type {
+  Candidate,
+  CandidateAction,
+  MobileView,
+} from '../types/candidates';
+import type { FilterState } from '../types/filters';
+import SearchBar from '../Filters/SearchBar';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import { Gender } from '@prisma/client';
 
 interface AiMatch {
   userId: string;
@@ -3226,11 +3230,11 @@ interface SplitViewProps {
   allCandidates: Candidate[];
   onCandidateAction: (type: CandidateAction, candidate: Candidate) => void;
   onCandidateClick: (candidate: Candidate) => void;
-  viewMode: "grid" | "list";
+  viewMode: 'grid' | 'list';
   mobileView: MobileView;
   isLoading?: boolean;
   className?: string;
-  
+
   // --- AI State and Handlers (Received from Parent) ---
   aiTargetCandidate: Candidate | null;
   aiMatches: AiMatch[];
@@ -3248,12 +3252,219 @@ interface SplitViewProps {
   femaleFilters?: Partial<FilterState>;
   onMaleFiltersChange: (filters: Partial<FilterState>) => void;
   onFemaleFiltersChange: (filters: Partial<FilterState>) => void;
-  onCopyFilters: (source: "male" | "female", target: "male" | "female") => void;
+  onCopyFilters: (source: 'male' | 'female', target: 'male' | 'female') => void;
   maleSearchQuery?: string;
   femaleSearchQuery?: string;
   onMaleSearchChange?: (query: string) => void;
   onFemaleSearchChange?: (query: string) => void;
 }
+
+// Enhanced Panel Header Component
+const PanelHeaderComponent: React.FC<{
+  gender: 'male' | 'female';
+  count: number;
+  aiTargetCandidate: Candidate | null;
+  isSearchPanel: boolean;
+  isTargetPanel: boolean;
+  onClearAiTarget: (e: React.MouseEvent) => void;
+  onFindAiMatches: (e: React.MouseEvent) => void;
+  isAiLoading: boolean;
+  isMobileView?: boolean;
+}> = ({
+  gender,
+  count,
+  aiTargetCandidate,
+  isSearchPanel,
+  isTargetPanel,
+  onClearAiTarget,
+  onFindAiMatches,
+  isAiLoading,
+  isMobileView = false,
+}) => {
+  const genderConfig = {
+    male: {
+      title: 'מועמדים',
+      icon: Target,
+      colors: {
+        gradient: 'from-blue-500 to-cyan-500',
+        bg: 'from-blue-50 to-cyan-50',
+        text: 'text-blue-800',
+        badge: 'bg-blue-500',
+      },
+    },
+    female: {
+      title: 'מועמדות',
+      icon: Crown,
+      colors: {
+        gradient: 'from-purple-500 to-pink-500',
+        bg: 'from-purple-50 to-pink-50',
+        text: 'text-purple-800',
+        badge: 'bg-purple-500',
+      },
+    },
+  };
+
+  const config = genderConfig[gender];
+  const IconComponent = config.icon;
+
+  return (
+    <div
+      className={cn(
+        'flex justify-between items-center p-4 rounded-t-2xl',
+        !isMobileView &&
+          `bg-gradient-to-r ${config.colors.bg} border-b border-gray-100/50`
+      )}
+    >
+      <div className="flex items-center gap-3">
+        <div
+          className={cn(
+            'p-3 rounded-full shadow-lg text-white transition-transform hover:scale-110',
+            `bg-gradient-to-r ${config.colors.gradient}`
+          )}
+        >
+          <IconComponent className="w-6 h-6" />
+        </div>
+        <div>
+          <h2 className={cn('text-xl font-bold', config.colors.text)}>
+            {config.title}
+          </h2>
+          <p className="text-sm text-gray-600">
+            {count} {gender === 'male' ? 'מועמדים' : 'מועמדות'} פעילים
+          </p>
+        </div>
+        <Badge
+          className={cn(
+            'text-white border-0 shadow-lg px-3 py-1 font-bold',
+            config.colors.badge
+          )}
+        >
+          {count}
+        </Badge>
+      </div>
+
+      <div className="flex items-center gap-2">
+        {isTargetPanel && aiTargetCandidate && (
+          <div className="flex items-center gap-2 bg-green-100 p-2 rounded-full shadow-lg animate-pulse">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-ping"></div>
+            <span className="text-sm font-medium text-green-800 px-2">
+              מטרה: {aiTargetCandidate.firstName}
+            </span>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-6 w-6 text-green-700 hover:bg-green-200 rounded-full"
+              onClick={onClearAiTarget}
+            >
+              <XCircle className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+
+        {isSearchPanel && (
+          <Button
+            size="sm"
+            onClick={onFindAiMatches}
+            disabled={isAiLoading}
+            className={cn(
+              'shadow-lg font-bold transition-all duration-300 hover:scale-105',
+              `bg-gradient-to-r ${config.colors.gradient} hover:opacity-90 text-white`
+            )}
+          >
+            <Sparkles
+              className={cn('ml-2 h-4 w-4', isAiLoading && 'animate-spin')}
+            />
+            {isAiLoading ? 'מחפש...' : 'מצא התאמות AI'}
+            <Zap className="w-3 h-3 mr-1" />
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Enhanced Loading Component
+const LoadingComponent: React.FC<{ gender: 'male' | 'female' }> = ({
+  gender,
+}) => {
+  const config =
+    gender === 'male'
+      ? { gradient: 'from-blue-200 to-cyan-200', icon: Target }
+      : { gradient: 'from-purple-200 to-pink-200', icon: Crown };
+
+  const IconComponent = config.icon;
+
+  return (
+    <div className="flex flex-col items-center justify-center h-64 p-8">
+      <div
+        className={cn(
+          'p-6 rounded-full mb-4 animate-pulse',
+          `bg-gradient-to-r ${config.gradient}`
+        )}
+      >
+        <IconComponent className="w-12 h-12 text-white" />
+      </div>
+      <div className="text-center">
+        <h3 className="text-lg font-bold text-gray-700 mb-2">
+          טוען מועמדים...
+        </h3>
+        <p className="text-gray-500">אנא המתן בזמן שאנו מביאים את הנתונים</p>
+      </div>
+    </div>
+  );
+};
+
+// Enhanced Empty State Component
+const EmptyStateComponent: React.FC<{
+  gender: 'male' | 'female';
+  searchQuery?: string;
+  onClearSearch?: () => void;
+}> = ({ gender, searchQuery, onClearSearch }) => {
+  const config =
+    gender === 'male'
+      ? {
+          gradient: 'from-blue-100 to-cyan-100',
+          icon: Target,
+          title: 'אין מועמדים',
+          subtitle: 'לא נמצאו מועמדים התואמים לקריטריונים',
+        }
+      : {
+          gradient: 'from-purple-100 to-pink-100',
+          icon: Crown,
+          title: 'אין מועמדות',
+          subtitle: 'לא נמצאו מועמדות התואמות לקריטריונים',
+        };
+
+  const IconComponent = config.icon;
+
+  return (
+    <div className="flex flex-col items-center justify-center h-64 p-8">
+      <div
+        className={cn(
+          'w-24 h-24 rounded-full flex items-center justify-center mb-6 shadow-lg',
+          `bg-gradient-to-br ${config.gradient}`
+        )}
+      >
+        <IconComponent className="w-12 h-12 text-gray-400" />
+      </div>
+      <h3 className="text-xl font-bold text-gray-800 mb-2">{config.title}</h3>
+      <p className="text-gray-600 text-center mb-4 max-w-sm">
+        {searchQuery
+          ? `לא נמצאו תוצאות עבור "${searchQuery}"`
+          : config.subtitle}
+      </p>
+      {searchQuery && onClearSearch && (
+        <Button
+          variant="outline"
+          onClick={onClearSearch}
+          className="border-2 border-gray-300 hover:border-gray-400"
+        >
+          <Search className="w-4 h-4 ml-2" />
+          נקה חיפוש
+        </Button>
+      )}
+    </div>
+  );
+};
 
 const SplitView: React.FC<SplitViewProps> = (props) => {
   const {
@@ -3266,8 +3477,8 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
     mobileView,
     isLoading = false,
     className,
-    maleSearchQuery = "",
-    femaleSearchQuery = "",
+    maleSearchQuery = '',
+    femaleSearchQuery = '',
     onMaleSearchChange,
     onFemaleSearchChange,
     // --- Destructure AI props ---
@@ -3287,8 +3498,8 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
   useEffect(() => {
     const checkScreenSize = () => setIsMobile(window.innerWidth < 768);
     checkScreenSize();
-    window.addEventListener("resize", checkScreenSize);
-    return () => window.removeEventListener("resize", checkScreenSize);
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
   const handleFindAiMatches = async (e: React.MouseEvent) => {
@@ -3299,257 +3510,330 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
     setAiMatches([]);
 
     const targetGender = aiTargetCandidate.profile.gender;
-    const candidatePool = targetGender === Gender.MALE ? femaleCandidates : maleCandidates;
-    const candidatePoolIds = candidatePool.map(c => c.id);
+    const candidatePool =
+      targetGender === Gender.MALE ? femaleCandidates : maleCandidates;
+    const candidatePoolIds = candidatePool.map((c) => c.id);
 
     if (candidatePoolIds.length === 0) {
-      toast.error("אין מועמדים במאגר לחיפוש התאמות.", { position: "top-center" });
+      toast.error('אין מועמדים במאגר לחיפוש התאמות.', {
+        position: 'top-center',
+      });
       setIsAiLoading(false);
       return;
     }
-    
+
     try {
       const response = await fetch('/api/ai/find-matches', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ targetUserId: aiTargetCandidate.id, candidatePoolIds }),
+        body: JSON.stringify({
+          targetUserId: aiTargetCandidate.id,
+          candidatePoolIds,
+        }),
       });
 
       const data = await response.json();
-      if (!response.ok || !data.success) throw new Error(data.error || 'Failed to fetch AI matches');
-      
+      if (!response.ok || !data.success)
+        throw new Error(data.error || 'Failed to fetch AI matches');
+
       setAiMatches(data.matches);
       toast.success(`נמצאו ${data.matches.length} התאמות AI פוטנציאליות.`, {
-         position: "top-center",
-         description: "המועמדים המומלצים מסומנים ומוינו לראש הרשימה."
+        position: 'top-center',
+        description: 'המועמדים המומלצים מסומנים ומויינו לראש הרשימה.',
       });
     } catch (error) {
-      console.error("Error finding AI matches:", error);
-      toast.error("שגיאה במציאת התאמות AI.", {
-          description: error instanceof Error ? error.message : "נסה שוב מאוחר יותר.",
+      console.error('Error finding AI matches:', error);
+      toast.error('שגיאה במציאת התאמות AI.', {
+        description:
+          error instanceof Error ? error.message : 'נסה שוב מאוחר יותר.',
       });
     } finally {
       setIsAiLoading(false);
     }
   };
-  
+
   const maleCandidatesWithScores = useMemo(() => {
     if (aiMatches.length === 0) return maleCandidates;
-    const scoreMap = new Map(aiMatches.map(m => [m.userId, m.score]));
+    const scoreMap = new Map(aiMatches.map((m) => [m.userId, m.score]));
     return maleCandidates
-      .map(c => ({ ...c, aiScore: scoreMap.get(c.id) }))
+      .map((c) => ({ ...c, aiScore: scoreMap.get(c.id) }))
       .sort((a, b) => (b.aiScore ?? -1) - (a.aiScore ?? -1));
   }, [maleCandidates, aiMatches]);
 
   const femaleCandidatesWithScores = useMemo(() => {
     if (aiMatches.length === 0) return femaleCandidates;
-    const scoreMap = new Map(aiMatches.map(m => [m.userId, m.score]));
+    const scoreMap = new Map(aiMatches.map((m) => [m.userId, m.score]));
     return femaleCandidates
-      .map(c => ({ ...c, aiScore: scoreMap.get(c.id) }))
+      .map((c) => ({ ...c, aiScore: scoreMap.get(c.id) }))
       .sort((a, b) => (b.aiScore ?? -1) - (a.aiScore ?? -1));
   }, [femaleCandidates, aiMatches]);
 
-  const renderPanelHeader = (gender: 'male' | 'female', isMobileView: boolean = false) => {
-      const panelGenderEnum = gender === 'male' ? Gender.MALE : Gender.FEMALE;
-      const isTargetPanel = aiTargetCandidate?.profile.gender === panelGenderEnum;
-      const isSearchPanel = aiTargetCandidate && aiTargetCandidate.profile.gender !== panelGenderEnum;
-      const count = gender === 'male' ? maleCandidates.length : femaleCandidates.length;
+  const renderPanelHeader = (
+    gender: 'male' | 'female',
+    isMobileView: boolean = false
+  ) => {
+    const panelGenderEnum = gender === 'male' ? Gender.MALE : Gender.FEMALE;
+    const isTargetPanel = aiTargetCandidate?.profile.gender === panelGenderEnum;
+    const isSearchPanel = !!(
+      aiTargetCandidate && aiTargetCandidate.profile.gender !== panelGenderEnum
+    );
+    const count =
+      gender === 'male' ? maleCandidates.length : femaleCandidates.length;
 
+    return (
+      <PanelHeaderComponent
+        gender={gender}
+        count={count}
+        aiTargetCandidate={aiTargetCandidate}
+        isSearchPanel={isSearchPanel}
+        isTargetPanel={isTargetPanel}
+        onClearAiTarget={onClearAiTarget}
+        onFindAiMatches={handleFindAiMatches}
+        isAiLoading={isAiLoading}
+        isMobileView={isMobileView}
+      />
+    );
+  };
+
+  const renderCandidatesList = (
+    candidates: Candidate[],
+    gender: 'male' | 'female',
+    searchQuery: string,
+    onSearchChange?: (query: string) => void
+  ) => {
+    if (isLoading) {
+      return <LoadingComponent gender={gender} />;
+    }
+
+    if (candidates.length === 0) {
       return (
-        <div className={cn("flex justify-between items-center mb-2 p-2 rounded-t-lg", !isMobileView && "bg-gray-50 border-b")}>
-          <h2 className={cn("text-lg font-bold", gender === 'male' ? "text-blue-800" : "text-purple-800")}>
-            {gender === 'male' ? `מועמדים (${count})` : `מועמדות (${count})`}
-          </h2>
-          <div className="flex-grow" />
-          <div className="flex items-center gap-2">
-              {isTargetPanel && aiTargetCandidate && (
-                <div className="flex items-center gap-2 bg-green-100 p-1.5 rounded-full shadow-sm animate-fade-in">
-                  <span className="text-xs font-medium text-green-800 px-2">מטרה: {aiTargetCandidate.firstName}</span>
-                  <Button size="icon" variant="ghost" className="h-6 w-6 text-green-700 hover:bg-green-200 rounded-full" onClick={onClearAiTarget}>
-                    <XCircle className="h-4 w-4"/>
-                  </Button>
-                </div>
-              )}
-              {isSearchPanel && (
-                <Button size="sm" onClick={handleFindAiMatches} disabled={isAiLoading}>
-                  <Sparkles className={`ml-2 h-4 w-4 ${isAiLoading ? 'animate-spin' : ''}`}/>
-                  {isAiLoading ? 'מחפש...' : 'מצא התאמות AI'}
-                </Button>
-              )}
-          </div>
-        </div>
+        <EmptyStateComponent
+          gender={gender}
+          searchQuery={searchQuery}
+          onClearSearch={() => onSearchChange?.('')}
+        />
       );
+    }
+
+    return (
+      <CandidatesList
+        candidates={candidates}
+        allCandidates={allCandidates}
+        onCandidateClick={onCandidateClick}
+        onCandidateAction={onCandidateAction}
+        viewMode={viewMode}
+        mobileView={mobileView}
+        isLoading={isLoading}
+        highlightTerm={searchQuery}
+        aiTargetCandidate={aiTargetCandidate}
+        onSetAiTarget={onSetAiTarget}
+        comparisonSelection={comparisonSelection}
+        onToggleComparison={onToggleComparison}
+      />
+    );
   };
 
   // --- Mobile View Logic ---
   if (isMobile) {
     if (mobileView === 'split') {
-      // --- START OF CHANGE ---
-      // The container now has h-full to take the height from its parent in CandidatesManager
       return (
-        <div className="grid grid-cols-2 gap-2 h-full">
+        <div className="grid grid-cols-2 gap-3 h-full p-3">
           {/* Male Candidates Column */}
-          <div className="flex flex-col h-full">
-            <div className="p-2 text-center flex-shrink-0">
-              <h2 className="text-sm font-bold text-blue-800 flex items-center justify-center gap-1">
-                <User className="w-4 h-4" /> מועמדים <Badge variant="secondary">{maleCandidates.length}</Badge>
+          <Card className="flex flex-col h-full shadow-xl border-0 bg-gradient-to-b from-white to-blue-50/30 overflow-hidden rounded-2xl">
+            <div className="p-3 text-center bg-gradient-to-r from-blue-500 to-cyan-500 text-white">
+              <h2 className="text-sm font-bold flex items-center justify-center gap-1">
+                <Target className="w-4 h-4" />
+                מועמדים
+                <Badge
+                  variant="secondary"
+                  className="bg-white/20 text-white border-0 ml-1"
+                >
+                  {maleCandidates.length}
+                </Badge>
               </h2>
             </div>
-            {/* This div will grow to fill the space and handle its own scrolling */}
-            <div className="flex-grow min-h-0 overflow-y-auto">
-              <CandidatesList
-                candidates={maleCandidatesWithScores}
-                allCandidates={allCandidates}
-                onCandidateClick={onCandidateClick}
-                onCandidateAction={onCandidateAction}
-                viewMode="grid"
-                mobileView="single"
-                isLoading={isLoading}
-                highlightTerm={maleSearchQuery}
-                aiTargetCandidate={aiTargetCandidate}
-                onSetAiTarget={onSetAiTarget}
-                comparisonSelection={comparisonSelection}
-                onToggleComparison={onToggleComparison}
-              />
+            <div className="flex-grow min-h-0 overflow-y-auto p-2">
+              {renderCandidatesList(
+                maleCandidatesWithScores,
+                'male',
+                maleSearchQuery,
+                onMaleSearchChange
+              )}
             </div>
-          </div>
+          </Card>
 
           {/* Female Candidates Column */}
-          <div className="flex flex-col h-full">
-            <div className="p-2 text-center flex-shrink-0">
-              <h2 className="text-sm font-bold text-purple-800 flex items-center justify-center gap-1">
-                <User className="w-4 h-4" /> מועמדות <Badge variant="secondary">{femaleCandidates.length}</Badge>
+          <Card className="flex flex-col h-full shadow-xl border-0 bg-gradient-to-b from-white to-purple-50/30 overflow-hidden rounded-2xl">
+            <div className="p-3 text-center bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+              <h2 className="text-sm font-bold flex items-center justify-center gap-1">
+                <Crown className="w-4 h-4" />
+                מועמדות
+                <Badge
+                  variant="secondary"
+                  className="bg-white/20 text-white border-0 ml-1"
+                >
+                  {femaleCandidates.length}
+                </Badge>
               </h2>
             </div>
-            <div className="flex-grow min-h-0 overflow-y-auto">
-              <CandidatesList
-                candidates={femaleCandidatesWithScores}
-                allCandidates={allCandidates}
-                onCandidateClick={onCandidateClick}
-                onCandidateAction={onCandidateAction}
-                viewMode="grid"
-                mobileView="single"
-                isLoading={isLoading}
-                highlightTerm={femaleSearchQuery}
-                aiTargetCandidate={aiTargetCandidate}
-                onSetAiTarget={onSetAiTarget}
-                comparisonSelection={comparisonSelection}
-                onToggleComparison={onToggleComparison}
-              />
+            <div className="flex-grow min-h-0 overflow-y-auto p-2">
+              {renderCandidatesList(
+                femaleCandidatesWithScores,
+                'female',
+                femaleSearchQuery,
+                onFemaleSearchChange
+              )}
             </div>
-          </div>
+          </Card>
         </div>
       );
-      // --- END OF CHANGE ---
     }
 
     // Original Tabs view for 'single' or 'double' column modes
     return (
-        <div className={cn("w-full h-full", className)}>
-            <Tabs defaultValue="male" className="w-full h-full flex flex-col">
-                <TabsList className="grid w-full grid-cols-2 flex-shrink-0">
-                    <TabsTrigger value="male" className="flex items-center gap-2">
-                        <User className="h-4 w-4"/> מועמדים <Badge variant="secondary">{maleCandidates.length}</Badge>
-                    </TabsTrigger>
-                    <TabsTrigger value="female" className="flex items-center gap-2">
-                        <User className="h-4 w-4"/> מועמדות <Badge variant="secondary">{femaleCandidates.length}</Badge>
-                    </TabsTrigger>
-                </TabsList>
-                <TabsContent value="male" className="mt-4 flex-1 min-h-0">
-                    <div className="p-1 flex flex-col h-full">
-                        {renderPanelHeader('male', true)}
-                        {onMaleSearchChange && <SearchBar value={maleSearchQuery} onChange={onMaleSearchChange} placeholder="חיפוש מועמדים..." genderTarget="male" separateMode={true} />}
-                        <div className="flex-grow min-h-0 overflow-y-auto">
-                            <CandidatesList
-                                candidates={maleCandidatesWithScores}
-                                allCandidates={allCandidates}
-                                onCandidateClick={onCandidateClick}
-                                onCandidateAction={onCandidateAction}
-                                viewMode={viewMode}
-                                mobileView={mobileView}
-                                isLoading={isLoading}
-                                highlightTerm={maleSearchQuery}
-                                aiTargetCandidate={aiTargetCandidate}
-                                onSetAiTarget={onSetAiTarget}
-                                comparisonSelection={comparisonSelection}
-                                onToggleComparison={onToggleComparison}
-                            />
-                        </div>
-                    </div>
-                </TabsContent>
-                <TabsContent value="female" className="mt-4 flex-1 min-h-0">
-                    <div className="p-1 flex flex-col h-full">
-                        {renderPanelHeader('female', true)}
-                        {onFemaleSearchChange && <SearchBar value={femaleSearchQuery} onChange={onFemaleSearchChange} placeholder="חיפוש מועמדות..." genderTarget="female" separateMode={true} />}
-                        <div className="flex-grow min-h-0 overflow-y-auto">
-                            <CandidatesList
-                                candidates={femaleCandidatesWithScores}
-                                allCandidates={allCandidates}
-                                onCandidateClick={onCandidateClick}
-                                onCandidateAction={onCandidateAction}
-                                viewMode={viewMode}
-                                mobileView={mobileView}
-                                isLoading={isLoading}
-                                highlightTerm={femaleSearchQuery}
-                                aiTargetCandidate={aiTargetCandidate}
-                                onSetAiTarget={onSetAiTarget}
-                                comparisonSelection={comparisonSelection}
-                                onToggleComparison={onToggleComparison}
-                            />
-                        </div>
-                    </div>
-                </TabsContent>
-            </Tabs>
-        </div>
+      <div className={cn('w-full h-full', className)}>
+        <Tabs defaultValue="male" className="w-full h-full flex flex-col">
+          <TabsList className="grid w-full grid-cols-2 flex-shrink-0 bg-gradient-to-r from-indigo-50 to-purple-50 p-1 rounded-2xl shadow-lg">
+            <TabsTrigger
+              value="male"
+              className="flex items-center gap-2 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg"
+            >
+              <Target className="h-4 w-4" />
+              מועמדים
+              <Badge
+                variant="secondary"
+                className="bg-blue-100 text-blue-800 border-0"
+              >
+                {maleCandidates.length}
+              </Badge>
+            </TabsTrigger>
+            <TabsTrigger
+              value="female"
+              className="flex items-center gap-2 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-lg"
+            >
+              <Crown className="h-4 w-4" />
+              מועמדות
+              <Badge
+                variant="secondary"
+                className="bg-purple-100 text-purple-800 border-0"
+              >
+                {femaleCandidates.length}
+              </Badge>
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="male" className="mt-4 flex-1 min-h-0">
+            <Card className="p-4 flex flex-col h-full shadow-xl border-0 bg-gradient-to-b from-white to-blue-50/30 rounded-2xl">
+              {renderPanelHeader('male', true)}
+              {onMaleSearchChange && (
+                <div className="mb-4">
+                  <SearchBar
+                    value={maleSearchQuery}
+                    onChange={onMaleSearchChange}
+                    placeholder="חיפוש מועמדים..."
+                    genderTarget="male"
+                    separateMode={true}
+                  />
+                </div>
+              )}
+              <div className="flex-grow min-h-0 overflow-y-auto">
+                {renderCandidatesList(
+                  maleCandidatesWithScores,
+                  'male',
+                  maleSearchQuery,
+                  onMaleSearchChange
+                )}
+              </div>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="female" className="mt-4 flex-1 min-h-0">
+            <Card className="p-4 flex flex-col h-full shadow-xl border-0 bg-gradient-to-b from-white to-purple-50/30 rounded-2xl">
+              {renderPanelHeader('female', true)}
+              {onFemaleSearchChange && (
+                <div className="mb-4">
+                  <SearchBar
+                    value={femaleSearchQuery}
+                    onChange={onFemaleSearchChange}
+                    placeholder="חיפוש מועמדות..."
+                    genderTarget="female"
+                    separateMode={true}
+                  />
+                </div>
+              )}
+              <div className="flex-grow min-h-0 overflow-y-auto">
+                {renderCandidatesList(
+                  femaleCandidatesWithScores,
+                  'female',
+                  femaleSearchQuery,
+                  onFemaleSearchChange
+                )}
+              </div>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
     );
   }
 
   // --- Desktop View using Resizable Panels ---
   return (
-    <div className={cn("h-full", className)}>
-      <ResizablePanelGroup direction="horizontal" className="h-full rounded-lg bg-white shadow-sm border">
+    <div className={cn('h-full', className)}>
+      <ResizablePanelGroup
+        direction="horizontal"
+        className="h-full rounded-2xl bg-white shadow-2xl border-0 overflow-hidden"
+      >
         <ResizablePanel defaultSize={50} minSize={30}>
-          <div className="p-3 flex flex-col h-full">
+          <div className="flex flex-col h-full bg-gradient-to-b from-white to-blue-50/20">
             {renderPanelHeader('male')}
-            {onMaleSearchChange && <SearchBar value={maleSearchQuery} onChange={onMaleSearchChange} placeholder="חיפוש מועמדים..." genderTarget="male" separateMode={true} />}
-            <div className="flex-grow min-h-0 overflow-y-auto">
-              <CandidatesList
-                candidates={maleCandidatesWithScores}
-                allCandidates={allCandidates}
-                onCandidateClick={onCandidateClick}
-                onCandidateAction={onCandidateAction}
-                viewMode={viewMode}
-                mobileView={mobileView}
-                isLoading={isLoading}
-                highlightTerm={maleSearchQuery}
-                aiTargetCandidate={aiTargetCandidate}
-                onSetAiTarget={onSetAiTarget}
-                comparisonSelection={comparisonSelection}
-                onToggleComparison={onToggleComparison}
-              />
+            {onMaleSearchChange && (
+              <div className="p-4 bg-blue-50/30">
+                <SearchBar
+                  value={maleSearchQuery}
+                  onChange={onMaleSearchChange}
+                  placeholder="חיפוש מועמדים..."
+                  genderTarget="male"
+                  separateMode={true}
+                />
+              </div>
+            )}
+            <div className="flex-grow min-h-0 overflow-y-auto p-4">
+              {renderCandidatesList(
+                maleCandidatesWithScores,
+                'male',
+                maleSearchQuery,
+                onMaleSearchChange
+              )}
             </div>
           </div>
         </ResizablePanel>
-        <ResizableHandle withHandle />
+
+        <ResizableHandle
+          withHandle
+          className="bg-gradient-to-b from-indigo-300 to-purple-300 hover:from-indigo-400 hover:to-purple-400 transition-colors w-2"
+        />
+
         <ResizablePanel defaultSize={50} minSize={30}>
-          <div className="p-3 flex flex-col h-full">
+          <div className="flex flex-col h-full bg-gradient-to-b from-white to-purple-50/20">
             {renderPanelHeader('female')}
-            {onFemaleSearchChange && <SearchBar value={femaleSearchQuery} onChange={onFemaleSearchChange} placeholder="חיפוש מועמדות..." genderTarget="female" separateMode={true} />}
-            <div className="flex-grow min-h-0 overflow-y-auto">
-               <CandidatesList
-                candidates={femaleCandidatesWithScores}
-                allCandidates={allCandidates}
-                onCandidateClick={onCandidateClick}
-                onCandidateAction={onCandidateAction}
-                viewMode={viewMode}
-                mobileView={mobileView}
-                isLoading={isLoading}
-                highlightTerm={femaleSearchQuery}
-                aiTargetCandidate={aiTargetCandidate}
-                onSetAiTarget={onSetAiTarget}
-                comparisonSelection={comparisonSelection}
-                onToggleComparison={onToggleComparison}
-              />
+            {onFemaleSearchChange && (
+              <div className="p-4 bg-purple-50/30">
+                <SearchBar
+                  value={femaleSearchQuery}
+                  onChange={onFemaleSearchChange}
+                  placeholder="חיפוש מועמדות..."
+                  genderTarget="female"
+                  separateMode={true}
+                />
+              </div>
+            )}
+            <div className="flex-grow min-h-0 overflow-y-auto p-4">
+              {renderCandidatesList(
+                femaleCandidatesWithScores,
+                'female',
+                femaleSearchQuery,
+                onFemaleSearchChange
+              )}
             </div>
           </div>
         </ResizablePanel>
@@ -3670,15 +3954,53 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\matc
 Content:
 // File: src/app/components/matchmaker/new/CandidatesManager/index.tsx
 
-"use client";
+'use client';
 
-import React, { useState, useCallback, useEffect, useMemo } from "react";
-import { Button } from "@/components/ui/button";
-import { UserPlus, Filter, LayoutGrid, List, ArrowUpDown, RotateCw, BarChart2, Bot, Loader2, Columns, View, Users, Split } from "lucide-react";
-import { toast } from "sonner";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuRadioGroup, DropdownMenuRadioItem } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
+// --- React & Next.js Imports ---
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import { useSession } from 'next-auth/react';
+
+// --- Third-party Libraries ---
+import {
+  UserPlus,
+  Filter,
+  LayoutGrid,
+  List,
+  ArrowUpDown,
+  RotateCw,
+  BarChart2,
+  Bot,
+  Loader2,
+  Columns,
+  View,
+  Users,
+  Split,
+  Sparkles,
+  Crown,
+  Target,
+  Zap,
+  TrendingUp,
+  TrendingDown,
+  Star,
+  Activity,
+} from 'lucide-react';
+import { toast } from 'sonner';
+
+// --- UI Components ---
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+} from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -3689,54 +4011,311 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { useSession } from "next-auth/react";
+} from '@/components/ui/alert-dialog';
 
-// Custom Hooks
-import { useCandidates } from "../hooks/useCandidates";
-import { useFilterLogic } from "../hooks/useFilterLogic";
+// --- Custom Hooks ---
+import { useCandidates } from '../hooks/useCandidates';
+import { useFilterLogic } from '../hooks/useFilterLogic';
 
-// Components
-import SplitView from "./SplitView";
-import FilterPanel from "../Filters/FilterPanel";
-import ActiveFilters from "../Filters/ActiveFilters";
-import SearchBar from "../Filters/SearchBar";
-import { LoadingContainer } from "../shared/LoadingStates";
-import { AddManualCandidateDialog } from "../dialogs/AddManualCandidateDialog";
-import { AiMatchAnalysisDialog } from "../dialogs/AiMatchAnalysisDialog";
+// --- Internal Components ---
+import SplitView from './SplitView';
+import FilterPanel from '../Filters/FilterPanel';
+import ActiveFilters from '../Filters/ActiveFilters';
+import SearchBar from '../Filters/SearchBar';
+import { LoadingContainer } from '../shared/LoadingStates';
+import { AddManualCandidateDialog } from '../dialogs/AddManualCandidateDialog';
+import { AiMatchAnalysisDialog } from '../dialogs/AiMatchAnalysisDialog';
 
-// Types
-import type { Candidate, ViewMode, CandidatesFilter, CandidateAction, MobileView } from "../types/candidates"; 
+// --- Types, Constants & Utils ---
+import type {
+  Candidate,
+  ViewMode,
+  CandidatesFilter,
+  CandidateAction,
+  MobileView,
+} from '../types/candidates';
+import { SORT_OPTIONS, VIEW_OPTIONS } from '../constants/filterOptions';
+import { cn } from '@/lib/utils';
 
-// Constants
-import { SORT_OPTIONS, VIEW_OPTIONS } from "../constants/filterOptions";
-
+// --- Local Types ---
 interface AiMatch {
   userId: string;
   score: number;
 }
 
+// ============================================================================
+// Minimal Compact Header Component
+// ============================================================================
+const MinimalHeader: React.FC<{
+  stats: {
+    total: number;
+    male: number;
+    female: number;
+    verified: number;
+    activeToday: number;
+    profilesComplete: number;
+  };
+  onAddCandidate: () => void;
+  onRefresh: () => void;
+  isRefreshing: boolean;
+  onBulkUpdate?: () => void;
+  isBulkUpdating?: boolean;
+  isAdmin?: boolean;
+  isCompact: boolean;
+  onToggleCompact: () => void;
+}> = ({
+  stats,
+  onAddCandidate,
+  onRefresh,
+  isRefreshing,
+  onBulkUpdate,
+  isBulkUpdating,
+  isAdmin,
+  isCompact,
+  onToggleCompact,
+}) => {
+  return (
+    <header
+      className={cn(
+        'sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm transition-all duration-300',
+        isCompact ? 'h-16' : 'h-32'
+      )}
+    >
+      <div className="container mx-auto px-6 h-full">
+        {isCompact ? (
+          // --- COMPACT MODE ---
+          <div className="flex items-center justify-between h-full">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500 text-white">
+                  <Users className="w-4 h-4" />
+                </div>
+                <h1 className="text-lg font-bold text-gray-800">
+                  ניהול מועמדים
+                </h1>
+              </div>
+              <div className="hidden md:flex items-center gap-2">
+                <Badge
+                  variant="outline"
+                  className="bg-blue-50 text-blue-700 border-blue-200"
+                >
+                  {stats.total} סה"כ
+                </Badge>
+                <Badge
+                  variant="outline"
+                  className="bg-emerald-50 text-emerald-700 border-emerald-200"
+                >
+                  {stats.verified} מאומתים
+                </Badge>
+                <Badge
+                  variant="outline"
+                  className="bg-orange-50 text-orange-700 border-orange-200"
+                >
+                  {stats.profilesComplete}% מלאים
+                </Badge>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={onAddCandidate}
+                size="sm"
+                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md"
+              >
+                <UserPlus className="w-4 h-4 ml-1" />
+                הוסף
+              </Button>
+              <Button
+                onClick={onRefresh}
+                variant="outline"
+                size="sm"
+                disabled={isRefreshing}
+                className="border-gray-300 hover:bg-gray-50"
+              >
+                <RotateCw
+                  className={cn('w-4 h-4', isRefreshing && 'animate-spin')}
+                />
+              </Button>
+              {isAdmin && onBulkUpdate && (
+                <Button
+                  onClick={onBulkUpdate}
+                  variant="secondary"
+                  size="sm"
+                  disabled={isBulkUpdating}
+                  className="bg-amber-500 hover:bg-amber-600 text-white"
+                >
+                  {isBulkUpdating ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Bot className="w-4 h-4" />
+                  )}
+                </Button>
+              )}
+              <Button
+                onClick={onToggleCompact}
+                variant="ghost"
+                size="sm"
+                className="text-gray-500 hover:text-gray-700"
+                title="הרחב כותרת"
+              >
+                <TrendingUp className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        ) : (
+          // --- EXPANDED MODE ---
+          <div className="flex flex-col justify-center h-full py-3">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg">
+                  <Users className="w-5 h-5" />
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                    ניהול מועמדים מתקדם
+                  </h1>
+                  <p className="text-sm text-gray-600">מערכת ניהול עם AI</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={onAddCandidate}
+                  size="sm"
+                  className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg"
+                >
+                  <UserPlus className="w-4 h-4 ml-2" />
+                  הוסף מועמד
+                  <Sparkles className="w-3 h-3 mr-1" />
+                </Button>
+                <Button
+                  onClick={onRefresh}
+                  variant="outline"
+                  size="sm"
+                  disabled={isRefreshing}
+                  className="border-indigo-300 text-indigo-600 hover:bg-indigo-50"
+                >
+                  <RotateCw
+                    className={cn('w-4 h-4', isRefreshing && 'animate-spin')}
+                  />
+                </Button>
+                {isAdmin && onBulkUpdate && (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        disabled={isBulkUpdating}
+                        className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
+                      >
+                        {isBulkUpdating ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Bot className="w-4 h-4" />
+                        )}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent dir="rtl">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>אישור עדכון AI כללי</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          פעולה זו תעדכן את כל הפרופילים. התהליך ירוץ ברקע. האם
+                          להמשיך?
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>ביטול</AlertDialogCancel>
+                        <AlertDialogAction onClick={onBulkUpdate}>
+                          כן, הפעל עדכון
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
+                <Button
+                  onClick={onToggleCompact}
+                  variant="ghost"
+                  size="sm"
+                  className="text-gray-500 hover:text-gray-700"
+                  title="צמצם כותרת"
+                >
+                  <TrendingDown className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+            <div className="grid grid-cols-6 gap-3">
+              <div className="text-center bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg p-2 shadow-sm border border-blue-100">
+                <div className="text-lg font-bold text-blue-700">
+                  {stats.total}
+                </div>
+                <div className="text-xs text-blue-600">סך הכל</div>
+              </div>
+              <div className="text-center bg-gradient-to-br from-indigo-50 to-blue-50 rounded-lg p-2 shadow-sm border border-indigo-100">
+                <div className="text-lg font-bold text-indigo-700">
+                  {stats.male}
+                </div>
+                <div className="text-xs text-indigo-600">גברים</div>
+              </div>
+              <div className="text-center bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-2 shadow-sm border border-purple-100">
+                <div className="text-lg font-bold text-purple-700">
+                  {stats.female}
+                </div>
+                <div className="text-xs text-purple-600">נשים</div>
+              </div>
+              <div className="text-center bg-gradient-to-br from-emerald-50 to-green-50 rounded-lg p-2 shadow-sm border border-emerald-100">
+                <div className="text-lg font-bold text-emerald-700">
+                  {stats.verified}
+                </div>
+                <div className="text-xs text-emerald-600">מאומתים</div>
+              </div>
+              <div className="text-center bg-gradient-to-br from-orange-50 to-amber-50 rounded-lg p-2 shadow-sm border border-orange-100">
+                <div className="text-lg font-bold text-orange-700">
+                  {stats.activeToday}
+                </div>
+                <div className="text-xs text-orange-600">פעילים</div>
+              </div>
+              <div className="text-center bg-gradient-to-br from-teal-50 to-cyan-50 rounded-lg p-2 shadow-sm border border-teal-100">
+                <div className="text-lg font-bold text-teal-700">
+                  {stats.profilesComplete}%
+                </div>
+                <div className="text-xs text-teal-600">מלאים</div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </header>
+  );
+};
+
+// ============================================================================
+// Main Candidates Manager Component
+// ============================================================================
 const CandidatesManager: React.FC = () => {
-  // --- UI and General State ---
-  const [viewMode, setViewMode] = useState<ViewMode>("grid");
-  const [mobileView, setMobileView] = useState<MobileView>('split'); 
+  // --- State Management ---
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [mobileView, setMobileView] = useState<MobileView>('split');
+  const [isMobile, setIsMobile] = useState(false);
   const [showFiltersPanel, setShowFiltersPanel] = useState(false);
   const [showFiltersMobile, setShowFiltersMobile] = useState(false);
   const [showManualAddDialog, setShowManualAddDialog] = useState(false);
-  
-  // --- AI State Management ---
-  const [aiTargetCandidate, setAiTargetCandidate] = useState<Candidate | null>(null);
-  const [comparisonSelection, setComparisonSelection] = useState<Record<string, Candidate>>({});
+  const [isHeaderCompact, setIsHeaderCompact] = useState(true);
+
+  // --- AI State ---
+  const [aiTargetCandidate, setAiTargetCandidate] = useState<Candidate | null>(
+    null
+  );
+  const [comparisonSelection, setComparisonSelection] = useState<
+    Record<string, Candidate>
+  >({});
   const [aiMatches, setAiMatches] = useState<AiMatch[]>([]);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isAnalysisDialogOpen, setIsAnalysisDialogOpen] = useState(false);
-  const [isBulkUpdating, setIsBulkUpdating] = useState(false); 
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false);
 
-  // --- Session and Permissions ---
+  // --- Session & Permissions ---
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === 'ADMIN';
 
-  // Custom Hooks
+  // --- Custom Hooks ---
   const {
     loading,
     candidates,
@@ -3762,112 +4341,219 @@ const CandidatesManager: React.FC = () => {
     copyFilters,
     updateMaleSearchQuery,
     updateFemaleSearchQuery,
-  } = useFilterLogic({
-    onFilterChange: setFilters,
-  });
+  } = useFilterLogic({ onFilterChange: setFilters });
 
-  // --- Handlers ---
-  const handleCandidateAdded = useCallback(() => { refresh(); toast.success("מועמד חדש נוסף בהצלחה!"); }, [refresh]);
-  const handleSearch = useCallback((value: string) => { if (!filters.separateFiltering) { setFilters(prev => ({ ...prev, searchQuery: value })); } }, [setFilters, filters.separateFiltering]);
-  const handleRemoveFilter = useCallback((key: keyof CandidatesFilter, value?: string) => { setFilters(prev => { const newFilters = { ...prev }; if (key === "cities" && value) newFilters.cities = newFilters.cities?.filter(city => city !== value); else if (key === "occupations" && value) newFilters.occupations = newFilters.occupations?.filter(occ => occ !== value); else delete newFilters[key]; return newFilters; }); }, [setFilters]);
-  const handleCandidateAction = useCallback(async (type: CandidateAction, candidate: Candidate) => { console.log(`Action '${type}' triggered for candidate: ${candidate.firstName}`); }, []);
-  const handleFilterSave = useCallback(async (name: string) => { try { await saveFilter(name, filters); toast.success("הפילטר נשמר בהצלחה"); } catch { toast.error("שגיאה בשמירת הפילטר"); } }, [filters, saveFilter]);
-  const handleSetAiTarget = useCallback((candidate: Candidate, e: React.MouseEvent) => { e.stopPropagation(); if (aiTargetCandidate?.id === candidate.id) { handleClearAiTarget(e); return; } setAiTargetCandidate(candidate); setAiMatches([]); setComparisonSelection({}); toast.info(`מועמד מטרה נבחר: ${candidate.firstName}. כעת ניתן לחפש התאמות בפאנל הנגדי.`, { position: "bottom-center" }); }, [aiTargetCandidate]);
-  const handleClearAiTarget = (e: React.MouseEvent) => { e.stopPropagation(); setAiTargetCandidate(null); setAiMatches([]); setComparisonSelection({}); toast.info("בחירת מועמד מטרה בוטלה.", { position: "bottom-center" }); };
-  const handleToggleComparison = useCallback((candidate: Candidate, e: React.MouseEvent) => { e.stopPropagation(); setComparisonSelection(prev => { const newSelection = {...prev}; if (newSelection[candidate.id]) { delete newSelection[candidate.id]; } else { newSelection[candidate.id] = candidate; } return newSelection; }); }, []);
-  const handleUpdateAllProfiles = async () => { setIsBulkUpdating(true); toast.info("מתחיל תהליך עדכון פרופילי AI...", { description: "התהליך ירוץ ברקע. אין צורך להישאר בעמוד זה.", }); try { const response = await fetch('/api/ai/update-all-profiles', { method: 'POST', }); const data = await response.json(); if (!response.ok) throw new Error(data.error || 'שגיאה בהפעלת העדכון הכללי.'); toast.success("העדכון הכללי הופעל בהצלחה!", { description: data.message, duration: 8000, }); } catch (error) { console.error("Failed to initiate bulk AI profile update:", error); toast.error("שגיאה בהפעלת העדכון", { description: error instanceof Error ? error.message : 'אנא נסה שוב מאוחר יותר.', }); } finally { setIsBulkUpdating(false); } };
-  
-  const [isMobile, setIsMobile] = useState(false);
+  // --- Derived State ---
+  const activeFilterCount = useMemo(
+    () => activeFilters.length,
+    [activeFilters]
+  );
 
+  const heroStats = useMemo(() => {
+    const total = candidates.length;
+    const male = candidates.filter((c) => c.profile.gender === 'MALE').length;
+    const female = candidates.filter(
+      (c) => c.profile.gender === 'FEMALE'
+    ).length;
+    const verified = candidates.filter((c) => c.isVerified).length;
+    const activeToday = candidates.filter((c) => {
+      const lastActive = new Date(c.createdAt);
+      const today = new Date();
+      return (
+        (today.getTime() - lastActive.getTime()) / (1000 * 60 * 60 * 24) <= 7
+      );
+    }).length;
+    const profilesComplete =
+      total > 0
+        ? Math.round(
+            (candidates.filter((c) => c.isProfileComplete).length / total) * 100
+          )
+        : 0;
+    return { total, male, female, verified, activeToday, profilesComplete };
+  }, [candidates]);
+
+  // --- Effects ---
   useEffect(() => {
     const checkScreen = () => {
-      const isDesktop = window.innerWidth >= 1024;
-      const isMob = window.innerWidth < 768;
-      setShowFiltersPanel(isDesktop);
-      setIsMobile(isMob);
+      setShowFiltersPanel(window.innerWidth >= 1024);
+      setIsMobile(window.innerWidth < 768);
     };
     checkScreen();
     window.addEventListener('resize', checkScreen);
     return () => window.removeEventListener('resize', checkScreen);
   }, []);
 
-  const activeFilterCount = useMemo(() => activeFilters.length, [activeFilters]);
+  // --- Event Handlers ---
+  const handleCandidateAdded = useCallback(() => {
+    refresh();
+    toast.success('מועמד חדש נוסף בהצלחה!');
+  }, [refresh]);
 
+  const handleSearch = useCallback(
+    (value: string) => {
+      if (!filters.separateFiltering) {
+        setFilters((prev) => ({ ...prev, searchQuery: value }));
+      }
+    },
+    [setFilters, filters.separateFiltering]
+  );
+
+  const handleRemoveFilter = useCallback(
+    (key: keyof CandidatesFilter, value?: string) => {
+      setFilters((prev) => {
+        const newFilters = { ...prev };
+        if (key === 'cities' && value)
+          newFilters.cities = newFilters.cities?.filter(
+            (city) => city !== value
+          );
+        else if (key === 'occupations' && value)
+          newFilters.occupations = newFilters.occupations?.filter(
+            (occ) => occ !== value
+          );
+        else delete newFilters[key];
+        return newFilters;
+      });
+    },
+    [setFilters]
+  );
+
+  const handleCandidateAction = useCallback(
+    async (type: CandidateAction, candidate: Candidate) => {
+      console.log(
+        `Action '${type}' triggered for candidate: ${candidate.firstName}`
+      );
+    },
+    []
+  );
+
+  const handleFilterSave = useCallback(
+    async (name: string) => {
+      try {
+        await saveFilter(name, filters);
+        toast.success('הפילטר נשמר בהצלחה');
+      } catch {
+        toast.error('שגיאה בשמירת הפילטר');
+      }
+    },
+    [filters, saveFilter]
+  );
+
+  const handleSetAiTarget = useCallback(
+    (candidate: Candidate, e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (aiTargetCandidate?.id === candidate.id) {
+        handleClearAiTarget(e);
+        return;
+      }
+      setAiTargetCandidate(candidate);
+      setAiMatches([]);
+      setComparisonSelection({});
+      toast.info(`מועמד מטרה נבחר: ${candidate.firstName}.`, {
+        position: 'bottom-center',
+      });
+    },
+    [aiTargetCandidate]
+  );
+
+  const handleClearAiTarget = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setAiTargetCandidate(null);
+    setAiMatches([]);
+    setComparisonSelection({});
+    toast.info('בחירת מועמד מטרה בוטלה.', { position: 'bottom-center' });
+  };
+
+  const handleToggleComparison = useCallback(
+    (candidate: Candidate, e: React.MouseEvent) => {
+      e.stopPropagation();
+      setComparisonSelection((prev) => {
+        const newSelection = { ...prev };
+        if (newSelection[candidate.id]) delete newSelection[candidate.id];
+        else newSelection[candidate.id] = candidate;
+        return newSelection;
+      });
+    },
+    []
+  );
+
+  const handleUpdateAllProfiles = async () => {
+    setIsBulkUpdating(true);
+    toast.info('מתחיל תהליך עדכון פרופילי AI...');
+    try {
+      const response = await fetch('/api/ai/update-all-profiles', {
+        method: 'POST',
+      });
+      const data = await response.json();
+      if (!response.ok)
+        throw new Error(data.error || 'שגיאה בהפעלת העדכון הכללי.');
+      toast.success('העדכון הכללי הופעל בהצלחה!');
+    } catch (error) {
+      console.error('Failed to initiate bulk AI profile update:', error);
+      toast.error('שגיאה בהפעלת העדכון', {
+        description:
+          error instanceof Error ? error.message : 'אנא נסה שוב מאוחר יותר.',
+      });
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  };
+
+  // --- Render ---
   return (
-    // --- START OF FIX ---
-    // 1. שינוי מבנה העמוד הראשי ל-flex-col עם גובה מסך מלא (h-screen)
-    //    זה מאפשר לנו לשלוט בגובה של אזור התוכן הראשי.
-    <div className="h-screen flex flex-col bg-gray-50/50">
-      {/* 2. הכותרת הופכת ל-flex-shrink-0 כדי לא לתפוס גובה גמיש.
-          הסרנו את "sticky" כדי לאפשר layout יציב ופשוט יותר. */}
-      <header className="flex-shrink-0 z-30 bg-white/80 backdrop-blur-sm border-b shadow-sm">
-        <div className="container mx-auto py-3 px-4">
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-bold text-primary/90">ניהול מועמדים</h1>
-            <div className="flex items-center gap-2">
-              <Button onClick={() => setShowManualAddDialog(true)} size="sm">
-                <UserPlus className="w-4 h-4 ml-2" />
-                הוסף מועמד ידנית
-              </Button>
-               {Object.keys(comparisonSelection).length > 0 && aiTargetCandidate && (
-                <Button onClick={() => setIsAnalysisDialogOpen(true)} size="sm" variant="secondary">
-                    <BarChart2 className="w-4 h-4 ml-2"/>
-                    נתח התאמה ({Object.keys(comparisonSelection).length})
-                </Button>
-              )}
-              
-              {isAdmin && (
-                <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                        <Button variant="destructive" size="sm" disabled={isBulkUpdating || loading}>
-                            {isBulkUpdating ? <Loader2 className="w-4 h-4 ml-2 animate-spin" /> : <Bot className="w-4 h-4 ml-2" />}
-                            עדכון כללי AI
-                        </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent dir="rtl">
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>אישור עדכון AI כללי</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                פעולה זו תפעיל תהליך עדכון וקטורים עבור **כל** המשתמשים הפעילים. 
-                                התהליך ירוץ ברקע ועשוי לקחת מספר דקות. 
-                                האם אתה בטוח שברצונך להמשיך?
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>ביטול</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleUpdateAllProfiles}>כן, הפעל עדכון</AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
-              )}
+    <div className="h-screen flex flex-col bg-gradient-to-br from-slate-50 via-indigo-50/10 to-purple-50/5">
+      <MinimalHeader
+        stats={heroStats}
+        onAddCandidate={() => setShowManualAddDialog(true)}
+        onRefresh={refresh}
+        isRefreshing={loading}
+        onBulkUpdate={handleUpdateAllProfiles}
+        isBulkUpdating={isBulkUpdating}
+        isAdmin={isAdmin}
+        isCompact={isHeaderCompact}
+        onToggleCompact={() => setIsHeaderCompact(!isHeaderCompact)}
+      />
 
-              <Button onClick={refresh} variant="outline" size="icon" title="רענן רשימה" disabled={loading}>
-                <RotateCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-              </Button>
-            </div>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-2">
+      {/* --- Controls Bar (Visible only when header is compact) --- */}
+      {isHeaderCompact && (
+        <div className="flex-shrink-0 bg-white/80 backdrop-blur-sm border-b border-gray-100 py-2 px-6">
+          <div className="flex justify-between items-center">
             {!filters.separateFiltering && (
-              <div className="flex-1">
+              <div className="flex-1 max-w-md">
                 <SearchBar
-                  value={filters.searchQuery || ""}
+                  value={filters.searchQuery || ''}
                   onChange={handleSearch}
-                  placeholder="חיפוש כללי בשם, עיר, עיסוק..."
+                  placeholder="חיפוש כללי..."
                   recentSearches={recentSearches}
                   onClearRecentSearches={clearRecentSearches}
                 />
               </div>
             )}
-            <div className="flex gap-2 justify-between">
+
+            <div className="flex items-center gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm"><ArrowUpDown className="w-4 h-4 ml-2" />מיון</Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-white/90 shadow-sm border border-gray-200"
+                  >
+                    <ArrowUpDown className="w-4 h-4 ml-1" />
+                    מיון
+                  </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>מיון לפי</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   {SORT_OPTIONS.map((option) => (
-                    <DropdownMenuItem key={option.value} onClick={() => setSorting(option.value, option.defaultOrder as "asc" | "desc")}>
+                    <DropdownMenuItem
+                      key={option.value}
+                      onClick={() =>
+                        setSorting(
+                          option.value,
+                          option.defaultOrder as 'asc' | 'desc'
+                        )
+                      }
+                    >
                       {option.label}
                     </DropdownMenuItem>
                   ))}
@@ -3875,169 +4561,205 @@ const CandidatesManager: React.FC = () => {
               </DropdownMenu>
 
               <div className="hidden lg:flex">
-                <Button variant="outline" size="sm" onClick={() => setShowFiltersPanel(!showFiltersPanel)}>
-                  <Filter className="w-4 h-4 ml-2" />
-                  {showFiltersPanel ? "הסתר סינון" : "הצג סינון"}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowFiltersPanel(!showFiltersPanel)}
+                  className="bg-white/90 shadow-sm border border-gray-200"
+                >
+                  <Filter className="w-4 h-4 ml-1" />
+                  {showFiltersPanel ? 'הסתר' : 'פילטרים'}
                 </Button>
               </div>
 
-              <Sheet open={showFiltersMobile} onOpenChange={setShowFiltersMobile}>
+              <Sheet
+                open={showFiltersMobile}
+                onOpenChange={setShowFiltersMobile}
+              >
                 <SheetTrigger asChild>
-                  <Button variant="outline" size="sm" className="lg:hidden relative">
-                    <Filter className="w-4 h-4 ml-2" />
-                    סינון
-                    {activeFilterCount > 0 && <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center">{activeFilterCount}</Badge>}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="lg:hidden relative bg-white/90 shadow-sm border border-gray-200"
+                  >
+                    <Filter className="w-4 h-4 ml-1" />
+                    פילטרים
+                    {activeFilterCount > 0 && (
+                      <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center bg-indigo-500 border-0 text-xs">
+                        {activeFilterCount}
+                      </Badge>
+                    )}
                   </Button>
                 </SheetTrigger>
                 <SheetContent>
-                    <FilterPanel
-                        filters={filters}
-                        onFiltersChange={setFilters}
-                        onSavePreset={handleFilterSave}
-                        onReset={resetFilters}
-                        savedFilters={savedFilters.map((f) => ({ id: f.id, name: f.name, isDefault: f.isDefault }))}
-                        popularFilters={popularFilters}
-                        separateFiltering={filters.separateFiltering}
-                        onToggleSeparateFiltering={toggleSeparateFiltering}
-                        onMaleFiltersChange={updateMaleFilters}
-                        onFemaleFiltersChange={updateFemaleFilters}
-                        onCopyFilters={copyFilters}
-                    />
+                  <FilterPanel
+                    filters={filters}
+                    onFiltersChange={setFilters}
+                    onSavePreset={handleFilterSave}
+                    onReset={resetFilters}
+                    savedFilters={savedFilters.map((f) => ({
+                      id: f.id,
+                      name: f.name,
+                      isDefault: f.isDefault,
+                    }))}
+                    popularFilters={popularFilters}
+                    separateFiltering={filters.separateFiltering}
+                    onToggleSeparateFiltering={toggleSeparateFiltering}
+                    onMaleFiltersChange={updateMaleFilters}
+                    onFemaleFiltersChange={updateFemaleFilters}
+                    onCopyFilters={copyFilters}
+                  />
                 </SheetContent>
               </Sheet>
-              
-               <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
+
+              <div className="flex gap-1 bg-white/90 p-1 rounded-lg shadow-sm border border-gray-200">
                 {isMobile ? (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" className="w-32 justify-between px-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-24 justify-between px-2 border-0"
+                      >
                         {mobileView === 'split' && (
-                          <>
-                            <Users className="w-4 h-4" />
-                            <span>מפוצל</span>
-                          </>
+                          <Users className="w-4 h-4" />
                         )}
                         {mobileView === 'single' && (
-                          <>
-                            <View className="w-4 h-4" />
-                            <span>טור אחד</span>
-                          </>
+                          <View className="w-4 h-4" />
                         )}
                         {mobileView === 'double' && (
-                          <>
-                            <Columns className="w-4 h-4" />
-                            <span>שני טורים</span>
-                          </>
+                          <Columns className="w-4 h-4" />
                         )}
-                        <ArrowUpDown className="w-3 h-3 opacity-50 ml-2" />
+                        <ArrowUpDown className="w-3 h-3 opacity-50 ml-1" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>תצוגת מובייל</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuRadioGroup value={mobileView} onValueChange={(value) => setMobileView(value as MobileView)}>
+                      <DropdownMenuRadioGroup
+                        value={mobileView}
+                        onValueChange={(value) =>
+                          setMobileView(value as MobileView)
+                        }
+                      >
                         <DropdownMenuRadioItem value="split">
                           <Users className="w-4 h-4 mr-2" />
-                          תצוגה מפוצלת (גברים/נשים)
+                          מפוצל
                         </DropdownMenuRadioItem>
                         <DropdownMenuRadioItem value="single">
                           <View className="w-4 h-4 mr-2" />
-                          תצוגת טור אחד
+                          טור אחד
                         </DropdownMenuRadioItem>
                         <DropdownMenuRadioItem value="double">
                           <Columns className="w-4 h-4 mr-2" />
-                          תצוגת שני טורים
+                          שני טורים
                         </DropdownMenuRadioItem>
                       </DropdownMenuRadioGroup>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 ) : (
                   VIEW_OPTIONS.map((option) => (
-                    <Button key={option.value} variant={viewMode === option.value ? "default" : "ghost"} size="icon" onClick={() => setViewMode(option.value as ViewMode)}>
-                      {option.value === 'grid' ? <LayoutGrid className="w-4 h-4"/> : <List className="w-4 h-4"/>}
+                    <Button
+                      key={option.value}
+                      variant={viewMode === option.value ? 'default' : 'ghost'}
+                      size="icon"
+                      onClick={() => setViewMode(option.value as ViewMode)}
+                      className={cn(
+                        'h-8 w-8',
+                        viewMode === option.value && 'bg-indigo-500 text-white'
+                      )}
+                    >
+                      {option.value === 'grid' ? (
+                        <LayoutGrid className="w-4 h-4" />
+                      ) : (
+                        <List className="w-4 h-4" />
+                      )}
                     </Button>
                   ))
                 )}
               </div>
             </div>
           </div>
-          <div className="mt-4">
-            <ActiveFilters filters={filters} onRemoveFilter={handleRemoveFilter} onResetAll={resetFilters} />
+          <div className="mt-2">
+            <ActiveFilters
+              filters={filters}
+              onRemoveFilter={handleRemoveFilter}
+              onResetAll={resetFilters}
+            />
           </div>
         </div>
-      </header>
-      
-      {/* 3. אזור התוכן הראשי מקבל flex-1 ו-min-h-0 כדי למלא את הגובה הנותר ולא לגלוש החוצה. */}
-      <main className="flex-1 min-h-0 container mx-auto py-6 px-4">
-        {/* 4. הקונטיינר הפנימי מקבל h-full כדי להעביר את הגובה הלאה לילדיו. */}
-        <div className="flex gap-6 h-full">
+      )}
+
+      {/* --- Main Content Area --- */}
+      <main className="flex-1 min-h-0 container mx-auto px-6 pb-4 pt-4">
+        <div className="flex gap-4 h-full">
           {showFiltersPanel && (
-            // 5. פאנל הסינון בצד - אם הוא נהיה ארוך מדי, הוא יגלוש פנימית.
-            <aside className="hidden lg:block w-80 flex-shrink-0 overflow-y-auto">
-              <FilterPanel
-                filters={filters}
-                onFiltersChange={setFilters}
-                onSavePreset={handleFilterSave}
-                onReset={resetFilters}
-                savedFilters={savedFilters.map((f) => ({ id: f.id, name: f.name, isDefault: f.isDefault }))}
-                popularFilters={popularFilters}
-                separateFiltering={filters.separateFiltering}
-                onToggleSeparateFiltering={toggleSeparateFiltering}
-                onMaleFiltersChange={updateMaleFilters}
-                onFemaleFiltersChange={updateFemaleFilters}
-                onCopyFilters={copyFilters}
-              />
+            <aside className="hidden lg:block w-72 flex-shrink-0">
+              <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border-0 h-full flex flex-col">
+                <FilterPanel
+                  filters={filters}
+                  onFiltersChange={setFilters}
+                  onSavePreset={handleFilterSave}
+                  onReset={resetFilters}
+                  savedFilters={savedFilters.map((f) => ({
+                    id: f.id,
+                    name: f.name,
+                    isDefault: f.isDefault,
+                  }))}
+                  popularFilters={popularFilters}
+                  separateFiltering={filters.separateFiltering}
+                  onToggleSeparateFiltering={toggleSeparateFiltering}
+                  onMaleFiltersChange={updateMaleFilters}
+                  onFemaleFiltersChange={updateFemaleFilters}
+                  onCopyFilters={copyFilters}
+                  className="flex-1 overflow-y-auto" // הוסף את זה!
+                />
+              </div>
             </aside>
           )}
 
-          {/* 6. הקונטיינר של SplitView מקבל h-full כדי שהוא ידע מה הגובה שלו. */}
           <div className="flex-1 min-w-0 h-full">
             {loading ? (
               <LoadingContainer>
-                {/* התאמת גובה הסקלטון לגובה המלא של הקונטיינר */}
-                <div className="h-full bg-gray-200 rounded-lg animate-pulse"></div>
+                <div className="h-full bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl animate-pulse shadow-lg"></div>
               </LoadingContainer>
             ) : (
-              // 7. SplitView מקבלת h-full וכעת יכולה לממש את הגלילה הפנימית הנפרדת לכל עמודה.
-              <SplitView
-                maleCandidates={maleCandidates}
-                femaleCandidates={femaleCandidates}
-                allCandidates={candidates}
-                onCandidateAction={handleCandidateAction}
-                onCandidateClick={() => {}}
-                viewMode={viewMode}
-                mobileView={mobileView}
-                isLoading={loading || isAiLoading}
-                className="h-full" // הוספת h-full כאן היא קריטית
-                
-                aiTargetCandidate={aiTargetCandidate}
-                aiMatches={aiMatches}
-                isAiLoading={isAiLoading}
-                onSetAiTarget={handleSetAiTarget}
-                onClearAiTarget={handleClearAiTarget}
-                setAiMatches={setAiMatches}
-                setIsAiLoading={setIsAiLoading}
-                comparisonSelection={comparisonSelection}
-                onToggleComparison={handleToggleComparison}
-                
-                separateFiltering={filters.separateFiltering ?? false}
-                maleFilters={filters.maleFilters}
-                femaleFilters={filters.femaleFilters}
-                onMaleFiltersChange={updateMaleFilters}
-                onFemaleFiltersChange={updateFemaleFilters}
-                onCopyFilters={copyFilters}
-                maleSearchQuery={filters.maleSearchQuery}
-                femaleSearchQuery={filters.femaleSearchQuery}
-                onMaleSearchChange={updateMaleSearchQuery}
-                onFemaleSearchChange={updateFemaleSearchQuery}
-              />
+              <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border-0 overflow-hidden h-full">
+                <SplitView
+                  maleCandidates={maleCandidates}
+                  femaleCandidates={femaleCandidates}
+                  allCandidates={candidates}
+                  onCandidateAction={handleCandidateAction}
+                  onCandidateClick={() => {}}
+                  viewMode={viewMode}
+                  mobileView={mobileView}
+                  isLoading={loading || isAiLoading}
+                  className="flex-1 overflow-hidden"
+                  aiTargetCandidate={aiTargetCandidate}
+                  aiMatches={aiMatches}
+                  isAiLoading={isAiLoading}
+                  onSetAiTarget={handleSetAiTarget}
+                  onClearAiTarget={handleClearAiTarget}
+                  setAiMatches={setAiMatches}
+                  setIsAiLoading={setIsAiLoading}
+                  comparisonSelection={comparisonSelection}
+                  onToggleComparison={handleToggleComparison}
+                  separateFiltering={filters.separateFiltering ?? false}
+                  maleFilters={filters.maleFilters}
+                  femaleFilters={filters.femaleFilters}
+                  onMaleFiltersChange={updateMaleFilters}
+                  onFemaleFiltersChange={updateFemaleFilters}
+                  onCopyFilters={copyFilters}
+                  maleSearchQuery={filters.maleSearchQuery}
+                  femaleSearchQuery={filters.femaleSearchQuery}
+                  onMaleSearchChange={updateMaleSearchQuery}
+                  onFemaleSearchChange={updateFemaleSearchQuery}
+                />
+              </div>
             )}
           </div>
         </div>
       </main>
-      {/* --- END OF FIX --- */}
 
-      {/* Dialogs */}
+      {/* --- Dialogs --- */}
       <AddManualCandidateDialog
         isOpen={showManualAddDialog}
         onClose={() => setShowManualAddDialog(false)}
