@@ -263,35 +263,56 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   };
 
   const handleMouseEnter = (candidate: Candidate, e?: React.MouseEvent) => {
-    if (isMobile) return;
+    if (isMobile || !e) return;
 
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
     }
 
-    let top = 20; // 20px from the top of the viewport
-    let left;
-    const quickViewWidth = 420;
+    const cardElement = e.currentTarget as HTMLElement;
+    const cardRect = cardElement.getBoundingClientRect(); // מיקום הכרטיס על המסך
+    const viewportHeight = window.innerHeight;
     const padding = 20;
 
-    // Calculate position based on the provided `quickViewSide` prop
+    // גובה משוער של החלון המקדים (שמוגבל ב-CSS ל-85vh)
+    const quickViewApproxHeight = Math.min(650, viewportHeight * 0.85);
+
+    let top;
+
+    // בדיקה: האם הצגת החלון מתחת לכרטיס תגרום לו לחרוג מהמסך?
+    if (cardRect.top + quickViewApproxHeight > viewportHeight - padding) {
+      // כן, אין מספיק מקום למטה.
+      // לכן, נמקם את החלון כך שהחלק התחתון שלו יתיישר עם החלק התחתון של הכרטיס.
+      // זה יגרום לו "לקפוץ" כלפי מעלה.
+      top = cardElement.offsetTop + cardRect.height - quickViewApproxHeight;
+    } else {
+      // לא, יש מספיק מקום. נמקם אותו כרגיל, צמוד לחלק העליון של הכרטיס.
+      top = cardElement.offsetTop;
+    }
+
+    // נוודא שהחלון לא עולה גבוה מדי ויוצא מראש אזור הגלילה
+    const scrollContainer = cardElement.closest('.overflow-y-auto');
+    if (scrollContainer) {
+      top = Math.max(top, scrollContainer.scrollTop);
+    }
+
+    // הלוגיקה למיקום האופקי נשארת כפי שהיא
+    let left;
+    const quickViewWidth = 420;
+
     switch (quickViewSide) {
       case 'left':
-        // Center of the left half of the screen
         left = window.innerWidth / 4 - quickViewWidth / 2;
         break;
       case 'right':
-        // Center of the right half of the screen
-        left = (window.innerWidth * 3) / 4 - quickViewWidth / 2;
+        left = (window.innerWidth * 3) / 4 - quickViewWidth / 2 - 470;
         break;
       case 'center':
       default:
-        // Default to the absolute center of the screen
         left = window.innerWidth / 2 - quickViewWidth / 2;
         break;
     }
 
-    // Ensure the QuickView doesn't go off-screen
     left = Math.max(
       padding,
       Math.min(left, window.innerWidth - quickViewWidth - padding)
@@ -456,7 +477,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
       {hoveredCandidate && !isMobile && (
         <div
           ref={quickViewRef}
-          className="fixed z-[70]" // z-index גבוה מאוד
+          className="absolute z-[70]" // z-index גבוה מאוד
           style={{
             top: `${hoverPosition.top}px`,
             left: `${hoverPosition.left}px`,

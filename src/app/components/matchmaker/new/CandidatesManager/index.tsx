@@ -546,7 +546,7 @@ const CandidatesManager: React.FC = () => {
 
   // --- Render ---
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-br from-slate-50 via-indigo-50/10 to-purple-50/5">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-indigo-50/10 to-purple-50/5">
       <MinimalHeader
         stats={heroStats}
         onAddCandidate={() => setShowManualAddDialog(true)}

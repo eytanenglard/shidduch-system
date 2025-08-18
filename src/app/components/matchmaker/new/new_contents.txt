@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\matchmaker\new
-# Generated on: 2025-08-18 16:04:03
+# Generated on: 2025-08-18 16:15:33
 ################################################################################
 
 ================================================================================
@@ -2285,7 +2285,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         break;
       case 'right':
         // Center of the right half of the screen
-        left = (window.innerWidth * 3) / 4 - quickViewWidth / 2;
+        left = (window.innerWidth * 3) / 4 - quickViewWidth / 2 - 470;
         break;
       case 'center':
       default:
@@ -3632,7 +3632,8 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
     );
   };
 
-  const renderCandidatesList = (
+  // --- START OF FIX: This helper function is now ONLY for the mobile view ---
+  const renderCandidatesListForMobile = (
     candidates: (Candidate & { aiScore?: number })[],
     gender: 'male' | 'female',
     searchQuery: string,
@@ -3666,34 +3667,117 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
         onSetAiTarget={onSetAiTarget}
         comparisonSelection={comparisonSelection}
         onToggleComparison={onToggleComparison}
-        // --- Pass the correct side for QuickView positioning ---
-        quickViewSide={gender === 'male' ? 'right' : 'left'}
+        // For mobile, it will always default to 'center', which is fine.
       />
     );
   };
+  // --- END OF FIX ---
 
   // --- Mobile View Logic ---
   if (isMobile) {
-    // This part remains unchanged
     if (mobileView === 'split') {
-        return (
-          <div className="grid grid-cols-2 gap-3 h-full p-3">
-            {/* Male Candidates Column */}
-            <Card className="flex flex-col h-full shadow-xl border-0 bg-gradient-to-b from-white to-blue-50/30 overflow-hidden rounded-2xl">
-              <div className="p-3 text-center bg-gradient-to-r from-blue-500 to-cyan-500 text-white">
-                <h2 className="text-sm font-bold flex items-center justify-center gap-1">
-                  <Target className="w-4 h-4" />
-                  מועמדים
-                  <Badge
-                    variant="secondary"
-                    className="bg-white/20 text-white border-0 ml-1"
-                  >
-                    {maleCandidates.length}
-                  </Badge>
-                </h2>
-              </div>
-              <div className="flex-grow min-h-0 overflow-y-auto p-2">
-                {renderCandidatesList(
+      return (
+        <div className="grid grid-cols-2 gap-3 h-full p-3">
+          {/* Male Candidates Column */}
+          <Card className="flex flex-col h-full shadow-xl border-0 bg-gradient-to-b from-white to-blue-50/30 overflow-hidden rounded-2xl">
+            <div className="p-3 text-center bg-gradient-to-r from-blue-500 to-cyan-500 text-white">
+              <h2 className="text-sm font-bold flex items-center justify-center gap-1">
+                <Target className="w-4 h-4" />
+                מועמדים
+                <Badge
+                  variant="secondary"
+                  className="bg-white/20 text-white border-0 ml-1"
+                >
+                  {maleCandidates.length}
+                </Badge>
+              </h2>
+            </div>
+            <div className="flex-grow min-h-0 overflow-y-auto p-2">
+              {renderCandidatesListForMobile(
+                maleCandidatesWithScores,
+                'male',
+                maleSearchQuery,
+                onMaleSearchChange
+              )}
+            </div>
+          </Card>
+
+          {/* Female Candidates Column */}
+          <Card className="flex flex-col h-full shadow-xl border-0 bg-gradient-to-b from-white to-purple-50/30 overflow-hidden rounded-2xl">
+            <div className="p-3 text-center bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+              <h2 className="text-sm font-bold flex items-center justify-center gap-1">
+                <Crown className="w-4 h-4" />
+                מועמדות
+                <Badge
+                  variant="secondary"
+                  className="bg-white/20 text-white border-0 ml-1"
+                >
+                  {femaleCandidates.length}
+                </Badge>
+              </h2>
+            </div>
+            <div className="flex-grow min-h-0 overflow-y-auto p-2">
+              {renderCandidatesListForMobile(
+                femaleCandidatesWithScores,
+                'female',
+                femaleSearchQuery,
+                onFemaleSearchChange
+              )}
+            </div>
+          </Card>
+        </div>
+      );
+    }
+
+    // Original Tabs view for 'single' or 'double' column modes
+    return (
+      <div className={cn('w-full h-full', className)}>
+        <Tabs defaultValue="male" className="w-full h-full flex flex-col">
+          <TabsList className="grid w-full grid-cols-2 flex-shrink-0 bg-gradient-to-r from-indigo-50 to-purple-50 p-1 rounded-2xl shadow-lg">
+            <TabsTrigger
+              value="male"
+              className="flex items-center gap-2 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg"
+            >
+              <Target className="h-4 w-4" />
+              מועמדים
+              <Badge
+                variant="secondary"
+                className="bg-blue-100 text-blue-800 border-0"
+              >
+                {maleCandidates.length}
+              </Badge>
+            </TabsTrigger>
+            <TabsTrigger
+              value="female"
+              className="flex items-center gap-2 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-lg"
+            >
+              <Crown className="h-4 w-4" />
+              מועמדות
+              <Badge
+                variant="secondary"
+                className="bg-purple-100 text-purple-800 border-0"
+              >
+                {femaleCandidates.length}
+              </Badge>
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="male" className="mt-4 flex-1 min-h-0">
+            <Card className="p-4 flex flex-col h-full shadow-xl border-0 bg-gradient-to-b from-white to-blue-50/30 rounded-2xl">
+              {renderPanelHeader('male', true)}
+              {separateFiltering && onMaleSearchChange && (
+                <div className="mb-4">
+                  <SearchBar
+                    value={maleSearchQuery}
+                    onChange={onMaleSearchChange}
+                    placeholder="חיפוש מועמדים..."
+                    genderTarget="male"
+                    separateMode={true}
+                  />
+                </div>
+              )}
+              <div className="flex-grow min-h-0 overflow-y-auto">
+                {renderCandidatesListForMobile(
                   maleCandidatesWithScores,
                   'male',
                   maleSearchQuery,
@@ -3701,23 +3785,24 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
                 )}
               </div>
             </Card>
-  
-            {/* Female Candidates Column */}
-            <Card className="flex flex-col h-full shadow-xl border-0 bg-gradient-to-b from-white to-purple-50/30 overflow-hidden rounded-2xl">
-              <div className="p-3 text-center bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-                <h2 className="text-sm font-bold flex items-center justify-center gap-1">
-                  <Crown className="w-4 h-4" />
-                  מועמדות
-                  <Badge
-                    variant="secondary"
-                    className="bg-white/20 text-white border-0 ml-1"
-                  >
-                    {femaleCandidates.length}
-                  </Badge>
-                </h2>
-              </div>
-              <div className="flex-grow min-h-0 overflow-y-auto p-2">
-                {renderCandidatesList(
+          </TabsContent>
+
+          <TabsContent value="female" className="mt-4 flex-1 min-h-0">
+            <Card className="p-4 flex flex-col h-full shadow-xl border-0 bg-gradient-to-b from-white to-purple-50/30 rounded-2xl">
+              {renderPanelHeader('female', true)}
+              {separateFiltering && onFemaleSearchChange && (
+                <div className="mb-4">
+                  <SearchBar
+                    value={femaleSearchQuery}
+                    onChange={onFemaleSearchChange}
+                    placeholder="חיפוש מועמדות..."
+                    genderTarget="female"
+                    separateMode={true}
+                  />
+                </div>
+              )}
+              <div className="flex-grow min-h-0 overflow-y-auto">
+                {renderCandidatesListForMobile(
                   femaleCandidatesWithScores,
                   'female',
                   femaleSearchQuery,
@@ -3725,94 +3810,10 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
                 )}
               </div>
             </Card>
-          </div>
-        );
-      }
-  
-      return (
-        <div className={cn('w-full h-full', className)}>
-          <Tabs defaultValue="male" className="w-full h-full flex flex-col">
-            <TabsList className="grid w-full grid-cols-2 flex-shrink-0 bg-gradient-to-r from-indigo-50 to-purple-50 p-1 rounded-2xl shadow-lg">
-              <TabsTrigger
-                value="male"
-                className="flex items-center gap-2 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg"
-              >
-                <Target className="h-4 w-4" />
-                מועמדים
-                <Badge
-                  variant="secondary"
-                  className="bg-blue-100 text-blue-800 border-0"
-                >
-                  {maleCandidates.length}
-                </Badge>
-              </TabsTrigger>
-              <TabsTrigger
-                value="female"
-                className="flex items-center gap-2 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-lg"
-              >
-                <Crown className="h-4 w-4" />
-                מועמדות
-                <Badge
-                  variant="secondary"
-                  className="bg-purple-100 text-purple-800 border-0"
-                >
-                  {femaleCandidates.length}
-                </Badge>
-              </TabsTrigger>
-            </TabsList>
-  
-            <TabsContent value="male" className="mt-4 flex-1 min-h-0">
-              <Card className="p-4 flex flex-col h-full shadow-xl border-0 bg-gradient-to-b from-white to-blue-50/30 rounded-2xl">
-                {renderPanelHeader('male', true)}
-                {separateFiltering && onMaleSearchChange && (
-                  <div className="mb-4">
-                    <SearchBar
-                      value={maleSearchQuery}
-                      onChange={onMaleSearchChange}
-                      placeholder="חיפוש מועמדים..."
-                      genderTarget="male"
-                      separateMode={true}
-                    />
-                  </div>
-                )}
-                <div className="flex-grow min-h-0 overflow-y-auto">
-                  {renderCandidatesList(
-                    maleCandidatesWithScores,
-                    'male',
-                    maleSearchQuery,
-                    onMaleSearchChange
-                  )}
-                </div>
-              </Card>
-            </TabsContent>
-  
-            <TabsContent value="female" className="mt-4 flex-1 min-h-0">
-              <Card className="p-4 flex flex-col h-full shadow-xl border-0 bg-gradient-to-b from-white to-purple-50/30 rounded-2xl">
-                {renderPanelHeader('female', true)}
-                {separateFiltering && onFemaleSearchChange && (
-                  <div className="mb-4">
-                    <SearchBar
-                      value={femaleSearchQuery}
-                      onChange={onFemaleSearchChange}
-                      placeholder="חיפוש מועמדות..."
-                      genderTarget="female"
-                      separateMode={true}
-                    />
-                  </div>
-                )}
-                <div className="flex-grow min-h-0 overflow-y-auto">
-                  {renderCandidatesList(
-                    femaleCandidatesWithScores,
-                    'female',
-                    femaleSearchQuery,
-                    onFemaleSearchChange
-                  )}
-                </div>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
-      );
+          </TabsContent>
+        </Tabs>
+      </div>
+    );
   }
 
   // --- Desktop View using Resizable Panels ---
@@ -3837,7 +3838,7 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
               </div>
             )}
             <div className="flex-grow min-h-0 overflow-y-auto p-4">
-              {/* --- START OF FIX: Pass quickViewSide="right" --- */}
+              {/* --- START OF FIX: Call CandidatesList directly with the correct prop --- */}
               <CandidatesList
                 candidates={maleCandidatesWithScores}
                 allCandidates={allCandidates}
@@ -3851,7 +3852,7 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
                 onSetAiTarget={onSetAiTarget}
                 comparisonSelection={comparisonSelection}
                 onToggleComparison={onToggleComparison}
-                quickViewSide="right" 
+                quickViewSide="right"
               />
               {/* --- END OF FIX --- */}
             </div>
@@ -3878,7 +3879,7 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
               </div>
             )}
             <div className="flex-grow min-h-0 overflow-y-auto p-4">
-              {/* --- START OF FIX: Pass quickViewSide="left" --- */}
+              {/* --- START OF FIX: Call CandidatesList directly with the correct prop --- */}
               <CandidatesList
                 candidates={femaleCandidatesWithScores}
                 allCandidates={allCandidates}
