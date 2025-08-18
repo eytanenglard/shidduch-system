@@ -112,14 +112,14 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
   const [isMarketingLoading, setIsMarketingLoading] = useState(false);
   // --- END OF NEW CODE ---
   useEffect(() => {
-    // בדוק אם הסשן קיים והערך marketingConsent מוגדר בו
+    // Check if the session exists and marketingConsent is defined in it
     if (session?.user && typeof session.user.marketingConsent === 'boolean') {
-      // אם הערך בסשן שונה מהערך במצב המקומי, עדכן את המצב המקומי
+      // If the session value is different from the local state, update the local state
       if (session.user.marketingConsent !== marketingConsent) {
         setMarketingConsent(session.user.marketingConsent);
       }
     }
-  }, [session?.user?.marketingConsent]); // הפעל את האפקט בכל פעם שהערך בסשן משתנה
+  }, [session?.user, marketingConsent]); // Re-run the effect whenever the user session or local consent state changes// הפעל את האפקט בכל פעם שהערך בסשן משתנה
   const canChangePassword = useMemo(() => {
     if (sessionStatus === 'authenticated' && session?.user?.accounts) {
       return session.user.accounts.some(

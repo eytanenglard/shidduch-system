@@ -52,8 +52,16 @@ import {
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { he } from 'date-fns/locale';
-import type { MatchSuggestionStatus, Priority } from '@prisma/client';
-import type { Suggestion, ActionAdditionalData } from '@/types/suggestions';
+import type {
+  MatchSuggestionStatus,
+  Priority,
+  UserImage,
+} from '@prisma/client';
+import type {
+  Suggestion,
+  ActionAdditionalData,
+  SuggestionParty,
+} from '@/types/suggestions';
 import { Progress } from '@/components/ui/progress';
 import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -400,11 +408,11 @@ const MatchmakerInfo: React.FC<{
 
 // Enhanced party display component
 const PartyDisplay: React.FC<{
-  party: any;
+  party: SuggestionParty;
   isCompact?: boolean;
 }> = ({ party, isCompact = false }) => {
   const imageUrl =
-    party.images.find((img: any) => img.isMain)?.url ||
+    party.images.find((img: UserImage) => img.isMain)?.url ||
     '/placeholders/user.png';
 
   return (
@@ -641,7 +649,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
                     למה זה מתאים דווקא לכם:
                   </h4>
                   <p className="text-cyan-900 leading-relaxed italic font-medium text-sm">
-                    "{suggestion.matchingReason}"
+                    &quot;{suggestion.matchingReason}&quot;
                   </p>
                 </div>
               </div>

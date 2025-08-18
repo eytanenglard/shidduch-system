@@ -566,7 +566,7 @@ const EditSuggestionForm: React.FC<EditSuggestionFormProps> = ({
                   <User className="w-5 h-5" />
                 </div>
                 <Label className="text-lg font-bold text-gray-800">
-                  הערות לצד א' ({suggestion.firstParty.firstName})
+                  הערות לצד א&apos; ({suggestion.firstParty.firstName})
                 </Label>
               </div>
               <Textarea
@@ -583,7 +583,7 @@ const EditSuggestionForm: React.FC<EditSuggestionFormProps> = ({
                   <User className="w-5 h-5" />
                 </div>
                 <Label className="text-lg font-bold text-gray-800">
-                  הערות לצד ב' ({suggestion.secondParty.firstName})
+                  הערות לצד ב&apos; ({suggestion.secondParty.firstName})
                 </Label>
               </div>
               <Textarea
@@ -617,7 +617,7 @@ const EditSuggestionForm: React.FC<EditSuggestionFormProps> = ({
         <DialogFooter className="p-8 border-t border-gray-100 bg-gradient-to-r from-gray-50 to-slate-50">
           <div className="flex justify-between w-full items-center">
             <span className="text-sm text-gray-500 font-medium">
-              כל השינויים יישמרו לאחר לחיצה על "שמור שינויים"
+              כל השינויים יישמרו לאחר לחיצה על &quot;שמור שינויים&quot;
             </span>
             <div className="flex gap-4">
               <Button

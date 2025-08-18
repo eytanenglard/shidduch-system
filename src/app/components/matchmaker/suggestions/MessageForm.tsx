@@ -289,7 +289,9 @@ const MessageForm: React.FC<MessageFormProps> = ({
                           {suggestion.firstParty.firstName}{' '}
                           {suggestion.firstParty.lastName}
                         </div>
-                        <div className="text-xs text-gray-500">(צד א')</div>
+                        <div className="text-xs text-gray-500">
+                          (צד א&apos;)
+                        </div>{' '}
                       </div>
                     </div>
                   </SelectItem>
@@ -301,7 +303,9 @@ const MessageForm: React.FC<MessageFormProps> = ({
                           {suggestion.secondParty.firstName}{' '}
                           {suggestion.secondParty.lastName}
                         </div>
-                        <div className="text-xs text-gray-500">(צד ב')</div>
+                        <div className="text-xs text-gray-500">
+                          (צד ב&apos;)
+                        </div>{' '}
                       </div>
                     </div>
                   </SelectItem>

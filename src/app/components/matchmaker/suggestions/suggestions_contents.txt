@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\matchmaker\suggestions
-# Generated on: 2025-08-18 12:19:15
+# Generated on: 2025-08-18 13:13:23
 ################################################################################
 
 ================================================================================
@@ -579,7 +579,7 @@ const EditSuggestionForm: React.FC<EditSuggestionFormProps> = ({
                   <User className="w-5 h-5" />
                 </div>
                 <Label className="text-lg font-bold text-gray-800">
-                  הערות לצד א' ({suggestion.firstParty.firstName})
+                  הערות לצד א&apos; ({suggestion.firstParty.firstName})
                 </Label>
               </div>
               <Textarea
@@ -596,7 +596,7 @@ const EditSuggestionForm: React.FC<EditSuggestionFormProps> = ({
                   <User className="w-5 h-5" />
                 </div>
                 <Label className="text-lg font-bold text-gray-800">
-                  הערות לצד ב' ({suggestion.secondParty.firstName})
+                  הערות לצד ב&apos; ({suggestion.secondParty.firstName})
                 </Label>
               </div>
               <Textarea
@@ -630,7 +630,7 @@ const EditSuggestionForm: React.FC<EditSuggestionFormProps> = ({
         <DialogFooter className="p-8 border-t border-gray-100 bg-gradient-to-r from-gray-50 to-slate-50">
           <div className="flex justify-between w-full items-center">
             <span className="text-sm text-gray-500 font-medium">
-              כל השינויים יישמרו לאחר לחיצה על "שמור שינויים"
+              כל השינויים יישמרו לאחר לחיצה על &quot;שמור שינויים&quot;
             </span>
             <div className="flex gap-4">
               <Button
@@ -964,7 +964,9 @@ const MessageForm: React.FC<MessageFormProps> = ({
                           {suggestion.firstParty.firstName}{' '}
                           {suggestion.firstParty.lastName}
                         </div>
-                        <div className="text-xs text-gray-500">(צד א')</div>
+                        <div className="text-xs text-gray-500">
+                          (צד א&apos;)
+                        </div>{' '}
                       </div>
                     </div>
                   </SelectItem>
@@ -976,7 +978,9 @@ const MessageForm: React.FC<MessageFormProps> = ({
                           {suggestion.secondParty.firstName}{' '}
                           {suggestion.secondParty.lastName}
                         </div>
-                        <div className="text-xs text-gray-500">(צד ב')</div>
+                        <div className="text-xs text-gray-500">
+                          (צד ב&apos;)
+                        </div>{' '}
                       </div>
                     </div>
                   </SelectItem>
@@ -2146,8 +2150,16 @@ import {
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { he } from 'date-fns/locale';
-import type { MatchSuggestionStatus, Priority } from '@prisma/client';
-import type { Suggestion, ActionAdditionalData } from '@/types/suggestions';
+import type {
+  MatchSuggestionStatus,
+  Priority,
+  UserImage,
+} from '@prisma/client';
+import type {
+  Suggestion,
+  ActionAdditionalData,
+  SuggestionParty,
+} from '@/types/suggestions';
 import { Progress } from '@/components/ui/progress';
 import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -2494,11 +2506,11 @@ const MatchmakerInfo: React.FC<{
 
 // Enhanced party display component
 const PartyDisplay: React.FC<{
-  party: any;
+  party: SuggestionParty;
   isCompact?: boolean;
 }> = ({ party, isCompact = false }) => {
   const imageUrl =
-    party.images.find((img: any) => img.isMain)?.url ||
+    party.images.find((img: UserImage) => img.isMain)?.url ||
     '/placeholders/user.png';
 
   return (
@@ -2735,7 +2747,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
                     למה זה מתאים דווקא לכם:
                   </h4>
                   <p className="text-cyan-900 leading-relaxed italic font-medium text-sm">
-                    "{suggestion.matchingReason}"
+                    &quot;{suggestion.matchingReason}&quot;
                   </p>
                 </div>
               </div>
@@ -3191,7 +3203,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { useSession } from "next-auth/react";
+import { useSession } from 'next-auth/react';
 import {
   Plus,
   RefreshCw,
@@ -3310,8 +3322,14 @@ const MatchmakerHeroSection: React.FC<{
       {/* Background decorative elements */}
       <div className="absolute inset-0">
         <div className="absolute top-10 right-10 w-64 h-64 bg-gradient-to-br from-purple-200/30 to-pink-200/30 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute bottom-10 left-10 w-48 h-48 bg-gradient-to-br from-cyan-200/30 to-blue-200/30 rounded-full blur-2xl animate-float" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-gradient-to-br from-emerald-200/20 to-green-200/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '4s' }}></div>
+        <div
+          className="absolute bottom-10 left-10 w-48 h-48 bg-gradient-to-br from-cyan-200/30 to-blue-200/30 rounded-full blur-2xl animate-float"
+          style={{ animationDelay: '2s' }}
+        ></div>
+        <div
+          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-gradient-to-br from-emerald-200/20 to-green-200/20 rounded-full blur-3xl animate-float"
+          style={{ animationDelay: '4s' }}
+        ></div>
       </div>
 
       <div className="relative z-10 p-8 lg:p-12">
@@ -3338,7 +3356,9 @@ const MatchmakerHeroSection: React.FC<{
                 <div className="p-2 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg group-hover:scale-110 transition-transform">
                   <Users className="w-5 h-5" />
                 </div>
-                <span className="text-2xl font-bold text-blue-600">{stats.total}</span>
+                <span className="text-2xl font-bold text-blue-600">
+                  {stats.total}
+                </span>
               </div>
               <p className="text-sm text-gray-600 font-medium">סך הכל הצעות</p>
             </CardContent>
@@ -3350,9 +3370,13 @@ const MatchmakerHeroSection: React.FC<{
                 <div className="p-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg group-hover:scale-110 transition-transform">
                   <Clock className="w-5 h-5" />
                 </div>
-                <span className="text-2xl font-bold text-orange-600">{stats.pending}</span>
+                <span className="text-2xl font-bold text-orange-600">
+                  {stats.pending}
+                </span>
               </div>
-              <p className="text-sm text-gray-600 font-medium">ממתינות לתשובה</p>
+              <p className="text-sm text-gray-600 font-medium">
+                ממתינות לתשובה
+              </p>
             </CardContent>
           </Card>
 
@@ -3362,9 +3386,13 @@ const MatchmakerHeroSection: React.FC<{
                 <div className="p-2 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg group-hover:scale-110 transition-transform">
                   <Heart className="w-5 h-5" />
                 </div>
-                <span className="text-2xl font-bold text-green-600">{stats.success}</span>
+                <span className="text-2xl font-bold text-green-600">
+                  {stats.success}
+                </span>
               </div>
-              <p className="text-sm text-gray-600 font-medium">התאמות מוצלחות</p>
+              <p className="text-sm text-gray-600 font-medium">
+                התאמות מוצלחות
+              </p>
             </CardContent>
           </Card>
 
@@ -3374,7 +3402,9 @@ const MatchmakerHeroSection: React.FC<{
                 <div className="p-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg group-hover:scale-110 transition-transform">
                   <TrendingUp className="w-5 h-5" />
                 </div>
-                <span className="text-2xl font-bold text-purple-600">{stats.successRate}%</span>
+                <span className="text-2xl font-bold text-purple-600">
+                  {stats.successRate}%
+                </span>
               </div>
               <p className="text-sm text-gray-600 font-medium">אחוז הצלחה</p>
             </CardContent>
@@ -3400,7 +3430,9 @@ const MatchmakerHeroSection: React.FC<{
             disabled={isRefreshing}
             className="border-2 border-purple-300 text-purple-600 hover:bg-purple-50 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl px-6 py-4 font-bold text-lg transform hover:scale-105"
           >
-            <RefreshCw className={cn('w-5 h-5 ml-2', isRefreshing && 'animate-spin')} />
+            <RefreshCw
+              className={cn('w-5 h-5 ml-2', isRefreshing && 'animate-spin')}
+            />
             {isRefreshing ? 'מעדכן...' : 'רענן נתונים'}
           </Button>
         </div>
@@ -3412,23 +3444,28 @@ const MatchmakerHeroSection: React.FC<{
 // Enhanced Stats Component
 const EnhancedStats: React.FC<{
   suggestions: Suggestion[];
-  onFilterChange: (filter: any) => void;
+  onFilterChange: (filter: Partial<SuggestionFilters>) => void;
 }> = ({ suggestions, onFilterChange }) => {
   const stats = useMemo(() => {
     const total = suggestions.length;
-    const pending = suggestions.filter(s => 
-      s.status === 'PENDING_FIRST_PARTY' || s.status === 'PENDING_SECOND_PARTY'
+    const pending = suggestions.filter(
+      (s) =>
+        s.status === 'PENDING_FIRST_PARTY' ||
+        s.status === 'PENDING_SECOND_PARTY'
     ).length;
-    const active = suggestions.filter(s => 
-      !['CLOSED', 'CANCELLED', 'EXPIRED'].includes(s.status)
+    const active = suggestions.filter(
+      (s) => !['CLOSED', 'CANCELLED', 'EXPIRED'].includes(s.status)
     ).length;
-    const success = suggestions.filter(s => 
+    const success = suggestions.filter((s) =>
       ['MARRIED', 'ENGAGED', 'DATING'].includes(s.status)
     ).length;
-    const thisMonth = suggestions.filter(s => {
+    const thisMonth = suggestions.filter((s) => {
       const created = new Date(s.createdAt);
       const now = new Date();
-      return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear();
+      return (
+        created.getMonth() === now.getMonth() &&
+        created.getFullYear() === now.getFullYear()
+      );
     }).length;
     const successRate = total > 0 ? Math.round((success / total) * 100) : 0;
 
@@ -3438,16 +3475,22 @@ const EnhancedStats: React.FC<{
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       {/* Total Suggestions */}
-      <Card className="border-0 shadow-xl bg-gradient-to-br from-blue-50 to-cyan-50 hover:shadow-2xl transition-all duration-300 group cursor-pointer"
-            onClick={() => onFilterChange({})}>
+      <Card
+        className="border-0 shadow-xl bg-gradient-to-br from-blue-50 to-cyan-50 hover:shadow-2xl transition-all duration-300 group cursor-pointer"
+        onClick={() => onFilterChange({})}
+      >
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-blue-600 mb-1">סך הכל הצעות</p>
+              <p className="text-sm font-medium text-blue-600 mb-1">
+                סך הכל הצעות
+              </p>
               <p className="text-3xl font-bold text-blue-700">{stats.total}</p>
               <div className="flex items-center mt-2">
                 <ArrowUp className="w-4 h-4 text-green-500 mr-1" />
-                <span className="text-sm text-green-600">+{stats.thisMonth} החודש</span>
+                <span className="text-sm text-green-600">
+                  +{stats.thisMonth} החודש
+                </span>
               </div>
             </div>
             <div className="p-3 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg group-hover:scale-110 transition-transform">
@@ -3458,13 +3501,23 @@ const EnhancedStats: React.FC<{
       </Card>
 
       {/* Pending Suggestions */}
-      <Card className="border-0 shadow-xl bg-gradient-to-br from-orange-50 to-amber-50 hover:shadow-2xl transition-all duration-300 group cursor-pointer"
-            onClick={() => onFilterChange({ status: ['PENDING_FIRST_PARTY', 'PENDING_SECOND_PARTY'] })}>
+      <Card
+        className="border-0 shadow-xl bg-gradient-to-br from-orange-50 to-amber-50 hover:shadow-2xl transition-all duration-300 group cursor-pointer"
+        onClick={() =>
+          onFilterChange({
+            status: ['PENDING_FIRST_PARTY', 'PENDING_SECOND_PARTY'],
+          })
+        }
+      >
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-orange-600 mb-1">ממתינות לתשובה</p>
-              <p className="text-3xl font-bold text-orange-700">{stats.pending}</p>
+              <p className="text-sm font-medium text-orange-600 mb-1">
+                ממתינות לתשובה
+              </p>
+              <p className="text-3xl font-bold text-orange-700">
+                {stats.pending}
+              </p>
               <div className="flex items-center mt-2">
                 <Clock className="w-4 h-4 text-orange-500 mr-1" />
                 <span className="text-sm text-orange-600">דורש טיפול</span>
@@ -3478,13 +3531,21 @@ const EnhancedStats: React.FC<{
       </Card>
 
       {/* Active Suggestions */}
-      <Card className="border-0 shadow-xl bg-gradient-to-br from-green-50 to-emerald-50 hover:shadow-2xl transition-all duration-300 group cursor-pointer"
-            onClick={() => onFilterChange({ status: ['DATING', 'CONTACT_DETAILS_SHARED'] })}>
+      <Card
+        className="border-0 shadow-xl bg-gradient-to-br from-green-50 to-emerald-50 hover:shadow-2xl transition-all duration-300 group cursor-pointer"
+        onClick={() =>
+          onFilterChange({ status: ['DATING', 'CONTACT_DETAILS_SHARED'] })
+        }
+      >
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-green-600 mb-1">פעילות כעת</p>
-              <p className="text-3xl font-bold text-green-700">{stats.active}</p>
+              <p className="text-sm font-medium text-green-600 mb-1">
+                פעילות כעת
+              </p>
+              <p className="text-3xl font-bold text-green-700">
+                {stats.active}
+              </p>
               <div className="flex items-center mt-2">
                 <Activity className="w-4 h-4 text-green-500 mr-1" />
                 <span className="text-sm text-green-600">בתהליך</span>
@@ -3498,16 +3559,24 @@ const EnhancedStats: React.FC<{
       </Card>
 
       {/* Success Rate */}
-      <Card className="border-0 shadow-xl bg-gradient-to-br from-purple-50 to-pink-50 hover:shadow-2xl transition-all duration-300 group cursor-pointer"
-            onClick={() => onFilterChange({ status: ['MARRIED', 'ENGAGED'] })}>
+      <Card
+        className="border-0 shadow-xl bg-gradient-to-br from-purple-50 to-pink-50 hover:shadow-2xl transition-all duration-300 group cursor-pointer"
+        onClick={() => onFilterChange({ status: ['MARRIED', 'ENGAGED'] })}
+      >
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-purple-600 mb-1">אחוז הצלחה</p>
-              <p className="text-3xl font-bold text-purple-700">{stats.successRate}%</p>
+              <p className="text-sm font-medium text-purple-600 mb-1">
+                אחוז הצלחה
+              </p>
+              <p className="text-3xl font-bold text-purple-700">
+                {stats.successRate}%
+              </p>
               <div className="flex items-center mt-2">
                 <Award className="w-4 h-4 text-purple-500 mr-1" />
-                <span className="text-sm text-purple-600">{stats.success} זוגות</span>
+                <span className="text-sm text-purple-600">
+                  {stats.success} זוגות
+                </span>
               </div>
             </div>
             <div className="p-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg group-hover:scale-110 transition-transform">
@@ -3591,7 +3660,8 @@ export default function MatchmakerDashboard() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Dialogs and selected items state
-  const [selectedSuggestion, setSelectedSuggestion] = useState<Suggestion | null>(null);
+  const [selectedSuggestion, setSelectedSuggestion] =
+    useState<Suggestion | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [confirmAction, setConfirmAction] = useState<{
     type: string;
@@ -3768,7 +3838,7 @@ export default function MatchmakerDashboard() {
   }) => {
     try {
       setIsSubmitting(true);
-      
+
       if (
         data.updates.status &&
         data.updates.status !== selectedSuggestion?.status
@@ -3897,30 +3967,35 @@ export default function MatchmakerDashboard() {
   };
 
   const kanbanColumns = useMemo(() => {
-    const columns: { title: string; suggestions: Suggestion[]; color: string; icon: React.ElementType }[] = [
-      { 
-        title: 'דורש טיפול', 
-        suggestions: [], 
+    const columns: {
+      title: string;
+      suggestions: Suggestion[];
+      color: string;
+      icon: React.ElementType;
+    }[] = [
+      {
+        title: 'דורש טיפול',
+        suggestions: [],
         color: 'from-red-500 to-orange-500',
-        icon: Clock
+        icon: Clock,
       },
-      { 
-        title: 'ממתין לתגובה', 
-        suggestions: [], 
+      {
+        title: 'ממתין לתגובה',
+        suggestions: [],
         color: 'from-yellow-500 to-amber-500',
-        icon: MessageCircle
+        icon: MessageCircle,
       },
-      { 
-        title: 'פעילות', 
-        suggestions: [], 
+      {
+        title: 'פעילות',
+        suggestions: [],
         color: 'from-green-500 to-emerald-500',
-        icon: Target
+        icon: Target,
       },
-      { 
-        title: 'היסטוריה', 
-        suggestions: [], 
+      {
+        title: 'היסטוריה',
+        suggestions: [],
         color: 'from-gray-500 to-slate-500',
-        icon: Archive
+        icon: Archive,
       },
     ];
 
@@ -3953,19 +4028,24 @@ export default function MatchmakerDashboard() {
   // Calculate stats for hero section
   const heroStats = useMemo(() => {
     const total = suggestions.length;
-    const pending = suggestions.filter(s => 
-      s.status === 'PENDING_FIRST_PARTY' || s.status === 'PENDING_SECOND_PARTY'
+    const pending = suggestions.filter(
+      (s) =>
+        s.status === 'PENDING_FIRST_PARTY' ||
+        s.status === 'PENDING_SECOND_PARTY'
     ).length;
-    const active = suggestions.filter(s => 
-      !['CLOSED', 'CANCELLED', 'EXPIRED'].includes(s.status)
+    const active = suggestions.filter(
+      (s) => !['CLOSED', 'CANCELLED', 'EXPIRED'].includes(s.status)
     ).length;
-    const success = suggestions.filter(s => 
+    const success = suggestions.filter((s) =>
       ['MARRIED', 'ENGAGED', 'DATING'].includes(s.status)
     ).length;
-    const thisMonth = suggestions.filter(s => {
+    const thisMonth = suggestions.filter((s) => {
       const created = new Date(s.createdAt);
       const now = new Date();
-      return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear();
+      return (
+        created.getMonth() === now.getMonth() &&
+        created.getFullYear() === now.getFullYear()
+      );
     }).length;
     const successRate = total > 0 ? Math.round((success / total) * 100) : 0;
 
@@ -3975,7 +4055,11 @@ export default function MatchmakerDashboard() {
   const renderMobileFilters = () => (
     <Sheet open={showMobileFilters} onOpenChange={setShowMobileFilters}>
       <SheetTrigger asChild>
-        <Button variant="outline" size="sm" className="bg-white/80 backdrop-blur-sm shadow-lg">
+        <Button
+          variant="outline"
+          size="sm"
+          className="bg-white/80 backdrop-blur-sm shadow-lg"
+        >
           <Filter className="w-4 h-4 mr-2" />
           סינון
         </Button>
@@ -4032,10 +4116,18 @@ export default function MatchmakerDashboard() {
           }
           className="mr-2"
         >
-          <ToggleGroupItem value="list" aria-label="List view" className="data-[state=on]:bg-purple-100 data-[state=on]:text-purple-700">
+          <ToggleGroupItem
+            value="list"
+            aria-label="List view"
+            className="data-[state=on]:bg-purple-100 data-[state=on]:text-purple-700"
+          >
             <List className="h-4 w-4" />
           </ToggleGroupItem>
-          <ToggleGroupItem value="kanban" aria-label="Kanban view" className="data-[state=on]:bg-purple-100 data-[state=on]:text-purple-700">
+          <ToggleGroupItem
+            value="kanban"
+            aria-label="Kanban view"
+            className="data-[state=on]:bg-purple-100 data-[state=on]:text-purple-700"
+          >
             <LayoutGrid className="h-4 w-4" />
           </ToggleGroupItem>
         </ToggleGroup>
@@ -4059,16 +4151,21 @@ export default function MatchmakerDashboard() {
                   key={idx}
                   className="w-72 flex-shrink-0 bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl flex flex-col border border-gray-200"
                 >
-                  <div className={cn(
-                    "p-4 font-semibold text-sm border-b sticky top-0 bg-gradient-to-r text-white rounded-t-2xl z-10 shadow-lg",
-                    col.color
-                  )}>
+                  <div
+                    className={cn(
+                      'p-4 font-semibold text-sm border-b sticky top-0 bg-gradient-to-r text-white rounded-t-2xl z-10 shadow-lg',
+                      col.color
+                    )}
+                  >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <IconComponent className="w-5 h-5" />
                         <span>{col.title}</span>
                       </div>
-                      <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                      <Badge
+                        variant="secondary"
+                        className="bg-white/20 text-white border-white/30"
+                      >
                         {col.suggestions.length}
                       </Badge>
                     </div>
@@ -4115,8 +4212,12 @@ export default function MatchmakerDashboard() {
                 <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center mx-auto mb-6">
                   <Users className="w-12 h-12 text-purple-400" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-800 mb-2">אין הצעות תואמות</h3>
-                <p className="text-gray-600">נסה לשנות את קריטריוני החיפוש או הוסף הצעה חדשה</p>
+                <h3 className="text-xl font-bold text-gray-800 mb-2">
+                  אין הצעות תואמות
+                </h3>
+                <p className="text-gray-600">
+                  נסה לשנות את קריטריוני החיפוש או הוסף הצעה חדשה
+                </p>
               </div>
             )}
           </div>
@@ -4125,8 +4226,8 @@ export default function MatchmakerDashboard() {
 
       {/* Mobile Action Button */}
       <div className="p-4 bg-white/80 backdrop-blur-sm border-t sticky bottom-0">
-        <Button 
-          onClick={() => setShowNewSuggestion(true)} 
+        <Button
+          onClick={() => setShowNewSuggestion(true)}
           className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 shadow-xl text-lg py-6 rounded-2xl"
         >
           <Plus className="w-6 h-6 mr-3" />
@@ -4151,7 +4252,9 @@ export default function MatchmakerDashboard() {
         {/* Enhanced Stats */}
         <EnhancedStats
           suggestions={suggestions}
-          onFilterChange={(filter) => setFilters((prev) => ({ ...prev, ...filter }))}
+          onFilterChange={(filter) =>
+            setFilters((prev) => ({ ...prev, ...filter }))
+          }
         />
 
         {/* Main Content */}
@@ -4159,8 +4262,20 @@ export default function MatchmakerDashboard() {
           <div className="bg-gradient-to-r from-white via-purple-50/30 to-pink-50/30 border-b border-purple-100 p-6">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowMonthlyTrendDialog(true)}
+                    className="border-purple-200 hover:bg-purple-50 text-purple-600"
+                  >
+                    <BarChart className="w-4 h-4 mr-2" />
+                    מגמה חודשית
+                  </Button>
+                </div>
+
                 <TabsList className="bg-purple-50/50 rounded-2xl p-1 h-14">
-                  <TabsTrigger 
+                  <TabsTrigger
                     value="pending"
                     className="flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
                   >
@@ -4172,7 +4287,7 @@ export default function MatchmakerDashboard() {
                       </Badge>
                     )}
                   </TabsTrigger>
-                  <TabsTrigger 
+                  <TabsTrigger
                     value="active"
                     className="flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
                   >
@@ -4184,7 +4299,7 @@ export default function MatchmakerDashboard() {
                       </Badge>
                     )}
                   </TabsTrigger>
-                  <TabsTrigger 
+                  <TabsTrigger
                     value="history"
                     className="flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
                   >
@@ -4197,18 +4312,6 @@ export default function MatchmakerDashboard() {
                     )}
                   </TabsTrigger>
                 </TabsList>
-
-                <div className="flex items-center gap-3">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowMonthlyTrendDialog(true)}
-                    className="border-purple-200 hover:bg-purple-50 text-purple-600"
-                  >
-                    <BarChart className="w-4 h-4 mr-2" />
-                    מגמה חודשית
-                  </Button>
-                </div>
               </div>
 
               <SuggestionActionBar
@@ -4226,7 +4329,9 @@ export default function MatchmakerDashboard() {
                 <div className="flex items-center justify-center h-64">
                   <div className="text-center">
                     <Loader2 className="w-12 h-12 animate-spin text-purple-600 mx-auto mb-4" />
-                    <p className="text-lg font-semibold text-gray-700">טוען הצעות...</p>
+                    <p className="text-lg font-semibold text-gray-700">
+                      טוען הצעות...
+                    </p>
                   </div>
                 </div>
               ) : (
@@ -4248,7 +4353,9 @@ export default function MatchmakerDashboard() {
                         <div className="w-24 h-24 rounded-full bg-gradient-to-br from-orange-100 to-amber-100 flex items-center justify-center mx-auto mb-6">
                           <Clock className="w-12 h-12 text-orange-400" />
                         </div>
-                        <h3 className="text-xl font-bold text-gray-800 mb-2">אין הצעות ממתינות לאישור</h3>
+                        <h3 className="text-xl font-bold text-gray-800 mb-2">
+                          אין הצעות ממתינות לאישור
+                        </h3>
                         <p className="text-gray-600">כל ההצעות אושרו או נדחו</p>
                       </div>
                     )}
@@ -4271,8 +4378,12 @@ export default function MatchmakerDashboard() {
                         <div className="w-24 h-24 rounded-full bg-gradient-to-br from-green-100 to-emerald-100 flex items-center justify-center mx-auto mb-6">
                           <Target className="w-12 h-12 text-green-400" />
                         </div>
-                        <h3 className="text-xl font-bold text-gray-800 mb-2">אין הצעות פעילות</h3>
-                        <p className="text-gray-600">צור הצעה חדשה כדי להתחיל</p>
+                        <h3 className="text-xl font-bold text-gray-800 mb-2">
+                          אין הצעות פעילות
+                        </h3>
+                        <p className="text-gray-600">
+                          צור הצעה חדשה כדי להתחיל
+                        </p>
                       </div>
                     )}
                   </TabsContent>
@@ -4294,8 +4405,12 @@ export default function MatchmakerDashboard() {
                         <div className="w-24 h-24 rounded-full bg-gradient-to-br from-gray-100 to-slate-100 flex items-center justify-center mx-auto mb-6">
                           <Archive className="w-12 h-12 text-gray-400" />
                         </div>
-                        <h3 className="text-xl font-bold text-gray-800 mb-2">אין הצעות בהיסטוריה</h3>
-                        <p className="text-gray-600">ההיסטוריה תמולא כשהצעות יושלמו</p>
+                        <h3 className="text-xl font-bold text-gray-800 mb-2">
+                          אין הצעות בהיסטוריה
+                        </h3>
+                        <p className="text-gray-600">
+                          ההיסטוריה תמולא כשהצעות יושלמו
+                        </p>
                       </div>
                     )}
                   </TabsContent>
@@ -4370,8 +4485,10 @@ export default function MatchmakerDashboard() {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter className="gap-3">
-              <AlertDialogCancel className="rounded-xl">ביטול</AlertDialogCancel>
-              <AlertDialogAction 
+              <AlertDialogCancel className="rounded-xl">
+                ביטול
+              </AlertDialogCancel>
+              <AlertDialogAction
                 onClick={handleConfirmAction}
                 className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 rounded-xl"
               >
@@ -4648,7 +4765,7 @@ const MonthlyTrendModal: React.FC<MonthlyTrendModalProps> = ({
   const currentMonth = monthlyData[monthlyData.length - 1];
 
   return (
-    <div className="space-y-8 max-h-[80vh] overflow-y-auto">
+    <div className="space-y-8">
       {/* Header */}
       <div className="relative">
         <div className="absolute inset-0 bg-gradient-to-r from-purple-50 via-cyan-50/30 to-emerald-50/20 rounded-3xl"></div>
@@ -5346,82 +5463,7 @@ const SuggestionActionBar: React.FC<SuggestionActionBarProps> = ({
         </CardContent>
       </Card>
 
-      {/* Stats Row */}
-      <Card className="border-0 shadow-lg bg-gradient-to-r from-slate-50 to-blue-50/30 rounded-2xl overflow-hidden">
-        <CardContent className="p-4">
-          <div className="flex flex-wrap justify-between items-center gap-4">
-            <div className="flex flex-wrap items-center gap-6">
-              <div className="flex items-center gap-3 group">
-                <div className="p-2 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg group-hover:scale-110 transition-transform">
-                  <BarChart3 className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-blue-600">
-                    {totalCount}
-                  </div>
-                  <div className="text-xs font-medium text-blue-700">
-                    סה״כ הצעות
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 group">
-                <div className="p-2 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg group-hover:scale-110 transition-transform">
-                  <Activity className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-green-600">
-                    {activeCount}
-                  </div>
-                  <div className="text-xs font-medium text-green-700">
-                    פעילות
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 group">
-                <div className="p-2 rounded-full bg-gradient-to-r from-yellow-500 to-amber-500 text-white shadow-lg group-hover:scale-110 transition-transform">
-                  <Clock className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-yellow-600">
-                    {pendingCount}
-                  </div>
-                  <div className="text-xs font-medium text-yellow-700">
-                    ממתינות
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 group">
-                <div className="p-2 rounded-full bg-gradient-to-r from-gray-500 to-slate-500 text-white shadow-lg group-hover:scale-110 transition-transform">
-                  <TrendingUp className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-gray-600">
-                    {historyCount}
-                  </div>
-                  <div className="text-xs font-medium text-gray-700">
-                    היסטוריה
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {activeFilters > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onFiltersChange({})}
-                className="text-gray-500 hover:text-gray-700 hover:bg-red-50 rounded-xl transition-all"
-              >
-                <RefreshCw className="w-4 h-4 ml-2" />
-                נקה את כל המסננים ({activeFilters})
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+ 
 
       {/* Advanced Filters */}
       {showAdvancedFilters && (
@@ -6137,7 +6179,9 @@ const SuggestionsStats: React.FC<SuggestionsStatsProps> = ({
                 {stats.byStatus['PENDING_FIRST_PARTY'] || 0}
               </span>
             </div>
-            <p className="text-xs font-medium text-yellow-600">ממתין לצד א'</p>
+            <p className="text-xs font-medium text-yellow-600">
+              ממתין לצד א&apos;
+            </p>{' '}
           </CardContent>
         </Card>
 
@@ -6160,7 +6204,9 @@ const SuggestionsStats: React.FC<SuggestionsStatsProps> = ({
                 {stats.byStatus['PENDING_SECOND_PARTY'] || 0}
               </span>
             </div>
-            <p className="text-xs font-medium text-blue-600">ממתין לצד ב'</p>
+            <p className="text-xs font-medium text-blue-600">
+              ממתין לצד ב&apos;
+            </p>{' '}
           </CardContent>
         </Card>
 
@@ -6488,7 +6534,6 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\matc
 --------------------------------------------------------------------------------
 Content:
 // src/app/components/matchmaker/suggestions/details/SuggestionDetailsDialog.tsx
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -6542,8 +6587,13 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 
-import { MatchSuggestionStatus } from '@prisma/client';
-import type { Suggestion, ActionAdditionalData } from '@/types/suggestions';
+import { MatchSuggestionStatus, UserImage} from '@prisma/client';
+// --- CORRECTED --- Added SuggestionParty and UserImage to imports
+import type {
+  Suggestion,
+  ActionAdditionalData,
+  SuggestionParty,
+} from '@/types/suggestions';
 import type { QuestionnaireResponse } from '@/types/next-auth';
 import Image from 'next/image';
 import { getRelativeCloudinaryPath, cn, getInitials } from '@/lib/utils';
@@ -6928,8 +6978,9 @@ const getDaysRemaining = (
   return diffDays;
 };
 
+// --- CORRECTED --- Changed party: any to party: SuggestionParty
 const EnhancedPartyCard: React.FC<{
-  party: any;
+  party: SuggestionParty;
   label: string;
   color: string;
   status?: MatchSuggestionStatus;
@@ -6951,7 +7002,8 @@ const EnhancedPartyCard: React.FC<{
     ? new Date().getFullYear() - new Date(party.profile.birthDate).getFullYear()
     : null;
 
-  const mainImage = party.images?.find((img: any) => img.isMain)?.url;
+  // --- CORRECTED --- Changed (img: any) to (img: UserImage)
+  const mainImage = party.images?.find((img: UserImage) => img.isMain)?.url;
 
   const getPartyStatusLabel = () => {
     if (!status) return null;
@@ -7984,7 +8036,9 @@ type SuggestionActionType =
   | 'delete'
   | 'resend'
   | 'changeStatus'
-  | 'reminder';
+  | 'reminder'
+  | 'sendReminder'
+  | 'scheduleMeeting'; // <- יש להוסיף שורה זו
 
 interface ManagerSuggestionsListProps {
   suggestions: Suggestion[];
@@ -8092,7 +8146,10 @@ const ManagerSuggestionsList: React.FC<ManagerSuggestionsListProps> = ({
     }
   };
 
-  const handleAction = (actionType: SuggestionActionType, data?: any) => {
+  const handleAction = (
+    actionType: SuggestionActionType,
+    data?: { suggestion: Suggestion } & ActionAdditionalData
+  ) => {
     console.log(
       `Action '${actionType}' triggered for suggestion`,
       data?.suggestion?.id
@@ -8147,7 +8204,12 @@ const ManagerSuggestionsList: React.FC<ManagerSuggestionsListProps> = ({
         suggestion={selectedSuggestion}
         isOpen={!!selectedSuggestion}
         onClose={() => setSelectedSuggestion(null)}
-        onAction={handleAction as any} // Using 'as any' to bypass strict type check for simplicity here
+        onAction={(type, additionalData) =>
+          handleAction(type, {
+            suggestion: selectedSuggestion!,
+            ...additionalData,
+          })
+        }
         userId={session?.user?.id || ''}
       />
 

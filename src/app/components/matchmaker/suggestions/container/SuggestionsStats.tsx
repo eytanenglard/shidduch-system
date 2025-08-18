@@ -422,7 +422,9 @@ const SuggestionsStats: React.FC<SuggestionsStatsProps> = ({
                 {stats.byStatus['PENDING_FIRST_PARTY'] || 0}
               </span>
             </div>
-            <p className="text-xs font-medium text-yellow-600">ממתין לצד א'</p>
+            <p className="text-xs font-medium text-yellow-600">
+              ממתין לצד א&apos;
+            </p>{' '}
           </CardContent>
         </Card>
 
@@ -445,7 +447,9 @@ const SuggestionsStats: React.FC<SuggestionsStatsProps> = ({
                 {stats.byStatus['PENDING_SECOND_PARTY'] || 0}
               </span>
             </div>
-            <p className="text-xs font-medium text-blue-600">ממתין לצד ב'</p>
+            <p className="text-xs font-medium text-blue-600">
+              ממתין לצד ב&apos;
+            </p>{' '}
           </CardContent>
         </Card>
 

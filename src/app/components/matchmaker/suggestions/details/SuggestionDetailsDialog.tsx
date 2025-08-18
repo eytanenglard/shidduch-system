@@ -1,5 +1,4 @@
 // src/app/components/matchmaker/suggestions/details/SuggestionDetailsDialog.tsx
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -53,8 +52,13 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 
-import { MatchSuggestionStatus } from '@prisma/client';
-import type { Suggestion, ActionAdditionalData } from '@/types/suggestions';
+import { MatchSuggestionStatus, UserImage} from '@prisma/client';
+// --- CORRECTED --- Added SuggestionParty and UserImage to imports
+import type {
+  Suggestion,
+  ActionAdditionalData,
+  SuggestionParty,
+} from '@/types/suggestions';
 import type { QuestionnaireResponse } from '@/types/next-auth';
 import Image from 'next/image';
 import { getRelativeCloudinaryPath, cn, getInitials } from '@/lib/utils';
@@ -439,8 +443,9 @@ const getDaysRemaining = (
   return diffDays;
 };
 
+// --- CORRECTED --- Changed party: any to party: SuggestionParty
 const EnhancedPartyCard: React.FC<{
-  party: any;
+  party: SuggestionParty;
   label: string;
   color: string;
   status?: MatchSuggestionStatus;
@@ -462,7 +467,8 @@ const EnhancedPartyCard: React.FC<{
     ? new Date().getFullYear() - new Date(party.profile.birthDate).getFullYear()
     : null;
 
-  const mainImage = party.images?.find((img: any) => img.isMain)?.url;
+  // --- CORRECTED --- Changed (img: any) to (img: UserImage)
+  const mainImage = party.images?.find((img: UserImage) => img.isMain)?.url;
 
   const getPartyStatusLabel = () => {
     if (!status) return null;

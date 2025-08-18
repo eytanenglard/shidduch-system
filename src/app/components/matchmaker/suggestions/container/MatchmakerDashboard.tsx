@@ -246,7 +246,7 @@ const MatchmakerHeroSection: React.FC<{
 // Enhanced Stats Component
 const EnhancedStats: React.FC<{
   suggestions: Suggestion[];
-  onFilterChange: (filter: any) => void;
+  onFilterChange: (filter: Partial<SuggestionFilters>) => void;
 }> = ({ suggestions, onFilterChange }) => {
   const stats = useMemo(() => {
     const total = suggestions.length;

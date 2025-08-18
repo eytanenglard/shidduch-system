@@ -33,7 +33,14 @@ type SuggestionActionType =
   | 'delete'
   | 'resend'
   | 'changeStatus'
-  | 'reminder';
+  | 'reminder'
+  | 'sendReminder'
+  | 'shareContacts'
+  | 'scheduleMeeting'
+  | 'viewMeetings'
+  | 'exportHistory'
+  | 'export'
+  | 'resendToAll';
 
 interface ManagerSuggestionsListProps {
   suggestions: Suggestion[];
@@ -141,7 +148,10 @@ const ManagerSuggestionsList: React.FC<ManagerSuggestionsListProps> = ({
     }
   };
 
-  const handleAction = (actionType: SuggestionActionType, data?: any) => {
+  const handleAction = (
+    actionType: SuggestionActionType,
+    data?: { suggestion: Suggestion } & ActionAdditionalData
+  ) => {
     console.log(
       `Action '${actionType}' triggered for suggestion`,
       data?.suggestion?.id
@@ -196,7 +206,12 @@ const ManagerSuggestionsList: React.FC<ManagerSuggestionsListProps> = ({
         suggestion={selectedSuggestion}
         isOpen={!!selectedSuggestion}
         onClose={() => setSelectedSuggestion(null)}
-        onAction={handleAction as any} // Using 'as any' to bypass strict type check for simplicity here
+        onAction={(type, additionalData) =>
+          handleAction(type, {
+            suggestion: selectedSuggestion!,
+            ...additionalData,
+          })
+        }
         userId={session?.user?.id || ''}
       />
 
