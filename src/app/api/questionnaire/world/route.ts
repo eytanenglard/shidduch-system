@@ -83,7 +83,10 @@ export async function PUT(req: Request) {
       const existingResponse = await tx.questionnaireResponse.findFirst({
         where: { userId },
       });
-
+   await tx.profile.update({
+        where: { userId },
+        data: { needsAiProfileUpdate: true }
+      });
       const newAnswersJson = newAnswers.map((ans) => ({
         ...ans,
         answeredAt: ans.answeredAt.toISOString(),
@@ -109,13 +112,6 @@ export async function PUT(req: Request) {
         },
       });
       return questionnaire;
-    });
-
-    updateUserAiProfile(userId).catch((err) => {
-      console.error(
-        `[AI Profile Trigger - World Update] Failed to update AI profile for user ${userId} after updating world ${worldId}:`,
-        err
-      );
     });
 
     return NextResponse.json({

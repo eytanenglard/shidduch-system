@@ -209,6 +209,8 @@ preferredReligiousJourneys  ReligiousJourney[] @default([])
   verifiedByMatchmaker    User?          @relation("VerifiedByMatchmaker", fields: [verifiedBy], references: [id], onDelete: SetNull)
   vector                  ProfileVector? // הוספת קשר הפוך
   hasViewedProfilePreview Boolean        @default(false)
+    needsAiProfileUpdate    Boolean    @default(true)
+
 }
 
 model ProfileVector {

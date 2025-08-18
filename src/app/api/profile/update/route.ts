@@ -284,14 +284,13 @@ export async function PUT(req: NextRequest) {
     let updatedProfileRecord: Profile | null = null;
     if (Object.keys(dataToUpdate).length > 0) {
       try {
+         dataToUpdate.needsAiProfileUpdate = true;
+         
         updatedProfileRecord = await prisma.profile.update({
           where: { userId: userId },
           data: dataToUpdate,
         });
-        
-        updateUserAiProfile(userId).catch(err => {
-            console.error(`[AI Profile Trigger - Profile Update] Failed to update AI profile in the background for user ${userId}:`, err);
-        });
+    
       } catch (dbError) {
         console.error('Prisma profile update error:', dbError);
         if (dbError instanceof Prisma.PrismaClientKnownRequestError && dbError.code === 'P2025') {

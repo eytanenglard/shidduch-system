@@ -813,39 +813,26 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
             <div className="space-y-4 p-5 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl border border-blue-100 shadow-lg hover:shadow-xl transition-all duration-300">
               <PartyDisplay party={firstParty} />
 
-              {/* Additional party details */}
-              <div className="grid grid-cols-2 gap-3 text-sm">
+              {/* Additional party details -  >>> START OF CHANGES <<< */}
+              <div className="flex flex-wrap items-stretch gap-3 text-sm">
                 {firstParty.profile?.occupation && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="flex items-center gap-2 p-2 bg-white/70 rounded-lg shadow-sm cursor-pointer">
-                        <Briefcase className="w-4 h-4 text-blue-500" />
-                        <span className="font-medium text-gray-700 truncate">
-                          {firstParty.profile.occupation}
-                        </span>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{firstParty.profile.occupation}</p>
-                    </TooltipContent>
-                  </Tooltip>
+                  <div className="flex-1 min-w-[120px] flex items-start gap-2 p-2 bg-white/70 rounded-lg shadow-sm">
+                    <Briefcase className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                    <span className="font-medium text-gray-700">
+                      {firstParty.profile.occupation}
+                    </span>
+                  </div>
                 )}
                 {firstParty.profile?.education && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="flex items-center gap-2 p-2 bg-white/70 rounded-lg shadow-sm cursor-pointer">
-                        <GraduationCap className="w-4 h-4 text-purple-500" />
-                        <span className="font-medium text-gray-700 truncate">
-                          {firstParty.profile.education}
-                        </span>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{firstParty.profile.education}</p>
-                    </TooltipContent>
-                  </Tooltip>
+                  <div className="flex-1 min-w-[120px] flex items-start gap-2 p-2 bg-white/70 rounded-lg shadow-sm">
+                    <GraduationCap className="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
+                    <span className="font-medium text-gray-700">
+                      {firstParty.profile.education}
+                    </span>
+                  </div>
                 )}
               </div>
+              {/* >>> END OF CHANGES <<< */}
 
               {/* Status for this party */}
               {(suggestion.status === 'FIRST_PARTY_APPROVED' ||
@@ -875,39 +862,26 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
             <div className="space-y-4 p-5 bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl border border-purple-100 shadow-lg hover:shadow-xl transition-all duration-300">
               <PartyDisplay party={secondParty} />
 
-              {/* Additional party details */}
-              <div className="grid grid-cols-2 gap-3 text-sm">
+              {/* Additional party details - >>> START OF CHANGES <<< */}
+              <div className="flex flex-wrap items-stretch gap-3 text-sm">
                 {secondParty.profile?.occupation && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="flex items-center gap-2 p-2 bg-white/70 rounded-lg shadow-sm cursor-pointer">
-                        <Briefcase className="w-4 h-4 text-purple-500" />
-                        <span className="font-medium text-gray-700 truncate">
-                          {secondParty.profile.occupation}
-                        </span>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{secondParty.profile.occupation}</p>
-                    </TooltipContent>
-                  </Tooltip>
+                  <div className="flex-1 min-w-[120px] flex items-start gap-2 p-2 bg-white/70 rounded-lg shadow-sm">
+                    <Briefcase className="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
+                    <span className="font-medium text-gray-700">
+                      {secondParty.profile.occupation}
+                    </span>
+                  </div>
                 )}
                 {secondParty.profile?.education && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="flex items-center gap-2 p-2 bg-white/70 rounded-lg shadow-sm cursor-pointer">
-                        <GraduationCap className="w-4 h-4 text-pink-500" />
-                        <span className="font-medium text-gray-700 truncate">
-                          {secondParty.profile.education}
-                        </span>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{secondParty.profile.education}</p>
-                    </TooltipContent>
-                  </Tooltip>
+                  <div className="flex-1 min-w-[120px] flex items-start gap-2 p-2 bg-white/70 rounded-lg shadow-sm">
+                    <GraduationCap className="w-4 h-4 text-pink-500 mt-0.5 flex-shrink-0" />
+                    <span className="font-medium text-gray-700">
+                      {secondParty.profile.education}
+                    </span>
+                  </div>
                 )}
               </div>
+              {/* >>> END OF CHANGES <<< */}
 
               {/* Status for this party */}
               {(suggestion.status === 'SECOND_PARTY_APPROVED' ||

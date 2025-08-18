@@ -5,7 +5,6 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { Prisma, UserRole } from '@prisma/client';
-import { updateUserAiProfile } from '@/lib/services/profileAiService';
 
 // --- START: שינוי מרכזי - ייבוא הפונקציות המרכזיות במקום להגדיר אותן כאן ---
 import { formatAnswers, KEY_MAPPING } from '@/lib/questionnaireFormatter';
@@ -163,8 +162,9 @@ export async function PATCH(req: Request) {
        }
      });
 
-     updateUserAiProfile(userId).catch(err => {
-        console.error(`[AI Profile Trigger - Questionnaire Update] Failed to update AI profile in the background for user ${userId}:`, err);
+     await prisma.profile.update({
+       where: { userId },
+       data: { needsAiProfileUpdate: true }
      });
 
     // שימוש חוזר בפונקציה המיובאת

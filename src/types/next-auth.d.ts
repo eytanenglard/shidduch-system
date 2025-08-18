@@ -111,6 +111,7 @@ preferredReligiousJourneys: ReligiousJourney[];
   availabilityNote?: string | null;
   availabilityUpdatedAt?: Date | null;
   hasViewedProfilePreview: boolean; // <--- הוסף את השורה הזו
+  needsAiProfileUpdate: boolean;
 
   // Timestamps
   createdAt: Date; // from PrismaProfile

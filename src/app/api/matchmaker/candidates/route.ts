@@ -1,4 +1,5 @@
 // src/app/api/matchmaker/candidates/route.ts
+import { updateUserAiProfile } from '@/lib/services/profileAiService';
 
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
@@ -169,7 +170,32 @@ export async function GET() {
           : null,
       };
     });
+  const profilesNeedingUpdate = usersWithSuggestionInfo.filter(
+      (user) => user.profile?.needsAiProfileUpdate
+    );
 
+    if (profilesNeedingUpdate.length > 0) {
+      const profileIdsToUpdate = profilesNeedingUpdate.map(u => u.profile!.id);
+      console.log(`[Proactive AI Update] Found ${profileIdsToUpdate.length} profiles needing AI update. Triggering in background.`);
+
+      // First, immediately reset the flags in the DB to prevent duplicate jobs
+      prisma.profile.updateMany({
+        where: { id: { in: profileIdsToUpdate } },
+        data: { needsAiProfileUpdate: false }
+      }).then(() => {
+        console.log(`[Proactive AI Update] Flags for ${profileIdsToUpdate.length} profiles reset.`);
+        // Then, run the actual AI updates without awaiting them
+        profilesNeedingUpdate.forEach(user => {
+          updateUserAiProfile(user.id).catch(err => {
+            console.error(`[Proactive AI Update - BG] Failed for user ${user.id}:`, err);
+            // Optional: Re-flag the profile on failure
+            // prisma.profile.update({ where: { id: user.profile!.id }, data: { needsAiProfileUpdate: true } });
+          });
+        });
+      }).catch(err => {
+        console.error("[Proactive AI Update] Failed to reset flags:", err);
+      });
+    }
     return new NextResponse(
       JSON.stringify({
         success: true,

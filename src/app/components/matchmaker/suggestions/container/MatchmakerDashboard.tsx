@@ -1051,15 +1051,7 @@ export default function MatchmakerDashboard() {
           stats={heroStats}
         />
 
-        {/* Enhanced Stats */}
-        <EnhancedStats
-          suggestions={suggestions}
-          onFilterChange={(filter) =>
-            setFilters((prev) => ({ ...prev, ...filter }))
-          }
-        />
-
-        {/* Main Content */}
+             {/* Main Content */}
         <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm overflow-hidden rounded-3xl">
           <div className="bg-gradient-to-r from-white via-purple-50/30 to-pink-50/30 border-b border-purple-100 p-6">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
