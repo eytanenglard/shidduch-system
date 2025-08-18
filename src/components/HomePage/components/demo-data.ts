@@ -410,6 +410,8 @@ const noaProfile: PartyInfo = {
     updatedAt: new Date(),
     lastActive: null,
     hasViewedProfilePreview: false,
+        needsAiProfileUpdate: false,
+
   },
   questionnaireResponses: [noaQuestionnaireResponse],
 };
@@ -861,6 +863,8 @@ const danielProfile: PartyInfo = {
     updatedAt: new Date(),
     lastActive: null,
     hasViewedProfilePreview: false,
+        needsAiProfileUpdate: false,
+
   },
   questionnaireResponses: [danielQuestionnaireResponse],
 };

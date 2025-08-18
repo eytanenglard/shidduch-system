@@ -69,6 +69,9 @@ interface CandidatesListProps {
   onSetAiTarget: (candidate: Candidate, e: React.MouseEvent) => void;
   comparisonSelection: Record<string, Candidate>;
   onToggleComparison: (candidate: Candidate, e: React.MouseEvent) => void;
+
+  // --- Prop for QuickView positioning ---
+  quickViewSide?: 'left' | 'right' | 'center';
 }
 
 const CandidatesList: React.FC<CandidatesListProps> = ({
@@ -85,6 +88,8 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   onSetAiTarget,
   comparisonSelection,
   onToggleComparison,
+  // --- Destructure the new prop with a default value ---
+  quickViewSide = 'center',
 }) => {
   // Base states
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(
@@ -264,12 +269,33 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
       clearTimeout(hoverTimeoutRef.current);
     }
 
-    // פשוט מאוד - תמיד למעלה ובמרכז!
-    let top = 20; // 20px מהחלק העליון של המסך
-    let left = window.innerWidth / 2 - 210; // מרכז המסך מינוס חצי רוחב QuickView
+    let top = 20; // 20px from the top of the viewport
+    let left;
+    const quickViewWidth = 420;
+    const padding = 20;
 
-    // ודא שלא יוצא מהמסך משמאל או מימין
-    left = Math.max(20, Math.min(left, window.innerWidth - 420 - 20));
+    // Calculate position based on the provided `quickViewSide` prop
+    switch (quickViewSide) {
+      case 'left':
+        // Center of the left half of the screen
+        left = window.innerWidth / 4 - quickViewWidth / 2;
+        break;
+      case 'right':
+        // Center of the right half of the screen
+        left = (window.innerWidth * 3) / 4 - quickViewWidth / 2;
+        break;
+      case 'center':
+      default:
+        // Default to the absolute center of the screen
+        left = window.innerWidth / 2 - quickViewWidth / 2;
+        break;
+    }
+
+    // Ensure the QuickView doesn't go off-screen
+    left = Math.max(
+      padding,
+      Math.min(left, window.innerWidth - quickViewWidth - padding)
+    );
 
     hoverTimeoutRef.current = setTimeout(() => {
       setHoverPosition({ top, left });
@@ -494,7 +520,6 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
                     images={selectedCandidate.images}
                     questionnaire={questionnaireResponse}
                     viewMode={isMatchmaker ? 'matchmaker' : 'candidate'}
-                    // --- 👇 הוספתי את השורה הזו ---
                     isProfileComplete={selectedCandidate.isProfileComplete}
                   />
                 </div>
