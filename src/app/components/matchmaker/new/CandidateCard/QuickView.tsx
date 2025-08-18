@@ -189,7 +189,10 @@ const QuickView: React.FC<QuickViewProps> = ({
         y: isClosing ? 20 : 0,
       }}
       transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-      className="bg-white shadow-2xl flex flex-col border-0 overflow-hidden max-w-md sm:max-w-lg w-full rounded-3xl"
+      // --- START OF FIX ---
+      // 1. הוספת הגבלת גובה כללית לקומפוננטה
+      className="bg-white shadow-2xl flex flex-col border-0 overflow-hidden max-w-md sm:max-w-lg w-full rounded-3xl max-h-[85vh]"
+      // --- END OF FIX ---
       onClick={handleClick}
     >
       {/* Enhanced Header */}
@@ -284,7 +287,10 @@ const QuickView: React.FC<QuickViewProps> = ({
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-6 space-y-6 text-right overflow-y-auto max-h-[calc(80vh-200px)] sm:max-h-96 bg-gradient-to-br from-white to-gray-50/30">
+      {/* --- START OF FIX --- */}
+      {/* 2. הסרת הגבלת הגובה הספציפית מכאן כדי לאפשר גמישות */}
+      <div className="flex-1 p-6 space-y-6 text-right overflow-y-auto bg-gradient-to-br from-white to-gray-50/30">
+        {/* --- END OF FIX --- */}
         {/* Key Information Grid */}
         <div className="grid grid-cols-2 gap-4">
           {profile.birthDate && (

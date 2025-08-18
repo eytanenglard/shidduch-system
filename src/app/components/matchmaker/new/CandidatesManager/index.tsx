@@ -145,7 +145,7 @@ const MinimalHeader: React.FC<{
                   variant="outline"
                   className="bg-blue-50 text-blue-700 border-blue-200"
                 >
-                  {stats.total} סה"כ
+                  {stats.total} סהכ
                 </Badge>
                 <Badge
                   variant="outline"
