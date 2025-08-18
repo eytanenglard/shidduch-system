@@ -1,21 +1,14 @@
-// SuggestionDetailsDialog.tsx
+// src/app/components/matchmaker/suggestions/details/SuggestionDetailsDialog.tsx
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import InquiryThreadView from '@/app/components/suggestions/inquiries/InquiryThreadView';
 
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Select,
   SelectContent,
@@ -43,6 +36,19 @@ import {
   Phone,
   User,
   ExternalLink,
+  Crown,
+  Heart,
+  Gem,
+  Eye,
+  Settings,
+  Briefcase,
+  GraduationCap,
+  Quote,
+  Archive,
+  Maximize,
+  Minimize,
+  X as CloseIcon,
+  LucideIcon,
 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
@@ -51,38 +57,17 @@ import { MatchSuggestionStatus } from '@prisma/client';
 import type { Suggestion, ActionAdditionalData } from '@/types/suggestions';
 import type { QuestionnaireResponse } from '@/types/next-auth';
 import Image from 'next/image';
-import { getRelativeCloudinaryPath } from '@/lib/utils';
-// --- START OF FIX ---
-// Define a specific type for all possible suggestion actions to ensure type safety
-type SuggestionActionType =
-  | 'view'
-  | 'contact'
-  | 'message'
-  | 'edit'
-  | 'delete'
-  | 'resend'
-  | 'changeStatus'
-  | 'reminder'
-  | 'sendReminder'
-  | 'shareContacts'
-  | 'scheduleMeeting'
-  | 'viewMeetings'
-  | 'exportHistory'
-  | 'export'
-  | 'resendToAll';
-// --- END OF FIX ---
+import { getRelativeCloudinaryPath, cn, getInitials } from '@/lib/utils';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Progress } from '@/components/ui/progress';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
-interface DialogActionData extends ActionAdditionalData {
-  suggestionId?: string;
-  newStatus?: MatchSuggestionStatus;
-  notes?: string;
-  suggestion?: Suggestion;
-  partyId?: string;
-  type?: string;
-  partyType?: 'first' | 'second' | 'both';
-}
-
-// --- START OF FIX: Define and use specific action types ---
+// Define action types
 type SuggestionDetailsActionType =
   | 'view'
   | 'contact'
@@ -114,96 +99,188 @@ interface SuggestionDetailsDialogProps {
   suggestion: Suggestion | null;
   isOpen: boolean;
   onClose: () => void;
-  // Use the specific action type here
   onAction: (
     action: SuggestionDetailsActionType,
     data?: DialogActionData
   ) => void;
-  userId: string; // This prop is now required
+  userId: string;
 }
-// --- END OF FIX ---
 
-// Map status to its display info
-const getStatusInfo = (status: MatchSuggestionStatus) => {
-  const statusMap: Record<
-    string,
-    { label: string; icon: React.ElementType; color: string }
-  > = {
-    DRAFT: { label: 'טיוטה', icon: Edit, color: 'text-gray-600' },
-    PENDING_FIRST_PARTY: {
-      label: 'ממתין לתשובת צד א׳',
-      icon: Clock,
-      color: 'text-yellow-600',
-    },
-    FIRST_PARTY_APPROVED: {
-      label: 'צד א׳ אישר',
-      icon: CheckCircle,
-      color: 'text-green-600',
-    },
-    FIRST_PARTY_DECLINED: {
-      label: 'צד א׳ דחה',
-      icon: XCircle,
-      color: 'text-red-600',
-    },
-    PENDING_SECOND_PARTY: {
-      label: 'ממתין לתשובת צד ב׳',
-      icon: Clock,
-      color: 'text-blue-600',
-    },
-    SECOND_PARTY_APPROVED: {
-      label: 'צד ב׳ אישר',
-      icon: CheckCircle,
-      color: 'text-green-600',
-    },
-    SECOND_PARTY_DECLINED: {
-      label: 'צד ב׳ דחה',
-      icon: XCircle,
-      color: 'text-red-600',
-    },
-    AWAITING_MATCHMAKER_APPROVAL: {
-      label: 'ממתין לאישור שדכן',
-      icon: AlertCircle,
-      color: 'text-purple-600',
-    },
-    CONTACT_DETAILS_SHARED: {
-      label: 'פרטי קשר שותפו',
-      icon: Send,
-      color: 'text-purple-600',
-    },
-    AWAITING_FIRST_DATE_FEEDBACK: {
-      label: 'ממתין למשוב פגישה',
-      icon: MessageCircle,
-      color: 'text-orange-600',
-    },
-    DATING: {
-      label: 'בתהליך היכרות',
-      icon: Calendar,
-      color: 'text-pink-600',
-    },
-    EXPIRED: { label: 'פג תוקף', icon: AlarmClock, color: 'text-gray-600' },
-    CLOSED: { label: 'סגור', icon: XCircle, color: 'text-gray-600' },
+// Define the return type for the status info object
+interface StatusInfo {
+  label: string;
+  icon: LucideIcon; // Use the specific LucideIcon type
+  color: string;
+  bgColor: string;
+  badgeColor: string;
+  progress: number;
+  description: string;
+}
+
+// Enhanced status info function
+const getEnhancedStatusInfo = (status: MatchSuggestionStatus): StatusInfo => {
+    const statusInfoMap: Record<string, StatusInfo> = {
+      DRAFT: {
+        label: 'טיוטה',
+        icon: Edit,
+        color: 'text-gray-600',
+        bgColor: 'from-gray-50 to-slate-50',
+        badgeColor: 'bg-gradient-to-r from-gray-500 to-slate-500 text-white',
+        progress: 10,
+        description: 'ההצעה עדיין בעריכה ולא נשלחה.',
+      },
+      PENDING_FIRST_PARTY: {
+        label: 'ממתין לתשובת צד א׳',
+        icon: Clock,
+        color: 'text-yellow-600',
+        bgColor: 'from-yellow-50 to-amber-50',
+        badgeColor: 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white',
+        progress: 25,
+        description: 'ההצעה נשלחה לצד הראשון וממתינה לתשובה.',
+      },
+      FIRST_PARTY_APPROVED: {
+        label: 'צד א׳ אישר',
+        icon: CheckCircle,
+        color: 'text-green-600',
+        bgColor: 'from-green-50 to-emerald-50',
+        badgeColor: 'bg-gradient-to-r from-green-500 to-emerald-500 text-white',
+        progress: 40,
+        description: 'הצד הראשון אישר את ההצעה.',
+      },
+      FIRST_PARTY_DECLINED: {
+        label: 'צד א׳ דחה',
+        icon: XCircle,
+        color: 'text-red-600',
+        bgColor: 'from-red-50 to-pink-50',
+        badgeColor: 'bg-gradient-to-r from-red-500 to-pink-500 text-white',
+        progress: 0,
+        description: 'הצד הראשון דחה את ההצעה.',
+      },
+      PENDING_SECOND_PARTY: {
+        label: 'ממתין לתשובת צד ב׳',
+        icon: Clock,
+        color: 'text-blue-600',
+        bgColor: 'from-blue-50 to-cyan-50',
+        badgeColor: 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white',
+        progress: 50,
+        description: 'הצד הראשון אישר וההצעה נשלחה לצד השני.',
+      },
+      SECOND_PARTY_APPROVED: {
+        label: 'צד ב׳ אישר',
+        icon: CheckCircle,
+        color: 'text-green-600',
+        bgColor: 'from-green-50 to-emerald-50',
+        badgeColor: 'bg-gradient-to-r from-green-500 to-emerald-500 text-white',
+        progress: 60,
+        description: 'שני הצדדים אישרו את ההצעה.',
+      },
+      SECOND_PARTY_DECLINED: {
+        label: 'צד ב׳ דחה',
+        icon: XCircle,
+        color: 'text-red-600',
+        bgColor: 'from-red-50 to-pink-50',
+        badgeColor: 'bg-gradient-to-r from-red-500 to-pink-500 text-white',
+        progress: 0,
+        description: 'הצד השני דחה את ההצעה.',
+      },
+      CONTACT_DETAILS_SHARED: {
+        label: 'פרטי קשר שותפו',
+        icon: Send,
+        color: 'text-purple-600',
+        bgColor: 'from-purple-50 to-pink-50',
+        badgeColor: 'bg-gradient-to-r from-purple-500 to-pink-500 text-white',
+        progress: 70,
+        description: 'פרטי הקשר של שני הצדדים שותפו.',
+      },
+      AWAITING_FIRST_DATE_FEEDBACK: {
+        label: 'ממתין למשוב פגישה',
+        icon: MessageCircle,
+        color: 'text-orange-600',
+        bgColor: 'from-orange-50 to-amber-50',
+        badgeColor: 'bg-gradient-to-r from-orange-500 to-amber-500 text-white',
+        progress: 75,
+        description: 'ממתינים לעדכון מהצדדים לאחר הפגישה הראשונה.',
+      },
+      DATING: {
+        label: 'בתהליך היכרות',
+        icon: Heart,
+        color: 'text-pink-600',
+        bgColor: 'from-pink-50 to-rose-50',
+        badgeColor: 'bg-gradient-to-r from-pink-500 to-rose-500 text-white',
+        progress: 80,
+        description: 'הזוג בתהליך היכרות פעיל.',
+      },
+      ENGAGED: {
+        label: 'מאורסים',
+        icon: Gem,
+        color: 'text-yellow-600',
+        bgColor: 'from-yellow-50 to-orange-50',
+        badgeColor: 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white',
+        progress: 95,
+        description: 'הזוג התארס - הצלחה גדולה!',
+      },
+      MARRIED: {
+        label: 'נישאו',
+        icon: Crown,
+        color: 'text-emerald-600',
+        bgColor: 'from-emerald-50 to-green-50',
+        badgeColor: 'bg-gradient-to-r from-emerald-500 to-green-500 text-white',
+        progress: 100,
+        description: 'הזוג התחתן - התאמה מושלמת!',
+      },
+      EXPIRED: {
+        label: 'פג תוקף',
+        icon: AlarmClock,
+        color: 'text-gray-600',
+        bgColor: 'from-gray-50 to-slate-50',
+        badgeColor: 'bg-gradient-to-r from-gray-500 to-slate-500 text-white',
+        progress: 0,
+        description: 'ההצעה פגה תוקף מכיוון שלא התקבלה תגובה בזמן.',
+      },
+      CLOSED: {
+        label: 'סגור',
+        icon: Archive,
+        color: 'text-gray-600',
+        bgColor: 'from-gray-50 to-slate-50',
+        badgeColor: 'bg-gradient-to-r from-gray-500 to-slate-500 text-white',
+        progress: 0,
+        description: 'ההצעה נסגרה על ידי השדכן.',
+      },
+      CANCELLED: {
+        label: 'בוטל',
+        icon: XCircle,
+        color: 'text-red-600',
+        bgColor: 'from-red-50 to-pink-50',
+        badgeColor: 'bg-gradient-to-r from-red-500 to-pink-500 text-white',
+        progress: 0,
+        description: 'ההצעה בוטלה.',
+      },
+      // Adding all other statuses to avoid crashes, with a default representation
+      AWAITING_MATCHMAKER_APPROVAL: { label: 'ממתין לאישור שדכן', icon: User, color: 'text-blue-600', bgColor: 'from-blue-50 to-cyan-50', badgeColor: 'bg-blue-500', progress: 65, description: 'ממתין לאישור סופי מהשדכן.' },
+      THINKING_AFTER_DATE: { label: 'בשלב מחשבה', icon: Clock, color: 'text-indigo-600', bgColor: 'from-indigo-50 to-violet-50', badgeColor: 'bg-indigo-500', progress: 77, description: 'אחד הצדדים או שניהם חושבים על המשך התהליך.' },
+      PROCEEDING_TO_SECOND_DATE: { label: 'ממשיכים לפגישה שניה', icon: CheckCircle, color: 'text-teal-600', bgColor: 'from-teal-50 to-cyan-50', badgeColor: 'bg-teal-500', progress: 78, description: 'הצדדים החליטו להמשיך לפגישה נוספת.' },
+      ENDED_AFTER_FIRST_DATE: { label: 'הסתיים אחרי פגישה', icon: XCircle, color: 'text-red-600', bgColor: 'from-red-50 to-pink-50', badgeColor: 'bg-red-500', progress: 0, description: 'ההיכרות הסתיימה לאחר הפגישה הראשונה.' },
+      MEETING_PENDING: { label: 'ממתין לקביעת פגישה', icon: Calendar, color: 'text-purple-600', bgColor: 'from-purple-50 to-pink-50', badgeColor: 'bg-purple-500', progress: 72, description: 'פרטי הקשר שותפו, ממתינים לקביעת פגישה.' },
+      MEETING_SCHEDULED: { label: 'פגישה נקבעה', icon: Calendar, color: 'text-green-600', bgColor: 'from-green-50 to-emerald-50', badgeColor: 'bg-green-500', progress: 74, description: 'הצדדים קבעו פגישה.' },
+      MATCH_APPROVED: { label: 'ההצעה אושרה', icon: CheckCircle, color: 'text-green-600', bgColor: 'from-green-50 to-emerald-50', badgeColor: 'bg-green-500', progress: 60, description: 'ההצעה אושרה על ידי כל הגורמים.' },
+      MATCH_DECLINED: { label: 'ההצעה נדחתה', icon: XCircle, color: 'text-red-600', bgColor: 'from-red-50 to-pink-50', badgeColor: 'bg-red-500', progress: 0, description: 'ההצעה נדחתה.' },
   };
+
   return (
-    statusMap[status] || {
-      label: status as string,
-      icon: AlertCircle as React.ElementType,
+    statusInfoMap[status] || {
+      label: 'בטיפול',
+      icon: RefreshCw,
       color: 'text-gray-600',
+      bgColor: 'from-gray-50 to-slate-50',
+      badgeColor: 'bg-gradient-to-r from-gray-500 to-slate-500 text-white',
+      progress: 30,
+      description: 'ההצעה בטיפול השדכן',
     }
   );
 };
 
-// Status groups for the progress indicator
-const statusGroups = [
-  ['DRAFT', 'PENDING_FIRST_PARTY'],
-  ['FIRST_PARTY_APPROVED', 'PENDING_SECOND_PARTY'],
-  ['SECOND_PARTY_APPROVED', 'AWAITING_MATCHMAKER_APPROVAL'],
-  ['CONTACT_DETAILS_SHARED', 'AWAITING_FIRST_DATE_FEEDBACK'],
-  ['DATING', 'ENGAGED', 'MARRIED'],
-];
-// הוספת מיפוי מלא של כל הסטטוסים האפשריים
-const getAllStatusLabels = () => {
-  // יצירת מיפוי של כל הסטטוסים האפשריים לפי הסכמה
-  const statusLabels: Record<MatchSuggestionStatus, string> = {
+const getAllStatusLabels = (): Record<MatchSuggestionStatus, string> => {
+  return {
     DRAFT: 'טיוטה',
     PENDING_FIRST_PARTY: 'ממתין לתשובת צד א׳',
     FIRST_PARTY_APPROVED: 'צד א׳ אישר',
@@ -228,86 +305,116 @@ const getAllStatusLabels = () => {
     CLOSED: 'סגור',
     CANCELLED: 'בוטל',
   };
-
-  return statusLabels;
 };
-// Helper to determine if a status change is possible
-const canChangeStatus = (
-  currentStatus: MatchSuggestionStatus
-): MatchSuggestionStatus[] => {
-  // Status changes that are allowed directly by the matchmaker
-  const allowedChanges: Partial<
-    Record<MatchSuggestionStatus, MatchSuggestionStatus[]>
-  > = {
-    // סטטוסים קיימים
-    DRAFT: ['PENDING_FIRST_PARTY', 'CANCELLED', 'CLOSED'],
-    PENDING_FIRST_PARTY: [
-      'FIRST_PARTY_APPROVED',
-      'FIRST_PARTY_DECLINED',
-      'EXPIRED',
-      'CANCELLED',
-      'CLOSED',
-    ],
-    FIRST_PARTY_APPROVED: ['PENDING_SECOND_PARTY', 'CANCELLED', 'CLOSED'],
-    FIRST_PARTY_DECLINED: ['PENDING_FIRST_PARTY', 'CANCELLED', 'CLOSED'],
-    PENDING_SECOND_PARTY: [
-      'SECOND_PARTY_APPROVED',
-      'SECOND_PARTY_DECLINED',
-      'EXPIRED',
-      'CANCELLED',
-      'CLOSED',
-    ],
-    SECOND_PARTY_APPROVED: ['CONTACT_DETAILS_SHARED', 'CANCELLED', 'CLOSED'],
-    SECOND_PARTY_DECLINED: ['PENDING_SECOND_PARTY', 'CANCELLED', 'CLOSED'],
-    CONTACT_DETAILS_SHARED: [
-      'AWAITING_FIRST_DATE_FEEDBACK',
-      'DATING',
-      'CANCELLED',
-      'CLOSED',
-    ],
-    AWAITING_FIRST_DATE_FEEDBACK: ['DATING', 'CANCELLED', 'CLOSED'],
-    DATING: ['ENGAGED', 'CLOSED'],
-    ENGAGED: ['MARRIED', 'CLOSED'],
-    MARRIED: ['CLOSED'],
-    EXPIRED: ['PENDING_FIRST_PARTY', 'PENDING_SECOND_PARTY', 'CLOSED'],
-    CANCELLED: ['DRAFT'],
-    CLOSED: [],
 
-    // הוספת הסטטוסים החסרים
-    AWAITING_MATCHMAKER_APPROVAL: [
-      'CONTACT_DETAILS_SHARED',
-      'CANCELLED',
-      'CLOSED',
-    ],
-    THINKING_AFTER_DATE: [
-      'PROCEEDING_TO_SECOND_DATE',
-      'ENDED_AFTER_FIRST_DATE',
-      'CLOSED',
-    ],
-    PROCEEDING_TO_SECOND_DATE: ['DATING', 'CLOSED'],
-    ENDED_AFTER_FIRST_DATE: ['CLOSED'],
-    MEETING_PENDING: ['MEETING_SCHEDULED', 'CANCELLED', 'CLOSED'],
-    MEETING_SCHEDULED: ['AWAITING_FIRST_DATE_FEEDBACK', 'CANCELLED', 'CLOSED'],
-    MATCH_APPROVED: ['CONTACT_DETAILS_SHARED', 'CANCELLED', 'CLOSED'],
-    MATCH_DECLINED: ['CLOSED'],
-  };
+const DialogHeaderAndTabs: React.FC<{
+  suggestion: Suggestion;
+  statusInfo: StatusInfo;
+  onClose: () => void;
+  isFullscreen: boolean;
+  onToggleFullscreen: () => void;
+  activeTab: string;
+  onTabChange: (tab: string) => void;
+}> = ({
+  suggestion,
+  statusInfo,
+  onClose,
+  isFullscreen,
+  onToggleFullscreen,
+  activeTab,
+  onTabChange,
+}) => {
+  const StatusIcon = statusInfo.icon;
+  const tabs = [
+    { id: 'overview', label: 'סקירה כללית', icon: Eye },
+    { id: 'firstParty', label: 'צד ראשון', icon: User },
+    { id: 'secondParty', label: 'צד שני', icon: User },
+    { id: 'timeline', label: 'ציר זמן', icon: Calendar },
+    { id: 'communication', label: 'תקשורת', icon: MessageCircle },
+    { id: 'actions', label: 'פעולות', icon: Settings },
+  ];
 
-  return allowedChanges[currentStatus] || [];
+  return (
+    <div className={cn('relative bg-gradient-to-br', statusInfo.bgColor, 'border-b border-gray-100/80 flex-shrink-0')}>
+        {/* Background decorative elements */}
+        <div className="absolute inset-0">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-white/20 to-transparent rounded-full blur-3xl opacity-50"></div>
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-br from-white/10 to-transparent rounded-full blur-2xl opacity-40"></div>
+        </div>
+
+        <div className="relative z-10 p-6 space-y-4">
+            {/* Top Header Row */}
+            <div className="flex items-start justify-between">
+                <div className="flex items-center gap-4">
+                    <div className="p-3 rounded-full bg-white/20 backdrop-blur-sm shadow-lg">
+                        <StatusIcon className={cn('w-7 h-7', statusInfo.color)} />
+                    </div>
+                    <div>
+                        <h1 className="text-xl lg:text-2xl font-bold text-gray-800">
+                            הצעה #{suggestion.id.toString().split('-')[0]}
+                        </h1>
+                        <p className="text-md text-gray-600 mt-1">
+                            {suggestion.firstParty.firstName} ו{suggestion.secondParty.firstName}
+                        </p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-2">
+                    <Badge className={cn("text-sm font-bold shadow-md", statusInfo.badgeColor)}>
+                        <StatusIcon className="w-4 h-4 ml-2" />
+                        {statusInfo.label}
+                    </Badge>
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" onClick={onToggleFullscreen} className="rounded-full h-10 w-10 text-gray-500 hover:text-gray-700 hover:bg-white/50 backdrop-blur-sm">
+                                    {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>{isFullscreen ? 'צמצם חלון' : 'הגדל למסך מלא'}</p></TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                    <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full h-10 w-10 text-gray-500 hover:text-gray-700 hover:bg-white/50 backdrop-blur-sm">
+                        <CloseIcon className="w-5 h-5" />
+                    </Button>
+                </div>
+            </div>
+
+            {/* Tabs Navigation */}
+            <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 bg-white/60 backdrop-blur-sm rounded-2xl p-1.5 h-auto shadow-lg border border-white/50">
+                {tabs.map((tab) => {
+                    const IconComponent = tab.icon;
+                    return (
+                        <TabsTrigger
+                            key={tab.id}
+                            value={tab.id}
+                            onClick={() => onTabChange(tab.id)}
+                            className={cn(
+                                'flex flex-col items-center justify-center gap-1 rounded-xl text-xs font-bold transition-all duration-300 py-2 hover:scale-105 relative overflow-hidden group',
+                                activeTab === tab.id
+                                    ? `bg-white text-primary shadow-md`
+                                    : 'text-gray-600 hover:bg-white/50'
+                            )}
+                        >
+                            <IconComponent className="w-5 h-5 relative z-10" />
+                            <span className="relative z-10 hidden sm:inline">{tab.label}</span>
+                        </TabsTrigger>
+                    );
+                })}
+            </TabsList>
+        </div>
+    </div>
+  );
 };
+
 
 const formatDateSafely = (
   dateInput: Date | string | null | undefined
 ): string => {
   if (!dateInput) return 'לא נקבע';
-
-  // Ensure we're working with a Date object
   const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
-
-  // Validate that the date is valid before formatting
   if (!(date instanceof Date) || isNaN(date.getTime())) {
     return 'תאריך לא תקין';
   }
-
   return new Intl.DateTimeFormat('he-IL', {
     year: 'numeric',
     month: '2-digit',
@@ -321,31 +428,433 @@ const getDaysRemaining = (
   deadline: Date | string | null | undefined
 ): number | null => {
   if (!deadline) return null;
-
-  // Convert string to Date if needed
   const deadlineDate =
     typeof deadline === 'string' ? new Date(deadline) : deadline;
-
-  // Validate date
   if (!(deadlineDate instanceof Date) || isNaN(deadlineDate.getTime())) {
     return null;
   }
-
   const today = new Date();
   const diffTime = deadlineDate.getTime() - today.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
   return diffDays;
 };
 
-// Get the status group index for progress indicator
-const getStatusGroupIndex = (status: MatchSuggestionStatus): number => {
-  for (let i = 0; i < statusGroups.length; i++) {
-    if (statusGroups[i].includes(status)) {
-      return i;
+const EnhancedPartyCard: React.FC<{
+  party: any;
+  label: string;
+  color: string;
+  status?: MatchSuggestionStatus;
+  notes?: string;
+  onContact: () => void;
+  onReminder?: () => void;
+  showReminder?: boolean;
+}> = ({
+  party,
+  label,
+  color,
+  status,
+  notes,
+  onContact,
+  onReminder,
+  showReminder,
+}) => {
+  const age = party.profile?.birthDate
+    ? new Date().getFullYear() - new Date(party.profile.birthDate).getFullYear()
+    : null;
+
+  const mainImage = party.images?.find((img: any) => img.isMain)?.url;
+
+  const getPartyStatusLabel = () => {
+    if (!status) return null;
+    if (label.includes('א׳')) {
+      if (status === 'FIRST_PARTY_APPROVED')
+        return {
+          label: 'אישר',
+          icon: CheckCircle,
+          className: 'bg-gradient-to-r from-green-500 to-emerald-500',
+        };
+      if (status === 'FIRST_PARTY_DECLINED')
+        return {
+          label: 'דחה',
+          icon: XCircle,
+          className: 'bg-gradient-to-r from-red-500 to-pink-500',
+        };
+      if (status === 'PENDING_FIRST_PARTY')
+        return {
+          label: 'ממתין לתשובה',
+          icon: Clock,
+          className:
+            'bg-gradient-to-r from-yellow-500 to-amber-500 animate-pulse',
+        };
+    } else {
+      if (status === 'SECOND_PARTY_APPROVED')
+        return {
+          label: 'אישר',
+          icon: CheckCircle,
+          className: 'bg-gradient-to-r from-green-500 to-emerald-500',
+        };
+      if (status === 'SECOND_PARTY_DECLINED')
+        return {
+          label: 'דחה',
+          icon: XCircle,
+          className: 'bg-gradient-to-r from-red-500 to-pink-500',
+        };
+      if (status === 'PENDING_SECOND_PARTY')
+        return {
+          label: 'ממתין לתשובה',
+          icon: Clock,
+          className:
+            'bg-gradient-to-r from-yellow-500 to-amber-500 animate-pulse',
+        };
     }
-  }
-  return -1;
+    return null;
+  };
+
+  const partyStatus = getPartyStatusLabel();
+
+  return (
+    <div
+      className={cn(
+        'bg-white rounded-2xl shadow-xl border-0 p-6 space-y-4 hover:shadow-2xl transition-all duration-300',
+        'bg-gradient-to-br from-white to-gray-50/30'
+      )}
+    >
+      <div className="flex items-center justify-between">
+        <Badge className={cn('px-4 py-2 font-bold shadow-lg', color)}>
+          {label}
+        </Badge>
+        {partyStatus && (
+          <Badge className={cn('text-white shadow-lg', partyStatus.className)}>
+            <partyStatus.icon className="w-4 h-4 ml-2" />
+            {partyStatus.label}
+          </Badge>
+        )}
+      </div>
+
+      <div className="flex items-center gap-4">
+        <div className="relative h-20 w-20 rounded-full overflow-hidden shadow-xl border-4 border-white">
+          {mainImage ? (
+            <Image
+              src={getRelativeCloudinaryPath(mainImage)}
+              alt={`${party.firstName} ${party.lastName}`}
+              fill
+              className="object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
+              <User className="w-10 h-10 text-purple-400" />
+            </div>
+          )}
+        </div>
+
+        <div className="flex-1">
+          <h3 className="text-xl font-bold text-gray-800 mb-2">
+            {party.firstName} {party.lastName}
+          </h3>
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            {age && (
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-blue-500" />
+                <span className="text-gray-700">{age} שנים</span>
+              </div>
+            )}
+            {party.profile?.city && (
+              <div className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-green-500" />
+                <span className="text-gray-700">{party.profile.city}</span>
+              </div>
+            )}
+            {party.email && (
+              <div className="flex items-center gap-2">
+                <Mail className="w-4 h-4 text-purple-500" />
+                <span className="text-gray-700 truncate">{party.email}</span>
+              </div>
+            )}
+            {party.phone && (
+              <div className="flex items-center gap-2">
+                <Phone className="w-4 h-4 text-orange-500" />
+                <span className="text-gray-700">{party.phone}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        {party.profile?.occupation && (
+          <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-xl">
+            <Briefcase className="w-4 h-4 text-blue-500" />
+            <span className="text-sm font-medium text-gray-700 truncate">
+              {party.profile.occupation}
+            </span>
+          </div>
+        )}
+        {party.profile?.education && (
+          <div className="flex items-center gap-2 p-3 bg-purple-50 rounded-xl">
+            <GraduationCap className="w-4 h-4 text-purple-500" />
+            <span className="text-sm font-medium text-gray-700 truncate">
+              {party.profile.education}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {notes && (
+        <div className="p-4 bg-gradient-to-r from-cyan-50 to-blue-50 rounded-xl border border-cyan-200">
+          <h4 className="text-sm font-bold text-cyan-800 mb-2 flex items-center gap-2">
+            <Quote className="w-4 h-4" />
+            הערות:
+          </h4>
+          <p className="text-cyan-900 text-sm leading-relaxed">{notes}</p>
+        </div>
+      )}
+
+      <div className="flex gap-3 pt-4 border-t border-gray-100">
+        <Button
+          onClick={onContact}
+          className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
+        >
+          <MessageCircle className="w-4 h-4 ml-2" />
+          צור קשר
+        </Button>
+        {showReminder && onReminder && (
+          <Button
+            onClick={onReminder}
+            className="flex-1 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
+          >
+            <Send className="w-4 h-4 ml-2" />
+            שלח תזכורת
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const OverviewTabContent: React.FC<{
+  suggestion: Suggestion;
+  statusInfo: StatusInfo;
+  onAction: (
+    action: SuggestionDetailsActionType,
+    data?: DialogActionData
+  ) => void;
+}> = ({ suggestion, statusInfo, onAction }) => {
+  const lastActivityDate = suggestion.lastActivity;
+  const decisionDeadlineDate = suggestion.decisionDeadline;
+  const daysRemaining = getDaysRemaining(decisionDeadlineDate);
+
+  return (
+    <div className="p-6 space-y-8">
+      {/* NEW: Status Summary moved here from the Hero section */}
+      <div className="bg-white rounded-2xl shadow-xl border-0 p-6 hover:shadow-2xl transition-all duration-300">
+          <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-bold text-gray-800">סיכום סטטוס</h3>
+                  <div className="text-right text-sm text-gray-600">
+                      <p>{statusInfo.progress}% הושלמו</p>
+                  </div>
+              </div>
+              <div className="space-y-2">
+                  <Progress value={statusInfo.progress} className="h-2.5 bg-gray-100 shadow-inner" />
+                  <p className="text-sm text-gray-700 leading-relaxed">
+                      {statusInfo.description}
+                  </p>
+              </div>
+              <div className="mt-4 flex items-center gap-3 p-4 bg-purple-50/50 backdrop-blur-sm rounded-xl shadow-inner border border-purple-100">
+                  <Avatar className="w-12 h-12 border-2 border-white shadow-lg">
+                      <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white font-bold">
+                          {getInitials(`${suggestion.matchmaker?.firstName} ${suggestion.matchmaker?.lastName}`)}
+                      </AvatarFallback>
+                  </Avatar>
+                  <div className="flex items-baseline gap-2">
+                      <p className="text-sm font-medium text-gray-600">השדכן/ית:</p>
+                      <p className="text-lg font-bold text-gray-800">
+                          {suggestion.matchmaker?.firstName} {suggestion.matchmaker?.lastName}
+                      </p>
+                  </div>
+              </div>
+          </div>
+      </div>
+
+
+      <div className="bg-white rounded-2xl shadow-xl border-0 p-6 hover:shadow-2xl transition-all duration-300">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-bold flex items-center gap-3 text-gray-800">
+            <div className="p-3 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg">
+              <Calendar className="w-6 h-6" />
+            </div>
+            פרטי ההצעה
+          </h3>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-sm">
+          <div className="space-y-2">
+            <span className="text-gray-500 font-medium">תאריך יצירה:</span>
+            <p className="font-bold text-gray-800">
+              {formatDateSafely(suggestion.createdAt)}
+            </p>
+          </div>
+          <div className="space-y-2">
+            <span className="text-gray-500 font-medium">עדכון אחרון:</span>
+            <p className="font-bold text-gray-800">
+              {formatDateSafely(lastActivityDate)}
+            </p>
+          </div>
+          <div className="space-y-2">
+            <span className="text-gray-500 font-medium">דחיפות:</span>
+            <Badge
+              className={
+                suggestion.priority === 'URGENT'
+                  ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg animate-pulse'
+                  : suggestion.priority === 'HIGH'
+                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg'
+                    : suggestion.priority === 'MEDIUM'
+                      ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg'
+                      : 'bg-gradient-to-r from-gray-500 to-slate-500 text-white shadow-lg'
+              }
+            >
+              {suggestion.priority === 'URGENT'
+                ? 'דחוף'
+                : suggestion.priority === 'HIGH'
+                  ? 'גבוה'
+                  : suggestion.priority === 'MEDIUM'
+                    ? 'רגיל'
+                    : 'נמוך'}
+            </Badge>
+          </div>
+          <div className="space-y-2">
+            <span className="text-gray-500 font-medium">מועד תגובה:</span>
+            <p className="font-bold text-gray-800">
+              {suggestion.responseDeadline
+                ? formatDateSafely(suggestion.responseDeadline)
+                : 'לא נקבע'}
+            </p>
+          </div>
+          <div className="space-y-2">
+            <span className="text-gray-500 font-medium">מועד להחלטה:</span>
+            <div className="flex items-center gap-2">
+              <p
+                className={cn(
+                  'font-bold',
+                  daysRemaining !== null &&
+                    daysRemaining < 3 &&
+                    suggestion.status !== 'EXPIRED'
+                    ? 'text-red-600'
+                    : 'text-gray-800'
+                )}
+              >
+                {decisionDeadlineDate
+                  ? formatDateSafely(decisionDeadlineDate)
+                  : 'לא נקבע'}
+              </p>
+              {daysRemaining !== null &&
+                daysRemaining < 3 &&
+                suggestion.status !== 'EXPIRED' && (
+                  <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-white animate-pulse">
+                    {daysRemaining === 0 ? 'היום!' : `${daysRemaining} ימים`}
+                  </Badge>
+                )}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-end mt-6">
+          <Button
+            variant="outline"
+            onClick={() =>
+              onAction('edit', { suggestion, suggestionId: suggestion.id })
+            }
+            className="bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200 text-purple-700 hover:bg-gradient-to-r hover:from-purple-100 hover:to-pink-100 rounded-xl"
+          >
+            <Edit className="w-4 h-4 ml-2" />
+            ערוך פרטי הצעה
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <EnhancedPartyCard
+          party={suggestion.firstParty}
+          label="צד א׳"
+          color="bg-gradient-to-r from-blue-500 to-cyan-500 text-white"
+          status={suggestion.status}
+          notes={suggestion.firstPartyNotes ?? undefined}
+          onContact={() =>
+            onAction('contact', {
+              suggestionId: suggestion.id,
+              partyId: suggestion.firstParty.id,
+              partyType: 'first',
+            })
+          }
+          onReminder={() =>
+            onAction('reminder', {
+              suggestionId: suggestion.id,
+              partyId: suggestion.firstParty.id,
+              partyType: 'first',
+            })
+          }
+          showReminder={suggestion.status === 'PENDING_FIRST_PARTY'}
+        />
+
+        <EnhancedPartyCard
+          party={suggestion.secondParty}
+          label="צד ב׳"
+          color="bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+          status={suggestion.status}
+          notes={suggestion.secondPartyNotes ?? undefined}
+          onContact={() =>
+            onAction('contact', {
+              suggestionId: suggestion.id,
+              partyId: suggestion.secondParty.id,
+              partyType: 'second',
+            })
+          }
+          onReminder={() =>
+            onAction('reminder', {
+              suggestionId: suggestion.id,
+              partyId: suggestion.secondParty.id,
+              partyType: 'second',
+            })
+          }
+          showReminder={suggestion.status === 'PENDING_SECOND_PARTY'}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {suggestion.matchingReason && (
+          <div className="bg-white rounded-2xl shadow-xl border-0 p-6 hover:shadow-2xl transition-all duration-300">
+            <h3 className="text-lg font-bold flex items-center gap-3 text-emerald-800 mb-4">
+              <div className="p-2 rounded-full bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-lg">
+                <Heart className="w-5 h-5" />
+              </div>
+              סיבת ההתאמה
+            </h3>
+            <div className="p-4 bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl border border-emerald-200">
+              <p className="text-emerald-900 leading-relaxed">
+                {suggestion.matchingReason}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {suggestion.internalNotes && (
+          <div className="bg-white rounded-2xl shadow-xl border-0 p-6 hover:shadow-2xl transition-all duration-300">
+            <h3 className="text-lg font-bold flex items-center gap-3 text-amber-800 mb-4">
+              <div className="p-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg">
+                <AlertCircle className="w-5 h-5" />
+              </div>
+              הערות פנימיות
+            </h3>
+            <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-200">
+              <p className="text-amber-900 leading-relaxed">
+                {suggestion.internalNotes}
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 };
 
 const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
@@ -361,18 +870,21 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
   const [secondPartyQuestionnaire, setSecondPartyQuestionnaire] =
     useState<QuestionnaireResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [statusChangeNote, setStatusChangeNote] = useState('');
   const [newStatus, setNewStatus] = useState<MatchSuggestionStatus | null>(
     null
   );
   const [showStatusChange, setShowStatusChange] = useState(false);
 
-  // Calculate allowed status changes based on current status
-  const allowedStatusChanges = suggestion
-    ? canChangeStatus(suggestion.status as MatchSuggestionStatus)
-    : [];
-
   useEffect(() => {
+    if (!isOpen) {
+      setIsFullscreen(false);
+      setShowStatusChange(false);
+      setNewStatus(null);
+      setStatusChangeNote('');
+    }
+
     const loadQuestionnaire = async (userId: string) => {
       try {
         const response = await fetch(
@@ -381,20 +893,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
         const data = await response.json();
 
         if (data.success && data.questionnaireResponse) {
-          return {
-            ...data.questionnaireResponse,
-            formattedAnswers: {
-              values: data.questionnaireResponse.formattedAnswers.values || [],
-              personality:
-                data.questionnaireResponse.formattedAnswers.personality || [],
-              relationship:
-                data.questionnaireResponse.formattedAnswers.relationship || [],
-              partner:
-                data.questionnaireResponse.formattedAnswers.partner || [],
-              religion:
-                data.questionnaireResponse.formattedAnswers.religion || [],
-            },
-          };
+          return data.questionnaireResponse;
         }
         return null;
       } catch (error) {
@@ -428,37 +927,30 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
       }
     };
 
-    loadQuestionnaires();
-  }, [suggestion]);
+    if (isOpen && suggestion) {
+      setActiveTab('overview');
+      loadQuestionnaires();
+    }
+  }, [isOpen, suggestion]);
 
-  // Handle status change
   const handleStatusChange = async () => {
     if (!newStatus || !suggestion) return;
 
     setIsLoading(true);
     try {
-      console.log(
-        `שולח בקשה לשינוי סטטוס: ${newStatus} עם הערות: ${
-          statusChangeNote || 'ללא הערות'
-        }`
-      );
-      // עדכון הקומפוננטה ההורה
       onAction('changeStatus', {
         suggestionId: suggestion.id,
         newStatus,
         notes: statusChangeNote,
       });
 
-      // איפוס מצב הטופס
       setShowStatusChange(false);
       setStatusChangeNote('');
       setNewStatus(null);
     } catch (error) {
       console.error('Error changing status:', error);
       toast.error(
-        `שגיאה בעדכון הסטטוס: ${
-          error instanceof Error ? error.message : 'שגיאה לא מזוהה'
-        }`
+        `שגיאה בעדכון הסטטוס: ${error instanceof Error ? error.message : 'שגיאה לא מזוהה'}`
       );
     } finally {
       setIsLoading(false);
@@ -467,1301 +959,219 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
 
   if (!suggestion) return null;
 
-  // Get status display info
-  const statusInfo = getStatusInfo(suggestion.status as MatchSuggestionStatus);
-  const StatusIcon = statusInfo.icon;
-
-  // Format suggestion dates
-  const createdDate = suggestion.createdAt;
-  const lastActivityDate = suggestion.lastActivity;
-  const decisionDeadlineDate = suggestion.decisionDeadline
-    ? suggestion.decisionDeadline
-    : null;
-
-  // Days remaining for decision if applicable
-  const daysRemaining = decisionDeadlineDate
-    ? getDaysRemaining(decisionDeadlineDate)
-    : null;
-
-  // Get status progress index for the progress indicator
-  const statusGroupIndex = getStatusGroupIndex(
-    suggestion.status as MatchSuggestionStatus
-  );
+  const statusInfo = getEnhancedStatusInfo(suggestion.status);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        className="max-w-6xl max-h-[90vh] flex flex-col p-0"
-        style={{ direction: 'rtl' }}
+        className={cn(
+          'p-0 shadow-2xl border-0 bg-white overflow-hidden z-[50] flex flex-col transition-all duration-300 ease-in-out',
+          isFullscreen
+            ? '!w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0 !m-0'
+            : 'md:max-w-7xl md:w-[95vw] md:h-[95vh] md:rounded-3xl'
+        )}
+        dir="rtl"
+        onOpenAutoFocus={(e) => e.preventDefault()}
       >
-        {/* Header with Progress Bar */}
-        <div className="bg-gradient-to-r from-slate-50 to-white border-b flex-shrink-0">
-          <DialogHeader className="p-6 pb-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <DialogTitle className="text-2xl font-bold">
-                  הצעת שידוך #{suggestion.id.toString().split('-')[0]}
-                </DialogTitle>
-                <DialogDescription className="text-lg mt-1">
-                  {suggestion.firstParty.firstName}{' '}
-                  {suggestion.firstParty.lastName} ו
-                  {suggestion.secondParty.firstName}{' '}
-                  {suggestion.secondParty.lastName}
-                </DialogDescription>
-              </div>
-              <div className="flex items-center gap-3">
-                <Badge
-                  className={`px-3 py-1.5 ${statusInfo.color} flex items-center gap-1 text-sm shadow-sm`}
-                >
-                  <StatusIcon className="w-4 h-4" />
-                  {statusInfo.label}
-                </Badge>
-                <Badge
-                  variant="outline"
-                  className={`px-3 shadow-sm ${
-                    suggestion.priority === 'URGENT'
-                      ? 'bg-red-50 text-red-600 border-red-200'
-                      : suggestion.priority === 'HIGH'
-                        ? 'bg-orange-50 text-orange-600 border-orange-200'
-                        : suggestion.priority === 'MEDIUM'
-                          ? 'bg-blue-50 text-blue-600 border-blue-200'
-                          : 'bg-gray-50 text-gray-600 border-gray-200'
-                  }`}
-                >
-                  {suggestion.priority === 'URGENT'
-                    ? 'דחוף'
-                    : suggestion.priority === 'HIGH'
-                      ? 'עדיפות גבוהה'
-                      : suggestion.priority === 'MEDIUM'
-                        ? 'עדיפות רגילה'
-                        : 'עדיפות נמוכה'}
-                </Badge>
-              </div>
-            </div>
-          </DialogHeader>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
+            <DialogHeaderAndTabs
+                suggestion={suggestion}
+                statusInfo={statusInfo}
+                onClose={onClose}
+                isFullscreen={isFullscreen}
+                onToggleFullscreen={() => setIsFullscreen(!isFullscreen)}
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+            />
 
-          {/* Status Progress Indicator */}
-          <div className="px-6 pb-4">
-            <div className="relative flex items-center justify-between w-full h-3 bg-gray-100 rounded-full mt-4">
-              {statusGroupIndex >= 0 && (
-                <div
-                  className="absolute h-3 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full"
-                  style={{
-                    width: `${Math.min(
-                      ((statusGroupIndex + 1) / statusGroups.length) * 100,
-                      100
-                    )}%`,
-                  }}
-                ></div>
-              )}
-              {statusGroups.map((_, index) => (
-                <div
-                  key={index}
-                  className={`relative z-10 w-6 h-6 rounded-full flex items-center justify-center border-2 ${
-                    index <= statusGroupIndex
-                      ? 'bg-blue-600 border-blue-700 text-white'
-                      : 'bg-white border-gray-300'
-                  }`}
-                >
-                  {index + 1}
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-between text-xs text-gray-500 mt-1 px-1">
-              <span>יצירת הצעה</span>
-              <span>אישור ראשוני</span>
-              <span>אישור סופי</span>
-              <span>שיתוף פרטים</span>
-              <span>בתהליך היכרות</span>
-            </div>
-          </div>
-        </div>
-        {/* Main Content Area */}
-        <Tabs
-          value={activeTab}
-          onValueChange={setActiveTab}
-          className="flex-1 flex flex-col overflow-hidden"
-        >
-          <TabsList className="px-6 pt-2 border-b justify-end gap-1 flex-shrink-0">
-            <TabsTrigger
-              value="overview"
-              className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 rounded-t-lg"
-            >
-              סקירה כללית
-            </TabsTrigger>
-            <TabsTrigger
-              value="firstParty"
-              className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 rounded-t-lg"
-            >
-              צד ראשון
-            </TabsTrigger>
-            <TabsTrigger
-              value="secondParty"
-              className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 rounded-t-lg"
-            >
-              צד שני
-            </TabsTrigger>
-            <TabsTrigger
-              value="timeline"
-              className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 rounded-t-lg"
-            >
-              ציר זמן
-            </TabsTrigger>
-            <TabsTrigger
-              value="communication"
-              className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 rounded-t-lg"
-            >
-              תקשורת
-            </TabsTrigger>
-            <TabsTrigger
-              value="actions"
-              className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 rounded-t-lg"
-            >
-              פעולות
-            </TabsTrigger>
-          </TabsList>
+            <div className="flex-1 overflow-y-auto bg-slate-50">
+                <TabsContent value="overview" className="m-0 h-full">
+                    <OverviewTabContent suggestion={suggestion} statusInfo={statusInfo} onAction={onAction} />
+                </TabsContent>
 
-          <div className="flex-1 overflow-y-auto">
-            {/* Overview Tab */}
-
-            <TabsContent
-              value="overview"
-              className="p-0 m-0 h-full overflow-auto"
-            >
-              <div className="p-6">
-                {/* שינוי 1: שינוי המבנה כך שפרטי ההצעה יהיו בחלק העליון ושני הצדדים יהיו זה לצד זה */}
-                <div className="space-y-3">
-                  {/* פרטי הצעה - עיצוב מסודר וקומפקטי */}
-                  <div className="bg-white rounded-xl shadow-sm border p-4 mb-3 hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-md font-semibold flex items-center">
-                        <Calendar className="w-4 h-4 ml-1 text-blue-600" />
-                        פרטי הצעה
-                      </h3>
-                      <Badge
-                        className={`${statusInfo.color} px-2 py-0.5 text-xs`}
-                      >
-                        <StatusIcon className="w-3 h-3 ml-1" />
-                        {statusInfo.label}
-                      </Badge>
+                <TabsContent value="firstParty" className="m-0 h-full">
+                    <div className="p-6">
+                        <ProfileCard
+                        profile={suggestion.firstParty.profile}
+                        images={suggestion.firstParty.images}
+                        questionnaire={firstPartyQuestionnaire}
+                        viewMode="matchmaker"
+                        isProfileComplete={suggestion.firstParty.isProfileComplete}
+                        />
                     </div>
+                </TabsContent>
 
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2 text-sm">
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-500">תאריך יצירה:</span>
-                        <span className="font-medium mr-1">
-                          {formatDateSafely(createdDate)}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-500">עדכון אחרון:</span>
-                        <span className="font-medium mr-1">
-                          {formatDateSafely(lastActivityDate)}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-500">שדכן:</span>
-                        <span className="font-medium mr-1">
-                          {`${suggestion.matchmaker?.firstName} ${suggestion.matchmaker?.lastName}`}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-500">דחיפות:</span>
-                        <span
-                          className={`font-medium mr-1 ${
-                            suggestion.priority === 'URGENT'
-                              ? 'text-red-600'
-                              : suggestion.priority === 'HIGH'
-                                ? 'text-orange-600'
-                                : suggestion.priority === 'MEDIUM'
-                                  ? 'text-blue-600'
-                                  : 'text-gray-600'
-                          }`}
-                        >
-                          {suggestion.priority === 'URGENT'
-                            ? 'דחוף'
-                            : suggestion.priority === 'HIGH'
-                              ? 'עדיפות גבוהה'
-                              : suggestion.priority === 'MEDIUM'
-                                ? 'עדיפות רגילה'
-                                : 'עדיפות נמוכה'}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-500">מועד תגובה:</span>
-                        <span className="font-medium mr-1">
-                          {suggestion.responseDeadline
-                            ? formatDateSafely(suggestion.responseDeadline)
-                            : 'לא נקבע'}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-500">מועד להחלטה:</span>
-                        <span
-                          className={
-                            daysRemaining !== null &&
-                            daysRemaining < 3 &&
-                            suggestion.status !== 'EXPIRED'
-                              ? 'text-red-600 font-medium'
-                              : 'font-medium'
-                          }
-                        >
-                          {decisionDeadlineDate
-                            ? formatDateSafely(decisionDeadlineDate)
-                            : 'לא נקבע'}
-                          {daysRemaining !== null &&
-                            daysRemaining < 3 &&
-                            suggestion.status !== 'EXPIRED' && (
-                              <span className="mr-1 text-red-600 text-xs">
-                                (
-                                {daysRemaining === 0
-                                  ? 'היום!'
-                                  : `נותרו ${daysRemaining} ימים`}
-                                )
-                              </span>
-                            )}
-                        </span>
-                      </div>
+                <TabsContent value="secondParty" className="m-0 h-full">
+                    <div className="p-6">
+                        <ProfileCard
+                        profile={suggestion.secondParty.profile}
+                        images={suggestion.secondParty.images}
+                        questionnaire={secondPartyQuestionnaire}
+                        viewMode="matchmaker"
+                        isProfileComplete={suggestion.secondParty.isProfileComplete}
+                        />
                     </div>
+                </TabsContent>
 
-                    <div className="flex justify-end mt-3">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowStatusChange(true)}
-                        disabled={allowedStatusChanges.length === 0}
-                        className="text-blue-600 border-blue-200 hover:bg-blue-50 text-xs py-1 h-7"
-                      >
-                        <RefreshCw className="w-3 h-3 ml-1" />
-                        שנה סטטוס
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* שינוי 2: כרטיסי הצדדים מסודרים זה לצד זה בגריד עם 2 עמודות */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* First Party Status Card */}
-                    <div className="bg-white rounded-xl shadow-sm border border-blue-100 p-5 space-y-3 hover:shadow-md transition-shadow">
-                      <h3 className="text-lg font-semibold flex items-center text-blue-800">
-                        <User className="w-5 h-5 ml-2 text-blue-600" />
-                        צד א׳: {suggestion.firstParty.firstName}{' '}
-                        {suggestion.firstParty.lastName}
-                      </h3>
-
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="relative h-14 w-14">
-                          <Image
-                            src={getRelativeCloudinaryPath(
-                              suggestion.firstParty.images.find(
-                                (img) => img.isMain
-                              )?.url || '/placeholders/user.png'
-                            )}
-                            alt={`${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName}`}
-                            fill
-                            className="rounded-full object-cover border-2 border-blue-200"
-                          />
-                        </div>
-                        <div>
-                          <div className="font-medium">
-                            {suggestion.firstParty.firstName}{' '}
-                            {suggestion.firstParty.lastName}
-                          </div>
-                          <div className="text-sm text-gray-500 flex items-center">
-                            <MapPin className="w-3 h-3 ml-1" />
-                            {suggestion.firstParty.profile?.city || 'לא צוין'}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="space-y-3 divide-y">
-                        <div className="flex justify-between py-1">
-                          <span className="text-gray-500">קיבל את ההצעה:</span>
-                          <span className="font-medium">
-                            {suggestion.firstPartySent
-                              ? formatDateSafely(suggestion.firstPartySent)
-                              : 'טרם נשלח'}
-                          </span>
-                        </div>
-                        <div className="flex justify-between py-1">
-                          <span className="text-gray-500">תגובה:</span>
-                          <Badge
-                            className={
-                              suggestion.status === 'FIRST_PARTY_APPROVED'
-                                ? 'bg-green-100 text-green-800 border-green-200'
-                                : suggestion.status === 'FIRST_PARTY_DECLINED'
-                                  ? 'bg-red-100 text-red-800 border-red-200'
-                                  : suggestion.status === 'PENDING_FIRST_PARTY'
-                                    ? 'bg-yellow-100 text-yellow-800 border-yellow-200'
-                                    : 'bg-gray-100 text-gray-800 border-gray-200'
-                            }
-                          >
-                            {suggestion.status === 'FIRST_PARTY_APPROVED'
-                              ? 'אישר'
-                              : suggestion.status === 'FIRST_PARTY_DECLINED'
-                                ? 'דחה'
-                                : suggestion.status === 'PENDING_FIRST_PARTY'
-                                  ? 'ממתין לתשובה'
-                                  : 'לא רלוונטי'}
-                          </Badge>
-                        </div>
-                      </div>
-
-                      {suggestion.firstPartyNotes && (
-                        <div className="mt-2">
-                          <h4 className="text-sm font-medium text-gray-600 mb-1">
-                            הערות:
-                          </h4>
-                          <div className="bg-blue-50 rounded-lg p-3 text-sm border border-blue-100">
-                            {suggestion.firstPartyNotes}
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="flex gap-2 mt-3">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="flex-1 border-blue-200 hover:bg-blue-50"
-                          onClick={() =>
-                            onAction('contact', {
-                              suggestionId: suggestion.id,
-                              partyId: suggestion.firstParty.id,
-                              partyType: 'first',
-                            })
-                          }
-                        >
-                          <MessageCircle className="w-4 h-4 ml-1" />
-                          צור קשר
-                        </Button>
-
-                        {suggestion.status === 'PENDING_FIRST_PARTY' && (
-                          <Button
-                            size="sm"
-                            className="flex-1 bg-yellow-500 hover:bg-yellow-600"
-                            onClick={() =>
-                              onAction('reminder', {
-                                suggestionId: suggestion.id,
-                                partyId: suggestion.firstParty.id,
-                                partyType: 'first',
-                              })
-                            }
-                          >
-                            <AlertCircle className="w-4 h-4 ml-2" />
-                            שלח תזכורת
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Second Party Status Card */}
-                    <div className="bg-white rounded-xl shadow-sm border border-purple-100 p-5 space-y-3 hover:shadow-md transition-shadow">
-                      <h3 className="text-lg font-semibold flex items-center text-purple-800">
-                        <User className="w-5 h-5 ml-2 text-purple-600" />
-                        צד ב׳: {suggestion.secondParty.firstName}{' '}
-                        {suggestion.secondParty.lastName}
-                      </h3>
-
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="relative h-14 w-14">
-                          <Image
-                            src={getRelativeCloudinaryPath(
-                              suggestion.secondParty.images.find(
-                                (img) => img.isMain
-                              )?.url || '/placeholders/user.png'
-                            )}
-                            alt={`${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName}`}
-                            fill
-                            className="rounded-full object-cover border-2 border-purple-200"
-                          />
-                        </div>
-                        <div>
-                          <div className="font-medium">
-                            {suggestion.secondParty.firstName}{' '}
-                            {suggestion.secondParty.lastName}
-                          </div>
-                          <div className="text-sm text-gray-500 flex items-center">
-                            <MapPin className="w-3 h-3 ml-1" />
-                            {suggestion.secondParty.profile?.city || 'לא צוין'}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="space-y-3 divide-y">
-                        <div className="flex justify-between py-1">
-                          <span className="text-gray-500">קיבל את ההצעה:</span>
-                          <span className="font-medium">
-                            {suggestion.secondPartySent
-                              ? formatDateSafely(suggestion.secondPartySent)
-                              : 'טרם נשלח'}
-                          </span>
-                        </div>
-                        <div className="flex justify-between py-1">
-                          <span className="text-gray-500">תגובה:</span>
-                          <Badge
-                            className={
-                              suggestion.status === 'SECOND_PARTY_APPROVED'
-                                ? 'bg-green-100 text-green-800 border-green-200'
-                                : suggestion.status === 'SECOND_PARTY_DECLINED'
-                                  ? 'bg-red-100 text-red-800 border-red-200'
-                                  : suggestion.status === 'PENDING_SECOND_PARTY'
-                                    ? 'bg-yellow-100 text-yellow-800 border-yellow-200'
-                                    : 'bg-gray-100 text-gray-800 border-gray-200'
-                            }
-                          >
-                            {suggestion.status === 'SECOND_PARTY_APPROVED'
-                              ? 'אישר'
-                              : suggestion.status === 'SECOND_PARTY_DECLINED'
-                                ? 'דחה'
-                                : suggestion.status === 'PENDING_SECOND_PARTY'
-                                  ? 'ממתין לתשובה'
-                                  : 'לא רלוונטי'}
-                          </Badge>
-                        </div>
-                      </div>
-
-                      {suggestion.secondPartyNotes && (
-                        <div className="mt-2">
-                          <h4 className="text-sm font-medium text-gray-600 mb-1">
-                            הערות:
-                          </h4>
-                          <div className="bg-purple-50 rounded-lg p-3 text-sm border border-purple-100">
-                            {suggestion.secondPartyNotes}
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="flex gap-2 mt-3">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="flex-1 border-purple-200 hover:bg-purple-50"
-                          onClick={() =>
-                            onAction('contact', {
-                              suggestionId: suggestion.id,
-                              partyId: suggestion.secondParty.id,
-                              partyType: 'second',
-                            })
-                          }
-                        >
-                          <MessageCircle className="w-4 h-4 ml-1" />
-                          צור קשר
-                        </Button>
-
-                        {suggestion.status === 'PENDING_SECOND_PARTY' && (
-                          <Button
-                            size="sm"
-                            className="flex-1 bg-purple-600 hover:bg-purple-700"
-                            onClick={() =>
-                              onAction('reminder', {
-                                suggestionId: suggestion.id,
-                                partyId: suggestion.secondParty.id,
-                                partyType: 'second',
-                              })
-                            }
-                          >
-                            <Send className="w-4 h-4 ml-1" />
-                            שלח תזכורת
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* מידע נוסף */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
-                    {/* Matching Reason Card */}
-                    {suggestion.matchingReason && (
-                      <div className="bg-white rounded-xl shadow-sm border p-5 space-y-3 hover:shadow-md transition-shadow">
-                        <h3 className="text-lg font-semibold flex items-center">
-                          <User className="w-5 h-5 ml-2 text-green-600" />
-                          סיבת ההתאמה
+                <TabsContent value="timeline" className="m-0 h-full">
+                    <div className="p-6">
+                        <div className="bg-white rounded-2xl shadow-xl border-0 p-6">
+                        <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
+                            <div className="p-3 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg">
+                            <Calendar className="w-6 h-6" />
+                            </div>
+                            התקדמות ההצעה
                         </h3>
-                        <div className="bg-green-50 rounded-lg border border-green-100 p-4 text-gray-700">
-                          {suggestion.matchingReason}
-                        </div>
-                      </div>
-                    )}
 
-                    {/* Internal Notes */}
-                    {suggestion.internalNotes && (
-                      <div className="bg-white rounded-xl shadow-sm border p-5 space-y-3 hover:shadow-md transition-shadow">
-                        <h3 className="text-lg font-semibold flex items-center">
-                          <AlertCircle className="w-5 h-5 ml-2 text-amber-600" />
-                          הערות פנימיות
+                        <Timeline
+                            items={(suggestion?.statusHistory || []).map((history) => {
+                            const historyStatusInfo = getEnhancedStatusInfo(
+                                history.status as MatchSuggestionStatus
+                            );
+                            return {
+                                title: historyStatusInfo.label,
+                                description: history.notes || 'אין הערות',
+                                date:
+                                typeof history.createdAt === 'string'
+                                    ? new Date(history.createdAt)
+                                    : history.createdAt,
+                                icon: historyStatusInfo.icon,
+                            };
+                            })}
+                        />
+                        </div>
+                    </div>
+                </TabsContent>
+
+                <TabsContent value="communication" className="m-0 h-full">
+                    <div className="p-6">
+                        <div className="bg-white rounded-2xl shadow-xl border-0 p-6">
+                        <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
+                            <div className="p-3 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg">
+                            <MessageCircle className="w-6 h-6" />
+                            </div>
+                            תקשורת
                         </h3>
-                        <div className="bg-amber-50 rounded-lg border border-amber-100 p-4 text-gray-700">
-                          {suggestion.internalNotes}
+                        <InquiryThreadView
+                            suggestionId={suggestion.id}
+                            userId={userId}
+                            showComposer={true}
+                        />
                         </div>
-                      </div>
-                    )}
+                    </div>
+                </TabsContent>
 
-                    {/* Quick Actions */}
-                    <div className="bg-white rounded-xl shadow-sm border p-5 space-y-3 hover:shadow-md transition-shadow">
-                      <h3 className="text-lg font-semibold flex items-center">
-                        <RefreshCw className="w-5 h-5 ml-2 text-gray-600" />
-                        פעולות מהירות
-                      </h3>
+                <TabsContent value="actions" className="m-0 h-full">
+                    <div className="p-6">
+                        <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
+                        <div className="p-3 rounded-full bg-gradient-to-r from-gray-500 to-slate-500 text-white shadow-lg">
+                            <Settings className="w-6 h-6" />
+                        </div>
+                        פעולות נוספות
+                        </h3>
 
-                      <div className="grid grid-cols-2 gap-2">
-                        <Button
-                          variant="outline"
-                          className="justify-start"
-                          onClick={() =>
-                            onAction('edit', {
-                              suggestionId: suggestion.id,
-                              suggestion: suggestion,
-                            })
-                          }
-                        >
-                          <Edit className="w-4 h-4 ml-1" />
-                          ערוך הצעה
-                        </Button>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="bg-white rounded-2xl shadow-xl border-0 p-6 hover:shadow-2xl transition-all duration-300">
+                            <div className="p-3 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg w-fit mb-4">
+                            <RefreshCw className="w-6 h-6" />
+                            </div>
+                            <h4 className="text-lg font-bold mb-3">שינוי סטטוס</h4>
+                            <p className="text-sm text-gray-600 mb-4">
+                            עדכון סטטוס ההצעה בהתאם להתקדמות התהליך.
+                            </p>
+                            <Button
+                            className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 shadow-lg"
+                            onClick={() => setShowStatusChange(true)}
+                            >
+                            <RefreshCw className="w-4 h-4 ml-2" />
+                            שנה סטטוס
+                            </Button>
+                        </div>
 
-                        {(suggestion.status === 'PENDING_FIRST_PARTY' ||
-                          suggestion.status === 'PENDING_SECOND_PARTY') && (
-                          <Button
+                        <div className="bg-white rounded-2xl shadow-xl border-0 p-6 hover:shadow-2xl transition-all duration-300">
+                            <div className="p-3 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg w-fit mb-4">
+                            <Edit className="w-6 h-6" />
+                            </div>
+                            <h4 className="text-lg font-bold mb-3">עריכת הצעה</h4>
+                            <p className="text-sm text-gray-600 mb-4">
+                            עריכת פרטי ההצעה, סיבת ההתאמה והערות.
+                            </p>
+                            <Button
                             variant="outline"
-                            className="justify-start"
+                            className="w-full border-2 border-amber-200 text-amber-700 hover:bg-amber-50"
                             onClick={() =>
-                              onAction('sendReminder', {
+                                onAction('edit', {
                                 suggestionId: suggestion.id,
-                                type:
-                                  suggestion.status === 'PENDING_FIRST_PARTY'
-                                    ? 'first'
-                                    : 'second',
-                              })
+                                suggestion,
+                                })
                             }
-                          >
-                            <Send className="w-4 h-4 ml-1" />
-                            שלח תזכורת
-                          </Button>
-                        )}
+                            >
+                            <Edit className="w-4 h-4 ml-2" />
+                            ערוך פרטי הצעה
+                            </Button>
+                        </div>
 
-                        {(suggestion.status === 'FIRST_PARTY_APPROVED' ||
-                          suggestion.status === 'SECOND_PARTY_APPROVED') && (
-                          <Button
-                            variant="default"
-                            className="justify-start bg-green-600 hover:bg-green-700"
+                        <div className="bg-white rounded-2xl shadow-xl border-0 p-6 hover:shadow-2xl transition-all duration-300">
+                            <div className="p-3 rounded-full bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg w-fit mb-4">
+                            <Trash2 className="w-6 h-6" />
+                            </div>
+                            <h4 className="text-lg font-bold mb-3">מחיקת הצעה</h4>
+                            <p className="text-sm text-gray-600 mb-4">
+                            מחיקת ההצעה לצמיתות מהמערכת.
+                            </p>
+                            <Button
+                            variant="outline"
+                            className="w-full border-2 border-red-200 text-red-700 hover:bg-red-50"
                             onClick={() =>
-                              onAction('shareContacts', {
-                                suggestionId: suggestion.id,
-                              })
+                                onAction('delete', { suggestionId: suggestion.id })
                             }
-                          >
-                            <ExternalLink className="w-4 h-4 ml-1" />
-                            שתף פרטי קשר
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
-
-            {/* First Party Tab */}
-            <TabsContent value="firstParty" className="p-0 m-0 h-full">
-              <div className="p-6">
-                <div className="bg-white rounded-xl shadow-sm border border-blue-100 p-5 space-y-3 mb-6">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xl font-semibold text-blue-800">
-                      {suggestion.firstParty.firstName}{' '}
-                      {suggestion.firstParty.lastName}
-                    </h3>
-                    <Badge className="px-3 py-1.5 bg-blue-100 text-blue-700 border-blue-200">
-                      צד א׳
-                    </Badge>
-                  </div>
-
-                  <div className="flex items-center gap-3 py-2">
-                    <div className="relative h-16 w-16">
-                      <Image
-                        src={getRelativeCloudinaryPath(
-                          // <-- FIX
-                          suggestion.firstParty.images.find((img) => img.isMain)
-                            ?.url || '/placeholders/user.png'
-                        )}
-                        alt={`${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName}`}
-                        fill
-                        className="rounded-full object-cover border-2 border-blue-200"
-                      />
-                    </div>
-                    <div>
-                      <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm">
-                        <div className="flex items-center">
-                          <MapPin className="w-4 h-4 ml-1 text-blue-500" />
-                          <span>
-                            {suggestion.firstParty.profile?.city || 'לא צוין'}
-                          </span>
+                            >
+                            <Trash2 className="w-4 h-4 ml-2" />
+                            מחק הצעה
+                            </Button>
                         </div>
-                        <div className="flex items-center">
-                          <Mail className="w-4 h-4 ml-1 text-blue-500" />
-                          <span>
-                            {suggestion.firstParty.email || 'לא צוין'}
-                          </span>
                         </div>
-                        <div className="flex items-center">
-                          <Phone className="w-4 h-4 ml-1 text-blue-500" />
-                          <span>
-                            {suggestion.firstParty?.phone || 'לא צוין'}
-                          </span>
-                        </div>
-                        <div className="flex items-center">
-                          <Calendar className="w-4 h-4 ml-1 text-blue-500" />
-                          <span>
-                            {suggestion.firstParty.profile?.birthDate
-                              ? new Date(
-                                  suggestion.firstParty.profile.birthDate
-                                ).toLocaleDateString('he-IL')
-                              : 'לא צוין'}
-                          </span>
-                        </div>
-                      </div>
                     </div>
-                  </div>
-
-                  <div className="flex gap-2 mt-2">
-                    <Button
-                      variant="outline"
-                      className="flex-1 border-blue-200 hover:bg-blue-50"
-                      onClick={() =>
-                        onAction('contact', {
-                          suggestionId: suggestion.id,
-                          partyId: suggestion.firstParty.id,
-                          partyType: 'first',
-                        })
-                      }
-                    >
-                      <MessageCircle className="w-4 h-4 ml-1" />
-                      צור קשר
-                    </Button>
-
-                    {suggestion.status === 'PENDING_FIRST_PARTY' && (
-                      <Button
-                        className="w-full justify-start bg-yellow-500 hover:bg-yellow-600"
-                        onClick={() =>
-                          onAction('reminder', {
-                            suggestionId: suggestion.id,
-                            partyId: suggestion.firstParty.id,
-                            partyType: 'first',
-                          })
-                        }
-                      >
-                        <AlertCircle className="w-4 h-4 ml-2" />
-                        שלח תזכורת לצד ראשון
-                      </Button>
-                    )}
-
-                    {suggestion.status === 'PENDING_SECOND_PARTY' && (
-                      <Button
-                        className="w-full justify-start bg-yellow-500 hover:bg-yellow-600"
-                        onClick={() =>
-                          onAction('reminder', {
-                            suggestionId: suggestion.id,
-                            partyId: suggestion.secondParty.id,
-                            partyType: 'second',
-                          })
-                        }
-                      >
-                        <AlertCircle className="w-4 h-4 ml-2" />
-                        שלח תזכורת לצד שני
-                      </Button>
-                    )}
-
-                    {suggestion.status === 'AWAITING_FIRST_DATE_FEEDBACK' && (
-                      <Button
-                        className="w-full justify-start bg-yellow-500 hover:bg-yellow-600"
-                        onClick={() =>
-                          onAction('reminder', {
-                            suggestionId: suggestion.id,
-                            partyType: 'both',
-                          })
-                        }
-                      >
-                        <AlertCircle className="w-4 h-4 ml-2" />
-                        שלח בקשת עדכון מפגש
-                      </Button>
-                    )}
-                  </div>
-                </div>
-
-                <ProfileCard
-                  profile={suggestion.firstParty.profile}
-                  images={suggestion.firstParty.images}
-                  questionnaire={firstPartyQuestionnaire}
-                  viewMode="matchmaker"
-                  isProfileComplete={suggestion.firstParty.isProfileComplete}
-                />
-
-                <div className="mt-4 p-4 border rounded-lg bg-blue-50">
-                  <h3 className="font-medium mb-2">
-                    הערות לגבי {suggestion.firstParty.firstName}
-                  </h3>
-                  {suggestion.firstPartyNotes ? (
-                    <p>{suggestion.firstPartyNotes}</p>
-                  ) : (
-                    <p className="text-gray-500">אין הערות ספציפיות</p>
-                  )}
-                </div>
-              </div>
-            </TabsContent>
-
-            {/* Second Party Tab */}
-            <TabsContent value="secondParty" className="p-0 m-0 h-full">
-              <div className="p-6">
-                <div className="bg-white rounded-xl shadow-sm border border-purple-100 p-5 space-y-3 mb-6">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xl font-semibold text-purple-800">
-                      {suggestion.secondParty.firstName}{' '}
-                      {suggestion.secondParty.lastName}
-                    </h3>
-                    <Badge className="px-3 py-1.5 bg-purple-100 text-purple-700 border-purple-200">
-                      צד ב׳
-                    </Badge>
-                  </div>
-
-                  <div className="flex items-center gap-3 py-2">
-                    <div className="relative h-16 w-16">
-                      <Image
-                        src={getRelativeCloudinaryPath(
-                          // <-- FIX
-                          suggestion.secondParty.images.find(
-                            (img) => img.isMain
-                          )?.url || '/placeholders/user.png'
-                        )}
-                        alt={`${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName}`}
-                        fill
-                        className="rounded-full object-cover border-2 border-purple-200"
-                      />
-                    </div>
-                    <div>
-                      <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm">
-                        <div className="flex items-center">
-                          <MapPin className="w-4 h-4 ml-1 text-purple-500" />
-                          <span>
-                            {suggestion.secondParty.profile?.city || 'לא צוין'}
-                          </span>
-                        </div>
-                        <div className="flex items-center">
-                          <Mail className="w-4 h-4 ml-1 text-purple-500" />
-                          <span>
-                            {suggestion.secondParty.email || 'לא צוין'}
-                          </span>
-                        </div>
-                        <div className="flex items-center">
-                          <Phone className="w-4 h-4 ml-1 text-purple-500" />
-                          <span>
-                            {suggestion.secondParty.phone || 'לא צוין'}
-                          </span>
-                        </div>
-                        <div className="flex items-center">
-                          <Calendar className="w-4 h-4 ml-1 text-purple-500" />
-                          <span>
-                            {suggestion.secondParty.profile?.birthDate
-                              ? new Date(
-                                  suggestion.secondParty.profile.birthDate
-                                ).toLocaleDateString('he-IL')
-                              : 'לא צוין'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2 mt-2">
-                    <Button
-                      variant="outline"
-                      className="flex-1 border-purple-200 hover:bg-purple-50"
-                      onClick={() =>
-                        onAction('contact', {
-                          suggestionId: suggestion.id,
-                          partyId: suggestion.secondParty.id,
-                          partyType: 'second',
-                        })
-                      }
-                    >
-                      <MessageCircle className="w-4 h-4 ml-1" />
-                      צור קשר
-                    </Button>
-
-                    {suggestion.status === 'PENDING_SECOND_PARTY' && (
-                      <Button
-                        className="flex-1 bg-purple-600 hover:bg-purple-700"
-                        onClick={() =>
-                          onAction('reminder', {
-                            suggestionId: suggestion.id,
-                            partyId: suggestion.secondParty.id,
-                            partyType: 'second',
-                          })
-                        }
-                      >
-                        <Send className="w-4 h-4 ml-1" />
-                        שלח תזכורת
-                      </Button>
-                    )}
-                  </div>
-                </div>
-
-                <ProfileCard
-                  profile={suggestion.secondParty.profile}
-                  images={suggestion.secondParty.images}
-                  questionnaire={secondPartyQuestionnaire}
-                  viewMode="matchmaker"
-                  isProfileComplete={suggestion.secondParty.isProfileComplete}
-                />
-
-                <div className="mt-4 p-4 border rounded-lg bg-purple-50">
-                  <h3 className="font-medium mb-2">
-                    הערות לגבי {suggestion.secondParty.firstName}
-                  </h3>
-                  {suggestion.secondPartyNotes ? (
-                    <p>{suggestion.secondPartyNotes}</p>
-                  ) : (
-                    <p className="text-gray-500">אין הערות ספציפיות</p>
-                  )}
-                </div>
-              </div>
-            </TabsContent>
-
-            {/* Timeline Tab */}
-            <TabsContent value="timeline" className="p-0 m-0 h-full">
-              <div className="p-6">
-                <div className="bg-white rounded-xl shadow-sm border p-5 space-y-3 mb-4">
-                  <h3 className="text-lg font-semibold flex items-center">
-                    <Calendar className="w-5 h-5 ml-2 text-blue-600" />
-                    התקדמות ההצעה
-                  </h3>
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center">
-                      <div className="p-2 rounded-full bg-blue-100 mr-2">
-                        <Clock className="w-5 h-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <div className="font-medium">
-                          נוצר: {formatDateSafely(suggestion.createdAt)}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          פעילות אחרונה:{' '}
-                          {formatDateSafely(suggestion.lastActivity)}
-                        </div>
-                      </div>
-                    </div>
-                    <Badge
-                      className={`px-3 py-1.5 flex items-center gap-1 ${statusInfo.color}`}
-                    >
-                      <StatusIcon className="w-4 h-4" />
-                      {statusInfo.label}
-                    </Badge>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-xl shadow-sm border p-5">
-                  <h3 className="text-lg font-semibold mb-4">
-                    היסטוריית סטטוסים
-                  </h3>
-
-                  <ScrollArea className="h-[400px] pr-4">
-                    {isLoading ? (
-                      <div className="flex items-center justify-center h-32">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
-                      </div>
-                    ) : (
-                      <Timeline
-                        items={(suggestion?.statusHistory || []).map(
-                          (history) => ({
-                            title: getStatusInfo(
-                              history.status as MatchSuggestionStatus
-                            ).label,
-                            description: history.notes || 'אין הערות',
-                            date:
-                              typeof history.createdAt === 'string'
-                                ? new Date(history.createdAt)
-                                : history.createdAt,
-                            icon: history.status.includes('APPROVED')
-                              ? CheckCircle
-                              : history.status.includes('DECLINED')
-                                ? XCircle
-                                : history.status.includes('PENDING')
-                                  ? Clock
-                                  : AlertCircle,
-                            iconColor: history.status.includes('APPROVED')
-                              ? 'text-green-600'
-                              : history.status.includes('DECLINED')
-                                ? 'text-red-600'
-                                : history.status.includes('PENDING')
-                                  ? 'text-yellow-600'
-                                  : 'text-blue-600',
-                          })
-                        )}
-                      />
-                    )}
-                  </ScrollArea>
-
-                  <div className="mt-4 flex justify-end">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        onAction('exportHistory', {
-                          suggestionId: suggestion.id,
-                        })
-                      }
-                    >
-                      <Download className="w-4 h-4 ml-1" />
-                      ייצא היסטוריה
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
-
-            {/* Communication Tab */}
-            <TabsContent value="communication" className="p-0 m-0 h-full">
-              <div className="p-6">
-                <div className="bg-gradient-to-r from-blue-50 to-white rounded-xl shadow-sm border p-5 mb-6">
-                  <h3 className="text-xl font-semibold mb-2">תקשורת</h3>
-                  <p className="text-gray-600">
-                    ניהול התקשורת עם הצדדים השונים בהצעה. שליחת הודעות ותזכורות.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* First Party Communication */}
-                  <div className="bg-white rounded-xl shadow-sm border border-blue-100 p-5 hover:shadow-md transition-shadow">
-                    <h4 className="text-lg font-semibold mb-4 text-blue-800 flex items-center">
-                      <User className="w-5 h-5 ml-2 text-blue-600" />
-                      תקשורת עם {suggestion.firstParty.firstName}{' '}
-                      {suggestion.firstParty.lastName}
-                    </h4>
-
-                    <div className="space-y-3">
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start border-blue-200 hover:bg-blue-50"
-                        onClick={() =>
-                          onAction('message', {
-                            suggestionId: suggestion.id,
-                            partyId: suggestion.firstParty.id,
-                            partyType: 'first',
-                            suggestion: suggestion, // הוסף את ההצעה המלאה
-                          })
-                        }
-                      >
-                        <MessageCircle className="w-4 h-4 ml-2" />
-                        שלח הודעה
-                      </Button>
-
-                      {suggestion.status === 'PENDING_FIRST_PARTY' && (
-                        <Button
-                          className="w-full justify-start bg-yellow-500 hover:bg-yellow-600"
-                          onClick={() =>
-                            onAction('reminder', {
-                              suggestionId: suggestion.id,
-                              partyId: suggestion.firstParty.id,
-                              partyType: 'first',
-                            })
-                          }
-                        >
-                          <AlertCircle className="w-4 h-4 ml-2" />
-                          שלח תזכורת
-                        </Button>
-                      )}
-
-                      {(suggestion.status === 'FIRST_PARTY_APPROVED' ||
-                        suggestion.status === 'SECOND_PARTY_APPROVED') && (
-                        <Button
-                          variant="default"
-                          className="w-full justify-start bg-green-600 hover:bg-green-700"
-                          onClick={() =>
-                            onAction('shareContacts', {
-                              suggestionId: suggestion.id,
-                              partyId: suggestion.firstParty.id,
-                            })
-                          }
-                        >
-                          <Send className="w-4 h-4 ml-2" />
-                          שתף פרטי קשר
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Second Party Communication */}
-                  <div className="bg-white rounded-xl shadow-sm border border-purple-100 p-5 hover:shadow-md transition-shadow">
-                    <h4 className="text-lg font-semibold mb-4 text-purple-800 flex items-center">
-                      <User className="w-5 h-5 ml-2 text-purple-600" />
-                      תקשורת עם {suggestion.secondParty.firstName}{' '}
-                      {suggestion.secondParty.lastName}
-                    </h4>
-
-                    <div className="space-y-3">
-                      <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={() =>
-                          onAction('edit', {
-                            suggestionId: suggestion.id,
-                            suggestion: suggestion, // הוסף את ההצעה המלאה
-                          })
-                        }
-                      >
-                        <Edit className="w-4 h-4 ml-2" />
-                        ערוך פרטי הצעה
-                      </Button>
-
-                      {suggestion.status === 'PENDING_SECOND_PARTY' && (
-                        <Button
-                          className="w-full justify-start bg-yellow-500 hover:bg-yellow-600"
-                          onClick={() =>
-                            onAction('reminder', {
-                              suggestionId: suggestion.id,
-                              partyId: suggestion.secondParty.id,
-                              partyType: 'second',
-                            })
-                          }
-                        >
-                          <AlertCircle className="w-4 h-4 ml-2" />
-                          שלח תזכורת
-                        </Button>
-                      )}
-
-                      {(suggestion.status === 'FIRST_PARTY_APPROVED' ||
-                        suggestion.status === 'SECOND_PARTY_APPROVED') && (
-                        <Button
-                          variant="default"
-                          className="w-full justify-start bg-green-600 hover:bg-green-700"
-                          onClick={() =>
-                            onAction('shareContacts', {
-                              suggestionId: suggestion.id,
-                              partyId: suggestion.secondParty.id,
-                            })
-                          }
-                        >
-                          <Send className="w-4 h-4 ml-2" />
-                          שתף פרטי קשר
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Meeting Arrangement Section */}
-                {(suggestion.status === 'CONTACT_DETAILS_SHARED' ||
-                  suggestion.status === 'DATING') && (
-                  <div className="mt-6 bg-white rounded-xl shadow-sm border p-5 hover:shadow-md transition-shadow">
-                    <h4 className="text-lg font-semibold mb-3 flex items-center">
-                      <Calendar className="w-5 h-5 ml-2 text-pink-600" />
-                      תיאום פגישה
-                    </h4>
-                    <div className="space-y-3">
-                      <p className="text-gray-600">
-                        סיוע בתיאום פגישה בין הצדדים ותיעוד מועדי הפגישות
-                      </p>
-                      <div className="flex gap-2">
-                        <Button
-                          className="flex-1 bg-pink-600 hover:bg-pink-700"
-                          onClick={() =>
-                            onAction('scheduleMeeting', {
-                              suggestionId: suggestion.id,
-                            })
-                          }
-                        >
-                          <Calendar className="w-4 h-4 ml-2" />
-                          תאם פגישה חדשה
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className="flex-1"
-                          onClick={() =>
-                            onAction('viewMeetings', {
-                              suggestionId: suggestion.id,
-                            })
-                          }
-                        >
-                          <Clock className="w-4 h-4 ml-2" />
-                          צפה בפגישות קודמות
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </TabsContent>
-
-            {/* Actions Tab */}
-            <TabsContent value="actions" className="p-0 m-0 h-full">
-              <div className="p-6">
-                <div className="bg-gradient-to-r from-gray-50 to-white rounded-xl shadow-sm border p-5 mb-6">
-                  <h3 className="text-xl font-semibold mb-2">פעולות נוספות</h3>
-                  <p className="text-gray-600">
-                    פעולות נוספות שניתן לבצע על הצעת השידוך
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  {/* Status Change */}
-                  <div className="bg-white rounded-xl shadow-sm border p-5 hover:shadow-md transition-shadow">
-                    <div className="p-2 rounded-full bg-blue-100 w-fit mb-3">
-                      <RefreshCw className="w-6 h-6 text-blue-600" />
-                    </div>
-                    <h4 className="text-lg font-semibold mb-3">שינוי סטטוס</h4>
-                    <p className="text-sm text-gray-600 mb-4 h-12">
-                      עדכון סטטוס ההצעה בהתאם להתקדמות התהליך
-                    </p>
-                    <Button
-                      className="w-full"
-                      onClick={() => setShowStatusChange(true)}
-                      disabled={allowedStatusChanges.length === 0}
-                    >
-                      <RefreshCw className="w-4 h-4 ml-2" />
-                      שנה סטטוס
-                    </Button>
-                  </div>
-
-                  {/* Edit Suggestion */}
-                  <div className="bg-white rounded-xl shadow-sm border p-5 hover:shadow-md transition-shadow">
-                    <div className="p-2 rounded-full bg-amber-100 w-fit mb-3">
-                      <Edit className="w-6 h-6 text-amber-600" />
-                    </div>
-                    <h4 className="text-lg font-semibold mb-3">עריכת הצעה</h4>
-                    <p className="text-sm text-gray-600 mb-4 h-12">
-                      עריכת פרטי ההצעה, סיבת ההתאמה והערות
-                    </p>
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() =>
-                        onAction('edit', {
-                          suggestionId: suggestion.id,
-                          suggestion: suggestion,
-                        })
-                      }
-                    >
-                      <Edit className="w-4 h-4 ml-2" />
-                      ערוך פרטי הצעה
-                    </Button>
-                  </div>
-
-                  {/* Delete Suggestion */}
-                  <div className="bg-white rounded-xl shadow-sm border p-5 hover:shadow-md transition-shadow">
-                    <div className="p-2 rounded-full bg-red-100 w-fit mb-3">
-                      <Trash2 className="w-6 h-6 text-red-600" />
-                    </div>
-                    <h4 className="text-lg font-semibold mb-3">מחיקת הצעה</h4>
-                    <p className="text-sm text-gray-600 mb-4 h-12">
-                      מחיקת ההצעה לצמיתות מהמערכת
-                    </p>
-                    <Button
-                      variant="outline"
-                      className="border-red-200 hover:bg-red-50 text-red-600"
-                      onClick={() =>
-                        onAction('delete', { suggestionId: suggestion.id })
-                      }
-                    >
-                      <Trash2 className="w-4 h-4 ml-1" />
-                      מחק הצעה
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Resend to Both Parties */}
-                  {canChangeStatus(
-                    suggestion.status as MatchSuggestionStatus
-                  ).includes('PENDING_FIRST_PARTY') && (
-                    <div className="bg-white rounded-xl shadow-sm border p-5 hover:shadow-md transition-shadow">
-                      <h4 className="text-lg font-semibold mb-3 flex items-center">
-                        <Send className="w-5 h-5 ml-2 text-purple-600" />
-                        שליחה מחדש
-                      </h4>
-                      <p className="text-sm text-gray-600 mb-3">
-                        שליחת ההצעה מחדש לשני הצדדים
-                      </p>
-                      <Button
-                        className="w-full bg-purple-600 hover:bg-purple-700"
-                        onClick={() =>
-                          onAction('resendToAll', {
-                            suggestionId: suggestion.id,
-                          })
-                        }
-                      >
-                        <Send className="w-4 h-4 ml-2" />
-                        שלח מחדש לשני הצדדים
-                      </Button>
-                    </div>
-                  )}
-
-                  {/* Export Suggestion Details */}
-                  <div className="bg-white rounded-xl shadow-sm border p-5 hover:shadow-md transition-shadow">
-                    <h4 className="text-lg font-semibold mb-3 flex items-center">
-                      <Download className="w-5 h-5 ml-2 text-green-600" />
-                      ייצוא פרטי הצעה
-                    </h4>
-                    <p className="text-sm text-gray-600 mb-3">
-                      ייצוא כל פרטי ההצעה בפורמט PDF או CSV
-                    </p>
-                    <Button
-                      variant="outline"
-                      className="w-full border-green-200 hover:bg-green-50 text-green-700"
-                      onClick={() =>
-                        onAction('export', { suggestionId: suggestion.id })
-                      }
-                    >
-                      <Download className="w-4 h-4 ml-2" />
-                      ייצא פרטי הצעה
-                    </Button>
-                  </div>
-                </div>
-                <h3 className="text-xl font-semibold mb-4 mt-8">
-                  התכתבות על ההצעה
-                </h3>
-                <InquiryThreadView
-                  suggestionId={suggestion.id}
-                  userId={userId} // << העברת ה-ID של השדכן
-                  showComposer={false} // השדכן עונה, לא פותח שיחה חדשה מכאן
-                />
-              </div>
-            </TabsContent>
-          </div>
+                </TabsContent>
+            </div>
         </Tabs>
-        {/* Status Change Dialog */}
+
         {showStatusChange && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-xl max-w-md w-full shadow-lg">
+          <div
+            className="fixed inset-0 bg-black/60 flex items-center justify-center z-[100]"
+            dir="rtl"
+          >
+            <div className="bg-white p-6 rounded-2xl max-w-md w-full shadow-2xl m-4">
               <h3 className="text-xl font-bold mb-4 flex items-center">
                 <RefreshCw className="w-5 h-5 ml-2 text-blue-600" />
                 שינוי סטטוס הצעה
               </h3>
-
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">
+                  <label className="block text-sm font-medium mb-1 text-gray-600">
                     סטטוס נוכחי
                   </label>
-                  <div className="flex items-center p-2 bg-gray-50 rounded border">
-                    <StatusIcon
-                      className={`w-5 h-5 ml-2 ${statusInfo.color}`}
+                  <div className="flex items-center p-3 bg-gray-100 rounded-lg border">
+                    <statusInfo.icon
+                      className={`w-5 h-5 ml-3 ${statusInfo.color}`}
                     />
-                    <span className="font-medium">{statusInfo.label}</span>
+                    <span className="font-bold">{statusInfo.label}</span>
                   </div>
                 </div>
-
                 <div>
-                  <label className="block text-sm font-medium mb-1">
+                  <label className="block text-sm font-medium mb-1 text-gray-600">
                     סטטוס חדש
                   </label>
                   <Select
                     value={newStatus || undefined}
-                    onValueChange={(value) => {
-                      console.log('Selected new status:', value);
-                      setNewStatus(value as MatchSuggestionStatus);
-                    }}
+                    onValueChange={(value) =>
+                      setNewStatus(value as MatchSuggestionStatus)
+                    }
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="בחר/י סטטוס חדש" />
                     </SelectTrigger>
-                    <SelectContent className="max-h-80 overflow-y-auto">
-                      {/* מציג את כל הסטטוסים האפשריים במערכת */}
+                    <SelectContent className="max-h-60 overflow-y-auto">
                       {Object.entries(getAllStatusLabels()).map(
                         ([status, label]) => (
                           <SelectItem key={status} value={status}>
@@ -1772,27 +1182,21 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div>
-                  <label className="block text-sm font-medium mb-1">
-                    הערות לשינוי סטטוס
+                  <label className="block text-sm font-medium mb-1 text-gray-600">
+                    הערות לשינוי סטטוס (אופציונלי)
                   </label>
                   <Textarea
                     value={statusChangeNote}
                     onChange={(e) => setStatusChangeNote(e.target.value)}
-                    placeholder="הערות אופציונליות לשינוי הסטטוס..."
+                    placeholder="הוסף הערה..."
                     className="min-h-[100px] resize-none"
                   />
                 </div>
-
-                <div className="flex justify-end gap-2 pt-2">
+                <div className="flex justify-end gap-3 pt-4 border-t">
                   <Button
                     variant="outline"
-                    onClick={() => {
-                      setShowStatusChange(false);
-                      setNewStatus(null);
-                      setStatusChangeNote('');
-                    }}
+                    onClick={() => setShowStatusChange(false)}
                   >
                     ביטול
                   </Button>
@@ -1803,7 +1207,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                   >
                     {isLoading ? (
                       <>
-                        <div className="h-4 w-4 ml-2 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                        <RefreshCw className="w-4 h-4 ml-2 animate-spin" />{' '}
                         מעדכן...
                       </>
                     ) : (
@@ -1815,34 +1219,6 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
             </div>
           </div>
         )}
-        <DialogFooter className="px-6 py-4 border-t bg-gray-50">
-          <div className="flex justify-between w-full">
-            <Button
-              variant="outline"
-              className="border-red-200 hover:bg-red-50 text-red-600"
-              onClick={() =>
-                onAction('delete', { suggestionId: suggestion.id })
-              }
-            >
-              <Trash2 className="w-4 h-4 ml-1" />
-              מחק הצעה
-            </Button>
-
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={onClose}>
-                סגור
-              </Button>
-              <Button
-                // תיקון: המקום השלישי בו צריך לוודא שהפונקציה מופעלת נכון
-                onClick={() => setShowStatusChange(true)}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                <RefreshCw className="w-4 h-4 ml-1" />
-                עדכן סטטוס
-              </Button>
-            </div>
-          </div>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\suggestions
-# Generated on: 2025-08-18 10:08:23
+# Generated on: 2025-08-18 10:18:38
 ################################################################################
 
 ================================================================================
@@ -4338,7 +4338,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
         userId={userId}
         isOpen={!!selectedSuggestion && !showAskDialog}
         onClose={() => setSelectedSuggestion(null)}
-        onStatusChange={onStatusChange}
+        onActionRequest={onActionRequest}
         questionnaire={
           selectedSuggestion?.secondParty?.questionnaireResponses?.[0] || null
         }
@@ -4380,16 +4380,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import {
   CheckCircle,
   XCircle,
@@ -4474,7 +4464,10 @@ interface SuggestionDetailsModalProps {
   userId: string;
   isOpen: boolean;
   onClose: () => void;
-  onStatusChange?: (suggestionId: string, newStatus: string) => Promise<void>;
+  onActionRequest: (
+    suggestion: ExtendedMatchSuggestion,
+    action: 'approve' | 'decline'
+  ) => void;
   questionnaire: QuestionnaireResponse | null;
   isDemo?: boolean;
   demoAnalysisData?: AiSuggestionAnalysisResult | null;
@@ -5150,7 +5143,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   userId,
   isOpen,
   onClose,
-  onStatusChange,
+  onActionRequest,
   questionnaire,
   isDemo = false,
   demoAnalysisData = null,
@@ -5161,11 +5154,6 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   const [isQuestionnaireLoading, setIsQuestionnaireLoading] = useState(false);
   const [isActionsExpanded, setIsActionsExpanded] = useState(false);
   const [isShowingAiAnalysis, setIsShowingAiAnalysis] = useState(false);
-
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [actionType, setActionType] = useState<'approve' | 'decline' | null>(
-    null
-  );
 
   const isMobile = useIsMobile();
   const viewportHeight = useViewportHeight();
@@ -5235,40 +5223,6 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
     (isFirstParty && suggestion?.status === 'PENDING_FIRST_PARTY') ||
     (!isFirstParty && suggestion?.status === 'PENDING_SECOND_PARTY');
 
-  const triggerConfirmDialog = (action: 'approve' | 'decline') => {
-    setActionType(action);
-    setShowConfirmDialog(true);
-  };
-
-  const handleConfirmAction = async () => {
-    if (!suggestion || !actionType || !onStatusChange) return;
-    
-    setIsSubmitting(true);
-    setShowConfirmDialog(false);
-
-    try {
-      const isFirstParty = suggestion.firstPartyId === userId;
-      let newStatus = '';
-      if (actionType === 'approve') {
-        newStatus = isFirstParty
-          ? 'FIRST_PARTY_APPROVED'
-          : 'SECOND_PARTY_APPROVED';
-      } else {
-        newStatus = isFirstParty
-          ? 'FIRST_PARTY_DECLINED'
-          : 'SECOND_PARTY_DECLINED';
-      }
-      
-      await onStatusChange(suggestion.id, newStatus);
-      
-    } catch (error) {
-      // Error is handled by the parent component's toast message
-    } finally {
-      setIsSubmitting(false);
-      setActionType(null);
-    }
-  };
-
   const handleSendQuestion = async (question: string) => {
     if (!suggestion) return;
     setIsSubmitting(true);
@@ -5294,6 +5248,16 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   };
 
   if (!suggestion || !targetParty || !profileWithUser) return null;
+
+  const handleApprove = () => {
+    onActionRequest(suggestion, 'approve');
+    onClose();
+  };
+
+  const handleDecline = () => {
+    onActionRequest(suggestion, 'decline');
+    onClose();
+  };
 
   const getModalClasses = () => {
     const baseClasses =
@@ -5508,8 +5472,8 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                 onToggleExpand={() => setIsActionsExpanded((prev) => !prev)}
                 canAct={canActOnSuggestion}
                 isSubmitting={isSubmitting}
-                onApprove={() => triggerConfirmDialog('approve')}
-                onDecline={() => triggerConfirmDialog('decline')}
+                onApprove={handleApprove}
+                onDecline={handleDecline}
                 onAskQuestion={() => setShowAskDialog(true)}
               />
             </>
@@ -5523,46 +5487,6 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
         matchmakerName={`${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`}
         suggestionId={suggestion.id}
       />
-      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <AlertDialogContent className="border-0 shadow-2xl rounded-2xl z-[9999]">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-xl font-bold text-center">
-              {actionType === 'approve'
-                ? 'אישור הצעת השידוך'
-                : 'דחיית הצעת השידוך'}
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-center text-gray-600 leading-relaxed">
-              {actionType === 'approve'
-                ? 'אישור הצעה הוא צעד מרגש. האם אתה בטוח שברצונך להתקדם? לאחר האישור, השדכן יקבל הודעה וימשיך בתהליך עבורכם.'
-                : 'כל תשובה מקדמת אותך. האם אתה בטוח שברצונך לדחות הצעה זו? המשוב שלך חשוב מאוד ויעזור לנו לדייק את החיפוש עבורך.'}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="gap-3">
-            <AlertDialogCancel className="rounded-xl">ביטול</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleConfirmAction}
-              className={cn(
-                'rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300',
-                actionType === 'approve'
-                  ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'
-                  : 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700'
-              )}
-            >
-              {actionType === 'approve' ? (
-                <>
-                  <CheckCircle className="w-4 h-4 ml-2" />
-                  אישור ההצעה
-                </>
-              ) : (
-                <>
-                  <XCircle className="w-4 h-4 ml-2" />
-                  דחיית ההצעה
-                </>
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 };
