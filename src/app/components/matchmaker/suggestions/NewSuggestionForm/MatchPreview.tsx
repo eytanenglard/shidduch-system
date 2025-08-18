@@ -1,17 +1,183 @@
-import React from "react";
-import { Card } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { CheckCircle, AlertCircle, XCircle } from "lucide-react";
-import { calculateMatchScore } from "../utils/matchingAlgorithm";
-import type { Candidate } from "../../new/types/candidates";
-import type { MatchScore } from "../utils/matchingAlgorithm";
+// src/app/components/matchmaker/suggestions/NewSuggestionForm/MatchPreview.tsx
+
+import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import {
+  CheckCircle,
+  AlertCircle,
+  XCircle,
+  Heart,
+  Star,
+  Sparkles,
+  TrendingUp,
+  Award,
+  Crown,
+  Gem,
+  Zap,
+  Target,
+  Trophy,
+  Flame,
+  Gift,
+} from 'lucide-react';
+import { calculateMatchScore } from '../utils/matchingAlgorithm';
+import type { Candidate } from '../../new/types/candidates';
+import type { MatchScore } from '../utils/matchingAlgorithm';
+import { cn } from '@/lib/utils';
 
 interface MatchPreviewProps {
   firstParty: Candidate;
   secondParty: Candidate;
   className?: string;
 }
+
+const MatchCriteriaCard: React.FC<{
+  criterion: {
+    name: string;
+    score: number;
+    reason?: string;
+  };
+  index: number;
+}> = ({ criterion, index }) => {
+  const getCriterionInfo = (name: string) => {
+    switch (name) {
+      case 'age':
+        return {
+          icon: Target,
+          label: 'גיל',
+          color: 'from-blue-500 to-cyan-500',
+          bgColor: 'from-blue-50 to-cyan-50',
+        };
+      case 'location':
+        return {
+          icon: Crown,
+          label: 'מיקום',
+          color: 'from-green-500 to-emerald-500',
+          bgColor: 'from-green-50 to-emerald-50',
+        };
+      case 'religious':
+        return {
+          icon: Sparkles,
+          label: 'רמה דתית',
+          color: 'from-purple-500 to-pink-500',
+          bgColor: 'from-purple-50 to-pink-50',
+        };
+      default:
+        return {
+          icon: Star,
+          label: name,
+          color: 'from-gray-500 to-slate-500',
+          bgColor: 'from-gray-50 to-slate-50',
+        };
+    }
+  };
+
+  const info = getCriterionInfo(criterion.name);
+  const IconComponent = info.icon;
+  const scorePercentage = Math.round(criterion.score * 100);
+
+  const getScoreCategory = (score: number) => {
+    if (score >= 0.9)
+      return {
+        label: 'מושלם',
+        color: 'text-emerald-600',
+        bgColor: 'bg-emerald-100',
+      };
+    if (score >= 0.8)
+      return {
+        label: 'מצוין',
+        color: 'text-green-600',
+        bgColor: 'bg-green-100',
+      };
+    if (score >= 0.7)
+      return { label: 'טוב', color: 'text-blue-600', bgColor: 'bg-blue-100' };
+    if (score >= 0.5)
+      return {
+        label: 'בינוני',
+        color: 'text-yellow-600',
+        bgColor: 'bg-yellow-100',
+      };
+    return { label: 'נמוך', color: 'text-red-600', bgColor: 'bg-red-100' };
+  };
+
+  const scoreCategory = getScoreCategory(criterion.score);
+
+  return (
+    <div
+      className={cn(
+        'relative overflow-hidden rounded-2xl transition-all duration-500 group hover:scale-105',
+        'bg-gradient-to-br',
+        info.bgColor,
+        'border border-white/50 shadow-lg hover:shadow-2xl'
+      )}
+      style={{
+        animationDelay: `${index * 150}ms`,
+        animationFillMode: 'both',
+      }}
+    >
+      {/* Background decoration */}
+      <div className="absolute inset-0">
+        <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-white/30 to-transparent rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        <div className="absolute bottom-0 left-0 w-12 h-12 bg-gradient-to-br from-white/20 to-transparent rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+      </div>
+
+      <div className="relative z-10 p-6 space-y-4">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div
+              className={cn(
+                'p-3 rounded-full shadow-lg group-hover:scale-110 transition-transform bg-gradient-to-r text-white',
+                info.color
+              )}
+            >
+              <IconComponent className="w-5 h-5" />
+            </div>
+            <h4 className="text-lg font-bold text-gray-800">{info.label}</h4>
+          </div>
+
+          <Badge
+            className={cn(
+              'px-3 py-1 font-bold shadow-lg',
+              scoreCategory.bgColor,
+              scoreCategory.color
+            )}
+          >
+            {scoreCategory.label}
+          </Badge>
+        </div>
+
+        {/* Score visualization */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-gray-600">התאמה</span>
+            <span className="text-2xl font-bold text-gray-800">
+              {scorePercentage}%
+            </span>
+          </div>
+
+          <div className="relative">
+            <Progress
+              value={scorePercentage}
+              className="h-3 bg-white/50 shadow-inner"
+            />
+            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          </div>
+        </div>
+
+        {/* Reason */}
+        {criterion.reason && (
+          <div className="p-3 bg-white/60 backdrop-blur-sm rounded-xl border border-white/50 shadow-inner">
+            <p className="text-sm text-gray-700 leading-relaxed font-medium">
+              {criterion.reason}
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 const MatchPreview: React.FC<MatchPreviewProps> = ({
   firstParty,
@@ -26,97 +192,292 @@ const MatchPreview: React.FC<MatchPreviewProps> = ({
 
   if (!matchScore) {
     return (
-      <Card className={`p-4 ${className}`}>
-        <div className="flex items-center gap-2 text-yellow-600">
-          <AlertCircle className="w-5 h-5" />
-          <span>לא ניתן לחשב התאמה - חסרים נתונים חיוניים</span>
-        </div>
+      <Card
+        className={cn(
+          'border-0 shadow-xl rounded-3xl overflow-hidden',
+          className
+        )}
+      >
+        <CardContent className="p-8">
+          <div className="text-center space-y-6">
+            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-yellow-100 to-amber-100 flex items-center justify-center mx-auto shadow-xl">
+              <AlertCircle className="w-12 h-12 text-yellow-500" />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">
+                לא ניתן לחשב התאמה
+              </h3>
+              <p className="text-gray-600">
+                חסרים נתונים חיוניים לחישוב ההתאמה
+              </p>
+            </div>
+            <div className="p-4 bg-gradient-to-r from-yellow-50 to-amber-50 rounded-2xl border border-yellow-200">
+              <p className="text-sm text-yellow-800 font-medium">
+                אנא ודא שלשני המועמדים יש פרופיל מלא עם תאריך לידה, עיר מגורים
+                ורמה דתית
+              </p>
+            </div>
+          </div>
+        </CardContent>
       </Card>
     );
   }
 
-  // Determine match quality indicators
+  // Determine match quality with enhanced categories
   const getMatchQuality = (score: number) => {
+    if (score >= 95)
+      return {
+        icon: Crown,
+        color: 'text-purple-600',
+        bgGradient: 'from-purple-500 to-pink-500',
+        bgColor: 'from-purple-50 to-pink-50',
+        text: 'התאמה מושלמת',
+        description: 'זוג אידיאלי עם התאמה יוצאת דופן!',
+        animation: 'animate-pulse',
+      };
     if (score >= 85)
       return {
-        icon: CheckCircle,
-        color: "text-green-600",
-        text: "התאמה גבוהה",
+        icon: Gem,
+        color: 'text-emerald-600',
+        bgGradient: 'from-emerald-500 to-green-500',
+        bgColor: 'from-emerald-50 to-green-50',
+        text: 'התאמה מעולה',
+        description: 'זוג עם פוטנציאל גבוה להצלחה',
+        animation: '',
       };
-    if (score >= 70)
-      return { icon: CheckCircle, color: "text-blue-600", text: "התאמה טובה" };
-    if (score >= 50)
+    if (score >= 75)
       return {
-        icon: AlertCircle,
-        color: "text-yellow-600",
-        text: "התאמה בינונית",
+        icon: Trophy,
+        color: 'text-blue-600',
+        bgGradient: 'from-blue-500 to-cyan-500',
+        bgColor: 'from-blue-50 to-cyan-50',
+        text: 'התאמה טובה',
+        description: 'התאמה איכותית עם סיכויים טובים',
+        animation: '',
       };
-    return { icon: XCircle, color: "text-red-600", text: "התאמה נמוכה" };
+    if (score >= 60)
+      return {
+        icon: Star,
+        color: 'text-yellow-600',
+        bgGradient: 'from-yellow-500 to-amber-500',
+        bgColor: 'from-yellow-50 to-amber-50',
+        text: 'התאמה בינונית',
+        description: 'יש פוטנציאל, שווה לבדוק',
+        animation: '',
+      };
+    return {
+      icon: AlertCircle,
+      color: 'text-red-600',
+      bgGradient: 'from-red-500 to-pink-500',
+      bgColor: 'from-red-50 to-pink-50',
+      text: 'התאמה נמוכה',
+      description: 'התאמה מוגבלת, יש לשקול בזהירות',
+      animation: '',
+    };
   };
 
   const quality = getMatchQuality(matchScore.score);
   const Icon = quality.icon;
 
   return (
-    <Card className={`p-6 ${className}`}>
-      <div className="space-y-6">
-        {/* Match Score */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Icon className={`w-5 h-5 ${quality.color}`} />
-            <span className="font-medium">{quality.text}</span>
+    <Card
+      className={cn(
+        'border-0 shadow-2xl rounded-3xl overflow-hidden transition-all duration-500 hover:shadow-3xl',
+        'bg-gradient-to-br',
+        quality.bgColor,
+        className
+      )}
+    >
+      {/* Animated background */}
+      <div className="absolute inset-0">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-white/20 to-transparent rounded-full blur-3xl animate-float"></div>
+        <div
+          className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-br from-white/10 to-transparent rounded-full blur-2xl animate-float"
+          style={{ animationDelay: '2s' }}
+        ></div>
+        <div
+          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-gradient-to-br from-white/5 to-transparent rounded-full blur-3xl animate-float"
+          style={{ animationDelay: '4s' }}
+        ></div>
+      </div>
+
+      <CardContent className="relative z-10 p-8 space-y-8">
+        {/* Header Section */}
+        <div className="text-center space-y-6">
+          <div className="flex items-center justify-center">
+            <div
+              className={cn(
+                'p-6 rounded-full shadow-2xl bg-gradient-to-r text-white transform hover:scale-110 transition-transform duration-300',
+                quality.bgGradient,
+                quality.animation
+              )}
+            >
+              <Icon className="w-12 h-12" />
+            </div>
           </div>
-          <Badge variant="outline" className="text-lg">
-            {Math.round(matchScore.score)}%
-          </Badge>
+
+          <div className="space-y-2">
+            <h2 className="text-3xl font-bold text-gray-800">{quality.text}</h2>
+            <p className="text-lg text-gray-600 leading-relaxed">
+              {quality.description}
+            </p>
+          </div>
+
+          {/* Score display */}
+          <div className="relative">
+            <div className="flex items-center justify-center gap-4 mb-4">
+              <div className="text-center">
+                <div className="text-5xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
+                  {Math.round(matchScore.score)}%
+                </div>
+                <p className="text-sm font-medium text-gray-600 mt-1">
+                  ציון התאמה כללי
+                </p>
+              </div>
+            </div>
+
+            {/* Progress Ring */}
+            <div className="relative w-32 h-32 mx-auto">
+              <svg
+                className="w-32 h-32 transform -rotate-90"
+                viewBox="0 0 100 100"
+              >
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="40"
+                  stroke="currentColor"
+                  strokeWidth="8"
+                  fill="transparent"
+                  className="text-gray-200"
+                />
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="40"
+                  stroke="url(#gradient)"
+                  strokeWidth="8"
+                  fill="transparent"
+                  strokeDasharray={`${2 * Math.PI * 40}`}
+                  strokeDashoffset={`${2 * Math.PI * 40 * (1 - matchScore.score / 100)}`}
+                  className="transition-all duration-1000 ease-out"
+                  strokeLinecap="round"
+                />
+                <defs>
+                  <linearGradient
+                    id="gradient"
+                    x1="0%"
+                    y1="0%"
+                    x2="100%"
+                    y2="0%"
+                  >
+                    <stop offset="0%" stopColor="#8B5CF6" />
+                    <stop offset="50%" stopColor="#EC4899" />
+                    <stop offset="100%" stopColor="#3B82F6" />
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Sparkles className="w-8 h-8 text-purple-500 animate-pulse" />
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Score Bar */}
-        <Progress value={matchScore.score} className="h-2" />
+        {/* Match Criteria Section */}
+        <div className="space-y-6">
+          <div className="text-center">
+            <h3 className="text-2xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-3">
+              <TrendingUp className="w-6 h-6 text-purple-500" />
+              פירוט קריטריונים
+            </h3>
+            <p className="text-gray-600">ניתוח מפורט של רמות ההתאמה השונות</p>
+          </div>
 
-        {/* Match Criteria */}
-        <div className="space-y-4">
-          <h4 className="font-medium">קריטריונים מרכזיים:</h4>
-          <div className="grid gap-3">
-            {matchScore.criteria.map((criterion) => (
-              <div
-                key={criterion.name}
-                className="flex items-center justify-between"
-              >
-                <span className="text-gray-600">
-                  {criterion.name === "age" && "גיל"}
-                  {criterion.name === "location" && "מיקום"}
-                  {criterion.name === "religious" && "רמה דתית"}
-                </span>
-                <div className="flex items-center gap-2">
-                  <Progress
-                    value={criterion.score * 100}
-                    className="w-24 h-1.5"
-                  />
-                  <span className="text-sm font-medium w-8 text-center">
-                    {Math.round(criterion.score * 100)}%
-                  </span>
-                </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {matchScore.criteria.map((criterion, index) => (
+              <div key={criterion.name} className="animate-fade-in-up">
+                <MatchCriteriaCard criterion={criterion} index={index} />
               </div>
             ))}
           </div>
         </div>
 
-        {/* Match Reasons */}
+        {/* Match Reasons Section */}
         {matchScore.reasons.length > 0 && (
-          <div className="space-y-2">
-            <h4 className="font-medium">סיבות להתאמה:</h4>
-            <ul className="space-y-1 text-gray-600">
+          <div className="space-y-4">
+            <div className="text-center">
+              <h4 className="text-xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-3">
+                <Heart className="w-5 h-5 text-red-500" />
+                סיבות להתאמה
+              </h4>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {matchScore.reasons.map((reason, index) => (
-                <li key={index} className="flex items-center gap-2">
-                  <span>•</span>
-                  <span>{reason}</span>
-                </li>
+                <div
+                  key={index}
+                  className="flex items-start gap-3 p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/50 shadow-lg hover:shadow-xl transition-all duration-300 group"
+                  style={{
+                    animationDelay: `${(index + 3) * 150}ms`,
+                    animationFillMode: 'both',
+                  }}
+                >
+                  <div className="p-2 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg group-hover:scale-110 transition-transform">
+                    <Gift className="w-4 h-4" />
+                  </div>
+                  <p className="text-gray-700 leading-relaxed font-medium flex-1">
+                    {reason}
+                  </p>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
         )}
-      </div>
+
+        {/* Summary Card */}
+        <div className="p-6 bg-white/70 backdrop-blur-sm rounded-2xl border border-white/50 shadow-xl">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg">
+                <Award className="w-6 h-6" />
+              </div>
+              <div>
+                <h4 className="text-lg font-bold text-gray-800">סיכום התאמה</h4>
+                <p className="text-gray-600">המלצה מבוססת ניתוח</p>
+              </div>
+            </div>
+
+            <div className="text-right">
+              <div className="flex items-center gap-2">
+                {matchScore.score >= 80 ? (
+                  <>
+                    <Zap className="w-5 h-5 text-green-500" />
+                    <span className="font-bold text-green-600">
+                      מומלץ בחום!
+                    </span>
+                  </>
+                ) : matchScore.score >= 60 ? (
+                  <>
+                    <Star className="w-5 h-5 text-blue-500" />
+                    <span className="font-bold text-blue-600">שווה לנסות</span>
+                  </>
+                ) : (
+                  <>
+                    <AlertCircle className="w-5 h-5 text-yellow-500" />
+                    <span className="font-bold text-yellow-600">
+                      צריך שיקול
+                    </span>
+                  </>
+                )}
+              </div>
+              <p className="text-sm text-gray-500 mt-1">
+                מבוסס על {matchScore.criteria.length} קריטריונים
+              </p>
+            </div>
+          </div>
+        </div>
+      </CardContent>
     </Card>
   );
 };

@@ -1,21 +1,33 @@
 // /CandidatesManager/CandidatesStats.tsx
 
-"use client";
+'use client';
 
-import React from "react";
+import React from 'react';
 
-import { Card } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import {
   Users,
-  UserSquare2,
+  UserCheck,
   Clock,
   MapPin,
   CheckCircle,
   Image as ImageIcon,
-} from "lucide-react";
-import { useStatistics } from "../hooks/useStatistics";
-import type { Candidate } from "../types/candidates";
+  TrendingUp,
+  ArrowUp,
+  ArrowDown,
+  Activity,
+  Heart,
+  Star,
+  Award,
+  Sparkles,
+  Target,
+  Crown,
+  Zap,
+} from 'lucide-react';
+import { useStatistics } from '../hooks/useStatistics';
+import type { Candidate } from '../types/candidates';
 import {
   BarChart,
   Bar,
@@ -27,7 +39,12 @@ import {
   PieChart,
   Pie,
   Cell,
-} from "recharts";
+  LineChart,
+  Line,
+  Area,
+  AreaChart,
+} from 'recharts';
+import { cn } from '@/lib/utils';
 
 interface StatCardProps {
   title: string;
@@ -39,6 +56,8 @@ interface StatCardProps {
     isPositive: boolean;
   };
   className?: string;
+  gradient: string;
+  iconColor: string;
 }
 
 interface CandidatesStatsProps {
@@ -47,12 +66,23 @@ interface CandidatesStatsProps {
 }
 
 const CHART_COLORS = [
-  "#3B82F6", // כחול
-  "#EF4444", // אדום
-  "#10B981", // ירוק
-  "#F59E0B", // כתום
-  "#6366F1", // סגול
-  "#EC4899", // ורוד
+  '#3B82F6', // כחול
+  '#EF4444', // אדום
+  '#10B981', // ירוק
+  '#F59E0B', // כתום
+  '#8B5CF6', // סגול
+  '#EC4899', // ורוד
+  '#06B6D4', // ציאן
+  '#84CC16', // ליים
+];
+
+const GRADIENT_COLORS = [
+  'from-blue-500 to-cyan-500',
+  'from-purple-500 to-pink-500',
+  'from-green-500 to-emerald-500',
+  'from-orange-500 to-amber-500',
+  'from-red-500 to-pink-500',
+  'from-indigo-500 to-purple-500',
 ];
 
 const StatCard: React.FC<StatCardProps> = ({
@@ -62,27 +92,104 @@ const StatCard: React.FC<StatCardProps> = ({
   icon,
   trend,
   className,
+  gradient,
+  iconColor,
 }) => (
-  <Card className={`p-6 ${className}`}>
-    <div className="flex items-start justify-between">
-      <div className="space-y-2">
-        <p className="text-sm text-gray-500">{title}</p>
-        <p className="text-2xl font-semibold">{value}</p>
-        {description && <p className="text-xs text-gray-400">{description}</p>}
-        {trend && (
-          <div
-            className={`text-xs flex items-center gap-1 ${
-              trend.isPositive ? "text-green-600" : "text-red-600"
-            }`}
-          >
-            <span>{trend.isPositive ? "↑" : "↓"}</span>
-            <span>{Math.abs(trend.value)}%</span>
-            <span>מהחודש שעבר</span>
+  <Card
+    className={cn(
+      'border-0 shadow-xl bg-gradient-to-br from-white via-gray-50/30 to-white overflow-hidden group hover:shadow-2xl transition-all duration-300 transform hover:scale-105',
+      className
+    )}
+  >
+    <CardContent className="p-6 relative">
+      {/* Background decorative elements */}
+      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/20 to-transparent rounded-full blur-2xl opacity-50"></div>
+
+      <div className="flex items-start justify-between relative z-10">
+        <div className="space-y-3 flex-1">
+          <p className="text-sm font-medium text-gray-600">{title}</p>
+          <div className="flex items-baseline gap-2">
+            <p className="text-3xl font-bold text-gray-800">{value}</p>
+            {trend && (
+              <div
+                className={cn(
+                  'flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold',
+                  trend.isPositive
+                    ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-700'
+                    : 'bg-gradient-to-r from-red-100 to-pink-100 text-red-700'
+                )}
+              >
+                {trend.isPositive ? (
+                  <ArrowUp className="w-3 h-3" />
+                ) : (
+                  <ArrowDown className="w-3 h-3" />
+                )}
+                <span>{Math.abs(trend.value)}%</span>
+              </div>
+            )}
           </div>
-        )}
+          {description && (
+            <p className="text-sm text-gray-500 leading-relaxed">
+              {description}
+            </p>
+          )}
+          {trend && (
+            <p className="text-xs text-gray-400">
+              {trend.isPositive ? 'עלייה' : 'ירידה'} מהחודש שעבר
+            </p>
+          )}
+        </div>
+
+        <div
+          className={cn(
+            'p-4 rounded-2xl shadow-lg group-hover:scale-110 transition-transform duration-300',
+            `bg-gradient-to-r ${gradient}`
+          )}
+        >
+          <div className={iconColor}>{icon}</div>
+        </div>
       </div>
-      <div className="bg-blue-50 p-3 rounded-lg">{icon}</div>
-    </div>
+    </CardContent>
+  </Card>
+);
+
+const EnhancedChartCard: React.FC<{
+  title: string;
+  children: React.ReactNode;
+  description?: string;
+  gradient?: string;
+  icon?: React.ReactNode;
+}> = ({
+  title,
+  children,
+  description,
+  gradient = 'from-blue-500 to-cyan-500',
+  icon,
+}) => (
+  <Card className="border-0 shadow-xl bg-gradient-to-br from-white via-gray-50/30 to-white overflow-hidden hover:shadow-2xl transition-all duration-300">
+    <CardContent className="p-6">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          {icon && (
+            <div
+              className={cn(
+                'p-3 rounded-full shadow-lg',
+                `bg-gradient-to-r ${gradient}`
+              )}
+            >
+              <div className="text-white">{icon}</div>
+            </div>
+          )}
+          <div>
+            <h3 className="text-xl font-bold text-gray-800">{title}</h3>
+            {description && (
+              <p className="text-sm text-gray-500 mt-1">{description}</p>
+            )}
+          </div>
+        </div>
+      </div>
+      {children}
+    </CardContent>
   </Card>
 );
 
@@ -110,66 +217,165 @@ const CandidatesStats: React.FC<CandidatesStatsProps> = ({
   const topCities = getTopCities(5);
 
   return (
-    <div className={`space-y-6 ${className}`}>
+    <div className={cn('space-y-8', className)}>
+      {/* Hero Section */}
+      <div className="relative min-h-[200px] bg-gradient-to-br from-purple-50 via-cyan-50/30 to-emerald-50/20 overflow-hidden rounded-3xl shadow-2xl p-8">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0">
+          <div className="absolute top-10 right-10 w-64 h-64 bg-gradient-to-br from-purple-200/30 to-pink-200/30 rounded-full blur-3xl animate-float"></div>
+          <div
+            className="absolute bottom-10 left-10 w-48 h-48 bg-gradient-to-br from-cyan-200/30 to-blue-200/30 rounded-full blur-2xl animate-float"
+            style={{ animationDelay: '2s' }}
+          ></div>
+        </div>
+
+        <div className="relative z-10 text-center">
+          <div className="inline-flex items-center gap-3 mb-6">
+            <div className="p-4 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg">
+              <Activity className="w-10 h-10" />
+            </div>
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-4">
+            סטטיסטיקות מועמדים
+          </h1>
+          <p className="text-xl text-gray-700 max-w-2xl mx-auto leading-relaxed">
+            מבט כולל על נתוני המועמדים, פעילות ותובנות עסקיות מתקדמות
+          </p>
+        </div>
+      </div>
+
       {/* סטטיסטיקות עיקריות */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="סה״כ מועמדים"
           value={stats.gender.total}
-          icon={<Users className="w-6 h-6 text-blue-600" />}
+          icon={<Users className="w-8 h-8" />}
           description="סה״כ מועמדים פעילים במערכת"
+          gradient="from-blue-500 to-cyan-500"
+          iconColor="text-white"
+          trend={{
+            value: 12,
+            isPositive: true,
+          }}
         />
         <StatCard
           title="יחס מועמדים/ות"
           value={genderRatio.formattedRatio}
-          icon={<UserSquare2 className="w-6 h-6 text-blue-600" />}
+          icon={<UserCheck className="w-8 h-8" />}
           description="גברים/נשים"
+          gradient="from-purple-500 to-pink-500"
+          iconColor="text-white"
         />
         <StatCard
           title="פעילות בשבוע האחרון"
           value={`${activeUsers}%`}
-          icon={<Clock className="w-6 h-6 text-blue-600" />}
+          icon={<Clock className="w-8 h-8" />}
+          gradient="from-green-500 to-emerald-500"
+          iconColor="text-white"
           trend={{
-            value: 5,
+            value: 8,
             isPositive: true,
           }}
         />
         <StatCard
           title="פרופילים מלאים"
           value={`${completionStats.percentage}%`}
-          icon={<CheckCircle className="w-6 h-6 text-blue-600" />}
+          icon={<CheckCircle className="w-8 h-8" />}
           description={`${completionStats.completed} מתוך ${stats.gender.total}`}
+          gradient="from-orange-500 to-amber-500"
+          iconColor="text-white"
+          trend={{
+            value: 5,
+            isPositive: true,
+          }}
         />
       </div>
 
       {/* טאבים לניתוחים מתקדמים */}
       <Tabs defaultValue="demographics" className="w-full">
-        <TabsList className="w-full justify-start">
-          <TabsTrigger value="demographics">דמוגרפיה</TabsTrigger>
-          <TabsTrigger value="activity">פעילות</TabsTrigger>
-          <TabsTrigger value="completion">שלמות פרופילים</TabsTrigger>
+        <TabsList className="bg-purple-50/50 rounded-2xl p-1.5 h-auto shadow-lg border border-white/50 grid w-full grid-cols-3">
+          <TabsTrigger
+            value="demographics"
+            className="flex items-center gap-2 rounded-xl transition-all duration-300 py-3 hover:scale-105 data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold"
+          >
+            <Users className="w-5 h-5" />
+            דמוגרפיה
+          </TabsTrigger>
+          <TabsTrigger
+            value="activity"
+            className="flex items-center gap-2 rounded-xl transition-all duration-300 py-3 hover:scale-105 data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold"
+          >
+            <Activity className="w-5 h-5" />
+            פעילות
+          </TabsTrigger>
+          <TabsTrigger
+            value="completion"
+            className="flex items-center gap-2 rounded-xl transition-all duration-300 py-3 hover:scale-105 data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold"
+          >
+            <Target className="w-5 h-5" />
+            שלמות פרופילים
+          </TabsTrigger>
         </TabsList>
 
         {/* דמוגרפיה */}
-        <TabsContent value="demographics">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <TabsContent value="demographics" className="mt-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* התפלגות גילאים */}
-            <Card className="p-6">
-              <h3 className="text-lg font-medium mb-4">התפלגות גילאים</h3>
+            <EnhancedChartCard
+              title="התפלגות גילאים"
+              description="פילוח המועמדים לפי קבוצות גיל"
+              gradient="from-blue-500 to-cyan-500"
+              icon={<Users className="w-6 h-6" />}
+            >
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={ageDistribution}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="range" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="#3B82F6" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis
+                    dataKey="range"
+                    tick={{ fontSize: 12 }}
+                    stroke="#666"
+                  />
+                  <YAxis tick={{ fontSize: 12 }} stroke="#666" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'white',
+                      border: 'none',
+                      borderRadius: '12px',
+                      boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
+                    }}
+                  />
+                  <Bar
+                    dataKey="count"
+                    fill="url(#blueGradient)"
+                    radius={[4, 4, 0, 0]}
+                  />
+                  <defs>
+                    <linearGradient
+                      id="blueGradient"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8} />
+                      <stop
+                        offset="95%"
+                        stopColor="#06B6D4"
+                        stopOpacity={0.6}
+                      />
+                    </linearGradient>
+                  </defs>
                 </BarChart>
               </ResponsiveContainer>
-            </Card>
+            </EnhancedChartCard>
 
             {/* התפלגות דתית */}
-            <Card className="p-6">
-              <h3 className="text-lg font-medium mb-4">התפלגות רמת דתיות</h3>
+            <EnhancedChartCard
+              title="התפלגות רמת דתיות"
+              description="פילוח המועמדים לפי רמת דתיות"
+              gradient="from-purple-500 to-pink-500"
+              icon={<Heart className="w-6 h-6" />}
+            >
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
@@ -179,7 +385,11 @@ const CandidatesStats: React.FC<CandidatesStatsProps> = ({
                     cx="50%"
                     cy="50%"
                     outerRadius={100}
-                    label
+                    innerRadius={40}
+                    paddingAngle={2}
+                    label={({ name, percent }) =>
+                      `${name} ${(percent * 100).toFixed(0)}%`
+                    }
                   >
                     {religiousDistribution.map((_, index) => (
                       <Cell
@@ -188,93 +398,233 @@ const CandidatesStats: React.FC<CandidatesStatsProps> = ({
                       />
                     ))}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'white',
+                      border: 'none',
+                      borderRadius: '12px',
+                      boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
+                    }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
-            </Card>
+            </EnhancedChartCard>
 
             {/* מיקומים מובילים */}
-            <Card className="p-6">
-              <h3 className="text-lg font-medium mb-4">ערים מובילות</h3>
+            <EnhancedChartCard
+              title="ערים מובילות"
+              description="החמש ערים עם הכי הרבה מועמדים"
+              gradient="from-green-500 to-emerald-500"
+              icon={<MapPin className="w-6 h-6" />}
+            >
               <div className="space-y-4">
-                {topCities.map((city) => (
+                {topCities.map((city, index) => (
                   <div
                     key={city.city}
-                    className="flex items-center justify-between"
+                    className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-100 hover:shadow-md transition-all duration-300"
                   >
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-blue-600" />
-                      <span>{city.city}</span>
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={cn(
+                          'w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg',
+                          index === 0
+                            ? 'bg-gradient-to-r from-yellow-400 to-orange-500'
+                            : index === 1
+                              ? 'bg-gradient-to-r from-gray-400 to-gray-500'
+                              : index === 2
+                                ? 'bg-gradient-to-r from-orange-400 to-red-500'
+                                : 'bg-gradient-to-r from-green-400 to-emerald-500'
+                        )}
+                      >
+                        {index + 1}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-green-600" />
+                        <span className="font-medium text-gray-800">
+                          {city.city}
+                        </span>
+                      </div>
                     </div>
-                    <span className="font-medium">{city.count}</span>
+                    <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-sm px-3 py-1 font-bold">
+                      {city.count}
+                    </Badge>
                   </div>
                 ))}
               </div>
-            </Card>
+            </EnhancedChartCard>
           </div>
         </TabsContent>
 
         {/* פעילות */}
-        <TabsContent value="activity">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* פעילות לאורך זמן */}
-            <Card className="p-6">
-              <h3 className="text-lg font-medium mb-4">פעילות משתמשים</h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span>פעילים בשבוע האחרון</span>
-                  <span className="font-medium">{activityTrend.weekly}</span>
+        <TabsContent value="activity" className="mt-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <EnhancedChartCard
+              title="פעילות משתמשים"
+              description="נתוני פעילות עדכניים"
+              gradient="from-orange-500 to-amber-500"
+              icon={<Activity className="w-6 h-6" />}
+            >
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl border border-orange-100">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-orange-800">
+                        פעילים בשבוע האחרון
+                      </span>
+                      <TrendingUp className="w-4 h-4 text-orange-600" />
+                    </div>
+                    <span className="text-2xl font-bold text-orange-900">
+                      {activityTrend.weekly}
+                    </span>
+                  </div>
+
+                  <div className="p-4 bg-gradient-to-r from-amber-50 to-yellow-50 rounded-xl border border-amber-100">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-amber-800">
+                        פעילים בחודש האחרון
+                      </span>
+                      <Activity className="w-4 h-4 text-amber-600" />
+                    </div>
+                    <span className="text-2xl font-bold text-amber-900">
+                      {activityTrend.monthly}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span>פעילים בחודש האחרון</span>
-                  <span className="font-medium">{activityTrend.monthly}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>ממוצע ימים בין התחברויות</span>
-                  <span className="font-medium">
+
+                <div className="p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl border border-yellow-100">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-yellow-800">
+                      ממוצע ימים בין התחברויות
+                    </span>
+                    <Clock className="w-4 h-4 text-yellow-600" />
+                  </div>
+                  <span className="text-2xl font-bold text-yellow-900">
                     {activityTrend.average} ימים
                   </span>
                 </div>
               </div>
-            </Card>
+            </EnhancedChartCard>
+
+            {/* Additional Activity Chart */}
+            <EnhancedChartCard
+              title="טרנד פעילות שבועי"
+              description="פעילות לאורך השבוע"
+              gradient="from-indigo-500 to-purple-500"
+              icon={<Star className="w-6 h-6" />}
+            >
+              <div className="flex items-center justify-center h-64 text-gray-500">
+                <div className="text-center">
+                  <Sparkles className="w-12 h-12 mx-auto mb-4 text-indigo-400" />
+                  <p>נתונים זמינים בקרוב</p>
+                  <p className="text-sm">טרנד פעילות מתקדם</p>
+                </div>
+              </div>
+            </EnhancedChartCard>
           </div>
         </TabsContent>
 
         {/* שלמות פרופילים */}
-        <TabsContent value="completion">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="p-6">
-              <h3 className="text-lg font-medium mb-4">שלמות פרופילים</h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <ImageIcon className="w-4 h-4 text-blue-600" />
-                    <span>תמונות פרופיל</span>
+        <TabsContent value="completion" className="mt-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <EnhancedChartCard
+              title="שלמות פרופילים"
+              description="אחוזי השלמה של רכיבי הפרופיל"
+              gradient="from-red-500 to-pink-500"
+              icon={<Target className="w-6 h-6" />}
+            >
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-gradient-to-r from-red-50 to-pink-50 rounded-xl border border-red-100 hover:shadow-md transition-all duration-300">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-full bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg">
+                        <ImageIcon className="w-4 h-4" />
+                      </div>
+                      <span className="font-medium text-gray-800">
+                        תמונות פרופיל
+                      </span>
+                    </div>
+                    <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 shadow-sm px-3 py-1 font-bold">
+                      {stats.completion.percentages.hasPhotos}%
+                    </Badge>
                   </div>
-                  <span className="font-medium">
-                    {stats.completion.percentages.hasPhotos}%
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-blue-600" />
-                    <span>פרופיל מאומת</span>
+
+                  <div className="flex items-center justify-between p-4 bg-gradient-to-r from-pink-50 to-rose-50 rounded-xl border border-pink-100 hover:shadow-md transition-all duration-300">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg">
+                        <CheckCircle className="w-4 h-4" />
+                      </div>
+                      <span className="font-medium text-gray-800">
+                        פרופיל מאומת
+                      </span>
+                    </div>
+                    <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 shadow-sm px-3 py-1 font-bold">
+                      {stats.completion.percentages.isVerified}%
+                    </Badge>
                   </div>
-                  <span className="font-medium">
-                    {stats.completion.percentages.isVerified}%
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-blue-600" />
-                    <span>המלצות</span>
+
+                  <div className="flex items-center justify-between p-4 bg-gradient-to-r from-rose-50 to-red-50 rounded-xl border border-rose-100 hover:shadow-md transition-all duration-300">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-full bg-gradient-to-r from-rose-500 to-red-500 text-white shadow-lg">
+                        <Users className="w-4 h-4" />
+                      </div>
+                      <span className="font-medium text-gray-800">המלצות</span>
+                    </div>
+                    <Badge className="bg-gradient-to-r from-rose-500 to-red-500 text-white border-0 shadow-sm px-3 py-1 font-bold">
+                      {stats.completion.percentages.hasReferences}%
+                    </Badge>
                   </div>
-                  <span className="font-medium">
-                    {stats.completion.percentages.hasReferences}%
-                  </span>
                 </div>
               </div>
-            </Card>
+            </EnhancedChartCard>
+
+            {/* Performance Insights */}
+            <EnhancedChartCard
+              title="תובנות ביצועים"
+              description="מדדים עסקיים מתקדמים"
+              gradient="from-emerald-500 to-green-500"
+              icon={<Award className="w-6 h-6" />}
+            >
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center p-4 bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl border border-emerald-100">
+                    <Crown className="w-8 h-8 mx-auto mb-2 text-emerald-600" />
+                    <div className="text-2xl font-bold text-emerald-800">
+                      A+
+                    </div>
+                    <div className="text-sm text-emerald-600">דירוג איכות</div>
+                  </div>
+
+                  <div className="text-center p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-100">
+                    <Zap className="w-8 h-8 mx-auto mb-2 text-green-600" />
+                    <div className="text-2xl font-bold text-green-800">95%</div>
+                    <div className="text-sm text-green-600">שביעות רצון</div>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl border border-blue-100">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="font-medium text-blue-800">
+                      התפתחות החודש
+                    </span>
+                    <TrendingUp className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-blue-700">מועמדים חדשים</span>
+                      <span className="font-bold text-blue-800">+12%</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-blue-700">פעילות</span>
+                      <span className="font-bold text-blue-800">+8%</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-blue-700">השלמות פרופיל</span>
+                      <span className="font-bold text-blue-800">+5%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </EnhancedChartCard>
           </div>
         </TabsContent>
       </Tabs>

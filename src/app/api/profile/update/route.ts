@@ -353,6 +353,8 @@ export async function PUT(req: NextRequest) {
       medicalInfoDetails: dbProfile.medicalInfoDetails ?? undefined,
       medicalInfoDisclosureTiming: dbProfile.medicalInfoDisclosureTiming ?? undefined,
       isMedicalInfoVisible: dbProfile.isMedicalInfoVisible,
+            needsAiProfileUpdate: dbProfile.needsAiProfileUpdate,
+
       // --- END: הוספת שדות רפואיים לתגובה ---
       preferredMatchmakerGender: dbProfile.preferredMatchmakerGender || undefined,
       availabilityStatus: dbProfile.availabilityStatus,

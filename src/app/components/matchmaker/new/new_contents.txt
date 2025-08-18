@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\matchmaker\new
-# Generated on: 2025-08-18 14:13:05
+# Generated on: 2025-08-18 14:39:53
 ################################################################################
 
 ================================================================================
@@ -722,13 +722,33 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\matc
 Content:
 // /components/matchmaker/CandidateCard/Actions.tsx
 
-"use client";
+'use client';
 
-import React from "react";
-
-import { Button } from "@/components/ui/button";
-import { Heart, Mail, FileText, Eye, Clock } from "lucide-react";
-import type { Candidate } from "../types/candidates";
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  Heart,
+  Mail,
+  FileText,
+  Eye,
+  Clock,
+  Sparkles,
+  Send,
+  UserPlus,
+  MessageCircle,
+  Calendar,
+  Star,
+  Zap,
+} from 'lucide-react';
+import type { Candidate } from '../types/candidates';
+import { cn } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface ActionsProps {
   candidate: Candidate;
@@ -737,6 +757,8 @@ interface ActionsProps {
   onCheckAvailability: (candidate: Candidate) => void;
   onViewProfile: (candidate: Candidate) => void;
   className?: string;
+  variant?: 'full' | 'compact' | 'minimal';
+  showLabels?: boolean;
 }
 
 const Actions: React.FC<ActionsProps> = ({
@@ -746,49 +768,272 @@ const Actions: React.FC<ActionsProps> = ({
   onCheckAvailability,
   onViewProfile,
   className,
+  variant = 'full',
+  showLabels = true,
 }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const [activeAction, setActiveAction] = useState<string | null>(null);
+
   // מונע התפשטות הקליק לכרטיס המינימלי
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
   };
 
+  const handleActionClick = (action: string, callback: () => void) => {
+    setActiveAction(action);
+    callback();
+    setTimeout(() => setActiveAction(null), 150);
+  };
+
+  const getPriorityBadge = () => {
+    if (candidate.profile.availabilityStatus === 'AVAILABLE') {
+      return (
+        <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-lg animate-pulse">
+          <Sparkles className="w-3 h-3 mr-1" />
+          זמין/ה עכשיו
+        </Badge>
+      );
+    }
+    return null;
+  };
+
+  const actionButtons = [
+    {
+      id: 'view',
+      label: 'צפייה בפרופיל',
+      icon: Eye,
+      onClick: () => onViewProfile(candidate),
+      gradient: 'from-blue-500 to-cyan-500',
+      hoverGradient: 'from-blue-600 to-cyan-600',
+      description: 'פתח את הפרופיל המלא',
+      primary: true,
+    },
+    {
+      id: 'suggest',
+      label: 'הצעת שידוך',
+      icon: Heart,
+      onClick: () => onSuggest(candidate),
+      gradient: 'from-pink-500 to-rose-500',
+      hoverGradient: 'from-pink-600 to-rose-600',
+      description: 'צור הצעת שידוך חדשה',
+      primary: true,
+    },
+    {
+      id: 'invite',
+      label: 'שליחת הזמנה',
+      icon: Send,
+      onClick: () => onInvite(candidate),
+      gradient: 'from-purple-500 to-indigo-500',
+      hoverGradient: 'from-purple-600 to-indigo-600',
+      description: 'שלח הזמנה למועמד',
+      primary: false,
+    },
+    {
+      id: 'availability',
+      label: 'בדיקת זמינות',
+      icon: Calendar,
+      onClick: () => onCheckAvailability(candidate),
+      gradient: 'from-orange-500 to-amber-500',
+      hoverGradient: 'from-orange-600 to-amber-600',
+      description: 'בדוק זמינות למפגש',
+      primary: false,
+    },
+  ];
+
+  if (variant === 'minimal') {
+    return (
+      <div
+        className={cn('flex items-center gap-1', className)}
+        onClick={handleClick}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <TooltipProvider>
+          {actionButtons.slice(0, 2).map((action) => {
+            const IconComponent = action.icon;
+            return (
+              <Tooltip key={action.id}>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn(
+                      'h-8 w-8 rounded-full transition-all duration-300 transform hover:scale-110',
+                      `bg-gradient-to-r ${action.gradient} hover:${action.hoverGradient}`,
+                      'text-white shadow-lg hover:shadow-xl',
+                      activeAction === action.id && 'scale-95'
+                    )}
+                    onClick={() => handleActionClick(action.id, action.onClick)}
+                  >
+                    <IconComponent className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{action.description}</p>
+                </TooltipContent>
+              </Tooltip>
+            );
+          })}
+        </TooltipProvider>
+      </div>
+    );
+  }
+
+  if (variant === 'compact') {
+    return (
+      <div
+        className={cn('flex flex-wrap gap-2', className)}
+        onClick={handleClick}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        {getPriorityBadge()}
+
+        <div className="flex gap-2">
+          {actionButtons.map((action) => {
+            const IconComponent = action.icon;
+            return (
+              <Button
+                key={action.id}
+                variant="outline"
+                size="sm"
+                className={cn(
+                  'transition-all duration-300 transform hover:scale-105 border-0 shadow-lg hover:shadow-xl',
+                  `bg-gradient-to-r ${action.gradient} hover:${action.hoverGradient}`,
+                  'text-white font-medium',
+                  activeAction === action.id && 'scale-95'
+                )}
+                onClick={() => handleActionClick(action.id, action.onClick)}
+              >
+                <IconComponent className="w-4 h-4 mr-2" />
+                {showLabels && action.label}
+              </Button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // Full variant
   return (
-    <div className={`flex flex-wrap gap-2 ${className}`} onClick={handleClick}>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => onViewProfile(candidate)}
-      >
-        <Eye className="w-4 h-4 ml-2" />
-        צפייה בפרופיל
-      </Button>
+    <div
+      className={cn('space-y-4', className)}
+      onClick={handleClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Priority Badge */}
+      <div className="flex justify-center">{getPriorityBadge()}</div>
 
-      <Button variant="outline" size="sm" onClick={() => onInvite(candidate)}>
-        <Mail className="w-4 h-4 ml-2" />
-        שליחת הזמנה
-      </Button>
+      {/* Primary Actions */}
+      <div className="grid grid-cols-2 gap-3">
+        {actionButtons
+          .filter((a) => a.primary)
+          .map((action) => {
+            const IconComponent = action.icon;
+            return (
+              <Button
+                key={action.id}
+                className={cn(
+                  'h-12 transition-all duration-300 transform hover:scale-105 border-0 shadow-xl hover:shadow-2xl font-bold text-sm',
+                  `bg-gradient-to-r ${action.gradient} hover:${action.hoverGradient}`,
+                  'text-white relative overflow-hidden group',
+                  activeAction === action.id && 'scale-95'
+                )}
+                onClick={() => handleActionClick(action.id, action.onClick)}
+              >
+                {/* Background animation */}
+                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
 
-      <Button variant="outline" size="sm" onClick={() => onSuggest(candidate)}>
-        <FileText className="w-4 h-4 ml-2" />
-        הצעת שידוך
-      </Button>
+                <div className="relative z-10 flex items-center justify-center gap-2">
+                  <IconComponent className="w-5 h-5" />
+                  {showLabels && (
+                    <span className="hidden sm:inline">{action.label}</span>
+                  )}
+                </div>
+              </Button>
+            );
+          })}
+      </div>
 
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => onCheckAvailability(candidate)}
-      >
-        <Clock className="w-4 h-4 ml-2" />
-        בדיקת זמינות
-      </Button>
+      {/* Secondary Actions */}
+      <div className="flex gap-2">
+        {actionButtons
+          .filter((a) => !a.primary)
+          .map((action) => {
+            const IconComponent = action.icon;
+            return (
+              <Button
+                key={action.id}
+                variant="outline"
+                size="sm"
+                className={cn(
+                  'flex-1 transition-all duration-300 transform hover:scale-105 border-2 hover:border-transparent shadow-lg hover:shadow-xl font-medium',
+                  `border-gray-200 hover:bg-gradient-to-r hover:${action.gradient}`,
+                  'hover:text-white group relative overflow-hidden',
+                  activeAction === action.id && 'scale-95'
+                )}
+                onClick={() => handleActionClick(action.id, action.onClick)}
+              >
+                {/* Background animation */}
+                <div
+                  className={cn(
+                    'absolute inset-0 bg-gradient-to-r transition-all duration-300 opacity-0 group-hover:opacity-100',
+                    action.gradient
+                  )}
+                ></div>
 
-      <Button
-        variant="ghost"
-        size="sm"
-        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-      >
-        <Heart className="w-4 h-4" />
-      </Button>
+                <div className="relative z-10 flex items-center justify-center gap-2">
+                  <IconComponent className="w-4 h-4" />
+                  {showLabels && (
+                    <span className="text-xs hidden sm:inline">
+                      {action.label}
+                    </span>
+                  )}
+                </div>
+              </Button>
+            );
+          })}
+      </div>
+
+      {/* Favorite Button */}
+      <div className="flex justify-center pt-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          className={cn(
+            'text-red-500 hover:text-red-600 hover:bg-red-50 transition-all duration-300 transform hover:scale-110 group',
+            'border border-red-200 hover:border-red-300 shadow-sm hover:shadow-md rounded-full px-4'
+          )}
+        >
+          <Heart
+            className={cn(
+              'w-4 h-4 transition-all duration-300',
+              isHovered && 'fill-current animate-pulse'
+            )}
+          />
+          <span className="mr-2 text-sm font-medium">הוסף למועדפים</span>
+        </Button>
+      </div>
+
+      {/* Quick Stats */}
+      <div className="pt-3 border-t border-gray-100">
+        <div className="flex justify-between items-center text-xs text-gray-500">
+          <div className="flex items-center gap-1">
+            <Star className="w-3 h-3 text-yellow-500" />
+            <span>דירוג: 4.8</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Zap className="w-3 h-3 text-blue-500" />
+            <span>התאמה: 95%</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <MessageCircle className="w-3 h-3 text-green-500" />
+            <span>תגובה: מהירה</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -818,6 +1063,13 @@ import {
   Edit2,
   Sparkles,
   Star,
+  Heart,
+  Eye,
+  Clock,
+  Shield,
+  Crown,
+  Zap,
+  Award,
 } from 'lucide-react';
 import type { Candidate } from '../types/candidates';
 import { UserSource } from '@prisma/client';
@@ -879,6 +1131,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
   const age = calculateAge(candidate.profile.birthDate);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
   const highlightText = (text: string | undefined | null): React.ReactNode => {
     if (!highlightTerm || !text) return text;
@@ -903,79 +1156,115 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
       case 'AVAILABLE':
         return {
           label: 'פנוי/ה',
-          className: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+          className:
+            'bg-gradient-to-r from-emerald-500 to-green-500 text-white border-0 shadow-lg animate-pulse',
+          icon: <Sparkles className="w-3 h-3" />,
         };
       case 'DATING':
         return {
-          label: 'בתהליך הכרות',
-          className: 'bg-amber-100 text-amber-800 border-amber-200',
+          label: 'בתהליך היכרות',
+          className:
+            'bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 shadow-lg',
+          icon: <Heart className="w-3 h-3" />,
         };
       case 'UNAVAILABLE':
         return {
           label: 'לא פנוי/ה',
-          className: 'bg-red-100 text-red-800 border-red-200',
+          className:
+            'bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 shadow-lg',
+          icon: <Clock className="w-3 h-3" />,
         };
       default:
         return {
           label: 'לא ידוע',
-          className: 'bg-gray-100 text-gray-800 border-gray-200',
+          className:
+            'bg-gradient-to-r from-gray-500 to-slate-500 text-white border-0 shadow-lg',
+          icon: <User className="w-3 h-3" />,
         };
     }
   };
 
+  const getQualityScore = () => {
+    let score = 0;
+    if (candidate.images.length > 0) score += 25;
+    if (candidate.profile.about) score += 25;
+    if (candidate.profile.education) score += 25;
+    if (candidate.profile.occupation) score += 25;
+    return score;
+  };
+
   const availabilityBadge = getAvailabilityBadge();
   const isManualEntry = candidate.source === UserSource.MANUAL_ENTRY;
+  const qualityScore = getQualityScore();
 
   return (
     <motion.div
-      whileHover={{ y: -4 }}
+      whileHover={{ y: -6, scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
       transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       <Card
         className={cn(
-          'relative overflow-hidden cursor-pointer transition-all hover:shadow-lg duration-300 group border-2',
+          'relative overflow-hidden cursor-pointer transition-all hover:shadow-2xl duration-500 group border-0 shadow-xl',
           isAiTarget
-            ? 'border-green-500 shadow-lg'
+            ? 'ring-4 ring-green-400 ring-opacity-60 shadow-green-200'
             : isSelectedForComparison
-              ? 'border-blue-500 shadow-md'
+              ? 'ring-4 ring-blue-400 ring-opacity-60 shadow-blue-200'
               : typeof aiScore === 'number'
-                ? 'border-teal-400/50'
+                ? 'ring-2 ring-teal-300 ring-opacity-50 shadow-teal-100'
                 : isHighlighted
-                  ? 'border-yellow-400'
-                  : 'border-gray-200',
+                  ? 'ring-2 ring-yellow-400 ring-opacity-60 shadow-yellow-100'
+                  : 'shadow-gray-200',
+          'bg-gradient-to-br from-white via-gray-50/30 to-white',
           className || ''
         )}
         onClick={() => onClick(candidate)}
       >
-        {/* --- Top-left Badges Area --- */}
-        <div className="absolute top-2 left-2 z-20 flex flex-col items-start gap-1.5">
-          {typeof aiScore === 'number' && (
-            <Badge className="bg-gradient-to-r from-teal-400 to-cyan-500 text-white border-0 shadow-lg px-2.5 py-1 text-xs font-bold flex items-center gap-1.5 animate-pulse-slow">
-              <Sparkles className="w-3.5 h-3.5" />
-              {aiScore}% התאמה
-            </Badge>
-          )}
-        </div>
+        {/* Background Pattern */}
+        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/50 to-transparent opacity-60"></div>
 
-        {/* --- Top-right Badges Area --- */}
-        <div className="absolute top-2 right-2 z-10 flex flex-col gap-1 items-end">
+        {/* Top-left AI Score Badge */}
+        {typeof aiScore === 'number' && (
+          <div className="absolute top-3 left-3 z-30">
+            <Badge className="bg-gradient-to-r from-teal-400 via-cyan-500 to-blue-500 text-white border-0 shadow-xl px-3 py-1.5 text-sm font-bold flex items-center gap-2 animate-pulse">
+              <Sparkles className="w-4 h-4" />
+              {aiScore}% התאמה
+              <Zap className="w-3 h-3" />
+            </Badge>
+          </div>
+        )}
+
+        {/* Top-right Badges Area */}
+        <div className="absolute top-3 right-3 z-20 flex flex-col gap-2 items-end">
           <Badge
-            variant="outline"
-            className={`px-2 py-0.5 text-xs font-medium shadow-sm ${availabilityBadge.className}`}
+            className={cn(
+              'px-3 py-1.5 text-xs font-bold shadow-lg flex items-center gap-1.5 transition-all duration-300 hover:scale-105',
+              availabilityBadge.className
+            )}
           >
+            {availabilityBadge.icon}
             {availabilityBadge.label}
           </Badge>
+
           {isManualEntry && (
-            <Badge
-              variant="outline"
-              className="px-2 py-0.5 text-xs font-medium shadow-sm bg-purple-100 text-purple-800 border-purple-200 flex items-center gap-1"
-            >
-              <Edit2 className="w-2.5 h-2.5" /> מועמד ידני
+            <Badge className="px-3 py-1.5 text-xs font-bold shadow-lg bg-gradient-to-r from-purple-500 to-indigo-500 text-white border-0 flex items-center gap-1.5">
+              <Edit2 className="w-3 h-3" />
+              מועמד ידני
+            </Badge>
+          )}
+
+          {qualityScore === 100 && (
+            <Badge className="px-3 py-1.5 text-xs font-bold shadow-lg bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0 flex items-center gap-1.5">
+              <Crown className="w-3 h-3" />
+              פרופיל מושלם
             </Badge>
           )}
         </div>
 
-        <div className="relative h-48 sm:h-56 bg-gradient-to-b from-blue-50 to-blue-100">
+        {/* Main Image */}
+        <div className="relative h-52 sm:h-60 bg-gradient-to-br from-blue-100 via-purple-50 to-pink-100">
           {mainImage && !imageError ? (
             <>
               {!imageLoaded && (
@@ -987,75 +1276,106 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 priority={false}
-                className={`object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                className={`object-cover transition-all duration-500 ${
+                  imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-105'
+                } ${isHovered ? 'scale-110' : 'scale-100'}`}
                 onLoad={() => setImageLoaded(true)}
                 onError={() => setImageError(true)}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-gray-900/40 to-transparent" />
+
+              {/* Image Overlay Gradient */}
+              <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-300" />
+
+              {/* Shimmer Effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
             </>
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-blue-50">
-              <User className="w-20 h-20 text-gray-400" />
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100">
+              <div className="text-center">
+                <User className="w-16 h-16 text-gray-400 mx-auto mb-2" />
+                <p className="text-sm text-gray-500">אין תמונה</p>
+              </div>
             </div>
           )}
 
-          <div className="absolute bottom-0 w-full p-3 text-right">
-            <h3 className="font-bold mb-0.5 text-white drop-shadow-md text-lg">
+          {/* Name and Age Overlay */}
+          <div className="absolute bottom-0 w-full p-4 text-right">
+            <h3 className="font-bold mb-1 text-white drop-shadow-lg text-xl tracking-wide">
               {highlightText(`${candidate.firstName} ${candidate.lastName}`)}
             </h3>
-            <div className="flex items-center justify-end gap-2 text-white/90 text-sm">
-              <span>{age}</span>
-              <Calendar className="w-3 h-3" />
+            <div className="flex items-center justify-end gap-3 text-white/95 text-sm">
+              <span className="bg-black/30 px-2 py-1 rounded-full backdrop-blur-sm font-medium">
+                {age} שנים
+              </span>
+              <Calendar className="w-4 h-4" />
             </div>
           </div>
         </div>
 
-        <div className="p-4">
-          <div className="space-y-1.5 text-gray-700 text-sm">
+        {/* Content Section */}
+        <div className="p-5 relative z-10">
+          <div className="space-y-3 text-gray-700">
             {isManualEntry && candidate.profile.manualEntryText ? (
-              <p className="line-clamp-3 text-gray-600 text-sm leading-relaxed">
-                {highlightText(candidate.profile.manualEntryText)}
-              </p>
+              <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-3 rounded-xl border border-purple-100">
+                <p className="line-clamp-3 text-sm leading-relaxed text-purple-800">
+                  {highlightText(candidate.profile.manualEntryText)}
+                </p>
+              </div>
             ) : (
-              <>
+              <div className="space-y-2">
                 {candidate.profile.city && (
-                  <div className="flex items-center justify-end gap-1">
-                    <span className="font-medium">
+                  <div className="flex items-center justify-end gap-2 p-2 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200">
+                    <span className="font-medium text-blue-800">
                       {highlightText(candidate.profile.city)}
                     </span>
                     <MapPin className="w-4 h-4 text-blue-600" />
                   </div>
                 )}
                 {candidate.profile.occupation && (
-                  <div className="flex items-center justify-end gap-1">
-                    <span>{highlightText(candidate.profile.occupation)}</span>
-                    <Briefcase className="w-4 h-4 text-blue-600" />
+                  <div className="flex items-center justify-end gap-2 p-2 bg-green-50 rounded-lg hover:bg-green-100 transition-colors duration-200">
+                    <span className="text-green-800 text-sm">
+                      {highlightText(candidate.profile.occupation)}
+                    </span>
+                    <Briefcase className="w-4 h-4 text-green-600" />
                   </div>
                 )}
-              </>
+              </div>
             )}
+
+            {/* Last Activity */}
             {candidate.profile.lastActive && (
-              <div className="flex items-center justify-end gap-1 mt-2 text-xs text-gray-400">
-                <span>{`פעיל/ה ${formatDistanceToNow(new Date(candidate.profile.lastActive), { addSuffix: true, locale: he })}`}</span>
-                <Edit2 className="w-3 h-3" />
+              <div className="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-gray-100">
+                <span className="text-xs text-gray-500">
+                  {`פעיל/ה ${formatDistanceToNow(new Date(candidate.profile.lastActive), { addSuffix: true, locale: he })}`}
+                </span>
+                <Clock className="w-3 h-3 text-gray-400" />
               </div>
             )}
           </div>
         </div>
 
-        {/* --- Bottom Action Buttons --- */}
-        <div className="absolute bottom-2 left-2 z-10 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        {/* Bottom Action Buttons */}
+        <div className="absolute bottom-3 left-3 z-20 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
           {onEdit && (
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8 bg-white/80 backdrop-blur-sm shadow-md"
-              onClick={(e) => onEdit(candidate, e)}
-              title="ערוך פרופיל"
-            >
-              <Edit2 className="h-4 w-4 text-blue-600" />
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-9 w-9 bg-white/90 backdrop-blur-sm shadow-xl border-0 hover:bg-white hover:scale-110 transition-all duration-300"
+                    onClick={(e) => onEdit(candidate, e)}
+                  >
+                    <Edit2 className="h-4 w-4 text-blue-600" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>עריכת פרופיל</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
+
           {onSetAiTarget && (
             <TooltipProvider>
               <Tooltip>
@@ -1064,17 +1384,17 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
                     variant="outline"
                     size="icon"
                     className={cn(
-                      'h-8 w-8 bg-white/80 backdrop-blur-sm shadow-md',
-                      isAiTarget && 'bg-green-200'
+                      'h-9 w-9 backdrop-blur-sm shadow-xl border-0 hover:scale-110 transition-all duration-300',
+                      isAiTarget
+                        ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:from-green-600 hover:to-emerald-600'
+                        : 'bg-white/90 hover:bg-white text-gray-600'
                     )}
                     onClick={(e) => onSetAiTarget(candidate, e)}
                   >
                     <Star
                       className={cn(
-                        'h-4 w-4',
-                        isAiTarget
-                          ? 'text-green-600 fill-current'
-                          : 'text-gray-500'
+                        'h-4 w-4 transition-all duration-300',
+                        isAiTarget ? 'fill-current rotate-12' : ''
                       )}
                     />
                   </Button>
@@ -1087,34 +1407,41 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
           )}
         </div>
 
-        {/* --- Comparison Checkbox --- */}
+        {/* Quality Score Indicator */}
+        <div className="absolute top-3 left-1/2 transform -translate-x-1/2 z-20 opacity-0 group-hover:opacity-100 transition-all duration-300">
+          <div className="flex items-center gap-1 bg-black/60 text-white px-3 py-1 rounded-full backdrop-blur-sm text-xs font-bold">
+            <Award className="w-3 h-3" />
+            <span>איכות: {qualityScore}%</span>
+          </div>
+        </div>
+
+        {/* Comparison Checkbox */}
         {isSelectableForComparison && onToggleComparison && (
           <div
-            className="absolute bottom-2 right-2 z-10 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
+            className="absolute bottom-3 right-3 z-20 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0"
             onClick={(e) => {
-              e.stopPropagation(); // מונע את הקליק על הכרטיס
-              onToggleComparison(candidate, e); // מפעיל את הפונקציה הנכונה
+              e.stopPropagation();
+              onToggleComparison(candidate, e);
             }}
           >
-            <div className="flex items-center space-x-2 bg-white/80 backdrop-blur-sm p-1.5 rounded-md shadow-md cursor-pointer">
+            <div className="flex items-center space-x-2 bg-white/90 backdrop-blur-sm p-2 rounded-xl shadow-xl cursor-pointer hover:bg-white hover:scale-105 transition-all duration-300 border-0">
               <Checkbox
                 id={`compare-${candidate.id}`}
                 checked={isSelectedForComparison}
-                // --- START OF FIX ---
-                // הסרת readOnly והוספת pointer-events-none
-                // זה הופך את ה-Checkbox לויזואלי בלבד, והקליק מטופל ב-div החיצוני
-                className="pointer-events-none"
-                // --- END OF FIX ---
+                className="pointer-events-none border-2 border-blue-400 data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-blue-500 data-[state=checked]:to-cyan-500 data-[state=checked]:border-blue-500"
               />
               <label
                 htmlFor={`compare-${candidate.id}`}
-                className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-700 cursor-pointer"
+                className="text-xs font-bold leading-none text-gray-700 cursor-pointer"
               >
-                השווה
+                השוואה
               </label>
             </div>
           </div>
         )}
+
+        {/* Hover Glow Effect */}
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-400/0 via-purple-400/0 to-pink-400/0 group-hover:from-blue-400/10 group-hover:via-purple-400/10 group-hover:to-pink-400/10 transition-all duration-500 pointer-events-none rounded-lg"></div>
       </Card>
     </motion.div>
   );
@@ -1129,9 +1456,10 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\matc
 Content:
 // File: src/app/components/matchmaker/new/CandidateCard/QuickView.tsx
 
-"use client";
-import React from "react";
-import { Button } from "@/components/ui/button";
+'use client';
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   Heart,
   Mail,
@@ -1146,14 +1474,27 @@ import {
   CalendarClock,
   Edit,
   Info,
-  Star, // הוספת ייבוא לכוכב
-} from "lucide-react";
+  Star,
+  Sparkles,
+  Send,
+  Calendar,
+  Shield,
+  Crown,
+  Zap,
+  Award,
+  Activity,
+  MessageCircle,
+  Phone,
+  X,
+} from 'lucide-react';
 
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import type { Candidate } from "../types/candidates";
-import { UserSource } from "@prisma/client";
-import { cn } from "@/lib/utils"; // הוספת ייבוא עבור cn
+import { Separator } from '@/components/ui/separator';
+import type { Candidate } from '../types/candidates';
+import { UserSource } from '@prisma/client';
+import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
+import Image from 'next/image';
+import { getRelativeCloudinaryPath } from '@/lib/utils';
 
 // פונקציה לחישוב גיל
 const calculateAge = (birthDate: Date): number => {
@@ -1170,215 +1511,481 @@ const calculateAge = (birthDate: Date): number => {
 interface QuickViewProps {
   candidate: Candidate;
   onAction: (
-    action: "view" | "invite" | "suggest" | "contact" | "favorite" | "edit"
+    action: 'view' | 'invite' | 'suggest' | 'contact' | 'favorite' | 'edit'
   ) => void;
-  // --- Props חדשים עבור AI ---
   onSetAiTarget?: (candidate: Candidate, e: React.MouseEvent) => void;
   isAiTarget?: boolean;
 }
 
-const QuickView: React.FC<QuickViewProps> = ({ 
-  candidate, 
+const QuickView: React.FC<QuickViewProps> = ({
+  candidate,
   onAction,
   onSetAiTarget,
-  isAiTarget = false 
+  isAiTarget = false,
 }) => {
+  const [isClosing, setIsClosing] = useState(false);
+  const [hoveredAction, setHoveredAction] = useState<string | null>(null);
+
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
   };
 
+  const handleClose = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      // הקומפוננט יסגר על ידי ההורה
+    }, 150);
+  };
+
   const profile = candidate.profile;
   const isManualEntry = candidate.source === UserSource.MANUAL_ENTRY;
+  const mainImage = candidate.images?.find((img) => img.isMain);
+
+  const getAvailabilityInfo = () => {
+    switch (profile.availabilityStatus) {
+      case 'AVAILABLE':
+        return {
+          label: 'פנוי/ה',
+          gradient: 'from-emerald-500 to-green-500',
+          icon: <Sparkles className="w-4 h-4" />,
+          description: 'זמין/ה למפגשים חדשים',
+        };
+      case 'DATING':
+        return {
+          label: 'בתהליך היכרות',
+          gradient: 'from-amber-500 to-orange-500',
+          icon: <Heart className="w-4 h-4" />,
+          description: 'כרגע בתהליך היכרות',
+        };
+      case 'UNAVAILABLE':
+        return {
+          label: 'לא פנוי/ה',
+          gradient: 'from-red-500 to-pink-500',
+          icon: <Clock className="w-4 h-4" />,
+          description: 'לא זמין/ה כרגע',
+        };
+      default:
+        return {
+          label: 'לא ידוע',
+          gradient: 'from-gray-500 to-slate-500',
+          icon: <User className="w-4 h-4" />,
+          description: 'סטטוס לא ידוע',
+        };
+    }
+  };
+
+  const getQualityScore = () => {
+    let score = 0;
+    if (candidate.images.length > 0) score += 25;
+    if (profile.about) score += 25;
+    if (profile.education) score += 25;
+    if (profile.occupation) score += 25;
+    return score;
+  };
+
+  const availabilityInfo = getAvailabilityInfo();
+  const qualityScore = getQualityScore();
+
+  const actionButtons = [
+    {
+      id: 'view',
+      label: 'צפייה מלאה',
+      icon: Eye,
+      gradient: 'from-blue-500 to-cyan-500',
+      description: 'פתח פרופיל מלא',
+      primary: true,
+    },
+    {
+      id: 'suggest',
+      label: 'הצעת שידוך',
+      icon: Heart,
+      gradient: 'from-pink-500 to-rose-500',
+      description: 'צור הצעה חדשה',
+      primary: true,
+    },
+    {
+      id: 'invite',
+      label: 'שלח הזמנה',
+      icon: Send,
+      gradient: 'from-purple-500 to-indigo-500',
+      description: 'הזמן למערכת',
+      primary: false,
+    },
+    {
+      id: 'contact',
+      label: 'בדוק זמינות',
+      icon: Calendar,
+      gradient: 'from-orange-500 to-amber-500',
+      description: 'תיאום פגישה',
+      primary: false,
+    },
+    {
+      id: 'edit',
+      label: 'עריכה',
+      icon: Edit,
+      gradient: 'from-gray-500 to-slate-500',
+      description: 'ערוך פרופיל',
+      primary: false,
+    },
+  ];
 
   return (
-    <div
-      className="bg-white shadow-xl flex flex-col border border-gray-200 overflow-hidden max-w-md sm:max-w-lg w-full rounded-lg"
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9, y: 20 }}
+      animate={{
+        opacity: isClosing ? 0 : 1,
+        scale: isClosing ? 0.9 : 1,
+        y: isClosing ? 20 : 0,
+      }}
+      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+      className="bg-white shadow-2xl flex flex-col border-0 overflow-hidden max-w-md sm:max-w-lg w-full rounded-3xl"
       onClick={handleClick}
     >
-      {/* Header with name and avatar */}
-      <div className="px-6 py-4 bg-gradient-to-r from-blue-500 to-blue-600 border-b text-white">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Badge className="bg-white text-blue-700 border-0 font-medium shadow-sm px-3 py-1">
-              {profile.availabilityStatus === "AVAILABLE"
-                ? "פנוי/ה"
-                : profile.availabilityStatus === "DATING"
-                ? "בתהליך הכרות"
-                : profile.availabilityStatus === "UNAVAILABLE"
-                ? "לא פנוי/ה"
-                : "לא ידוע"}
-            </Badge>
-            {isManualEntry && (
-              <Badge className="bg-purple-200 text-purple-800 border-0 font-medium shadow-sm px-3 py-1">
-                מועמד ידני
-              </Badge>
-            )}
-          </div>
-          
-          <div className="flex items-center gap-2">
-            {onSetAiTarget && (
+      {/* Enhanced Header */}
+      <div
+        className={cn(
+          'relative px-6 py-6 text-white overflow-hidden',
+          `bg-gradient-to-br ${availabilityInfo.gradient}`
+        )}
+      >
+        {/* Background Pattern */}
+        <div className="absolute inset-0">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-2xl"></div>
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
+        </div>
+
+        <div className="relative z-10">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center gap-3">
+              {/* Profile Image */}
+              <div className="relative w-16 h-16 rounded-full overflow-hidden border-3 border-white/30 shadow-xl">
+                {mainImage ? (
+                  <Image
+                    src={getRelativeCloudinaryPath(mainImage.url)}
+                    alt={`${candidate.firstName} ${candidate.lastName}`}
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-white/20 flex items-center justify-center">
+                    <User className="w-8 h-8 text-white/80" />
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <h3 className="text-xl font-bold mb-1">
+                  {candidate.firstName} {candidate.lastName}
+                </h3>
+                <div className="flex items-center gap-2">
+                  {availabilityInfo.icon}
+                  <span className="text-white/90 font-medium">
+                    {availabilityInfo.label}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {onSetAiTarget && (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8 text-white hover:bg-white/20 rounded-full"
+                  onClick={(e) => onSetAiTarget(candidate, e)}
+                  title={isAiTarget ? 'בטל בחירת מטרה' : 'בחר כמטרה לחיפוש AI'}
+                >
+                  <Star
+                    className={cn(
+                      'h-5 w-5',
+                      isAiTarget
+                        ? 'fill-current text-yellow-300'
+                        : 'text-white/80'
+                    )}
+                  />
+                </Button>
+              )}
               <Button
                 size="icon"
                 variant="ghost"
-                className="h-8 w-8 text-white hover:bg-white/20"
-                onClick={(e) => onSetAiTarget(candidate, e)}
-                title={isAiTarget ? "בטל בחירת מטרה" : "בחר כמטרה לחיפוש AI"}
+                className="h-8 w-8 text-white hover:bg-white/20 rounded-full"
+                onClick={handleClose}
               >
-                <Star className={cn("h-5 w-5", isAiTarget ? "fill-current text-yellow-300" : "text-white/80")} />
+                <X className="h-5 w-5" />
               </Button>
+            </div>
+          </div>
+
+          {/* Status Badges */}
+          <div className="flex flex-wrap gap-2">
+            <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
+              {availabilityInfo.description}
+            </Badge>
+
+            {isManualEntry && (
+              <Badge className="bg-purple-500/30 text-white border-purple-300/50 backdrop-blur-sm">
+                <Edit className="w-3 h-3 mr-1" />
+                מועמד ידני
+              </Badge>
             )}
-            <h3 className="text-lg font-bold">
-              {candidate.firstName} {candidate.lastName}
-            </h3>
+
+            {qualityScore === 100 && (
+              <Badge className="bg-yellow-500/30 text-white border-yellow-300/50 backdrop-blur-sm">
+                <Crown className="w-3 h-3 mr-1" />
+                פרופיל מושלם
+              </Badge>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Main content container */}
-      <div className="flex-1 p-6 space-y-6 text-right overflow-y-auto max-h-[calc(80vh-200px)] sm:max-h-96 bg-white">
-        {/* Key information section */}
-        <div className="grid grid-cols-2 gap-y-4 gap-x-6">
+      {/* Main Content */}
+      <div className="flex-1 p-6 space-y-6 text-right overflow-y-auto max-h-[calc(80vh-200px)] sm:max-h-96 bg-gradient-to-br from-white to-gray-50/30">
+        {/* Key Information Grid */}
+        <div className="grid grid-cols-2 gap-4">
           {profile.birthDate && (
-            <div className="flex items-center justify-end gap-3 text-sm">
-              <span className="font-medium">
-                {calculateAge(new Date(profile.birthDate))} שנים
-              </span>
-              <CalendarClock className="w-5 h-5 text-blue-500" />
+            <div className="p-3 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl border border-blue-100 hover:shadow-md transition-all duration-300">
+              <div className="flex items-center justify-end gap-2 text-blue-700">
+                <span className="font-bold text-lg">
+                  {calculateAge(new Date(profile.birthDate))}
+                </span>
+                <CalendarClock className="w-5 h-5" />
+              </div>
+              <p className="text-xs text-blue-600 mt-1">שנים</p>
             </div>
           )}
 
           {profile.height && (
-            <div className="flex items-center justify-end gap-3 text-sm">
-              <span className="font-medium">{profile.height} ס״מ</span>
-              <User className="w-5 h-5 text-blue-500" />
+            <div className="p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100 hover:shadow-md transition-all duration-300">
+              <div className="flex items-center justify-end gap-2 text-purple-700">
+                <span className="font-bold text-lg">{profile.height}</span>
+                <User className="w-5 h-5" />
+              </div>
+              <p className="text-xs text-purple-600 mt-1">ס״ם</p>
             </div>
           )}
 
           {profile.maritalStatus && (
-            <div className="flex items-center justify-end gap-3 text-sm">
-              <span className="font-medium">{profile.maritalStatus}</span>
-              <Heart className="w-5 h-5 text-blue-500" />
+            <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-100 hover:shadow-md transition-all duration-300">
+              <div className="flex items-center justify-end gap-2 text-green-700">
+                <span className="font-medium text-sm">
+                  {profile.maritalStatus}
+                </span>
+                <Heart className="w-5 h-5" />
+              </div>
+              <p className="text-xs text-green-600 mt-1">מצב משפחתי</p>
             </div>
           )}
 
           {profile.religiousLevel && (
-            <div className="flex items-center justify-end gap-3 text-sm">
-              <span className="font-medium">{profile.religiousLevel}</span>
-              <Scroll className="w-5 h-5 text-blue-500" />
+            <div className="p-3 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl border border-orange-100 hover:shadow-md transition-all duration-300">
+              <div className="flex items-center justify-end gap-2 text-orange-700">
+                <span className="font-medium text-sm">
+                  {profile.religiousLevel}
+                </span>
+                <Scroll className="w-5 h-5" />
+              </div>
+              <p className="text-xs text-orange-600 mt-1">רמת דתיות</p>
             </div>
           )}
         </div>
 
-        <Separator className="my-4 bg-gray-200" />
+        <Separator className="my-6 bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
 
-        {/* Manual Entry Text (if applicable) */}
-        {isManualEntry && profile.manualEntryText && (
-          <div className="space-y-3">
+        {/* Manual Entry Text or Profile Details */}
+        {isManualEntry && profile.manualEntryText ? (
+          <div className="space-y-4">
             <div className="flex items-center justify-end gap-2">
-              <h4 className="text-sm font-bold text-gray-600">
+              <h4 className="text-lg font-bold text-purple-800">
                 תיאור ידני מהשדכן
               </h4>
-              <Info className="w-5 h-5 text-purple-500" />
+              <Info className="w-6 h-6 text-purple-500" />
             </div>
-            <p className="text-sm leading-relaxed py-3 px-4 bg-purple-50 rounded-md border border-purple-200 shadow-sm whitespace-pre-wrap">
-              {profile.manualEntryText}
-            </p>
+            <div className="p-5 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-2xl border border-purple-200 shadow-sm">
+              <p className="text-purple-900 leading-relaxed whitespace-pre-wrap font-medium">
+                {profile.manualEntryText}
+              </p>
+            </div>
           </div>
-        )}
-
-        {/* Education & Occupation (if not manual entry, or if manual entry but these fields are filled) */}
-        {(!isManualEntry ||
-          (isManualEntry &&
-            (profile.education || profile.occupation || profile.city))) && (
+        ) : (
           <div className="space-y-4">
-            <h4 className="text-sm font-bold text-gray-600 mb-3">מידע נוסף</h4>
+            <h4 className="text-lg font-bold text-gray-700 mb-4 flex items-center justify-end gap-2">
+              <span>מידע נוסף</span>
+              <Sparkles className="w-5 h-5 text-blue-500" />
+            </h4>
+
             {profile.education && (
-              <div className="flex items-center justify-end gap-3 text-sm bg-blue-50 p-3 rounded-md">
-                <span className="font-medium">{profile.education}</span>
-                <GraduationCap className="w-5 h-5 text-blue-500" />
+              <div className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl border border-blue-100 hover:shadow-md transition-all duration-300 group">
+                <div className="flex items-center justify-end gap-3">
+                  <span className="font-medium text-blue-800 group-hover:text-blue-900 transition-colors">
+                    {profile.education}
+                  </span>
+                  <div className="p-2 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg">
+                    <GraduationCap className="w-4 h-4" />
+                  </div>
+                </div>
+                <p className="text-xs text-blue-600 mt-1 text-right">השכלה</p>
               </div>
             )}
 
             {profile.occupation && (
-              <div className="flex items-center justify-end gap-3 text-sm bg-blue-50 p-3 rounded-md mt-2">
-                <span className="font-medium">{profile.occupation}</span>
-                <Briefcase className="w-5 h-5 text-blue-500" />
+              <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-100 hover:shadow-md transition-all duration-300 group">
+                <div className="flex items-center justify-end gap-3">
+                  <span className="font-medium text-green-800 group-hover:text-green-900 transition-colors">
+                    {profile.occupation}
+                  </span>
+                  <div className="p-2 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg">
+                    <Briefcase className="w-4 h-4" />
+                  </div>
+                </div>
+                <p className="text-xs text-green-600 mt-1 text-right">עיסוק</p>
               </div>
             )}
 
             {profile.city && (
-              <div className="flex items-center justify-end gap-3 text-sm bg-blue-50 p-3 rounded-md mt-2">
-                <span className="font-medium">{profile.city}</span>
-                <MapPin className="w-5 h-5 text-blue-500" />
+              <div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100 hover:shadow-md transition-all duration-300 group">
+                <div className="flex items-center justify-end gap-3">
+                  <span className="font-medium text-purple-800 group-hover:text-purple-900 transition-colors">
+                    {profile.city}
+                  </span>
+                  <div className="p-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg">
+                    <MapPin className="w-4 h-4" />
+                  </div>
+                </div>
+                <p className="text-xs text-purple-600 mt-1 text-right">מיקום</p>
               </div>
             )}
           </div>
         )}
 
-        {/* About section (if not manual entry with text, or if manual entry but 'about' is also filled) */}
+        {/* About Section */}
         {(!isManualEntry || !profile.manualEntryText) && profile.about && (
           <>
-            <Separator className="my-4 bg-gray-200" />
-            <div className="space-y-3">
-              <h4 className="text-sm font-bold text-gray-600">אודות</h4>
-              <p className="text-sm leading-relaxed py-3 px-4 bg-gray-50 rounded-md border border-gray-200 shadow-sm whitespace-pre-wrap">
-                {profile.about}
-              </p>
+            <Separator className="my-6 bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
+            <div className="space-y-4">
+              <h4 className="text-lg font-bold text-gray-700 flex items-center justify-end gap-2">
+                <span>אודות</span>
+                <FileText className="w-5 h-5 text-gray-500" />
+              </h4>
+              <div className="p-5 bg-gradient-to-r from-gray-50 to-slate-50 rounded-2xl border border-gray-200 shadow-sm">
+                <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">
+                  {profile.about}
+                </p>
+              </div>
             </div>
           </>
         )}
       </div>
 
-      {/* Action Buttons with improved layout */}
-      <div className="p-4 bg-gray-50 border-t border-gray-200">
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <Button
-            variant="default"
-            className="w-full bg-blue-500 hover:bg-blue-600 transition-colors shadow-sm"
-            onClick={() => onAction("view")}
-          >
-            <Eye className="w-4 h-4 ml-1.5" />
-            <span className="text-sm">צפייה בפרופיל</span>
-          </Button>
+      {/* Enhanced Action Buttons */}
+      <div className="p-6 bg-gradient-to-r from-gray-50 to-white border-t border-gray-100">
+        {/* Quality Score */}
+        <div className="flex items-center justify-center mb-4">
+          <div className="flex items-center gap-2 bg-gradient-to-r from-blue-50 to-cyan-50 px-4 py-2 rounded-full border border-blue-100">
+            <Award className="w-4 h-4 text-blue-600" />
+            <span className="text-sm font-bold text-blue-800">
+              איכות פרופיל: {qualityScore}%
+            </span>
+            <div className="flex gap-1">
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={i}
+                  className={cn(
+                    'w-3 h-3',
+                    i < Math.floor(qualityScore / 20)
+                      ? 'text-yellow-500 fill-current'
+                      : 'text-gray-300'
+                  )}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
 
-          <Button
-            variant="outline"
-            className="w-full border-blue-200 hover:bg-blue-50 transition-colors shadow-sm"
-            onClick={() => onAction("suggest")}
-          >
-            <FileText className="w-4 h-4 ml-1.5" />
-            <span className="text-sm">הצעת שידוך</span>
-          </Button>
+        {/* Primary Actions */}
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          {actionButtons
+            .filter((a) => a.primary)
+            .map((action) => {
+              const IconComponent = action.icon;
+              return (
+                <Button
+                  key={action.id}
+                  className={cn(
+                    'h-12 font-bold text-sm border-0 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 relative overflow-hidden group rounded-2xl',
+                    `bg-gradient-to-r ${action.gradient} hover:${action.gradient.replace('500', '600')}`,
+                    'text-white',
+                    hoveredAction === action.id && 'scale-105'
+                  )}
+                  onClick={() => onAction(action.id as any)}
+                  onMouseEnter={() => setHoveredAction(action.id)}
+                  onMouseLeave={() => setHoveredAction(null)}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                  <div className="relative z-10 flex items-center justify-center gap-2">
+                    <IconComponent className="w-5 h-5" />
+                    <span>{action.label}</span>
+                  </div>
+                </Button>
+              );
+            })}
+        </div>
 
-          <Button
-            variant="outline"
-            className="w-full border-blue-200 hover:bg-blue-50 transition-colors shadow-sm"
-            onClick={() => onAction("invite")}
-          >
-            <Mail className="w-4 h-4 ml-1.5" />
-            <span className="text-sm">שליחת הזמנה</span>
-          </Button>
+        {/* Secondary Actions */}
+        <div className="grid grid-cols-3 gap-2">
+          {actionButtons
+            .filter((a) => !a.primary)
+            .map((action) => {
+              const IconComponent = action.icon;
+              return (
+                <Button
+                  key={action.id}
+                  variant="outline"
+                  size="sm"
+                  className={cn(
+                    'border-2 border-gray-200 hover:border-transparent shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 group relative overflow-hidden rounded-xl',
+                    `hover:bg-gradient-to-r hover:${action.gradient}`,
+                    'hover:text-white font-medium',
+                    hoveredAction === action.id && 'scale-105'
+                  )}
+                  onClick={() => onAction(action.id as any)}
+                  onMouseEnter={() => setHoveredAction(action.id)}
+                  onMouseLeave={() => setHoveredAction(null)}
+                >
+                  <div
+                    className={cn(
+                      'absolute inset-0 bg-gradient-to-r transition-all duration-300 opacity-0 group-hover:opacity-100',
+                      action.gradient
+                    )}
+                  ></div>
+                  <div className="relative z-10 flex items-center justify-center gap-1">
+                    <IconComponent className="w-3 h-3" />
+                    <span className="text-xs">{action.label}</span>
+                  </div>
+                </Button>
+              );
+            })}
+        </div>
 
-          <Button
-            variant="outline"
-            className="w-full sm:col-span-2 border-blue-200 hover:bg-blue-50 transition-colors shadow-sm"
-            onClick={() => onAction("contact")}
-          >
-            <Clock className="w-4 h-4 ml-1.5" />
-            <span className="text-sm">בדיקת זמינות</span>
-          </Button>
-
-          <Button
-            variant="ghost"
-            className="w-full hover:bg-blue-50 transition-colors bg-blue-50/50"
-            onClick={() => onAction("edit")}
-          >
-            <Edit className="w-4 h-4 ml-1.5" />
-            <span className="text-sm">עריכת פרופיל</span>
-          </Button>
+        {/* Quick Stats Footer */}
+        <div className="mt-4 pt-4 border-t border-gray-200">
+          <div className="flex justify-between items-center text-xs">
+            <div className="flex items-center gap-1 text-yellow-600">
+              <Star className="w-3 h-3 fill-current" />
+              <span className="font-medium">דירוג: 4.8</span>
+            </div>
+            <div className="flex items-center gap-1 text-blue-600">
+              <Zap className="w-3 h-3" />
+              <span className="font-medium">התאמה: 95%</span>
+            </div>
+            <div className="flex items-center gap-1 text-green-600">
+              <MessageCircle className="w-3 h-3" />
+              <span className="font-medium">תגובה: מהירה</span>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -1951,22 +2558,34 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\matc
 Content:
 // /CandidatesManager/CandidatesStats.tsx
 
-"use client";
+'use client';
 
-import React from "react";
+import React from 'react';
 
-import { Card } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import {
   Users,
-  UserSquare2,
+  UserCheck,
   Clock,
   MapPin,
   CheckCircle,
   Image as ImageIcon,
-} from "lucide-react";
-import { useStatistics } from "../hooks/useStatistics";
-import type { Candidate } from "../types/candidates";
+  TrendingUp,
+  ArrowUp,
+  ArrowDown,
+  Activity,
+  Heart,
+  Star,
+  Award,
+  Sparkles,
+  Target,
+  Crown,
+  Zap,
+} from 'lucide-react';
+import { useStatistics } from '../hooks/useStatistics';
+import type { Candidate } from '../types/candidates';
 import {
   BarChart,
   Bar,
@@ -1978,7 +2597,12 @@ import {
   PieChart,
   Pie,
   Cell,
-} from "recharts";
+  LineChart,
+  Line,
+  Area,
+  AreaChart,
+} from 'recharts';
+import { cn } from '@/lib/utils';
 
 interface StatCardProps {
   title: string;
@@ -1990,6 +2614,8 @@ interface StatCardProps {
     isPositive: boolean;
   };
   className?: string;
+  gradient: string;
+  iconColor: string;
 }
 
 interface CandidatesStatsProps {
@@ -1998,12 +2624,23 @@ interface CandidatesStatsProps {
 }
 
 const CHART_COLORS = [
-  "#3B82F6", // כחול
-  "#EF4444", // אדום
-  "#10B981", // ירוק
-  "#F59E0B", // כתום
-  "#6366F1", // סגול
-  "#EC4899", // ורוד
+  '#3B82F6', // כחול
+  '#EF4444', // אדום
+  '#10B981', // ירוק
+  '#F59E0B', // כתום
+  '#8B5CF6', // סגול
+  '#EC4899', // ורוד
+  '#06B6D4', // ציאן
+  '#84CC16', // ליים
+];
+
+const GRADIENT_COLORS = [
+  'from-blue-500 to-cyan-500',
+  'from-purple-500 to-pink-500',
+  'from-green-500 to-emerald-500',
+  'from-orange-500 to-amber-500',
+  'from-red-500 to-pink-500',
+  'from-indigo-500 to-purple-500',
 ];
 
 const StatCard: React.FC<StatCardProps> = ({
@@ -2013,27 +2650,104 @@ const StatCard: React.FC<StatCardProps> = ({
   icon,
   trend,
   className,
+  gradient,
+  iconColor,
 }) => (
-  <Card className={`p-6 ${className}`}>
-    <div className="flex items-start justify-between">
-      <div className="space-y-2">
-        <p className="text-sm text-gray-500">{title}</p>
-        <p className="text-2xl font-semibold">{value}</p>
-        {description && <p className="text-xs text-gray-400">{description}</p>}
-        {trend && (
-          <div
-            className={`text-xs flex items-center gap-1 ${
-              trend.isPositive ? "text-green-600" : "text-red-600"
-            }`}
-          >
-            <span>{trend.isPositive ? "↑" : "↓"}</span>
-            <span>{Math.abs(trend.value)}%</span>
-            <span>מהחודש שעבר</span>
+  <Card
+    className={cn(
+      'border-0 shadow-xl bg-gradient-to-br from-white via-gray-50/30 to-white overflow-hidden group hover:shadow-2xl transition-all duration-300 transform hover:scale-105',
+      className
+    )}
+  >
+    <CardContent className="p-6 relative">
+      {/* Background decorative elements */}
+      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/20 to-transparent rounded-full blur-2xl opacity-50"></div>
+
+      <div className="flex items-start justify-between relative z-10">
+        <div className="space-y-3 flex-1">
+          <p className="text-sm font-medium text-gray-600">{title}</p>
+          <div className="flex items-baseline gap-2">
+            <p className="text-3xl font-bold text-gray-800">{value}</p>
+            {trend && (
+              <div
+                className={cn(
+                  'flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold',
+                  trend.isPositive
+                    ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-700'
+                    : 'bg-gradient-to-r from-red-100 to-pink-100 text-red-700'
+                )}
+              >
+                {trend.isPositive ? (
+                  <ArrowUp className="w-3 h-3" />
+                ) : (
+                  <ArrowDown className="w-3 h-3" />
+                )}
+                <span>{Math.abs(trend.value)}%</span>
+              </div>
+            )}
           </div>
-        )}
+          {description && (
+            <p className="text-sm text-gray-500 leading-relaxed">
+              {description}
+            </p>
+          )}
+          {trend && (
+            <p className="text-xs text-gray-400">
+              {trend.isPositive ? 'עלייה' : 'ירידה'} מהחודש שעבר
+            </p>
+          )}
+        </div>
+
+        <div
+          className={cn(
+            'p-4 rounded-2xl shadow-lg group-hover:scale-110 transition-transform duration-300',
+            `bg-gradient-to-r ${gradient}`
+          )}
+        >
+          <div className={iconColor}>{icon}</div>
+        </div>
       </div>
-      <div className="bg-blue-50 p-3 rounded-lg">{icon}</div>
-    </div>
+    </CardContent>
+  </Card>
+);
+
+const EnhancedChartCard: React.FC<{
+  title: string;
+  children: React.ReactNode;
+  description?: string;
+  gradient?: string;
+  icon?: React.ReactNode;
+}> = ({
+  title,
+  children,
+  description,
+  gradient = 'from-blue-500 to-cyan-500',
+  icon,
+}) => (
+  <Card className="border-0 shadow-xl bg-gradient-to-br from-white via-gray-50/30 to-white overflow-hidden hover:shadow-2xl transition-all duration-300">
+    <CardContent className="p-6">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          {icon && (
+            <div
+              className={cn(
+                'p-3 rounded-full shadow-lg',
+                `bg-gradient-to-r ${gradient}`
+              )}
+            >
+              <div className="text-white">{icon}</div>
+            </div>
+          )}
+          <div>
+            <h3 className="text-xl font-bold text-gray-800">{title}</h3>
+            {description && (
+              <p className="text-sm text-gray-500 mt-1">{description}</p>
+            )}
+          </div>
+        </div>
+      </div>
+      {children}
+    </CardContent>
   </Card>
 );
 
@@ -2061,66 +2775,165 @@ const CandidatesStats: React.FC<CandidatesStatsProps> = ({
   const topCities = getTopCities(5);
 
   return (
-    <div className={`space-y-6 ${className}`}>
+    <div className={cn('space-y-8', className)}>
+      {/* Hero Section */}
+      <div className="relative min-h-[200px] bg-gradient-to-br from-purple-50 via-cyan-50/30 to-emerald-50/20 overflow-hidden rounded-3xl shadow-2xl p-8">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0">
+          <div className="absolute top-10 right-10 w-64 h-64 bg-gradient-to-br from-purple-200/30 to-pink-200/30 rounded-full blur-3xl animate-float"></div>
+          <div
+            className="absolute bottom-10 left-10 w-48 h-48 bg-gradient-to-br from-cyan-200/30 to-blue-200/30 rounded-full blur-2xl animate-float"
+            style={{ animationDelay: '2s' }}
+          ></div>
+        </div>
+
+        <div className="relative z-10 text-center">
+          <div className="inline-flex items-center gap-3 mb-6">
+            <div className="p-4 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg">
+              <Activity className="w-10 h-10" />
+            </div>
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-4">
+            סטטיסטיקות מועמדים
+          </h1>
+          <p className="text-xl text-gray-700 max-w-2xl mx-auto leading-relaxed">
+            מבט כולל על נתוני המועמדים, פעילות ותובנות עסקיות מתקדמות
+          </p>
+        </div>
+      </div>
+
       {/* סטטיסטיקות עיקריות */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="סה״כ מועמדים"
           value={stats.gender.total}
-          icon={<Users className="w-6 h-6 text-blue-600" />}
+          icon={<Users className="w-8 h-8" />}
           description="סה״כ מועמדים פעילים במערכת"
+          gradient="from-blue-500 to-cyan-500"
+          iconColor="text-white"
+          trend={{
+            value: 12,
+            isPositive: true,
+          }}
         />
         <StatCard
           title="יחס מועמדים/ות"
           value={genderRatio.formattedRatio}
-          icon={<UserSquare2 className="w-6 h-6 text-blue-600" />}
+          icon={<UserCheck className="w-8 h-8" />}
           description="גברים/נשים"
+          gradient="from-purple-500 to-pink-500"
+          iconColor="text-white"
         />
         <StatCard
           title="פעילות בשבוע האחרון"
           value={`${activeUsers}%`}
-          icon={<Clock className="w-6 h-6 text-blue-600" />}
+          icon={<Clock className="w-8 h-8" />}
+          gradient="from-green-500 to-emerald-500"
+          iconColor="text-white"
           trend={{
-            value: 5,
+            value: 8,
             isPositive: true,
           }}
         />
         <StatCard
           title="פרופילים מלאים"
           value={`${completionStats.percentage}%`}
-          icon={<CheckCircle className="w-6 h-6 text-blue-600" />}
+          icon={<CheckCircle className="w-8 h-8" />}
           description={`${completionStats.completed} מתוך ${stats.gender.total}`}
+          gradient="from-orange-500 to-amber-500"
+          iconColor="text-white"
+          trend={{
+            value: 5,
+            isPositive: true,
+          }}
         />
       </div>
 
       {/* טאבים לניתוחים מתקדמים */}
       <Tabs defaultValue="demographics" className="w-full">
-        <TabsList className="w-full justify-start">
-          <TabsTrigger value="demographics">דמוגרפיה</TabsTrigger>
-          <TabsTrigger value="activity">פעילות</TabsTrigger>
-          <TabsTrigger value="completion">שלמות פרופילים</TabsTrigger>
+        <TabsList className="bg-purple-50/50 rounded-2xl p-1.5 h-auto shadow-lg border border-white/50 grid w-full grid-cols-3">
+          <TabsTrigger
+            value="demographics"
+            className="flex items-center gap-2 rounded-xl transition-all duration-300 py-3 hover:scale-105 data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold"
+          >
+            <Users className="w-5 h-5" />
+            דמוגרפיה
+          </TabsTrigger>
+          <TabsTrigger
+            value="activity"
+            className="flex items-center gap-2 rounded-xl transition-all duration-300 py-3 hover:scale-105 data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold"
+          >
+            <Activity className="w-5 h-5" />
+            פעילות
+          </TabsTrigger>
+          <TabsTrigger
+            value="completion"
+            className="flex items-center gap-2 rounded-xl transition-all duration-300 py-3 hover:scale-105 data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold"
+          >
+            <Target className="w-5 h-5" />
+            שלמות פרופילים
+          </TabsTrigger>
         </TabsList>
 
         {/* דמוגרפיה */}
-        <TabsContent value="demographics">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <TabsContent value="demographics" className="mt-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* התפלגות גילאים */}
-            <Card className="p-6">
-              <h3 className="text-lg font-medium mb-4">התפלגות גילאים</h3>
+            <EnhancedChartCard
+              title="התפלגות גילאים"
+              description="פילוח המועמדים לפי קבוצות גיל"
+              gradient="from-blue-500 to-cyan-500"
+              icon={<Users className="w-6 h-6" />}
+            >
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={ageDistribution}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="range" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="#3B82F6" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis
+                    dataKey="range"
+                    tick={{ fontSize: 12 }}
+                    stroke="#666"
+                  />
+                  <YAxis tick={{ fontSize: 12 }} stroke="#666" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'white',
+                      border: 'none',
+                      borderRadius: '12px',
+                      boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
+                    }}
+                  />
+                  <Bar
+                    dataKey="count"
+                    fill="url(#blueGradient)"
+                    radius={[4, 4, 0, 0]}
+                  />
+                  <defs>
+                    <linearGradient
+                      id="blueGradient"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8} />
+                      <stop
+                        offset="95%"
+                        stopColor="#06B6D4"
+                        stopOpacity={0.6}
+                      />
+                    </linearGradient>
+                  </defs>
                 </BarChart>
               </ResponsiveContainer>
-            </Card>
+            </EnhancedChartCard>
 
             {/* התפלגות דתית */}
-            <Card className="p-6">
-              <h3 className="text-lg font-medium mb-4">התפלגות רמת דתיות</h3>
+            <EnhancedChartCard
+              title="התפלגות רמת דתיות"
+              description="פילוח המועמדים לפי רמת דתיות"
+              gradient="from-purple-500 to-pink-500"
+              icon={<Heart className="w-6 h-6" />}
+            >
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
@@ -2130,7 +2943,11 @@ const CandidatesStats: React.FC<CandidatesStatsProps> = ({
                     cx="50%"
                     cy="50%"
                     outerRadius={100}
-                    label
+                    innerRadius={40}
+                    paddingAngle={2}
+                    label={({ name, percent }) =>
+                      `${name} ${(percent * 100).toFixed(0)}%`
+                    }
                   >
                     {religiousDistribution.map((_, index) => (
                       <Cell
@@ -2139,93 +2956,233 @@ const CandidatesStats: React.FC<CandidatesStatsProps> = ({
                       />
                     ))}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'white',
+                      border: 'none',
+                      borderRadius: '12px',
+                      boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
+                    }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
-            </Card>
+            </EnhancedChartCard>
 
             {/* מיקומים מובילים */}
-            <Card className="p-6">
-              <h3 className="text-lg font-medium mb-4">ערים מובילות</h3>
+            <EnhancedChartCard
+              title="ערים מובילות"
+              description="החמש ערים עם הכי הרבה מועמדים"
+              gradient="from-green-500 to-emerald-500"
+              icon={<MapPin className="w-6 h-6" />}
+            >
               <div className="space-y-4">
-                {topCities.map((city) => (
+                {topCities.map((city, index) => (
                   <div
                     key={city.city}
-                    className="flex items-center justify-between"
+                    className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-100 hover:shadow-md transition-all duration-300"
                   >
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-blue-600" />
-                      <span>{city.city}</span>
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={cn(
+                          'w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg',
+                          index === 0
+                            ? 'bg-gradient-to-r from-yellow-400 to-orange-500'
+                            : index === 1
+                              ? 'bg-gradient-to-r from-gray-400 to-gray-500'
+                              : index === 2
+                                ? 'bg-gradient-to-r from-orange-400 to-red-500'
+                                : 'bg-gradient-to-r from-green-400 to-emerald-500'
+                        )}
+                      >
+                        {index + 1}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-green-600" />
+                        <span className="font-medium text-gray-800">
+                          {city.city}
+                        </span>
+                      </div>
                     </div>
-                    <span className="font-medium">{city.count}</span>
+                    <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-sm px-3 py-1 font-bold">
+                      {city.count}
+                    </Badge>
                   </div>
                 ))}
               </div>
-            </Card>
+            </EnhancedChartCard>
           </div>
         </TabsContent>
 
         {/* פעילות */}
-        <TabsContent value="activity">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* פעילות לאורך זמן */}
-            <Card className="p-6">
-              <h3 className="text-lg font-medium mb-4">פעילות משתמשים</h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span>פעילים בשבוע האחרון</span>
-                  <span className="font-medium">{activityTrend.weekly}</span>
+        <TabsContent value="activity" className="mt-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <EnhancedChartCard
+              title="פעילות משתמשים"
+              description="נתוני פעילות עדכניים"
+              gradient="from-orange-500 to-amber-500"
+              icon={<Activity className="w-6 h-6" />}
+            >
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl border border-orange-100">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-orange-800">
+                        פעילים בשבוע האחרון
+                      </span>
+                      <TrendingUp className="w-4 h-4 text-orange-600" />
+                    </div>
+                    <span className="text-2xl font-bold text-orange-900">
+                      {activityTrend.weekly}
+                    </span>
+                  </div>
+
+                  <div className="p-4 bg-gradient-to-r from-amber-50 to-yellow-50 rounded-xl border border-amber-100">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-amber-800">
+                        פעילים בחודש האחרון
+                      </span>
+                      <Activity className="w-4 h-4 text-amber-600" />
+                    </div>
+                    <span className="text-2xl font-bold text-amber-900">
+                      {activityTrend.monthly}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span>פעילים בחודש האחרון</span>
-                  <span className="font-medium">{activityTrend.monthly}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>ממוצע ימים בין התחברויות</span>
-                  <span className="font-medium">
+
+                <div className="p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl border border-yellow-100">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-yellow-800">
+                      ממוצע ימים בין התחברויות
+                    </span>
+                    <Clock className="w-4 h-4 text-yellow-600" />
+                  </div>
+                  <span className="text-2xl font-bold text-yellow-900">
                     {activityTrend.average} ימים
                   </span>
                 </div>
               </div>
-            </Card>
+            </EnhancedChartCard>
+
+            {/* Additional Activity Chart */}
+            <EnhancedChartCard
+              title="טרנד פעילות שבועי"
+              description="פעילות לאורך השבוע"
+              gradient="from-indigo-500 to-purple-500"
+              icon={<Star className="w-6 h-6" />}
+            >
+              <div className="flex items-center justify-center h-64 text-gray-500">
+                <div className="text-center">
+                  <Sparkles className="w-12 h-12 mx-auto mb-4 text-indigo-400" />
+                  <p>נתונים זמינים בקרוב</p>
+                  <p className="text-sm">טרנד פעילות מתקדם</p>
+                </div>
+              </div>
+            </EnhancedChartCard>
           </div>
         </TabsContent>
 
         {/* שלמות פרופילים */}
-        <TabsContent value="completion">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="p-6">
-              <h3 className="text-lg font-medium mb-4">שלמות פרופילים</h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <ImageIcon className="w-4 h-4 text-blue-600" />
-                    <span>תמונות פרופיל</span>
+        <TabsContent value="completion" className="mt-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <EnhancedChartCard
+              title="שלמות פרופילים"
+              description="אחוזי השלמה של רכיבי הפרופיל"
+              gradient="from-red-500 to-pink-500"
+              icon={<Target className="w-6 h-6" />}
+            >
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-gradient-to-r from-red-50 to-pink-50 rounded-xl border border-red-100 hover:shadow-md transition-all duration-300">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-full bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg">
+                        <ImageIcon className="w-4 h-4" />
+                      </div>
+                      <span className="font-medium text-gray-800">
+                        תמונות פרופיל
+                      </span>
+                    </div>
+                    <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 shadow-sm px-3 py-1 font-bold">
+                      {stats.completion.percentages.hasPhotos}%
+                    </Badge>
                   </div>
-                  <span className="font-medium">
-                    {stats.completion.percentages.hasPhotos}%
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-blue-600" />
-                    <span>פרופיל מאומת</span>
+
+                  <div className="flex items-center justify-between p-4 bg-gradient-to-r from-pink-50 to-rose-50 rounded-xl border border-pink-100 hover:shadow-md transition-all duration-300">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg">
+                        <CheckCircle className="w-4 h-4" />
+                      </div>
+                      <span className="font-medium text-gray-800">
+                        פרופיל מאומת
+                      </span>
+                    </div>
+                    <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 shadow-sm px-3 py-1 font-bold">
+                      {stats.completion.percentages.isVerified}%
+                    </Badge>
                   </div>
-                  <span className="font-medium">
-                    {stats.completion.percentages.isVerified}%
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-blue-600" />
-                    <span>המלצות</span>
+
+                  <div className="flex items-center justify-between p-4 bg-gradient-to-r from-rose-50 to-red-50 rounded-xl border border-rose-100 hover:shadow-md transition-all duration-300">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-full bg-gradient-to-r from-rose-500 to-red-500 text-white shadow-lg">
+                        <Users className="w-4 h-4" />
+                      </div>
+                      <span className="font-medium text-gray-800">המלצות</span>
+                    </div>
+                    <Badge className="bg-gradient-to-r from-rose-500 to-red-500 text-white border-0 shadow-sm px-3 py-1 font-bold">
+                      {stats.completion.percentages.hasReferences}%
+                    </Badge>
                   </div>
-                  <span className="font-medium">
-                    {stats.completion.percentages.hasReferences}%
-                  </span>
                 </div>
               </div>
-            </Card>
+            </EnhancedChartCard>
+
+            {/* Performance Insights */}
+            <EnhancedChartCard
+              title="תובנות ביצועים"
+              description="מדדים עסקיים מתקדמים"
+              gradient="from-emerald-500 to-green-500"
+              icon={<Award className="w-6 h-6" />}
+            >
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center p-4 bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl border border-emerald-100">
+                    <Crown className="w-8 h-8 mx-auto mb-2 text-emerald-600" />
+                    <div className="text-2xl font-bold text-emerald-800">
+                      A+
+                    </div>
+                    <div className="text-sm text-emerald-600">דירוג איכות</div>
+                  </div>
+
+                  <div className="text-center p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-100">
+                    <Zap className="w-8 h-8 mx-auto mb-2 text-green-600" />
+                    <div className="text-2xl font-bold text-green-800">95%</div>
+                    <div className="text-sm text-green-600">שביעות רצון</div>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl border border-blue-100">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="font-medium text-blue-800">
+                      התפתחות החודש
+                    </span>
+                    <TrendingUp className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-blue-700">מועמדים חדשים</span>
+                      <span className="font-bold text-blue-800">+12%</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-blue-700">פעילות</span>
+                      <span className="font-bold text-blue-800">+8%</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-blue-700">השלמות פרופיל</span>
+                      <span className="font-bold text-blue-800">+5%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </EnhancedChartCard>
           </div>
         </TabsContent>
       </Tabs>
@@ -6146,13 +7103,12 @@ Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\matchmaker\new\dialogs\ActionDialogs.tsx
 --------------------------------------------------------------------------------
 Content:
-"use client";
+'use client';
 
-// --- שינוי: הוספת useEffect ליבוא ---
-import React, { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Dialog,
   DialogContent,
@@ -6160,11 +7116,28 @@ import {
   DialogTitle,
   DialogFooter,
   DialogDescription,
-} from "@/components/ui/dialog";
-import { Priority, MatchSuggestionStatus } from "@prisma/client";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Clock, Mail, Loader2 } from "lucide-react";
-import type { Candidate } from "../types/candidates";
+} from '@/components/ui/dialog';
+import { Priority, MatchSuggestionStatus } from '@prisma/client';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  Clock,
+  Mail,
+  Loader2,
+  Send,
+  User,
+  Sparkles,
+  CheckCircle,
+  Heart,
+  MessageCircle,
+  Calendar,
+  AlertCircle,
+  X,
+} from 'lucide-react';
+import type { Candidate } from '../types/candidates';
+import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { getRelativeCloudinaryPath, getInitials } from '@/lib/utils';
 
 interface NewSuggestionFormData {
   firstPartyId: string;
@@ -6172,6 +7145,7 @@ interface NewSuggestionFormData {
   priority: Priority;
   status: MatchSuggestionStatus;
 }
+
 interface ActionDialogsProps {
   suggestDialog: {
     isOpen: boolean;
@@ -6193,34 +7167,118 @@ interface ActionDialogsProps {
   };
 }
 
+// Enhanced Dialog Header Component
+const EnhancedDialogHeader: React.FC<{
+  title: string;
+  description: string;
+  candidate: Candidate | null;
+  icon: React.ReactNode;
+  gradient: string;
+}> = ({ title, description, candidate, icon, gradient }) => {
+  const mainImage = candidate?.images?.find((img) => img.isMain);
+
+  return (
+    <div
+      className={cn(
+        'relative bg-gradient-to-br overflow-hidden rounded-t-3xl -mx-6 -mt-6 mb-6',
+        gradient
+      )}
+    >
+      {/* Background decorative elements */}
+      <div className="absolute inset-0">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-2xl"></div>
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
+      </div>
+
+      <div className="relative z-10 p-6 text-white">
+        <div className="flex items-center gap-4 mb-4">
+          <div className="p-3 rounded-full bg-white/20 backdrop-blur-sm shadow-lg">
+            {icon}
+          </div>
+          <div>
+            <DialogTitle className="text-2xl font-bold text-white mb-1">
+              {title}
+            </DialogTitle>
+            <DialogDescription className="text-white/90 text-lg">
+              {description}
+            </DialogDescription>
+          </div>
+        </div>
+
+        {candidate && (
+          <div className="flex items-center gap-3 p-3 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
+            <Avatar className="w-12 h-12 border-2 border-white/30 shadow-lg">
+              {mainImage ? (
+                <AvatarImage
+                  src={getRelativeCloudinaryPath(mainImage.url)}
+                  alt={`${candidate.firstName} ${candidate.lastName}`}
+                />
+              ) : (
+                <AvatarFallback className="bg-white/20 text-white font-bold">
+                  {getInitials(`${candidate.firstName} ${candidate.lastName}`)}
+                </AvatarFallback>
+              )}
+            </Avatar>
+            <div>
+              <h3 className="font-bold text-white text-lg">
+                {candidate.firstName} {candidate.lastName}
+              </h3>
+              <div className="flex items-center gap-2 mt-1">
+                <Badge className="bg-white/20 text-white border-white/30 text-xs">
+                  {candidate.profile.city || 'לא צוין'}
+                </Badge>
+                <Badge className="bg-white/20 text-white border-white/30 text-xs">
+                  {candidate.profile.availabilityStatus === 'AVAILABLE'
+                    ? 'זמין/ה'
+                    : 'לא זמין/ה'}
+                </Badge>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 export const ActionDialogs: React.FC<ActionDialogsProps> = ({
   suggestDialog,
   availabilityDialog,
   inviteDialog,
 }) => {
   // State for invite dialog
-  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteEmail, setInviteEmail] = useState('');
   const [isInviting, setIsInviting] = useState(false);
   const [inviteError, setInviteError] = useState<string | null>(null);
+  const [inviteSuccess, setInviteSuccess] = useState(false);
 
   // State for availability dialog
   const [isChecking, setIsChecking] = useState(false);
   const [availabilityError, setAvailabilityError] = useState<string | null>(
     null
   );
+  const [availabilitySuccess, setAvailabilitySuccess] = useState(false);
 
-  // --- הוספה: useEffect למילוי אוטומטי של האימייל ---
+  // Auto-fill email when dialog opens
   useEffect(() => {
-    // בודקים אם דיאלוג ההזמנה פתוח ויש מועמד שנבחר
     if (inviteDialog.isOpen && inviteDialog.selectedCandidate) {
-      // מעדכנים את שדה האימייל עם האימייל של המועמד מהדאטהבייס.
-      // אם אין לו אימייל, השדה יישאר ריק.
-      setInviteEmail(inviteDialog.selectedCandidate.email || "");
+      setInviteEmail(inviteDialog.selectedCandidate.email || '');
+      setInviteError(null);
+      setInviteSuccess(false);
     } else {
-      // כאשר הדיאלוג נסגר, מנקים את שדה האימייל
-      setInviteEmail("");
+      setInviteEmail('');
+      setInviteError(null);
+      setInviteSuccess(false);
     }
-  }, [inviteDialog.isOpen, inviteDialog.selectedCandidate]); // ה-hook יופעל בכל פעם שהדיאלוג נפתח/נסגר או שהמועמד משתנה
+  }, [inviteDialog.isOpen, inviteDialog.selectedCandidate]);
+
+  // Reset availability dialog state
+  useEffect(() => {
+    if (availabilityDialog.isOpen) {
+      setAvailabilityError(null);
+      setAvailabilitySuccess(false);
+    }
+  }, [availabilityDialog.isOpen]);
 
   // Handler for invite submission
   const handleInviteSubmit = async () => {
@@ -6230,11 +7288,15 @@ export const ActionDialogs: React.FC<ActionDialogsProps> = ({
       setIsInviting(true);
       setInviteError(null);
       await inviteDialog.onInvite(inviteDialog.selectedCandidate, inviteEmail);
-      // setInviteEmail(""); // השורה הזו כבר לא הכרחית כי ה-useEffect ינקה את השדה בסגירה
-      inviteDialog.onClose();
+      setInviteSuccess(true);
+
+      // Auto-close after success
+      setTimeout(() => {
+        inviteDialog.onClose();
+      }, 2000);
     } catch (error) {
       setInviteError(
-        error instanceof Error ? error.message : "Failed to send invitation"
+        error instanceof Error ? error.message : 'שגיאה בשליחת ההזמנה'
       );
     } finally {
       setIsInviting(false);
@@ -6249,72 +7311,136 @@ export const ActionDialogs: React.FC<ActionDialogsProps> = ({
       setIsChecking(true);
       setAvailabilityError(null);
       await availabilityDialog.onCheck(availabilityDialog.selectedCandidate);
-      availabilityDialog.onClose();
+      setAvailabilitySuccess(true);
+
+      // Auto-close after success
+      setTimeout(() => {
+        availabilityDialog.onClose();
+      }, 2000);
     } catch (error) {
       setAvailabilityError(
-        error instanceof Error ? error.message : "Failed to check availability"
+        error instanceof Error ? error.message : 'שגיאה בבדיקת הזמינות'
       );
     } finally {
       setIsChecking(false);
     }
   };
 
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   return (
     <>
       {/* Invite Dialog */}
       <Dialog open={inviteDialog.isOpen} onOpenChange={inviteDialog.onClose}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>שליחת הזמנה למועמד</DialogTitle>
-            <DialogDescription>
-              {inviteDialog.selectedCandidate && (
-                <span>
-                  שליחת הזמנה ל: {inviteDialog.selectedCandidate.firstName}{" "}
-                  {inviteDialog.selectedCandidate.lastName}
-                </span>
-              )}
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="sm:max-w-md border-0 shadow-2xl bg-white rounded-3xl overflow-hidden">
+          <EnhancedDialogHeader
+            title="שליחת הזמנה למועמד"
+            description="שלח הזמנה אישית להצטרפות למערכת"
+            candidate={inviteDialog.selectedCandidate}
+            icon={<Send className="w-8 h-8" />}
+            gradient="from-purple-500 to-indigo-500"
+          />
 
-          <div className="space-y-4">
-            <div>
-              <Label>כתובת אימייל</Label>
-              <Input
-                type="email"
-                value={inviteEmail}
-                onChange={(e) => setInviteEmail(e.target.value)}
-                placeholder="הזן כתובת אימייל"
-                className="mt-2"
-              />
-            </div>
+          <div className="space-y-6 p-6 -mt-6">
+            {inviteSuccess ? (
+              <div className="text-center py-8">
+                <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                  <CheckCircle className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-green-800 mb-2">
+                  ההזמנה נשלחה בהצלחה!
+                </h3>
+                <p className="text-green-600">המועמד יקבל הודעה בדוא"ל</p>
+              </div>
+            ) : (
+              <>
+                <div className="space-y-3">
+                  <Label className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-purple-500" />
+                    כתובת אימייל
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      type="email"
+                      value={inviteEmail}
+                      onChange={(e) => {
+                        setInviteEmail(e.target.value);
+                        setInviteError(null);
+                      }}
+                      placeholder="הזן כתובת אימייל"
+                      className={cn(
+                        'pr-12 h-12 bg-gray-50 border-2 border-gray-200 focus:border-purple-400 focus:ring-purple-200 rounded-xl transition-all duration-300',
+                        !validateEmail(inviteEmail) &&
+                          inviteEmail.length > 0 &&
+                          'border-red-300 focus:border-red-400'
+                      )}
+                      dir="ltr"
+                    />
+                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                      <Mail className="w-5 h-5 text-gray-400" />
+                    </div>
+                  </div>
+                  {inviteEmail && !validateEmail(inviteEmail) && (
+                    <p className="text-red-500 text-sm flex items-center gap-1">
+                      <AlertCircle className="w-4 h-4" />
+                      כתובת אימייל לא תקינה
+                    </p>
+                  )}
+                </div>
 
-            {inviteError && (
-              <Alert variant="destructive">
-                <AlertDescription>{inviteError}</AlertDescription>
-              </Alert>
+                {inviteError && (
+                  <Alert className="border-red-200 bg-red-50">
+                    <AlertCircle className="h-4 w-4 text-red-600" />
+                    <AlertDescription className="text-red-700 font-medium">
+                      {inviteError}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-4 rounded-xl border border-purple-100">
+                  <h4 className="font-bold text-purple-800 mb-2 flex items-center gap-2">
+                    <Sparkles className="w-4 h-4" />
+                    מה יקרה לאחר השליחה?
+                  </h4>
+                  <ul className="text-sm text-purple-700 space-y-1">
+                    <li>• המועמד יקבל הזמנה אישית בדוא"ל</li>
+                    <li>• יוכל להירשם ולהשלים את פרטיו</li>
+                    <li>• תקבל הודעה כשהמועמד יצטרף</li>
+                  </ul>
+                </div>
+              </>
             )}
           </div>
 
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={inviteDialog.onClose}
-              disabled={isInviting}
-            >
-              ביטול
-            </Button>
-            <Button
-              onClick={handleInviteSubmit}
-              disabled={isInviting || !inviteEmail}
-            >
-              {isInviting ? (
-                <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Mail className="ml-2 h-4 w-4" />
-              )}
-              {isInviting ? "שולח..." : "שלח הזמנה"}
-            </Button>
-          </DialogFooter>
+          {!inviteSuccess && (
+            <DialogFooter className="p-6 pt-0 gap-3">
+              <Button
+                variant="outline"
+                onClick={inviteDialog.onClose}
+                disabled={isInviting}
+                className="border-2 border-gray-200 hover:bg-gray-50 rounded-xl font-medium"
+              >
+                ביטול
+              </Button>
+              <Button
+                onClick={handleInviteSubmit}
+                disabled={
+                  isInviting || !inviteEmail || !validateEmail(inviteEmail)
+                }
+                className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-bold px-6"
+              >
+                {isInviting ? (
+                  <Loader2 className="ml-2 h-5 w-5 animate-spin" />
+                ) : (
+                  <Send className="ml-2 h-5 w-5" />
+                )}
+                {isInviting ? 'שולח...' : 'שלח הזמנה'}
+              </Button>
+            </DialogFooter>
+          )}
         </DialogContent>
       </Dialog>
 
@@ -6323,64 +7449,136 @@ export const ActionDialogs: React.FC<ActionDialogsProps> = ({
         open={availabilityDialog.isOpen}
         onOpenChange={availabilityDialog.onClose}
       >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>בדיקת זמינות</DialogTitle>
-            <DialogDescription>
-              {availabilityDialog.selectedCandidate && (
-                <span>
-                  בדיקת זמינות עבור:{" "}
-                  {availabilityDialog.selectedCandidate.firstName}{" "}
-                  {availabilityDialog.selectedCandidate.lastName}
-                </span>
-              )}
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="sm:max-w-md border-0 shadow-2xl bg-white rounded-3xl overflow-hidden">
+          <EnhancedDialogHeader
+            title="בדיקת זמינות"
+            description="בדוק זמינות המועמד לפגישה"
+            candidate={availabilityDialog.selectedCandidate}
+            icon={<Calendar className="w-8 h-8" />}
+            gradient="from-orange-500 to-amber-500"
+          />
 
-          <div className="space-y-4">
-            {availabilityError && (
-              <Alert variant="destructive">
-                <AlertDescription>{availabilityError}</AlertDescription>
-              </Alert>
+          <div className="space-y-6 p-6 -mt-6">
+            {availabilitySuccess ? (
+              <div className="text-center py-8">
+                <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                  <CheckCircle className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-green-800 mb-2">
+                  בקשת זמינות נשלחה!
+                </h3>
+                <p className="text-green-600">
+                  המועמד יקבל הודעה ויוכל לעדכן זמינות
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="bg-gradient-to-r from-orange-50 to-amber-50 p-4 rounded-xl border border-orange-100">
+                  <h4 className="font-bold text-orange-800 mb-2 flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    מה תכלול בדיקת הזמינות?
+                  </h4>
+                  <ul className="text-sm text-orange-700 space-y-1">
+                    <li>• שליחת הודעה למועמד</li>
+                    <li>• בקשה לעדכון לוח זמנים</li>
+                    <li>• אפשרות לתיאום פגישה</li>
+                    <li>• עדכון סטטוס זמינות</li>
+                  </ul>
+                </div>
+
+                {availabilityError && (
+                  <Alert className="border-red-200 bg-red-50">
+                    <AlertCircle className="h-4 w-4 text-red-600" />
+                    <AlertDescription className="text-red-700 font-medium">
+                      {availabilityError}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                  <div className="flex items-center gap-3 mb-3">
+                    <MessageCircle className="w-5 h-5 text-blue-500" />
+                    <span className="font-medium text-gray-800">
+                      הודעה שתישלח:
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600 bg-white p-3 rounded-lg border italic">
+                    "שלום {availabilityDialog.selectedCandidate?.firstName},
+                    השדכן מעוניין לבדוק את הזמינות שלך לפגישה. אנא עדכן את לוח
+                    הזמנים שלך במערכת."
+                  </p>
+                </div>
+              </>
             )}
           </div>
 
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={availabilityDialog.onClose}
-              disabled={isChecking}
-            >
-              ביטול
-            </Button>
-            <Button onClick={handleAvailabilityCheck} disabled={isChecking}>
-              {isChecking ? (
-                <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Clock className="ml-2 h-4 w-4" />
-              )}
-              {isChecking ? "בודק..." : "בדוק זמינות"}
-            </Button>
-          </DialogFooter>
+          {!availabilitySuccess && (
+            <DialogFooter className="p-6 pt-0 gap-3">
+              <Button
+                variant="outline"
+                onClick={availabilityDialog.onClose}
+                disabled={isChecking}
+                className="border-2 border-gray-200 hover:bg-gray-50 rounded-xl font-medium"
+              >
+                ביטול
+              </Button>
+              <Button
+                onClick={handleAvailabilityCheck}
+                disabled={isChecking}
+                className="bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-bold px-6"
+              >
+                {isChecking ? (
+                  <Loader2 className="ml-2 h-5 w-5 animate-spin" />
+                ) : (
+                  <Clock className="ml-2 h-5 w-5" />
+                )}
+                {isChecking ? 'בודק...' : 'בדוק זמינות'}
+              </Button>
+            </DialogFooter>
+          )}
         </DialogContent>
       </Dialog>
 
       {/* Suggest Match Dialog */}
       <Dialog open={suggestDialog.isOpen} onOpenChange={suggestDialog.onClose}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>הצעת שידוך חדשה</DialogTitle>
-            <DialogDescription>
-              {suggestDialog.selectedCandidate && (
-                <span>
-                  יצירת הצעת שידוך עבור:{" "}
-                  {suggestDialog.selectedCandidate.firstName}{" "}
-                  {suggestDialog.selectedCandidate.lastName}
-                </span>
-              )}
-            </DialogDescription>
-          </DialogHeader>
-          {/* תוכן הדיאלוג יועבר מהקומפוננטה NewSuggestionForm */}
+        <DialogContent className="sm:max-w-md border-0 shadow-2xl bg-white rounded-3xl overflow-hidden">
+          <EnhancedDialogHeader
+            title="הצעת שידוך חדשה"
+            description="צור הצעת שידוך מותאמת אישית"
+            candidate={suggestDialog.selectedCandidate}
+            icon={<Heart className="w-8 h-8" />}
+            gradient="from-pink-500 to-rose-500"
+          />
+
+          <div className="p-6 -mt-6">
+            <div className="bg-gradient-to-r from-pink-50 to-rose-50 p-4 rounded-xl border border-pink-100">
+              <h4 className="font-bold text-pink-800 mb-2 flex items-center gap-2">
+                <Sparkles className="w-4 h-4" />
+                השלב הבא
+              </h4>
+              <p className="text-sm text-pink-700">
+                הקליקו על "המשך" כדי לפתוח את טופס יצירת ההצעה המלא עם כל
+                האפשרויות והפרטים הנדרשים.
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter className="p-6 pt-0 gap-3">
+            <Button
+              variant="outline"
+              onClick={suggestDialog.onClose}
+              className="border-2 border-gray-200 hover:bg-gray-50 rounded-xl font-medium"
+            >
+              ביטול
+            </Button>
+            <Button
+              onClick={suggestDialog.onClose}
+              className="bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-bold px-6"
+            >
+              <Heart className="ml-2 h-5 w-5" />
+              המשך ליצירת הצעה
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>

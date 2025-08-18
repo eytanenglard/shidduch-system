@@ -116,6 +116,7 @@ export async function GET(req: Request) {
             medicalInfoDetails: true,
             medicalInfoDisclosureTiming: true,
             isMedicalInfoVisible: true,
+            needsAiProfileUpdate: true,
           }
         },
         images: {
@@ -230,6 +231,7 @@ export async function GET(req: Request) {
       medicalInfoDetails: dbProfile.medicalInfoDetails ?? undefined,
       medicalInfoDisclosureTiming: dbProfile.medicalInfoDisclosureTiming ?? undefined,
       isMedicalInfoVisible: dbProfile.isMedicalInfoVisible,
+       needsAiProfileUpdate: dbProfile.needsAiProfileUpdate,
       user: {
         id: userWithProfile.id,
         firstName: userWithProfile.firstName,

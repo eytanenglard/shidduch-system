@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage
-# Generated on: 2025-08-17 19:53:35
+# Generated on: 2025-08-18 14:20:31
 ################################################################################
 
 ================================================================================
@@ -715,19 +715,19 @@ export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
         userId={userId}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
+        /* --- START: This block has been removed to fix the error ---
         // onStatusChange נשאר כפי שהוא, להדגמה
         onStatusChange={async () => {
           alert(
             'זוהי הדגמה בלבד. במערכת האמיתית, הפעולה שלך הייתה מעדכנת את סטטוס ההצעה.'
           );
         }}
-        // --- START: הוספת ה-prop החסר ---
+        --- END: Block removed --- */
         onActionRequest={(suggestion, action) => {
           alert(
             `זוהי הדגמה בלבד. הפעולה המבוקשת היא "${action === 'approve' ? 'אישור' : 'דחייה'}" עבור ההצעה ל${suggestion.secondParty.firstName}. במערכת האמיתית, היה נפתח חלון אישור.`
           );
         }}
-        // --- END: הוספת ה-prop החסר ---
         questionnaire={questionnaireData}
         isDemo={true}
         demoAnalysisData={demoAiAnalysis}

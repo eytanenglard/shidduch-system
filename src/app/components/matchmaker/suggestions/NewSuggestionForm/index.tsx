@@ -1,25 +1,44 @@
 // src/app/components/matchmaker/suggestions/NewSuggestionForm/index.tsx
 
-"use client";
-import React, { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { useForm, FormProvider } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Priority, MatchSuggestionStatus } from "@prisma/client";
-import { Separator } from "@/components/ui/separator";
-import { UserPlus, Sparkles, Loader2, BarChart2, CheckCircle, Users } from "lucide-react";
+'use client';
+import React, { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { useForm, FormProvider } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Priority, MatchSuggestionStatus } from '@prisma/client';
+import {
+  UserPlus,
+  Sparkles,
+  Loader2,
+  BarChart2,
+  Users,
+  Heart,
+  ArrowRight,
+  ArrowLeft,
+  X,
+  Gift,
+  Check,
+  Crown,
+} from 'lucide-react';
 
 // Types
-import type { Candidate } from "../../new/types/candidates";
-import { newSuggestionSchema, type NewSuggestionFormData } from "./schema";
+import type { Candidate } from '../../new/types/candidates';
+import { newSuggestionSchema, type NewSuggestionFormData } from './schema';
 
 // Components
-import SuggestionDetails from "./SuggestionDetails";
-import MatchPreview from "./MatchPreview";
-import CandidateSelector from "./CandidateSelector";
-import { AiMatchAnalysisDialog } from "../../new/dialogs/AiMatchAnalysisDialog";
+import SuggestionDetails from './SuggestionDetails';
+import MatchPreview from './MatchPreview';
+import CandidateSelector from './CandidateSelector';
+import { AiMatchAnalysisDialog } from '../../new/dialogs/AiMatchAnalysisDialog';
+import { cn } from '@/lib/utils';
 
 interface NewSuggestionFormProps {
   isOpen: boolean;
@@ -29,155 +48,364 @@ interface NewSuggestionFormProps {
   onSubmit: (data: NewSuggestionFormData) => Promise<void>;
 }
 
-const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({ isOpen, onClose, candidates, selectedCandidate, onSubmit }) => {
+// Sub-component: Redesigned StepIndicator for a compact, horizontal layout
+const StepIndicator: React.FC<{
+  currentStep: number;
+  steps: Array<{ label: string; icon: React.ElementType }>;
+}> = ({ currentStep, steps }) => (
+  <div className="flex items-center justify-center">
+    {steps.map((step, index) => {
+      const isActive = index === currentStep;
+      const isCompleted = index < currentStep;
+      const StepIcon = step.icon;
+
+      return (
+        <React.Fragment key={index}>
+          <div className="flex flex-col items-center text-center">
+            <div
+              className={cn(
+                'flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 shadow-md',
+                isActive &&
+                  'bg-gradient-to-r from-purple-600 to-pink-600 text-white scale-110 shadow-lg',
+                isCompleted &&
+                  'bg-gradient-to-r from-green-500 to-emerald-500 text-white',
+                !isActive && !isCompleted && 'bg-gray-200 text-gray-500'
+              )}
+            >
+              {isCompleted ? (
+                <Check className="w-6 h-6" />
+              ) : (
+                <StepIcon className="w-6 h-6" />
+              )}
+            </div>
+            <p
+              className={cn(
+                'mt-2 text-xs font-semibold w-24',
+                isActive && 'text-purple-600',
+                isCompleted && 'text-green-600',
+                !isActive && !isCompleted && 'text-gray-500'
+              )}
+            >
+              {step.label}
+            </p>
+          </div>
+
+          {index < steps.length - 1 && (
+            <div
+              className={cn(
+                'w-16 h-1 mx-2 rounded-full transition-colors duration-300',
+                isCompleted ? 'bg-green-500' : 'bg-gray-200'
+              )}
+            />
+          )}
+        </React.Fragment>
+      );
+    })}
+  </div>
+);
+
+const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
+  isOpen,
+  onClose,
+  candidates,
+  selectedCandidate,
+  onSubmit,
+}) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [firstParty, setFirstParty] = useState<Candidate | null>(null);
   const [secondParty, setSecondParty] = useState<Candidate | null>(null);
   const [showAnalysisDialog, setShowAnalysisDialog] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
+
+  // Simplified steps array for the new StepIndicator
+  const steps = [
+    { label: 'בחירת מועמדים', icon: Users },
+    { label: 'ניתוח התאמה', icon: BarChart2 },
+    { label: 'פרטי ההצעה', icon: Heart },
+  ];
 
   const form = useForm<NewSuggestionFormData>({
     resolver: zodResolver(newSuggestionSchema),
     defaultValues: {
       priority: Priority.MEDIUM,
       status: MatchSuggestionStatus.DRAFT,
-      decisionDeadline: new Date(new Date().setDate(new Date().getDate() + 14)), // Default to 2 weeks
+      decisionDeadline: new Date(new Date().setDate(new Date().getDate() + 14)),
     },
   });
 
-  // Reset form and state when dialog opens or selectedCandidate changes
   useEffect(() => {
     if (isOpen) {
       form.reset({
         priority: Priority.MEDIUM,
         status: MatchSuggestionStatus.DRAFT,
-        decisionDeadline: new Date(new Date().setDate(new Date().getDate() + 14)),
-        firstPartyId: selectedCandidate?.id || "",
-        secondPartyId: "",
+        decisionDeadline: new Date(
+          new Date().setDate(new Date().getDate() + 14)
+        ),
+        firstPartyId: selectedCandidate?.id || '',
+        secondPartyId: '',
       });
       setFirstParty(selectedCandidate || null);
       setSecondParty(null);
+      setCurrentStep(0);
     }
   }, [isOpen, selectedCandidate, form]);
 
-  const handleCandidateSelect = (type: "first" | "second") => (candidate: Candidate | null) => {
-    const setter = type === 'first' ? setFirstParty : setSecondParty;
-    const fieldName = type === 'first' ? 'firstPartyId' : 'secondPartyId';
-    setter(candidate);
-    form.setValue(fieldName, candidate?.id || "", { shouldValidate: true, shouldDirty: true });
+  const handleCandidateSelect =
+    (type: 'first' | 'second') => (candidate: Candidate | null) => {
+      const setter = type === 'first' ? setFirstParty : setSecondParty;
+      const fieldName = type === 'first' ? 'firstPartyId' : 'secondPartyId';
+      setter(candidate);
+      form.setValue(fieldName, candidate?.id || '', {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+    };
+
+  const handleNext = () => {
+    if (currentStep === 0 && (!firstParty || !secondParty)) {
+      toast.error('יש לבחור את שני הצדדים להצעה.');
+      return;
+    }
+    setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
+  };
+
+  const handlePrevious = () => {
+    setCurrentStep((prev) => Math.max(prev - 1, 0));
   };
 
   const handleSubmit = form.handleSubmit(async (data) => {
     if (!firstParty || !secondParty) {
-      toast.error("יש לבחור את שני הצדדים להצעה.");
+      toast.error('יש לבחור את שני הצדדים להצעה.');
       return;
     }
 
     setIsSubmitting(true);
     try {
       await onSubmit(data);
-      toast.success("ההצעה נוצרה בהצלחה!");
+      toast.success('ההצעה נוצרה בהצלחה!', {
+        description: 'ההצעה נשלחה אוטומטית לצד הראשון',
+        duration: 5000,
+      });
       onClose();
     } catch (error) {
-      toast.error("שגיאה ביצירת ההצעה: " + (error instanceof Error ? error.message : "שגיאה לא ידועה"));
+      toast.error(
+        'שגיאה ביצירת ההצעה: ' +
+          (error instanceof Error ? error.message : 'שגיאה לא ידועה')
+      );
     } finally {
       setIsSubmitting(false);
     }
   });
 
-  const maleCandidates = candidates.filter(c => c.profile.gender === 'MALE');
-  const femaleCandidates = candidates.filter(c => c.profile.gender === 'FEMALE');
+  const maleCandidates = candidates.filter((c) => c.profile.gender === 'MALE');
+  const femaleCandidates = candidates.filter(
+    (c) => c.profile.gender === 'FEMALE'
+  );
+
+  const canProceedToNextStep = () => {
+    switch (currentStep) {
+      case 0:
+        return firstParty && secondParty;
+      case 1:
+        return firstParty && secondParty;
+      case 2:
+        return true;
+      default:
+        return false;
+    }
+  };
+
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 0:
+        return (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <CandidateSelector
+              label="צד א' (גבר)"
+              value={firstParty}
+              onChange={handleCandidateSelect('first')}
+              candidates={maleCandidates}
+              otherParty={secondParty}
+              fieldName="firstPartyId"
+              error={form.formState.errors.firstPartyId?.message}
+            />
+            <CandidateSelector
+              label="צד ב' (אישה)"
+              value={secondParty}
+              onChange={handleCandidateSelect('second')}
+              candidates={femaleCandidates}
+              otherParty={firstParty}
+              fieldName="secondPartyId"
+              error={form.formState.errors.secondPartyId?.message}
+            />
+          </div>
+        );
+
+      case 1:
+        if (!firstParty || !secondParty) {
+          return (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center text-gray-500">
+                <Users className="mx-auto h-16 w-16 text-gray-300 mb-4" />
+                <p className="text-lg font-medium">
+                  יש לחזור ולבחור את שני המועמדים
+                </p>
+              </div>
+            </div>
+          );
+        }
+        return (
+          <div className="space-y-8">
+            <MatchPreview firstParty={firstParty} secondParty={secondParty} />
+            <div className="flex justify-center">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowAnalysisDialog(true)}
+                className="bg-gradient-to-r from-indigo-50 to-purple-50 border-2 border-indigo-200 text-indigo-700 hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 hover:border-indigo-300 rounded-2xl px-8 py-4 font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                <BarChart2 className="w-6 h-6 ml-3" />
+                ניתוח התאמה מלא (AI)
+                <Sparkles className="w-5 h-5 mr-2 text-purple-500" />
+              </Button>
+            </div>
+          </div>
+        );
+
+      case 2:
+        if (!firstParty || !secondParty) {
+          return (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center text-gray-500">
+                <Users className="mx-auto h-16 w-16 text-gray-300 mb-4" />
+                <p className="text-lg font-medium">
+                  יש לחזור ולבחור את שני המועמדים
+                </p>
+              </div>
+            </div>
+          );
+        }
+        return (
+          <SuggestionDetails
+            firstParty={firstParty}
+            secondParty={secondParty}
+          />
+        );
+
+      default:
+        return null;
+    }
+  };
 
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-7xl w-full h-[95vh] flex flex-col p-0" dir="rtl">
-          <DialogHeader className="px-6 py-4 border-b flex-shrink-0">
-            <DialogTitle className="text-2xl flex items-center gap-3">
-              <UserPlus className="text-primary"/>
-              יצירת הצעת שידוך חדשה
-            </DialogTitle>
-            <DialogDescription>
-              בחר שני מועמדים, נתח את ההתאמה ביניהם והגדר את פרטי ההצעה.
-            </DialogDescription>
-          </DialogHeader>
-
-          <FormProvider {...form}>
-            <form onSubmit={handleSubmit} className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-6 p-6 overflow-hidden">
-              
-              {/* Left Panel: Male Selector */}
-              <div className="md:col-span-3 flex flex-col gap-4">
-                <CandidateSelector
-                  label="צד א' (גבר)"
-                  value={firstParty}
-                  onChange={handleCandidateSelect("first")}
-                  candidates={maleCandidates}
-                  otherParty={secondParty}
-                  fieldName="firstPartyId"
-                  error={form.formState.errors.firstPartyId?.message}
-                />
+        <DialogContent
+          className="max-w-7xl w-full h-[95vh] flex flex-col p-0 border-0 shadow-2xl rounded-3xl bg-gray-50"
+          dir="rtl"
+        >
+          {/* Redesigned Header: More compact and horizontal */}
+          <div className="relative border-b p-4 flex-shrink-0 bg-white">
+            <div className="flex justify-between items-center w-full">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg">
+                  <UserPlus className="w-8 h-8" />
+                </div>
+                <div className="text-right">
+                  <DialogTitle className="text-2xl font-bold text-gray-800">
+                    יצירת הצעת שידוך חדשה
+                  </DialogTitle>
+                  <DialogDescription className="text-md text-gray-500 mt-1">
+                    שלב {currentStep + 1} מתוך {steps.length}:{' '}
+                    {steps[currentStep].label}
+                  </DialogDescription>
+                </div>
               </div>
-              
-              {/* Center Panel: Details and Actions */}
-              <div className="md:col-span-6 flex flex-col gap-4 overflow-y-auto pr-2 pb-4">
-                {firstParty && secondParty ? (
-                  <>
-                    <MatchPreview firstParty={firstParty} secondParty={secondParty} />
-                     <div className="flex gap-2 justify-center">
-                      <Button type="button" variant="outline" onClick={() => setShowAnalysisDialog(true)}>
-                        <BarChart2 className="w-4 h-4 ml-2"/>
-                        נתח התאמה מלא (AI)
-                      </Button>
-                     </div>
-                    <SuggestionDetails firstParty={firstParty} secondParty={secondParty} />
-                  </>
+
+              <div className="flex-1 flex justify-center">
+                <StepIndicator currentStep={currentStep} steps={steps} />
+              </div>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onClose}
+                className="rounded-full h-10 w-10 text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Content Area: Now takes up much more space */}
+          <div className="flex-1 overflow-y-auto p-6 lg:p-8 bg-gradient-to-br from-white via-purple-50/20 to-pink-50/20">
+            <FormProvider {...form}>
+              <form onSubmit={handleSubmit} className="h-full">
+                <div className="animate-fade-in-up">{renderStepContent()}</div>
+              </form>
+            </FormProvider>
+          </div>
+
+          {/* Footer */}
+          <div className="border-t bg-white p-4 flex-shrink-0">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {currentStep > 0 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handlePrevious}
+                    className="px-6 py-3 border-2 border-gray-300 hover:bg-gray-50 rounded-xl transition-all duration-300 font-bold"
+                  >
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                    חזור
+                  </Button>
+                )}
+                {currentStep < steps.length - 1 ? (
+                  <Button
+                    type="button"
+                    onClick={handleNext}
+                    disabled={!canProceedToNextStep()}
+                    className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    המשך
+                    <ArrowLeft className="w-5 h-5 mr-2" />
+                  </Button>
                 ) : (
-                  <div className="flex items-center justify-center h-full bg-gray-50 rounded-lg border-2 border-dashed">
-                    <div className="text-center text-gray-500">
-                        <Users className="mx-auto h-12 w-12 text-gray-300" />
-                        <h3 className="mt-2 text-sm font-medium">בחר מועמדים</h3>
-                        <p className="mt-1 text-sm text-gray-500">
-                            יש לבחור מועמד ומועמדת מהעמודות בצדדים.
-                        </p>
-                    </div>
-                  </div>
+                  <Button
+                    type="submit"
+                    onClick={handleSubmit}
+                    disabled={isSubmitting || !firstParty || !secondParty}
+                    className="px-8 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-5 h-5 ml-2 animate-spin" />
+                        יוצר הצעה...
+                      </>
+                    ) : (
+                      <>
+                        <Gift className="w-5 h-5 ml-2" />
+                        צור הצעה
+                        <Sparkles className="w-4 h-4 mr-2" />
+                      </>
+                    )}
+                  </Button>
                 )}
               </div>
-
-              {/* Right Panel: Female Selector */}
-              <div className="md:col-span-3 flex flex-col gap-4">
-                <CandidateSelector
-                  label="צד ב' (אישה)"
-                  value={secondParty}
-                  onChange={handleCandidateSelect("second")}
-                  candidates={femaleCandidates}
-                  otherParty={firstParty}
-                  fieldName="secondPartyId"
-                  error={form.formState.errors.secondPartyId?.message}
-                />
+              <div className="text-sm text-gray-500 flex items-center gap-2">
+                <Crown className="w-4 h-4 text-purple-500" />
+                <span>
+                  {firstParty && secondParty
+                    ? `${firstParty.firstName} ו${secondParty.firstName}`
+                    : 'בחירת מועמדים'}
+                </span>
               </div>
-
-            </form>
-          </FormProvider>
-
-          <DialogFooter className="p-4 border-t flex-shrink-0">
-            <div className="flex justify-between w-full items-center">
-                <span className="text-xs text-gray-500">לאחר יצירת ההצעה, היא תופיע בסטטוס טיוטה.</span>
-                <div className="flex gap-2">
-                    <DialogClose asChild><Button variant="outline">ביטול</Button></DialogClose>
-                    <Button
-                        type="submit"
-                        onClick={handleSubmit}
-                        disabled={isSubmitting || !firstParty || !secondParty}
-                    >
-                        {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin ml-2"/> : <CheckCircle className="w-4 h-4 ml-2"/>}
-                        {isSubmitting ? "יוצר הצעה..." : "צור הצעה"}
-                    </Button>
-                </div>
             </div>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
-      
+
       {firstParty && secondParty && (
         <AiMatchAnalysisDialog
           isOpen={showAnalysisDialog}
