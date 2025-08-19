@@ -420,7 +420,7 @@ const GenderFilterPanel = ({
         <div className="space-y-4">
           <Label className="text-base font-bold text-gray-800 flex items-center gap-2">
             <Ruler className="w-5 h-5 text-purple-600" />
-            גובה (ס"מ)
+            גובה (ס&quot;מ)
           </Label>
           <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-gray-100/50">
             <div className="flex justify-between items-center mb-4">
