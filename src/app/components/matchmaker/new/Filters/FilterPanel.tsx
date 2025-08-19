@@ -1164,7 +1164,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
 
                 <TabsContent value="advanced" className="space-y-6 m-0">
                   <FilterSection
-                    title='גובה (ס"מ)'
+    title='גובה (ס&quot;מ)'
                     icon={<Ruler className="w-5 h-5" />}
                     gradient="from-indigo-500 to-purple-500"
                     badge={
