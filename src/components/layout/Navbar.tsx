@@ -210,6 +210,9 @@ const Navbar = () => {
                 size="icon"
                 onClick={() => setLanguage(language === 'he' ? 'en' : 'he')}
                 className="text-gray-600 hover:text-cyan-600 hover:bg-cyan-100/50 rounded-full"
+                aria-label={
+                  language === 'he' ? 'Switch to English' : 'עבור לעברית'
+                }
                 title={language === 'he' ? 'Switch to English' : 'עבור לעברית'}
               >
                 <Globe className="h-5 w-5" />

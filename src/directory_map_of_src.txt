@@ -306,6 +306,7 @@ src/
                 ├── ProfileCard.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\profile\ProfileCard.tsx)
                 ├── constants.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\profile\constants.ts)
                 ├── index.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\profile\index.ts)
+                ├── profile_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\profile\profile_contents.txt)
                 └── utils.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\profile\utils.ts)
             └── elements/
                     ├── MinimalCard.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\profile\elements\MinimalCard.tsx)
@@ -402,7 +403,8 @@ src/
             ├── MatchmakingQuestionnaire.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\MatchmakingQuestionnaire.tsx)
             ├── QuestionnaireComplete.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\QuestionnaireComplete.tsx)
             ├── QuestionnairePage.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\QuestionnairePage.tsx)
-            └── QuestionnaireRestore.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\QuestionnaireRestore.tsx)
+            ├── QuestionnaireRestore.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\QuestionnaireRestore.tsx)
+            └── questionnaire_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\questionnaire_contents.txt)
         └── common/
                 ├── AnswerInput.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\common\AnswerInput.tsx)
                 ├── InteractiveScale.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\common\InteractiveScale.tsx)
@@ -413,7 +415,6 @@ src/
         └── components/
                 ├── AccessibilityFeatures.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\components\AccessibilityFeatures.tsx)
                 ├── FAQ.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\components\FAQ.tsx)
-                ├── InteractiveScale.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\components\InteractiveScale.tsx)
                 ├── MatchResultCard.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\components\MatchResultCard.tsx)
                 ├── QuestionnaireProgress.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\components\QuestionnaireProgress.tsx)
                 └── UserStats.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\components\UserStats.tsx)
@@ -526,7 +527,6 @@ src/
             ├── aiService.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services\aiService.ts)
             ├── availabilityService.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services\availabilityService.ts)
             ├── profileAiService.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services\profileAiService.ts)
-            ├── services_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services\services_contents.txt)
             └── verificationService.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services\verificationService.ts)
     └── utils/
             ├── serverStatusUtils.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\utils\serverStatusUtils.ts)
