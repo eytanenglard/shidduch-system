@@ -1,12 +1,35 @@
-// /Filters/SearchBar.tsx - גרסה עם לוגים לדיבאג
-"use client";
+// SearchBar.tsx - גרסה סופית ומתקדמת עם תיקון z-index ו-RTL
+'use client';
 
-import React, { useState, useEffect, useRef } from "react";
-import { Search, X, History } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import type { Candidate } from "../types/candidates";
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  Search,
+  X,
+  History,
+  Sparkles,
+  Target,
+  Crown,
+  Star,
+  TrendingUp,
+  Zap,
+} from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { motion, AnimatePresence } from 'framer-motion';
+import type { Candidate } from '../types/candidates';
+import { cn } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  PopoverAnchor,
+} from '@/components/ui/popover';
 
 interface SearchBarProps {
   value: string;
@@ -20,21 +43,39 @@ interface SearchBarProps {
   className?: string;
   placeholder?: string;
   autoFocus?: boolean;
-  // הוספת שדה לציון לאיזה מגדר החיפוש מכוון
-  genderTarget?: "male" | "female" | "all";
-  // הוספת שדה לציון האם החיפוש מופעל במצב נפרד
+  genderTarget?: 'male' | 'female' | 'all';
   separateMode?: boolean;
 }
 
 const SEARCH_CATEGORIES = [
-  { id: "name", label: "שם", placeholder: "חיפוש לפי שם..." },
-  { id: "city", label: "עיר", placeholder: "חיפוש לפי עיר..." },
   {
-    id: "occupation",
-    label: "תחום עיסוק",
-    placeholder: "חיפוש לפי תחום עיסוק...",
+    id: 'name',
+    label: 'שם',
+    placeholder: 'חיפוש לפי שם...',
+    icon: <Star className="w-3 h-3" />,
+    gradient: 'from-blue-500 to-cyan-500',
   },
-  { id: "all", label: "הכל", placeholder: "חיפוש בכל השדות..." },
+  {
+    id: 'city',
+    label: 'עיר',
+    placeholder: 'חיפוש לפי עיר...',
+    icon: <Target className="w-3 h-3" />,
+    gradient: 'from-emerald-500 to-green-500',
+  },
+  {
+    id: 'occupation',
+    label: 'תחום עיסוק',
+    placeholder: 'חיפוש לפי תחום עיסוק...',
+    icon: <Zap className="w-3 h-3" />,
+    gradient: 'from-purple-500 to-pink-500',
+  },
+  {
+    id: 'all',
+    label: 'הכל',
+    placeholder: 'חיפוש בכל השדות...',
+    icon: <Sparkles className="w-3 h-3" />,
+    gradient: 'from-indigo-500 to-purple-500',
+  },
 ];
 
 const SearchBar: React.FC<SearchBarProps> = ({
@@ -46,363 +87,460 @@ const SearchBar: React.FC<SearchBarProps> = ({
   onClearRecentSearches,
   suggestions = [],
   loading = false,
-  className = "",
-  placeholder = "חיפוש מועמדים...",
+  className = '',
+  placeholder = 'חיפוש מועמדים...',
   autoFocus = false,
-  genderTarget = "all",
+  genderTarget = 'all',
   separateMode = false,
 }) => {
-  const [open, setOpen] = useState(false);
-  const [searchCategory, setSearchCategory] = useState<string>("all");
   const [inputValue, setInputValue] = useState(value);
-  const [showClearButton, setShowClearButton] = useState(Boolean(value));
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const [searchCategory, setSearchCategory] = useState<string>('all');
   const inputRef = useRef<HTMLInputElement>(null);
-  const searchContainerRef = useRef<HTMLDivElement>(null);
 
-  // לוג מצב התחלתי
-  console.log("SearchBar mounted/updated. Props:", {
-    initialValue: value,
-    suggestionsCount: suggestions.length,
-    recentSearchesCount: recentSearches.length,
-  });
-
-  // Sync input value with prop value
   useEffect(() => {
-    console.log("Value prop changed:", value);
     setInputValue(value);
-    setShowClearButton(Boolean(value));
   }, [value]);
 
-  // Handle search when user presses Enter or selects a suggestion
-  const handleSearch = (searchValue: string) => {
-    console.log(
-      `handleSearch called with: ${searchValue}, gender: ${genderTarget}, separate: ${separateMode}`
-    );
+  const getSearchPlaceholder = () => {
+    if (separateMode) {
+      const allCategoryPlaceholder =
+        SEARCH_CATEGORIES.find((cat) => cat.id === 'all')?.placeholder ||
+        'חיפוש בכל השדות...';
+      if (genderTarget === 'male')
+        return `🔍 חיפוש מועמדים - ${allCategoryPlaceholder}`;
+      if (genderTarget === 'female')
+        return `👑 חיפוש מועמדות - ${allCategoryPlaceholder}`;
+    }
+    const category = SEARCH_CATEGORIES.find((cat) => cat.id === searchCategory);
+    return category?.placeholder || placeholder;
+  };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setInputValue(newValue);
+    onChange(newValue);
+    if (!showDropdown) {
+      setShowDropdown(true);
+    }
+  };
+
+  const handleSearch = (searchValue: string) => {
     if (searchValue.trim()) {
       onChange(searchValue.trim());
-
       if (onSaveSearch) {
-        // שמירת החיפוש בהיסטוריה
-        // אפשר גם לשמור את המגדר אם יש צורך
         onSaveSearch(searchValue.trim());
       }
     }
   };
-  // כשמשתמשים בחיפוש נפרד, נעדכן את הפלייסהולדר בהתאם
-  const getSearchPlaceholder = () => {
-    if (separateMode) {
-      // מצא את ה-placeholder של הקטגוריה "all" או השתמש בברירת מחדל
-      const allCategoryPlaceholder =
-        SEARCH_CATEGORIES.find((cat) => cat.id === "all")?.placeholder ||
-        "חיפוש בכל השדות...";
 
-      if (genderTarget === "male") {
-        return `חיפוש מועמדים - ${allCategoryPlaceholder}`;
-      }
-      if (genderTarget === "female") {
-        return `חיפוש מועמדות - ${allCategoryPlaceholder}`;
-      }
-    }
-
-    // אם לא במצב סינון נפרד, השתמש בקטגוריה הנוכחית שנבחרה
-    const category = SEARCH_CATEGORIES.find((cat) => cat.id === searchCategory);
-    return category?.placeholder || placeholder;
-  };
-  // Handle input change
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    console.log("handleInputChange:", { oldValue: inputValue, newValue });
-
-    setInputValue(newValue);
-    setShowClearButton(Boolean(newValue));
-
-    // CRITICAL: הפעלת onChange בכל הקלדה כדי שהחיפוש יקרה בזמן אמת
-    console.log(
-      "Calling onChange directly from handleInputChange with:",
-      newValue
-    );
-    onChange(newValue);
-  };
-
-  // Handle keyboard events
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    console.log("handleKeyDown:", e.key);
-
-    if (e.key === "Enter" && inputValue.trim()) {
-      console.log("Enter pressed with value:", inputValue);
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && inputValue.trim()) {
       handleSearch(inputValue);
-      setOpen(false);
-    } else if (e.key === "Escape") {
-      console.log("Escape pressed, closing dropdown");
-      setOpen(false);
+      setShowDropdown(false);
+    } else if (e.key === 'Escape') {
+      setShowDropdown(false);
     }
   };
 
-  // Clear search input
   const handleClear = () => {
-    console.log("handleClear called");
-    setInputValue("");
-    console.log("Calling onChange with empty string from handleClear");
-    onChange("");
-    setShowClearButton(false);
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
+    setInputValue('');
+    onChange('');
+    inputRef.current?.focus();
   };
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        searchContainerRef.current &&
-        !searchContainerRef.current.contains(event.target as Node)
-      ) {
-        setOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  // Handle suggestion selection
   const handleSuggestionSelect = (candidate: Candidate) => {
-    console.log(
-      "handleSuggestionSelect called with candidate:",
-      `${candidate.firstName} ${candidate.lastName}`
-    );
-
     if (onSelect) {
-      console.log("Calling onSelect for the candidate");
       onSelect(candidate);
     } else {
-      // אם אין פונקציית בחירה, התייחס לכך כחיפוש טקסט
       const searchText = `${candidate.firstName} ${candidate.lastName}`;
-      console.log("No onSelect provided, using as text search:", searchText);
       setInputValue(searchText);
-      console.log("Calling onChange with:", searchText);
       onChange(searchText);
     }
-    setOpen(false);
+    setShowDropdown(false);
   };
 
-   return (
-    <div className={`relative ${className}`} ref={searchContainerRef}>
-      {/* Search Input Field */}
-      <div className="relative flex items-center rounded-lg border border-input bg-background shadow-sm transition-colors focus-within:ring-1 focus-within:ring-blue-200">
-        <Search className="absolute right-3 h-4 w-4 text-muted-foreground" />
+  const getStyling = () => {
+    if (!separateMode || genderTarget === 'all') {
+      return {
+        gradient: 'from-indigo-500 via-purple-500 to-pink-500',
+        ring: 'focus:ring-purple-200',
+        badge: 'bg-gradient-to-r from-indigo-500 to-purple-500',
+      };
+    }
+    if (genderTarget === 'male') {
+      return {
+        gradient: 'from-blue-500 to-cyan-500',
+        ring: 'focus:ring-blue-200',
+        badge: 'bg-gradient-to-r from-blue-500 to-cyan-500',
+      };
+    }
+    return {
+      gradient: 'from-purple-500 to-pink-500',
+      ring: 'focus:ring-purple-200',
+      badge: 'bg-gradient-to-r from-purple-500 to-pink-500',
+    };
+  };
 
-        {/* הכנסת שדה הקלט */}
-        <Input
-          ref={inputRef}
-          type="text"
-          value={inputValue}
-          onChange={handleInputChange}
-          onKeyDown={handleKeyDown}
-          onClick={() => {
-            console.log("Search input clicked, opening dropdown");
-            setOpen(true);
-          }}
-          placeholder={getSearchPlaceholder()}
-          className={`border-0 pr-10 focus-visible:ring-0 focus-visible:ring-offset-0 ${
-            separateMode ? "pl-16" : ""
-          }`}
-          autoFocus={autoFocus}
-        />
+  const styling = getStyling();
 
-        {/* תווית המגדר כתווית קבועה שלא חופפת את יתר האלמנטים */}
-        {separateMode && (
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
-            <Badge
-              variant="outline"
-              className={
-                genderTarget === "male"
-                  ? "bg-blue-100 text-blue-800 border-blue-200"
-                  : genderTarget === "female"
-                  ? "bg-purple-100 text-purple-800 border-purple-200"
-                  : ""
-              }
-            >
-              {genderTarget === "male"
-                ? "מועמדים"
-                : genderTarget === "female"
-                ? "מועמדות"
-                : "הכל"}
-            </Badge>
-          </div>
-        )}
-
-        {/* כפתור ניקוי עם מיקום משופר */}
-        {showClearButton && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={handleClear}
-            className={`absolute ${
-              separateMode ? "left-16" : "left-3 md:left-40"
-            } top-1/2 -translate-y-1/2 h-7 w-7 z-10`}
+  return (
+    <Popover open={showDropdown} onOpenChange={setShowDropdown}>
+      <div className={cn('relative group', className)}>
+        <PopoverAnchor asChild>
+          <motion.div
+            className={cn(
+              'relative flex items-center rounded-2xl shadow-xl transition-all duration-300 backdrop-blur-sm border-0',
+              `bg-gradient-to-r from-white via-gray-50/30 to-white`,
+              isFocused || isHovered ? 'shadow-2xl scale-[1.02]' : 'shadow-lg',
+              isFocused && `ring-2 ${styling.ring}`
+            )}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            whileHover={{ y: -2 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
           >
-            <X className="h-4 w-4" />
-          </Button>
-        )}
+            <div
+              className={cn(
+                'absolute inset-0 bg-gradient-to-r opacity-5 rounded-2xl',
+                styling.gradient
+              )}
+            />
+
+            {separateMode && genderTarget !== 'all' && (
+              <motion.div
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-10"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+              >
+                <Badge
+                  className={cn(
+                    'text-white border-0 shadow-lg font-bold px-3 py-1.5 rounded-xl',
+                    styling.badge
+                  )}
+                >
+                  <div className="flex items-center gap-2">
+                    {genderTarget === 'male' ? (
+                      <Target className="w-4 h-4" />
+                    ) : (
+                      <Crown className="w-4 h-4" />
+                    )}
+                    {genderTarget === 'male' ? 'מועמדים' : 'מועמדות'}
+                  </div>
+                </Badge>
+              </motion.div>
+            )}
+
+            <input
+              ref={inputRef}
+              type="text"
+              value={inputValue}
+              onChange={handleInputChange}
+              onKeyDown={handleKeyDown}
+              onFocus={() => {
+                setShowDropdown(true);
+                setIsFocused(true);
+              }}
+              onBlur={() => setIsFocused(false)}
+              placeholder={getSearchPlaceholder()}
+              className={cn(
+                'w-full h-14 bg-transparent border-0 rounded-2xl text-lg font-medium relative z-10',
+                'placeholder:text-gray-500 text-gray-800',
+                'focus:outline-none transition-all duration-200',
+                separateMode ? 'pl-32 pr-16' : 'pl-6 pr-16'
+              )}
+              autoFocus={autoFocus}
+              autoComplete="off"
+              spellCheck="false"
+            />
+
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 z-10">
+              <motion.div
+                animate={{
+                  rotate: loading ? 360 : 0,
+                  scale: isHovered || isFocused ? 1.1 : 1,
+                }}
+                transition={{
+                  rotate: {
+                    duration: 1,
+                    repeat: loading ? Infinity : 0,
+                    ease: 'linear',
+                  },
+                  scale: { duration: 0.2 },
+                }}
+                className={cn(
+                  'p-2.5 rounded-full text-white shadow-lg',
+                  `bg-gradient-to-r ${styling.gradient}`
+                )}
+              >
+                <Search className="w-5 h-5" />
+              </motion.div>
+            </div>
+
+            <AnimatePresence>
+              {inputValue && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  className={cn(
+                    'absolute top-1/2 -translate-y-1/2 z-10',
+                    separateMode ? 'left-32' : 'left-4'
+                  )}
+                >
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={handleClear}
+                          className="w-7 h-7 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 shadow-md"
+                        >
+                          <X className="w-4 h-4 text-gray-600" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>נקה חיפוש</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000 rounded-2xl pointer-events-none"></div>
+          </motion.div>
+        </PopoverAnchor>
       </div>
 
-      {/* Suggestions Dropdown - Custom Styled */}
-      {open && (
+      <PopoverContent
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        className="w-[--radix-popover-trigger-width] p-0 mt-2 z-[99] border-0 shadow-2xl rounded-2xl overflow-hidden bg-white/95 backdrop-blur-xl"
+      >
         <div
-          className="absolute z-50 mt-1 w-full rounded-md border bg-white shadow-lg"
-          style={{ maxHeight: "400px", overflowY: "auto" }}
+          className={cn('p-4 bg-gradient-to-r text-white', styling.gradient)}
         >
-          {/* Search Input for Filtering */}
-          <div className="p-2 border-b">
-            <div className="relative">
-              <Search className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground opacity-70" />
-              <input
-                type="text"
-                value={inputValue}
-                onChange={(e) => {
-                  const newValue = e.target.value;
-                  console.log("Dropdown filter input changed:", {
-                    oldValue: inputValue,
-                    newValue,
-                  });
-                  setInputValue(newValue);
-
-                  // CRITICAL: וודא שהערך מועבר להורה בזמן הקלדה
-                  console.log(
-                    "Calling onChange from dropdown filter with:",
-                    newValue
-                  );
-                  onChange(newValue);
-                }}
-                className="w-full border rounded-md px-3 pr-9 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-300"
-                placeholder="סנן תוצאות..."
-                autoFocus
-              />
+          <div className="flex items-center justify-between mb-3 text-right">
+            <div className="text-sm opacity-90">
+              {suggestions.length} תוצאות
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-bold">חיפוש חכם</span>
+              <Sparkles className="w-5 h-5" />
             </div>
           </div>
+          <div className="relative">
+            <Search className="absolute right-3 top-2.5 h-4 w-4 text-white/70" />
+            <input
+              type="text"
+              value={inputValue}
+              onChange={handleInputChange}
+              className="w-full bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl px-4 pr-10 py-2 text-sm text-white placeholder:text-white/70 focus:outline-none focus:ring-2 focus:ring-white/50 text-right"
+              placeholder="סנן תוצאות..."
+            />
+          </div>
+        </div>
 
-          {/* No Results */}
-          {suggestions.length === 0 && recentSearches.length === 0 && (
-            <div className="p-4 text-center text-sm text-gray-500">
-              {loading ? "טוען..." : "לא נמצאו תוצאות"}
-            </div>
+        <div className="max-h-96 overflow-y-auto">
+          {loading === false &&
+            suggestions.length === 0 &&
+            recentSearches.length === 0 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="p-8 text-center"
+              >
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center mx-auto mb-4">
+                  <Search className="w-8 h-8 text-gray-400" />
+                </div>
+                <h3 className="font-bold text-gray-800 mb-2">
+                  לא נמצאו תוצאות
+                </h3>
+                <p className="text-sm text-gray-500">
+                  נסה לשנות את מונחי החיפוש
+                </p>
+              </motion.div>
+            )}
+
+          {loading === true && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="p-8 text-center"
+            >
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center mx-auto mb-4">
+                <Search className="w-8 h-8 text-gray-400 animate-pulse" />
+              </div>
+              <h3 className="font-bold text-gray-800 mb-2">מחפש...</h3>
+              <p className="text-sm text-gray-500">אנא המתן...</p>
+            </motion.div>
           )}
 
-          {/* Recent Searches Section */}
           {recentSearches.length > 0 && (
-            <div className="border-b">
-              <div className="px-2 py-1.5 text-xs text-gray-500 flex justify-between">
-                <span className="font-medium">חיפושים אחרונים</span>
-                {onClearRecentSearches && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-5 text-xs"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      console.log("Clear recent searches clicked");
-                      onClearRecentSearches();
-                    }}
-                  >
-                    נקה היסטוריה
-                  </Button>
-                )}
-              </div>
-              <div className="p-1">
-                {recentSearches.slice(0, 5).map((search, index) => (
-                  <div
-                    key={`recent-${index}`}
-                    className="flex items-center gap-2 text-right px-3 py-1.5 hover:bg-blue-50 rounded-md cursor-pointer"
-                    onClick={() => {
-                      console.log("Recent search clicked:", search);
-                      handleSearch(search);
-                      setOpen(false);
-                    }}
-                  >
-                    <History className="h-4 w-4 text-blue-400" />
-                    <span className="text-sm">{search}</span>
+            <div className="border-b border-gray-100">
+              <div className="px-4 py-3 bg-gradient-to-r from-gray-50 to-gray-100/50">
+                <div className="flex justify-between items-center">
+                  {onClearRecentSearches && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onClearRecentSearches();
+                      }}
+                      className="h-6 text-xs text-gray-500 hover:text-gray-700 px-2"
+                    >
+                      נקה היסטוריה
+                    </Button>
+                  )}
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-gray-700">
+                      חיפושים אחרונים
+                    </span>
+                    <History className="w-4 h-4 text-gray-500" />
                   </div>
+                </div>
+              </div>
+              <div className="p-2">
+                {recentSearches.slice(0, 5).map((search, index) => (
+                  <motion.div
+                    key={`recent-${index}`}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="flex items-center gap-3 px-3 py-2.5 hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 rounded-xl cursor-pointer transition-all duration-200 group"
+                    onClick={() => {
+                      handleSearch(search);
+                      setShowDropdown(false);
+                    }}
+                  >
+                    {/* --- START RTL FIX --- */}
+                    <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Zap className="w-3 h-3 text-blue-500" />
+                    </div>
+                    <span className="text-sm font-medium text-gray-700 group-hover:text-blue-700">
+                      {search}
+                    </span>
+                    <div className="p-1.5 rounded-lg bg-gradient-to-r from-blue-100 to-cyan-100 group-hover:from-blue-200 group-hover:to-cyan-200 transition-all duration-200">
+                      <History className="h-3 w-3 text-blue-600" />
+                    </div>
+                    {/* --- END RTL FIX --- */}
+                  </motion.div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Suggestions Section */}
           {suggestions.length > 0 && (
             <div>
-              <div className="px-2 py-1.5 text-xs text-gray-500 font-medium">
-                תוצאות
+              <div className="px-4 py-3 bg-gradient-to-r from-emerald-50 to-green-50 border-b border-gray-100">
+                <div className="flex items-center justify-end gap-2">
+                  <span className="text-sm font-medium text-emerald-800">
+                    תוצאות מתאימות ({suggestions.length})
+                  </span>
+                  <Star className="w-4 h-4 text-emerald-600" />
+                </div>
               </div>
-              <div className="p-1">
-                {suggestions.map((candidate) => (
-                  <div
+              <div className="p-2 space-y-1">
+                {suggestions.map((candidate, index) => (
+                  <motion.div
                     key={candidate.id}
-                    className="flex items-center gap-2 text-right px-3 py-2 hover:bg-blue-50 rounded-md cursor-pointer"
-                    onClick={() => {
-                      console.log(
-                        "Suggestion clicked:",
-                        `${candidate.firstName} ${candidate.lastName}`
-                      );
-                      handleSuggestionSelect(candidate);
-                    }}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="flex items-center gap-3 px-3 py-3 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 rounded-xl cursor-pointer transition-all duration-200 group"
+                    onClick={() => handleSuggestionSelect(candidate)}
                   >
-                    <div className="flex-1">
-                      <div className="font-medium text-sm">
-                        {`${candidate.firstName} ${candidate.lastName}`}
+                    {/* --- START RTL FIX --- */}
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="p-1.5 rounded-lg bg-gradient-to-r from-purple-100 to-pink-100">
+                        <Sparkles className="w-3 h-3 text-purple-600" />
                       </div>
-                      <div className="text-xs text-gray-500 truncate">
+                    </div>
+                    <div className="flex-1 min-w-0 text-right">
+                      <div className="font-medium text-gray-800 group-hover:text-purple-700 transition-colors">{`${candidate.firstName} ${candidate.lastName}`}</div>
+                      <div className="text-xs text-gray-500 truncate mt-0.5">
                         {[
                           candidate.profile.city,
                           candidate.profile.occupation,
                           candidate.profile.religiousLevel,
                         ]
                           .filter(Boolean)
-                          .join(" | ")}
+                          .join(' • ')}
                       </div>
                     </div>
-                  </div>
+                    <div className="relative">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                        <span className="text-sm font-bold text-purple-600">
+                          {candidate.firstName.charAt(0)}
+                          {candidate.lastName.charAt(0)}
+                        </span>
+                      </div>
+                      {candidate.isVerified && (
+                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-emerald-500 to-green-500 rounded-full flex items-center justify-center">
+                          <Star className="w-2 h-2 text-white" />
+                        </div>
+                      )}
+                    </div>
+                    {/* --- END RTL FIX --- */}
+                  </motion.div>
                 ))}
               </div>
             </div>
           )}
 
-
-
-          {/* Search Categories on Mobile */}
-          <div className="md:hidden border-t">
-            <div className="px-2 py-1.5 text-xs text-gray-500 font-medium">
-              חפש לפי
+          <div className="md:hidden border-t border-gray-100">
+            <div className="px-4 py-3 bg-gradient-to-r from-indigo-50 to-purple-50">
+              <div className="flex items-center justify-end gap-2 mb-3">
+                <span className="text-sm font-medium text-indigo-800">
+                  חפש לפי קטגוריה
+                </span>
+                <TrendingUp className="w-4 h-4 text-indigo-600" />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {SEARCH_CATEGORIES.map((category) => (
+                  <motion.div
+                    key={category.id}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <Button
+                      variant={
+                        searchCategory === category.id ? 'default' : 'outline'
+                      }
+                      size="sm"
+                      className={cn(
+                        'w-full justify-start gap-2 rounded-xl transition-all duration-200',
+                        searchCategory === category.id
+                          ? `bg-gradient-to-r ${category.gradient} text-white shadow-lg border-0`
+                          : 'bg-white/80 hover:bg-white border border-gray-200 hover:border-gray-300'
+                      )}
+                      onClick={() => setSearchCategory(category.id)}
+                    >
+                      {category.icon}
+                      <span className="text-xs">{category.label}</span>
+                    </Button>
+                  </motion.div>
+                ))}
+              </div>
             </div>
-            <div className="flex flex-wrap gap-1 p-2">
-              {SEARCH_CATEGORIES.map((category) => (
-                <Badge
-                  key={category.id}
-                  variant={
-                    searchCategory === category.id ? "default" : "outline"
-                  }
-                  className={`cursor-pointer ${
-                    searchCategory === category.id
-                      ? "bg-blue-500 text-white"
-                      : "bg-transparent hover:bg-blue-50"
-                  }`}
-                  onClick={() => {
-                    console.log("Mobile category changed to:", category.id);
-                    setSearchCategory(category.id);
-                  }}
-                >
-                  {category.label}
-                </Badge>
-              ))}
+          </div>
+
+          <div className="p-4 bg-gradient-to-r from-gray-50 to-gray-100/50 border-t border-gray-100">
+            <div className="flex items-start gap-2 text-right">
+              <Sparkles className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+              <div className="text-xs text-gray-600 leading-relaxed">
+                <span className="font-medium">טיפ:</span> השתמש במילות מפתח כמו
+                שם, עיר, או תחום עיסוק לחיפוש מדויק יותר
+              </div>
             </div>
           </div>
         </div>
-      )}
-    </div>
+      </PopoverContent>
+    </Popover>
   );
 };
 

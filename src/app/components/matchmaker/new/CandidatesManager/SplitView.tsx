@@ -1,5 +1,3 @@
-// File: src/app/components/matchmaker/new/CandidatesManager/SplitView.tsx
-
 'use client';
 
 import React, { useMemo, useEffect, useState } from 'react';
@@ -412,7 +410,6 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
     );
   };
   
-  // --- START OF FIX: This helper function is now ONLY for the mobile view ---
   const renderCandidatesListForMobile = (
     candidates: (Candidate & { aiScore?: number })[],
     gender: 'male' | 'female',
@@ -447,18 +444,14 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
         onSetAiTarget={onSetAiTarget}
         comparisonSelection={comparisonSelection}
         onToggleComparison={onToggleComparison}
-        // For mobile, it will always default to 'center', which is fine.
       />
     );
   };
-  // --- END OF FIX ---
-
-  // --- Mobile View Logic ---
+  
   if (isMobile) {
     if (mobileView === 'split') {
       return (
         <div className="grid grid-cols-2 gap-3 h-full p-3">
-          {/* Male Candidates Column */}
           <Card className="flex flex-col h-full shadow-xl border-0 bg-gradient-to-b from-white to-blue-50/30 overflow-hidden rounded-2xl">
             <div className="p-3 text-center bg-gradient-to-r from-blue-500 to-cyan-500 text-white">
               <h2 className="text-sm font-bold flex items-center justify-center gap-1">
@@ -482,7 +475,6 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
             </div>
           </Card>
 
-          {/* Female Candidates Column */}
           <Card className="flex flex-col h-full shadow-xl border-0 bg-gradient-to-b from-white to-purple-50/30 overflow-hidden rounded-2xl">
             <div className="p-3 text-center bg-gradient-to-r from-purple-500 to-pink-500 text-white">
               <h2 className="text-sm font-bold flex items-center justify-center gap-1">
@@ -509,7 +501,6 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
       );
     }
 
-    // Original Tabs view for 'single' or 'double' column modes
     return (
       <div className={cn('w-full h-full', className)}>
         <Tabs defaultValue="male" className="w-full h-full flex flex-col">
@@ -546,7 +537,7 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
             <Card className="p-4 flex flex-col h-full shadow-xl border-0 bg-gradient-to-b from-white to-blue-50/30 rounded-2xl">
               {renderPanelHeader('male', true)}
               {separateFiltering && onMaleSearchChange && (
-                <div className="mb-4">
+                <div className="mb-4 w-full">
                   <SearchBar
                     value={maleSearchQuery}
                     onChange={onMaleSearchChange}
@@ -571,7 +562,7 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
             <Card className="p-4 flex flex-col h-full shadow-xl border-0 bg-gradient-to-b from-white to-purple-50/30 rounded-2xl">
               {renderPanelHeader('female', true)}
               {separateFiltering && onFemaleSearchChange && (
-                <div className="mb-4">
+                <div className="mb-4 w-full">
                   <SearchBar
                     value={femaleSearchQuery}
                     onChange={onFemaleSearchChange}
@@ -607,7 +598,7 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
           <div className="flex flex-col h-full bg-gradient-to-b from-white to-blue-50/20">
             {renderPanelHeader('male')}
             {separateFiltering && onMaleSearchChange && (
-              <div className="p-4 bg-blue-50/30">
+              <div className="p-4 bg-blue-50/30 w-full"> {/* <-- FIX: ADDED w-full */}
                 <SearchBar
                   value={maleSearchQuery}
                   onChange={onMaleSearchChange}
@@ -618,7 +609,6 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
               </div>
             )}
             <div className="flex-grow min-h-0 overflow-y-auto p-4">
-              {/* --- START OF FIX: Call CandidatesList directly with the correct prop --- */}
               <CandidatesList
                 candidates={maleCandidatesWithScores}
                 allCandidates={allCandidates}
@@ -634,7 +624,6 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
                 onToggleComparison={onToggleComparison}
                 quickViewSide="right"
               />
-              {/* --- END OF FIX --- */}
             </div>
           </div>
         </ResizablePanel>
@@ -648,7 +637,7 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
           <div className="flex flex-col h-full bg-gradient-to-b from-white to-purple-50/20">
             {renderPanelHeader('female')}
             {separateFiltering && onFemaleSearchChange && (
-              <div className="p-4 bg-purple-50/30">
+              <div className="p-4 bg-purple-50/30 w-full"> {/* <-- FIX: ADDED w-full */}
                 <SearchBar
                   value={femaleSearchQuery}
                   onChange={onFemaleSearchChange}
@@ -659,7 +648,6 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
               </div>
             )}
             <div className="flex-grow min-h-0 overflow-y-auto p-4">
-              {/* --- START OF FIX: Call CandidatesList directly with the correct prop --- */}
               <CandidatesList
                 candidates={femaleCandidatesWithScores}
                 allCandidates={allCandidates}
@@ -675,7 +663,6 @@ const SplitView: React.FC<SplitViewProps> = (props) => {
                 onToggleComparison={onToggleComparison}
                 quickViewSide="left"
               />
-              {/* --- END OF FIX --- */}
             </div>
           </div>
         </ResizablePanel>

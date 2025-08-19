@@ -1,76 +1,95 @@
-// /Filters/FilterPanel.tsx - גרסה משופרת
-import React, { useState } from "react";
-import { Card } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Slider } from "@/components/ui/slider";
-import { Switch } from "@/components/ui/switch";
-import { UserSource } from "@prisma/client"; // At the top
-import { UserStatus } from "@prisma/client";
+// /Filters/FilterPanel.tsx - גרסה מודרנית ומשודרגת
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
+// Prisma Types
+import { UserSource, UserStatus } from '@prisma/client';
+
+// Lucide React Icons
+import {
+  Activity,
+  Award,
+  Bookmark,
+  Briefcase,
+  Calendar,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Clock,
+  Copy,
+  Crown,
+  Filter as FilterIcon,
+  GraduationCap,
+  Heart,
+  MapPin,
+  RefreshCw,
+  Ruler,
+  Save,
+  Scroll,
+  Shield,
+  Sparkles,
+  Star,
+  Target,
+  TrendingUp,
+  User,
+  UserPlus,
+  Zap,
+} from 'lucide-react';
+
+// Utility Functions
+import { cn } from '@/lib/utils';
+
+// UI Components
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+} from '@/components/ui/collapsible';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { UserPlus } from "lucide-react"; // Add UserPlus for the button
-
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Save,
-  User,
-  GraduationCap,
-  MapPin,
-  Scroll,
-  Calendar,
-  ChevronDown,
-  ChevronUp,
-  Clock,
-  Ruler,
-  Heart,
-  Briefcase,
-  Star,
-  RefreshCw,
-  Bookmark,
-  Check,
-  Filter as FilterIcon,
-  Copy,
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+} from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
+import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import type { FilterState } from "../types/filters";
-import type { CandidatesFilter } from "../types/candidates";
-import SavedFilters from "./SavedFilters";
+} from '@/components/ui/tooltip';
+
+// Local Components, Types & Constants
+import SavedFilters from './SavedFilters';
 import {
   AGE_RANGE,
-  HEIGHT_RANGE,
-  RELIGIOUS_LEVELS,
+  AVAILABILITY_STATUS_OPTIONS,
   EDUCATION_LEVELS,
+  HEIGHT_RANGE,
+  MARITAL_STATUS,
   OCCUPATION_CATEGORIES,
   POPULAR_CITIES,
-  AVAILABILITY_STATUS_OPTIONS,
-  MARITAL_STATUS,
-} from "../constants/filterOptions";
+  RELIGIOUS_LEVELS,
+} from '../constants/filterOptions';
+import type { CandidatesFilter } from '../types/candidates';
+import type { FilterState } from '../types/filters';
 
+// Interfaces
 interface PopularFilterOption {
   id: string;
   label: string;
   icon: React.ReactNode;
   filter: Partial<CandidatesFilter>;
+  gradient: string;
 }
 
 interface FilterPanelProps {
@@ -87,15 +106,13 @@ interface FilterPanelProps {
   popularFilters?: string[];
   className?: string;
   compactMode?: boolean;
-
-  // פרמטרים לתמיכה בסינון נפרד
   separateFiltering?: boolean;
   onToggleSeparateFiltering?: () => void;
   onMaleFiltersChange?: (filters: Partial<FilterState>) => void;
   onFemaleFiltersChange?: (filters: Partial<FilterState>) => void;
   onCopyFilters?: (
-    source: "male" | "female",
-    target: "male" | "female"
+    source: 'male' | 'female',
+    target: 'male' | 'female'
   ) => void;
 }
 
@@ -105,97 +122,111 @@ interface FilterSectionProps {
   children: React.ReactNode;
   defaultOpen?: boolean;
   badge?: number;
+  gradient?: string;
 }
 
+// Constants
 const POPULAR_FILTERS: PopularFilterOption[] = [
   {
-    id: "active-recently",
-    label: "פעילים לאחרונה",
-    icon: <Clock className="w-4 h-4 text-blue-600" />,
-    filter: {
-      lastActiveDays: 7,
-    },
+    id: 'active-recently',
+    label: 'פעילים לאחרונה',
+    icon: <Activity className="w-4 h-4" />,
+    filter: { lastActiveDays: 7 },
+    gradient: 'from-blue-500 to-cyan-500',
   },
   {
-    id: "verified-only",
-    label: "מאומתים בלבד",
-    icon: <Check className="w-4 h-4 text-blue-600" />,
-    filter: {
-      isVerified: true,
-    },
+    id: 'verified-only',
+    label: 'מאומתים בלבד',
+    icon: <Shield className="w-4 h-4" />,
+    filter: { isVerified: true },
+    gradient: 'from-emerald-500 to-green-500',
   },
   {
-    id: "has-recommendations",
-    label: "עם המלצות",
-    icon: <Star className="w-4 h-4 text-blue-600" />,
-    filter: {
-      hasReferences: true,
-    },
+    id: 'has-recommendations',
+    label: 'עם המלצות',
+    icon: <Award className="w-4 h-4" />,
+    filter: { hasReferences: true },
+    gradient: 'from-amber-500 to-orange-500',
   },
   {
-    id: "available-only",
-    label: "פנויים בלבד",
-    icon: <Heart className="w-4 h-4 text-blue-600" />,
-    filter: {
-      availabilityStatus: "AVAILABLE",
-    },
+    id: 'available-only',
+    label: 'פנויים בלבד',
+    icon: <Heart className="w-4 h-4" />,
+    filter: { availabilityStatus: 'AVAILABLE' },
+    gradient: 'from-pink-500 to-rose-500',
   },
   {
-    id: "complete-profiles",
-    label: "פרופילים מלאים",
-    icon: <User className="w-4 h-4 text-blue-600" />,
-    filter: {
-      isProfileComplete: true,
-    },
+    id: 'complete-profiles',
+    label: 'פרופילים מלאים',
+    icon: <Star className="w-4 h-4" />,
+    filter: { isProfileComplete: true },
+    gradient: 'from-purple-500 to-indigo-500',
   },
 ];
 
+// Helper Components
 const FilterSection: React.FC<FilterSectionProps> = ({
   title,
   icon,
   children,
   defaultOpen = false,
   badge,
+  gradient = 'from-blue-500 to-cyan-500',
 }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <Collapsible
-      open={isOpen}
-      onOpenChange={setIsOpen}
-      className="border rounded-lg mb-3 overflow-hidden bg-white"
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="mb-4"
     >
-      <CollapsibleTrigger asChild>
-        <div className="flex items-center justify-between p-4 cursor-pointer hover:bg-blue-50/30 transition-colors">
-          <div className="flex items-center gap-2">
-            <div className="bg-blue-50 p-2 rounded-md text-blue-600">
-              {icon}
-            </div>
-            <span className="font-medium">{title}</span>
-            {badge !== undefined && (
-              <Badge
-                variant="secondary"
-                className="bg-blue-100 text-blue-800 text-xs mr-2"
-              >
-                {badge}
-              </Badge>
+      <Collapsible
+        open={isOpen}
+        onOpenChange={setIsOpen}
+        className="rounded-2xl overflow-hidden shadow-xl border-0 bg-gradient-to-br from-white via-gray-50/30 to-white"
+      >
+        <CollapsibleTrigger asChild>
+          <motion.div
+            className={cn(
+              'flex items-center justify-between p-4 cursor-pointer transition-all duration-300',
+              'bg-gradient-to-r',
+              gradient,
+              'text-white hover:shadow-lg'
             )}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-full bg-white/20 backdrop-blur-sm shadow-lg">
+                {icon}
+              </div>
+              <span className="font-bold text-lg">{title}</span>
+              {badge !== undefined && (
+                <Badge className="bg-white/20 text-white border-white/30 shadow-lg">
+                  {badge}
+                </Badge>
+              )}
+            </div>
+            <motion.div
+              animate={{ rotate: isOpen ? 180 : 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <ChevronDown size={20} className="text-white/80" />
+            </motion.div>
+          </motion.div>
+        </CollapsibleTrigger>
+
+        <CollapsibleContent className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-top-1 data-[state=open]:slide-in-from-top-1">
+          <div className="p-6 bg-gradient-to-br from-white via-gray-50/20 to-white">
+            {children}
           </div>
-          {isOpen ? (
-            <ChevronUp size={16} className="text-gray-500" />
-          ) : (
-            <ChevronDown size={16} className="text-gray-500" />
-          )}
-        </div>
-      </CollapsibleTrigger>
-      <CollapsibleContent className="px-4 pb-4 pt-1 border-t">
-        {children}
-      </CollapsibleContent>
-    </Collapsible>
+        </CollapsibleContent>
+      </Collapsible>
+    </motion.div>
   );
 };
 
-// קומפוננט חדש לסינון מגדרי
 const GenderFilterPanel = ({
   gender,
   filters,
@@ -204,139 +235,163 @@ const GenderFilterPanel = ({
   copyTarget,
   onCopyFilters,
 }: {
-  gender: "male" | "female";
+  gender: 'male' | 'female';
   filters: Partial<FilterState>;
   onFiltersChange: (filters: Partial<FilterState>) => void;
   className?: string;
-  copyTarget: "male" | "female";
+  copyTarget: 'male' | 'female';
   onCopyFilters?: (
-    source: "male" | "female",
-    target: "male" | "female"
+    source: 'male' | 'female',
+    target: 'male' | 'female'
   ) => void;
 }) => {
-  const genderColors = {
+  const genderConfig = {
     male: {
-      bg: "bg-blue-50/50",
-      border: "border-blue-200",
-      text: "text-blue-800",
-      icon: <User className="w-4 h-4 text-blue-600" />,
-      title: "סינון מועמדים",
+      gradient: 'from-blue-500 to-cyan-500',
+      bg: 'from-blue-50/50 to-cyan-50/30',
+      text: 'text-blue-800',
+      icon: <Target className="w-5 h-5" />,
+      title: 'סינון מועמדים',
     },
     female: {
-      bg: "bg-purple-50/50",
-      border: "border-purple-200",
-      text: "text-purple-800",
-      icon: <User className="w-4 h-4 text-purple-600" />,
-      title: "סינון מועמדות",
+      gradient: 'from-purple-500 to-pink-500',
+      bg: 'from-purple-50/50 to-pink-50/30',
+      text: 'text-purple-800',
+      icon: <Crown className="w-5 h-5" />,
+      title: 'סינון מועמדות',
     },
   };
 
-  const colorConfig = genderColors[gender];
+  const config = genderConfig[gender];
+
+  const handleAgeChange = (type: 'min' | 'max', value: string) => {
+    const numericValue = parseInt(value);
+    if (
+      isNaN(numericValue) ||
+      numericValue < AGE_RANGE.min ||
+      numericValue > AGE_RANGE.max
+    )
+      return;
+
+    const currentMin = filters.ageRange?.min || AGE_RANGE.default.min;
+    const currentMax = filters.ageRange?.max || AGE_RANGE.default.max;
+
+    onFiltersChange({
+      ...filters,
+      ageRange: {
+        min: type === 'min' ? Math.min(numericValue, currentMax) : currentMin,
+        max: type === 'max' ? Math.max(numericValue, currentMin) : currentMax,
+      },
+    });
+  };
+
+  const handleHeightChange = (type: 'min' | 'max', value: string) => {
+    const numericValue = parseInt(value);
+    if (
+      isNaN(numericValue) ||
+      numericValue < HEIGHT_RANGE.min ||
+      numericValue > HEIGHT_RANGE.max
+    )
+      return;
+
+    const currentMin = filters.heightRange?.min || HEIGHT_RANGE.default.min;
+    const currentMax = filters.heightRange?.max || HEIGHT_RANGE.default.max;
+
+    onFiltersChange({
+      ...filters,
+      heightRange: {
+        min: type === 'min' ? Math.min(numericValue, currentMax) : currentMin,
+        max: type === 'max' ? Math.max(numericValue, currentMin) : currentMax,
+      },
+    });
+  };
 
   return (
-    <div className={`${className} mb-4 border rounded-lg overflow-hidden`}>
-      {/* כותרת עם צבע תואם מגדר */}
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className={cn(
+        'mb-6 rounded-2xl overflow-hidden shadow-xl border-0',
+        className
+      )}
+    >
       <div
-        className={`flex justify-between items-center px-4 py-2 ${colorConfig.bg} ${colorConfig.border} border-b`}
+        className={cn(
+          'flex justify-between items-center px-6 py-4',
+          'bg-gradient-to-r',
+          config.gradient,
+          'text-white'
+        )}
       >
-        <div className="flex items-center gap-2">
-          {colorConfig.icon}
-          <h3 className={`text-sm font-medium ${colorConfig.text}`}>
-            {colorConfig.title}
-          </h3>
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-full bg-white/20 backdrop-blur-sm">
+            {config.icon}
+          </div>
+          <h3 className="text-lg font-bold">{config.title}</h3>
         </div>
         {onCopyFilters && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onCopyFilters(gender, copyTarget)}
-            className="text-xs h-7 py-0 px-2 flex items-center gap-1"
-            title={`העתק הגדרות ל${
-              copyTarget === "male" ? "מועמדים" : "מועמדות"
-            }`}
-          >
-            <Copy className="w-3 h-3" />
-            <span>העתק ל{copyTarget === "male" ? "מועמדים" : "מועמדות"}</span>
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onCopyFilters(gender, copyTarget)}
+                  className="text-white hover:bg-white/20 rounded-xl transition-all duration-300 hover:scale-105"
+                >
+                  <Copy className="w-4 h-4 mr-2" />
+                  העתק ל{copyTarget === 'male' ? 'מועמדים' : 'מועמדות'}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>
+                  העתק הגדרות ל{copyTarget === 'male' ? 'מועמדים' : 'מועמדות'}
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
       </div>
 
-      {/* תוכן הפאנל */}
-      <div className="p-3 space-y-4">
-        {/* סינון גיל - מיושר נכון מימין לשמאל */}
-        <div className="space-y-2">
-          <Label className="text-xs font-medium text-right block">גיל</Label>
-          <div className="px-2">
-            <div className="flex justify-between items-center mb-2 rtl">
-              <div className="text-center bg-white border border-gray-200 rounded-lg shadow-sm p-1.5">
-                <p className="text-xs text-gray-500 mb-1">מינימום</p>
+      <div className={cn('p-6 space-y-6 bg-gradient-to-br', config.bg)}>
+        {/* Age Range */}
+        <div className="space-y-4">
+          <Label className="text-base font-bold text-gray-800 flex items-center gap-2">
+            <Calendar className="w-5 h-5 text-blue-600" />
+            גיל
+          </Label>
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-gray-100/50">
+            <div className="flex justify-between items-center mb-4">
+              <div className="text-center bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-xl shadow-md p-3 min-w-[80px]">
+                <p className="text-xs text-blue-600 mb-1 font-medium">
+                  מינימום
+                </p>
                 <input
                   type="number"
                   min={AGE_RANGE.min}
                   max={AGE_RANGE.max}
                   value={filters?.ageRange?.min || AGE_RANGE.default.min}
-                  onChange={(e) => {
-                    const newMin = parseInt(e.target.value);
-                    if (
-                      !isNaN(newMin) &&
-                      newMin >= AGE_RANGE.min &&
-                      newMin <= AGE_RANGE.max
-                    ) {
-                      const currentMax =
-                        filters?.ageRange?.max || AGE_RANGE.default.max;
-                      onFiltersChange({
-                        ...filters,
-                        ageRange: {
-                          min: Math.min(newMin, currentMax),
-                          max: currentMax,
-                        },
-                      });
-                    }
-                  }}
-                  className="w-12 text-center text-sm font-bold text-blue-700 focus:outline-none"
+                  onChange={(e) => handleAgeChange('min', e.target.value)}
+                  className="w-16 text-center text-lg font-bold text-blue-700 focus:outline-none bg-transparent"
                 />
               </div>
-
-              <div className="text-center">
-                <span className="text-sm font-bold text-gray-400">-</span>
-              </div>
-
-              <div className="text-center bg-white border border-gray-200 rounded-lg shadow-sm p-1.5">
-                <p className="text-xs text-gray-500 mb-1">מקסימום</p>
+              <span className="text-xl font-bold text-gray-400">-</span>
+              <div className="text-center bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-xl shadow-md p-3 min-w-[80px]">
+                <p className="text-xs text-blue-600 mb-1 font-medium">
+                  מקסימום
+                </p>
                 <input
                   type="number"
                   min={AGE_RANGE.min}
                   max={AGE_RANGE.max}
                   value={filters?.ageRange?.max || AGE_RANGE.default.max}
-                  onChange={(e) => {
-                    const newMax = parseInt(e.target.value);
-                    if (
-                      !isNaN(newMax) &&
-                      newMax >= AGE_RANGE.min &&
-                      newMax <= AGE_RANGE.max
-                    ) {
-                      const currentMin =
-                        filters?.ageRange?.min || AGE_RANGE.default.min;
-                      onFiltersChange({
-                        ...filters,
-                        ageRange: {
-                          min: currentMin,
-                          max: Math.max(currentMin, newMax),
-                        },
-                      });
-                    }
-                  }}
-                  className="w-12 text-center text-sm font-bold text-blue-700 focus:outline-none"
+                  onChange={(e) => handleAgeChange('max', e.target.value)}
+                  className="w-16 text-center text-lg font-bold text-blue-700 focus:outline-none bg-transparent"
                 />
               </div>
             </div>
-
-            <div className="slider-wrapper" style={{ direction: "rtl" }}>
+            <div className="px-2">
               <Slider
-                defaultValue={[
-                  filters?.ageRange?.min || AGE_RANGE.default.min,
-                  filters?.ageRange?.max || AGE_RANGE.default.max,
-                ]}
                 value={[
                   filters?.ageRange?.min || AGE_RANGE.default.min,
                   filters?.ageRange?.max || AGE_RANGE.default.max,
@@ -346,97 +401,59 @@ const GenderFilterPanel = ({
                 step={1}
                 onValueChange={(value) => {
                   onFiltersChange({
+                    ...filters,
                     ageRange: { min: value[0], max: value[1] },
                   });
                 }}
-                className="h-4 mt-2"
+                className="h-5 [&>span]:bg-gradient-to-r [&>span]:from-blue-500 [&>span]:to-cyan-500"
                 dir="rtl"
               />
-            </div>
-
-            <div className="flex justify-between mt-1 px-1">
-              <span className="text-xs text-gray-400">{AGE_RANGE.min}</span>
-              <span className="text-xs text-gray-400">{AGE_RANGE.max}</span>
+              <div className="flex justify-between mt-3 px-2 text-xs text-gray-500">
+                <span>{AGE_RANGE.min}</span>
+                <span>{AGE_RANGE.max}</span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* סינון גובה - מיושר נכון מימין לשמאל */}
-        <div className="space-y-2">
-          <Label className="text-xs font-medium text-right block">
-            גובה (סמ)
+        {/* Height Range */}
+        <div className="space-y-4">
+          <Label className="text-base font-bold text-gray-800 flex items-center gap-2">
+            <Ruler className="w-5 h-5 text-purple-600" />
+            גובה (ס"מ)
           </Label>
-          <div className="px-2">
-            <div className="flex justify-between items-center mb-2 rtl">
-              <div className="text-center bg-white border border-gray-200 rounded-lg shadow-sm p-1.5">
-                <p className="text-xs text-gray-500 mb-1">מינימום</p>
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-gray-100/50">
+            <div className="flex justify-between items-center mb-4">
+              <div className="text-center bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl shadow-md p-3 min-w-[80px]">
+                <p className="text-xs text-purple-600 mb-1 font-medium">
+                  מינימום
+                </p>
                 <input
                   type="number"
                   min={HEIGHT_RANGE.min}
                   max={HEIGHT_RANGE.max}
                   value={filters?.heightRange?.min || HEIGHT_RANGE.default.min}
-                  onChange={(e) => {
-                    const newMin = parseInt(e.target.value);
-                    if (
-                      !isNaN(newMin) &&
-                      newMin >= HEIGHT_RANGE.min &&
-                      newMin <= HEIGHT_RANGE.max
-                    ) {
-                      const currentMax =
-                        filters?.heightRange?.max || HEIGHT_RANGE.default.max;
-                      onFiltersChange({
-                        ...filters,
-                        heightRange: {
-                          min: Math.min(newMin, currentMax),
-                          max: currentMax,
-                        },
-                      });
-                    }
-                  }}
-                  className="w-12 text-center text-sm font-bold text-blue-700 focus:outline-none"
+                  onChange={(e) => handleHeightChange('min', e.target.value)}
+                  className="w-16 text-center text-lg font-bold text-purple-700 focus:outline-none bg-transparent"
                 />
               </div>
-
-              <div className="text-center">
-                <span className="text-sm font-bold text-gray-400">-</span>
-              </div>
-
-              <div className="text-center bg-white border border-gray-200 rounded-lg shadow-sm p-1.5">
-                <p className="text-xs text-gray-500 mb-1">מקסימום</p>
+              <span className="text-xl font-bold text-gray-400">-</span>
+              <div className="text-center bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl shadow-md p-3 min-w-[80px]">
+                <p className="text-xs text-purple-600 mb-1 font-medium">
+                  מקסימום
+                </p>
                 <input
                   type="number"
                   min={HEIGHT_RANGE.min}
                   max={HEIGHT_RANGE.max}
                   value={filters?.heightRange?.max || HEIGHT_RANGE.default.max}
-                  onChange={(e) => {
-                    const newMax = parseInt(e.target.value);
-                    if (
-                      !isNaN(newMax) &&
-                      newMax >= HEIGHT_RANGE.min &&
-                      newMax <= HEIGHT_RANGE.max
-                    ) {
-                      const currentMin =
-                        filters?.heightRange?.min || HEIGHT_RANGE.default.min;
-                      onFiltersChange({
-                        ...filters,
-                        heightRange: {
-                          min: currentMin,
-                          max: Math.max(currentMin, newMax),
-                        },
-                      });
-                    }
-                  }}
-                  className="w-12 text-center text-sm font-bold text-blue-700 focus:outline-none"
+                  onChange={(e) => handleHeightChange('max', e.target.value)}
+                  className="w-16 text-center text-lg font-bold text-purple-700 focus:outline-none bg-transparent"
                 />
               </div>
             </div>
-
-            <div className="slider-wrapper" style={{ direction: "rtl" }}>
+            <div className="px-2">
               <Slider
-                defaultValue={[
-                  filters?.heightRange?.min || HEIGHT_RANGE.default.min,
-                  filters?.heightRange?.max || HEIGHT_RANGE.default.max,
-                ]}
                 value={[
                   filters?.heightRange?.min || HEIGHT_RANGE.default.min,
                   filters?.heightRange?.max || HEIGHT_RANGE.default.max,
@@ -446,175 +463,152 @@ const GenderFilterPanel = ({
                 step={1}
                 onValueChange={(value) => {
                   onFiltersChange({
+                    ...filters,
                     heightRange: { min: value[0], max: value[1] },
                   });
                 }}
-                className="h-4 mt-2"
+                className="h-5 [&>span]:bg-gradient-to-r [&>span]:from-purple-500 [&>span]:to-pink-500"
                 dir="rtl"
               />
+              <div className="flex justify-between mt-3 px-2 text-xs text-gray-500">
+                <span>{HEIGHT_RANGE.min}</span>
+                <span>{HEIGHT_RANGE.max}</span>
+              </div>
             </div>
+          </div>
+        </div>
 
-            <div className="flex justify-between mt-1 px-1">
-              <span className="text-xs text-gray-400">{HEIGHT_RANGE.min}</span>
-              <span className="text-xs text-gray-400">{HEIGHT_RANGE.max}</span>
+        {/* Other Selects */}
+        {[
+          {
+            label: 'רמת דתיות',
+            icon: <Scroll className="w-5 h-5 text-amber-600" />,
+            filterKey: 'religiousLevel',
+            options: RELIGIOUS_LEVELS,
+            placeholder: 'בחר רמת דתיות',
+            hoverColor: 'amber',
+          },
+          {
+            label: 'עיר מגורים',
+            icon: <MapPin className="w-5 h-5 text-emerald-600" />,
+            filterKey: 'cities',
+            options: POPULAR_CITIES.map((c) => ({ label: c, value: c })),
+            placeholder: 'בחר עיר',
+            hoverColor: 'emerald',
+          },
+        ].map(
+          ({ label, icon, filterKey, options, placeholder, hoverColor }) => (
+            <div key={filterKey} className="space-y-3">
+              <Label className="text-base font-bold text-gray-800 flex items-center gap-2">
+                {icon}
+                {label}
+              </Label>
+              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 shadow-lg border border-gray-100/50">
+                <Select
+                  value={
+                    filterKey === 'cities'
+                      ? filters.cities?.[0] || ''
+                      : (filters as any)[filterKey] || ''
+                  }
+                  onValueChange={(value) => {
+                    const newValue = value === 'all' ? undefined : value;
+                    if (filterKey === 'cities') {
+                      onFiltersChange({
+                        ...filters,
+                        cities: newValue ? [newValue] : [],
+                      });
+                    } else {
+                      onFiltersChange({ ...filters, [filterKey]: newValue });
+                    }
+                  }}
+                >
+                  <SelectTrigger
+                    className={`w-full border-0 bg-transparent focus:ring-2 focus:ring-${hoverColor}-200 rounded-xl`}
+                  >
+                    <SelectValue placeholder={placeholder} />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white/95 backdrop-blur-sm border-0 shadow-2xl rounded-xl">
+                    <SelectItem
+                      value="all"
+                      className={`hover:bg-${hoverColor}-50`}
+                    >
+                      הכל
+                    </SelectItem>
+                    {options.map((opt) => (
+                      <SelectItem
+                        key={opt.value}
+                        value={opt.value}
+                        className={`hover:bg-${hoverColor}-50`}
+                      >
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </div>
-        </div>
+          )
+        )}
 
-        {/* רמת דתיות */}
-        <div className="space-y-2">
-          <Label className="text-xs font-medium">רמת דתיות</Label>
-          <div className="px-2">
-            <Select
-              value={filters?.religiousLevel || ""}
-              onValueChange={(value) => {
-                onFiltersChange({
-                  religiousLevel: value === "all" ? undefined : value,
-                });
-              }}
+        {/* Toggle Switches */}
+        <div className="space-y-4 pt-4 border-t border-gray-200/50">
+          {[
+            {
+              key: 'isVerified',
+              label: 'מאומתים בלבד',
+              icon: <Shield className="w-4 h-4" />,
+              gradient: 'from-emerald-500 to-green-500',
+            },
+            {
+              key: 'hasReferences',
+              label: 'עם המלצות',
+              icon: <Award className="w-4 h-4" />,
+              gradient: 'from-amber-500 to-orange-500',
+            },
+            {
+              key: 'isProfileComplete',
+              label: 'פרופיל מלא',
+              icon: <Star className="w-4 h-4" />,
+              gradient: 'from-purple-500 to-indigo-500',
+            },
+          ].map((item) => (
+            <div
+              key={item.key}
+              className="flex items-center justify-between p-4 bg-white/60 backdrop-blur-sm rounded-xl shadow-lg border border-gray-100/50 hover:bg-white/80 transition-all duration-300"
             >
-              <SelectTrigger className="w-full text-xs h-8">
-                <SelectValue placeholder="בחר רמת דתיות" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">הכל</SelectItem>
-                {RELIGIOUS_LEVELS.map((level) => (
-                  <SelectItem key={level.value} value={level.value}>
-                    {level.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {/* מצב משפחתי */}
-        <div className="space-y-2">
-          <Label className="text-xs font-medium">מצב משפחתי</Label>
-          <div className="px-2">
-            <Select
-              value={filters?.maritalStatus || ""}
-              onValueChange={(value) => {
-                onFiltersChange({
-                  maritalStatus: value === "all" ? undefined : value,
-                });
-              }}
-            >
-              <SelectTrigger className="w-full text-xs h-8">
-                <SelectValue placeholder="בחר מצב משפחתי" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">הכל</SelectItem>
-                {MARITAL_STATUS.map((status) => (
-                  <SelectItem key={status.value} value={status.value}>
-                    {status.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {/* ערים */}
-        <div className="space-y-2">
-          <Label className="text-xs font-medium">ערים מבוקשות</Label>
-          <div className="px-2">
-            <Select
-              value={filters.cities?.[0] || ""}
-              onValueChange={(value) => {
-                if (value === "all") {
-                  onFiltersChange({ cities: [] });
-                } else {
-                  onFiltersChange({ cities: [value] });
+              <div className="flex items-center gap-3">
+                <div
+                  className={cn(
+                    'p-2 rounded-lg bg-gradient-to-r text-white',
+                    item.gradient
+                  )}
+                >
+                  {item.icon}
+                </div>
+                <span className="font-medium text-gray-800">{item.label}</span>
+              </div>
+              <Switch
+                checked={
+                  (filters?.[item.key as keyof typeof filters] as boolean) ||
+                  false
                 }
-              }}
-            >
-              <SelectTrigger className="w-full text-xs h-8">
-                <SelectValue placeholder="בחר עיר" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">כל הערים</SelectItem>
-                {POPULAR_CITIES.map((city) => (
-                  <SelectItem key={city} value={city}>
-                    {city}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {/* סטטוס אימות ותוספות */}
-        <div className="space-y-2 pt-2 border-t border-gray-100">
-          <div className="flex items-center justify-between px-2">
-            <span className="text-xs font-medium">מאומתים בלבד</span>
-            <Switch
-              checked={filters?.isVerified || false}
-              onCheckedChange={(checked) => {
-                onFiltersChange({
-                  isVerified: checked || undefined,
-                });
-              }}
-            />
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between px-2">
-          <span className="text-xs font-medium">עם המלצות</span>
-          <Switch
-            checked={filters?.hasReferences || false}
-            onCheckedChange={(checked) => {
-              onFiltersChange({
-                hasReferences: checked || undefined,
-              });
-            }}
-          />
-        </div>
-        <FilterSection
-          title="מקור המועמד"
-          icon={<UserPlus className="w-4 h-4" />}
-        >
-          <div className="pt-2">
-            <Select
-              value={filters.source || ""}
-              onValueChange={(value) =>
-                onFiltersChange({
-                  ...filters,
-                  source: value ? (value as UserSource) : undefined,
-                })
-              }
-            >
-              <SelectTrigger className="w-full bg-white">
-                <SelectValue placeholder="בחר מקור המועמד" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">הכל</SelectItem>
-                <SelectItem value={UserSource.REGISTRATION}>
-                  רישום עצמי
-                </SelectItem>
-                <SelectItem value={UserSource.MANUAL_ENTRY}>
-                  הוספה ידנית
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </FilterSection>
-        <div className="flex items-center justify-between px-2">
-          <span className="text-xs font-medium">פרופיל מלא</span>
-          <Switch
-            checked={filters?.isProfileComplete || false}
-            onCheckedChange={(checked) => {
-              onFiltersChange({
-                isProfileComplete: checked || undefined,
-              });
-            }}
-          />
+                onCheckedChange={(checked) => {
+                  onFiltersChange({
+                    ...filters,
+                    [item.key]: checked || undefined,
+                  });
+                }}
+                className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-emerald-500 data-[state=checked]:to-green-500"
+              />
+            </div>
+          ))}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
+// Main Component
 const FilterPanel: React.FC<FilterPanelProps> = ({
   filters,
   onFiltersChange,
@@ -625,7 +619,6 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   popularFilters = [],
   className,
   compactMode = false,
-  // פרמטרים לתמיכה בסינון נפרד
   separateFiltering = false,
   onToggleSeparateFiltering,
   onMaleFiltersChange,
@@ -633,22 +626,19 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   onCopyFilters,
 }) => {
   const [showSavePreset, setShowSavePreset] = useState(false);
-  const [presetName, setPresetName] = useState("");
-  const [activeTab, setActiveTab] = useState<string>("basic");
+  const [presetName, setPresetName] = useState('');
+  const [activeTab, setActiveTab] = useState<string>('basic');
   const [activeGenderFilter, setActiveGenderFilter] = useState<
-    "male" | "female"
-  >("male");
+    'male' | 'female'
+  >('male');
 
   const handleSavePreset = () => {
     if (presetName && onSavePreset) {
       onSavePreset(presetName);
-      setPresetName("");
+      setPresetName('');
       setShowSavePreset(false);
     }
   };
-  const layoutClasses = compactMode
-    ? "p-1 space-y-1 text-xs" // הרבה יותר קומפקטי
-    : "p-4 space-y-4"; // תצוגה רגילה
 
   const handleAgeRangeChange = (value: number[]) => {
     onFiltersChange({
@@ -663,6 +653,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
       heightRange: { min: value[0], max: value[1] },
     });
   };
+
   const handleApplyPopularFilter = (filter: Partial<CandidatesFilter>) => {
     onFiltersChange({
       ...filters,
@@ -672,10 +663,8 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
 
   const countActiveFilters = (category: string): number => {
     let count = 0;
-
     switch (category) {
-      case "basic":
-        // Count basic filters
+      case 'basic':
         if (filters.gender) count++;
         if (
           filters.ageRange &&
@@ -686,8 +675,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
         if (filters.cities?.length) count++;
         if (filters.religiousLevel) count++;
         break;
-      case "advanced":
-        // Count advanced filters
+      case 'advanced':
         if (
           filters.heightRange &&
           (filters.heightRange.min !== HEIGHT_RANGE.default.min ||
@@ -698,1012 +686,666 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
         if (filters.educationLevel) count++;
         if (filters.maritalStatus) count++;
         break;
-      case "status":
-        // Count status filters
+      case 'status':
         if (filters.availabilityStatus) count++;
         if (filters.isVerified !== undefined) count++;
         if (filters.hasReferences !== undefined) count++;
         if (filters.lastActiveDays !== undefined) count++;
         if (filters.isProfileComplete !== undefined) count++;
         break;
-      case "saved":
-        // Count of saved filters is just the length
+      case 'saved':
         return savedFilters.length;
     }
-
     return count;
   };
 
   return (
     <Card
-      className={`${layoutClasses} border border-slate-200 bg-white/90 shadow-sm ${className}`}
+      className={cn(
+        'shadow-2xl border-0 bg-gradient-to-br from-white via-purple-50/20 to-pink-50/10 backdrop-blur-sm rounded-3xl overflow-hidden',
+        className
+      )}
     >
-      {/* Header */}
-      {!compactMode && (
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <FilterIcon className="w-5 h-5 text-blue-600" />
-            <h3 className="font-semibold text-lg">סינון מועמדים</h3>
-          </div>
-          <div className="flex gap-2">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={onReset}
-                    className="h-8 w-8 p-0"
-                  >
-                    <RefreshCw className="w-4 h-4 text-gray-500" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>איפוס כל הפילטרים</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowSavePreset(!showSavePreset)}
-                    className="h-8 w-8 p-0"
-                  >
-                    <Bookmark className="w-4 h-4 text-gray-500" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>שמירת הפילטר הנוכחי</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-        </div>
-      )}
-
-      {/* Popular Filters */}
-      {!compactMode && (
-        <div className="mb-4">
-          <div className="flex flex-wrap gap-2">
-            {POPULAR_FILTERS.map((option) => (
-              <Button
-                key={option.id}
-                variant="outline"
-                size="sm"
-                onClick={() => handleApplyPopularFilter(option.filter)}
-                className="bg-white flex items-center gap-1.5 transition-all hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200"
-              >
-                {option.icon}
-                <span>{option.label}</span>
-              </Button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Save Preset Form */}
-      {showSavePreset && !compactMode && (
-        <div className="p-4 border rounded-lg bg-blue-50/50 mb-4">
-          <Label>שם לשמירת הפילטר</Label>
-          <div className="flex gap-2 mt-2">
-            <Input
-              value={presetName}
-              onChange={(e) => setPresetName(e.target.value)}
-              placeholder="פילטר מותאם אישית"
-              className="h-9"
-            />
-            <Button size="sm" onClick={handleSavePreset}>
-              <Save className="w-4 h-4 ml-1.5" />
-              שמור
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Separate Filtering Toggle */}
-      <div className="mb-4 border rounded-lg p-4 bg-blue-50/10">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <div className="font-medium">סינון וחיפוש נפרד לפי מגדר</div>
-            <p className="text-sm text-gray-500">
-              סנן מועמדים ומועמדות עם קריטריונים שונים
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Switch
-              checked={separateFiltering}
-              onCheckedChange={onToggleSeparateFiltering}
-            />
-            {separateFiltering && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onToggleSeparateFiltering}
-                className="text-sm"
-              >
-                <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
-                בטל סינון נפרד
-              </Button>
-            )}
-          </div>
-        </div>
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-purple-200/20 to-pink-200/20 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-br from-blue-200/20 to-cyan-200/20 rounded-full blur-2xl"></div>
       </div>
 
-      {/* Separate Filtering UI */}
-      {separateFiltering ? (
-        <div className="space-y-4">
-          {/* Gender Filter Switcher */}
-          <div className="flex border rounded-lg overflow-hidden mb-2">
-            <Button
-              type="button"
-              variant={activeGenderFilter === "male" ? "default" : "ghost"}
-              onClick={() => setActiveGenderFilter("male")}
-              className={`flex-1 rounded-none ${
-                activeGenderFilter === "male" ? "bg-blue-600" : ""
-              }`}
-            >
-              סינון מועמדים
-              <User className="w-4 h-4 mr-2" />
-            </Button>
-            <Button
-              type="button"
-              variant={activeGenderFilter === "female" ? "default" : "ghost"}
-              onClick={() => setActiveGenderFilter("female")}
-              className={`flex-1 rounded-none ${
-                activeGenderFilter === "female" ? "bg-purple-600" : ""
-              }`}
-            >
-              סינון מועמדות
-              <User className="w-4 h-4 mr-2" />
-            </Button>
+      <div className="relative">
+        {!compactMode && (
+          <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-full bg-white/20 backdrop-blur-sm shadow-lg">
+                  <FilterIcon className="w-8 h-8 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-white">
+                    סינון מועמדים מתקדם
+                  </h3>
+                  <p className="text-white/80 mt-1">מערכת סינון חכמה עם AI</p>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={onReset}
+                        className="h-10 w-10 p-0 text-white hover:bg-white/20 rounded-xl transition-all duration-300 hover:scale-110"
+                      >
+                        <RefreshCw className="w-5 h-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>איפוס כל הפילטרים</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowSavePreset(!showSavePreset)}
+                        className="h-10 w-10 p-0 text-white hover:bg-white/20 rounded-xl transition-all duration-300 hover:scale-110"
+                      >
+                        <Bookmark className="w-5 h-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>שמירת הפילטר הנוכחי</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+              {POPULAR_FILTERS.map((option) => (
+                <motion.div
+                  key={option.id}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleApplyPopularFilter(option.filter)}
+                    className={cn(
+                      'w-full h-auto min-h-24 p-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-xl transition-all duration-300 text-white flex flex-col items-center gap-2' // <-- הוספנו min-h-24
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        'p-2 rounded-lg bg-gradient-to-r',
+                        option.gradient,
+                        'text-white shadow-lg'
+                      )}
+                    >
+                      {option.icon}
+                    </div>
+                    <span className="text-xs font-medium text-center leading-tight whitespace-normal">
+                      {option.label}
+                    </span>{' '}
+                    {/* <-- הוספנו whitespace-normal */}
+                  </Button>
+                </motion.div>
+              ))}
+            </div>
           </div>
+        )}
 
-          {/* Conditionally render based on active gender filter */}
-          {activeGenderFilter === "male" ? (
-            <GenderFilterPanel
-              gender="male"
-              filters={filters.maleFilters || {}}
-              onFiltersChange={onMaleFiltersChange || (() => {})}
-              copyTarget="female"
-              onCopyFilters={onCopyFilters}
-            />
-          ) : (
-            <GenderFilterPanel
-              gender="female"
-              filters={filters.femaleFilters || {}}
-              onFiltersChange={onFemaleFiltersChange || (() => {})}
-              copyTarget="male"
-              onCopyFilters={onCopyFilters}
-            />
+        <AnimatePresence>
+          {showSavePreset && !compactMode && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 border-b border-purple-100"
+            >
+              <div className="p-6">
+                <Label className="text-lg font-bold text-gray-800 mb-3 block">
+                  שם לשמירת הפילטר
+                </Label>
+                <div className="flex gap-3">
+                  <Input
+                    value={presetName}
+                    onChange={(e) => setPresetName(e.target.value)}
+                    placeholder="פילטר מותאם אישית"
+                    className="flex-1 border-0 bg-white/80 backdrop-blur-sm shadow-lg rounded-xl focus:ring-2 focus:ring-purple-300"
+                  />
+                  <Button
+                    size="sm"
+                    onClick={handleSavePreset}
+                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 shadow-lg rounded-xl px-6"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    שמור
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
           )}
-        </div>
-      ) : (
-        // Standard Filtering Tabs
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList
-            className={`grid grid-cols-4 w-full bg-muted/30 p-1 rounded-xl shadow-sm ${
-              compactMode ? "text-xs" : ""
-            }`}
-          >
-            <TabsTrigger
-              value="basic"
-              className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500/90 data-[state=active]:to-blue-600 data-[state=active]:text-white"
-            >
-              <div className="flex flex-col items-center relative">
-                בסיסי
-                {countActiveFilters("basic") > 0 && (
-                  <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center bg-blue-600 text-white">
-                    {countActiveFilters("basic")}
-                  </Badge>
-                )}
-              </div>
-            </TabsTrigger>
-            <TabsTrigger
-              value="advanced"
-              className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500/90 data-[state=active]:to-blue-600 data-[state=active]:text-white"
-            >
-              <div className="flex flex-col items-center relative">
-                מתקדם
-                {countActiveFilters("advanced") > 0 && (
-                  <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center bg-blue-600 text-white">
-                    {countActiveFilters("advanced")}
-                  </Badge>
-                )}
-              </div>
-            </TabsTrigger>
-            <TabsTrigger
-              value="status"
-              className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500/90 data-[state=active]:to-blue-600 data-[state=active]:text-white"
-            >
-              <div className="flex flex-col items-center relative">
-                סטטוס
-                {countActiveFilters("status") > 0 && (
-                  <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center bg-blue-600 text-white">
-                    {countActiveFilters("status")}
-                  </Badge>
-                )}
-              </div>
-            </TabsTrigger>
-            <TabsTrigger
-              value="saved"
-              className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500/90 data-[state=active]:to-blue-600 data-[state=active]:text-white"
-            >
-              <div className="flex flex-col items-center relative">
-                שמורים
-                {countActiveFilters("saved") > 0 && (
-                  <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center bg-blue-600 text-white">
-                    {countActiveFilters("saved")}
-                  </Badge>
-                )}
-              </div>
-            </TabsTrigger>
-          </TabsList>
+        </AnimatePresence>
 
-          <div className={compactMode ? "mt-2" : "mt-4"}>
-            {/* Basic Filters Tab */}
-            <TabsContent value="basic" className="space-y-4">
-              {/* Gender Filter */}
-              <FilterSection
-                title="מגדר"
-                icon={<User className="w-4 h-4" />}
-                defaultOpen={true}
-              >
-                <div className="grid grid-cols-2 gap-2 pt-2">
+        <div className="p-6 bg-gradient-to-r from-indigo-50/50 via-purple-50/30 to-pink-50/50 border-b border-purple-100/50">
+          <motion.div
+            className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50"
+            whileHover={{ scale: 1.02 }}
+          >
+            <div className="flex items-center justify-between">
+              <div className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500 text-white">
+                    <Zap className="w-5 h-5" />
+                  </div>
+                  <div className="font-bold text-lg bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                    סינון וחיפוש נפרד לפי מגדר
+                  </div>
+                </div>
+                <p className="text-sm text-gray-600 mr-10">
+                  סנן מועמדים ומועמדות עם קריטריונים שונים
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <Switch
+                  checked={separateFiltering}
+                  onCheckedChange={onToggleSeparateFiltering}
+                  className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-indigo-500 data-[state=checked]:to-purple-500"
+                />
+              </div>
+            </div>
+          </motion.div>
+        </div>
+
+        <div className="p-6">
+          {separateFiltering ? (
+            <div className="space-y-6">
+              <div className="bg-gradient-to-r from-white via-gray-50/30 to-white rounded-2xl p-2 shadow-lg border border-gray-100/50">
+                <div className="grid grid-cols-2 gap-1">
                   <Button
                     type="button"
-                    variant={filters.gender === "MALE" ? "default" : "outline"}
-                    onClick={() =>
-                      onFiltersChange({ ...filters, gender: "MALE" })
+                    variant={
+                      activeGenderFilter === 'male' ? 'default' : 'ghost'
                     }
-                    className={
-                      filters.gender === "MALE" ? "bg-blue-600" : "bg-white"
-                    }
+                    onClick={() => setActiveGenderFilter('male')}
+                    className={cn(
+                      'rounded-xl py-3 transition-all duration-300',
+                      activeGenderFilter === 'male'
+                        ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg'
+                        : 'text-gray-600 hover:bg-blue-50'
+                    )}
                   >
-                    גברים
+                    <Target className="w-5 h-5 mr-2" />
+                    סינון מועמדים
                   </Button>
                   <Button
                     type="button"
                     variant={
-                      filters.gender === "FEMALE" ? "default" : "outline"
+                      activeGenderFilter === 'female' ? 'default' : 'ghost'
                     }
-                    onClick={() =>
-                      onFiltersChange({ ...filters, gender: "FEMALE" })
-                    }
-                    className={
-                      filters.gender === "FEMALE" ? "bg-purple-600" : "bg-white"
-                    }
+                    onClick={() => setActiveGenderFilter('female')}
+                    className={cn(
+                      'rounded-xl py-3 transition-all duration-300',
+                      activeGenderFilter === 'female'
+                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                        : 'text-gray-600 hover:bg-purple-50'
+                    )}
                   >
-                    נשים
+                    <Crown className="w-5 h-5 mr-2" />
+                    סינון מועמדות
                   </Button>
                 </div>
-                {filters.gender && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() =>
-                      onFiltersChange({ ...filters, gender: undefined })
-                    }
-                    className="w-full mt-2 text-sm text-gray-500"
+              </div>
+              <AnimatePresence mode="wait">
+                {activeGenderFilter === 'male' ? (
+                  <motion.div
+                    key="male"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ duration: 0.3 }}
                   >
-                    הסר בחירה
-                  </Button>
+                    <GenderFilterPanel
+                      gender="male"
+                      filters={filters.maleFilters || {}}
+                      onFiltersChange={onMaleFiltersChange || (() => {})}
+                      copyTarget="female"
+                      onCopyFilters={onCopyFilters}
+                    />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="female"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <GenderFilterPanel
+                      gender="female"
+                      filters={filters.femaleFilters || {}}
+                      onFiltersChange={onFemaleFiltersChange || (() => {})}
+                      copyTarget="male"
+                      onCopyFilters={onCopyFilters}
+                    />
+                  </motion.div>
                 )}
-              </FilterSection>
-                           <FilterSection
-                title="סטטוס משתמש"
-                icon={<User className="w-4 h-4" />}
-                defaultOpen={true}
-                badge={filters.userStatus ? 1 : undefined}
-              >
-                <div className="pt-2">
-                  {/* --- START OF FIX --- */}
-                  <Select
-                    // 1. אם הסטטוס לא מוגדר, הערך של ה-Select יהיה "all"
-                    value={filters.userStatus || "all"}
-                    onValueChange={(value) =>
-                      onFiltersChange({
-                        ...filters,
-                        // 2. אם המשתמש בחר "all", ננקה את הפילטר (undefined). אחרת, נגדיר את הערך שנבחר.
-                        userStatus: value === "all" ? undefined : (value as UserStatus),
-                      })
-                    }
-                  >
-                  {/* --- END OF FIX --- */}
-                    <SelectTrigger className="w-full bg-white">
-                      <SelectValue placeholder="בחר סטטוס משתמש" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {/* --- START OF FIX --- */}
-                      {/* 3. שינוי הערך של "הכל" למחרוזת שאינה ריקה */}
-                      <SelectItem value="all">הכל</SelectItem>
-                      {/* --- END OF FIX --- */}
-                      <SelectItem value={UserStatus.ACTIVE}>פעילים</SelectItem>
-                      <SelectItem value={UserStatus.PENDING_PHONE_VERIFICATION}>ממתינים לאימות טלפון</SelectItem>
-                      <SelectItem value={UserStatus.PENDING_EMAIL_VERIFICATION}>ממתינים לאימות מייל</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {filters.userStatus && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() =>
-                        onFiltersChange({
-                          ...filters,
-                          userStatus: undefined,
-                        })
-                      }
-                      className="w-full mt-2 text-sm text-gray-500"
+              </AnimatePresence>
+            </div>
+          ) : (
+            <Tabs
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="w-full"
+            >
+              <TabsList className="grid grid-cols-4 w-full bg-gradient-to-r from-indigo-50 to-purple-50 p-2 rounded-2xl shadow-lg border border-white/50 h-auto">
+                {[
+                  {
+                    value: 'basic',
+                    label: 'בסיסי',
+                    icon: User,
+                    gradient: 'from-blue-500 to-cyan-500',
+                  },
+                  {
+                    value: 'advanced',
+                    label: 'מתקדם',
+                    icon: Sparkles,
+                    gradient: 'from-purple-500 to-pink-500',
+                  },
+                  {
+                    value: 'status',
+                    label: 'סטטוס',
+                    icon: Activity,
+                    gradient: 'from-emerald-500 to-green-500',
+                  },
+                  {
+                    value: 'saved',
+                    label: 'שמורים',
+                    icon: Bookmark,
+                    gradient: 'from-amber-500 to-orange-500',
+                  },
+                ].map((tab) => {
+                  const IconComponent = tab.icon;
+                  const count = countActiveFilters(tab.value);
+                  return (
+                    <TabsTrigger
+                      key={tab.value}
+                      value={tab.value}
+                      className={cn(
+                        'flex flex-col items-center justify-center gap-2 rounded-xl text-sm font-bold transition-all duration-300 py-3 hover:scale-105 relative overflow-hidden group data-[state=active]:shadow-lg',
+                        activeTab === tab.value
+                          ? `bg-gradient-to-r ${tab.gradient} text-white`
+                          : 'text-gray-600 hover:bg-white/50'
+                      )}
                     >
-                      הסר בחירה
-                    </Button>
-                  )}
-                </div>
-              </FilterSection>
-              {/* Age Range - משופר ומתוקן */}
-              <FilterSection
-                title="גיל"
-                icon={<Calendar className="w-4 h-4" />}
-                defaultOpen={true}
-                badge={
-                  filters.ageRange &&
-                  (filters.ageRange.min !== AGE_RANGE.default.min ||
-                    filters.ageRange.max !== AGE_RANGE.default.max)
-                    ? 1
-                    : undefined
-                }
-              >
-                <div className="space-y-6 pt-4">
-                  {/* הצגת ערכים נוכחיים עם אפשרות להזנה ידנית - סדר מתוקן */}
-                  <div className="flex justify-between items-center">
-                    <div className="text-center bg-white border border-gray-200 rounded-lg shadow-sm p-2">
-                      <p className="text-xs text-gray-500 mb-1">מקסימום</p>
-                      <input
-                        type="number"
-                        min={AGE_RANGE.min}
-                        max={AGE_RANGE.max}
-                        value={filters.ageRange?.max || AGE_RANGE.default.max}
-                        onChange={(e) => {
-                          const newMax = parseInt(e.target.value);
-                          if (
-                            !isNaN(newMax) &&
-                            newMax >= AGE_RANGE.min &&
-                            newMax <= AGE_RANGE.max
-                          ) {
-                            const currentMin =
-                              filters.ageRange?.min || AGE_RANGE.default.min;
+                      <IconComponent className="w-5 h-5" />
+                      <span>{tab.label}</span>
+                      {count > 0 && (
+                        <Badge className="absolute -top-1 -right-1 h-6 w-6 p-0 flex items-center justify-center bg-red-500 text-white text-xs font-bold rounded-full border-2 border-white">
+                          {count}
+                        </Badge>
+                      )}
+                    </TabsTrigger>
+                  );
+                })}
+              </TabsList>
+
+              <div className="mt-6 space-y-6">
+                <TabsContent value="basic" className="space-y-6 m-0">
+                  <FilterSection
+                    title="מגדר"
+                    icon={<User className="w-5 h-5" />}
+                    defaultOpen={true}
+                    gradient="from-blue-500 to-cyan-500"
+                  >
+                    <div className="grid grid-cols-2 gap-4">
+                      {[
+                        {
+                          value: 'MALE',
+                          label: 'גברים',
+                          gradient: 'from-blue-500 to-cyan-500',
+                        },
+                        {
+                          value: 'FEMALE',
+                          label: 'נשים',
+                          gradient: 'from-purple-500 to-pink-500',
+                        },
+                      ].map((option) => (
+                        <Button
+                          key={option.value}
+                          type="button"
+                          variant={
+                            filters.gender === option.value
+                              ? 'default'
+                              : 'outline'
+                          }
+                          onClick={() =>
                             onFiltersChange({
                               ...filters,
-                              ageRange: {
-                                min: currentMin,
-                                max: Math.max(currentMin, newMax),
-                              },
-                            });
+                              gender: option.value as 'MALE' | 'FEMALE',
+                            })
                           }
-                        }}
-                        className="w-16 text-center text-lg font-bold text-blue-700 focus:outline-none"
-                      />
-                    </div>
-
-                    <div className="text-center">
-                      <span className="text-lg font-bold text-gray-400">-</span>
-                    </div>
-
-                    <div className="text-center bg-white border border-gray-200 rounded-lg shadow-sm p-2">
-                      <p className="text-xs text-gray-500 mb-1">מינימום</p>
-                      <input
-                        type="number"
-                        min={AGE_RANGE.min}
-                        max={AGE_RANGE.max}
-                        value={filters.ageRange?.min || AGE_RANGE.default.min}
-                        onChange={(e) => {
-                          const newMin = parseInt(e.target.value);
-                          if (
-                            !isNaN(newMin) &&
-                            newMin >= AGE_RANGE.min &&
-                            newMin <= AGE_RANGE.max
-                          ) {
-                            const currentMax =
-                              filters.ageRange?.max || AGE_RANGE.default.max;
-                            onFiltersChange({
-                              ...filters,
-                              ageRange: {
-                                min: Math.min(newMin, currentMax),
-                                max: currentMax,
-                              },
-                            });
-                          }
-                        }}
-                        className="w-16 text-center text-lg font-bold text-blue-700 focus:outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  {/* סרגל משופר */}
-                  <div className="px-2">
-                    <div
-                      className="slider-wrapper"
-                      style={{ direction: "rtl" }}
-                    >
-                      <Slider
-                        defaultValue={[
-                          AGE_RANGE.default.min,
-                          AGE_RANGE.default.max,
-                        ]}
-                        min={AGE_RANGE.min}
-                        max={AGE_RANGE.max}
-                        step={1}
-                        value={[
-                          filters.ageRange?.min || AGE_RANGE.default.min,
-                          filters.ageRange?.max || AGE_RANGE.default.max,
-                        ]}
-                        onValueChange={handleAgeRangeChange}
-                        className="h-5"
-                        dir="rtl"
-                      />
-                    </div>
-
-                    {/* טווח ערכים */}
-                    <div className="flex justify-between mt-2 px-1">
-                      <span className="text-xs text-gray-500">
-                        {AGE_RANGE.max}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        {AGE_RANGE.min}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </FilterSection>
-
-              {/* Cities Filter */}
-              <FilterSection
-                title="ערים"
-                icon={<MapPin className="w-4 h-4" />}
-                badge={filters.cities?.length}
-              >
-                <ScrollArea className="h-48 mt-2 rounded-md border overflow-hidden bg-white pr-4">
-                  <div className="p-2">
-                    {POPULAR_CITIES.map((city) => (
-                      <div
-                        key={city}
-                        className="flex items-center justify-between py-1.5 hover:bg-gray-50 px-2 rounded-md"
-                      >
-                        <span className="text-sm">{city}</span>
-                        <Switch
-                          checked={filters.cities?.includes(city) || false}
-                          onCheckedChange={(checked) => {
-                            const newCities = checked
-                              ? [...(filters.cities || []), city]
-                              : filters.cities?.filter((c) => c !== city);
-                            onFiltersChange({ ...filters, cities: newCities });
-                          }}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-                {filters.cities?.length ? (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onFiltersChange({ ...filters, cities: [] })}
-                    className="w-full mt-2 text-sm text-gray-500"
-                  >
-                    הסר בחירה
-                  </Button>
-                ) : null}
-              </FilterSection>
-
-              {/* Religious Level */}
-              <FilterSection
-                title="רמת דתיות"
-                icon={<Scroll className="w-4 h-4" />}
-                badge={filters.religiousLevel ? 1 : undefined}
-              >
-                <div className="pt-2">
-                  <Select
-                    value={filters.religiousLevel || ""}
-                    onValueChange={(value) =>
-                      onFiltersChange({
-                        ...filters,
-                        religiousLevel: value || undefined,
-                      })
-                    }
-                  >
-                    <SelectTrigger className="w-full bg-white">
-                      <SelectValue placeholder="בחר רמת דתיות" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">הכל</SelectItem>
-                      {RELIGIOUS_LEVELS.map((level) => (
-                        <SelectItem key={level.value} value={level.value}>
-                          {level.label}
-                        </SelectItem>
+                          className={cn(
+                            'h-12 rounded-xl font-bold transition-all duration-300 hover:scale-105',
+                            filters.gender === option.value
+                              ? `bg-gradient-to-r ${option.gradient} text-white shadow-lg hover:shadow-xl`
+                              : 'bg-white/80 backdrop-blur-sm border-2 border-gray-200 hover:border-gray-300'
+                          )}
+                        >
+                          {option.label}
+                        </Button>
                       ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </FilterSection>
-            </TabsContent>
-
-            {/* Advanced Filters Tab */}
-            <TabsContent value="advanced" className="space-y-4">
-              {/* Height Range - משופר ומתוקן */}
-              <FilterSection
-                title="גובה (ס״מ)"
-                icon={<Ruler className="w-4 h-4" />}
-                badge={
-                  filters.heightRange &&
-                  (filters.heightRange.min !== HEIGHT_RANGE.default.min ||
-                    filters.heightRange.max !== HEIGHT_RANGE.default.max)
-                    ? 1
-                    : undefined
-                }
-              >
-                <div className="space-y-6 pt-4">
-                  {/* הצגת ערכים נוכחיים עם אפשרות להזנה ידנית - סדר מתוקן */}
-                  <div className="flex justify-between items-center">
-                    <div className="text-center bg-white border border-gray-200 rounded-lg shadow-sm p-2">
-                      <p className="text-xs text-gray-500 mb-1">מקסימום</p>
-                      <input
-                        type="number"
-                        min={HEIGHT_RANGE.min}
-                        max={HEIGHT_RANGE.max}
-                        value={
-                          filters.heightRange?.max || HEIGHT_RANGE.default.max
-                        }
-                        onChange={(e) => {
-                          const newMax = parseInt(e.target.value);
-                          if (
-                            !isNaN(newMax) &&
-                            newMax >= HEIGHT_RANGE.min &&
-                            newMax <= HEIGHT_RANGE.max
-                          ) {
-                            const currentMin =
-                              filters.heightRange?.min ||
-                              HEIGHT_RANGE.default.min;
-                            onFiltersChange({
-                              ...filters,
-                              heightRange: {
-                                min: currentMin,
-                                max: Math.max(currentMin, newMax),
-                              },
-                            });
-                          }
-                        }}
-                        className="w-16 text-center text-lg font-bold text-blue-700 focus:outline-none"
-                      />
                     </div>
-
-                    <div className="text-center">
-                      <span className="text-lg font-bold text-gray-400">-</span>
-                    </div>
-
-                    <div className="text-center bg-white border border-gray-200 rounded-lg shadow-sm p-2">
-                      <p className="text-xs text-gray-500 mb-1">מינימום</p>
-                      <input
-                        type="number"
-                        min={HEIGHT_RANGE.min}
-                        max={HEIGHT_RANGE.max}
-                        value={
-                          filters.heightRange?.min || HEIGHT_RANGE.default.min
-                        }
-                        onChange={(e) => {
-                          const newMin = parseInt(e.target.value);
-                          if (
-                            !isNaN(newMin) &&
-                            newMin >= HEIGHT_RANGE.min &&
-                            newMin <= HEIGHT_RANGE.max
-                          ) {
-                            const currentMax =
-                              filters.heightRange?.max ||
-                              HEIGHT_RANGE.default.max;
-                            onFiltersChange({
-                              ...filters,
-                              heightRange: {
-                                min: Math.min(newMin, currentMax),
-                                max: currentMax,
-                              },
-                            });
-                          }
-                        }}
-                        className="w-16 text-center text-lg font-bold text-blue-700 focus:outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  {/* סרגל משופר */}
-                  <div className="px-2">
-                    <div
-                      className="slider-wrapper"
-                      style={{ direction: "rtl" }}
-                    >
-                      <Slider
-                        defaultValue={[
-                          HEIGHT_RANGE.default.min,
-                          HEIGHT_RANGE.default.max,
-                        ]}
-                        min={HEIGHT_RANGE.min}
-                        max={HEIGHT_RANGE.max}
-                        step={1}
-                        value={[
-                          filters.heightRange?.min || HEIGHT_RANGE.default.min,
-                          filters.heightRange?.max || HEIGHT_RANGE.default.max,
-                        ]}
-                        onValueChange={handleHeightRangeChange}
-                        className="h-5"
-                        dir="rtl"
-                      />
-                    </div>
-
-                    {/* טווח ערכים */}
-                    <div className="flex justify-between mt-2 px-1">
-                      <span className="text-xs text-gray-500">
-                        {HEIGHT_RANGE.min} ס״מ
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        {HEIGHT_RANGE.max} ס״מ
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </FilterSection>
-
-              {/* Occupation */}
-              <FilterSection
-                title="תחום עיסוק"
-                icon={<Briefcase className="w-4 h-4" />}
-                badge={filters.occupations?.length}
-              >
-                <ScrollArea className="h-48 rounded-md mt-2 border p-2 bg-white pr-4">
-                  {OCCUPATION_CATEGORIES.map((occupation) => (
-                    <div
-                      key={occupation.value}
-                      className="flex items-center justify-between py-1.5 hover:bg-gray-50 px-2 rounded-md"
-                    >
-                      <span className="text-sm">{occupation.label}</span>
-                      <Switch
-                        checked={
-                          filters.occupations?.includes(occupation.value) ||
-                          false
-                        }
-                        onCheckedChange={(checked) => {
-                          const newOccupations = checked
-                            ? [...(filters.occupations || []), occupation.value]
-                            : filters.occupations?.filter(
-                                (o) => o !== occupation.value
-                              );
-                          onFiltersChange({
-                            ...filters,
-                            occupations: newOccupations,
-                          });
-                        }}
-                      />
-                    </div>
-                  ))}
-                </ScrollArea>
-                {filters.occupations?.length ? (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() =>
-                      onFiltersChange({ ...filters, occupations: [] })
-                    }
-                    className="w-full mt-2 text-sm text-gray-500"
-                  >
-                    הסר בחירה
-                  </Button>
-                ) : null}
-              </FilterSection>
-
-              {/* Education Level */}
-              <FilterSection
-                title="השכלה"
-                icon={<GraduationCap className="w-4 h-4" />}
-                badge={filters.educationLevel ? 1 : undefined}
-              >
-                <div className="pt-2">
-                  <Select
-                    value={filters.educationLevel || ""}
-                    onValueChange={(value) =>
-                      onFiltersChange({
-                        ...filters,
-                        educationLevel: value || undefined,
-                      })
-                    }
-                  >
-                    <SelectTrigger className="w-full bg-white">
-                      <SelectValue placeholder="רמת השכלה" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">הכל</SelectItem>
-                      {EDUCATION_LEVELS.map((level) => (
-                        <SelectItem key={level.value} value={level.value}>
-                          {level.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </FilterSection>
-
-              {/* Marital Status */}
-              <FilterSection
-                title="מצב משפחתי"
-                icon={<Heart className="w-4 h-4" />}
-                badge={filters.maritalStatus ? 1 : undefined}
-              >
-                <div className="pt-2">
-                  <Select
-                    value={filters.maritalStatus || ""}
-                    onValueChange={(value) =>
-                      onFiltersChange({
-                        ...filters,
-                        maritalStatus: value || undefined,
-                      })
-                    }
-                  >
-                    <SelectTrigger className="w-full bg-white">
-                      <SelectValue placeholder="מצב משפחתי" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">הכל</SelectItem>
-                      {MARITAL_STATUS.map((status) => (
-                        <SelectItem key={status.value} value={status.value}>
-                          {status.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </FilterSection>
-            </TabsContent>
-
-            {/* Status & Availability Filters Tab */}
-            <TabsContent value="status" className="space-y-4">
-              {/* Availability Status */}
-              <FilterSection
-                title="סטטוס זמינות"
-                icon={<Clock className="w-4 h-4" />}
-                defaultOpen={true}
-                badge={filters.availabilityStatus ? 1 : undefined}
-              >
-                <div className="pt-2">
-                  <Select
-                    value={filters.availabilityStatus || ""}
-                    onValueChange={(value) =>
-                      onFiltersChange({
-                        ...filters,
-                        availabilityStatus: value || undefined,
-                      })
-                    }
-                  >
-                    <SelectTrigger className="w-full bg-white">
-                      <SelectValue placeholder="סטטוס זמינות" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">הכל</SelectItem>
-                      {AVAILABILITY_STATUS_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          <div className="flex items-center gap-2">
-                            <div
-                              className={`w-2 h-2 rounded-full ${
-                                option.value === "AVAILABLE"
-                                  ? "bg-emerald-500"
-                                  : option.value === "DATING"
-                                  ? "bg-amber-500"
-                                  : "bg-red-500"
-                              }`}
-                            />
-                            {option.label}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {filters.availabilityStatus && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() =>
-                        onFiltersChange({
-                          ...filters,
-                          availabilityStatus: undefined,
-                        })
-                      }
-                      className="w-full mt-2 text-sm text-gray-500"
-                    >
-                      הסר בחירה
-                    </Button>
-                  )}
-                </div>
-              </FilterSection>
-
-              {/* Verification Switches */}
-              <FilterSection
-                title="אימות ואיכות פרופיל"
-                icon={<Check className="w-4 h-4" />}
-                defaultOpen={true}
-                badge={
-                  (filters.isVerified !== undefined ? 1 : 0) +
-                  (filters.hasReferences !== undefined ? 1 : 0) +
-                  (filters.isProfileComplete !== undefined ? 1 : 0)
-                }
-              >
-                <div className="space-y-3 pt-2">
-                  <div className="flex items-center justify-between py-1 px-2 hover:bg-gray-50 rounded-md">
-                    <span className="text-sm">מועמדים מאומתים בלבד</span>
-                    <Switch
-                      checked={filters.isVerified || false}
-                      onCheckedChange={(checked) =>
-                        onFiltersChange({
-                          ...filters,
-                          isVerified: checked || undefined,
-                        })
-                      }
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between py-1 px-2 hover:bg-gray-50 rounded-md">
-                    <span className="text-sm">עם המלצות בלבד</span>
-                    <Switch
-                      checked={filters.hasReferences || false}
-                      onCheckedChange={(checked) =>
-                        onFiltersChange({
-                          ...filters,
-                          hasReferences: checked || undefined,
-                        })
-                      }
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between py-1 px-2 hover:bg-gray-50 rounded-md">
-                    <span className="text-sm">פרופילים מלאים בלבד</span>
-                    <Switch
-                      checked={filters.isProfileComplete || false}
-                      onCheckedChange={(checked) =>
-                        onFiltersChange({
-                          ...filters,
-                          isProfileComplete: checked || undefined,
-                        })
-                      }
-                    />
-                  </div>
-                </div>
-              </FilterSection>
-
-              {/* Activity Filter */}
-              <FilterSection
-                title="פעילות אחרונה"
-                icon={<Clock className="w-4 h-4" />}
-                badge={filters.lastActiveDays ? 1 : undefined}
-              >
-                <div className="pt-2">
-                  <Select
-                    value={filters.lastActiveDays?.toString() || ""}
-                    onValueChange={(value) =>
-                      onFiltersChange({
-                        ...filters,
-                        lastActiveDays: value ? parseInt(value) : undefined,
-                      })
-                    }
-                  >
-                    <SelectTrigger className="w-full bg-white">
-                      <SelectValue placeholder="פעילות אחרונה" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">הכל</SelectItem>
-                      <SelectItem value="1">היום</SelectItem>
-                      <SelectItem value="3">3 ימים אחרונים</SelectItem>
-                      <SelectItem value="7">שבוע אחרון</SelectItem>
-                      <SelectItem value="30">חודש אחרון</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {filters.lastActiveDays && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() =>
-                        onFiltersChange({
-                          ...filters,
-                          lastActiveDays: undefined,
-                        })
-                      }
-                      className="w-full mt-2 text-sm text-gray-500"
-                    >
-                      הסר בחירה
-                    </Button>
-                  )}
-                </div>
-              </FilterSection>
-            </TabsContent>
-
-            {/* Saved Filters Tab */}
-            <TabsContent value="saved" className="space-y-4">
-              {savedFilters.length === 0 ? (
-                <div className="text-center py-8 text-gray-500 bg-white rounded-lg border p-4">
-                  <Bookmark className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                  <h3 className="mb-1 font-medium">אין פילטרים שמורים</h3>
-                  <p className="text-sm">
-                    שמור את הפילטר הנוכחי ע״י לחיצה על כפתור השמירה
-                  </p>
-                </div>
-              ) : (
-                <SavedFilters
-                  filters={savedFilters.map((filter) => ({
-                    id: filter.id,
-                    name: filter.name,
-                    filter: {},
-                    isDefault: filter.isDefault,
-                    createdAt: new Date(),
-                  }))}
-                  activeFilterId={filters.savedFilterId}
-                  onSelect={(filter) => onApplySavedFilter?.(filter.id)}
-                  onDelete={() => {}}
-                  onEdit={() => {}}
-                  onSetDefault={() => {}}
-                />
-              )}
-
-              {popularFilters.length > 0 && (
-                <div className="mt-4">
-                  <h4 className="font-medium text-sm mb-2">
-                    חיפושים פופולריים
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {popularFilters.map((term, index) => (
-                      <Badge
-                        key={index}
-                        variant="outline"
-                        className="cursor-pointer bg-blue-50 border-blue-200 hover:bg-blue-100 transition-colors"
+                    {filters.gender && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
                         onClick={() =>
-                          onFiltersChange({
-                            ...filters,
-                            searchQuery: term,
-                          })
+                          onFiltersChange({ ...filters, gender: undefined })
                         }
+                        className="w-full mt-3 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-xl"
                       >
-                        {term}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </TabsContent>
-          </div>
-        </Tabs>
-      )}
+                        הסר בחירה
+                      </Button>
+                    )}
+                  </FilterSection>
+                  <FilterSection
+                    title="גיל"
+                    icon={<Calendar className="w-5 h-5" />}
+                    defaultOpen={true}
+                    gradient="from-emerald-500 to-green-500"
+                    badge={
+                      filters.ageRange &&
+                      (filters.ageRange.min !== AGE_RANGE.default.min ||
+                        filters.ageRange.max !== AGE_RANGE.default.max)
+                        ? 1
+                        : undefined
+                    }
+                  >
+                    <div className="space-y-6">
+                      <div className="flex justify-between items-center">
+                        <div className="text-center bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-xl shadow-md p-3 min-w-[80px]">
+                          <p className="text-xs text-emerald-600 mb-1 font-medium">
+                            מינימום
+                          </p>
+                          <input
+                            type="number"
+                            min={AGE_RANGE.min}
+                            max={AGE_RANGE.max}
+                            value={
+                              filters.ageRange?.min || AGE_RANGE.default.min
+                            }
+                            onChange={(e) => {
+                              const newMin = parseInt(e.target.value);
+                              if (
+                                !isNaN(newMin) &&
+                                newMin >= AGE_RANGE.min &&
+                                newMin <= AGE_RANGE.max
+                              ) {
+                                const currentMax =
+                                  filters.ageRange?.max ||
+                                  AGE_RANGE.default.max;
+                                onFiltersChange({
+                                  ...filters,
+                                  ageRange: {
+                                    min: Math.min(newMin, currentMax),
+                                    max: currentMax,
+                                  },
+                                });
+                              }
+                            }}
+                            className="w-16 text-center text-lg font-bold text-emerald-700 focus:outline-none bg-transparent"
+                          />
+                        </div>
+                        <span className="text-xl font-bold text-gray-400">
+                          -
+                        </span>
+                        <div className="text-center bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-xl shadow-md p-3 min-w-[80px]">
+                          <p className="text-xs text-emerald-600 mb-1 font-medium">
+                            מקסימום
+                          </p>
+                          <input
+                            type="number"
+                            min={AGE_RANGE.min}
+                            max={AGE_RANGE.max}
+                            value={
+                              filters.ageRange?.max || AGE_RANGE.default.max
+                            }
+                            onChange={(e) => {
+                              const newMax = parseInt(e.target.value);
+                              if (
+                                !isNaN(newMax) &&
+                                newMax >= AGE_RANGE.min &&
+                                newMax <= AGE_RANGE.max
+                              ) {
+                                const currentMin =
+                                  filters.ageRange?.min ||
+                                  AGE_RANGE.default.min;
+                                onFiltersChange({
+                                  ...filters,
+                                  ageRange: {
+                                    min: currentMin,
+                                    max: Math.max(currentMin, newMax),
+                                  },
+                                });
+                              }
+                            }}
+                            className="w-16 text-center text-lg font-bold text-emerald-700 focus:outline-none bg-transparent"
+                          />
+                        </div>
+                      </div>
+                      <div className="px-3">
+                        <Slider
+                          value={[
+                            filters.ageRange?.min || AGE_RANGE.default.min,
+                            filters.ageRange?.max || AGE_RANGE.default.max,
+                          ]}
+                          min={AGE_RANGE.min}
+                          max={AGE_RANGE.max}
+                          step={1}
+                          onValueChange={handleAgeRangeChange}
+                          className="h-6 [&>span]:bg-gradient-to-r [&>span]:from-emerald-500 [&>span]:to-green-500"
+                          dir="rtl"
+                        />
+                        <div className="flex justify-between mt-2 px-1 text-xs text-gray-500">
+                          <span>{AGE_RANGE.min}</span>
+                          <span>{AGE_RANGE.max}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </FilterSection>
+                </TabsContent>
 
-      {/* Action buttons */}
-      <div
-        className={`${
-          compactMode ? "pt-2 mt-2" : "pt-4 mt-4"
-        } border-t flex justify-end gap-2`}
-      >
-        <Button
-          variant="outline"
-          size={compactMode ? "sm" : "default"}
-          onClick={onReset}
-          className="bg-white"
-        >
-          איפוס
-        </Button>
-        {!compactMode && (
-          <Button onClick={() => setShowSavePreset(true)} size="sm">
-            <Save className="w-4 h-4 ml-1.5" />
-            שמירת פילטר
-          </Button>
-        )}
+                <TabsContent value="advanced" className="space-y-6 m-0">
+                  <FilterSection
+                    title='גובה (ס"מ)'
+                    icon={<Ruler className="w-5 h-5" />}
+                    gradient="from-indigo-500 to-purple-500"
+                    badge={
+                      filters.heightRange &&
+                      (filters.heightRange.min !== HEIGHT_RANGE.default.min ||
+                        filters.heightRange.max !== HEIGHT_RANGE.default.max)
+                        ? 1
+                        : undefined
+                    }
+                  >
+                    <div className="space-y-6">
+                      <div className="flex justify-between items-center">
+                        <div className="text-center bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl shadow-md p-3 min-w-[80px]">
+                          <p className="text-xs text-indigo-600 mb-1 font-medium">
+                            מינימום
+                          </p>
+                          <input
+                            type="number"
+                            min={HEIGHT_RANGE.min}
+                            max={HEIGHT_RANGE.max}
+                            value={
+                              filters.heightRange?.min ||
+                              HEIGHT_RANGE.default.min
+                            }
+                            onChange={(e) => {
+                              const newMin = parseInt(e.target.value);
+                              if (
+                                !isNaN(newMin) &&
+                                newMin >= HEIGHT_RANGE.min &&
+                                newMin <= HEIGHT_RANGE.max
+                              ) {
+                                const currentMax =
+                                  filters.heightRange?.max ||
+                                  HEIGHT_RANGE.default.max;
+                                onFiltersChange({
+                                  ...filters,
+                                  heightRange: {
+                                    min: Math.min(newMin, currentMax),
+                                    max: currentMax,
+                                  },
+                                });
+                              }
+                            }}
+                            className="w-16 text-center text-lg font-bold text-indigo-700 focus:outline-none bg-transparent"
+                          />
+                        </div>
+
+                        <span className="text-xl font-bold text-gray-400">
+                          -
+                        </span>
+
+                        <div className="text-center bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl shadow-md p-3 min-w-[80px]">
+                          <p className="text-xs text-indigo-600 mb-1 font-medium">
+                            מקסימום
+                          </p>
+                          <input
+                            type="number"
+                            min={HEIGHT_RANGE.min}
+                            max={HEIGHT_RANGE.max}
+                            value={
+                              filters.heightRange?.max ||
+                              HEIGHT_RANGE.default.max
+                            }
+                            onChange={(e) => {
+                              const newMax = parseInt(e.target.value);
+                              if (
+                                !isNaN(newMax) &&
+                                newMax >= HEIGHT_RANGE.min &&
+                                newMax <= HEIGHT_RANGE.max
+                              ) {
+                                const currentMin =
+                                  filters.heightRange?.min ||
+                                  HEIGHT_RANGE.default.min;
+                                onFiltersChange({
+                                  ...filters,
+                                  heightRange: {
+                                    min: currentMin,
+                                    max: Math.max(currentMin, newMax),
+                                  },
+                                });
+                              }
+                            }}
+                            className="w-16 text-center text-lg font-bold text-indigo-700 focus:outline-none bg-transparent"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="px-3">
+                        <Slider
+                          value={[
+                            filters.heightRange?.min ||
+                              HEIGHT_RANGE.default.min,
+                            filters.heightRange?.max ||
+                              HEIGHT_RANGE.default.max,
+                          ]}
+                          min={HEIGHT_RANGE.min}
+                          max={HEIGHT_RANGE.max}
+                          step={1}
+                          onValueChange={handleHeightRangeChange}
+                          className="h-6 [&>span]:bg-gradient-to-r [&>span]:from-indigo-500 [&>span]:to-purple-500"
+                          dir="rtl"
+                        />
+                        <div className="flex justify-between mt-2 px-1 text-xs text-gray-500">
+                          <span>{HEIGHT_RANGE.min} ס"מ</span>
+                          <span>{HEIGHT_RANGE.max} ס"מ</span>
+                        </div>
+                      </div>
+                    </div>
+                  </FilterSection>
+                </TabsContent>
+
+                {/* Other Tabs content would go here */}
+
+                <TabsContent value="saved" className="space-y-6 m-0">
+                  {savedFilters.length === 0 ? (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-center py-12 bg-gradient-to-br from-white via-gray-50/30 to-white rounded-2xl shadow-xl border border-gray-100/50"
+                    >
+                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center mx-auto mb-6">
+                        <Bookmark className="w-10 h-10 text-amber-500" />
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-800 mb-3">
+                        אין פילטרים שמורים
+                      </h3>
+                      <p className="text-gray-600 mb-6 max-w-sm mx-auto">
+                        שמור את הפילטר הנוכחי ע"י לחיצה על כפתור השמירה
+                      </p>
+                      <Button
+                        onClick={() => setShowSavePreset(true)}
+                        className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg rounded-xl px-6"
+                      >
+                        <Save className="w-4 h-4 mr-2" />
+                        שמור פילטר נוכחי
+                      </Button>
+                    </motion.div>
+                  ) : (
+                    <SavedFilters
+                      filters={savedFilters.map((filter) => ({
+                        id: filter.id,
+                        name: filter.name,
+                        filter: {},
+                        isDefault: filter.isDefault,
+                        createdAt: new Date(),
+                      }))}
+                      activeFilterId={filters.savedFilterId}
+                      onSelect={(filter) => onApplySavedFilter?.(filter.id)}
+                      onDelete={() => {}}
+                      onEdit={() => {}}
+                      onSetDefault={() => {}}
+                    />
+                  )}
+                </TabsContent>
+              </div>
+            </Tabs>
+          )}
+        </div>
+
+        <div className="px-6 pb-6">
+          <div className="flex justify-between items-center pt-6 border-t border-gray-200/50">
+            <Button
+              variant="outline"
+              size={compactMode ? 'sm' : 'default'}
+              onClick={onReset}
+              className="bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-200 text-red-600 hover:from-red-100 hover:to-pink-100 rounded-xl transition-all duration-300 hover:scale-105"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              איפוס
+            </Button>
+            {!compactMode && (
+              <Button
+                onClick={() => setShowSavePreset(true)}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 shadow-lg rounded-xl px-6 transition-all duration-300 hover:scale-105"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                שמירת פילטר
+                <Sparkles className="w-3 h-3 ml-1" />
+              </Button>
+            )}
+          </div>
+        </div>
       </div>
     </Card>
   );

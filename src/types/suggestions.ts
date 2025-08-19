@@ -4,6 +4,7 @@ import {
   MeetingStatus,
   User,
   Meeting,
+  SuggestionInquiry as PrismaSuggestionInquiry, // <<< הוסף את זה
 } from '@prisma/client';
 
 import type {
@@ -214,5 +215,17 @@ export const getSuggestionCategory = (status: MatchSuggestionStatus) => {
       return 'ACTIVE';
   }
 };
+// --- START OF NEW CODE ---
+// Defines a single inquiry/chat message with user details
+export interface SuggestionInquiry extends PrismaSuggestionInquiry {
+  fromUser: Partial<User>;
+  toUser: Partial<User>;
+}
+
+// Defines an "extended" suggestion that INCLUDES the chat history
+export interface ExtendedMatchSuggestion extends Suggestion {
+  inquiries?: SuggestionInquiry[]; // The missing property
+}
+// --- END OF NEW CODE ---
 
 

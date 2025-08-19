@@ -368,12 +368,14 @@ const CandidatesManager: React.FC = () => {
     maleCandidates,
     femaleCandidates,
     setSorting,
-    setFilters,
+    setFilters: setCandidatesFilters, // Renamed to avoid confusion
     refresh,
   } = useCandidates();
 
+  // --- FIX: This is the critical connection ---
   const {
     filters,
+    setFilters, // This is the state setter from useFilterLogic
     savedFilters,
     recentSearches,
     popularFilters,
@@ -387,7 +389,8 @@ const CandidatesManager: React.FC = () => {
     copyFilters,
     updateMaleSearchQuery,
     updateFemaleSearchQuery,
-  } = useFilterLogic({ onFilterChange: setFilters });
+    removeFilter, // Make sure removeFilter is exposed and used
+  } = useFilterLogic({ onFilterChange: setCandidatesFilters }); // Pass the setter from useCandidates
 
   // --- Derived State ---
   const activeFilterCount = useMemo(
@@ -437,30 +440,18 @@ const CandidatesManager: React.FC = () => {
 
   const handleSearch = useCallback(
     (value: string) => {
-      if (!filters.separateFiltering) {
-        setFilters((prev) => ({ ...prev, searchQuery: value }));
-      }
+      // התיקון: אנחנו שולחים אובייקט פשוט עם השינוי הרצוי
+      setFilters({ searchQuery: value });
     },
-    [setFilters, filters.separateFiltering]
+    [setFilters]
   );
 
   const handleRemoveFilter = useCallback(
     (key: keyof CandidatesFilter, value?: string) => {
-      setFilters((prev) => {
-        const newFilters = { ...prev };
-        if (key === 'cities' && value)
-          newFilters.cities = newFilters.cities?.filter(
-            (city) => city !== value
-          );
-        else if (key === 'occupations' && value)
-          newFilters.occupations = newFilters.occupations?.filter(
-            (occ) => occ !== value
-          );
-        else delete newFilters[key];
-        return newFilters;
-      });
+      // This now calls the correct removeFilter from the hook
+      removeFilter(key, value);
     },
-    [setFilters]
+    [removeFilter]
   );
 
   const handleCandidateAction = useCallback(
@@ -559,182 +550,185 @@ const CandidatesManager: React.FC = () => {
         onToggleCompact={() => setIsHeaderCompact(!isHeaderCompact)}
       />
 
-      {/* --- Controls Bar (Visible only when header is compact) --- */}
       {isHeaderCompact && (
         <div className="flex-shrink-0 bg-white/80 backdrop-blur-sm border-b border-gray-100 py-2 px-6">
-          <div className="flex justify-between items-center">
-            {!filters.separateFiltering && (
-              <div className="flex-1 max-w-md">
-                <SearchBar
-                  value={filters.searchQuery || ''}
-                  onChange={handleSearch}
-                  placeholder="חיפוש כללי..."
-                  recentSearches={recentSearches}
-                  onClearRecentSearches={clearRecentSearches}
-                />
-              </div>
-            )}
-
-            <div className="flex items-center gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="bg-white/90 shadow-sm border border-gray-200"
-                  >
-                    <ArrowUpDown className="w-4 h-4 ml-1" />
-                    מיון
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>מיון לפי</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {SORT_OPTIONS.map((option) => (
-                    <DropdownMenuItem
-                      key={option.value}
-                      onClick={() =>
-                        setSorting(
-                          option.value,
-                          option.defaultOrder as 'asc' | 'desc'
-                        )
-                      }
-                    >
-                      {option.label}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              <div className="hidden lg:flex">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowFiltersPanel(!showFiltersPanel)}
-                  className="bg-white/90 shadow-sm border border-gray-200"
-                >
-                  <Filter className="w-4 h-4 ml-1" />
-                  {showFiltersPanel ? 'הסתר' : 'פילטרים'}
-                </Button>
-              </div>
-
-              <Sheet
-                open={showFiltersMobile}
-                onOpenChange={setShowFiltersMobile}
-              >
-                <SheetTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="lg:hidden relative bg-white/90 shadow-sm border border-gray-200"
-                  >
-                    <Filter className="w-4 h-4 ml-1" />
-                    פילטרים
-                    {activeFilterCount > 0 && (
-                      <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center bg-indigo-500 border-0 text-xs">
-                        {activeFilterCount}
-                      </Badge>
-                    )}
-                  </Button>
-                </SheetTrigger>
-                <SheetContent>
-                  <FilterPanel
-                    filters={filters}
-                    onFiltersChange={setFilters}
-                    onSavePreset={handleFilterSave}
-                    onReset={resetFilters}
-                    savedFilters={savedFilters.map((f) => ({
-                      id: f.id,
-                      name: f.name,
-                      isDefault: f.isDefault,
-                    }))}
-                    popularFilters={popularFilters}
-                    separateFiltering={filters.separateFiltering}
-                    onToggleSeparateFiltering={toggleSeparateFiltering}
-                    onMaleFiltersChange={updateMaleFilters}
-                    onFemaleFiltersChange={updateFemaleFilters}
-                    onCopyFilters={copyFilters}
+          <div className="container mx-auto px-6">
+            <div className="flex justify-between items-center">
+              {!filters.separateFiltering && (
+                <div className="flex-1 max-w-md">
+                  <SearchBar
+                    value={filters.searchQuery || ''}
+                    onChange={handleSearch}
+                    placeholder="חיפוש כללי..."
+                    recentSearches={recentSearches}
+                    onClearRecentSearches={clearRecentSearches}
                   />
-                </SheetContent>
-              </Sheet>
+                </div>
+              )}
 
-              <div className="flex gap-1 bg-white/90 p-1 rounded-lg shadow-sm border border-gray-200">
-                {isMobile ? (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-24 justify-between px-2 border-0"
-                      >
-                        {mobileView === 'split' && (
-                          <Users className="w-4 h-4" />
-                        )}
-                        {mobileView === 'single' && (
-                          <View className="w-4 h-4" />
-                        )}
-                        {mobileView === 'double' && (
-                          <Columns className="w-4 h-4" />
-                        )}
-                        <ArrowUpDown className="w-3 h-3 opacity-50 ml-1" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuRadioGroup
-                        value={mobileView}
-                        onValueChange={(value) =>
-                          setMobileView(value as MobileView)
+              <div className="flex items-center gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="bg-white/90 shadow-sm border border-gray-200"
+                    >
+                      <ArrowUpDown className="w-4 h-4 ml-1" />
+                      מיון
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>מיון לפי</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {SORT_OPTIONS.map((option) => (
+                      <DropdownMenuItem
+                        key={option.value}
+                        onClick={() =>
+                          setSorting(
+                            option.value,
+                            option.defaultOrder as 'asc' | 'desc'
+                          )
                         }
                       >
-                        <DropdownMenuRadioItem value="split">
-                          <Users className="w-4 h-4 mr-2" />
-                          מפוצל
-                        </DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="single">
-                          <View className="w-4 h-4 mr-2" />
-                          טור אחד
-                        </DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="double">
-                          <Columns className="w-4 h-4 mr-2" />
-                          שני טורים
-                        </DropdownMenuRadioItem>
-                      </DropdownMenuRadioGroup>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                ) : (
-                  VIEW_OPTIONS.map((option) => (
+                        {option.label}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <div className="hidden lg:flex">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowFiltersPanel(!showFiltersPanel)}
+                    className="bg-white/90 shadow-sm border border-gray-200"
+                  >
+                    <Filter className="w-4 h-4 ml-1" />
+                    {showFiltersPanel ? 'הסתר' : 'פילטרים'}
+                  </Button>
+                </div>
+
+                <Sheet
+                  open={showFiltersMobile}
+                  onOpenChange={setShowFiltersMobile}
+                >
+                  <SheetTrigger asChild>
                     <Button
-                      key={option.value}
-                      variant={viewMode === option.value ? 'default' : 'ghost'}
-                      size="icon"
-                      onClick={() => setViewMode(option.value as ViewMode)}
-                      className={cn(
-                        'h-8 w-8',
-                        viewMode === option.value && 'bg-indigo-500 text-white'
-                      )}
+                      variant="outline"
+                      size="sm"
+                      className="lg:hidden relative bg-white/90 shadow-sm border border-gray-200"
                     >
-                      {option.value === 'grid' ? (
-                        <LayoutGrid className="w-4 h-4" />
-                      ) : (
-                        <List className="w-4 h-4" />
+                      <Filter className="w-4 h-4 ml-1" />
+                      פילטרים
+                      {activeFilterCount > 0 && (
+                        <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center bg-indigo-500 border-0 text-xs">
+                          {activeFilterCount}
+                        </Badge>
                       )}
                     </Button>
-                  ))
-                )}
+                  </SheetTrigger>
+                  <SheetContent>
+                    <FilterPanel
+                      filters={filters}
+                      onFiltersChange={setFilters}
+                      onSavePreset={handleFilterSave}
+                      onReset={resetFilters}
+                      savedFilters={savedFilters.map((f) => ({
+                        id: f.id,
+                        name: f.name,
+                        isDefault: f.isDefault,
+                      }))}
+                      popularFilters={popularFilters}
+                      separateFiltering={filters.separateFiltering}
+                      onToggleSeparateFiltering={toggleSeparateFiltering}
+                      onMaleFiltersChange={updateMaleFilters}
+                      onFemaleFiltersChange={updateFemaleFilters}
+                      onCopyFilters={copyFilters}
+                    />
+                  </SheetContent>
+                </Sheet>
+
+                <div className="flex gap-1 bg-white/90 p-1 rounded-lg shadow-sm border border-gray-200">
+                  {isMobile ? (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-24 justify-between px-2 border-0"
+                        >
+                          {mobileView === 'split' && (
+                            <Users className="w-4 h-4" />
+                          )}
+                          {mobileView === 'single' && (
+                            <View className="w-4 h-4" />
+                          )}
+                          {mobileView === 'double' && (
+                            <Columns className="w-4 h-4" />
+                          )}
+                          <ArrowUpDown className="w-3 h-3 opacity-50 ml-1" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuRadioGroup
+                          value={mobileView}
+                          onValueChange={(value) =>
+                            setMobileView(value as MobileView)
+                          }
+                        >
+                          <DropdownMenuRadioItem value="split">
+                            <Users className="w-4 h-4 mr-2" />
+                            מפוצל
+                          </DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value="single">
+                            <View className="w-4 h-4 mr-2" />
+                            טור אחד
+                          </DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value="double">
+                            <Columns className="w-4 h-4 mr-2" />
+                            שני טורים
+                          </DropdownMenuRadioItem>
+                        </DropdownMenuRadioGroup>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  ) : (
+                    VIEW_OPTIONS.map((option) => (
+                      <Button
+                        key={option.value}
+                        variant={
+                          viewMode === option.value ? 'default' : 'ghost'
+                        }
+                        size="icon"
+                        onClick={() => setViewMode(option.value as ViewMode)}
+                        className={cn(
+                          'h-8 w-8',
+                          viewMode === option.value &&
+                            'bg-indigo-500 text-white'
+                        )}
+                      >
+                        {option.value === 'grid' ? (
+                          <LayoutGrid className="w-4 h-4" />
+                        ) : (
+                          <List className="w-4 h-4" />
+                        )}
+                      </Button>
+                    ))
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-          <div className="mt-2">
-            <ActiveFilters
-              filters={filters}
-              onRemoveFilter={handleRemoveFilter}
-              onResetAll={resetFilters}
-            />
+            <div className="mt-2">
+              <ActiveFilters
+                filters={filters}
+                onRemoveFilter={handleRemoveFilter}
+                onResetAll={resetFilters}
+              />
+            </div>
           </div>
         </div>
       )}
 
-      {/* --- Main Content Area --- */}
       <main className="flex-1 min-h-0 container mx-auto px-6 pb-4 pt-4">
         <div className="flex gap-4 h-full">
           {showFiltersPanel && (
@@ -756,7 +750,7 @@ const CandidatesManager: React.FC = () => {
                   onMaleFiltersChange={updateMaleFilters}
                   onFemaleFiltersChange={updateFemaleFilters}
                   onCopyFilters={copyFilters}
-                  className="flex-1 overflow-y-auto" // הוסף את זה!
+                  className="flex-1 overflow-y-auto"
                 />
               </div>
             </aside>

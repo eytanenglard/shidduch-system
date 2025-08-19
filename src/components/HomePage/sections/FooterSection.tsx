@@ -108,8 +108,7 @@ animate={isInView ? 'visible' : 'hidden'}
 >
 {/* Enhanced background effects */}
 <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTAgMGg0MHY0MEgwVjB6bTEwIDEwaDIwdjIwSDEwVjEweiIvPjwvZz48L2c+PC9zdmc+')]"></div>
-code
-Code
+
 <div className="max-w-6xl mx-auto relative">
     <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12">
       {/* Logo and Description Column */}

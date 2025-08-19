@@ -246,13 +246,18 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
     const p = user.profile;
     if (!p) return { personalDetails: [], partnerPreferences: [] };
 
+    // --- START OF UPDATED LOGIC ---
     const personalDetails = [
       // From "קצת עלי ומידע נוסף" Card
       !p.profileHeadline && 'כותרת פרופיל',
-      (!p.about || p.about.trim().length < 100) &&
-        'כתיבת "קצת עליי" (100+ תווים)',
-      !p.humorStory && 'סיפור על חוש ההומור',
+      (!p.about || p.about.trim().length < 100) && 'כתיבת "קצת עליי" (100+ תווים)',
       !p.inspiringCoupleStory && 'הזוג שנותן לי השראה',
+      !p.influentialRabbi && 'דמות רבנית/רוחנית משפיעה',
+
+      // From "מידע רפואי ורגיש" Card
+      (p.hasMedicalInfo === null || p.hasMedicalInfo === undefined) && 'התייחסות למידע רפואי',
+      (p.hasMedicalInfo === true && !p.medicalInfoDetails) && 'פירוט מידע רפואי',
+      (p.hasMedicalInfo === true && !p.medicalInfoDisclosureTiming) && 'תזמון חשיפת מידע רפואי',
 
       // From "פרטים אישיים ודמוגרפיים" Card
       !p.birthDate && 'תאריך לידה',
@@ -260,16 +265,14 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       !p.city && 'עיר מגורים',
       !p.origin && 'מוצא/עדה',
       !p.nativeLanguage && 'שפת אם',
-      (!p.additionalLanguages || p.additionalLanguages.length === 0) &&
-        'שפות נוספות',
       p.aliyaCountry && !p.aliyaYear && 'שנת עלייה',
 
       // From "מצב משפחתי ורקע" Card
       !p.maritalStatus && 'מצב משפחתי',
       p.maritalStatus &&
         ['divorced', 'widowed', 'annulled'].includes(p.maritalStatus) &&
-        p.hasChildrenFromPrevious === null &&
-        'ילדים מקשר קודם',
+        (p.hasChildrenFromPrevious === null || p.hasChildrenFromPrevious === undefined) &&
+        'התייחסות לילדים מקשר קודם',
       !p.parentStatus && 'סטטוס הורים',
       !p.fatherOccupation && 'מקצוע האב',
       !p.motherOccupation && 'מקצוע האם',
@@ -279,9 +282,7 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       // From "דת ואורח חיים" Card
       !p.religiousLevel && 'רמה דתית',
       !p.religiousJourney && 'מסע דתי',
-      (p.shomerNegiah === null || p.shomerNegiah === undefined) &&
-        'שמירת נגיעה',
-      !p.influentialRabbi && 'דמות רבנית/רוחנית משפיעה',
+      (p.shomerNegiah === null || p.shomerNegiah === undefined) && 'שמירת נגיעה',
 
       // From "השכלה, עיסוק ושירות" Card
       !p.educationLevel && 'רמת השכלה',
@@ -291,55 +292,42 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       !p.serviceDetails && 'פרטי שירות',
 
       // From "תכונות אופי ותחביבים" Card
-      (!p.profileCharacterTraits || p.profileCharacterTraits.length === 0) &&
-        'תכונות אופי',
+      (!p.profileCharacterTraits || p.profileCharacterTraits.length === 0) && 'תכונות אופי',
       (!p.profileHobbies || p.profileHobbies.length === 0) && 'תחביבים',
     ].filter(Boolean);
 
     const partnerPreferences = [
+      // From "תיאור כללי והעדפות קשר" Card
+      (!p.matchingNotes || p.matchingNotes.trim().length === 0) && "תיאור כללי על המועמד/ת",
+      !p.contactPreference && "אופן יצירת קשר מועדף",
+
       // From "העדפות גיל וגובה" Card
       (!p.preferredAgeMin || !p.preferredAgeMax) && 'טווח גילאים מועדף',
       (!p.preferredHeightMin || !p.preferredHeightMax) && 'טווח גובה מועדף',
 
       // From "מיקום, רמה דתית ואורח חיים" Card
-      (!p.preferredLocations || p.preferredLocations.length === 0) &&
-        'אזורי מגורים מועדפים',
-      (!p.preferredReligiousLevels ||
-        p.preferredReligiousLevels.length === 0) &&
-        'רמות דתיות מועדפות',
-      (!p.preferredReligiousJourneys ||
-        p.preferredReligiousJourneys.length === 0) &&
-        'רקע דתי מועדף',
-      (p.preferredShomerNegiah === null ||
-        p.preferredShomerNegiah === undefined) &&
-        'העדפת שמירת נגיעה',
+      (!p.preferredLocations || p.preferredLocations.length === 0) && 'אזורי מגורים מועדפים',
+      (!p.preferredReligiousLevels || p.preferredReligiousLevels.length === 0) && 'רמות דתיות מועדפות',
+      (!p.preferredReligiousJourneys || p.preferredReligiousJourneys.length === 0) && 'רקע דתי מועדף',
+      (p.preferredShomerNegiah === null || p.preferredShomerNegiah === undefined) && 'העדפת שמירת נגיעה',
 
       // From "השכלה, תעסוקה ושירות" Card
-      (!p.preferredEducation || p.preferredEducation.length === 0) &&
-        'רמות השכלה מועדפות',
-      (!p.preferredOccupations || p.preferredOccupations.length === 0) &&
-        'תחומי עיסוק מועדפים',
-      (!p.preferredServiceTypes || p.preferredServiceTypes.length === 0) &&
-        'סוג שירות מועדף',
+      (!p.preferredEducation || p.preferredEducation.length === 0) && 'רמות השכלה מועדפות',
+      (!p.preferredOccupations || p.preferredOccupations.length === 0) && 'תחומי עיסוק מועדפים',
+      (!p.preferredServiceTypes || p.preferredServiceTypes.length === 0) && 'סוג שירות מועדף',
 
       // From "רקע אישי ומשפחתי" Card
-      (!p.preferredMaritalStatuses ||
-        p.preferredMaritalStatuses.length === 0) &&
-        'מצב משפחתי מועדף',
-      (p.preferredPartnerHasChildren === null ||
-        p.preferredPartnerHasChildren === undefined) &&
-        'העדפה לגבי ילדים מקשר קודם',
-      (!p.preferredOrigins || p.preferredOrigins.length === 0) &&
-        'מוצא/עדה מועדפים',
+      (!p.preferredMaritalStatuses || p.preferredMaritalStatuses.length === 0) && 'מצב משפחתי מועדף',
+      (p.preferredPartnerHasChildren === null || p.preferredPartnerHasChildren === undefined) && 'העדפה לגבי ילדים מקשר קודם',
+      (!p.preferredOrigins || p.preferredOrigins.length === 0) && 'מוצא/עדה מועדפים',
       !p.preferredAliyaStatus && 'העדפת סטטוס עלייה',
 
       // From "אופי ותחומי עניין" Card
-      (!p.preferredCharacterTraits ||
-        p.preferredCharacterTraits.length === 0) &&
-        'תכונות אופי מועדפות',
-      (!p.preferredHobbies || p.preferredHobbies.length === 0) &&
-        'תחביבים מועדפים',
+      (!p.preferredCharacterTraits || p.preferredCharacterTraits.length === 0) && 'תכונות אופי מועדפות',
+      (!p.preferredHobbies || p.preferredHobbies.length === 0) && 'תחביבים מועדפים',
     ].filter(Boolean);
+    // --- END OF UPDATED LOGIC ---
+
 
     // Gender-specific items
     if (p.gender === Gender.FEMALE) {
@@ -467,24 +455,25 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
     otherTasksStatus.push((user.images?.length ?? 0) >= 3);
 
     if (p) {
+       // --- START OF UPDATED LOGIC FOR PROGRESS BAR ---
       // Personal Details Checks
       otherTasksStatus.push(!!p.profileHeadline);
       otherTasksStatus.push(!!(p.about && p.about.trim().length >= 100));
-      otherTasksStatus.push(!!p.humorStory);
       otherTasksStatus.push(!!p.inspiringCoupleStory);
+      otherTasksStatus.push(!!p.influentialRabbi);
+      otherTasksStatus.push(p.hasMedicalInfo !== null && p.hasMedicalInfo !== undefined);
+      otherTasksStatus.push(!p.hasMedicalInfo || !!p.medicalInfoDetails);
+      otherTasksStatus.push(!p.hasMedicalInfo || !!p.medicalInfoDisclosureTiming);
       otherTasksStatus.push(!!p.birthDate);
       otherTasksStatus.push(!!p.height);
       otherTasksStatus.push(!!p.city);
       otherTasksStatus.push(!!p.origin);
       otherTasksStatus.push(!!p.nativeLanguage);
-      otherTasksStatus.push(
-        !!(p.additionalLanguages && p.additionalLanguages.length > 0)
-      );
-      otherTasksStatus.push(!p.aliyaCountry || !!p.aliyaYear); // true if aliyaYear is filled, or if there's no aliyaCountry
+      otherTasksStatus.push(!p.aliyaCountry || !!p.aliyaYear);
       otherTasksStatus.push(!!p.maritalStatus);
       otherTasksStatus.push(
         !['divorced', 'widowed', 'annulled'].includes(p.maritalStatus || '') ||
-          p.hasChildrenFromPrevious !== null
+          (p.hasChildrenFromPrevious !== null && p.hasChildrenFromPrevious !== undefined)
       );
       otherTasksStatus.push(!!p.parentStatus);
       otherTasksStatus.push(!!p.fatherOccupation);
@@ -496,7 +485,6 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       otherTasksStatus.push(
         p.shomerNegiah !== null && p.shomerNegiah !== undefined
       );
-      otherTasksStatus.push(!!p.influentialRabbi);
       otherTasksStatus.push(!!p.educationLevel);
       otherTasksStatus.push(!!p.education);
       otherTasksStatus.push(!!p.occupation);
@@ -510,6 +498,8 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       );
 
       // Partner Preferences Checks
+      otherTasksStatus.push(!!(p.matchingNotes && p.matchingNotes.trim().length > 0));
+      otherTasksStatus.push(!!p.contactPreference);
       otherTasksStatus.push(!!(p.preferredAgeMin && p.preferredAgeMax));
       otherTasksStatus.push(!!(p.preferredHeightMin && p.preferredHeightMax));
       otherTasksStatus.push(
@@ -567,9 +557,10 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
           !!(p.preferredHeadCoverings && p.preferredHeadCoverings.length > 0)
         ); // preference
       }
+      // --- END OF UPDATED LOGIC FOR PROGRESS BAR ---
     } else {
       // If no profile, add placeholders for all items
-      const totalProfileFields = 47; // Calculated number of fields including gender-specific ones
+      const totalProfileFields = 54; // Calculated number of fields including gender-specific ones
       otherTasksStatus.push(...Array(totalProfileFields).fill(false));
     }
 

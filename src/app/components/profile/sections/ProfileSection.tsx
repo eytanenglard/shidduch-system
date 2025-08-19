@@ -301,7 +301,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
       medicalInfoDisclosureTiming:
         profileData?.medicalInfoDisclosureTiming || undefined,
       isMedicalInfoVisible: profileData?.isMedicalInfoVisible ?? false,
-      
+
       // --- START OF UPDATED FIELDS INITIALIZATION ---
       profileHeadline: headline, // Use the sanitized variable
       inspiringCoupleStory: profileData?.inspiringCoupleStory || '',
@@ -473,15 +473,26 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
   };
 
   const renderDisplayValue = (
-    value: string | number | Date | undefined | null,
+    value: unknown, // Changed to unknown to handle any type
     placeholder: string = 'לא צוין'
-  ) => {
-    if (value === undefined || value === null || value === '') {
+  ): React.ReactNode => {
+    // If value is falsy (null, undefined, empty string), show placeholder
+    if (!value) {
       return <span className="italic text-gray-500">{placeholder}</span>;
     }
+
+    // If value is a valid Date, format it
     if (value instanceof Date && !isNaN(value.getTime())) {
       return new Intl.DateTimeFormat('he-IL').format(value);
     }
+
+    // If value is an object (but not a Date), it's likely an error, so show placeholder
+    if (typeof value === 'object' && value !== null) {
+      console.warn('renderDisplayValue received an object:', value);
+      return <span className="italic text-gray-500">{placeholder}</span>;
+    }
+
+    // Otherwise, convert to string and display
     return String(value);
   };
 
@@ -1331,7 +1342,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     )}
                   </div>
                 </div>
-                
+
                 <div className="mt-6 pt-6 border-t border-gray-200/70">
                   <div className="flex items-center gap-1.5 mb-2">
                     <Label
@@ -1377,7 +1388,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </p>
                   )}
                 </div>
-                
               </CardContent>
             </Card>
           </div>
@@ -1392,7 +1402,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
               </CardHeader>
               <CardContent className="p-4 md:p-6">
                 <div className="space-y-6">
-                  
                   <div>
                     <div className="flex items-center gap-1.5 mb-2">
                       <Label
@@ -1430,15 +1439,31 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         maxLength={80}
                       />
                     ) : (
-                      <p className="mt-1 text-lg font-semibold text-cyan-700 italic">
-                        {`"${renderDisplayValue(
-                          formData.profileHeadline,
-                          'לא הוזנה כותרת.'
-                        )}"`}
-                      </p>
+                      <div className="mt-1">
+                        {formData.profileHeadline &&
+                        typeof formData.profileHeadline === 'string' &&
+                        formData.profileHeadline.trim() ? (
+                          <p className="text-lg font-semibold text-cyan-700 italic">
+                            {`"${formData.profileHeadline}"`}
+                          </p>
+                        ) : (
+                          <div className="rounded-lg bg-slate-50 p-3 text-base italic border border-slate-200/80">
+                            <p className="font-medium not-italic text-slate-600">
+                              הכותרת היא הפתיח לסיפור שלך.
+                            </p>
+                            <p className="mt-1.5 text-slate-500">
+                              דוגמה קצרה עם עומק:
+                              <span className="block mt-1 font-semibold text-slate-700">
+                                &quot;מחפש/ת את החיבור הפשוט, לבנות את הדבר
+                                האמיתי.&quot;
+                              </span>
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
-                  
+
                   <div>
                     <div className="flex items-center gap-1.5 mb-2">
                       <Label
@@ -1558,7 +1583,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       </p>
                     )}
                   </div>
-                  
+
                   <div>
                     <div className="flex items-center gap-1.5 mb-2">
                       <Label className="text-sm font-medium text-gray-700">

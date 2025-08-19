@@ -4,16 +4,15 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-// ADDED: Import the ExtendedSuggestionInquiry type
 import type { FeedItem, FeedItemType, ExtendedSuggestionInquiry } from "@/types/messages";
 import type { ExtendedMatchSuggestion } from "@/app/components/suggestions/types";
 import { MatchSuggestionStatus, UserRole } from "@prisma/client";
 
 export const dynamic = 'force-dynamic';
 
-// הגדרה אחידה לשליפת פרטי משתמשים
+// הגדרה אחידה לשליפת פרטי משתמשים מלאים
 const partySelect = {
-  id: true, email: true, firstName: true, lastName: true, isProfileComplete: true, 
+  id: true, email: true, firstName: true, lastName: true, isProfileComplete: true, phone: true,
   profile: true,
   images: {
     select: { 
@@ -68,7 +67,7 @@ export async function GET() {
             }
         },
         orderBy: { createdAt: 'desc' },
-        take: 30 // הגבלת כמות ההודעות לביצועים טובים יותר
+        take: 30
     });
 
     // 3. המרת הצעות למבנה FeedItem
@@ -78,6 +77,10 @@ export async function GET() {
       let type: FeedItemType = 'STATUS_UPDATE';
       let title = `עדכון בהצעה עם ${otherParty.firstName}`;
       let description = "הסטטוס התעדכן. לחץ/י לפרטים.";
+      
+      const link = userRole === 'CANDIDATE' 
+        ? `/matches?suggestionId=${s.id}` 
+        : `/matchmaker/suggestions?suggestionId=${s.id}`;
 
       if ((s.status === "PENDING_FIRST_PARTY" && isFirstParty) || (s.status === "PENDING_SECOND_PARTY" && !isFirstParty)) {
         type = 'ACTION_REQUIRED';
@@ -95,7 +98,7 @@ export async function GET() {
       return {
         id: `${s.id}-${s.status}`, type, title, description,
         timestamp: s.lastActivity, isRead: false,
-        link: `/matches?suggestionId=${s.id}`,
+        link: link,
         payload: { suggestion: s },
       };
     });
@@ -110,13 +113,15 @@ export async function GET() {
         let description: string;
         let type: FeedItemType;
 
+        const link = userRole === 'CANDIDATE'
+            ? `/matches?suggestionId=${inquiry.suggestionId}&view=chat`
+            : `/matchmaker/suggestions?suggestionId=${inquiry.suggestionId}&view=chat`;
+
         if (isMyMessage) {
-            // זו הודעה שאני שלחתי
             title = `שלחת שאלה ל${otherUser.firstName}`;
             description = `"${inquiry.question.substring(0, 50)}..."`;
             type = inquiry.answer ? 'INQUIRY_RESPONSE' : 'MATCHMAKER_MESSAGE';
         } else {
-            // זו הודעה שקיבלתי
             if (inquiry.answer) {
                  title = `התקבלה תשובה מ${otherUser.firstName}`;
                  description = `לגבי שאלתך על ${suggestionParticipant.firstName}: "${inquiry.answer.substring(0, 40)}..."`;
@@ -135,11 +140,10 @@ export async function GET() {
             description,
             timestamp: inquiry.answeredAt ? inquiry.answeredAt : inquiry.createdAt,
             isRead: isMyMessage || inquiry.status !== 'PENDING',
-            link: `/matches?suggestionId=${inquiry.suggestionId}&view=chat`,
+            link: link,
             payload: { 
                 suggestion: inquiry.suggestion as unknown as ExtendedMatchSuggestion,
-                // CHANGED: Replaced 'any' with the specific 'ExtendedSuggestionInquiry' type
-                suggestionInquiry: inquiry as ExtendedSuggestionInquiry 
+                suggestionInquiry: inquiry as unknown as ExtendedSuggestionInquiry
             }
         };
     });
