@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState, useRef, useEffect } from 'react';
 import {
   MessageCircle,
@@ -33,7 +32,7 @@ type ChatMode = 'question' | 'gatheringEmail' | 'composingEmail';
 // --- START: Updated prompt questions ---
 const promptQuestions = [
   'מה העלות של השירות?',
-  'במה אתם שונים מאפליקציות?',
+  'במה אתם שונים מאפליקקציות?',
   'איך שומרים על הפרטיות שלי?',
   'איך עובד תהליך ההתאמה?',
 ];
@@ -74,6 +73,7 @@ export default function ChatWidget() {
   const [hasUnreadMessage, setHasUnreadMessage] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [viewportHeight, setViewportHeight] = useState(0);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -321,15 +321,14 @@ export default function ChatWidget() {
           {!isOpen && (
             <div className="absolute inset-0 rounded-full bg-cyan-400 opacity-20 animate-ping" />
           )}
+          {/* --- START: Updated Icon Button Code --- */}
           <Button
             id="onboarding-target-chat-widget"
-            aria-label={isOpen ? "סגור צ'אט" : "פתח צ'אט"}
-            // --- התחל תיקון נגישות ---
+            aria-label={isOpen ? 'סגור צאט' : 'פתח צאט'}
             aria-expanded={isOpen}
             aria-controls="chat-panel"
-            // --- סיים תיקון נגישות ---
             size="icon"
-            className="..."
+            className="relative rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800 group w-16 h-16 md:w-16 md:h-16 border-2 border-white touch-manipulation"
             onClick={() => setIsOpen(!isOpen)}
           >
             {isOpen ? (
@@ -341,6 +340,7 @@ export default function ChatWidget() {
               </div>
             )}
           </Button>
+          {/* --- END: Updated Icon Button Code --- */}
         </div>
       </div>
 
@@ -370,8 +370,15 @@ export default function ChatWidget() {
               <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border border-white" />
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="font-bold text-lg truncate">NeshamaTech</h3>
-              <p className="text-sm opacity-90 truncate">העוזר האישי שלכם</p>
+              <h3
+                id="chat-panel-title"
+                className="font-bold text-lg truncate"
+              >
+                NeshamaTech
+              </h3>
+              <p className="text-sm opacity-90 truncate">
+                העוזר האישי שלכם
+              </p>
             </div>
           </div>
           <div className="text-xs opacity-75 bg-white/10 px-3 py-1.5 rounded-full shrink-0">
@@ -388,7 +395,9 @@ export default function ChatWidget() {
             {messages.map((msg, index) => (
               <div key={index}>
                 <div
-                  className={`flex items-start gap-3 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                  className={`flex items-start gap-3 ${
+                    msg.sender === 'user' ? 'justify-end' : 'justify-start'
+                  }`}
                 >
                   {msg.sender === 'bot' && (
                     <div className="bg-cyan-100 p-2.5 rounded-full self-start shadow-sm shrink-0">
@@ -511,6 +520,7 @@ export default function ChatWidget() {
               {getPlaceholderText()}
             </label>
             <input
+              ref={inputRef}
               id="chat-input"
               type={chatMode === 'gatheringEmail' ? 'email' : 'text'}
               value={inputValue}

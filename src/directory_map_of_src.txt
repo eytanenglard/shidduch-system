@@ -17,6 +17,7 @@ src/
         ├── web-app-manifest-192x192.png  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\web-app-manifest-192x192.png)
         └── web-app-manifest-512x512.png  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\web-app-manifest-512x512.png)
     └── (authenticated)/
+            └── layout.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\(authenticated)\layout.tsx)
         └── matches/
                 └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\(authenticated)\matches\page.tsx)
         └── matchmaker/
@@ -357,11 +358,13 @@ src/
         └── terms-of-service/
                 └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\legal\terms-of-service\page.tsx)
     └── questionnaire/
+            ├── layout.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\questionnaire\layout.tsx)
             └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\questionnaire\page.tsx)
         └── complete/
                 └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\questionnaire\complete\page.tsx)
         └── restore/
                 └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\questionnaire\restore\page.tsx)
+    └── [locale]/
 └── components/
         ├── AvailabilityStatus.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\AvailabilityStatus.tsx)
         ├── Providers.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\Providers.tsx)
@@ -531,6 +534,7 @@ src/
     └── utils/
             ├── serverStatusUtils.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\utils\serverStatusUtils.ts)
             └── suggestionUtils.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\utils\suggestionUtils.ts)
+└── messages/
 └── types/
         ├── messages.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\types\messages.ts)
         ├── next-auth.d.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\types\next-auth.d.ts)
