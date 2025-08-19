@@ -283,7 +283,7 @@ const OptionalInfoStep: React.FC = () => {
 
       {error && submissionStatus === 'error' && (
         <motion.div variants={itemVariants}>
-          <Alert variant="destructive" className="mb-4">
+          <Alert variant="destructive" className="mb-4" role="alert">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>שגיאה</AlertTitle>
             <AlertDescription>{error}</AlertDescription>

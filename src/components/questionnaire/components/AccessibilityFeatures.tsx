@@ -235,26 +235,27 @@ export default function AccessibilityFeatures({
       const text = element.textContent.trim();
       if (text && text.length > 0) {
         const utterance = new SpeechSynthesisUtterance(text);
-
+        
         // --- START OF UPGRADE ---
         // 1. Find an available Hebrew voice on the user's system.
         const voices = window.speechSynthesis.getVoices();
-        const hebrewVoice = voices.find((voice) => voice.lang === 'he-IL');
+        const hebrewVoice = voices.find(voice => voice.lang === 'he-IL');
 
         // 2. If a Hebrew voice is found, use it.
         if (hebrewVoice) {
           utterance.voice = hebrewVoice;
           utterance.lang = 'he-IL';
-        }
+        } 
         // 3. If not, don't specify language. Let the browser use its default voice.
         // This is better than silence, even if pronunciation is incorrect.
-
+        
         utterance.rate = 0.9;
         window.speechSynthesis.speak(utterance);
         // --- END OF UPGRADE ---
       }
     }
   };
+
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

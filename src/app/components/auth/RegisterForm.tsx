@@ -201,9 +201,16 @@ export default function RegisterForm() {
           </label>
           <input
             type="password"
-            name="password" // חשוב שה-name יהיה "password" כדי ש-validatePassword יעבוד עם הערך מה-state. או שנה את validatePassword לקבל את הערך ישירות.
+            name="password"
             id="passwordRegForm"
             required
+            // --- התחל תיקון נגישות ---
+            aria-required="true"
+            aria-describedby={
+              passwordError ? 'password-error' : 'password-hint'
+            }
+            aria-invalid={!!passwordError}
+            // --- סיים תיקון נגישות ---
             value={password}
             onChange={(e) => {
               setPassword(e.target.value);
@@ -211,12 +218,18 @@ export default function RegisterForm() {
             }}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
           />
-          <p className="mt-1 text-sm text-gray-500">
+          <p id="password-hint" className="mt-1 text-sm text-gray-500">
             הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה באנגלית, אות קטנה
             באנגלית ומספר.
           </p>
           {passwordError && (
-            <div className="text-red-500 text-sm mt-1">{passwordError}</div>
+            <div
+              id="password-error"
+              role="alert"
+              className="text-red-500 text-sm mt-1"
+            >
+              {passwordError}
+            </div>
           )}
         </div>
         {/* מגדר */}

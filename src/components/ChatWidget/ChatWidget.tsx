@@ -324,8 +324,12 @@ export default function ChatWidget() {
           <Button
             id="onboarding-target-chat-widget"
             aria-label={isOpen ? "סגור צ'אט" : "פתח צ'אט"}
+            // --- התחל תיקון נגישות ---
+            aria-expanded={isOpen}
+            aria-controls="chat-panel"
+            // --- סיים תיקון נגישות ---
             size="icon"
-            className="relative rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800 group w-16 h-16 md:w-16 md:h-16 border-2 border-white touch-manipulation"
+            className="..."
             onClick={() => setIsOpen(!isOpen)}
           >
             {isOpen ? (
@@ -341,6 +345,10 @@ export default function ChatWidget() {
       </div>
 
       <div
+        id="chat-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="chat-panel-title"
         className={cn(
           'fixed z-[99] bg-white rounded-3xl shadow-2xl flex flex-col transition-all duration-500 ease-in-out border border-gray-100',
           isOpen
@@ -372,7 +380,11 @@ export default function ChatWidget() {
         </div>
 
         <div className="flex-1 p-4 md:p-4 overflow-y-auto bg-gradient-to-b from-gray-50 to-white min-h-0 overscroll-behavior-contain">
-          <div className="space-y-5 md:space-y-4">
+          <div
+            className="space-y-5 md:space-y-4"
+            aria-live="polite"
+            aria-atomic="false"
+          >
             {messages.map((msg, index) => (
               <div key={index}>
                 <div
@@ -495,8 +507,11 @@ export default function ChatWidget() {
             </div>
           )}
           <div className="flex items-center gap-3">
+            <label htmlFor="chat-input" className="sr-only">
+              {getPlaceholderText()}
+            </label>
             <input
-              ref={inputRef}
+              id="chat-input"
               type={chatMode === 'gatheringEmail' ? 'email' : 'text'}
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
@@ -509,6 +524,7 @@ export default function ChatWidget() {
             <Button
               type="submit"
               size="icon"
+              aria-label="שלח הודעה"
               className="rounded-2xl bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800 shrink-0 shadow-md hover:shadow-lg transition-all duration-200 w-12 h-12 touch-manipulation"
               disabled={isLoading || !inputValue.trim() || isLimitReached}
             >

@@ -1,10 +1,10 @@
 // src/app/components/auth/steps/BasicInfoStep.tsx
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useRegistration } from "../RegistrationContext";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useState, useEffect } from 'react';
+import { useRegistration } from '../RegistrationContext';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
   ArrowLeft,
   ArrowRight,
@@ -13,13 +13,13 @@ import {
   Lock,
   AlertCircle,
   Loader2,
-} from "lucide-react";
-import { motion } from "framer-motion";
-import ConsentCheckbox from "../ConsentCheckbox"; // <-- ייבוא הקומפוננטה החדשה
+} from 'lucide-react';
+import { motion } from 'framer-motion';
+import ConsentCheckbox from '../ConsentCheckbox'; // <-- ייבוא הקומפוננטה החדשה
 
 const isValidEmail = (email: string): boolean => {
   const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
-  return email.trim() !== "" && emailRegex.test(email);
+  return email.trim() !== '' && emailRegex.test(email);
 };
 const isValidPassword = (password: string): boolean => {
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
@@ -30,8 +30,8 @@ const BasicInfoStep: React.FC = () => {
   const { data, updateField, prevStep, proceedToEmailVerification } =
     useRegistration();
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const [passwordError, setPasswordError] = useState("");
-  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState('');
+  const [emailError, setEmailError] = useState('');
   const [isFormValid, setIsFormValid] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -52,12 +52,12 @@ const BasicInfoStep: React.FC = () => {
       data.firstName.trim().length > 0 && data.lastName.trim().length > 0;
 
     setEmailError(
-      data.email.trim() !== "" && !isEmailValid ? "כתובת אימייל לא תקינה" : ""
+      data.email.trim() !== '' && !isEmailValid ? 'כתובת אימייל לא תקינה' : ''
     );
     setPasswordError(
-      data.password.trim() !== "" && !isPasswordValid
-        ? "הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר"
-        : ""
+      data.password.trim() !== '' && !isPasswordValid
+        ? 'הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר'
+        : ''
     );
 
     setIsFormValid(
@@ -77,30 +77,30 @@ const BasicInfoStep: React.FC = () => {
   ]);
 
   const handleEmailBlur = () => {
-    if (data.email.trim() === "") {
-      setEmailError("");
+    if (data.email.trim() === '') {
+      setEmailError('');
     } else if (!isValidEmail(data.email)) {
-      setEmailError("כתובת אימייל לא תקינה");
+      setEmailError('כתובת אימייל לא תקינה');
     } else {
-      setEmailError("");
+      setEmailError('');
     }
   };
   const handlePasswordBlur = () => {
-    if (data.password.trim() === "") {
-      setPasswordError("");
+    if (data.password.trim() === '') {
+      setPasswordError('');
     } else if (!isValidPassword(data.password)) {
       setPasswordError(
-        "הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר"
+        'הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר'
       );
     } else {
-      setPasswordError("");
+      setPasswordError('');
     }
   };
 
   const handleRegisterSubmit = async () => {
     setConsentError(null);
     if (!consentChecked) {
-      setConsentError("חובה לאשר את תנאי השימוש ומדיניות הפרטיות.");
+      setConsentError('חובה לאשר את תנאי השימוש ומדיניות הפרטיות.');
       setIsFormValid(false);
       return;
     }
@@ -116,16 +116,16 @@ const BasicInfoStep: React.FC = () => {
       !isFirstNameValid ||
       !isLastNameValid
     ) {
-      setApiError("אנא מלא את כל השדות הנדרשים בצורה תקינה.");
-      if (!isEmailValid && data.email.trim() !== "") handleEmailBlur();
-      else if (data.email.trim() === "") setEmailError("שדה אימייל הוא חובה");
-      if (!isPasswordValid && data.password.trim() !== "") handlePasswordBlur();
-      else if (data.password.trim() === "")
-        setPasswordError("שדה סיסמה הוא חובה");
+      setApiError('אנא מלא את כל השדות הנדרשים בצורה תקינה.');
+      if (!isEmailValid && data.email.trim() !== '') handleEmailBlur();
+      else if (data.email.trim() === '') setEmailError('שדה אימייל הוא חובה');
+      if (!isPasswordValid && data.password.trim() !== '') handlePasswordBlur();
+      else if (data.password.trim() === '')
+        setPasswordError('שדה סיסמה הוא חובה');
       return;
     }
     if (emailError || passwordError) {
-      setApiError("אנא תקן את השגיאות המסומנות.");
+      setApiError('אנא תקן את השגיאות המסומנות.');
       return;
     }
 
@@ -133,9 +133,9 @@ const BasicInfoStep: React.FC = () => {
     setApiError(null);
 
     try {
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: data.email,
           password: data.password,
@@ -159,17 +159,17 @@ const BasicInfoStep: React.FC = () => {
         proceedToEmailVerification(result.email);
       } else {
         console.error(
-          "Registration API success but no email returned or success false:",
+          'Registration API success but no email returned or success false:',
           result
         );
         setApiError(
-          result.error || "אירעה שגיאה במעבר לשלב אימות המייל. אנא נסה שנית."
+          result.error || 'אירעה שגיאה במעבר לשלב אימות המייל. אנא נסה שנית.'
         );
       }
     } catch (error) {
-      console.error("Registration API error:", error);
+      console.error('Registration API error:', error);
       setApiError(
-        error instanceof Error ? error.message : "אירעה שגיאה בלתי צפויה בהרשמה"
+        error instanceof Error ? error.message : 'אירעה שגיאה בלתי צפויה בהרשמה'
       );
     } finally {
       setIsLoading(false);
@@ -194,7 +194,7 @@ const BasicInfoStep: React.FC = () => {
     >
       {apiError && (
         <motion.div variants={itemVariants}>
-          <Alert variant="destructive" className="mb-4">
+          <Alert variant="destructive" className="mb-4" role="alert">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>שגיאה בהרשמה</AlertTitle>
             <AlertDescription>{apiError}</AlertDescription>
@@ -223,18 +223,20 @@ const BasicInfoStep: React.FC = () => {
             <input
               type="email"
               id="emailBasic"
+              aria-describedby={emailError ? 'email-error' : undefined}
+              aria-invalid={!!emailError}
               value={data.email}
-              onChange={(e) => updateField("email", e.target.value)}
+              onChange={(e) => updateField('email', e.target.value)}
               onBlur={handleEmailBlur}
               placeholder="you@example.com"
               disabled={isLoading}
               required
               className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${
-                isLoading ? "bg-gray-100" : ""
+                isLoading ? 'bg-gray-100' : ''
               } ${
                 emailError
-                  ? "border-red-500 focus:ring-red-200"
-                  : "border-gray-300 focus:ring-cyan-200 focus:border-cyan-500"
+                  ? 'border-red-500 focus:ring-red-200'
+                  : 'border-gray-300 focus:ring-cyan-200 focus:border-cyan-500'
               }`}
             />
             {emailError && !isLoading && (
@@ -244,7 +246,13 @@ const BasicInfoStep: React.FC = () => {
             )}
           </div>
           {emailError && (
-            <p className="text-red-500 text-xs mt-1">{emailError}</p>
+            <p
+              id="email-error"
+              role="alert"
+              className="text-red-500 text-xs mt-1"
+            >
+              {emailError}
+            </p>
           )}
         </div>
 
@@ -259,30 +267,34 @@ const BasicInfoStep: React.FC = () => {
           <div className="relative">
             <Lock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
             <input
-              type={passwordVisible ? "text" : "password"}
+              type={passwordVisible ? 'text' : 'password'}
               id="passwordBasic"
+              aria-describedby={
+                passwordError ? 'password-error' : 'password-hint'
+              }
+              aria-invalid={!!passwordError}
               value={data.password}
-              onChange={(e) => updateField("password", e.target.value)}
+              onChange={(e) => updateField('password', e.target.value)}
               onBlur={handlePasswordBlur}
               placeholder="לפחות 8 תווים"
               disabled={isLoading}
               required
               className={`w-full pr-10 pl-10 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${
-                isLoading ? "bg-gray-100" : ""
+                isLoading ? 'bg-gray-100' : ''
               } ${
                 passwordError
-                  ? "border-red-300 focus:ring-red-200"
-                  : "border-gray-300 focus:ring-cyan-200 focus:border-cyan-500"
+                  ? 'border-red-300 focus:ring-red-200'
+                  : 'border-gray-300 focus:ring-cyan-200 focus:border-cyan-500'
               }`}
             />
             <button
               type="button"
               onClick={() => setPasswordVisible(!passwordVisible)}
               className="absolute inset-y-0 left-0 flex items-center pl-3 focus:outline-none"
-              aria-label={passwordVisible ? "הסתר סיסמה" : "הצג סיסמה"}
+              aria-label={passwordVisible ? 'הסתר סיסמה' : 'הצג סיסמה'}
             >
               <span className="text-gray-500">
-                {passwordVisible ? "🙈" : "👁️"}
+                {passwordVisible ? '🙈' : '👁️'}
               </span>
             </button>
             {passwordError && !isLoading && (
@@ -292,10 +304,16 @@ const BasicInfoStep: React.FC = () => {
             )}
           </div>
           {passwordError && (
-            <p className="text-red-500 text-xs mt-1">{passwordError}</p>
+            <p
+              id="password-error"
+              role="alert"
+              className="text-red-500 text-xs mt-1"
+            >
+              {passwordError}
+            </p>
           )}
           {!passwordError && (
-            <p className="text-gray-500 text-xs mt-1">
+            <p id="password-hint" className="text-gray-500 text-xs mt-1">
               הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה באנגלית, אות קטנה
               באנגלית ומספר.
             </p>
@@ -316,12 +334,12 @@ const BasicInfoStep: React.FC = () => {
               type="text"
               id="firstNameBasic"
               value={data.firstName}
-              onChange={(e) => updateField("firstName", e.target.value)}
+              onChange={(e) => updateField('firstName', e.target.value)}
               placeholder="ישראל"
               disabled={isLoading}
               required
               className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${
-                isLoading ? "bg-gray-100" : ""
+                isLoading ? 'bg-gray-100' : ''
               } border-gray-300 focus:ring-cyan-200 focus:border-cyan-500`}
             />
           </div>
@@ -341,12 +359,12 @@ const BasicInfoStep: React.FC = () => {
               type="text"
               id="lastNameBasic"
               value={data.lastName}
-              onChange={(e) => updateField("lastName", e.target.value)}
+              onChange={(e) => updateField('lastName', e.target.value)}
               placeholder="ישראלי"
               disabled={isLoading}
               required
               className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${
-                isLoading ? "bg-gray-100" : ""
+                isLoading ? 'bg-gray-100' : ''
               } border-gray-300 focus:ring-cyan-200 focus:border-cyan-500`}
             />
           </div>
@@ -363,7 +381,7 @@ const BasicInfoStep: React.FC = () => {
           error={consentError}
         />
       </motion.div>
-      
+
       {/* --- START OF CHANGE --- */}
       {/* Marketing Consent Checkbox */}
       <motion.div variants={itemVariants} className="mt-4">
@@ -403,8 +421,8 @@ const BasicInfoStep: React.FC = () => {
           className={`flex items-center gap-2 min-w-[200px] justify-center text-white font-medium px-4 py-2.5 rounded-lg transition-opacity
             ${
               isFormValid && !isLoading
-                ? "bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 shadow-md hover:shadow-lg"
-                : "bg-gray-300 cursor-not-allowed"
+                ? 'bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 shadow-md hover:shadow-lg'
+                : 'bg-gray-300 cursor-not-allowed'
             }`}
         >
           {isLoading ? (

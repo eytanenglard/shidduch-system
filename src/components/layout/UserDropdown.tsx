@@ -25,14 +25,10 @@ const UserDropdown = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // --- התחל שינוי ---
-  // 1. הוספת state למעקב אחרי כיוון השפה
-  const [isRTL, setIsRTL] = useState(false);
+  const [isRTL, setIsRTL] = useState(true); // Default to RTL for initial render
 
   useEffect(() => {
-    // 2. קביעת הכיווניות רק כשהרכיב נטען בצד הלקוח
-    // כך אנו נמנעים משגיאות בצד השרת
+    // Set directionality only on the client-side
     setIsRTL(document.documentElement.dir === 'rtl');
 
     const handleClickOutside = (event: MouseEvent) => {
@@ -46,7 +42,6 @@ const UserDropdown = ({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-  // --- סיים שינוי ---
 
   if (!session?.user) return null;
 
@@ -55,8 +50,13 @@ const UserDropdown = ({
       <button
         id="onboarding-target-profile-dropdown"
         onClick={() => setIsOpen(!isOpen)}
+        // --- התחל תיקון נגישות ---
+        aria-expanded={isOpen}
+        aria-haspopup="menu"
+        aria-controls="user-menu"
+        aria-label="פתח תפריט משתמש"
+        // --- סיים תיקון נגישות ---
         className={`relative ${profileIconSize} rounded-full flex items-center justify-center text-sm shadow-md transition-all duration-300 cursor-pointer group overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-400 focus:ring-offset-white`}
-        title={session.user.name || 'פרופיל'}
       >
         <div className="absolute inset-0 rounded-full transition-all duration-300 group-hover:ring-2 group-hover:ring-cyan-400"></div>
         {mainProfileImage && mainProfileImage.url ? (
@@ -75,26 +75,33 @@ const UserDropdown = ({
       </button>
 
       {isOpen && (
-        // --- התחל שינוי ---
-        // 3. שינוי הלוגיקה של המיקום וה-transform-origin
         <div
+          // --- התחל תיקון נגישות ---
+          id="user-menu"
+          role="menu"
+          aria-orientation="vertical"
+          aria-labelledby="onboarding-target-profile-dropdown"
+          // --- סיים תיקון נגישות ---
           className={`absolute mt-3 w-56 bg-white rounded-xl shadow-2xl z-20 border border-gray-100 ${
             isRTL ? 'origin-top-left left-0' : 'origin-top-right right-0'
           }`}
         >
-          {/* --- סיים שינוי --- */}
-          <div className="p-1">
+          <div className="p-1" role="none">
             <div className="px-4 py-3 border-b border-gray-100">
-              <p className="text-sm font-semibold text-gray-800 truncate">
+              <p
+                className="text-sm font-semibold text-gray-800 truncate"
+                role="none"
+              >
                 {session.user.name}
               </p>
-              <p className="text-xs text-gray-500 truncate">
+              <p className="text-xs text-gray-500 truncate" role="none">
                 {session.user.email}
               </p>
             </div>
-            <div className="py-1">
+            <div className="py-1" role="none">
               <Link
                 href="/profile"
+                role="menuitem"
                 className="flex items-center w-full text-right px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-cyan-50 hover:text-cyan-700 transition-colors"
                 onClick={() => setIsOpen(false)}
               >
@@ -103,6 +110,7 @@ const UserDropdown = ({
               </Link>
               <Link
                 href="/questionnaire"
+                role="menuitem"
                 className="flex items-center w-full text-right px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-cyan-50 hover:text-cyan-700 transition-colors"
                 onClick={() => setIsOpen(false)}
               >
@@ -111,6 +119,7 @@ const UserDropdown = ({
               </Link>
               <Link
                 href="/settings"
+                role="menuitem"
                 className="flex items-center w-full text-right px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-cyan-50 hover:text-cyan-700 transition-colors"
                 onClick={() => setIsOpen(false)}
               >
@@ -118,12 +127,13 @@ const UserDropdown = ({
                 הגדרות חשבון
               </Link>
             </div>
-            <div className="py-1 border-t border-gray-100">
+            <div className="py-1 border-t border-gray-100" role="none">
               <button
                 onClick={() => {
                   setIsOpen(false);
                   handleSignOut();
                 }}
+                role="menuitem"
                 className="w-full text-right flex items-center px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors"
               >
                 <LogOut className="ml-2 h-4 w-4" />

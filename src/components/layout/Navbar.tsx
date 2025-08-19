@@ -153,7 +153,10 @@ const Navbar = () => {
             {/* צד ימין: לוגו וניווט ראשי */}
             <div className="flex items-center gap-4 md:gap-8">
               <Logo />
-              <div className="hidden md:flex items-center gap-2 md:gap-3">
+              <nav
+                aria-label="ניווט ראשי"
+                className="hidden md:flex items-center gap-2 md:gap-3"
+              >
                 {session ? (
                   <>
                     {isMatchmaker ? (
@@ -197,7 +200,7 @@ const Navbar = () => {
                 ) : (
                   <></>
                 )}
-              </div>
+              </nav>
             </div>
 
             {/* צד שמאל: פעולות משתמש */}
@@ -267,6 +270,8 @@ const Navbar = () => {
                 className="md:hidden text-gray-600 hover:text-cyan-600 hover:bg-cyan-100/50 rounded-full"
                 onClick={toggleMobileMenu}
                 aria-label="פתח תפריט"
+                aria-expanded={mobileMenuOpen}
+                aria-controls="mobile-menu-panel"
               >
                 <Menu className="h-6 w-6" />
               </Button>
@@ -288,8 +293,10 @@ const Navbar = () => {
           language === 'he' ? 'right-0' : 'left-0'
         } z-50 h-full w-4/5 max-w-sm bg-white shadow-2xl transform transition-transform duration-300 ease-in-out md:hidden 
         ${mobileMenuOpen ? 'translate-x-0' : language === 'he' ? 'translate-x-full' : '-translate-x-full'}`}
+        id="mobile-menu-panel"
         role="dialog"
         aria-modal="true"
+        aria-label="תפריט ניווט"
       >
         <div className="flex justify-between items-center p-4 border-b border-gray-100">
           <Logo />
@@ -488,6 +495,7 @@ const NavItem = ({
     <Link
       id={id}
       href={href}
+      aria-current={isActive ? 'page' : undefined}
       className={`relative px-3 py-2 rounded-full text-sm transition-colors duration-200
         ${
           isActive
@@ -538,6 +546,7 @@ const MobileNavItem = ({
     <Link
       id={id}
       href={href}
+      aria-current={isActive ? 'page' : undefined}
       onClick={onClick}
       className={`flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 group
         ${

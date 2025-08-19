@@ -1,27 +1,28 @@
 // src/app/components/auth/SignInForm.tsx
-"use client";
+'use client';
 
-import { useState, useEffect, FormEvent } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
-import { signIn } from "next-auth/react";
-import { Button } from "@/components/ui/button";
-import { Mail, Lock, AlertCircle, Loader2 } from "lucide-react";
-import Link from "next/link";
+import { useState, useEffect, FormEvent } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { signIn } from 'next-auth/react';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label'; // --- התחל תיקון נגישות ---
+import { Mail, Lock, AlertCircle, Loader2 } from 'lucide-react';
+import Link from 'next/link';
 
 export default function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   useEffect(() => {
-    if (status === "authenticated") {
+    if (status === 'authenticated') {
       // @ts-ignore - אנחנו יודעים שהוספנו את המאפיינים האלה לסשן
       const redirectUrl = session?.redirectUrl || '/profile';
       router.push(redirectUrl);
@@ -29,21 +30,21 @@ export default function SignInForm() {
   }, [status, session, router]);
 
   useEffect(() => {
-    const errorMessage = searchParams.get("error");
-    const resetSuccess = searchParams.get("reset");
+    const errorMessage = searchParams.get('error');
+    const resetSuccess = searchParams.get('reset');
 
-    if (resetSuccess === "success") {
-        setError("");
+    if (resetSuccess === 'success') {
+      setError('');
     }
 
     if (errorMessage) {
       switch (errorMessage) {
-        case "CredentialsSignin":
-          setError("אימייל או סיסמה אינם נכונים. אנא נסה שנית.");
+        case 'CredentialsSignin':
+          setError('אימייל או סיסמה אינם נכונים. אנא נסה שנית.');
           break;
-        case "OAuthAccountNotLinked":
+        case 'OAuthAccountNotLinked':
           setError(
-            "חשבון זה כבר מקושר באמצעות ספק אחר. אנא התחבר באמצעות הספק המקורי."
+            'חשבון זה כבר מקושר באמצעות ספק אחר. אנא התחבר באמצעות הספק המקורי.'
           );
           break;
         default:
@@ -53,7 +54,7 @@ export default function SignInForm() {
   }, [searchParams]);
 
   useEffect(() => {
-    const emailParam = searchParams.get("email");
+    const emailParam = searchParams.get('email');
     if (emailParam) {
       setEmail(emailParam);
     }
@@ -61,19 +62,19 @@ export default function SignInForm() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError("");
+    setError('');
     setIsLoading(true);
 
     if (!email || !password) {
-      setError("אנא הזן אימייל וסיסמה.");
+      setError('אנא הזן אימייל וסיסמה.');
       setIsLoading(false);
       return;
     }
 
-     try {
-      localStorage.setItem("last_user_email", email);
+    try {
+      localStorage.setItem('last_user_email', email);
 
-      const result = await signIn("credentials", {
+      const result = await signIn('credentials', {
         email: email.toLowerCase(),
         password,
         redirect: false,
@@ -82,15 +83,15 @@ export default function SignInForm() {
       if (result?.ok && result.url) {
         router.push(result.url);
       } else if (!result?.ok) {
-        if (result?.error === "CredentialsSignin") {
-          setError("אימייל או סיסמה אינם נכונים.");
+        if (result?.error === 'CredentialsSignin') {
+          setError('אימייל או סיסמה אינם נכונים.');
         } else {
-          setError(result?.error || "אירעה שגיאה לא צפויה בהתחברות.");
+          setError(result?.error || 'אירעה שגיאה לא צפויה בהתחברות.');
         }
       }
     } catch (err) {
-      console.error("Unexpected sign-in error in handleSubmit:", err);
-      setError("אירעה שגיאה לא צפויה בהתחברות, נסה שנית.");
+      console.error('Unexpected sign-in error in handleSubmit:', err);
+      setError('אירעה שגיאה לא צפויה בהתחברות, נסה שנית.');
     } finally {
       setIsLoading(false);
     }
@@ -98,32 +99,35 @@ export default function SignInForm() {
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
-    setError("");
-    localStorage.setItem("google_auth_in_progress", "true");
-    localStorage.setItem("auth_method", "google");
+    setError('');
+    localStorage.setItem('google_auth_in_progress', 'true');
+    localStorage.setItem('auth_method', 'google');
 
     try {
-      await signIn("google");
+      await signIn('google');
     } catch (error) {
-      console.error("Google sign-in error:", error);
-      setError("אירעה שגיאה בהתחברות עם גוגל. נסה שנית.");
+      console.error('Google sign-in error:', error);
+      setError('אירעה שגיאה בהתחברות עם גוגל. נסה שנית.');
       setIsGoogleLoading(false);
     }
   };
 
-  // --- שינוי: מסך טעינה מעוצב ואינפורמטיבי ---
-  // בזמן בדיקת הסשן או לאחר התחברות מוצלחת, הצג את ההודעה הבאה עד להפנייה.
   if (status === 'loading' || status === 'authenticated') {
     return (
-      <div className="flex w-full max-w-md flex-col items-center justify-center rounded-xl bg-white p-8 text-center shadow-xl" style={{ minHeight: '520px' }}>
+      <div
+        className="flex w-full max-w-md flex-col items-center justify-center rounded-xl bg-white p-8 text-center shadow-xl"
+        style={{ minHeight: '520px' }}
+      >
         <div className="mb-4 h-12 w-12">
-            <Loader2 className="h-full w-full animate-spin text-cyan-500" />
+          <Loader2 className="h-full w-full animate-spin text-cyan-500" />
         </div>
         <h2 className="mb-2 text-2xl font-bold text-gray-800">
           {status === 'authenticated' ? 'התחברת בהצלחה!' : 'טוען נתונים...'}
         </h2>
         <p className="text-gray-600">
-          {status === 'authenticated' ? 'אנו מעבירים אותך לאזור האישי שלך. ' : 'אנא המתן בזמן שאנו בודקים את פרטי ההתחברות שלך.'}
+          {status === 'authenticated'
+            ? 'אנו מעבירים אותך לאזור האישי שלך. '
+            : 'אנא המתן בזמן שאנו בודקים את פרטי ההתחברות שלך.'}
         </p>
       </div>
     );
@@ -144,20 +148,31 @@ export default function SignInForm() {
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
+          // --- התחל תיקון נגישות ---
+          <div
+            role="alert"
+            className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2"
+          >
             <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
-            <p className="text-red-600 text-sm">{error}</p>
+            <p id="form-error-message" className="text-red-600 text-sm">
+              {error}
+            </p>
           </div>
+          // --- סיים תיקון נגישות ---
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4 mb-6">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-4 mb-6"
+          aria-describedby={error ? 'form-error-message' : undefined}
+        >
           <div className="space-y-1">
-            <label
+            <Label
               htmlFor="email"
               className="block text-sm font-medium text-gray-700"
             >
               אימייל
-            </label>
+            </Label>
             <div className="relative">
               <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
               <input
@@ -170,18 +185,19 @@ export default function SignInForm() {
                 className="w-full pr-10 pl-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
                 placeholder="you@example.com"
                 required
+                aria-required="true"
                 disabled={isLoading || isGoogleLoading}
               />
             </div>
           </div>
 
           <div className="space-y-1">
-            <label
+            <Label
               htmlFor="password"
               className="block text-sm font-medium text-gray-700"
             >
               סיסמה
-            </label>
+            </Label>
             <div className="relative">
               <Lock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
               <input
@@ -194,6 +210,7 @@ export default function SignInForm() {
                 className="w-full pr-10 pl-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 focus:outline-none"
                 placeholder="הסיסמה שלך"
                 required
+                aria-required="true"
                 disabled={isLoading || isGoogleLoading}
               />
             </div>
@@ -277,7 +294,7 @@ export default function SignInForm() {
 
         <div className="mt-6 text-center">
           <p className="text-gray-600 text-sm">
-            אין לך חשבון עדיין?{" "}
+            אין לך חשבון עדיין?{' '}
             <Link
               href="/auth/register"
               className="text-cyan-600 font-medium hover:text-cyan-700 hover:underline"

@@ -1,15 +1,15 @@
 // src/app/components/auth/steps/EmailVerificationCodeStep.tsx
-"use client";
+'use client';
 
-import { useState, useRef, KeyboardEvent, useEffect, FormEvent } from "react";
-import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react"; // נשאר רק signIn, useSession לא בשימוש ישיר כאן
-import { useRegistration } from "../RegistrationContext";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, AlertCircle, MailCheck, ArrowRight } from "lucide-react";
-import { motion } from "framer-motion";
-import { Input } from "@/components/ui/input";
+import { useState, useRef, KeyboardEvent, useEffect, FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react'; // נשאר רק signIn, useSession לא בשימוש ישיר כאן
+import { useRegistration } from '../RegistrationContext';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Loader2, AlertCircle, MailCheck, ArrowRight } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Input } from '@/components/ui/input';
 
 const OTP_LENGTH = 6;
 
@@ -22,7 +22,7 @@ const EmailVerificationCodeStep: React.FC = () => {
 
   const router = useRouter();
 
-  const [otp, setOtp] = useState<string[]>(new Array(OTP_LENGTH).fill(""));
+  const [otp, setOtp] = useState<string[]>(new Array(OTP_LENGTH).fill(''));
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -36,10 +36,10 @@ const EmailVerificationCodeStep: React.FC = () => {
   }, []);
 
   const handleChange = (element: HTMLInputElement, index: number) => {
-    const value = element.value.replace(/[^0-9]/g, "");
+    const value = element.value.replace(/[^0-9]/g, '');
 
     if (value.length > 1 && index < OTP_LENGTH) {
-      const chars = value.split("");
+      const chars = value.split('');
       let currentIdx = index;
       const newOtp = [...otp];
 
@@ -70,23 +70,23 @@ const EmailVerificationCodeStep: React.FC = () => {
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>, index: number) => {
-    if (e.key === "Backspace") {
+    if (e.key === 'Backspace') {
       e.preventDefault();
       const newOtp = [...otp];
       if (newOtp[index]) {
-        newOtp[index] = "";
+        newOtp[index] = '';
         setOtp(newOtp);
       } else if (index > 0) {
         if (inputRefs.current[index - 1]) {
           inputRefs.current[index - 1]?.focus();
         }
       }
-    } else if (e.key === "ArrowLeft" && index > 0) {
+    } else if (e.key === 'ArrowLeft' && index > 0) {
       e.preventDefault();
       if (inputRefs.current[index - 1]) {
         inputRefs.current[index - 1]?.focus();
       }
-    } else if (e.key === "ArrowRight" && index < OTP_LENGTH - 1) {
+    } else if (e.key === 'ArrowRight' && index < OTP_LENGTH - 1) {
       e.preventDefault();
       if (inputRefs.current[index + 1]) {
         inputRefs.current[index + 1]?.focus();
@@ -96,7 +96,7 @@ const EmailVerificationCodeStep: React.FC = () => {
 
   const handleFormSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const enteredCode = otp.join("");
+    const enteredCode = otp.join('');
     if (enteredCode.length !== OTP_LENGTH) {
       setApiError(`הקוד חייב להכיל ${OTP_LENGTH} ספרות.`);
       return;
@@ -109,12 +109,12 @@ const EmailVerificationCodeStep: React.FC = () => {
     try {
       // 1. Verify the code with the backend
       console.log(
-        "CLIENT LOG: Submitting OTP to API. Email:",
+        'CLIENT LOG: Submitting OTP to API. Email:',
         registrationData.emailForVerification
       );
-      const response = await fetch("/api/auth/verify-email-code", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/auth/verify-email-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: registrationData.emailForVerification,
           code: enteredCode,
@@ -122,56 +122,56 @@ const EmailVerificationCodeStep: React.FC = () => {
       });
 
       const result = await response.json();
-      console.log("CLIENT LOG: API response for /verify-email-code:", result);
+      console.log('CLIENT LOG: API response for /verify-email-code:', result);
 
       if (!response.ok || !result.success || !result.authToken) {
         throw new Error(
-          result.error || "שגיאה באימות הקוד מה-API או שלא הוחזר טוקן התחברות."
+          result.error || 'שגיאה באימות הקוד מה-API או שלא הוחזר טוקן התחברות.'
         );
       }
 
       const authToken = result.authToken;
       console.log(
-        "CLIENT LOG: Email code verified with API. AuthToken received. Attempting auto-signin..."
+        'CLIENT LOG: Email code verified with API. AuthToken received. Attempting auto-signin...'
       );
 
       // 2. Attempt auto-signin with the received authToken
-      const signInResult = await signIn("email-verified-autologin", {
+      const signInResult = await signIn('email-verified-autologin', {
         authToken: authToken,
         redirect: false, // חשוב! אנחנו נטפל בהפניה ידנית
       });
 
-      console.log("CLIENT LOG: Auto-signin attempt result:", signInResult);
+      console.log('CLIENT LOG: Auto-signin attempt result:', signInResult);
 
       if (signInResult?.ok) {
         // ההתחברות האוטומטית הצליחה, והסשן נוצר/עודכן
         console.log(
-          "CLIENT LOG: Auto-signin successful. Calling completeEmailVerification and navigating to /auth/register."
+          'CLIENT LOG: Auto-signin successful. Calling completeEmailVerification and navigating to /auth/register.'
         );
         completeEmailVerification(); // <-- קריאה לפונקציה מהקונטקסט
-        router.push("/auth/register");
+        router.push('/auth/register');
         // אין צורך לקרוא ל-setIsLoading(false) כאן כי הקומפוננטה תעשה unmount
       } else {
         // ההתחברות האוטומטית נכשלה
-        console.error("CLIENT LOG: Auto-signin failed.", signInResult?.error);
+        console.error('CLIENT LOG: Auto-signin failed.', signInResult?.error);
         setApiError(
           `אימות המייל הצליח, אך נתקלנו בבעיה בהתחברות האוטומטית: ${
-            signInResult?.error || "שגיאה לא ידועה"
+            signInResult?.error || 'שגיאה לא ידועה'
           }. אנא נסה להתחבר ידנית.`
         );
         setIsLoading(false); // אפשר למשתמש לנסות שוב או לנקוט פעולה אחרת
       }
     } catch (error) {
       console.error(
-        "CLIENT LOG: Error during email verification process or auto-signin:",
+        'CLIENT LOG: Error during email verification process or auto-signin:',
         error
       );
       setApiError(
         error instanceof Error
           ? error.message
-          : "אירעה שגיאה בלתי צפויה בתהליך האימות"
+          : 'אירעה שגיאה בלתי צפויה בתהליך האימות'
       );
-      setOtp(new Array(OTP_LENGTH).fill(""));
+      setOtp(new Array(OTP_LENGTH).fill(''));
       if (inputRefs.current[0]) {
         inputRefs.current[0]?.focus();
       }
@@ -186,32 +186,32 @@ const EmailVerificationCodeStep: React.FC = () => {
 
     try {
       console.log(
-        "CLIENT LOG: Requesting to resend verification code for email:",
+        'CLIENT LOG: Requesting to resend verification code for email:',
         registrationData.emailForVerification
       );
-      const response = await fetch("/api/auth/resend-verification-code", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/auth/resend-verification-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: registrationData.emailForVerification }),
       });
       const result = await response.json();
       console.log(
-        "CLIENT LOG: API response for /resend-verification-code:",
+        'CLIENT LOG: API response for /resend-verification-code:',
         result
       );
 
       if (!response.ok || !result.success) {
-        throw new Error(result.error || "שגיאה בשליחה חוזרת של הקוד");
+        throw new Error(result.error || 'שגיאה בשליחה חוזרת של הקוד');
       }
-      setResendMessage(result.message || "קוד חדש נשלח בהצלחה.");
-      setOtp(new Array(OTP_LENGTH).fill(""));
+      setResendMessage(result.message || 'קוד חדש נשלח בהצלחה.');
+      setOtp(new Array(OTP_LENGTH).fill(''));
       if (inputRefs.current[0]) {
         inputRefs.current[0]?.focus();
       }
     } catch (error) {
-      console.error("CLIENT LOG: Error during resend code:", error);
+      console.error('CLIENT LOG: Error during resend code:', error);
       setApiError(
-        error instanceof Error ? error.message : "אירעה שגיאה בשליחה חוזרת"
+        error instanceof Error ? error.message : 'אירעה שגיאה בשליחה חוזרת'
       );
     } finally {
       setIsResending(false);
@@ -220,13 +220,13 @@ const EmailVerificationCodeStep: React.FC = () => {
 
   const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
     const pasteData = e.clipboardData
-      .getData("text")
-      .replace(/[^0-9]/g, "")
+      .getData('text')
+      .replace(/[^0-9]/g, '')
       .slice(0, OTP_LENGTH);
 
     if (pasteData.length > 0) {
       e.preventDefault();
-      const newOtp = new Array(OTP_LENGTH).fill("");
+      const newOtp = new Array(OTP_LENGTH).fill('');
       for (let i = 0; i < pasteData.length; i++) {
         newOtp[i] = pasteData[i];
       }
@@ -260,9 +260,9 @@ const EmailVerificationCodeStep: React.FC = () => {
           אימות כתובת מייל
         </h2>
         <p className="text-gray-600 mt-2 text-sm sm:text-base">
-          שלחנו קוד אימות בן {OTP_LENGTH} ספרות לכתובת{" "}
+          שלחנו קוד אימות בן {OTP_LENGTH} ספרות לכתובת{' '}
           <strong className="font-semibold text-gray-700">
-            {registrationData.emailForVerification || "האימייל שלך"}
+            {registrationData.emailForVerification || 'האימייל שלך'}
           </strong>
           .
           <br />
@@ -272,7 +272,7 @@ const EmailVerificationCodeStep: React.FC = () => {
 
       {apiError && (
         <motion.div variants={itemVariants}>
-          <Alert variant="destructive">
+          <Alert variant="destructive" role="alert">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>שגיאה</AlertTitle>
             <AlertDescription>{apiError}</AlertDescription>
@@ -284,6 +284,7 @@ const EmailVerificationCodeStep: React.FC = () => {
           <Alert
             variant="default"
             className="bg-green-50 border-green-300 text-green-700"
+            role="status" // status מתאים להודעות הצלחה, alert לשגיאות
           >
             <MailCheck className="h-4 w-4 text-green-600" />
             <AlertTitle>הודעה</AlertTitle>
@@ -327,7 +328,7 @@ const EmailVerificationCodeStep: React.FC = () => {
           <Button
             type="submit"
             disabled={
-              isLoading || isResending || otp.join("").length !== OTP_LENGTH
+              isLoading || isResending || otp.join('').length !== OTP_LENGTH
             }
             className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600"
           >
@@ -337,7 +338,7 @@ const EmailVerificationCodeStep: React.FC = () => {
                 <span>מאמת ומתחבר...</span>
               </>
             ) : (
-              "אמת קוד והמשך להשלמת פרופיל"
+              'אמת קוד והמשך להשלמת פרופיל'
             )}
           </Button>
         </motion.div>
@@ -347,7 +348,7 @@ const EmailVerificationCodeStep: React.FC = () => {
         variants={itemVariants}
         className="text-sm text-gray-500 mt-2"
       >
-        לא קיבלת קוד?{" "}
+        לא קיבלת קוד?{' '}
         <Button
           type="button"
           variant="link"
@@ -361,7 +362,7 @@ const EmailVerificationCodeStep: React.FC = () => {
               <span>שולח קוד חדש...</span>
             </>
           ) : (
-            "שלח קוד חדש"
+            'שלח קוד חדש'
           )}
         </Button>
       </motion.div>
