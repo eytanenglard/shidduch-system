@@ -1,12 +1,12 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
+import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from '@/components/ui/tooltip';
 import {
   Star,
   Heart,
@@ -14,9 +14,9 @@ import {
   Sparkles,
   Info,
   AlertCircle,
-} from "lucide-react";
-import { useMediaQuery } from "../hooks/useMediaQuery";
-import { Progress } from "@/components/ui/progress";
+} from 'lucide-react';
+import { useMediaQuery } from '../hooks/useMediaQuery';
+import { Progress } from '@/components/ui/progress';
 
 interface ScaleOption {
   value: number;
@@ -44,8 +44,8 @@ interface InteractiveScaleProps {
     middle?: string;
   };
   options?: ScaleOption[];
-  mode?: "numeric" | "icons" | "hearts" | "stars" | "thumbs";
-  size?: "sm" | "md" | "lg";
+  mode?: 'numeric' | 'icons' | 'hearts' | 'stars' | 'thumbs';
+  size?: 'sm' | 'md' | 'lg';
   showLabels?: boolean;
   showValue?: boolean;
   showTooltips?: boolean;
@@ -54,6 +54,7 @@ interface InteractiveScaleProps {
   required?: boolean;
   name?: string;
   error?: string;
+  ariaLabelledby?: string; // הוסף את השורה הזו
 }
 
 const defaultIcons = {
@@ -72,16 +73,18 @@ export default function InteractiveScale({
   onComplete,
   labels,
   options,
-  mode = "numeric",
-  size = "md",
+  mode = 'numeric',
+  size = 'md',
   showLabels = true,
   showValue = true,
   showTooltips = true,
   isDisabled = false,
-  className = "",
+  className = '',
   required = false,
   name,
   error,
+  ariaLabelledby, // הוסף את השורה הזו
+
   descriptions,
 }: InteractiveScaleProps) {
   const [internalValue, setInternalValue] = useState<number | null>(
@@ -94,8 +97,8 @@ export default function InteractiveScale({
   const containerRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
 
-  const isMobileDevice = useMediaQuery("(max-width: 640px)");
-  const isTablet = useMediaQuery("(max-width: 1024px)");
+  const isMobileDevice = useMediaQuery('(max-width: 640px)');
+  const isTablet = useMediaQuery('(max-width: 1024px)');
 
   const value = controlledValue !== undefined ? controlledValue : internalValue;
 
@@ -169,14 +172,14 @@ export default function InteractiveScale({
 
   const handleKeyPress = useCallback(
     (event: React.KeyboardEvent, itemValue: number) => {
-      if (event.key === "Enter" || event.key === " ") {
+      if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
         handleClick(itemValue);
-      } else if (event.key === "ArrowRight" || event.key === "ArrowUp") {
+      } else if (event.key === 'ArrowRight' || event.key === 'ArrowUp') {
         event.preventDefault();
         const nextValue = Math.min(max, itemValue + step);
         handleClick(nextValue);
-      } else if (event.key === "ArrowLeft" || event.key === "ArrowDown") {
+      } else if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') {
         event.preventDefault();
         const prevValue = Math.max(min, itemValue - step);
         handleClick(prevValue);
@@ -220,8 +223,8 @@ export default function InteractiveScale({
 
   useEffect(() => {
     if (isDragging) {
-      window.addEventListener("mousemove", handleMouseMove);
-      window.addEventListener("mouseup", () => {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', () => {
         setIsDragging(false);
         if (hoveredValue !== null) {
           onComplete?.(hoveredValue);
@@ -230,20 +233,20 @@ export default function InteractiveScale({
     }
 
     return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", () => setIsDragging(false));
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', () => setIsDragging(false));
     };
   }, [isDragging, handleMouseMove, hoveredValue, onComplete]);
 
   useEffect(() => {
     if (isTouching) {
-      window.addEventListener("touchmove", handleTouchMove);
-      window.addEventListener("touchend", handleTouchEnd);
+      window.addEventListener('touchmove', handleTouchMove);
+      window.addEventListener('touchend', handleTouchEnd);
     }
 
     return () => {
-      window.removeEventListener("touchmove", handleTouchMove);
-      window.removeEventListener("touchend", handleTouchEnd);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
     };
   }, [isTouching, handleTouchMove, handleTouchEnd]);
 
@@ -257,7 +260,7 @@ export default function InteractiveScale({
         label: i.toString(),
       };
 
-      if (mode !== "numeric") {
+      if (mode !== 'numeric') {
         const Icon = defaultIcons[mode as keyof typeof defaultIcons];
         item.icon = <Icon className="w-5 h-5" />;
       }
@@ -271,9 +274,9 @@ export default function InteractiveScale({
   const activeValue = hoveredValue !== null ? hoveredValue : value;
 
   const sizeClasses = {
-    sm: "h-8 text-sm gap-1",
-    md: "h-10 text-base gap-1.5",
-    lg: "h-12 text-lg gap-2",
+    sm: 'h-8 text-sm gap-1',
+    md: 'h-10 text-base gap-1.5',
+    lg: 'h-12 text-lg gap-2',
   };
 
   // לקבוע אם להראות את התיאור - התיאור יוצג רק אם יש ערך פעיל ויש תיאור
@@ -285,19 +288,19 @@ export default function InteractiveScale({
       (activeValue === Math.floor((min + max) / 2) && descriptions.middle));
 
   const getDescription = () => {
-    if (activeValue === null || !descriptions) return "";
+    if (activeValue === null || !descriptions) return '';
 
-    if (activeValue === min) return descriptions.min || "";
-    if (activeValue === max) return descriptions.max || "";
+    if (activeValue === min) return descriptions.min || '';
+    if (activeValue === max) return descriptions.max || '';
     if (activeValue === Math.floor((min + max) / 2))
-      return descriptions.middle || "";
+      return descriptions.middle || '';
 
     if (options) {
       const option = options.find((o) => o.value === activeValue);
-      return option?.description || "";
+      return option?.description || '';
     }
 
-    return "";
+    return '';
   };
 
   // חישוב אחוז ערך הסולם הנוכחי
@@ -343,7 +346,7 @@ export default function InteractiveScale({
         className="flex items-center justify-center mt-2 text-xs text-blue-600 bg-blue-50 rounded-full py-1 px-3"
       >
         <Sparkles className="h-3 w-3 mr-1" />
-        {isMobileDevice ? "לחץ/החלק לבחירת ערך" : "בחר ערך בסולם למעלה"}
+        {isMobileDevice ? 'לחץ/החלק לבחירת ערך' : 'בחר ערך בסולם למעלה'}
       </motion.div>
     );
   };
@@ -351,8 +354,8 @@ export default function InteractiveScale({
   return (
     <div
       className={cn(
-        "relative space-y-2",
-        isDisabled && "opacity-50 cursor-not-allowed",
+        'relative space-y-2',
+        isDisabled && 'opacity-50 cursor-not-allowed',
         className
       )}
     >
@@ -360,8 +363,8 @@ export default function InteractiveScale({
       <div
         ref={trackRef}
         className={cn(
-          "absolute left-0 right-0 h-2 bg-gray-200 rounded-full top-1/2 -translate-y-1/2 z-0 cursor-pointer",
-          isDisabled ? "bg-gray-100" : ""
+          'absolute left-0 right-0 h-2 bg-gray-200 rounded-full top-1/2 -translate-y-1/2 z-0 cursor-pointer',
+          isDisabled ? 'bg-gray-100' : ''
         )}
         onClick={handleTrackClick}
       ></div>
@@ -376,8 +379,14 @@ export default function InteractiveScale({
 
       <div
         ref={containerRef}
+        role="slider"
+        aria-valuemin={min}
+        aria-valuemax={max}
+        aria-valuenow={value ?? defaultValue ?? min}
+        aria-labelledby={ariaLabelledby}
+        tabIndex={isDisabled ? -1 : 0}
         className={cn(
-          "relative flex items-center justify-between z-10",
+          'relative flex items-center justify-between z-10',
           sizeClasses[size]
         )}
         onMouseDown={() => !isDisabled && setIsDragging(true)}
@@ -411,14 +420,14 @@ export default function InteractiveScale({
                         whileHover="hover"
                         whileTap="tap"
                         className={cn(
-                          "relative flex items-center justify-center",
-                          "w-8 h-8 rounded-full transition-all duration-150",
-                          "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-0",
+                          'relative flex items-center justify-center',
+                          'w-8 h-8 rounded-full transition-all duration-150',
+                          'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-0',
                           isActive
-                            ? "bg-blue-500 text-white shadow-sm"
-                            : "bg-white border border-gray-300",
-                          isHighlighted && "ring-2 ring-blue-500 scale-110",
-                          isDisabled && "cursor-not-allowed"
+                            ? 'bg-blue-500 text-white shadow-sm'
+                            : 'bg-white border border-gray-300',
+                          isHighlighted && 'ring-2 ring-blue-500 scale-110',
+                          isDisabled && 'cursor-not-allowed'
                         )}
                         onClick={() => handleClick(item.value)}
                         onKeyDown={(e) => handleKeyPress(e, item.value)}
@@ -446,7 +455,7 @@ export default function InteractiveScale({
                             transition={{
                               duration: 2,
                               repeat: Infinity,
-                              repeatType: "loop",
+                              repeatType: 'loop',
                             }}
                           />
                         )}
@@ -475,10 +484,10 @@ export default function InteractiveScale({
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             className={cn(
-              "mt-3 px-4 py-1 rounded-full text-sm font-medium transition-all",
+              'mt-3 px-4 py-1 rounded-full text-sm font-medium transition-all',
               value !== null
-                ? "bg-blue-100 text-blue-800"
-                : "bg-gray-100 text-gray-600"
+                ? 'bg-blue-100 text-blue-800'
+                : 'bg-gray-100 text-gray-600'
             )}
           >
             {value !== null ? (
@@ -525,7 +534,7 @@ export default function InteractiveScale({
         <input
           type="hidden"
           name={name}
-          value={value || ""}
+          value={value || ''}
           required
           aria-hidden="true"
         />
