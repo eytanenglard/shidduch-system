@@ -508,7 +508,8 @@ const GenderFilterPanel = ({
                   value={
                     filterKey === 'cities'
                       ? filters.cities?.[0] || ''
-                      : (filters as any)[filterKey] || ''
+                      : (filters[filterKey as keyof FilterState] as string) ||
+                        ''
                   }
                   onValueChange={(value) => {
                     const newValue = value === 'all' ? undefined : value;
@@ -1267,8 +1268,8 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                           dir="rtl"
                         />
                         <div className="flex justify-between mt-2 px-1 text-xs text-gray-500">
-                          <span>{HEIGHT_RANGE.min} ס"מ</span>
-                          <span>{HEIGHT_RANGE.max} ס"מ</span>
+                          <span>{HEIGHT_RANGE.min} ס&quot;מ</span>
+                          <span>{HEIGHT_RANGE.max} ס&quot;מ</span>
                         </div>
                       </div>
                     </div>

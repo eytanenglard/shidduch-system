@@ -169,6 +169,8 @@ src/
                         └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\suggestions\[id]\delete\route.ts)
                 └── inquiries/
                         └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\suggestions\[id]\inquiries\route.ts)
+                    └── mark-as-read/
+                            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\suggestions\[id]\inquiries\mark-as-read\route.ts)
                 └── status/
                         └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\suggestions\[id]\status\route.ts)
         └── user/
@@ -242,7 +244,6 @@ src/
                 └── Filters/
                         ├── ActiveFilters.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\matchmaker\new\Filters\ActiveFilters.tsx)
                         ├── FilterPanel.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\matchmaker\new\Filters\FilterPanel.tsx)
-                        ├── Filters_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\matchmaker\new\Filters\Filters_contents.txt)
                         ├── SavedFilters.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\matchmaker\new\Filters\SavedFilters.tsx)
                         └── SearchBar.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\matchmaker\new\Filters\SearchBar.tsx)
                 └── hooks/
@@ -305,7 +306,6 @@ src/
                 ├── ProfileCard.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\profile\ProfileCard.tsx)
                 ├── constants.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\profile\constants.ts)
                 ├── index.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\profile\index.ts)
-                ├── profile_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\profile\profile_contents.txt)
                 └── utils.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\profile\utils.ts)
             └── elements/
                     ├── MinimalCard.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\components\profile\elements\MinimalCard.tsx)
