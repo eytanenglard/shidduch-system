@@ -547,14 +547,12 @@ const EnhancedQuickActions: React.FC<{
   onAskQuestion,
 }) => (
   <div
-    // --- START OF CHANGE ---
     // The class 'overflow-hidden' was removed from here.
     // 'z-10' was added to ensure it sits on top of the scrollable content.
     className={cn(
       'flex-shrink-0 bg-gradient-to-r from-white via-purple-50/50 to-pink-50/50 backdrop-blur-sm border-t border-purple-100 transition-all duration-500 ease-in-out relative z-10',
       isExpanded ? 'p-4 md:p-6' : 'py-3 px-4 md:px-6'
     )}
-    // --- END OF CHANGE ---
   >
     <div className="absolute inset-0 bg-gradient-to-r from-purple-100/20 via-pink-100/20 to-blue-100/20"></div>
     <div className="max-w-4xl mx-auto relative z-10">

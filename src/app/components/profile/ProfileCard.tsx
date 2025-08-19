@@ -1618,6 +1618,7 @@ const DetailItem: React.FC<{
             )}
           >
             <Icon
+              aria-hidden="true"
               className={cn(
                 currentSize.icon,
                 currentVariant.iconColor,
@@ -2037,6 +2038,8 @@ const SectionCard: React.FC<{
 };
 
 // 4. ColorPaletteSelector
+// src/app/components/profile/ProfileCard.tsx -> ColorPaletteSelector (מעודכן)
+
 const ColorPaletteSelector: React.FC<{
   selectedPalette: ColorPaletteName;
   onPaletteChange: (palette: ColorPaletteName) => void;
@@ -2048,6 +2051,9 @@ const ColorPaletteSelector: React.FC<{
   return (
     <div className="relative">
       <Button
+        id="color-palette-button" // 1. הוספת ID לכפתור כדי לקשר אליו מהתפריט
+        aria-haspopup="menu" // 2. ציון שהכפתור פותח תפריט
+        aria-expanded={isOpen} // 3. ציון אם התפריט פתוח או סגור
         variant="ghost"
         size="icon"
         className={cn(
@@ -2075,6 +2081,8 @@ const ColorPaletteSelector: React.FC<{
             onClick={() => setIsOpen(false)}
           />
           <div
+            role="menu" // 4. הגדרת ה-div כתפריט
+            aria-labelledby="color-palette-button" // 5. קישור התפריט לכפתור שפותח אותו
             className={cn(
               'absolute top-full mt-2 right-0 z-50',
               'bg-white/95 backdrop-blur-md rounded-2xl border border-gray-200/80 shadow-xl',
@@ -2085,6 +2093,7 @@ const ColorPaletteSelector: React.FC<{
             {Object.entries(COLOR_PALETTES).map(([key, palette]) => (
               <button
                 key={key}
+                role="menuitem" // 6. הגדרת כל כפתור כפריט בתפריט
                 onClick={() => {
                   onPaletteChange(key as ColorPaletteName);
                   setIsOpen(false);
@@ -2097,6 +2106,7 @@ const ColorPaletteSelector: React.FC<{
                 )}
               >
                 <div
+                  aria-hidden="true" // 7. האייקון הצבעוני הוא דקורטיבי, הטקסט מסביר
                   className={cn(
                     'w-4 h-4 rounded-full flex-shrink-0',
                     key === 'feminine' &&
@@ -2118,7 +2128,14 @@ const ColorPaletteSelector: React.FC<{
                   {palette.name}
                 </span>
                 {selectedPalette === key && (
-                  <CheckCircle className="w-4 h-4 text-green-600 mr-auto" />
+                  // 8. הוספת טקסט נסתר לאייקון כדי לציין שהאפשרות נבחרה
+                  <>
+                    <span className="sr-only">(נבחר)</span>
+                    <CheckCircle
+                      aria-hidden="true"
+                      className="w-4 h-4 text-green-600 mr-auto"
+                    />
+                  </>
                 )}
               </button>
             ))}
@@ -2128,8 +2145,6 @@ const ColorPaletteSelector: React.FC<{
     </div>
   );
 };
-
-// --- ProfileHeader & Image Components with Full Responsive Support ---
 
 interface ProfileCardProps {
   profile: Omit<UserProfile, 'isProfileComplete'>;
@@ -2286,7 +2301,7 @@ const ProfileHeader: React.FC<{
               {mainImageToDisplay?.url ? (
                 <Image
                   src={getRelativeCloudinaryPath(mainImageToDisplay.url)}
-                  alt={`תמונת פרופיל של ${profile.user?.firstName || 'מועמד יקר'}`}
+                  alt={`תמונת הפרופיל של ${profile.user?.firstName || 'המועמד/ת'} ${profile.user?.lastName || ''}`}
                   fill
                   className="object-cover transition-transform duration-700 hover:scale-110"
                   sizes={compact ? '160px' : isMobile ? '176px' : '144px'}
@@ -2615,6 +2630,7 @@ const ProfileHeader: React.FC<{
               )}
             >
               <Quote
+                aria-hidden="true"
                 className={cn(
                   'flex-shrink-0',
                   isMobile ? 'w-3 h-3' : 'w-4 h-4'
@@ -2624,6 +2640,7 @@ const ProfileHeader: React.FC<{
                 כל סיפור אהבה מתחיל בהכרות אחת מיוחדת...
               </p>
               <Quote
+                aria-hidden="true"
                 className={cn(
                   'transform rotate-180 flex-shrink-0',
                   isMobile ? 'w-3 h-3' : 'w-4 h-4'
@@ -2668,6 +2685,7 @@ const KeyFactCard: React.FC<{
       )}
     >
       <Icon
+        aria-hidden="true"
         className={cn(
           'flex-shrink-0',
           compact ? 'w-4 h-4' : 'w-4 h-4 sm:w-5 sm:h-5',
@@ -2753,10 +2771,12 @@ const MobileImageGallery: React.FC<{
           )}
         >
           {orderedImages.map((image, idx) => (
-            <div
+            <button
               key={image.id}
+              type="button"
+              aria-label={`הצג את תמונה ${idx + 1} בגודל מלא`}
               className={cn(
-                'relative flex-shrink-0 rounded-xl sm:rounded-2xl overflow-hidden cursor-pointer group transition-all duration-300 hover:scale-105 active:scale-95',
+                'relative flex-shrink-0 rounded-xl sm:rounded-2xl overflow-hidden cursor-pointer group transition-all duration-300 hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-rose-500',
                 orderedImages.length <= 3
                   ? compact
                     ? 'w-20 h-24 border-2'
@@ -2805,7 +2825,7 @@ const MobileImageGallery: React.FC<{
                   {!compact && <span>ראשי</span>}
                 </Badge>
               )}
-            </div>
+            </button>
           ))}
         </div>
         <ScrollBar orientation="horizontal" className="mt-1" />
@@ -2896,6 +2916,7 @@ const ImageDialogComponent: React.FC<{
             <Button
               variant="ghost"
               size="icon"
+              aria-label="סגור תצוגת תמונה"
               className={cn(
                 'text-gray-300 hover:text-white hover:bg-white/10 rounded-full transition-all',
                 'w-8 h-8 sm:w-10 sm:h-10 min-h-[44px] min-w-[44px]'
@@ -2921,6 +2942,7 @@ const ImageDialogComponent: React.FC<{
             <>
               <Button
                 variant="ghost"
+                aria-label="התמונה הקודמת"
                 className={cn(
                   'absolute right-4 top-1/2 -translate-y-1/2 rounded-full',
                   'bg-black/50 hover:bg-black/70 text-white border border-white/20',
@@ -2933,6 +2955,7 @@ const ImageDialogComponent: React.FC<{
               </Button>
               <Button
                 variant="ghost"
+                aria-label="התמונה הבאה"
                 className={cn(
                   'absolute left-4 top-1/2 -translate-y-1/2 rounded-full',
                   'bg-black/50 hover:bg-black/70 text-white border border-white/20',
@@ -3511,10 +3534,18 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
   const QuestionnaireItem: React.FC<{
     answer: FormattedAnswer;
+    worldName: string; // <-- הוספנו את זה
+
     worldColor?: string;
     worldGradient?: string;
     compact?: boolean;
-  }> = ({ answer, worldColor = 'rose', worldGradient, compact = false }) => {
+  }> = ({
+    answer,
+    worldName,
+    worldColor = 'rose',
+    worldGradient,
+    compact = false,
+  }) => {
     return (
       <div
         className={cn(
@@ -3546,7 +3577,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 compact ? 'text-sm' : 'text-sm sm:text-base'
               )}
             >
-              <span className="flex-1 break-words hyphens-auto word-break-break-word overflow-wrap-anywhere">
+              <span className="flex-1 break-words ...">
+                <span className="sr-only">שאלה מקטגוריית {worldName}: </span>
                 {answer.question}
               </span>
               {answer.isVisible === false && (
@@ -3704,6 +3736,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 {personalityContent.hookAnswer && (
                   <QuestionnaireItem
                     answer={personalityContent.hookAnswer}
+                    worldName={WORLDS.personality.label} // <-- הוספנו את זה
                     worldColor={WORLDS.personality.accentColor}
                     worldGradient={WORLDS.personality.gradient}
                   />
@@ -3836,6 +3869,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         <QuestionnaireItem
                           key={answer.questionId}
                           answer={answer}
+                          worldName={WORLDS.personality.label} // <-- הוספנו את זה
                           worldColor={WORLDS.personality.accentColor}
                           worldGradient={WORLDS.personality.gradient}
                         />
@@ -3863,6 +3897,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 {valuesContent.hookAnswer && (
                   <QuestionnaireItem
                     answer={valuesContent.hookAnswer}
+                    worldName={WORLDS.personality.label} // <-- הוספנו את זה
                     worldColor={WORLDS.values.accentColor}
                     worldGradient={WORLDS.values.gradient}
                   />
@@ -3900,9 +3935,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       <DetailItem
                         icon={Briefcase}
                         label="התחום המקצועי"
-                        value={
-                          profile.occupation || 'מקצוע מעניין מחכה לגילוי'
-                        }
+                        value={profile.occupation || 'מקצוע מעניין מחכה לגילוי'}
                         variant="elegant"
                         textAlign="right"
                       />
@@ -4016,6 +4049,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         <QuestionnaireItem
                           key={answer.questionId}
                           answer={answer}
+                          worldName={WORLDS.personality.label} // <-- הוספנו את זה
                           worldColor={WORLDS.values.accentColor}
                           worldGradient={WORLDS.values.gradient}
                         />
@@ -4043,6 +4077,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 {religionContent.hookAnswer && (
                   <QuestionnaireItem
                     answer={religionContent.hookAnswer}
+                    worldName={WORLDS.personality.label} // <-- הוספנו את זה
                     worldColor={WORLDS.religion.accentColor}
                     worldGradient={WORLDS.religion.gradient}
                   />
@@ -4152,6 +4187,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         <QuestionnaireItem
                           key={answer.questionId}
                           answer={answer}
+                          worldName={WORLDS.personality.label} // <-- הוספנו את זה
                           worldColor={WORLDS.religion.accentColor}
                           worldGradient={WORLDS.religion.gradient}
                         />
@@ -4179,6 +4215,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 {relationshipContent.hookAnswer && (
                   <QuestionnaireItem
                     answer={relationshipContent.hookAnswer}
+                    worldName={WORLDS.personality.label} // <-- הוספנו את זה
                     worldColor={WORLDS.relationship.accentColor}
                     worldGradient={WORLDS.relationship.gradient}
                   />
@@ -4238,6 +4275,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         <QuestionnaireItem
                           key={answer.questionId}
                           answer={answer}
+                          worldName={WORLDS.personality.label} // <-- הוספנו את זה
                           worldColor={WORLDS.relationship.accentColor}
                           worldGradient={WORLDS.relationship.gradient}
                         />
@@ -4265,6 +4303,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 {partnerContent.hookAnswer && (
                   <QuestionnaireItem
                     answer={partnerContent.hookAnswer}
+                    worldName={WORLDS.personality.label} // <-- הוספנו את זה
                     worldColor={WORLDS.partner.accentColor}
                     worldGradient={WORLDS.partner.gradient}
                   />
@@ -4331,6 +4370,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         <QuestionnaireItem
                           key={answer.questionId}
                           answer={answer}
+                          worldName={WORLDS.personality.label} // <-- הוספנו את זה
                           worldColor={WORLDS.partner.accentColor}
                           worldGradient={WORLDS.partner.gradient}
                         />

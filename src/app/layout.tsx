@@ -1,4 +1,4 @@
-// src/app/layout.tsx (הקובץ המתוקן ללא CookieBanner)
+// src/app/layout.tsx (הקובץ המעודכן עם רכיב הנגישות)
 
 import { Inter } from 'next/font/google';
 import './globals.css';
@@ -6,6 +6,9 @@ import Providers from '@/components/Providers';
 import { LanguageProvider } from '@/app/contexts/LanguageContext';
 import AppContent from './AppContent';
 import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
+
+// <<< 1. ייבוא הרכיב >>>
+import AccessibilityFeatures from '@/components/questionnaire/components/AccessibilityFeatures';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -44,6 +47,10 @@ export default function RootLayout({
           <LanguageProvider>
             <AppContent>{children}</AppContent>
           </LanguageProvider>
+          
+          {/* <<< 2. הוספת הרכיב כאן >>> */}
+          <AccessibilityFeatures />
+
         </Providers>
       </body>
     </html>

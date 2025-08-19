@@ -410,6 +410,8 @@ const InquiryThreadView: React.FC<InquiryThreadViewProps> = ({
       <div
         ref={scrollAreaRef}
         className="flex-1 p-6 space-y-6 scrollbar-elegant overflow-y-auto"
+        aria-live="polite"
+        aria-atomic="false" // This ensures only new additions are announced
       >
         {isLoading ? (
           Array.from({ length: 2 }).map((_, i) => (

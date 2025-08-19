@@ -23,7 +23,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
-// --- Demo Data (UPDATED with a more human touch) ---
+// --- Demo Data (ללא שינוי) ---
 const DEMO_PROFILE = {
   firstName: 'נועה',
   age: 29,
@@ -81,21 +81,6 @@ const TABS = [
   { id: 'vision', label: 'החזון', icon: Target },
 ];
 
-// --- Sub-components (מפרק את הקוד ליחידות קטנות וברורות) ---
-const TabContentWrapper: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => (
-  <motion.div
-    initial={{ opacity: 0, y: 10 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: -10 }}
-    transition={{ duration: 0.3, ease: 'easeInOut' }}
-    className="space-y-4"
-  >
-    {children}
-  </motion.div>
-);
-
 const QandAItem: React.FC<{ q: string; a: string }> = ({ q, a }) => (
   <div className="bg-white/70 p-4 rounded-xl shadow-inner border border-purple-100/50">
     <h4 className="font-bold text-purple-800 mb-2">{q}</h4>
@@ -127,7 +112,7 @@ export const DemoProfileCard = () => {
       className="w-full max-w-4xl mx-auto bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 rounded-3xl shadow-2xl p-4 sm:p-6 border border-white"
     >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left Side: Image Gallery (אינטראקטיבי ודינמי) */}
+        {/* Left Side: Image Gallery */}
         <div className="flex flex-col gap-4">
           <div className="relative aspect-[3/4] rounded-2xl overflow-hidden shadow-lg group">
             <AnimatePresence initial={false}>
@@ -154,6 +139,8 @@ export const DemoProfileCard = () => {
               size="icon"
               className="absolute top-1/2 -translate-y-1/2 left-2 sm:left-4 bg-white/20 text-white backdrop-blur-sm rounded-full hover:bg-white/30"
               onClick={() => handleImageNav('prev')}
+              // <<< שינוי נגישות: הוספת תווית ברורה לכפתור אייקון >>>
+              aria-label="התמונה הקודמת"
             >
               <ChevronLeft />
             </Button>
@@ -162,6 +149,8 @@ export const DemoProfileCard = () => {
               size="icon"
               className="absolute top-1/2 -translate-y-1/2 right-2 sm:right-4 bg-white/20 text-white backdrop-blur-sm rounded-full hover:bg-white/30"
               onClick={() => handleImageNav('next')}
+              // <<< שינוי נגישות: הוספת תווית ברורה לכפתור אייקון >>>
+              aria-label="התמונה הבאה"
             >
               <ChevronRight />
             </Button>
@@ -177,6 +166,8 @@ export const DemoProfileCard = () => {
                     : 'opacity-60 hover:opacity-100'
                 )}
                 onClick={() => setMainImageIndex(index)}
+                // <<< שינוי נגישות: הוספת תווית ברורה לכפתור תמונה >>>
+                aria-label={`הצג תמונה מספר ${index + 1}`}
               >
                 <Image
                   src={image.url}
@@ -189,7 +180,7 @@ export const DemoProfileCard = () => {
           </div>
         </div>
 
-        {/* Right Side: Profile Info (עם טאבים שמציגים עומק) */}
+        {/* Right Side: Profile Info */}
         <div className="bg-white/70 backdrop-blur-md p-4 sm:p-6 rounded-2xl border border-white flex flex-col">
           {/* Header */}
           <div className="text-center mb-4">
@@ -208,11 +199,19 @@ export const DemoProfileCard = () => {
             </div>
           </div>
 
-          {/* Tabs - החלק שמציג את העומק */}
-          <div className="mb-4 bg-purple-100/50 p-1 rounded-full grid grid-cols-3 gap-1">
+          {/* <<< שינוי נגישות: הוספת תכונות ARIA למערכת הטאבים >>> */}
+          <div
+            className="mb-4 bg-purple-100/50 p-1 rounded-full grid grid-cols-3 gap-1"
+            role="tablist"
+            aria-label="ניווט בפרופיל הדמו"
+          >
             {TABS.map((tab) => (
               <button
                 key={tab.id}
+                id={`tab-${tab.id}`}
+                role="tab"
+                aria-selected={activeTab === tab.id}
+                aria-controls={`panel-${tab.id}`}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
                   'relative w-full rounded-full py-2 text-sm font-semibold transition-colors duration-300',
@@ -236,11 +235,21 @@ export const DemoProfileCard = () => {
             ))}
           </div>
 
-          {/* Tab Content */}
+          {/* <<< שינוי נגישות: הוספת תכונות ARIA לפאנלי התוכן >>> */}
           <div className="flex-grow min-h-[250px]">
             <AnimatePresence mode="wait">
               {activeTab === 'essence' && (
-                <TabContentWrapper key="essence">
+                <motion.div
+                  key="essence"
+                  role="tabpanel"
+                  id="panel-essence"
+                  aria-labelledby="tab-essence"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3, ease: 'easeInOut' }}
+                  className="space-y-4"
+                >
                   <div className="relative bg-white/60 p-4 rounded-xl shadow-inner border border-purple-100/50">
                     <Quote className="absolute top-2 right-2 w-8 h-8 text-purple-200/50 transform scale-x-[-1]" />
                     <p className="text-lg text-purple-900 italic font-medium leading-relaxed">
@@ -251,17 +260,37 @@ export const DemoProfileCard = () => {
                     <Star className="w-4 h-4" />
                     <span>{DEMO_PROFILE.religiousLevel}</span>
                   </Badge>
-                </TabContentWrapper>
+                </motion.div>
               )}
               {activeTab === 'story' && (
-                <TabContentWrapper key="story">
+                <motion.div
+                  key="story"
+                  role="tabpanel"
+                  id="panel-story"
+                  aria-labelledby="tab-story"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3, ease: 'easeInOut' }}
+                  className="space-y-4"
+                >
                   {DEMO_QA.map((item, index) => (
                     <QandAItem key={index} q={item.question} a={item.answer} />
                   ))}
-                </TabContentWrapper>
+                </motion.div>
               )}
               {activeTab === 'vision' && (
-                <TabContentWrapper key="vision">
+                <motion.div
+                  key="vision"
+                  role="tabpanel"
+                  id="panel-vision"
+                  aria-labelledby="tab-vision"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3, ease: 'easeInOut' }}
+                  className="space-y-4"
+                >
                   <QandAItem
                     q="איך אני רואה את בן/בת הזוג שלי?"
                     a="אדם עם לב פתוח, חוש הומור, ורצון אמיתי לצמוח יחד. מישהו שהוא גם החבר הכי טוב וגם השותף למסע."
@@ -270,7 +299,7 @@ export const DemoProfileCard = () => {
                     q="מה החזון שלי למשפחה?"
                     a="בית חם ותוסס, פתוח לאורחים, שבו ילדים גדלים עם ערכים של נתינה, אהבת תורה וארץ ישראל."
                   />
-                </TabContentWrapper>
+                </motion.div>
               )}
             </AnimatePresence>
           </div>

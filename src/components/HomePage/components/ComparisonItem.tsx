@@ -1,4 +1,6 @@
-import React from "react";
+// src/components/HomePage/components/ComparisonItem.tsx
+
+import React from 'react';
 
 export interface ComparisonItemProps {
   children: React.ReactNode;
@@ -11,9 +13,11 @@ const ComparisonItem: React.FC<ComparisonItemProps> = ({
   isNegative = false,
 }) => (
   <li className="flex items-start">
+    {/* <<< שינוי נגישות: הוספת aria-hidden="true" ל-div שעוטף את האייקון הדקורטיבי >>> */}
     <div
+      aria-hidden="true"
       className={`p-1 rounded-full ${
-        isNegative ? "bg-red-100 text-red-600" : "bg-cyan-100 text-cyan-600"
+        isNegative ? 'bg-red-100 text-red-600' : 'bg-cyan-100 text-cyan-600'
       } mr-3 mt-1 flex-shrink-0`}
     >
       {isNegative ? (
@@ -45,7 +49,7 @@ const ComparisonItem: React.FC<ComparisonItemProps> = ({
       )}
     </div>
     <span
-      className={`text-sm ${isNegative ? "text-gray-700" : "text-gray-700"}`}
+      className={`text-sm ${isNegative ? 'text-gray-700' : 'text-gray-700'}`}
     >
       {children}
     </span>

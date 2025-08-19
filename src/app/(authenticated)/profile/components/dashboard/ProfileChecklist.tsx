@@ -250,14 +250,18 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
     const personalDetails = [
       // From "קצת עלי ומידע נוסף" Card
       !p.profileHeadline && 'כותרת פרופיל',
-      (!p.about || p.about.trim().length < 100) && 'כתיבת "קצת עליי" (100+ תווים)',
+      (!p.about || p.about.trim().length < 100) &&
+        'כתיבת "קצת עליי" (100+ תווים)',
       !p.inspiringCoupleStory && 'הזוג שנותן לי השראה',
       !p.influentialRabbi && 'דמות רבנית/רוחנית משפיעה',
 
       // From "מידע רפואי ורגיש" Card
-      (p.hasMedicalInfo === null || p.hasMedicalInfo === undefined) && 'התייחסות למידע רפואי',
-      (p.hasMedicalInfo === true && !p.medicalInfoDetails) && 'פירוט מידע רפואי',
-      (p.hasMedicalInfo === true && !p.medicalInfoDisclosureTiming) && 'תזמון חשיפת מידע רפואי',
+      (p.hasMedicalInfo === null || p.hasMedicalInfo === undefined) &&
+        'התייחסות למידע רפואי',
+      p.hasMedicalInfo === true && !p.medicalInfoDetails && 'פירוט מידע רפואי',
+      p.hasMedicalInfo === true &&
+        !p.medicalInfoDisclosureTiming &&
+        'תזמון חשיפת מידע רפואי',
 
       // From "פרטים אישיים ודמוגרפיים" Card
       !p.birthDate && 'תאריך לידה',
@@ -271,7 +275,8 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       !p.maritalStatus && 'מצב משפחתי',
       p.maritalStatus &&
         ['divorced', 'widowed', 'annulled'].includes(p.maritalStatus) &&
-        (p.hasChildrenFromPrevious === null || p.hasChildrenFromPrevious === undefined) &&
+        (p.hasChildrenFromPrevious === null ||
+          p.hasChildrenFromPrevious === undefined) &&
         'התייחסות לילדים מקשר קודם',
       !p.parentStatus && 'סטטוס הורים',
       !p.fatherOccupation && 'מקצוע האב',
@@ -282,7 +287,8 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       // From "דת ואורח חיים" Card
       !p.religiousLevel && 'רמה דתית',
       !p.religiousJourney && 'מסע דתי',
-      (p.shomerNegiah === null || p.shomerNegiah === undefined) && 'שמירת נגיעה',
+      (p.shomerNegiah === null || p.shomerNegiah === undefined) &&
+        'שמירת נגיעה',
 
       // From "השכלה, עיסוק ושירות" Card
       !p.educationLevel && 'רמת השכלה',
@@ -292,42 +298,61 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       !p.serviceDetails && 'פרטי שירות',
 
       // From "תכונות אופי ותחביבים" Card
-      (!p.profileCharacterTraits || p.profileCharacterTraits.length === 0) && 'תכונות אופי',
+      (!p.profileCharacterTraits || p.profileCharacterTraits.length === 0) &&
+        'תכונות אופי',
       (!p.profileHobbies || p.profileHobbies.length === 0) && 'תחביבים',
     ].filter(Boolean);
 
     const partnerPreferences = [
       // From "תיאור כללי והעדפות קשר" Card
-      (!p.matchingNotes || p.matchingNotes.trim().length === 0) && "תיאור כללי על המועמד/ת",
-      !p.contactPreference && "אופן יצירת קשר מועדף",
+      (!p.matchingNotes || p.matchingNotes.trim().length === 0) &&
+        'תיאור כללי על המועמד/ת',
+      !p.contactPreference && 'אופן יצירת קשר מועדף',
 
       // From "העדפות גיל וגובה" Card
       (!p.preferredAgeMin || !p.preferredAgeMax) && 'טווח גילאים מועדף',
       (!p.preferredHeightMin || !p.preferredHeightMax) && 'טווח גובה מועדף',
 
       // From "מיקום, רמה דתית ואורח חיים" Card
-      (!p.preferredLocations || p.preferredLocations.length === 0) && 'אזורי מגורים מועדפים',
-      (!p.preferredReligiousLevels || p.preferredReligiousLevels.length === 0) && 'רמות דתיות מועדפות',
-      (!p.preferredReligiousJourneys || p.preferredReligiousJourneys.length === 0) && 'רקע דתי מועדף',
-      (p.preferredShomerNegiah === null || p.preferredShomerNegiah === undefined) && 'העדפת שמירת נגיעה',
+      (!p.preferredLocations || p.preferredLocations.length === 0) &&
+        'אזורי מגורים מועדפים',
+      (!p.preferredReligiousLevels ||
+        p.preferredReligiousLevels.length === 0) &&
+        'רמות דתיות מועדפות',
+      (!p.preferredReligiousJourneys ||
+        p.preferredReligiousJourneys.length === 0) &&
+        'רקע דתי מועדף',
+      (p.preferredShomerNegiah === null ||
+        p.preferredShomerNegiah === undefined) &&
+        'העדפת שמירת נגיעה',
 
       // From "השכלה, תעסוקה ושירות" Card
-      (!p.preferredEducation || p.preferredEducation.length === 0) && 'רמות השכלה מועדפות',
-      (!p.preferredOccupations || p.preferredOccupations.length === 0) && 'תחומי עיסוק מועדפים',
-      (!p.preferredServiceTypes || p.preferredServiceTypes.length === 0) && 'סוג שירות מועדף',
+      (!p.preferredEducation || p.preferredEducation.length === 0) &&
+        'רמות השכלה מועדפות',
+      (!p.preferredOccupations || p.preferredOccupations.length === 0) &&
+        'תחומי עיסוק מועדפים',
+      (!p.preferredServiceTypes || p.preferredServiceTypes.length === 0) &&
+        'סוג שירות מועדף',
 
       // From "רקע אישי ומשפחתי" Card
-      (!p.preferredMaritalStatuses || p.preferredMaritalStatuses.length === 0) && 'מצב משפחתי מועדף',
-      (p.preferredPartnerHasChildren === null || p.preferredPartnerHasChildren === undefined) && 'העדפה לגבי ילדים מקשר קודם',
-      (!p.preferredOrigins || p.preferredOrigins.length === 0) && 'מוצא/עדה מועדפים',
+      (!p.preferredMaritalStatuses ||
+        p.preferredMaritalStatuses.length === 0) &&
+        'מצב משפחתי מועדף',
+      (p.preferredPartnerHasChildren === null ||
+        p.preferredPartnerHasChildren === undefined) &&
+        'העדפה לגבי ילדים מקשר קודם',
+      (!p.preferredOrigins || p.preferredOrigins.length === 0) &&
+        'מוצא/עדה מועדפים',
       !p.preferredAliyaStatus && 'העדפת סטטוס עלייה',
 
       // From "אופי ותחומי עניין" Card
-      (!p.preferredCharacterTraits || p.preferredCharacterTraits.length === 0) && 'תכונות אופי מועדפות',
-      (!p.preferredHobbies || p.preferredHobbies.length === 0) && 'תחביבים מועדפים',
+      (!p.preferredCharacterTraits ||
+        p.preferredCharacterTraits.length === 0) &&
+        'תכונות אופי מועדפות',
+      (!p.preferredHobbies || p.preferredHobbies.length === 0) &&
+        'תחביבים מועדפים',
     ].filter(Boolean);
     // --- END OF UPDATED LOGIC ---
-
 
     // Gender-specific items
     if (p.gender === Gender.FEMALE) {
@@ -455,15 +480,19 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
     otherTasksStatus.push((user.images?.length ?? 0) >= 3);
 
     if (p) {
-       // --- START OF UPDATED LOGIC FOR PROGRESS BAR ---
+      // --- START OF UPDATED LOGIC FOR PROGRESS BAR ---
       // Personal Details Checks
       otherTasksStatus.push(!!p.profileHeadline);
       otherTasksStatus.push(!!(p.about && p.about.trim().length >= 100));
       otherTasksStatus.push(!!p.inspiringCoupleStory);
       otherTasksStatus.push(!!p.influentialRabbi);
-      otherTasksStatus.push(p.hasMedicalInfo !== null && p.hasMedicalInfo !== undefined);
+      otherTasksStatus.push(
+        p.hasMedicalInfo !== null && p.hasMedicalInfo !== undefined
+      );
       otherTasksStatus.push(!p.hasMedicalInfo || !!p.medicalInfoDetails);
-      otherTasksStatus.push(!p.hasMedicalInfo || !!p.medicalInfoDisclosureTiming);
+      otherTasksStatus.push(
+        !p.hasMedicalInfo || !!p.medicalInfoDisclosureTiming
+      );
       otherTasksStatus.push(!!p.birthDate);
       otherTasksStatus.push(!!p.height);
       otherTasksStatus.push(!!p.city);
@@ -473,7 +502,8 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       otherTasksStatus.push(!!p.maritalStatus);
       otherTasksStatus.push(
         !['divorced', 'widowed', 'annulled'].includes(p.maritalStatus || '') ||
-          (p.hasChildrenFromPrevious !== null && p.hasChildrenFromPrevious !== undefined)
+          (p.hasChildrenFromPrevious !== null &&
+            p.hasChildrenFromPrevious !== undefined)
       );
       otherTasksStatus.push(!!p.parentStatus);
       otherTasksStatus.push(!!p.fatherOccupation);
@@ -498,7 +528,9 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       );
 
       // Partner Preferences Checks
-      otherTasksStatus.push(!!(p.matchingNotes && p.matchingNotes.trim().length > 0));
+      otherTasksStatus.push(
+        !!(p.matchingNotes && p.matchingNotes.trim().length > 0)
+      );
       otherTasksStatus.push(!!p.contactPreference);
       otherTasksStatus.push(!!(p.preferredAgeMin && p.preferredAgeMax));
       otherTasksStatus.push(!!(p.preferredHeightMin && p.preferredHeightMax));
@@ -625,7 +657,10 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
             <div className="mt-4 md:mt-0 md:w-auto lg:w-1/3 flex items-center gap-4">
               <div className="flex-1">
                 <div className="flex justify-between items-center text-sm mb-1">
-                  <span className="font-medium text-gray-700">
+                  <span
+                    id="profile-completion-label"
+                    className="font-medium text-gray-700"
+                  >
                     השלמת הפרופיל
                   </span>
                   <span className="font-bold text-cyan-600">
@@ -634,6 +669,7 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
                 </div>
                 <Progress
                   value={completionPercentage}
+                  aria-labelledby="profile-completion-label"
                   className="h-2 bg-slate-200/70"
                 />
               </div>
@@ -666,16 +702,18 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
                 className="overflow-hidden"
                 onMouseLeave={() => setActiveItemId(null)}
               >
-                <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
+                <ul className="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
                   {tasks.map((task) => (
-                    <ChecklistItem
-                      key={task.id}
-                      {...task}
-                      isActive={activeItemId === task.id}
-                      setActiveItemId={setActiveItemId}
-                    />
+                    <li key={task.id}>
+                      <ChecklistItem
+                        key={task.id}
+                        {...task}
+                        isActive={activeItemId === task.id}
+                        setActiveItemId={setActiveItemId}
+                      />
+                    </li>
                   ))}
-                </div>
+                </ul>
               </motion.div>
             )}
           </AnimatePresence>

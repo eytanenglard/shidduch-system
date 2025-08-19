@@ -246,10 +246,13 @@ const UserAiAnalysisDisplay: React.FC<UserAiAnalysisDisplayProps> = ({
         iconColorClass="text-emerald-600"
         bgColorClass="bg-gradient-to-br from-emerald-50/80 to-green-50/60"
       >
-        <div className="space-y-4">
+        <ul className="space-y-4">
           {analysis.compatibilityPoints.length > 0 ? (
             analysis.compatibilityPoints.map((point, index) => (
-              <CompatibilityPoint key={index} point={point} index={index} />
+              // Each item is now a <li>
+              <li key={index}>
+                <CompatibilityPoint point={point} index={index} />
+              </li>
             ))
           ) : (
             <div className="text-center py-8 text-gray-500">
@@ -257,7 +260,7 @@ const UserAiAnalysisDisplay: React.FC<UserAiAnalysisDisplayProps> = ({
               <p>לא נמצאו נקודות חיבור ספציפיות בניתוח</p>
             </div>
           )}
-        </div>
+        </ul>
       </Section>
 
       {/* Points to Consider */}
@@ -288,14 +291,13 @@ const UserAiAnalysisDisplay: React.FC<UserAiAnalysisDisplayProps> = ({
         iconColorClass="text-blue-600"
         bgColorClass="bg-gradient-to-br from-blue-50/80 to-cyan-50/60"
       >
-        <div className="space-y-3">
+        <ul className="space-y-3">
           {analysis.suggestedConversationStarters.length > 0 ? (
             analysis.suggestedConversationStarters.map((starter, index) => (
-              <ConversationStarter
-                key={index}
-                starter={starter}
-                index={index}
-              />
+              // Each item is now a <li>
+              <li key={index}>
+                <ConversationStarter starter={starter} index={index} />
+              </li>
             ))
           ) : (
             <div className="text-center py-8 text-gray-500">
@@ -303,7 +305,7 @@ const UserAiAnalysisDisplay: React.FC<UserAiAnalysisDisplayProps> = ({
               <p>לא נמצאו הצעות ספציפיות לפתיחת שיחה</p>
             </div>
           )}
-        </div>
+        </ul>
       </Section>
 
       {/* Bottom Note */}

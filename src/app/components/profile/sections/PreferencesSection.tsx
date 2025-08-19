@@ -1,21 +1,26 @@
 // src/app/(authenticated)/profile/components/dashboard/PreferencesSection.tsx
-"use client";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Info, XCircle } from "lucide-react";
-import React, { useState, useEffect } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+'use client';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { Info, XCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+} from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   Pencil,
   Save,
@@ -31,17 +36,17 @@ import {
   Shield,
   Palette,
   Smile,
-} from "lucide-react";
-import { UserProfile } from "@/types/next-auth";
-import { cn } from "@/lib/utils";
+} from 'lucide-react';
+import { UserProfile } from '@/types/next-auth';
+import { cn } from '@/lib/utils';
 import {
   Gender,
   ServiceType,
   HeadCoveringType,
   KippahType,
   ReligiousJourney,
-} from "@prisma/client";
-import Autocomplete from "react-google-autocomplete";
+} from '@prisma/client';
+import Autocomplete from 'react-google-autocomplete';
 
 interface PreferencesSectionProps {
   profile: UserProfile | null;
@@ -53,170 +58,170 @@ interface PreferencesSectionProps {
 
 // --- Options for multi-select fields ---
 const religiousLevelOptions = [
-  { value: "charedi", label: "חרדי/ת" },
-  { value: "charedi_modern", label: "חרדי/ת מודרני/ת" },
-  { value: "dati_leumi_torani", label: "דתי/ה לאומי/ת תורני/ת" },
-  { value: "dati_leumi_liberal", label: "דתי/ה לאומי/ת ליברלי/ת" },
-  { value: "dati_leumi_standard", label: "דתי/ה לאומי/ת (סטנדרטי)" },
-  { value: "masorti_strong", label: "מסורתי/ת (קרוב/ה לדת)" },
-  { value: "masorti_light", label: "מסורתי/ת (קשר קל למסורת)" },
-  { value: "secular_traditional_connection", label: "חילוני/ת עם זיקה למסורת" },
-  { value: "secular", label: "חילוני/ת" },
-  { value: "spiritual_not_religious", label: "רוחני/ת (לאו דווקא דתי/ה)" },
-  { value: "other", label: "אחר (נא לפרט ב'אודות')" },
-  { value: "לא משנה", label: "ללא העדפה / גמיש" },
+  { value: 'charedi', label: 'חרדי/ת' },
+  { value: 'charedi_modern', label: 'חרדי/ת מודרני/ת' },
+  { value: 'dati_leumi_torani', label: 'דתי/ה לאומי/ת תורני/ת' },
+  { value: 'dati_leumi_liberal', label: 'דתי/ה לאומי/ת ליברלי/ת' },
+  { value: 'dati_leumi_standard', label: 'דתי/ה לאומי/ת (סטנדרטי)' },
+  { value: 'masorti_strong', label: 'מסורתי/ת (קרוב/ה לדת)' },
+  { value: 'masorti_light', label: 'מסורתי/ת (קשר קל למסורת)' },
+  { value: 'secular_traditional_connection', label: 'חילוני/ת עם זיקה למסורת' },
+  { value: 'secular', label: 'חילוני/ת' },
+  { value: 'spiritual_not_religious', label: 'רוחני/ת (לאו דווקא דתי/ה)' },
+  { value: 'other', label: "אחר (נא לפרט ב'אודות')" },
+  { value: 'לא משנה', label: 'ללא העדפה / גמיש' },
 ];
 
 const preferredReligiousJourneyOptions = [
-    { value: "BORN_INTO_CURRENT_LIFESTYLE", label: "גדל/ה בסביבה דומה" },
-    { value: "BORN_SECULAR", label: "גדל/ה בסביבה חילונית" },
-    { value: "BAAL_TESHUVA", label: "חוזר/ת בתשובה" },
-    { value: "DATLASH", label: "יצא/ה בשאלה (דתל\"ש)" },
-    { value: "CONVERT", label: "גר/ה / גיורת" },
-    { value: "IN_PROCESS", label: "בתהליך שינוי" },
-    { value: "no_preference", label: "ללא העדפה / גמיש" },
+  { value: 'BORN_INTO_CURRENT_LIFESTYLE', label: 'גדל/ה בסביבה דומה' },
+  { value: 'BORN_SECULAR', label: 'גדל/ה בסביבה חילונית' },
+  { value: 'BAAL_TESHUVA', label: 'חוזר/ת בתשובה' },
+  { value: 'DATLASH', label: 'יצא/ה בשאלה (דתל"ש)' },
+  { value: 'CONVERT', label: 'גר/ה / גיורת' },
+  { value: 'IN_PROCESS', label: 'בתהליך שינוי' },
+  { value: 'no_preference', label: 'ללא העדפה / גמיש' },
 ];
 
 const educationPreferenceOptions = [
-  { value: "תיכונית", label: "תיכונית" },
-  { value: "על תיכונית", label: "על תיכונית" },
-  { value: "אקדמית", label: "אקדמית" },
-  { value: "תורנית", label: "תורנית" },
-  { value: "ללא העדפה", label: "ללא העדפה" },
+  { value: 'תיכונית', label: 'תיכונית' },
+  { value: 'על תיכונית', label: 'על תיכונית' },
+  { value: 'אקדמית', label: 'אקדמית' },
+  { value: 'תורנית', label: 'תורנית' },
+  { value: 'ללא העדפה', label: 'ללא העדפה' },
 ];
 
 const occupationPreferenceOptions = [
-  { value: "עובד/ת", label: "עובד/ת" },
-  { value: "סטודנט/ית", label: "סטודנט/ית" },
-  { value: "אברך/כולל", label: "אברך/כולל" },
-  { value: "עצמאי/ת", label: "עצמאי/ת" },
-  { value: "שירות צבאי/לאומי", label: "שירות צבאי/לאומי" },
-  { value: "ללא העדפה", label: "ללא העדפה" },
+  { value: 'עובד/ת', label: 'עובד/ת' },
+  { value: 'סטודנט/ית', label: 'סטודנט/ית' },
+  { value: 'אברך/כולל', label: 'אברך/כולל' },
+  { value: 'עצמאי/ת', label: 'עצמאי/ת' },
+  { value: 'שירות צבאי/לאומי', label: 'שירות צבאי/לאומי' },
+  { value: 'ללא העדפה', label: 'ללא העדפה' },
 ];
 
 const preferredShomerNegiahOptions = [
-  { value: "yes", label: "כן, חשוב לי" },
-  { value: "no", label: "לא, אין העדפה" },
-  { value: "flexible", label: "גמיש/תלוי באדם" },
+  { value: 'yes', label: 'כן, חשוב לי' },
+  { value: 'no', label: 'לא, אין העדפה' },
+  { value: 'flexible', label: 'גמיש/תלוי באדם' },
 ];
 
 const preferredPartnerHasChildrenOptions = [
-  { value: "yes_ok", label: "כן, זה בסדר גמור" },
-  { value: "no_preferred", label: "מעדיפ/ה שלא יהיו" },
-  { value: "does_not_matter", label: "לא משנה לי" },
+  { value: 'yes_ok', label: 'כן, זה בסדר גמור' },
+  { value: 'no_preferred', label: 'מעדיפ/ה שלא יהיו' },
+  { value: 'does_not_matter', label: 'לא משנה לי' },
 ];
 
 const preferredOriginOptions = [
-  { value: "ashkenazi", label: "אשכנזי/ה" },
-  { value: "sephardi", label: "ספרדי/ה" },
-  { value: "mizrachi", label: "מזרחי/ה" },
-  { value: "temani", label: "תימני/ה" },
-  { value: "mixed", label: "מעורב/ת" },
-  { value: "ethiopian", label: "אתיופי/ה" },
-  { value: "no_preference", label: "ללא העדפה מיוחדת" },
+  { value: 'ashkenazi', label: 'אשכנזי/ה' },
+  { value: 'sephardi', label: 'ספרדי/ה' },
+  { value: 'mizrachi', label: 'מזרחי/ה' },
+  { value: 'temani', label: 'תימני/ה' },
+  { value: 'mixed', label: 'מעורב/ת' },
+  { value: 'ethiopian', label: 'אתיופי/ה' },
+  { value: 'no_preference', label: 'ללא העדפה מיוחדת' },
 ];
 
 const preferredAliyaStatusOptions = [
-  { value: "oleh", label: "עולה חדש/ה" },
-  { value: "tzabar", label: "צבר/ית" },
-  { value: "no_preference", label: "ללא העדפה" },
+  { value: 'oleh', label: 'עולה חדש/ה' },
+  { value: 'tzabar', label: 'צבר/ית' },
+  { value: 'no_preference', label: 'ללא העדפה' },
 ];
 
 const maritalStatusOptions = [
-  { value: "single", label: "רווק/ה" },
-  { value: "divorced", label: "גרוש/ה" },
-  { value: "widowed", label: "אלמן/ה" },
-  { value: "annulled", label: "נישואין שבוטלו" },
-  { value: "any", label: "כל האפשרויות פתוחות" },
+  { value: 'single', label: 'רווק/ה' },
+  { value: 'divorced', label: 'גרוש/ה' },
+  { value: 'widowed', label: 'אלמן/ה' },
+  { value: 'annulled', label: 'נישואין שבוטלו' },
+  { value: 'any', label: 'כל האפשרויות פתוחות' },
 ];
 
 const serviceTypeOptions = [
-  { value: ServiceType.MILITARY_COMBATANT, label: "צבאי - לוחם/ת" },
-  { value: ServiceType.MILITARY_SUPPORT, label: "צבאי - תומכ/ת לחימה" },
-  { value: ServiceType.MILITARY_OFFICER, label: "צבאי - קצונה" },
+  { value: ServiceType.MILITARY_COMBATANT, label: 'צבאי - לוחם/ת' },
+  { value: ServiceType.MILITARY_SUPPORT, label: 'צבאי - תומכ/ת לחימה' },
+  { value: ServiceType.MILITARY_OFFICER, label: 'צבאי - קצונה' },
   {
     value: ServiceType.MILITARY_INTELLIGENCE_CYBER_TECH,
-    label: "צבאי - מודיעין/סייבר/טכנולוגי",
+    label: 'צבאי - מודיעין/סייבר/טכנולוגי',
   },
-  { value: ServiceType.NATIONAL_SERVICE_ONE_YEAR, label: "שירות לאומי - שנה" },
+  { value: ServiceType.NATIONAL_SERVICE_ONE_YEAR, label: 'שירות לאומי - שנה' },
   {
     value: ServiceType.NATIONAL_SERVICE_TWO_YEARS,
-    label: "שירות לאומי - שנתיים",
+    label: 'שירות לאומי - שנתיים',
   },
-  { value: ServiceType.HESDER_YESHIVA, label: "ישיבת הסדר" },
+  { value: ServiceType.HESDER_YESHIVA, label: 'ישיבת הסדר' },
   {
     value: ServiceType.YESHIVA_ONLY_POST_HS,
-    label: "ישיבה גבוהה / מדרשה (ללא שירות)",
+    label: 'ישיבה גבוהה / מדרשה (ללא שירות)',
   },
   {
     value: ServiceType.PRE_MILITARY_ACADEMY_AND_SERVICE,
-    label: "מכינה קדם-צבאית ושירות",
+    label: 'מכינה קדם-צבאית ושירות',
   },
-  { value: ServiceType.EXEMPTED, label: "פטור משירות" },
-  { value: ServiceType.CIVILIAN_SERVICE, label: "שירות אזרחי" },
-  { value: ServiceType.OTHER, label: "אחר / לא רלוונטי" },
-  { value: "no_preference", label: "ללא העדפה / לא משנה" },
+  { value: ServiceType.EXEMPTED, label: 'פטור משירות' },
+  { value: ServiceType.CIVILIAN_SERVICE, label: 'שירות אזרחי' },
+  { value: ServiceType.OTHER, label: 'אחר / לא רלוונטי' },
+  { value: 'no_preference', label: 'ללא העדפה / לא משנה' },
 ];
 
 const headCoveringOptions = [
-  { value: HeadCoveringType.FULL_COVERAGE, label: "כיסוי ראש מלא" },
-  { value: HeadCoveringType.PARTIAL_COVERAGE, label: "כיסוי ראש חלקי" },
-  { value: HeadCoveringType.HAT_BERET, label: "כובע / ברט" },
+  { value: HeadCoveringType.FULL_COVERAGE, label: 'כיסוי ראש מלא' },
+  { value: HeadCoveringType.PARTIAL_COVERAGE, label: 'כיסוי ראש חלקי' },
+  { value: HeadCoveringType.HAT_BERET, label: 'כובע / ברט' },
   {
     value: HeadCoveringType.SCARF_ONLY_SOMETIMES,
-    label: "מטפחת (רק באירועים/בית כנסת)",
+    label: 'מטפחת (רק באירועים/בית כנסת)',
   },
-  { value: HeadCoveringType.NONE, label: "ללא כיסוי ראש" },
-  { value: "any", label: "כל האפשרויות פתוחות" },
+  { value: HeadCoveringType.NONE, label: 'ללא כיסוי ראש' },
+  { value: 'any', label: 'כל האפשרויות פתוחות' },
 ];
 
 const kippahTypeOptions = [
-  { value: KippahType.BLACK_VELVET, label: "קטיפה שחורה" },
-  { value: KippahType.KNITTED_SMALL, label: "סרוגה קטנה" },
-  { value: KippahType.KNITTED_LARGE, label: "סרוגה גדולה" },
-  { value: KippahType.CLOTH, label: "בד" },
-  { value: KippahType.BRESLEV, label: "ברסלב (לבנה גדולה)" },
-  { value: KippahType.NONE_AT_WORK_OR_CASUAL, label: "לא בעבודה / ביומיום" },
-  { value: KippahType.NONE_USUALLY, label: "לרוב לא חובש" },
-  { value: KippahType.OTHER, label: "אחר" },
-  { value: "any", label: "כל האפשרויות פתוחות" },
+  { value: KippahType.BLACK_VELVET, label: 'קטיפה שחורה' },
+  { value: KippahType.KNITTED_SMALL, label: 'סרוגה קטנה' },
+  { value: KippahType.KNITTED_LARGE, label: 'סרוגה גדולה' },
+  { value: KippahType.CLOTH, label: 'בד' },
+  { value: KippahType.BRESLEV, label: 'ברסלב (לבנה גדולה)' },
+  { value: KippahType.NONE_AT_WORK_OR_CASUAL, label: 'לא בעבודה / ביומיום' },
+  { value: KippahType.NONE_USUALLY, label: 'לרוב לא חובש' },
+  { value: KippahType.OTHER, label: 'אחר' },
+  { value: 'any', label: 'כל האפשרויות פתוחות' },
 ];
 
 const characterTraitsOptions = [
-  { value: "empathetic", label: "אמפתי/ת", icon: Heart },
-  { value: "driven", label: "שאפתן/ית", icon: Briefcase },
-  { value: "optimistic", label: "אופטימי/ת", icon: Smile },
-  { value: "family_oriented", label: "משפחתי/ת", icon: Users },
-  { value: "intellectual", label: "אינטלקטואל/ית", icon: GraduationCap },
-  { value: "organized", label: "מאורגנ/ת", icon: Palette },
-  { value: "calm", label: "רגוע/ה", icon: Heart },
-  { value: "humorous", label: "בעל/ת חוש הומור", icon: Smile },
-  { value: "sociable", label: "חברותי/ת", icon: Users },
-  { value: "sensitive", label: "רגיש/ה", icon: Heart },
-  { value: "independent", label: "עצמאי/ת", icon: MapPin },
-  { value: "creative", label: "יצירתי/ת", icon: Palette },
-  { value: "honest", label: "כן/ה וישר/ה", icon: Shield },
-  { value: "responsible", label: "אחראי/ת", icon: Shield },
-  { value: "easy_going", label: "זורם/ת וקליל/ה", icon: Smile },
-  { value: "no_strong_preference", label: "ללא העדפה חזקה", icon: Sparkles },
+  { value: 'empathetic', label: 'אמפתי/ת', icon: Heart },
+  { value: 'driven', label: 'שאפתן/ית', icon: Briefcase },
+  { value: 'optimistic', label: 'אופטימי/ת', icon: Smile },
+  { value: 'family_oriented', label: 'משפחתי/ת', icon: Users },
+  { value: 'intellectual', label: 'אינטלקטואל/ית', icon: GraduationCap },
+  { value: 'organized', label: 'מאורגנ/ת', icon: Palette },
+  { value: 'calm', label: 'רגוע/ה', icon: Heart },
+  { value: 'humorous', label: 'בעל/ת חוש הומור', icon: Smile },
+  { value: 'sociable', label: 'חברותי/ת', icon: Users },
+  { value: 'sensitive', label: 'רגיש/ה', icon: Heart },
+  { value: 'independent', label: 'עצמאי/ת', icon: MapPin },
+  { value: 'creative', label: 'יצירתי/ת', icon: Palette },
+  { value: 'honest', label: 'כן/ה וישר/ה', icon: Shield },
+  { value: 'responsible', label: 'אחראי/ת', icon: Shield },
+  { value: 'easy_going', label: 'זורם/ת וקליל/ה', icon: Smile },
+  { value: 'no_strong_preference', label: 'ללא העדפה חזקה', icon: Sparkles },
 ];
 
 const hobbiesOptions = [
-  { value: "travel", label: "טיולים", icon: MapPin },
-  { value: "sports", label: "ספורט", icon: Briefcase },
-  { value: "reading", label: "קריאה", icon: GraduationCap },
-  { value: "cooking_baking", label: "בישול/אפיה", icon: Palette },
-  { value: "music_playing_instrument", label: "מוזיקה/נגינה", icon: Palette },
-  { value: "art_crafts", label: "אומנות/יצירה", icon: Palette },
-  { value: "volunteering", label: "התנדבות", icon: Heart },
-  { value: "learning_courses", label: "למידה/קורסים", icon: GraduationCap },
-  { value: "board_games_puzzles", label: "משחקי קופסא/פאזלים", icon: Smile },
-  { value: "movies_theater", label: "סרטים/תיאטרון", icon: Smile },
-  { value: "dancing", label: "ריקוד", icon: Users },
-  { value: "writing", label: "כתיבה", icon: GraduationCap },
-  { value: "nature_hiking", label: "טבע/טיולים רגליים", icon: MapPin },
-  { value: "photography", label: "צילום", icon: Palette },
-  { value: "no_strong_preference", label: "ללא העדפה חזקה", icon: Sparkles },
+  { value: 'travel', label: 'טיולים', icon: MapPin },
+  { value: 'sports', label: 'ספורט', icon: Briefcase },
+  { value: 'reading', label: 'קריאה', icon: GraduationCap },
+  { value: 'cooking_baking', label: 'בישול/אפיה', icon: Palette },
+  { value: 'music_playing_instrument', label: 'מוזיקה/נגינה', icon: Palette },
+  { value: 'art_crafts', label: 'אומנות/יצירה', icon: Palette },
+  { value: 'volunteering', label: 'התנדבות', icon: Heart },
+  { value: 'learning_courses', label: 'למידה/קורסים', icon: GraduationCap },
+  { value: 'board_games_puzzles', label: 'משחקי קופסא/פאזלים', icon: Smile },
+  { value: 'movies_theater', label: 'סרטים/תיאטרון', icon: Smile },
+  { value: 'dancing', label: 'ריקוד', icon: Users },
+  { value: 'writing', label: 'כתיבה', icon: GraduationCap },
+  { value: 'nature_hiking', label: 'טבע/טיולים רגליים', icon: MapPin },
+  { value: 'photography', label: 'צילום', icon: Palette },
+  { value: 'no_strong_preference', label: 'ללא העדפה חזקה', icon: Sparkles },
 ];
 
 const PreferencesSection: React.FC<PreferencesSectionProps> = ({
@@ -242,7 +247,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
         preferredAgeMax: nullToUndefined(profile.preferredAgeMax),
         preferredHeightMin: nullToUndefined(profile.preferredHeightMin),
         preferredHeightMax: nullToUndefined(profile.preferredHeightMax),
-        matchingNotes: profile.matchingNotes ?? "",
+        matchingNotes: profile.matchingNotes ?? '',
         contactPreference: nullToUndefined(profile.contactPreference),
         preferredShomerNegiah: nullToUndefined(profile.preferredShomerNegiah),
         preferredPartnerHasChildren: nullToUndefined(
@@ -281,11 +286,11 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
 
     setFormData((prev) => {
       let processedValue: string | number | undefined;
-      if (type === "number") {
+      if (type === 'number') {
         const num = parseInt(value, 10);
         processedValue = isNaN(num) ? undefined : num;
       } else {
-        processedValue = value === "" ? undefined : value;
+        processedValue = value === '' ? undefined : value;
       }
       return { ...prev, [field]: processedValue };
     });
@@ -295,10 +300,10 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
     setFormData((prev) => ({
       ...prev,
       [field]:
-        value === "" ||
-        value === "לא_משנה" ||
-        value === "any" ||
-        value === "no_preference"
+        value === '' ||
+        value === 'לא_משנה' ||
+        value === 'any' ||
+        value === 'no_preference'
           ? undefined
           : (value as UserProfile[typeof field]),
     }));
@@ -310,19 +315,19 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
         (Array.isArray(prev[field]) ? (prev[field] as string[]) : []) ?? [];
       let newValues;
       if (
-        value === "any" ||
-        value === "no_preference" ||
-        value === "לא_משנה" ||
-        value === "no_strong_preference"
+        value === 'any' ||
+        value === 'no_preference' ||
+        value === 'לא_משנה' ||
+        value === 'no_strong_preference'
       ) {
         newValues = currentValues.includes(value) ? [] : [value];
       } else {
         const filteredValues = currentValues.filter(
           (v) =>
-            v !== "any" &&
-            v !== "no_preference" &&
-            v !== "לא_משנה" &&
-            v !== "no_strong_preference"
+            v !== 'any' &&
+            v !== 'no_preference' &&
+            v !== 'לא_משנה' &&
+            v !== 'no_strong_preference'
         );
         newValues = filteredValues.includes(value)
           ? filteredValues.filter((v) => v !== value)
@@ -333,23 +338,30 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
   };
 
   const handleAddItemToArray = (field: keyof UserProfile, value: string) => {
-      if (!value) return;
-      setFormData(prev => {
-          const currentValues = (Array.isArray(prev[field]) ? prev[field] as string[] : []) ?? [];
-          if (currentValues.includes(value)) {
-              return prev; // Avoid duplicates
-          }
-          return { ...prev, [field]: [...currentValues, value] };
-      });
+    if (!value) return;
+    setFormData((prev) => {
+      const currentValues =
+        (Array.isArray(prev[field]) ? (prev[field] as string[]) : []) ?? [];
+      if (currentValues.includes(value)) {
+        return prev; // Avoid duplicates
+      }
+      return { ...prev, [field]: [...currentValues, value] };
+    });
   };
 
-  const handleRemoveItemFromArray = (field: keyof UserProfile, value: string) => {
-      setFormData(prev => {
-          const currentValues = (Array.isArray(prev[field]) ? prev[field] as string[] : []) ?? [];
-          return { ...prev, [field]: currentValues.filter(item => item !== value) };
-      });
+  const handleRemoveItemFromArray = (
+    field: keyof UserProfile,
+    value: string
+  ) => {
+    setFormData((prev) => {
+      const currentValues =
+        (Array.isArray(prev[field]) ? (prev[field] as string[]) : []) ?? [];
+      return {
+        ...prev,
+        [field]: currentValues.filter((item) => item !== value),
+      };
+    });
   };
-
 
   const handleSave = () => {
     const dataToSave = { ...formData };
@@ -366,8 +378,8 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
   const renderMultiSelectBadges = (
     fieldValues: string[] | undefined | null,
     options: { value: string; label: string; icon?: React.ElementType }[],
-    badgeClass: string = "bg-sky-100 text-sky-700",
-    emptyPlaceholder: string = "לא נבחרו פריטים."
+    badgeClass: string = 'bg-sky-100 text-sky-700',
+    emptyPlaceholder: string = 'לא נבחרו פריטים.'
   ) => {
     if (!fieldValues || fieldValues.length === 0) {
       return <p className="text-sm text-gray-500 italic">{emptyPlaceholder}</p>;
@@ -379,7 +391,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
           key={value}
           variant="secondary"
           className={cn(
-            "mr-1 mb-1 text-xs px-2 py-0.5 rounded-full flex items-center",
+            'mr-1 mb-1 text-xs px-2 py-0.5 rounded-full flex items-center',
             badgeClass
           )}
         >
@@ -393,7 +405,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
   const getSelectDisplayValue = (
     value: string | undefined | null,
     options: { value: string; label: string }[],
-    placeholder: string = "לא צוין."
+    placeholder: string = 'לא צוין.'
   ) => {
     if (!value)
       return <span className="text-gray-500 italic">{placeholder}</span>;
@@ -416,8 +428,8 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
               </h1>
               <p className="text-sm text-slate-500">
                 {isEditing && !viewOnly
-                  ? "ערוך/י את העדפותיך למציאת התאמה."
-                  : "העדפות שהוגדרו לחיפוש התאמה."}
+                  ? 'ערוך/י את העדפותיך למציאת התאמה.'
+                  : 'העדפות שהוגדרו לחיפוש התאמה.'}
               </p>
             </div>
             {!viewOnly && (
@@ -473,24 +485,42 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
               </CardHeader>
               <CardContent className="p-4 md:p-6 space-y-5">
                 <div>
-              <div className="flex items-center gap-1.5">
-    <Label htmlFor="matchingNotes" className="text-sm font-medium text-gray-700">
-        תיאור כללי על המועמד/ת המבוקש/ת
-    </Label>
-    <TooltipProvider delayDuration={100}>
-        <Tooltip>
-            <TooltipTrigger type="button"><Info className="w-4 h-4 text-gray-400 hover:text-gray-600" /></TooltipTrigger>
-            <TooltipContent side="top" className="max-w-xs text-center">
-                <p>זהו אחד השדות החשובים ביותר! תאר/י במילים שלך את סוג האדם שאת/ה מחפש/ת. התיאור הזה יעזור לשדכנים להבין את הראש שלך מעבר לנתונים היבשים.</p>
-            </TooltipContent>
-        </Tooltip>
-    </TooltipProvider>
-</div>
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <Label
+                      htmlFor="matchingNotes"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      תיאור כללי על המועמד/ת המבוקש/ת
+                    </Label>
+                    <TooltipProvider delayDuration={100}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            aria-describedby="matchingNotes-tooltip"
+                          >
+                            <Info className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent
+                          id="matchingNotes-tooltip"
+                          side="top"
+                          className="max-w-xs text-center"
+                        >
+                          <p>
+                            זהו אחד השדות החשובים ביותר! תאר/י במילים שלך את סוג
+                            האדם שאת/ה מחפש/ת. התיאור הזה יעזור לשדכנים להבין את
+                            הראש שלך מעבר לנתונים היבשים.
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                   {isEditing ? (
                     <Textarea
                       id="matchingNotes"
                       name="matchingNotes"
-                      value={formData.matchingNotes || ""}
+                      value={formData.matchingNotes || ''}
                       onChange={handleInputChange}
                       placeholder="פרט/י על סוג האדם שאת/ה מחפש/ת, תכונות חשובות, ציפיות וכו'..."
                       className="text-sm focus:ring-cyan-500 min-h-[100px] rounded-lg"
@@ -516,9 +546,9 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                   {isEditing ? (
                     <Select
                       name="contactPreference"
-                      value={formData.contactPreference || ""}
+                      value={formData.contactPreference || ''}
                       onValueChange={(value: string) =>
-                        handleSelectChange("contactPreference", value)
+                        handleSelectChange('contactPreference', value)
                       }
                     >
                       <SelectTrigger
@@ -538,11 +568,11 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                       {getSelectDisplayValue(
                         formData.contactPreference,
                         [
-                          { value: "direct", label: "ישירות" },
-                          { value: "matchmaker", label: "דרך השדכן/ית" },
-                          { value: "both", label: "שתי האפשרויות" },
+                          { value: 'direct', label: 'ישירות' },
+                          { value: 'matchmaker', label: 'דרך השדכן/ית' },
+                          { value: 'both', label: 'שתי האפשרויות' },
                         ],
-                        "לא צוין"
+                        'לא צוין'
                       )}
                     </p>
                   )}
@@ -559,38 +589,54 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
               </CardHeader>
               <CardContent className="p-4 md:p-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
-                  <div>
-                <div className="flex items-center gap-1.5">
-    <Label className="text-xs font-medium text-gray-600">
-      טווח גילאים מועדף
-    </Label>
-    <TooltipProvider delayDuration={100}>
-        <Tooltip>
-            <TooltipTrigger type="button"><Info className="w-4 h-4 text-gray-400 hover:text-gray-600" /></TooltipTrigger>
-            <TooltipContent side="top">
-                <p>הגדרת טווח גילאים רחב יותר תגדיל את כמות ההצעות שתקבל/י.</p>
-            </TooltipContent>
-        </Tooltip>
-    </TooltipProvider>
-</div>
+                  <fieldset>
+                    <legend className="flex items-center gap-1.5 text-xs font-medium text-gray-600 mb-1.5">
+                      טווח גילאים מועדף
+                      <TooltipProvider delayDuration={100}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              type="button"
+                              aria-describedby="age-range-tooltip"
+                            >
+                              <Info className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent id="age-range-tooltip" side="top">
+                            <p>
+                              הגדרת טווח גילאים רחב יותר תגדיל את כמות ההצעות
+                              שתקבל/י.
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </legend>
                     <div className="flex items-center gap-2">
+                      <Label htmlFor="preferredAgeMin" className="sr-only">
+                        גיל מינימלי
+                      </Label>
                       <Input
+                        id="preferredAgeMin"
                         type="number"
                         name="preferredAgeMin"
                         placeholder="מגיל"
-                        aria-label="גיל מינימלי מועדף"
-                        value={formData.preferredAgeMin ?? ""}
+                        value={formData.preferredAgeMin ?? ''}
                         onChange={handleInputChange}
                         disabled={!isEditing}
                         className="h-9 text-sm focus:ring-cyan-500 disabled:bg-gray-100/70"
                       />
-                      <span className="text-gray-500">-</span>
+                      <span aria-hidden="true" className="text-gray-500">
+                        -
+                      </span>
+                      <Label htmlFor="preferredAgeMax" className="sr-only">
+                        גיל מקסימלי
+                      </Label>
                       <Input
+                        id="preferredAgeMax"
                         type="number"
                         name="preferredAgeMax"
                         placeholder="עד גיל"
-                        aria-label="גיל מקסימלי מועדף"
-                        value={formData.preferredAgeMax ?? ""}
+                        value={formData.preferredAgeMax ?? ''}
                         onChange={handleInputChange}
                         disabled={!isEditing}
                         className="h-9 text-sm focus:ring-cyan-500 disabled:bg-gray-100/70"
@@ -603,29 +649,37 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                           לא הוגדר טווח גילאים.
                         </p>
                       )}
-                  </div>
-                  <div>
-                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                  </fieldset>
+                  <fieldset>
+                    <legend className="block mb-1.5 text-xs font-medium text-gray-600">
                       טווח גבהים מועדף (סמ)
-                    </Label>
+                    </legend>
                     <div className="flex items-center gap-2">
+                      <Label htmlFor="preferredHeightMin" className="sr-only">
+                        גובה מינימלי
+                      </Label>
                       <Input
+                        id="preferredHeightMin"
                         type="number"
                         name="preferredHeightMin"
                         placeholder="מ-"
-                        aria-label="גובה מינימלי מועדף בסנטימטרים"
-                        value={formData.preferredHeightMin ?? ""}
+                        value={formData.preferredHeightMin ?? ''}
                         onChange={handleInputChange}
                         disabled={!isEditing}
                         className="h-9 text-sm focus:ring-cyan-500 disabled:bg-gray-100/70"
                       />
-                      <span className="text-gray-500">-</span>
+                      <span aria-hidden="true" className="text-gray-500">
+                        -
+                      </span>
+                      <Label htmlFor="preferredHeightMax" className="sr-only">
+                        גובה מקסימלי
+                      </Label>
                       <Input
+                        id="preferredHeightMax"
                         type="number"
                         name="preferredHeightMax"
                         placeholder="עד-"
-                        aria-label="גובה מקסימלי מועדף בסנטימטרים"
-                        value={formData.preferredHeightMax ?? ""}
+                        value={formData.preferredHeightMax ?? ''}
                         onChange={handleInputChange}
                         disabled={!isEditing}
                         className="h-9 text-sm focus:ring-cyan-500 disabled:bg-gray-100/70"
@@ -638,7 +692,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                           לא הוגדר טווח גבהים.
                         </p>
                       )}
-                  </div>
+                  </fieldset>
                 </div>
               </CardContent>
             </Card>
@@ -655,13 +709,16 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
               </CardHeader>
               <CardContent className="p-4 md:p-6 space-y-6">
                 <div>
-                  <Label className="block mb-2 text-xs font-medium text-gray-600">
+                  <Label
+                    htmlFor="preferred-locations-input"
+                    className="block mb-2 text-xs font-medium text-gray-600"
+                  >
                     אזורי מגורים מועדפים
                   </Label>
                   {isEditing ? (
-                     <div className="space-y-2">
+                    <div className="space-y-2">
                       <div className="flex flex-wrap gap-1.5">
-                        {(formData.preferredLocations || []).map(loc => (
+                        {(formData.preferredLocations || []).map((loc) => (
                           <Badge
                             key={loc}
                             variant="secondary"
@@ -671,61 +728,95 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                             <button
                               type="button"
                               className="mr-1.5 rtl:mr-0 rtl:ml-1.5 text-sky-600 hover:text-sky-900"
-                              onClick={() => handleRemoveItemFromArray('preferredLocations', loc)}
+                              onClick={() =>
+                                handleRemoveItemFromArray(
+                                  'preferredLocations',
+                                  loc
+                                )
+                              }
+                              aria-label={`הסר את ${loc}`}
                             >
                               <XCircle className="w-3.5 h-3.5" />
                             </button>
                           </Badge>
                         ))}
                       </div>
-                       <Autocomplete
-                          apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
-                          value={locationInputValue}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLocationInputValue(e.target.value)}
-                          onPlaceSelected={(place) => {
-                            const cityComponent = place.address_components?.find(
-                              (component) => component.types.includes('locality')
-                            );
-                            const selectedCity = cityComponent?.long_name || place.formatted_address || '';
-                            handleAddItemToArray('preferredLocations', selectedCity);
-                            setLocationInputValue('');
-                          }}
-                          options={{
-                            types: ['(cities)'],
-                            componentRestrictions: { country: 'il' },
-                          }}
-                          className="w-full h-9 text-sm p-2 border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500"
-                          placeholder="הוסף/י עיר..."
-                        />
+                      <Autocomplete
+                        id="preferred-locations-input"
+                        apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+                        value={locationInputValue}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                          setLocationInputValue(e.target.value)
+                        }
+                        onPlaceSelected={(place) => {
+                          const cityComponent = place.address_components?.find(
+                            (component) => component.types.includes('locality')
+                          );
+                          const selectedCity =
+                            cityComponent?.long_name ||
+                            place.formatted_address ||
+                            '';
+                          handleAddItemToArray(
+                            'preferredLocations',
+                            selectedCity
+                          );
+                          setLocationInputValue('');
+                        }}
+                        options={{
+                          types: ['(cities)'],
+                          componentRestrictions: { country: 'il' },
+                        }}
+                        className="w-full h-9 text-sm p-2 border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500"
+                        placeholder="הוסף/י עיר..."
+                      />
                     </div>
                   ) : (
                     <div className="mt-1 flex flex-wrap gap-1.5">
-                        {(!formData.preferredLocations || formData.preferredLocations.length === 0) ? (
-                            <p className="text-sm text-gray-500 italic">לא נבחרו אזורי מגורים.</p>
-                        ) : (
-                            formData.preferredLocations.map(loc => (
-                                <Badge key={loc} variant="secondary" className="mr-1 mb-1 bg-sky-100 text-sky-700 text-xs px-2 py-0.5 rounded-full">
-                                    {loc}
-                                </Badge>
-                            ))
-                        )}
+                      {!formData.preferredLocations ||
+                      formData.preferredLocations.length === 0 ? (
+                        <p className="text-sm text-gray-500 italic">
+                          לא נבחרו אזורי מגורים.
+                        </p>
+                      ) : (
+                        formData.preferredLocations.map((loc) => (
+                          <Badge
+                            key={loc}
+                            variant="secondary"
+                            className="mr-1 mb-1 bg-sky-100 text-sky-700 text-xs px-2 py-0.5 rounded-full"
+                          >
+                            {loc}
+                          </Badge>
+                        ))
+                      )}
                     </div>
                   )}
                 </div>
-                <div>
-                 <div className="flex items-center gap-1.5">
-    <Label className="text-xs font-medium text-gray-600">
-      רמות דתיות מועדפות
-    </Label>
-    <TooltipProvider delayDuration={100}>
-        <Tooltip>
-            <TooltipTrigger type="button"><Info className="w-4 h-4 text-gray-400 hover:text-gray-600" /></TooltipTrigger>
-            <TooltipContent side="top" className="max-w-xs text-center">
-                <p>מומלץ לבחור 1-3 רמות שמתאימות לך. בחירה רחבה מדי עלולה להוביל להצעות פחות מדויקות.</p>
-            </TooltipContent>
-        </Tooltip>
-    </TooltipProvider>
-</div>
+                <fieldset>
+                  <legend className="flex items-center gap-1.5 text-xs font-medium text-gray-600 mb-2">
+                    רמות דתיות מועדפות
+                    <TooltipProvider delayDuration={100}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            aria-describedby="religious-level-tooltip"
+                          >
+                            <Info className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent
+                          id="religious-level-tooltip"
+                          side="top"
+                          className="max-w-xs text-center"
+                        >
+                          <p>
+                            מומלץ לבחור 1-3 רמות שמתאימות לך. בחירה רחבה מדי
+                            עלולה להוביל להצעות פחות מדויקות.
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </legend>
                   {isEditing ? (
                     <div className="flex flex-wrap gap-2">
                       {religiousLevelOptions.map((level) => (
@@ -736,23 +827,23 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                             (formData.preferredReligiousLevels || []).includes(
                               level.value
                             )
-                              ? "default"
-                              : "outline"
+                              ? 'default'
+                              : 'outline'
                           }
                           size="sm"
                           onClick={() =>
                             handleMultiSelectChange(
-                              "preferredReligiousLevels",
+                              'preferredReligiousLevels',
                               level.value
                             )
                           }
                           className={cn(
-                            "rounded-full text-xs px-3 py-1.5 transition-all",
+                            'rounded-full text-xs px-3 py-1.5 transition-all',
                             (formData.preferredReligiousLevels || []).includes(
                               level.value
                             )
-                              ? "bg-pink-500 hover:bg-pink-600 text-white border-pink-500"
-                              : "border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400"
+                              ? 'bg-pink-500 hover:bg-pink-600 text-white border-pink-500'
+                              : 'border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400'
                           )}
                         >
                           {level.label}
@@ -764,17 +855,17 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                       {renderMultiSelectBadges(
                         formData.preferredReligiousLevels,
                         religiousLevelOptions,
-                        "bg-pink-100 text-pink-700",
-                        "לא נבחרו רמות דתיות."
+                        'bg-pink-100 text-pink-700',
+                        'לא נבחרו רמות דתיות.'
                       )}
                     </div>
                   )}
-                </div>
-                {/* START OF CHANGE: New Religious Journey Preference */}
-                <div>
-                  <Label className="block mb-2 text-xs font-medium text-gray-600">
+                </fieldset>
+
+                <fieldset>
+                  <legend className="block mb-2 text-xs font-medium text-gray-600">
                     העדפה לגבי מסע/רקע דתי
-                  </Label>
+                  </legend>
                   {isEditing ? (
                     <div className="flex flex-wrap gap-2">
                       {preferredReligiousJourneyOptions.map((opt) => (
@@ -782,26 +873,26 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                           key={opt.value}
                           type="button"
                           variant={
-                            (formData.preferredReligiousJourneys || []).includes(
-                              opt.value as ReligiousJourney
-                            )
-                              ? "default"
-                              : "outline"
+                            (
+                              formData.preferredReligiousJourneys || []
+                            ).includes(opt.value as ReligiousJourney)
+                              ? 'default'
+                              : 'outline'
                           }
                           size="sm"
                           onClick={() =>
                             handleMultiSelectChange(
-                              "preferredReligiousJourneys",
+                              'preferredReligiousJourneys',
                               opt.value
                             )
                           }
                           className={cn(
-                            "rounded-full text-xs px-3 py-1.5 transition-all",
-                            (formData.preferredReligiousJourneys || []).includes(
-                              opt.value as ReligiousJourney
-                            )
-                              ? "bg-cyan-500 hover:bg-cyan-600 text-white border-cyan-500"
-                              : "border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400"
+                            'rounded-full text-xs px-3 py-1.5 transition-all',
+                            (
+                              formData.preferredReligiousJourneys || []
+                            ).includes(opt.value as ReligiousJourney)
+                              ? 'bg-cyan-500 hover:bg-cyan-600 text-white border-cyan-500'
+                              : 'border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400'
                           )}
                         >
                           {opt.label}
@@ -813,13 +904,13 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                       {renderMultiSelectBadges(
                         formData.preferredReligiousJourneys as string[],
                         preferredReligiousJourneyOptions,
-                        "bg-cyan-100 text-cyan-700",
-                        "לא נבחרו העדפות רקע דתי."
+                        'bg-cyan-100 text-cyan-700',
+                        'לא נבחרו העדפות רקע דתי.'
                       )}
                     </div>
                   )}
-                </div>
-                {/* END OF CHANGE */}
+                </fieldset>
+
                 <div>
                   <Label
                     htmlFor="preferredShomerNegiah"
@@ -830,9 +921,9 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                   {isEditing ? (
                     <Select
                       name="preferredShomerNegiah"
-                      value={formData.preferredShomerNegiah || ""}
+                      value={formData.preferredShomerNegiah || ''}
                       onValueChange={(value) =>
-                        handleSelectChange("preferredShomerNegiah", value)
+                        handleSelectChange('preferredShomerNegiah', value)
                       }
                     >
                       <SelectTrigger
@@ -859,10 +950,10 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                   )}
                 </div>
                 {profile?.gender === Gender.MALE && (
-                  <div>
-                    <Label className="block mb-2 text-xs font-medium text-gray-600">
+                  <fieldset>
+                    <legend className="block mb-2 text-xs font-medium text-gray-600">
                       העדפת כיסוי ראש לבת הזוג
-                    </Label>
+                    </legend>
                     {isEditing ? (
                       <div className="flex flex-wrap gap-2">
                         {headCoveringOptions.map((opt) => (
@@ -873,23 +964,23 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                               (formData.preferredHeadCoverings || []).includes(
                                 opt.value as HeadCoveringType
                               )
-                                ? "default"
-                                : "outline"
+                                ? 'default'
+                                : 'outline'
                             }
                             size="sm"
                             onClick={() =>
                               handleMultiSelectChange(
-                                "preferredHeadCoverings",
+                                'preferredHeadCoverings',
                                 opt.value as HeadCoveringType
                               )
                             }
                             className={cn(
-                              "rounded-full text-xs px-3 py-1.5 transition-all",
+                              'rounded-full text-xs px-3 py-1.5 transition-all',
                               (formData.preferredHeadCoverings || []).includes(
                                 opt.value as HeadCoveringType
                               )
-                                ? "bg-purple-500 hover:bg-purple-600 text-white border-purple-500"
-                                : "border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400"
+                                ? 'bg-purple-500 hover:bg-purple-600 text-white border-purple-500'
+                                : 'border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400'
                             )}
                           >
                             {opt.label}
@@ -901,18 +992,18 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                         {renderMultiSelectBadges(
                           formData.preferredHeadCoverings as string[],
                           headCoveringOptions,
-                          "bg-purple-100 text-purple-700",
-                          "לא נבחרו העדפות כיסוי ראש."
+                          'bg-purple-100 text-purple-700',
+                          'לא נבחרו העדפות כיסוי ראש.'
                         )}
                       </div>
                     )}
-                  </div>
+                  </fieldset>
                 )}
                 {profile?.gender === Gender.FEMALE && (
-                  <div>
-                    <Label className="block mb-2 text-xs font-medium text-gray-600">
+                  <fieldset>
+                    <legend className="block mb-2 text-xs font-medium text-gray-600">
                       העדפת סוג כיפה לבן הזוג
-                    </Label>
+                    </legend>
                     {isEditing ? (
                       <div className="flex flex-wrap gap-2">
                         {kippahTypeOptions.map((opt) => (
@@ -923,23 +1014,23 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                               (formData.preferredKippahTypes || []).includes(
                                 opt.value as KippahType
                               )
-                                ? "default"
-                                : "outline"
+                                ? 'default'
+                                : 'outline'
                             }
                             size="sm"
                             onClick={() =>
                               handleMultiSelectChange(
-                                "preferredKippahTypes",
+                                'preferredKippahTypes',
                                 opt.value as KippahType
                               )
                             }
                             className={cn(
-                              "rounded-full text-xs px-3 py-1.5 transition-all",
+                              'rounded-full text-xs px-3 py-1.5 transition-all',
                               (formData.preferredKippahTypes || []).includes(
                                 opt.value as KippahType
                               )
-                                ? "bg-orange-500 hover:bg-orange-600 text-white border-orange-500"
-                                : "border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400"
+                                ? 'bg-orange-500 hover:bg-orange-600 text-white border-orange-500'
+                                : 'border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400'
                             )}
                           >
                             {opt.label}
@@ -951,12 +1042,12 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                         {renderMultiSelectBadges(
                           formData.preferredKippahTypes as string[],
                           kippahTypeOptions,
-                          "bg-orange-100 text-orange-700",
-                          "לא נבחרו העדפות סוג כיפה."
+                          'bg-orange-100 text-orange-700',
+                          'לא נבחרו העדפות סוג כיפה.'
                         )}
                       </div>
                     )}
-                  </div>
+                  </fieldset>
                 )}
               </CardContent>
             </Card>
@@ -968,10 +1059,10 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4 md:p-6 space-y-6">
-                <div>
-                  <Label className="block mb-2 text-xs font-medium text-gray-600">
+                <fieldset>
+                  <legend className="block mb-2 text-xs font-medium text-gray-600">
                     רמות השכלה מועדפות
-                  </Label>
+                  </legend>
                   {isEditing ? (
                     <div className="flex flex-wrap gap-2">
                       {educationPreferenceOptions.map((edu) => (
@@ -982,23 +1073,23 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                             (formData.preferredEducation || []).includes(
                               edu.value
                             )
-                              ? "default"
-                              : "outline"
+                              ? 'default'
+                              : 'outline'
                           }
                           size="sm"
                           onClick={() =>
                             handleMultiSelectChange(
-                              "preferredEducation",
+                              'preferredEducation',
                               edu.value
                             )
                           }
                           className={cn(
-                            "rounded-full text-xs px-3 py-1.5 transition-all",
+                            'rounded-full text-xs px-3 py-1.5 transition-all',
                             (formData.preferredEducation || []).includes(
                               edu.value
                             )
-                              ? "bg-teal-500 hover:bg-teal-600 text-white border-teal-500"
-                              : "border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400"
+                              ? 'bg-teal-500 hover:bg-teal-600 text-white border-teal-500'
+                              : 'border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400'
                           )}
                         >
                           {edu.label}
@@ -1010,16 +1101,16 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                       {renderMultiSelectBadges(
                         formData.preferredEducation,
                         educationPreferenceOptions,
-                        "bg-teal-100 text-teal-700",
-                        "לא נבחרו רמות השכלה."
+                        'bg-teal-100 text-teal-700',
+                        'לא נבחרו רמות השכלה.'
                       )}
                     </div>
                   )}
-                </div>
-                <div>
-                  <Label className="block mb-2 text-xs font-medium text-gray-600">
+                </fieldset>
+                <fieldset>
+                  <legend className="block mb-2 text-xs font-medium text-gray-600">
                     תחומי עיסוק מועדפים
-                  </Label>
+                  </legend>
                   {isEditing ? (
                     <div className="flex flex-wrap gap-2">
                       {occupationPreferenceOptions.map((occ) => (
@@ -1030,23 +1121,23 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                             (formData.preferredOccupations || []).includes(
                               occ.value
                             )
-                              ? "default"
-                              : "outline"
+                              ? 'default'
+                              : 'outline'
                           }
                           size="sm"
                           onClick={() =>
                             handleMultiSelectChange(
-                              "preferredOccupations",
+                              'preferredOccupations',
                               occ.value
                             )
                           }
                           className={cn(
-                            "rounded-full text-xs px-3 py-1.5 transition-all",
+                            'rounded-full text-xs px-3 py-1.5 transition-all',
                             (formData.preferredOccupations || []).includes(
                               occ.value
                             )
-                              ? "bg-green-500 hover:bg-green-600 text-white border-green-500"
-                              : "border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400"
+                              ? 'bg-green-500 hover:bg-green-600 text-white border-green-500'
+                              : 'border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400'
                           )}
                         >
                           {occ.label}
@@ -1058,16 +1149,16 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                       {renderMultiSelectBadges(
                         formData.preferredOccupations,
                         occupationPreferenceOptions,
-                        "bg-green-100 text-green-700",
-                        "לא נבחרו תחומי עיסוק."
+                        'bg-green-100 text-green-700',
+                        'לא נבחרו תחומי עיסוק.'
                       )}
                     </div>
                   )}
-                </div>
-                <div>
-                  <Label className="block mb-2 text-xs font-medium text-gray-600">
+                </fieldset>
+                <fieldset>
+                  <legend className="block mb-2 text-xs font-medium text-gray-600">
                     סוג שירות מועדף (צבאי/לאומי)
-                  </Label>
+                  </legend>
                   {isEditing ? (
                     <div className="flex flex-wrap gap-2">
                       {serviceTypeOptions.map((opt) => (
@@ -1078,23 +1169,23 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                             (formData.preferredServiceTypes || []).includes(
                               opt.value as ServiceType
                             )
-                              ? "default"
-                              : "outline"
+                              ? 'default'
+                              : 'outline'
                           }
                           size="sm"
                           onClick={() =>
                             handleMultiSelectChange(
-                              "preferredServiceTypes",
+                              'preferredServiceTypes',
                               opt.value as ServiceType
                             )
                           }
                           className={cn(
-                            "rounded-full text-xs px-3 py-1.5 transition-all",
+                            'rounded-full text-xs px-3 py-1.5 transition-all',
                             (formData.preferredServiceTypes || []).includes(
                               opt.value as ServiceType
                             )
-                              ? "bg-lime-500 hover:bg-lime-600 text-white border-lime-500"
-                              : "border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400"
+                              ? 'bg-lime-500 hover:bg-lime-600 text-white border-lime-500'
+                              : 'border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400'
                           )}
                         >
                           {opt.label}
@@ -1106,12 +1197,12 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                       {renderMultiSelectBadges(
                         formData.preferredServiceTypes as string[],
                         serviceTypeOptions,
-                        "bg-lime-100 text-lime-700",
-                        "לא נבחרו העדפות שירות."
+                        'bg-lime-100 text-lime-700',
+                        'לא נבחרו העדפות שירות.'
                       )}
                     </div>
                   )}
-                </div>
+                </fieldset>
               </CardContent>
             </Card>
           </div>
@@ -1126,10 +1217,10 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4 md:p-6 space-y-6">
-                <div>
-                  <Label className="block mb-2 text-xs font-medium text-gray-600">
+                <fieldset>
+                  <legend className="block mb-2 text-xs font-medium text-gray-600">
                     מצב משפחתי מועדף
-                  </Label>
+                  </legend>
                   {isEditing ? (
                     <div className="flex flex-wrap gap-2">
                       {maritalStatusOptions.map((opt) => (
@@ -1140,23 +1231,23 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                             (formData.preferredMaritalStatuses || []).includes(
                               opt.value
                             )
-                              ? "default"
-                              : "outline"
+                              ? 'default'
+                              : 'outline'
                           }
                           size="sm"
                           onClick={() =>
                             handleMultiSelectChange(
-                              "preferredMaritalStatuses",
+                              'preferredMaritalStatuses',
                               opt.value
                             )
                           }
                           className={cn(
-                            "rounded-full text-xs px-3 py-1.5 transition-all",
+                            'rounded-full text-xs px-3 py-1.5 transition-all',
                             (formData.preferredMaritalStatuses || []).includes(
                               opt.value
                             )
-                              ? "bg-rose-500 hover:bg-rose-600 text-white border-rose-500"
-                              : "border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400"
+                              ? 'bg-rose-500 hover:bg-rose-600 text-white border-rose-500'
+                              : 'border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400'
                           )}
                         >
                           {opt.label}
@@ -1168,12 +1259,12 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                       {renderMultiSelectBadges(
                         formData.preferredMaritalStatuses,
                         maritalStatusOptions,
-                        "bg-rose-100 text-rose-700",
-                        "לא נבחרו העדפות למצב משפחתי."
+                        'bg-rose-100 text-rose-700',
+                        'לא נבחרו העדפות למצב משפחתי.'
                       )}
                     </div>
                   )}
-                </div>
+                </fieldset>
                 <div>
                   <Label
                     htmlFor="preferredPartnerHasChildren"
@@ -1184,9 +1275,9 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                   {isEditing ? (
                     <Select
                       name="preferredPartnerHasChildren"
-                      value={formData.preferredPartnerHasChildren || ""}
+                      value={formData.preferredPartnerHasChildren || ''}
                       onValueChange={(value) =>
-                        handleSelectChange("preferredPartnerHasChildren", value)
+                        handleSelectChange('preferredPartnerHasChildren', value)
                       }
                     >
                       <SelectTrigger
@@ -1212,78 +1303,137 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                     </p>
                   )}
                 </div>
-                <div>
-                  <Label className="block mb-2 text-xs font-medium text-gray-600">
+                <fieldset>
+                  <legend className="block mb-2 text-xs font-medium text-gray-600">
                     מוצא/עדה מועדפים
-                  </Label>
+                  </legend>
                   {isEditing ? (
                     <div className="space-y-3">
-                        <div className="flex flex-wrap gap-2">
-                          {preferredOriginOptions.map((opt) => (
-                            <Button
-                              key={opt.value}
-                              type="button"
-                              variant={(formData.preferredOrigins || []).includes(opt.value) ? "default" : "outline"}
-                              size="sm"
-                              onClick={() => handleMultiSelectChange("preferredOrigins", opt.value)}
-                              className={cn(
-                                "rounded-full text-xs px-3 py-1.5 transition-all",
-                                (formData.preferredOrigins || []).includes(opt.value)
-                                  ? "bg-fuchsia-500 hover:bg-fuchsia-600 text-white border-fuchsia-500"
-                                  : "border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400"
-                              )}
-                            >
-                              {opt.label}
-                            </Button>
-                          ))}
+                      <div className="flex flex-wrap gap-2">
+                        {preferredOriginOptions.map((opt) => (
+                          <Button
+                            key={opt.value}
+                            type="button"
+                            variant={
+                              (formData.preferredOrigins || []).includes(
+                                opt.value
+                              )
+                                ? 'default'
+                                : 'outline'
+                            }
+                            size="sm"
+                            onClick={() =>
+                              handleMultiSelectChange(
+                                'preferredOrigins',
+                                opt.value
+                              )
+                            }
+                            className={cn(
+                              'rounded-full text-xs px-3 py-1.5 transition-all',
+                              (formData.preferredOrigins || []).includes(
+                                opt.value
+                              )
+                                ? 'bg-fuchsia-500 hover:bg-fuchsia-600 text-white border-fuchsia-500'
+                                : 'border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400'
+                            )}
+                          >
+                            {opt.label}
+                          </Button>
+                        ))}
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex flex-wrap gap-1.5">
+                          {(formData.preferredOrigins || [])
+                            .filter(
+                              (origin) =>
+                                !preferredOriginOptions.some(
+                                  (opt) => opt.value === origin
+                                )
+                            )
+                            .map((origin) => (
+                              <Badge
+                                key={origin}
+                                variant="secondary"
+                                className="bg-fuchsia-100 text-fuchsia-800 rounded-full px-2 py-1 text-sm font-normal"
+                              >
+                                <span>{origin}</span>
+                                <button
+                                  type="button"
+                                  className="mr-1.5 rtl:mr-0 rtl:ml-1.5 text-fuchsia-600 hover:text-fuchsia-900"
+                                  onClick={() =>
+                                    handleRemoveItemFromArray(
+                                      'preferredOrigins',
+                                      origin
+                                    )
+                                  }
+                                  aria-label={`הסר את ${origin}`}
+                                >
+                                  <XCircle className="w-3.5 h-3.5" />
+                                </button>
+                              </Badge>
+                            ))}
                         </div>
-                         <div className="space-y-2">
-                            <div className="flex flex-wrap gap-1.5">
-                                {(formData.preferredOrigins || [])
-                                .filter(origin => !preferredOriginOptions.some(opt => opt.value === origin))
-                                .map(origin => (
-                                    <Badge key={origin} variant="secondary" className="bg-fuchsia-100 text-fuchsia-800 rounded-full px-2 py-1 text-sm font-normal">
-                                        <span>{origin}</span>
-                                        <button type="button" className="mr-1.5 rtl:mr-0 rtl:ml-1.5 text-fuchsia-600 hover:text-fuchsia-900" onClick={() => handleRemoveItemFromArray('preferredOrigins', origin)}>
-                                            <XCircle className="w-3.5 h-3.5" />
-                                        </button>
-                                    </Badge>
-                                ))}
-                            </div>
-                            <Autocomplete
-                                apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
-                                value={originInputValue}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setOriginInputValue(e.target.value)}
-                                onPlaceSelected={(place) => {
-                                  const countryComponent = place.address_components?.find((component) => component.types.includes('country'));
-                                  const selectedCountry = countryComponent?.long_name || place.formatted_address || '';
-                                  handleAddItemToArray('preferredOrigins', selectedCountry);
-                                  setOriginInputValue('');
-                                }}
-                                options={{ types: ['country'] }}
-                                className="w-full h-9 text-sm p-2 border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500"
-                                placeholder="הוסף/י מדינת מוצא..."
-                            />
-                        </div>
+                        <Label
+                          htmlFor="preferred-origins-input"
+                          className="sr-only"
+                        >
+                          הוסף מדינת מוצא
+                        </Label>
+                        <Autocomplete
+                          id="preferred-origins-input"
+                          apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+                          value={originInputValue}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                            setOriginInputValue(e.target.value)
+                          }
+                          onPlaceSelected={(place) => {
+                            const countryComponent =
+                              place.address_components?.find((component) =>
+                                component.types.includes('country')
+                              );
+                            const selectedCountry =
+                              countryComponent?.long_name ||
+                              place.formatted_address ||
+                              '';
+                            handleAddItemToArray(
+                              'preferredOrigins',
+                              selectedCountry
+                            );
+                            setOriginInputValue('');
+                          }}
+                          options={{ types: ['country'] }}
+                          className="w-full h-9 text-sm p-2 border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500"
+                          placeholder="הוסף/י מדינת מוצא..."
+                        />
+                      </div>
                     </div>
                   ) : (
-                     <div className="mt-1 flex flex-wrap gap-1.5">
-                        {(!formData.preferredOrigins || formData.preferredOrigins.length === 0) ? (
-                            <p className="text-sm text-gray-500 italic">לא נבחרו העדפות מוצא/עדה.</p>
-                        ) : (
-                            formData.preferredOrigins.map(originValue => {
-                                const option = preferredOriginOptions.find(opt => opt.value === originValue);
-                                const label = option ? option.label : originValue;
-                                return (
-                                    <Badge key={originValue} variant="secondary" className="mr-1 mb-1 bg-fuchsia-100 text-fuchsia-700 text-xs px-2 py-0.5 rounded-full">
-                                        {label}
-                                    </Badge>
-                                );
-                            })
-                        )}
+                    <div className="mt-1 flex flex-wrap gap-1.5">
+                      {!formData.preferredOrigins ||
+                      formData.preferredOrigins.length === 0 ? (
+                        <p className="text-sm text-gray-500 italic">
+                          לא נבחרו העדפות מוצא/עדה.
+                        </p>
+                      ) : (
+                        formData.preferredOrigins.map((originValue) => {
+                          const option = preferredOriginOptions.find(
+                            (opt) => opt.value === originValue
+                          );
+                          const label = option ? option.label : originValue;
+                          return (
+                            <Badge
+                              key={originValue}
+                              variant="secondary"
+                              className="mr-1 mb-1 bg-fuchsia-100 text-fuchsia-700 text-xs px-2 py-0.5 rounded-full"
+                            >
+                              {label}
+                            </Badge>
+                          );
+                        })
+                      )}
                     </div>
                   )}
-                </div>
+                </fieldset>
                 <div>
                   <Label
                     htmlFor="preferredAliyaStatus"
@@ -1294,9 +1444,9 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                   {isEditing ? (
                     <Select
                       name="preferredAliyaStatus"
-                      value={formData.preferredAliyaStatus || ""}
+                      value={formData.preferredAliyaStatus || ''}
                       onValueChange={(value) =>
-                        handleSelectChange("preferredAliyaStatus", value)
+                        handleSelectChange('preferredAliyaStatus', value)
                       }
                     >
                       <SelectTrigger
@@ -1332,10 +1482,10 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4 md:p-6 space-y-6">
-                <div>
-                  <Label className="block mb-2 text-xs font-medium text-gray-600">
+                <fieldset>
+                  <legend className="block mb-2 text-xs font-medium text-gray-600">
                     תכונות אופי מועדפות (עד 3)
-                  </Label>
+                  </legend>
                   {isEditing ? (
                     <div className="flex flex-wrap gap-2">
                       {characterTraitsOptions.map((opt) => (
@@ -1346,13 +1496,13 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                             (formData.preferredCharacterTraits || []).includes(
                               opt.value
                             )
-                              ? "default"
-                              : "outline"
+                              ? 'default'
+                              : 'outline'
                           }
                           size="sm"
                           onClick={() =>
                             handleMultiSelectChange(
-                              "preferredCharacterTraits",
+                              'preferredCharacterTraits',
                               opt.value
                             )
                           }
@@ -1363,15 +1513,15 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                             !(formData.preferredCharacterTraits || []).includes(
                               opt.value
                             ) &&
-                            opt.value !== "no_strong_preference"
+                            opt.value !== 'no_strong_preference'
                           }
                           className={cn(
-                            "rounded-full text-xs px-3 py-1.5 transition-all flex items-center",
+                            'rounded-full text-xs px-3 py-1.5 transition-all flex items-center',
                             (formData.preferredCharacterTraits || []).includes(
                               opt.value
                             )
-                              ? "bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500"
-                              : "border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400"
+                              ? 'bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500'
+                              : 'border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400'
                           )}
                         >
                           {opt.icon && (
@@ -1386,16 +1536,16 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                       {renderMultiSelectBadges(
                         formData.preferredCharacterTraits,
                         characterTraitsOptions,
-                        "bg-yellow-100 text-yellow-700",
-                        "לא נבחרו תכונות אופי מועדפות."
+                        'bg-yellow-100 text-yellow-700',
+                        'לא נבחרו תכונות אופי מועדפות.'
                       )}
                     </div>
                   )}
-                </div>
-                <div>
-                  <Label className="block mb-2 text-xs font-medium text-gray-600">
+                </fieldset>
+                <fieldset>
+                  <legend className="block mb-2 text-xs font-medium text-gray-600">
                     תחביבים מועדפים (עד 3)
-                  </Label>
+                  </legend>
                   {isEditing ? (
                     <div className="flex flex-wrap gap-2">
                       {hobbiesOptions.map((opt) => (
@@ -1406,13 +1556,13 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                             (formData.preferredHobbies || []).includes(
                               opt.value
                             )
-                              ? "default"
-                              : "outline"
+                              ? 'default'
+                              : 'outline'
                           }
                           size="sm"
                           onClick={() =>
                             handleMultiSelectChange(
-                              "preferredHobbies",
+                              'preferredHobbies',
                               opt.value
                             )
                           }
@@ -1422,15 +1572,15 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                             !(formData.preferredHobbies || []).includes(
                               opt.value
                             ) &&
-                            opt.value !== "no_strong_preference"
+                            opt.value !== 'no_strong_preference'
                           }
                           className={cn(
-                            "rounded-full text-xs px-3 py-1.5 transition-all flex items-center",
+                            'rounded-full text-xs px-3 py-1.5 transition-all flex items-center',
                             (formData.preferredHobbies || []).includes(
                               opt.value
                             )
-                              ? "bg-amber-500 hover:bg-amber-600 text-white border-amber-500"
-                              : "border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400"
+                              ? 'bg-amber-500 hover:bg-amber-600 text-white border-amber-500'
+                              : 'border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400'
                           )}
                         >
                           {opt.icon && (
@@ -1445,12 +1595,12 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                       {renderMultiSelectBadges(
                         formData.preferredHobbies,
                         hobbiesOptions,
-                        "bg-amber-100 text-amber-700",
-                        "לא נבחרו תחביבים מועדפים."
+                        'bg-amber-100 text-amber-700',
+                        'לא נבחרו תחביבים מועדפים.'
                       )}
                     </div>
                   )}
-                </div>
+                </fieldset>
               </CardContent>
             </Card>
           </div>

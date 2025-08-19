@@ -129,7 +129,11 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
 
         <div className="flex-grow overflow-y-auto p-4 md:p-6 bg-slate-50/50">
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center h-full text-center">
+            <div
+              role="status"
+              aria-live="polite"
+              className="flex flex-col items-center justify-center h-full text-center"
+            >
               <Loader2 className="w-12 h-12 text-purple-500 animate-spin mb-4" />
               <p className="text-lg font-semibold text-gray-700">
                 ה-AI שלנו מנתח את הפרופיל שלך...

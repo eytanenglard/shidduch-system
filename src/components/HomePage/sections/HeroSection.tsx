@@ -114,9 +114,16 @@ const TypewriterTextWithHighlights: React.FC<{
         return '';
     }
   };
+  const fullText =
+    'בעולם שבו הצעות לדייטים מסתכמות לרוב בתמונה ותיאור כללי, אנו מאמינים בדרך אחרת. יצרנו עבורכם מסע היכרות אישי, המתחיל בשאלון ייחודי. הוא מאפשר לנו להכיר אתכם לעומק, וכך להגיש לכם הצעות שידוך שהן הרבה יותר מפרטים יבשים – הן סיפור שלם, שמאפשר לכם לקבל החלטה ממקום של הבנה אמיתית.';
 
   return (
-    <div className={className}>
+    <div
+      className={className}
+      aria-label={fullText} // הוספנו: תווית סטטית עם כל התוכן
+      aria-live="polite" // הוספנו: יודיע על שינויים בסיום האנימציה
+    >
+      {' '}
       <span className="inline-block">
         {wordsWithStyles.slice(0, currentWordIndex).map((word, index) => (
           <span key={index}>
@@ -216,16 +223,16 @@ const DesktopPrincipleCard: React.FC<DesktopPrincipleCardProps> = ({
         <div className="flex items-center justify-center mb-6">
           <div
             className={`relative w-16 h-16 rounded-2xl bg-gradient-to-br ${colors.gradient} flex items-center justify-center text-white ${colors.glowColor} shadow-xl transform group-hover:rotate-12 transition-transform duration-500`}
-            style={{ 
+            style={{
               filter: 'contrast(1.1) brightness(1.05)',
-              WebkitFilter: 'contrast(1.1) brightness(1.05)'
+              WebkitFilter: 'contrast(1.1) brightness(1.05)',
             }}
           >
             {React.cloneElement(icon as React.ReactElement, {
               className: 'w-9 h-9',
               strokeWidth: 2.8,
               fill: 'none',
-              stroke: 'currentColor'
+              stroke: 'currentColor',
             })}
             <div className="absolute inset-0 rounded-2xl bg-white/15 backdrop-blur-sm" />
           </div>
@@ -336,34 +343,40 @@ const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({
               <button
                 key={index}
                 className={`flex-1 py-3 px-1 flex flex-col items-center justify-center gap-2 relative z-20 rounded-xl transition-all duration-500 ${
-                  activeTab === index 
-                    ? `bg-gradient-to-r ${principle.gradient} ${principle.shadowColor} shadow-lg` 
+                  activeTab === index
+                    ? `bg-gradient-to-r ${principle.gradient} ${principle.shadowColor} shadow-lg`
                     : 'bg-transparent hover:bg-white/40'
                 }`}
                 onClick={() => setActiveTab(index)}
               >
                 {/* אייקון עם רקע צבעוני כמו בתוכן */}
-                <div className={`flex items-center justify-center mb-2 transition-all duration-300 ${
-                  activeTab === index ? 'scale-110' : 'hover:scale-105'
-                }`}>
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${
-                    activeTab === index 
-                      ? `bg-gradient-to-br ${principle.gradient} shadow-lg` 
-                      : 'bg-white/60 shadow-sm'
-                  }`}>
+                <div
+                  className={`flex items-center justify-center mb-2 transition-all duration-300 ${
+                    activeTab === index ? 'scale-110' : 'hover:scale-105'
+                  }`}
+                >
+                  <div
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${
+                      activeTab === index
+                        ? `bg-gradient-to-br ${principle.gradient} shadow-lg`
+                        : 'bg-white/60 shadow-sm'
+                    }`}
+                  >
                     {React.cloneElement(principle.icon, {
                       className: `w-5 h-5 ${activeTab === index ? 'text-white' : 'text-gray-700'}`,
-                      strokeWidth: 2.5
+                      strokeWidth: 2.5,
                     })}
                   </div>
                 </div>
 
                 {/* טקסט מתחת לאייקון */}
-                <div className={`text-xs font-bold text-center leading-tight flex items-center justify-center px-1 transition-all duration-300 ${
-                  activeTab === index 
-                    ? 'text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.3)] transform scale-105' 
-                    : 'text-gray-900 hover:text-black'
-                }`}>
+                <div
+                  className={`text-xs font-bold text-center leading-tight flex items-center justify-center px-1 transition-all duration-300 ${
+                    activeTab === index
+                      ? 'text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.3)] transform scale-105'
+                      : 'text-gray-900 hover:text-black'
+                  }`}
+                >
                   <span className="relative">
                     {principle.shortTitle}
                     {activeTab === index && (
@@ -422,16 +435,16 @@ const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({
                 <div className="flex items-center justify-center mb-6">
                   <div
                     className={`relative w-16 h-16 rounded-2xl bg-gradient-to-br ${principle.gradient} flex items-center justify-center text-white ${principle.glowColor} shadow-xl transform rotate-6 hover:rotate-12 transition-transform duration-300`}
-                    style={{ 
+                    style={{
                       filter: 'contrast(1.1) brightness(1.05)',
-                      WebkitFilter: 'contrast(1.1) brightness(1.05)'
+                      WebkitFilter: 'contrast(1.1) brightness(1.05)',
                     }}
                   >
                     {React.cloneElement(principle.icon, {
                       className: 'w-9 h-9',
                       strokeWidth: 2.8,
                       fill: 'none',
-                      stroke: 'currentColor'
+                      stroke: 'currentColor',
                     })}
                     <div className="absolute inset-0 rounded-2xl bg-white/15 backdrop-blur-sm" />
                   </div>
@@ -565,6 +578,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ session, isVisible }) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.2 }}
           className="w-full max-w-4xl mt-12 md:mt-16"
+          aria-hidden="true" // הוספנו: מסתיר את כל האלמנט והילדים שלו מקוראי מסך
         >
           {/* גרסת מובייל - עודכנה להיות כמו גרסת דסקטופ */}
           <div className={`md:hidden relative h-64`}>

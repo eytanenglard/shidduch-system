@@ -428,6 +428,8 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   if (isLoading && !profileData) {
     return (
       <div
+        role="status"
+        aria-live="polite"
         className="flex items-center justify-center min-h-screen bg-gradient-to-br from-cyan-50 via-white to-pink-50"
         dir="rtl"
       >

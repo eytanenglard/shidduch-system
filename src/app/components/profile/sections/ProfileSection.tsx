@@ -230,8 +230,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
   const [aliyaCountryInputValue, setAliyaCountryInputValue] = useState('');
 
   const initializeFormData = (profileData: UserProfile | null) => {
-    // *** FIX for [object Object] bug ***
-    // Sanitize the profile headline to ensure it's a string.
     let headline = profileData?.profileHeadline || '';
     if (typeof headline === 'object' && headline !== null) {
       console.warn(
@@ -301,13 +299,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
       medicalInfoDisclosureTiming:
         profileData?.medicalInfoDisclosureTiming || undefined,
       isMedicalInfoVisible: profileData?.isMedicalInfoVisible ?? false,
-
-      // --- START OF UPDATED FIELDS INITIALIZATION ---
-      profileHeadline: headline, // Use the sanitized variable
+      profileHeadline: headline,
       inspiringCoupleStory: profileData?.inspiringCoupleStory || '',
       influentialRabbi: profileData?.influentialRabbi || '',
-      // Note: `humorStory` was intentionally removed and replaced by `influentialRabbi`
-      // --- END OF UPDATED FIELDS INITIALIZATION ---
     };
     setFormData(dataToSet);
     setInitialData(dataToSet);
@@ -473,26 +467,19 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
   };
 
   const renderDisplayValue = (
-    value: unknown, // Changed to unknown to handle any type
+    value: unknown,
     placeholder: string = 'לא צוין'
   ): React.ReactNode => {
-    // If value is falsy (null, undefined, empty string), show placeholder
     if (!value) {
       return <span className="italic text-gray-500">{placeholder}</span>;
     }
-
-    // If value is a valid Date, format it
     if (value instanceof Date && !isNaN(value.getTime())) {
       return new Intl.DateTimeFormat('he-IL').format(value);
     }
-
-    // If value is an object (but not a Date), it's likely an error, so show placeholder
     if (typeof value === 'object' && value !== null) {
       console.warn('renderDisplayValue received an object:', value);
       return <span className="italic text-gray-500">{placeholder}</span>;
     }
-
-    // Otherwise, convert to string and display
     return String(value);
   };
 
@@ -525,7 +512,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
   };
 
   if (loading) {
-    return <div className="text-center p-4">טוען נתוני פרופיל...</div>;
+    return <div role="status" aria-live="polite" className="text-center p-4">טוען נתוני פרופיל...</div>;
   }
 
   const renderMultiSelectBadges = (
@@ -553,7 +540,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
 
   return (
     <div className="relative" dir="rtl">
-      {/* Sticky Header with Buttons */}
       <div className="sticky top-0 z-10 bg-gradient-to-b from-white via-white/95 to-white/0 pt-4 pb-3 backdrop-blur-sm">
         <div className="container mx-auto max-w-screen-xl px-4">
           <div className="flex items-center justify-between">
@@ -609,7 +595,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="container mx-auto max-w-screen-xl py-6 px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="space-y-6">
@@ -623,7 +608,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
               <CardContent className="p-4 md:p-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
                   <div>
-                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                    <Label htmlFor="gender" className="block mb-1.5 text-xs font-medium text-gray-600">
                       מגדר
                     </Label>
                     {isEditing && !viewOnly ? (
@@ -633,7 +618,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           handleChange('gender', value as Gender)
                         }
                       >
-                        <SelectTrigger className="h-9 text-sm focus:ring-cyan-500">
+                        <SelectTrigger id="gender" className="h-9 text-sm focus:ring-cyan-500">
                           <SelectValue placeholder="בחר/י מגדר" />
                         </SelectTrigger>
                         <SelectContent>
@@ -654,11 +639,12 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     )}
                   </div>
                   <div>
-                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                    <Label htmlFor="birthDate" className="block mb-1.5 text-xs font-medium text-gray-600">
                       תאריך לידה
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Input
+                        id="birthDate"
                         type="date"
                         value={
                           formData.birthDate instanceof Date &&
@@ -679,11 +665,12 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     )}
                   </div>
                   <div>
-                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                    <Label htmlFor="height" className="block mb-1.5 text-xs font-medium text-gray-600">
                       גובה (סמ)
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Input
+                        id="height"
                         type="number"
                         value={formData.height ?? ''}
                         onChange={(e) => handleChange('height', e.target.value)}
@@ -701,12 +688,13 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     )}
                   </div>
                   <div>
-                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                    <Label htmlFor="city-autocomplete" className="block mb-1.5 text-xs font-medium text-gray-600">
                       עיר מגורים
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Autocomplete
                         apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+                        inputProps={{ id: 'city-autocomplete' }}
                         value={cityInputValue}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                           setCityInputValue(e.target.value);
@@ -741,11 +729,12 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     )}
                   </div>
                   <div>
-                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                    <Label htmlFor="origin" className="block mb-1.5 text-xs font-medium text-gray-600">
                       מוצא / עדה
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Input
+                        id="origin"
                         value={formData.origin || ''}
                         onChange={(e) => handleChange('origin', e.target.value)}
                         placeholder="לדוגמה: אשכנזי, ספרדי"
@@ -758,12 +747,13 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     )}
                   </div>
                   <div>
-                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                    <Label htmlFor="aliyaCountry-autocomplete" className="block mb-1.5 text-xs font-medium text-gray-600">
                       מדינת עלייה
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Autocomplete
                         apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+                        inputProps={{ id: 'aliyaCountry-autocomplete' }}
                         value={aliyaCountryInputValue}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                           setAliyaCountryInputValue(e.target.value);
@@ -805,11 +795,12 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     )}
                   </div>
                   <div>
-                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                    <Label htmlFor="aliyaYear" className="block mb-1.5 text-xs font-medium text-gray-600">
                       שנת עליה
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Input
+                        id="aliyaYear"
                         type="number"
                         value={formData.aliyaYear ?? ''}
                         onChange={(e) =>
@@ -831,7 +822,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     )}
                   </div>
                   <div>
-                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                    <Label htmlFor="nativeLanguage" className="block mb-1.5 text-xs font-medium text-gray-600">
                       שפת אם
                     </Label>
                     {isEditing && !viewOnly ? (
@@ -841,7 +832,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           handleChange('nativeLanguage', value || undefined)
                         }
                       >
-                        <SelectTrigger className="h-9 text-sm focus:ring-cyan-500">
+                        <SelectTrigger id="nativeLanguage" className="h-9 text-sm focus:ring-cyan-500">
                           <SelectValue placeholder="בחר/י שפת אם" />
                         </SelectTrigger>
                         <SelectContent className="max-h-[200px]">
@@ -862,7 +853,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     )}
                   </div>
                   <div className="sm:col-span-2 lg:col-span-1">
-                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                    <Label htmlFor="additionalLanguages" className="block mb-1.5 text-xs font-medium text-gray-600">
                       שפות נוספות
                     </Label>
                     {isEditing && !viewOnly ? (
@@ -878,7 +869,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           }
                         }}
                       >
-                        <SelectTrigger className="h-9 text-sm focus:ring-cyan-500">
+                        <SelectTrigger id="additionalLanguages" className="h-9 text-sm focus:ring-cyan-500">
                           <SelectValue placeholder="הוסף/י שפה..." />
                         </SelectTrigger>
                         <SelectContent className="max-h-[200px]">
@@ -952,7 +943,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
               <CardContent className="p-4 md:p-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5 items-start">
                   <div>
-                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                    <Label htmlFor="maritalStatus" className="block mb-1.5 text-xs font-medium text-gray-600">
                       מצב משפחתי
                     </Label>
                     {isEditing && !viewOnly ? (
@@ -962,7 +953,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           handleChange('maritalStatus', value || undefined)
                         }
                       >
-                        <SelectTrigger className="h-9 text-sm focus:ring-cyan-500">
+                        <SelectTrigger id="maritalStatus" className="h-9 text-sm focus:ring-cyan-500">
                           <SelectValue placeholder="בחר/י מצב" />
                         </SelectTrigger>
                         <SelectContent>
@@ -991,7 +982,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         isEditing && !viewOnly ? 'sm:pt-5' : 'sm:pt-0'
                       )}
                     >
-                      <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                      <Label htmlFor="hasChildrenFromPrevious" className="block mb-1.5 text-xs font-medium text-gray-600">
                         ילדים מקשר קודם?
                       </Label>
                       {isEditing && !viewOnly ? (
@@ -1023,11 +1014,12 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </div>
                   )}
                   <div>
-                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                    <Label htmlFor="parentStatus" className="block mb-1.5 text-xs font-medium text-gray-600">
                       מצב הורים
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Input
+                        id="parentStatus"
                         value={formData.parentStatus || ''}
                         onChange={(e) =>
                           handleChange('parentStatus', e.target.value)
@@ -1043,11 +1035,12 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                   </div>
 
                   <div>
-                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                    <Label htmlFor="fatherOccupation" className="block mb-1.5 text-xs font-medium text-gray-600">
                       מקצוע האב
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Input
+                        id="fatherOccupation"
                         value={formData.fatherOccupation || ''}
                         onChange={(e) =>
                           handleChange('fatherOccupation', e.target.value)
@@ -1063,11 +1056,12 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                   </div>
 
                   <div>
-                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                    <Label htmlFor="motherOccupation" className="block mb-1.5 text-xs font-medium text-gray-600">
                       מקצוע האם
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Input
+                        id="motherOccupation"
                         value={formData.motherOccupation || ''}
                         onChange={(e) =>
                           handleChange('motherOccupation', e.target.value)
@@ -1083,11 +1077,12 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                   </div>
 
                   <div>
-                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                    <Label htmlFor="siblings" className="block mb-1.5 text-xs font-medium text-gray-600">
                       מספר אחים/אחיות
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Input
+                        id="siblings"
                         type="number"
                         value={formData.siblings ?? ''}
                         onChange={(e) =>
@@ -1104,11 +1099,12 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     )}
                   </div>
                   <div>
-                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                    <Label htmlFor="position" className="block mb-1.5 text-xs font-medium text-gray-600">
                       מיקום במשפחה
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Input
+                        id="position"
                         type="number"
                         value={formData.position ?? ''}
                         onChange={(e) =>
@@ -1138,7 +1134,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
               <CardContent className="p-4 md:p-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5 items-start">
                   <div>
-                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                    <Label htmlFor="religiousLevel" className="block mb-1.5 text-xs font-medium text-gray-600">
                       רמה דתית
                     </Label>
                     {isEditing && !viewOnly ? (
@@ -1148,7 +1144,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           handleChange('religiousLevel', value || undefined)
                         }
                       >
-                        <SelectTrigger className="h-9 text-sm focus:ring-cyan-500">
+                        <SelectTrigger id="religiousLevel" className="h-9 text-sm focus:ring-cyan-500">
                           <SelectValue placeholder="בחר/י רמה" />
                         </SelectTrigger>
                         <SelectContent className="max-h-[250px]">
@@ -1169,7 +1165,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     )}
                   </div>
                   <div>
-                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                    <Label htmlFor="religiousJourney" className="block mb-1.5 text-xs font-medium text-gray-600">
                       מסע דתי
                     </Label>
                     {isEditing && !viewOnly ? (
@@ -1182,7 +1178,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           )
                         }
                       >
-                        <SelectTrigger className="h-9 text-sm focus:ring-cyan-500">
+                        <SelectTrigger id="religiousJourney" className="h-9 text-sm focus:ring-cyan-500">
                           <SelectValue placeholder="בחר/י רקע דתי" />
                         </SelectTrigger>
                         <SelectContent className="max-h-[250px]">
@@ -1236,7 +1232,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                   </div>
                   {formData.gender === Gender.FEMALE && (
                     <div>
-                      <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                      <Label htmlFor="headCovering" className="block mb-1.5 text-xs font-medium text-gray-600">
                         כיסוי ראש
                       </Label>
                       {isEditing && !viewOnly ? (
@@ -1249,7 +1245,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                             )
                           }
                         >
-                          <SelectTrigger className="h-9 text-sm focus:ring-cyan-500">
+                          <SelectTrigger id="headCovering" className="h-9 text-sm focus:ring-cyan-500">
                             <SelectValue placeholder="בחר/י סוג כיסוי" />
                           </SelectTrigger>
                           <SelectContent>
@@ -1273,7 +1269,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                   )}
                   {formData.gender === Gender.MALE && (
                     <div>
-                      <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                      <Label htmlFor="kippahType" className="block mb-1.5 text-xs font-medium text-gray-600">
                         סוג כיפה
                       </Label>
                       {isEditing && !viewOnly ? (
@@ -1286,7 +1282,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                             )
                           }
                         >
-                          <SelectTrigger className="h-9 text-sm focus:ring-cyan-500">
+                          <SelectTrigger id="kippahType" className="h-9 text-sm focus:ring-cyan-500">
                             <SelectValue placeholder="בחר/י סוג כיפה" />
                           </SelectTrigger>
                           <SelectContent className="max-h-[200px]">
@@ -1309,7 +1305,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </div>
                   )}
                   <div>
-                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                    <Label htmlFor="preferredMatchmakerGender" className="block mb-1.5 text-xs font-medium text-gray-600">
                       מגדר שדכן/ית מועדף
                     </Label>
                     {isEditing && !viewOnly ? (
@@ -1322,7 +1318,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           )
                         }
                       >
-                        <SelectTrigger className="h-9 text-sm focus:ring-cyan-500">
+                        <SelectTrigger id="preferredMatchmakerGender" className="h-9 text-sm focus:ring-cyan-500">
                           <SelectValue placeholder="בחר/י העדפה (לא חובה)" />
                         </SelectTrigger>
                         <SelectContent>
@@ -1353,10 +1349,11 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </Label>
                     <TooltipProvider>
                       <Tooltip>
-                        <TooltipTrigger type="button">
-                          <Info className="w-4 h-4 text-gray-400" />
+                        <TooltipTrigger asChild>
+                            <button type="button" aria-describedby="rabbi-tooltip"><Info className="w-4 h-4 text-gray-400" /></button>
                         </TooltipTrigger>
                         <TooltipContent
+                          id="rabbi-tooltip"
                           side="top"
                           className="max-w-xs text-center"
                         >
@@ -1412,10 +1409,11 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       </Label>
                       <TooltipProvider>
                         <Tooltip>
-                          <TooltipTrigger type="button">
-                            <Info className="w-4 h-4 text-gray-400" />
+                          <TooltipTrigger asChild>
+                            <button type="button" aria-describedby="headline-tooltip"><Info className="w-4 h-4 text-gray-400" /></button>
                           </TooltipTrigger>
                           <TooltipContent
+                            id="headline-tooltip"
                             side="top"
                             className="max-w-xs text-center"
                           >
@@ -1474,13 +1472,13 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       </Label>
                       <TooltipProvider delayDuration={100}>
                         <Tooltip>
-                          <TooltipTrigger
-                            type="button"
-                            className="text-gray-400 hover:text-gray-600"
-                          >
-                            <Info className="w-4 h-4" />
+                          <TooltipTrigger asChild>
+                            <button type="button" aria-describedby="about-tooltip" className="text-gray-400 hover:text-gray-600">
+                              <Info className="w-4 h-4" />
+                            </button>
                           </TooltipTrigger>
                           <TooltipContent
+                            id="about-tooltip"
                             side="top"
                             className="max-w-xs text-center"
                           >
@@ -1513,9 +1511,11 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           )}
                           placeholder="תאר/י את עצמך, מה מאפיין אותך, מה חשוב לך..."
                           rows={5}
+                          aria-describedby="about-char-count"
                         />
                         {formData.about && (
                           <div
+                            id="about-char-count"
                             className={cn(
                               'text-xs mt-1 text-right',
                               formData.about.trim().length < 100
@@ -1548,10 +1548,11 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       </Label>
                       <TooltipProvider>
                         <Tooltip>
-                          <TooltipTrigger type="button">
-                            <Info className="w-4 h-4 text-gray-400" />
+                          <TooltipTrigger asChild>
+                            <button type="button" aria-describedby="couple-tooltip"><Info className="w-4 h-4 text-gray-400" /></button>
                           </TooltipTrigger>
                           <TooltipContent
+                            id="couple-tooltip"
                             side="top"
                             className="max-w-xs text-center"
                           >
@@ -1586,18 +1587,21 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
 
                   <div>
                     <div className="flex items-center gap-1.5 mb-2">
-                      <Label className="text-sm font-medium text-gray-700">
+                      <Label
+                        htmlFor="matchingNotes-private"
+                        className="text-sm font-medium text-gray-700"
+                      >
                         הערות נוספות לשדכן/ית (לא יוצג לצד השני)
                       </Label>
                       <TooltipProvider delayDuration={100}>
                         <Tooltip>
-                          <TooltipTrigger
-                            type="button"
-                            className="text-gray-400 hover:text-gray-600"
-                          >
-                            <Info className="w-4 h-4" />
+                          <TooltipTrigger asChild>
+                            <button type="button" aria-describedby="private-notes-tooltip" className="text-gray-400 hover:text-gray-600">
+                              <Info className="w-4 h-4" />
+                            </button>
                           </TooltipTrigger>
                           <TooltipContent
+                            id="private-notes-tooltip"
                             side="top"
                             className="max-w-xs text-center"
                           >
@@ -1612,6 +1616,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     </div>
                     {isEditing && !viewOnly ? (
                       <Textarea
+                        id="matchingNotes-private"
                         value={formData.matchingNotes || ''}
                         onChange={(e) =>
                           handleChange('matchingNotes', e.target.value)
@@ -1635,25 +1640,31 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
             </Card>
 
             <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-red-50/40 to-pink-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
-                <HeartPulse className="w-5 h-5 text-red-700" />
-                <CardTitle className="text-base font-semibold text-gray-700">
-                  מידע רפואי ורגיש
-                </CardTitle>
-                <TooltipProvider delayDuration={100}>
-                  <Tooltip>
-                    <TooltipTrigger type="button">
-                      <Lock className="w-4 h-4 text-gray-400" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>
-                        מידע בחלק זה מיועד לשדכנים בלבד ולא יוצג בפרופיל כברירת
-                        מחדל.
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </CardHeader>
+                <CardHeader className="bg-gradient-to-r from-red-50/40 to-pink-50/40 border-b border-gray-200/50 p-4">
+                  <fieldset>
+                    <legend className="w-full">
+                      <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                          <HeartPulse className="w-5 h-5 text-red-700" />
+                          <CardTitle className="text-base font-semibold text-gray-700">
+                            מידע רפואי ורגיש
+                          </CardTitle>
+                          <TooltipProvider delayDuration={100}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button type="button" aria-describedby="medical-tooltip"><Lock className="w-4 h-4 text-gray-400" /></button>
+                              </TooltipTrigger>
+                              <TooltipContent id="medical-tooltip">
+                                <p>
+                                  מידע בחלק זה מיועד לשדכנים בלבד ולא יוצג בפרופיל כברירת
+                                  מחדל.
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                      </div>
+                    </legend>
+                  </fieldset>
+                </CardHeader>
               <CardContent className="p-4 md:p-6 space-y-4">
                 <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-200/80">
                   אנו מאמינים שקשר בריא נבנה על יושרה ואחריות. חלק זה מאפשר לך
@@ -1714,7 +1725,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                               )
                             }
                           >
-                            <SelectTrigger className="h-9 text-sm focus:ring-cyan-500">
+                            <SelectTrigger id="medicalInfoDisclosureTiming" className="h-9 text-sm focus:ring-cyan-500">
                               <SelectValue placeholder="בחר/י תזמון חשיפה" />
                             </SelectTrigger>
                             <SelectContent>
@@ -1770,9 +1781,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 ) : (
                   <div className="space-y-4">
                     <div>
-                      <Label className="block text-xs font-medium text-gray-500">
+                      <p className="block text-xs font-medium text-gray-500">
                         מידע רפואי ששותף
-                      </Label>
+                      </p>
                       <p className="text-sm text-gray-800 font-medium mt-1">
                         {renderBooleanDisplayValue(
                           formData.hasMedicalInfo,
@@ -1784,9 +1795,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     {formData.hasMedicalInfo && (
                       <>
                         <div>
-                          <Label className="block text-xs font-medium text-gray-500">
+                          <p className="block text-xs font-medium text-gray-500">
                             פרטי המידע
-                          </Label>
+                          </p>
                           <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap min-h-[40px] bg-slate-50/70 p-3 rounded-lg border border-slate-200/50">
                             {formData.medicalInfoDetails || (
                               <span className="text-gray-500 italic">
@@ -1796,9 +1807,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           </p>
                         </div>
                         <div>
-                          <Label className="block text-xs font-medium text-gray-500">
+                          <p className="block text-xs font-medium text-gray-500">
                             תזמון חשיפה מועדף
-                          </Label>
+                          </p>
                           <p className="text-sm text-gray-800 font-medium mt-1">
                             {renderSelectDisplayValue(
                               formData.medicalInfoDisclosureTiming,
@@ -1824,9 +1835,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           </p>
                         </div>
                         <div>
-                          <Label className="block text-xs font-medium text-gray-500">
+                          <p className="block text-xs font-medium text-gray-500">
                             נראות בפרופיל
-                          </Label>
+                          </p>
                           <div className="flex items-center gap-2 mt-1">
                             {formData.isMedicalInfoVisible ? (
                               <Badge
@@ -1864,7 +1875,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
               <CardContent className="p-4 md:p-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
                   <div>
-                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                    <Label htmlFor="educationLevel" className="block mb-1.5 text-xs font-medium text-gray-600">
                       רמת השכלה
                     </Label>
                     {isEditing && !viewOnly ? (
@@ -1874,7 +1885,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           handleChange('educationLevel', value || undefined)
                         }
                       >
-                        <SelectTrigger className="h-9 text-sm focus:ring-cyan-500">
+                        <SelectTrigger id="educationLevel" className="h-9 text-sm focus:ring-cyan-500">
                           <SelectValue placeholder="בחר/י רמה" />
                         </SelectTrigger>
                         <SelectContent>
@@ -1895,11 +1906,12 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     )}
                   </div>
                   <div className="sm:col-span-2">
-                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                    <Label htmlFor="education" className="block mb-1.5 text-xs font-medium text-gray-600">
                       פירוט השכלה (מוסד, תחום)
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Input
+                        id="education"
                         value={formData.education || ''}
                         onChange={(e) =>
                           handleChange('education', e.target.value)
@@ -1914,11 +1926,12 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     )}
                   </div>
                   <div className="sm:col-span-2">
-                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                    <Label htmlFor="occupation" className="block mb-1.5 text-xs font-medium text-gray-600">
                       עיסוק נוכחי
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Input
+                        id="occupation"
                         value={formData.occupation || ''}
                         onChange={(e) =>
                           handleChange('occupation', e.target.value)
@@ -1934,7 +1947,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     )}
                   </div>
                   <div>
-                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                    <Label htmlFor="serviceType" className="block mb-1.5 text-xs font-medium text-gray-600">
                       שירות (צבאי/לאומי/אחר)
                     </Label>
                     {isEditing && !viewOnly ? (
@@ -1947,7 +1960,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           )
                         }
                       >
-                        <SelectTrigger className="h-9 text-sm focus:ring-cyan-500">
+                        <SelectTrigger id="serviceType" className="h-9 text-sm focus:ring-cyan-500">
                           <SelectValue placeholder="בחר/י סוג שירות" />
                         </SelectTrigger>
                         <SelectContent className="max-h-[250px]">
@@ -1968,11 +1981,12 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     )}
                   </div>
                   <div className="sm:col-span-2">
-                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                    <Label htmlFor="serviceDetails" className="block mb-1.5 text-xs font-medium text-gray-600">
                       פירוט על השירות
                     </Label>
                     {isEditing && !viewOnly ? (
                       <Input
+                        id="serviceDetails"
                         value={formData.serviceDetails || ''}
                         onChange={(e) =>
                           handleChange('serviceDetails', e.target.value)
@@ -1998,10 +2012,10 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4 md:p-6 space-y-6">
-                <div>
-                  <Label className="block mb-2 text-sm font-medium text-gray-700">
+                <fieldset>
+                  <legend className="block mb-2 text-sm font-medium text-gray-700">
                     תכונות אופי בולטות (עד 3)
-                  </Label>
+                  </legend>
                   {isEditing && !viewOnly ? (
                     <div className="flex flex-wrap gap-2">
                       {characterTraitsOptions.map((trait) => (
@@ -2055,11 +2069,11 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       )}
                     </div>
                   )}
-                </div>
-                <div>
-                  <Label className="block mb-2 text-sm font-medium text-gray-700">
+                </fieldset>
+                <fieldset>
+                  <legend className="block mb-2 text-sm font-medium text-gray-700">
                     תחביבים עיקריים (עד 3)
-                  </Label>
+                  </legend>
                   {isEditing && !viewOnly ? (
                     <div className="flex flex-wrap gap-2">
                       {hobbiesOptions.map((hobby) => (
@@ -2112,14 +2126,13 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       )}
                     </div>
                   )}
-                </div>
+                </fieldset>
               </CardContent>
             </Card>
           </div>
         </div>
       </div>
 
-      {/* Mobile Sticky Buttons */}
       {isEditing && !viewOnly && (
         <div className="sticky bottom-0 z-20 mt-4 border-t border-gray-200 bg-white/90 p-4 backdrop-blur-md shadow-[0_-4px_15px_-5px_rgba(0,0,0,0.15)] sm:hidden">
           <div className="flex items-center justify-center gap-3">

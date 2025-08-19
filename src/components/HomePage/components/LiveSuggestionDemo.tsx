@@ -30,15 +30,12 @@ export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
 
   return (
     <div className="w-full max-w-sm lg:max-w-md mx-auto flex flex-col items-center gap-4">
-      <div
-        className="relative group cursor-pointer rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
+      {/* <<< שינוי מרכזי: ה-div החיצוני הופך ל-button >>> */}
+      <button
+        type="button" // מונע התנהגות ברירת מחדל של שליחת טופס
+        className="relative group cursor-pointer rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 w-full text-left"
         onClick={handleOpenModal}
-        role="button"
-        tabIndex={0}
         aria-label={`הצג הצעה עבור ${suggestion.secondParty.firstName}`}
-        onKeyDown={(e) =>
-          (e.key === 'Enter' || e.key === ' ') && handleOpenModal()
-        }
       >
         <MinimalSuggestionCard
           suggestion={suggestion}
@@ -56,21 +53,13 @@ export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
             גלו את נימוקי השדכן, התשובות ועוד
           </p>
         </div>
-      </div>
+      </button>
 
       <SuggestionDetailsModal
         suggestion={suggestion}
         userId={userId}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        /* --- START: This block has been removed to fix the error ---
-        // onStatusChange נשאר כפי שהוא, להדגמה
-        onStatusChange={async () => {
-          alert(
-            'זוהי הדגמה בלבד. במערכת האמיתית, הפעולה שלך הייתה מעדכנת את סטטוס ההצעה.'
-          );
-        }}
-        --- END: Block removed --- */
         onActionRequest={(suggestion, action) => {
           alert(
             `זוהי הדגמה בלבד. הפעולה המבוקשת היא "${action === 'approve' ? 'אישור' : 'דחייה'}" עבור ההצעה ל${suggestion.secondParty.firstName}. במערכת האמיתית, היה נפתח חלון אישור.`

@@ -36,7 +36,8 @@ import {
 } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { getRelativeCloudinaryPath, getInitials } from "@/lib/utils";import {
+import { getRelativeCloudinaryPath, getInitials } from '@/lib/utils';
+import {
   getEnhancedStatusInfo,
   getPartyIndicator,
 } from '@/lib/utils/suggestionUtils';
@@ -94,7 +95,6 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
   const mainImage = targetParty.images?.find((img) => img.isMain);
   const age = calculateAge(targetParty.profile.birthDate);
 
-  // Use the enhanced status info
   const statusInfo = getEnhancedStatusInfo(suggestion.status, isFirstParty);
   const partyIndicator = getPartyIndicator(suggestion.status, isFirstParty);
 
@@ -105,26 +105,25 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
     hasDeadline &&
     subDays(new Date(suggestion.decisionDeadline!), 2) < new Date();
 
-  // Truncate matching reason for the teaser
   const reasonTeaser = suggestion.matchingReason
     ? suggestion.matchingReason.length > 100
       ? `${suggestion.matchingReason.substring(0, 100)}...`
       : suggestion.matchingReason
     : 'השדכן/ית זיהו פוטנציאל מיוחד שכדאי לבדוק!';
 
+  const handleCardClick = () => {
+    onClick(suggestion);
+  };
+
   return (
+    // ACCESSIBILITY UPDATE: The `onClick` handler has been removed from the main Card component.
+    // This prevents nesting interactive elements and makes the card a presentational container.
     <Card
       className={cn(
-        'group w-full rounded-2xl overflow-hidden shadow-lg border-0 bg-white transition-all duration-500 hover:shadow-xl hover:-translate-y-1 cursor-pointer',
+        'group w-full rounded-2xl overflow-hidden shadow-lg border-0 bg-white transition-all duration-500 hover:shadow-xl hover:-translate-y-1',
         isUrgent && 'ring-2 ring-orange-300 ring-opacity-60',
         className
       )}
-      onClick={(e) => {
-        // Allow clicking the card to open details, but not if a button was clicked
-        if (!(e.target as Element).closest('button')) {
-          onClick(suggestion);
-        }
-      }}
     >
       {/* Header עם מידע השדכן ו-STATUS ENHANCED */}
       <div className="relative p-4 bg-gradient-to-r from-cyan-50/80 via-white to-emerald-50/50 border-b border-cyan-100/50">
@@ -155,7 +154,9 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                 statusInfo.pulse && 'animate-pulse'
               )}
             >
-              <statusInfo.icon className="w-3 h-3" />
+              {/* ACCESSIBILITY UPDATE: Added sr-only text for context and aria-hidden for the decorative icon. */}
+              <statusInfo.icon className="w-3 h-3" aria-hidden="true" />
+              <span className="sr-only">סטטוס: </span>
               <span>{statusInfo.shortLabel}</span>
             </Badge>
 
@@ -167,8 +168,10 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                   partyIndicator.className
                 )}
               >
+                {/* ACCESSIBILITY UPDATE: Added sr-only text for context and aria-hidden for the decorative icon. */}
+                <span className="sr-only">התור של: </span>
                 {partyIndicator.text === 'תורך!' && (
-                  <Zap className="w-2.5 h-2.5 ml-1" />
+                  <Zap className="w-2.5 h-2.5 ml-1" aria-hidden="true" />
                 )}
                 {partyIndicator.text}
               </Badge>
@@ -186,119 +189,128 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
         )}
       </div>
 
-      {/* Image Section */}
-      <div className="relative h-64">
-        {mainImage?.url ? (
-          <Image
-            src={getRelativeCloudinaryPath(mainImage.url)}
-            alt={`תמונה של ${targetParty.firstName}`}
-            fill
-            className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
-            <User className="w-20 h-20 text-slate-400" />
-          </div>
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+      {/* ACCESSIBILITY UPDATE: The main image and title block now becomes a single, accessible <button> to open the details view. */}
+      {/* This provides a clear, keyboard-focusable target. */}
+      <button
+        type="button"
+        onClick={handleCardClick}
+        aria-label={`צפה בפרטים המלאים של ${targetParty.firstName}`}
+        className="block w-full text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+      >
+        {/* Image Section */}
+        <div className="relative h-64">
+          {mainImage?.url ? (
+            <Image
+              src={getRelativeCloudinaryPath(mainImage.url)}
+              alt={`תמונה של ${targetParty.firstName}`}
+              fill
+              className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+              <User className="w-20 h-20 text-slate-400" />
+            </div>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
-        {/* Name and Age overlay */}
-        <div className="absolute bottom-4 right-4 left-4 text-white">
-          <div className="flex items-end justify-between">
-            <div>
-              <h3 className="text-2xl font-bold tracking-tight [text-shadow:0_2px_8px_rgba(0,0,0,0.8)]">
-                {targetParty.firstName}
-              </h3>
-              {age && (
-                <p className="text-lg font-medium text-white/90 [text-shadow:0_1px_4px_rgba(0,0,0,0.8)]">
-                  {age}
+          {/* Name and Age overlay */}
+          <div className="absolute bottom-4 right-4 left-4 text-white">
+            <div className="flex items-end justify-between">
+              <div>
+                <h3 className="text-2xl font-bold tracking-tight [text-shadow:0_2px_8px_rgba(0,0,0,0.8)]">
+                  {targetParty.firstName}
+                </h3>
+                {age && (
+                  <p className="text-lg font-medium text-white/90 [text-shadow:0_1px_4px_rgba(0,0,0,0.8)]">
+                    {age}
+                  </p>
+                )}
+              </div>
+              <div className="p-2 rounded-full bg-white/20 backdrop-blur-sm">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </button>
+
+      {/* ACCESSIBILITY UPDATE: The content area is wrapped in a div with an onClick to preserve the large clickable area for mouse users, without creating nested interactive elements. */}
+      <div onClick={handleCardClick} className="cursor-pointer">
+        <CardContent className="p-5 space-y-4">
+          {/* Enhanced Status Description */}
+          {statusInfo.description && (
+            <div className="p-3 bg-gradient-to-r from-slate-50 to-gray-50 rounded-lg border border-slate-200">
+              <div className="flex items-start gap-2">
+                <statusInfo.icon className="w-4 h-4 text-slate-600 mt-0.5 flex-shrink-0" />
+                <p className="text-sm text-slate-700 font-medium leading-relaxed">
+                  {statusInfo.description}
                 </p>
-              )}
+              </div>
+            </div>
+          )}
+
+          {/* Core Info Grid */}
+          <div className="grid grid-cols-2 gap-3">
+            {targetParty.profile.city && (
+              <div className="flex items-center gap-2 p-2 bg-cyan-50/50 rounded-lg border border-cyan-100/50">
+                <MapPin className="w-4 h-4 text-cyan-600 flex-shrink-0" />
+                <span className="text-sm font-medium text-gray-700 truncate">
+                  {targetParty.profile.city}
+                </span>
+              </div>
+            )}
+            {targetParty.profile.occupation && (
+              <div className="flex items-center gap-2 p-2 bg-emerald-50/50 rounded-lg border border-emerald-100/50">
+                <Briefcase className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                <span className="text-sm font-medium text-gray-700 truncate">
+                  {targetParty.profile.occupation}
+                </span>
+              </div>
+            )}
+            {targetParty.profile.religiousLevel && (
+              <div className="flex items-center gap-2 p-2 bg-blue-50/50 rounded-lg border border-blue-100/50">
+                <Scroll className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                <span className="text-sm font-medium text-gray-700 truncate">
+                  {targetParty.profile.religiousLevel}
+                </span>
+              </div>
+            )}
+            {targetParty.profile.education && (
+              <div className="flex items-center gap-2 p-2 bg-green-50/50 rounded-lg border border-green-100/50">
+                <BookOpen className="w-4 h-4 text-green-600 flex-shrink-0" />
+                <span className="text-sm font-medium text-gray-700 truncate">
+                  {targetParty.profile.education}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Matchmaker's reasoning highlight */}
+          <div className="relative p-4 bg-gradient-to-r from-cyan-50/50 to-blue-50/50 border border-cyan-100/50 rounded-xl">
+            <div className="flex items-start gap-3">
+              <Quote className="w-4 h-4 text-cyan-500 mt-1 flex-shrink-0" />
+              <div className="flex-1">
+                <h4 className="text-sm font-bold text-cyan-800 mb-1">
+                  למה זו התאמה מיוחדת?
+                </h4>
+                <p className="text-sm text-cyan-700 leading-relaxed">
+                  {reasonTeaser}
+                </p>
+              </div>
             </div>
 
-            {/* אייקון מיוחד */}
-            <div className="p-2 rounded-full bg-white/20 backdrop-blur-sm">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
+            <div className="absolute top-0 right-0 w-6 h-6 bg-gradient-to-br from-cyan-200/50 to-blue-200/50 rounded-bl-xl"></div>
           </div>
-        </div>
+
+          {/* CTA hint */}
+          <div className="text-center py-2">
+            <p className="text-xs text-gray-500 font-medium">
+              לחץ לפרטים מלאים ועוד תובנות
+            </p>
+          </div>
+        </CardContent>
       </div>
-
-      <CardContent className="p-5 space-y-4">
-        {/* Enhanced Status Description */}
-        {statusInfo.description && (
-          <div className="p-3 bg-gradient-to-r from-slate-50 to-gray-50 rounded-lg border border-slate-200">
-            <div className="flex items-start gap-2">
-              <statusInfo.icon className="w-4 h-4 text-slate-600 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-slate-700 font-medium leading-relaxed">
-                {statusInfo.description}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Core Info Grid */}
-        <div className="grid grid-cols-2 gap-3">
-          {targetParty.profile.city && (
-            <div className="flex items-center gap-2 p-2 bg-cyan-50/50 rounded-lg border border-cyan-100/50">
-              <MapPin className="w-4 h-4 text-cyan-600 flex-shrink-0" />
-              <span className="text-sm font-medium text-gray-700 truncate">
-                {targetParty.profile.city}
-              </span>
-            </div>
-          )}
-          {targetParty.profile.occupation && (
-            <div className="flex items-center gap-2 p-2 bg-emerald-50/50 rounded-lg border border-emerald-100/50">
-              <Briefcase className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-              <span className="text-sm font-medium text-gray-700 truncate">
-                {targetParty.profile.occupation}
-              </span>
-            </div>
-          )}
-          {targetParty.profile.religiousLevel && (
-            <div className="flex items-center gap-2 p-2 bg-blue-50/50 rounded-lg border border-blue-100/50">
-              <Scroll className="w-4 h-4 text-blue-600 flex-shrink-0" />
-              <span className="text-sm font-medium text-gray-700 truncate">
-                {targetParty.profile.religiousLevel}
-              </span>
-            </div>
-          )}
-          {targetParty.profile.education && (
-            <div className="flex items-center gap-2 p-2 bg-green-50/50 rounded-lg border border-green-100/50">
-              <BookOpen className="w-4 h-4 text-green-600 flex-shrink-0" />
-              <span className="text-sm font-medium text-gray-700 truncate">
-                {targetParty.profile.education}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Matchmaker's reasoning highlight */}
-        <div className="relative p-4 bg-gradient-to-r from-cyan-50/50 to-blue-50/50 border border-cyan-100/50 rounded-xl">
-          <div className="flex items-start gap-3">
-            <Quote className="w-4 h-4 text-cyan-500 mt-1 flex-shrink-0" />
-            <div className="flex-1">
-              <h4 className="text-sm font-bold text-cyan-800 mb-1">
-                למה זו התאמה מיוחדת?
-              </h4>
-              <p className="text-sm text-cyan-700 leading-relaxed">
-                {reasonTeaser}
-              </p>
-            </div>
-          </div>
-
-          {/* זווית עיצובית */}
-          <div className="absolute top-0 right-0 w-6 h-6 bg-gradient-to-br from-cyan-200/50 to-blue-200/50 rounded-bl-xl"></div>
-        </div>
-
-        {/* CTA hint */}
-        <div className="text-center py-2">
-          <p className="text-xs text-gray-500 font-medium">
-            לחץ לפרטים מלאים ועוד תובנות
-          </p>
-        </div>
-      </CardContent>
 
       {!isHistory && (
         <CardFooter className="p-4 bg-gradient-to-r from-gray-50/50 to-slate-50/50 border-t border-gray-100">
