@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import React, { useState, useCallback, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
+import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Star, Heart, ThumbsUp } from "lucide-react";
+} from '@/components/ui/tooltip';
+import { Star, Heart, ThumbsUp } from 'lucide-react';
 
 interface ScaleOption {
   value: number;
@@ -37,8 +37,8 @@ interface InteractiveScaleProps {
     middle?: string;
   };
   options?: ScaleOption[];
-  mode?: "numeric" | "icons" | "hearts" | "stars" | "thumbs";
-  size?: "sm" | "md" | "lg";
+  mode?: 'numeric' | 'icons' | 'hearts' | 'stars' | 'thumbs';
+  size?: 'sm' | 'md' | 'lg';
   showLabels?: boolean;
   showValue?: boolean;
   showTooltips?: boolean;
@@ -47,6 +47,7 @@ interface InteractiveScaleProps {
   required?: boolean;
   name?: string;
   error?: string;
+  ariaLabelledby?: string; // הוסף את השורה הזו
 }
 
 const defaultIcons = {
@@ -65,16 +66,17 @@ export default function InteractiveScale({
   onComplete,
   labels,
   options,
-  mode = "numeric",
-  size = "md",
+  mode = 'numeric',
+  size = 'md',
   showLabels = true,
   showValue = true,
   showTooltips = true,
   isDisabled = false,
-  className = "",
+  className = '',
   required = false,
   name,
   error,
+  ariaLabelledby, // הוסף את השורה הזו
 }: InteractiveScaleProps) {
   const [internalValue, setInternalValue] = useState<number | null>(
     defaultValue || null
@@ -105,7 +107,7 @@ export default function InteractiveScale({
 
   const handleKeyPress = useCallback(
     (event: React.KeyboardEvent, itemValue: number) => {
-      if (event.key === "Enter" || event.key === " ") {
+      if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
         handleClick(itemValue);
       }
@@ -131,13 +133,13 @@ export default function InteractiveScale({
 
   useEffect(() => {
     if (isDragging) {
-      window.addEventListener("mousemove", handleMouseMove);
-      window.addEventListener("mouseup", () => setIsDragging(false));
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', () => setIsDragging(false));
     }
 
     return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", () => setIsDragging(false));
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', () => setIsDragging(false));
     };
   }, [isDragging, handleMouseMove]);
 
@@ -151,7 +153,7 @@ export default function InteractiveScale({
         label: i.toString(),
       };
 
-      if (mode !== "numeric") {
+      if (mode !== 'numeric') {
         const Icon = defaultIcons[mode as keyof typeof defaultIcons];
         item.icon = <Icon className="w-5 h-5" />;
       }
@@ -165,23 +167,23 @@ export default function InteractiveScale({
   const activeValue = hoveredValue !== null ? hoveredValue : value;
 
   const sizeClasses = {
-    sm: "h-8 text-sm",
-    md: "h-10 text-base",
-    lg: "h-12 text-lg",
+    sm: 'h-8 text-sm',
+    md: 'h-10 text-base',
+    lg: 'h-12 text-lg',
   };
 
   return (
     <div
       className={cn(
-        "relative space-y-2",
-        isDisabled && "opacity-50 cursor-not-allowed",
+        'relative space-y-2',
+        isDisabled && 'opacity-50 cursor-not-allowed',
         className
       )}
     >
       <div
         ref={containerRef}
         className={cn(
-          "relative flex items-center justify-between gap-1",
+          'relative flex items-center justify-between gap-1',
           sizeClasses[size]
         )}
         onMouseDown={() => !isDisabled && setIsDragging(true)}
@@ -203,16 +205,16 @@ export default function InteractiveScale({
                     <motion.button
                       type="button"
                       className={cn(
-                        "relative flex items-center justify-center",
-                        "w-8 h-8 rounded-full transition-colors",
-                        "focus:outline-none focus:ring-2 focus:ring-offset-2",
+                        'relative flex items-center justify-center',
+                        'w-8 h-8 rounded-full transition-colors',
+                        'focus:outline-none focus:ring-2 focus:ring-offset-2',
                         activeValue !== null &&
                           item.value <= activeValue &&
-                          "bg-blue-500 text-white",
+                          'bg-blue-500 text-white',
                         activeValue !== null &&
                           item.value > activeValue &&
-                          "bg-gray-200",
-                        isDisabled && "cursor-not-allowed"
+                          'bg-gray-200',
+                        isDisabled && 'cursor-not-allowed'
                       )}
                       onClick={() => handleClick(item.value)}
                       onKeyDown={(e) => handleKeyPress(e, item.value)}
@@ -253,7 +255,7 @@ export default function InteractiveScale({
         <input
           type="hidden"
           name={name}
-          value={value || ""}
+          value={value || ''}
           required
           aria-hidden="true"
         />

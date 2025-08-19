@@ -288,6 +288,7 @@ export default function AnswerInput({
             // ניתן להוסיף props נוספים ל-InteractiveScale כאן אם הוגדרו ב-Question
             // labels={question.labels}
             // descriptions={question.descriptions}
+            ariaLabelledby={question.id} // הוסף את השורה הזו
           />
         );
 
@@ -1075,144 +1076,147 @@ export default function AnswerInput({
         const isOverAllocated = pointsDifference < 0;
 
         return (
-          <div className="space-y-4">
-            {question.categories?.map((category) => {
-              const categoryValue = budgetValues[category.label] || 0;
-              const isActive = categoryValue > 0;
+          <fieldset className="space-y-4 border-none p-0 m-0">
+            <legend className="sr-only">{question.question}</legend>
+            <div className="space-y-4">
+              {question.categories?.map((category) => {
+                const categoryValue = budgetValues[category.label] || 0;
+                const isActive = categoryValue > 0;
 
-              return (
-                <motion.div
-                  key={category.label}
-                  className="space-y-2"
-                  whileHover={{ scale: 1.01 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <div className="flex justify-between items-center">
-                    <Label className="flex items-center gap-2 text-sm font-medium">
-                      {category.icon && (
-                        <motion.div
-                          animate={{ scale: isActive ? 1.1 : 1 }}
-                          className={cn('text-blue-600')}
-                        >
-                          {category.icon}
-                        </motion.div>
-                      )}
-                      {category.label}
-                    </Label>
-                    <Badge
-                      variant="outline"
+                return (
+                  <motion.div
+                    key={category.label}
+                    className="space-y-2"
+                    whileHover={{ scale: 1.01 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <div className="flex justify-between items-center">
+                      <Label className="flex items-center gap-2 text-sm font-medium">
+                        {category.icon && (
+                          <motion.div
+                            animate={{ scale: isActive ? 1.1 : 1 }}
+                            className={cn('text-blue-600')}
+                          >
+                            {category.icon}
+                          </motion.div>
+                        )}
+                        {category.label}
+                      </Label>
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          'transition-all text-sm px-2 py-0.5',
+                          isActive
+                            ? 'bg-blue-100 text-blue-800 border-blue-200'
+                            : 'bg-gray-100 text-gray-600 border-gray-200'
+                        )}
+                      >
+                        {categoryValue.toFixed(0)}
+                        {question.totalPoints ? '' : '%'}
+                      </Badge>
+                    </div>
+                    <Slider
+                      value={[categoryValue]}
+                      min={category.min ?? 0}
+                      max={category.max ?? totalPointsRequired}
+                      step={1}
+                      onValueChange={(newValues: number[]) => {
+                        const currentOthersTotal =
+                          totalAllocatedPoints - categoryValue;
+                        const newValue = Math.min(
+                          newValues[0],
+                          totalPointsRequired - currentOthersTotal
+                        );
+                        handleValueChange({
+                          ...budgetValues,
+                          [category.label]: newValue,
+                        });
+                      }}
                       className={cn(
-                        'transition-all text-sm px-2 py-0.5',
+                        'py-1',
                         isActive
-                          ? 'bg-blue-100 text-blue-800 border-blue-200'
-                          : 'bg-gray-100 text-gray-600 border-gray-200'
+                          ? '[&>span:first-child]:bg-blue-600'
+                          : '[&>span:first-child]:bg-gray-300'
                       )}
-                    >
-                      {categoryValue.toFixed(0)}
-                      {question.totalPoints ? '' : '%'}
-                    </Badge>
-                  </div>
-                  <Slider
-                    value={[categoryValue]}
-                    min={category.min ?? 0}
-                    max={category.max ?? totalPointsRequired}
-                    step={1}
-                    onValueChange={(newValues: number[]) => {
-                      const currentOthersTotal =
-                        totalAllocatedPoints - categoryValue;
-                      const newValue = Math.min(
-                        newValues[0],
-                        totalPointsRequired - currentOthersTotal
-                      );
-                      handleValueChange({
-                        ...budgetValues,
-                        [category.label]: newValue,
-                      });
-                    }}
-                    className={cn(
-                      'py-1',
-                      isActive
-                        ? '[&>span:first-child]:bg-blue-600'
-                        : '[&>span:first-child]:bg-gray-300'
+                      aria-label={`הקצאת נקודות עבור ${category.label}`}
+                    />
+                    {category.description && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        {category.description}
+                      </p>
                     )}
-                    aria-label={`הקצאת נקודות עבור ${category.label}`}
-                  />
-                  {category.description && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      {category.description}
-                    </p>
-                  )}
-                </motion.div>
-              );
-            })}
-            <div
-              className={cn(
-                'flex justify-between items-center p-3 rounded-lg border mt-4',
-                isAllocationComplete
-                  ? 'bg-green-50 border-green-200'
-                  : isOverAllocated
-                    ? 'bg-red-50 border-red-200'
-                    : 'bg-blue-50 border-blue-200'
-              )}
-            >
-              <div className="text-sm">
-                סה״כ הוקצה:{' '}
-                <span
-                  className={cn(
-                    'font-bold',
-                    isAllocationComplete
-                      ? 'text-green-700'
-                      : isOverAllocated
-                        ? 'text-red-700'
-                        : 'text-blue-700'
-                  )}
-                >
-                  {totalAllocatedPoints} / {totalPointsRequired}
-                </span>
-                {!isAllocationComplete && (
+                  </motion.div>
+                );
+              })}
+              <div
+                className={cn(
+                  'flex justify-between items-center p-3 rounded-lg border mt-4',
+                  isAllocationComplete
+                    ? 'bg-green-50 border-green-200'
+                    : isOverAllocated
+                      ? 'bg-red-50 border-red-200'
+                      : 'bg-blue-50 border-blue-200'
+                )}
+              >
+                <div className="text-sm">
+                  סה״כ הוקצה:{' '}
                   <span
                     className={cn(
-                      'text-xs ml-2',
-                      isOverAllocated ? 'text-red-600' : 'text-amber-600'
+                      'font-bold',
+                      isAllocationComplete
+                        ? 'text-green-700'
+                        : isOverAllocated
+                          ? 'text-red-700'
+                          : 'text-blue-700'
                     )}
                   >
-                    (
-                    {pointsDifference > 0
-                      ? `חסר ${pointsDifference}`
-                      : `עודף ${Math.abs(pointsDifference)}`}
-                    )
+                    {totalAllocatedPoints} / {totalPointsRequired}
                   </span>
-                )}
+                  {!isAllocationComplete && (
+                    <span
+                      className={cn(
+                        'text-xs ml-2',
+                        isOverAllocated ? 'text-red-600' : 'text-amber-600'
+                      )}
+                    >
+                      (
+                      {pointsDifference > 0
+                        ? `חסר ${pointsDifference}`
+                        : `עודף ${Math.abs(pointsDifference)}`}
+                      )
+                    </span>
+                  )}
+                </div>
+                {totalAllocatedPoints > 0 &&
+                  (!question.isRequired || isAllocationComplete) && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleClear}
+                      className="text-xs text-red-500 hover:text-red-700 hover:bg-red-50"
+                      aria-label="אפס הקצאה"
+                    >
+                      <Eraser className="w-3.5 h-3.5 mr-1" /> אפס הכל
+                    </Button>
+                  )}
               </div>
-              {totalAllocatedPoints > 0 &&
-                (!question.isRequired || isAllocationComplete) && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleClear}
-                    className="text-xs text-red-500 hover:text-red-700 hover:bg-red-50"
-                    aria-label="אפס הקצאה"
+              {/* --- START: הוספת הצגת שגיאה כאן --- */}
+              <AnimatePresence>
+                {validationError && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="mt-2 p-2 bg-red-50 border border-red-200 text-red-700 text-sm rounded-md flex items-center gap-2"
                   >
-                    <Eraser className="w-3.5 h-3.5 mr-1" /> אפס הכל
-                  </Button>
+                    <AlertCircle className="h-4 w-4" />
+                    <span>{validationError}</span>
+                  </motion.div>
                 )}
+              </AnimatePresence>
+              {/* --- END: הוספת הצגת שגיאה כאן --- */}
             </div>
-            {/* --- START: הוספת הצגת שגיאה כאן --- */}
-            <AnimatePresence>
-              {validationError && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="mt-2 p-2 bg-red-50 border border-red-200 text-red-700 text-sm rounded-md flex items-center gap-2"
-                >
-                  <AlertCircle className="h-4 w-4" />
-                  <span>{validationError}</span>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            {/* --- END: הוספת הצגת שגיאה כאן --- */}
-          </div>
+          </fieldset>
         );
 
       default:

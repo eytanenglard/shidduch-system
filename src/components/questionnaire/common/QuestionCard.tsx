@@ -170,9 +170,10 @@ export default function QuestionCard({
       variants={cardVariants}
     >
       <Card
+        role="region"
+        aria-labelledby={question.id}
         className={cn(
           'transition-all duration-300 shadow-lg rounded-xl overflow-hidden border',
-          'bg-white',
           isDisabled ? 'opacity-75 cursor-not-allowed' : 'hover:shadow-xl',
           `border-t-4 ${themeClasses.border}`,
           className
@@ -267,7 +268,10 @@ export default function QuestionCard({
           </div>
 
           <motion.div variants={contentVariants}>
-            <h2 className="text-xl sm:text-2xl font-semibold mt-3 text-slate-800 leading-snug">
+            <h2
+              id={question.id}
+              className="text-xl sm:text-2xl font-semibold mt-3 text-slate-800 leading-snug"
+            >
               {question.question}
             </h2>
           </motion.div>
@@ -309,7 +313,8 @@ export default function QuestionCard({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
               >
-                <Alert variant="destructive" className="py-2">
+                <Alert role="alert" variant="destructive" className="py-2">
+                  {' '}
                   <AlertCircle className="h-4 w-4 mr-2" />
                   <AlertDescription className="text-sm">
                     {validationError}

@@ -1292,7 +1292,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                         אין פילטרים שמורים
                       </h3>
                       <p className="text-gray-600 mb-6 max-w-sm mx-auto">
-                        שמור את הפילטר הנוכחי ע"י לחיצה על כפתור השמירה
+                        שמור את הפילטר הנוכחי ע&quot;י לחיצה על כפתור השמירה
                       </p>
                       <Button
                         onClick={() => setShowSavePreset(true)}
