@@ -5929,7 +5929,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { MatchSuggestionStatus, Prisma, UserRole } from '@prisma/client';
-import { suggestionService } from '@/app/components/matchmaker/suggestions/services/suggestions/SuggestionService';
+import { suggestionService } from '@/components/matchmaker/suggestions/services/suggestions/SuggestionService';
 import { updateUserAiProfile } from '@/lib/services/profileAiService';
 import type { CreateSuggestionData } from '@/types/suggestions';
 
@@ -6289,7 +6289,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { UserRole } from "@prisma/client";
-import { SuggestionService } from "@/app/components/matchmaker/suggestions/services/suggestions/SuggestionService";
+import { SuggestionService } from "@/components/matchmaker/suggestions/services/suggestions/SuggestionService";
 
 export async function PATCH(
   req: NextRequest,
@@ -6512,7 +6512,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { MatchSuggestionStatus, UserRole } from "@prisma/client";
-import { initNotificationService } from "@/app/components/matchmaker/suggestions/services/notification/initNotifications";
+import { initNotificationService } from "@/components/matchmaker/suggestions/services/notification/initNotifications";
 
 // Initialize the notification service
 const notificationService = initNotificationService();
@@ -6654,7 +6654,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { UserRole, MatchSuggestionStatus } from "@prisma/client";
-import { initNotificationService } from "@/app/components/matchmaker/suggestions/services/notification/initNotifications";
+import { initNotificationService } from "@/components/matchmaker/suggestions/services/notification/initNotifications";
 
 // Initialize the notification service
 const notificationService = initNotificationService();
@@ -6803,7 +6803,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { UserRole, MatchSuggestionStatus } from "@prisma/client";
-import { StatusTransitionService } from "@/app/components/matchmaker/suggestions/services/suggestions/StatusTransitionService";
+import { StatusTransitionService } from "@/components/matchmaker/suggestions/services/suggestions/StatusTransitionService";
 
 // Initialize the notification service
 
@@ -6946,7 +6946,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { UserRole, MatchSuggestionStatus } from "@prisma/client";
-import { StatusTransitionService } from "@/app/components/matchmaker/suggestions/services/suggestions/StatusTransitionService";
+import { StatusTransitionService } from "@/components/matchmaker/suggestions/services/suggestions/StatusTransitionService";
 
 export async function POST(
   req: NextRequest,
@@ -7452,7 +7452,7 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 // ADDED: Import the ExtendedSuggestionInquiry type
 import type { FeedItem, FeedItemType, ExtendedSuggestionInquiry } from "@/types/messages";
-import type { ExtendedMatchSuggestion } from "@/app/components/suggestions/types";
+import type { ExtendedMatchSuggestion } from "@/components/suggestions/types";
 import { MatchSuggestionStatus, UserRole } from "@prisma/client";
 
 export const dynamic = 'force-dynamic';
@@ -10798,7 +10798,7 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { MatchSuggestionStatus, MatchSuggestion, UserRole } from "@prisma/client";
-import { statusTransitionService } from "@/app/components/matchmaker/suggestions/services/suggestions/StatusTransitionService";
+import { statusTransitionService } from "@/components/matchmaker/suggestions/services/suggestions/StatusTransitionService";
 
 // Validation schema for status update
 const statusUpdateSchema = z.object({
@@ -11106,7 +11106,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { formatAnswers, KEY_MAPPING, DbWorldKey, FormattedAnswersType } from '@/lib/questionnaireFormatter';
-import type { ExtendedMatchSuggestion, PartyInfo, QuestionnaireResponse } from "@/app/components/suggestions/types";
+import type { ExtendedMatchSuggestion, PartyInfo, QuestionnaireResponse } from "@/components/suggestions/types";
 import type { FormattedAnswer, WorldId } from "@/types/next-auth";
 export const dynamic = 'force-dynamic';
 // --- טיפוסים חזקים ומדויקים לתהליך העיבוד ---
@@ -11221,7 +11221,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { formatAnswers, KEY_MAPPING, DbWorldKey, FormattedAnswersType } from '@/lib/questionnaireFormatter';
-import type { ExtendedMatchSuggestion, PartyInfo, QuestionnaireResponse, WorldId } from "@/app/components/suggestions/types";
+import type { ExtendedMatchSuggestion, PartyInfo, QuestionnaireResponse, WorldId } from "@/components/suggestions/types";
 import type { FormattedAnswer } from "@/types/next-auth";
 export const dynamic = 'force-dynamic';
 // --- טיפוסים חזקים ומדויקים לתהליך העיבוד ---

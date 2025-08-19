@@ -5,7 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { UserRole, MatchSuggestionStatus } from "@prisma/client";
-import { StatusTransitionService } from "@/app/components/matchmaker/suggestions/services/suggestions/StatusTransitionService";
+import { StatusTransitionService } from "@/components/matchmaker/suggestions/services/suggestions/StatusTransitionService";
 
 // Initialize the notification service
 

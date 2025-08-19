@@ -5,7 +5,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { MatchSuggestionStatus, Prisma, UserRole } from '@prisma/client';
-import { suggestionService } from '@/app/components/matchmaker/suggestions/services/suggestions/SuggestionService';
+import { suggestionService } from '@/components/matchmaker/suggestions/services/suggestions/SuggestionService';
 import { updateUserAiProfile } from '@/lib/services/profileAiService';
 import type { CreateSuggestionData } from '@/types/suggestions';
 

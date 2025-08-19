@@ -1,4 +1,5 @@
-// src/components/HomePage/HomePage.tsx (מעודכן עם CookieBanner)
+// src/components/HomePage/HomePage.tsx
+
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -20,17 +21,23 @@ import FooterSection from './sections/FooterSection';
 import Navbar from '../layout/Navbar';
 import ChatWidget from '../ChatWidget/ChatWidget';
 import StickyNav, { NavLink } from './components/StickyNav';
-import CookieBanner from '../ui/CookieBanner'; // הוספת CookieBanner
+import CookieBanner from '../ui/CookieBanner';
 
-const navLinks: NavLink[] = [
-  { id: 'how-it-works', label: 'המסע שלכם' },
-  { id: 'suggestion-demo', label: 'כך נראית הצעה' },
-  { id: 'success-stories', label: 'סיפורי הצלחה' },
-  { id: 'our-team', label: 'הצוות שלנו' },
-  { id: 'faq', label: 'שאלות נפוצות' },
-];
+// ✨ 1. הרחבת הטיפוס כך שיכלול את המפתחות החדשים
+type Dictionary = {
+  navbar: any;
+  heroSection: any;
+  valueProposition: any;
+  ourMethod: any; // הוספנו
+  howItWorks: any; // הוספנו
+  // נוסיף כאן את שאר החלקים כשנתרגם אותם
+};
 
-export default function HomePage() {
+interface HomePageProps {
+  dict: Dictionary;
+}
+
+export default function HomePage({ dict }: HomePageProps) {
   const { data: session } = useSession();
   const [isVisible, setIsVisible] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -52,9 +59,16 @@ export default function HomePage() {
     setIsVisible(true);
   }, []);
 
+  const navLinks: NavLink[] = [
+    { id: 'how-it-works', label: 'המסע שלכם' },
+    { id: 'suggestion-demo', label: 'כך נראית הצעה' },
+    { id: 'success-stories', label: 'סיפורי הצלחה' },
+    { id: 'our-team', label: 'הצוות שלנו' },
+    { id: 'faq', label: 'שאלות נפוצות' },
+  ];
+
   return (
     <div className="min-h-screen w-full overflow-x-hidden">
-      {/* הNavbar הראשי */}
       <div
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out ${
           isScrolled
@@ -62,17 +76,17 @@ export default function HomePage() {
             : 'opacity-100'
         }`}
       >
-        <Navbar />
       </div>
 
-      {/* הStickyNav */}
       <StickyNav navLinks={navLinks} session={session} />
 
-      {/* Page Sections */}
-      <HeroSection session={session} isVisible={isVisible} />
-      <ValuePropositionSection />
-      <OurMethodSection />
-      <HowItWorksSection />
+      <HeroSection session={session} isVisible={isVisible} dict={dict.heroSection} />
+      <ValuePropositionSection dict={dict.valueProposition} />
+      
+      {/* ✨ 2. העברת המילון לרכיבים המעודכנים */}
+      <OurMethodSection dict={dict.ourMethod} />
+      <HowItWorksSection dict={dict.howItWorks} />
+
       <MatchmakerTeamSection />
       <SuccessStoriesSection />
       <FAQSection />
@@ -80,10 +94,7 @@ export default function HomePage() {
       <CTASection />
       <FooterSection />
 
-      {/* Floating components */}
       <ChatWidget />
-
-      {/* CookieBanner - רק בדף הבית */}
       <CookieBanner />
     </div>
   );

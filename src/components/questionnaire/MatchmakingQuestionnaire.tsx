@@ -13,7 +13,7 @@ import QuestionnaireLayout from './layout/QuestionnaireLayout';
 import Welcome from './onboarding/Welcome';
 import WorldComponent from './worlds/WorldComponent';
 import QuestionnaireCompletion from './common/QuestionnaireCompletion';
-import { useLanguage } from '@/app/contexts/LanguageContext';
+import { useLanguage } from '@/app/[locale]/contexts/LanguageContext';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 import WorldsMap from './layout/WorldsMap';

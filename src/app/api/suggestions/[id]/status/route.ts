@@ -6,7 +6,7 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { MatchSuggestionStatus, MatchSuggestion, UserRole } from "@prisma/client";
-import { statusTransitionService } from "@/app/components/matchmaker/suggestions/services/suggestions/StatusTransitionService";
+import { statusTransitionService } from "@/components/matchmaker/suggestions/services/suggestions/StatusTransitionService";
 
 // Validation schema for status update
 const statusUpdateSchema = z.object({

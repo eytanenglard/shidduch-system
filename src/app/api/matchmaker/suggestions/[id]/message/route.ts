@@ -5,7 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { MatchSuggestionStatus, UserRole } from "@prisma/client";
-import { initNotificationService } from "@/app/components/matchmaker/suggestions/services/notification/initNotifications";
+import { initNotificationService } from "@/components/matchmaker/suggestions/services/notification/initNotifications";
 
 // Initialize the notification service
 const notificationService = initNotificationService();

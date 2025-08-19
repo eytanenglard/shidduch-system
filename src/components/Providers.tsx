@@ -2,7 +2,7 @@
 "use client";
 
 import { SessionProvider } from "next-auth/react";
-import { NotificationProvider } from "@/app/contexts/NotificationContext";
+import { NotificationProvider } from "@/app/[locale]/contexts/NotificationContext";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ReactNode } from "react";
 // --- START: ייבואים חדשים (עם הוספת Launcher) ---

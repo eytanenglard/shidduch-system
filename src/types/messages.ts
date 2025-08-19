@@ -6,7 +6,7 @@ import type {
   AvailabilityInquiry as PrismaAvailabilityInquiry,
   SuggestionInquiry as PrismaSuggestionInquiry 
 } from '@prisma/client';
-import type { ExtendedMatchSuggestion } from "@/app/components/suggestions/types";
+import type { ExtendedMatchSuggestion } from "@/components/suggestions/types";
 
 // 1. סוגי הפריטים האפשריים בפיד הפעילות המאוחד
 export type FeedItemType =

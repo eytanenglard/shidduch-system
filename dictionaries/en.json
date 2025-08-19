@@ -1,0 +1,190 @@
+{
+  "metadata": {
+    "title": "NeshamaTech | Where Soul Meets Technology",
+    "description": "Relationships that start with the soul. At NeshamaTech, we use advanced technology and personal guidance to uncover true compatibility beyond the profile."
+  },
+  "navbar": {
+    "myMatches": "My Matches",
+    "matchmakingQuestionnaire": "Questionnaire",
+    "messages": "Messages",
+    "login": "Sign In",
+    "register": "Sign Up",
+    "toQuestionnaire": "To the Smart Questionnaire"
+  },
+  "heroSection": {
+    "titleLine1": "A relationship that starts",
+    "highlightedWord": "with the soul",
+    "typewriterText": "In a world where dating suggestions often boil down to a photo and a generic description, we believe in a different path. We've created a personal journey of getting to know you, starting with our unique questionnaire. It allows us to understand you deeply, enabling us to provide match suggestions that are far more than dry details – they are a complete story, empowering you to make a decision from a place of true understanding.",
+    "ctaButton": "Take My First Step",
+        "synergy": {
+      "techTools": "Smart Tools",
+      "personalGuidance": "Personal Guidance"
+    },
+    "secondaryButton": "To the Questionnaire",
+    "principlesHeader": { "title": "Our Approach", "subtitle": "Three core principles that ensure a deep and genuine experience" },
+    "principles": [
+      { "title": "More Than a Picture, a Full Story", "shortTitle": "Full Story", "description": "Our in-depth questionnaire translates who you are into a rich narrative, allowing for a genuine connection from the very first moment." },
+      { "title": "Complete Privacy, Total Control", "shortTitle": "Complete Privacy", "description": "Your profile is only visible to your personal matchmaker. Every step and sharing of information is done only with your explicit approval." },
+      { "title": "Smart Technology, Human Heart", "shortTitle": "Human Heart", "description": "The power of our system is in the hands of an experienced matchmaker. They use the tools to see the person and personally guide you to success." }
+    ]
+  },
+  "valueProposition": {
+    "title_part1": "What Makes",
+    "title_brand": "NeshamaTech",
+    "title_part2": "Unique?",
+    "subtitle": "Our approach combines the power of smart technology with the warmth, experience, and personal guidance of professional matchmaking.",
+    "challengeCard": {
+      "title": "The Relationship Journey Challenges We All Know",
+      "items": [
+        "Feeling overexposed and like a 'product on a shelf' in apps",
+        "Generic platforms that don't understand the important nuances of the religious and traditional world",
+        "Wasting time and energy on superficial conversations and irrelevant suggestions",
+        "Limited introductions only within one's immediate circle of friends",
+        "Traditional matchmaking that is sometimes limited by its database and slow processes"
+      ]
+    },
+    "solutionCard": {
+      "title": "The NeshamaTech Approach: Technology at the Service of the Heart",
+      "items": [
+        { "bold": "Wide Database, Focused Search:", "text": "Our system scans a broad and high-quality pool of candidates, allowing matchmakers to present you with precise opportunities you might not have otherwise encountered." },
+        { "bold": "Warm Personal Guidance:", "text": "You are not alone. A personal matchmaker accompanies you, gets to know you deeply, and advises you at every stage of the journey." },
+        { 
+          "bold": "Truly Deep Compatibility:",
+          "textWithLink": {
+            "part1": "A smart algorithm analyzes dozens of compatibility dimensions, based on your answers in our ",
+            "linkText": "unique questionnaire",
+            "part2": ", to uncover connections on a level of shared values and personality."
+          }
+        },
+        { "bold": "Absolute Discretion:", "text": "Your profile remains confidential and is shown only to the matchmakers on the team. No detail is revealed to the other party without your explicit approval." },
+        { "bold": "Respect for Tradition, Tools of Tomorrow:", "text": "A platform that understands and respects your world of values, and uses technology to make the search more efficient and respectful." }
+      ]
+    }
+  },
+ "ourMethod": {
+    "constellation": {
+      "header": "Our Human Approach",
+      "title_part1": "We see the person",
+      "title_part2": "behind the profile",
+      "subtitle": "To find a true match, we need to truly know you. That's why we developed a unique method that explores five key worlds that make up who you are. This is how we find a complete connection, not a partial one.",
+      "cta_header": "Your Moment Has Arrived",
+      "cta_title_part1": "Ready to start your",
+      "cta_title_part2": "journey",
+      "cta_subtitle": "Our unique questionnaire is the first step. It's not technical; it's personal. This is your opportunity to tell us your story, so we can find its next chapter.",
+      "cta_button": "I want to start my journey",
+      "cta_features": "Personal Experience • Insights for You • Completely Discreet",
+      "worlds": [
+        {
+          "title": "Personality World",
+          "shortDesc": "The person behind the details",
+          "fullDescription": "Here we understand who you really are: what motivates you, how you handle challenges, and your communication style. This is the foundation for creating an authentic and complete picture for us and for the other side.",
+          "personalExample": "How would you divide 100 'personality points' between traits like empathy, ambition, and a sense of humor?",
+          "insight": "A deep understanding of personality allows us to find someone with whom the dynamic will feel natural and right from the first moment."
+        },
+        {
+          "title": "Values World",
+          "shortDesc": "The foundation of a shared home",
+          "fullDescription": "What are the pillars of your life? Here we define the values and beliefs that guide you and serve as a compass for building a stable and shared home.",
+          "personalExample": "What are your priorities today, and how would you like them to look within a relationship?",
+          "insight": "Value alignment is the key to a stable, long-term relationship. This is the most crucial part for accurate filtering and preventing future heartache."
+        },
+        {
+          "title": "Relationship World",
+          "shortDesc": "Your vision for 'togetherness'",
+          "fullDescription": "What is a relationship to you, and what are your expectations from it? Here we'll understand your vision for partnership, from daily communication to shared dreams.",
+          "personalExample": "What is your preferred approach to managing joint finances in a relationship?",
+          "insight": "When visions for a relationship align, it's easier to start walking the same path together from the beginning."
+        },
+        {
+          "title": "Partner World",
+          "shortDesc": "Defining your desired match",
+          "fullDescription": "Who is the person you are looking for? In this world, we will focus the search and understand what traits, background, and values are essential for you in a partner.",
+          "personalExample": "What are your absolute 'Deal Breakers' in a partner?",
+          "insight": "A precise definition of what you're looking for allows us to conduct an efficient and smart search, saving you from irrelevant suggestions."
+        },
+        {
+          "title": "Religion & Tradition",
+          "shortDesc": "Your spiritual connection",
+          "fullDescription": "What is your connection to Judaism and how is it expressed in your life? Here we'll detail your identity, your views, and your vision for a Jewish home.",
+          "personalExample": "What kind of religious/Torah education would you want to provide for your children?",
+          "insight": "Spiritual and religious compatibility is critical in our community. Precise answers here are the key to building a faithful home in Israel on a shared and stable foundation."
+        }
+      ]
+    }
+  },
+  "howItWorks": {
+    "promise": {
+      "header": "Smart Method, Human Result",
+      "title_line1": "From a brave decision,",
+      "title_line2_part1": "to a",
+      "title_line2_part2": "match that feels right",
+      "subtitle_line1": "We understand your journey. That's why we built a process that combines smart technology with warm, human guidance.",
+      "subtitle_line2": "Our shared goal: to lead you to the exciting moment when you receive a suggestion and immediately understand why it's right for you."
+    },
+    "process": {
+      "steps": [
+        {
+          "title": "Step 1: Personal Discovery Journey",
+          "description": "This is the heart of our method. Not just a form, but an invitation to a personal journey that reveals what truly matters to you. Your in-depth answers are our compass for finding meaningful matches.",
+          "linkText": "Start your journey here."
+        },
+        {
+          "title": "Step 2: Building a Winning Profile",
+          "description": "Your personal matchmaker studies your profile, and our smart system offers insights for improvement. Together, we ensure your story is told in the best and most accurate way."
+        },
+        {
+          "title": "Step 3: Tech Meets Intuition",
+          "description": "Our algorithm filters thousands of possibilities to find potential. Then, your matchmaker steps in with experience and human intuition to approve only the most promising suggestions."
+        },
+        {
+          "title": "Step 4: From Reasoned Match to Great Date",
+          "description": "You'll receive suggestions with a clear reason – 'Why we believe this could work'. From there, we guide you through the initial communication, provide support, and listen to your feedback."
+        }
+      ]
+    },
+    "proof": {
+      "header": "The Result: This is What it Looks Like",
+      "title_part1": "This is what a match",
+      "title_part2": "built for you looks like",
+      "subtitle": "After completing the process, every suggestion comes with clear reasoning and a rich background, so you can make a decision from a place of true understanding, not just a gut feeling.",
+      "demo_female": "Example: A match for a woman",
+      "demo_male": "Example: A match for a man"
+    },
+    "keyBenefits": {
+      "title_part1": "Our Approach,",
+      "title_part2": "Your Advantage",
+      "benefits": [
+        {
+          "title": "Efficiency and Focus",
+          "description": "Save time and energy. Our system filters only the most relevant suggestions for you, so you can focus on what truly matters."
+        },
+        {
+          "title": "Uncompromising Quality",
+          "description": "Every suggestion undergoes a dual check: a rigorous algorithmic screening and a final approval by an experienced matchmaker. No 'by the way' suggestions."
+        },
+        {
+          "title": "A System That Learns You",
+          "description": "Our smart system learns from your feedback and improves with every interaction, making future suggestions even more accurate."
+        },
+        {
+          "title": "You're Not Alone",
+          "description": "A personal matchmaker accompanies you, is available for questions, provides tools, and offers support from the very first moment until you find your match."
+        }
+      ]
+    },
+    "testimonial": {
+      "header": "The Journey Behind NeshamaTech",
+      "quote": "“My personal journey, and the stories I heard from friends, made it clear how lonely and frustrating the path to finding a partner can be. I founded NeshamaTech out of a deep personal desire to create a different kind of place—one that understands the sensitivity, respects the process, and puts the person at the center. That's why your success is my personal mission.”",
+      "author_name": "Eytan Englerd",
+      "author_role": "Founder of NeshamaTech"
+    },
+    "finalCta": {
+      "title_line1": "The next step in your journey",
+      "title_line2": "begins with an introduction",
+      "subtitle_line1": "You've seen our approach. Now we'd love to get to know your story.",
+      "subtitle_line2": "The initial registration allows us to start understanding you deeply, with no commitment.",
+      "button": "I want to begin",
+      "features": "Free Initial Sign-Up • No Commitment"
+    }
+  }
+}

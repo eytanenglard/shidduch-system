@@ -5,7 +5,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import type { FeedItem, FeedItemType, ExtendedSuggestionInquiry } from "@/types/messages";
-import type { ExtendedMatchSuggestion } from "@/app/components/suggestions/types";
+import type { ExtendedMatchSuggestion } from "@/components/suggestions/types";
 import { MatchSuggestionStatus, UserRole } from "@prisma/client";
 
 export const dynamic = 'force-dynamic';

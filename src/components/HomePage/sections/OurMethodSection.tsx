@@ -25,31 +25,48 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { getRelativeCloudinaryPath } from '@/lib/utils';
+import { usePathname } from 'next/navigation';
 
-interface WorldData {
-  id: number;
-  icon: React.ReactNode;
+// --- START: Type Definitions ---
+interface WorldDict {
   title: string;
   shortDesc: string;
   fullDescription: string;
-  color: string;
-  gradientFrom: string;
-  gradientTo: string;
-  angle: number;
   personalExample: string;
   insight: string;
 }
 
-interface ConstellationLine {
-  id: string;
-  x1: number;
-  y1: number;
-  x2: number;
-  y2: number;
-  opacity: number;
+interface OurMethodDict {
+  constellation: {
+    header: string;
+    title_part1: string;
+    title_part2: string;
+    subtitle: string;
+    cta_header: string;
+    cta_title_part1: string;
+    cta_title_part2: string;
+    cta_subtitle: string;
+    cta_button: string;
+    cta_features: string;
+    worlds: WorldDict[];
+  };
 }
 
-const MatchingConstellation: React.FC = () => {
+interface OurMethodProps {
+  dict: OurMethodDict;
+}
+
+interface WorldData extends WorldDict {
+  id: number;
+  icon: React.ReactNode;
+  color: string;
+  gradientFrom: string;
+  gradientTo: string;
+  angle: number;
+}
+// --- END: Type Definitions ---
+
+const MatchingConstellation: React.FC<{ dict: OurMethodDict['constellation'], locale: string }> = ({ dict, locale }) => {
   const [hoveredWorld, setHoveredWorld] = useState<number | null>(null);
   const [selectedWorld, setSelectedWorld] = useState<number>(1);
   const [isAutoPlaying, setIsAutoPlaying] = useState<boolean>(true);
@@ -75,86 +92,27 @@ const MatchingConstellation: React.FC = () => {
   const worlds: WorldData[] = useMemo(
     () => [
       {
-        id: 1,
-        icon: <User className="w-6 h-6 md:w-8 md:h-8" />,
-        title: 'עולם האישיות',
-        shortDesc: 'האדם שמאחורי הפרטים',
-        fullDescription:
-          'כאן נבין מי את/ה באמת: מה מניע אותך, כיצד את/ה מתמודד/ת עם אתגרים, ומה סגנון התקשורת שלך. זהו הבסיס ליצירת תמונה אותנטית ומלאה עבורנו ועבור הצד השני.',
-        color: 'from-sky-400 to-blue-500',
-        gradientFrom: '#38bdf8',
-        gradientTo: '#3b82f6',
-        angle: -72,
-        personalExample:
-          "איך היית מחלק/ת 100 'נקודות אישיות' בין תכונות כמו אמפתיה, שאפתנות וחוש הומור?",
-        insight:
-          'הבנת האישיות לעומק מאפשרת לנו למצוא מישהו שהדינמיקה איתו תרגיש טבעית ונכונה מהרגע הראשון.',
+        id: 1, icon: <User className="w-6 h-6 md:w-8 md:h-8" />, ...dict.worlds[0],
+        color: 'from-sky-400 to-blue-500', gradientFrom: '#38bdf8', gradientTo: '#3b82f6', angle: -72,
       },
       {
-        id: 2,
-        icon: <Heart className="w-6 h-6 md:w-8 md:h-8" />,
-        title: 'עולם הערכים',
-        shortDesc: 'הבסיס לבית משותף',
-        fullDescription:
-          'מהם עמודי התווך של חייך? כאן נגדיר את הערכים והאמונות שמנחים אותך ומהווים מצפן לבניית בית משותף ויציב.',
-        color: 'from-rose-400 to-pink-500',
-        gradientFrom: '#fb7185',
-        gradientTo: '#ec4899',
-        angle: -144,
-        personalExample:
-          'איך נראים סדרי העדיפויות שלך היום, ואיך היית רוצה שייראו בתוך זוגיות?',
-        insight:
-          'התאמה ערכית היא המפתח לקשר יציב וארוך טווח. זהו החלק החשוב ביותר לסינון מדויק ומניעת עוגמת נפש עתידית.',
+        id: 2, icon: <Heart className="w-6 h-6 md:w-8 md:h-8" />, ...dict.worlds[1],
+        color: 'from-rose-400 to-pink-500', gradientFrom: '#fb7185', gradientTo: '#ec4899', angle: -144,
       },
       {
-        id: 3,
-        icon: <Users className="w-6 h-6 md:w-8 md:h-8" />,
-        title: 'עולם הזוגיות',
-        shortDesc: 'החזון שלכם ל"ביחד"',
-        fullDescription:
-          'מהי זוגיות עבורך ומהן ציפיותיך מהקשר? כאן נבין את החזון שלך לשותפות, החל מתקשורת יומיומית ועד לחלומות משותפים.',
-        color: 'from-emerald-400 to-teal-500',
-        gradientFrom: '#34d399',
-        gradientTo: '#14b8a6',
-        angle: 144,
-        personalExample: 'מהי הגישה המועדפת עליך לניהול כספים משותף בזוגיות?',
-        insight:
-          'כשהחזונות לזוגיות מתיישרים, קל יותר להתחיל לצעוד יחד באותו המסלול מההתחלה.',
+        id: 3, icon: <Users className="w-6 h-6 md:w-8 md:h-8" />, ...dict.worlds[2],
+        color: 'from-emerald-400 to-teal-500', gradientFrom: '#34d399', gradientTo: '#14b8a6', angle: 144,
       },
       {
-        id: 4,
-        icon: <UserCheck className="w-6 h-6 md:w-8 md:h-8" />,
-        title: 'עולם הפרטנר',
-        shortDesc: 'הגדרת ההתאמה הרצויה',
-        fullDescription:
-          'מי האדם שאת/ה מחפש/ת? בעולם זה נמקד את החיפוש ונבין מהן התכונות, הרקע והערכים החיוניים לך בבן/בת הזוג.',
-        color: 'from-violet-400 to-purple-500',
-        gradientFrom: '#a78bfa',
-        gradientTo: '#8b5cf6',
-        angle: 72,
-        personalExample:
-          'מהם ה"קווים האדומים" (Deal Breakers) המוחלטים עבורך אצל בן/בת זוג?',
-        insight:
-          'הגדרה מדויקת של מה שאת/ה מחפש/ת מאפשרת לנו לבצע חיפוש יעיל וחכם, ולחסוך לך הצעות שאינן רלוונטיות.',
+        id: 4, icon: <UserCheck className="w-6 h-6 md:w-8 md:h-8" />, ...dict.worlds[3],
+        color: 'from-violet-400 to-purple-500', gradientFrom: '#a78bfa', gradientTo: '#8b5cf6', angle: 72,
       },
       {
-        id: 5,
-        icon: <Scroll className="w-6 h-6 md:w-8 md:h-8" />,
-        title: 'דת ומסורת',
-        shortDesc: 'החיבור הרוחני שלכם',
-        fullDescription:
-          'מהו החיבור שלך ליהדות וכיצד הוא בא לידי ביטוי בחייך? כאן נפרט את זהותך, השקפתך והחזון שלך לבית יהודי.',
-        color: 'from-amber-400 to-orange-500',
-        gradientFrom: '#fbbf24',
-        gradientTo: '#f97316',
-        angle: 0,
-        personalExample:
-          'איזה סוג של בית וחינוך דתי/תורני היית רוצה להעניק לילדיך?',
-        insight:
-          'התאמה רוחנית ודתית היא קריטית במגזר. תשובות מדויקות כאן הן המפתח לבניית בית נאמן בישראל על בסיס משותף ויציב.',
+        id: 5, icon: <Scroll className="w-6 h-6 md:w-8 md:h-8" />, ...dict.worlds[4],
+        color: 'from-amber-400 to-orange-500', gradientFrom: '#fbbf24', gradientTo: '#f97316', angle: 0,
       },
     ],
-    []
+    [dict.worlds]
   );
 
   useEffect(() => {
@@ -193,6 +151,15 @@ const MatchingConstellation: React.FC = () => {
 
   const dimensions = getDimensions();
 
+  interface ConstellationLine {
+    id: string;
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+    opacity: number;
+  }
+  
   const generateConstellationLines = (): ConstellationLine[] => {
     const lines: ConstellationLine[] = [];
     const { center, radius } = dimensions;
@@ -281,20 +248,17 @@ const MatchingConstellation: React.FC = () => {
         <div className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-full px-6 md:px-8 py-3 md:py-4 shadow-md border border-gray-200 mb-6 md:mb-8">
           <Heart className="w-5 h-5 md:w-6 md:h-6 text-rose-500" />
           <span className="text-gray-700 font-medium text-base md:text-lg">
-            הגישה האנושית שלנו
+            {dict.header}
           </span>
         </div>
         <h3 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 mb-4 md:mb-6 leading-tight px-4">
-          אנחנו רואים את האדם
+          {dict.title_part1}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-violet-600">
-            {' '}
-            שמאחורי הפרופיל{' '}
+            {' '}{dict.title_part2}{' '}
           </span>
         </h3>
         <p className="text-lg md:text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed px-4">
-          כדי למצוא התאמה אמיתית, אנחנו צריכים להכיר אתכם באמת. לכן פיתחנו שיטה
-          ייחודית המתבוננת בחמישה עולמות מרכזיים שמרכיבים אתכם. כך אנחנו מוצאים
-          חיבור שלם, לא חלקי.
+          {dict.subtitle}
         </p>
       </motion.div>
 
@@ -625,7 +589,6 @@ const MatchingConstellation: React.FC = () => {
                   >
                     {displayedWorld.icon}
                   </div>
-                  {/* --- START: מיקום חדש לכפתור --- */}
                   <div className="flex-1">
                     <div className="flex justify-between items-start">
                       <h4 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">
@@ -667,7 +630,6 @@ const MatchingConstellation: React.FC = () => {
                       {displayedWorld.shortDesc}
                     </p>
                   </div>
-                  {/* --- END: מיקום חדש לכפתור --- */}
                 </div>
                 <p className="text-gray-700 leading-relaxed text-base md:text-lg mb-6 md:mb-8">
                   {displayedWorld.fullDescription}
@@ -707,6 +669,7 @@ const MatchingConstellation: React.FC = () => {
                       key={world.id}
                       onClick={() => handleWorldInteraction(world.id)}
                       className={`h-2 rounded-full transition-all duration-300 ${world.id === displayedWorld.id ? `bg-gradient-to-r ${displayedWorld.color} flex-1 min-w-[40px] md:min-w-[60px]` : 'bg-gray-200 w-4 md:w-6 hover:bg-gray-300'}`}
+                      aria-label={`Select ${world.title}`}
                     />
                   ))}
                 </div>
@@ -723,7 +686,6 @@ const MatchingConstellation: React.FC = () => {
         transition={{ duration: 0.8, delay: 1 }}
         className="text-center mt-12 md:mt-20 px-4 relative"
       >
-        {/* Background Elements */}
         <div className="absolute inset-0 -mx-4 overflow-hidden pointer-events-none">
           <div className="absolute top-10 left-1/4 w-20 h-20 bg-gradient-to-br from-rose-300/20 to-pink-400/15 rounded-full blur-xl animate-soft-float" />
           <div
@@ -737,14 +699,12 @@ const MatchingConstellation: React.FC = () => {
         </div>
 
         <div className="relative max-w-4xl mx-auto">
-          {/* Header with Icon */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={isInView ? { opacity: 1, scale: 1 } : {}}
             transition={{ duration: 0.6, delay: 1.2 }}
             className="inline-flex items-center gap-3 bg-gradient-to-r from-white/90 via-rose-50/80 to-white/90 backdrop-blur-sm rounded-full px-6 md:px-8 py-3 md:py-4 shadow-lg border border-white/60 mb-6 md:mb-8 relative overflow-hidden"
           >
-            {/* Animated background glow */}
             <div className="absolute inset-0 bg-gradient-to-r from-rose-400/10 via-violet-400/10 to-sky-400/10 rounded-full animate-pulse" />
 
             <motion.div
@@ -761,23 +721,21 @@ const MatchingConstellation: React.FC = () => {
               <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-rose-500 relative z-10" />
             </motion.div>
             <span className="text-gray-700 font-medium text-base md:text-lg relative z-10">
-              הרגע שלכם הגיע
+              {dict.cta_header}
             </span>
           </motion.div>
 
-          {/* Main Title */}
           <motion.h4
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8, delay: 1.4 }}
             className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800 mb-4 md:mb-6 relative"
           >
-            מוכנים להתחיל את{' '}
+            {dict.cta_title_part1}{' '}
             <span className="relative">
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 via-violet-600 to-sky-500">
-                המסע
+                {dict.cta_title_part2}
               </span>
-              {/* Animated underline */}
               <motion.div
                 className="absolute -bottom-1 left-0 right-0 h-1 bg-gradient-to-r from-rose-400 via-violet-500 to-sky-400 rounded-full"
                 initial={{ scaleX: 0 }}
@@ -789,48 +747,38 @@ const MatchingConstellation: React.FC = () => {
             ?
           </motion.h4>
 
-          {/* Description */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8, delay: 1.6 }}
             className="relative"
           >
-            {/* Background card effect */}
             <div className="absolute inset-0 bg-gradient-to-br from-white/60 via-rose-50/40 to-violet-50/30 backdrop-blur-sm rounded-3xl border border-white/50 shadow-lg -m-4" />
-
             <p className="text-base md:text-lg text-gray-600 mb-8 md:mb-10 leading-relaxed relative z-10 px-4">
-              השאלון הייחודי שלנו הוא הצעד הראשון. הוא לא טכני, הוא אישי.{' '}
-              <br className="hidden md:block" />
-              זו ההזדמנות שלכם לספר לנו את הסיפור שלכם, כדי שאנחנו נוכל למצוא את
-              הפרק הבא שלו.
+              {dict.cta_subtitle}
             </p>
           </motion.div>
 
-          {/* CTA Buttons */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8, delay: 1.8 }}
             className="flex flex-col sm:flex-row gap-4 md:gap-6 justify-center items-center"
           >
-            {/* Main CTA Button */}
-            <Link href="/questionnaire">
+            <Link href={`/${locale}/questionnaire`}>
               <motion.div
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.98 }}
                 className="relative group"
               >
-                {/* Button glow effect */}
                 <div className="absolute -inset-1 bg-gradient-to-r from-rose-500 via-violet-600 to-sky-500 rounded-3xl blur opacity-30 group-hover:opacity-50 transition-opacity duration-300" />
-
                 <Button
                   size="lg"
                   className="relative group bg-gradient-to-r from-rose-500 to-violet-600 hover:from-rose-600 hover:to-violet-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl px-6 md:px-8 py-3 md:py-4 text-base md:text-lg font-semibold w-full sm:w-auto border-0"
                 >
                   <span className="flex items-center gap-3 justify-center relative z-10">
                     <motion.span className="whitespace-nowrap">
-                      אני רוצה להתחיל את המסע שלי
+                      {dict.cta_button}
                     </motion.span>
                     <motion.div
                       className="flex-shrink-0"
@@ -844,8 +792,6 @@ const MatchingConstellation: React.FC = () => {
                       <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />
                     </motion.div>
                   </span>
-
-                  {/* Button shine effect */}
                   <motion.div
                     className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent rounded-2xl"
                     animate={{
@@ -863,7 +809,6 @@ const MatchingConstellation: React.FC = () => {
               </motion.div>
             </Link>
 
-            {/* Features List */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={isInView ? { opacity: 1, x: 0 } : {}}
@@ -884,12 +829,11 @@ const MatchingConstellation: React.FC = () => {
                 <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-green-500 flex-shrink-0" />
               </motion.div>
               <span className="font-medium text-center sm:text-right">
-                חוויה אישית • תובנות עבורכם • דיסקרטי לחלוטין
+                {dict.cta_features}
               </span>
             </motion.div>
           </motion.div>
 
-          {/* Additional decorative elements */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={isInView ? { opacity: 1 } : {}}
@@ -918,9 +862,11 @@ const MatchingConstellation: React.FC = () => {
   );
 };
 
-const OurMethodSection: React.FC = () => {
+const OurMethodSection: React.FC<OurMethodProps> = ({ dict }) => {
   const sectionRef = useRef(null);
   const isInView = useInView(sectionRef, { once: true, amount: 0.02 });
+  const pathname = usePathname();
+  const locale = pathname.split('/')[1] || 'he';
 
   return (
     <motion.section
@@ -979,7 +925,7 @@ const OurMethodSection: React.FC = () => {
       </div>
 
       <div className="relative max-w-8xl mx-auto">
-        <MatchingConstellation />
+        <MatchingConstellation dict={dict.constellation} locale={locale} />
       </div>
 
       <style jsx>{`

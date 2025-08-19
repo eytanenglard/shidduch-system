@@ -10,7 +10,7 @@
 import type {
   ExtendedMatchSuggestion,
   PartyInfo,
-} from '@/app/components/suggestions/types';
+} from '@/components/suggestions/types';
 import type {
   QuestionnaireResponse as QuestionnaireResponseType,
   UserProfile,

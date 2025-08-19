@@ -2,11 +2,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import MinimalSuggestionCard from '@/app/components/suggestions/cards/MinimalSuggestionCard';
-import SuggestionDetailsModal from '@/app/components/suggestions/modals/SuggestionDetailsModal';
-import type { ExtendedMatchSuggestion } from '@/app/components/suggestions/types';
+import MinimalSuggestionCard from '@/components/suggestions/cards/MinimalSuggestionCard';
+import SuggestionDetailsModal from '@/components/suggestions/modals/SuggestionDetailsModal';
+import type { ExtendedMatchSuggestion } from '@/components/suggestions/types';
 import { ZoomIn } from 'lucide-react';
-import { UserAiAnalysisDialog } from '@/app/components/suggestions/dialogs/UserAiAnalysisDialog';
+import { UserAiAnalysisDialog } from '@/components/suggestions/dialogs/UserAiAnalysisDialog';
 import type { AiSuggestionAnalysisResult } from '@/lib/services/aiService';
 
 interface LiveSuggestionDemoProps {

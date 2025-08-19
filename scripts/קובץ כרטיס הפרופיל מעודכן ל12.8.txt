@@ -136,9 +136,9 @@ import type {
   KippahType,
 } from '@/types/next-auth';
 import { languageOptions } from '@/lib/languageOptions';
-import type { Candidate } from '@/app/components/matchmaker/new/types/candidates';
+import type { Candidate } from '@/components/matchmaker/new/types/candidates';
 
-import NewSuggestionForm from '@/app/components/matchmaker/suggestions/NewSuggestionForm';
+import NewSuggestionForm from '@/components/matchmaker/suggestions/NewSuggestionForm';
 
 // Enhanced Interfaces with Responsive Support
 interface CreateSuggestionData {

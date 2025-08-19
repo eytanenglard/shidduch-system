@@ -1,24 +1,57 @@
+// src/components/HomePage/sections/ValuePropositionSection.tsx
+
 import React, { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import ComparisonItem from '../components/ComparisonItem';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation'; // ✨ 1. ייבוא hook נדרש
 
-const ValuePropositionSection: React.FC = () => {
+// --- ✨ 2. הגדרת טיפוסים מדויקים עבור ה-dict ---
+type SolutionItem = {
+  bold: string;
+  text?: string;
+  textWithLink?: {
+    part1: string;
+    linkText: string;
+    part2: string;
+  };
+};
+
+type ValuePropositionDict = {
+  title_part1: string;
+  title_brand: string;
+  title_part2: string;
+  subtitle: string;
+  challengeCard: {
+    title: string;
+    items: string[];
+  };
+  solutionCard: {
+    title: string;
+    items: SolutionItem[];
+  };
+};
+
+interface ValuePropositionProps {
+  dict: ValuePropositionDict;
+}
+
+const ValuePropositionSection: React.FC<ValuePropositionProps> = ({ dict }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.1 });
 
-  // Variants for different animation types
+  // ✨ 3. קבלת השפה הנוכחית מה-URL
+  const pathname = usePathname();
+  const locale = pathname.split('/')[1] || 'he';
+
+  // Animation variants (ללא שינוי)
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        staggerChildren: 0.2,
-        delayChildren: 0.3,
-      },
+      transition: { staggerChildren: 0.2, delayChildren: 0.3 },
     },
   };
-
   const fadeInUp = {
     hidden: { opacity: 0, y: 30 },
     visible: {
@@ -27,7 +60,6 @@ const ValuePropositionSection: React.FC = () => {
       transition: { duration: 0.6, ease: 'easeOut' },
     },
   };
-
   const fadeInLeft = {
     hidden: { opacity: 0, x: -50 },
     visible: {
@@ -36,7 +68,6 @@ const ValuePropositionSection: React.FC = () => {
       transition: { duration: 0.7, ease: 'easeOut' },
     },
   };
-
   const fadeInRight = {
     hidden: { opacity: 0, x: 50 },
     visible: {
@@ -45,17 +76,10 @@ const ValuePropositionSection: React.FC = () => {
       transition: { duration: 0.7, ease: 'easeOut' },
     },
   };
-
   const staggeredListVariants = {
     hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
   };
-
   const listItemVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
@@ -74,149 +98,86 @@ const ValuePropositionSection: React.FC = () => {
       animate={isInView ? 'visible' : 'hidden'}
     >
       <div className="absolute inset-0 bg-gradient-to-br from-cyan-50 to-white opacity-70"></div>
-      <div className="absolute top-0 right-0 w-full h-full overflow-hidden">
-        <svg
-          className="absolute right-0 top-0 h-full opacity-10"
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-        >
-          <path
-            d="M0,0 C40,100 60,100 100,0 L100,100 L0,100 Z"
-            fill="url(#grad2)"
-          ></path>
-          <defs>
-            <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#06b6d4" />
-              <stop offset="100%" stopColor="#22d3ee" />
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
 
       <div className="max-w-6xl mx-auto relative">
-        {/* Header with updated content */}
+        {/* ✨ 4. שימוש בתרגומים לכותרות */}
         <motion.div className="text-center mb-12" variants={fadeInUp}>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4">
-            מה הופך את
+            {dict.title_part1}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-cyan-700">
               {' '}
-              NeshamaTech{' '}
+              {dict.title_brand}{' '}
             </span>
-            לייחודית?
+            {dict.title_part2}
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-cyan-600 to-cyan-700 mx-auto rounded-full mb-6" />
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            הגישה שלנו משלבת את העוצמה של טכנולוגיה חכמה עם החום, הניסיון
-            והליווי האישי של שדכנות מקצועית.
+            {dict.subtitle}
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+          {' '}
+          {/* items-start במקום items-center */}
           {/* Left card - Challenge */}
           <motion.div
             className="bg-white rounded-2xl shadow-xl p-8 transform md:translate-x-4 relative overflow-hidden"
             variants={fadeInLeft}
           >
             <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-cyan-100 to-cyan-50 opacity-50 rounded-full transform translate-x-20 -translate-y-20"></div>
-
             <h3 className="text-xl font-bold mb-4 text-gray-800 relative">
-              האתגרים במסע לזוגיות שכולנו מכירים
+              {dict.challengeCard.title}
             </h3>
-
             <motion.ul
               className="space-y-3 relative"
               variants={staggeredListVariants}
               initial="hidden"
               animate={isInView ? 'visible' : 'hidden'}
             >
-              <motion.div variants={listItemVariants}>
-                <ComparisonItem isNegative>
-                  תחושת חשיפת יתר ותחושה של ‘סחורה על המדף’ באפליקציות
-                </ComparisonItem>
-              </motion.div>
-              <motion.div variants={listItemVariants}>
-                <ComparisonItem isNegative>
-                  פלטפורמות גנריות שלא מבינות את הניואנסים החשובים בעולם הדתי
-                  והמסורתי
-                </ComparisonItem>
-              </motion.div>
-              <motion.div variants={listItemVariants}>
-                <ComparisonItem isNegative>
-                  בזבוז זמן ואנרגיה על שיחות שטחיות והצעות לא רלוונטיות
-                </ComparisonItem>
-              </motion.div>
-              <motion.div variants={listItemVariants}>
-                <ComparisonItem isNegative>
-                  היכרות מוגבלת למעגל החברים הקרוב בלבד
-                </ComparisonItem>
-              </motion.div>
-              <motion.div variants={listItemVariants}>
-                <ComparisonItem isNegative>
-                  שדכנות מסורתית שלעיתים מוגבלת במאגר ובתהליכים איטיים
-                </ComparisonItem>
-              </motion.div>
+              {/* ✨ 5. רינדור דינמי של רשימת האתגרים */}
+              {dict.challengeCard.items.map((item, index) => (
+                <motion.div key={index} variants={listItemVariants}>
+                  <ComparisonItem isNegative>{item}</ComparisonItem>
+                </motion.div>
+              ))}
             </motion.ul>
           </motion.div>
-
           {/* Right card - Solution */}
           <motion.div
             className="bg-white rounded-2xl shadow-xl p-8 transform md:-translate-x-4 relative overflow-hidden"
             variants={fadeInRight}
           >
             <div className="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-br from-cyan-100 to-cyan-50 opacity-50 rounded-full transform -translate-x-20 translate-y-20"></div>
-
             <h3 className="text-xl font-bold mb-4 text-gray-800 relative">
-              הגישה של NeshamaTech: טכנולוגיה בשירות הלב
+              {dict.solutionCard.title}
             </h3>
-
             <motion.ul
               className="space-y-3 relative"
               variants={staggeredListVariants}
               initial="hidden"
               animate={isInView ? 'visible' : 'hidden'}
             >
-              <motion.div variants={listItemVariants}>
-                <ComparisonItem>
-                  <strong>מאגר רחב, חיפוש ממוקד:</strong> המערכת שלנו סורקת מאגר
-                  רחב ואיכותי של מועמדים, ומאפשרת לשדכנים להציג בפניך הזדמנויות
-                  מדויקות שאולי לא היית פוגש/ת אחרת.
-                </ComparisonItem>
-              </motion.div>
-              <motion.div variants={listItemVariants}>
-                <ComparisonItem>
-                  <strong>ליווי אישי חם:</strong> אתם לא לבד. שדכן אישי מלווה
-                  אתכם, מכיר אתכם לעומק, ומייעץ בכל שלב במסע.
-                </ComparisonItem>
-              </motion.div>
-              <motion.div variants={listItemVariants}>
-                <ComparisonItem>
-                  <>
-                    <strong>התאמה עם עומק אמיתי:</strong> אלגוריתם חכם מנתח
-                    עשרות ממדי התאמה, המבוססים על תשובותיך ב
-                    <Link
-                      href="/questionnaire"
-                      className="text-cyan-600 hover:underline font-semibold mx-1"
-                    >
-                      שאלון הייחודי
-                    </Link>
-                    שלנו, כדי לחשוף חיבורים ברמת הערכים והאישיות.
-                  </>
-                </ComparisonItem>
-              </motion.div>
-              <motion.div variants={listItemVariants}>
-                <ComparisonItem>
-                  <strong>דיסקרטיות מוחלטת:</strong> הפרופיל שלכם נשאר חסוי
-                  ומוצג אך ורק לשדכנים בצוות. אף פרט לא נחשף לצד השני ללא
-                  אישורכם המפורש.
-                </ComparisonItem>
-              </motion.div>
-              <motion.div variants={listItemVariants}>
-                <ComparisonItem>
-                  <strong>כבוד למסורת, כלים של המחר:</strong> פלטפורמה שמבינה
-                  ומכבדת את עולם הערכים שלכם, ומשתמשת בטכנולוגיה כדי להפוך את
-                  החיפוש ליעיל ומכבד יותר.
-                </ComparisonItem>
-              </motion.div>
+              {/* ✨ 6. רינדור דינמי של רשימת הפתרונות, כולל טיפול בקישור */}
+              {dict.solutionCard.items.map((item, index) => (
+                <motion.div key={index} variants={listItemVariants}>
+                  <ComparisonItem>
+                    <strong>{item.bold}</strong>
+                    {item.text && <span>{item.text}</span>}
+                    {item.textWithLink && (
+                      <span>
+                        {item.textWithLink.part1}
+                        <Link
+                          href={`/${locale}/questionnaire`}
+                          className="text-cyan-600 hover:underline font-semibold mx-1"
+                        >
+                          {item.textWithLink.linkText}
+                        </Link>
+                        {item.textWithLink.part2}
+                      </span>
+                    )}
+                  </ComparisonItem>
+                </motion.div>
+              ))}
             </motion.ul>
           </motion.div>
         </div>
