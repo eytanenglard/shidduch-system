@@ -75,8 +75,10 @@ export default function HomePage({ dict }: HomePageProps) {
       <ValuePropositionSection dict={dict.valueProposition} />
 
       <OurMethodSection dict={dict.ourMethod} />
-      <HowItWorksSection dict={dict.howItWorks} />
-
+<HowItWorksSection 
+        dict={dict.howItWorks} 
+        suggestionsDict={dict.suggestions} // הוספנו prop חדש
+      />
       <MatchmakerTeamSection dict={dict.matchmakerTeam} />
       <SuccessStoriesSection dict={dict.successStories} />
       <FAQSection dict={dict.faq} />

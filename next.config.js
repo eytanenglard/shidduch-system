@@ -105,7 +105,8 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-"script-src 'self' 'unsafe-eval' 'unsafe-inline' *.google-analytics.com https://www.googletagmanager.com",              "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' *.google-analytics.com",
+              "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
               "img-src 'self' data: https://res.cloudinary.com",
               "font-src 'self' fonts.gstatic.com",
               `connect-src 'self' ${siteUrl} *.google-analytics.com https://api.upstash.com vitals.vercel-insights.com`,

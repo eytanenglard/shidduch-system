@@ -35,6 +35,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { AiSuggestionAnalysisResult } from '@/lib/services/aiService';
+import type { AiAnalysisDict } from '@/types/dictionary'; // ✨ Import dictionary type
 
 // --- Interfaces ---
 interface UserAiAnalysisDialogProps {
@@ -43,6 +44,7 @@ interface UserAiAnalysisDialogProps {
   demoAnalysisData?: AiSuggestionAnalysisResult | null;
   currentUserName?: string;
   suggestedUserName?: string;
+  dict: AiAnalysisDict; // ✨ Add dict prop
 }
 
 // --- Demo Data ---
@@ -122,16 +124,21 @@ const AnalysisItem: React.FC<{
   </div>
 );
 
-const LoadingScreen: React.FC<{ progress: number; step: number }> = ({
+const LoadingScreen: React.FC<{
+  progress: number;
+  step: number;
+  dict: AiAnalysisDict; // ✨ Add dict prop
+}> = ({
   progress,
   step,
+  dict,
 }) => {
   const loadingSteps = [
-    { icon: Brain, label: 'מעבד פרופילים' },
-    { icon: Heart, label: 'בוחן ערכים' },
-    { icon: Users, label: 'מודד תאימות' },
-    { icon: Target, label: 'מציע תובנות' },
-    { icon: Sparkles, label: 'מסיים ניתוח' },
+    { icon: Brain, label: dict.loadingSteps.step1 },
+    { icon: Heart, label: dict.loadingSteps.step2 },
+    { icon: Users, label: dict.loadingSteps.step3 },
+    { icon: Target, label: dict.loadingSteps.step4 },
+    { icon: Sparkles, label: dict.loadingSteps.step5 },
   ];
 
   return (
@@ -144,10 +151,10 @@ const LoadingScreen: React.FC<{ progress: number; step: number }> = ({
       </div>
       <div className="space-y-3">
         <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-          מנתח התאמה עמוקה...
+          {dict.loadingTitle}
         </h3>
         <p className="text-gray-600 max-w-md text-lg">
-          אנו בוחנים עשרות פרמטרים כדי לספק לך תמונה מקיפה ומדויקת
+          {dict.loadingDescription}
         </p>
       </div>
       <div className="w-full max-w-md space-y-4">
@@ -176,32 +183,37 @@ const LoadingScreen: React.FC<{ progress: number; step: number }> = ({
   );
 };
 
-const ErrorScreen: React.FC<{ error: string; onRetry: () => void }> = ({
+const ErrorScreen: React.FC<{
+  error: string;
+  onRetry: () => void;
+  dict: AiAnalysisDict; // ✨ Add dict prop
+}> = ({
   error,
   onRetry,
+  dict,
 }) => (
   <div className="flex flex-col items-center justify-center h-full text-center space-y-6 p-8">
     <XCircle className="w-16 h-16 text-red-400" />
     <div className="space-y-4 max-w-md">
-      <h3 className="text-2xl font-bold text-gray-800">משהו השתבש בדרך...</h3>
+      <h3 className="text-2xl font-bold text-gray-800">{dict.errorTitle}</h3>
       <Alert variant="destructive">
         <AlertTriangle className="h-5 w-5" />
         <AlertTitle className="font-semibold">
-          לא הצלחנו להשלים את הניתוח
+          {dict.errorAlertTitle}
         </AlertTitle>
         <AlertDescription className="mt-2">
-          {error || 'אנו מתנצלים על התקלה. אנא נסו שוב או פנו לתמיכה.'}
+          {error || dict.errorAlertDescription}
         </AlertDescription>
       </Alert>
     </div>
     <Button onClick={onRetry}>
       <Brain className="w-4 h-4 ml-2" />
-      נסה שוב
+      {dict.retryButton}
     </Button>
   </div>
 );
 
-// --- DialogBody component: contains all logic and complex JSX (גרסה מתוקנת) ---
+// --- DialogBody component ---
 export const DialogBody: React.FC<
   UserAiAnalysisDialogProps & { onOpenChange: (open: boolean) => void }
 > = ({
@@ -211,6 +223,7 @@ export const DialogBody: React.FC<
   currentUserName,
   suggestedUserName,
   onOpenChange,
+  dict, // ✨ Destructure dict
 }) => {
   const [analysis, setAnalysis] = useState<AiSuggestionAnalysisResult | null>(
     null
@@ -277,7 +290,7 @@ export const DialogBody: React.FC<
           </div>
           <div>
             <DialogTitle className="text-xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-              ניתוח התאמה חכם
+              {dict.dialogTitle}
             </DialogTitle>
             <DialogDescription className="text-sm">
               {currentUserName} ⟵ {suggestedUserName}
@@ -293,11 +306,11 @@ export const DialogBody: React.FC<
         <AnimatePresence mode="wait">
           {isLoading ? (
             <motion.div key="loading" exit={{ opacity: 0 }} className="flex-1">
-              <LoadingScreen progress={loadingProgress} step={currentStep} />
+              <LoadingScreen progress={loadingProgress} step={currentStep} dict={dict} />
             </motion.div>
           ) : error ? (
             <motion.div key="error" exit={{ opacity: 0 }} className="flex-1">
-              <ErrorScreen error={error} onRetry={fetchAnalysis} />
+              <ErrorScreen error={error} onRetry={fetchAnalysis} dict={dict} />
             </motion.div>
           ) : analysis ? (
             <motion.div
@@ -311,9 +324,9 @@ export const DialogBody: React.FC<
                 className="flex-1 flex flex-col min-h-0"
               >
                 <TabsList className="mx-4 mt-4 bg-slate-100 p-1 rounded-lg flex-shrink-0">
-                  <TabsTrigger value="summary">סיכום וחיבור</TabsTrigger>
-                  <TabsTrigger value="consider">נקודות למחשבה</TabsTrigger>
-                  <TabsTrigger value="conversation">נושאים לשיחה</TabsTrigger>
+                  <TabsTrigger value="summary">{dict.tabs.summary}</TabsTrigger>
+                  <TabsTrigger value="consider">{dict.tabs.consider}</TabsTrigger>
+                  <TabsTrigger value="conversation">{dict.tabs.conversation}</TabsTrigger>
                 </TabsList>
 
                 <ScrollArea className="flex-1">
@@ -331,7 +344,7 @@ export const DialogBody: React.FC<
                       <div>
                         <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                           <CheckCircle className="w-5 h-5 text-green-500" />
-                          נקודות חוזק וחיבור
+                          {dict.summaryTab.strengthTitle}
                         </h3>
                         <div className="space-y-4">
                           {analysis.compatibilityPoints.map((point) => (
@@ -349,7 +362,7 @@ export const DialogBody: React.FC<
                     <TabsContent value="consider" className="mt-0">
                       <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                         <AlertTriangle className="w-5 h-5 text-amber-500" />
-                        נקודות למחשבה ולשיחה פתוחה
+                        {dict.considerTab.title}
                       </h3>
                       <div className="space-y-4">
                         {analysis.pointsToConsider.map((point) => (
@@ -366,7 +379,7 @@ export const DialogBody: React.FC<
                     <TabsContent value="conversation" className="mt-0">
                       <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                         <MessageSquare className="w-5 h-5 text-indigo-500" />
-                        נושאים מומלצים לפתיחת שיחה
+                        {dict.conversationTab.title}
                       </h3>
                       <ul className="space-y-3 list-inside">
                         {analysis.suggestedConversationStarters.map(
@@ -394,7 +407,7 @@ export const DialogBody: React.FC<
       <div className="p-4 bg-gray-50/80 border-t flex justify-end flex-shrink-0">
         <Button variant="ghost" onClick={() => onOpenChange(false)}>
           <ArrowLeft className="w-4 h-4 ml-2" />
-          חזור
+          {dict.backButton}
         </Button>
       </div>
     </>
@@ -406,6 +419,7 @@ export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = (
   props
 ) => {
   const [isOpen, setIsOpen] = useState(false);
+  const { dict } = props; // ✨ Destructure dict
 
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
@@ -423,7 +437,7 @@ export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = (
           <Brain className="w-6 h-6 transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110 text-blue-600" />
           <Sparkles className="w-3 h-3 absolute -top-1 -right-1 text-purple-500 opacity-0 group-hover:opacity-100" />
         </div>
-        <span className="text-lg font-bold">ניתוח התאמה מבוסס AI</span>
+        <span className="text-lg font-bold">{dict.triggerButton}</span>
       </div>
     </Button>
   );

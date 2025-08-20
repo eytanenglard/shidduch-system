@@ -28,11 +28,11 @@ import {
 } from 'lucide-react';
 import { motion, useInView } from 'framer-motion';
 import { usePathname } from 'next/navigation';
-import type { HowItWorksDict, SuggestionsCardDict } from '@/types/dictionary';
-
+import type { HowItWorksDict, SuggestionsDictionary } from '@/types/dictionary';
 
 interface HowItWorksProps {
   dict: HowItWorksDict;
+  suggestionsDict: SuggestionsDictionary; // ✨ קבל את ה-prop החדש
 }
 // --- END: Type Definitions ---
 
@@ -115,7 +115,10 @@ const KeyBenefit: React.FC<{
 };
 // --- END: Helper Components ---
 
-const HowItWorksSection: React.FC<HowItWorksProps> = ({ dict }) => {
+const HowItWorksSection: React.FC<HowItWorksProps> = ({
+  dict,
+  suggestionsDict,
+}) => {
   const demoRef = useRef(null);
   const isDemoInView = useInView(demoRef, { once: true, amount: 0.1 });
   const pathname = usePathname();
@@ -258,6 +261,7 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({ dict }) => {
                     suggestion={demoSuggestionDataMale}
                     userId="visitor-user-id"
                     demoAiAnalysis={demoAiAnalysisForDaniel}
+                    suggestionsDict={suggestionsDict} // ✨ העבר אותו הלאה
                   />
                 </div>
               </div>
@@ -273,6 +277,7 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({ dict }) => {
                     suggestion={demoSuggestionDataFemale}
                     userId="visitor-user-id"
                     demoAiAnalysis={demoAiAnalysisForNoa}
+                    suggestionsDict={suggestionsDict} // ✨ העבר אותו הלאה
                   />
                 </div>
               </div>

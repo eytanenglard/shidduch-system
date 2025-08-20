@@ -6,35 +6,27 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import {
-  Clock,
   History,
   AlertCircle,
   RefreshCw,
   Bell,
-  TrendingUp,
-  Users,
   CheckCircle,
   Target,
   Sparkles,
   Heart,
   Zap,
   XCircle,
-  Loader2, // הוספת אייקון טעינה מה-AI
+  Loader2,
 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import type { MatchSuggestion } from '@prisma/client';
-import type { UserProfile, UserImage } from '@/types/next-auth';
 
 import SuggestionsList from './list/SuggestionsList';
 import type { ExtendedMatchSuggestion } from './types';
 import { cn } from '@/lib/utils';
-import {
-  getEnhancedStatusInfo,
-  getPartyIndicator,
-} from '@/lib/utils/suggestionUtils';
 
 import {
   AlertDialog,
@@ -47,12 +39,11 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-// ייבוא הטיפוס של המילון
-import type { SuggestionsContainerDict } from '@/types/dictionary';
+// ✨ ייבוא הטיפוס של המילון המלא להצעות
+import type { SuggestionsDictionary } from '@/types/dictionary';
 
-// קומפוננטת מסך הטעינה המשופר, המקבלת את התרגומים
 const LoadingSkeleton: React.FC<{
-  dict: SuggestionsContainerDict['loading'];
+  dict: SuggestionsDictionary['container']['loading'];
 }> = ({ dict }) => (
   <div className="min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50/20 to-emerald-50/20">
     <div className="container mx-auto px-4 py-8">
@@ -94,7 +85,6 @@ const LoadingSkeleton: React.FC<{
 
       {/* Main Card Skeleton */}
       <div className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm overflow-hidden rounded-3xl">
-        {/* Header Skeleton */}
         <div className="px-8 py-6 bg-gradient-to-r from-cyan-50/80 via-white to-emerald-50/30 border-b border-gray-100">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -105,9 +95,7 @@ const LoadingSkeleton: React.FC<{
           </div>
         </div>
 
-        {/* Content Skeleton */}
         <div className="p-6">
-          {/* Tabs Skeleton */}
           <div className="flex justify-center mb-6">
             <div className="grid grid-cols-3 bg-purple-50/50 rounded-2xl p-1 h-14 w-fit gap-2">
               {Array.from({ length: 3 }).map((_, index) => (
@@ -119,7 +107,6 @@ const LoadingSkeleton: React.FC<{
             </div>
           </div>
 
-          {/* Loading Animation */}
           <div className="flex flex-col items-center justify-center min-h-[400px] text-center space-y-6">
             <div className="relative">
               <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-100 via-cyan-100 to-emerald-100 animate-pulse border-4 border-white shadow-xl"></div>
@@ -154,20 +141,12 @@ const LoadingSkeleton: React.FC<{
   </div>
 );
 
-// קומפוננטת סטטיסטיקות המקבלת את התרגומים
 const WelcomeStats: React.FC<{
   activeSuggestions: ExtendedMatchSuggestion[];
   historySuggestions: ExtendedMatchSuggestion[];
-  pendingCount: number;
   userId: string;
-  dict: SuggestionsContainerDict['stats'];
-}> = ({
-  activeSuggestions,
-  historySuggestions,
-  pendingCount,
-  userId,
-  dict,
-}) => {
+  dict: SuggestionsDictionary['container']['stats'];
+}> = ({ activeSuggestions, historySuggestions, userId, dict }) => {
   const approvedCount = [...activeSuggestions, ...historySuggestions].filter(
     (s) =>
       s.status === 'FIRST_PARTY_APPROVED' ||
@@ -264,11 +243,11 @@ const WelcomeStats: React.FC<{
   );
 };
 
-// עדכון ה-Props של הרכיב הראשי
+// ✨ עדכון ה-Props של הרכיב הראשי
 interface MatchSuggestionsContainerProps {
   userId: string;
   className?: string;
-  dict: SuggestionsContainerDict;
+  dict: SuggestionsDictionary;
 }
 
 const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
@@ -276,7 +255,6 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   className,
   dict,
 }) => {
-  // States
   const [activeSuggestions, setActiveSuggestions] = useState<
     ExtendedMatchSuggestion[]
   >([]);
@@ -291,19 +269,12 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   const [hasNewSuggestions, setHasNewSuggestions] = useState(false);
   const [isUserInActiveProcess, setIsUserInActiveProcess] = useState(false);
 
-  // State חדש לניהול חלון האישור
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [suggestionForAction, setSuggestionForAction] =
     useState<ExtendedMatchSuggestion | null>(null);
   const [actionType, setActionType] = useState<'approve' | 'decline' | null>(
     null
   );
-
-  // Calculate counts
-  const pendingCount = activeSuggestions.filter(
-    (s) =>
-      s.status === 'PENDING_FIRST_PARTY' || s.status === 'PENDING_SECOND_PARTY'
-  ).length;
 
   const myTurnCount = activeSuggestions.filter((s) => {
     const isFirstParty = s.firstPartyId === userId;
@@ -313,7 +284,6 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     );
   }).length;
 
-  // Fetch suggestions function
   const fetchSuggestions = useCallback(
     async (showLoadingState = true) => {
       try {
@@ -330,16 +300,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
         ]);
 
         if (!activeResponse.ok || !historyResponse.ok) {
-          const activeError = !activeResponse.ok
-            ? await activeResponse.text()
-            : '';
-          const historyError = !historyResponse.ok
-            ? await historyResponse.text()
-            : '';
-          console.error('Fetch errors:', { activeError, historyError });
-          throw new Error(
-            `Failed to fetch suggestions (${activeResponse.status}/${historyResponse.status})`
-          );
+          throw new Error('Failed to fetch suggestions');
         }
 
         const activeData = await activeResponse.json();
@@ -350,8 +311,8 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
           activeData.suggestions.length > activeSuggestions.length
         ) {
           setHasNewSuggestions(true);
-          toast.success(dict.toasts.newSuggestionsTitle, {
-            description: dict.toasts.newSuggestionsDescription,
+          toast.success(dict.container.toasts.newSuggestionsTitle, {
+            description: dict.container.toasts.newSuggestionsDescription,
             duration: 5000,
           });
         }
@@ -359,15 +320,15 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
         setActiveSuggestions(activeData.suggestions);
         setHistorySuggestions(historyData.suggestions);
       } catch (error) {
-        console.error('Error loading suggestions:', error);
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : dict.container.main.unknownError;
         setError(
-          dict.main.errorLoading.replace(
-            '{error}',
-            error instanceof Error ? error.message : dict.main.unknownError
-          )
+          dict.container.main.errorLoading.replace('{error}', errorMessage)
         );
-        toast.error(dict.toasts.errorTitle, {
-          description: dict.toasts.errorDescription,
+        toast.error(dict.container.toasts.errorTitle, {
+          description: dict.container.toasts.errorDescription,
         });
       } finally {
         setIsLoading(false);
@@ -377,7 +338,6 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     [activeSuggestions.length, dict]
   );
 
-  // Handle suggestion status change (This is now the central logic)
   const handleStatusChange = useCallback(
     async (suggestionId: string, newStatus: string, notes?: string) => {
       try {
@@ -400,35 +360,37 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
         await fetchSuggestions(false);
 
         const statusMessages: Record<string, string> = {
-          FIRST_PARTY_APPROVED: dict.toasts.approvedSuccess,
-          SECOND_PARTY_APPROVED: dict.toasts.approvedSuccess,
-          FIRST_PARTY_DECLINED: dict.toasts.declinedSuccess,
-          SECOND_PARTY_DECLINED: dict.toasts.declinedSuccess,
+          FIRST_PARTY_APPROVED: dict.container.toasts.approvedSuccess,
+          SECOND_PARTY_APPROVED: dict.container.toasts.approvedSuccess,
+          FIRST_PARTY_DECLINED: dict.container.toasts.declinedSuccess,
+          SECOND_PARTY_DECLINED: dict.container.toasts.declinedSuccess,
         };
 
         let description: string;
         if (newStatus === 'FIRST_PARTY_APPROVED') {
-          description = dict.toasts.approvedFirstPartyDesc;
+          description = dict.container.toasts.approvedFirstPartyDesc;
         } else if (newStatus === 'SECOND_PARTY_APPROVED') {
-          description = dict.toasts.approvedSecondPartyDesc;
+          description = dict.container.toasts.approvedSecondPartyDesc;
         } else if (newStatus.includes('DECLINED')) {
-          description = dict.toasts.declinedDesc;
+          description = dict.container.toasts.declinedDesc;
         } else {
-          description = dict.toasts.matchmakerNotified;
+          description = dict.container.toasts.matchmakerNotified;
         }
 
         toast.success(
-          statusMessages[newStatus] || dict.toasts.statusUpdateSuccess,
-          {
-            description,
-          }
+          statusMessages[newStatus] ||
+            dict.container.toasts.statusUpdateSuccess,
+          { description }
         );
       } catch (error) {
-        console.error('Error updating suggestion status:', error);
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : dict.container.main.unknownError;
         toast.error(
-          dict.toasts.statusUpdateError.replace(
+          dict.container.toasts.statusUpdateError.replace(
             '{error}',
-            error instanceof Error ? error.message : dict.main.unknownError
+            errorMessage
           )
         );
       }
@@ -436,7 +398,6 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     [fetchSuggestions, dict]
   );
 
-  // פונקציות חדשות לניהול הדיאלוג
   const handleRequestAction = useCallback(
     (suggestion: ExtendedMatchSuggestion, action: 'approve' | 'decline') => {
       setSuggestionForAction(suggestion);
@@ -468,21 +429,15 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     setActionType(null);
   }, [suggestionForAction, actionType, userId, handleStatusChange]);
 
-  // Initial load and periodic refresh
   useEffect(() => {
     fetchSuggestions();
-
     const intervalId = setInterval(
-      () => {
-        fetchSuggestions(false);
-      },
+      () => fetchSuggestions(false),
       5 * 60 * 1000
-    ); // Refresh every 5 minutes
-
+    );
     return () => clearInterval(intervalId);
   }, [userId, fetchSuggestions]);
 
-  // Effect to determine if user is in an active process
   useEffect(() => {
     const activeProcessStatuses: MatchSuggestion['status'][] = [
       'FIRST_PARTY_APPROVED',
@@ -498,31 +453,27 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
       'DATING',
       'ENGAGED',
     ];
-
     const hasActiveProcess = activeSuggestions.some((s) =>
       activeProcessStatuses.includes(s.status)
     );
     setIsUserInActiveProcess(hasActiveProcess);
   }, [activeSuggestions]);
 
-  // Clear new suggestions notification when changing to active tab
   useEffect(() => {
     if (activeTab === 'active') {
       setHasNewSuggestions(false);
     }
   }, [activeTab]);
 
-  // Handle manual refresh
   const handleRefresh = useCallback(async () => {
     await fetchSuggestions(false);
-    toast.success(dict.toasts.refreshSuccessTitle, {
-      description: dict.toasts.refreshSuccessDescription,
+    toast.success(dict.container.toasts.refreshSuccessTitle, {
+      description: dict.container.toasts.refreshSuccessDescription,
     });
   }, [fetchSuggestions, dict]);
 
-  // אם נמצא במצב טעינה, הצג את מסך הטעינה המשופר
   if (isLoading) {
-    return <LoadingSkeleton dict={dict.loading} />;
+    return <LoadingSkeleton dict={dict.container.loading} />;
   }
 
   return (
@@ -536,11 +487,9 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
         <WelcomeStats
           activeSuggestions={activeSuggestions}
           historySuggestions={historySuggestions}
-          pendingCount={pendingCount}
           userId={userId}
-          dict={dict.stats}
+          dict={dict.container.stats}
         />
-
         <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm overflow-hidden">
           <CardHeader className="pb-4 bg-gradient-to-r from-white via-cyan-50/30 to-emerald-50/30 border-b border-gray-100">
             <div className="flex items-center justify-between">
@@ -551,7 +500,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   onClick={handleRefresh}
                   disabled={isRefreshing}
                   className="rounded-full h-10 w-10 hover:bg-cyan-100 transition-colors"
-                  aria-label={dict.main.refreshAriaLabel}
+                  aria-label={dict.container.main.refreshAriaLabel}
                 >
                   <RefreshCw
                     className={cn(
@@ -560,23 +509,21 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                     )}
                   />
                 </Button>
-
                 {hasNewSuggestions && (
                   <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 shadow-xl animate-pulse">
                     <Bell className="w-3 h-3 ml-1" />
-                    {dict.main.newSuggestions}
+                    {dict.container.main.newSuggestions}
                   </Badge>
                 )}
               </div>
               <div className="text-center flex-grow">
                 <CardTitle className="text-xl font-bold text-gray-800">
-                  {dict.main.title}
+                  {dict.container.main.title}
                 </CardTitle>
               </div>
-              <div className="w-16"></div> {/* Spacer */}
+              <div className="w-16"></div>
             </div>
           </CardHeader>
-
           <CardContent className="p-6">
             <Tabs
               value={activeTab}
@@ -591,33 +538,31 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                     className="relative flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
                   >
                     <Target className="w-5 h-5 text-purple-500" />
-                    <span>{dict.main.tabs.active}</span>
+                    <span>{dict.container.main.tabs.active}</span>
                     {activeSuggestions.length > 0 && (
                       <Badge className="bg-purple-500 text-white border-0 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] h-6">
                         {activeSuggestions.length}
                       </Badge>
                     )}
                   </TabsTrigger>
-
                   {myTurnCount > 0 && (
                     <TabsTrigger
                       value="urgent"
                       className="flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
                     >
                       <Zap className="w-5 h-5 text-orange-500" />
-                      <span>{dict.main.tabs.urgent}</span>
+                      <span>{dict.container.main.tabs.urgent}</span>
                       <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] h-6 animate-pulse shadow-lg">
                         {myTurnCount}
                       </Badge>
                     </TabsTrigger>
                   )}
-
                   <TabsTrigger
                     value="history"
                     className="flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
                   >
                     <History className="w-5 h-5 text-gray-500" />
-                    <span>{dict.main.tabs.history}</span>
+                    <span>{dict.container.main.tabs.history}</span>
                     {historySuggestions.length > 0 && (
                       <Badge className="bg-gray-500 text-white border-0 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] h-6">
                         {historySuggestions.length}
@@ -626,7 +571,6 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   </TabsTrigger>
                 </TabsList>
               </div>
-
               {error && (
                 <Alert
                   variant="destructive"
@@ -639,7 +583,6 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   </AlertDescription>
                 </Alert>
               )}
-
               <TabsContent value="active" className="space-y-6">
                 <SuggestionsList
                   suggestions={activeSuggestions}
@@ -650,9 +593,9 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   onActionRequest={handleRequestAction}
                   onRefresh={handleRefresh}
                   isUserInActiveProcess={isUserInActiveProcess}
+                  dict={dict}
                 />
               </TabsContent>
-
               <TabsContent value="history" className="space-y-6">
                 <SuggestionsList
                   suggestions={historySuggestions}
@@ -664,9 +607,9 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   onActionRequest={handleRequestAction}
                   onRefresh={handleRefresh}
                   isUserInActiveProcess={isUserInActiveProcess}
+                  dict={dict}
                 />
               </TabsContent>
-
               <TabsContent value="urgent" className="space-y-6">
                 <SuggestionsList
                   suggestions={activeSuggestions.filter((s) => {
@@ -683,30 +626,30 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   onActionRequest={handleRequestAction}
                   onRefresh={handleRefresh}
                   isUserInActiveProcess={isUserInActiveProcess}
+                  dict={dict}
                 />
               </TabsContent>
             </Tabs>
           </CardContent>
         </Card>
       </div>
-
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent className="border-0 shadow-2xl rounded-2xl z-[9999]">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-xl font-bold text-center">
               {actionType === 'approve'
-                ? dict.dialogs.approveTitle
-                : dict.dialogs.declineTitle}
+                ? dict.container.dialogs.approveTitle
+                : dict.container.dialogs.declineTitle}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center text-gray-600 leading-relaxed">
               {actionType === 'approve'
-                ? dict.dialogs.approveDescription
-                : dict.dialogs.declineDescription}
+                ? dict.container.dialogs.approveDescription
+                : dict.container.dialogs.declineDescription}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-3">
             <AlertDialogCancel className="rounded-xl">
-              {dict.dialogs.cancel}
+              {dict.container.dialogs.cancel}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmAction}
@@ -720,12 +663,12 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
               {actionType === 'approve' ? (
                 <>
                   <CheckCircle className="w-4 h-4 ml-2" />
-                  {dict.dialogs.confirmApproval}
+                  {dict.container.dialogs.confirmApproval}
                 </>
               ) : (
                 <>
                   <XCircle className="w-4 h-4 ml-2" />
-                  {dict.dialogs.confirmDecline}
+                  {dict.container.dialogs.confirmDecline}
                 </>
               )}
             </AlertDialogAction>

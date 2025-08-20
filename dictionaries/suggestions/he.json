@@ -8,11 +8,11 @@
       "title": "ההצעות שלך",
       "subtitle": "כל הצעה היא הזדמנות שנבחרה בקפידה עבורך על ידי הצוות שלנו.",
       "new": "הצעות חדשות",
-      "newDesc": "ממתינות לתשובתך",
+      "newDesc": "ממתינות לתגובתך",
       "yourTurn": "התור שלך",
       "yourTurnDesc": "דורשות החלטה ממך",
       "approved": "אושרו",
-      "approvedDesc": "הצעות שאושרו"
+      "approvedDesc": "הצעות שאושרו על ידך"
     },
     "main": {
       "title": "ניהול ההצעות",
@@ -50,6 +50,189 @@
       "matchmakerNotified": "השדכן יקבל הודעה ויתקדם עם התהליך",
       "refreshSuccessTitle": "הנתונים עודכנו בהצלחה",
       "refreshSuccessDescription": "כל ההצעות עודכנו למצב הנוכחי"
+    }
+  },
+  "card": {
+    "suggestedBy": "הצעה מ",
+    "yourTurn": "תורך!",
+    "urgent": "דחוף",
+    "viewDetailsAria": "צפה בפרטים המלאים של {{name}}",
+    "whySpecial": "למה זו התאמה מיוחדת?",
+    "reasonTeaserDefault": "השדכן/ית זיהו פוטנציאל מיוחד שכדאי לבדוק!",
+    "clickForDetails": "לחץ לפרטים מלאים ועוד תובנות",
+    "buttons": {
+      "decline": "לא מתאים",
+      "approve": "מעוניין/ת להכיר!",
+      "approveDisabledTooltip": "לא ניתן לאשר הצעה חדשה כשיש הצעה בתהליך פעיל.",
+      "askMatchmaker": "שאלה לשדכן/ית",
+      "viewDetails": "צפה בפרטים"
+    }
+  },
+  "modal": {
+    "header": {
+      "title": "הצעה שנבחרה במיוחד עבורך",
+      "subtitleLine1": "חשבנו עליך כשראינו את הפרופיל הזה.",
+      "subtitleLine2": "אנו מאמינים שיש כאן בסיס אמיתי להיכרות משמעותית.",
+      "suggestedBy": "הצעה מ-",
+      "discoverMore": "גלה עוד ←",
+      "ageInYears": "גיל {{age}}",
+      "matchStoryTitle": "הסיפור שמאחורי ההתאמה",
+      "matchStorySubtitle1": "אנו מקשיבים למה שחשוב לך, גם בין השורות.",
+      "matchStorySubtitle2": "הנה כמה מהחיבורים שזיהינו כאן.",
+      "viewFullProfile": "צפה בפרופיל המלא",
+      "iHaveQuestions": "יש לי שאלות",
+      "matchmakerInsight": "💭 התובנה המקצועית",
+      "whyYou": "למה זה מתאים דווקא לך:",
+      "ourConnection": "החיבור שאנחנו רואים:",
+      "whatsNextTitle": "מה עכשיו? ההחלטה בידיים שלך",
+      "whatsNextSubtitle1": "כל החלטה שתקבל/י היא צעד נכון במסע שלך.",
+      "whatsNextSubtitle2": "קח/י את הזמן, ובחר/י מה שהכי מרגיש לך נכון.",
+      "bestTimeIsNow": "הזמן הכי טוב הוא עכשיו",
+      "toFullProfile": "לפרופיל המלא"
+    },
+    "tabs": {
+      "presentation": "הצגה מרשימה",
+      "presentationShort": "הצגה",
+      "profile": "פרופיל מלא",
+      "profileShort": "פרופיל",
+      "compatibility": "ניתוח התאמה",
+      "compatibilityShort": "התאמה",
+      "details": "פרטים ותקשורת",
+      "detailsShort": "פרטים",
+      "fullscreen": "היכנס למסך מלא",
+      "exitFullscreen": "צא ממסך מלא"
+    },
+    "actions": {
+      "titleExpanded": "✨ זה הרגע הכי חשוב - מה ההחלטה שלך?",
+      "titleCollapsed": "🎯 פעולות מהירות",
+      "subtitle": "כל החלטה היא הזדמנות חדשה",
+      "approve": "💝 מעוניין/ת להכיר!",
+      "sending": "שולח...",
+      "updating": "מעדכן...",
+      "ask": "🤔 שאלות לשדכן",
+      "decline": "😔 לא מתאים כרגע",
+      "reminder": "זכור: כל החלטה שתקבל תעביר אותנו צעד אחד קדימה במציאת ההתאמה המושלמת עבורך."
+    },
+    "profile": {
+      "loading": "טוען פרופיל מפורט...",
+      "loadingDescription": "זה יכול לקחת מספר שניות",
+      "errorTitle": "שגיאה בטעינת פרופיל",
+      "errorDescription": "לא הצלחנו לטעון את הפרופיל. אנא פנה לשדכן לקבלת עזרה נוספת.",
+      "contactMatchmaker": "פנה לשדכן"
+    },
+    "aiAnalysisCta": {
+      "title": "🔮 רוצה מבט מעמיק יותר?",
+      "description": "ה-AI החכם שלנו יכול לנתח את כל הנתונים ולספק לך תובנות מקצועיות על פוטנציאל החיבור, נקודות חוזק, וגם רעיונות לפתיחת שיחה.",
+      "feature1": "ניתוח עמוק",
+      "feature2": "נקודות חיבור",
+      "feature3": "הדרכה אישית",
+      "button": "ניתוח התאמה מבוסס AI"
+    }
+  },
+  "aiAnalysis": {
+    "dialogTitle": "ניתוח התאמה חכם",
+    "loadingTitle": "מנתח התאמה עמוקה...",
+    "loadingDescription": "אנו בוחנים עשרות פרמטרים כדי לספק לך תמונה מקיפה ומדויקת.",
+    "loadingSteps": {
+      "step1": "מעבד פרופילים",
+      "step2": "בוחן ערכים",
+      "step3": "מודד תאימות",
+      "step4": "מציע תובנות",
+      "step5": "מסיים ניתוח"
+    },
+    "errorTitle": "משהו השתבש בדרך...",
+    "errorAlertTitle": "לא הצלחנו להשלים את הניתוח",
+    "errorAlertDescription": "אנו מתנצלים על התקלה. אנא נסו שוב או פנו לתמיכה.",
+    "retryButton": "נסה שוב",
+    "tabs": {
+      "summary": "סיכום וחיבור",
+      "consider": "נקודות למחשבה",
+      "conversation": "נושאים לשיחה"
+    },
+    "summaryTab": {
+      "strengthTitle": "נקודות חוזק וחיבור"
+    },
+    "considerTab": {
+      "title": "נקודות למחשבה ולשיחה פתוחה"
+    },
+    "conversationTab": {
+      "title": "נושאים מומלצים לפתיחת שיחה"
+    },
+    "importantNote": "הערה חשובה",
+    "noteText": "זכרו, ניתוח זה הוא כלי עזר והמלצה בלבד. הוא נועד להאיר נקודות למחשבה ולעורר שיחה. הכימיה האמיתית והחיבור העמוק נוצרים במפגש האנושי.",
+    "backButton": "חזור",
+    "triggerButton": "ניתוח התאמה מבוסס AI"
+  },
+  "list": {
+    "emptyState": {
+      "noResultsTitle": "לא נמצאו תוצאות",
+      "noHistoryTitle": "אין הצעות בהיסטוריה",
+      "noActiveTitle": "ההצעות בדרך אליך",
+      "noResultsDescription": "נסה לשנות את קריטריוני החיפוש או הסינון כדי למצוא את מה שאתה מחפש.",
+      "noHistoryDescription": "כשיהיו לך הצעות שהושלמו, הן יופיעו כאן.",
+      "noActiveDescription": "השדכנים שלנו עובדים עכשיו על מציאת ההתאמות המושלמות עבורך.",
+      "clearFilters": "נקה סינון"
+    },
+    "stats": {
+      "showing": "מוצגות כעת",
+      "total": "סה\"כ הצעות",
+      "pending": "ממתינות",
+      "progress": "קצב התקדמות"
+    },
+    "controls": {
+      "searchPlaceholder": "חיפוש לפי שם, עיר, או מקצוע...",
+      "filterLabel": "סינון הצעות",
+      "filterAll": "הכל",
+      "filterPending": "ממתינות לתשובה",
+      "filterAccepted": "מאושרות",
+      "filterDeclined": "שנדחו",
+      "filterContactShared": "פרטי קשר שותפו",
+      "sortPlaceholder": "מיון לפי",
+      "sortNewest": "החדש ביותר",
+      "sortOldest": "הישן ביותר",
+      "sortDeadline": "תאריך יעד",
+      "sortPriority": "עדיפות"
+    },
+    "activeFilters": {
+      "title": "סינון פעיל:",
+      "search": "חיפוש:",
+      "clearAll": "נקה הכל"
+    },
+    "resultsCount": {
+      "showingSingle": "מציג הצעה {{count}} מתוך {{total}}",
+      "showingMultiple": "מציג {{count}} הצעות מתוך {{total}}",
+      "qualityMatches": "התאמות איכותיות עבורך"
+    }
+  },
+    "presentation": {
+    "hero": {
+      "title": "הצעה מיוחדת בדרך אליך...",
+      "matchmakerThoughts": "מחשבות מהשדכן/ית, {{name}}:"
+    },
+    "peek": {
+      "opportunity": "הזדמנות להכיר את",
+      "age": ", {{age}}",
+      "notSpecified": "לא צוין",
+      "viewProfileButton": "לפרופיל המלא"
+    },
+    "ingredients": {
+      "title": "רכיבי מפתח להתאמה מוצלחת",
+      "values": "ערכים והשקפת עולם",
+      "personality": "חיבור אישיותי",
+      "background": "רקע וסגנון חיים",
+      "spark": "ניצוץ מיוחד",
+      "matchmakerNotes": "פירוט מהשדכן/ית:"
+    },
+    "aiCta": {
+      "title": "רוצה חוות דעת נוספת?",
+      "description": "קבל ניתוח מעמיק מבוסס AI על נקודות החיבור, פוטנציאל לצמיחה ואפילו רעיונות לפתיחת שיחה."
+    },
+        "rationale": {
+      "title": "הצעה מיוחדת עבורך",
+      "description": "מחשבות מהשדכן/ית {{name}}",
+      "personalNoteTitle": "למה חשבתי שזה מתאים במיוחד עבורך",
+      "generalReasonTitle": "החיבור הכללי שאנו רואים",
+      "noReasonText": "השדכן/ית סומך/ת על הנתונים שידברו בעד עצמם."
     }
   }
 }

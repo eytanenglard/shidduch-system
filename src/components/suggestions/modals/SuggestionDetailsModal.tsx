@@ -90,6 +90,7 @@ import InquiryThreadView from '../inquiries/InquiryThreadView';
 import { AskMatchmakerDialog } from '../dialogs/AskMatchmakerDialog';
 import { DialogBody as AiAnalysisBody } from '../dialogs/UserAiAnalysisDialog';
 import type { ExtendedMatchSuggestion } from '../types';
+import type { SuggestionsDictionary } from '@/types/dictionary'; // ✨ Import dictionary type
 
 interface SuggestionDetailsModalProps {
   suggestion: ExtendedMatchSuggestion | null;
@@ -103,6 +104,7 @@ interface SuggestionDetailsModalProps {
   questionnaire: QuestionnaireResponse | null;
   isDemo?: boolean;
   demoAnalysisData?: AiSuggestionAnalysisResult | null;
+  dict: SuggestionsDictionary; // ✨ Add full suggestions dict prop
 }
 
 const useIsMobile = () => {
@@ -176,6 +178,7 @@ const EnhancedHeroSection: React.FC<{
   matchingReason?: string | null;
   onViewProfile: () => void;
   onStartConversation: () => void;
+  dict: SuggestionsDictionary['modal']['header']; // ✨ Updated prop type
 }> = ({
   matchmaker,
   targetParty,
@@ -183,6 +186,7 @@ const EnhancedHeroSection: React.FC<{
   matchingReason,
   onViewProfile,
   onStartConversation,
+  dict,
 }) => {
   const age = targetParty.profile?.birthDate
     ? new Date().getFullYear() -
@@ -259,7 +263,7 @@ const EnhancedHeroSection: React.FC<{
             </Avatar>
             <div className="text-right">
               <p className="text-xs font-medium text-purple-600 mb-1">
-                הצעה מ-
+                {dict.suggestedBy}
               </p>
               <p className="text-lg font-bold text-gray-800">
                 {matchmaker.firstName} {matchmaker.lastName}
@@ -271,15 +275,15 @@ const EnhancedHeroSection: React.FC<{
               className="text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-6 leading-tight animate-fade-in-up"
               style={{ animationDelay: '0.5s' }}
             >
-              זו הצעה שנבחרה במיוחד עבורך
+              {dict.title}
             </h1>
             <p
               className="text-xl md:text-2xl text-gray-700 leading-relaxed font-medium animate-fade-in-up"
               style={{ animationDelay: '1s' }}
             >
-              חשבנו עליך כשראינו את הפרופיל הזה.
+              {dict.subtitleLine1}
               <br />
-              אנו מאמינים שיש כאן בסיס אמיתי להיכרות משמעותית.
+              {dict.subtitleLine2}
             </p>
           </div>
         </div>
@@ -315,7 +319,7 @@ const EnhancedHeroSection: React.FC<{
                         {age && (
                           <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 shadow-lg text-lg px-4 py-2">
                             <Calendar className="w-4 h-4 ml-2" />
-                            {age} שנים
+                            {dict.ageInYears.replace('{{age}}', age.toString())}
                           </Badge>
                         )}
                       </div>
@@ -327,7 +331,7 @@ const EnhancedHeroSection: React.FC<{
                           onClick={onViewProfile}
                           className="bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white shadow-xl rounded-full px-6 py-3 font-bold text-base"
                         >
-                          גלה עוד ←
+                          {dict.discoverMore}
                         </Button>
                       </div>
                     </div>
@@ -370,12 +374,12 @@ const EnhancedHeroSection: React.FC<{
                       <Gem className="w-7 h-7 text-pink-500" />
                     </div>
                     <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-4 leading-tight">
-                      הסיפור שמאחורי ההתאמה
+                      {dict.matchStoryTitle}
                     </h2>
                     <p className="text-lg text-gray-700 leading-relaxed">
-                      אנו מקשיבים למה שחשוב לך, גם בין השורות.
+                      {dict.matchStorySubtitle1}
                       <br />
-                      הנה כמה מהחיבורים שזיהינו כאן.
+                      {dict.matchStorySubtitle2}
                     </p>
                   </div>
                   {excitementFactors.length > 0 && (
@@ -420,7 +424,7 @@ const EnhancedHeroSection: React.FC<{
                       className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-xl rounded-xl h-14 font-bold text-base transform hover:scale-105 transition-all"
                     >
                       <User className="w-5 h-5 ml-2" />
-                      צפה בפרופיל המלא
+                      {dict.viewFullProfile}
                       <ArrowRight className="w-4 h-4 mr-2" />
                     </Button>
                     <Button
@@ -430,7 +434,7 @@ const EnhancedHeroSection: React.FC<{
                       className="border-2 border-purple-300 text-purple-600 hover:bg-purple-50 shadow-lg rounded-xl h-14 font-bold text-base transform hover:scale-105 transition-all"
                     >
                       <MessageSquare className="w-5 h-5 ml-2" />
-                      יש לי שאלות
+                      {dict.iHaveQuestions}
                     </Button>
                   </div>
                 </div>
@@ -448,7 +452,7 @@ const EnhancedHeroSection: React.FC<{
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-4">
                           <h3 className="font-bold text-cyan-800 text-xl">
-                            💭 התובנה המקצועית
+                            {dict.matchmakerInsight}
                           </h3>
                         </div>
                         {personalNote && (
@@ -457,7 +461,7 @@ const EnhancedHeroSection: React.FC<{
                               <Quote className="w-5 h-5 text-cyan-500 mt-1 flex-shrink-0" />
                               <div>
                                 <h4 className="font-semibold text-cyan-800 mb-2">
-                                  למה זה מתאים דווקא לך:
+                                  {dict.whyYou}
                                 </h4>
                                 <p className="text-cyan-900 leading-relaxed italic font-medium">
                                   “{personalNote}”
@@ -472,7 +476,7 @@ const EnhancedHeroSection: React.FC<{
                               <Puzzle className="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" />
                               <div>
                                 <h4 className="font-semibold text-blue-800 mb-2">
-                                  החיבור שאנחנו רואים:
+                                  {dict.ourConnection}
                                 </h4>
                                 <p className="text-blue-900 leading-relaxed font-medium">
                                   “{matchingReason}”
@@ -499,24 +503,25 @@ const EnhancedHeroSection: React.FC<{
                     </div>
                   </div>
                   <h3 className="text-2xl font-bold mb-3">
-                    מה עכשיו? ההחלטה בידיים שלך
+                    {dict.whatsNextTitle}
                   </h3>
                   <p className="text-emerald-100 text-lg leading-relaxed mb-4">
-                    כל החלטה שתקבל/י היא צעד נכון במסע שלך.
+                    {dict.whatsNextSubtitle1}
                     <br />
-                    קח/י את הזמן, ובחר/י מה שהכי מרגיש לך נכון.
+                    {dict.whatsNextSubtitle2}
                   </p>
                   <div className="flex flex-col items-center gap-4">
                     <Badge className="bg-white/20 text-white border-white/30 px-4 py-2 text-base">
                       <Timer className="w-4 h-4 ml-2" />
-                      הזמן הכי טוב הוא עכשיו
+                      {dict.bestTimeIsNow}
                     </Badge>
                     <Button
                       onClick={onViewProfile}
                       variant="link"
                       className="text-white hover:text-emerald-100 font-bold mt-2"
                     >
-                      לפרופיל המלא <ArrowRight className="w-4 h-4 mr-2" />
+                      {dict.toFullProfile}{' '}
+                      <ArrowRight className="w-4 h-4 mr-2" />
                     </Button>
                   </div>
                 </div>
@@ -537,6 +542,7 @@ const EnhancedQuickActions: React.FC<{
   onApprove: () => void;
   onDecline: () => void;
   onAskQuestion: () => void;
+  dict: SuggestionsDictionary['modal']['actions']; // ✨ Updated prop type
 }> = ({
   isExpanded,
   onToggleExpand,
@@ -545,10 +551,9 @@ const EnhancedQuickActions: React.FC<{
   onApprove,
   onDecline,
   onAskQuestion,
+  dict,
 }) => (
   <div
-    // The class 'overflow-hidden' was removed from here.
-    // 'z-10' was added to ensure it sits on top of the scrollable content.
     className={cn(
       'flex-shrink-0 bg-gradient-to-r from-white via-purple-50/50 to-pink-50/50 backdrop-blur-sm border-t border-purple-100 transition-all duration-500 ease-in-out relative z-10',
       isExpanded ? 'p-4 md:p-6' : 'py-3 px-4 md:px-6'
@@ -566,14 +571,10 @@ const EnhancedQuickActions: React.FC<{
           </div>
           <div>
             <p className="text-base font-bold text-purple-700">
-              {isExpanded
-                ? '✨ זה הרגע הכי חשוב - מה ההחלטה שלך?'
-                : '🎯 פעולות מהירות'}
+              {isExpanded ? dict.titleExpanded : dict.titleCollapsed}
             </p>
             {isExpanded && (
-              <p className="text-sm text-gray-600 mt-1">
-                כל החלטה היא הזדמנות חדשה
-              </p>
+              <p className="text-sm text-gray-600 mt-1">{dict.subtitle}</p>
             )}
           </div>
         </div>
@@ -604,13 +605,13 @@ const EnhancedQuickActions: React.FC<{
                   {isSubmitting ? (
                     <div className="flex items-center">
                       <Loader2 className="w-6 h-6 animate-spin ml-3" />
-                      <span>שולח...</span>
+                      <span>{dict.sending}</span>
                     </div>
                   ) : (
                     <div className="flex items-center justify-center relative z-10">
                       <div className="flex items-center gap-3">
                         <Heart className="w-6 h-6 animate-pulse" />
-                        <span>💝 מעוניין/ת להכיר!</span>
+                        <span>{dict.approve}</span>
                         <Sparkles className="w-5 h-5" />
                       </div>
                     </div>
@@ -626,7 +627,7 @@ const EnhancedQuickActions: React.FC<{
             >
               <div className="flex items-center justify-center gap-3">
                 <MessageCircle className="w-6 h-6" />
-                <span>🤔 שאלות לשדכן</span>
+                <span>{dict.ask}</span>
               </div>
             </Button>
             {canAct && (
@@ -639,12 +640,12 @@ const EnhancedQuickActions: React.FC<{
                 {isSubmitting ? (
                   <div className="flex items-center">
                     <Loader2 className="w-5 h-5 animate-spin ml-2" />
-                    <span>מעדכן...</span>
+                    <span>{dict.updating}</span>
                   </div>
                 ) : (
                   <div className="flex items-center justify-center gap-3">
                     <XCircle className="w-5 h-5" />
-                    <span>😔 לא מתאים כרגע</span>
+                    <span>{dict.decline}</span>
                   </div>
                 )}
               </Button>
@@ -654,8 +655,7 @@ const EnhancedQuickActions: React.FC<{
             <div className="mt-4 text-center">
               <p className="text-sm text-gray-600 leading-relaxed">
                 <span className="font-semibold text-purple-600">💡 זכור:</span>{' '}
-                כל החלטה שתקבל תעביר אותנו צעד אחד קדימה במציאת ההתאמה המושלמת
-                עבורך
+                {dict.reminder}
               </p>
             </div>
           )}
@@ -673,6 +673,7 @@ const EnhancedTabsSection: React.FC<{
   onToggleFullscreen: () => void;
   isMobile: boolean;
   isTransitioning?: boolean;
+  dict: SuggestionsDictionary['modal']['tabs']; // ✨ Updated prop type
 }> = ({
   activeTab,
   onTabChange,
@@ -681,6 +682,7 @@ const EnhancedTabsSection: React.FC<{
   onToggleFullscreen,
   isMobile,
   isTransitioning = false,
+  dict,
 }) => (
   <div className="border-b border-purple-100 px-2 sm:px-6 pt-4 bg-gradient-to-r from-purple-50/80 to-pink-50/80 backdrop-blur-sm sticky top-0 z-20">
     <div className="flex items-center justify-between mb-4">
@@ -692,8 +694,8 @@ const EnhancedTabsSection: React.FC<{
           <div className="absolute inset-0 bg-gradient-to-r from-purple-600/0 to-pink-600/0 group-data-[state=active]:from-purple-600/20 group-data-[state=active]:to-pink-600/20 transition-all"></div>
           <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 relative z-10" />
           <span className="relative z-10">
-            <span className="hidden sm:inline">הצגה מרשימה</span>
-            <span className="sm:hidden">הצגה</span>
+            <span className="hidden sm:inline">{dict.presentation}</span>
+            <span className="sm:hidden">{dict.presentationShort}</span>
           </span>
         </TabsTrigger>
         <TabsTrigger
@@ -703,8 +705,8 @@ const EnhancedTabsSection: React.FC<{
           <div className="absolute inset-0 bg-gradient-to-r from-emerald-600/0 to-green-600/0 group-data-[state=active]:from-emerald-600/20 group-data-[state=active]:to-green-600/20 transition-all"></div>
           <User className="w-5 h-5 sm:w-6 sm:h-6 relative z-10" />
           <span className="relative z-10">
-            <span className="hidden sm:inline">פרופיל מלא</span>
-            <span className="sm:hidden">פרופיל</span>
+            <span className="hidden sm:inline">{dict.profile}</span>
+            <span className="sm:hidden">{dict.profileShort}</span>
           </span>
         </TabsTrigger>
         <TabsTrigger
@@ -714,8 +716,8 @@ const EnhancedTabsSection: React.FC<{
           <div className="absolute inset-0 bg-gradient-to-r from-blue-600/0 to-cyan-600/0 group-data-[state=active]:from-blue-600/20 group-data-[state=active]:to-cyan-600/20 transition-all"></div>
           <GitCompareArrows className="w-5 h-5 sm:w-6 sm:h-6 relative z-10" />
           <span className="relative z-10">
-            <span className="hidden sm:inline">ניתוח התאמה</span>
-            <span className="sm:hidden">התאמה</span>
+            <span className="hidden sm:inline">{dict.compatibility}</span>
+            <span className="sm:hidden">{dict.compatibilityShort}</span>
           </span>
         </TabsTrigger>
         <TabsTrigger
@@ -725,8 +727,8 @@ const EnhancedTabsSection: React.FC<{
           <div className="absolute inset-0 bg-gradient-to-r from-gray-600/0 to-slate-600/0 group-data-[state=active]:from-gray-600/20 group-data-[state=active]:to-slate-600/20 transition-all"></div>
           <Info className="w-5 h-5 sm:w-6 sm:h-6 relative z-10" />
           <span className="relative z-10">
-            <span className="hidden sm:inline">פרטים ותקשורת</span>
-            <span className="sm:hidden">פרטים</span>
+            <span className="hidden sm:inline">{dict.details}</span>
+            <span className="sm:hidden">{dict.detailsShort}</span>
           </span>
         </TabsTrigger>
       </TabsList>
@@ -750,7 +752,7 @@ const EnhancedTabsSection: React.FC<{
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom">
-                <p>{isFullscreen ? 'צמצם חלון' : 'הגדל למסך מלא'}</p>
+                <p>{isFullscreen ? dict.exitFullscreen : dict.fullscreen}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -777,6 +779,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   questionnaire,
   isDemo = false,
   demoAnalysisData = null,
+  dict,
 }) => {
   const [activeTab, setActiveTab] = useState('presentation');
   const [showAskDialog, setShowAskDialog] = useState(false);
@@ -883,7 +886,6 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
     onActionRequest(suggestion, 'approve');
     onClose();
   };
-
   const handleDecline = () => {
     onActionRequest(suggestion, 'decline');
     onClose();
@@ -944,6 +946,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                 onOpenChange={(open) => {
                   if (!open) setIsShowingAiAnalysis(false);
                 }}
+                dict={dict.aiAnalysis}
               />
             </div>
           ) : (
@@ -962,6 +965,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                     onToggleFullscreen={!isMobile ? toggleFullscreen : () => {}}
                     isMobile={isMobile}
                     isTransitioning={isTransitioning}
+                    dict={dict.modal.tabs}
                   />
                   <TabsContent value="presentation" className="mt-0">
                     <EnhancedHeroSection
@@ -975,6 +979,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                       matchingReason={suggestion.matchingReason}
                       onViewProfile={() => setActiveTab('profile')}
                       onStartConversation={() => setShowAskDialog(true)}
+                      dict={dict.modal.header}
                     />
                   </TabsContent>
                   <TabsContent
@@ -986,10 +991,10 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                         <div className="text-center">
                           <Loader2 className="w-12 h-12 animate-spin text-purple-600 mx-auto mb-4" />
                           <p className="text-lg font-semibold text-gray-700">
-                            טוען פרופיל מפורט...
+                            {dict.modal.profile.loading}
                           </p>
                           <p className="text-sm text-gray-500 mt-2">
-                            זה יכול לקחת מספר שניות
+                            {dict.modal.profile.loadingDescription}
                           </p>
                         </div>
                       </div>
@@ -1007,18 +1012,17 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                           <AlertTriangle className="w-12 h-12 text-red-500" />
                         </div>
                         <h3 className="text-2xl font-bold text-gray-800 mb-4">
-                          שגיאה בטעינת פרופיל
+                          {dict.modal.profile.errorTitle}
                         </h3>
                         <p className="text-gray-600 max-w-md mx-auto leading-relaxed">
-                          לא הצלחנו לטעון את הפרופיל. אנא פנה לשדכן לקבלת עזרה
-                          נוספת.
+                          {dict.modal.profile.errorDescription}
                         </p>
                         <Button
                           onClick={() => setShowAskDialog(true)}
                           className="mt-6 bg-gradient-to-r from-purple-500 to-pink-500 text-white"
                         >
                           <MessageCircle className="w-4 h-4 ml-2" />
-                          פנה לשדכן
+                          {dict.modal.profile.contactMatchmaker}
                         </Button>
                       </div>
                     )}
@@ -1038,25 +1042,23 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                       </div>
                       <div className="space-y-4 max-w-2xl">
                         <h3 className="text-3xl font-bold text-gray-800">
-                          🔮 רוצה מבט מעמיק יותר?
+                          {dict.modal.aiAnalysisCta.title}
                         </h3>
                         <p className="text-xl text-gray-600 leading-relaxed">
-                          ה-AI החכם שלנו יכול לנתח את כל הנתונים ולספק לך תובנות
-                          מקצועיות על פוטנציאל החיבור, נקודות חוזק, וגם רעיונות
-                          לפתיחת שיחה.
+                          {dict.modal.aiAnalysisCta.description}
                         </p>
                         <div className="flex items-center justify-center gap-4 text-sm text-gray-500 font-medium">
                           <div className="flex items-center gap-2">
                             <TrendingUp className="w-4 h-4" />
-                            <span>ניתוח עמוק</span>
+                            <span>{dict.modal.aiAnalysisCta.feature1}</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <Network className="w-4 h-4" />
-                            <span>נקודות חיבור</span>
+                            <span>{dict.modal.aiAnalysisCta.feature2}</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <Compass className="w-4 h-4" />
-                            <span>הדרכה אישית</span>
+                            <span>{dict.modal.aiAnalysisCta.feature3}</span>
                           </div>
                         </div>
                       </div>
@@ -1073,7 +1075,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                             <Sparkles className="w-3 h-3 absolute -top-1 -right-1 text-purple-500 opacity-0 group-hover:opacity-100" />
                           </div>
                           <span className="text-lg font-bold">
-                            ניתוח התאמה מבוסס AI
+                            {dict.modal.aiAnalysisCta.button}
                           </span>
                         </div>
                       </Button>
@@ -1105,6 +1107,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                 onApprove={handleApprove}
                 onDecline={handleDecline}
                 onAskQuestion={() => setShowAskDialog(true)}
+                dict={dict.modal.actions}
               />
             </>
           )}

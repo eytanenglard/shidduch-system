@@ -14,7 +14,7 @@ export type NavbarDict = {
 type PrincipleDict = {
   title: string;
   shortTitle: string;
-  description: string;
+  description:string;
 };
 
 export type HeroSectionDict = {
@@ -82,11 +82,10 @@ export type OurMethodDict = {
     cta_button: string;
     cta_features: string;
     worlds: WorldDict[];
-        example_header: string;
+    example_header: string;
     insight_header: string;
     dimension_prefix: string;
     dimension_suffix: string;
-
   };
 };
 
@@ -143,23 +142,22 @@ export type HowItWorksDict = {
   };
 };
 
-
-// --- The Master Dictionary Type for HomePage ---
+// --- The Master Dictionary Type for HomePage (remains for context) ---
 export type HomePageDictionary = {
   navbar: NavbarDict;
   heroSection: HeroSectionDict;
   valueProposition: ValuePropositionDict;
   ourMethod: OurMethodDict;
   howItWorks: HowItWorksDict;
-    matchmakerTeam: MatchmakerTeamDict; // <-- הוסף את השורה הזו
- successStories: SuccessStoriesDict; // <-- הוסף את השורה הזו
-  faq: FaqDict; // <-- הוסף את השורה הזו
-  privacyAssurance: PrivacyAssuranceDict; // <-- הוסף
-  cta: CtaDict;                           // <-- הוסף
-  footer: FooterDict;    
-    chatWidget: ChatWidgetDict; // <-- הוסף את השורה הזו
-                  cookieBanner: CookieBannerDict; // <-- הוסף את השורה הזו
-suggestions: SuggestionsDictionary;
+  matchmakerTeam: MatchmakerTeamDict;
+  successStories: SuccessStoriesDict;
+  faq: FaqDict;
+  privacyAssurance: PrivacyAssuranceDict;
+  cta: CtaDict;
+  footer: FooterDict;
+  chatWidget: ChatWidgetDict;
+  cookieBanner: CookieBannerDict;
+  suggestions: SuggestionsDictionary;
 };
 
 type TeamMemberDict = {
@@ -179,6 +177,7 @@ export type MatchmakerTeamDict = {
   contact_button_text: string;
   team: TeamMemberDict[];
 };
+
 type StoryDict = {
   text: string;
   author: string;
@@ -263,6 +262,7 @@ export type FooterDict = {
     };
   };
 };
+
 export type ChatWidgetDict = {
   aria_open: string;
   aria_close: string;
@@ -288,8 +288,6 @@ export type ChatWidgetDict = {
   };
 };
 
-
-
 export type CookieBannerDict = {
   aria_close: string;
   title: string;
@@ -300,11 +298,15 @@ export type CookieBannerDict = {
   decline_button: string;
 };
 
+// ======================================================================== //
+// ✨ START: NEW TYPES FOR SUGGESTIONS FEATURE ✨
+// ======================================================================== //
+
 export type SuggestionsCardDict = {
   suggestedBy: string;
   yourTurn: string;
   urgent: string;
-  viewDetailsAria: string;
+  viewDetailsAria: string; // e.g., "View full details for {{name}}"
   whySpecial: string;
   reasonTeaserDefault: string;
   clickForDetails: string;
@@ -324,7 +326,7 @@ export type SuggestionsModalDict = {
     subtitleLine2: string;
     suggestedBy: string;
     discoverMore: string;
-    ageInYears: string;
+    ageInYears: string; // e.g., "{{age}} years old"
     matchStoryTitle: string;
     matchStorySubtitle1: string;
     matchStorySubtitle2: string;
@@ -411,36 +413,49 @@ export type AiAnalysisDict = {
   importantNote: string;
   noteText: string;
   backButton: string;
+  triggerButton: string;
 };
 
-export type SuggestionsDictionary = {
-  container: SuggestionsContainerDict; // את זה כבר מימשנו, אז הוא נשאר חובה
-  card?: SuggestionsCardDict; // עדיין לא מימשנו -> הופך לאופציונלי
-  modal?: SuggestionsModalDict; // עדיין לא מימשנו -> הופך לאופציונלי
-  aiAnalysis?: AiAnalysisDict; // עדיין לא מימשנו -> הופך לאופציונלי
-  list?: SuggestionsListDict; // עדיין לא מימשנו -> הופך לאופציונלי
-  presentation?: SuggestionsPresentationDict; // עדיין לא מימשנו -> הופך לאופציונלי
-};
-
-export type Dictionary = {
-  // --- מפתחות מהמילון הראשי ---
-  metadata: MetadataDict;
-  navbar: NavbarDict;
-  heroSection: HeroSectionDict;
-  valueProposition: ValuePropositionDict;
-  ourMethod: OurMethodDict;
-  howItWorks: HowItWorksDict;
-  matchmakerTeam: MatchmakerTeamDict;
-  successStories: SuccessStoriesDict;
-  faq: FaqDict;
-  privacyAssurance: PrivacyAssuranceDict;
-  cta: CtaDict;
-  footer: FooterDict;
-  chatWidget: ChatWidgetDict;
-  cookieBanner: CookieBannerDict;
-
-  // --- מפתחות מהמילונים המודולריים ---
-  suggestions: SuggestionsDictionary;
+export type SuggestionsListDict = {
+  emptyState: {
+    noResultsTitle: string;
+    noHistoryTitle: string;
+    noActiveTitle: string;
+    noResultsDescription: string;
+    noHistoryDescription: string;
+    noActiveDescription: string;
+    clearFilters: string;
+  };
+  stats: {
+    showing: string;
+    total: string;
+    pending: string;
+    progress: string;
+  };
+  controls: {
+    searchPlaceholder: string;
+    filterLabel: string;
+    filterAll: string;
+    filterPending: string;
+    filterAccepted: string;
+    filterDeclined: string;
+    filterContactShared: string;
+    sortPlaceholder: string;
+    sortNewest: string;
+    sortOldest: string;
+    sortDeadline: string;
+    sortPriority: string;
+  };
+  activeFilters: {
+    title: string;
+    search: string;
+    clearAll: string;
+  };
+  resultsCount: {
+    showingSingle: string; // e.g., "Showing {{count}} suggestion of {{total}}"
+    showingMultiple: string; // e.g., "Showing {{count}} suggestions of {{total}}"
+    qualityMatches: string;
+  };
 };
 
 export type SuggestionsContainerDict = {
@@ -450,7 +465,7 @@ export type SuggestionsContainerDict = {
   };
   stats: {
     title: string;
-    subtitle:string;
+    subtitle: string;
     new: string;
     newDesc: string;
     yourTurn: string;
@@ -467,7 +482,7 @@ export type SuggestionsContainerDict = {
       urgent: string;
       history: string;
     };
-    errorLoading: string;
+    errorLoading: string; // e.g., "An error occurred: {error}"
     unknownError: string;
   };
   dialogs: {
@@ -485,7 +500,7 @@ export type SuggestionsContainerDict = {
     newSuggestionsTitle: string;
     newSuggestionsDescription: string;
     statusUpdateSuccess: string;
-    statusUpdateError: string;
+    statusUpdateError: string; // e.g., "Error updating status: {error}"
     approvedSuccess: string;
     approvedFirstPartyDesc: string;
     approvedSecondPartyDesc: string;
@@ -497,3 +512,71 @@ export type SuggestionsContainerDict = {
   };
 };
 
+// This is the main type for the new modular dictionary
+export type SuggestionsDictionary = {
+  container: SuggestionsContainerDict;
+  card: SuggestionsCardDict;
+  modal: SuggestionsModalDict;
+  aiAnalysis: AiAnalysisDict;
+  list: SuggestionsListDict;
+  presentation: SuggestionsPresentationDict;
+};
+
+// ======================================================================== //
+// ✨ END: NEW TYPES FOR SUGGESTIONS FEATURE ✨
+// ======================================================================== //
+
+// --- The COMPLETE Dictionary Type for the entire app ---
+export type Dictionary = {
+  // Keys from the main dictionary
+  navbar: NavbarDict;
+  heroSection: HeroSectionDict;
+  valueProposition: ValuePropositionDict;
+  ourMethod: OurMethodDict;
+  howItWorks: HowItWorksDict;
+  matchmakerTeam: MatchmakerTeamDict;
+  successStories: SuccessStoriesDict;
+  faq: FaqDict;
+  privacyAssurance: PrivacyAssuranceDict;
+  cta: CtaDict;
+  footer: FooterDict;
+  chatWidget: ChatWidgetDict;
+  cookieBanner: CookieBannerDict;
+  
+  // New, namespaced key for the modular dictionary
+  suggestions: SuggestionsDictionary;
+};
+
+
+export type SuggestionsPresentationDict = {
+  hero: {
+    title: string;
+    matchmakerThoughts: string; // e.g., "Thoughts from the matchmaker, {{name}}:"
+  };
+  peek: {
+    opportunity: string;
+    age: string; // e.g., ", {{age}}"
+    notSpecified: string;
+    viewProfileButton: string;
+  };
+  ingredients: {
+    title: string;
+    values: string;
+    personality: string;
+    background: string;
+    spark: string;
+    matchmakerNotes: string;
+  };
+  aiCta: {
+    title: string;
+    description: string;
+  };
+  // Add this new object for the MatchmakerRationale component
+  rationale: {
+    title: string;
+    description: string; // e.g., "Thoughts from the matchmaker {{name}}"
+    personalNoteTitle: string;
+    generalReasonTitle: string;
+    noReasonText: string;
+  };
+};

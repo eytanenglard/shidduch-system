@@ -6,14 +6,12 @@ import {
   Heart,
   Sparkles,
   User,
-  BookOpen,
+  GraduationCap,
   Scroll,
   MapPin,
   Briefcase,
   Quote,
-  GraduationCap,
   ChevronLeft,
-  type LucideProps,
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -22,17 +20,18 @@ import { UserAiAnalysisDialog } from '../dialogs/UserAiAnalysisDialog';
 import { getInitials } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import type { ExtendedMatchSuggestion } from '../types';
+import type {
+  SuggestionsPresentationDict,
+  AiAnalysisDict,
+} from '@/types/dictionary';
 
 // --- קומפוננטות עזר פנימיות לעיצוב החדש ---
 
-/**
- * HeroIntroduction: פתיח אישי מהשדכן.
- * יוצר את המסגרת הרגשית להצעה.
- */
 const HeroIntroduction: React.FC<{
   matchmaker: { firstName: string; lastName: string };
   personalNote?: string | null;
-}> = ({ matchmaker, personalNote }) => (
+  dict: SuggestionsPresentationDict['hero'];
+}> = ({ matchmaker, personalNote, dict }) => (
   <div className="text-center p-6 rounded-2xl bg-gradient-to-br from-purple-100/50 via-pink-100/50 to-blue-100/50 border border-purple-200/40 shadow-lg">
     <div className="flex justify-center mb-4">
       <Avatar className="w-16 h-16 border-4 border-white shadow-md">
@@ -42,10 +41,10 @@ const HeroIntroduction: React.FC<{
       </Avatar>
     </div>
     <h2 className="text-2xl md:text-3xl font-bold text-gray-800 tracking-tight">
-      הצעה מיוחדת בדרך אליך...
+      {dict.title}
     </h2>
     <p className="text-gray-600 mt-2">
-      מחשבות מהשדכן/ית, {matchmaker.firstName}:
+      {dict.matchmakerThoughts.replace('{{name}}', matchmaker.firstName)}
     </p>
     {personalNote && (
       <div className="mt-4 max-w-2xl mx-auto">
@@ -61,14 +60,11 @@ const HeroIntroduction: React.FC<{
   </div>
 );
 
-/**
- * ProfilePeek: כרטיס הצצה למועמד/ת.
- * עונה על השאלה "מי?" ויוצר סקרנות.
- */
 const ProfilePeek: React.FC<{
   targetParty: ExtendedMatchSuggestion['secondParty'];
   onViewProfileClick: () => void;
-}> = ({ targetParty, onViewProfileClick }) => {
+  dict: SuggestionsPresentationDict['peek'];
+}> = ({ targetParty, onViewProfileClick, dict }) => {
   const age = targetParty.profile?.birthDate
     ? new Date().getFullYear() -
       new Date(targetParty.profile.birthDate).getFullYear()
@@ -94,24 +90,26 @@ const ProfilePeek: React.FC<{
         <div className="md:col-span-2 p-6 flex flex-col justify-between bg-white">
           <div>
             <p className="text-sm font-semibold text-blue-600">
-              הזדמנות להכיר את
+              {dict.opportunity}
             </p>
             <h3 className="text-3xl font-extrabold text-gray-900 mt-1">
               {targetParty.firstName} {targetParty.lastName}
               {age && (
                 <span className="text-2xl font-bold text-gray-500 ml-2">
-                  , {age}
+                  {dict.age.replace('{{age}}', age.toString())}
                 </span>
               )}
             </h3>
             <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
               <div className="flex items-center gap-2 text-gray-700">
                 <MapPin className="w-4 h-4 text-teal-500" />
-                <span>{targetParty.profile?.city || 'לא צוין'}</span>
+                <span>{targetParty.profile?.city || dict.notSpecified}</span>
               </div>
               <div className="flex items-center gap-2 text-gray-700">
                 <Briefcase className="w-4 h-4 text-emerald-500" />
-                <span>{targetParty.profile?.occupation || 'לא צוין'}</span>
+                <span>
+                  {targetParty.profile?.occupation || dict.notSpecified}
+                </span>
               </div>
             </div>
           </div>
@@ -121,7 +119,7 @@ const ProfilePeek: React.FC<{
               size="lg"
               className="font-bold"
             >
-              לפרופיל המלא
+              {dict.viewProfileButton}
               <ChevronLeft className="w-5 h-5 mr-2" />
             </Button>
           </div>
@@ -131,28 +129,36 @@ const ProfilePeek: React.FC<{
   );
 };
 
-/**
- * KeyIngredients: רכיבי המפתח להתאמה.
- * הופך נתונים לסיפור שיווקי ומשכנע.
- */
 const KeyIngredients: React.FC<{
   matchingReason?: string | null;
-}> = ({ matchingReason }) => {
-  // לוגיקה פשוטה לחילוץ נקודות מסיבת ההתאמה
+  dict: SuggestionsPresentationDict['ingredients'];
+}> = ({ matchingReason, dict }) => {
   const getHighlightsFromReason = () => {
     const highlights: { icon: React.ElementType; text: string }[] = [];
     const reason = matchingReason?.toLowerCase() || '';
-    if (reason.includes('ערכים') || reason.includes('השקפה')) {
-      highlights.push({ icon: Scroll, text: 'ערכים והשקפת עולם' });
+    if (
+      reason.includes('ערכים') ||
+      reason.includes('השקפה') ||
+      reason.includes('values')
+    ) {
+      highlights.push({ icon: Scroll, text: dict.values });
     }
-    if (reason.includes('אישיות') || reason.includes('אופי')) {
-      highlights.push({ icon: Heart, text: 'חיבור אישיותי' });
+    if (
+      reason.includes('אישיות') ||
+      reason.includes('אופי') ||
+      reason.includes('personality')
+    ) {
+      highlights.push({ icon: Heart, text: dict.personality });
     }
-    if (reason.includes('רקע') || reason.includes('השכלה')) {
-      highlights.push({ icon: GraduationCap, text: 'רקע וסגנון חיים' });
+    if (
+      reason.includes('רקע') ||
+      reason.includes('השכלה') ||
+      reason.includes('background')
+    ) {
+      highlights.push({ icon: GraduationCap, text: dict.background });
     }
     if (highlights.length === 0 && matchingReason) {
-      highlights.push({ icon: Sparkles, text: 'ניצוץ מיוחד' });
+      highlights.push({ icon: Sparkles, text: dict.spark });
     }
     return highlights;
   };
@@ -163,9 +169,7 @@ const KeyIngredients: React.FC<{
 
   return (
     <div className="text-center">
-      <h3 className="text-2xl font-bold text-gray-800 mb-6">
-        רכיבי מפתח להתאמה מוצלחת
-      </h3>
+      <h3 className="text-2xl font-bold text-gray-800 mb-6">{dict.title}</h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {highlights.map((item, index) => (
           <div
@@ -183,7 +187,7 @@ const KeyIngredients: React.FC<{
         <Card className="mt-6 bg-blue-50 border-blue-200">
           <CardContent className="p-4">
             <p className="text-gray-700 text-center">
-              <span className="font-semibold">פירוט מהשדכן/ית:</span>{' '}
+              <span className="font-semibold">{dict.matchmakerNotes}</span>{' '}
               {matchingReason}
             </p>
           </CardContent>
@@ -198,26 +202,28 @@ interface MatchPresentationViewProps {
   suggestion: ExtendedMatchSuggestion;
   userId: string;
   onSwitchTab: (tab: 'profile' | 'details' | 'compatibility') => void;
+  dict: SuggestionsPresentationDict;
+  aiAnalysisDict: AiAnalysisDict;
 }
 
 const MatchPresentationView: React.FC<MatchPresentationViewProps> = ({
   suggestion,
   userId,
   onSwitchTab,
+  dict,
+  aiAnalysisDict,
 }) => {
   const isFirstParty = suggestion.firstPartyId === userId;
   const targetParty = isFirstParty
     ? suggestion.secondParty
     : suggestion.firstParty;
 
-  // פונקציה שתעביר את המשתמש לטאב הפרופיל
   const handleViewProfile = () => {
     onSwitchTab('profile');
   };
 
   return (
     <div className="p-4 md:p-8 space-y-8 bg-gradient-to-b from-slate-50 to-blue-50">
-      {/* 1. הפתיח האישי */}
       <HeroIntroduction
         matchmaker={suggestion.matchmaker}
         personalNote={
@@ -225,27 +231,31 @@ const MatchPresentationView: React.FC<MatchPresentationViewProps> = ({
             ? suggestion.firstPartyNotes
             : suggestion.secondPartyNotes
         }
+        dict={dict.hero}
       />
 
-      {/* 2. כרטיס הצצה למועמד/ת */}
       <ProfilePeek
         targetParty={targetParty}
         onViewProfileClick={handleViewProfile}
+        dict={dict.peek}
       />
 
-      {/* 3. רכיבי המפתח להתאמה */}
-      <KeyIngredients matchingReason={suggestion.matchingReason} />
+      <KeyIngredients
+        matchingReason={suggestion.matchingReason}
+        dict={dict.ingredients}
+      />
 
-      {/* 4. חוות דעת נוספת - AI */}
       <div className="text-center pt-4 border-t border-gray-200">
         <h3 className="text-xl font-semibold text-gray-700 mb-3">
-          רוצה חוות דעת נוספת?
+          {dict.aiCta.title}
         </h3>
         <p className="text-gray-600 max-w-xl mx-auto mb-4">
-          קבל ניתוח מעמיק מבוסס AI על נקודות החיבור, פוטנציאל לצמיחה ואפילו
-          רעיונות לפתיחת שיחה.
+          {dict.aiCta.description}
         </p>
-        <UserAiAnalysisDialog suggestedUserId={targetParty.id} />
+        <UserAiAnalysisDialog
+          suggestedUserId={targetParty.id}
+          dict={aiAnalysisDict}
+        />
       </div>
     </div>
   );
