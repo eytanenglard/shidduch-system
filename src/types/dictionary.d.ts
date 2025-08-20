@@ -158,6 +158,8 @@ export type HomePageDictionary = {
   chatWidget: ChatWidgetDict;
   cookieBanner: CookieBannerDict;
   suggestions: SuggestionsDictionary;
+      demoProfileCard: DemoProfileCardDict;
+
 };
 
 type TeamMemberDict = {
@@ -769,3 +771,25 @@ export type MatchSuggestionStatus =
   | 'THINKING_AFTER_DATE' | 'PROCEEDING_TO_SECOND_DATE' | 'ENDED_AFTER_FIRST_DATE'
   | 'MEETING_PENDING' | 'MEETING_SCHEDULED' | 'MATCH_APPROVED' | 'MATCH_DECLINED'
   | 'DATING' | 'ENGAGED' | 'MARRIED' | 'EXPIRED' | 'CLOSED' | 'CANCELLED';
+
+
+  export type DemoProfileCardDict = {
+  tabs: {
+    essence: string;
+    story: string;
+    vision: string;
+  };
+  vision: {
+    q1: string;
+    a1: string;
+    q2: string;
+    a2: string;
+  };
+  ctaButton: string;
+  imageNav: {
+    prev: string;
+    next: string;
+    showImage: string; // e.g., "Show image number {{number}}"
+  };
+  tablistLabel: string;
+};

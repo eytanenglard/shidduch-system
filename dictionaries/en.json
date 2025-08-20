@@ -364,5 +364,25 @@
     "text_part2": ".",
     "accept_button": "Accept",
     "decline_button": "Decline"
-  }
+  },
+  "demoProfileCard": {
+  "tabs": {
+    "essence": "Essence",
+    "story": "Answers",
+    "vision": "Vision"
+  },
+  "vision": {
+    "q1": "How do I see my partner?",
+    "a1": "A person with an open heart, a sense of humor, and a true desire to grow together. Someone who is both a best friend and a partner for the journey.",
+    "q2": "What is my vision for a family?",
+    "a2": "A warm and vibrant home, open to guests, where children grow up with values of giving, love of Torah, and the Land of Israel."
+  },
+  "ctaButton": "Want to receive suggestions like this?",
+  "imageNav": {
+    "prev": "Previous image",
+    "next": "Next image",
+    "showImage": "Show image number {{number}}"
+  },
+  "tablistLabel": "Demo profile navigation"
+}
 }

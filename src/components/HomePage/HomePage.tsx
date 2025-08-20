@@ -23,9 +23,13 @@ import ChatWidget from '../ChatWidget/ChatWidget';
 import StickyNav, { NavLink } from './components/StickyNav';
 import CookieBanner from '../ui/CookieBanner';
 import type { HomePageDictionary } from '@/types/dictionary';
+import { generateDemoData } from './components/demo-data';
+
+type DemoData = Awaited<ReturnType<typeof generateDemoData>>;
 
 interface HomePageProps {
   dict: HomePageDictionary;
+  demoData: DemoData;
 }
 
 export default function HomePage({ dict }: HomePageProps) {
@@ -75,9 +79,10 @@ export default function HomePage({ dict }: HomePageProps) {
       <ValuePropositionSection dict={dict.valueProposition} />
 
       <OurMethodSection dict={dict.ourMethod} />
-<HowItWorksSection 
-        dict={dict.howItWorks} 
-        suggestionsDict={dict.suggestions} // הוספנו prop חדש
+      <HowItWorksSection
+        dict={dict.howItWorks}
+        suggestionsDict={dict.suggestions}
+        demoData={demoData} // ✅ 4. העבר את ה-demoData למטה
       />
       <MatchmakerTeamSection dict={dict.matchmakerTeam} />
       <SuccessStoriesSection dict={dict.successStories} />

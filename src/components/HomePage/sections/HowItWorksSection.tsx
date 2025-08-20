@@ -6,12 +6,7 @@ import Image from 'next/image';
 import { getRelativeCloudinaryPath } from '@/lib/utils';
 import Step from '../components/Step';
 import { LiveSuggestionDemo } from '../components/LiveSuggestionDemo';
-import {
-  demoSuggestionDataFemale,
-  demoSuggestionDataMale,
-  demoAiAnalysisForDaniel,
-  demoAiAnalysisForNoa,
-} from '../components/demo-data';
+
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import {
@@ -29,10 +24,14 @@ import {
 import { motion, useInView } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 import type { HowItWorksDict, SuggestionsDictionary } from '@/types/dictionary';
+import { generateDemoData } from '../components/demo-data';
+
+type DemoData = Awaited<ReturnType<typeof generateDemoData>>;
 
 interface HowItWorksProps {
   dict: HowItWorksDict;
-  suggestionsDict: SuggestionsDictionary; // ✨ קבל את ה-prop החדש
+  suggestionsDict: SuggestionsDictionary;
+  demoData: DemoData; // הוסף את זה
 }
 // --- END: Type Definitions ---
 
@@ -118,6 +117,7 @@ const KeyBenefit: React.FC<{
 const HowItWorksSection: React.FC<HowItWorksProps> = ({
   dict,
   suggestionsDict,
+  demoData,
 }) => {
   const demoRef = useRef(null);
   const isDemoInView = useInView(demoRef, { once: true, amount: 0.1 });
@@ -258,10 +258,10 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
                 <div className="absolute -inset-2 bg-gradient-to-r from-cyan-500/20 via-pink-500/20 to-cyan-500/20 rounded-3xl blur-xl" />
                 <div className="relative">
                   <LiveSuggestionDemo
-                    suggestion={demoSuggestionDataMale}
+                    suggestion={demoData.demoSuggestionDataMale}
                     userId="visitor-user-id"
-                    demoAiAnalysis={demoAiAnalysisForDaniel}
-                    suggestionsDict={suggestionsDict} // ✨ העבר אותו הלאה
+                    demoAiAnalysis={demoData.demoAiAnalysisForDaniel}
+                    suggestionsDict={suggestionsDict}
                   />
                 </div>
               </div>
@@ -274,10 +274,10 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
                 <div className="absolute -inset-2 bg-gradient-to-r from-pink-500/20 via-orange-500/20 to-pink-500/20 rounded-3xl blur-xl" />
                 <div className="relative">
                   <LiveSuggestionDemo
-                    suggestion={demoSuggestionDataFemale}
+                    suggestion={demoData.demoSuggestionDataFemale}
                     userId="visitor-user-id"
-                    demoAiAnalysis={demoAiAnalysisForNoa}
-                    suggestionsDict={suggestionsDict} // ✨ העבר אותו הלאה
+                    demoAiAnalysis={demoData.demoAiAnalysisForNoa}
+                    suggestionsDict={suggestionsDict}
                   />
                 </div>
               </div>

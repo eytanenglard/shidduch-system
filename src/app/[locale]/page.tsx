@@ -1,12 +1,20 @@
-import HomePage from '@/components/HomePage/HomePage';
-import { getDictionary } from '@/lib/dictionaries';
-import { Locale } from '../../../i18n-config';
+// src/app/[locale]/page.tsx
 
-export default async function Page({
+import { getDictionary } from '@/lib/dictionaries';
+// ✅ תיקון נתיב הייבוא - מוביל לשורש הפרויקט
+import type { Locale } from '@/i18n-config'; 
+import HomePage from '@/components/HomePage/HomePage';
+import { generateDemoData } from '@/components/HomePage/components/demo-data';
+
+export default async function Home({
   params: { locale },
 }: {
   params: { locale: Locale };
 }) {
-  const dictionary = await getDictionary(locale);
-  return <HomePage dict={dictionary} />;
+  const [dictionary, demoData] = await Promise.all([
+    getDictionary(locale),
+    generateDemoData(locale),
+  ]);
+
+  return <HomePage dict={dictionary} demoData={demoData} />;
 }
