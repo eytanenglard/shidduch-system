@@ -26,31 +26,8 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { getRelativeCloudinaryPath } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
+import type { OurMethodDict, WorldDict  } from '@/types/dictionary';
 
-// --- START: Type Definitions ---
-interface WorldDict {
-  title: string;
-  shortDesc: string;
-  fullDescription: string;
-  personalExample: string;
-  insight: string;
-}
-
-interface OurMethodDict {
-  constellation: {
-    header: string;
-    title_part1: string;
-    title_part2: string;
-    subtitle: string;
-    cta_header: string;
-    cta_title_part1: string;
-    cta_title_part2: string;
-    cta_subtitle: string;
-    cta_button: string;
-    cta_features: string;
-    worlds: WorldDict[];
-  };
-}
 
 interface OurMethodProps {
   dict: OurMethodDict;

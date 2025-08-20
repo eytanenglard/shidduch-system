@@ -28,59 +28,8 @@ import {
 } from 'lucide-react';
 import { motion, useInView } from 'framer-motion';
 import { usePathname } from 'next/navigation';
+import type { HowItWorksDict } from '@/types/dictionary';
 
-// --- START: Type Definitions ---
-interface StepDict {
-  title: string;
-  description: string;
-  linkText?: string;
-}
-
-interface BenefitDict {
-  title: string;
-  description: string;
-}
-
-interface HowItWorksDict {
-  promise: {
-    header: string;
-    title_line1: string;
-    title_line2_part1: string;
-    title_line2_part2: string;
-    subtitle_line1: string;
-    subtitle_line2: string;
-  };
-  process: {
-    steps: StepDict[];
-  };
-  proof: {
-    header: string;
-    title_part1: string;
-    title_part2: string;
-    subtitle: string;
-    demo_female: string;
-    demo_male: string;
-  };
-  keyBenefits: {
-    title_part1: string;
-    title_part2: string;
-    benefits: BenefitDict[];
-  };
-  testimonial: {
-    header: string;
-    quote: string;
-    author_name: string;
-    author_role: string;
-  };
-  finalCta: {
-    title_line1: string;
-    title_line2: string;
-    subtitle_line1: string;
-    subtitle_line2: string;
-    button: string;
-    features: string;
-  };
-}
 
 interface HowItWorksProps {
   dict: HowItWorksDict;

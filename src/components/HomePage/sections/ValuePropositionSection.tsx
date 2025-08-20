@@ -5,32 +5,7 @@ import { motion, useInView } from 'framer-motion';
 import ComparisonItem from '../components/ComparisonItem';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation'; // ✨ 1. ייבוא hook נדרש
-
-// --- ✨ 2. הגדרת טיפוסים מדויקים עבור ה-dict ---
-type SolutionItem = {
-  bold: string;
-  text?: string;
-  textWithLink?: {
-    part1: string;
-    linkText: string;
-    part2: string;
-  };
-};
-
-type ValuePropositionDict = {
-  title_part1: string;
-  title_brand: string;
-  title_part2: string;
-  subtitle: string;
-  challengeCard: {
-    title: string;
-    items: string[];
-  };
-  solutionCard: {
-    title: string;
-    items: SolutionItem[];
-  };
-};
+import type { ValuePropositionDict } from '@/types/dictionary';
 
 interface ValuePropositionProps {
   dict: ValuePropositionDict;

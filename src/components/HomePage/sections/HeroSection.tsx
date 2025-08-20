@@ -18,31 +18,7 @@ import {
 import { Session } from 'next-auth';
 import { getRelativeCloudinaryPath } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
-
-// --- ✨ 1. הגדרת טיפוסים (Types) מדויקים עבור ה-dict ---
-type Principle = {
-  title: string;
-  shortTitle: string;
-  description: string;
-};
-
-type HeroSectionDict = {
-  titleLine1: string;
-  highlightedWord: string;
-  typewriterText: string;
-  ctaButton: string;
-  secondaryButton: string;
-  principlesHeader: {
-    title: string;
-    subtitle: string;
-  };
-  principles: Principle[];
-  synergy: {
-    // <-- הוסף את האובייקט הזה
-    techTools: string;
-    personalGuidance: string;
-  };
-};
+import type { HeroSectionDict, PrincipleDict } from '@/types/dictionary';
 
 interface HeroSectionProps {
   session: Session | null;
@@ -86,18 +62,21 @@ const TypewriterText: React.FC<{
 // --- קומפוננטות העקרונות (מעודכנות לקבל props) ---
 const principleIcons = [
   <BookOpen
+    key="principle-icon-1"
     className="w-9 h-9"
     strokeWidth={2.8}
     fill="none"
     stroke="currentColor"
   />,
   <Shield
+    key="principle-icon-2"
     className="w-9 h-9"
     strokeWidth={2.8}
     fill="none"
     stroke="currentColor"
   />,
   <User
+    key="principle-icon-3"
     className="w-9 h-9"
     strokeWidth={2.8}
     fill="none"
@@ -107,7 +86,7 @@ const principleIcons = [
 
 // --- קומפוננטת כרטיסיית העקרונות עבור דסקטופ ---
 interface DesktopPrincipleCardProps {
-  principle: Principle;
+  principle: PrincipleDict;
   index: number;
 }
 const DesktopPrincipleCard: React.FC<DesktopPrincipleCardProps> = ({
@@ -176,7 +155,7 @@ interface MobilePrinciplesTabsProps {
   isVisible: boolean;
   dict: {
     principlesHeader: { title: string; subtitle: string };
-    principles: Principle[];
+    principles: PrincipleDict[];
   };
 }
 const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({

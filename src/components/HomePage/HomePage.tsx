@@ -22,19 +22,10 @@ import Navbar from '../layout/Navbar';
 import ChatWidget from '../ChatWidget/ChatWidget';
 import StickyNav, { NavLink } from './components/StickyNav';
 import CookieBanner from '../ui/CookieBanner';
-
-// ✨ 1. הרחבת הטיפוס כך שיכלול את המפתחות החדשים
-type Dictionary = {
-  navbar: any;
-  heroSection: any;
-  valueProposition: any;
-  ourMethod: any; // הוספנו
-  howItWorks: any; // הוספנו
-  // נוסיף כאן את שאר החלקים כשנתרגם אותם
-};
+import type { HomePageDictionary } from '@/types/dictionary';
 
 interface HomePageProps {
-  dict: Dictionary;
+  dict: HomePageDictionary;
 }
 
 export default function HomePage({ dict }: HomePageProps) {
@@ -75,14 +66,17 @@ export default function HomePage({ dict }: HomePageProps) {
             ? 'opacity-0 -translate-y-full pointer-events-none'
             : 'opacity-100'
         }`}
-      >
-      </div>
+      ></div>
 
       <StickyNav navLinks={navLinks} session={session} />
 
-      <HeroSection session={session} isVisible={isVisible} dict={dict.heroSection} />
+      <HeroSection
+        session={session}
+        isVisible={isVisible}
+        dict={dict.heroSection}
+      />
       <ValuePropositionSection dict={dict.valueProposition} />
-      
+
       {/* ✨ 2. העברת המילון לרכיבים המעודכנים */}
       <OurMethodSection dict={dict.ourMethod} />
       <HowItWorksSection dict={dict.howItWorks} />

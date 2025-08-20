@@ -9,7 +9,7 @@ import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 
 // --- START: I18N Imports & Config ---
-import { i18n } from '../i18n-config';
+import { i18n, type Locale } from '../i18n-config';
 import { match as matchLocale } from '@formatjs/intl-localematcher';
 import Negotiator from 'negotiator';
 // --- END: I18N Imports & Config ---
@@ -146,14 +146,15 @@ export default withAuth(
     const token = req.nextauth.token;
 
     // Helper function להסרת קידומת השפה מהנתיב לצורך בדיקות ההרשאות
-    const getPathWithoutLocale = (currentPath: string) => {
-      const parts = currentPath.split('/');
-      if (i18n.locales.includes(parts[1] as any)) {
-        parts.splice(1, 1);
-        return parts.join('/') || '/';
-      }
-      return currentPath;
-    };
+const getPathWithoutLocale = (currentPath: string) => {
+  const parts = currentPath.split('/');
+  if (i18n.locales.includes(parts[1] as Locale)) { // <-- השורה המתוקנת
+    parts.splice(1, 1);
+    return parts.join('/') || '/';
+  }
+  return currentPath;
+};
+
     
     const pathWithoutLocale = getPathWithoutLocale(pathname);
 

@@ -7,9 +7,19 @@ import Navbar from '@/components/layout/Navbar';
 import { Toaster } from 'sonner';
 import { ReactNode, useState, useEffect } from 'react'; // ✨ 1. ייבוא Hooks
 
-type Dictionary = {
-  navbar: any;
+type NavbarDict = {
+  myMatches: string;
+  matchmakingQuestionnaire: string;
+  messages: string;
+  login: string;
+  register: string;
+  toQuestionnaire: string;
 };
+
+type Dictionary = {
+  navbar: NavbarDict;
+};
+
 
 interface AppContentProps {
   children: ReactNode;
@@ -18,7 +28,7 @@ interface AppContentProps {
 
 export default function AppContent({ children, dict }: AppContentProps) {
   const pathname = usePathname();
-
+  
   // ✨ 2. הוספת state לניהול נראות ה-Navbar הגלובלי
   const [isMainNavbarVisible, setIsMainNavbarVisible] = useState(true);
 
@@ -40,7 +50,7 @@ export default function AppContent({ children, dict }: AppContentProps) {
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     // הפעלה ראשונית כדי לקבוע את המצב ההתחלתי
-    handleScroll();
+    handleScroll(); 
 
     // ניקוי ה-event listener כשהרכיב יורד
     return () => window.removeEventListener('scroll', handleScroll);
@@ -52,20 +62,20 @@ export default function AppContent({ children, dict }: AppContentProps) {
   return (
     <div className="flex flex-col min-h-screen">
       <Toaster position="top-center" richColors />
-
+      
       {/* ✨ 4. עטיפת ה-Navbar ב-div שמנהל את האנימציה */}
       {!isNavbarManuallyHidden && (
-        <div
-          className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out ${
-            isMainNavbarVisible
-              ? 'opacity-100'
-              : 'opacity-0 -translate-y-full pointer-events-none'
-          }`}
-        >
-          <Navbar dict={dict.navbar} />
-        </div>
+         <div
+            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out ${
+              isMainNavbarVisible
+                ? 'opacity-100'
+                : 'opacity-0 -translate-y-full pointer-events-none'
+            }`}
+          >
+            <Navbar dict={dict.navbar} />
+         </div>
       )}
-
+      
       <main className="flex-grow">{children}</main>
     </div>
   );
