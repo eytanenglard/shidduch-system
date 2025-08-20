@@ -17,7 +17,7 @@ import PrivacyAssuranceSection from './sections/PrivacyAssuranceSection';
 import CTASection from './sections/CTASection';
 import FooterSection from './sections/FooterSection';
 
-// ייבוא רכיבי חיצוניים
+// Import external components
 import Navbar from '../layout/Navbar';
 import ChatWidget from '../ChatWidget/ChatWidget';
 import StickyNav, { NavLink } from './components/StickyNav';
@@ -25,21 +25,23 @@ import CookieBanner from '../ui/CookieBanner';
 import type { HomePageDictionary } from '@/types/dictionary';
 import { generateDemoData } from './components/demo-data';
 
+// ✅ 1. הגדרת הטיפוס עבור נתוני הדמו
 type DemoData = Awaited<ReturnType<typeof generateDemoData>>;
 
+// ✅ 2. עדכון הממשק של ה-props כך שיכלול גם את demoData
 interface HomePageProps {
   dict: HomePageDictionary;
   demoData: DemoData;
 }
 
-export default function HomePage({ dict }: HomePageProps) {
+export default function HomePage({ dict, demoData }: HomePageProps) {
+  // ✅ 3. קבלת demoData כ-prop
   const { data: session } = useSession();
   const [isVisible, setIsVisible] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
-      // המצב isScrolled ישמש אך ורק עבור ה-StickyNav
       setIsScrolled(window.scrollY > 10);
     };
 
@@ -65,10 +67,6 @@ export default function HomePage({ dict }: HomePageProps) {
 
   return (
     <div className="min-h-screen w-full overflow-x-hidden">
-      {/* ✨ 1. הסרנו את ה-div הריק והמיותר שהתנגש עם ה-Navbar הראשי */}
-
-      {/* ✨ 2. העברנו את מצב הגלילה כ-prop לקומפוננטת ה-StickyNav */}
-      {/* (יתכן שתצטרך לעדכן את StickyNav כך שישתמש ב-prop זה כדי לשלוט בנראות שלו) */}
       <StickyNav navLinks={navLinks} session={session} isVisible={isScrolled} />
 
       <HeroSection
@@ -79,10 +77,12 @@ export default function HomePage({ dict }: HomePageProps) {
       <ValuePropositionSection dict={dict.valueProposition} />
 
       <OurMethodSection dict={dict.ourMethod} />
+
+      {/* ✅ 4. העברת demoData לרכיב HowItWorksSection פותרת את שגיאת 'Cannot find name' */}
       <HowItWorksSection
         dict={dict.howItWorks}
         suggestionsDict={dict.suggestions}
-        demoData={demoData} // ✅ 4. העבר את ה-demoData למטה
+        demoData={demoData}
       />
       <MatchmakerTeamSection dict={dict.matchmakerTeam} />
       <SuccessStoriesSection dict={dict.successStories} />

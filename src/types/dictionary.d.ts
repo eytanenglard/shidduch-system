@@ -158,7 +158,7 @@ export type HomePageDictionary = {
   chatWidget: ChatWidgetDict;
   cookieBanner: CookieBannerDict;
   suggestions: SuggestionsDictionary;
-      demoProfileCard: DemoProfileCardDict;
+  demoProfileCard: DemoProfileCardDict;
 
 };
 

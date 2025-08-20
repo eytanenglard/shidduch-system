@@ -2,39 +2,37 @@
 
 import 'server-only';
 import type { Locale } from '../../i18n-config';
-import type { Dictionary } from '@/types/dictionary';
+// ✅ ייבוא הטיפוס המלא והמדויק
+import type { Dictionary, HomePageDictionary } from '@/types/dictionary';
 
-// טוען את המילון הראשי (כל מה שהיה קיים עד עכשיו)
 const mainDictionaries = {
   en: () => import('../../dictionaries/en.json').then((module) => module.default),
   he: () => import('../../dictionaries/he.json').then((module) => module.default),
 };
 
-// ✨ הוספה: טוען את המילון החדש של ההצעות
 const suggestionsDictionaries = {
   en: () => import('../../dictionaries/suggestions/en.json').then((module) => module.default),
   he: () => import('../../dictionaries/suggestions/he.json').then((module) => module.default),
 };
 
-
 /**
  * פונקציה אסינכרונית לקבלת המילון המלא עבור שפה ספציפית,
  * המורכב ממספר קבצי JSON.
  * @param locale - קוד השפה ('he' או 'en')
- * @returns {Promise<Dictionary>} - אובייקט JSON עם כל הטקסטים המתורגמים.
+ * @returns {Promise<HomePageDictionary>} - ✅ שינוי: מחזירים טיפוס שתואם לדף הבית
  */
-export const getDictionary = async (locale: Locale): Promise<Dictionary> => {
+export const getDictionary = async (locale: Locale): Promise<HomePageDictionary> => {
   const targetLocale = mainDictionaries[locale] ? locale : 'he';
 
-  // ✨ שינוי: טוענים את כל המילונים במקביל לביצועים מיטביים
   const [main, suggestions] = await Promise.all([
     mainDictionaries[targetLocale](),
     suggestionsDictionaries[targetLocale](),
   ]);
 
-  // ✨ שינוי: מאחדים את כל המילונים לאובייקט אחד
+  // ✅ מאחדים את כל המילונים לאובייקט אחד שתואם ל-HomePageDictionary
+  //    זה פותר את שגיאת הטיפוסים.
   return {
-    ...main,
-    suggestions, // המפתח 'suggestions' יכיל את כל התרגומים מהקובץ החדש
-  };
+    ...main, // main מכיל עכשיו את navbar, heroSection, ..., וגם demoProfileCard
+    suggestions,
+  } as HomePageDictionary; // Cast to ensure type safety
 };
