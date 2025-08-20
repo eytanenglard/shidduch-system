@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { useSession } from 'next-auth/react';
+import type { SuggestionsDictionary } from '@/types/dictionary';
 import {
   Plus,
   RefreshCw,
@@ -445,7 +446,13 @@ type SuggestionDetailsActionType =
   | 'export'
   | 'resendToAll';
 
-export default function MatchmakerDashboard() {
+interface MatchmakerDashboardProps {
+  dict: SuggestionsDictionary;
+}
+
+export default function MatchmakerDashboard({
+  dict,
+}: MatchmakerDashboardProps) {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [mobileView, setMobileView] = useState<'list' | 'kanban'>('list');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
@@ -1051,7 +1058,7 @@ export default function MatchmakerDashboard() {
           stats={heroStats}
         />
 
-             {/* Main Content */}
+        {/* Main Content */}
         <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm overflow-hidden rounded-3xl">
           <div className="bg-gradient-to-r from-white via-purple-50/30 to-pink-50/30 border-b border-purple-100 p-6">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -1235,6 +1242,7 @@ export default function MatchmakerDashboard() {
         onClose={() => setSelectedSuggestion(null)}
         onAction={handleDialogAction}
         userId={session?.user?.id || ''}
+        dict={dict}
       />
 
       <Dialog
