@@ -542,7 +542,8 @@ export type Dictionary = {
   footer: FooterDict;
   chatWidget: ChatWidgetDict;
   cookieBanner: CookieBannerDict;
-  
+    metadata: MetadataDict;
+
   // New, namespaced key for the modular dictionary
   suggestions: SuggestionsDictionary;
 };
@@ -579,4 +580,8 @@ export type SuggestionsPresentationDict = {
     generalReasonTitle: string;
     noReasonText: string;
   };
+};
+export type MetadataDict = {
+  title: string;
+  description: string;
 };
