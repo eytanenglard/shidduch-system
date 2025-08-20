@@ -144,6 +144,8 @@ export type HowItWorksDict = {
 
 // --- The Master Dictionary Type for HomePage (remains for context) ---
 export type HomePageDictionary = {
+    metadata: MetadataDict; // <-- הוסף את השורה הזו
+
   navbar: NavbarDict;
   heroSection: HeroSectionDict;
   valueProposition: ValuePropositionDict;
