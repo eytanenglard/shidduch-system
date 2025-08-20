@@ -23,6 +23,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import SuggestionCard from '../cards/SuggestionCard'; // Make sure this is imported
+import type { SuggestionsDictionary } from '@/types/dictionary';
 
 // Define a more specific action type to avoid 'any'
 type SuggestionActionType =
@@ -48,6 +49,7 @@ interface ManagerSuggestionsListProps {
   searchQuery: string;
   type: 'active' | 'pending' | 'history';
   onSuggestionDeleted?: (id: string) => void;
+  dict: SuggestionsDictionary;
 }
 
 const ManagerSuggestionsList: React.FC<ManagerSuggestionsListProps> = ({
@@ -56,6 +58,7 @@ const ManagerSuggestionsList: React.FC<ManagerSuggestionsListProps> = ({
   searchQuery,
   type,
   onSuggestionDeleted,
+    dict,
 }) => {
   const { data: session } = useSession();
   const [selectedSuggestion, setSelectedSuggestion] =
@@ -213,6 +216,8 @@ const ManagerSuggestionsList: React.FC<ManagerSuggestionsListProps> = ({
           })
         }
         userId={session?.user?.id || ''}
+        dict={dict}
+      
       />
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
