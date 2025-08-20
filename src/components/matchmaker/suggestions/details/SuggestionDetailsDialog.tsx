@@ -71,6 +71,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import type { SuggestionsDictionary } from '@/types/dictionary';
 
 // Define action types
 type SuggestionDetailsActionType =
@@ -109,6 +110,7 @@ interface SuggestionDetailsDialogProps {
     data?: DialogActionData
   ) => void;
   userId: string;
+  dict: SuggestionsDictionary;
 }
 
 // Define the return type for the status info object
@@ -968,6 +970,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
   onClose,
   onAction,
   userId,
+  dict,
 }) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [firstPartyQuestionnaire, setFirstPartyQuestionnaire] =
@@ -1148,6 +1151,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                     suggestionId={suggestion.id}
                     userId={userId}
                     showComposer={true}
+                    dict={dict.inquiryThread}
                   />
                 </div>
               </div>
